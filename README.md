@@ -16,6 +16,12 @@ npm install
 quasar dev
 ```
 
+To run desktop electron app do:
+
+```javascript
+quasar dev -m electron
+```
+
 ### Lint the files
 
 ```bash
