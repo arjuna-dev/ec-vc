@@ -1,7 +1,10 @@
-import { app, BrowserWindow } from 'electron'
+import fs from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
+import fse from 'fs-extra'
+
+import { app, BrowserWindow, ipcMain } from 'electron'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -9,6 +12,40 @@ const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 let mainWindow
+
+function registerIpc () {
+  ipcMain.handle('fs:homedir', () => os.homedir())
+
+  ipcMain.handle('fs:readdir', async (_event, dirPath) => {
+    const resolvedPath = path.resolve(String(dirPath || ''))
+
+    const dirents = await fs.readdir(resolvedPath, { withFileTypes: true })
+    const entries = dirents
+      .map((d) => {
+        const entryPath = path.join(resolvedPath, d.name)
+        return {
+          name: d.name,
+          path: entryPath,
+          type: d.isDirectory() ? 'directory' : d.isFile() ? 'file' : 'other',
+        }
+      })
+      .sort((a, b) => {
+        if (a.type !== b.type) {
+          if (a.type === 'directory') return -1
+          if (b.type === 'directory') return 1
+        }
+        return a.name.localeCompare(b.name)
+      })
+
+    return { path: resolvedPath, entries }
+  })
+
+  ipcMain.handle('fs:mkdirp', async (_event, dirPath) => {
+    const resolvedPath = path.resolve(String(dirPath || ''))
+    await fse.ensureDir(resolvedPath)
+    return { path: resolvedPath }
+  })
+}
 
 async function createWindow () {
   /**
@@ -21,6 +58,7 @@ async function createWindow () {
     useContentSize: true,
     webPreferences: {
       contextIsolation: true,
+      sandbox: false,
       // More info: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/electron-preload-script
       preload: path.resolve(
         currentDir,
@@ -50,7 +88,10 @@ async function createWindow () {
   })
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  registerIpc()
+  return createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {

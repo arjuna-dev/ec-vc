@@ -1,29 +1,18 @@
-/**
- * This file is used specifically for security reasons.
- * Here you can access Nodejs stuff and inject functionality into
- * the renderer thread (accessible there through the "window" object)
- *
- * WARNING!
- * If you import anything from node_modules, then make sure that the package is specified
- * in package.json > dependencies and NOT in devDependencies
- *
- * Example (injects window.myAPI.doAThing() into renderer thread):
- *
- *   import { contextBridge } from 'electron'
- *
- *   contextBridge.exposeInMainWorld('myAPI', {
- *     doAThing: () => {}
- *   })
- *
- * WARNING!
- * If accessing Node functionality (like importing @electron/remote) then in your
- * electron-main.js you will need to set the following when you instantiate BrowserWindow:
- *
- * mainWindow = new BrowserWindow({
- *   // ...
- *   webPreferences: {
- *     // ...
- *     sandbox: false // <-- to be able to import @electron/remote in preload script
- *   }
- * }
- */
+import { contextBridge, ipcRenderer } from 'electron'
+import path from 'node:path'
+
+contextBridge.exposeInMainWorld('ecvc', {
+  version: 1,
+  fs: {
+    homedir: () => ipcRenderer.invoke('fs:homedir'),
+    readdir: (dirPath) => ipcRenderer.invoke('fs:readdir', dirPath),
+    mkdirp: (dirPath) => ipcRenderer.invoke('fs:mkdirp', dirPath),
+  },
+  path: {
+    sep: path.sep,
+    dirname: (p) => path.dirname(p),
+    join: (...parts) => path.join(...parts),
+    normalize: (p) => path.normalize(p),
+    parse: (p) => path.parse(p),
+  },
+})
