@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import fse from 'fs-extra'
 
 import { app, BrowserWindow, ipcMain } from 'electron'
+import { createProjectStructure } from './services/project-structure.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -21,6 +22,7 @@ function registerIpc () {
 
     const dirents = await fs.readdir(resolvedPath, { withFileTypes: true })
     const entries = dirents
+      .filter((d) => !d.name.startsWith('.'))
       .map((d) => {
         const entryPath = path.join(resolvedPath, d.name)
         return {
@@ -44,6 +46,11 @@ function registerIpc () {
     const resolvedPath = path.resolve(String(dirPath || ''))
     await fse.ensureDir(resolvedPath)
     return { path: resolvedPath }
+  })
+
+  ipcMain.handle('project:createStructure', async (_event, baseDirPath) => {
+    const resolvedBase = path.resolve(String(baseDirPath || ''))
+    return createProjectStructure(resolvedBase)
   })
 }
 

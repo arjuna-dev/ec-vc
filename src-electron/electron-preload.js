@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('ecvc', {
     homedir: () => ipcRenderer.invoke('fs:homedir'),
     readdir: (dirPath) => ipcRenderer.invoke('fs:readdir', dirPath),
     mkdirp: (dirPath) => ipcRenderer.invoke('fs:mkdirp', dirPath),
+    createProjectStructure: (baseDirPath) => ipcRenderer.invoke('project:createStructure', baseDirPath),
   },
   path: {
     sep: path.sep,
