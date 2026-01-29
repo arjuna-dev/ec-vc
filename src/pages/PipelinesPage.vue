@@ -1,0 +1,141 @@
+<template>
+  <q-page class="q-pa-md">
+    <div v-if="!isElectronRuntime" class="q-pa-md">
+      <q-banner class="bg-orange-2 text-black" rounded>
+        Pipelines requires Electron. Run <code>quasar dev -m electron</code> or
+        <code>quasar build -m electron</code>.
+      </q-banner>
+    </div>
+
+    <div v-else-if="!hasBridge" class="q-pa-md">
+      <q-banner class="bg-red-2 text-black" rounded>
+        Electron detected, but the preload bridge is missing (<code>window.ecvc</code> not
+        available).
+      </q-banner>
+    </div>
+
+    <div v-else>
+      <div class="row items-center q-col-gutter-sm q-mb-md">
+        <div class="col">
+          <div class="text-h6">Pipelines</div>
+          <div class="text-caption text-grey-7">Predefined pipelines you can create in the workspace.</div>
+        </div>
+        <div class="col-auto">
+          <q-btn dense flat icon="refresh" :loading="loading" @click="loadPipelines" />
+        </div>
+      </div>
+
+      <q-banner v-if="error" class="bg-red-2 text-black q-mb-md" rounded>
+        {{ error }}
+      </q-banner>
+
+      <q-table
+        flat
+        bordered
+        row-key="pipeline_id"
+        :rows="pipelines"
+        :columns="columns"
+        :loading="loading"
+        :pagination="{ rowsPerPage: 10 }"
+      >
+        <template #body-cell-install_status="props">
+          <q-td :props="props">
+            <q-badge :color="statusColor(props.row.install_status)" outline>
+              {{ statusLabel(props.row.install_status) }}
+            </q-badge>
+          </q-td>
+        </template>
+
+        <template #body-cell-actions="props">
+          <q-td :props="props">
+            <q-btn
+              dense
+              outline
+              color="primary"
+              :label="props.row.install_status === 'installed' ? 'Delete Pipeline' : 'Create Pipeline'"
+              :disable="isBusy(props.row.install_status) || loading"
+              @click="togglePipeline(props.row)"
+            />
+          </q-td>
+        </template>
+      </q-table>
+    </div>
+  </q-page>
+</template>
+
+<script setup>
+import { computed, onMounted, ref } from 'vue'
+
+const isElectronRuntime = computed(() => {
+  if (typeof navigator === 'undefined') return false
+  return /Electron/i.test(navigator.userAgent || '')
+})
+
+const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
+const hasBridge = computed(() => !!bridge.value?.pipelines?.list)
+
+const pipelines = ref([])
+const loading = ref(false)
+const error = ref('')
+
+const columns = [
+  { name: 'name', label: 'Pipeline Name', field: 'name', align: 'left', sortable: true },
+  { name: 'install_status', label: 'Status', field: 'install_status', align: 'left', sortable: true },
+  { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
+]
+
+function statusLabel(status) {
+  if (status === 'installed') return 'Created'
+  if (status === 'installing') return 'Creating…'
+  if (status === 'uninstalling') return 'Deleting…'
+  if (status === 'error') return 'Error'
+  return 'Not created'
+}
+
+function statusColor(status) {
+  if (status === 'installed') return 'green'
+  if (status === 'installing' || status === 'uninstalling') return 'blue'
+  if (status === 'error') return 'red'
+  return 'grey'
+}
+
+function isBusy(status) {
+  return status === 'installing' || status === 'uninstalling'
+}
+
+async function loadPipelines() {
+  if (!hasBridge.value) return
+  loading.value = true
+  error.value = ''
+  try {
+    const result = await bridge.value.pipelines.list()
+    pipelines.value = result?.pipelines || []
+  } catch (e) {
+    error.value = e?.message || String(e)
+    pipelines.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+async function togglePipeline(row) {
+  if (!hasBridge.value) return
+  error.value = ''
+  loading.value = true
+  try {
+    if (row.install_status === 'installed') {
+      await bridge.value.pipelines.uninstall(row.pipeline_id)
+    } else {
+      await bridge.value.pipelines.install(row.pipeline_id)
+    }
+    await loadPipelines()
+  } catch (e) {
+    error.value = e?.message || String(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadPipelines)
+</script>
+

@@ -8,6 +8,12 @@ contextBridge.exposeInMainWorld('ecvc', {
     readdir: (dirPath) => ipcRenderer.invoke('fs:readdir', dirPath),
     mkdirp: (dirPath) => ipcRenderer.invoke('fs:mkdirp', dirPath),
     createProjectStructure: (baseDirPath) => ipcRenderer.invoke('project:createStructure', baseDirPath),
+    workspaceRoot: () => ipcRenderer.invoke('workspace:getRoot'),
+  },
+  pipelines: {
+    list: () => ipcRenderer.invoke('pipelines:list'),
+    install: (pipelineId) => ipcRenderer.invoke('pipelines:install', { pipelineId }),
+    uninstall: (pipelineId) => ipcRenderer.invoke('pipelines:uninstall', { pipelineId }),
   },
   db: {
     info: () => ipcRenderer.invoke('db:info'),

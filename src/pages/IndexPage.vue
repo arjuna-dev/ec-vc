@@ -100,21 +100,6 @@
           <q-banner class="bg-grey-2 text-black" rounded>No entries</q-banner>
         </div>
       </div>
-
-      <q-page-sticky position="bottom-right" :offset="[18, 18]">
-        <q-btn
-          color="primary"
-          icon="create_new_folder"
-          label="Create File Structure"
-          :loading="creatingStructure"
-          :disable="loading || creatingStructure"
-          @click="createStructure"
-        />
-      </q-page-sticky>
-
-      <q-banner v-if="createResult" class="bg-green-2 text-black q-mt-md" rounded>
-        Created: {{ createResult }}
-      </q-banner>
     </div>
   </q-page>
 </template>
@@ -136,8 +121,6 @@ const entries = ref([])
 const loading = ref(false)
 const error = ref('')
 const viewMode = ref('folder')
-const creatingStructure = ref(false)
-const createResult = ref('')
 
 const canGoUp = computed(() => {
   if (!hasBridge.value || !currentPath.value) return false
@@ -170,22 +153,6 @@ function toggleViewMode () {
   viewMode.value = viewMode.value === 'folder' ? 'list' : 'folder'
 }
 
-async function createStructure () {
-  if (!hasBridge.value || !currentPath.value) return
-  creatingStructure.value = true
-  error.value = ''
-  createResult.value = ''
-  try {
-    const result = await bridge.value.fs.createProjectStructure(currentPath.value)
-    createResult.value = result.rootPath
-    await loadDirectory(currentPath.value)
-  } catch (e) {
-    error.value = e?.message || String(e)
-  } finally {
-    creatingStructure.value = false
-  }
-}
-
 function goUp () {
   if (!canGoUp.value || loading.value) return
   loadDirectory(bridge.value.path.dirname(currentPath.value))
@@ -203,7 +170,7 @@ function goToPath () {
 
 onMounted(async () => {
   if (!hasBridge.value) return
-  const home = await bridge.value.fs.homedir()
-  await loadDirectory(home)
+  const result = await bridge.value.fs.workspaceRoot()
+  await loadDirectory(result.rootPath)
 })
 </script>

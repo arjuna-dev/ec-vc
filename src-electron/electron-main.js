@@ -5,8 +5,9 @@ import { fileURLToPath } from 'node:url'
 import fse from 'fs-extra'
 
 import { app, BrowserWindow, ipcMain } from 'electron'
-import { createProjectStructure } from './services/project-structure.js'
+import { createProjectStructure, DEFAULT_PROJECT_ROOT_NAME } from './services/project-structure.js'
 import { closeDb, dbAll, dbRun, getDbInfo, initDb } from './services/sqlite-db.js'
+import { mirrorPipelineToFs, removePipelineFromFs } from './services/pipeline-mirror.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -15,7 +16,89 @@ const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 let mainWindow
 
-function registerIpc () {
+async function ensureWorkspace() {
+  const baseDirPath = app.getPath('userData')
+  return createProjectStructure(baseDirPath, DEFAULT_PROJECT_ROOT_NAME, undefined)
+}
+
+function listPipelines() {
+  return dbAll(
+    `
+    SELECT pipeline_id, name, dir_name, is_default, install_status, install_error
+    FROM Pipelines
+    ORDER BY is_default DESC, name ASC
+  `,
+  )
+}
+
+async function installPipeline(pipelineId) {
+  const workspace = await ensureWorkspace()
+
+  const pipeline = dbAll(
+    'SELECT pipeline_id, name, dir_name, install_status FROM Pipelines WHERE pipeline_id = ? LIMIT 1',
+    [pipelineId],
+  )?.[0]
+  if (!pipeline) throw new Error(`Unknown pipeline: ${pipelineId}`)
+  if (pipeline.install_status === 'installed') return { ok: true }
+
+  dbRun(
+    "UPDATE Pipelines SET install_status = 'installing', install_error = NULL, updated_at = datetime('now') WHERE pipeline_id = ?",
+    [pipelineId],
+  )
+
+  const stages = dbAll(
+    'SELECT name FROM Pipeline_Stages WHERE pipeline_id = ? ORDER BY position ASC',
+    [pipelineId],
+  ).map((r) => r.name)
+
+  try {
+    await mirrorPipelineToFs(workspace.rootPath, pipeline.dir_name, stages)
+    dbRun(
+      "UPDATE Pipelines SET install_status = 'installed', installed_at = datetime('now'), uninstalled_at = NULL, updated_at = datetime('now') WHERE pipeline_id = ?",
+      [pipelineId],
+    )
+    return { ok: true }
+  } catch (e) {
+    dbRun(
+      "UPDATE Pipelines SET install_status = 'error', install_error = ?, updated_at = datetime('now') WHERE pipeline_id = ?",
+      [e?.message || String(e), pipelineId],
+    )
+    throw e
+  }
+}
+
+async function uninstallPipeline(pipelineId) {
+  const workspace = await ensureWorkspace()
+
+  const pipeline = dbAll(
+    'SELECT pipeline_id, name, dir_name, install_status FROM Pipelines WHERE pipeline_id = ? LIMIT 1',
+    [pipelineId],
+  )?.[0]
+  if (!pipeline) throw new Error(`Unknown pipeline: ${pipelineId}`)
+  if (pipeline.install_status === 'not_installed') return { ok: true }
+
+  dbRun(
+    "UPDATE Pipelines SET install_status = 'uninstalling', install_error = NULL, updated_at = datetime('now') WHERE pipeline_id = ?",
+    [pipelineId],
+  )
+
+  try {
+    await removePipelineFromFs(workspace.rootPath, pipeline.dir_name)
+    dbRun(
+      "UPDATE Pipelines SET install_status = 'not_installed', uninstalled_at = datetime('now'), updated_at = datetime('now') WHERE pipeline_id = ?",
+      [pipelineId],
+    )
+    return { ok: true }
+  } catch (e) {
+    dbRun(
+      "UPDATE Pipelines SET install_status = 'error', install_error = ?, updated_at = datetime('now') WHERE pipeline_id = ?",
+      [e?.message || String(e), pipelineId],
+    )
+    throw e
+  }
+}
+
+function registerIpc() {
   ipcMain.handle('fs:homedir', () => os.homedir())
 
   ipcMain.handle('fs:readdir', async (_event, dirPath) => {
@@ -54,6 +137,26 @@ function registerIpc () {
     return createProjectStructure(resolvedBase)
   })
 
+  ipcMain.handle('workspace:getRoot', async () => {
+    const result = await ensureWorkspace()
+    return { rootPath: result.rootPath }
+  })
+
+  ipcMain.handle('pipelines:list', async () => {
+    initDb()
+    return { pipelines: listPipelines() }
+  })
+
+  ipcMain.handle('pipelines:install', async (_event, { pipelineId } = {}) => {
+    initDb()
+    return installPipeline(String(pipelineId || ''))
+  })
+
+  ipcMain.handle('pipelines:uninstall', async (_event, { pipelineId } = {}) => {
+    initDb()
+    return uninstallPipeline(String(pipelineId || ''))
+  })
+
   ipcMain.handle('db:info', () => getDbInfo())
 
   ipcMain.handle('db:query', (_event, { sql, params } = {}) => {
@@ -65,30 +168,42 @@ function registerIpc () {
   })
 }
 
-async function createWindow () {
+async function createWindow() {
   /**
    * Initial window options
    */
+  const preloadFolder = process.env.QUASAR_ELECTRON_PRELOAD_FOLDER || 'preload'
+  const preloadExt = process.env.QUASAR_ELECTRON_PRELOAD_EXTENSION || '.cjs'
+
   mainWindow = new BrowserWindow({
     icon: path.resolve(currentDir, 'icons/icon.png'), // tray icon
     width: 1000,
     height: 600,
     useContentSize: true,
+    show: false,
     webPreferences: {
       contextIsolation: true,
       sandbox: false,
       // More info: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/electron-preload-script
-      preload: path.resolve(
-        currentDir,
-        path.join(process.env.QUASAR_ELECTRON_PRELOAD_FOLDER, 'electron-preload' + process.env.QUASAR_ELECTRON_PRELOAD_EXTENSION)
-      )
-    }
+      preload: path.resolve(currentDir, path.join(preloadFolder, 'electron-preload' + preloadExt)),
+    },
   })
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show()
+  })
+
+  mainWindow.webContents.on(
+    'did-fail-load',
+    (_event, errorCode, errorDescription, validatedURL) => {
+      console.error('[did-fail-load]', { errorCode, errorDescription, validatedURL })
+    },
+  )
 
   if (process.env.DEV) {
     await mainWindow.loadURL(process.env.APP_URL)
   } else {
-    await mainWindow.loadFile('index.html')
+    await mainWindow.loadFile(path.resolve(currentDir, 'index.html'))
   }
 
   if (process.env.DEBUGGING) {
@@ -109,6 +224,7 @@ async function createWindow () {
 app.whenReady().then(() => {
   initDb()
   registerIpc()
+  ensureWorkspace()
   return createWindow()
 })
 

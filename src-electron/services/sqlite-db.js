@@ -3,7 +3,7 @@ import fse from 'fs-extra'
 import { app } from 'electron'
 import Database from 'better-sqlite3'
 
-import { SCHEMA_V1_SQL, SCHEMA_V2_SQL } from './sqlite-schema.js'
+import { SCHEMA_V1_SQL } from './sqlite-schema.js'
 
 let db = null
 
@@ -12,6 +12,8 @@ export function initDb () {
 
   const dbPath = path.join(app.getPath('userData'), 'ecvc.sqlite3')
   fse.ensureDirSync(path.dirname(dbPath))
+
+  maybeRecreateDb(dbPath)
 
   db = new Database(dbPath)
   db.pragma('journal_mode = WAL')
@@ -37,18 +39,11 @@ export function closeDb () {
 }
 
 function migrate (database) {
-  let userVersion = database.pragma('user_version', { simple: true })
+  const userVersion = database.pragma('user_version', { simple: true })
 
   if (userVersion < 1) {
     database.exec(SCHEMA_V1_SQL)
     database.pragma('user_version = 1')
-    userVersion = 1
-  }
-
-  if (userVersion < 2) {
-    database.exec(SCHEMA_V2_SQL)
-    database.pragma('user_version = 2')
-    userVersion = 2
   }
 }
 
@@ -64,4 +59,38 @@ export function dbRun (sql, params = []) {
     changes: result.changes,
     lastInsertRowid: result.lastInsertRowid?.toString?.() ?? result.lastInsertRowid,
   }
+}
+
+function maybeRecreateDb (dbPath) {
+  if (!fse.pathExistsSync(dbPath)) return
+
+  const probe = new Database(dbPath)
+  const userVersion = probe.pragma('user_version', { simple: true })
+  const tablesCount = probe
+    .prepare("SELECT COUNT(*) AS c FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+    .get()?.c
+  const hasPipelines = hasTable(probe, 'Pipelines')
+  const hasOpportunityPipeline = hasTable(probe, 'Opportunity_Pipeline')
+  const pipelinesHasDirName = hasColumn(probe, 'Pipelines', 'dir_name')
+  probe.close()
+
+  const looksLikeNewSchema = userVersion === 1 && hasPipelines && hasOpportunityPipeline && pipelinesHasDirName
+  const looksLikeOldSchema = userVersion > 1 || (userVersion === 0 && Number(tablesCount || 0) > 0) || (userVersion === 1 && !looksLikeNewSchema)
+
+  if (!looksLikeOldSchema) return
+
+  fse.removeSync(dbPath)
+  fse.removeSync(`${dbPath}-wal`)
+  fse.removeSync(`${dbPath}-shm`)
+}
+
+function hasTable (database, tableName) {
+  return !!database
+    .prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=? LIMIT 1")
+    .get(String(tableName))
+}
+
+function hasColumn (database, tableName, columnName) {
+  const cols = database.prepare(`PRAGMA table_info(${String(tableName)})`).all()
+  return cols.some((c) => c?.name === String(columnName))
 }

@@ -1,5 +1,4 @@
-export const SCHEMA_V1_SQL = `
-BEGIN;
+const BASE_TABLES_SQL = `
 
 CREATE TABLE IF NOT EXISTS Companies (
   url TEXT PRIMARY KEY,
@@ -106,7 +105,7 @@ CREATE TABLE IF NOT EXISTS Contacts (
   Country_based TEXT
 );
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units (
   url TEXT PRIMARY KEY,
   Business_Unit_Name TEXT,
   BU_Type TEXT,
@@ -158,7 +157,7 @@ CREATE TABLE IF NOT EXISTS Events (
   Priority_Level TEXT
 );
 
-CREATE TABLE IF NOT EXISTS ICScorecard (
+CREATE TABLE IF NOT EXISTS IC_Scorecard (
   url TEXT PRIMARY KEY,
   Member_Name TEXT,
   Opportunity_Alignment TEXT,
@@ -217,7 +216,7 @@ CREATE TABLE IF NOT EXISTS Cities (
   City_Name TEXT
 );
 
-CREATE TABLE IF NOT EXISTS VCTermsGlossary (
+CREATE TABLE IF NOT EXISTS VC_Terms_Glossary (
   url TEXT PRIMARY KEY,
   Key_Term TEXT,
   Definition TEXT,
@@ -226,7 +225,7 @@ CREATE TABLE IF NOT EXISTS VCTermsGlossary (
   Abbreviation TEXT
 );
 
-CREATE TABLE IF NOT EXISTS ControlTermsDescription (
+CREATE TABLE IF NOT EXISTS Control_Terms_Description (
   url TEXT PRIMARY KEY,
   Term TEXT,
   What_is TEXT,
@@ -255,11 +254,9 @@ CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess (
   File_Reference TEXT
 );
 
-COMMIT;
 `
 
-export const SCHEMA_V2_SQL = `
-BEGIN;
+const RELATION_JOIN_TABLES_SQL = `
 
 CREATE TABLE IF NOT EXISTS Countries_Locations_has_locations (
   from_url TEXT NOT NULL,
@@ -495,14 +492,14 @@ CREATE TABLE IF NOT EXISTS Tasks_Opportunities_tasks (
 );
 CREATE INDEX IF NOT EXISTS idx_Tasks_Opportunities_tasks_to ON Tasks_Opportunities_tasks(to_url);
 
-CREATE TABLE IF NOT EXISTS ICScorecard_Opportunities_qa_score (
+CREATE TABLE IF NOT EXISTS IC_Scorecard_Opportunities_qa_score (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES ICScorecard(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES IC_Scorecard(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES Opportunities(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_ICScorecard_Opportunities_qa_score_to ON ICScorecard_Opportunities_qa_score(to_url);
+CREATE INDEX IF NOT EXISTS idx_IC_Scorecard_Opportunities_qa_score_to ON IC_Scorecard_Opportunities_qa_score(to_url);
 
 CREATE TABLE IF NOT EXISTS Intros_Opportunities_source_intro (
   from_url TEXT NOT NULL,
@@ -594,14 +591,14 @@ CREATE TABLE IF NOT EXISTS Tasks_Funds_tasks (
 );
 CREATE INDEX IF NOT EXISTS idx_Tasks_Funds_tasks_to ON Tasks_Funds_tasks(to_url);
 
-CREATE TABLE IF NOT EXISTS ICScorecard_Funds_qa_score (
+CREATE TABLE IF NOT EXISTS IC_Scorecard_Funds_qa_score (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES ICScorecard(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES IC_Scorecard(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES Funds(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_ICScorecard_Funds_qa_score_to ON ICScorecard_Funds_qa_score(to_url);
+CREATE INDEX IF NOT EXISTS idx_IC_Scorecard_Funds_qa_score_to ON IC_Scorecard_Funds_qa_score(to_url);
 
 CREATE TABLE IF NOT EXISTS Intros_Funds_source_intro (
   from_url TEXT NOT NULL,
@@ -747,14 +744,14 @@ CREATE TABLE IF NOT EXISTS Contacts_Funds_funds_invested (
 );
 CREATE INDEX IF NOT EXISTS idx_Contacts_Funds_funds_invested_to ON Contacts_Funds_funds_invested(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_Contacts_lead_pax (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_Contacts_lead_pax (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES Contacts(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_Contacts_lead_pax_to ON EPLBusinessUnits_Contacts_lead_pax(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_Contacts_lead_pax_to ON EPL_Business_Units_Contacts_lead_pax(to_url);
 
 CREATE TABLE IF NOT EXISTS Contacts_Projects_project_roles (
   from_url TEXT NOT NULL,
@@ -801,59 +798,59 @@ CREATE TABLE IF NOT EXISTS Contacts_Events_events (
 );
 CREATE INDEX IF NOT EXISTS idx_Contacts_Events_events_to ON Contacts_Events_events(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_EPLBusinessUnits_bu_oa_relationships (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_EPL_Business_Units_bu_oa_relationships (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (to_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_EPLBusinessUnits_bu_oa_relationships_to ON EPLBusinessUnits_EPLBusinessUnits_bu_oa_relationships(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_EPL_Business_Units_bu_oa_relationships_to ON EPL_Business_Units_EPL_Business_Units_bu_oa_relationships(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_Projects_projects (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_Projects_projects (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES Projects(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_Projects_projects_to ON EPLBusinessUnits_Projects_projects(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_Projects_projects_to ON EPL_Business_Units_Projects_projects(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_Tasks_tasks (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_Tasks_tasks (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES Tasks(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_Tasks_tasks_to ON EPLBusinessUnits_Tasks_tasks(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_Tasks_tasks_to ON EPL_Business_Units_Tasks_tasks(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_Notes_notes (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_Notes_notes (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES Notes(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_Notes_notes_to ON EPLBusinessUnits_Notes_notes(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_Notes_notes_to ON EPL_Business_Units_Notes_notes(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_Documents_documents (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_Documents_documents (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES Documents(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_Documents_documents_to ON EPLBusinessUnits_Documents_documents(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_Documents_documents_to ON EPL_Business_Units_Documents_documents(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_Events_events (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_Events_events (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES Events(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_Events_events_to ON EPLBusinessUnits_Events_events(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_Events_events_to ON EPL_Business_Units_Events_events(to_url);
 
 CREATE TABLE IF NOT EXISTS Projects_Opportunities_related_round (
   from_url TEXT NOT NULL,
@@ -882,14 +879,14 @@ CREATE TABLE IF NOT EXISTS Projects_Companies_related_companies (
 );
 CREATE INDEX IF NOT EXISTS idx_Projects_Companies_related_companies_to ON Projects_Companies_related_companies(to_url);
 
-CREATE TABLE IF NOT EXISTS Projects_EPLBusinessUnits_epl_bus (
+CREATE TABLE IF NOT EXISTS Projects_EPL_Business_Units_epl_bus (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
   FOREIGN KEY (from_url) REFERENCES Projects(url) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_Projects_EPLBusinessUnits_epl_bus_to ON Projects_EPLBusinessUnits_epl_bus(to_url);
+CREATE INDEX IF NOT EXISTS idx_Projects_EPL_Business_Units_epl_bus_to ON Projects_EPL_Business_Units_epl_bus(to_url);
 
 CREATE TABLE IF NOT EXISTS Projects_Projects_related_projects (
   from_url TEXT NOT NULL,
@@ -963,14 +960,14 @@ CREATE TABLE IF NOT EXISTS Tasks_Funds_related_fund (
 );
 CREATE INDEX IF NOT EXISTS idx_Tasks_Funds_related_fund_to ON Tasks_Funds_related_fund(to_url);
 
-CREATE TABLE IF NOT EXISTS Tasks_EPLBusinessUnits_epl_bus (
+CREATE TABLE IF NOT EXISTS Tasks_EPL_Business_Units_epl_bus (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
   FOREIGN KEY (from_url) REFERENCES Tasks(url) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_Tasks_EPLBusinessUnits_epl_bus_to ON Tasks_EPLBusinessUnits_epl_bus(to_url);
+CREATE INDEX IF NOT EXISTS idx_Tasks_EPL_Business_Units_epl_bus_to ON Tasks_EPL_Business_Units_epl_bus(to_url);
 
 CREATE TABLE IF NOT EXISTS Tasks_Projects_projects (
   from_url TEXT NOT NULL,
@@ -1143,41 +1140,41 @@ CREATE TABLE IF NOT EXISTS SectorGroups_Industries_industries (
 );
 CREATE INDEX IF NOT EXISTS idx_SectorGroups_Industries_industries_to ON SectorGroups_Industries_industries(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_Industries_bu_industries (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_Industries_bu_industries (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES Industries(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_Industries_bu_industries_to ON EPLBusinessUnits_Industries_bu_industries(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_Industries_bu_industries_to ON EPL_Business_Units_Industries_bu_industries(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_SectorGroups_bu_sectors (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_SectorGroups_bu_sectors (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES SectorGroups(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_SectorGroups_bu_sectors_to ON EPLBusinessUnits_SectorGroups_bu_sectors(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_SectorGroups_bu_sectors_to ON EPL_Business_Units_SectorGroups_bu_sectors(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_VerticalIndustries_verticals (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_VerticalIndustries_verticals (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES VerticalIndustries(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_VerticalIndustries_verticals_to ON EPLBusinessUnits_VerticalIndustries_verticals(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_VerticalIndustries_verticals_to ON EPL_Business_Units_VerticalIndustries_verticals(to_url);
 
-CREATE TABLE IF NOT EXISTS EPLBusinessUnits_BusinessModels_business_models (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_BusinessModels_business_models (
   from_url TEXT NOT NULL,
   to_url TEXT NOT NULL,
   PRIMARY KEY (from_url, to_url),
-  FOREIGN KEY (from_url) REFERENCES EPLBusinessUnits(url) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_url) REFERENCES EPL_Business_Units(url) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_url) REFERENCES BusinessModels(url) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPLBusinessUnits_BusinessModels_business_models_to ON EPLBusinessUnits_BusinessModels_business_models(to_url);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_BusinessModels_business_models_to ON EPL_Business_Units_BusinessModels_business_models(to_url);
 
 CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess_Companies_companies (
   from_url TEXT NOT NULL,
@@ -1233,5 +1230,166 @@ CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess_PipelineInvestmentProcess_b
 );
 CREATE INDEX IF NOT EXISTS idx_PipelineInvestmentProcess_PipelineInvestmentProcess_blocked_by_blocking_to ON PipelineInvestmentProcess_PipelineInvestmentProcess_blocked_by_blocking(to_url);
 
+`
+
+const PIPELINES_SQL = `
+CREATE TABLE IF NOT EXISTS Pipelines (
+  pipeline_id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  dir_name TEXT NOT NULL,
+  is_default INTEGER NOT NULL DEFAULT 0 CHECK (is_default IN (0, 1)),
+  install_status TEXT NOT NULL DEFAULT 'not_installed' CHECK (install_status IN ('not_installed', 'installing', 'installed', 'uninstalling', 'error')),
+  install_error TEXT,
+  installed_at TEXT,
+  uninstalled_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_Pipelines_single_default
+  ON Pipelines(is_default)
+  WHERE is_default = 1;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_Pipelines_dir_name
+  ON Pipelines(dir_name);
+
+CREATE TABLE IF NOT EXISTS Pipeline_Stages (
+  stage_id TEXT PRIMARY KEY,
+  pipeline_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  is_terminal INTEGER NOT NULL DEFAULT 0 CHECK (is_terminal IN (0, 1)),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+
+  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE CASCADE,
+  UNIQUE (pipeline_id, name),
+  UNIQUE (pipeline_id, position)
+);
+
+-- Canonical pipeline-to-opportunity mapping (M2M + current stage)
+CREATE TABLE IF NOT EXISTS Opportunity_Pipeline (
+  opportunity_url TEXT NOT NULL,
+  pipeline_id TEXT NOT NULL,
+  stage_id TEXT NOT NULL,
+  status TEXT,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+
+  PRIMARY KEY (opportunity_url, pipeline_id),
+
+  FOREIGN KEY (opportunity_url) REFERENCES Opportunities(url) ON DELETE CASCADE,
+  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE CASCADE,
+  FOREIGN KEY (stage_id) REFERENCES Pipeline_Stages(stage_id) ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS idx_Opportunity_Pipeline_pipeline
+  ON Opportunity_Pipeline(pipeline_id);
+
+CREATE INDEX IF NOT EXISTS idx_Opportunity_Pipeline_stage
+  ON Opportunity_Pipeline(stage_id);
+
+-- Optional: same model for fund opportunities
+CREATE TABLE IF NOT EXISTS Fund_Pipeline (
+  fund_url TEXT NOT NULL,
+  pipeline_id TEXT NOT NULL,
+  stage_id TEXT NOT NULL,
+  status TEXT,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+
+  PRIMARY KEY (fund_url, pipeline_id),
+
+  FOREIGN KEY (fund_url) REFERENCES Funds(url) ON DELETE CASCADE,
+  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE CASCADE,
+  FOREIGN KEY (stage_id) REFERENCES Pipeline_Stages(stage_id) ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_pipeline
+  ON Fund_Pipeline(pipeline_id);
+
+CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_stage
+  ON Fund_Pipeline(stage_id);
+
+-- Enforce that stage_id belongs to pipeline_id (SQLite can't do this with pure FKs)
+CREATE TRIGGER IF NOT EXISTS trg_Opportunity_Pipeline_stage_matches_ins
+BEFORE INSERT ON Opportunity_Pipeline
+FOR EACH ROW
+BEGIN
+  SELECT
+    CASE
+      WHEN NOT EXISTS (
+        SELECT 1
+        FROM Pipeline_Stages s
+        WHERE s.stage_id = NEW.stage_id
+          AND s.pipeline_id = NEW.pipeline_id
+      )
+      THEN RAISE(ABORT, 'stage_id does not belong to pipeline_id')
+    END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Opportunity_Pipeline_stage_matches_upd
+BEFORE UPDATE OF stage_id, pipeline_id ON Opportunity_Pipeline
+FOR EACH ROW
+BEGIN
+  SELECT
+    CASE
+      WHEN NOT EXISTS (
+        SELECT 1
+        FROM Pipeline_Stages s
+        WHERE s.stage_id = NEW.stage_id
+          AND s.pipeline_id = NEW.pipeline_id
+      )
+      THEN RAISE(ABORT, 'stage_id does not belong to pipeline_id')
+    END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Fund_Pipeline_stage_matches_ins
+BEFORE INSERT ON Fund_Pipeline
+FOR EACH ROW
+BEGIN
+  SELECT
+    CASE
+      WHEN NOT EXISTS (
+        SELECT 1
+        FROM Pipeline_Stages s
+        WHERE s.stage_id = NEW.stage_id
+          AND s.pipeline_id = NEW.pipeline_id
+      )
+      THEN RAISE(ABORT, 'stage_id does not belong to pipeline_id')
+    END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Fund_Pipeline_stage_matches_upd
+BEFORE UPDATE OF stage_id, pipeline_id ON Fund_Pipeline
+FOR EACH ROW
+BEGIN
+  SELECT
+    CASE
+      WHEN NOT EXISTS (
+        SELECT 1
+        FROM Pipeline_Stages s
+        WHERE s.stage_id = NEW.stage_id
+          AND s.pipeline_id = NEW.pipeline_id
+      )
+      THEN RAISE(ABORT, 'stage_id does not belong to pipeline_id')
+    END;
+END;
+
+-- Seed a default pipeline and default stages (EC10-style)
+INSERT OR IGNORE INTO Pipelines (pipeline_id, name, dir_name, is_default)
+VALUES ('pipeline_default', 'Default Investment Pipeline', 'Default Investment Pipeline', 1);
+
+INSERT OR IGNORE INTO Pipeline_Stages (stage_id, pipeline_id, name, position)
+VALUES
+  ('stage_thesis_alignment', 'pipeline_default', '1_thesis_alignment', 1),
+  ('stage_team_analysis', 'pipeline_default', '2_team_analysis', 2),
+  ('stage_investment_committee', 'pipeline_default', '3_investment_committee', 3),
+  ('stage_due_diligence', 'pipeline_default', '4_due_diligence', 4),
+  ('stage_closing_documents', 'pipeline_default', '5_closing_documents', 5);
+`
+
+export const SCHEMA_V1_SQL = `
+BEGIN;
+${BASE_TABLES_SQL}
+${RELATION_JOIN_TABLES_SQL}
+${PIPELINES_SQL}
 COMMIT;
 `

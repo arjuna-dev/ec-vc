@@ -2,6 +2,7 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app/wrappers'
+import { rebuild } from '@electron/rebuild'
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -175,6 +176,22 @@ export default defineConfig((/* ctx */) => {
 
       packager: {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
+        // Ensure native deps are rebuilt for the Electron runtime (not the host Node runtime)
+        // so packaged apps can load modules like better-sqlite3.
+        afterCopy: [
+          (buildPath, electronVersion, platform, arch, callback) => {
+            rebuild({
+              buildPath,
+              electronVersion,
+              platform,
+              arch,
+              force: true,
+              onlyModules: ['better-sqlite3'],
+            })
+              .then(() => callback())
+              .catch((err) => callback(err))
+          },
+        ],
         // OS X / Mac App Store
         // appBundleId: '',
         // appCategoryType: '',

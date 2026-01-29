@@ -5,44 +5,22 @@ export const DEFAULT_PROJECT_ROOT_NAME = 'ec-vc'
 
 export const DEFAULT_PROJECT_STRUCTURE = {
   '0_company_docs': {},
-  '1_pipelines': {
-    pipeline_x: {
-      active: {
-        '1_thesis_alignment': {},
-        '2_team_analysis': {},
-        '3_investment_committee': {},
-        '4_due_diligence': {},
-        '5_closing_documents': {},
-      },
-      graveyard: {
-        '1_thesis_alignment': {},
-        '2_team_analysis': {},
-        '3_investment_committee': {},
-        '4_due_diligence': {},
-        '5_closing_documents': {},
-      },
-      inbound: {
-        '1_thesis_alignment': {
-          '260128_NebulaAI_20M_SeriesA': {},
-        },
-        '2_team_analysis': {},
-        '3_investment_committee': {},
-        '4_due_diligence': {},
-        '5_closing_documents': {},
-      },
-    },
-  },
+  '1_pipelines': {},
   '2_porftolio': {},
 }
 
-export async function createProjectStructure (baseDirPath, rootName = DEFAULT_PROJECT_ROOT_NAME, structure = DEFAULT_PROJECT_STRUCTURE) {
+export async function createProjectStructure(
+  baseDirPath,
+  rootName = DEFAULT_PROJECT_ROOT_NAME,
+  structure = DEFAULT_PROJECT_STRUCTURE,
+) {
   const rootPath = path.join(baseDirPath, rootName)
 
   await fse.ensureDir(rootPath)
 
   const created = []
 
-  async function ensureTree (parentPath, node) {
+  async function ensureTree(parentPath, node) {
     if (!node) return
 
     if (Array.isArray(node)) {

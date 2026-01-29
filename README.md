@@ -22,6 +22,24 @@ To run desktop electron app do:
 quasar dev -m electron
 ```
 
+To bundle app for mac:
+
+```javascript
+quasar build -m electron
+```
+
+To bundle with debugging:
+
+```javascript
+quasar build -m electron -d
+```
+
+To bundle app for windows:
+
+```javascript
+quasar build -m electron -T win32 -A x64
+```
+
 ### Lint the files
 
 ```bash
