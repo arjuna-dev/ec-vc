@@ -6,6 +6,7 @@ import fse from 'fs-extra'
 
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { createProjectStructure } from './services/project-structure.js'
+import { closeDb, dbAll, dbRun, getDbInfo, initDb } from './services/sqlite-db.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -52,6 +53,16 @@ function registerIpc () {
     const resolvedBase = path.resolve(String(baseDirPath || ''))
     return createProjectStructure(resolvedBase)
   })
+
+  ipcMain.handle('db:info', () => getDbInfo())
+
+  ipcMain.handle('db:query', (_event, { sql, params } = {}) => {
+    return dbAll(sql, params)
+  })
+
+  ipcMain.handle('db:execute', (_event, { sql, params } = {}) => {
+    return dbRun(sql, params)
+  })
 }
 
 async function createWindow () {
@@ -96,12 +107,14 @@ async function createWindow () {
 }
 
 app.whenReady().then(() => {
+  initDb()
   registerIpc()
   return createWindow()
 })
 
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {
+    closeDb()
     app.quit()
   }
 })
@@ -110,4 +123,8 @@ app.on('activate', () => {
   if (mainWindow === null) {
     createWindow()
   }
+})
+
+app.on('before-quit', () => {
+  closeDb()
 })

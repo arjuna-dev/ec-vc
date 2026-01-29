@@ -9,6 +9,11 @@ contextBridge.exposeInMainWorld('ecvc', {
     mkdirp: (dirPath) => ipcRenderer.invoke('fs:mkdirp', dirPath),
     createProjectStructure: (baseDirPath) => ipcRenderer.invoke('project:createStructure', baseDirPath),
   },
+  db: {
+    info: () => ipcRenderer.invoke('db:info'),
+    query: (sql, params) => ipcRenderer.invoke('db:query', { sql, params }),
+    execute: (sql, params) => ipcRenderer.invoke('db:execute', { sql, params }),
+  },
   path: {
     sep: path.sep,
     dirname: (p) => path.dirname(p),
