@@ -26,6 +26,8 @@
             :headers="csvHeaders"
             :rows="rows"
             :on-import-rows="importRows"
+            :on-create="openCreateCompany"
+            create-label="Create company"
           />
         </div>
         <div class="col-auto">
@@ -71,12 +73,21 @@ const isElectronRuntime = computed(() => {
 })
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
-const hasBridge = computed(() => !!bridge.value?.companies?.list && !!bridge.value?.companies?.upsertMany)
+const hasBridge = computed(
+  () =>
+    !!bridge.value?.companies?.list &&
+    !!bridge.value?.companies?.upsertMany &&
+    !!bridge.value?.companies?.create,
+)
 
 const rows = ref([])
 const loading = ref(false)
 const error = ref('')
 const companyDialogOpen = ref(false)
+
+function openCreateCompany() {
+  companyDialogOpen.value = true
+}
 
 const columns = [
   { name: 'Company_Name', label: 'Company', field: 'Company_Name', align: 'left', sortable: true },

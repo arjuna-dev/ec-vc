@@ -26,6 +26,8 @@
             :headers="csvHeaders"
             :rows="rows"
             :on-import-rows="importRows"
+            :on-create="openCreateFund"
+            create-label="Create fund"
           />
         </div>
         <div class="col-auto">
@@ -79,6 +81,10 @@ const rows = ref([])
 const loading = ref(false)
 const error = ref('')
 const fundDialogOpen = ref(false)
+
+function openCreateFund() {
+  fundDialogOpen.value = true
+}
 
 const columns = [
   { name: 'Fund_Oppty_Name', label: 'Fund', field: 'Fund_Oppty_Name', align: 'left', sortable: true },

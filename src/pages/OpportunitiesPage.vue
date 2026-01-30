@@ -26,6 +26,8 @@
             :headers="csvHeaders"
             :rows="rows"
             :on-import-rows="importRows"
+            :on-create="openCreateOpportunity"
+            create-label="Create opportunity"
           />
         </div>
         <div class="col-auto">
@@ -80,6 +82,10 @@ const hasBridge = computed(
 const rows = ref([])
 const loading = ref(false)
 const error = ref('')
+
+function openCreateOpportunity() {
+  window.dispatchEvent(new Event('ecvc:open-opportunity-dialog'))
+}
 
 const columns = [
   { name: 'Company_Name', label: 'Company', field: 'Company_Name', align: 'left', sortable: true },

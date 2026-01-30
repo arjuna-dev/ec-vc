@@ -26,6 +26,8 @@
             :headers="csvHeaders"
             :rows="rows"
             :on-import-rows="importRows"
+            :on-create="openCreateArtifact"
+            create-label="Add artifact"
           />
         </div>
         <div class="col-auto">
@@ -78,6 +80,10 @@ const hasBridge = computed(() => !!bridge.value?.artifacts?.list && !!bridge.val
 const rows = ref([])
 const loading = ref(false)
 const error = ref('')
+
+function openCreateArtifact() {
+  window.dispatchEvent(new Event('ecvc:open-artifact-dialog'))
+}
 
 const columns = [
   { name: 'title', label: 'Title', field: 'title', align: 'left', sortable: true },

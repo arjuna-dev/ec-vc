@@ -26,6 +26,8 @@
             :headers="csvHeaders"
             :rows="rows"
             :on-import-rows="importRows"
+            :on-create="openCreateContact"
+            create-label="Create contact"
           />
         </div>
         <div class="col-auto">
@@ -82,6 +84,10 @@ const rows = ref([])
 const loading = ref(false)
 const error = ref('')
 const contactDialogOpen = ref(false)
+
+function openCreateContact() {
+  contactDialogOpen.value = true
+}
 
 const columns = [
   { name: 'Name', label: 'Name', field: 'Name', align: 'left', sortable: true },

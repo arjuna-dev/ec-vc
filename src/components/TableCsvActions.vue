@@ -1,5 +1,15 @@
 <template>
   <div class="row items-center q-gutter-sm">
+    <q-btn
+      v-if="canCreate"
+      dense
+      color="primary"
+      outline
+      icon="add"
+      :label="createLabelComputed"
+      class="small-text"
+      @click="onCreate"
+    />
     <q-btn dense outline icon="download" label="Export CSV" class="small-text" @click="exportCsv" />
 
     <q-btn
@@ -38,12 +48,16 @@ const props = defineProps({
   headers: { type: Array, required: true },
   rows: { type: Array, required: true },
   onImportRows: { type: Function, default: null },
+  onCreate: { type: Function, default: null },
+  createLabel: { type: String, default: '' },
 })
 
 const $q = useQuasar()
 const fileInput = ref(null)
 
 const canImport = computed(() => typeof props.onImportRows === 'function')
+const canCreate = computed(() => typeof props.onCreate === 'function')
+const createLabelComputed = computed(() => (props.createLabel ? String(props.createLabel) : 'Create'))
 
 function exportCsv() {
   const csv = rowsToCsv(props.headers, props.rows)

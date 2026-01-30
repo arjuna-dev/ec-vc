@@ -106,6 +106,50 @@ function upsertPipelines(rows = []) {
   return tx()
 }
 
+function createPipeline(payload = {}) {
+  const database = initDb()
+  const name = normalizeNullableString(payload.name)
+  const dirName = normalizeNullableString(payload.dir_name)
+  if (!name) throw new Error('Pipeline name is required')
+  if (!dirName) throw new Error('Pipeline dir_name is required')
+
+  const pipelineId = normalizeNullableString(payload.pipeline_id) || `pipeline:${crypto.randomUUID()}`
+
+  const tx = database.transaction(() => {
+    database
+      .prepare(
+        `
+        INSERT INTO Pipelines (pipeline_id, name, dir_name, is_default)
+        VALUES (?, ?, ?, 0)
+      `,
+      )
+      .run(pipelineId, name, dirName)
+
+    const stages = [
+      { suffix: 'stage_thesis_alignment', name: '1_thesis_alignment', position: 1 },
+      { suffix: 'stage_team_analysis', name: '2_team_analysis', position: 2 },
+      { suffix: 'stage_investment_committee', name: '3_investment_committee', position: 3 },
+      { suffix: 'stage_due_diligence', name: '4_due_diligence', position: 4 },
+      { suffix: 'stage_closing_documents', name: '5_closing_documents', position: 5 },
+    ]
+
+    const insertStage = database.prepare(
+      `
+      INSERT INTO Pipeline_Stages (stage_id, pipeline_id, name, position)
+      VALUES (?, ?, ?, ?)
+    `,
+    )
+
+    for (const s of stages) {
+      insertStage.run(`${pipelineId}:${s.suffix}`, pipelineId, s.name, s.position)
+    }
+  })
+
+  tx()
+
+  return { pipeline_id: pipelineId }
+}
+
 async function installPipeline(pipelineId) {
   const workspace = await ensureWorkspace()
 
@@ -970,6 +1014,11 @@ function registerIpc() {
   ipcMain.handle('pipelines:upsertMany', async (_event, { rows } = {}) => {
     initDb()
     return upsertPipelines(rows)
+  })
+
+  ipcMain.handle('pipelines:create', async (_event, payload) => {
+    initDb()
+    return createPipeline(payload)
   })
 
   ipcMain.handle('companies:list', async () => {

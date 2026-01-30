@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('ecvc', {
     install: (pipelineId) => ipcRenderer.invoke('pipelines:install', { pipelineId }),
     uninstall: (pipelineId) => ipcRenderer.invoke('pipelines:uninstall', { pipelineId }),
     upsertMany: (rows) => ipcRenderer.invoke('pipelines:upsertMany', { rows }),
+    create: (payload) => ipcRenderer.invoke('pipelines:create', payload),
   },
   companies: {
     list: () => ipcRenderer.invoke('companies:list'),

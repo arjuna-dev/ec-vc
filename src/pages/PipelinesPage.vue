@@ -28,6 +28,8 @@
             :headers="csvHeaders"
             :rows="pipelines"
             :on-import-rows="importRows"
+            :on-create="openCreatePipeline"
+            create-label="Create pipeline"
           />
         </div>
         <div class="col-auto">
@@ -107,11 +109,14 @@
       </q-table>
     </div>
   </q-page>
+
+  <PipelineCreateDialog v-model="pipelineDialogOpen" @created="onPipelineCreated" />
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
+import PipelineCreateDialog from 'components/PipelineCreateDialog.vue'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -120,12 +125,16 @@ const isElectronRuntime = computed(() => {
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(
-  () => !!bridge.value?.pipelines?.list && !!bridge.value?.pipelines?.upsertMany,
+  () =>
+    !!bridge.value?.pipelines?.list &&
+    !!bridge.value?.pipelines?.upsertMany &&
+    !!bridge.value?.pipelines?.create,
 )
 
 const pipelines = ref([])
 const loading = ref(false)
 const error = ref('')
+const pipelineDialogOpen = ref(false)
 
 const columns = [
   { name: 'name', label: 'Pipeline Name', field: 'name', align: 'left', sortable: true },
@@ -198,6 +207,14 @@ async function importRows(importedRows) {
   const result = await bridge.value.pipelines.upsertMany(importedRows)
   await loadPipelines()
   return result
+}
+
+function openCreatePipeline() {
+  pipelineDialogOpen.value = true
+}
+
+async function onPipelineCreated() {
+  await loadPipelines()
 }
 
 onMounted(loadPipelines)
