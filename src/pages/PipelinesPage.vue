@@ -18,7 +18,9 @@
       <div class="row items-center q-col-gutter-sm q-mb-md">
         <div class="col">
           <div class="text-h6">Pipelines</div>
-          <div class="text-caption text-grey-7">Predefined pipelines you can create in the workspace.</div>
+          <div class="text-caption text-grey-7">
+            Predefined pipelines you can create in the workspace.
+          </div>
         </div>
         <div class="col-auto">
           <TableCsvActions
@@ -54,13 +56,49 @@
           </q-td>
         </template>
 
+        <template #body-cell-stages="props">
+          <q-td :props="props">
+            <div
+              v-if="props.row.stages && props.row.stages.length"
+              style="
+                width: 150px;
+                height: 80px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 4;
+                line-clamp: 4;
+                -webkit-box-orient: vertical;
+                white-space: normal;
+                position: relative;
+              "
+            >
+              {{
+                JSON.parse(props.row.stages)
+                  .map((stage) => stage.name) // Remove the "(Position: N)" part
+                  .join(', ')
+              }}
+              <q-tooltip>
+                {{
+                  JSON.parse(props.row.stages)
+                    .map((stage) => stage.name) // Full text on hover
+                    .join(', ')
+                }}
+              </q-tooltip>
+            </div>
+            <div v-else>No stages available</div>
+          </q-td>
+        </template>
+
         <template #body-cell-actions="props">
           <q-td :props="props">
             <q-btn
               dense
               outline
               color="primary"
-              :label="props.row.install_status === 'installed' ? 'Delete Pipeline' : 'Create Pipeline'"
+              :label="
+                props.row.install_status === 'installed' ? 'Delete Pipeline' : 'Create Pipeline'
+              "
               :disable="isBusy(props.row.install_status) || loading"
               @click="togglePipeline(props.row)"
             />
@@ -81,7 +119,9 @@ const isElectronRuntime = computed(() => {
 })
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
-const hasBridge = computed(() => !!bridge.value?.pipelines?.list && !!bridge.value?.pipelines?.upsertMany)
+const hasBridge = computed(
+  () => !!bridge.value?.pipelines?.list && !!bridge.value?.pipelines?.upsertMany,
+)
 
 const pipelines = ref([])
 const loading = ref(false)
@@ -89,7 +129,14 @@ const error = ref('')
 
 const columns = [
   { name: 'name', label: 'Pipeline Name', field: 'name', align: 'left', sortable: true },
-  { name: 'install_status', label: 'Status', field: 'install_status', align: 'left', sortable: true },
+  {
+    name: 'install_status',
+    label: 'Status',
+    field: 'install_status',
+    align: 'left',
+    sortable: true,
+  },
+  { name: 'stages', label: 'Stages', field: 'stages', align: 'left' },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 

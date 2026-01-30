@@ -25,10 +25,26 @@ async function ensureWorkspace() {
 function listPipelines() {
   return dbAll(
     `
-    SELECT pipeline_id, name, dir_name, is_default, install_status, install_error
-    FROM Pipelines
-    ORDER BY is_default DESC, name ASC
-  `,
+    SELECT 
+      p.pipeline_id, 
+      p.name, 
+      p.dir_name, 
+      p.is_default, 
+      p.install_status, 
+      p.install_error,
+      json_group_array(
+        json_object(
+          'stage_id', s.stage_id,
+          'name', s.name,
+          'position', s.position,
+          'is_terminal', s.is_terminal
+        )
+      ) AS stages
+    FROM Pipelines p
+    LEFT JOIN Pipeline_Stages s ON p.pipeline_id = s.pipeline_id
+    GROUP BY p.pipeline_id
+    ORDER BY p.is_default DESC, p.name ASC
+    `,
   )
 }
 
@@ -42,7 +58,8 @@ function upsertPipelines(rows = []) {
     let skipped = 0
 
     for (const r of input) {
-      const pipelineId = normalizeNullableString(r?.pipeline_id) || `pipeline:${crypto.randomUUID()}`
+      const pipelineId =
+        normalizeNullableString(r?.pipeline_id) || `pipeline:${crypto.randomUUID()}`
       const name = normalizeNullableString(r?.name)
       const dirName = normalizeNullableString(r?.dir_name)
       const isDefaultRaw = normalizeNullableString(r?.is_default)
@@ -178,7 +195,9 @@ function createCompany({ Company_Name } = {}) {
   const name = String(Company_Name || '').trim()
   if (!name) throw new Error('Company name is required')
 
-  const existing = dbAll('SELECT id, Company_Name FROM Companies WHERE Company_Name = ? LIMIT 1', [name])?.[0]
+  const existing = dbAll('SELECT id, Company_Name FROM Companies WHERE Company_Name = ? LIMIT 1', [
+    name,
+  ])?.[0]
   if (existing) return existing
 
   const id = `company:${crypto.randomUUID()}`
@@ -553,7 +572,8 @@ function upsertArtifacts(rows = []) {
     const errors = []
 
     for (const r of input) {
-      const artifactId = normalizeNullableString(r?.artifact_id) || `artifact:${crypto.randomUUID()}`
+      const artifactId =
+        normalizeNullableString(r?.artifact_id) || `artifact:${crypto.randomUUID()}`
       const opportunityId = normalizeNullableString(r?.opportunity_id)
       const pipelineId = normalizeNullableString(r?.pipeline_id)
       const stageId = normalizeNullableString(r?.stage_id)
