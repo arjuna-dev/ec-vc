@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
+import crypto from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import fse from 'fs-extra'
 
@@ -29,6 +30,63 @@ function listPipelines() {
     ORDER BY is_default DESC, name ASC
   `,
   )
+}
+
+function upsertPipelines(rows = []) {
+  const database = initDb()
+  const input = Array.isArray(rows) ? rows : []
+
+  const tx = database.transaction(() => {
+    let inserted = 0
+    let updated = 0
+    let skipped = 0
+
+    for (const r of input) {
+      const pipelineId = normalizeNullableString(r?.pipeline_id) || `pipeline:${crypto.randomUUID()}`
+      const name = normalizeNullableString(r?.name)
+      const dirName = normalizeNullableString(r?.dir_name)
+      const isDefaultRaw = normalizeNullableString(r?.is_default)
+      const isDefault = isDefaultRaw === '1' || isDefaultRaw?.toLowerCase?.() === 'true' ? 1 : 0
+
+      if (!name || !dirName) {
+        skipped++
+        continue
+      }
+
+      // Don't allow importing a second "default" accidentally.
+      const safeIsDefault = pipelineId === 'pipeline_default' ? isDefault : 0
+
+      const exists = database
+        .prepare('SELECT 1 FROM Pipelines WHERE pipeline_id = ? LIMIT 1')
+        .get(pipelineId)
+
+      database
+        .prepare(
+          `
+          INSERT INTO Pipelines (pipeline_id, name, dir_name, is_default)
+          VALUES (@pipeline_id, @name, @dir_name, @is_default)
+          ON CONFLICT(pipeline_id) DO UPDATE SET
+            name = excluded.name,
+            dir_name = excluded.dir_name,
+            is_default = excluded.is_default,
+            updated_at = datetime('now')
+        `,
+        )
+        .run({
+          pipeline_id: pipelineId,
+          name,
+          dir_name: dirName,
+          is_default: safeIsDefault,
+        })
+
+      if (exists) updated++
+      else inserted++
+    }
+
+    return { inserted, updated, skipped }
+  })
+
+  return tx()
 }
 
 async function installPipeline(pipelineId) {
@@ -98,6 +156,738 @@ async function uninstallPipeline(pipelineId) {
   }
 }
 
+function listCompanies() {
+  return dbAll(
+    `
+    SELECT
+      id,
+      Company_Name,
+      Website,
+      Status,
+      Company_Type,
+      Amount_Raised_AUMs,
+      created_at
+    FROM Companies
+    WHERE Company_Name IS NOT NULL AND Company_Name <> ''
+    ORDER BY Company_Name ASC
+  `,
+  )
+}
+
+function createCompany({ Company_Name } = {}) {
+  const name = String(Company_Name || '').trim()
+  if (!name) throw new Error('Company name is required')
+
+  const existing = dbAll('SELECT id, Company_Name FROM Companies WHERE Company_Name = ? LIMIT 1', [name])?.[0]
+  if (existing) return existing
+
+  const id = `company:${crypto.randomUUID()}`
+  dbRun('INSERT INTO Companies (id, Company_Name) VALUES (?, ?)', [id, name])
+  return { id, Company_Name: name }
+}
+
+function listOpportunities() {
+  return dbAll(
+    `
+    SELECT
+      o.id,
+      o.company_id,
+      o.Venture_Oppty_Name,
+      o.Round_Stage,
+      o.Round_Amount,
+      o.created_at,
+      c.Company_Name
+    FROM Opportunities o
+    JOIN Companies c ON c.id = o.company_id
+    ORDER BY o.created_at DESC
+  `,
+  )
+}
+
+function listContacts() {
+  return dbAll(
+    `
+    SELECT
+      id,
+      Name,
+      Email,
+      Phone,
+      Role,
+      Stakeholder_type,
+      created_at
+    FROM Contacts
+    ORDER BY COALESCE(Name, '') ASC, created_at DESC
+  `,
+  )
+}
+
+function createContact(payload = {}) {
+  const database = initDb()
+  const id = normalizeNullableString(payload.id) || `contact:${crypto.randomUUID()}`
+  const name = normalizeNullableString(payload.Name)
+  if (!name) throw new Error('Contact name is required')
+
+  database
+    .prepare(
+      `
+      INSERT INTO Contacts (
+        id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type
+      ) VALUES (
+        @id, @Name, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type
+      )
+    `,
+    )
+    .run({
+      id,
+      Name: name,
+      Email: normalizeNullableString(payload.Email),
+      Phone: normalizeNullableString(payload.Phone),
+      LinkedIn: normalizeNullableString(payload.LinkedIn),
+      Role: normalizeNullableString(payload.Role),
+      Stakeholder_type: normalizeNullableString(payload.Stakeholder_type),
+    })
+
+  return { id }
+}
+
+function listFunds() {
+  return dbAll(
+    `
+    SELECT
+      id,
+      Fund_Oppty_Name,
+      Fund_Type,
+      Fund_Size_Target,
+      Investment_Ask,
+      Raising_Status,
+      created_at
+    FROM Funds
+    ORDER BY created_at DESC
+  `,
+  )
+}
+
+function createFund(payload = {}) {
+  const database = initDb()
+  const id = normalizeNullableString(payload.id) || `fund:${crypto.randomUUID()}`
+  const name = normalizeNullableString(payload.Fund_Oppty_Name)
+  if (!name) throw new Error('Fund name is required')
+
+  database
+    .prepare(
+      `
+      INSERT INTO Funds (
+        id, Fund_Oppty_Name, Fund_Type, Fund_Size_Target, Investment_Ask,
+        Raising_Status, Pipeline_Status, Pipeline_Stage
+      ) VALUES (
+        @id, @Fund_Oppty_Name, @Fund_Type, @Fund_Size_Target, @Investment_Ask,
+        @Raising_Status, @Pipeline_Status, @Pipeline_Stage
+      )
+    `,
+    )
+    .run({
+      id,
+      Fund_Oppty_Name: name,
+      Fund_Type: normalizeNullableString(payload.Fund_Type),
+      Fund_Size_Target: normalizeNullableNumber(payload.Fund_Size_Target),
+      Investment_Ask: normalizeNullableNumber(payload.Investment_Ask),
+      Raising_Status: normalizeNullableString(payload.Raising_Status),
+      Pipeline_Status: normalizeNullableString(payload.Pipeline_Status),
+      Pipeline_Stage: normalizeNullableString(payload.Pipeline_Stage),
+    })
+
+  return { id }
+}
+
+function listArtifacts() {
+  return dbAll(
+    `
+    SELECT
+      a.artifact_id,
+      a.title,
+      a.artifact_type,
+      a.status,
+      a.fs_path,
+      a.opportunity_id,
+      a.pipeline_id,
+      a.stage_id,
+      a.created_at
+    FROM Artifacts a
+    ORDER BY a.created_at DESC
+  `,
+  )
+}
+
+function upsertCompanies(rows = []) {
+  const database = initDb()
+  const input = Array.isArray(rows) ? rows : []
+
+  const tx = database.transaction(() => {
+    let inserted = 0
+    let updated = 0
+    let skipped = 0
+
+    for (const r of input) {
+      const companyName = normalizeNullableString(r?.Company_Name)
+      if (!companyName) {
+        skipped++
+        continue
+      }
+
+      const existing = database
+        .prepare('SELECT id FROM Companies WHERE Company_Name = ? LIMIT 1')
+        .get(companyName)
+      const id = normalizeNullableString(r?.id) || existing?.id || `company:${crypto.randomUUID()}`
+
+      const payload = {
+        id,
+        Company_Name: companyName,
+        Website: normalizeNullableString(r?.Website),
+        Status: normalizeNullableString(r?.Status),
+        Company_Type: normalizeNullableString(r?.Company_Type),
+        Amount_Raised_AUMs: normalizeNullableNumber(r?.Amount_Raised_AUMs),
+      }
+
+      const result = database
+        .prepare(
+          `
+          INSERT INTO Companies (id, Company_Name, Website, Status, Company_Type, Amount_Raised_AUMs)
+          VALUES (@id, @Company_Name, @Website, @Status, @Company_Type, @Amount_Raised_AUMs)
+          ON CONFLICT(id) DO UPDATE SET
+            Company_Name = excluded.Company_Name,
+            Website = excluded.Website,
+            Status = excluded.Status,
+            Company_Type = excluded.Company_Type,
+            Amount_Raised_AUMs = excluded.Amount_Raised_AUMs,
+            updated_at = datetime('now')
+        `,
+        )
+        .run(payload)
+
+      if (result.changes > 0) {
+        if (existing?.id || normalizeNullableString(r?.id)) updated++
+        else inserted++
+      }
+    }
+
+    return { inserted, updated, skipped }
+  })
+
+  return tx()
+}
+
+function upsertContacts(rows = []) {
+  const database = initDb()
+  const input = Array.isArray(rows) ? rows : []
+
+  const tx = database.transaction(() => {
+    let inserted = 0
+    let updated = 0
+    let skipped = 0
+
+    for (const r of input) {
+      const id = normalizeNullableString(r?.id) || `contact:${crypto.randomUUID()}`
+      const name = normalizeNullableString(r?.Name)
+
+      if (!name && !normalizeNullableString(r?.Email) && !normalizeNullableString(r?.Phone)) {
+        skipped++
+        continue
+      }
+
+      const payload = {
+        id,
+        Name: name,
+        Email: normalizeNullableString(r?.Email),
+        Phone: normalizeNullableString(r?.Phone),
+        LinkedIn: normalizeNullableString(r?.LinkedIn),
+        Role: normalizeNullableString(r?.Role),
+        Stakeholder_type: normalizeNullableString(r?.Stakeholder_type),
+        Closeness_Level: normalizeNullableString(r?.Closeness_Level),
+        Comment: normalizeNullableString(r?.Comment),
+        Expertise: normalizeNullableString(r?.Expertise),
+        Degrees_Program: normalizeNullableString(r?.Degrees_Program),
+        University: normalizeNullableString(r?.University),
+        Credentials: normalizeNullableString(r?.Credentials),
+        Tenure_at_Firm_yrs: normalizeNullableNumber(r?.Tenure_at_Firm_yrs),
+        Country_based: normalizeNullableString(r?.Country_based),
+      }
+
+      const exists = database.prepare('SELECT 1 FROM Contacts WHERE id = ? LIMIT 1').get(id)
+
+      database
+        .prepare(
+          `
+          INSERT INTO Contacts (
+            id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
+            Comment, Expertise, Degrees_Program, University, Credentials, Tenure_at_Firm_yrs, Country_based
+          )
+          VALUES (
+            @id, @Name, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type, @Closeness_Level,
+            @Comment, @Expertise, @Degrees_Program, @University, @Credentials, @Tenure_at_Firm_yrs, @Country_based
+          )
+          ON CONFLICT(id) DO UPDATE SET
+            Name = excluded.Name,
+            Email = excluded.Email,
+            Phone = excluded.Phone,
+            LinkedIn = excluded.LinkedIn,
+            Role = excluded.Role,
+            Stakeholder_type = excluded.Stakeholder_type,
+            Closeness_Level = excluded.Closeness_Level,
+            Comment = excluded.Comment,
+            Expertise = excluded.Expertise,
+            Degrees_Program = excluded.Degrees_Program,
+            University = excluded.University,
+            Credentials = excluded.Credentials,
+            Tenure_at_Firm_yrs = excluded.Tenure_at_Firm_yrs,
+            Country_based = excluded.Country_based,
+            updated_at = datetime('now')
+        `,
+        )
+        .run(payload)
+
+      if (exists) updated++
+      else inserted++
+    }
+
+    return { inserted, updated, skipped }
+  })
+
+  return tx()
+}
+
+function upsertFunds(rows = []) {
+  const database = initDb()
+  const input = Array.isArray(rows) ? rows : []
+
+  const tx = database.transaction(() => {
+    let inserted = 0
+    let updated = 0
+    let skipped = 0
+
+    for (const r of input) {
+      const id = normalizeNullableString(r?.id) || `fund:${crypto.randomUUID()}`
+      const name = normalizeNullableString(r?.Fund_Oppty_Name)
+
+      if (!name) {
+        skipped++
+        continue
+      }
+
+      const payload = {
+        id,
+        Fund_Oppty_Name: name,
+        Fund_Type: normalizeNullableString(r?.Fund_Type),
+        Fund_Size_Target: normalizeNullableNumber(r?.Fund_Size_Target),
+        Investment_Ask: normalizeNullableNumber(r?.Investment_Ask),
+        Hard_Commits: normalizeNullableNumber(r?.Hard_Commits),
+        Soft_Commits: normalizeNullableNumber(r?.Soft_Commits),
+        Initial_Ticket_Size: normalizeNullableNumber(r?.Initial_Ticket_Size),
+        Target_Positions: normalizeNullableNumber(r?.Target_Positions),
+        Follow_on_Reserve: normalizeNullableNumber(r?.Follow_on_Reserve),
+        Investment_Stages: normalizeNullableString(r?.Investment_Stages),
+        Company_Stages: normalizeNullableString(r?.Company_Stages),
+        First_Close_Date: normalizeNullableString(r?.First_Close_Date),
+        Next_Close_Date: normalizeNullableString(r?.Next_Close_Date),
+        Final_Close_Date: normalizeNullableString(r?.Final_Close_Date),
+        Pipeline_Stage: normalizeNullableString(r?.Pipeline_Stage),
+        Pipeline_Status: normalizeNullableString(r?.Pipeline_Status),
+        Raising_Status: normalizeNullableString(r?.Raising_Status),
+      }
+
+      const exists = database.prepare('SELECT 1 FROM Funds WHERE id = ? LIMIT 1').get(id)
+
+      database
+        .prepare(
+          `
+          INSERT INTO Funds (
+            id, Fund_Oppty_Name, Fund_Type, Fund_Size_Target, Investment_Ask, Hard_Commits, Soft_Commits,
+            Initial_Ticket_Size, Target_Positions, Follow_on_Reserve, Investment_Stages, Company_Stages,
+            First_Close_Date, Next_Close_Date, Final_Close_Date, Pipeline_Stage, Pipeline_Status, Raising_Status
+          )
+          VALUES (
+            @id, @Fund_Oppty_Name, @Fund_Type, @Fund_Size_Target, @Investment_Ask, @Hard_Commits, @Soft_Commits,
+            @Initial_Ticket_Size, @Target_Positions, @Follow_on_Reserve, @Investment_Stages, @Company_Stages,
+            @First_Close_Date, @Next_Close_Date, @Final_Close_Date, @Pipeline_Stage, @Pipeline_Status, @Raising_Status
+          )
+          ON CONFLICT(id) DO UPDATE SET
+            Fund_Oppty_Name = excluded.Fund_Oppty_Name,
+            Fund_Type = excluded.Fund_Type,
+            Fund_Size_Target = excluded.Fund_Size_Target,
+            Investment_Ask = excluded.Investment_Ask,
+            Hard_Commits = excluded.Hard_Commits,
+            Soft_Commits = excluded.Soft_Commits,
+            Initial_Ticket_Size = excluded.Initial_Ticket_Size,
+            Target_Positions = excluded.Target_Positions,
+            Follow_on_Reserve = excluded.Follow_on_Reserve,
+            Investment_Stages = excluded.Investment_Stages,
+            Company_Stages = excluded.Company_Stages,
+            First_Close_Date = excluded.First_Close_Date,
+            Next_Close_Date = excluded.Next_Close_Date,
+            Final_Close_Date = excluded.Final_Close_Date,
+            Pipeline_Stage = excluded.Pipeline_Stage,
+            Pipeline_Status = excluded.Pipeline_Status,
+            Raising_Status = excluded.Raising_Status,
+            updated_at = datetime('now')
+        `,
+        )
+        .run(payload)
+
+      if (exists) updated++
+      else inserted++
+    }
+
+    return { inserted, updated, skipped }
+  })
+
+  return tx()
+}
+
+function upsertArtifacts(rows = []) {
+  const database = initDb()
+  const input = Array.isArray(rows) ? rows : []
+
+  const tx = database.transaction(() => {
+    let inserted = 0
+    let updated = 0
+    let skipped = 0
+    const errors = []
+
+    for (const r of input) {
+      const artifactId = normalizeNullableString(r?.artifact_id) || `artifact:${crypto.randomUUID()}`
+      const opportunityId = normalizeNullableString(r?.opportunity_id)
+      const pipelineId = normalizeNullableString(r?.pipeline_id)
+      const stageId = normalizeNullableString(r?.stage_id)
+      const artifactType = normalizeNullableString(r?.artifact_type)
+      const fsPath = normalizeNullableString(r?.fs_path)
+      const generatedBy = normalizeNullableString(r?.generated_by) || 'user'
+
+      if (!opportunityId || !pipelineId || !stageId || !artifactType || !fsPath) {
+        skipped++
+        continue
+      }
+
+      const exists = database
+        .prepare('SELECT 1 FROM Artifacts WHERE artifact_id = ? LIMIT 1')
+        .get(artifactId)
+
+      const payload = {
+        artifact_id: artifactId,
+        pipeline_run_id: normalizeNullableString(r?.pipeline_run_id),
+        opportunity_id: opportunityId,
+        pipeline_id: pipelineId,
+        stage_id: stageId,
+        artifact_type: artifactType,
+        artifact_role: normalizeNullableString(r?.artifact_role),
+        artifact_format: normalizeNullableString(r?.artifact_format),
+        fs_path: fsPath,
+        fs_hash: normalizeNullableString(r?.fs_hash),
+        fs_size_bytes: normalizeNullableNumber(r?.fs_size_bytes),
+        source_artifact_id: normalizeNullableString(r?.source_artifact_id),
+        generated_by: generatedBy,
+        llm_provider: normalizeNullableString(r?.llm_provider),
+        llm_model: normalizeNullableString(r?.llm_model),
+        assistant_system_prompt_id: normalizeNullableString(r?.assistant_system_prompt_id),
+        title: normalizeNullableString(r?.title),
+        summary: normalizeNullableString(r?.summary),
+        confidence_score: normalizeNullableNumber(r?.confidence_score),
+        status: normalizeNullableString(r?.status) || 'draft',
+        is_active: normalizeNullableNumber(r?.is_active) ?? 1,
+      }
+
+      try {
+        database
+          .prepare(
+            `
+            INSERT INTO Artifacts (
+              artifact_id, pipeline_run_id, opportunity_id, pipeline_id, stage_id,
+              artifact_type, artifact_role, artifact_format, fs_path, fs_hash, fs_size_bytes,
+              source_artifact_id, generated_by, llm_provider, llm_model, assistant_system_prompt_id,
+              title, summary, confidence_score, status, is_active
+            )
+            VALUES (
+              @artifact_id, @pipeline_run_id, @opportunity_id, @pipeline_id, @stage_id,
+              @artifact_type, @artifact_role, @artifact_format, @fs_path, @fs_hash, @fs_size_bytes,
+              @source_artifact_id, @generated_by, @llm_provider, @llm_model, @assistant_system_prompt_id,
+              @title, @summary, @confidence_score, @status, @is_active
+            )
+            ON CONFLICT(artifact_id) DO UPDATE SET
+              pipeline_run_id = excluded.pipeline_run_id,
+              opportunity_id = excluded.opportunity_id,
+              pipeline_id = excluded.pipeline_id,
+              stage_id = excluded.stage_id,
+              artifact_type = excluded.artifact_type,
+              artifact_role = excluded.artifact_role,
+              artifact_format = excluded.artifact_format,
+              fs_path = excluded.fs_path,
+              fs_hash = excluded.fs_hash,
+              fs_size_bytes = excluded.fs_size_bytes,
+              source_artifact_id = excluded.source_artifact_id,
+              generated_by = excluded.generated_by,
+              llm_provider = excluded.llm_provider,
+              llm_model = excluded.llm_model,
+              assistant_system_prompt_id = excluded.assistant_system_prompt_id,
+              title = excluded.title,
+              summary = excluded.summary,
+              confidence_score = excluded.confidence_score,
+              status = excluded.status,
+              is_active = excluded.is_active,
+              updated_at = datetime('now')
+          `,
+          )
+          .run(payload)
+
+        if (exists) updated++
+        else inserted++
+      } catch (e) {
+        errors.push({ artifact_id: artifactId, error: e?.message || String(e) })
+      }
+    }
+
+    return { inserted, updated, skipped, errors }
+  })
+
+  return tx()
+}
+
+function normalizeNullableString(value) {
+  const v = value === undefined || value === null ? '' : String(value)
+  const t = v.trim()
+  return t.length ? t : null
+}
+
+function normalizeNullableNumber(value) {
+  if (value === undefined || value === null || value === '') return null
+  const n = Number(value)
+  return Number.isFinite(n) ? n : null
+}
+
+function createOpportunity(payload = {}) {
+  const database = initDb()
+
+  const companyId = normalizeNullableString(payload.company_id)
+  if (!companyId) throw new Error('company_id is required')
+
+  const opportunityId = normalizeNullableString(payload.id) || `opportunity:${crypto.randomUUID()}`
+
+  const fields = {
+    id: opportunityId,
+    company_id: companyId,
+    Venture_Oppty_Name: normalizeNullableString(payload.Venture_Oppty_Name),
+    Round_Stage: normalizeNullableString(payload.Round_Stage),
+    Type_of_Security: normalizeNullableString(payload.Type_of_Security),
+    Investment_Ask: normalizeNullableNumber(payload.Investment_Ask),
+    Round_Amount: normalizeNullableNumber(payload.Round_Amount),
+    Hard_Commits: normalizeNullableNumber(payload.Hard_Commits),
+    Soft_Commits: normalizeNullableNumber(payload.Soft_Commits),
+    Pre_Valuation: normalizeNullableNumber(payload.Pre_Valuation),
+    Post_Valuation: normalizeNullableNumber(payload.Post_Valuation),
+    Previous_Post: normalizeNullableNumber(payload.Previous_Post),
+    First_Close_Date: normalizeNullableString(payload.First_Close_Date),
+    Next_Close_Date: normalizeNullableString(payload.Next_Close_Date),
+    Final_Close_Date: normalizeNullableString(payload.Final_Close_Date),
+    Pipeline_Stage: normalizeNullableString(payload.Pipeline_Stage),
+    Pipeline_Status: normalizeNullableString(payload.Pipeline_Status),
+    Raising_Status: normalizeNullableString(payload.Raising_Status),
+    Board_Seats: normalizeNullableString(payload.Board_Seats),
+    Information_Rights: normalizeNullableString(payload.Information_Rights),
+    Voting_Rights: normalizeNullableString(payload.Voting_Rights),
+    Liquidation_Preference: normalizeNullableString(payload.Liquidation_Preference),
+    Anti_Dilution_Provisions: normalizeNullableString(payload.Anti_Dilution_Provisions),
+    Conversion_Features: normalizeNullableString(payload.Conversion_Features),
+    Most_Favored_Nation: normalizeNullableString(payload.Most_Favored_Nation),
+    ROFO_ROR: normalizeNullableString(payload.ROFO_ROR),
+    Co_Sale_Right: normalizeNullableString(payload.Co_Sale_Right),
+    Tag_Drag_Along: normalizeNullableString(payload.Tag_Drag_Along),
+    Put_Option: normalizeNullableString(payload.Put_Option),
+    Over_Allotment_Option: normalizeNullableString(payload.Over_Allotment_Option),
+    Stacked_Series: normalizeNullableString(payload.Stacked_Series),
+  }
+
+  const insert = database.transaction(() => {
+    const columns = Object.keys(fields)
+    const placeholders = columns.map(() => '?').join(',')
+    const values = columns.map((c) => fields[c])
+
+    database
+      .prepare(`INSERT INTO Opportunities (${columns.join(',')}) VALUES (${placeholders})`)
+      .run(values)
+
+    // Ensure the opportunity has a default pipeline stage (DB-level requirement via app logic)
+    database
+      .prepare(
+        `
+        INSERT OR REPLACE INTO Opportunity_Pipeline (
+          opportunity_id,
+          pipeline_id,
+          stage_id,
+          status
+        ) VALUES (?, 'pipeline_default', 'stage_thesis_alignment', 'active')
+      `,
+      )
+      .run(opportunityId)
+  })
+
+  insert()
+
+  return { id: opportunityId }
+}
+
+function upsertOpportunities(rows = []) {
+  const database = initDb()
+  const input = Array.isArray(rows) ? rows : []
+
+  const tx = database.transaction(() => {
+    let inserted = 0
+    let updated = 0
+    let skipped = 0
+
+    for (const r of input) {
+      const companyIdFromRow = normalizeNullableString(r?.company_id)
+      const companyNameFromRow = normalizeNullableString(r?.Company_Name)
+
+      let companyId = companyIdFromRow
+      if (!companyId && companyNameFromRow) {
+        const existing = database
+          .prepare('SELECT id FROM Companies WHERE Company_Name = ? LIMIT 1')
+          .get(companyNameFromRow)
+        companyId = existing?.id
+        if (!companyId) {
+          companyId = `company:${crypto.randomUUID()}`
+          database
+            .prepare('INSERT INTO Companies (id, Company_Name) VALUES (?, ?)')
+            .run(companyId, companyNameFromRow)
+        }
+      }
+
+      if (!companyId) {
+        skipped++
+        continue
+      }
+
+      const opportunityId = normalizeNullableString(r?.id) || `opportunity:${crypto.randomUUID()}`
+
+      const payload = {
+        id: opportunityId,
+        company_id: companyId,
+        Venture_Oppty_Name: normalizeNullableString(r?.Venture_Oppty_Name),
+        Round_Stage: normalizeNullableString(r?.Round_Stage),
+        Type_of_Security: normalizeNullableString(r?.Type_of_Security),
+        Investment_Ask: normalizeNullableNumber(r?.Investment_Ask),
+        Round_Amount: normalizeNullableNumber(r?.Round_Amount),
+        Hard_Commits: normalizeNullableNumber(r?.Hard_Commits),
+        Soft_Commits: normalizeNullableNumber(r?.Soft_Commits),
+        Pre_Valuation: normalizeNullableNumber(r?.Pre_Valuation),
+        Post_Valuation: normalizeNullableNumber(r?.Post_Valuation),
+        Previous_Post: normalizeNullableNumber(r?.Previous_Post),
+        First_Close_Date: normalizeNullableString(r?.First_Close_Date),
+        Next_Close_Date: normalizeNullableString(r?.Next_Close_Date),
+        Final_Close_Date: normalizeNullableString(r?.Final_Close_Date),
+        Pipeline_Stage: normalizeNullableString(r?.Pipeline_Stage),
+        Pipeline_Status: normalizeNullableString(r?.Pipeline_Status),
+        Raising_Status: normalizeNullableString(r?.Raising_Status),
+        Board_Seats: normalizeNullableString(r?.Board_Seats),
+        Information_Rights: normalizeNullableString(r?.Information_Rights),
+        Voting_Rights: normalizeNullableString(r?.Voting_Rights),
+        Liquidation_Preference: normalizeNullableString(r?.Liquidation_Preference),
+        Anti_Dilution_Provisions: normalizeNullableString(r?.Anti_Dilution_Provisions),
+        Conversion_Features: normalizeNullableString(r?.Conversion_Features),
+        Most_Favored_Nation: normalizeNullableString(r?.Most_Favored_Nation),
+        ROFO_ROR: normalizeNullableString(r?.ROFO_ROR),
+        Co_Sale_Right: normalizeNullableString(r?.Co_Sale_Right),
+        Tag_Drag_Along: normalizeNullableString(r?.Tag_Drag_Along),
+        Put_Option: normalizeNullableString(r?.Put_Option),
+        Over_Allotment_Option: normalizeNullableString(r?.Over_Allotment_Option),
+        Stacked_Series: normalizeNullableString(r?.Stacked_Series),
+      }
+
+      const exists = database
+        .prepare('SELECT 1 FROM Opportunities WHERE id = ? LIMIT 1')
+        .get(opportunityId)
+
+      database
+        .prepare(
+          `
+          INSERT INTO Opportunities (
+            id, company_id, Venture_Oppty_Name, Round_Stage, Type_of_Security,
+            Investment_Ask, Round_Amount, Hard_Commits, Soft_Commits,
+            Pre_Valuation, Post_Valuation, Previous_Post,
+            First_Close_Date, Next_Close_Date, Final_Close_Date,
+            Pipeline_Stage, Pipeline_Status, Raising_Status,
+            Board_Seats, Information_Rights, Voting_Rights,
+            Liquidation_Preference, Anti_Dilution_Provisions, Conversion_Features,
+            Most_Favored_Nation, ROFO_ROR, Co_Sale_Right, Tag_Drag_Along,
+            Put_Option, Over_Allotment_Option, Stacked_Series
+          )
+          VALUES (
+            @id, @company_id, @Venture_Oppty_Name, @Round_Stage, @Type_of_Security,
+            @Investment_Ask, @Round_Amount, @Hard_Commits, @Soft_Commits,
+            @Pre_Valuation, @Post_Valuation, @Previous_Post,
+            @First_Close_Date, @Next_Close_Date, @Final_Close_Date,
+            @Pipeline_Stage, @Pipeline_Status, @Raising_Status,
+            @Board_Seats, @Information_Rights, @Voting_Rights,
+            @Liquidation_Preference, @Anti_Dilution_Provisions, @Conversion_Features,
+            @Most_Favored_Nation, @ROFO_ROR, @Co_Sale_Right, @Tag_Drag_Along,
+            @Put_Option, @Over_Allotment_Option, @Stacked_Series
+          )
+          ON CONFLICT(id) DO UPDATE SET
+            company_id = excluded.company_id,
+            Venture_Oppty_Name = excluded.Venture_Oppty_Name,
+            Round_Stage = excluded.Round_Stage,
+            Type_of_Security = excluded.Type_of_Security,
+            Investment_Ask = excluded.Investment_Ask,
+            Round_Amount = excluded.Round_Amount,
+            Hard_Commits = excluded.Hard_Commits,
+            Soft_Commits = excluded.Soft_Commits,
+            Pre_Valuation = excluded.Pre_Valuation,
+            Post_Valuation = excluded.Post_Valuation,
+            Previous_Post = excluded.Previous_Post,
+            First_Close_Date = excluded.First_Close_Date,
+            Next_Close_Date = excluded.Next_Close_Date,
+            Final_Close_Date = excluded.Final_Close_Date,
+            Pipeline_Stage = excluded.Pipeline_Stage,
+            Pipeline_Status = excluded.Pipeline_Status,
+            Raising_Status = excluded.Raising_Status,
+            Board_Seats = excluded.Board_Seats,
+            Information_Rights = excluded.Information_Rights,
+            Voting_Rights = excluded.Voting_Rights,
+            Liquidation_Preference = excluded.Liquidation_Preference,
+            Anti_Dilution_Provisions = excluded.Anti_Dilution_Provisions,
+            Conversion_Features = excluded.Conversion_Features,
+            Most_Favored_Nation = excluded.Most_Favored_Nation,
+            ROFO_ROR = excluded.ROFO_ROR,
+            Co_Sale_Right = excluded.Co_Sale_Right,
+            Tag_Drag_Along = excluded.Tag_Drag_Along,
+            Put_Option = excluded.Put_Option,
+            Over_Allotment_Option = excluded.Over_Allotment_Option,
+            Stacked_Series = excluded.Stacked_Series,
+            updated_at = datetime('now')
+        `,
+        )
+        .run(payload)
+
+      database
+        .prepare(
+          `
+          INSERT OR IGNORE INTO Opportunity_Pipeline (
+            opportunity_id,
+            pipeline_id,
+            stage_id,
+            status
+          ) VALUES (?, 'pipeline_default', 'stage_thesis_alignment', 'active')
+        `,
+        )
+        .run(opportunityId)
+
+      if (exists) updated++
+      else inserted++
+    }
+
+    return { inserted, updated, skipped }
+  })
+
+  return tx()
+}
+
 function registerIpc() {
   ipcMain.handle('fs:homedir', () => os.homedir())
 
@@ -155,6 +945,81 @@ function registerIpc() {
   ipcMain.handle('pipelines:uninstall', async (_event, { pipelineId } = {}) => {
     initDb()
     return uninstallPipeline(String(pipelineId || ''))
+  })
+
+  ipcMain.handle('pipelines:upsertMany', async (_event, { rows } = {}) => {
+    initDb()
+    return upsertPipelines(rows)
+  })
+
+  ipcMain.handle('companies:list', async () => {
+    initDb()
+    return { companies: listCompanies() }
+  })
+
+  ipcMain.handle('companies:create', async (_event, payload) => {
+    initDb()
+    return createCompany(payload)
+  })
+
+  ipcMain.handle('companies:upsertMany', async (_event, { rows } = {}) => {
+    initDb()
+    return upsertCompanies(rows)
+  })
+
+  ipcMain.handle('opportunities:list', async () => {
+    initDb()
+    return { opportunities: listOpportunities() }
+  })
+
+  ipcMain.handle('opportunities:create', async (_event, payload) => {
+    initDb()
+    return createOpportunity(payload)
+  })
+
+  ipcMain.handle('opportunities:upsertMany', async (_event, { rows } = {}) => {
+    initDb()
+    return upsertOpportunities(rows)
+  })
+
+  ipcMain.handle('contacts:list', async () => {
+    initDb()
+    return { contacts: listContacts() }
+  })
+
+  ipcMain.handle('contacts:create', async (_event, payload) => {
+    initDb()
+    return createContact(payload)
+  })
+
+  ipcMain.handle('contacts:upsertMany', async (_event, { rows } = {}) => {
+    initDb()
+    return upsertContacts(rows)
+  })
+
+  ipcMain.handle('funds:list', async () => {
+    initDb()
+    return { funds: listFunds() }
+  })
+
+  ipcMain.handle('funds:create', async (_event, payload) => {
+    initDb()
+    return createFund(payload)
+  })
+
+  ipcMain.handle('funds:upsertMany', async (_event, { rows } = {}) => {
+    initDb()
+    return upsertFunds(rows)
+  })
+
+  ipcMain.handle('artifacts:list', async () => {
+    initDb()
+    return { artifacts: listArtifacts() }
+  })
+
+  ipcMain.handle('artifacts:upsertMany', async (_event, { rows } = {}) => {
+    initDb()
+    return upsertArtifacts(rows)
   })
 
   ipcMain.handle('db:info', () => getDbInfo())

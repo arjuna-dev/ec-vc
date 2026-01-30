@@ -14,6 +14,31 @@ contextBridge.exposeInMainWorld('ecvc', {
     list: () => ipcRenderer.invoke('pipelines:list'),
     install: (pipelineId) => ipcRenderer.invoke('pipelines:install', { pipelineId }),
     uninstall: (pipelineId) => ipcRenderer.invoke('pipelines:uninstall', { pipelineId }),
+    upsertMany: (rows) => ipcRenderer.invoke('pipelines:upsertMany', { rows }),
+  },
+  companies: {
+    list: () => ipcRenderer.invoke('companies:list'),
+    create: (payload) => ipcRenderer.invoke('companies:create', payload),
+    upsertMany: (rows) => ipcRenderer.invoke('companies:upsertMany', { rows }),
+  },
+  opportunities: {
+    list: () => ipcRenderer.invoke('opportunities:list'),
+    create: (payload) => ipcRenderer.invoke('opportunities:create', payload),
+    upsertMany: (rows) => ipcRenderer.invoke('opportunities:upsertMany', { rows }),
+  },
+  contacts: {
+    list: () => ipcRenderer.invoke('contacts:list'),
+    create: (payload) => ipcRenderer.invoke('contacts:create', payload),
+    upsertMany: (rows) => ipcRenderer.invoke('contacts:upsertMany', { rows }),
+  },
+  funds: {
+    list: () => ipcRenderer.invoke('funds:list'),
+    create: (payload) => ipcRenderer.invoke('funds:create', payload),
+    upsertMany: (rows) => ipcRenderer.invoke('funds:upsertMany', { rows }),
+  },
+  artifacts: {
+    list: () => ipcRenderer.invoke('artifacts:list'),
+    upsertMany: (rows) => ipcRenderer.invoke('artifacts:upsertMany', { rows }),
   },
   db: {
     info: () => ipcRenderer.invoke('db:info'),

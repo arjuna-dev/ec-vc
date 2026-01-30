@@ -21,6 +21,14 @@
           <div class="text-caption text-grey-7">Predefined pipelines you can create in the workspace.</div>
         </div>
         <div class="col-auto">
+          <TableCsvActions
+            filename-base="pipelines"
+            :headers="csvHeaders"
+            :rows="pipelines"
+            :on-import-rows="importRows"
+          />
+        </div>
+        <div class="col-auto">
           <q-btn dense flat icon="refresh" :loading="loading" @click="loadPipelines" />
         </div>
       </div>
@@ -65,6 +73,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import TableCsvActions from 'components/TableCsvActions.vue'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -72,7 +81,7 @@ const isElectronRuntime = computed(() => {
 })
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
-const hasBridge = computed(() => !!bridge.value?.pipelines?.list)
+const hasBridge = computed(() => !!bridge.value?.pipelines?.list && !!bridge.value?.pipelines?.upsertMany)
 
 const pipelines = ref([])
 const loading = ref(false)
@@ -83,6 +92,8 @@ const columns = [
   { name: 'install_status', label: 'Status', field: 'install_status', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
+
+const csvHeaders = ['pipeline_id', 'name', 'dir_name', 'is_default']
 
 function statusLabel(status) {
   if (status === 'installed') return 'Created'
@@ -136,6 +147,11 @@ async function togglePipeline(row) {
   }
 }
 
+async function importRows(importedRows) {
+  const result = await bridge.value.pipelines.upsertMany(importedRows)
+  await loadPipelines()
+  return result
+}
+
 onMounted(loadPipelines)
 </script>
-

@@ -7,7 +7,7 @@ import { SCHEMA_V1_SQL } from './sqlite-schema.js'
 
 let db = null
 
-export function initDb () {
+export function initDb() {
   if (db) return db
 
   const dbPath = path.join(app.getPath('userData'), 'ecvc.sqlite3')
@@ -18,13 +18,15 @@ export function initDb () {
   db = new Database(dbPath)
   db.pragma('journal_mode = WAL')
   db.pragma('foreign_keys = ON')
+  db.pragma('synchronous = NORMAL')
+  db.pragma('busy_timeout = 5000')
 
   migrate(db)
 
   return db
 }
 
-export function getDbInfo () {
+export function getDbInfo() {
   const database = initDb()
   return {
     path: database.name,
@@ -32,13 +34,13 @@ export function getDbInfo () {
   }
 }
 
-export function closeDb () {
+export function closeDb() {
   if (!db) return
   db.close()
   db = null
 }
 
-function migrate (database) {
+function migrate(database) {
   const userVersion = database.pragma('user_version', { simple: true })
 
   if (userVersion < 1) {
@@ -47,12 +49,12 @@ function migrate (database) {
   }
 }
 
-export function dbAll (sql, params = []) {
+export function dbAll(sql, params = []) {
   const database = initDb()
   return database.prepare(String(sql)).all(params)
 }
 
-export function dbRun (sql, params = []) {
+export function dbRun(sql, params = []) {
   const database = initDb()
   const result = database.prepare(String(sql)).run(params)
   return {
@@ -61,21 +63,32 @@ export function dbRun (sql, params = []) {
   }
 }
 
-function maybeRecreateDb (dbPath) {
+function maybeRecreateDb(dbPath) {
   if (!fse.pathExistsSync(dbPath)) return
 
   const probe = new Database(dbPath)
   const userVersion = probe.pragma('user_version', { simple: true })
   const tablesCount = probe
-    .prepare("SELECT COUNT(*) AS c FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+    .prepare(
+      "SELECT COUNT(*) AS c FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+    )
     .get()?.c
   const hasPipelines = hasTable(probe, 'Pipelines')
   const hasOpportunityPipeline = hasTable(probe, 'Opportunity_Pipeline')
   const pipelinesHasDirName = hasColumn(probe, 'Pipelines', 'dir_name')
+  const opportunitiesHasCompanyId = hasColumn(probe, 'Opportunities', 'company_id')
   probe.close()
 
-  const looksLikeNewSchema = userVersion === 1 && hasPipelines && hasOpportunityPipeline && pipelinesHasDirName
-  const looksLikeOldSchema = userVersion > 1 || (userVersion === 0 && Number(tablesCount || 0) > 0) || (userVersion === 1 && !looksLikeNewSchema)
+  const looksLikeNewSchema =
+    userVersion === 1 &&
+    hasPipelines &&
+    hasOpportunityPipeline &&
+    pipelinesHasDirName &&
+    opportunitiesHasCompanyId
+  const looksLikeOldSchema =
+    userVersion > 1 ||
+    (userVersion === 0 && Number(tablesCount || 0) > 0) ||
+    (userVersion === 1 && !looksLikeNewSchema)
 
   if (!looksLikeOldSchema) return
 
@@ -84,13 +97,13 @@ function maybeRecreateDb (dbPath) {
   fse.removeSync(`${dbPath}-shm`)
 }
 
-function hasTable (database, tableName) {
+function hasTable(database, tableName) {
   return !!database
     .prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=? LIMIT 1")
     .get(String(tableName))
 }
 
-function hasColumn (database, tableName, columnName) {
+function hasColumn(database, tableName, columnName) {
   const cols = database.prepare(`PRAGMA table_info(${String(tableName)})`).all()
   return cols.some((c) => c?.name === String(columnName))
 }
