@@ -3,13 +3,38 @@
     <q-card style="width: 760px; max-width: 96vw">
       <q-card-section>
         <div class="text-h6">Add new artifact</div>
-        <div class="text-caption text-grey-7">Select a pipeline and an opportunity, then drop files.</div>
+        <div class="text-caption text-grey-7">Drop files first, then select pipeline and opportunity.</div>
       </q-card-section>
 
       <q-separator />
 
       <q-card-section>
         <div v-if="step === 1" class="q-gutter-md">
+          <div class="text-subtitle1">Drop your artifacts here</div>
+          <div
+            class="q-pa-xl bg-grey-2 rounded-borders"
+            style="border: 2px dashed #9e9e9e"
+            @dragover.prevent="dragOver = true"
+            @dragleave.prevent="dragOver = false"
+            @drop.prevent="onDrop"
+          >
+            <div class="text-center text-grey-8">
+              {{ dragOver ? 'Release to drop' : 'Drag files into this area' }}
+            </div>
+          </div>
+          <div class="text-caption text-grey-7">(For now this only logs a success message to the console.)</div>
+
+          <q-banner v-if="droppedFiles.length" class="bg-white text-black" rounded>
+            <div class="text-caption text-grey-7 q-mb-xs">Staged files:</div>
+            <div style="max-height: 120px; overflow: auto">
+              <div v-for="f in droppedFiles" :key="f.path" class="text-body2">
+                {{ f.name }} ({{ f.size }} bytes)
+              </div>
+            </div>
+          </q-banner>
+        </div>
+
+        <div v-else class="q-gutter-md">
           <q-select
             v-model="pipelineId"
             outlined
@@ -64,24 +89,6 @@
             </template>
           </q-select>
         </div>
-
-        <div v-else class="q-gutter-md">
-          <div class="text-subtitle1">Drop your artifacts here</div>
-          <div
-            class="q-pa-xl bg-grey-2 rounded-borders"
-            style="border: 2px dashed #9e9e9e"
-            @dragover.prevent="dragOver = true"
-            @dragleave.prevent="dragOver = false"
-            @drop.prevent="onDrop"
-          >
-            <div class="text-center text-grey-8">
-              {{ dragOver ? 'Release to drop' : 'Drag files into this area' }}
-            </div>
-          </div>
-          <div class="text-caption text-grey-7">
-            (For now this only logs a success message to the console.)
-          </div>
-        </div>
       </q-card-section>
 
       <q-separator />
@@ -93,9 +100,17 @@
           v-if="step === 1"
           color="primary"
           label="Next"
-          :disable="!pipelineId || !opportunityId || loading"
+          :disable="droppedFiles.length === 0 || loading"
           :loading="loading"
           @click="step = 2"
+        />
+        <q-btn
+          v-if="step === 2"
+          color="primary"
+          label="Finish"
+          :disable="!pipelineId || !opportunityId || loading"
+          :loading="loading"
+          @click="finish"
         />
       </q-card-actions>
     </q-card>
@@ -124,6 +139,7 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const loading = ref(false)
 const step = ref(1)
 const dragOver = ref(false)
+const droppedFiles = ref([])
 
 const pipelines = ref([])
 const opportunities = ref([])
@@ -182,11 +198,25 @@ function onDrop(e) {
   dragOver.value = false
   const files = Array.from(e?.dataTransfer?.files || [])
   if (files.length === 0) return
-  console.log('[Artifacts] drop success', {
+
+  const summaries = files.map((f) => ({ name: f.name, path: f.path, size: f.size }))
+  droppedFiles.value = summaries
+
+  console.log('[Artifacts] drop success (stage 1)', { files: summaries })
+  mockCallLlm(summaries)
+}
+
+function mockCallLlm(files) {
+  console.log('[Artifacts] mock LLM call triggered', { files })
+}
+
+function finish() {
+  console.log('[Artifacts] finish (stage 2)', {
     pipelineId: pipelineId.value,
     opportunityId: opportunityId.value,
-    files: files.map((f) => ({ name: f.name, path: f.path, size: f.size })),
+    files: droppedFiles.value,
   })
+  open.value = false
 }
 
 watch(
@@ -196,6 +226,7 @@ watch(
     step.value = 1
     pipelineId.value = null
     opportunityId.value = null
+    droppedFiles.value = []
     await loadAll()
   },
 )

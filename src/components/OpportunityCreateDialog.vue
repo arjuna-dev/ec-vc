@@ -3,7 +3,7 @@
     <q-card style="width: 900px; max-width: 96vw">
       <q-card-section>
         <div class="text-h6">Create Opportunity</div>
-        <div class="text-caption text-grey-7">Only company name is required.</div>
+        <div class="text-caption text-grey-7">Only name and company are required.</div>
       </q-card-section>
 
       <q-separator />
@@ -13,7 +13,7 @@
           <q-select
             v-model="form.company_id"
             outlined
-            label="Company Name *"
+            label="Company *"
             :options="companyOptions"
             :disable="loadingCompanies || loading"
             emit-value
@@ -86,36 +86,35 @@ const companies = ref([])
 const companyDialogOpen = ref(false)
 
 const fields = [
-  { key: 'id', label: 'ID (optional)', inputType: 'text' },
-  { key: 'Venture_Oppty_Name', label: 'Venture_Oppty_Name', inputType: 'text' },
-  { key: 'Round_Stage', label: 'Round_Stage', inputType: 'text' },
-  { key: 'Type_of_Security', label: 'Type_of_Security', inputType: 'text' },
-  { key: 'Investment_Ask', label: 'Investment_Ask', inputType: 'number' },
-  { key: 'Round_Amount', label: 'Round_Amount (USD)', inputType: 'number' },
-  { key: 'Hard_Commits', label: 'Hard_Commits', inputType: 'number' },
-  { key: 'Soft_Commits', label: 'Soft_Commits', inputType: 'number' },
-  { key: 'Pre_Valuation', label: 'Pre_Valuation', inputType: 'number' },
-  { key: 'Post_Valuation', label: 'Post_Valuation', inputType: 'number' },
-  { key: 'Previous_Post', label: 'Previous_Post', inputType: 'number' },
-  { key: 'First_Close_Date', label: 'First_Close_Date', inputType: 'text' },
-  { key: 'Next_Close_Date', label: 'Next_Close_Date', inputType: 'text' },
-  { key: 'Final_Close_Date', label: 'Final_Close_Date', inputType: 'text' },
-  { key: 'Pipeline_Stage', label: 'Pipeline_Stage', inputType: 'text' },
-  { key: 'Pipeline_Status', label: 'Pipeline_Status', inputType: 'text' },
-  { key: 'Raising_Status', label: 'Raising_Status', inputType: 'text' },
-  { key: 'Board_Seats', label: 'Board_Seats', inputType: 'text' },
-  { key: 'Information_Rights', label: 'Information_Rights', inputType: 'text' },
-  { key: 'Voting_Rights', label: 'Voting_Rights', inputType: 'text' },
-  { key: 'Liquidation_Preference', label: 'Liquidation_Preference', inputType: 'text' },
-  { key: 'Anti_Dilution_Provisions', label: 'Anti_Dilution_Provisions', inputType: 'text' },
-  { key: 'Conversion_Features', label: 'Conversion_Features', inputType: 'text' },
-  { key: 'Most_Favored_Nation', label: 'Most_Favored_Nation', inputType: 'text' },
-  { key: 'ROFO_ROR', label: 'ROFO_ROR', inputType: 'text' },
-  { key: 'Co_Sale_Right', label: 'Co_Sale_Right', inputType: 'text' },
-  { key: 'Tag_Drag_Along', label: 'Tag_Drag_Along', inputType: 'text' },
-  { key: 'Put_Option', label: 'Put_Option', inputType: 'text' },
-  { key: 'Over_Allotment_Option', label: 'Over_Allotment_Option', inputType: 'text' },
-  { key: 'Stacked_Series', label: 'Stacked_Series', inputType: 'text' },
+  { key: 'Venture_Oppty_Name', label: 'Opportunity Name *', inputType: 'text' },
+  { key: 'Round_Stage', label: 'Round Stage', inputType: 'text' },
+  { key: 'Type_of_Security', label: 'Type of Security', inputType: 'text' },
+  { key: 'Investment_Ask', label: 'Investment Ask', inputType: 'number' },
+  { key: 'Round_Amount', label: 'Round Amount (USD)', inputType: 'number' },
+  { key: 'Hard_Commits', label: 'Hard Commits', inputType: 'number' },
+  { key: 'Soft_Commits', label: 'Soft Commits', inputType: 'number' },
+  { key: 'Pre_Valuation', label: 'Pre Valuation', inputType: 'number' },
+  { key: 'Post_Valuation', label: 'Post Valuation', inputType: 'number' },
+  { key: 'Previous_Post', label: 'Previous Post', inputType: 'number' },
+  { key: 'First_Close_Date', label: 'First Close Date', inputType: 'text' },
+  { key: 'Next_Close_Date', label: 'Next Close Date', inputType: 'text' },
+  { key: 'Final_Close_Date', label: 'Final Close Date', inputType: 'text' },
+  { key: 'Pipeline_Stage', label: 'Pipeline Stage', inputType: 'text' },
+  { key: 'Pipeline_Status', label: 'Pipeline Status', inputType: 'text' },
+  { key: 'Raising_Status', label: 'Raising Status', inputType: 'text' },
+  { key: 'Board_Seats', label: 'Board Seats', inputType: 'text' },
+  { key: 'Information_Rights', label: 'Information Rights', inputType: 'text' },
+  { key: 'Voting_Rights', label: 'Voting Rights', inputType: 'text' },
+  { key: 'Liquidation_Preference', label: 'Liquidation Preference', inputType: 'text' },
+  { key: 'Anti_Dilution_Provisions', label: 'Anti Dilution Provisions', inputType: 'text' },
+  { key: 'Conversion_Features', label: 'Conversion Features', inputType: 'text' },
+  { key: 'Most_Favored_Nation', label: 'Most Favored Nation', inputType: 'text' },
+  { key: 'ROFO_ROR', label: 'ROFO ROR', inputType: 'text' },
+  { key: 'Co_Sale_Right', label: 'Co Sale Right', inputType: 'text' },
+  { key: 'Tag_Drag_Along', label: 'Tag Drag Along', inputType: 'text' },
+  { key: 'Put_Option', label: 'Put Option', inputType: 'text' },
+  { key: 'Over_Allotment_Option', label: 'Over Allotment Option', inputType: 'text' },
+  { key: 'Stacked_Series', label: 'Stacked Series', inputType: 'text' },
 ]
 
 const form = ref({})

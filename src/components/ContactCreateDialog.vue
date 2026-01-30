@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="open">
-    <q-card style="width: 620px; max-width: 92vw">
+    <q-card style="width: 900px; max-width: 96vw">
       <q-card-section>
         <div class="text-h6">Create Contact</div>
         <div class="text-caption text-grey-7">Only name is required.</div>
@@ -8,14 +8,24 @@
 
       <q-separator />
 
-      <q-card-section>
+      <q-card-section style="max-height: 70vh; overflow: auto">
         <q-form @submit.prevent="submit" class="q-gutter-md">
+          <q-input v-model="form.id" outlined label="ID (optional)" :disable="loading" />
           <q-input v-model="form.Name" autofocus outlined label="Name *" :disable="loading" />
-          <q-input v-model="form.Email" outlined label="Email" :disable="loading" />
-          <q-input v-model="form.Phone" outlined label="Phone" :disable="loading" />
-          <q-input v-model="form.LinkedIn" outlined label="LinkedIn" :disable="loading" />
-          <q-input v-model="form.Role" outlined label="Role" :disable="loading" />
-          <q-input v-model="form.Stakeholder_type" outlined label="Stakeholder type" :disable="loading" />
+          <q-input v-model="form.created_at" outlined label="created_at" disable />
+          <q-input v-model="form.updated_at" outlined label="updated_at" disable />
+
+          <div class="row q-col-gutter-md">
+            <div v-for="field in fields" :key="field.key" class="col-12 col-md-6">
+              <q-input
+                v-model="form[field.key]"
+                outlined
+                :label="field.label"
+                :type="field.inputType"
+                :disable="loading"
+              />
+            </div>
+          </div>
         </q-form>
       </q-card-section>
 
@@ -46,27 +56,50 @@ const open = computed({
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const loading = ref(false)
 
-const form = ref({
-  Name: '',
-  Email: '',
-  Phone: '',
-  LinkedIn: '',
-  Role: '',
-  Stakeholder_type: '',
-})
+const fields = [
+  { key: 'Email', label: 'Email', inputType: 'text' },
+  { key: 'Phone', label: 'Phone', inputType: 'text' },
+  { key: 'LinkedIn', label: 'LinkedIn', inputType: 'text' },
+  { key: 'Role', label: 'Role', inputType: 'text' },
+  { key: 'Stakeholder_type', label: 'Stakeholder_type', inputType: 'text' },
+  { key: 'Closeness_Level', label: 'Closeness_Level', inputType: 'text' },
+  { key: 'Comment', label: 'Comment', inputType: 'text' },
+  { key: 'Expertise', label: 'Expertise', inputType: 'text' },
+  { key: 'Degrees_Program', label: 'Degrees_Program', inputType: 'text' },
+  { key: 'University', label: 'University', inputType: 'text' },
+  { key: 'Credentials', label: 'Credentials', inputType: 'text' },
+  { key: 'Tenure_at_Firm_yrs', label: 'Tenure_at_Firm_yrs', inputType: 'number' },
+  { key: 'Country_based', label: 'Country_based', inputType: 'text' },
+]
+
+const form = ref({})
+
+function resetForm() {
+  form.value = {
+    id: '',
+    Name: '',
+    created_at: '',
+    updated_at: '',
+    Email: '',
+    Phone: '',
+    LinkedIn: '',
+    Role: '',
+    Stakeholder_type: '',
+    Closeness_Level: '',
+    Comment: '',
+    Expertise: '',
+    Degrees_Program: '',
+    University: '',
+    Credentials: '',
+    Tenure_at_Firm_yrs: '',
+    Country_based: '',
+  }
+}
 
 watch(
   () => props.modelValue,
   (v) => {
-    if (!v) return
-    form.value = {
-      Name: '',
-      Email: '',
-      Phone: '',
-      LinkedIn: '',
-      Role: '',
-      Stakeholder_type: '',
-    }
+    if (v) resetForm()
   },
 )
 
@@ -85,4 +118,3 @@ async function submit() {
   }
 }
 </script>
-

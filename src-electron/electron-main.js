@@ -61,11 +61,19 @@ function upsertPipelines(rows = []) {
       const pipelineId =
         normalizeNullableString(r?.pipeline_id) || `pipeline:${crypto.randomUUID()}`
       const name = normalizeNullableString(r?.name)
-      const dirName = normalizeNullableString(r?.dir_name)
+      const dirName =
+        normalizeNullableString(r?.dir_name) ||
+        String(name || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '')
+          .slice(0, 80) ||
+        'pipeline'
       const isDefaultRaw = normalizeNullableString(r?.is_default)
       const isDefault = isDefaultRaw === '1' || isDefaultRaw?.toLowerCase?.() === 'true' ? 1 : 0
 
-      if (!name || !dirName) {
+      if (!name) {
         skipped++
         continue
       }
@@ -109,29 +117,35 @@ function upsertPipelines(rows = []) {
 function createPipeline(payload = {}) {
   const database = initDb()
   const name = normalizeNullableString(payload.name)
-  const dirName = normalizeNullableString(payload.dir_name)
   if (!name) throw new Error('Pipeline name is required')
-  if (!dirName) throw new Error('Pipeline dir_name is required')
+  const dirName =
+    normalizeNullableString(payload.dir_name) ||
+    String(name)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 80) ||
+    'pipeline'
 
   const pipelineId = normalizeNullableString(payload.pipeline_id) || `pipeline:${crypto.randomUUID()}`
+  const isDefault = pipelineId === 'pipeline_default' ? 1 : payload.is_default ? 1 : 0
 
   const tx = database.transaction(() => {
     database
       .prepare(
         `
         INSERT INTO Pipelines (pipeline_id, name, dir_name, is_default)
-        VALUES (?, ?, ?, 0)
+        VALUES (?, ?, ?, ?)
       `,
       )
-      .run(pipelineId, name, dirName)
+      .run(pipelineId, name, dirName, isDefault)
 
-    const stages = [
-      { suffix: 'stage_thesis_alignment', name: '1_thesis_alignment', position: 1 },
-      { suffix: 'stage_team_analysis', name: '2_team_analysis', position: 2 },
-      { suffix: 'stage_investment_committee', name: '3_investment_committee', position: 3 },
-      { suffix: 'stage_due_diligence', name: '4_due_diligence', position: 4 },
-      { suffix: 'stage_closing_documents', name: '5_closing_documents', position: 5 },
-    ]
+    const providedStages = Array.isArray(payload.stages) ? payload.stages : []
+    const stageLabels =
+      providedStages.length > 0
+        ? providedStages.map((s) => String(s || '').trim()).filter(Boolean).slice(0, 50)
+        : ['Thesis alignment', 'Team analysis', 'Investment committee', 'Due diligence', 'Closing documents']
 
     const insertStage = database.prepare(
       `
@@ -140,8 +154,20 @@ function createPipeline(payload = {}) {
     `,
     )
 
-    for (const s of stages) {
-      insertStage.run(`${pipelineId}:${s.suffix}`, pipelineId, s.name, s.position)
+    function stageDirName(index, label) {
+      const t = String(label || '').trim()
+      if (/^\d+_/.test(t)) return t
+      const slug = t
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 80)
+      return `${index + 1}_${slug || 'stage'}`
+    }
+
+    for (let i = 0; i < stageLabels.length; i += 1) {
+      const stageId = `${pipelineId}:stage_${i + 1}`
+      insertStage.run(stageId, pipelineId, stageDirName(i, stageLabels[i]), i + 1)
     }
   })
 
@@ -160,6 +186,23 @@ async function installPipeline(pipelineId) {
   if (!pipeline) throw new Error(`Unknown pipeline: ${pipelineId}`)
   if (pipeline.install_status === 'installed') return { ok: true }
 
+  const dirName =
+    pipeline.dir_name ||
+    String(pipeline.name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 80) ||
+    'pipeline'
+
+  if (!pipeline.dir_name && dirName) {
+    dbRun("UPDATE Pipelines SET dir_name = ?, updated_at = datetime('now') WHERE pipeline_id = ?", [
+      dirName,
+      pipelineId,
+    ])
+  }
+
   dbRun(
     "UPDATE Pipelines SET install_status = 'installing', install_error = NULL, updated_at = datetime('now') WHERE pipeline_id = ?",
     [pipelineId],
@@ -171,7 +214,7 @@ async function installPipeline(pipelineId) {
   ).map((r) => r.name)
 
   try {
-    await mirrorPipelineToFs(workspace.rootPath, pipeline.dir_name, stages)
+    await mirrorPipelineToFs(workspace.rootPath, dirName, stages)
     dbRun(
       "UPDATE Pipelines SET install_status = 'installed', installed_at = datetime('now'), uninstalled_at = NULL, updated_at = datetime('now') WHERE pipeline_id = ?",
       [pipelineId],
@@ -196,13 +239,30 @@ async function uninstallPipeline(pipelineId) {
   if (!pipeline) throw new Error(`Unknown pipeline: ${pipelineId}`)
   if (pipeline.install_status === 'not_installed') return { ok: true }
 
+  const dirName =
+    pipeline.dir_name ||
+    String(pipeline.name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 80) ||
+    'pipeline'
+
+  if (!pipeline.dir_name && dirName) {
+    dbRun("UPDATE Pipelines SET dir_name = ?, updated_at = datetime('now') WHERE pipeline_id = ?", [
+      dirName,
+      pipelineId,
+    ])
+  }
+
   dbRun(
     "UPDATE Pipelines SET install_status = 'uninstalling', install_error = NULL, updated_at = datetime('now') WHERE pipeline_id = ?",
     [pipelineId],
   )
 
   try {
-    await removePipelineFromFs(workspace.rootPath, pipeline.dir_name)
+    await removePipelineFromFs(workspace.rootPath, dirName)
     dbRun(
       "UPDATE Pipelines SET install_status = 'not_installed', uninstalled_at = datetime('now'), updated_at = datetime('now') WHERE pipeline_id = ?",
       [pipelineId],
@@ -235,17 +295,73 @@ function listCompanies() {
   )
 }
 
-function createCompany({ Company_Name } = {}) {
-  const name = String(Company_Name || '').trim()
+function createCompany(payload = {}) {
+  const name = normalizeNullableString(payload.Company_Name)
   if (!name) throw new Error('Company name is required')
 
-  const existing = dbAll('SELECT id, Company_Name FROM Companies WHERE Company_Name = ? LIMIT 1', [
-    name,
-  ])?.[0]
-  if (existing) return existing
+  const database = initDb()
 
-  const id = `company:${crypto.randomUUID()}`
-  dbRun('INSERT INTO Companies (id, Company_Name) VALUES (?, ?)', [id, name])
+  const existing = database
+    .prepare('SELECT id, Company_Name FROM Companies WHERE Company_Name = ? LIMIT 1')
+    .get(name)
+
+  const id = normalizeNullableString(payload.id) || existing?.id || `company:${crypto.randomUUID()}`
+
+  const fields = {
+    id,
+    Company_Name: name,
+    Company_Type: normalizeNullableString(payload.Company_Type),
+    One_Liner: normalizeNullableString(payload.One_Liner),
+    Status: normalizeNullableString(payload.Status),
+    Date_of_Incorporation: normalizeNullableString(payload.Date_of_Incorporation),
+    Amount_Raised_AUMs: normalizeNullableNumber(payload.Amount_Raised_AUMs),
+    Rounds_Funds_Count: normalizeNullableNumber(payload.Rounds_Funds_Count),
+    Pax: normalizeNullableNumber(payload.Pax),
+    Updates: normalizeNullableString(payload.Updates),
+    Website: normalizeNullableString(payload.Website),
+  }
+
+  const tx = database.transaction(() => {
+    if (!existing) {
+      database
+        .prepare(
+          `
+          INSERT INTO Companies (
+            id, Company_Name, Company_Type, One_Liner, Status, Date_of_Incorporation,
+            Amount_Raised_AUMs, Rounds_Funds_Count, Pax, Updates, Website
+          ) VALUES (
+            @id, @Company_Name, @Company_Type, @One_Liner, @Status, @Date_of_Incorporation,
+            @Amount_Raised_AUMs, @Rounds_Funds_Count, @Pax, @Updates, @Website
+          )
+        `,
+        )
+        .run(fields)
+      return
+    }
+
+    // If the company already existed, only patch in non-null fields.
+    database
+      .prepare(
+        `
+        UPDATE Companies SET
+          Company_Type = COALESCE(@Company_Type, Company_Type),
+          One_Liner = COALESCE(@One_Liner, One_Liner),
+          Status = COALESCE(@Status, Status),
+          Date_of_Incorporation = COALESCE(@Date_of_Incorporation, Date_of_Incorporation),
+          Amount_Raised_AUMs = COALESCE(@Amount_Raised_AUMs, Amount_Raised_AUMs),
+          Rounds_Funds_Count = COALESCE(@Rounds_Funds_Count, Rounds_Funds_Count),
+          Pax = COALESCE(@Pax, Pax),
+          Updates = COALESCE(@Updates, Updates),
+          Website = COALESCE(@Website, Website),
+          updated_at = datetime('now')
+        WHERE id = @id
+      `,
+      )
+      .run(fields)
+  })
+
+  tx()
+
   return { id, Company_Name: name }
 }
 
@@ -294,9 +410,11 @@ function createContact(payload = {}) {
     .prepare(
       `
       INSERT INTO Contacts (
-        id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type
+        id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
+        Comment, Expertise, Degrees_Program, University, Credentials, Tenure_at_Firm_yrs, Country_based
       ) VALUES (
-        @id, @Name, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type
+        @id, @Name, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type, @Closeness_Level,
+        @Comment, @Expertise, @Degrees_Program, @University, @Credentials, @Tenure_at_Firm_yrs, @Country_based
       )
     `,
     )
@@ -308,6 +426,14 @@ function createContact(payload = {}) {
       LinkedIn: normalizeNullableString(payload.LinkedIn),
       Role: normalizeNullableString(payload.Role),
       Stakeholder_type: normalizeNullableString(payload.Stakeholder_type),
+      Closeness_Level: normalizeNullableString(payload.Closeness_Level),
+      Comment: normalizeNullableString(payload.Comment),
+      Expertise: normalizeNullableString(payload.Expertise),
+      Degrees_Program: normalizeNullableString(payload.Degrees_Program),
+      University: normalizeNullableString(payload.University),
+      Credentials: normalizeNullableString(payload.Credentials),
+      Tenure_at_Firm_yrs: normalizeNullableNumber(payload.Tenure_at_Firm_yrs),
+      Country_based: normalizeNullableString(payload.Country_based),
     })
 
   return { id }
@@ -340,11 +466,13 @@ function createFund(payload = {}) {
     .prepare(
       `
       INSERT INTO Funds (
-        id, Fund_Oppty_Name, Fund_Type, Fund_Size_Target, Investment_Ask,
-        Raising_Status, Pipeline_Status, Pipeline_Stage
+        id, Fund_Oppty_Name, Fund_Type, Fund_Size_Target, Investment_Ask, Hard_Commits, Soft_Commits,
+        Initial_Ticket_Size, Target_Positions, Follow_on_Reserve, Investment_Stages, Company_Stages,
+        First_Close_Date, Next_Close_Date, Final_Close_Date, Pipeline_Stage, Pipeline_Status, Raising_Status
       ) VALUES (
-        @id, @Fund_Oppty_Name, @Fund_Type, @Fund_Size_Target, @Investment_Ask,
-        @Raising_Status, @Pipeline_Status, @Pipeline_Stage
+        @id, @Fund_Oppty_Name, @Fund_Type, @Fund_Size_Target, @Investment_Ask, @Hard_Commits, @Soft_Commits,
+        @Initial_Ticket_Size, @Target_Positions, @Follow_on_Reserve, @Investment_Stages, @Company_Stages,
+        @First_Close_Date, @Next_Close_Date, @Final_Close_Date, @Pipeline_Stage, @Pipeline_Status, @Raising_Status
       )
     `,
     )
@@ -354,6 +482,16 @@ function createFund(payload = {}) {
       Fund_Type: normalizeNullableString(payload.Fund_Type),
       Fund_Size_Target: normalizeNullableNumber(payload.Fund_Size_Target),
       Investment_Ask: normalizeNullableNumber(payload.Investment_Ask),
+      Hard_Commits: normalizeNullableNumber(payload.Hard_Commits),
+      Soft_Commits: normalizeNullableNumber(payload.Soft_Commits),
+      Initial_Ticket_Size: normalizeNullableNumber(payload.Initial_Ticket_Size),
+      Target_Positions: normalizeNullableNumber(payload.Target_Positions),
+      Follow_on_Reserve: normalizeNullableNumber(payload.Follow_on_Reserve),
+      Investment_Stages: normalizeNullableString(payload.Investment_Stages),
+      Company_Stages: normalizeNullableString(payload.Company_Stages),
+      First_Close_Date: normalizeNullableString(payload.First_Close_Date),
+      Next_Close_Date: normalizeNullableString(payload.Next_Close_Date),
+      Final_Close_Date: normalizeNullableString(payload.Final_Close_Date),
       Raising_Status: normalizeNullableString(payload.Raising_Status),
       Pipeline_Status: normalizeNullableString(payload.Pipeline_Status),
       Pipeline_Stage: normalizeNullableString(payload.Pipeline_Stage),

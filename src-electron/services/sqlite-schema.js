@@ -1005,7 +1005,7 @@ CREATE INDEX IF NOT EXISTS idx_Assistant_System_Prompts_active
 CREATE TABLE IF NOT EXISTS Pipelines (
   pipeline_id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  dir_name TEXT NOT NULL,
+  dir_name TEXT,
   is_default INTEGER NOT NULL DEFAULT 0 CHECK (is_default IN (0, 1)),
   install_status TEXT NOT NULL DEFAULT 'not_installed' CHECK (install_status IN ('not_installed', 'installing', 'installed', 'uninstalling', 'error')),
   install_error TEXT,
