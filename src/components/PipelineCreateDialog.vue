@@ -25,25 +25,18 @@
             Type a stage name and the next stage field will appear automatically.
           </div>
 
-          <div class="row q-col-gutter-md">
-            <div v-for="(stage, idx) in visibleStages" :key="idx" class="col-12 col-md-6">
-              <q-input
-                v-model="stages[idx]"
-                outlined
-                :label="`Stage ${idx + 1}`"
-                :disable="loading"
-              >
-                <template #append>
-                  <q-btn
-                    flat
-                    dense
-                    icon="close"
-                    :disable="loading || stages.length <= 1"
-                    @click="removeStage(idx)"
-                  />
-                </template>
-              </q-input>
-            </div>
+          <div v-for="(stage, idx) in visibleStages" :key="idx" class="col-12 col-md-6">
+            <q-input v-model="stages[idx]" outlined :label="`Stage ${idx + 1}`" :disable="loading">
+              <template #append>
+                <q-btn
+                  flat
+                  dense
+                  icon="close"
+                  :disable="loading || stages.length <= 1"
+                  @click="removeStage(idx)"
+                />
+              </template>
+            </q-input>
           </div>
         </q-form>
       </q-card-section>

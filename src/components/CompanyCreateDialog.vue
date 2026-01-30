@@ -18,16 +18,14 @@
             :disable="loading"
           />
 
-          <div class="row q-col-gutter-md">
-            <div v-for="field in fields" :key="field.key" class="col-12 col-md-6">
-              <q-input
-                v-model="form[field.key]"
-                outlined
-                :label="field.label"
-                :type="field.inputType"
-                :disable="loading"
-              />
-            </div>
+          <div v-for="field in fields" :key="field.key" class="col-12 col-md-6">
+            <q-input
+              v-model="form[field.key]"
+              outlined
+              :label="field.label"
+              :type="field.inputType"
+              :disable="loading"
+            />
           </div>
         </q-form>
       </q-card-section>

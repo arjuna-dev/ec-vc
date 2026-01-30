@@ -519,6 +519,16 @@ function listArtifacts() {
   )
 }
 
+function deleteRow(tableName, idColumn, idValue) {
+  const database = initDb()
+  const t = String(tableName)
+  const col = String(idColumn)
+  const value = String(idValue || '')
+  if (!value) throw new Error(`${col} is required`)
+  const result = database.prepare(`DELETE FROM ${t} WHERE ${col} = ?`).run(value)
+  return { changes: result.changes }
+}
+
 function upsertCompanies(rows = []) {
   const database = initDb()
   const input = Array.isArray(rows) ? rows : []
@@ -1159,6 +1169,14 @@ function registerIpc() {
     return createPipeline(payload)
   })
 
+  ipcMain.handle('pipelines:delete', async (_event, { pipelineId } = {}) => {
+    initDb()
+    const pid = String(pipelineId || '')
+    if (!pid) throw new Error('pipelineId is required')
+    if (pid === 'pipeline_default') throw new Error('Cannot delete the default pipeline')
+    return deleteRow('Pipelines', 'pipeline_id', pid)
+  })
+
   ipcMain.handle('companies:list', async () => {
     initDb()
     return { companies: listCompanies() }
@@ -1172,6 +1190,11 @@ function registerIpc() {
   ipcMain.handle('companies:upsertMany', async (_event, { rows } = {}) => {
     initDb()
     return upsertCompanies(rows)
+  })
+
+  ipcMain.handle('companies:delete', async (_event, { companyId } = {}) => {
+    initDb()
+    return deleteRow('Companies', 'id', String(companyId || ''))
   })
 
   ipcMain.handle('opportunities:list', async () => {
@@ -1189,6 +1212,11 @@ function registerIpc() {
     return upsertOpportunities(rows)
   })
 
+  ipcMain.handle('opportunities:delete', async (_event, { opportunityId } = {}) => {
+    initDb()
+    return deleteRow('Opportunities', 'id', String(opportunityId || ''))
+  })
+
   ipcMain.handle('contacts:list', async () => {
     initDb()
     return { contacts: listContacts() }
@@ -1202,6 +1230,11 @@ function registerIpc() {
   ipcMain.handle('contacts:upsertMany', async (_event, { rows } = {}) => {
     initDb()
     return upsertContacts(rows)
+  })
+
+  ipcMain.handle('contacts:delete', async (_event, { contactId } = {}) => {
+    initDb()
+    return deleteRow('Contacts', 'id', String(contactId || ''))
   })
 
   ipcMain.handle('funds:list', async () => {
@@ -1219,6 +1252,11 @@ function registerIpc() {
     return upsertFunds(rows)
   })
 
+  ipcMain.handle('funds:delete', async (_event, { fundId } = {}) => {
+    initDb()
+    return deleteRow('Funds', 'id', String(fundId || ''))
+  })
+
   ipcMain.handle('artifacts:list', async () => {
     initDb()
     return { artifacts: listArtifacts() }
@@ -1227,6 +1265,11 @@ function registerIpc() {
   ipcMain.handle('artifacts:upsertMany', async (_event, { rows } = {}) => {
     initDb()
     return upsertArtifacts(rows)
+  })
+
+  ipcMain.handle('artifacts:delete', async (_event, { artifactId } = {}) => {
+    initDb()
+    return deleteRow('Artifacts', 'artifact_id', String(artifactId || ''))
   })
 
   ipcMain.handle('db:info', () => getDbInfo())

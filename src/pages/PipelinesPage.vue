@@ -99,10 +99,22 @@
               outline
               color="primary"
               :label="
-                props.row.install_status === 'installed' ? 'Delete Pipeline' : 'Create Pipeline'
+                props.row.install_status === 'installed'
+                  ? 'DEACTIVATE Pipeline'
+                  : 'ACTIVATE Pipeline'
               "
               :disable="isBusy(props.row.install_status) || loading"
               @click="togglePipeline(props.row)"
+            />
+            <q-btn
+              class="q-ml-sm"
+              dense
+              flat
+              round
+              icon="delete"
+              color="negative"
+              :disable="loading || props.row.pipeline_id === 'pipeline_default'"
+              @click="confirmDelete(props.row)"
             />
           </q-td>
         </template>
@@ -115,6 +127,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import PipelineCreateDialog from 'components/PipelineCreateDialog.vue'
 
@@ -128,13 +141,16 @@ const hasBridge = computed(
   () =>
     !!bridge.value?.pipelines?.list &&
     !!bridge.value?.pipelines?.upsertMany &&
-    !!bridge.value?.pipelines?.create,
+    !!bridge.value?.pipelines?.create &&
+    !!bridge.value?.pipelines?.delete,
 )
 
 const pipelines = ref([])
 const loading = ref(false)
 const error = ref('')
 const pipelineDialogOpen = ref(false)
+
+const $q = useQuasar()
 
 const columns = [
   { name: 'name', label: 'Pipeline Name', field: 'name', align: 'left', sortable: true },
@@ -201,6 +217,34 @@ async function togglePipeline(row) {
   } finally {
     loading.value = false
   }
+}
+
+async function confirmDelete(row) {
+  if (!bridge.value?.pipelines?.delete) return
+  if (row?.pipeline_id === 'pipeline_default') return
+
+  $q.dialog({
+    title: 'Delete pipeline?',
+    message:
+      row.install_status === 'installed'
+        ? `This will uninstall and permanently delete pipeline "${row.name}".`
+        : `This will permanently delete pipeline "${row.name}".`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      if (row.install_status === 'installed') {
+        await bridge.value.pipelines.uninstall(row.pipeline_id)
+      }
+      await bridge.value.pipelines.delete(row.pipeline_id)
+      await loadPipelines()
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 async function importRows(importedRows) {

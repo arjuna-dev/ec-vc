@@ -55,7 +55,21 @@
         :columns="columns"
         :loading="loading"
         :pagination="{ rowsPerPage: 15 }"
-      />
+      >
+        <template #body-cell-actions="props">
+          <q-td :props="props">
+            <q-btn
+              dense
+              flat
+              round
+              icon="delete"
+              color="negative"
+              :disable="loading"
+              @click="confirmDelete(props.row)"
+            />
+          </q-td>
+        </template>
+      </q-table>
     </div>
   </q-page>
 
@@ -64,6 +78,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useQuasar } from 'quasar'
 import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
 
@@ -77,13 +92,16 @@ const hasBridge = computed(
   () =>
     !!bridge.value?.companies?.list &&
     !!bridge.value?.companies?.upsertMany &&
-    !!bridge.value?.companies?.create,
+    !!bridge.value?.companies?.create &&
+    !!bridge.value?.companies?.delete,
 )
 
 const rows = ref([])
 const loading = ref(false)
 const error = ref('')
 const companyDialogOpen = ref(false)
+
+const $q = useQuasar()
 
 function openCreateCompany() {
   companyDialogOpen.value = true
@@ -103,6 +121,7 @@ const columns = [
     format: (v) => (v === null || v === undefined || v === '' ? '' : Number(v).toLocaleString('en-US')),
   },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
+  { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
 const csvHeaders = ['id', 'Company_Name', 'Website', 'Status', 'Company_Type', 'Amount_Raised_AUMs']
@@ -130,6 +149,30 @@ async function importRows(importedRows) {
 
 async function onCompanyCreated() {
   await loadCompanies()
+}
+
+async function confirmDelete(row) {
+  if (!bridge.value?.companies?.delete) return
+  const company = row?.Company_Name ? ` (${row.Company_Name})` : ''
+
+  $q
+    .dialog({
+      title: 'Delete company?',
+      message: `This will permanently delete this company${company}. If it has related opportunities, the delete will be blocked.`,
+      cancel: true,
+      persistent: true,
+    })
+    .onOk(async () => {
+      loading.value = true
+      try {
+        await bridge.value.companies.delete(row.id)
+        await loadCompanies()
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.message || String(e) })
+      } finally {
+        loading.value = false
+      }
+    })
 }
 
 onMounted(() => {

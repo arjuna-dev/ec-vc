@@ -49,7 +49,7 @@
                 clickable
                 class="bg-white"
                 style="position: sticky; top: 0; z-index: 2"
-                @click.stop.prevent="createDefaultPipeline"
+                @click.stop.prevent="openCreatePipeline"
               >
                 <q-item-section avatar>
                   <q-icon name="add" />
@@ -59,6 +59,16 @@
                 </q-item-section>
               </q-item>
               <q-separator />
+            </template>
+            <template #no-option>
+              <q-item clickable @click.stop.prevent="openCreatePipeline">
+                <q-item-section avatar>
+                  <q-icon name="add" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Create new pipeline</q-item-label>
+                </q-item-section>
+              </q-item>
             </template>
           </q-select>
 
@@ -86,6 +96,16 @@
                 </q-item-section>
               </q-item>
               <q-separator />
+            </template>
+            <template #no-option>
+              <q-item clickable @click.stop.prevent="opportunityDialogOpen = true">
+                <q-item-section avatar>
+                  <q-icon name="add" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Create new opportunity</q-item-label>
+                </q-item-section>
+              </q-item>
             </template>
           </q-select>
         </div>
@@ -117,11 +137,13 @@
   </q-dialog>
 
   <OpportunityCreateDialog v-model="opportunityDialogOpen" @created="onOpportunityCreated" />
+  <PipelineCreateDialog v-model="pipelineDialogOpen" @created="onPipelineCreated" />
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
 import OpportunityCreateDialog from './OpportunityCreateDialog.vue'
+import PipelineCreateDialog from './PipelineCreateDialog.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -148,6 +170,7 @@ const pipelineId = ref(null)
 const opportunityId = ref(null)
 
 const opportunityDialogOpen = ref(false)
+const pipelineDialogOpen = ref(false)
 
 const pipelineOptions = computed(() =>
   (pipelines.value || []).map((p) => ({
@@ -177,13 +200,19 @@ async function loadAll() {
   }
 }
 
-async function createDefaultPipeline() {
+function openCreatePipeline() {
+  pipelineDialogOpen.value = true
+}
+
+async function onPipelineCreated(result) {
   if (!bridge.value?.pipelines?.install) return
+  const pid = result?.pipeline_id
+  if (!pid) return
   loading.value = true
   try {
-    await bridge.value.pipelines.install('pipeline_default')
+    await bridge.value.pipelines.install(pid)
     await loadAll()
-    pipelineId.value = 'pipeline_default'
+    pipelineId.value = pid
   } finally {
     loading.value = false
   }
@@ -227,6 +256,7 @@ watch(
     pipelineId.value = null
     opportunityId.value = null
     droppedFiles.value = []
+    pipelineDialogOpen.value = false
     await loadAll()
   },
 )

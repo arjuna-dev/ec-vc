@@ -42,12 +42,7 @@
       <q-banner v-if="!loading && rows.length === 0" class="bg-grey-2 text-black q-mb-md" rounded>
         <div class="row items-center justify-between">
           <div>No opportunities created yet.</div>
-          <q-btn
-            color="primary"
-            outline
-            label="Create opportunity"
-            @click="window.dispatchEvent(new Event('ecvc:open-opportunity-dialog'))"
-          />
+          <q-btn color="primary" outline label="Create opportunity" @click="openCreateOpportunity" />
         </div>
       </q-banner>
 
@@ -60,13 +55,28 @@
         :columns="columns"
         :loading="loading"
         :pagination="{ rowsPerPage: 15 }"
-      />
+      >
+        <template #body-cell-actions="props">
+          <q-td :props="props">
+            <q-btn
+              dense
+              flat
+              round
+              icon="delete"
+              color="negative"
+              :disable="loading"
+              @click="confirmDelete(props.row)"
+            />
+          </q-td>
+        </template>
+      </q-table>
     </div>
   </q-page>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
 
 const isElectronRuntime = computed(() => {
@@ -76,15 +86,20 @@ const isElectronRuntime = computed(() => {
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(
-  () => !!bridge.value?.opportunities?.list && !!bridge.value?.opportunities?.upsertMany,
+  () =>
+    !!bridge.value?.opportunities?.list &&
+    !!bridge.value?.opportunities?.upsertMany &&
+    !!bridge.value?.opportunities?.delete,
 )
 
 const rows = ref([])
 const loading = ref(false)
 const error = ref('')
 
+const $q = useQuasar()
+
 function openCreateOpportunity() {
-  window.dispatchEvent(new Event('ecvc:open-opportunity-dialog'))
+  globalThis?.dispatchEvent?.(new Event('ecvc:open-opportunity-dialog'))
 }
 
 const columns = [
@@ -100,6 +115,7 @@ const columns = [
     format: (v) => (v === null || v === undefined || v === '' ? '' : Number(v).toLocaleString('en-US')),
   },
   { name: 'Venture_Oppty_Name', label: 'Opportunity Name', field: 'Venture_Oppty_Name', align: 'left', sortable: true },
+  { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
 const csvHeaders = [
@@ -133,6 +149,30 @@ async function importRows(importedRows) {
   const result = await bridge.value.opportunities.upsertMany(importedRows)
   await loadOpportunities()
   return result
+}
+
+async function confirmDelete(row) {
+  if (!bridge.value?.opportunities?.delete) return
+  const company = row?.Company_Name ? ` (${row.Company_Name})` : ''
+
+  $q
+    .dialog({
+      title: 'Delete opportunity?',
+      message: `This will permanently delete this opportunity${company}.`,
+      cancel: true,
+      persistent: true,
+    })
+    .onOk(async () => {
+      loading.value = true
+      try {
+        await bridge.value.opportunities.delete(row.id)
+        await loadOpportunities()
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.message || String(e) })
+      } finally {
+        loading.value = false
+      }
+    })
 }
 
 function onChanged() {

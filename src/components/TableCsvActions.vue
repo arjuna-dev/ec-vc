@@ -35,6 +35,7 @@
 <style scoped>
 .small-text {
   font-size: 12px;
+  padding-right: 10px;
 }
 </style>
 
@@ -57,7 +58,9 @@ const fileInput = ref(null)
 
 const canImport = computed(() => typeof props.onImportRows === 'function')
 const canCreate = computed(() => typeof props.onCreate === 'function')
-const createLabelComputed = computed(() => (props.createLabel ? String(props.createLabel) : 'Create'))
+const createLabelComputed = computed(() =>
+  props.createLabel ? String(props.createLabel) : 'Create',
+)
 
 function exportCsv() {
   const csv = rowsToCsv(props.headers, props.rows)

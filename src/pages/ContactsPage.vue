@@ -55,7 +55,21 @@
         :columns="columns"
         :loading="loading"
         :pagination="{ rowsPerPage: 15 }"
-      />
+      >
+        <template #body-cell-actions="props">
+          <q-td :props="props">
+            <q-btn
+              dense
+              flat
+              round
+              icon="delete"
+              color="negative"
+              :disable="loading"
+              @click="confirmDelete(props.row)"
+            />
+          </q-td>
+        </template>
+      </q-table>
     </div>
   </q-page>
 
@@ -64,6 +78,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useQuasar } from 'quasar'
 import ContactCreateDialog from 'components/ContactCreateDialog.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
 
@@ -77,13 +92,16 @@ const hasBridge = computed(
   () =>
     !!bridge.value?.contacts?.list &&
     !!bridge.value?.contacts?.upsertMany &&
-    !!bridge.value?.contacts?.create,
+    !!bridge.value?.contacts?.create &&
+    !!bridge.value?.contacts?.delete,
 )
 
 const rows = ref([])
 const loading = ref(false)
 const error = ref('')
 const contactDialogOpen = ref(false)
+
+const $q = useQuasar()
 
 function openCreateContact() {
   contactDialogOpen.value = true
@@ -96,6 +114,7 @@ const columns = [
   { name: 'Role', label: 'Role', field: 'Role', align: 'left', sortable: true },
   { name: 'Stakeholder_type', label: 'Stakeholder', field: 'Stakeholder_type', align: 'left', sortable: true },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
+  { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
 const csvHeaders = ['id', 'Name', 'Email', 'Phone', 'LinkedIn', 'Role', 'Stakeholder_type']
@@ -123,6 +142,30 @@ async function importRows(importedRows) {
 
 async function onContactCreated() {
   await loadContacts()
+}
+
+async function confirmDelete(row) {
+  if (!bridge.value?.contacts?.delete) return
+  const name = row?.Name ? ` (${row.Name})` : ''
+
+  $q
+    .dialog({
+      title: 'Delete contact?',
+      message: `This will permanently delete this contact${name}.`,
+      cancel: true,
+      persistent: true,
+    })
+    .onOk(async () => {
+      loading.value = true
+      try {
+        await bridge.value.contacts.delete(row.id)
+        await loadContacts()
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.message || String(e) })
+      } finally {
+        loading.value = false
+      }
+    })
 }
 
 onMounted(() => {

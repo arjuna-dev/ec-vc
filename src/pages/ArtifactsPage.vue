@@ -46,7 +46,7 @@
             color="primary"
             outline
             label="Create artifact"
-            @click="window.dispatchEvent(new Event('ecvc:open-artifact-dialog'))"
+            @click="openCreateArtifact"
           />
         </div>
       </q-banner>
@@ -60,13 +60,28 @@
         :columns="columns"
         :loading="loading"
         :pagination="{ rowsPerPage: 15 }"
-      />
+      >
+        <template #body-cell-actions="props">
+          <q-td :props="props">
+            <q-btn
+              dense
+              flat
+              round
+              icon="delete"
+              color="negative"
+              :disable="loading"
+              @click="confirmDelete(props.row)"
+            />
+          </q-td>
+        </template>
+      </q-table>
     </div>
   </q-page>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
 
 const isElectronRuntime = computed(() => {
@@ -75,14 +90,21 @@ const isElectronRuntime = computed(() => {
 })
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
-const hasBridge = computed(() => !!bridge.value?.artifacts?.list && !!bridge.value?.artifacts?.upsertMany)
+const hasBridge = computed(
+  () =>
+    !!bridge.value?.artifacts?.list &&
+    !!bridge.value?.artifacts?.upsertMany &&
+    !!bridge.value?.artifacts?.delete,
+)
 
 const rows = ref([])
 const loading = ref(false)
 const error = ref('')
 
+const $q = useQuasar()
+
 function openCreateArtifact() {
-  window.dispatchEvent(new Event('ecvc:open-artifact-dialog'))
+  globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
 }
 
 const columns = [
@@ -92,6 +114,7 @@ const columns = [
   { name: 'pipeline_id', label: 'Pipeline', field: 'pipeline_id', align: 'left', sortable: true },
   { name: 'stage_id', label: 'Stage', field: 'stage_id', align: 'left', sortable: true },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
+  { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
 const csvHeaders = [
@@ -125,6 +148,30 @@ async function importRows(importedRows) {
   const result = await bridge.value.artifacts.upsertMany(importedRows)
   await loadArtifacts()
   return result
+}
+
+async function confirmDelete(row) {
+  if (!bridge.value?.artifacts?.delete) return
+  const title = row?.title ? ` (${row.title})` : ''
+
+  $q
+    .dialog({
+      title: 'Delete artifact?',
+      message: `This will permanently delete this artifact${title}.`,
+      cancel: true,
+      persistent: true,
+    })
+    .onOk(async () => {
+      loading.value = true
+      try {
+        await bridge.value.artifacts.delete(row.artifact_id)
+        await loadArtifacts()
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.message || String(e) })
+      } finally {
+        loading.value = false
+      }
+    })
 }
 
 onMounted(() => {

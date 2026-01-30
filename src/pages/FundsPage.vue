@@ -55,7 +55,21 @@
         :columns="columns"
         :loading="loading"
         :pagination="{ rowsPerPage: 15 }"
-      />
+      >
+        <template #body-cell-actions="props">
+          <q-td :props="props">
+            <q-btn
+              dense
+              flat
+              round
+              icon="delete"
+              color="negative"
+              :disable="loading"
+              @click="confirmDelete(props.row)"
+            />
+          </q-td>
+        </template>
+      </q-table>
     </div>
   </q-page>
 
@@ -64,6 +78,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useQuasar } from 'quasar'
 import FundCreateDialog from 'components/FundCreateDialog.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
 
@@ -74,13 +89,19 @@ const isElectronRuntime = computed(() => {
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(
-  () => !!bridge.value?.funds?.list && !!bridge.value?.funds?.upsertMany && !!bridge.value?.funds?.create,
+  () =>
+    !!bridge.value?.funds?.list &&
+    !!bridge.value?.funds?.upsertMany &&
+    !!bridge.value?.funds?.create &&
+    !!bridge.value?.funds?.delete,
 )
 
 const rows = ref([])
 const loading = ref(false)
 const error = ref('')
 const fundDialogOpen = ref(false)
+
+const $q = useQuasar()
 
 function openCreateFund() {
   fundDialogOpen.value = true
@@ -107,6 +128,7 @@ const columns = [
   },
   { name: 'Raising_Status', label: 'Raising Status', field: 'Raising_Status', align: 'left', sortable: true },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
+  { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
 const csvHeaders = ['id', 'Fund_Oppty_Name', 'Fund_Type', 'Fund_Size_Target', 'Investment_Ask', 'Raising_Status']
@@ -134,6 +156,30 @@ async function importRows(importedRows) {
 
 async function onFundCreated() {
   await loadFunds()
+}
+
+async function confirmDelete(row) {
+  if (!bridge.value?.funds?.delete) return
+  const name = row?.Fund_Oppty_Name ? ` (${row.Fund_Oppty_Name})` : ''
+
+  $q
+    .dialog({
+      title: 'Delete fund?',
+      message: `This will permanently delete this fund${name}.`,
+      cancel: true,
+      persistent: true,
+    })
+    .onOk(async () => {
+      loading.value = true
+      try {
+        await bridge.value.funds.delete(row.id)
+        await loadFunds()
+      } catch (e) {
+        $q.notify({ type: 'negative', message: e?.message || String(e) })
+      } finally {
+        loading.value = false
+      }
+    })
 }
 
 onMounted(() => {

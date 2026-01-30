@@ -16,30 +16,36 @@ contextBridge.exposeInMainWorld('ecvc', {
     uninstall: (pipelineId) => ipcRenderer.invoke('pipelines:uninstall', { pipelineId }),
     upsertMany: (rows) => ipcRenderer.invoke('pipelines:upsertMany', { rows }),
     create: (payload) => ipcRenderer.invoke('pipelines:create', payload),
+    delete: (pipelineId) => ipcRenderer.invoke('pipelines:delete', { pipelineId }),
   },
   companies: {
     list: () => ipcRenderer.invoke('companies:list'),
     create: (payload) => ipcRenderer.invoke('companies:create', payload),
     upsertMany: (rows) => ipcRenderer.invoke('companies:upsertMany', { rows }),
+    delete: (companyId) => ipcRenderer.invoke('companies:delete', { companyId }),
   },
   opportunities: {
     list: () => ipcRenderer.invoke('opportunities:list'),
     create: (payload) => ipcRenderer.invoke('opportunities:create', payload),
     upsertMany: (rows) => ipcRenderer.invoke('opportunities:upsertMany', { rows }),
+    delete: (opportunityId) => ipcRenderer.invoke('opportunities:delete', { opportunityId }),
   },
   contacts: {
     list: () => ipcRenderer.invoke('contacts:list'),
     create: (payload) => ipcRenderer.invoke('contacts:create', payload),
     upsertMany: (rows) => ipcRenderer.invoke('contacts:upsertMany', { rows }),
+    delete: (contactId) => ipcRenderer.invoke('contacts:delete', { contactId }),
   },
   funds: {
     list: () => ipcRenderer.invoke('funds:list'),
     create: (payload) => ipcRenderer.invoke('funds:create', payload),
     upsertMany: (rows) => ipcRenderer.invoke('funds:upsertMany', { rows }),
+    delete: (fundId) => ipcRenderer.invoke('funds:delete', { fundId }),
   },
   artifacts: {
     list: () => ipcRenderer.invoke('artifacts:list'),
     upsertMany: (rows) => ipcRenderer.invoke('artifacts:upsertMany', { rows }),
+    delete: (artifactId) => ipcRenderer.invoke('artifacts:delete', { artifactId }),
   },
   db: {
     info: () => ipcRenderer.invoke('db:info'),
