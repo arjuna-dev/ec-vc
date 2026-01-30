@@ -3,7 +3,9 @@
     <q-card style="width: 760px; max-width: 96vw">
       <q-card-section>
         <div class="text-h6">Add new artifact</div>
-        <div class="text-caption text-grey-7">Drop files first, then select pipeline and opportunity.</div>
+        <div class="text-caption text-grey-7">
+          Drop files first, then select pipeline and opportunity.
+        </div>
       </q-card-section>
 
       <q-separator />
@@ -22,7 +24,9 @@
               {{ dragOver ? 'Release to drop' : 'Drag files into this area' }}
             </div>
           </div>
-          <div class="text-caption text-grey-7">(For now this only logs a success message to the console.)</div>
+          <div class="text-caption text-grey-7">
+            (For now this only logs a success message to the console.)
+          </div>
 
           <q-banner v-if="droppedFiles.length" class="bg-white text-black" rounded>
             <div class="text-caption text-grey-7 q-mb-xs">Staged files:</div>

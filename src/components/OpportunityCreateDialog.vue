@@ -35,6 +35,16 @@
               </q-item>
               <q-separator />
             </template>
+            <template #no-option>
+              <q-item clickable @click.stop.prevent="companyDialogOpen = true">
+                <q-item-section avatar>
+                  <q-icon name="add" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>Create new company</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
           </q-select>
 
           <div v-for="field in fields" :key="field.key" class="col-12 col-md-6">
