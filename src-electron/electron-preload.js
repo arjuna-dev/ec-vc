@@ -1,8 +1,17 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import path from 'node:path'
 
 contextBridge.exposeInMainWorld('ecvc', {
   version: 1,
+  files: {
+    getPathForFile: (file) => {
+      try {
+        return webUtils.getPathForFile(file)
+      } catch {
+        return null
+      }
+    },
+  },
   fs: {
     homedir: () => ipcRenderer.invoke('fs:homedir'),
     readdir: (dirPath) => ipcRenderer.invoke('fs:readdir', dirPath),
@@ -46,6 +55,13 @@ contextBridge.exposeInMainWorld('ecvc', {
     list: () => ipcRenderer.invoke('artifacts:list'),
     upsertMany: (rows) => ipcRenderer.invoke('artifacts:upsertMany', { rows }),
     delete: (artifactId) => ipcRenderer.invoke('artifacts:delete', { artifactId }),
+    ingest: ({ filePaths, files, opportunityId, pipelineId } = {}) =>
+      ipcRenderer.invoke('artifacts:ingest', { filePaths, files, opportunityId, pipelineId }),
+    onIngestStatus: (cb) => {
+      const handler = (_event, payload) => cb?.(payload)
+      ipcRenderer.on('artifacts:ingest:status', handler)
+      return () => ipcRenderer.removeListener('artifacts:ingest:status', handler)
+    },
   },
   db: {
     info: () => ipcRenderer.invoke('db:info'),

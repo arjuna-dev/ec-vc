@@ -24,9 +24,6 @@
               {{ dragOver ? 'Release to drop' : 'Drag files into this area' }}
             </div>
           </div>
-          <div class="text-caption text-grey-7">
-            (For now this only logs a success message to the console.)
-          </div>
 
           <q-banner v-if="droppedFiles.length" class="bg-white text-black" rounded>
             <div class="text-caption text-grey-7 q-mb-xs">Staged files:</div>
@@ -145,7 +142,8 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import OpportunityCreateDialog from './OpportunityCreateDialog.vue'
 import PipelineCreateDialog from './PipelineCreateDialog.vue'
 
@@ -161,6 +159,7 @@ const open = computed({
 })
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
+const $q = useQuasar()
 
 const loading = ref(false)
 const step = ref(1)
@@ -232,24 +231,53 @@ function onDrop(e) {
   const files = Array.from(e?.dataTransfer?.files || [])
   if (files.length === 0) return
 
-  const summaries = files.map((f) => ({ name: f.name, path: f.path, size: f.size }))
+  const summaries = files.map((f) => {
+    const p =
+      f?.path ||
+      bridge.value?.files?.getPathForFile?.(f) ||
+      // Fallback (usually empty for dropped files; kept for completeness)
+      f?.webkitRelativePath ||
+      null
+    return { name: f.name, path: p, size: f.size }
+  })
   droppedFiles.value = summaries
 
-  console.log('[Artifacts] drop success (stage 1)', { files: summaries })
-  mockCallLlm(summaries)
-}
-
-function mockCallLlm(files) {
-  console.log('[Artifacts] mock LLM call triggered', { files })
-}
-
-function finish() {
-  console.log('[Artifacts] finish (stage 2)', {
-    pipelineId: pipelineId.value,
-    opportunityId: opportunityId.value,
-    files: droppedFiles.value,
+  $q.notify({
+    type: 'info',
+    message: 'Files staged. Select an opportunity and a pipeline, then click Finish to start processing.',
   })
-  open.value = false
+
+  if (summaries.some((s) => !s.path)) {
+    $q.notify({
+      type: 'negative',
+      message:
+        'Could not read the local path for one or more dropped files. Please try again (or use a different file).',
+    })
+  }
+}
+
+async function finish() {
+  if (!bridge.value?.artifacts?.ingest) return
+  if (!pipelineId.value || !opportunityId.value) return
+  if (droppedFiles.value.length === 0) return
+
+  loading.value = true
+  try {
+    await bridge.value.artifacts.ingest({
+      filePaths: droppedFiles.value.map((f) => f.path),
+      pipelineId: pipelineId.value,
+      opportunityId: opportunityId.value,
+    })
+    open.value = false
+  } catch (_e) {
+    // Error toasts are emitted by the main process; keep a fallback here.
+    $q.notify({
+      type: 'negative',
+      message: `Could not create the artifact record. Please try again. ${_e?.message || ''}`,
+    })
+  } finally {
+    loading.value = false
+  }
 }
 
 watch(
@@ -264,4 +292,22 @@ watch(
     await loadAll()
   },
 )
+
+let offIngestStatus = null
+
+onMounted(() => {
+  if (!bridge.value?.artifacts?.onIngestStatus) return
+  offIngestStatus = bridge.value.artifacts.onIngestStatus((status) => {
+    const t = status?.type
+    const type = t === 'success' ? 'positive' : t === 'error' ? 'negative' : 'info'
+    const message = String(status?.message || '').trim()
+    if (!message) return
+    $q.notify({ type, message })
+  })
+})
+
+onBeforeUnmount(() => {
+  offIngestStatus?.()
+  offIngestStatus = null
+})
 </script>

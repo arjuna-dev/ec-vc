@@ -9,6 +9,7 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import { createProjectStructure, DEFAULT_PROJECT_ROOT_NAME } from './services/project-structure.js'
 import { closeDb, dbAll, dbRun, getDbInfo, initDb } from './services/sqlite-db.js'
 import { mirrorPipelineToFs, removePipelineFromFs } from './services/pipeline-mirror.js'
+import { ingestArtifactsFromPaths } from './services/artifact-ingestion.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -1270,6 +1271,35 @@ function registerIpc() {
   ipcMain.handle('artifacts:delete', async (_event, { artifactId } = {}) => {
     initDb()
     return deleteRow('Artifacts', 'artifact_id', String(artifactId || ''))
+  })
+
+  ipcMain.handle('artifacts:ingest', async (event, payload = {}) => {
+    initDb()
+    const workspace = await ensureWorkspace()
+
+    const emitStatus = (status) => {
+      try {
+        event?.sender?.send?.('artifacts:ingest:status', status)
+      } catch {
+        // ignore
+      }
+    }
+
+    const result = await ingestArtifactsFromPaths({
+        workspaceRoot: workspace.rootPath,
+        filePaths: payload?.filePaths || payload?.files || [],
+        opportunityId: payload?.opportunityId,
+        pipelineId: payload?.pipelineId,
+        emitStatus,
+      })
+    const count = Array.isArray(result?.results) ? result.results.length : 0
+    if (count > 0) {
+      emitStatus?.({
+        type: 'success',
+        message: `Artifacts saved in ${workspace.rootPath}/0_company_docs/Artifacts`,
+      })
+    }
+    return result
   })
 
   ipcMain.handle('db:info', () => getDbInfo())
