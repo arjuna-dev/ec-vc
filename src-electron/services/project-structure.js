@@ -4,7 +4,13 @@ import fse from 'fs-extra'
 export const DEFAULT_PROJECT_ROOT_NAME = 'ec-vc'
 
 export const DEFAULT_PROJECT_STRUCTURE = {
-  '0_company_docs': {},
+  '0_company_docs': {
+    Artifacts: {
+      '0_raw': {},
+      '1_llm-ready': {},
+      '2_llm-generated': {},
+    },
+  },
   '1_pipelines': {},
   '2_porftolio': {},
 }
