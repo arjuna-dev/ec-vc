@@ -1088,11 +1088,11 @@ VALUES
 CREATE TABLE IF NOT EXISTS Artifacts (
   artifact_id TEXT PRIMARY KEY,
   pipeline_run_id TEXT,
-  opportunity_id TEXT NOT NULL,
-  pipeline_id TEXT NOT NULL,
-  stage_id TEXT NOT NULL,
-  artifact_type   TEXT NOT NULL CHECK (artifact_type IN ('raw_input','derived','final','note','event')),
-  artifact_role   TEXT,
+  opportunity_id TEXT,
+  pipeline_id TEXT,
+  stage_id TEXT,
+  artifact_type TEXT NOT NULL CHECK (artifact_type IN ('raw','llm-ready','llm-generated')),
+  artifact_role TEXT,
   artifact_format TEXT,
   fs_path TEXT NOT NULL,
   fs_hash TEXT,
@@ -1105,13 +1105,12 @@ CREATE TABLE IF NOT EXISTS Artifacts (
   title TEXT,
   summary TEXT,
   confidence_score REAL,
-  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','final','superseded','archived')),
-  is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+  status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON DELETE CASCADE,
-  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE RESTRICT,
-  FOREIGN KEY (stage_id) REFERENCES Pipeline_Stages(stage_id) ON DELETE RESTRICT,
+  FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON DELETE SET NULL,
+  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE SET NULL,
+  FOREIGN KEY (stage_id) REFERENCES Pipeline_Stages(stage_id) ON DELETE SET NULL,
   FOREIGN KEY (source_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
   FOREIGN KEY (assistant_system_prompt_id) REFERENCES Assistant_System_Prompts(assistant_system_prompt_id) ON DELETE SET NULL
 );
@@ -1147,7 +1146,7 @@ CREATE TABLE IF NOT EXISTS Artifacts_Locations (
 
 CREATE TABLE IF NOT EXISTS Artifact_Links (
   from_artifact_id TEXT NOT NULL,
-  to_artifact_id   TEXT NOT NULL,
+  to_artifact_id TEXT NOT NULL,
   link_type TEXT NOT NULL,
   PRIMARY KEY (from_artifact_id, to_artifact_id, link_type),
   FOREIGN KEY (from_artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE,
