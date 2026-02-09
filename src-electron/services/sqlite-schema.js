@@ -2,7 +2,7 @@ const BASE_TABLES_SQL = `
 CREATE TABLE IF NOT EXISTS Companies (
   id TEXT PRIMARY KEY,
   Company_Name TEXT,
-  Company_Type TEXT,
+  Company_Type TEXT CHECK(Company_Type IN ('Venture', 'Corporation', 'Asset Manager', 'Academia', 'Government', 'Other')),
   One_Liner TEXT,
   Status TEXT,
   Date_of_Incorporation TEXT,
