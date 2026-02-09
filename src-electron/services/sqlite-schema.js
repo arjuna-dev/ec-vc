@@ -34,23 +34,24 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_Companies_company_name
 
 CREATE TABLE IF NOT EXISTS Opportunities (
   id TEXT PRIMARY KEY,
-  company_id TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'round' CHECK (kind IN ('round', 'fund')),
+  company_id TEXT,
   Venture_Oppty_Name TEXT,
-  Round_Stage TEXT,
-  Type_of_Security TEXT,
   Investment_Ask REAL,
-  Round_Amount REAL,
   Hard_Commits REAL,
   Soft_Commits REAL,
-  Pre_Valuation REAL,
-  Post_Valuation REAL,
-  Previous_Post REAL,
   First_Close_Date TEXT,
   Next_Close_Date TEXT,
   Final_Close_Date TEXT,
   Pipeline_Stage TEXT,
   Pipeline_Status TEXT,
   Raising_Status TEXT,
+  Round_Stage TEXT,
+  Type_of_Security TEXT,
+  Round_Amount REAL,
+  Pre_Valuation REAL,
+  Post_Valuation REAL,
+  Previous_Post REAL,
   Board_Seats TEXT,
   Information_Rights TEXT,
   Voting_Rights TEXT,
@@ -70,6 +71,7 @@ CREATE TABLE IF NOT EXISTS Opportunities (
 );
 
 CREATE INDEX IF NOT EXISTS idx_Opportunities_company_id ON Opportunities(company_id);
+CREATE INDEX IF NOT EXISTS idx_Opportunities_kind ON Opportunities(kind);
 
 CREATE TABLE IF NOT EXISTS Funds (
   id TEXT PRIMARY KEY,
@@ -92,6 +94,46 @@ CREATE TABLE IF NOT EXISTS Funds (
   Raising_Status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS Round_Opportunities (
+  opportunity_id TEXT PRIMARY KEY,
+  Round_Stage TEXT,
+  Type_of_Security TEXT,
+  Round_Amount REAL,
+  Pre_Valuation REAL,
+  Post_Valuation REAL,
+  Previous_Post REAL,
+  Board_Seats TEXT,
+  Information_Rights TEXT,
+  Voting_Rights TEXT,
+  Liquidation_Preference TEXT,
+  Anti_Dilution_Provisions TEXT,
+  Conversion_Features TEXT,
+  Most_Favored_Nation TEXT,
+  ROFO_ROR TEXT,
+  Co_Sale_Right TEXT,
+  Tag_Drag_Along TEXT,
+  Put_Option TEXT,
+  Over_Allotment_Option TEXT,
+  Stacked_Series TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Fund_Opportunities (
+  opportunity_id TEXT PRIMARY KEY,
+  Fund_Type TEXT,
+  Fund_Size_Target REAL,
+  Initial_Ticket_Size REAL,
+  Target_Positions INTEGER,
+  Follow_on_Reserve REAL,
+  Investment_Stages TEXT,
+  Company_Stages TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS LVPortfolio (
@@ -1172,6 +1214,214 @@ CREATE TABLE IF NOT EXISTS Artifact_Links (
 -- Triggers (Omitted for brevity, but logically follow the same FK enforcement)
 `
 const TRIGGERS_SQL = `
+-- 0. OPPORTUNITY SUPERTYPE/SUBTYPE INTEGRITY
+
+CREATE TRIGGER IF NOT EXISTS trg_Opportunities_round_requires_company_ins
+BEFORE INSERT ON Opportunities
+FOR EACH ROW
+WHEN NEW.kind = 'round' AND NEW.company_id IS NULL
+BEGIN
+  SELECT RAISE(ABORT, 'round opportunities require company_id');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Opportunities_round_requires_company_upd
+BEFORE UPDATE OF kind, company_id ON Opportunities
+FOR EACH ROW
+WHEN NEW.kind = 'round' AND NEW.company_id IS NULL
+BEGIN
+  SELECT RAISE(ABORT, 'round opportunities require company_id');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Opportunities_fund_company_must_be_null_ins
+BEFORE INSERT ON Opportunities
+FOR EACH ROW
+WHEN NEW.kind = 'fund' AND NEW.company_id IS NOT NULL
+BEGIN
+  SELECT RAISE(ABORT, 'fund opportunities must not have company_id');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Opportunities_fund_company_must_be_null_upd
+BEFORE UPDATE OF kind, company_id ON Opportunities
+FOR EACH ROW
+WHEN NEW.kind = 'fund' AND NEW.company_id IS NOT NULL
+BEGIN
+  SELECT RAISE(ABORT, 'fund opportunities must not have company_id');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Opportunities_sync_round_subtype_ins
+AFTER INSERT ON Opportunities
+FOR EACH ROW
+WHEN NEW.kind = 'round'
+BEGIN
+  INSERT INTO Round_Opportunities (
+    opportunity_id, Round_Stage, Type_of_Security, Round_Amount, Pre_Valuation, Post_Valuation,
+    Previous_Post, Board_Seats, Information_Rights, Voting_Rights, Liquidation_Preference,
+    Anti_Dilution_Provisions, Conversion_Features, Most_Favored_Nation, ROFO_ROR, Co_Sale_Right,
+    Tag_Drag_Along, Put_Option, Over_Allotment_Option, Stacked_Series
+  )
+  VALUES (
+    NEW.id, NEW.Round_Stage, NEW.Type_of_Security, NEW.Round_Amount, NEW.Pre_Valuation, NEW.Post_Valuation,
+    NEW.Previous_Post, NEW.Board_Seats, NEW.Information_Rights, NEW.Voting_Rights, NEW.Liquidation_Preference,
+    NEW.Anti_Dilution_Provisions, NEW.Conversion_Features, NEW.Most_Favored_Nation, NEW.ROFO_ROR, NEW.Co_Sale_Right,
+    NEW.Tag_Drag_Along, NEW.Put_Option, NEW.Over_Allotment_Option, NEW.Stacked_Series
+  )
+  ON CONFLICT(opportunity_id) DO UPDATE SET
+    Round_Stage = excluded.Round_Stage,
+    Type_of_Security = excluded.Type_of_Security,
+    Round_Amount = excluded.Round_Amount,
+    Pre_Valuation = excluded.Pre_Valuation,
+    Post_Valuation = excluded.Post_Valuation,
+    Previous_Post = excluded.Previous_Post,
+    Board_Seats = excluded.Board_Seats,
+    Information_Rights = excluded.Information_Rights,
+    Voting_Rights = excluded.Voting_Rights,
+    Liquidation_Preference = excluded.Liquidation_Preference,
+    Anti_Dilution_Provisions = excluded.Anti_Dilution_Provisions,
+    Conversion_Features = excluded.Conversion_Features,
+    Most_Favored_Nation = excluded.Most_Favored_Nation,
+    ROFO_ROR = excluded.ROFO_ROR,
+    Co_Sale_Right = excluded.Co_Sale_Right,
+    Tag_Drag_Along = excluded.Tag_Drag_Along,
+    Put_Option = excluded.Put_Option,
+    Over_Allotment_Option = excluded.Over_Allotment_Option,
+    Stacked_Series = excluded.Stacked_Series,
+    updated_at = datetime('now');
+  DELETE FROM Fund_Opportunities WHERE opportunity_id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Opportunities_sync_fund_subtype_ins
+AFTER INSERT ON Opportunities
+FOR EACH ROW
+WHEN NEW.kind = 'fund'
+BEGIN
+  INSERT OR IGNORE INTO Fund_Opportunities (opportunity_id) VALUES (NEW.id);
+  DELETE FROM Round_Opportunities WHERE opportunity_id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Opportunities_sync_round_subtype_upd
+AFTER UPDATE OF Round_Stage, Type_of_Security, Round_Amount, Pre_Valuation, Post_Valuation, Previous_Post,
+  Board_Seats, Information_Rights, Voting_Rights, Liquidation_Preference, Anti_Dilution_Provisions,
+  Conversion_Features, Most_Favored_Nation, ROFO_ROR, Co_Sale_Right, Tag_Drag_Along, Put_Option,
+  Over_Allotment_Option, Stacked_Series
+ON Opportunities
+FOR EACH ROW
+WHEN NEW.kind = 'round'
+BEGIN
+  INSERT INTO Round_Opportunities (
+    opportunity_id, Round_Stage, Type_of_Security, Round_Amount, Pre_Valuation, Post_Valuation,
+    Previous_Post, Board_Seats, Information_Rights, Voting_Rights, Liquidation_Preference,
+    Anti_Dilution_Provisions, Conversion_Features, Most_Favored_Nation, ROFO_ROR, Co_Sale_Right,
+    Tag_Drag_Along, Put_Option, Over_Allotment_Option, Stacked_Series
+  )
+  VALUES (
+    NEW.id, NEW.Round_Stage, NEW.Type_of_Security, NEW.Round_Amount, NEW.Pre_Valuation, NEW.Post_Valuation,
+    NEW.Previous_Post, NEW.Board_Seats, NEW.Information_Rights, NEW.Voting_Rights, NEW.Liquidation_Preference,
+    NEW.Anti_Dilution_Provisions, NEW.Conversion_Features, NEW.Most_Favored_Nation, NEW.ROFO_ROR, NEW.Co_Sale_Right,
+    NEW.Tag_Drag_Along, NEW.Put_Option, NEW.Over_Allotment_Option, NEW.Stacked_Series
+  )
+  ON CONFLICT(opportunity_id) DO UPDATE SET
+    Round_Stage = excluded.Round_Stage,
+    Type_of_Security = excluded.Type_of_Security,
+    Round_Amount = excluded.Round_Amount,
+    Pre_Valuation = excluded.Pre_Valuation,
+    Post_Valuation = excluded.Post_Valuation,
+    Previous_Post = excluded.Previous_Post,
+    Board_Seats = excluded.Board_Seats,
+    Information_Rights = excluded.Information_Rights,
+    Voting_Rights = excluded.Voting_Rights,
+    Liquidation_Preference = excluded.Liquidation_Preference,
+    Anti_Dilution_Provisions = excluded.Anti_Dilution_Provisions,
+    Conversion_Features = excluded.Conversion_Features,
+    Most_Favored_Nation = excluded.Most_Favored_Nation,
+    ROFO_ROR = excluded.ROFO_ROR,
+    Co_Sale_Right = excluded.Co_Sale_Right,
+    Tag_Drag_Along = excluded.Tag_Drag_Along,
+    Put_Option = excluded.Put_Option,
+    Over_Allotment_Option = excluded.Over_Allotment_Option,
+    Stacked_Series = excluded.Stacked_Series,
+    updated_at = datetime('now');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Opportunities_kind_switch_to_round
+AFTER UPDATE OF kind ON Opportunities
+FOR EACH ROW
+WHEN NEW.kind = 'round'
+BEGIN
+  DELETE FROM Fund_Opportunities WHERE opportunity_id = NEW.id;
+  INSERT OR IGNORE INTO Round_Opportunities (opportunity_id) VALUES (NEW.id);
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Opportunities_kind_switch_to_fund
+AFTER UPDATE OF kind ON Opportunities
+FOR EACH ROW
+WHEN NEW.kind = 'fund'
+BEGIN
+  DELETE FROM Round_Opportunities WHERE opportunity_id = NEW.id;
+  INSERT OR IGNORE INTO Fund_Opportunities (opportunity_id) VALUES (NEW.id);
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Round_Opportunities_parent_kind_ins
+BEFORE INSERT ON Round_Opportunities
+FOR EACH ROW
+BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1 FROM Opportunities o
+      WHERE o.id = NEW.opportunity_id AND o.kind = 'round'
+    )
+    THEN RAISE(ABORT, 'round subtype requires parent opportunity kind=round')
+  END;
+  SELECT CASE
+    WHEN EXISTS (
+      SELECT 1 FROM Fund_Opportunities f WHERE f.opportunity_id = NEW.opportunity_id
+    )
+    THEN RAISE(ABORT, 'opportunity cannot have both round and fund subtypes')
+  END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Fund_Opportunities_parent_kind_ins
+BEFORE INSERT ON Fund_Opportunities
+FOR EACH ROW
+BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1 FROM Opportunities o
+      WHERE o.id = NEW.opportunity_id AND o.kind = 'fund'
+    )
+    THEN RAISE(ABORT, 'fund subtype requires parent opportunity kind=fund')
+  END;
+  SELECT CASE
+    WHEN EXISTS (
+      SELECT 1 FROM Round_Opportunities r WHERE r.opportunity_id = NEW.opportunity_id
+    )
+    THEN RAISE(ABORT, 'opportunity cannot have both round and fund subtypes')
+  END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Round_Opportunities_no_orphan_delete
+BEFORE DELETE ON Round_Opportunities
+FOR EACH ROW
+WHEN EXISTS (
+  SELECT 1 FROM Opportunities o
+  WHERE o.id = OLD.opportunity_id
+    AND o.kind = 'round'
+)
+BEGIN
+  SELECT RAISE(ABORT, 'cannot delete round subtype while parent opportunity exists');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Fund_Opportunities_no_orphan_delete
+BEFORE DELETE ON Fund_Opportunities
+FOR EACH ROW
+WHEN EXISTS (
+  SELECT 1 FROM Opportunities o
+  WHERE o.id = OLD.opportunity_id
+    AND o.kind = 'fund'
+)
+BEGIN
+  SELECT RAISE(ABORT, 'cannot delete fund subtype while parent opportunity exists');
+END;
+
 -- 1. PIPELINE INTEGRITY TRIGGERS
 
 -- Enforce that stage_id belongs to pipeline_id in Opportunity_Pipeline
@@ -1233,6 +1483,22 @@ FOR EACH ROW
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
   UPDATE Funds SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Round_Opportunities_updated_at
+AFTER UPDATE ON Round_Opportunities
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Round_Opportunities SET updated_at = datetime('now') WHERE opportunity_id = OLD.opportunity_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Fund_Opportunities_updated_at
+AFTER UPDATE ON Fund_Opportunities
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Fund_Opportunities SET updated_at = datetime('now') WHERE opportunity_id = OLD.opportunity_id;
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_Contacts_updated_at
