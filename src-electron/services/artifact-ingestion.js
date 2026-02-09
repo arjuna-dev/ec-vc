@@ -6,12 +6,15 @@ import crypto from 'node:crypto'
 import fse from 'fs-extra'
 import { generateText } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 
 import { dbAll, dbRun, initDb } from './sqlite-db.js'
 
 // NOTE: Temporary development setting.
 // Prefer setting ECVC_OPENAI_API_KEY (or OPENAI_API_KEY) instead.
 const HARDCODED_OPENAI_API_KEY = ''
+
+const HARDCODED_GEMINI_API_KEY = 'AIzaSyDbT41Jp6RKA9QKcZrb6lQWbSiADyRSmT4'
 
 function safeBasename(filePath) {
   return path.basename(String(filePath || ''))
@@ -28,32 +31,6 @@ function extLower(fileName) {
 function baseName(fileName) {
   const parsed = path.parse(String(fileName || ''))
   return parsed.name || 'artifact'
-}
-
-function guessMimeType(fileName) {
-  const ext = extLower(fileName)
-  switch (ext) {
-    case '.pdf':
-      return 'application/pdf'
-    case '.png':
-      return 'image/png'
-    case '.jpg':
-    case '.jpeg':
-      return 'image/jpeg'
-    case '.webp':
-      return 'image/webp'
-    case '.gif':
-      return 'image/gif'
-    case '.tif':
-    case '.tiff':
-      return 'image/tiff'
-    case '.txt':
-      return 'text/plain'
-    case '.md':
-      return 'text/markdown'
-    default:
-      return 'application/octet-stream'
-  }
 }
 
 function isImageExt(ext) {
@@ -133,10 +110,19 @@ function getOpenAIClient() {
   return createOpenAI({ apiKey })
 }
 
+function getGoogleGenerativeAIClient() {
+  const apiKey = HARDCODED_GEMINI_API_KEY || process.env.GOOGLE_API_KEY || ''
+  if (!apiKey) {
+    throw new Error('Missing Google API key. Set GOOGLE_API_KEY environment variable.')
+  }
+
+  return createGoogleGenerativeAI({ apiKey })
+}
+
 async function ocrToMarkdown({ filePath: sourceFilePath, fileName }) {
-  const openai = getOpenAIClient()
+  // const openai = getOpenAIClient()
+  const gemini = getGoogleGenerativeAIClient()
   const ext = extLower(fileName)
-  const mimeType = guessMimeType(fileName)
 
   const bytes = await fs.readFile(sourceFilePath)
 
@@ -153,12 +139,12 @@ async function ocrToMarkdown({ filePath: sourceFilePath, fileName }) {
   ]
 
   if (isImageExt(ext)) {
-    contentParts.push({ type: 'image', image: bytes, mimeType })
+    contentParts.push({ type: 'image', image: bytes })
   } else if (ext === '.pdf') {
     contentParts.push({
       type: 'file',
-      data: Buffer.from(bytes).toString('base64'),
-      mimeType: 'application/pdf',
+      data: bytes,
+      mediaType: 'application/pdf',
       filename: fileName,
     })
   } else {
@@ -166,7 +152,7 @@ async function ocrToMarkdown({ filePath: sourceFilePath, fileName }) {
   }
 
   const result = await generateText({
-    model: openai('gpt-4o-mini'),
+    model: gemini('gemini-2.5-flash'),
     messages: [{ role: 'user', content: contentParts }],
   })
 
