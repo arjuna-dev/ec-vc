@@ -1,8 +1,21 @@
 const BASE_TABLES_SQL = `
+
+CREATE TABLE IF NOT EXISTS company_types (
+  type TEXT PRIMARY KEY
+);
+
+INSERT OR IGNORE INTO company_types (type) VALUES
+  ('Venture'),
+  ('Corporation'),
+  ('Asset Manager'),
+  ('Academia'),
+  ('Government'),
+  ('Other');
+
 CREATE TABLE IF NOT EXISTS Companies (
   id TEXT PRIMARY KEY,
   Company_Name TEXT,
-  Company_Type TEXT CHECK(Company_Type IN ('Venture', 'Corporation', 'Asset Manager', 'Academia', 'Government', 'Other')),
+  Company_Type TEXT NOT NULL,
   One_Liner TEXT,
   Status TEXT,
   Date_of_Incorporation TEXT,
@@ -12,7 +25,8 @@ CREATE TABLE IF NOT EXISTS Companies (
   Updates TEXT,
   Website TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (Company_Type) REFERENCES company_types(type) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_Companies_company_name
