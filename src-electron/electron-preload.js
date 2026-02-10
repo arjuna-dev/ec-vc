@@ -45,12 +45,6 @@ contextBridge.exposeInMainWorld('ecvc', {
     upsertMany: (rows) => ipcRenderer.invoke('contacts:upsertMany', { rows }),
     delete: (contactId) => ipcRenderer.invoke('contacts:delete', { contactId }),
   },
-  funds: {
-    list: () => ipcRenderer.invoke('funds:list'),
-    create: (payload) => ipcRenderer.invoke('funds:create', payload),
-    upsertMany: (rows) => ipcRenderer.invoke('funds:upsertMany', { rows }),
-    delete: (fundId) => ipcRenderer.invoke('funds:delete', { fundId }),
-  },
   artifacts: {
     list: () => ipcRenderer.invoke('artifacts:list'),
     upsertMany: (rows) => ipcRenderer.invoke('artifacts:upsertMany', { rows }),

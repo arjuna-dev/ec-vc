@@ -73,29 +73,6 @@ CREATE TABLE IF NOT EXISTS Opportunities (
 CREATE INDEX IF NOT EXISTS idx_Opportunities_company_id ON Opportunities(company_id);
 CREATE INDEX IF NOT EXISTS idx_Opportunities_kind ON Opportunities(kind);
 
-CREATE TABLE IF NOT EXISTS Funds (
-  id TEXT PRIMARY KEY,
-  Fund_Oppty_Name TEXT,
-  Fund_Type TEXT,
-  Fund_Size_Target REAL,
-  Investment_Ask REAL,
-  Hard_Commits REAL,
-  Soft_Commits REAL,
-  Initial_Ticket_Size REAL,
-  Target_Positions INTEGER,
-  Follow_on_Reserve REAL,
-  Investment_Stages TEXT,
-  Company_Stages TEXT,
-  First_Close_Date TEXT,
-  Next_Close_Date TEXT,
-  Final_Close_Date TEXT,
-  Pipeline_Stage TEXT,
-  Pipeline_Status TEXT,
-  Raising_Status TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
 CREATE TABLE IF NOT EXISTS Round_Opportunities (
   opportunity_id TEXT PRIMARY KEY,
   Round_Stage TEXT,
@@ -465,7 +442,7 @@ CREATE TABLE IF NOT EXISTS Companies_Funds_has_funds (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Companies_Funds_has_funds_to ON Companies_Funds_has_funds(to_id);
 
@@ -546,7 +523,7 @@ CREATE TABLE IF NOT EXISTS Countries_Funds_governing_law (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Countries(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Countries_Funds_governing_law_to ON Countries_Funds_governing_law(to_id);
 
@@ -555,7 +532,7 @@ CREATE TABLE IF NOT EXISTS Countries_Funds_target_countries (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Countries(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Countries_Funds_target_countries_to ON Countries_Funds_target_countries(to_id);
 
@@ -564,7 +541,7 @@ CREATE TABLE IF NOT EXISTS Industries_Funds_target_industries (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Industries(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Industries_Funds_target_industries_to ON Industries_Funds_target_industries(to_id);
 
@@ -573,7 +550,7 @@ CREATE TABLE IF NOT EXISTS Contacts_Funds_captable_individuals (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Contacts_Funds_captable_individuals_to ON Contacts_Funds_captable_individuals(to_id);
 
@@ -582,7 +559,7 @@ CREATE TABLE IF NOT EXISTS Projects_Funds_parent_project (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Projects_Funds_parent_project_to ON Projects_Funds_parent_project(to_id);
 
@@ -591,7 +568,7 @@ CREATE TABLE IF NOT EXISTS Tasks_Funds_tasks (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Tasks(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Tasks_Funds_tasks_to ON Tasks_Funds_tasks(to_id);
 
@@ -600,7 +577,7 @@ CREATE TABLE IF NOT EXISTS IC_Scorecard_Funds_qa_score (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES IC_Scorecard(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_IC_Scorecard_Funds_qa_score_to ON IC_Scorecard_Funds_qa_score(to_id);
 
@@ -609,7 +586,7 @@ CREATE TABLE IF NOT EXISTS Intros_Funds_source_intro (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Intros(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Intros_Funds_source_intro_to ON Intros_Funds_source_intro(to_id);
 
@@ -653,7 +630,7 @@ CREATE TABLE IF NOT EXISTS Funds_InvestmentSchedule_related_fund (
   from_id TEXT NOT NULL,
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_id) REFERENCES InvestmentSchedule(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Funds_InvestmentSchedule_related_fund_to ON Funds_InvestmentSchedule_related_fund(to_id);
@@ -717,7 +694,7 @@ CREATE TABLE IF NOT EXISTS Contacts_Funds_funds_invested (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Contacts_Funds_funds_invested_to ON Contacts_Funds_funds_invested(to_id);
 
@@ -789,7 +766,7 @@ CREATE TABLE IF NOT EXISTS Projects_Funds_related_fund (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Projects_Funds_related_fund_to ON Projects_Funds_related_fund(to_id);
 
@@ -852,7 +829,7 @@ CREATE TABLE IF NOT EXISTS Tasks_Funds_related_fund (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Tasks(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Tasks_Funds_related_fund_to ON Tasks_Funds_related_fund(to_id);
 
@@ -924,7 +901,7 @@ CREATE TABLE IF NOT EXISTS Intros_Funds_related_funds (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Intros(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_Intros_Funds_related_funds_to ON Intros_Funds_related_funds(to_id);
 
@@ -1005,7 +982,7 @@ CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess_Funds_fund_opportunities (
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES PipelineInvestmentProcess(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_PipelineInvestmentProcess_Funds_fund_opportunities_to ON PipelineInvestmentProcess_Funds_fund_opportunities(to_id);
 
@@ -1111,25 +1088,6 @@ CREATE INDEX IF NOT EXISTS idx_Opportunity_Pipeline_pipeline
 CREATE INDEX IF NOT EXISTS idx_Opportunity_Pipeline_stage
   ON Opportunity_Pipeline(stage_id);
 
-CREATE TABLE IF NOT EXISTS Fund_Pipeline (
-  fund_id TEXT NOT NULL,
-  pipeline_id TEXT NOT NULL,
-  stage_id TEXT NOT NULL,
-  status TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  PRIMARY KEY (fund_id, pipeline_id),
-  FOREIGN KEY (fund_id) REFERENCES Funds(id) ON DELETE CASCADE,
-  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE CASCADE,
-  FOREIGN KEY (stage_id) REFERENCES Pipeline_Stages(stage_id) ON DELETE RESTRICT
-);
-
-CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_pipeline
-  ON Fund_Pipeline(pipeline_id);
-
-CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_stage
-  ON Fund_Pipeline(stage_id);
-
 INSERT OR IGNORE INTO Pipelines (pipeline_id, name, dir_name, is_default)
 VALUES ('pipeline_default', 'Default Investment Pipeline', 'pipeline_default', 1);
 
@@ -1230,22 +1188,6 @@ FOR EACH ROW
 WHEN NEW.kind = 'round' AND NEW.company_id IS NULL
 BEGIN
   SELECT RAISE(ABORT, 'round opportunities require company_id');
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Opportunities_fund_company_must_be_null_ins
-BEFORE INSERT ON Opportunities
-FOR EACH ROW
-WHEN NEW.kind = 'fund' AND NEW.company_id IS NOT NULL
-BEGIN
-  SELECT RAISE(ABORT, 'fund opportunities must not have company_id');
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Opportunities_fund_company_must_be_null_upd
-BEFORE UPDATE OF kind, company_id ON Opportunities
-FOR EACH ROW
-WHEN NEW.kind = 'fund' AND NEW.company_id IS NOT NULL
-BEGIN
-  SELECT RAISE(ABORT, 'fund opportunities must not have company_id');
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_Opportunities_sync_round_subtype_ins
@@ -1477,14 +1419,6 @@ BEGIN
   UPDATE Opportunities SET updated_at = datetime('now') WHERE id = OLD.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_Funds_updated_at
-AFTER UPDATE ON Funds
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Funds SET updated_at = datetime('now') WHERE id = OLD.id;
-END;
-
 CREATE TRIGGER IF NOT EXISTS trg_Round_Opportunities_updated_at
 AFTER UPDATE ON Round_Opportunities
 FOR EACH ROW
@@ -1593,31 +1527,6 @@ BEGIN
   END;
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_Fund_Pipeline_stage_matches_ins
-BEFORE INSERT ON Fund_Pipeline
-FOR EACH ROW
-BEGIN
-  SELECT CASE
-    WHEN NOT EXISTS (
-      SELECT 1 FROM Pipeline_Stages s
-      WHERE s.stage_id = NEW.stage_id AND s.pipeline_id = NEW.pipeline_id
-    )
-    THEN RAISE(ABORT, 'fund stage_id does not belong to pipeline_id')
-  END;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Fund_Pipeline_stage_matches_upd
-BEFORE UPDATE OF stage_id, pipeline_id ON Fund_Pipeline
-FOR EACH ROW
-BEGIN
-  SELECT CASE
-    WHEN NOT EXISTS (
-      SELECT 1 FROM Pipeline_Stages s
-      WHERE s.stage_id = NEW.stage_id AND s.pipeline_id = NEW.pipeline_id
-    )
-    THEN RAISE(ABORT, 'fund stage_id does not belong to pipeline_id')
-  END;
-END;
 `
 
 export const SCHEMA_V1_SQL = `

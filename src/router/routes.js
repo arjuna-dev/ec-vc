@@ -9,7 +9,6 @@ const routes = [
       { path: 'artifacts', name: 'artifacts', component: () => import('pages/ArtifactsPage.vue') },
       { path: 'companies', name: 'companies', component: () => import('pages/CompaniesPage.vue') },
       { path: 'contacts', name: 'contacts', component: () => import('pages/ContactsPage.vue') },
-      { path: 'funds', name: 'funds', component: () => import('pages/FundsPage.vue') },
     ],
   },
 

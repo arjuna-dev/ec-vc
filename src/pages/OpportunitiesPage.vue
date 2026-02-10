@@ -103,16 +103,21 @@ function openCreateOpportunity() {
 }
 
 const columns = [
+  { name: 'kind', label: 'Kind', field: 'kind', align: 'left', sortable: true },
   { name: 'Company_Name', label: 'Company', field: 'Company_Name', align: 'left', sortable: true },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'Round_Stage', label: 'Round', field: 'Round_Stage', align: 'left', sortable: true },
+  { name: 'Fund_Type', label: 'Fund Type', field: 'Fund_Type', align: 'left', sortable: true },
   {
-    name: 'Round_Amount',
-    label: 'Round Size (USD)',
-    field: 'Round_Amount',
+    name: 'size',
+    label: 'Size / Target (USD)',
+    field: (row) => row.kind === 'fund' ? row.Fund_Size_Target : row.Round_Amount,
     align: 'right',
     sortable: true,
-    format: (v) => (v === null || v === undefined || v === '' ? '' : Number(v).toLocaleString('en-US')),
+    format: (_v, row) => {
+      const value = row.kind === 'fund' ? row.Fund_Size_Target : row.Round_Amount
+      return value === null || value === undefined || value === '' ? '' : Number(value).toLocaleString('en-US')
+    },
   },
   { name: 'Venture_Oppty_Name', label: 'Opportunity Name', field: 'Venture_Oppty_Name', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
@@ -120,11 +125,14 @@ const columns = [
 
 const csvHeaders = [
   'id',
+  'kind',
   'company_id',
   'Company_Name',
   'Venture_Oppty_Name',
   'Round_Stage',
   'Round_Amount',
+  'Fund_Type',
+  'Fund_Size_Target',
   'Pipeline_Stage',
   'Pipeline_Status',
   'Raising_Status',

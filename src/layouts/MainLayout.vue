@@ -68,14 +68,6 @@
           </q-item-section>
         </q-item>
 
-        <q-item clickable to="/funds">
-          <q-item-section avatar>
-            <q-icon name="account_balance" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Funds</q-item-label>
-          </q-item-section>
-        </q-item>
       </q-list>
     </q-drawer>
 

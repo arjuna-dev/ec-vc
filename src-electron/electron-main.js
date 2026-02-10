@@ -371,14 +371,20 @@ function listOpportunities() {
     `
     SELECT
       o.id,
+      o.kind,
       o.company_id,
       o.Venture_Oppty_Name,
       o.Round_Stage,
       o.Round_Amount,
+      f.Fund_Type,
+      f.Fund_Size_Target,
+      o.Investment_Ask,
+      o.Raising_Status,
       o.created_at,
       c.Company_Name
     FROM Opportunities o
-    JOIN Companies c ON c.id = o.company_id
+    LEFT JOIN Companies c ON c.id = o.company_id
+    LEFT JOIN Fund_Opportunities f ON f.opportunity_id = o.id
     ORDER BY o.created_at DESC
   `,
   )
@@ -435,67 +441,6 @@ function createContact(payload = {}) {
       Credentials: normalizeNullableString(payload.Credentials),
       Tenure_at_Firm_yrs: normalizeNullableNumber(payload.Tenure_at_Firm_yrs),
       Country_based: normalizeNullableString(payload.Country_based),
-    })
-
-  return { id }
-}
-
-function listFunds() {
-  return dbAll(
-    `
-    SELECT
-      id,
-      Fund_Oppty_Name,
-      Fund_Type,
-      Fund_Size_Target,
-      Investment_Ask,
-      Raising_Status,
-      created_at
-    FROM Funds
-    ORDER BY created_at DESC
-  `,
-  )
-}
-
-function createFund(payload = {}) {
-  const database = initDb()
-  const id = normalizeNullableString(payload.id) || `fund:${crypto.randomUUID()}`
-  const name = normalizeNullableString(payload.Fund_Oppty_Name)
-  if (!name) throw new Error('Fund name is required')
-
-  database
-    .prepare(
-      `
-      INSERT INTO Funds (
-        id, Fund_Oppty_Name, Fund_Type, Fund_Size_Target, Investment_Ask, Hard_Commits, Soft_Commits,
-        Initial_Ticket_Size, Target_Positions, Follow_on_Reserve, Investment_Stages, Company_Stages,
-        First_Close_Date, Next_Close_Date, Final_Close_Date, Pipeline_Stage, Pipeline_Status, Raising_Status
-      ) VALUES (
-        @id, @Fund_Oppty_Name, @Fund_Type, @Fund_Size_Target, @Investment_Ask, @Hard_Commits, @Soft_Commits,
-        @Initial_Ticket_Size, @Target_Positions, @Follow_on_Reserve, @Investment_Stages, @Company_Stages,
-        @First_Close_Date, @Next_Close_Date, @Final_Close_Date, @Pipeline_Stage, @Pipeline_Status, @Raising_Status
-      )
-    `,
-    )
-    .run({
-      id,
-      Fund_Oppty_Name: name,
-      Fund_Type: normalizeNullableString(payload.Fund_Type),
-      Fund_Size_Target: normalizeNullableNumber(payload.Fund_Size_Target),
-      Investment_Ask: normalizeNullableNumber(payload.Investment_Ask),
-      Hard_Commits: normalizeNullableNumber(payload.Hard_Commits),
-      Soft_Commits: normalizeNullableNumber(payload.Soft_Commits),
-      Initial_Ticket_Size: normalizeNullableNumber(payload.Initial_Ticket_Size),
-      Target_Positions: normalizeNullableNumber(payload.Target_Positions),
-      Follow_on_Reserve: normalizeNullableNumber(payload.Follow_on_Reserve),
-      Investment_Stages: normalizeNullableString(payload.Investment_Stages),
-      Company_Stages: normalizeNullableString(payload.Company_Stages),
-      First_Close_Date: normalizeNullableString(payload.First_Close_Date),
-      Next_Close_Date: normalizeNullableString(payload.Next_Close_Date),
-      Final_Close_Date: normalizeNullableString(payload.Final_Close_Date),
-      Raising_Status: normalizeNullableString(payload.Raising_Status),
-      Pipeline_Status: normalizeNullableString(payload.Pipeline_Status),
-      Pipeline_Stage: normalizeNullableString(payload.Pipeline_Stage),
     })
 
   return { id }
@@ -667,93 +612,6 @@ function upsertContacts(rows = []) {
   return tx()
 }
 
-function upsertFunds(rows = []) {
-  const database = initDb()
-  const input = Array.isArray(rows) ? rows : []
-
-  const tx = database.transaction(() => {
-    let inserted = 0
-    let updated = 0
-    let skipped = 0
-
-    for (const r of input) {
-      const id = normalizeNullableString(r?.id) || `fund:${crypto.randomUUID()}`
-      const name = normalizeNullableString(r?.Fund_Oppty_Name)
-
-      if (!name) {
-        skipped++
-        continue
-      }
-
-      const payload = {
-        id,
-        Fund_Oppty_Name: name,
-        Fund_Type: normalizeNullableString(r?.Fund_Type),
-        Fund_Size_Target: normalizeNullableNumber(r?.Fund_Size_Target),
-        Investment_Ask: normalizeNullableNumber(r?.Investment_Ask),
-        Hard_Commits: normalizeNullableNumber(r?.Hard_Commits),
-        Soft_Commits: normalizeNullableNumber(r?.Soft_Commits),
-        Initial_Ticket_Size: normalizeNullableNumber(r?.Initial_Ticket_Size),
-        Target_Positions: normalizeNullableNumber(r?.Target_Positions),
-        Follow_on_Reserve: normalizeNullableNumber(r?.Follow_on_Reserve),
-        Investment_Stages: normalizeNullableString(r?.Investment_Stages),
-        Company_Stages: normalizeNullableString(r?.Company_Stages),
-        First_Close_Date: normalizeNullableString(r?.First_Close_Date),
-        Next_Close_Date: normalizeNullableString(r?.Next_Close_Date),
-        Final_Close_Date: normalizeNullableString(r?.Final_Close_Date),
-        Pipeline_Stage: normalizeNullableString(r?.Pipeline_Stage),
-        Pipeline_Status: normalizeNullableString(r?.Pipeline_Status),
-        Raising_Status: normalizeNullableString(r?.Raising_Status),
-      }
-
-      const exists = database.prepare('SELECT 1 FROM Funds WHERE id = ? LIMIT 1').get(id)
-
-      database
-        .prepare(
-          `
-          INSERT INTO Funds (
-            id, Fund_Oppty_Name, Fund_Type, Fund_Size_Target, Investment_Ask, Hard_Commits, Soft_Commits,
-            Initial_Ticket_Size, Target_Positions, Follow_on_Reserve, Investment_Stages, Company_Stages,
-            First_Close_Date, Next_Close_Date, Final_Close_Date, Pipeline_Stage, Pipeline_Status, Raising_Status
-          )
-          VALUES (
-            @id, @Fund_Oppty_Name, @Fund_Type, @Fund_Size_Target, @Investment_Ask, @Hard_Commits, @Soft_Commits,
-            @Initial_Ticket_Size, @Target_Positions, @Follow_on_Reserve, @Investment_Stages, @Company_Stages,
-            @First_Close_Date, @Next_Close_Date, @Final_Close_Date, @Pipeline_Stage, @Pipeline_Status, @Raising_Status
-          )
-          ON CONFLICT(id) DO UPDATE SET
-            Fund_Oppty_Name = excluded.Fund_Oppty_Name,
-            Fund_Type = excluded.Fund_Type,
-            Fund_Size_Target = excluded.Fund_Size_Target,
-            Investment_Ask = excluded.Investment_Ask,
-            Hard_Commits = excluded.Hard_Commits,
-            Soft_Commits = excluded.Soft_Commits,
-            Initial_Ticket_Size = excluded.Initial_Ticket_Size,
-            Target_Positions = excluded.Target_Positions,
-            Follow_on_Reserve = excluded.Follow_on_Reserve,
-            Investment_Stages = excluded.Investment_Stages,
-            Company_Stages = excluded.Company_Stages,
-            First_Close_Date = excluded.First_Close_Date,
-            Next_Close_Date = excluded.Next_Close_Date,
-            Final_Close_Date = excluded.Final_Close_Date,
-            Pipeline_Stage = excluded.Pipeline_Stage,
-            Pipeline_Status = excluded.Pipeline_Status,
-            Raising_Status = excluded.Raising_Status,
-            updated_at = datetime('now')
-        `,
-        )
-        .run(payload)
-
-      if (exists) updated++
-      else inserted++
-    }
-
-    return { inserted, updated, skipped }
-  })
-
-  return tx()
-}
-
 function upsertArtifacts(rows = []) {
   const database = initDb()
   const input = Array.isArray(rows) ? rows : []
@@ -874,16 +732,71 @@ function normalizeNullableNumber(value) {
   return Number.isFinite(n) ? n : null
 }
 
+function normalizeOpportunityKind(value) {
+  const v = normalizeNullableString(value)
+  if (!v) return null
+  const k = String(v).toLowerCase()
+  return k === 'fund' ? 'fund' : k === 'round' ? 'round' : null
+}
+
+function companyIsAssetManager(database, companyId) {
+  if (!companyId) return false
+  const row = database
+    .prepare('SELECT Company_Type FROM Companies WHERE id = ? LIMIT 1')
+    .get(companyId)
+  return String(row?.Company_Type || '')
+    .trim()
+    .toLowerCase() === 'asset manager'
+}
+
+function upsertFundSubtype(database, opportunityId, source = {}) {
+  database
+    .prepare(
+      `
+      INSERT INTO Fund_Opportunities (
+        opportunity_id, Fund_Type, Fund_Size_Target, Initial_Ticket_Size, Target_Positions,
+        Follow_on_Reserve, Investment_Stages, Company_Stages
+      ) VALUES (
+        @opportunity_id, @Fund_Type, @Fund_Size_Target, @Initial_Ticket_Size, @Target_Positions,
+        @Follow_on_Reserve, @Investment_Stages, @Company_Stages
+      )
+      ON CONFLICT(opportunity_id) DO UPDATE SET
+        Fund_Type = excluded.Fund_Type,
+        Fund_Size_Target = excluded.Fund_Size_Target,
+        Initial_Ticket_Size = excluded.Initial_Ticket_Size,
+        Target_Positions = excluded.Target_Positions,
+        Follow_on_Reserve = excluded.Follow_on_Reserve,
+        Investment_Stages = excluded.Investment_Stages,
+        Company_Stages = excluded.Company_Stages,
+        updated_at = datetime('now')
+    `,
+    )
+    .run({
+      opportunity_id: opportunityId,
+      Fund_Type: normalizeNullableString(source.Fund_Type),
+      Fund_Size_Target: normalizeNullableNumber(source.Fund_Size_Target),
+      Initial_Ticket_Size: normalizeNullableNumber(source.Initial_Ticket_Size),
+      Target_Positions: normalizeNullableNumber(source.Target_Positions),
+      Follow_on_Reserve: normalizeNullableNumber(source.Follow_on_Reserve),
+      Investment_Stages: normalizeNullableString(source.Investment_Stages),
+      Company_Stages: normalizeNullableString(source.Company_Stages),
+    })
+}
+
 function createOpportunity(payload = {}) {
   const database = initDb()
 
   const companyId = normalizeNullableString(payload.company_id)
-  if (!companyId) throw new Error('company_id is required')
+  const explicitKind = normalizeOpportunityKind(payload.kind)
+  const isAssetManager = companyIsAssetManager(database, companyId)
+  const kind = isAssetManager ? 'fund' : explicitKind || 'round'
+  if (!companyId && kind === 'round') throw new Error('company_id is required for round opportunities')
 
   const opportunityId = normalizeNullableString(payload.id) || `opportunity:${crypto.randomUUID()}`
 
   const fields = {
     id: opportunityId,
+    kind,
     company_id: companyId,
     Venture_Oppty_Name: normalizeNullableString(payload.Venture_Oppty_Name),
     Round_Stage: normalizeNullableString(payload.Round_Stage),
@@ -924,6 +837,10 @@ function createOpportunity(payload = {}) {
     database
       .prepare(`INSERT INTO Opportunities (${columns.join(',')}) VALUES (${placeholders})`)
       .run(values)
+
+    if (kind === 'fund') {
+      upsertFundSubtype(database, opportunityId, payload)
+    }
 
     // Ensure the opportunity has a default pipeline stage (DB-level requirement via app logic)
     database
@@ -967,20 +884,24 @@ function upsertOpportunities(rows = []) {
         if (!companyId) {
           companyId = `company:${crypto.randomUUID()}`
           database
-            .prepare('INSERT INTO Companies (id, Company_Name) VALUES (?, ?)')
+            .prepare("INSERT INTO Companies (id, Company_Name, Company_Type) VALUES (?, ?, 'Other')")
             .run(companyId, companyNameFromRow)
         }
       }
 
-      if (!companyId) {
+      const opportunityId = normalizeNullableString(r?.id) || `opportunity:${crypto.randomUUID()}`
+      const explicitKind = normalizeOpportunityKind(r?.kind || r?.Opportunity_Kind)
+      const isAssetManager = companyIsAssetManager(database, companyId)
+      const kind = isAssetManager ? 'fund' : explicitKind || 'round'
+
+      if (!companyId && kind === 'round') {
         skipped++
         continue
       }
 
-      const opportunityId = normalizeNullableString(r?.id) || `opportunity:${crypto.randomUUID()}`
-
       const payload = {
         id: opportunityId,
+        kind,
         company_id: companyId,
         Venture_Oppty_Name: normalizeNullableString(r?.Venture_Oppty_Name),
         Round_Stage: normalizeNullableString(r?.Round_Stage),
@@ -1021,7 +942,7 @@ function upsertOpportunities(rows = []) {
         .prepare(
           `
           INSERT INTO Opportunities (
-            id, company_id, Venture_Oppty_Name, Round_Stage, Type_of_Security,
+            id, kind, company_id, Venture_Oppty_Name, Round_Stage, Type_of_Security,
             Investment_Ask, Round_Amount, Hard_Commits, Soft_Commits,
             Pre_Valuation, Post_Valuation, Previous_Post,
             First_Close_Date, Next_Close_Date, Final_Close_Date,
@@ -1032,7 +953,7 @@ function upsertOpportunities(rows = []) {
             Put_Option, Over_Allotment_Option, Stacked_Series
           )
           VALUES (
-            @id, @company_id, @Venture_Oppty_Name, @Round_Stage, @Type_of_Security,
+            @id, @kind, @company_id, @Venture_Oppty_Name, @Round_Stage, @Type_of_Security,
             @Investment_Ask, @Round_Amount, @Hard_Commits, @Soft_Commits,
             @Pre_Valuation, @Post_Valuation, @Previous_Post,
             @First_Close_Date, @Next_Close_Date, @Final_Close_Date,
@@ -1043,6 +964,7 @@ function upsertOpportunities(rows = []) {
             @Put_Option, @Over_Allotment_Option, @Stacked_Series
           )
           ON CONFLICT(id) DO UPDATE SET
+            kind = excluded.kind,
             company_id = excluded.company_id,
             Venture_Oppty_Name = excluded.Venture_Oppty_Name,
             Round_Stage = excluded.Round_Stage,
@@ -1077,6 +999,10 @@ function upsertOpportunities(rows = []) {
         `,
         )
         .run(payload)
+
+      if (kind === 'fund') {
+        upsertFundSubtype(database, opportunityId, r)
+      }
 
       database
         .prepare(
@@ -1236,26 +1162,6 @@ function registerIpc() {
   ipcMain.handle('contacts:delete', async (_event, { contactId } = {}) => {
     initDb()
     return deleteRow('Contacts', 'id', String(contactId || ''))
-  })
-
-  ipcMain.handle('funds:list', async () => {
-    initDb()
-    return { funds: listFunds() }
-  })
-
-  ipcMain.handle('funds:create', async (_event, payload) => {
-    initDb()
-    return createFund(payload)
-  })
-
-  ipcMain.handle('funds:upsertMany', async (_event, { rows } = {}) => {
-    initDb()
-    return upsertFunds(rows)
-  })
-
-  ipcMain.handle('funds:delete', async (_event, { fundId } = {}) => {
-    initDb()
-    return deleteRow('Funds', 'id', String(fundId || ''))
   })
 
   ipcMain.handle('artifacts:list', async () => {

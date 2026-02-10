@@ -3,7 +3,7 @@
     <q-card style="width: 900px; max-width: 96vw">
       <q-card-section>
         <div class="text-h6">Create Opportunity</div>
-        <div class="text-caption text-grey-7">Only name and company are required.</div>
+        <div class="text-caption text-grey-7">Name is required. Kind is inferred from company type when needed.</div>
       </q-card-section>
 
       <q-separator />
@@ -13,7 +13,7 @@
           <q-select
             v-model="form.company_id"
             outlined
-            label="Company *"
+            :label="form.kind === 'round' ? 'Company *' : 'Company (optional)'"
             :options="companyOptions"
             :disable="loadingCompanies || loading"
             emit-value
@@ -46,6 +46,19 @@
               </q-item>
             </template>
           </q-select>
+
+          <q-select
+            v-model="form.kind"
+            outlined
+            label="Opportunity Kind *"
+            :options="kindOptions"
+            :disable="loading || selectedCompanyIsAssetManager"
+            emit-value
+            map-options
+          />
+          <div v-if="selectedCompanyIsAssetManager" class="text-caption text-grey-7">
+            Selected company is <b>Asset Manager</b>, so kind is forced to <b>fund</b>.
+          </div>
 
           <div v-for="field in fields" :key="field.key" class="col-12 col-md-6">
             <q-input
@@ -130,12 +143,29 @@ const form = ref({})
 const companyOptions = computed(() =>
   (companies.value || [])
     .filter((c) => c?.Company_Name)
-    .map((c) => ({ label: c.Company_Name, value: c.id })),
+    .map((c) => ({
+      label: `${c.Company_Name}${c?.Company_Type ? ` (${c.Company_Type})` : ''}`,
+      value: c.id,
+    })),
+)
+
+const kindOptions = [
+  { label: 'Round', value: 'round' },
+  { label: 'Fund', value: 'fund' },
+]
+
+const selectedCompany = computed(() =>
+  (companies.value || []).find((c) => c?.id === form.value?.company_id) || null,
+)
+
+const selectedCompanyIsAssetManager = computed(
+  () => String(selectedCompany.value?.Company_Type || '').toLowerCase() === 'asset manager',
 )
 
 function resetForm() {
   form.value = {
     company_id: null,
+    kind: 'round',
     id: '',
     Venture_Oppty_Name: '',
     Round_Stage: '',
@@ -187,7 +217,7 @@ async function onCompanyCreated(company) {
 
 async function submit() {
   if (!bridge.value?.opportunities?.create) return
-  if (!form.value.company_id) return
+  if (form.value.kind === 'round' && !form.value.company_id) return
 
   loading.value = true
   try {
@@ -207,6 +237,13 @@ watch(
     if (!v) return
     resetForm()
     await loadCompanies()
+  },
+)
+
+watch(
+  () => form.value.company_id,
+  () => {
+    if (selectedCompanyIsAssetManager.value) form.value.kind = 'fund'
   },
 )
 </script>
