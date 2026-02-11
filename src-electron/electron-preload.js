@@ -19,6 +19,10 @@ contextBridge.exposeInMainWorld('ecvc', {
     createProjectStructure: (baseDirPath) => ipcRenderer.invoke('project:createStructure', baseDirPath),
     workspaceRoot: () => ipcRenderer.invoke('workspace:getRoot'),
   },
+  settings: {
+    get: () => ipcRenderer.invoke('settings:get'),
+    set: (payload) => ipcRenderer.invoke('settings:set', payload),
+  },
   pipelines: {
     list: () => ipcRenderer.invoke('pipelines:list'),
     install: (pipelineId) => ipcRenderer.invoke('pipelines:install', { pipelineId }),
@@ -38,6 +42,17 @@ contextBridge.exposeInMainWorld('ecvc', {
     create: (payload) => ipcRenderer.invoke('opportunities:create', payload),
     upsertMany: (rows) => ipcRenderer.invoke('opportunities:upsertMany', { rows }),
     delete: (opportunityId) => ipcRenderer.invoke('opportunities:delete', { opportunityId }),
+  },
+  databooks: {
+    list: () => ipcRenderer.invoke('databooks:list'),
+    view: (opportunityId) => ipcRenderer.invoke('databooks:view', { opportunityId }),
+    update: ({ opportunityId, changes } = {}) =>
+      ipcRenderer.invoke('databooks:update', { opportunityId, changes }),
+  },
+  audit: {
+    me: () => ipcRenderer.invoke('audit:me'),
+    setUserLabel: (userLabel) => ipcRenderer.invoke('audit:setUserLabel', { userLabel }),
+    events: (filters) => ipcRenderer.invoke('audit:events', filters),
   },
   contacts: {
     list: () => ipcRenderer.invoke('contacts:list'),

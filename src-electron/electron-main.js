@@ -299,24 +299,30 @@ function listCompanies() {
 function createCompany(payload = {}) {
   const name = normalizeNullableString(payload.Company_Name)
   if (!name) throw new Error('Company name is required')
+  const companyType = normalizeNullableString(payload.Company_Type)
+  if (!companyType) throw new Error('Company type is required')
 
   const database = initDb()
+  const roundsCountColumn = getCompaniesRoundsCountColumn(database)
 
   const existing = database
     .prepare('SELECT id, Company_Name FROM Companies WHERE Company_Name = ? LIMIT 1')
     .get(name)
 
   const id = normalizeNullableString(payload.id) || existing?.id || `company:${crypto.randomUUID()}`
+  const roundsCount =
+    normalizeNullableNumber(payload.Rounds_Opportunities_Count) ??
+    normalizeNullableNumber(payload.Rounds_Funds_Count)
 
   const fields = {
     id,
     Company_Name: name,
-    Company_Type: normalizeNullableString(payload.Company_Type),
+    Company_Type: companyType,
     One_Liner: normalizeNullableString(payload.One_Liner),
     Status: normalizeNullableString(payload.Status),
     Date_of_Incorporation: normalizeNullableString(payload.Date_of_Incorporation),
     Amount_Raised_AUMs: normalizeNullableNumber(payload.Amount_Raised_AUMs),
-    Rounds_Funds_Count: normalizeNullableNumber(payload.Rounds_Funds_Count),
+    Rounds_Count: roundsCount,
     Pax: normalizeNullableNumber(payload.Pax),
     Updates: normalizeNullableString(payload.Updates),
     Website: normalizeNullableString(payload.Website),
@@ -329,10 +335,10 @@ function createCompany(payload = {}) {
           `
           INSERT INTO Companies (
             id, Company_Name, Company_Type, One_Liner, Status, Date_of_Incorporation,
-            Amount_Raised_AUMs, Rounds_Funds_Count, Pax, Updates, Website
+            Amount_Raised_AUMs${roundsCountColumn ? `, ${roundsCountColumn}` : ''}, Pax, Updates, Website
           ) VALUES (
             @id, @Company_Name, @Company_Type, @One_Liner, @Status, @Date_of_Incorporation,
-            @Amount_Raised_AUMs, @Rounds_Funds_Count, @Pax, @Updates, @Website
+            @Amount_Raised_AUMs${roundsCountColumn ? ', @Rounds_Count' : ''}, @Pax, @Updates, @Website
           )
         `,
         )
@@ -350,7 +356,7 @@ function createCompany(payload = {}) {
           Status = COALESCE(@Status, Status),
           Date_of_Incorporation = COALESCE(@Date_of_Incorporation, Date_of_Incorporation),
           Amount_Raised_AUMs = COALESCE(@Amount_Raised_AUMs, Amount_Raised_AUMs),
-          Rounds_Funds_Count = COALESCE(@Rounds_Funds_Count, Rounds_Funds_Count),
+          ${roundsCountColumn ? `${roundsCountColumn} = COALESCE(@Rounds_Count, ${roundsCountColumn}),` : ''}
           Pax = COALESCE(@Pax, Pax),
           Updates = COALESCE(@Updates, Updates),
           Website = COALESCE(@Website, Website),
@@ -373,6 +379,26 @@ function listOpportunities() {
       o.id,
       o.kind,
       o.company_id,
+      o.Investment_Ask,
+      o.Hard_Commits,
+      o.Soft_Commits,
+      o.First_Close_Date,
+      o.Next_Close_Date,
+      o.Final_Close_Date,
+      o.Round_Stage,
+      o.Type_of_Security,
+      o.Round_Amount,
+      o.Pre_Valuation,
+      o.Post_Valuation,
+      o.Previous_Post,
+      COALESCE(
+        o.Venture_Oppty_Name,
+        CASE
+          WHEN c.Company_Name IS NOT NULL AND c.Company_Name <> '' THEN
+            replace(trim(c.Company_Name), ' ', '_') || '_' || substr(COALESCE(o.created_at, datetime('now')), 1, 10)
+          ELSE o.id
+        END
+      ) AS opportunity_name,
       o.Venture_Oppty_Name,
       o.Round_Stage,
       o.Round_Amount,
@@ -405,6 +431,745 @@ function listContacts() {
     ORDER BY COALESCE(Name, '') ASC, created_at DESC
   `,
   )
+}
+
+function listDatabooks() {
+  return dbAll(
+    `
+    SELECT
+      o.id AS opportunity_id,
+      COALESCE(
+        o.Venture_Oppty_Name,
+        CASE
+          WHEN c.Company_Name IS NOT NULL AND c.Company_Name <> '' THEN
+            replace(trim(c.Company_Name), ' ', '_') || '_' || substr(COALESCE(o.created_at, datetime('now')), 1, 10)
+          ELSE o.id
+        END
+      ) AS opportunity_name,
+      o.kind,
+      o.Raising_Status,
+      o.created_at
+    FROM Opportunities o
+    LEFT JOIN Companies c ON c.id = o.company_id
+    ORDER BY o.created_at DESC
+  `,
+  )
+}
+
+function getDatabookView(opportunityId) {
+  const oid = String(opportunityId || '').trim()
+  if (!oid) throw new Error('opportunityId is required')
+  const database = initDb()
+  const hasTableStmt = database.prepare(
+    `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1`,
+  )
+  const hasTable = (name) => Boolean(hasTableStmt.get(name))
+  const unique = (values) => [...new Set(values.filter((v) => String(v || '').trim()))]
+  const quote = (name) => `"${String(name).replaceAll('"', '""')}"`
+
+  const readEdgeIds = (tableNames, targetId) => {
+    const ids = []
+    for (const table of tableNames) {
+      if (!hasTable(table)) continue
+      const fromRows = database
+        .prepare(`SELECT from_id AS related_id FROM ${quote(table)} WHERE to_id = ?`)
+        .all(targetId)
+      const toRows = database
+        .prepare(`SELECT to_id AS related_id FROM ${quote(table)} WHERE from_id = ?`)
+        .all(targetId)
+      ids.push(...fromRows.map((r) => r.related_id), ...toRows.map((r) => r.related_id))
+    }
+    return unique(ids)
+  }
+
+  const selectByIds = (table, ids, sql) => {
+    if (!hasTable(table) || !ids.length) return []
+    const placeholders = ids.map(() => '?').join(', ')
+    return database.prepare(sql(placeholders)).all(...ids)
+  }
+
+  const opportunity = dbAll(
+    `
+    SELECT
+      o.id,
+      o.kind,
+      o.company_id,
+      COALESCE(
+        o.Venture_Oppty_Name,
+        CASE
+          WHEN c.Company_Name IS NOT NULL AND c.Company_Name <> '' THEN
+            replace(trim(c.Company_Name), ' ', '_') || '_' || substr(COALESCE(o.created_at, datetime('now')), 1, 10)
+          ELSE o.id
+        END
+      ) AS opportunity_name,
+      o.Venture_Oppty_Name,
+      o.Raising_Status,
+      o.Investment_Ask,
+      o.Hard_Commits,
+      o.Soft_Commits,
+      o.First_Close_Date,
+      o.Next_Close_Date,
+      o.Final_Close_Date,
+      o.Round_Stage,
+      o.Type_of_Security,
+      o.Round_Amount,
+      o.Pre_Valuation,
+      o.Post_Valuation,
+      o.Previous_Post,
+      o.created_at,
+      c.Company_Name
+    FROM Opportunities o
+    LEFT JOIN Companies c ON c.id = o.company_id
+    WHERE o.id = ?
+    LIMIT 1
+  `,
+    [oid],
+  )?.[0]
+  if (!opportunity) throw new Error(`Opportunity not found: ${oid}`)
+
+  const fund =
+    hasTable('Fund_Opportunities') && hasTable('Opportunities')
+      ? dbAll(
+          `
+          SELECT
+            f.opportunity_id,
+            f.Fund_Type,
+            f.Fund_Size_Target,
+            f.Initial_Ticket_Size,
+            f.Target_Positions,
+            f.Follow_on_Reserve,
+            f.Investment_Stages,
+            f.Company_Stages
+          FROM Fund_Opportunities f
+          WHERE f.opportunity_id = ?
+          LIMIT 1
+        `,
+          [oid],
+        )?.[0] || null
+      : null
+
+  const round =
+    hasTable('Round_Opportunities') && hasTable('Opportunities')
+      ? dbAll(
+          `
+          SELECT
+            r.opportunity_id,
+            r.Round_Stage,
+            r.Type_of_Security,
+            r.Round_Amount,
+            r.Pre_Valuation,
+            r.Post_Valuation,
+            r.Previous_Post
+          FROM Round_Opportunities r
+          WHERE r.opportunity_id = ?
+          LIMIT 1
+        `,
+          [oid],
+        )?.[0] || null
+      : null
+
+  const contactIds = readEdgeIds(
+    [
+      'Contacts_Opportunities_captable_individual',
+      'Contacts_Opportunities_captable_individuals_fund',
+      'Contacts_Opportunities_rounds_invested',
+      'Contacts_Opportunities_funds_invested',
+      'Contacts_Funds_captable_individual',
+      'Contacts_Funds_captable_individuals',
+      'Contacts_Funds_rounds_invested',
+      'Contacts_Funds_funds_invested',
+    ],
+    oid,
+  )
+
+  const primaryContact =
+    hasTable('Contacts') && contactIds.length
+      ? selectByIds(
+          'Contacts',
+          contactIds,
+          (placeholders) => `
+            SELECT id, Name, Email, Phone, Role
+            FROM Contacts
+            WHERE id IN (${placeholders})
+            ORDER BY COALESCE(Name, ''), id
+            LIMIT 1
+          `,
+        )?.[0] || null
+      : null
+
+  const projectIds = readEdgeIds(
+    [
+      'Projects_Opportunities_parent_project',
+      'Projects_Opportunities_parent_project_fund',
+      'Projects_Opportunities_related_round',
+      'Projects_Opportunities_related_fund',
+      'Projects_Funds_parent_project',
+      'Projects_Funds_related_round',
+      'Projects_Funds_related_fund',
+    ],
+    oid,
+  )
+
+  const projects = selectByIds(
+    'Projects',
+    projectIds,
+    (placeholders) => `
+      SELECT
+        id AS project_id,
+        Project_Name,
+        Status AS project_status,
+        Priority_Level AS project_priority,
+        Due_Date AS project_due_date
+      FROM Projects
+      WHERE id IN (${placeholders})
+      ORDER BY COALESCE(Project_Name, ''), id
+    `,
+  )
+
+  const directTaskIds = readEdgeIds(
+    [
+      'Tasks_Opportunities_tasks',
+      'Tasks_Opportunities_tasks_fund',
+      'Tasks_Opportunities_related_round',
+      'Tasks_Opportunities_related_fund',
+      'Tasks_Funds_tasks',
+      'Tasks_Funds_related_round',
+      'Tasks_Funds_related_fund',
+    ],
+    oid,
+  )
+
+  const projectTaskIds = []
+  if (projectIds.length) {
+    const placeholders = projectIds.map(() => '?').join(', ')
+    if (hasTable('Projects_Tasks_has_tasks')) {
+      const fromRows = database
+        .prepare(
+          `SELECT to_id AS task_id FROM Projects_Tasks_has_tasks WHERE from_id IN (${placeholders})`,
+        )
+        .all(...projectIds)
+      const toRows = database
+        .prepare(
+          `SELECT from_id AS task_id FROM Projects_Tasks_has_tasks WHERE to_id IN (${placeholders})`,
+        )
+        .all(...projectIds)
+      projectTaskIds.push(...fromRows.map((r) => r.task_id), ...toRows.map((r) => r.task_id))
+    }
+    if (hasTable('Tasks_Projects_projects')) {
+      const fromRows = database
+        .prepare(
+          `SELECT from_id AS task_id FROM Tasks_Projects_projects WHERE to_id IN (${placeholders})`,
+        )
+        .all(...projectIds)
+      const toRows = database
+        .prepare(
+          `SELECT to_id AS task_id FROM Tasks_Projects_projects WHERE from_id IN (${placeholders})`,
+        )
+        .all(...projectIds)
+      projectTaskIds.push(...fromRows.map((r) => r.task_id), ...toRows.map((r) => r.task_id))
+    }
+  }
+
+  const taskIds = unique([...directTaskIds, ...projectTaskIds])
+  const tasks = selectByIds(
+    'Tasks',
+    taskIds,
+    (placeholders) => `
+      SELECT
+        id AS task_id,
+        Task_Name,
+        Status AS task_status,
+        Priority AS task_priority,
+        Due_Date AS task_due_date
+      FROM Tasks
+      WHERE id IN (${placeholders})
+      ORDER BY COALESCE(Due_Date, ''), COALESCE(Task_Name, ''), id
+    `,
+  )
+
+  const artifacts = hasTable('Artifacts')
+    ? dbAll(
+        `
+        SELECT
+          a.artifact_id,
+          a.title AS artifact_title,
+          a.artifact_type,
+          a.status AS artifact_status,
+          a.pipeline_id,
+          a.stage_id,
+          a.fs_path,
+          a.created_at AS artifact_created_at
+        FROM Artifacts a
+        WHERE a.opportunity_id = ?
+        ORDER BY COALESCE(a.created_at, ''), a.artifact_id
+      `,
+        [oid],
+      )
+    : []
+
+  const fields = []
+  const addField = ({
+    section,
+    label,
+    value,
+    tableName = null,
+    recordId = null,
+    fieldName = null,
+    idColumn = null,
+  }) => {
+    const safeSection = String(section || '').trim() || 'General'
+    const safeLabel = String(label || '').trim() || 'Field'
+    const normalizedValue = value == null ? '' : String(value)
+    const editable = Boolean(tableName && recordId && fieldName && idColumn)
+    const key = editable
+      ? `${tableName}:${idColumn}:${recordId}:${fieldName}`
+      : `readonly:${safeSection}:${safeLabel}:${fields.length + 1}`
+    fields.push({
+      key,
+      section: safeSection,
+      label: safeLabel,
+      value: normalizedValue,
+      editable,
+      table_name: tableName,
+      record_id: recordId,
+      field_name: fieldName,
+      id_column: idColumn,
+    })
+  }
+
+  addField({
+    section: 'Opportunity',
+    label: 'Opportunity Name',
+    value: opportunity.opportunity_name || opportunity.Venture_Oppty_Name || opportunity.id,
+    tableName: 'Opportunities',
+    recordId: opportunity.id,
+    fieldName: 'Venture_Oppty_Name',
+    idColumn: 'id',
+  })
+  addField({ section: 'Opportunity', label: 'Kind', value: opportunity.kind })
+  addField({
+    section: 'Opportunity',
+    label: 'Raising Status',
+    value: opportunity.Raising_Status,
+    tableName: 'Opportunities',
+    recordId: opportunity.id,
+    fieldName: 'Raising_Status',
+    idColumn: 'id',
+  })
+  addField({
+    section: 'Opportunity',
+    label: 'Investment Ask',
+    value: opportunity.Investment_Ask,
+    tableName: 'Opportunities',
+    recordId: opportunity.id,
+    fieldName: 'Investment_Ask',
+    idColumn: 'id',
+  })
+  addField({
+    section: 'Opportunity',
+    label: 'Hard Commits',
+    value: opportunity.Hard_Commits,
+    tableName: 'Opportunities',
+    recordId: opportunity.id,
+    fieldName: 'Hard_Commits',
+    idColumn: 'id',
+  })
+  addField({
+    section: 'Opportunity',
+    label: 'Soft Commits',
+    value: opportunity.Soft_Commits,
+    tableName: 'Opportunities',
+    recordId: opportunity.id,
+    fieldName: 'Soft_Commits',
+    idColumn: 'id',
+  })
+  addField({
+    section: 'Opportunity',
+    label: 'First Close Date',
+    value: opportunity.First_Close_Date,
+    tableName: 'Opportunities',
+    recordId: opportunity.id,
+    fieldName: 'First_Close_Date',
+    idColumn: 'id',
+  })
+  addField({
+    section: 'Opportunity',
+    label: 'Next Close Date',
+    value: opportunity.Next_Close_Date,
+    tableName: 'Opportunities',
+    recordId: opportunity.id,
+    fieldName: 'Next_Close_Date',
+    idColumn: 'id',
+  })
+  addField({
+    section: 'Opportunity',
+    label: 'Final Close Date',
+    value: opportunity.Final_Close_Date,
+    tableName: 'Opportunities',
+    recordId: opportunity.id,
+    fieldName: 'Final_Close_Date',
+    idColumn: 'id',
+  })
+
+  if (opportunity.company_id && hasTable('Companies')) {
+    const companyRow = database
+      .prepare(
+        `
+        SELECT id, Company_Name, Company_Type, Website, One_Liner, Status
+        FROM Companies
+        WHERE id = ?
+        LIMIT 1
+      `,
+      )
+      .get(opportunity.company_id)
+    if (companyRow) {
+      addField({
+        section: 'Company',
+        label: 'Company Name',
+        value: companyRow.Company_Name,
+        tableName: 'Companies',
+        recordId: companyRow.id,
+        fieldName: 'Company_Name',
+        idColumn: 'id',
+      })
+      addField({
+        section: 'Company',
+        label: 'Company Type',
+        value: companyRow.Company_Type,
+        tableName: 'Companies',
+        recordId: companyRow.id,
+        fieldName: 'Company_Type',
+        idColumn: 'id',
+      })
+      addField({
+        section: 'Company',
+        label: 'Website',
+        value: companyRow.Website,
+        tableName: 'Companies',
+        recordId: companyRow.id,
+        fieldName: 'Website',
+        idColumn: 'id',
+      })
+      addField({
+        section: 'Company',
+        label: 'One Liner',
+        value: companyRow.One_Liner,
+        tableName: 'Companies',
+        recordId: companyRow.id,
+        fieldName: 'One_Liner',
+        idColumn: 'id',
+      })
+      addField({
+        section: 'Company',
+        label: 'Status',
+        value: companyRow.Status,
+        tableName: 'Companies',
+        recordId: companyRow.id,
+        fieldName: 'Status',
+        idColumn: 'id',
+      })
+    }
+  }
+
+  if (primaryContact) {
+    addField({
+      section: 'Primary Contact',
+      label: 'Name',
+      value: primaryContact.Name,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Name',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Email',
+      value: primaryContact.Email,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Email',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Phone',
+      value: primaryContact.Phone,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Phone',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Role',
+      value: primaryContact.Role,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Role',
+      idColumn: 'id',
+    })
+  }
+
+  if (opportunity.kind === 'fund' && fund) {
+    addField({
+      section: 'Fund',
+      label: 'Fund Type',
+      value: fund.Fund_Type,
+      tableName: 'Fund_Opportunities',
+      recordId: fund.opportunity_id,
+      fieldName: 'Fund_Type',
+      idColumn: 'opportunity_id',
+    })
+    addField({
+      section: 'Fund',
+      label: 'Fund Size Target',
+      value: fund.Fund_Size_Target,
+      tableName: 'Fund_Opportunities',
+      recordId: fund.opportunity_id,
+      fieldName: 'Fund_Size_Target',
+      idColumn: 'opportunity_id',
+    })
+    addField({
+      section: 'Fund',
+      label: 'Initial Ticket Size',
+      value: fund.Initial_Ticket_Size,
+      tableName: 'Fund_Opportunities',
+      recordId: fund.opportunity_id,
+      fieldName: 'Initial_Ticket_Size',
+      idColumn: 'opportunity_id',
+    })
+    addField({
+      section: 'Fund',
+      label: 'Target Positions',
+      value: fund.Target_Positions,
+      tableName: 'Fund_Opportunities',
+      recordId: fund.opportunity_id,
+      fieldName: 'Target_Positions',
+      idColumn: 'opportunity_id',
+    })
+    addField({
+      section: 'Fund',
+      label: 'Follow-on Reserve',
+      value: fund.Follow_on_Reserve,
+      tableName: 'Fund_Opportunities',
+      recordId: fund.opportunity_id,
+      fieldName: 'Follow_on_Reserve',
+      idColumn: 'opportunity_id',
+    })
+  } else if (opportunity.kind === 'round') {
+    const roundRecordId = round?.opportunity_id || opportunity.id
+    const roundTable = round ? 'Round_Opportunities' : 'Opportunities'
+    const roundIdColumn = round ? 'opportunity_id' : 'id'
+    addField({
+      section: 'Round',
+      label: 'Round Stage',
+      value: round?.Round_Stage ?? opportunity.Round_Stage,
+      tableName: roundTable,
+      recordId: roundRecordId,
+      fieldName: 'Round_Stage',
+      idColumn: roundIdColumn,
+    })
+    addField({
+      section: 'Round',
+      label: 'Security Type',
+      value: round?.Type_of_Security ?? opportunity.Type_of_Security,
+      tableName: roundTable,
+      recordId: roundRecordId,
+      fieldName: 'Type_of_Security',
+      idColumn: roundIdColumn,
+    })
+    addField({
+      section: 'Round',
+      label: 'Round Amount',
+      value: round?.Round_Amount ?? opportunity.Round_Amount,
+      tableName: roundTable,
+      recordId: roundRecordId,
+      fieldName: 'Round_Amount',
+      idColumn: roundIdColumn,
+    })
+    addField({
+      section: 'Round',
+      label: 'Pre Valuation',
+      value: round?.Pre_Valuation ?? opportunity.Pre_Valuation,
+      tableName: roundTable,
+      recordId: roundRecordId,
+      fieldName: 'Pre_Valuation',
+      idColumn: roundIdColumn,
+    })
+    addField({
+      section: 'Round',
+      label: 'Post Valuation',
+      value: round?.Post_Valuation ?? opportunity.Post_Valuation,
+      tableName: roundTable,
+      recordId: roundRecordId,
+      fieldName: 'Post_Valuation',
+      idColumn: roundIdColumn,
+    })
+    addField({
+      section: 'Round',
+      label: 'Previous Post',
+      value: round?.Previous_Post ?? opportunity.Previous_Post,
+      tableName: roundTable,
+      recordId: roundRecordId,
+      fieldName: 'Previous_Post',
+      idColumn: roundIdColumn,
+    })
+  }
+
+  projects.forEach((project, index) => {
+    const prefix = `Project ${index + 1}`
+    addField({
+      section: prefix,
+      label: 'Project Name',
+      value: project.Project_Name,
+      tableName: 'Projects',
+      recordId: project.project_id,
+      fieldName: 'Project_Name',
+      idColumn: 'id',
+    })
+    addField({
+      section: prefix,
+      label: 'Status',
+      value: project.project_status,
+      tableName: 'Projects',
+      recordId: project.project_id,
+      fieldName: 'Status',
+      idColumn: 'id',
+    })
+    addField({
+      section: prefix,
+      label: 'Priority',
+      value: project.project_priority,
+      tableName: 'Projects',
+      recordId: project.project_id,
+      fieldName: 'Priority_Level',
+      idColumn: 'id',
+    })
+    addField({
+      section: prefix,
+      label: 'Due Date',
+      value: project.project_due_date,
+      tableName: 'Projects',
+      recordId: project.project_id,
+      fieldName: 'Due_Date',
+      idColumn: 'id',
+    })
+  })
+
+  tasks.forEach((task, index) => {
+    const prefix = `Task ${index + 1}`
+    addField({
+      section: prefix,
+      label: 'Task Name',
+      value: task.Task_Name,
+      tableName: 'Tasks',
+      recordId: task.task_id,
+      fieldName: 'Task_Name',
+      idColumn: 'id',
+    })
+    addField({
+      section: prefix,
+      label: 'Status',
+      value: task.task_status,
+      tableName: 'Tasks',
+      recordId: task.task_id,
+      fieldName: 'Status',
+      idColumn: 'id',
+    })
+    addField({
+      section: prefix,
+      label: 'Priority',
+      value: task.task_priority,
+      tableName: 'Tasks',
+      recordId: task.task_id,
+      fieldName: 'Priority',
+      idColumn: 'id',
+    })
+    addField({
+      section: prefix,
+      label: 'Due Date',
+      value: task.task_due_date,
+      tableName: 'Tasks',
+      recordId: task.task_id,
+      fieldName: 'Due_Date',
+      idColumn: 'id',
+    })
+  })
+
+  artifacts.forEach((artifact, index) => {
+    const prefix = `Artifact ${index + 1}`
+    addField({
+      section: prefix,
+      label: 'Title',
+      value: artifact.artifact_title,
+      tableName: 'Artifacts',
+      recordId: artifact.artifact_id,
+      fieldName: 'title',
+      idColumn: 'artifact_id',
+    })
+    addField({
+      section: prefix,
+      label: 'Type',
+      value: artifact.artifact_type,
+      tableName: 'Artifacts',
+      recordId: artifact.artifact_id,
+      fieldName: 'artifact_type',
+      idColumn: 'artifact_id',
+    })
+    addField({
+      section: prefix,
+      label: 'Status',
+      value: artifact.artifact_status,
+      tableName: 'Artifacts',
+      recordId: artifact.artifact_id,
+      fieldName: 'status',
+      idColumn: 'artifact_id',
+    })
+  })
+
+  const maxRows = Math.max(projects.length, tasks.length, artifacts.length, 1)
+  const rows = Array.from({ length: maxRows }, (_, i) => {
+    const project = projects[i] || {}
+    const task = tasks[i] || {}
+    const artifact = artifacts[i] || {}
+    return {
+      row_index: i + 1,
+      opportunity_id: opportunity.id,
+      opportunity_name: opportunity.opportunity_name || opportunity.Venture_Oppty_Name || opportunity.id,
+      kind: opportunity.kind,
+      Raising_Status: opportunity.Raising_Status,
+      Company_Name: opportunity.Company_Name,
+      Investment_Ask: opportunity.Investment_Ask,
+      Hard_Commits: opportunity.Hard_Commits,
+      Soft_Commits: opportunity.Soft_Commits,
+      First_Close_Date: opportunity.First_Close_Date,
+      Next_Close_Date: opportunity.Next_Close_Date,
+      Final_Close_Date: opportunity.Final_Close_Date,
+      Round_Stage: round?.Round_Stage ?? opportunity.Round_Stage ?? null,
+      Type_of_Security: round?.Type_of_Security ?? opportunity.Type_of_Security ?? null,
+      Round_Amount: round?.Round_Amount ?? opportunity.Round_Amount ?? null,
+      Pre_Valuation: round?.Pre_Valuation ?? opportunity.Pre_Valuation ?? null,
+      Post_Valuation: round?.Post_Valuation ?? opportunity.Post_Valuation ?? null,
+      Previous_Post: round?.Previous_Post ?? opportunity.Previous_Post ?? null,
+      primary_contact_id: primaryContact?.id || null,
+      primary_contact_name: primaryContact?.Name || null,
+      primary_contact_email: primaryContact?.Email || null,
+      primary_contact_phone: primaryContact?.Phone || null,
+      primary_contact_role: primaryContact?.Role || null,
+      Fund_Type: fund?.Fund_Type || null,
+      Fund_Size_Target: fund?.Fund_Size_Target || null,
+      Initial_Ticket_Size: fund?.Initial_Ticket_Size || null,
+      Target_Positions: fund?.Target_Positions || null,
+      Follow_on_Reserve: fund?.Follow_on_Reserve || null,
+      Investment_Stages: fund?.Investment_Stages || null,
+      Company_Stages: fund?.Company_Stages || null,
+      ...project,
+      ...task,
+      ...artifact,
+    }
+  })
+
+  return { opportunity, rows, fields }
 }
 
 function createContact(payload = {}) {
@@ -732,6 +1497,23 @@ function normalizeNullableNumber(value) {
   return Number.isFinite(n) ? n : null
 }
 
+let companiesRoundsCountColumnCache = null
+
+function getCompaniesRoundsCountColumn(database) {
+  if (companiesRoundsCountColumnCache) return companiesRoundsCountColumnCache
+  const cols = database.prepare('PRAGMA table_info(Companies)').all().map((c) => c?.name)
+  if (cols.includes('Rounds_Opportunities_Count')) {
+    companiesRoundsCountColumnCache = 'Rounds_Opportunities_Count'
+    return companiesRoundsCountColumnCache
+  }
+  if (cols.includes('Rounds_Funds_Count')) {
+    companiesRoundsCountColumnCache = 'Rounds_Funds_Count'
+    return companiesRoundsCountColumnCache
+  }
+  companiesRoundsCountColumnCache = null
+  return null
+}
+
 function normalizeOpportunityKind(value) {
   const v = normalizeNullableString(value)
   if (!v) return null
@@ -783,6 +1565,320 @@ function upsertFundSubtype(database, opportunityId, source = {}) {
     })
 }
 
+function makeOpportunityNameFromCompany(companyName, dateSource = null) {
+  const base = String(companyName || '')
+    .trim()
+    .replace(/\s+/g, '_')
+  if (!base) return null
+  const date = dateSource || new Date().toISOString().slice(0, 10)
+  return `${base}_${date}`
+}
+
+function deriveOpportunityName(database, companyId, fallbackCompanyName = null) {
+  const byFallback = makeOpportunityNameFromCompany(fallbackCompanyName)
+  if (byFallback) return byFallback
+  if (!companyId) return null
+  const row = database
+    .prepare('SELECT Company_Name FROM Companies WHERE id = ? LIMIT 1')
+    .get(companyId)
+  return makeOpportunityNameFromCompany(row?.Company_Name)
+}
+
+function quoteIdentifier(name) {
+  return `"${String(name || '').replaceAll('"', '""')}"`
+}
+
+function getTableMeta(database, tableName) {
+  const table = String(tableName || '').trim()
+  if (!table) throw new Error('table_name is required')
+  const exists = database
+    .prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=? LIMIT 1")
+    .get(table)
+  if (!exists) throw new Error(`Unknown table: ${table}`)
+  const cols = database.prepare(`PRAGMA table_info(${quoteIdentifier(table)})`).all()
+  const columnNames = cols.map((c) => c?.name).filter(Boolean)
+  const pkColumn = cols.find((c) => Number(c?.pk) === 1)?.name || null
+  const types = Object.fromEntries(
+    cols.map((c) => [c?.name, String(c?.type || '').toUpperCase()]).filter(([k]) => Boolean(k)),
+  )
+  return {
+    table,
+    columnNames,
+    columnsSet: new Set(columnNames),
+    pkColumn,
+    types,
+  }
+}
+
+function coerceValueForColumn(rawValue, declaredType = '') {
+  if (rawValue === undefined || rawValue === null) return null
+  const text = String(rawValue).trim()
+  if (!text.length) return null
+  const t = String(declaredType || '').toUpperCase()
+  if (/(INT|REAL|FLOA|DOUB|NUM|DEC)/.test(t)) {
+    const n = Number(text)
+    if (!Number.isFinite(n)) throw new Error(`Expected numeric value, got "${text}"`)
+    return n
+  }
+  return text
+}
+
+function stringifyEventValue(value) {
+  if (value === undefined || value === null) return null
+  return String(value)
+}
+
+const APP_SETTING_KEYS = {
+  openaiApiKey: 'openai_api_key',
+  geminiApiKey: 'gemini_api_key',
+}
+
+function setAppSetting(database, key, value) {
+  database
+    .prepare(
+      `
+      INSERT INTO app_settings (key, value, updated_at)
+      VALUES (?, ?, datetime('now'))
+      ON CONFLICT(key) DO UPDATE SET
+        value = excluded.value,
+        updated_at = datetime('now')
+    `,
+    )
+    .run(String(key), value == null ? null : String(value))
+}
+
+function getAppSetting(database, key) {
+  const row = database
+    .prepare('SELECT value FROM app_settings WHERE key = ? LIMIT 1')
+    .get(String(key))
+  return row?.value ?? null
+}
+
+function getApiSettings(database) {
+  return {
+    openaiApiKey: normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.openaiApiKey)),
+    geminiApiKey: normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.geminiApiKey)),
+  }
+}
+
+function setApiSettings(payload = {}) {
+  const database = initDb()
+  const openaiApiKey = normalizeNullableString(payload?.openaiApiKey)
+  const geminiApiKey = normalizeNullableString(payload?.geminiApiKey)
+
+  setAppSetting(database, APP_SETTING_KEYS.openaiApiKey, openaiApiKey)
+  setAppSetting(database, APP_SETTING_KEYS.geminiApiKey, geminiApiKey)
+  return getApiSettings(database)
+}
+
+function ensureAuditActor(database) {
+  const existingUuid = normalizeNullableString(getAppSetting(database, 'user_uuid'))
+  const userUuid = existingUuid || `user:${crypto.randomUUID()}`
+  if (!existingUuid) setAppSetting(database, 'user_uuid', userUuid)
+  const userLabel = normalizeNullableString(getAppSetting(database, 'user_label'))
+  return { user_uuid: userUuid, user_label: userLabel }
+}
+
+function getAuditActor(database, { requireLabel = false } = {}) {
+  const actor = ensureAuditActor(database)
+  if (requireLabel && !actor.user_label) {
+    throw new Error('Saving is blocked: set your user label before editing.')
+  }
+  return actor
+}
+
+function setAuditUserLabel(label) {
+  const database = initDb()
+  const trimmed = normalizeNullableString(label)
+  if (!trimmed) throw new Error('user_label is required')
+  getAuditActor(database)
+  setAppSetting(database, 'user_label', trimmed)
+  return getAuditActor(database)
+}
+
+function listEvents(filters = {}) {
+  const database = initDb()
+  const where = []
+  const params = []
+  const tableName = normalizeNullableString(filters.table_name)
+  const recordId = normalizeNullableString(filters.record_id)
+  const editedByUuid = normalizeNullableString(filters.edited_by_uuid)
+  const since = normalizeNullableString(filters.since)
+  const until = normalizeNullableString(filters.until)
+  const limitRaw = Number(filters.limit)
+  const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(1000, Math.floor(limitRaw))) : 200
+
+  if (tableName) {
+    where.push('table_name = ?')
+    params.push(tableName)
+  }
+  if (recordId) {
+    where.push('record_id = ?')
+    params.push(recordId)
+  }
+  if (editedByUuid) {
+    where.push('edited_by_uuid = ?')
+    params.push(editedByUuid)
+  }
+  if (since) {
+    where.push('edited_at >= ?')
+    params.push(since)
+  }
+  if (until) {
+    where.push('edited_at <= ?')
+    params.push(until)
+  }
+
+  const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : ''
+  return database
+    .prepare(
+      `
+      SELECT
+        id,
+        table_name,
+        record_id,
+        field_name,
+        old_value,
+        new_value,
+        edited_by_uuid,
+        edited_by_label,
+        edited_at
+      FROM events
+      ${whereSql}
+      ORDER BY edited_at DESC, id DESC
+      LIMIT ?
+    `,
+    )
+    .all(...params, limit)
+}
+
+function applyAuditedChanges(changes = [], { createDatabookSnapshotForOpportunityId = null } = {}) {
+  const database = initDb()
+  const normalizedChanges = (Array.isArray(changes) ? changes : [])
+    .map((change) => ({
+      table_name: normalizeNullableString(change?.table_name),
+      record_id: normalizeNullableString(change?.record_id),
+      field_name: normalizeNullableString(change?.field_name),
+      id_column: normalizeNullableString(change?.id_column),
+      new_value: change?.new_value,
+    }))
+    .filter((change) => change.table_name && change.record_id && change.field_name)
+
+  if (!normalizedChanges.length) {
+    const actor = getAuditActor(database)
+    return { updated: 0, events_created: 0, snapshot_id: null, actor }
+  }
+
+  const actor = getAuditActor(database, { requireLabel: true })
+
+  const tx = database.transaction(() => {
+    let updated = 0
+    let eventsCreated = 0
+
+    for (const change of normalizedChanges) {
+      const tableMeta = getTableMeta(database, change.table_name)
+      if (tableMeta.table === 'events') {
+        throw new Error('Direct writes to events are not allowed')
+      }
+
+      if (!tableMeta.columnsSet.has(change.field_name)) {
+        throw new Error(`Unknown column ${change.field_name} on ${change.table_name}`)
+      }
+
+      const idColumn = change.id_column || tableMeta.pkColumn
+      if (!idColumn) {
+        throw new Error(`Missing id_column for table ${change.table_name}`)
+      }
+      if (!tableMeta.columnsSet.has(idColumn)) {
+        throw new Error(`Unknown id_column ${idColumn} on ${change.table_name}`)
+      }
+
+      const currentRow = database
+        .prepare(
+          `SELECT ${quoteIdentifier(change.field_name)} AS value FROM ${quoteIdentifier(change.table_name)} WHERE ${quoteIdentifier(idColumn)} = ? LIMIT 1`,
+        )
+        .get(change.record_id)
+      if (!currentRow) {
+        throw new Error(
+          `Record not found in ${change.table_name}: ${idColumn}=${change.record_id}`,
+        )
+      }
+
+      const oldValue = currentRow.value
+      const newValue = coerceValueForColumn(change.new_value, tableMeta.types[change.field_name])
+      if (oldValue === newValue) continue
+
+      const hasUpdatedAt = tableMeta.columnsSet.has('updated_at') && change.field_name !== 'updated_at'
+      if (hasUpdatedAt) {
+        database
+          .prepare(
+            `UPDATE ${quoteIdentifier(change.table_name)} SET ${quoteIdentifier(change.field_name)} = ?, updated_at = datetime('now') WHERE ${quoteIdentifier(idColumn)} = ?`,
+          )
+          .run(newValue, change.record_id)
+      } else {
+        database
+          .prepare(
+            `UPDATE ${quoteIdentifier(change.table_name)} SET ${quoteIdentifier(change.field_name)} = ? WHERE ${quoteIdentifier(idColumn)} = ?`,
+          )
+          .run(newValue, change.record_id)
+      }
+
+      updated += 1
+
+      database
+        .prepare(
+          `
+          INSERT INTO events (
+            id, table_name, record_id, field_name, old_value, new_value,
+            edited_by_uuid, edited_by_label, edited_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        `,
+        )
+        .run(
+          `event:${crypto.randomUUID()}`,
+          change.table_name,
+          change.record_id,
+          change.field_name,
+          stringifyEventValue(oldValue),
+          stringifyEventValue(newValue),
+          actor.user_uuid,
+          actor.user_label,
+        )
+      eventsCreated += 1
+    }
+
+    let snapshotId = null
+    if (createDatabookSnapshotForOpportunityId) {
+      const snapshotPayload = getDatabookView(createDatabookSnapshotForOpportunityId)
+      snapshotId = `snapshot:${crypto.randomUUID()}`
+      database
+        .prepare(
+          `
+          INSERT INTO databook_snapshots (
+            id, opportunity_id, payload_json, created_by_uuid, created_by_label, created_at
+          ) VALUES (?, ?, ?, ?, ?, datetime('now'))
+        `,
+        )
+        .run(
+          snapshotId,
+          createDatabookSnapshotForOpportunityId,
+          JSON.stringify(snapshotPayload),
+          actor.user_uuid,
+          actor.user_label,
+        )
+    }
+
+    return {
+      updated,
+      events_created: eventsCreated,
+      snapshot_id: snapshotId,
+      actor,
+    }
+  })
+
+  return tx()
+}
+
 function createOpportunity(payload = {}) {
   const database = initDb()
 
@@ -794,11 +1890,14 @@ function createOpportunity(payload = {}) {
 
   const opportunityId = normalizeNullableString(payload.id) || `opportunity:${crypto.randomUUID()}`
 
+  const providedOpportunityName = normalizeNullableString(payload.Venture_Oppty_Name)
+  const derivedOpportunityName = deriveOpportunityName(database, companyId)
+
   const fields = {
     id: opportunityId,
     kind,
     company_id: companyId,
-    Venture_Oppty_Name: normalizeNullableString(payload.Venture_Oppty_Name),
+    Venture_Oppty_Name: providedOpportunityName || derivedOpportunityName || opportunityId,
     Round_Stage: normalizeNullableString(payload.Round_Stage),
     Type_of_Security: normalizeNullableString(payload.Type_of_Security),
     Investment_Ask: normalizeNullableNumber(payload.Investment_Ask),
@@ -903,7 +2002,10 @@ function upsertOpportunities(rows = []) {
         id: opportunityId,
         kind,
         company_id: companyId,
-        Venture_Oppty_Name: normalizeNullableString(r?.Venture_Oppty_Name),
+        Venture_Oppty_Name:
+          normalizeNullableString(r?.Venture_Oppty_Name) ||
+          deriveOpportunityName(database, companyId, companyNameFromRow) ||
+          opportunityId,
         Round_Stage: normalizeNullableString(r?.Round_Stage),
         Type_of_Security: normalizeNullableString(r?.Type_of_Security),
         Investment_Ask: normalizeNullableNumber(r?.Investment_Ask),
@@ -966,7 +2068,7 @@ function upsertOpportunities(rows = []) {
           ON CONFLICT(id) DO UPDATE SET
             kind = excluded.kind,
             company_id = excluded.company_id,
-            Venture_Oppty_Name = excluded.Venture_Oppty_Name,
+            Venture_Oppty_Name = COALESCE(excluded.Venture_Oppty_Name, Opportunities.Venture_Oppty_Name),
             Round_Stage = excluded.Round_Stage,
             Type_of_Security = excluded.Type_of_Security,
             Investment_Ask = excluded.Investment_Ask,
@@ -1071,6 +2173,15 @@ function registerIpc() {
     return { rootPath: result.rootPath }
   })
 
+  ipcMain.handle('settings:get', async () => {
+    const database = initDb()
+    return getApiSettings(database)
+  })
+
+  ipcMain.handle('settings:set', async (_event, payload = {}) => {
+    return setApiSettings(payload)
+  })
+
   ipcMain.handle('pipelines:list', async () => {
     initDb()
     return { pipelines: listPipelines() }
@@ -1144,6 +2255,44 @@ function registerIpc() {
     return deleteRow('Opportunities', 'id', String(opportunityId || ''))
   })
 
+  ipcMain.handle('databooks:list', async () => {
+    initDb()
+    return { databooks: listDatabooks() }
+  })
+
+  ipcMain.handle('databooks:view', async (_event, { opportunityId } = {}) => {
+    initDb()
+    return getDatabookView(opportunityId)
+  })
+
+  ipcMain.handle('databooks:update', async (_event, { opportunityId, changes } = {}) => {
+    initDb()
+    const oid = normalizeNullableString(opportunityId)
+    if (!oid) throw new Error('opportunityId is required')
+    const result = applyAuditedChanges(changes, {
+      createDatabookSnapshotForOpportunityId: oid,
+    })
+    return {
+      ...result,
+      view: getDatabookView(oid),
+    }
+  })
+
+  ipcMain.handle('audit:me', async () => {
+    const database = initDb()
+    return getAuditActor(database)
+  })
+
+  ipcMain.handle('audit:setUserLabel', async (_event, { userLabel } = {}) => {
+    initDb()
+    return setAuditUserLabel(userLabel)
+  })
+
+  ipcMain.handle('audit:events', async (_event, filters = {}) => {
+    initDb()
+    return { events: listEvents(filters) }
+  })
+
   ipcMain.handle('contacts:list', async () => {
     initDb()
     return { contacts: listContacts() }
@@ -1180,8 +2329,9 @@ function registerIpc() {
   })
 
   ipcMain.handle('artifacts:ingest', async (event, payload = {}) => {
-    initDb()
+    const database = initDb()
     const workspace = await ensureWorkspace()
+    const apiSettings = getApiSettings(database)
 
     const emitStatus = (status) => {
       try {
@@ -1192,12 +2342,16 @@ function registerIpc() {
     }
 
     const result = await ingestArtifactsFromPaths({
-        workspaceRoot: workspace.rootPath,
-        filePaths: payload?.filePaths || payload?.files || [],
-        opportunityId: payload?.opportunityId,
-        pipelineId: payload?.pipelineId,
-        emitStatus,
-      })
+      workspaceRoot: workspace.rootPath,
+      filePaths: payload?.filePaths || payload?.files || [],
+      opportunityId: payload?.opportunityId,
+      pipelineId: payload?.pipelineId,
+      emitStatus,
+      apiKeys: {
+        openai: apiSettings.openaiApiKey,
+        gemini: apiSettings.geminiApiKey,
+      },
+    })
     const count = Array.isArray(result?.results) ? result.results.length : 0
     if (count > 0) {
       emitStatus?.({
@@ -1273,7 +2427,8 @@ async function createWindow() {
 }
 
 app.whenReady().then(() => {
-  initDb()
+  const database = initDb()
+  ensureAuditActor(database)
   registerIpc()
   ensureWorkspace()
   return createWindow()

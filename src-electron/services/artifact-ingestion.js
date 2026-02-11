@@ -10,12 +10,6 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 
 import { dbAll, dbRun, initDb } from './sqlite-db.js'
 
-// NOTE: Temporary development setting.
-// Prefer setting ECVC_OPENAI_API_KEY (or OPENAI_API_KEY) instead.
-const HARDCODED_OPENAI_API_KEY = ''
-
-const HARDCODED_GEMINI_API_KEY = 'AIzaSyDbT41Jp6RKA9QKcZrb6lQWbSiADyRSmT4'
-
 function safeBasename(filePath) {
   return path.basename(String(filePath || ''))
 }
@@ -98,30 +92,37 @@ function normalizeMarkdownFromText(fileName, extractedText) {
   return `# ${title}\n\n${content}\n`
 }
 
-function getOpenAIClient() {
+function normalizeApiKey(value) {
+  return String(value || '').trim()
+}
+
+function getOpenAIClient({ apiKeyFromSettings } = {}) {
   const apiKey =
-    HARDCODED_OPENAI_API_KEY || process.env.ECVC_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''
+    normalizeApiKey(apiKeyFromSettings) ||
+    normalizeApiKey(process.env.ECVC_OPENAI_API_KEY) ||
+    normalizeApiKey(process.env.OPENAI_API_KEY)
   if (!apiKey) {
     throw new Error(
-      'Missing OpenAI API key. Set ECVC_OPENAI_API_KEY (or OPENAI_API_KEY), or hardcode HARDCODED_OPENAI_API_KEY in artifact-ingestion.js.',
+      'Missing OpenAI API key. Set it in Settings, or configure ECVC_OPENAI_API_KEY / OPENAI_API_KEY.',
     )
   }
 
   return createOpenAI({ apiKey })
 }
 
-function getGoogleGenerativeAIClient() {
-  const apiKey = HARDCODED_GEMINI_API_KEY || process.env.GOOGLE_API_KEY || ''
+function getGoogleGenerativeAIClient({ apiKeyFromSettings } = {}) {
+  const apiKey =
+    normalizeApiKey(apiKeyFromSettings) || normalizeApiKey(process.env.GOOGLE_API_KEY)
   if (!apiKey) {
-    throw new Error('Missing Google API key. Set GOOGLE_API_KEY environment variable.')
+    throw new Error('Missing Gemini API key. Set it in Settings, or configure GOOGLE_API_KEY.')
   }
 
   return createGoogleGenerativeAI({ apiKey })
 }
 
-async function ocrToMarkdown({ filePath: sourceFilePath, fileName }) {
+async function ocrToMarkdown({ filePath: sourceFilePath, fileName, geminiApiKey }) {
   // const openai = getOpenAIClient()
-  const gemini = getGoogleGenerativeAIClient()
+  const gemini = getGoogleGenerativeAIClient({ apiKeyFromSettings: geminiApiKey })
   const ext = extLower(fileName)
 
   const bytes = await fs.readFile(sourceFilePath)
@@ -165,9 +166,9 @@ function stripJsonFences(text) {
   return (fenced?.[1] ?? t).trim()
 }
 
-async function tryPopulateArtifactMetadata({ markdown, artifactId }) {
+async function tryPopulateArtifactMetadata({ markdown, artifactId, openaiApiKey }) {
   try {
-    const openai = getOpenAIClient()
+    const openai = getOpenAIClient({ apiKeyFromSettings: openaiApiKey })
     const result = await generateText({
       model: openai('gpt-4o-mini'),
       messages: [
@@ -240,10 +241,13 @@ export async function ingestArtifactsFromPaths({
   opportunityId,
   pipelineId,
   emitStatus,
+  apiKeys = {},
 } = {}) {
   initDb()
 
   const files = Array.isArray(filePaths) ? filePaths : []
+  const openaiApiKey = normalizeApiKey(apiKeys?.openai)
+  const geminiApiKey = normalizeApiKey(apiKeys?.gemini)
   const oppty = String(opportunityId || '')
   const pipeline = String(pipelineId || '')
   if (!oppty) throw new Error('opportunityId is required')
@@ -263,6 +267,29 @@ export async function ingestArtifactsFromPaths({
   const llmDir = path.join(workspaceRoot, '0_company_docs', 'Artifacts', '1_llm-ready')
   await fse.ensureDir(rawDir)
   await fse.ensureDir(llmDir)
+
+  const seenInputNames = new Set()
+  for (const srcPath of files) {
+    const fileName = safeBasename(srcPath)
+    const normalized = fileName.toLowerCase()
+    if (seenInputNames.has(normalized)) {
+      emitStatus?.({
+        type: 'error',
+        message: `Duplicate filename "${fileName}" in this upload. Rename the file and try again.`,
+      })
+      throw new Error(`Duplicate filename in upload: "${fileName}". Rename the file and try again.`)
+    }
+    seenInputNames.add(normalized)
+
+    const rawCandidatePath = path.join(rawDir, fileName)
+    if (await fse.pathExists(rawCandidatePath)) {
+      emitStatus?.({
+        type: 'error',
+        message: `A file named "${fileName}" already exists. Rename the file and try again.`,
+      })
+      throw new Error(`Duplicate filename: "${fileName}" already exists. Rename the file and try again.`)
+    }
+  }
 
   const results = []
 
@@ -291,7 +318,7 @@ export async function ingestArtifactsFromPaths({
     // --- Save raw file
     let rawAbsPath
     try {
-      rawAbsPath = await ensureUniqueDestPath(path.join(rawDir, originalFileName))
+      rawAbsPath = path.join(rawDir, originalFileName)
       await fs.copyFile(sourceFilePath, rawAbsPath)
     } catch (e) {
       emitStatus?.({
@@ -429,15 +456,23 @@ export async function ingestArtifactsFromPaths({
       if (originalExt === '.pdf') {
         emitStatus?.({
           type: 'info',
-          message: 'PDF detected. Using LLM to create LLM ready Markdown.',
+          message: `Processing "${originalFileName}" with AI to extract PDF text. This can take a while.`,
         })
-        markdown = await ocrToMarkdown({ filePath: rawAbsPath, fileName: originalFileName })
+        markdown = await ocrToMarkdown({
+          filePath: rawAbsPath,
+          fileName: originalFileName,
+          geminiApiKey,
+        })
       } else if (isImageExt(originalExt)) {
         emitStatus?.({
           type: 'info',
           message: 'Image detected. Using LLM to create LLM ready Markdown.',
         })
-        markdown = await ocrToMarkdown({ filePath: rawAbsPath, fileName: originalFileName })
+        markdown = await ocrToMarkdown({
+          filePath: rawAbsPath,
+          fileName: originalFileName,
+          geminiApiKey,
+        })
       } else {
         emitStatus?.({ type: 'info', message: 'Creating LLM ready Markdown from the file.' })
 
@@ -456,7 +491,11 @@ export async function ingestArtifactsFromPaths({
             type: 'info',
             message: 'OCR required. Using LLM to create LLM ready Markdown.',
           })
-          markdown = await ocrToMarkdown({ filePath: rawAbsPath, fileName: originalFileName })
+          markdown = await ocrToMarkdown({
+            filePath: rawAbsPath,
+            fileName: originalFileName,
+            geminiApiKey,
+          })
         }
       }
     } catch (e) {
@@ -529,7 +568,7 @@ export async function ingestArtifactsFromPaths({
       throw e
     }
 
-    await tryPopulateArtifactMetadata({ markdown, artifactId: llmArtifactId })
+    await tryPopulateArtifactMetadata({ markdown, artifactId: llmArtifactId, openaiApiKey })
 
     results.push({
       source: sourceFilePath,

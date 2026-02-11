@@ -108,6 +108,7 @@ const columns = [
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'Round_Stage', label: 'Round', field: 'Round_Stage', align: 'left', sortable: true },
   { name: 'Fund_Type', label: 'Fund Type', field: 'Fund_Type', align: 'left', sortable: true },
+  { name: 'opportunity_name', label: 'Opportunity Name', field: 'opportunity_name', align: 'left', sortable: true },
   {
     name: 'size',
     label: 'Size / Target (USD)',
@@ -119,7 +120,6 @@ const columns = [
       return value === null || value === undefined || value === '' ? '' : Number(value).toLocaleString('en-US')
     },
   },
-  { name: 'Venture_Oppty_Name', label: 'Opportunity Name', field: 'Venture_Oppty_Name', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
@@ -128,6 +128,7 @@ const csvHeaders = [
   'kind',
   'company_id',
   'Company_Name',
+  'opportunity_name',
   'Venture_Oppty_Name',
   'Round_Stage',
   'Round_Amount',

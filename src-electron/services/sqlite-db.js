@@ -41,12 +41,8 @@ export function closeDb() {
 }
 
 function migrate(database) {
-  const userVersion = database.pragma('user_version', { simple: true })
-
-  if (userVersion < 1) {
-    database.exec(SCHEMA_V1_SQL)
-    database.pragma('user_version = 1')
-  }
+  database.exec(SCHEMA_V1_SQL)
+  database.pragma('user_version = 1')
 }
 
 export function dbAll(sql, params = []) {
