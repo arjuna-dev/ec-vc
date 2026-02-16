@@ -4,7 +4,14 @@
       <q-toolbar class="q-px-md">
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
-        <q-toolbar-title class="ec-shell-toolbar-title">EC VC</q-toolbar-title>
+        <q-toolbar-title class="ec-shell-toolbar-title">
+          <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
+          <div
+            ref="logoContainer"
+            class="ec-shell-toolbar-lottie"
+            :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
+          />
+        </q-toolbar-title>
 
         <div class="ec-shell-version">Quasar v{{ $q.version }}</div>
       </q-toolbar>
@@ -123,6 +130,8 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import lottie from 'lottie-web'
+import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import OpportunityCreateDialog from 'components/OpportunityCreateDialog.vue'
@@ -131,8 +140,11 @@ const leftDrawerOpen = ref(false)
 const opportunityDialogOpen = ref(false)
 const artifactDialogOpen = ref(false)
 const databooks = ref([])
+const logoContainer = ref(null)
+const logoReady = ref(false)
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
+let logoAnimation = null
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -167,16 +179,43 @@ async function loadDatabooks() {
   }
 }
 
+function initLogoAnimation() {
+  if (!logoContainer.value) return
+  logoReady.value = false
+
+  logoAnimation?.destroy()
+  logoAnimation = lottie.loadAnimation({
+    container: logoContainer.value,
+    renderer: 'svg',
+    loop: true,
+    autoplay: true,
+    animationData: logoAnimationData,
+    rendererSettings: {
+      preserveAspectRatio: 'xMidYMid meet',
+    },
+  })
+
+  logoAnimation.addEventListener('DOMLoaded', () => {
+    logoReady.value = true
+  })
+  logoAnimation.addEventListener('data_failed', () => {
+    logoReady.value = false
+  })
+}
+
 onMounted(() => {
   window.addEventListener('ecvc:open-opportunity-dialog', openOpportunityDialog)
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
   window.addEventListener('ecvc:opportunities-changed', loadDatabooks)
   loadDatabooks()
+  initLogoAnimation()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('ecvc:open-opportunity-dialog', openOpportunityDialog)
   window.removeEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
   window.removeEventListener('ecvc:opportunities-changed', loadDatabooks)
+  logoAnimation?.destroy()
+  logoAnimation = null
 })
 </script>

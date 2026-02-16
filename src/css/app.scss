@@ -69,9 +69,7 @@
 }
 
 body {
-  background: radial-gradient(circle at 5% -10%, #dbeafe 0%, transparent 48%),
-    radial-gradient(circle at 100% 0%, #f1f5f9 0%, transparent 40%),
-    hsl(var(--background));
+  background: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: var(--font-body);
   font-size: 16px;
@@ -271,11 +269,33 @@ em,
 }
 
 .ec-shell-toolbar-title {
+  display: flex;
+  align-items: center;
+}
+
+.ec-shell-toolbar-lottie {
+  display: block;
+  width: 200px;
+  height: 34px;
+}
+
+.ec-shell-toolbar-lottie--hidden {
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.ec-shell-toolbar-lottie svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ec-shell-toolbar-fallback {
   font-family: var(--font-body);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 900;
   line-height: var(--lh-title);
-  letter-spacing: -2px;
+  letter-spacing: -1px;
 }
 
 .ec-shell-version {
