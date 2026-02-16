@@ -1,1 +1,156 @@
-// app global css in SCSS form
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
+
+:root {
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --primary: 222 47% 11%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --destructive: 0 72% 50%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 217 91% 60%;
+  --radius: 0.75rem;
+}
+
+body {
+  background: radial-gradient(circle at 5% -10%, #dbeafe 0%, transparent 48%),
+    radial-gradient(circle at 100% 0%, #f1f5f9 0%, transparent 40%),
+    hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family:
+    'Space Grotesk',
+    'Avenir Next',
+    'Segoe UI',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Menlo, monospace;
+}
+
+.q-layout,
+.q-page-container {
+  background: transparent;
+}
+
+.q-header {
+  background: hsla(var(--card), 0.8) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.q-drawer {
+  background: hsl(var(--card));
+  border-right: 1px solid hsl(var(--border));
+}
+
+.q-btn {
+  border-radius: calc(var(--radius) - 2px);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.q-btn--standard {
+  box-shadow: none;
+}
+
+.q-btn.bg-primary {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.q-btn.bg-secondary {
+  background: hsl(var(--secondary)) !important;
+  color: hsl(var(--secondary-foreground)) !important;
+}
+
+.q-field--outlined .q-field__control {
+  background: hsl(var(--card));
+  border-radius: calc(var(--radius) - 2px);
+  border-color: hsl(var(--input));
+}
+
+.q-card,
+.q-banner,
+.q-table__container {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 10px 24px rgb(15 23 42 / 0.05);
+}
+
+.q-banner.bg-red-2,
+.q-banner.bg-orange-2 {
+  background: hsl(0 86% 97%) !important;
+  border-color: hsl(0 72% 90%);
+  color: hsl(0 72% 30%) !important;
+}
+
+.q-banner.bg-grey-2 {
+  background: hsl(var(--muted)) !important;
+  border-color: hsl(var(--border));
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.q-table th {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+}
+
+.q-table tbody tr:hover {
+  background: hsl(210 40% 97%);
+}
+
+.q-separator {
+  background: hsl(var(--border));
+}
+
+.q-dialog .q-card {
+  border-radius: calc(var(--radius) + 2px);
+}
+
+.ec-shell-toolbar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.ec-shell-version {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
+.ec-nav-label {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ec-nav-item {
+  border-radius: calc(var(--radius) - 2px);
+  margin: 0 8px 4px;
+}
+
+.ec-nav-item.q-router-link--active,
+.ec-nav-item--selected {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
