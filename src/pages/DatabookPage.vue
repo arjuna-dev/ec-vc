@@ -33,6 +33,12 @@
           <q-item-section>
             <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
             <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+            <q-item-label
+              v-if="isHistoricalMode && modifiedByMap[field.key]"
+              class="text-caption text-negative text-italic"
+            >
+              modified by {{ modifiedByMap[field.key] }}
+            </q-item-label>
           </q-item-section>
           <q-item-section side class="databook-value-section">
             <template v-if="editMode">
@@ -56,13 +62,31 @@
       </q-banner>
 
       <q-page-sticky position="top-right" :offset="[18, 18]">
-        <q-btn
-          round
-          color="primary"
-          :icon="editMode ? 'close' : 'edit'"
-          :disable="loading || saving || !fields.length"
-          @click="editMode ? cancelEdit() : enterEditMode()"
-        />
+        <div class="row q-gutter-sm">
+          <q-btn-dropdown color="secondary" label="Versions" :disable="loading || saving || !hasVersionBridge">
+            <q-list style="min-width: 260px">
+              <q-item clickable v-close-popup @click="switchToLatestVersion">
+                <q-item-section>
+                  <q-item-label>Latest</q-item-label>
+                  <q-item-label caption>Current editable databook</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item v-for="v in versions" :key="v.id" clickable v-close-popup @click="openVersion(v.id)">
+                <q-item-section>
+                  <q-item-label>{{ v.created_at }}</q-item-label>
+                  <q-item-label caption>by {{ v.created_by_label || 'Unknown editor' }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+          <q-btn
+            round
+            color="primary"
+            :icon="editMode ? 'close' : 'edit'"
+            :disable="loading || saving || !fields.length || isHistoricalMode"
+            @click="editMode ? cancelEdit() : enterEditMode()"
+          />
+        </div>
       </q-page-sticky>
 
       <q-page-sticky v-if="editMode" position="bottom" :offset="[0, 16]">
@@ -80,7 +104,7 @@
           <q-card-section>
             <div class="text-h6">Set Editor Name</div>
             <div class="text-caption text-grey-7">
-              A display name is required before saving audited changes.
+              A display name is required before saving audited changes. You can also update it later in Settings.
             </div>
           </q-card-section>
           <q-card-section>
@@ -105,9 +129,11 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
+const $q = useQuasar()
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -121,6 +147,12 @@ const hasBridge = computed(
     !!bridge.value?.databooks?.update &&
     !!bridge.value?.audit?.me,
 )
+const hasVersionBridge = computed(
+  () =>
+    !!bridge.value?.databooks?.versions &&
+    !!bridge.value?.databooks?.viewSnapshot &&
+    !!bridge.value?.audit?.events,
+)
 
 const loading = ref(false)
 const error = ref('')
@@ -133,6 +165,11 @@ const draftValues = ref({})
 const showUserLabelDialog = ref(false)
 const userLabelInput = ref('')
 const savingUserLabel = ref(false)
+const versions = ref([])
+const selectedVersionId = ref(null)
+const modifiedByMap = ref({})
+
+const isHistoricalMode = computed(() => !!selectedVersionId.value)
 
 const databookTitle = computed(() => {
   const name = String(opportunity.value?.opportunity_name || opportunity.value?.Venture_Oppty_Name || '').trim()
@@ -144,6 +181,12 @@ const databookTitle = computed(() => {
 function displayValue(value) {
   const text = String(value || '').trim()
   return text.length ? text : '-'
+}
+
+function normalizeIpcErrorMessage(error) {
+  const raw = String(error?.message || error || '').trim()
+  if (!raw) return 'An unexpected error occurred.'
+  return raw.replace(/^Error invoking remote method '[^']+':\s*/i, '').trim()
 }
 
 function enterEditMode() {
@@ -172,7 +215,9 @@ async function saveUserLabel() {
     actor.value = await bridge.value.audit.setUserLabel(userLabel)
     showUserLabelDialog.value = false
   } catch (e) {
-    error.value = e?.message || String(e)
+    const message = normalizeIpcErrorMessage(e)
+    error.value = message
+    $q.notify({ type: 'negative', message })
   } finally {
     savingUserLabel.value = false
   }
@@ -211,8 +256,9 @@ async function saveChanges() {
     fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : []
     cancelEdit()
   } catch (e) {
-    const message = e?.message || String(e)
+    const message = normalizeIpcErrorMessage(e)
     error.value = message
+    $q.notify({ type: 'negative', message })
     if (/user label/i.test(message)) showUserLabelDialog.value = true
   } finally {
     saving.value = false
@@ -234,6 +280,9 @@ async function loadDatabook() {
     const result = await bridge.value.databooks.view(opportunityId)
     opportunity.value = result?.opportunity || null
     fields.value = Array.isArray(result?.fields) ? result.fields : []
+    selectedVersionId.value = null
+    modifiedByMap.value = {}
+    await loadVersions()
     await refreshActor()
   } catch (e) {
     error.value = e?.message || String(e)
@@ -241,6 +290,90 @@ async function loadDatabook() {
   } finally {
     loading.value = false
   }
+}
+
+async function loadVersions() {
+  if (!hasVersionBridge.value) return
+  const opportunityId = String(route.params.opportunityId || '').trim()
+  if (!opportunityId) return
+  try {
+    const result = await bridge.value.databooks.versions(opportunityId)
+    versions.value = Array.isArray(result?.versions) ? result.versions : []
+  } catch {
+    versions.value = []
+  }
+}
+
+function fieldMapByKey(list = []) {
+  return Object.fromEntries((Array.isArray(list) ? list : []).map((f) => [f.key, f]))
+}
+
+function eventKey(field = {}) {
+  return `${field.table_name || ''}|${field.record_id || ''}|${field.field_name || ''}`
+}
+
+async function openVersion(snapshotId) {
+  if (!hasVersionBridge.value) return
+  const sid = String(snapshotId || '').trim()
+  if (!sid) return
+  try {
+    const snapshot = await bridge.value.databooks.viewSnapshot(sid)
+    const versionPayload = snapshot?.payload || {}
+    const versionFields = Array.isArray(versionPayload?.fields) ? versionPayload.fields : []
+    const versionOpportunity = versionPayload?.opportunity || null
+    const versionIndex = versions.value.findIndex((v) => v.id === sid)
+    const priorVersion = versionIndex >= 0 ? versions.value[versionIndex + 1] : null
+
+    const changedKeys = []
+    if (priorVersion?.id) {
+      const priorSnapshot = await bridge.value.databooks.viewSnapshot(priorVersion.id)
+      const prevMap = fieldMapByKey(priorSnapshot?.payload?.fields || [])
+      const currMap = fieldMapByKey(versionFields)
+      for (const [key, currField] of Object.entries(currMap)) {
+        const prevField = prevMap[key]
+        if (String(prevField?.value ?? '') !== String(currField?.value ?? '')) changedKeys.push(key)
+      }
+    }
+
+    const mods = {}
+    if (changedKeys.length) {
+      const selectedVersion = versions.value.find((v) => v.id === sid)
+      const eventsResult = await bridge.value.audit.events({
+        since: priorVersion?.created_at || null,
+        until: selectedVersion?.created_at || null,
+        limit: 1000,
+      })
+      const events = Array.isArray(eventsResult?.events) ? eventsResult.events : []
+      const latestEventByKey = {}
+      for (const ev of events) {
+        const key = `${ev.table_name || ''}|${ev.record_id || ''}|${ev.field_name || ''}`
+        if (!latestEventByKey[key]) latestEventByKey[key] = ev
+      }
+      for (const key of changedKeys) {
+        const field = versionFields.find((f) => f.key === key)
+        if (!field) continue
+        const ev = latestEventByKey[eventKey(field)]
+        mods[key] = ev?.edited_by_label || snapshot?.created_by_label || 'Unknown editor'
+      }
+    }
+
+    selectedVersionId.value = sid
+    editMode.value = false
+    draftValues.value = {}
+    opportunity.value = versionOpportunity
+    fields.value = versionFields
+    modifiedByMap.value = mods
+  } catch (e) {
+    const message = normalizeIpcErrorMessage(e)
+    error.value = message
+    $q.notify({ type: 'negative', message })
+  }
+}
+
+async function switchToLatestVersion() {
+  selectedVersionId.value = null
+  modifiedByMap.value = {}
+  await loadDatabook()
 }
 
 watch(

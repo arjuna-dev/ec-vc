@@ -2,9 +2,9 @@
   <q-dialog v-model="open">
     <q-card style="width: 760px; max-width: 96vw">
       <q-card-section>
-        <div class="text-h6">Add new artifact</div>
+        <div class="text-h6">Add new artifacts</div>
         <div class="text-caption text-grey-7">
-          Drop files first, then select pipeline and opportunity.
+          Drop files first, then select the opportunity.
         </div>
       </q-card-section>
 
@@ -36,43 +36,6 @@
         </div>
 
         <div v-else class="q-gutter-md">
-          <q-select
-            v-model="pipelineId"
-            outlined
-            label="Pipeline *"
-            :options="pipelineOptions"
-            emit-value
-            map-options
-            :disable="loading"
-          >
-            <template #before-options>
-              <q-item
-                clickable
-                class="bg-white"
-                style="position: sticky; top: 0; z-index: 2"
-                @click.stop.prevent="openCreatePipeline"
-              >
-                <q-item-section avatar>
-                  <q-icon name="add" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Create new pipeline</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-separator />
-            </template>
-            <template #no-option>
-              <q-item clickable @click.stop.prevent="openCreatePipeline">
-                <q-item-section avatar>
-                  <q-icon name="add" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Create new pipeline</q-item-label>
-                </q-item-section>
-              </q-item>
-            </template>
-          </q-select>
-
           <q-select
             v-model="opportunityId"
             outlined
@@ -129,7 +92,7 @@
           v-if="step === 2"
           color="primary"
           label="Finish"
-          :disable="!pipelineId || !opportunityId || loading"
+          :disable="!opportunityId || loading"
           :loading="loading"
           @click="finish"
         />
@@ -138,14 +101,12 @@
   </q-dialog>
 
   <OpportunityCreateDialog v-model="opportunityDialogOpen" @created="onOpportunityCreated" />
-  <PipelineCreateDialog v-model="pipelineDialogOpen" @created="onPipelineCreated" />
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import OpportunityCreateDialog from './OpportunityCreateDialog.vue'
-import PipelineCreateDialog from './PipelineCreateDialog.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -166,22 +127,12 @@ const step = ref(1)
 const dragOver = ref(false)
 const droppedFiles = ref([])
 
-const pipelines = ref([])
 const opportunities = ref([])
 
-const pipelineId = ref(null)
 const opportunityId = ref(null)
 
 const opportunityDialogOpen = ref(false)
-const pipelineDialogOpen = ref(false)
-
-const pipelineOptions = computed(() =>
-  (pipelines.value || []).map((p) => ({
-    label: `${p.name}${p.install_status === 'installed' ? '' : ` (${p.install_status})`}`,
-    value: p.pipeline_id,
-    disable: p.install_status !== 'installed',
-  })),
-)
+const DEFAULT_PIPELINE_ID = 'pipeline_default'
 
 const opportunityOptions = computed(() =>
   (opportunities.value || []).map((o) => ({
@@ -191,31 +142,11 @@ const opportunityOptions = computed(() =>
 )
 
 async function loadAll() {
-  if (!bridge.value?.pipelines?.list || !bridge.value?.opportunities?.list) return
+  if (!bridge.value?.opportunities?.list) return
   loading.value = true
   try {
-    const p = await bridge.value.pipelines.list()
-    pipelines.value = p?.pipelines || []
     const o = await bridge.value.opportunities.list()
     opportunities.value = o?.opportunities || []
-  } finally {
-    loading.value = false
-  }
-}
-
-function openCreatePipeline() {
-  pipelineDialogOpen.value = true
-}
-
-async function onPipelineCreated(result) {
-  if (!bridge.value?.pipelines?.install) return
-  const pid = result?.pipeline_id
-  if (!pid) return
-  loading.value = true
-  try {
-    await bridge.value.pipelines.install(pid)
-    await loadAll()
-    pipelineId.value = pid
   } finally {
     loading.value = false
   }
@@ -244,7 +175,7 @@ function onDrop(e) {
 
   $q.notify({
     type: 'info',
-    message: 'Files staged. Select an opportunity and a pipeline, then click Finish to start processing.',
+    message: 'Files staged. Select an opportunity, then click Finish to start processing.',
   })
 
   if (summaries.some((s) => !s.path)) {
@@ -258,14 +189,14 @@ function onDrop(e) {
 
 async function finish() {
   if (!bridge.value?.artifacts?.ingest) return
-  if (!pipelineId.value || !opportunityId.value) return
+  if (!opportunityId.value) return
   if (droppedFiles.value.length === 0) return
 
   loading.value = true
   try {
     await bridge.value.artifacts.ingest({
       filePaths: droppedFiles.value.map((f) => f.path),
-      pipelineId: pipelineId.value,
+      pipelineId: DEFAULT_PIPELINE_ID,
       opportunityId: opportunityId.value,
     })
     open.value = false
@@ -285,10 +216,8 @@ watch(
   async (v) => {
     if (!v) return
     step.value = 1
-    pipelineId.value = null
     opportunityId.value = null
     droppedFiles.value = []
-    pipelineDialogOpen.value = false
     await loadAll()
   },
 )

@@ -42,7 +42,27 @@ export function closeDb() {
 
 function migrate(database) {
   database.exec(SCHEMA_V1_SQL)
+  cleanupLegacyOpportunityTriggers(database)
   database.pragma('user_version = 1')
+}
+
+function cleanupLegacyOpportunityTriggers(database) {
+  const legacyTriggers = database
+    .prepare(
+      `
+      SELECT name
+      FROM sqlite_master
+      WHERE type = 'trigger'
+        AND sql LIKE '%fund opportunities must not have company_id%'
+    `,
+    )
+    .all()
+
+  for (const row of legacyTriggers) {
+    const triggerName = String(row?.name || '').trim()
+    if (!triggerName) continue
+    database.exec(`DROP TRIGGER IF EXISTS "${triggerName.replaceAll('"', '""')}"`)
+  }
 }
 
 export function dbAll(sql, params = []) {

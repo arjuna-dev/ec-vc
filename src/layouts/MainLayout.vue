@@ -19,7 +19,7 @@
             <q-icon name="settings" />
           </q-item-section>
           <q-item-section>
-            <q-item-label>Settings</q-item-label>
+            <q-item-label>Settings & Profile</q-item-label>
           </q-item-section>
         </q-item>
 
