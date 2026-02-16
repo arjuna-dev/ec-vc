@@ -2,6 +2,14 @@
 
 EC VC
 
+## Prerequisites
+
+- node
+- npm
+- quasar global install
+
+`$ npm i -g @quasar/cli`
+
 ## Install the dependencies
 
 ```bash
