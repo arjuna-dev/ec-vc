@@ -1,5 +1,5 @@
 <template>
-  <div class="row items-center q-gutter-sm">
+  <div class="ec-button-group ec-button-group--start">
     <q-btn
       v-if="canCreate"
       dense
@@ -7,10 +7,9 @@
       outline
       icon="add"
       :label="createLabelComputed"
-      class="small-text"
       @click="onCreate"
     />
-    <q-btn dense outline icon="download" label="Export CSV" class="small-text" @click="exportCsv" />
+    <q-btn dense outline icon="download" label="Export CSV" @click="exportCsv" />
 
     <q-btn
       dense
@@ -19,7 +18,6 @@
       label="Import CSV"
       :disable="!canImport"
       @click="pickFile"
-      class="small-text"
     />
 
     <input
@@ -31,13 +29,6 @@
     />
   </div>
 </template>
-
-<style scoped>
-.small-text {
-  font-size: 12px;
-  padding-right: 10px;
-}
-</style>
 
 <script setup>
 import { computed, ref } from 'vue'

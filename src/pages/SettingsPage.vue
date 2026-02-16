@@ -16,9 +16,11 @@
 
     <div v-else class="row justify-center">
       <div class="col-12 col-md-8 col-lg-6">
-        <div class="text-h6 q-mb-xs">Settings</div>
-        <div class="text-caption text-grey-7 q-mb-md">
-          Configure LLM providers. Keys are saved locally in the app database.
+        <div class="page-title-section">
+          <div class="text-h6 q-mb-xs">Settings</div>
+          <div class="text-caption text-grey-7">
+            Configure LLM providers. Keys are saved locally in the app database.
+          </div>
         </div>
 
         <q-banner v-if="error" class="bg-red-2 text-black q-mb-md" rounded>
@@ -72,7 +74,7 @@
 
           <q-separator />
 
-          <q-card-actions align="right">
+          <q-card-actions align="right" class="ec-button-group ec-button-group--end">
             <q-btn flat icon="refresh" label="Reload" :disable="saving" :loading="loading" @click="loadSettings" />
             <q-btn color="primary" icon="save" label="Save" :loading="saving" :disable="loading" @click="saveSettings" />
           </q-card-actions>

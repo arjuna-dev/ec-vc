@@ -74,7 +74,7 @@
 
       <q-separator />
 
-      <q-card-actions align="right">
+      <q-card-actions align="right" class="ec-button-group ec-button-group--end">
         <q-btn flat label="Cancel" :disable="loading" @click="open = false" />
         <q-btn color="primary" label="Create" :loading="loading" @click="submit" />
       </q-card-actions>

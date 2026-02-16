@@ -114,7 +114,7 @@
 
       <q-separator />
 
-      <q-card-actions align="right">
+      <q-card-actions align="right" class="ec-button-group ec-button-group--end">
         <q-btn flat label="Close" :disable="loading" @click="open = false" />
         <q-btn v-if="step === 2" flat label="Back" :disable="loading" @click="step = 1" />
         <q-btn

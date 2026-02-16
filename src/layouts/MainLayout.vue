@@ -19,16 +19,25 @@
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="264">
       <q-list>
-        <q-item-label header class="ec-nav-label">Workspace</q-item-label>
+        <q-expansion-item
+          class="ec-user-menu ec-nav-item"
+          icon="account_circle"
+          label="Erik Carlberg"
+          caption="User"
+          :default-opened="false"
+          switch-toggle-side
+        >
+          <q-item clickable to="/settings" class="ec-nav-item ec-nav-item--child">
+            <q-item-section avatar>
+              <q-icon name="settings" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Settings</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-expansion-item>
 
-        <q-item clickable to="/settings" class="ec-nav-item">
-          <q-item-section avatar>
-            <q-icon name="settings" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Settings</q-item-label>
-          </q-item-section>
-        </q-item>
+        <q-item-label header class="ec-nav-label">Workspace</q-item-label>
 
         <q-separator spaced />
 
@@ -118,7 +127,7 @@
       <router-view />
     </q-page-container>
 
-    <div class="fixed-bottom-right q-pa-md column q-gutter-sm" style="z-index: 2000">
+    <div class="fixed-bottom-right q-pa-md ec-button-group ec-button-group--stack" style="z-index: 2000">
       <q-btn color="primary" label="Create new opportunity" @click="opportunityDialogOpen = true" />
       <q-btn color="secondary" label="Add new artifact" @click="artifactDialogOpen = true" />
     </div>

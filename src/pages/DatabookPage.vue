@@ -15,7 +15,7 @@
     </div>
 
     <div v-else>
-      <div class="row items-center q-col-gutter-sm q-mb-md">
+      <div class="row items-center q-col-gutter-sm page-title-section">
         <div class="col">
           <div class="text-h6">{{ databookTitle }}</div>
           <div class="text-caption text-grey-7">
@@ -66,11 +66,11 @@
       </q-page-sticky>
 
       <q-page-sticky v-if="editMode" position="bottom" :offset="[0, 16]">
-        <q-banner class="bg-grey-10 text-white q-pa-sm rounded-borders">
-          <div class="row items-center q-gutter-sm">
+        <q-banner class="bg-grey-2 text-black q-pa-sm rounded-borders">
+          <div class="ec-button-group ec-button-group--end">
             <div class="col">Edit mode enabled. Save or cancel your changes.</div>
-            <q-btn dense color="positive" label="Save" :loading="saving" @click="saveChanges" />
-            <q-btn dense flat color="white" label="Cancel" :disable="saving" @click="cancelEdit" />
+            <q-btn dense color="primary" label="Save" :loading="saving" @click="saveChanges" />
+            <q-btn dense flat label="Cancel" :disable="saving" @click="cancelEdit" />
           </div>
         </q-banner>
       </q-page-sticky>
@@ -93,7 +93,7 @@
               :disable="savingUserLabel"
             />
           </q-card-section>
-          <q-card-actions align="right">
+          <q-card-actions align="right" class="ec-button-group ec-button-group--end">
             <q-btn flat label="Cancel" :disable="savingUserLabel" @click="showUserLabelDialog = false" />
             <q-btn color="primary" label="Save" :loading="savingUserLabel" @click="saveUserLabel" />
           </q-card-actions>
