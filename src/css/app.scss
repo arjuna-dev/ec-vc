@@ -1,6 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
+@font-face {
+  font-family: 'Neue Machina';
+  src: url('/fonts/neue-machina-regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neue Machina';
+  src: url('/fonts/neue-machina-ultrabold.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-light-disp.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-black-disp.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-oblique-disp.otf') format('opentype');
+  font-weight: 400;
+  font-style: oblique;
+  font-display: swap;
+}
 
 :root {
+  --font-title: 'Neue Machina', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-body: 'Sequel Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-code: 'Roboto', 'JetBrains Mono', 'SFMono-Regular', Menlo, monospace;
+
+  --lh-title: 1.2;
+  --lh-body: 1.4;
+  --lh-single-line: 1;
+  --lh-code: 1.3;
+
   --background: 210 40% 98%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
@@ -26,18 +73,35 @@ body {
     radial-gradient(circle at 100% 0%, #f1f5f9 0%, transparent 40%),
     hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family:
-    'Space Grotesk',
-    'Avenir Next',
-    'Segoe UI',
-    sans-serif;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: var(--lh-body);
+  font-weight: 400;
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
 }
 
 code,
 pre,
 .font-mono {
-  font-family: 'JetBrains Mono', 'SFMono-Regular', Menlo, monospace;
+  font-family: var(--font-code);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: var(--lh-code);
+  letter-spacing: 0;
+}
+
+a {
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-skip-ink: none;
+}
+
+em,
+.text-italic {
+  font-family: var(--font-body);
+  font-style: oblique;
+  font-weight: 400;
 }
 
 .q-layout,
@@ -59,7 +123,10 @@ pre,
 
 .q-btn {
   border-radius: calc(var(--radius) - 2px);
-  font-weight: 600;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: var(--lh-single-line);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -110,7 +177,85 @@ pre,
 .q-table th {
   background: hsl(var(--muted));
   color: hsl(var(--muted-foreground));
-  font-weight: 600;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: var(--lh-single-line);
+}
+
+.q-field__native,
+.q-field__input {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: var(--lh-single-line);
+}
+
+.text-h1 {
+  font-family: var(--font-title);
+  font-size: 72px;
+  font-weight: 900;
+  line-height: var(--lh-title);
+  letter-spacing: -3px;
+}
+
+.text-h2 {
+  font-family: var(--font-title);
+  font-size: 48px;
+  font-weight: 900;
+  line-height: var(--lh-title);
+  letter-spacing: -2px;
+}
+
+.text-h3 {
+  font-family: var(--font-title);
+  font-size: 32px;
+  font-weight: 400;
+  line-height: var(--lh-title);
+  letter-spacing: 0;
+}
+
+.text-h4,
+.text-h6 {
+  font-family: var(--font-body);
+  font-size: 24px;
+  font-weight: 900;
+  line-height: var(--lh-title);
+  letter-spacing: -2px;
+}
+
+.text-h5,
+.text-subtitle1 {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: var(--lh-title);
+  letter-spacing: 0;
+}
+
+.text-subtitle2 {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: var(--lh-body);
+  letter-spacing: 0;
+}
+
+.text-body1 {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: var(--lh-body);
+  letter-spacing: 0;
+}
+
+.text-body2,
+.text-caption {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: var(--lh-body);
+  letter-spacing: 0;
 }
 
 .q-table tbody tr:hover {
@@ -126,20 +271,27 @@ pre,
 }
 
 .ec-shell-toolbar-title {
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--font-body);
+  font-size: 24px;
+  font-weight: 900;
+  line-height: var(--lh-title);
+  letter-spacing: -2px;
 }
 
 .ec-shell-version {
   color: hsl(var(--muted-foreground));
-  font-size: 0.875rem;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: var(--lh-body);
 }
 
 .ec-nav-label {
   color: hsl(var(--muted-foreground));
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: var(--lh-single-line);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
