@@ -50,24 +50,45 @@
         :loading="loading"
         :pagination="{ rowsPerPage: 10 }"
       >
+        <template #body-cell-client="props">
+          <q-td :props="props" class="pipeline-client-cell-td">
+            <div class="pipeline-client-cell">
+              <q-btn
+                round
+                dense
+                flat
+                class="pipeline-client-avatar-btn"
+                :aria-label="`Client avatar for ${clientLabel(props.row)}`"
+              >
+                <q-avatar size="40px" text-color="white" :style="{ backgroundColor: clientAvatarColor(props.row) }">
+                  {{ clientInitials(props.row) }}
+                </q-avatar>
+                <q-tooltip>{{ clientLabel(props.row) }}</q-tooltip>
+              </q-btn>
+            </div>
+          </q-td>
+        </template>
+
         <template #body-cell-install_status="props">
           <q-td :props="props" class="pipeline-status-cell">
-            <div class="pipeline-status-copy">
+            <div v-if="statusLabel(props.row.install_status)" class="pipeline-status-copy">
               <span class="pipeline-status-label">{{ statusLabel(props.row.install_status) }}</span>
-              <span class="pipeline-status-percentage">{{ progressPercent(props.row) }}%</span>
             </div>
-            <div
-              class="pipeline-progress-track"
-              role="progressbar"
-              aria-label="Files loaded"
-              :aria-valuemin="0"
-              :aria-valuemax="100"
-              :aria-valuenow="progressPercent(props.row)"
-            >
+            <div class="pipeline-status-progress-row">
               <div
-                class="pipeline-progress-fill"
-                :style="{ width: `${progressPercent(props.row)}%` }"
-              />
+                class="pipeline-progress-track"
+                role="progressbar"
+                aria-label="Files loaded"
+                :aria-valuemin="0"
+                :aria-valuemax="100"
+                :aria-valuenow="progressPercent(props.row)"
+              >
+                <div
+                  class="pipeline-progress-fill"
+                  :style="{ width: `${progressPercent(props.row)}%` }"
+                />
+              </div>
+              <span class="pipeline-status-percentage">{{ progressPercent(props.row) }}%</span>
             </div>
           </q-td>
         </template>
@@ -151,7 +172,9 @@ const pipelineDialogOpen = ref(false)
 const $q = useQuasar()
 
 const columns = [
+  { name: 'client', label: 'Client', field: 'client', align: 'left', sortable: true },
   { name: 'name', label: 'Pipeline Name', field: 'name', align: 'left', sortable: true },
+  { name: 'stages', label: 'Stage', field: 'stages', align: 'left' },
   {
     name: 'install_status',
     label: 'Status',
@@ -159,7 +182,6 @@ const columns = [
     align: 'left',
     sortable: true,
   },
-  { name: 'stages', label: 'Stages', field: 'stages', align: 'left' },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
@@ -190,7 +212,41 @@ function statusLabel(status) {
   if (status === 'installing') return 'Creating…'
   if (status === 'uninstalling') return 'Deleting…'
   if (status === 'error') return 'Error'
-  return 'Not created'
+  return ''
+}
+
+function clientLabel(row) {
+  const value =
+    row?.client ||
+    row?.client_name ||
+    row?.Client ||
+    row?.Client_Name ||
+    row?.customer ||
+    row?.customer_name
+  const normalized = String(value || '').trim()
+  return normalized || 'No client'
+}
+
+function clientInitials(row) {
+  const label = clientLabel(row)
+  if (label === 'No client') return '?'
+  const parts = label
+    .split(/\s+/u)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase()
+}
+
+function clientAvatarColor(row) {
+  const palette = ['#2647ff', '#7b61ff', '#ff6b35', '#2ca24d', '#00a896', '#c957bc']
+  const source = clientLabel(row)
+  let hash = 0
+  for (let idx = 0; idx < source.length; idx++) {
+    hash = (hash * 31 + source.charCodeAt(idx)) >>> 0
+  }
+  return palette[hash % palette.length]
 }
 
 function isBusy(status) {
@@ -388,6 +444,24 @@ onMounted(loadPipelines)
 </script>
 
 <style scoped>
+.pipeline-client-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.pipeline-client-avatar-btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.pipeline-client-cell-td {
+  text-align: center;
+  vertical-align: middle;
+}
+
 .pipeline-status-cell {
   min-width: 280px;
 }
@@ -395,10 +469,15 @@ onMounted(loadPipelines)
 .pipeline-status-copy {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   margin-bottom: 8px;
   white-space: nowrap;
+}
+
+.pipeline-status-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .pipeline-status-label {
@@ -412,10 +491,12 @@ onMounted(loadPipelines)
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
+  min-width: 36px;
+  text-align: right;
 }
 
 .pipeline-progress-track {
-  width: 100%;
+  flex: 1 1 auto;
   height: 18px;
   border-radius: 999px;
   overflow: hidden;
