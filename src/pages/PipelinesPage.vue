@@ -51,44 +51,42 @@
         :pagination="{ rowsPerPage: 10 }"
       >
         <template #body-cell-install_status="props">
-          <q-td :props="props">
-            <q-badge :color="statusColor(props.row.install_status)" outline>
-              {{ statusLabel(props.row.install_status) }}
-            </q-badge>
+          <q-td :props="props" class="pipeline-status-cell">
+            <div class="pipeline-status-copy">
+              <span class="pipeline-status-label">{{ statusLabel(props.row.install_status) }}</span>
+              <span class="pipeline-status-percentage">{{ progressPercent(props.row) }}%</span>
+            </div>
+            <div
+              class="pipeline-progress-track"
+              role="progressbar"
+              aria-label="Files loaded"
+              :aria-valuemin="0"
+              :aria-valuemax="100"
+              :aria-valuenow="progressPercent(props.row)"
+            >
+              <div
+                class="pipeline-progress-fill"
+                :style="{ width: `${progressPercent(props.row)}%` }"
+              />
+            </div>
           </q-td>
         </template>
 
         <template #body-cell-stages="props">
           <q-td :props="props">
-            <div
-              v-if="props.row.stages && props.row.stages.length"
-              style="
-                width: 150px;
-                height: 80px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                display: -webkit-box;
-                -webkit-line-clamp: 4;
-                line-clamp: 4;
-                -webkit-box-orient: vertical;
-                white-space: normal;
-                position: relative;
-              "
-            >
-              {{
-                JSON.parse(props.row.stages)
-                  .map((stage) => stage.name) // Remove the "(Position: N)" part
-                  .join(', ')
-              }}
-              <q-tooltip>
-                {{
-                  JSON.parse(props.row.stages)
-                    .map((stage) => stage.name) // Full text on hover
-                    .join(', ')
-                }}
-              </q-tooltip>
+            <div class="pipeline-stage-icons">
+              <q-avatar
+                v-for="stage in stageTrack(props.row)"
+                :key="`${props.row.pipeline_id}:${stage.index}:${stage.label}`"
+                class="pipeline-stage-icon"
+                size="28px"
+                :class="{ 'pipeline-stage-icon--current': stage.isCurrent }"
+                :style="{ backgroundColor: stage.color, opacity: stage.opacity }"
+              >
+                {{ stage.index }}
+                <q-tooltip>{{ stage.tooltip }}</q-tooltip>
+              </q-avatar>
             </div>
-            <div v-else>No stages available</div>
           </q-td>
         </template>
 
@@ -166,6 +164,26 @@ const columns = [
 ]
 
 const csvHeaders = ['pipeline_id', 'name', 'dir_name', 'is_default']
+const PROGRESS_BLUE = '#2647ff'
+const PROGRESS_RED = '#ff5521'
+const STAGE_LABELS = {
+  0: 'No Information',
+  1: 'Thesis Alignment',
+  2: 'Team Analysis',
+  3: 'Investment Committee',
+  4: 'Due Diligence',
+  5: 'Closing Documents',
+}
+const STAGE_ORDER = [0, 1, 2, 3, 4, 5]
+const STAGE_INACTIVE_COLOR = '#b0b0b0'
+const STAGE_COLORS = {
+  0: PROGRESS_RED,
+  1: '#ff8a3d',
+  2: '#b677fe',
+  3: '#ebf5a0',
+  4: '#7ccf6b',
+  5: '#2ca24d',
+}
 
 function statusLabel(status) {
   if (status === 'installed') return 'Created'
@@ -175,15 +193,120 @@ function statusLabel(status) {
   return 'Not created'
 }
 
-function statusColor(status) {
-  if (status === 'installed') return 'green'
-  if (status === 'installing' || status === 'uninstalling') return 'blue'
-  if (status === 'error') return 'red'
-  return 'grey'
-}
-
 function isBusy(status) {
   return status === 'installing' || status === 'uninstalling'
+}
+
+function toFiniteNumber(value) {
+  const numeric = Number.parseFloat(value)
+  return Number.isFinite(numeric) ? numeric : null
+}
+
+function clampPercent(value) {
+  const numeric = toFiniteNumber(value)
+  if (numeric === null) return null
+  return Math.max(0, Math.min(100, Math.round(numeric)))
+}
+
+function firstNumericValue(row, keys) {
+  for (const key of keys) {
+    const numeric = toFiniteNumber(row?.[key])
+    if (numeric !== null) return numeric
+  }
+  return null
+}
+
+function progressPercent(row) {
+  const percentKeys = [
+    'files_loaded_percent',
+    'filesLoadedPercent',
+    'progress_percent',
+    'progressPercent',
+    'load_percent',
+    'loadPercent',
+    'progress',
+    'completion',
+  ]
+  const directPercent = firstNumericValue(row, percentKeys)
+  const normalizedDirectPercent = clampPercent(directPercent)
+  if (normalizedDirectPercent !== null) return normalizedDirectPercent
+
+  const loadedFiles = firstNumericValue(row, [
+    'files_loaded',
+    'filesLoaded',
+    'loaded_files',
+    'loadedFiles',
+    'processed_files',
+    'processedFiles',
+    'imputed_files',
+    'imputedFiles',
+  ])
+  const totalFiles = firstNumericValue(row, ['files_total', 'filesTotal', 'total_files', 'totalFiles'])
+  if (loadedFiles !== null && totalFiles && totalFiles > 0) {
+    return clampPercent((loadedFiles / totalFiles) * 100) ?? 0
+  }
+
+  if (row?.install_status === 'installed') return 100
+  if (row?.install_status === 'installing') return 60
+  return 0
+}
+
+function parseStageIndex(value) {
+  const numeric = toFiniteNumber(value)
+  if (numeric !== null && numeric >= 0 && numeric <= 5) return Math.round(numeric)
+  const text = String(value || '').trim().toLowerCase()
+  const prefixNumber = text.match(/^(\d+)/u)
+  if (prefixNumber) {
+    const parsed = Number.parseInt(prefixNumber[1], 10)
+    if (parsed >= 0 && parsed <= 5) return parsed
+  }
+  if (text.includes('thesis')) return 1
+  if (text.includes('team')) return 2
+  if (text.includes('committee')) return 3
+  if (text.includes('diligence')) return 4
+  if (text.includes('closing')) return 5
+  return null
+}
+
+function normalizeStageIndex(value) {
+  const index = parseStageIndex(value)
+  return index === null ? null : Math.max(0, Math.min(5, index))
+}
+
+function currentStageIndex(row) {
+  const directIndex = firstNumericValue(row, [
+    'current_stage',
+    'currentStage',
+    'current_stage_index',
+    'currentStageIndex',
+    'stage_index',
+    'stageIndex',
+    'stage_position',
+    'stagePosition',
+  ])
+  if (directIndex !== null) return Math.max(0, Math.min(5, Math.round(directIndex)))
+
+  const directLabel = normalizeStageIndex(row?.current_stage_name || row?.currentStageName || row?.stage_name)
+  if (directLabel !== null) return directLabel
+
+  // No explicit progress info yet: default to stage 0.
+  return 0
+}
+
+function stageTrack(row) {
+  const current = currentStageIndex(row)
+  return STAGE_ORDER.map((index) => {
+    const label = STAGE_LABELS[index] || STAGE_LABELS[0]
+    const isCurrent = index === current
+    return {
+      index,
+      label,
+      color: isCurrent ? STAGE_COLORS[index] || STAGE_COLORS[0] : STAGE_INACTIVE_COLOR,
+      isCurrent,
+      opacity: isCurrent ? 1 : 0.5,
+      tooltip: `${index}. ${label}${isCurrent ? ' (Current stage)' : ''}`,
+    }
+  })
 }
 
 async function loadPipelines() {
@@ -263,3 +386,65 @@ async function onPipelineCreated() {
 
 onMounted(loadPipelines)
 </script>
+
+<style scoped>
+.pipeline-status-cell {
+  min-width: 280px;
+}
+
+.pipeline-status-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  white-space: nowrap;
+}
+
+.pipeline-status-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.pipeline-status-percentage {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pipeline-progress-track {
+  width: 100%;
+  height: 18px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: v-bind(PROGRESS_RED);
+}
+
+.pipeline-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: v-bind(PROGRESS_BLUE);
+  transition: width 180ms ease-out;
+}
+
+.pipeline-stage-icons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 140px;
+  flex-wrap: wrap;
+}
+
+.pipeline-stage-icon {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  transition: opacity 150ms ease-out;
+}
+
+.pipeline-stage-icon--current {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px rgba(0, 0, 0, 0.2);
+}
+</style>
