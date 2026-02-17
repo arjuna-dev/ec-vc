@@ -565,6 +565,24 @@ body.body--light .q-drawer.q-drawer--left .q-drawer__content {
   margin-top: 8px;
 }
 
+.ec-user-menu.ec-nav-item {
+  border-radius: 0;
+  margin: 0;
+}
+
+.ec-user-menu .ec-nav-item--child {
+  border-radius: 0;
+  margin: 0;
+}
+
+body.body--light .q-drawer.q-drawer--left .ec-user-menu,
+body.body--light .q-drawer.q-drawer--left .ec-user-menu > .q-expansion-item__container > .q-item,
+body.body--light .q-drawer.q-drawer--left .ec-user-menu > .q-expansion-item__container > .q-expansion-item__content,
+body.body--light .q-drawer.q-drawer--left .ec-user-menu:hover,
+body.body--light .q-drawer.q-drawer--left .ec-user-menu > .q-expansion-item__container > .q-item:hover {
+  background: #ff5521;
+}
+
 .ec-user-menu .q-expansion-item__toggle-icon {
   color: inherit;
 }
@@ -590,6 +608,12 @@ body.body--light .q-drawer.q-drawer--left .ec-nav-item:hover {
   background: rgb(255 255 255 / 0.14);
 }
 
+body.body--light .q-drawer.q-drawer--left .ec-user-menu.ec-nav-item:hover,
+body.body--light .q-drawer.q-drawer--left .ec-user-menu.ec-nav-item.q-router-link--active,
+body.body--light .q-drawer.q-drawer--left .ec-user-menu.ec-nav-item.ec-nav-item--selected {
+  background: #ff5521;
+}
+
 body.body--light .q-drawer.q-drawer--left .ec-nav-item.q-router-link--active,
 body.body--light .q-drawer.q-drawer--left .ec-nav-item--selected {
   background: rgb(255 255 255 / 0.22);
@@ -598,6 +622,10 @@ body.body--light .q-drawer.q-drawer--left .ec-nav-item--selected {
 
 body.body--light .q-drawer.q-drawer--left .q-separator {
   background: rgb(255 241 237 / 0.35);
+}
+
+body.body--light .q-drawer.q-drawer--left .ec-user-separator {
+  margin: 0;
 }
 
 body.body--light .q-drawer.q-drawer--left .text-grey-7,

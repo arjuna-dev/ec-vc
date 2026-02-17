@@ -37,9 +37,7 @@
           </q-item>
         </q-expansion-item>
 
-        <q-item-label header class="ec-nav-label">Workspace</q-item-label>
-
-        <q-separator spaced />
+        <q-separator class="ec-user-separator" />
 
         <q-item clickable to="/" exact class="ec-nav-item">
           <q-item-section avatar>
