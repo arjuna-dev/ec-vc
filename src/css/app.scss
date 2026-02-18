@@ -556,6 +556,37 @@ body.body--light .q-drawer.q-drawer--left .q-drawer__content {
   text-transform: uppercase;
 }
 
+.ec-drawer-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ec-drawer-menu {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ec-drawer-footer {
+  border-top: 1px solid hsl(var(--border));
+  flex: 0 0 auto;
+  padding: 12px;
+}
+
+.ec-drawer-footer-lottie {
+  display: block;
+  height: 140px;
+  width: 100%;
+}
+
+.ec-drawer-footer-lottie svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
 .ec-nav-item {
   border-radius: calc(var(--radius) - 2px);
   margin: 0 8px 4px;
@@ -622,6 +653,10 @@ body.body--light .q-drawer.q-drawer--left .ec-nav-item--selected {
 
 body.body--light .q-drawer.q-drawer--left .q-separator {
   background: rgb(255 241 237 / 0.35);
+}
+
+body.body--light .q-drawer.q-drawer--left .ec-drawer-footer {
+  border-top: 1px solid rgb(255 241 237 / 0.35);
 }
 
 body.body--light .q-drawer.q-drawer--left .ec-user-separator {
