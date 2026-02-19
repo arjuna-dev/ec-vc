@@ -127,71 +127,34 @@
       <router-view />
     </q-page-container>
 
-    <q-fab
-      v-model="quickActionsOpen"
-      class="fixed-bottom-right q-ma-md ec-quick-fab"
-      direction="up"
-      color="transparent"
-      text-color="white"
-      icon="none"
-      active-icon="none"
-      unelevated
-      aria-label="Quick actions"
-      @show="handleQuickFabShow"
-      @hide="handleQuickFabHide"
-    >
-      <template #icon>
-        <div ref="quickFabIconClosedContainer" class="ec-quick-fab-icon" />
-      </template>
-      <template #active-icon>
-        <div ref="quickFabIconOpenContainer" class="ec-quick-fab-icon" />
-      </template>
-      <q-fab-action
-        icon="work"
-        color="primary"
-        text-color="white"
-        label="Create new opportunity"
-        label-position="left"
-        external-label
-        @click="openOpportunityFromQuickAction"
-      />
-      <q-fab-action
-        icon="schema"
-        color="info"
-        text-color="white"
-        label="New pipeline"
-        label-position="left"
-        external-label
-        @click="openPipelineFromQuickAction"
-      />
-      <q-fab-action
-        icon="apartment"
-        color="indigo"
-        text-color="white"
-        label="New company"
-        label-position="left"
-        external-label
-        @click="openCompanyFromQuickAction"
-      />
-      <q-fab-action
-        icon="people"
-        color="teal"
-        text-color="white"
-        label="New contact"
-        label-position="left"
-        external-label
-        @click="openContactFromQuickAction"
-      />
-      <q-fab-action
-        icon="attach_file"
-        color="secondary"
-        text-color="white"
-        label="Add new artifact"
-        label-position="left"
-        external-label
-        @click="openArtifactFromQuickAction"
-      />
-    </q-fab>
+    <div class="ec-quick-widget" :style="quickWidgetStyle">
+      <q-btn
+        v-for="(action, index) in quickWidgetActions"
+        :key="action.label"
+        round
+        dense
+        unelevated
+        class="ec-quick-widget-action"
+        :icon="action.icon"
+        :aria-label="action.label"
+        :style="quickWidgetActionStyle(index)"
+        @click.stop="action.onClick"
+      >
+        <q-tooltip anchor="center left" self="center right">{{ action.label }}</q-tooltip>
+      </q-btn>
+
+      <q-btn
+        round
+        unelevated
+        class="ec-quick-widget-trigger"
+        :class="{ 'ec-quick-widget-trigger--dragging': quickWidgetIsDragging }"
+        aria-label="Quick actions"
+        @pointerdown.stop="onQuickWidgetPointerDown"
+        @click.stop="toggleQuickActions"
+      >
+        <div ref="quickWidgetIconContainer" class="ec-quick-widget-icon" />
+      </q-btn>
+    </div>
 
     <OpportunityCreateDialog v-model="opportunityDialogOpen" />
     <ArtifactAddDialog v-model="artifactDialogOpen" />
@@ -218,15 +181,55 @@ const databooks = ref([])
 const logoContainer = ref(null)
 const logoReady = ref(false)
 const drawerAnimationContainer = ref(null)
-const quickFabIconClosedContainer = ref(null)
-const quickFabIconOpenContainer = ref(null)
+const quickWidgetIconContainer = ref(null)
+const quickWidgetPosition = ref({ x: 0, y: 0 })
+const quickWidgetIsDragging = ref(false)
+const quickWidgetIgnoreNextToggle = ref(false)
+
+const QUICK_WIDGET_TRIGGER_SIZE = 112
+const QUICK_WIDGET_ACTION_RADIUS = 96
+const QUICK_WIDGET_MARGIN = 16
+const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 
 const router = useRouter()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 let logoAnimation = null
 let drawerAnimation = null
-let quickFabClosedIconAnimation = null
-let quickFabOpenIconAnimation = null
+let quickWidgetIconAnimation = null
+let quickWidgetDragState = null
+
+const quickWidgetStyle = computed(() => ({
+  left: `${quickWidgetPosition.value.x}px`,
+  top: `${quickWidgetPosition.value.y}px`,
+}))
+
+const quickWidgetActions = computed(() => [
+  {
+    label: 'Add new artifact',
+    icon: 'attach_file',
+    onClick: openArtifactFromQuickAction,
+  },
+  {
+    label: 'Create new opportunity',
+    icon: 'work',
+    onClick: openOpportunityFromQuickAction,
+  },
+  {
+    label: 'New pipeline',
+    icon: 'schema',
+    onClick: openPipelineFromQuickAction,
+  },
+  {
+    label: 'New company',
+    icon: 'apartment',
+    onClick: openCompanyFromQuickAction,
+  },
+  {
+    label: 'New contact',
+    icon: 'people',
+    onClick: openContactFromQuickAction,
+  },
+])
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -240,13 +243,156 @@ function openArtifactDialog() {
   artifactDialogOpen.value = true
 }
 
-function openOpportunityFromQuickAction() {
+function clampQuickWidgetPosition(x, y) {
+  if (typeof window === 'undefined') return { x, y }
+  const maxX = Math.max(
+    QUICK_WIDGET_MARGIN,
+    window.innerWidth - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN
+  )
+  const maxY = Math.max(
+    QUICK_WIDGET_MARGIN,
+    window.innerHeight - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN
+  )
+  return {
+    x: Math.min(Math.max(x, QUICK_WIDGET_MARGIN), maxX),
+    y: Math.min(Math.max(y, QUICK_WIDGET_MARGIN), maxY),
+  }
+}
+
+function setDefaultQuickWidgetPosition() {
+  if (typeof window === 'undefined') return
+  quickWidgetPosition.value = clampQuickWidgetPosition(
+    window.innerWidth - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN,
+    window.innerHeight - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN
+  )
+}
+
+function persistQuickWidgetPosition() {
+  if (typeof window === 'undefined') return
+  window.localStorage?.setItem(
+    QUICK_WIDGET_POSITION_STORAGE_KEY,
+    JSON.stringify(quickWidgetPosition.value)
+  )
+}
+
+function loadQuickWidgetPosition() {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = window.localStorage?.getItem(QUICK_WIDGET_POSITION_STORAGE_KEY)
+    if (!raw) {
+      setDefaultQuickWidgetPosition()
+      return
+    }
+    const parsed = JSON.parse(raw)
+    const x = Number(parsed?.x)
+    const y = Number(parsed?.y)
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      setDefaultQuickWidgetPosition()
+      return
+    }
+    quickWidgetPosition.value = clampQuickWidgetPosition(x, y)
+  } catch {
+    setDefaultQuickWidgetPosition()
+  }
+}
+
+function onQuickWidgetResize() {
+  const { x, y } = quickWidgetPosition.value
+  quickWidgetPosition.value = clampQuickWidgetPosition(x, y)
+}
+
+function onQuickWidgetPointerDown(evt) {
+  if (evt.pointerType === 'mouse' && evt.button !== 0) return
+  quickWidgetDragState = {
+    pointerId: evt.pointerId,
+    startX: evt.clientX,
+    startY: evt.clientY,
+    startLeft: quickWidgetPosition.value.x,
+    startTop: quickWidgetPosition.value.y,
+    dragged: false,
+  }
+  window.addEventListener('pointermove', onQuickWidgetPointerMove)
+  window.addEventListener('pointerup', onQuickWidgetPointerUp)
+  window.addEventListener('pointercancel', onQuickWidgetPointerUp)
+}
+
+function onQuickWidgetPointerMove(evt) {
+  if (!quickWidgetDragState || evt.pointerId !== quickWidgetDragState.pointerId) return
+  const dx = evt.clientX - quickWidgetDragState.startX
+  const dy = evt.clientY - quickWidgetDragState.startY
+  if (!quickWidgetDragState.dragged && Math.hypot(dx, dy) >= 4) {
+    quickWidgetDragState.dragged = true
+    quickWidgetIsDragging.value = true
+  }
+  if (!quickWidgetDragState.dragged) return
+  evt.preventDefault()
+  quickWidgetPosition.value = clampQuickWidgetPosition(
+    quickWidgetDragState.startLeft + dx,
+    quickWidgetDragState.startTop + dy
+  )
+}
+
+function onQuickWidgetPointerUp(evt) {
+  if (!quickWidgetDragState || evt.pointerId !== quickWidgetDragState.pointerId) return
+  if (quickWidgetDragState.dragged) {
+    quickWidgetIgnoreNextToggle.value = true
+    persistQuickWidgetPosition()
+  }
+  quickWidgetIsDragging.value = false
+  quickWidgetDragState = null
+  window.removeEventListener('pointermove', onQuickWidgetPointerMove)
+  window.removeEventListener('pointerup', onQuickWidgetPointerUp)
+  window.removeEventListener('pointercancel', onQuickWidgetPointerUp)
+}
+
+function quickWidgetActionStyle(index) {
+  const total = quickWidgetActions.value.length
+  const angleDeg = -90 + (360 / total) * index
+  const angleRad = (angleDeg * Math.PI) / 180
+  const offsetX = Math.cos(angleRad) * QUICK_WIDGET_ACTION_RADIUS
+  const offsetY = Math.sin(angleRad) * QUICK_WIDGET_ACTION_RADIUS
+  if (!quickActionsOpen.value) {
+    return {
+      transform: 'translate(-50%, -50%) scale(0.2)',
+      opacity: '0',
+      pointerEvents: 'none',
+      transitionDelay: '0ms',
+    }
+  }
+  return {
+    transform: `translate(calc(-50% + ${offsetX.toFixed(2)}px), calc(-50% + ${offsetY.toFixed(2)}px)) scale(1)`,
+    opacity: '1',
+    pointerEvents: 'auto',
+    transitionDelay: `${index * 28}ms`,
+  }
+}
+
+function toggleQuickActions() {
+  if (quickWidgetIgnoreNextToggle.value) {
+    quickWidgetIgnoreNextToggle.value = false
+    return
+  }
+  if (quickActionsOpen.value) {
+    closeQuickActions()
+    return
+  }
+  quickActionsOpen.value = true
+  playQuickWidgetTo()
+}
+
+function closeQuickActions() {
+  if (!quickActionsOpen.value) return
   quickActionsOpen.value = false
+  playQuickWidgetBack()
+}
+
+function openOpportunityFromQuickAction() {
+  closeQuickActions()
   openOpportunityDialog()
 }
 
 async function openPipelineFromQuickAction() {
-  quickActionsOpen.value = false
+  closeQuickActions()
   globalThis.__ecvcOpenPipelineDialog = true
   try {
     await router.push({ name: 'pipelines', query: { create: '1' } })
@@ -259,7 +405,7 @@ async function openPipelineFromQuickAction() {
 }
 
 async function openCompanyFromQuickAction() {
-  quickActionsOpen.value = false
+  closeQuickActions()
   globalThis.__ecvcOpenCompanyDialog = true
   try {
     await router.push({ name: 'companies', query: { create: '1' } })
@@ -272,7 +418,7 @@ async function openCompanyFromQuickAction() {
 }
 
 async function openContactFromQuickAction() {
-  quickActionsOpen.value = false
+  closeQuickActions()
   globalThis.__ecvcOpenContactDialog = true
   try {
     await router.push({ name: 'contacts', query: { create: '1' } })
@@ -285,7 +431,7 @@ async function openContactFromQuickAction() {
 }
 
 function openArtifactFromQuickAction() {
-  quickActionsOpen.value = false
+  closeQuickActions()
   openArtifactDialog()
 }
 
@@ -352,7 +498,7 @@ function initDrawerAnimation() {
   })
 }
 
-function loadQuickFabAnimation(
+function loadQuickWidgetAnimation(
   container,
   animationData,
   { loop = false, autoplay = false, stopAtStart = false, onComplete } = {}
@@ -379,63 +525,51 @@ function loadQuickFabAnimation(
   return animation
 }
 
-function initStaticQuickFabIcon(container) {
-  return loadQuickFabAnimation(container, widgetHomeStaticAnimationData, { stopAtStart: true })
+function playQuickWidgetHome() {
+  quickWidgetIconAnimation?.destroy()
+  quickWidgetIconAnimation = loadQuickWidgetAnimation(
+    quickWidgetIconContainer.value,
+    widgetHomeStaticAnimationData,
+    { stopAtStart: true }
+  )
 }
 
-function resetQuickFabClosedToHome() {
-  quickFabClosedIconAnimation?.destroy()
-  quickFabClosedIconAnimation = initStaticQuickFabIcon(quickFabIconClosedContainer.value)
+function playQuickWidgetTo() {
+  quickWidgetIconAnimation?.destroy()
+  quickWidgetIconAnimation = loadQuickWidgetAnimation(
+    quickWidgetIconContainer.value,
+    widgetToTransitionAnimationData,
+    { autoplay: true }
+  )
 }
 
-function initQuickFabIcons() {
-  resetQuickFabClosedToHome()
-  quickFabOpenIconAnimation?.destroy()
-  quickFabOpenIconAnimation = initStaticQuickFabIcon(quickFabIconOpenContainer.value)
-}
-
-function handleQuickFabShow() {
-  quickFabClosedIconAnimation?.destroy()
-  quickFabClosedIconAnimation = null
-  nextTick(() => {
-    quickFabOpenIconAnimation?.destroy()
-    quickFabOpenIconAnimation = loadQuickFabAnimation(
-      quickFabIconOpenContainer.value,
-      widgetToTransitionAnimationData,
-      { autoplay: true }
-    )
-  })
-}
-
-function handleQuickFabHide() {
-  quickFabOpenIconAnimation?.destroy()
-  quickFabOpenIconAnimation = null
-  nextTick(() => {
-    quickFabClosedIconAnimation?.destroy()
-    quickFabClosedIconAnimation = loadQuickFabAnimation(
-      quickFabIconClosedContainer.value,
-      widgetBackTransitionAnimationData,
-      {
-        autoplay: true,
-        onComplete: () => {
-          if (!quickActionsOpen.value) {
-            resetQuickFabClosedToHome()
-          }
-        },
-      }
-    )
-  })
+function playQuickWidgetBack() {
+  quickWidgetIconAnimation?.destroy()
+  quickWidgetIconAnimation = loadQuickWidgetAnimation(
+    quickWidgetIconContainer.value,
+    widgetBackTransitionAnimationData,
+    {
+      autoplay: true,
+      onComplete: () => {
+        if (!quickActionsOpen.value) {
+          playQuickWidgetHome()
+        }
+      },
+    }
+  )
 }
 
 onMounted(() => {
   window.addEventListener('ecvc:open-opportunity-dialog', openOpportunityDialog)
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
   window.addEventListener('ecvc:opportunities-changed', loadDatabooks)
+  window.addEventListener('resize', onQuickWidgetResize)
+  loadQuickWidgetPosition()
   loadDatabooks()
   initLogoAnimation()
   nextTick(() => {
     initDrawerAnimation()
-    initQuickFabIcons()
+    playQuickWidgetHome()
   })
 })
 
@@ -449,74 +583,97 @@ onBeforeUnmount(() => {
   window.removeEventListener('ecvc:open-opportunity-dialog', openOpportunityDialog)
   window.removeEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
   window.removeEventListener('ecvc:opportunities-changed', loadDatabooks)
+  window.removeEventListener('resize', onQuickWidgetResize)
+  window.removeEventListener('pointermove', onQuickWidgetPointerMove)
+  window.removeEventListener('pointerup', onQuickWidgetPointerUp)
+  window.removeEventListener('pointercancel', onQuickWidgetPointerUp)
   logoAnimation?.destroy()
   drawerAnimation?.destroy()
-  quickFabClosedIconAnimation?.destroy()
-  quickFabOpenIconAnimation?.destroy()
+  quickWidgetIconAnimation?.destroy()
   logoAnimation = null
   drawerAnimation = null
-  quickFabClosedIconAnimation = null
-  quickFabOpenIconAnimation = null
+  quickWidgetIconAnimation = null
+  quickWidgetDragState = null
 })
 </script>
 
 <style scoped>
-.ec-quick-fab {
+.ec-quick-widget {
+  position: fixed;
   z-index: 2000;
-  --ec-quick-fab-size: 112px;
+  width: 112px;
+  height: 112px;
+  overflow: visible;
 }
 
-.ec-quick-fab :deep(.q-btn) {
-  width: var(--ec-quick-fab-size);
-  height: var(--ec-quick-fab-size);
-  min-width: var(--ec-quick-fab-size);
-  min-height: var(--ec-quick-fab-size);
+.ec-quick-widget-trigger {
+  width: 112px;
+  height: 112px;
+  min-width: 112px;
+  min-height: 112px;
   padding: 0;
   border-radius: 50%;
   background: transparent !important;
   box-shadow: none !important;
   transition: transform 0.22s ease;
   transform-origin: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
 
-.ec-quick-fab :deep(.q-btn:hover),
-.ec-quick-fab :deep(.q-btn:focus-visible) {
+.ec-quick-widget-trigger:hover,
+.ec-quick-widget-trigger:focus-visible {
   transform: scale(1.15);
 }
 
-.ec-quick-fab :deep(.q-fab__icon-holder) {
-  min-width: var(--ec-quick-fab-size);
-  min-height: var(--ec-quick-fab-size);
+.ec-quick-widget-trigger--dragging {
+  cursor: grabbing;
 }
 
-.ec-quick-fab :deep(.q-fab__icon),
-.ec-quick-fab :deep(.q-fab__active-icon) {
-  transition: none !important;
-  transform: none !important;
+.ec-quick-widget-trigger--dragging:hover,
+.ec-quick-widget-trigger--dragging:focus-visible {
+  transform: none;
 }
 
-.ec-quick-fab :deep(.q-fab__icon-holder--opened .q-fab__icon),
-.ec-quick-fab :deep(.q-fab__icon-holder--opened .q-fab__active-icon) {
-  transform: none !important;
+.ec-quick-widget-action {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  background: #1b1b1d !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.18s ease;
 }
 
-.ec-quick-fab-icon {
-  width: var(--ec-quick-fab-size);
-  height: var(--ec-quick-fab-size);
+.ec-quick-widget-action :deep(.q-icon) {
+  font-size: 20px;
+}
+
+.ec-quick-widget-icon {
+  width: 112px;
+  height: 112px;
   transform-origin: center;
-  animation: ec-quick-fab-spin 14s linear infinite;
+  animation: ec-quick-widget-spin 14s linear infinite;
   will-change: transform;
   filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.18))
     drop-shadow(0 2px 4px rgba(15, 23, 42, 0.12));
 }
 
-.ec-quick-fab-icon :deep(svg) {
+.ec-quick-widget-icon :deep(svg) {
   width: 100% !important;
   height: 100% !important;
   display: block;
 }
 
-@keyframes ec-quick-fab-spin {
+@keyframes ec-quick-widget-spin {
   from {
     transform: rotate(0deg);
   }
