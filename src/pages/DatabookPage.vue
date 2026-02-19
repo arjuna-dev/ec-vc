@@ -15,7 +15,7 @@
     </div>
 
     <div v-else>
-      <div class="row items-center q-col-gutter-sm q-mb-md">
+      <div class="row items-center q-col-gutter-sm page-title-section">
         <div class="col">
           <div class="text-h6">{{ databookTitle }}</div>
           <div class="text-caption text-grey-7">

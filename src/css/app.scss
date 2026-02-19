@@ -1,1 +1,95 @@
 // app global css in SCSS form
+
+.q-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb;
+  color: #0f172a;
+}
+
+.q-header .q-toolbar {
+  background: #ffffff;
+}
+
+.ec-shell-toolbar-title {
+  display: flex;
+  align-items: center;
+}
+
+.ec-shell-toolbar-lottie {
+  display: block;
+  width: 200px;
+  height: 34px;
+}
+
+.ec-shell-toolbar-lottie--hidden {
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.ec-shell-toolbar-lottie svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ec-shell-toolbar-fallback {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.ec-shell-version {
+  color: #64748b;
+  font-size: 14px;
+}
+
+body.body--light .q-drawer.q-drawer--left,
+body.body--light .q-drawer.q-drawer--left .q-drawer__content {
+  background: #1d1d1b;
+  border-right: 1px solid #1d1d1b;
+  color: #fff1ed;
+}
+
+body.body--light .q-drawer.q-drawer--left .ec-nav-label,
+body.body--light .q-drawer.q-drawer--left .ec-nav-item,
+body.body--light .q-drawer.q-drawer--left .ec-nav-item .q-item__label,
+body.body--light .q-drawer.q-drawer--left .ec-nav-item .q-icon,
+body.body--light .q-drawer.q-drawer--left .text-grey-7,
+body.body--light .q-drawer.q-drawer--left .q-item__label--caption {
+  color: #fff1ed !important;
+}
+
+.ec-nav-label {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ec-nav-item {
+  border-radius: 8px;
+  margin: 0 8px 4px;
+}
+
+body.body--light .q-drawer.q-drawer--left .ec-nav-item:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+
+body.body--light .q-drawer.q-drawer--left .ec-nav-item.q-router-link--active,
+body.body--light .q-drawer.q-drawer--left .ec-nav-item--selected {
+  background: rgb(255 255 255 / 0.22);
+  color: #fff1ed;
+}
+
+body.body--light .q-drawer.q-drawer--left .q-separator {
+  background: rgb(255 241 237 / 0.35);
+}
+
+.page-title-section {
+  margin-bottom: 3%;
+}
+
+.page-title-section .text-h6 {
+  letter-spacing: 0.04em;
+}
