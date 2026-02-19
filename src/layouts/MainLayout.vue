@@ -117,9 +117,6 @@
           </q-expansion-item>
         </q-list>
 
-        <div class="ec-drawer-footer">
-          <div ref="drawerAnimationContainer" class="ec-drawer-footer-lottie" />
-        </div>
       </div>
     </q-drawer>
 
@@ -152,7 +149,15 @@
         @pointerdown.stop="onQuickWidgetPointerDown"
         @click.stop="toggleQuickActions"
       >
-        <div ref="quickWidgetIconContainer" class="ec-quick-widget-icon" />
+        <div
+          ref="quickWidgetIconContainer"
+          class="ec-quick-widget-icon ec-quick-widget-icon--spin"
+        />
+        <div
+          class="ec-quick-widget-plus-overlay"
+          :class="{ 'ec-quick-widget-plus-overlay--visible': !quickActionsOpen }"
+          aria-hidden="true"
+        />
       </q-btn>
     </div>
 
@@ -162,7 +167,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import lottie from 'lottie-web'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
@@ -180,7 +185,6 @@ const artifactDialogOpen = ref(false)
 const databooks = ref([])
 const logoContainer = ref(null)
 const logoReady = ref(false)
-const drawerAnimationContainer = ref(null)
 const quickWidgetIconContainer = ref(null)
 const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
@@ -194,7 +198,6 @@ const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const router = useRouter()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 let logoAnimation = null
-let drawerAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
 
@@ -482,22 +485,6 @@ function initLogoAnimation() {
   })
 }
 
-function initDrawerAnimation() {
-  if (!drawerAnimationContainer.value) return
-
-  drawerAnimation?.destroy()
-  drawerAnimation = lottie.loadAnimation({
-    container: drawerAnimationContainer.value,
-    renderer: 'svg',
-    loop: true,
-    autoplay: true,
-    path: '/lottie/drop-files-here-mockup.json',
-    rendererSettings: {
-      preserveAspectRatio: 'xMidYMid meet',
-    },
-  })
-}
-
 function loadQuickWidgetAnimation(
   container,
   animationData,
@@ -567,16 +554,7 @@ onMounted(() => {
   loadQuickWidgetPosition()
   loadDatabooks()
   initLogoAnimation()
-  nextTick(() => {
-    initDrawerAnimation()
-    playQuickWidgetHome()
-  })
-})
-
-watch(leftDrawerOpen, async (isOpen) => {
-  if (!isOpen) return
-  await nextTick()
-  initDrawerAnimation()
+  playQuickWidgetHome()
 })
 
 onBeforeUnmount(() => {
@@ -588,10 +566,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('pointerup', onQuickWidgetPointerUp)
   window.removeEventListener('pointercancel', onQuickWidgetPointerUp)
   logoAnimation?.destroy()
-  drawerAnimation?.destroy()
   quickWidgetIconAnimation?.destroy()
   logoAnimation = null
-  drawerAnimation = null
   quickWidgetIconAnimation = null
   quickWidgetDragState = null
 })
@@ -665,10 +641,42 @@ onBeforeUnmount(() => {
   width: 112px;
   height: 112px;
   transform-origin: center;
-  animation: ec-quick-widget-spin 14s linear infinite;
-  will-change: transform;
   filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.18))
     drop-shadow(0 2px 4px rgba(15, 23, 42, 0.12));
+}
+
+.ec-quick-widget-icon--spin {
+  animation: ec-quick-widget-home-spin 14s linear infinite;
+  will-change: transform;
+}
+
+.ec-quick-widget-plus-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease;
+}
+
+.ec-quick-widget-plus-overlay--visible {
+  opacity: 1;
+}
+
+.ec-quick-widget-plus-overlay::before,
+.ec-quick-widget-plus-overlay::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 42px;
+  height: 9px;
+  border-radius: 999px;
+  background: #f7f7f7;
+  transform: translate(-50%, -50%);
+}
+
+.ec-quick-widget-plus-overlay::after {
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 .ec-quick-widget-icon :deep(svg) {
@@ -677,7 +685,7 @@ onBeforeUnmount(() => {
   display: block;
 }
 
-@keyframes ec-quick-widget-spin {
+@keyframes ec-quick-widget-home-spin {
   from {
     transform: rotate(0deg);
   }
@@ -685,4 +693,5 @@ onBeforeUnmount(() => {
     transform: rotate(360deg);
   }
 }
+
 </style>
