@@ -126,7 +126,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import PipelineCreateDialog from 'components/PipelineCreateDialog.vue'
@@ -151,6 +152,8 @@ const error = ref('')
 const pipelineDialogOpen = ref(false)
 
 const $q = useQuasar()
+const route = useRoute()
+const router = useRouter()
 
 const columns = [
   { name: 'name', label: 'Pipeline Name', field: 'name', align: 'left', sortable: true },
@@ -257,10 +260,47 @@ function openCreatePipeline() {
   pipelineDialogOpen.value = true
 }
 
+function onOpenPipelineDialog() {
+  globalThis.__ecvcOpenPipelineDialog = false
+  openCreatePipeline()
+}
+
+function openCreatePipelineFromQuery() {
+  if (String(route.query.create || '') !== '1') return
+  openCreatePipeline()
+  globalThis.__ecvcOpenPipelineDialog = false
+
+  const nextQuery = { ...route.query }
+  delete nextQuery.create
+  router.replace({ query: nextQuery })
+}
+
+function consumeQueuedPipelineDialogOpen() {
+  if (globalThis.__ecvcOpenPipelineDialog !== true) return false
+  globalThis.__ecvcOpenPipelineDialog = false
+  openCreatePipeline()
+  return true
+}
+
 async function onPipelineCreated() {
   await loadPipelines()
 }
 
-onMounted(loadPipelines)
-</script>
+onMounted(async () => {
+  window.addEventListener('ecvc:open-pipeline-dialog', onOpenPipelineDialog)
+  await loadPipelines()
+  consumeQueuedPipelineDialogOpen()
+  openCreatePipelineFromQuery()
+})
 
+onBeforeUnmount(() => {
+  window.removeEventListener('ecvc:open-pipeline-dialog', onOpenPipelineDialog)
+})
+
+watch(
+  () => route.query.create,
+  () => {
+    openCreatePipelineFromQuery()
+  },
+)
+</script>

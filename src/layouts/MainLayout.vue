@@ -156,6 +156,15 @@
         @click="openOpportunityFromQuickAction"
       />
       <q-fab-action
+        icon="schema"
+        color="info"
+        text-color="white"
+        label="New pipeline"
+        label-position="left"
+        external-label
+        @click="openPipelineFromQuickAction"
+      />
+      <q-fab-action
         icon="attach_file"
         color="secondary"
         text-color="white"
@@ -173,6 +182,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import lottie from 'lottie-web'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import widgetBackTransitionAnimationData from 'src/assets/lottie/widget-back-transition.json'
@@ -193,6 +203,7 @@ const drawerAnimationContainer = ref(null)
 const quickFabIconClosedContainer = ref(null)
 const quickFabIconOpenContainer = ref(null)
 
+const router = useRouter()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 let logoAnimation = null
 let drawerAnimation = null
@@ -214,6 +225,19 @@ function openArtifactDialog() {
 function openOpportunityFromQuickAction() {
   quickActionsOpen.value = false
   openOpportunityDialog()
+}
+
+async function openPipelineFromQuickAction() {
+  quickActionsOpen.value = false
+  globalThis.__ecvcOpenPipelineDialog = true
+  try {
+    await router.push({ name: 'pipelines', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
+    }, 80)
+  }
 }
 
 function openArtifactFromQuickAction() {
@@ -407,6 +431,13 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   background: transparent !important;
   box-shadow: none !important;
+  transition: transform 0.22s ease;
+  transform-origin: center;
+}
+
+.ec-quick-fab :deep(.q-btn:hover),
+.ec-quick-fab :deep(.q-btn:focus-visible) {
+  transform: scale(1.15);
 }
 
 .ec-quick-fab :deep(.q-fab__icon-holder) {
@@ -414,14 +445,39 @@ onBeforeUnmount(() => {
   min-height: var(--ec-quick-fab-size);
 }
 
+.ec-quick-fab :deep(.q-fab__icon),
+.ec-quick-fab :deep(.q-fab__active-icon) {
+  transition: none !important;
+  transform: none !important;
+}
+
+.ec-quick-fab :deep(.q-fab__icon-holder--opened .q-fab__icon),
+.ec-quick-fab :deep(.q-fab__icon-holder--opened .q-fab__active-icon) {
+  transform: none !important;
+}
+
 .ec-quick-fab-icon {
   width: var(--ec-quick-fab-size);
   height: var(--ec-quick-fab-size);
+  transform-origin: center;
+  animation: ec-quick-fab-spin 14s linear infinite;
+  will-change: transform;
+  filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.18))
+    drop-shadow(0 2px 4px rgba(15, 23, 42, 0.12));
 }
 
 .ec-quick-fab-icon :deep(svg) {
   width: 100% !important;
   height: 100% !important;
   display: block;
+}
+
+@keyframes ec-quick-fab-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
