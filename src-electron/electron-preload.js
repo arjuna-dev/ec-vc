@@ -23,6 +23,10 @@ contextBridge.exposeInMainWorld('ecvc', {
     get: () => ipcRenderer.invoke('settings:get'),
     set: (payload) => ipcRenderer.invoke('settings:set', payload),
   },
+  autofill: {
+    previewFromFiles: ({ filePaths, context } = {}) =>
+      ipcRenderer.invoke('autofill:previewFromFiles', { filePaths, context }),
+  },
   pipelines: {
     list: () => ipcRenderer.invoke('pipelines:list'),
     install: (pipelineId) => ipcRenderer.invoke('pipelines:install', { pipelineId }),
@@ -46,6 +50,8 @@ contextBridge.exposeInMainWorld('ecvc', {
   databooks: {
     list: () => ipcRenderer.invoke('databooks:list'),
     view: (opportunityId) => ipcRenderer.invoke('databooks:view', { opportunityId }),
+    versions: (opportunityId) => ipcRenderer.invoke('databooks:versions', { opportunityId }),
+    viewSnapshot: (snapshotId) => ipcRenderer.invoke('databooks:viewSnapshot', { snapshotId }),
     update: ({ opportunityId, changes } = {}) =>
       ipcRenderer.invoke('databooks:update', { opportunityId, changes }),
   },

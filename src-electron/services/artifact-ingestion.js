@@ -235,6 +235,37 @@ function firstStageIdForPipeline(pipelineId) {
   return rows?.[0]?.stage_id || null
 }
 
+export async function buildLlmReadyMarkdownFromFile(sourceFilePath, { geminiApiKey } = {}) {
+  const resolvedPath = String(sourceFilePath || '')
+  if (!resolvedPath) throw new Error('sourceFilePath is required')
+  if (!(await fse.pathExists(resolvedPath))) {
+    throw new Error(`Source file path does not exist: ${resolvedPath}`)
+  }
+
+  const fileName = safeBasename(resolvedPath)
+  const ext = extLower(fileName)
+  if (ext === '.md') {
+    const md = await fs.readFile(resolvedPath, 'utf8')
+    return String(md || '').trim()
+  }
+  if (ext === '.txt') {
+    const txt = await fs.readFile(resolvedPath, 'utf8')
+    return normalizeMarkdownFromText(fileName, txt)
+  }
+  if (ext === '.pdf' || isImageExt(ext)) {
+    return ocrToMarkdown({ filePath: resolvedPath, fileName, geminiApiKey })
+  }
+
+  try {
+    const extracted = await extractWithOfficeParser(resolvedPath)
+    const maybeText = String(extracted || '').trim()
+    if (!maybeText) throw new Error('officeparser returned empty content')
+    return normalizeMarkdownFromText(fileName, maybeText)
+  } catch {
+    return ocrToMarkdown({ filePath: resolvedPath, fileName, geminiApiKey })
+  }
+}
+
 export async function ingestArtifactsFromPaths({
   workspaceRoot,
   filePaths,
@@ -283,11 +314,27 @@ export async function ingestArtifactsFromPaths({
 
     const rawCandidatePath = path.join(rawDir, fileName)
     if (await fse.pathExists(rawCandidatePath)) {
-      emitStatus?.({
-        type: 'error',
-        message: `A file named "${fileName}" already exists. Rename the file and try again.`,
-      })
-      throw new Error(`Duplicate filename: "${fileName}" already exists. Rename the file and try again.`)
+      const rawRelPath = toPosixPath(path.join('0_company_docs', 'Artifacts', '0_raw', fileName))
+      const refs = Number(
+        dbAll('SELECT COUNT(*) AS c FROM Artifacts WHERE fs_path = ?', [rawRelPath])?.[0]?.c || 0,
+      )
+      if (refs > 0) {
+        emitStatus?.({
+          type: 'error',
+          message: `A file named "${fileName}" already exists. Rename the file and try again.`,
+        })
+        throw new Error(`Duplicate filename: "${fileName}" already exists. Rename the file and try again.`)
+      }
+
+      try {
+        await fse.remove(rawCandidatePath)
+      } catch (e) {
+        emitStatus?.({
+          type: 'error',
+          message: `Found a stale file named "${fileName}" but could not clean it up automatically.`,
+        })
+        throw e
+      }
     }
   }
 

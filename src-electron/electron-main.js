@@ -10,6 +10,7 @@ import { createProjectStructure, DEFAULT_PROJECT_ROOT_NAME } from './services/pr
 import { closeDb, dbAll, dbRun, getDbInfo, initDb } from './services/sqlite-db.js'
 import { mirrorPipelineToFs, removePipelineFromFs } from './services/pipeline-mirror.js'
 import { ingestArtifactsFromPaths } from './services/artifact-ingestion.js'
+import { previewAutofillFromFiles } from './services/autofill-extraction.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -456,6 +457,50 @@ function listDatabooks() {
   )
 }
 
+function listDatabookVersions(opportunityId) {
+  const oid = String(opportunityId || '').trim()
+  if (!oid) throw new Error('opportunityId is required')
+  return dbAll(
+    `
+    SELECT
+      id,
+      opportunity_id,
+      created_at,
+      created_by_uuid,
+      created_by_label
+    FROM databook_snapshots
+    WHERE opportunity_id = ?
+    ORDER BY datetime(created_at) DESC, id DESC
+  `,
+    [oid],
+  )
+}
+
+function getDatabookSnapshot(snapshotId) {
+  const sid = String(snapshotId || '').trim()
+  if (!sid) throw new Error('snapshotId is required')
+  const row = dbAll(
+    `
+    SELECT
+      id,
+      opportunity_id,
+      payload_json,
+      created_at,
+      created_by_uuid,
+      created_by_label
+    FROM databook_snapshots
+    WHERE id = ?
+    LIMIT 1
+  `,
+    [sid],
+  )?.[0]
+  if (!row) throw new Error(`Snapshot not found: ${sid}`)
+  return {
+    ...row,
+    payload: JSON.parse(String(row.payload_json || '{}')),
+  }
+}
+
 function getDatabookView(opportunityId) {
   const oid = String(opportunityId || '').trim()
   if (!oid) throw new Error('opportunityId is required')
@@ -588,7 +633,9 @@ function getDatabookView(opportunityId) {
           'Contacts',
           contactIds,
           (placeholders) => `
-            SELECT id, Name, Email, Phone, Role
+            SELECT
+              id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
+              Comment, Expertise, Degrees_Program, University, Credentials, Tenure_at_Firm_yrs, Country_based
             FROM Contacts
             WHERE id IN (${placeholders})
             ORDER BY COALESCE(Name, ''), id
@@ -815,7 +862,9 @@ function getDatabookView(opportunityId) {
     const companyRow = database
       .prepare(
         `
-        SELECT id, Company_Name, Company_Type, Website, One_Liner, Status
+        SELECT
+          id, Company_Name, Company_Type, Website, One_Liner, Status,
+          Date_of_Incorporation, Amount_Raised_AUMs, Pax, Updates
         FROM Companies
         WHERE id = ?
         LIMIT 1
@@ -868,6 +917,42 @@ function getDatabookView(opportunityId) {
         fieldName: 'Status',
         idColumn: 'id',
       })
+      addField({
+        section: 'Company',
+        label: 'Date of Incorporation',
+        value: companyRow.Date_of_Incorporation,
+        tableName: 'Companies',
+        recordId: companyRow.id,
+        fieldName: 'Date_of_Incorporation',
+        idColumn: 'id',
+      })
+      addField({
+        section: 'Company',
+        label: 'Amount Raised / AUMs',
+        value: companyRow.Amount_Raised_AUMs,
+        tableName: 'Companies',
+        recordId: companyRow.id,
+        fieldName: 'Amount_Raised_AUMs',
+        idColumn: 'id',
+      })
+      addField({
+        section: 'Company',
+        label: 'Pax',
+        value: companyRow.Pax,
+        tableName: 'Companies',
+        recordId: companyRow.id,
+        fieldName: 'Pax',
+        idColumn: 'id',
+      })
+      addField({
+        section: 'Company',
+        label: 'Updates',
+        value: companyRow.Updates,
+        tableName: 'Companies',
+        recordId: companyRow.id,
+        fieldName: 'Updates',
+        idColumn: 'id',
+      })
     }
   }
 
@@ -906,6 +991,96 @@ function getDatabookView(opportunityId) {
       tableName: 'Contacts',
       recordId: primaryContact.id,
       fieldName: 'Role',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'LinkedIn',
+      value: primaryContact.LinkedIn,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'LinkedIn',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Stakeholder Type',
+      value: primaryContact.Stakeholder_type,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Stakeholder_type',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Closeness Level',
+      value: primaryContact.Closeness_Level,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Closeness_Level',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Comment',
+      value: primaryContact.Comment,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Comment',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Expertise',
+      value: primaryContact.Expertise,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Expertise',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Degrees Program',
+      value: primaryContact.Degrees_Program,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Degrees_Program',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'University',
+      value: primaryContact.University,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'University',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Credentials',
+      value: primaryContact.Credentials,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Credentials',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Tenure at Firm (yrs)',
+      value: primaryContact.Tenure_at_Firm_yrs,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Tenure_at_Firm_yrs',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Country Based',
+      value: primaryContact.Country_based,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Country_based',
       idColumn: 'id',
     })
   }
@@ -1228,6 +1403,50 @@ function listArtifacts() {
     ORDER BY a.created_at DESC
   `,
   )
+}
+
+function isPathWithinRoot(rootPath, targetPath) {
+  const root = path.resolve(String(rootPath || ''))
+  const target = path.resolve(String(targetPath || ''))
+  const rel = path.relative(root, target)
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))
+}
+
+async function deleteArtifact(artifactId) {
+  const database = initDb()
+  const id = String(artifactId || '').trim()
+  if (!id) throw new Error('artifactId is required')
+
+  const artifact = database
+    .prepare('SELECT artifact_id, fs_path FROM Artifacts WHERE artifact_id = ? LIMIT 1')
+    .get(id)
+  if (!artifact) return { changes: 0, file_deleted: false, cleanup_warning: null }
+
+  const fsPath = normalizeNullableString(artifact.fs_path)
+  const result = database.prepare('DELETE FROM Artifacts WHERE artifact_id = ?').run(id)
+
+  let fileDeleted = false
+  let cleanupWarning = null
+
+  if (result.changes > 0 && fsPath) {
+    const refs = Number(
+      database.prepare('SELECT COUNT(*) AS c FROM Artifacts WHERE fs_path = ?').get(fsPath)?.c || 0,
+    )
+    if (refs === 0) {
+      try {
+        const workspace = await ensureWorkspace()
+        const candidate = path.resolve(workspace.rootPath, fsPath)
+        if (isPathWithinRoot(workspace.rootPath, candidate)) {
+          await fse.remove(candidate)
+          fileDeleted = true
+        }
+      } catch (e) {
+        cleanupWarning = e?.message || String(e)
+      }
+    }
+  }
+
+  return { changes: result.changes, file_deleted: fileDeleted, cleanup_warning: cleanupWarning }
 }
 
 function deleteRow(tableName, idColumn, idValue) {
@@ -1616,11 +1835,51 @@ function coerceValueForColumn(rawValue, declaredType = '') {
   if (!text.length) return null
   const t = String(declaredType || '').toUpperCase()
   if (/(INT|REAL|FLOA|DOUB|NUM|DEC)/.test(t)) {
-    const n = Number(text)
+    const plainNumericPattern = /^[+-]?(?:\d+|\d*\.\d+)(?:\s*[kKmMbB])?$/
+    const commaNumericPattern = /^[+-]?\d{1,3}(?:,\d{3})+(?:\.\d+)?(?:\s*[kKmMbB])?$/
+    if (!plainNumericPattern.test(text) && !commaNumericPattern.test(text)) {
+      throw new Error(
+        `Invalid number "${text}". Use formats like 1000000, 1,000,000, 1M, 2.5K.`,
+      )
+    }
+    const normalized = text.replaceAll(',', '').replace(/\s+/g, '')
+    const parts = normalized.match(/^([+-]?(?:\d+|\d*\.\d+))([kKmMbB])?$/)
+    if (!parts) {
+      throw new Error(
+        `Invalid number "${text}". Use formats like 1000000, 1,000,000, 1M, 2.5K.`,
+      )
+    }
+    const base = Number(parts[1])
+    const suffix = String(parts[2] || '').toUpperCase()
+    const multiplier = suffix === 'K' ? 1e3 : suffix === 'M' ? 1e6 : suffix === 'B' ? 1e9 : 1
+    const n = base * multiplier
     if (!Number.isFinite(n)) throw new Error(`Expected numeric value, got "${text}"`)
     return n
   }
   return text
+}
+
+function sanitizeDatabookUpdateError(error) {
+  const message = normalizeNullableString(error?.message) || String(error || '')
+  if (!message) return 'Could not save Databook changes. Please try again.'
+  if (message.includes('Invalid number')) return message
+  if (message.includes('Expected numeric value')) {
+    return `${message}. Use formats like 1000000, 1,000,000, 1M, 2.5K.`
+  }
+  if (message.includes('Unknown column') || message.includes('Unknown id_column')) {
+    return 'Could not save because one field no longer matches the current schema. Reload and try again.'
+  }
+  if (message.includes('Missing id_column')) {
+    return 'Could not save because one field is missing its record identifier. Reload and try again.'
+  }
+  if (message.includes('Record not found')) {
+    return 'Could not save because a record no longer exists. Reload and try again.'
+  }
+  if (message.includes('table_name is required')) {
+    return 'Could not save because one field target is missing. Reload and try again.'
+  }
+  if (message.includes('Saving is blocked: set your user label before editing.')) return message
+  return message
 }
 
 function stringifyEventValue(value) {
@@ -1661,14 +1920,31 @@ function getApiSettings(database) {
   }
 }
 
+function getSettingsPayload(database) {
+  const apiSettings = getApiSettings(database)
+  const actor = getAuditActor(database)
+  return {
+    ...apiSettings,
+    auditUserUuid: actor.user_uuid,
+    auditUserLabel: actor.user_label || '',
+  }
+}
+
 function setApiSettings(payload = {}) {
   const database = initDb()
   const openaiApiKey = normalizeNullableString(payload?.openaiApiKey)
   const geminiApiKey = normalizeNullableString(payload?.geminiApiKey)
+  const hasAuditUserLabel = Object.prototype.hasOwnProperty.call(payload || {}, 'auditUserLabel')
+  const auditUserLabel = normalizeNullableString(payload?.auditUserLabel)
 
   setAppSetting(database, APP_SETTING_KEYS.openaiApiKey, openaiApiKey)
   setAppSetting(database, APP_SETTING_KEYS.geminiApiKey, geminiApiKey)
-  return getApiSettings(database)
+  if (hasAuditUserLabel) {
+    if (!auditUserLabel) throw new Error('user_label is required')
+    getAuditActor(database)
+    setAppSetting(database, 'user_label', auditUserLabel)
+  }
+  return getSettingsPayload(database)
 }
 
 function ensureAuditActor(database) {
@@ -1879,14 +2155,204 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotForOpportunit
   return tx()
 }
 
+function hasMeaningfulValue(value) {
+  if (value === null || value === undefined) return false
+  if (typeof value === 'number') return Number.isFinite(value)
+  return String(value).trim().length > 0
+}
+
+function pickMeaningfulFields(source = {}, fields = []) {
+  const out = {}
+  for (const field of fields) {
+    if (!Object.prototype.hasOwnProperty.call(source, field)) continue
+    if (hasMeaningfulValue(source[field])) out[field] = source[field]
+  }
+  return out
+}
+
+function upsertCompanyFromAutofill(database, companyPayload = {}, fallbackCompanyId = null) {
+  const companyFields = pickMeaningfulFields(companyPayload, [
+    'id',
+    'Company_Name',
+    'Company_Type',
+    'One_Liner',
+    'Status',
+    'Date_of_Incorporation',
+    'Amount_Raised_AUMs',
+    'Rounds_Opportunities_Count',
+    'Rounds_Funds_Count',
+    'Pax',
+    'Updates',
+    'Website',
+  ])
+  if (!hasMeaningfulValue(companyFields.Company_Name)) return fallbackCompanyId
+
+  const existing = database
+    .prepare('SELECT id FROM Companies WHERE Company_Name = ? LIMIT 1')
+    .get(normalizeNullableString(companyFields.Company_Name))
+  const id =
+    normalizeNullableString(companyFields.id) || normalizeNullableString(fallbackCompanyId) || existing?.id
+  const result = createCompany({
+    ...companyFields,
+    id,
+    Company_Type: normalizeNullableString(companyFields.Company_Type) || 'Other',
+  })
+  return normalizeNullableString(result?.id) || normalizeNullableString(id)
+}
+
+function createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kind, contactPayload = {}) {
+  const payload = pickMeaningfulFields(contactPayload, [
+    'id',
+    'Name',
+    'Email',
+    'Phone',
+    'LinkedIn',
+    'Role',
+    'Stakeholder_type',
+    'Closeness_Level',
+    'Comment',
+    'Expertise',
+    'Degrees_Program',
+    'University',
+    'Credentials',
+    'Tenure_at_Firm_yrs',
+    'Country_based',
+  ])
+  if (!hasMeaningfulValue(payload.Name) && !hasMeaningfulValue(payload.Email) && !hasMeaningfulValue(payload.Phone)) {
+    return null
+  }
+
+  const email = normalizeNullableString(payload.Email)
+  const existing =
+    email &&
+    database.prepare('SELECT id FROM Contacts WHERE Email = ? ORDER BY updated_at DESC LIMIT 1').get(email)
+
+  let contactId = normalizeNullableString(payload.id) || existing?.id
+  if (!contactId) {
+    contactId = `contact:${crypto.randomUUID()}`
+    database
+      .prepare(
+        `
+        INSERT INTO Contacts (
+          id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
+          Comment, Expertise, Degrees_Program, University, Credentials, Tenure_at_Firm_yrs, Country_based
+        ) VALUES (
+          @id, @Name, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type, @Closeness_Level,
+          @Comment, @Expertise, @Degrees_Program, @University, @Credentials, @Tenure_at_Firm_yrs, @Country_based
+        )
+      `,
+      )
+      .run({
+        id: contactId,
+        Name: normalizeNullableString(payload.Name),
+        Email: normalizeNullableString(payload.Email),
+        Phone: normalizeNullableString(payload.Phone),
+        LinkedIn: normalizeNullableString(payload.LinkedIn),
+        Role: normalizeNullableString(payload.Role),
+        Stakeholder_type: normalizeNullableString(payload.Stakeholder_type),
+        Closeness_Level: normalizeNullableString(payload.Closeness_Level),
+        Comment: normalizeNullableString(payload.Comment),
+        Expertise: normalizeNullableString(payload.Expertise),
+        Degrees_Program: normalizeNullableString(payload.Degrees_Program),
+        University: normalizeNullableString(payload.University),
+        Credentials: normalizeNullableString(payload.Credentials),
+        Tenure_at_Firm_yrs: normalizeNullableNumber(payload.Tenure_at_Firm_yrs),
+        Country_based: normalizeNullableString(payload.Country_based),
+      })
+  } else {
+    database
+      .prepare(
+        `
+        UPDATE Contacts SET
+          Name = COALESCE(@Name, Name),
+          Email = COALESCE(@Email, Email),
+          Phone = COALESCE(@Phone, Phone),
+          LinkedIn = COALESCE(@LinkedIn, LinkedIn),
+          Role = COALESCE(@Role, Role),
+          Stakeholder_type = COALESCE(@Stakeholder_type, Stakeholder_type),
+          Closeness_Level = COALESCE(@Closeness_Level, Closeness_Level),
+          Comment = COALESCE(@Comment, Comment),
+          Expertise = COALESCE(@Expertise, Expertise),
+          Degrees_Program = COALESCE(@Degrees_Program, Degrees_Program),
+          University = COALESCE(@University, University),
+          Credentials = COALESCE(@Credentials, Credentials),
+          Tenure_at_Firm_yrs = COALESCE(@Tenure_at_Firm_yrs, Tenure_at_Firm_yrs),
+          Country_based = COALESCE(@Country_based, Country_based),
+          updated_at = datetime('now')
+        WHERE id = @id
+      `,
+      )
+      .run({
+        id: contactId,
+        Name: normalizeNullableString(payload.Name),
+        Email: normalizeNullableString(payload.Email),
+        Phone: normalizeNullableString(payload.Phone),
+        LinkedIn: normalizeNullableString(payload.LinkedIn),
+        Role: normalizeNullableString(payload.Role),
+        Stakeholder_type: normalizeNullableString(payload.Stakeholder_type),
+        Closeness_Level: normalizeNullableString(payload.Closeness_Level),
+        Comment: normalizeNullableString(payload.Comment),
+        Expertise: normalizeNullableString(payload.Expertise),
+        Degrees_Program: normalizeNullableString(payload.Degrees_Program),
+        University: normalizeNullableString(payload.University),
+        Credentials: normalizeNullableString(payload.Credentials),
+        Tenure_at_Firm_yrs: normalizeNullableNumber(payload.Tenure_at_Firm_yrs),
+        Country_based: normalizeNullableString(payload.Country_based),
+      })
+  }
+
+  const edgeTable =
+    kind === 'fund'
+      ? 'Contacts_Opportunities_captable_individuals_fund'
+      : 'Contacts_Opportunities_captable_individual'
+  database
+    .prepare(`INSERT OR IGNORE INTO ${edgeTable} (from_id, to_id) VALUES (?, ?)`)
+    .run(contactId, opportunityId)
+  return contactId
+}
+
+function createDatabookSnapshotForOpportunity(opportunityId, { source = 'create' } = {}) {
+  const database = initDb()
+  const actor = getAuditActor(database)
+  const snapshotPayload = getDatabookView(opportunityId)
+  snapshotPayload.__meta = {
+    source,
+    created_at: new Date().toISOString(),
+  }
+  const snapshotId = `snapshot:${crypto.randomUUID()}`
+  database
+    .prepare(
+      `
+      INSERT INTO databook_snapshots (
+        id, opportunity_id, payload_json, created_by_uuid, created_by_label, created_at
+      ) VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `,
+    )
+    .run(
+      snapshotId,
+      opportunityId,
+      JSON.stringify(snapshotPayload),
+      actor.user_uuid,
+      actor.user_label || 'Unknown editor',
+    )
+  return snapshotId
+}
+
 function createOpportunity(payload = {}) {
   const database = initDb()
 
-  const companyId = normalizeNullableString(payload.company_id)
+  let companyId = normalizeNullableString(payload.company_id)
+  if (!companyId && payload?.company) {
+    companyId = upsertCompanyFromAutofill(database, payload.company, companyId)
+  } else if (companyId && payload?.company) {
+    upsertCompanyFromAutofill(database, payload.company, companyId)
+  }
   const explicitKind = normalizeOpportunityKind(payload.kind)
   const isAssetManager = companyIsAssetManager(database, companyId)
   const kind = isAssetManager ? 'fund' : explicitKind || 'round'
-  if (!companyId && kind === 'round') throw new Error('company_id is required for round opportunities')
+  if (!companyId && kind === 'round') {
+    throw new Error('company_id is required for round opportunities')
+  }
 
   const opportunityId = normalizeNullableString(payload.id) || `opportunity:${crypto.randomUUID()}`
 
@@ -1954,11 +2420,14 @@ function createOpportunity(payload = {}) {
       `,
       )
       .run(opportunityId)
+
+    createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kind, payload.primary_contact)
   })
 
   insert()
 
-  return { id: opportunityId }
+  const snapshotId = createDatabookSnapshotForOpportunity(opportunityId, { source: 'autofill_create' })
+  return { id: opportunityId, snapshot_id: snapshotId }
 }
 
 function upsertOpportunities(rows = []) {
@@ -2175,11 +2644,20 @@ function registerIpc() {
 
   ipcMain.handle('settings:get', async () => {
     const database = initDb()
-    return getApiSettings(database)
+    return getSettingsPayload(database)
   })
 
   ipcMain.handle('settings:set', async (_event, payload = {}) => {
     return setApiSettings(payload)
+  })
+
+  ipcMain.handle('autofill:previewFromFiles', async (_event, payload = {}) => {
+    const database = initDb()
+    const apiSettings = getApiSettings(database)
+    return previewAutofillFromFiles({
+      filePaths: payload?.filePaths || [],
+      apiKeys: { gemini: apiSettings.geminiApiKey },
+    })
   })
 
   ipcMain.handle('pipelines:list', async () => {
@@ -2265,16 +2743,31 @@ function registerIpc() {
     return getDatabookView(opportunityId)
   })
 
+  ipcMain.handle('databooks:versions', async (_event, { opportunityId } = {}) => {
+    initDb()
+    return { versions: listDatabookVersions(opportunityId) }
+  })
+
+  ipcMain.handle('databooks:viewSnapshot', async (_event, { snapshotId } = {}) => {
+    initDb()
+    return getDatabookSnapshot(snapshotId)
+  })
+
   ipcMain.handle('databooks:update', async (_event, { opportunityId, changes } = {}) => {
     initDb()
-    const oid = normalizeNullableString(opportunityId)
-    if (!oid) throw new Error('opportunityId is required')
-    const result = applyAuditedChanges(changes, {
-      createDatabookSnapshotForOpportunityId: oid,
-    })
-    return {
-      ...result,
-      view: getDatabookView(oid),
+    try {
+      const oid = normalizeNullableString(opportunityId)
+      if (!oid) throw new Error('opportunityId is required')
+      const result = applyAuditedChanges(changes, {
+        createDatabookSnapshotForOpportunityId: oid,
+      })
+      return {
+        ...result,
+        view: getDatabookView(oid),
+      }
+    } catch (e) {
+      console.error('databooks:update failed:', e)
+      throw new Error(sanitizeDatabookUpdateError(e))
     }
   })
 
@@ -2325,7 +2818,7 @@ function registerIpc() {
 
   ipcMain.handle('artifacts:delete', async (_event, { artifactId } = {}) => {
     initDb()
-    return deleteRow('Artifacts', 'artifact_id', String(artifactId || ''))
+    return deleteArtifact(artifactId)
   })
 
   ipcMain.handle('artifacts:ingest', async (event, payload = {}) => {
