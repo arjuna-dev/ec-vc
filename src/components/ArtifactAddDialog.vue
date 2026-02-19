@@ -159,10 +159,11 @@ async function onOpportunityCreated(result) {
 
 function onDrop(e) {
   dragOver.value = false
-  const files = Array.from(e?.dataTransfer?.files || [])
-  if (files.length === 0) return
+  stageDroppedFiles(Array.from(e?.dataTransfer?.files || []))
+}
 
-  const summaries = files.map((f) => {
+function summarizeDroppedFiles(files = []) {
+  return files.map((f) => {
     const p =
       f?.path ||
       bridge.value?.files?.getPathForFile?.(f) ||
@@ -171,13 +172,18 @@ function onDrop(e) {
       null
     return { name: f.name, path: p, size: f.size }
   })
-  droppedFiles.value = summaries
+}
 
+function stageDroppedFiles(files = []) {
+  const normalized = Array.from(files || [])
+  if (normalized.length === 0) return
+  const summaries = summarizeDroppedFiles(normalized)
+  step.value = 1
+  droppedFiles.value = summaries
   $q.notify({
     type: 'info',
     message: 'Files staged. Select an opportunity, then click Finish to start processing.',
   })
-
   if (summaries.some((s) => !s.path)) {
     $q.notify({
       type: 'negative',
@@ -238,5 +244,9 @@ onMounted(() => {
 onBeforeUnmount(() => {
   offIngestStatus?.()
   offIngestStatus = null
+})
+
+defineExpose({
+  stageDroppedFiles,
 })
 </script>

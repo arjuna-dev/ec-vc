@@ -127,18 +127,26 @@
     <div class="ec-quick-widget" :style="quickWidgetStyle">
       <q-btn
         v-for="(action, index) in quickWidgetActions"
-        :key="action.label"
+        :key="action.id"
         round
         dense
         unelevated
         class="ec-quick-widget-action"
+        :class="{ 'ec-quick-widget-action--artifact-dragover': isArtifactAction(action) && artifactQuickDropActive }"
         :icon="action.icon"
         :aria-label="action.label"
         :style="quickWidgetActionStyle(index)"
         @click.stop="action.onClick"
+        @dragenter.prevent="onQuickActionDragEnter($event, action)"
+        @dragover.prevent="onQuickActionDragOver($event, action)"
+        @dragleave.prevent="onQuickActionDragLeave($event, action)"
+        @drop.prevent="onQuickActionDrop($event, action)"
       >
         <q-tooltip anchor="center left" self="center right">{{ action.label }}</q-tooltip>
       </q-btn>
+      <div v-if="artifactQuickDropActive" class="ec-quick-widget-dropbox">
+        Drop files to add artifact
+      </div>
 
       <q-btn
         round
@@ -157,12 +165,12 @@
     </div>
 
     <OpportunityCreateDialog v-model="opportunityDialogOpen" />
-    <ArtifactAddDialog v-model="artifactDialogOpen" />
+    <ArtifactAddDialog ref="artifactDialogRef" v-model="artifactDialogOpen" />
   </q-layout>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import lottie from 'lottie-web'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
@@ -184,6 +192,9 @@ const quickWidgetIconContainer = ref(null)
 const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
+const artifactDialogRef = ref(null)
+const artifactQuickDropActive = ref(false)
+const artifactQuickDropDepth = ref(0)
 
 const QUICK_WIDGET_TRIGGER_SIZE = 112
 const QUICK_WIDGET_ACTION_RADIUS = 96
@@ -203,26 +214,31 @@ const quickWidgetStyle = computed(() => ({
 
 const quickWidgetActions = computed(() => [
   {
+    id: 'artifact',
     label: 'Add new artifact',
     icon: 'attach_file',
     onClick: openArtifactFromQuickAction,
   },
   {
+    id: 'opportunity',
     label: 'Create new opportunity',
     icon: 'work',
     onClick: openOpportunityFromQuickAction,
   },
   {
+    id: 'pipeline',
     label: 'New pipeline',
     icon: 'schema',
     onClick: openPipelineFromQuickAction,
   },
   {
+    id: 'company',
     label: 'New company',
     icon: 'apartment',
     onClick: openCompanyFromQuickAction,
   },
   {
+    id: 'contact',
     label: 'New contact',
     icon: 'people',
     onClick: openContactFromQuickAction,
@@ -239,6 +255,51 @@ function openOpportunityDialog() {
 
 function openArtifactDialog() {
   artifactDialogOpen.value = true
+}
+
+function hasFilesInDragEvent(evt) {
+  const types = Array.from(evt?.dataTransfer?.types || [])
+  return types.includes('Files')
+}
+
+function isArtifactAction(action) {
+  return action?.id === 'artifact'
+}
+
+function onQuickActionDragEnter(evt, action) {
+  if (!isArtifactAction(action)) return
+  if (!hasFilesInDragEvent(evt)) return
+  artifactQuickDropDepth.value += 1
+  artifactQuickDropActive.value = true
+}
+
+function onQuickActionDragOver(evt, action) {
+  if (!isArtifactAction(action)) return
+  if (!hasFilesInDragEvent(evt)) return
+  artifactQuickDropActive.value = true
+  if (evt?.dataTransfer) evt.dataTransfer.dropEffect = 'copy'
+}
+
+function onQuickActionDragLeave(evt, action) {
+  if (!isArtifactAction(action)) return
+  artifactQuickDropDepth.value = Math.max(0, artifactQuickDropDepth.value - 1)
+  if (artifactQuickDropDepth.value === 0) artifactQuickDropActive.value = false
+}
+
+async function openArtifactDialogWithFiles(files = []) {
+  closeQuickActions()
+  artifactDialogOpen.value = true
+  await nextTick()
+  artifactDialogRef.value?.stageDroppedFiles?.(files)
+}
+
+async function onQuickActionDrop(evt, action) {
+  if (!isArtifactAction(action)) return
+  artifactQuickDropDepth.value = 0
+  artifactQuickDropActive.value = false
+  const files = Array.from(evt?.dataTransfer?.files || [])
+  if (files.length === 0) return
+  await openArtifactDialogWithFiles(files)
 }
 
 function clampQuickWidgetPosition(x, y) {
@@ -433,8 +494,7 @@ async function openContactFromQuickAction() {
 }
 
 function openArtifactFromQuickAction() {
-  closeQuickActions()
-  openArtifactDialog()
+  openArtifactDialogWithFiles([])
 }
 
 function isActiveOpportunity(row) {
@@ -569,6 +629,8 @@ onBeforeUnmount(() => {
   logoAnimation = null
   quickWidgetIconAnimation = null
   quickWidgetDragState = null
+  artifactQuickDropActive.value = false
+  artifactQuickDropDepth.value = 0
 })
 </script>
 
@@ -659,6 +721,29 @@ onBeforeUnmount(() => {
 .ec-quick-widget-action:hover :deep(.q-btn__content),
 .ec-quick-widget-action:focus-visible :deep(.q-btn__content) {
   transform: scale(1.12);
+}
+
+.ec-quick-widget-action--artifact-dragover {
+  border: 2px dashed #ffffff;
+  background: var(--q-primary, #1976d2) !important;
+}
+
+.ec-quick-widget-dropbox {
+  position: absolute;
+  left: 50%;
+  top: -36px;
+  transform: translateX(-50%);
+  min-width: 190px;
+  padding: 8px 10px;
+  border: 2px dashed var(--q-primary, #1976d2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.98);
+  color: #263238;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+  pointer-events: none;
 }
 
 .ec-quick-widget-icon {
