@@ -57,6 +57,30 @@
   --border: 214 32% 91%;
   --input: 214 32% 91%;
   --ec-shell-header-height: 60px;
+  --b10-color-bg-brand-default: #2c2c2c;
+  --b10-color-bg-brand-hover: #1e1e1e;
+  --b10-color-bg-neutral-tertiary: #e3e3e3;
+  --b10-color-bg-neutral-tertiary-hover: #cdcdcd;
+  --b10-color-bg-default-secondary: #f5f5f5;
+  --b10-color-bg-default-secondary-hover: #e0dcdc;
+  --b10-color-bg-default-default-hover: #f5f5f5;
+  --b10-color-bg-danger-default: #ff5521;
+  --b10-color-bg-danger-hover: #e75022;
+  --b10-color-bg-danger-tertiary-hover: #ffe0d6;
+  --b10-color-bg-disabled-default: #d9d9d9;
+  --b10-color-border-brand-default: #2c2c2c;
+  --b10-color-border-neutral-secondary: #767676;
+  --b10-color-border-default: #d9d9d9;
+  --b10-color-border-danger-secondary: #e75022;
+  --b10-color-border-danger-default: #9d300f;
+  --b10-color-border-disabled-default: #b3b3b3;
+  --b10-color-text-brand-on-brand: #f5f5f5;
+  --b10-color-text-default: #1d1d1d;
+  --b10-color-text-neutral-default: #303030;
+  --b10-color-text-danger-default: #9d300f;
+  --b10-color-text-danger-on-danger: #fff1ed;
+  --b10-color-text-disabled-on-disabled: #b3b3b3;
+  --b10-radius-md: 8px;
 }
 
 body {
@@ -181,6 +205,24 @@ b,
   letter-spacing: 0;
 }
 
+.q-btn:not(.q-btn--round):not(.b10-icon-btn) {
+  border-radius: var(--b10-radius-md);
+}
+
+.q-field--outlined .q-field__control,
+.q-field--filled .q-field__control,
+.q-field--borderless .q-field__control {
+  border-radius: var(--b10-radius-md);
+}
+
+.q-card,
+.q-banner,
+.q-menu,
+.q-table__container,
+.q-dialog__inner > div {
+  border-radius: var(--b10-radius-md);
+}
+
 .q-header {
   background: #ffffff !important;
   border-bottom: 1px solid #e5e7eb;
@@ -225,16 +267,6 @@ b,
   font-weight: 900;
   line-height: var(--lh-title);
   letter-spacing: -1px;
-}
-
-.ec-shell-toolbar-label {
-  color: #0f172a;
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  line-height: var(--lh-single-line);
-  text-transform: uppercase;
 }
 
 .ec-shell-version {

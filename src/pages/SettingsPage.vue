@@ -39,12 +39,12 @@
               :disable="loading || saving"
             >
               <template #append>
-                <q-btn
-                  flat
-                  dense
-                  round
+                <B10IconButton
+                  variant="subtle"
+                  size="small"
                   :icon="showOpenaiApiKey ? 'visibility_off' : 'visibility'"
                   :disable="loading || saving"
+                  :aria-label="showOpenaiApiKey ? 'Hide OpenAI API key' : 'Show OpenAI API key'"
                   @click="showOpenaiApiKey = !showOpenaiApiKey"
                 />
               </template>
@@ -60,12 +60,12 @@
               :disable="loading || saving"
             >
               <template #append>
-                <q-btn
-                  flat
-                  dense
-                  round
+                <B10IconButton
+                  variant="subtle"
+                  size="small"
                   :icon="showGeminiApiKey ? 'visibility_off' : 'visibility'"
                   :disable="loading || saving"
+                  :aria-label="showGeminiApiKey ? 'Hide Gemini API key' : 'Show Gemini API key'"
                   @click="showGeminiApiKey = !showGeminiApiKey"
                 />
               </template>
@@ -75,17 +75,17 @@
           <q-separator />
 
           <q-card-actions align="right">
-            <q-btn
-              flat
-              icon="refresh"
+            <B10Button
+              variant="subtle"
+              icon-start="refresh"
               label="Reload"
               :disable="saving"
               :loading="loading"
               @click="loadSettings"
             />
-            <q-btn
-              color="primary"
-              icon="save"
+            <B10Button
+              variant="primary"
+              icon-start="save"
               label="Save"
               :loading="saving"
               :disable="loading"
@@ -101,6 +101,8 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
+import B10Button from 'src/components/buttons/B10Button.vue'
+import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 
 const $q = useQuasar()
 

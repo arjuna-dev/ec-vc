@@ -11,7 +11,6 @@
             class="ec-shell-toolbar-lottie"
             :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
           />
-          <span class="ec-shell-toolbar-label">Workspace</span>
         </q-toolbar-title>
 
         <div class="ec-shell-version">Quasar v{{ $q.version }}</div>
@@ -85,7 +84,6 @@
               <q-item-label>Contacts</q-item-label>
             </q-item-section>
           </q-item>
-
           <q-expansion-item
             class="ec-nav-item"
             icon="menu_book"
@@ -123,8 +121,18 @@
     </q-page-container>
 
     <div class="fixed-bottom-right q-pa-md column q-gutter-sm" style="z-index: 2000">
-      <q-btn color="primary" label="Create new opportunity" @click="opportunityDialogOpen = true" />
-      <q-btn color="secondary" label="Add new artifact" @click="artifactDialogOpen = true" />
+      <B10Button
+        label="Create new opportunity"
+        variant="primary"
+        size="medium"
+        @click="opportunityDialogOpen = true"
+      />
+      <B10Button
+        label="Add new artifact"
+        variant="neutral"
+        size="medium"
+        @click="artifactDialogOpen = true"
+      />
     </div>
 
     <OpportunityCreateDialog v-model="opportunityDialogOpen" />
@@ -139,6 +147,7 @@ import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import OpportunityCreateDialog from 'components/OpportunityCreateDialog.vue'
+import B10Button from 'src/components/buttons/B10Button.vue'
 
 const leftDrawerOpen = ref(false)
 const opportunityDialogOpen = ref(false)
