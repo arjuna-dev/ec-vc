@@ -153,11 +153,6 @@
           ref="quickWidgetIconContainer"
           class="ec-quick-widget-icon ec-quick-widget-icon--spin"
         />
-        <div
-          class="ec-quick-widget-plus-overlay"
-          :class="{ 'ec-quick-widget-plus-overlay--visible': !quickActionsOpen }"
-          aria-hidden="true"
-        />
       </q-btn>
     </div>
 
@@ -356,14 +351,18 @@ function quickWidgetActionStyle(index) {
   const offsetY = Math.sin(angleRad) * QUICK_WIDGET_ACTION_RADIUS
   if (!quickActionsOpen.value) {
     return {
-      transform: 'translate(-50%, -50%) scale(0.2)',
+      '--ec-quick-action-x': '0px',
+      '--ec-quick-action-y': '0px',
+      '--ec-quick-action-open-scale': '0.2',
       opacity: '0',
       pointerEvents: 'none',
       transitionDelay: '0ms',
     }
   }
   return {
-    transform: `translate(calc(-50% + ${offsetX.toFixed(2)}px), calc(-50% + ${offsetY.toFixed(2)}px)) scale(1)`,
+    '--ec-quick-action-x': `${offsetX.toFixed(2)}px`,
+    '--ec-quick-action-y': `${offsetY.toFixed(2)}px`,
+    '--ec-quick-action-open-scale': '1',
     opacity: '1',
     pointerEvents: 'auto',
     transitionDelay: `${index * 28}ms`,
@@ -617,6 +616,10 @@ onBeforeUnmount(() => {
 }
 
 .ec-quick-widget-action {
+  --ec-quick-action-x: 0px;
+  --ec-quick-action-y: 0px;
+  --ec-quick-action-open-scale: 0.2;
+  --ec-quick-action-hover-scale: 1;
   position: absolute;
   left: 50%;
   top: 50%;
@@ -627,6 +630,12 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   background: #1b1b1d !important;
   color: #ffffff !important;
+  transform: translate(
+      calc(-50% + var(--ec-quick-action-x)),
+      calc(-50% + var(--ec-quick-action-y))
+    )
+    scale(var(--ec-quick-action-open-scale))
+    scale(var(--ec-quick-action-hover-scale));
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   transition:
     transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -635,6 +644,21 @@ onBeforeUnmount(() => {
 
 .ec-quick-widget-action :deep(.q-icon) {
   font-size: 20px;
+}
+
+.ec-quick-widget-action :deep(.q-btn__content) {
+  transition: transform 0.16s ease;
+}
+
+.ec-quick-widget-action:hover,
+.ec-quick-widget-action:focus-visible {
+  --ec-quick-action-hover-scale: 1.08;
+  transition-delay: 80ms;
+}
+
+.ec-quick-widget-action:hover :deep(.q-btn__content),
+.ec-quick-widget-action:focus-visible :deep(.q-btn__content) {
+  transform: scale(1.12);
 }
 
 .ec-quick-widget-icon {
@@ -648,35 +672,6 @@ onBeforeUnmount(() => {
 .ec-quick-widget-icon--spin {
   animation: ec-quick-widget-home-spin 14s linear infinite;
   will-change: transform;
-}
-
-.ec-quick-widget-plus-overlay {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.14s ease;
-}
-
-.ec-quick-widget-plus-overlay--visible {
-  opacity: 1;
-}
-
-.ec-quick-widget-plus-overlay::before,
-.ec-quick-widget-plus-overlay::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 42px;
-  height: 9px;
-  border-radius: 999px;
-  background: #f7f7f7;
-  transform: translate(-50%, -50%);
-}
-
-.ec-quick-widget-plus-overlay::after {
-  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 .ec-quick-widget-icon :deep(svg) {
