@@ -636,6 +636,10 @@ onBeforeUnmount(() => {
   transform: none;
 }
 
+.ec-quick-widget-trigger :deep(.q-focus-helper) {
+  opacity: 0 !important;
+}
+
 .ec-quick-widget-action {
   position: absolute;
   left: 50%;
