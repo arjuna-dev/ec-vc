@@ -1,5 +1,185 @@
 // app global css in SCSS form
 
+@font-face {
+  font-family: 'Neue Machina';
+  src: url('/fonts/neue-machina-regular.otf') format('opentype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neue Machina';
+  src: url('/fonts/neue-machina-ultrabold.otf') format('opentype');
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-light-disp.otf') format('opentype');
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-black-disp.otf') format('opentype');
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-oblique-disp.otf') format('opentype');
+  font-style: oblique;
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  --font-title: 'Neue Machina', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-body: 'Sequel Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-code: 'Roboto', 'JetBrains Mono', 'SFMono-Regular', Menlo, monospace;
+  --lh-title: 1.2;
+  --lh-body: 1.4;
+  --lh-single-line: 1;
+  --lh-code: 1.3;
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+}
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: var(--lh-body);
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: var(--font-code);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: var(--lh-code);
+  letter-spacing: 0;
+}
+
+a {
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-skip-ink: none;
+}
+
+em,
+.text-italic {
+  font-family: var(--font-body);
+  font-style: oblique;
+  font-weight: 400;
+}
+
+.q-layout,
+.q-page-container {
+  background: transparent;
+}
+
+strong,
+b,
+.text-strong {
+  font-family: var(--font-body);
+  font-weight: 900;
+}
+
+.text-h1 {
+  font-family: var(--font-title);
+  font-size: 72px;
+  font-weight: 900;
+  line-height: var(--lh-title);
+  letter-spacing: -3px;
+}
+
+.text-h2 {
+  font-family: var(--font-title);
+  font-size: 48px;
+  font-weight: 900;
+  line-height: var(--lh-title);
+  letter-spacing: -2px;
+}
+
+.text-h3 {
+  font-family: var(--font-title);
+  font-size: 32px;
+  font-weight: 400;
+  line-height: var(--lh-title);
+  letter-spacing: 0;
+}
+
+.text-h4,
+.text-h6 {
+  font-family: var(--font-body);
+  font-size: 24px;
+  font-weight: 900;
+  line-height: var(--lh-title);
+  letter-spacing: -2px;
+}
+
+.text-h5,
+.text-subtitle1 {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 300;
+  line-height: var(--lh-title);
+  letter-spacing: 0;
+}
+
+.text-subtitle2 {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: var(--lh-body);
+  letter-spacing: 0;
+}
+
+.text-body1 {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: var(--lh-body);
+  letter-spacing: 0;
+}
+
+.text-body2,
+.text-caption {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: var(--lh-body);
+  letter-spacing: 0;
+}
+
+.q-field__native,
+.q-field__input {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: var(--lh-single-line);
+  letter-spacing: 0;
+}
+
 .q-header {
   background: #ffffff !important;
   border-bottom: 1px solid #e5e7eb;
@@ -33,14 +213,19 @@
 }
 
 .ec-shell-toolbar-fallback {
+  font-family: var(--font-body);
   font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
+  font-weight: 900;
+  line-height: var(--lh-title);
+  letter-spacing: -1px;
 }
 
 .ec-shell-version {
   color: #64748b;
+  font-family: var(--font-body);
   font-size: 14px;
+  font-weight: 300;
+  line-height: var(--lh-body);
 }
 
 body.body--light .q-drawer.q-drawer--left,
@@ -61,10 +246,43 @@ body.body--light .q-drawer.q-drawer--left .q-item__label--caption {
 
 .ec-nav-label {
   color: #64748b;
-  font-size: 13px;
-  font-weight: 700;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: var(--lh-single-line);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.ec-drawer-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ec-drawer-menu {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ec-drawer-footer {
+  border-top: 1px solid rgb(255 241 237 / 0.35);
+  flex: 0 0 auto;
+  padding: 10px;
+}
+
+.ec-drawer-footer-lottie {
+  display: block;
+  height: 132px;
+  width: 100%;
+}
+
+.ec-drawer-footer-lottie svg {
+  display: block;
+  height: 100%;
+  width: 100%;
 }
 
 .ec-nav-item {
@@ -91,5 +309,5 @@ body.body--light .q-drawer.q-drawer--left .q-separator {
 }
 
 .page-title-section .text-h6 {
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
