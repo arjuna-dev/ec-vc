@@ -127,20 +127,44 @@
       <router-view />
     </q-page-container>
 
-    <div class="fixed-bottom-right q-pa-md column q-gutter-sm" style="z-index: 2000">
-      <B10Button
+    <q-fab
+      v-model="quickActionsOpen"
+      class="fixed-bottom-right q-ma-md ec-quick-fab"
+      direction="up"
+      color="transparent"
+      text-color="white"
+      icon="none"
+      active-icon="none"
+      unelevated
+      aria-label="Quick actions"
+      @show="handleQuickFabShow"
+      @hide="handleQuickFabHide"
+    >
+      <template #icon>
+        <div ref="quickFabIconClosedContainer" class="ec-quick-fab-icon" />
+      </template>
+      <template #active-icon>
+        <div ref="quickFabIconOpenContainer" class="ec-quick-fab-icon" />
+      </template>
+      <q-fab-action
+        icon="work"
+        color="primary"
+        text-color="white"
         label="Create new opportunity"
-        variant="primary"
-        size="medium"
-        @click="opportunityDialogOpen = true"
+        label-position="left"
+        external-label
+        @click="openOpportunityFromQuickAction"
       />
-      <B10Button
+      <q-fab-action
+        icon="attach_file"
+        color="secondary"
+        text-color="white"
         label="Add new artifact"
-        variant="neutral"
-        size="medium"
-        @click="artifactDialogOpen = true"
+        label-position="left"
+        external-label
+        @click="openArtifactFromQuickAction"
       />
-    </div>
+    </q-fab>
 
     <OpportunityCreateDialog v-model="opportunityDialogOpen" />
     <ArtifactAddDialog v-model="artifactDialogOpen" />
@@ -151,22 +175,29 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import lottie from 'lottie-web'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
+import widgetBackTransitionAnimationData from 'src/assets/lottie/widget-back-transition.json'
+import widgetHomeStaticAnimationData from 'src/assets/lottie/widget-home-static.json'
+import widgetToTransitionAnimationData from 'src/assets/lottie/widget-to-transition.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import OpportunityCreateDialog from 'components/OpportunityCreateDialog.vue'
-import B10Button from 'src/components/buttons/B10Button.vue'
 
 const leftDrawerOpen = ref(false)
+const quickActionsOpen = ref(false)
 const opportunityDialogOpen = ref(false)
 const artifactDialogOpen = ref(false)
 const databooks = ref([])
 const logoContainer = ref(null)
 const logoReady = ref(false)
 const drawerAnimationContainer = ref(null)
+const quickFabIconClosedContainer = ref(null)
+const quickFabIconOpenContainer = ref(null)
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 let logoAnimation = null
 let drawerAnimation = null
+let quickFabClosedIconAnimation = null
+let quickFabOpenIconAnimation = null
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -178,6 +209,16 @@ function openOpportunityDialog() {
 
 function openArtifactDialog() {
   artifactDialogOpen.value = true
+}
+
+function openOpportunityFromQuickAction() {
+  quickActionsOpen.value = false
+  openOpportunityDialog()
+}
+
+function openArtifactFromQuickAction() {
+  quickActionsOpen.value = false
+  openArtifactDialog()
 }
 
 function isActiveOpportunity(row) {
@@ -243,6 +284,81 @@ function initDrawerAnimation() {
   })
 }
 
+function loadQuickFabAnimation(
+  container,
+  animationData,
+  { loop = false, autoplay = false, stopAtStart = false, onComplete } = {}
+) {
+  if (!container) return null
+  const animation = lottie.loadAnimation({
+    container,
+    renderer: 'svg',
+    loop,
+    autoplay,
+    animationData,
+    rendererSettings: {
+      preserveAspectRatio: 'xMidYMid slice',
+    },
+  })
+  if (stopAtStart) {
+    animation.addEventListener('DOMLoaded', () => {
+      animation.goToAndStop(0, true)
+    })
+  }
+  if (onComplete) {
+    animation.addEventListener('complete', onComplete)
+  }
+  return animation
+}
+
+function initStaticQuickFabIcon(container) {
+  return loadQuickFabAnimation(container, widgetHomeStaticAnimationData, { stopAtStart: true })
+}
+
+function resetQuickFabClosedToHome() {
+  quickFabClosedIconAnimation?.destroy()
+  quickFabClosedIconAnimation = initStaticQuickFabIcon(quickFabIconClosedContainer.value)
+}
+
+function initQuickFabIcons() {
+  resetQuickFabClosedToHome()
+  quickFabOpenIconAnimation?.destroy()
+  quickFabOpenIconAnimation = initStaticQuickFabIcon(quickFabIconOpenContainer.value)
+}
+
+function handleQuickFabShow() {
+  quickFabClosedIconAnimation?.destroy()
+  quickFabClosedIconAnimation = null
+  nextTick(() => {
+    quickFabOpenIconAnimation?.destroy()
+    quickFabOpenIconAnimation = loadQuickFabAnimation(
+      quickFabIconOpenContainer.value,
+      widgetToTransitionAnimationData,
+      { autoplay: true }
+    )
+  })
+}
+
+function handleQuickFabHide() {
+  quickFabOpenIconAnimation?.destroy()
+  quickFabOpenIconAnimation = null
+  nextTick(() => {
+    quickFabClosedIconAnimation?.destroy()
+    quickFabClosedIconAnimation = loadQuickFabAnimation(
+      quickFabIconClosedContainer.value,
+      widgetBackTransitionAnimationData,
+      {
+        autoplay: true,
+        onComplete: () => {
+          if (!quickActionsOpen.value) {
+            resetQuickFabClosedToHome()
+          }
+        },
+      }
+    )
+  })
+}
+
 onMounted(() => {
   window.addEventListener('ecvc:open-opportunity-dialog', openOpportunityDialog)
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
@@ -251,6 +367,7 @@ onMounted(() => {
   initLogoAnimation()
   nextTick(() => {
     initDrawerAnimation()
+    initQuickFabIcons()
   })
 })
 
@@ -266,7 +383,45 @@ onBeforeUnmount(() => {
   window.removeEventListener('ecvc:opportunities-changed', loadDatabooks)
   logoAnimation?.destroy()
   drawerAnimation?.destroy()
+  quickFabClosedIconAnimation?.destroy()
+  quickFabOpenIconAnimation?.destroy()
   logoAnimation = null
   drawerAnimation = null
+  quickFabClosedIconAnimation = null
+  quickFabOpenIconAnimation = null
 })
 </script>
+
+<style scoped>
+.ec-quick-fab {
+  z-index: 2000;
+  --ec-quick-fab-size: 112px;
+}
+
+.ec-quick-fab :deep(.q-btn) {
+  width: var(--ec-quick-fab-size);
+  height: var(--ec-quick-fab-size);
+  min-width: var(--ec-quick-fab-size);
+  min-height: var(--ec-quick-fab-size);
+  padding: 0;
+  border-radius: 50%;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.ec-quick-fab :deep(.q-fab__icon-holder) {
+  min-width: var(--ec-quick-fab-size);
+  min-height: var(--ec-quick-fab-size);
+}
+
+.ec-quick-fab-icon {
+  width: var(--ec-quick-fab-size);
+  height: var(--ec-quick-fab-size);
+}
+
+.ec-quick-fab-icon :deep(svg) {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+</style>
