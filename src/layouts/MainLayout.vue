@@ -1,7 +1,7 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
-      <q-toolbar class="q-px-md">
+    <q-header :height-hint="60">
+      <q-toolbar class="q-px-md ec-shell-toolbar">
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
         <q-toolbar-title class="ec-shell-toolbar-title">
@@ -11,6 +11,7 @@
             class="ec-shell-toolbar-lottie"
             :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
           />
+          <span class="ec-shell-toolbar-label">Workspace</span>
         </q-toolbar-title>
 
         <div class="ec-shell-version">Quasar v{{ $q.version }}</div>
@@ -20,9 +21,7 @@
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="264">
       <div class="ec-drawer-content">
         <q-list class="ec-drawer-menu">
-          <q-item-label header class="ec-nav-label">Workspace</q-item-label>
-
-          <q-item clickable to="/settings" class="ec-nav-item">
+          <q-item clickable to="/settings" class="ec-nav-item ec-nav-item--settings">
             <q-item-section avatar>
               <q-icon name="settings" />
             </q-item-section>
@@ -31,7 +30,7 @@
             </q-item-section>
           </q-item>
 
-          <q-separator spaced />
+          <q-separator class="ec-drawer-head-separator" />
 
           <q-item clickable to="/" exact class="ec-nav-item">
             <q-item-section avatar>
@@ -134,7 +133,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import lottie from 'lottie-web'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 
@@ -234,6 +233,14 @@ onMounted(() => {
   window.addEventListener('ecvc:opportunities-changed', loadDatabooks)
   loadDatabooks()
   initLogoAnimation()
+  nextTick(() => {
+    initDrawerAnimation()
+  })
+})
+
+watch(leftDrawerOpen, async (isOpen) => {
+  if (!isOpen) return
+  await nextTick()
   initDrawerAnimation()
 })
 

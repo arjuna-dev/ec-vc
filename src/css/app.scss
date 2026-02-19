@@ -56,6 +56,7 @@
   --muted-foreground: 215 16% 47%;
   --border: 214 32% 91%;
   --input: 214 32% 91%;
+  --ec-shell-header-height: 60px;
 }
 
 body {
@@ -190,9 +191,15 @@ b,
   background: #ffffff;
 }
 
+.q-header .q-toolbar.ec-shell-toolbar {
+  height: var(--ec-shell-header-height);
+  min-height: var(--ec-shell-header-height);
+}
+
 .ec-shell-toolbar-title {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
 .ec-shell-toolbar-lottie {
@@ -218,6 +225,16 @@ b,
   font-weight: 900;
   line-height: var(--lh-title);
   letter-spacing: -1px;
+}
+
+.ec-shell-toolbar-label {
+  color: #0f172a;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: var(--lh-single-line);
+  text-transform: uppercase;
 }
 
 .ec-shell-version {
@@ -267,6 +284,16 @@ body.body--light .q-drawer.q-drawer--left .q-item__label--caption {
   overflow-y: auto;
 }
 
+.ec-drawer-head-separator {
+  margin: 0 !important;
+}
+
+body.body--light .q-drawer.q-drawer--left .ec-nav-item.ec-nav-item--settings:hover,
+body.body--light .q-drawer.q-drawer--left .ec-nav-item.ec-nav-item--settings.q-router-link--active,
+body.body--light .q-drawer.q-drawer--left .ec-nav-item.ec-nav-item--settings.ec-nav-item--selected {
+  background: #ff5521;
+}
+
 .ec-drawer-footer {
   border-top: 1px solid rgb(255 241 237 / 0.35);
   flex: 0 0 auto;
@@ -288,6 +315,13 @@ body.body--light .q-drawer.q-drawer--left .q-item__label--caption {
 .ec-nav-item {
   border-radius: 8px;
   margin: 0 8px 4px;
+}
+
+.ec-nav-item.ec-nav-item--settings {
+  background: #ff5521;
+  border-radius: 0;
+  margin: 0;
+  min-height: calc(var(--ec-shell-header-height) - 1px);
 }
 
 body.body--light .q-drawer.q-drawer--left .ec-nav-item:hover {
