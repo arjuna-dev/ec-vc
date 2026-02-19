@@ -165,6 +165,24 @@
         @click="openPipelineFromQuickAction"
       />
       <q-fab-action
+        icon="apartment"
+        color="indigo"
+        text-color="white"
+        label="New company"
+        label-position="left"
+        external-label
+        @click="openCompanyFromQuickAction"
+      />
+      <q-fab-action
+        icon="people"
+        color="teal"
+        text-color="white"
+        label="New contact"
+        label-position="left"
+        external-label
+        @click="openContactFromQuickAction"
+      />
+      <q-fab-action
         icon="attach_file"
         color="secondary"
         text-color="white"
@@ -236,6 +254,32 @@ async function openPipelineFromQuickAction() {
     globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
     setTimeout(() => {
       globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
+    }, 80)
+  }
+}
+
+async function openCompanyFromQuickAction() {
+  quickActionsOpen.value = false
+  globalThis.__ecvcOpenCompanyDialog = true
+  try {
+    await router.push({ name: 'companies', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-company-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-company-dialog'))
+    }, 80)
+  }
+}
+
+async function openContactFromQuickAction() {
+  quickActionsOpen.value = false
+  globalThis.__ecvcOpenContactDialog = true
+  try {
+    await router.push({ name: 'contacts', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-contact-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-contact-dialog'))
     }, 80)
   }
 }

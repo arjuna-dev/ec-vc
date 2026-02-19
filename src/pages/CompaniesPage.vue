@@ -77,7 +77,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
@@ -102,9 +103,33 @@ const error = ref('')
 const companyDialogOpen = ref(false)
 
 const $q = useQuasar()
+const route = useRoute()
+const router = useRouter()
 
 function openCreateCompany() {
   companyDialogOpen.value = true
+}
+
+function onOpenCompanyDialog() {
+  globalThis.__ecvcOpenCompanyDialog = false
+  openCreateCompany()
+}
+
+function openCreateCompanyFromQuery() {
+  if (String(route.query.create || '') !== '1') return
+  openCreateCompany()
+  globalThis.__ecvcOpenCompanyDialog = false
+
+  const nextQuery = { ...route.query }
+  delete nextQuery.create
+  router.replace({ query: nextQuery })
+}
+
+function consumeQueuedCompanyDialogOpen() {
+  if (globalThis.__ecvcOpenCompanyDialog !== true) return false
+  globalThis.__ecvcOpenCompanyDialog = false
+  openCreateCompany()
+  return true
 }
 
 const columns = [
@@ -175,8 +200,22 @@ async function confirmDelete(row) {
     })
 }
 
-onMounted(() => {
+onMounted(async () => {
+  window.addEventListener('ecvc:open-company-dialog', onOpenCompanyDialog)
   if (!hasBridge.value) return
-  loadCompanies()
+  await loadCompanies()
+  consumeQueuedCompanyDialogOpen()
+  openCreateCompanyFromQuery()
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('ecvc:open-company-dialog', onOpenCompanyDialog)
+})
+
+watch(
+  () => route.query.create,
+  () => {
+    openCreateCompanyFromQuery()
+  },
+)
 </script>

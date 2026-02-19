@@ -77,7 +77,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import ContactCreateDialog from 'components/ContactCreateDialog.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
@@ -102,9 +103,33 @@ const error = ref('')
 const contactDialogOpen = ref(false)
 
 const $q = useQuasar()
+const route = useRoute()
+const router = useRouter()
 
 function openCreateContact() {
   contactDialogOpen.value = true
+}
+
+function onOpenContactDialog() {
+  globalThis.__ecvcOpenContactDialog = false
+  openCreateContact()
+}
+
+function openCreateContactFromQuery() {
+  if (String(route.query.create || '') !== '1') return
+  openCreateContact()
+  globalThis.__ecvcOpenContactDialog = false
+
+  const nextQuery = { ...route.query }
+  delete nextQuery.create
+  router.replace({ query: nextQuery })
+}
+
+function consumeQueuedContactDialogOpen() {
+  if (globalThis.__ecvcOpenContactDialog !== true) return false
+  globalThis.__ecvcOpenContactDialog = false
+  openCreateContact()
+  return true
 }
 
 const columns = [
@@ -168,8 +193,22 @@ async function confirmDelete(row) {
     })
 }
 
-onMounted(() => {
+onMounted(async () => {
+  window.addEventListener('ecvc:open-contact-dialog', onOpenContactDialog)
   if (!hasBridge.value) return
-  loadContacts()
+  await loadContacts()
+  consumeQueuedContactDialogOpen()
+  openCreateContactFromQuery()
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('ecvc:open-contact-dialog', onOpenContactDialog)
+})
+
+watch(
+  () => route.query.create,
+  () => {
+    openCreateContactFromQuery()
+  },
+)
 </script>
