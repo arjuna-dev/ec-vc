@@ -516,7 +516,7 @@ function playQuickWidgetHome() {
   quickWidgetIconAnimation = loadQuickWidgetAnimation(
     quickWidgetIconContainer.value,
     widgetHomeStaticAnimationData,
-    { stopAtStart: true }
+    { autoplay: true, loop: true }
   )
 }
 
