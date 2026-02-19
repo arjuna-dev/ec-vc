@@ -17,7 +17,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="264">
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="264" behavior="desktop" :overlay="false">
       <div class="ec-drawer-content">
         <q-list class="ec-drawer-menu">
           <q-item clickable to="/settings" class="ec-nav-item ec-nav-item--settings">
