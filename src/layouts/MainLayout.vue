@@ -116,7 +116,6 @@
             </q-item>
           </q-expansion-item>
         </q-list>
-
       </div>
     </q-drawer>
 
@@ -132,7 +131,10 @@
         dense
         unelevated
         class="ec-quick-widget-action"
-        :class="{ 'ec-quick-widget-action--artifact-dragover': isArtifactAction(action) && artifactQuickDropActive }"
+        :class="{
+          'ec-quick-widget-action--artifact-dragover':
+            isArtifactAction(action) && artifactQuickDropActive,
+        }"
         :icon="action.icon"
         :aria-label="action.label"
         :style="quickWidgetActionStyle(index)"
@@ -306,11 +308,11 @@ function clampQuickWidgetPosition(x, y) {
   if (typeof window === 'undefined') return { x, y }
   const maxX = Math.max(
     QUICK_WIDGET_MARGIN,
-    window.innerWidth - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN
+    window.innerWidth - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN,
   )
   const maxY = Math.max(
     QUICK_WIDGET_MARGIN,
-    window.innerHeight - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN
+    window.innerHeight - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN,
   )
   return {
     x: Math.min(Math.max(x, QUICK_WIDGET_MARGIN), maxX),
@@ -322,7 +324,7 @@ function setDefaultQuickWidgetPosition() {
   if (typeof window === 'undefined') return
   quickWidgetPosition.value = clampQuickWidgetPosition(
     window.innerWidth - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN,
-    window.innerHeight - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN
+    window.innerHeight - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN,
   )
 }
 
@@ -330,7 +332,7 @@ function persistQuickWidgetPosition() {
   if (typeof window === 'undefined') return
   window.localStorage?.setItem(
     QUICK_WIDGET_POSITION_STORAGE_KEY,
-    JSON.stringify(quickWidgetPosition.value)
+    JSON.stringify(quickWidgetPosition.value),
   )
 }
 
@@ -387,7 +389,7 @@ function onQuickWidgetPointerMove(evt) {
   evt.preventDefault()
   quickWidgetPosition.value = clampQuickWidgetPosition(
     quickWidgetDragState.startLeft + dx,
-    quickWidgetDragState.startTop + dy
+    quickWidgetDragState.startTop + dy,
   )
 }
 
@@ -449,9 +451,17 @@ function closeQuickActions() {
   playQuickWidgetBack()
 }
 
-function openOpportunityFromQuickAction() {
+async function openOpportunityFromQuickAction() {
   closeQuickActions()
-  openOpportunityDialog()
+  globalThis.__ecvcOpenOpportunityDialog = true
+  try {
+    await router.push({ name: 'opportunities', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-opportunity-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-opportunity-dialog'))
+    }, 80)
+  }
 }
 
 async function openPipelineFromQuickAction() {
@@ -493,8 +503,17 @@ async function openContactFromQuickAction() {
   }
 }
 
-function openArtifactFromQuickAction() {
-  openArtifactDialogWithFiles([])
+async function openArtifactFromQuickAction() {
+  closeQuickActions()
+  globalThis.__ecvcOpenArtifactDialog = true
+  try {
+    await router.push({ name: 'artifacts', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+    }, 80)
+  }
 }
 
 function isActiveOpportunity(row) {
@@ -547,7 +566,7 @@ function initLogoAnimation() {
 function loadQuickWidgetAnimation(
   container,
   animationData,
-  { loop = false, autoplay = false, stopAtStart = false, onComplete } = {}
+  { loop = false, autoplay = false, stopAtStart = false, onComplete } = {},
 ) {
   if (!container) return null
   const animation = lottie.loadAnimation({
@@ -576,7 +595,7 @@ function playQuickWidgetHome() {
   quickWidgetIconAnimation = loadQuickWidgetAnimation(
     quickWidgetIconContainer.value,
     widgetHomeStaticAnimationData,
-    { autoplay: true, loop: true }
+    { autoplay: true, loop: true },
   )
 }
 
@@ -585,7 +604,7 @@ function playQuickWidgetTo() {
   quickWidgetIconAnimation = loadQuickWidgetAnimation(
     quickWidgetIconContainer.value,
     widgetToTransitionAnimationData,
-    { autoplay: true }
+    { autoplay: true },
   )
 }
 
@@ -601,7 +620,7 @@ function playQuickWidgetBack() {
           playQuickWidgetHome()
         }
       },
-    }
+    },
   )
 }
 
@@ -692,12 +711,8 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   background: #1b1b1d !important;
   color: #ffffff !important;
-  transform: translate(
-      calc(-50% + var(--ec-quick-action-x)),
-      calc(-50% + var(--ec-quick-action-y))
-    )
-    scale(var(--ec-quick-action-open-scale))
-    scale(var(--ec-quick-action-hover-scale));
+  transform: translate(calc(-50% + var(--ec-quick-action-x)), calc(-50% + var(--ec-quick-action-y)))
+    scale(var(--ec-quick-action-open-scale)) scale(var(--ec-quick-action-hover-scale));
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   transition:
     transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -773,5 +788,4 @@ onBeforeUnmount(() => {
     transform: rotate(360deg);
   }
 }
-
 </style>
