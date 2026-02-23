@@ -200,6 +200,8 @@ const artifactQuickDropDepth = ref(0)
 
 const QUICK_WIDGET_TRIGGER_SIZE = 112
 const QUICK_WIDGET_ACTION_RADIUS = 96
+const QUICK_WIDGET_ACTION_SIZE = 40
+const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 
@@ -306,17 +308,20 @@ async function onQuickActionDrop(evt, action) {
 
 function clampQuickWidgetPosition(x, y) {
   if (typeof window === 'undefined') return { x, y }
-  const maxX = Math.max(
-    QUICK_WIDGET_MARGIN,
-    window.innerWidth - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN,
-  )
-  const maxY = Math.max(
-    QUICK_WIDGET_MARGIN,
-    window.innerHeight - QUICK_WIDGET_TRIGGER_SIZE - QUICK_WIDGET_MARGIN,
-  )
+  const triggerRadius = QUICK_WIDGET_TRIGGER_SIZE / 2
+  const actionHalfSize = (QUICK_WIDGET_ACTION_SIZE * QUICK_WIDGET_ACTION_HOVER_SCALE) / 2
+  const openRadius = QUICK_WIDGET_ACTION_RADIUS + actionHalfSize
+  const minX = QUICK_WIDGET_MARGIN + openRadius - triggerRadius
+  const minY = QUICK_WIDGET_MARGIN + openRadius - triggerRadius
+  const maxX = window.innerWidth - QUICK_WIDGET_MARGIN - openRadius - triggerRadius
+  const maxY = window.innerHeight - QUICK_WIDGET_MARGIN - openRadius - triggerRadius
+  const fallbackX = Math.max(0, (window.innerWidth - QUICK_WIDGET_TRIGGER_SIZE) / 2)
+  const fallbackY = Math.max(0, (window.innerHeight - QUICK_WIDGET_TRIGGER_SIZE) / 2)
+  const clampedX = maxX >= minX ? Math.min(Math.max(x, minX), maxX) : fallbackX
+  const clampedY = maxY >= minY ? Math.min(Math.max(y, minY), maxY) : fallbackY
   return {
-    x: Math.min(Math.max(x, QUICK_WIDGET_MARGIN), maxX),
-    y: Math.min(Math.max(y, QUICK_WIDGET_MARGIN), maxY),
+    x: clampedX,
+    y: clampedY,
   }
 }
 
