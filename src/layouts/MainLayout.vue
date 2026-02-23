@@ -161,7 +161,7 @@
       >
         <div
           ref="quickWidgetIconContainer"
-          class="ec-quick-widget-icon ec-quick-widget-icon--spin"
+          class="ec-quick-widget-icon"
         />
       </q-btn>
     </div>
@@ -176,9 +176,9 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import lottie from 'lottie-web'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
-import widgetBackTransitionAnimationData from 'src/assets/lottie/widget-back-transition.json'
-import widgetHomeStaticAnimationData from 'src/assets/lottie/widget-home-static.json'
-import widgetToTransitionAnimationData from 'src/assets/lottie/widget-to-transition.json'
+import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
+import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
+import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import OpportunityCreateDialog from 'components/OpportunityCreateDialog.vue'
@@ -590,12 +590,12 @@ function loadQuickWidgetAnimation(
   return animation
 }
 
-function playQuickWidgetHome() {
+function playQuickWidgetIdle() {
   quickWidgetIconAnimation?.destroy()
   quickWidgetIconAnimation = loadQuickWidgetAnimation(
     quickWidgetIconContainer.value,
-    widgetHomeStaticAnimationData,
-    { autoplay: true, loop: true },
+    widgetToAnimationData,
+    { autoplay: false, stopAtStart: true },
   )
 }
 
@@ -603,8 +603,15 @@ function playQuickWidgetTo() {
   quickWidgetIconAnimation?.destroy()
   quickWidgetIconAnimation = loadQuickWidgetAnimation(
     quickWidgetIconContainer.value,
-    widgetToTransitionAnimationData,
-    { autoplay: true },
+    widgetToAnimationData,
+    {
+      autoplay: true,
+      onComplete: () => {
+        if (quickActionsOpen.value) {
+          playQuickWidgetOpen()
+        }
+      },
+    },
   )
 }
 
@@ -612,15 +619,24 @@ function playQuickWidgetBack() {
   quickWidgetIconAnimation?.destroy()
   quickWidgetIconAnimation = loadQuickWidgetAnimation(
     quickWidgetIconContainer.value,
-    widgetBackTransitionAnimationData,
+    widgetBackAnimationData,
     {
       autoplay: true,
       onComplete: () => {
         if (!quickActionsOpen.value) {
-          playQuickWidgetHome()
+          playQuickWidgetIdle()
         }
       },
     },
+  )
+}
+
+function playQuickWidgetOpen() {
+  quickWidgetIconAnimation?.destroy()
+  quickWidgetIconAnimation = loadQuickWidgetAnimation(
+    quickWidgetIconContainer.value,
+    widgetOpenAnimationData,
+    { autoplay: true, loop: true }
   )
 }
 
@@ -632,7 +648,7 @@ onMounted(() => {
   loadQuickWidgetPosition()
   loadDatabooks()
   initLogoAnimation()
-  playQuickWidgetHome()
+  playQuickWidgetIdle()
 })
 
 onBeforeUnmount(() => {
@@ -769,23 +785,9 @@ onBeforeUnmount(() => {
     drop-shadow(0 2px 4px rgba(15, 23, 42, 0.12));
 }
 
-.ec-quick-widget-icon--spin {
-  animation: ec-quick-widget-home-spin 14s linear infinite;
-  will-change: transform;
-}
-
 .ec-quick-widget-icon :deep(svg) {
   width: 100% !important;
   height: 100% !important;
   display: block;
-}
-
-@keyframes ec-quick-widget-home-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 </style>
