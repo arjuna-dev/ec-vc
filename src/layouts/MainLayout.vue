@@ -27,12 +27,12 @@
     >
       <div class="ec-drawer-content">
         <q-list class="ec-drawer-menu">
-          <q-item clickable to="/settings" class="ec-nav-item ec-nav-item--settings">
+          <q-item clickable class="ec-nav-item ec-nav-item--profile" @click="openUserMenuTarget">
             <q-item-section avatar>
-              <q-icon name="settings" />
+              <q-icon name="account_circle" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>Settings</q-item-label>
+              <q-item-label lines="1">{{ drawerUserLabel }}</q-item-label>
             </q-item-section>
           </q-item>
 
@@ -40,37 +40,10 @@
 
           <q-item clickable to="/" exact class="ec-nav-item">
             <q-item-section avatar>
-              <q-icon name="folder" />
+              <q-icon name="home" />
             </q-item-section>
             <q-item-section>
-              <q-item-label>Files</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable to="/pipelines" class="ec-nav-item">
-            <q-item-section avatar>
-              <q-icon name="schema" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Pipelines</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable to="/opportunities" class="ec-nav-item">
-            <q-item-section avatar>
-              <q-icon name="work" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Opportunities</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable to="/artifacts" class="ec-nav-item">
-            <q-item-section avatar>
-              <q-icon name="attach_file" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Artifacts</q-item-label>
+              <q-item-label>Home</q-item-label>
             </q-item-section>
           </q-item>
 
@@ -91,31 +64,45 @@
               <q-item-label>Contacts</q-item-label>
             </q-item-section>
           </q-item>
-          <q-expansion-item
-            class="ec-nav-item"
-            icon="menu_book"
-            label="Databooks"
-            :default-opened="false"
-            @show="loadDatabooks"
-          >
-            <q-item
-              v-for="db in databooks"
-              :key="db.opportunity_id"
-              clickable
-              :to="`/databooks/${encodeURIComponent(db.opportunity_id)}`"
-              class="ec-nav-item"
-            >
-              <q-item-section>
-                <q-item-label>{{ databookLabel(db) }}</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item v-if="!databooks.length">
-              <q-item-section>
-                <q-item-label caption class="text-grey-7">No active opportunities</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-expansion-item>
+
+          <q-item clickable to="/opportunities" class="ec-nav-item">
+            <q-item-section avatar>
+              <q-icon name="work" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Opportunities</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item clickable to="/pipelines" class="ec-nav-item">
+            <q-item-section avatar>
+              <q-icon name="schema" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Pipelines</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item clickable to="/artifacts" class="ec-nav-item">
+            <q-item-section avatar>
+              <q-icon name="attach_file" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Artifacts</q-item-label>
+            </q-item-section>
+          </q-item>
         </q-list>
+
+        <div class="ec-drawer-settings">
+          <q-item clickable to="/settings" class="ec-nav-item ec-nav-item--settings">
+            <q-item-section avatar>
+              <q-icon name="settings" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Settings</q-item-label>
+            </q-item-section>
+          </q-item>
+        </div>
       </div>
     </q-drawer>
 
@@ -172,8 +159,8 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import lottie from 'lottie-web'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
@@ -187,7 +174,7 @@ const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
 const opportunityDialogOpen = ref(false)
 const artifactDialogOpen = ref(false)
-const databooks = ref([])
+const auditUserLabel = ref('')
 const logoContainer = ref(null)
 const logoReady = ref(false)
 const quickWidgetIconContainer = ref(null)
@@ -206,10 +193,16 @@ const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 
 const router = useRouter()
+const route = useRoute()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
+
+const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.value))
+const drawerUserLabel = computed(() =>
+  hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Click here to set user',
+)
 
 const quickWidgetStyle = computed(() => ({
   left: `${quickWidgetPosition.value.x}px`,
@@ -251,6 +244,40 @@ const quickWidgetActions = computed(() => [
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
+}
+
+function normalizeUserLabel(value) {
+  return String(value || '').trim()
+}
+
+async function loadAuditUserLabel() {
+  if (!bridge.value?.settings?.get) {
+    auditUserLabel.value = ''
+    return
+  }
+  try {
+    const result = await bridge.value.settings.get()
+    auditUserLabel.value = normalizeUserLabel(result?.auditUserLabel)
+  } catch {
+    auditUserLabel.value = ''
+  }
+}
+
+async function syncUserNavState({ redirectFromHome = false } = {}) {
+  await loadAuditUserLabel()
+  if (!redirectFromHome) return
+  if (!bridge.value?.settings?.get) return
+  if (hasAuditUserLabel.value) return
+  if (route.name !== 'home') return
+  await router.replace({ name: 'contacts', query: { create: '1' } })
+}
+
+async function openUserMenuTarget() {
+  if (hasAuditUserLabel.value) {
+    await router.push({ name: 'settings' })
+    return
+  }
+  await router.push({ name: 'contacts', query: { create: '1' } })
 }
 
 function openOpportunityDialog() {
@@ -521,29 +548,6 @@ async function openArtifactFromQuickAction() {
   }
 }
 
-function isActiveOpportunity(row) {
-  const status = String(row?.Raising_Status || '')
-    .trim()
-    .toLowerCase()
-  if (!status) return true
-  return !['closed', 'inactive', 'archived', 'dead'].includes(status)
-}
-
-function databookLabel(row) {
-  const name = String(row?.opportunity_name || '').trim()
-  return `${name || row?.opportunity_id || 'Untitled'} Databook`
-}
-
-async function loadDatabooks() {
-  if (!bridge.value?.databooks?.list) return
-  try {
-    const result = await bridge.value.databooks.list()
-    databooks.value = (result?.databooks || []).filter(isActiveOpportunity)
-  } catch {
-    databooks.value = []
-  }
-}
-
 function initLogoAnimation() {
   if (!logoContainer.value) return
   logoReady.value = false
@@ -648,10 +652,10 @@ function playQuickWidgetOpen() {
 onMounted(() => {
   window.addEventListener('ecvc:open-opportunity-dialog', openOpportunityDialog)
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
-  window.addEventListener('ecvc:opportunities-changed', loadDatabooks)
+  window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
+  syncUserNavState({ redirectFromHome: true })
   loadQuickWidgetPosition()
-  loadDatabooks()
   initLogoAnimation()
   playQuickWidgetIdle()
 })
@@ -659,7 +663,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('ecvc:open-opportunity-dialog', openOpportunityDialog)
   window.removeEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
-  window.removeEventListener('ecvc:opportunities-changed', loadDatabooks)
+  window.removeEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.removeEventListener('resize', onQuickWidgetResize)
   window.removeEventListener('pointermove', onQuickWidgetPointerMove)
   window.removeEventListener('pointerup', onQuickWidgetPointerUp)
@@ -672,6 +676,13 @@ onBeforeUnmount(() => {
   artifactQuickDropActive.value = false
   artifactQuickDropDepth.value = 0
 })
+
+watch(
+  () => route.fullPath,
+  () => {
+    syncUserNavState({ redirectFromHome: true })
+  },
+)
 </script>
 
 <style scoped>

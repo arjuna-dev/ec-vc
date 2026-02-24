@@ -19,7 +19,7 @@
         <div class="page-title-section">
           <div class="text-h6 q-mb-xs">Settings</div>
           <div class="text-caption text-grey-7">
-            Configure LLM providers. Keys are saved locally in the app database.
+            Configure user and API settings. Keys are saved locally in the app database.
           </div>
         </div>
 
@@ -66,7 +66,7 @@
 
             <q-separator />
 
-            <div class="text-subtitle2">LLM providers</div>
+            <div class="text-subtitle2">API settings</div>
 
             <q-input
               v-model="openaiApiKey"
@@ -208,6 +208,7 @@ async function saveSettings() {
     auditUserUuid.value = result?.auditUserUuid || ''
     auditUserLabel.value = result?.auditUserLabel || ''
     initialAuditUserLabel.value = result?.auditUserLabel || ''
+    globalThis?.dispatchEvent?.(new Event('ecvc:user-label-changed'))
     $q.notify({ type: 'positive', message: 'Settings saved' })
   } catch (e) {
     const message = e?.message || String(e)
