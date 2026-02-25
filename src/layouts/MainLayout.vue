@@ -124,30 +124,22 @@
     </q-page-container>
 
     <div class="ec-quick-widget" :style="quickWidgetStyle">
-      <q-btn
+      <div
         v-for="(action, index) in quickWidgetActions"
         :key="action.id"
-        round
-        dense
-        unelevated
         class="ec-quick-widget-action"
-        :class="{
-          'ec-quick-widget-action--artifact-dragover':
-            isArtifactAction(action) && artifactQuickDropActive,
-        }"
-        :icon="action.icon"
-        :aria-label="action.label"
         :style="quickWidgetActionStyle(index)"
-        @click.stop="action.onClick"
-        @dragenter.prevent="onQuickActionDragEnter($event, action)"
-        @dragover.prevent="onQuickActionDragOver($event, action)"
-        @dragleave.prevent="onQuickActionDragLeave($event, action)"
-        @drop.prevent="onQuickActionDrop($event, action)"
       >
-        <q-tooltip anchor="center left" self="center right">{{ action.label }}</q-tooltip>
-      </q-btn>
-      <div v-if="artifactQuickDropActive" class="ec-quick-widget-dropbox">
-        Drop files to add artifact
+        <q-btn
+          round
+          dense
+          unelevated
+          class="ec-quick-widget-action-button"
+          :icon="action.icon"
+          :aria-label="action.label"
+          @click.stop="action.onClick"
+        />
+        <div class="ec-quick-widget-action-label">{{ action.label }}</div>
       </div>
 
       <q-btn
@@ -167,12 +159,12 @@
     </div>
 
     <OpportunityCreateDialog v-model="opportunityDialogOpen" />
-    <ArtifactAddDialog ref="artifactDialogRef" v-model="artifactDialogOpen" />
+    <ArtifactAddDialog v-model="artifactDialogOpen" />
   </q-layout>
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import lottie from 'lottie-web'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
@@ -194,9 +186,6 @@ const quickWidgetIconContainer = ref(null)
 const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
-const artifactDialogRef = ref(null)
-const artifactQuickDropActive = ref(false)
-const artifactQuickDropDepth = ref(0)
 
 const QUICK_WIDGET_TRIGGER_SIZE = 112
 const QUICK_WIDGET_ACTION_RADIUS = 96
@@ -218,34 +207,34 @@ const quickWidgetStyle = computed(() => ({
 
 const quickWidgetActions = computed(() => [
   {
-    id: 'artifact',
-    label: 'Add new artifact',
-    icon: 'attach_file',
-    onClick: openArtifactFromQuickAction,
-  },
-  {
     id: 'opportunity',
-    label: 'Create new opportunity',
+    label: 'Opportunity',
     icon: 'work',
     onClick: openOpportunityFromQuickAction,
   },
   {
-    id: 'pipeline',
-    label: 'New pipeline',
-    icon: 'schema',
-    onClick: openPipelineFromQuickAction,
+    id: 'contact',
+    label: 'Contact',
+    icon: 'people',
+    onClick: openContactFromQuickAction,
   },
   {
     id: 'company',
-    label: 'New company',
+    label: 'Company',
     icon: 'apartment',
     onClick: openCompanyFromQuickAction,
   },
   {
-    id: 'contact',
-    label: 'New contact',
-    icon: 'people',
-    onClick: openContactFromQuickAction,
+    id: 'note',
+    label: 'Note',
+    icon: 'note',
+    onClick: openNoteFromQuickAction,
+  },
+  {
+    id: 'task',
+    label: 'Task',
+    icon: 'check_circle',
+    onClick: openTaskFromQuickAction,
   },
 ])
 
@@ -259,51 +248,6 @@ function openOpportunityDialog() {
 
 function openArtifactDialog() {
   artifactDialogOpen.value = true
-}
-
-function hasFilesInDragEvent(evt) {
-  const types = Array.from(evt?.dataTransfer?.types || [])
-  return types.includes('Files')
-}
-
-function isArtifactAction(action) {
-  return action?.id === 'artifact'
-}
-
-function onQuickActionDragEnter(evt, action) {
-  if (!isArtifactAction(action)) return
-  if (!hasFilesInDragEvent(evt)) return
-  artifactQuickDropDepth.value += 1
-  artifactQuickDropActive.value = true
-}
-
-function onQuickActionDragOver(evt, action) {
-  if (!isArtifactAction(action)) return
-  if (!hasFilesInDragEvent(evt)) return
-  artifactQuickDropActive.value = true
-  if (evt?.dataTransfer) evt.dataTransfer.dropEffect = 'copy'
-}
-
-function onQuickActionDragLeave(evt, action) {
-  if (!isArtifactAction(action)) return
-  artifactQuickDropDepth.value = Math.max(0, artifactQuickDropDepth.value - 1)
-  if (artifactQuickDropDepth.value === 0) artifactQuickDropActive.value = false
-}
-
-async function openArtifactDialogWithFiles(files = []) {
-  closeQuickActions()
-  artifactDialogOpen.value = true
-  await nextTick()
-  artifactDialogRef.value?.stageDroppedFiles?.(files)
-}
-
-async function onQuickActionDrop(evt, action) {
-  if (!isArtifactAction(action)) return
-  artifactQuickDropDepth.value = 0
-  artifactQuickDropActive.value = false
-  const files = Array.from(evt?.dataTransfer?.files || [])
-  if (files.length === 0) return
-  await openArtifactDialogWithFiles(files)
 }
 
 function clampQuickWidgetPosition(x, y) {
@@ -413,7 +357,7 @@ function onQuickWidgetPointerUp(evt) {
 
 function quickWidgetActionStyle(index) {
   const total = quickWidgetActions.value.length
-  const angleDeg = -90 + (360 / total) * index
+  const angleDeg = -90 - (360 / total) * index
   const angleRad = (angleDeg * Math.PI) / 180
   const offsetX = Math.cos(angleRad) * QUICK_WIDGET_ACTION_RADIUS
   const offsetY = Math.sin(angleRad) * QUICK_WIDGET_ACTION_RADIUS
@@ -469,17 +413,8 @@ async function openOpportunityFromQuickAction() {
   }
 }
 
-async function openPipelineFromQuickAction() {
+async function openNoteFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenPipelineDialog = true
-  try {
-    await router.push({ name: 'pipelines', query: { create: '1' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
-    }, 80)
-  }
 }
 
 async function openCompanyFromQuickAction() {
@@ -508,17 +443,8 @@ async function openContactFromQuickAction() {
   }
 }
 
-async function openArtifactFromQuickAction() {
+async function openTaskFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenArtifactDialog = true
-  try {
-    await router.push({ name: 'artifacts', query: { create: '1' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
-    }, 80)
-  }
 }
 
 function isActiveOpportunity(row) {
@@ -669,8 +595,6 @@ onBeforeUnmount(() => {
   logoAnimation = null
   quickWidgetIconAnimation = null
   quickWidgetDragState = null
-  artifactQuickDropActive.value = false
-  artifactQuickDropDepth.value = 0
 })
 </script>
 
@@ -721,10 +645,22 @@ onBeforeUnmount(() => {
   --ec-quick-action-x: 0px;
   --ec-quick-action-y: 0px;
   --ec-quick-action-open-scale: 0.2;
-  --ec-quick-action-hover-scale: 1;
   position: absolute;
   left: 50%;
   top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 56px;
+  transform: translate(calc(-50% + var(--ec-quick-action-x)), calc(-50% + var(--ec-quick-action-y)))
+    scale(var(--ec-quick-action-open-scale));
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.18s ease;
+}
+
+.ec-quick-widget-action-button {
   width: 40px;
   height: 40px;
   min-width: 40px;
@@ -732,54 +668,30 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   background: #1b1b1d !important;
   color: #ffffff !important;
-  transform: translate(calc(-50% + var(--ec-quick-action-x)), calc(-50% + var(--ec-quick-action-y)))
-    scale(var(--ec-quick-action-open-scale)) scale(var(--ec-quick-action-hover-scale));
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  transition:
-    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 0.18s ease;
-}
-
-.ec-quick-widget-action :deep(.q-icon) {
-  font-size: 20px;
-}
-
-.ec-quick-widget-action :deep(.q-btn__content) {
   transition: transform 0.16s ease;
 }
 
-.ec-quick-widget-action:hover,
-.ec-quick-widget-action:focus-visible {
-  --ec-quick-action-hover-scale: 1.08;
-  transition-delay: 80ms;
+.ec-quick-widget-action-button :deep(.q-icon) {
+  font-size: 20px;
 }
 
-.ec-quick-widget-action:hover :deep(.q-btn__content),
-.ec-quick-widget-action:focus-visible :deep(.q-btn__content) {
-  transform: scale(1.12);
+.ec-quick-widget-action-button:hover,
+.ec-quick-widget-action-button:focus-visible {
+  transform: scale(1.08);
 }
 
-.ec-quick-widget-action--artifact-dragover {
-  border: 2px dashed #ffffff;
-  background: var(--q-primary, #1976d2) !important;
-}
-
-.ec-quick-widget-dropbox {
-  position: absolute;
-  left: 50%;
-  top: -36px;
-  transform: translateX(-50%);
-  min-width: 190px;
-  padding: 8px 10px;
-  border: 2px dashed var(--q-primary, #1976d2);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.98);
-  color: #263238;
-  font-size: 12px;
+.ec-quick-widget-action-label {
+  font-size: 10px;
   font-weight: 600;
+  line-height: 1.1;
+  color: #1b1b1d;
   text-align: center;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
-  pointer-events: none;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 6px;
+  padding: 2px 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .ec-quick-widget-icon {
