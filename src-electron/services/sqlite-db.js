@@ -43,6 +43,7 @@ export function closeDb() {
 function migrate(database) {
   database.exec(SCHEMA_V1_SQL)
   cleanupLegacyOpportunityTriggers(database)
+  ensureUserContactForeignKey(database)
   database.pragma('user_version = 1')
 }
 
@@ -63,6 +64,37 @@ function cleanupLegacyOpportunityTriggers(database) {
     if (!triggerName) continue
     database.exec(`DROP TRIGGER IF EXISTS "${triggerName.replaceAll('"', '""')}"`)
   }
+}
+
+function ensureUserContactForeignKey(database) {
+  database.exec(`
+    CREATE TRIGGER IF NOT EXISTS trg_app_settings_user_contact_fk_insert
+    BEFORE INSERT ON app_settings
+    WHEN NEW.key = 'user_contact_id' AND NEW.value IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM Contacts WHERE id = NEW.value)
+    BEGIN
+      SELECT RAISE(ABORT, 'Invalid user contact reference');
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_app_settings_user_contact_fk_update
+    BEFORE UPDATE OF value ON app_settings
+    WHEN NEW.key = 'user_contact_id' AND NEW.value IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM Contacts WHERE id = NEW.value)
+    BEGIN
+      SELECT RAISE(ABORT, 'Invalid user contact reference');
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_contacts_user_contact_delete_restrict
+    BEFORE DELETE ON Contacts
+    WHEN EXISTS (
+      SELECT 1
+      FROM app_settings
+      WHERE key = 'user_contact_id' AND value = OLD.id
+    )
+    BEGIN
+      SELECT RAISE(ABORT, 'Cannot delete the contact linked as the current user');
+    END;
+  `)
 }
 
 export function dbAll(sql, params = []) {

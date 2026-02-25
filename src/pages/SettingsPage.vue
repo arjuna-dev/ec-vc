@@ -19,7 +19,7 @@
         <div class="page-title-section">
           <div class="text-h6 q-mb-xs">Settings</div>
           <div class="text-caption text-grey-7">
-            Configure user and API settings. Keys are saved locally in the app database.
+            Configure API settings. Keys are saved locally in the app database.
           </div>
         </div>
 
@@ -29,43 +29,6 @@
 
         <q-card bordered flat>
           <q-card-section class="q-gutter-md">
-            <div class="text-subtitle2">Editor profile</div>
-
-            <q-input
-              v-model="auditUserLabel"
-              outlined
-              dense
-              label="Display name"
-              autocomplete="name"
-              :disable="loading || saving"
-            />
-
-            <q-input
-              :model-value="auditUserUuid"
-              outlined
-              dense
-              readonly
-              label="User UUID (read-only)"
-            >
-              <template #append>
-                <q-btn
-                  flat
-                  dense
-                  round
-                  icon="content_copy"
-                  :disable="!auditUserUuid || loading || saving"
-                  @click="copyUserUuid"
-                />
-              </template>
-            </q-input>
-
-            <div class="text-caption text-grey-7">
-              UUID is your stable audit identity. Display name can be updated and is captured on
-              each event/snapshot at save time.
-            </div>
-
-            <q-separator />
-
             <div class="text-subtitle2">API settings</div>
 
             <q-input
@@ -159,14 +122,17 @@ const error = ref('')
 
 const openaiApiKey = ref('')
 const geminiApiKey = ref('')
-const auditUserUuid = ref('')
-const auditUserLabel = ref('')
-const initialAuditUserLabel = ref('')
 const showOpenaiApiKey = ref(false)
 const showGeminiApiKey = ref(false)
 
 function normalizeInput(value) {
   return String(value || '').trim()
+}
+
+function normalizeIpcErrorMessage(error) {
+  const raw = String(error?.message || error || '').trim()
+  if (!raw) return 'An unexpected error occurred.'
+  return raw.replace(/^Error invoking remote method '[^']+':\s*/i, '').trim()
 }
 
 async function loadSettings() {
@@ -177,11 +143,8 @@ async function loadSettings() {
     const result = await bridge.value.settings.get()
     openaiApiKey.value = result?.openaiApiKey || ''
     geminiApiKey.value = result?.geminiApiKey || ''
-    auditUserUuid.value = result?.auditUserUuid || ''
-    auditUserLabel.value = result?.auditUserLabel || ''
-    initialAuditUserLabel.value = result?.auditUserLabel || ''
   } catch (e) {
-    error.value = e?.message || String(e)
+    error.value = normalizeIpcErrorMessage(e)
   } finally {
     loading.value = false
   }
@@ -196,36 +159,17 @@ async function saveSettings() {
       openaiApiKey: normalizeInput(openaiApiKey.value),
       geminiApiKey: normalizeInput(geminiApiKey.value),
     }
-    const nextAuditUserLabel = normalizeInput(auditUserLabel.value)
-    const previousAuditUserLabel = normalizeInput(initialAuditUserLabel.value)
-    if (nextAuditUserLabel !== previousAuditUserLabel) {
-      payload.auditUserLabel = nextAuditUserLabel
-    }
 
     const result = await bridge.value.settings.set(payload)
     openaiApiKey.value = result?.openaiApiKey || ''
     geminiApiKey.value = result?.geminiApiKey || ''
-    auditUserUuid.value = result?.auditUserUuid || ''
-    auditUserLabel.value = result?.auditUserLabel || ''
-    initialAuditUserLabel.value = result?.auditUserLabel || ''
-    globalThis?.dispatchEvent?.(new Event('ecvc:user-label-changed'))
     $q.notify({ type: 'positive', message: 'Settings saved' })
   } catch (e) {
-    const message = e?.message || String(e)
+    const message = normalizeIpcErrorMessage(e)
     error.value = message
     $q.notify({ type: 'negative', message })
   } finally {
     saving.value = false
-  }
-}
-
-async function copyUserUuid() {
-  if (!auditUserUuid.value) return
-  try {
-    await navigator.clipboard.writeText(auditUserUuid.value)
-    $q.notify({ type: 'positive', message: 'User UUID copied' })
-  } catch (e) {
-    $q.notify({ type: 'negative', message: e?.message || String(e) })
   }
 }
 

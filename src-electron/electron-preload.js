@@ -23,6 +23,10 @@ contextBridge.exposeInMainWorld('ecvc', {
     get: () => ipcRenderer.invoke('settings:get'),
     set: (payload) => ipcRenderer.invoke('settings:set', payload),
   },
+  userSettings: {
+    get: () => ipcRenderer.invoke('user-settings:get'),
+    set: (payload) => ipcRenderer.invoke('user-settings:set', payload),
+  },
   autofill: {
     previewFromFiles: ({ filePaths, context } = {}) =>
       ipcRenderer.invoke('autofill:previewFromFiles', { filePaths, context }),

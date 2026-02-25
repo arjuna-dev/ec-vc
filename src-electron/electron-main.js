@@ -1878,7 +1878,7 @@ function sanitizeDatabookUpdateError(error) {
   if (message.includes('table_name is required')) {
     return 'Could not save because one field target is missing. Reload and try again.'
   }
-  if (message.includes('Saving is blocked: set your user label before editing.')) return message
+  if (message.includes('Saving is blocked: set your user profile before editing.')) return message
   return message
 }
 
@@ -1890,6 +1890,7 @@ function stringifyEventValue(value) {
 const APP_SETTING_KEYS = {
   openaiApiKey: 'openai_api_key',
   geminiApiKey: 'gemini_api_key',
+  userContactId: 'user_contact_id',
 }
 
 function setAppSetting(database, key, value) {
@@ -1922,11 +1923,8 @@ function getApiSettings(database) {
 
 function getSettingsPayload(database) {
   const apiSettings = getApiSettings(database)
-  const actor = getAuditActor(database)
   return {
     ...apiSettings,
-    auditUserUuid: actor.user_uuid,
-    auditUserLabel: actor.user_label || '',
   }
 }
 
@@ -1934,16 +1932,9 @@ function setApiSettings(payload = {}) {
   const database = initDb()
   const openaiApiKey = normalizeNullableString(payload?.openaiApiKey)
   const geminiApiKey = normalizeNullableString(payload?.geminiApiKey)
-  const hasAuditUserLabel = Object.prototype.hasOwnProperty.call(payload || {}, 'auditUserLabel')
-  const auditUserLabel = normalizeNullableString(payload?.auditUserLabel)
 
   setAppSetting(database, APP_SETTING_KEYS.openaiApiKey, openaiApiKey)
   setAppSetting(database, APP_SETTING_KEYS.geminiApiKey, geminiApiKey)
-  if (hasAuditUserLabel) {
-    if (!auditUserLabel) throw new Error('user_label is required')
-    getAuditActor(database)
-    setAppSetting(database, 'user_label', auditUserLabel)
-  }
   return getSettingsPayload(database)
 }
 
@@ -1951,14 +1942,33 @@ function ensureAuditActor(database) {
   const existingUuid = normalizeNullableString(getAppSetting(database, 'user_uuid'))
   const userUuid = existingUuid || `user:${crypto.randomUUID()}`
   if (!existingUuid) setAppSetting(database, 'user_uuid', userUuid)
-  const userLabel = normalizeNullableString(getAppSetting(database, 'user_label'))
-  return { user_uuid: userUuid, user_label: userLabel }
+
+  let userContactId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userContactId))
+  let userLabel = ''
+  if (userContactId) {
+    const row = database.prepare('SELECT Name FROM Contacts WHERE id = ? LIMIT 1').get(userContactId)
+    userLabel = normalizeNullableString(row?.Name)
+    if (!userLabel) {
+      setAppSetting(database, APP_SETTING_KEYS.userContactId, null)
+      userContactId = ''
+    }
+  }
+
+  // Legacy fallback for old installs that stored only user_label.
+  if (!userLabel) userLabel = normalizeNullableString(getAppSetting(database, 'user_label'))
+  if (!userContactId && userLabel) {
+    const migrated = createContact({ Name: userLabel })
+    userContactId = migrated.id
+    setAppSetting(database, APP_SETTING_KEYS.userContactId, userContactId)
+  }
+
+  return { user_uuid: userUuid, user_label: userLabel, user_contact_id: userContactId || null }
 }
 
 function getAuditActor(database, { requireLabel = false } = {}) {
   const actor = ensureAuditActor(database)
   if (requireLabel && !actor.user_label) {
-    throw new Error('Saving is blocked: set your user label before editing.')
+    throw new Error('Saving is blocked: set your user profile before editing.')
   }
   return actor
 }
@@ -1966,10 +1976,73 @@ function getAuditActor(database, { requireLabel = false } = {}) {
 function setAuditUserLabel(label) {
   const database = initDb()
   const trimmed = normalizeNullableString(label)
-  if (!trimmed) throw new Error('user_label is required')
-  getAuditActor(database)
+  if (!trimmed) throw new Error('User name should not be empty')
+  const result = createContact({ Name: trimmed })
+  setAppSetting(database, APP_SETTING_KEYS.userContactId, result.id)
+  // Keep legacy key in sync for old code paths/readers.
   setAppSetting(database, 'user_label', trimmed)
   return getAuditActor(database)
+}
+
+function getContactById(database, contactId) {
+  const id = normalizeNullableString(contactId)
+  if (!id) return null
+  return (
+    database
+      .prepare(
+        `
+      SELECT
+        id,
+        Name,
+        created_at,
+        updated_at,
+        Email,
+        Phone,
+        LinkedIn,
+        Role,
+        Stakeholder_type,
+        Closeness_Level,
+        Comment,
+        Expertise,
+        Degrees_Program,
+        University,
+        Credentials,
+        Tenure_at_Firm_yrs,
+        Country_based
+      FROM Contacts
+      WHERE id = ?
+      LIMIT 1
+    `,
+      )
+      .get(id) || null
+  )
+}
+
+function getUserSettingsPayload(database) {
+  const actor = getAuditActor(database)
+  const userContactId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userContactId))
+  const userContact = userContactId ? getContactById(database, userContactId) : null
+  return {
+    auditUserUuid: actor.user_uuid,
+    userContactId: userContact?.id || null,
+    userContact,
+  }
+}
+
+function setUserSettings(payload = {}) {
+  const database = initDb()
+  const contactPayload =
+    payload && typeof payload === 'object' && !Array.isArray(payload) ? payload.contact : null
+  if (!contactPayload || typeof contactPayload !== 'object') {
+    throw new Error('contact is required')
+  }
+
+  const created = createContact(contactPayload)
+  setAppSetting(database, APP_SETTING_KEYS.userContactId, created.id)
+  const contact = getContactById(database, created.id)
+  const userLabel = normalizeNullableString(contact?.Name)
+  if (userLabel) setAppSetting(database, 'user_label', userLabel)
+  return getUserSettingsPayload(database)
 }
 
 function listEvents(filters = {}) {
@@ -2649,6 +2722,15 @@ function registerIpc() {
 
   ipcMain.handle('settings:set', async (_event, payload = {}) => {
     return setApiSettings(payload)
+  })
+
+  ipcMain.handle('user-settings:get', async () => {
+    const database = initDb()
+    return getUserSettingsPayload(database)
+  })
+
+  ipcMain.handle('user-settings:set', async (_event, payload = {}) => {
+    return setUserSettings(payload)
   })
 
   ipcMain.handle('autofill:previewFromFiles', async (_event, payload = {}) => {

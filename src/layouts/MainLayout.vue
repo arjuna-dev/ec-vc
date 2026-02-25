@@ -146,10 +146,7 @@
         @pointerdown.stop="onQuickWidgetPointerDown"
         @click.stop="toggleQuickActions"
       >
-        <div
-          ref="quickWidgetIconContainer"
-          class="ec-quick-widget-icon"
-        />
+        <div ref="quickWidgetIconContainer" class="ec-quick-widget-icon" />
       </q-btn>
     </div>
 
@@ -251,33 +248,24 @@ function normalizeUserLabel(value) {
 }
 
 async function loadAuditUserLabel() {
-  if (!bridge.value?.settings?.get) {
+  if (!bridge.value?.audit?.me) {
     auditUserLabel.value = ''
     return
   }
   try {
-    const result = await bridge.value.settings.get()
-    auditUserLabel.value = normalizeUserLabel(result?.auditUserLabel)
+    const result = await bridge.value.audit.me()
+    auditUserLabel.value = normalizeUserLabel(result?.user_label)
   } catch {
     auditUserLabel.value = ''
   }
 }
 
-async function syncUserNavState({ redirectFromHome = false } = {}) {
+async function syncUserNavState() {
   await loadAuditUserLabel()
-  if (!redirectFromHome) return
-  if (!bridge.value?.settings?.get) return
-  if (hasAuditUserLabel.value) return
-  if (route.name !== 'home') return
-  await router.replace({ name: 'contacts', query: { create: '1' } })
 }
 
 async function openUserMenuTarget() {
-  if (hasAuditUserLabel.value) {
-    await router.push({ name: 'settings' })
-    return
-  }
-  await router.push({ name: 'contacts', query: { create: '1' } })
+  await router.push({ name: 'user-settings' })
 }
 
 function openOpportunityDialog() {
@@ -645,7 +633,7 @@ function playQuickWidgetOpen() {
   quickWidgetIconAnimation = loadQuickWidgetAnimation(
     quickWidgetIconContainer.value,
     widgetOpenAnimationData,
-    { autoplay: true, loop: true }
+    { autoplay: true, loop: true },
   )
 }
 
@@ -654,7 +642,7 @@ onMounted(() => {
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
   window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
-  syncUserNavState({ redirectFromHome: true })
+  syncUserNavState()
   loadQuickWidgetPosition()
   initLogoAnimation()
   playQuickWidgetIdle()
@@ -680,7 +668,7 @@ onBeforeUnmount(() => {
 watch(
   () => route.fullPath,
   () => {
-    syncUserNavState({ redirectFromHome: true })
+    syncUserNavState()
   },
 )
 </script>

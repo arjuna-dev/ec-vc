@@ -259,7 +259,7 @@ async function saveChanges() {
     const message = normalizeIpcErrorMessage(e)
     error.value = message
     $q.notify({ type: 'negative', message })
-    if (/user label/i.test(message)) showUserLabelDialog.value = true
+    if (/user label|user profile/i.test(message)) showUserLabelDialog.value = true
   } finally {
     saving.value = false
   }
