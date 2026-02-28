@@ -91,6 +91,33 @@
               <q-item-label>Artifacts</q-item-label>
             </q-item-section>
           </q-item>
+
+          <q-item clickable to="/notes" class="ec-nav-item">
+            <q-item-section avatar>
+              <q-icon name="note" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Notes</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item clickable to="/tasks" class="ec-nav-item">
+            <q-item-section avatar>
+              <q-icon name="check_circle" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Tasks</q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-item clickable to="/assistants" class="ec-nav-item">
+            <q-item-section avatar>
+              <q-icon name="smart_toy" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Assistants</q-item-label>
+            </q-item-section>
+          </q-item>
         </q-list>
 
         <div class="ec-drawer-settings">
@@ -430,6 +457,15 @@ async function openOpportunityFromQuickAction() {
 
 async function openNoteFromQuickAction() {
   closeQuickActions()
+  globalThis.__ecvcOpenNoteDialog = true
+  try {
+    await router.push({ name: 'notes', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-note-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-note-dialog'))
+    }, 80)
+  }
 }
 
 async function openCompanyFromQuickAction() {
@@ -460,13 +496,13 @@ async function openContactFromQuickAction() {
 
 async function openTaskFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenArtifactDialog = true
+  globalThis.__ecvcOpenTaskDialog = true
   try {
-    await router.push({ name: 'artifacts', query: { create: '1' } })
+    await router.push({ name: 'tasks', query: { create: '1' } })
   } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
     setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
     }, 80)
   }
 }

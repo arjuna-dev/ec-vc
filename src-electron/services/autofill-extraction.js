@@ -109,6 +109,41 @@ function schemaDefinition() {
               Country_based: { type: 'string' },
             },
           },
+          notes: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                title: { type: 'string' },
+                content: { type: 'string' },
+              },
+            },
+          },
+          tasks: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                Task_Name: { type: 'string' },
+                Task_Description: { type: 'string' },
+                Status: { type: 'string' },
+                Priority: { type: 'string' },
+                Due_Date: { type: 'string' },
+              },
+            },
+          },
+          assistant: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              version: { type: 'string' },
+              description: { type: 'string' },
+              system_prompt: { type: 'string' },
+              tools: { type: 'array', items: { type: 'string' } },
+              functions: { type: 'array', items: { type: 'string' } },
+              context_sources: { type: 'array', items: { type: 'string' } },
+            },
+          },
         },
       },
       verification: {
@@ -138,7 +173,9 @@ function buildPrompt({ markdownDocs = [] } = {}) {
     'You are extracting structured venture opportunity data from documents.',
     'Return ONLY valid JSON.',
     'Fill fields only when confidence is high.',
-    'If confidence is not high, still provide your best candidate value wrapped in [[HUMAN_VERIFY]]...[[/HUMAN_VERIFY]] and set verificationFlag=true.',
+    'If confidence is not high, still provide your best candidate value and set verificationFlag=true.',
+    'Prefer returning Opportunity.Round_Stage for the funding series.',
+    'Also propose 1-3 Notes, 1-5 Tasks, and one Assistant configuration.',
     'Use this JSON schema:',
     JSON.stringify(schemaDefinition(), null, 2),
     '',
@@ -147,18 +184,69 @@ function buildPrompt({ markdownDocs = [] } = {}) {
   ].join('\n')
 }
 
+function stripHumanVerifyDelimiters(value) {
+  if (value === null || value === undefined) return value
+  return String(value)
+    .replaceAll('[[HUMAN_VERIFY]]', '')
+    .replaceAll('[[/HUMAN_VERIFY]]', '')
+    .replaceAll('[HUMAN_VERIFY]', '')
+    .replaceAll('[/HUMAN_VERIFY]', '')
+    .trim()
+}
+
 function normalizeSuggested(input) {
   const suggested = input?.suggested || {}
+  const normalizeList = (list, mapper) =>
+    (Array.isArray(list) ? list : []).map((row) => mapper(row || {})).filter(Boolean)
   return {
-    opportunity: suggested?.opportunity || {},
-    company: suggested?.company || {},
-    contact: suggested?.contact || {},
+    opportunity: Object.fromEntries(
+      Object.entries(suggested?.opportunity || {}).map(([k, v]) => [k, stripHumanVerifyDelimiters(v)]),
+    ),
+    company: Object.fromEntries(
+      Object.entries(suggested?.company || {}).map(([k, v]) => [k, stripHumanVerifyDelimiters(v)]),
+    ),
+    contact: Object.fromEntries(
+      Object.entries(suggested?.contact || {}).map(([k, v]) => [k, stripHumanVerifyDelimiters(v)]),
+    ),
+    notes: normalizeList(suggested?.notes, (row) => {
+      const title = stripHumanVerifyDelimiters(row?.title)
+      const content = stripHumanVerifyDelimiters(row?.content)
+      if (!String(content || '').trim()) return null
+      return { title: String(title || '').trim() || null, content: String(content).trim() }
+    }),
+    tasks: normalizeList(suggested?.tasks, (row) => {
+      const name = stripHumanVerifyDelimiters(row?.Task_Name)
+      if (!String(name || '').trim()) return null
+      return {
+        Task_Name: String(name).trim(),
+        Task_Description: stripHumanVerifyDelimiters(row?.Task_Description) || null,
+        Status: stripHumanVerifyDelimiters(row?.Status) || null,
+        Priority: stripHumanVerifyDelimiters(row?.Priority) || null,
+        Due_Date: stripHumanVerifyDelimiters(row?.Due_Date) || null,
+      }
+    }),
+    assistant: {
+      name: stripHumanVerifyDelimiters(suggested?.assistant?.name) || null,
+      version: stripHumanVerifyDelimiters(suggested?.assistant?.version) || 'v1',
+      description: stripHumanVerifyDelimiters(suggested?.assistant?.description) || null,
+      system_prompt: stripHumanVerifyDelimiters(suggested?.assistant?.system_prompt) || null,
+      tools: Array.isArray(suggested?.assistant?.tools)
+        ? suggested.assistant.tools.map((v) => stripHumanVerifyDelimiters(v)).filter(Boolean)
+        : [],
+      functions: Array.isArray(suggested?.assistant?.functions)
+        ? suggested.assistant.functions.map((v) => stripHumanVerifyDelimiters(v)).filter(Boolean)
+        : [],
+      context_sources: Array.isArray(suggested?.assistant?.context_sources)
+        ? suggested.assistant.context_sources.map((v) => stripHumanVerifyDelimiters(v)).filter(Boolean)
+        : [],
+    },
   }
 }
 
 function buildVerificationMap(suggested, modelVerification = {}) {
   const verification = {}
-  for (const [sectionName, sectionValue] of Object.entries(suggested || {})) {
+  for (const sectionName of ['opportunity', 'company', 'contact']) {
+    const sectionValue = suggested?.[sectionName] || {}
     for (const [fieldName, value] of Object.entries(sectionValue || {})) {
       if (value === null || value === undefined || String(value).trim() === '') continue
       const key = `${sectionName}.${fieldName}`
@@ -177,7 +265,76 @@ function buildVerificationMap(suggested, modelVerification = {}) {
   return verification
 }
 
-export async function previewAutofillFromFiles({ filePaths = [], apiKeys = {} } = {}) {
+function bigrams(value) {
+  const s = String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '')
+  const out = new Set()
+  for (let i = 0; i < s.length - 1; i += 1) out.add(s.slice(i, i + 2))
+  return out
+}
+
+function jaccardSimilarity(a, b) {
+  const A = bigrams(a)
+  const B = bigrams(b)
+  if (!A.size || !B.size) return 0
+  let intersection = 0
+  for (const x of A) if (B.has(x)) intersection += 1
+  const union = A.size + B.size - intersection
+  return union > 0 ? intersection / union : 0
+}
+
+async function confirmCompanyMatchWithLlm(gemini, extractedName, candidateName) {
+  const prompt = [
+    'Answer with ONLY JSON: {"match":true|false,"confidence":0..1,"reason":"..."}',
+    'Do these company names likely refer to the same company?',
+    `Extracted: ${extractedName}`,
+    `Candidate: ${candidateName}`,
+    'Consider spelling variants and abbreviations.',
+  ].join('\n')
+  const result = await generateText({ model: gemini('gemini-2.5-flash'), prompt })
+  const parsed = parseJsonFromModel(result?.text)
+  return {
+    match: Boolean(parsed?.match),
+    confidence: Number.isFinite(Number(parsed?.confidence)) ? Number(parsed.confidence) : 0,
+    reason: String(parsed?.reason || '').trim() || null,
+  }
+}
+
+async function resolveCompanyMatch({ gemini, suggestedCompany, existingCompanies }) {
+  const extractedName = String(suggestedCompany?.Company_Name || '').trim()
+  if (!extractedName) return null
+  const candidates = (Array.isArray(existingCompanies) ? existingCompanies : [])
+    .map((c) => ({
+      id: String(c?.id || '').trim(),
+      Company_Name: String(c?.Company_Name || '').trim(),
+      Company_Type: String(c?.Company_Type || '').trim() || null,
+      One_Liner: String(c?.One_Liner || '').trim() || null,
+      Website: String(c?.Website || '').trim() || null,
+      similarity: jaccardSimilarity(extractedName, c?.Company_Name),
+    }))
+    .filter((c) => c.id && c.Company_Name)
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, 5)
+
+  if (!candidates.length || candidates[0].similarity < 0.45) return null
+
+  const top = candidates[0]
+  const llm = await confirmCompanyMatchWithLlm(gemini, extractedName, top.Company_Name)
+  if (!llm.match || llm.confidence < 0.65) return null
+  return {
+    company_id: top.id,
+    confidence: llm.confidence,
+    reason: llm.reason || 'Fuzzy and LLM match confirmed.',
+    company: {
+      id: top.id,
+      Company_Name: top.Company_Name,
+      Company_Type: top.Company_Type,
+      One_Liner: top.One_Liner,
+      Website: top.Website,
+    },
+  }
+}
+
+export async function previewAutofillFromFiles({ filePaths = [], apiKeys = {}, existingCompanies = [] } = {}) {
   const paths = Array.isArray(filePaths) ? filePaths.map((p) => String(p || '').trim()).filter(Boolean) : []
   if (!paths.length) throw new Error('No files provided for autofill')
 
@@ -199,10 +356,16 @@ export async function previewAutofillFromFiles({ filePaths = [], apiKeys = {} } 
   const parsed = parseJsonFromModel(result?.text)
   const suggested = normalizeSuggested(parsed)
   const verification = buildVerificationMap(suggested, parsed?.verification)
+  const companyMatch = await resolveCompanyMatch({
+    gemini,
+    suggestedCompany: suggested?.company,
+    existingCompanies,
+  })
 
   return {
     suggested,
     verification,
+    companyMatch,
     rawModel: String(result?.text || ''),
     diagnostics: {
       files: markdownDocs.map((d) => path.basename(d.filePath)),

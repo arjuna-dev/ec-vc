@@ -235,6 +235,24 @@ function firstStageIdForPipeline(pipelineId) {
   return rows?.[0]?.stage_id || null
 }
 
+function emitFileStageStatus(emitStatus, fileName, updates = {}) {
+  const payload = {
+    type: 'progress',
+    fileName,
+    message: updates.message || '',
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'uploadStatus')) {
+    payload.uploadStatus = updates.uploadStatus
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'markdownStatus')) {
+    payload.markdownStatus = updates.markdownStatus
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, 'extractionStatus')) {
+    payload.extractionStatus = updates.extractionStatus
+  }
+  emitStatus?.(payload)
+}
+
 export async function buildLlmReadyMarkdownFromFile(sourceFilePath, { geminiApiKey } = {}) {
   const resolvedPath = String(sourceFilePath || '')
   if (!resolvedPath) throw new Error('sourceFilePath is required')
@@ -279,10 +297,8 @@ export async function ingestArtifactsFromPaths({
   const files = Array.isArray(filePaths) ? filePaths : []
   const openaiApiKey = normalizeApiKey(apiKeys?.openai)
   const geminiApiKey = normalizeApiKey(apiKeys?.gemini)
-  const oppty = String(opportunityId || '')
-  const pipeline = String(pipelineId || '')
-  if (!oppty) throw new Error('opportunityId is required')
-  if (!pipeline) throw new Error('pipelineId is required')
+  const oppty = String(opportunityId || '').trim() || null
+  const pipeline = String(pipelineId || '').trim() || null
   if (!workspaceRoot) throw new Error('workspaceRoot is required')
   if (files.length === 0) {
     emitStatus?.({
@@ -292,7 +308,7 @@ export async function ingestArtifactsFromPaths({
     throw new Error('No files provided to ingestion (filePaths was empty).')
   }
 
-  const stageId = firstStageIdForPipeline(pipeline)
+  const stageId = pipeline ? firstStageIdForPipeline(pipeline) : null
 
   const rawDir = path.join(workspaceRoot, '0_company_docs', 'Artifacts', '0_raw')
   const llmDir = path.join(workspaceRoot, '0_company_docs', 'Artifacts', '1_llm-ready')
@@ -339,6 +355,12 @@ export async function ingestArtifactsFromPaths({
   }
 
   const results = []
+  const stagedFiles = []
+
+  emitStatus?.({
+    type: 'info',
+    message: 'Copying all files into workspace before markdown generation.',
+  })
 
   for (const srcPath of files) {
     const sourceFilePath = String(srcPath || '')
@@ -359,8 +381,10 @@ export async function ingestArtifactsFromPaths({
 
     const originalFileName = safeBasename(sourceFilePath)
     const originalExt = extLower(originalFileName)
-
-    emitStatus?.({ type: 'info', message: 'File received. Creating artifact records.' })
+    emitFileStageStatus(emitStatus, originalFileName, {
+      uploadStatus: 'pending',
+      message: `Copying "${originalFileName}" into workspace...`,
+    })
 
     // --- Save raw file
     let rawAbsPath
@@ -374,6 +398,11 @@ export async function ingestArtifactsFromPaths({
       })
       throw e
     }
+    emitFileStageStatus(emitStatus, originalFileName, {
+      uploadStatus: 'uploaded',
+      markdownStatus: 'pending',
+      message: `"${originalFileName}" copied.`,
+    })
 
     const rawRelPath = toPosixPath(
       path.join('0_company_docs', 'Artifacts', '0_raw', path.basename(rawAbsPath)),
@@ -418,10 +447,32 @@ export async function ingestArtifactsFromPaths({
     } catch (e) {
       emitStatus?.({
         type: 'error',
-        message: 'Could not create the artifact record. Please try again.',
+        message: `Could not create raw artifact DB record for "${originalFileName}": ${e?.message || String(e)}`,
       })
       throw e
     }
+
+    stagedFiles.push({
+      sourceFilePath,
+      originalFileName,
+      originalExt,
+      rawAbsPath,
+      rawRelPath,
+      rawArtifactId,
+    })
+  }
+
+  emitStatus?.({
+    type: 'info',
+    message: 'All files copied. Generating markdown for each file.',
+  })
+
+  for (const item of stagedFiles) {
+    const { sourceFilePath, originalFileName, originalExt, rawAbsPath, rawRelPath, rawArtifactId } = item
+    emitFileStageStatus(emitStatus, originalFileName, {
+      markdownStatus: 'pending',
+      message: `Generating markdown for "${originalFileName}"...`,
+    })
 
     // --- Markdown special case (copy to llm-ready)
     if (originalExt === '.md') {
@@ -482,7 +533,7 @@ export async function ingestArtifactsFromPaths({
       } catch (e) {
         emitStatus?.({
           type: 'error',
-          message: 'Could not create the artifact record. Please try again.',
+          message: `Could not create markdown artifact DB record for "${originalFileName}": ${e?.message || String(e)}`,
         })
         throw e
       }
@@ -491,6 +542,10 @@ export async function ingestArtifactsFromPaths({
         source: sourceFilePath,
         raw: { artifact_id: rawArtifactId, fs_path: rawRelPath },
         llm_ready: { artifact_id: llmArtifactId, fs_path: llmRelPath },
+      })
+      emitFileStageStatus(emitStatus, originalFileName, {
+        markdownStatus: 'completed',
+        message: `"${originalFileName}" markdown generated`,
       })
       continue
     }
@@ -510,6 +565,10 @@ export async function ingestArtifactsFromPaths({
           fileName: originalFileName,
           geminiApiKey,
         })
+        emitFileStageStatus(emitStatus, originalFileName, {
+          markdownStatus: 'completed',
+          message: `${originalFileName} markdown generated`,
+        })
       } else if (isImageExt(originalExt)) {
         emitStatus?.({
           type: 'info',
@@ -519,6 +578,10 @@ export async function ingestArtifactsFromPaths({
           filePath: rawAbsPath,
           fileName: originalFileName,
           geminiApiKey,
+        })
+        emitFileStageStatus(emitStatus, originalFileName, {
+          markdownStatus: 'completed',
+          message: `${originalFileName} markdown generated`,
         })
       } else {
         emitStatus?.({ type: 'info', message: 'Creating LLM ready Markdown from the file.' })
@@ -533,6 +596,10 @@ export async function ingestArtifactsFromPaths({
             if (!maybeText) throw new Error('officeparser returned empty content')
             markdown = normalizeMarkdownFromText(originalFileName, maybeText)
           }
+          emitFileStageStatus(emitStatus, originalFileName, {
+            markdownStatus: 'completed',
+            message: `${originalFileName} markdown generated`,
+          })
         } catch {
           emitStatus?.({
             type: 'info',
@@ -542,6 +609,10 @@ export async function ingestArtifactsFromPaths({
             filePath: rawAbsPath,
             fileName: originalFileName,
             geminiApiKey,
+          })
+          emitFileStageStatus(emitStatus, originalFileName, {
+            markdownStatus: 'completed',
+            message: `${originalFileName} markdown generated`,
           })
         }
       }
@@ -610,7 +681,7 @@ export async function ingestArtifactsFromPaths({
     } catch (e) {
       emitStatus?.({
         type: 'error',
-        message: 'Could not create the artifact record. Please try again.',
+        message: `Could not create markdown artifact DB record for "${originalFileName}": ${e?.message || String(e)}`,
       })
       throw e
     }

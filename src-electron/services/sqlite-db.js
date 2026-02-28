@@ -44,6 +44,8 @@ function migrate(database) {
   database.exec(SCHEMA_V1_SQL)
   cleanupLegacyOpportunityTriggers(database)
   ensureUserContactForeignKey(database)
+  ensureArtifactLinkTriggersAllowUnlinkedArtifacts(database)
+  ensureTasksPipelineColumn(database)
   database.pragma('user_version = 1')
 }
 
@@ -93,6 +95,82 @@ function ensureUserContactForeignKey(database) {
     )
     BEGIN
       SELECT RAISE(ABORT, 'Cannot delete the contact linked as the current user');
+    END;
+  `)
+}
+
+function ensureTasksPipelineColumn(database) {
+  if (!hasTable(database, 'Tasks')) return
+  if (hasColumn(database, 'Tasks', 'pipeline_id')) return
+  database.exec('ALTER TABLE Tasks ADD COLUMN pipeline_id TEXT')
+}
+
+function ensureArtifactLinkTriggersAllowUnlinkedArtifacts(database) {
+  database.exec(`
+    DROP TRIGGER IF EXISTS trg_Artifacts_stage_matches_pipeline_ins;
+    DROP TRIGGER IF EXISTS trg_Artifacts_oppty_pipeline_exists_ins;
+    DROP TRIGGER IF EXISTS trg_Artifacts_oppty_pipeline_exists_upd;
+    DROP TRIGGER IF EXISTS trg_Artifacts_stage_matches_pipeline_upd;
+
+    CREATE TRIGGER IF NOT EXISTS trg_Artifacts_stage_matches_pipeline_ins
+    BEFORE INSERT ON Artifacts
+    FOR EACH ROW
+    WHEN NEW.stage_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
+    BEGIN
+      SELECT
+        CASE
+          WHEN NOT EXISTS (
+            SELECT 1
+            FROM Pipeline_Stages s
+            WHERE s.stage_id = NEW.stage_id
+              AND s.pipeline_id = NEW.pipeline_id
+          )
+          THEN RAISE(ABORT, 'artifact stage_id does not belong to artifact pipeline_id')
+        END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_Artifacts_oppty_pipeline_exists_ins
+    BEFORE INSERT ON Artifacts
+    FOR EACH ROW
+    WHEN NEW.opportunity_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
+    BEGIN
+      SELECT CASE
+        WHEN NOT EXISTS (
+          SELECT 1 FROM Opportunity_Pipeline op
+          WHERE op.opportunity_id = NEW.opportunity_id
+            AND op.pipeline_id = NEW.pipeline_id
+        )
+        THEN RAISE(ABORT, 'artifact opportunity_id is not linked to pipeline_id in Opportunity_Pipeline')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_Artifacts_oppty_pipeline_exists_upd
+    BEFORE UPDATE OF opportunity_id, pipeline_id ON Artifacts
+    FOR EACH ROW
+    WHEN NEW.opportunity_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
+    BEGIN
+      SELECT CASE
+        WHEN NOT EXISTS (
+          SELECT 1 FROM Opportunity_Pipeline op
+          WHERE op.opportunity_id = NEW.opportunity_id
+            AND op.pipeline_id = NEW.pipeline_id
+        )
+        THEN RAISE(ABORT, 'artifact opportunity_id is not linked to pipeline_id in Opportunity_Pipeline')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_Artifacts_stage_matches_pipeline_upd
+    BEFORE UPDATE OF stage_id, pipeline_id ON Artifacts
+    FOR EACH ROW
+    WHEN NEW.stage_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
+    BEGIN
+      SELECT CASE
+        WHEN NOT EXISTS (
+          SELECT 1 FROM Pipeline_Stages s
+          WHERE s.stage_id = NEW.stage_id AND s.pipeline_id = NEW.pipeline_id
+        )
+        THEN RAISE(ABORT, 'artifact stage_id does not belong to artifact pipeline_id')
+      END;
     END;
   `)
 }

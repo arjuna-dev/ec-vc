@@ -48,6 +48,7 @@ contextBridge.exposeInMainWorld('ecvc', {
   opportunities: {
     list: () => ipcRenderer.invoke('opportunities:list'),
     create: (payload) => ipcRenderer.invoke('opportunities:create', payload),
+    update: (payload) => ipcRenderer.invoke('opportunities:update', payload),
     upsertMany: (rows) => ipcRenderer.invoke('opportunities:upsertMany', { rows }),
     delete: (opportunityId) => ipcRenderer.invoke('opportunities:delete', { opportunityId }),
   },
@@ -70,10 +71,27 @@ contextBridge.exposeInMainWorld('ecvc', {
     upsertMany: (rows) => ipcRenderer.invoke('contacts:upsertMany', { rows }),
     delete: (contactId) => ipcRenderer.invoke('contacts:delete', { contactId }),
   },
+  notes: {
+    list: () => ipcRenderer.invoke('notes:list'),
+    create: (payload) => ipcRenderer.invoke('notes:create', payload),
+    upsertMany: (rows) => ipcRenderer.invoke('notes:upsertMany', { rows }),
+    delete: (noteId) => ipcRenderer.invoke('notes:delete', { noteId }),
+  },
+  tasks: {
+    list: () => ipcRenderer.invoke('tasks:list'),
+    create: (payload) => ipcRenderer.invoke('tasks:create', payload),
+    upsertMany: (rows) => ipcRenderer.invoke('tasks:upsertMany', { rows }),
+    delete: (taskId) => ipcRenderer.invoke('tasks:delete', { taskId }),
+  },
+  assistants: {
+    list: () => ipcRenderer.invoke('assistants:list'),
+  },
   artifacts: {
     list: () => ipcRenderer.invoke('artifacts:list'),
     upsertMany: (rows) => ipcRenderer.invoke('artifacts:upsertMany', { rows }),
     delete: (artifactId) => ipcRenderer.invoke('artifacts:delete', { artifactId }),
+    linkToOpportunity: ({ artifactIds, opportunityId, pipelineId } = {}) =>
+      ipcRenderer.invoke('artifacts:linkToOpportunity', { artifactIds, opportunityId, pipelineId }),
     ingest: ({ filePaths, files, opportunityId, pipelineId } = {}) =>
       ipcRenderer.invoke('artifacts:ingest', { filePaths, files, opportunityId, pipelineId }),
     onIngestStatus: (cb) => {

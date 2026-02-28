@@ -50,6 +50,23 @@ function listPipelines() {
   )
 }
 
+function firstStageIdForPipeline(pipelineId) {
+  const pid = normalizeNullableString(pipelineId)
+  if (!pid) return null
+  return (
+    dbAll(
+      `
+      SELECT stage_id
+      FROM Pipeline_Stages
+      WHERE pipeline_id = ?
+      ORDER BY position ASC
+      LIMIT 1
+    `,
+      [pid],
+    )?.[0]?.stage_id || null
+  )
+}
+
 function upsertPipelines(rows = []) {
   const database = initDb()
   const input = Array.isArray(rows) ? rows : []
@@ -285,6 +302,7 @@ function listCompanies() {
     SELECT
       id,
       Company_Name,
+      One_Liner,
       Website,
       Status,
       Company_Type,
@@ -300,10 +318,16 @@ function listCompanies() {
 function createCompany(payload = {}) {
   const name = normalizeNullableString(payload.Company_Name)
   if (!name) throw new Error('Company name is required')
-  const companyType = normalizeNullableString(payload.Company_Type)
-  if (!companyType) throw new Error('Company type is required')
 
   const database = initDb()
+  const companyTypeCandidate = normalizeNullableString(payload.Company_Type)
+  const companyType = companyTypeCandidate
+    ? normalizeNullableString(
+        database
+          .prepare('SELECT type FROM company_types WHERE lower(type) = lower(?) LIMIT 1')
+          .get(companyTypeCandidate)?.type,
+      ) || 'Other'
+    : 'Other'
   const roundsCountColumn = getCompaniesRoundsCountColumn(database)
 
   const existing = database
@@ -430,6 +454,305 @@ function listContacts() {
       created_at
     FROM Contacts
     ORDER BY COALESCE(Name, '') ASC, created_at DESC
+  `,
+  )
+}
+
+function listNotes() {
+  return dbAll(
+    `
+    SELECT
+      n.id,
+      n.title,
+      n.content,
+      n.reference_type,
+      n.reference_id,
+      n.created_at,
+      o.Venture_Oppty_Name AS opportunity_name,
+      c.Name AS contact_name,
+      p.name AS pipeline_name,
+      co.Company_Name AS company_name
+    FROM Notes n
+    LEFT JOIN Opportunities o
+      ON n.reference_type = 'opportunity' AND o.id = n.reference_id
+    LEFT JOIN Contacts c
+      ON n.reference_type = 'contact' AND c.id = n.reference_id
+    LEFT JOIN Pipelines p
+      ON n.reference_type = 'pipeline' AND p.pipeline_id = n.reference_id
+    LEFT JOIN Companies co
+      ON n.reference_type = 'company' AND co.id = n.reference_id
+    ORDER BY n.created_at DESC, n.id DESC
+  `,
+  )
+}
+
+function pickNoteReference(payload = {}) {
+  const explicitReferenceType = normalizeNullableString(payload?.reference_type)
+  const explicitReferenceId = normalizeNullableString(payload?.reference_id)
+  if (explicitReferenceType && explicitReferenceId) {
+    return { referenceType: explicitReferenceType, referenceId: explicitReferenceId }
+  }
+
+  const opportunityId = normalizeNullableString(payload?.opportunity_id)
+  if (opportunityId) return { referenceType: 'opportunity', referenceId: opportunityId }
+
+  const contactId = normalizeNullableString(payload?.contact_id)
+  if (contactId) return { referenceType: 'contact', referenceId: contactId }
+
+  const pipelineId = normalizeNullableString(payload?.pipeline_id)
+  if (pipelineId) return { referenceType: 'pipeline', referenceId: pipelineId }
+
+  const companyId = normalizeNullableString(payload?.company_id)
+  if (companyId) return { referenceType: 'company', referenceId: companyId }
+
+  return { referenceType: 'opportunity', referenceId: '' }
+}
+
+function createNote(payload = {}) {
+  const database = initDb()
+  const title = normalizeNullableString(payload?.title)
+  if (!title) throw new Error('Note title is required')
+  const content = normalizeNullableString(payload?.content) || ''
+  const { referenceType, referenceId } = pickNoteReference(payload)
+
+  const id = normalizeNullableString(payload?.id) || `note:${crypto.randomUUID()}`
+  database
+    .prepare(
+      `
+      INSERT INTO Notes (
+        id, title, content, reference_type, reference_id, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    `,
+    )
+    .run(id, title, content, referenceType, referenceId)
+  return { id }
+}
+
+function upsertNotes(rows = []) {
+  const database = initDb()
+  const input = Array.isArray(rows) ? rows : []
+  const tx = database.transaction(() => {
+    let inserted = 0
+    let updated = 0
+    let skipped = 0
+    for (const r of input) {
+      const id = normalizeNullableString(r?.id) || `note:${crypto.randomUUID()}`
+      const title = normalizeNullableString(r?.title)
+      if (!title) {
+        skipped += 1
+        continue
+      }
+      const content = normalizeNullableString(r?.content) || ''
+      const { referenceType, referenceId } = pickNoteReference(r)
+      const exists = database.prepare('SELECT 1 FROM Notes WHERE id = ? LIMIT 1').get(id)
+      database
+        .prepare(
+          `
+          INSERT INTO Notes (
+            id, title, content, reference_type, reference_id, created_at, updated_at
+          ) VALUES (
+            @id, @title, @content, @reference_type, @reference_id, datetime('now'), datetime('now')
+          )
+          ON CONFLICT(id) DO UPDATE SET
+            title = excluded.title,
+            content = excluded.content,
+            reference_type = excluded.reference_type,
+            reference_id = excluded.reference_id,
+            updated_at = datetime('now')
+        `,
+        )
+        .run({
+          id,
+          title,
+          content,
+          reference_type: referenceType,
+          reference_id: referenceId,
+        })
+      if (exists) updated += 1
+      else inserted += 1
+    }
+    return { inserted, updated, skipped }
+  })
+  return tx()
+}
+
+function listTasksForPage() {
+  return dbAll(
+    `
+    SELECT DISTINCT
+      t.id,
+      t.Task_Name,
+      t.Task_Description,
+      t.Status,
+      t.Priority,
+      t.Due_Date,
+      t.pipeline_id,
+      t.created_at,
+      COALESCE(oround.Venture_Oppty_Name, ofund.Venture_Oppty_Name) AS opportunity_name,
+      COALESCE(oround.id, ofund.id) AS opportunity_id,
+      c.Name AS contact_name,
+      c.id AS contact_id,
+      co.Company_Name AS company_name,
+      co.id AS company_id,
+      p.name AS pipeline_name
+    FROM Tasks t
+    LEFT JOIN Tasks_Opportunities_tasks tor ON tor.from_id = t.id
+    LEFT JOIN Opportunities oround ON oround.id = tor.to_id
+    LEFT JOIN Tasks_Opportunities_tasks_fund tof ON tof.from_id = t.id
+    LEFT JOIN Opportunities ofund ON ofund.id = tof.to_id
+    LEFT JOIN Contacts_Tasks_task_roles ctr ON ctr.to_id = t.id
+    LEFT JOIN Contacts c ON c.id = ctr.from_id
+    LEFT JOIN Companies_Tasks_tasks ctt ON ctt.to_id = t.id
+    LEFT JOIN Companies co ON co.id = ctt.from_id
+    LEFT JOIN Pipelines p ON p.pipeline_id = t.pipeline_id
+    ORDER BY t.created_at DESC, t.id DESC
+  `,
+  )
+}
+
+function createTask(payload = {}) {
+  const database = initDb()
+  const taskName = normalizeNullableString(payload?.Task_Name)
+  if (!taskName) throw new Error('Task name is required')
+  const taskId = normalizeNullableString(payload?.id) || `task:${crypto.randomUUID()}`
+  const opportunityId = normalizeNullableString(payload?.opportunity_id)
+  const contactId = normalizeNullableString(payload?.contact_id)
+  const companyId = normalizeNullableString(payload?.company_id)
+  const pipelineId = normalizeNullableString(payload?.pipeline_id)
+  const opportunity =
+    opportunityId &&
+    database.prepare('SELECT id, kind FROM Opportunities WHERE id = ? LIMIT 1').get(opportunityId)
+
+  database
+    .prepare(
+      `
+      INSERT INTO Tasks (
+        id, Task_Name, Task_Description, Status, Priority, Due_Date, pipeline_id, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    `,
+    )
+    .run(
+      taskId,
+      taskName,
+      normalizeNullableString(payload?.Task_Description),
+      normalizeNullableString(payload?.Status) || 'Open',
+      normalizeNullableString(payload?.Priority) || 'Medium',
+      normalizeNullableString(payload?.Due_Date),
+      pipelineId,
+    )
+
+  if (opportunity?.id) {
+    const edgeTable =
+      opportunity.kind === 'fund' ? 'Tasks_Opportunities_tasks_fund' : 'Tasks_Opportunities_tasks'
+    database
+      .prepare(`INSERT OR IGNORE INTO ${edgeTable} (from_id, to_id) VALUES (?, ?)`)
+      .run(taskId, opportunity.id)
+  }
+  if (contactId) {
+    database
+      .prepare('INSERT OR IGNORE INTO Contacts_Tasks_task_roles (from_id, to_id) VALUES (?, ?)')
+      .run(contactId, taskId)
+  }
+  if (companyId) {
+    database
+      .prepare('INSERT OR IGNORE INTO Companies_Tasks_tasks (from_id, to_id) VALUES (?, ?)')
+      .run(companyId, taskId)
+  }
+
+  return { id: taskId }
+}
+
+function upsertTasks(rows = []) {
+  const database = initDb()
+  const input = Array.isArray(rows) ? rows : []
+  const tx = database.transaction(() => {
+    let inserted = 0
+    let updated = 0
+    let skipped = 0
+    for (const r of input) {
+      const taskName = normalizeNullableString(r?.Task_Name)
+      if (!taskName) {
+        skipped += 1
+        continue
+      }
+      const taskId = normalizeNullableString(r?.id) || `task:${crypto.randomUUID()}`
+      const exists = database.prepare('SELECT 1 FROM Tasks WHERE id = ? LIMIT 1').get(taskId)
+      const pipelineId = normalizeNullableString(r?.pipeline_id)
+      database
+        .prepare(
+          `
+          INSERT INTO Tasks (
+            id, Task_Name, Task_Description, Status, Priority, Due_Date, pipeline_id, created_at, updated_at
+          ) VALUES (
+            @id, @Task_Name, @Task_Description, @Status, @Priority, @Due_Date, @pipeline_id, datetime('now'), datetime('now')
+          )
+          ON CONFLICT(id) DO UPDATE SET
+            Task_Name = excluded.Task_Name,
+            Task_Description = excluded.Task_Description,
+            Status = excluded.Status,
+            Priority = excluded.Priority,
+            Due_Date = excluded.Due_Date,
+            pipeline_id = excluded.pipeline_id,
+            updated_at = datetime('now')
+        `,
+        )
+        .run({
+          id: taskId,
+          Task_Name: taskName,
+          Task_Description: normalizeNullableString(r?.Task_Description),
+          Status: normalizeNullableString(r?.Status) || 'Open',
+          Priority: normalizeNullableString(r?.Priority) || 'Medium',
+          Due_Date: normalizeNullableString(r?.Due_Date),
+          pipeline_id: pipelineId,
+        })
+
+      const opportunityId = normalizeNullableString(r?.opportunity_id)
+      const contactId = normalizeNullableString(r?.contact_id)
+      const companyId = normalizeNullableString(r?.company_id)
+      const opportunity =
+        opportunityId &&
+        database.prepare('SELECT id, kind FROM Opportunities WHERE id = ? LIMIT 1').get(opportunityId)
+      if (opportunity?.id) {
+        const edgeTable =
+          opportunity.kind === 'fund' ? 'Tasks_Opportunities_tasks_fund' : 'Tasks_Opportunities_tasks'
+        database
+          .prepare(`INSERT OR IGNORE INTO ${edgeTable} (from_id, to_id) VALUES (?, ?)`)
+          .run(taskId, opportunity.id)
+      }
+      if (contactId) {
+        database
+          .prepare('INSERT OR IGNORE INTO Contacts_Tasks_task_roles (from_id, to_id) VALUES (?, ?)')
+          .run(contactId, taskId)
+      }
+      if (companyId) {
+        database
+          .prepare('INSERT OR IGNORE INTO Companies_Tasks_tasks (from_id, to_id) VALUES (?, ?)')
+          .run(companyId, taskId)
+      }
+
+      if (exists) updated += 1
+      else inserted += 1
+    }
+    return { inserted, updated, skipped }
+  })
+  return tx()
+}
+
+function listAssistantPrompts() {
+  return dbAll(
+    `
+    SELECT
+      assistant_system_prompt_id,
+      name,
+      version,
+      description,
+      system_prompt,
+      input_contract,
+      output_contract,
+      schema_name,
+      created_at
+    FROM Assistant_System_Prompts
+    ORDER BY created_at DESC, assistant_system_prompt_id DESC
   `,
   )
 }
@@ -1704,6 +2027,53 @@ function upsertArtifacts(rows = []) {
   return tx()
 }
 
+function linkArtifactsToOpportunity({ artifactIds = [], opportunityId, pipelineId } = {}) {
+  const database = initDb()
+  const oid = normalizeNullableString(opportunityId)
+  if (!oid) throw new Error('opportunityId is required')
+
+  const pid = normalizeNullableString(pipelineId) || 'pipeline_default'
+  const stageId = firstStageIdForPipeline(pid)
+  if (!stageId) throw new Error(`No pipeline stage found for pipeline: ${pid}`)
+
+  const ids = Array.isArray(artifactIds)
+    ? artifactIds.map((id) => normalizeNullableString(id)).filter(Boolean)
+    : []
+  if (!ids.length) return { linked: 0 }
+
+  const tx = database.transaction(() => {
+    database
+      .prepare(
+        `
+        INSERT OR IGNORE INTO Opportunity_Pipeline (
+          opportunity_id, pipeline_id, stage_id, status
+        ) VALUES (?, ?, ?, 'active')
+      `,
+      )
+      .run(oid, pid, stageId)
+
+    const stmt = database.prepare(
+      `
+      UPDATE Artifacts
+      SET
+        opportunity_id = ?,
+        pipeline_id = ?,
+        stage_id = ?,
+        updated_at = datetime('now')
+      WHERE artifact_id = ?
+    `,
+    )
+    let linked = 0
+    for (const artifactId of ids) {
+      const result = stmt.run(oid, pid, stageId, artifactId)
+      linked += Number(result?.changes || 0)
+    }
+    return { linked }
+  })
+
+  return tx()
+}
+
 function normalizeNullableString(value) {
   const v = value === undefined || value === null ? '' : String(value)
   const t = v.trim()
@@ -1789,18 +2159,30 @@ function makeOpportunityNameFromCompany(companyName, dateSource = null) {
     .trim()
     .replace(/\s+/g, '_')
   if (!base) return null
-  const date = dateSource || new Date().toISOString().slice(0, 10)
-  return `${base}_${date}`
+  const d = dateSource instanceof Date ? dateSource : new Date()
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = String(d.getFullYear())
+  return `${day}_${month}_${year}_${base}`
 }
 
-function deriveOpportunityName(database, companyId, fallbackCompanyName = null) {
-  const byFallback = makeOpportunityNameFromCompany(fallbackCompanyName)
+function deriveOpportunityName(
+  database,
+  { companyId = null, companyName = null, contactName = null, fundingSeries = null } = {},
+) {
+  const baseEntity = normalizeNullableString(companyName) || normalizeNullableString(contactName)
+  const series = normalizeNullableString(fundingSeries)
+
+  const byFallback = makeOpportunityNameFromCompany(baseEntity)
+  if (byFallback && series) return `${byFallback}_${String(series).trim().replace(/\s+/g, '_')}`
   if (byFallback) return byFallback
-  if (!companyId) return null
+  if (!companyId) return series ? `${makeOpportunityNameFromCompany('Opportunity')}_${series}` : null
   const row = database
     .prepare('SELECT Company_Name FROM Companies WHERE id = ? LIMIT 1')
     .get(companyId)
-  return makeOpportunityNameFromCompany(row?.Company_Name)
+  const fromCompany = makeOpportunityNameFromCompany(row?.Company_Name)
+  if (!fromCompany) return null
+  return series ? `${fromCompany}_${String(series).trim().replace(/\s+/g, '_')}` : fromCompany
 }
 
 function quoteIdentifier(name) {
@@ -2384,6 +2766,119 @@ function createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kin
   return contactId
 }
 
+function createNotesForOpportunity(database, opportunityId, notes = []) {
+  const rows = Array.isArray(notes) ? notes : []
+  for (const note of rows) {
+    const content = normalizeNullableString(note?.content)
+    if (!content) continue
+    const exists = database
+      .prepare(
+        'SELECT 1 FROM Notes WHERE reference_type = ? AND reference_id = ? AND content = ? LIMIT 1',
+      )
+      .get('opportunity', opportunityId, content)
+    if (exists) continue
+    database
+      .prepare(
+        `
+        INSERT INTO Notes (
+          id, title, content, reference_type, reference_id, created_at, updated_at
+        ) VALUES (?, ?, ?, 'opportunity', ?, datetime('now'), datetime('now'))
+      `,
+      )
+      .run(
+        normalizeNullableString(note?.id) || `note:${crypto.randomUUID()}`,
+        normalizeNullableString(note?.title),
+        content,
+        opportunityId,
+      )
+  }
+}
+
+function createTasksForOpportunity(database, opportunityId, kind, tasks = []) {
+  const rows = Array.isArray(tasks) ? tasks : []
+  const edgeTable =
+    kind === 'fund' ? 'Tasks_Opportunities_tasks_fund' : 'Tasks_Opportunities_tasks'
+  for (const task of rows) {
+    const taskName = normalizeNullableString(task?.Task_Name)
+    if (!taskName) continue
+    const exists = database
+      .prepare(
+        `
+        SELECT 1
+        FROM Tasks t
+        JOIN ${edgeTable} e ON e.from_id = t.id
+        WHERE e.to_id = ? AND t.Task_Name = ?
+        LIMIT 1
+      `,
+      )
+      .get(opportunityId, taskName)
+    if (exists) continue
+    const taskId = normalizeNullableString(task?.id) || `task:${crypto.randomUUID()}`
+    database
+      .prepare(
+        `
+        INSERT INTO Tasks (
+          id, Task_Name, Task_Description, Status, Priority, Due_Date, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      `,
+      )
+      .run(
+        taskId,
+        taskName,
+        normalizeNullableString(task?.Task_Description),
+        normalizeNullableString(task?.Status) || 'Open',
+        normalizeNullableString(task?.Priority) || 'Medium',
+        normalizeNullableString(task?.Due_Date),
+      )
+    database
+      .prepare(`INSERT OR IGNORE INTO ${edgeTable} (from_id, to_id) VALUES (?, ?)`)
+      .run(taskId, opportunityId)
+  }
+}
+
+function createAssistantPromptFromProposal(database, proposal = {}) {
+  const systemPrompt = normalizeNullableString(proposal?.system_prompt)
+  if (!systemPrompt) return null
+  const id =
+    normalizeNullableString(proposal?.assistant_system_prompt_id) ||
+    `assistant_prompt:${crypto.randomUUID()}`
+  const tools = Array.isArray(proposal?.tools) ? proposal.tools : []
+  const functions = Array.isArray(proposal?.functions) ? proposal.functions : []
+  const contextSources = Array.isArray(proposal?.context_sources) ? proposal.context_sources : []
+  const inputContract = JSON.stringify({ tools, functions, context_sources: contextSources })
+
+  database
+    .prepare(
+      `
+      INSERT INTO Assistant_System_Prompts (
+        assistant_system_prompt_id, name, version, description, system_prompt, input_contract,
+        output_contract, schema_name, is_active, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))
+      ON CONFLICT(assistant_system_prompt_id) DO UPDATE SET
+        name = excluded.name,
+        version = excluded.version,
+        description = excluded.description,
+        system_prompt = excluded.system_prompt,
+        input_contract = excluded.input_contract,
+        output_contract = excluded.output_contract,
+        schema_name = excluded.schema_name,
+        updated_at = datetime('now')
+    `,
+    )
+    .run(
+      id,
+      normalizeNullableString(proposal?.name) || 'Deal Analyst Assistant',
+      normalizeNullableString(proposal?.version) || 'v1',
+      normalizeNullableString(proposal?.description),
+      systemPrompt,
+      inputContract,
+      JSON.stringify({ purpose: 'Opportunity ingest populate' }),
+      'opportunity_ingest_assistant',
+    )
+
+  return id
+}
+
 function createDatabookSnapshotForOpportunity(opportunityId, { source = 'create' } = {}) {
   const database = initDb()
   const actor = getAuditActor(database)
@@ -2411,10 +2906,72 @@ function createDatabookSnapshotForOpportunity(opportunityId, { source = 'create'
   return snapshotId
 }
 
+function ensureExistingCompanyId(database, maybeCompanyId) {
+  const companyId = normalizeNullableString(maybeCompanyId)
+  if (!companyId) return null
+  const exists = database.prepare('SELECT 1 FROM Companies WHERE id = ? LIMIT 1').get(companyId)
+  return exists ? companyId : null
+}
+
+function ensureDefaultPipelineSeed(database) {
+  database
+    .prepare(
+      `
+      INSERT OR IGNORE INTO Pipelines (pipeline_id, name, dir_name, is_default)
+      VALUES ('pipeline_default', 'Default Investment Pipeline', 'pipeline_default', 1)
+    `,
+    )
+    .run()
+
+  database
+    .prepare(
+      `
+      INSERT OR IGNORE INTO Pipeline_Stages (stage_id, pipeline_id, name, position)
+      VALUES ('stage_thesis_alignment', 'pipeline_default', '1_thesis_alignment', 1)
+    `,
+    )
+    .run()
+}
+
+function buildOpportunityForeignKeyDebug(database, { companyId = null, kind = null } = {}) {
+  const cid = normalizeNullableString(companyId)
+  const companyExists = cid
+    ? Boolean(database.prepare('SELECT 1 FROM Companies WHERE id = ? LIMIT 1').get(cid))
+    : null
+  const pipelineExists = Boolean(
+    database
+      .prepare("SELECT 1 FROM Pipelines WHERE pipeline_id = 'pipeline_default' LIMIT 1")
+      .get(),
+  )
+  const stageExists = Boolean(
+    database
+      .prepare(
+        "SELECT 1 FROM Pipeline_Stages WHERE stage_id = 'stage_thesis_alignment' AND pipeline_id = 'pipeline_default' LIMIT 1",
+      )
+      .get(),
+  )
+  return {
+    kind: normalizeNullableString(kind),
+    company_id: cid,
+    company_exists: companyExists,
+    pipeline_default_exists: pipelineExists,
+    default_stage_exists: stageExists,
+  }
+}
+
+function runCreateStep(label, fn) {
+  try {
+    return fn()
+  } catch (e) {
+    throw new Error(`[${label}] ${e?.message || String(e)}`)
+  }
+}
+
 function createOpportunity(payload = {}) {
   const database = initDb()
 
-  let companyId = normalizeNullableString(payload.company_id)
+  let companyId = ensureExistingCompanyId(database, payload.company_id)
+  const primaryContactName = normalizeNullableString(payload?.primary_contact?.Name)
   if (!companyId && payload?.company) {
     companyId = upsertCompanyFromAutofill(database, payload.company, companyId)
   } else if (companyId && payload?.company) {
@@ -2423,20 +2980,36 @@ function createOpportunity(payload = {}) {
   const explicitKind = normalizeOpportunityKind(payload.kind)
   const isAssetManager = companyIsAssetManager(database, companyId)
   const kind = isAssetManager ? 'fund' : explicitKind || 'round'
-  if (!companyId && kind === 'round') {
-    throw new Error('company_id is required for round opportunities')
+  if (!companyId && !primaryContactName) {
+    throw new Error('Provide either Company name or Contact name')
+  }
+  if (!companyId && primaryContactName) {
+    const autoCompanyName = normalizeNullableString(payload?.company?.Company_Name) || primaryContactName
+    companyId = upsertCompanyFromAutofill(
+      database,
+      {
+        ...(payload?.company || {}),
+        Company_Name: autoCompanyName,
+        Company_Type: normalizeNullableString(payload?.company?.Company_Type) || 'Other',
+      },
+      companyId,
+    )
   }
 
   const opportunityId = normalizeNullableString(payload.id) || `opportunity:${crypto.randomUUID()}`
 
-  const providedOpportunityName = normalizeNullableString(payload.Venture_Oppty_Name)
-  const derivedOpportunityName = deriveOpportunityName(database, companyId)
+  const derivedOpportunityName = deriveOpportunityName(database, {
+    companyId,
+    companyName: normalizeNullableString(payload?.company?.Company_Name),
+    contactName: primaryContactName,
+    fundingSeries: normalizeNullableString(payload.Round_Stage),
+  })
 
   const fields = {
     id: opportunityId,
     kind,
     company_id: companyId,
-    Venture_Oppty_Name: providedOpportunityName || derivedOpportunityName || opportunityId,
+    Venture_Oppty_Name: derivedOpportunityName || opportunityId,
     Round_Stage: normalizeNullableString(payload.Round_Stage),
     Type_of_Security: normalizeNullableString(payload.Type_of_Security),
     Investment_Ask: normalizeNullableNumber(payload.Investment_Ask),
@@ -2468,38 +3041,242 @@ function createOpportunity(payload = {}) {
   }
 
   const insert = database.transaction(() => {
+    ensureDefaultPipelineSeed(database)
+
     const columns = Object.keys(fields)
     const placeholders = columns.map(() => '?').join(',')
     const values = columns.map((c) => fields[c])
 
-    database
-      .prepare(`INSERT INTO Opportunities (${columns.join(',')}) VALUES (${placeholders})`)
-      .run(values)
+    runCreateStep('insert opportunity', () => {
+      database
+        .prepare(`INSERT INTO Opportunities (${columns.join(',')}) VALUES (${placeholders})`)
+        .run(values)
+    })
 
     if (kind === 'fund') {
-      upsertFundSubtype(database, opportunityId, payload)
+      runCreateStep('upsert fund subtype', () => {
+        upsertFundSubtype(database, opportunityId, payload)
+      })
     }
 
     // Ensure the opportunity has a default pipeline stage (DB-level requirement via app logic)
-    database
-      .prepare(
-        `
-        INSERT OR REPLACE INTO Opportunity_Pipeline (
-          opportunity_id,
-          pipeline_id,
-          stage_id,
-          status
-        ) VALUES (?, 'pipeline_default', 'stage_thesis_alignment', 'active')
-      `,
-      )
-      .run(opportunityId)
+    runCreateStep('link opportunity to default pipeline', () => {
+      database
+        .prepare(
+          `
+          INSERT OR REPLACE INTO Opportunity_Pipeline (
+            opportunity_id,
+            pipeline_id,
+            stage_id,
+            status
+          ) VALUES (?, 'pipeline_default', 'stage_thesis_alignment', 'active')
+        `,
+        )
+        .run(opportunityId)
+    })
 
-    createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kind, payload.primary_contact)
+    runCreateStep('upsert primary contact link', () => {
+      createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kind, payload.primary_contact)
+    })
+    runCreateStep('create opportunity notes', () => {
+      createNotesForOpportunity(database, opportunityId, payload.notes)
+    })
+    runCreateStep('create opportunity tasks', () => {
+      createTasksForOpportunity(database, opportunityId, kind, payload.tasks)
+    })
+    runCreateStep('create assistant prompt', () => {
+      createAssistantPromptFromProposal(database, payload.assistant)
+    })
   })
 
-  insert()
+  try {
+    insert()
+  } catch (e) {
+    const message = String(e?.message || e || '')
+    if (message.includes('FOREIGN KEY constraint failed')) {
+      const debug = buildOpportunityForeignKeyDebug(database, { companyId, kind })
+      throw new Error(
+        `FOREIGN KEY constraint failed while creating opportunity. Debug: ${JSON.stringify(debug)}`,
+      )
+    }
+    throw e
+  }
 
   const snapshotId = createDatabookSnapshotForOpportunity(opportunityId, { source: 'autofill_create' })
+  return { id: opportunityId, snapshot_id: snapshotId }
+}
+
+function updateOpportunity(payload = {}) {
+  const database = initDb()
+  const opportunityId = normalizeNullableString(payload?.id)
+  if (!opportunityId) throw new Error('id is required')
+  const existing = database
+    .prepare('SELECT id FROM Opportunities WHERE id = ? LIMIT 1')
+    .get(opportunityId)
+  if (!existing) throw new Error(`Opportunity not found: ${opportunityId}`)
+
+  let companyId = ensureExistingCompanyId(database, payload.company_id)
+  const primaryContactName = normalizeNullableString(payload?.primary_contact?.Name)
+  if (!companyId && payload?.company) {
+    companyId = upsertCompanyFromAutofill(database, payload.company, companyId)
+  } else if (companyId && payload?.company) {
+    upsertCompanyFromAutofill(database, payload.company, companyId)
+  }
+  const explicitKind = normalizeOpportunityKind(payload.kind)
+  const isAssetManager = companyIsAssetManager(database, companyId)
+  const kind = isAssetManager ? 'fund' : explicitKind || 'round'
+  if (!companyId && !primaryContactName) {
+    throw new Error('Provide either Company name or Contact name')
+  }
+  if (!companyId && primaryContactName) {
+    const autoCompanyName = normalizeNullableString(payload?.company?.Company_Name) || primaryContactName
+    companyId = upsertCompanyFromAutofill(
+      database,
+      {
+        ...(payload?.company || {}),
+        Company_Name: autoCompanyName,
+        Company_Type: normalizeNullableString(payload?.company?.Company_Type) || 'Other',
+      },
+      companyId,
+    )
+  }
+
+  const derivedOpportunityName = deriveOpportunityName(database, {
+    companyId,
+    companyName: normalizeNullableString(payload?.company?.Company_Name),
+    contactName: primaryContactName,
+    fundingSeries: normalizeNullableString(payload.Round_Stage),
+  })
+
+  const fields = {
+    id: opportunityId,
+    kind,
+    company_id: companyId,
+    Venture_Oppty_Name: derivedOpportunityName || opportunityId,
+    Round_Stage: normalizeNullableString(payload.Round_Stage),
+    Type_of_Security: normalizeNullableString(payload.Type_of_Security),
+    Investment_Ask: normalizeNullableNumber(payload.Investment_Ask),
+    Round_Amount: normalizeNullableNumber(payload.Round_Amount),
+    Hard_Commits: normalizeNullableNumber(payload.Hard_Commits),
+    Soft_Commits: normalizeNullableNumber(payload.Soft_Commits),
+    Pre_Valuation: normalizeNullableNumber(payload.Pre_Valuation),
+    Post_Valuation: normalizeNullableNumber(payload.Post_Valuation),
+    Previous_Post: normalizeNullableNumber(payload.Previous_Post),
+    First_Close_Date: normalizeNullableString(payload.First_Close_Date),
+    Next_Close_Date: normalizeNullableString(payload.Next_Close_Date),
+    Final_Close_Date: normalizeNullableString(payload.Final_Close_Date),
+    Pipeline_Stage: normalizeNullableString(payload.Pipeline_Stage),
+    Pipeline_Status: normalizeNullableString(payload.Pipeline_Status),
+    Raising_Status: normalizeNullableString(payload.Raising_Status),
+    Board_Seats: normalizeNullableString(payload.Board_Seats),
+    Information_Rights: normalizeNullableString(payload.Information_Rights),
+    Voting_Rights: normalizeNullableString(payload.Voting_Rights),
+    Liquidation_Preference: normalizeNullableString(payload.Liquidation_Preference),
+    Anti_Dilution_Provisions: normalizeNullableString(payload.Anti_Dilution_Provisions),
+    Conversion_Features: normalizeNullableString(payload.Conversion_Features),
+    Most_Favored_Nation: normalizeNullableString(payload.Most_Favored_Nation),
+    ROFO_ROR: normalizeNullableString(payload.ROFO_ROR),
+    Co_Sale_Right: normalizeNullableString(payload.Co_Sale_Right),
+    Tag_Drag_Along: normalizeNullableString(payload.Tag_Drag_Along),
+    Put_Option: normalizeNullableString(payload.Put_Option),
+    Over_Allotment_Option: normalizeNullableString(payload.Over_Allotment_Option),
+    Stacked_Series: normalizeNullableString(payload.Stacked_Series),
+  }
+
+  const tx = database.transaction(() => {
+    ensureDefaultPipelineSeed(database)
+
+    runCreateStep('update opportunity', () => {
+      database
+        .prepare(
+          `
+          UPDATE Opportunities SET
+            kind = @kind,
+            company_id = @company_id,
+            Venture_Oppty_Name = @Venture_Oppty_Name,
+            Round_Stage = @Round_Stage,
+            Type_of_Security = @Type_of_Security,
+            Investment_Ask = @Investment_Ask,
+            Round_Amount = @Round_Amount,
+            Hard_Commits = @Hard_Commits,
+            Soft_Commits = @Soft_Commits,
+            Pre_Valuation = @Pre_Valuation,
+            Post_Valuation = @Post_Valuation,
+            Previous_Post = @Previous_Post,
+            First_Close_Date = @First_Close_Date,
+            Next_Close_Date = @Next_Close_Date,
+            Final_Close_Date = @Final_Close_Date,
+            Pipeline_Stage = @Pipeline_Stage,
+            Pipeline_Status = @Pipeline_Status,
+            Raising_Status = @Raising_Status,
+            Board_Seats = @Board_Seats,
+            Information_Rights = @Information_Rights,
+            Voting_Rights = @Voting_Rights,
+            Liquidation_Preference = @Liquidation_Preference,
+            Anti_Dilution_Provisions = @Anti_Dilution_Provisions,
+            Conversion_Features = @Conversion_Features,
+            Most_Favored_Nation = @Most_Favored_Nation,
+            ROFO_ROR = @ROFO_ROR,
+            Co_Sale_Right = @Co_Sale_Right,
+            Tag_Drag_Along = @Tag_Drag_Along,
+            Put_Option = @Put_Option,
+            Over_Allotment_Option = @Over_Allotment_Option,
+            Stacked_Series = @Stacked_Series,
+            updated_at = datetime('now')
+          WHERE id = @id
+        `,
+        )
+        .run(fields)
+    })
+
+    if (kind === 'fund') {
+      runCreateStep('upsert fund subtype', () => {
+        upsertFundSubtype(database, opportunityId, payload)
+      })
+    }
+
+    runCreateStep('link opportunity to default pipeline', () => {
+      database
+        .prepare(
+          `
+          INSERT OR IGNORE INTO Opportunity_Pipeline (
+            opportunity_id,
+            pipeline_id,
+            stage_id,
+            status
+          ) VALUES (?, 'pipeline_default', 'stage_thesis_alignment', 'active')
+        `,
+        )
+        .run(opportunityId)
+    })
+
+    runCreateStep('upsert primary contact link', () => {
+      createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kind, payload.primary_contact)
+    })
+    runCreateStep('create opportunity notes', () => {
+      createNotesForOpportunity(database, opportunityId, payload.notes)
+    })
+    runCreateStep('create opportunity tasks', () => {
+      createTasksForOpportunity(database, opportunityId, kind, payload.tasks)
+    })
+    runCreateStep('create assistant prompt', () => {
+      createAssistantPromptFromProposal(database, payload.assistant)
+    })
+  })
+  try {
+    tx()
+  } catch (e) {
+    const message = String(e?.message || e || '')
+    if (message.includes('FOREIGN KEY constraint failed')) {
+      const debug = buildOpportunityForeignKeyDebug(database, { companyId, kind })
+      throw new Error(
+        `FOREIGN KEY constraint failed while updating opportunity ${opportunityId}. Debug: ${JSON.stringify(debug)}`,
+      )
+    }
+    throw e
+  }
+
+  const snapshotId = createDatabookSnapshotForOpportunity(opportunityId, { source: 'autofill_update' })
   return { id: opportunityId, snapshot_id: snapshotId }
 }
 
@@ -2545,8 +3322,12 @@ function upsertOpportunities(rows = []) {
         kind,
         company_id: companyId,
         Venture_Oppty_Name:
-          normalizeNullableString(r?.Venture_Oppty_Name) ||
-          deriveOpportunityName(database, companyId, companyNameFromRow) ||
+          deriveOpportunityName(database, {
+            companyId,
+            companyName: companyNameFromRow,
+            contactName: normalizeNullableString(r?.primary_contact_name),
+            fundingSeries: normalizeNullableString(r?.Round_Stage),
+          }) ||
           opportunityId,
         Round_Stage: normalizeNullableString(r?.Round_Stage),
         Type_of_Security: normalizeNullableString(r?.Type_of_Security),
@@ -2736,9 +3517,11 @@ function registerIpc() {
   ipcMain.handle('autofill:previewFromFiles', async (_event, payload = {}) => {
     const database = initDb()
     const apiSettings = getApiSettings(database)
+    const existingCompanies = listCompanies()
     return previewAutofillFromFiles({
       filePaths: payload?.filePaths || [],
       apiKeys: { gemini: apiSettings.geminiApiKey },
+      existingCompanies,
     })
   })
 
@@ -2803,6 +3586,10 @@ function registerIpc() {
   ipcMain.handle('opportunities:create', async (_event, payload) => {
     initDb()
     return createOpportunity(payload)
+  })
+  ipcMain.handle('opportunities:update', async (_event, payload) => {
+    initDb()
+    return updateOpportunity(payload)
   })
 
   ipcMain.handle('opportunities:upsertMany', async (_event, { rows } = {}) => {
@@ -2888,6 +3675,45 @@ function registerIpc() {
     return deleteRow('Contacts', 'id', String(contactId || ''))
   })
 
+  ipcMain.handle('notes:list', async () => {
+    initDb()
+    return { notes: listNotes() }
+  })
+  ipcMain.handle('notes:create', async (_event, payload = {}) => {
+    initDb()
+    return createNote(payload)
+  })
+  ipcMain.handle('notes:upsertMany', async (_event, { rows } = {}) => {
+    initDb()
+    return upsertNotes(rows)
+  })
+  ipcMain.handle('notes:delete', async (_event, { noteId } = {}) => {
+    initDb()
+    return deleteRow('Notes', 'id', String(noteId || ''))
+  })
+
+  ipcMain.handle('tasks:list', async () => {
+    initDb()
+    return { tasks: listTasksForPage() }
+  })
+  ipcMain.handle('tasks:create', async (_event, payload = {}) => {
+    initDb()
+    return createTask(payload)
+  })
+  ipcMain.handle('tasks:upsertMany', async (_event, { rows } = {}) => {
+    initDb()
+    return upsertTasks(rows)
+  })
+  ipcMain.handle('tasks:delete', async (_event, { taskId } = {}) => {
+    initDb()
+    return deleteRow('Tasks', 'id', String(taskId || ''))
+  })
+
+  ipcMain.handle('assistants:list', async () => {
+    initDb()
+    return { assistants: listAssistantPrompts() }
+  })
+
   ipcMain.handle('artifacts:list', async () => {
     initDb()
     return { artifacts: listArtifacts() }
@@ -2902,6 +3728,14 @@ function registerIpc() {
     initDb()
     return deleteArtifact(artifactId)
   })
+
+  ipcMain.handle(
+    'artifacts:linkToOpportunity',
+    async (_event, { artifactIds, opportunityId, pipelineId } = {}) => {
+      initDb()
+      return linkArtifactsToOpportunity({ artifactIds, opportunityId, pipelineId })
+    },
+  )
 
   ipcMain.handle('artifacts:ingest', async (event, payload = {}) => {
     const database = initDb()
