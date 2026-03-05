@@ -1,17 +1,17 @@
 <template>
   <q-dialog v-model="open">
-    <q-card style="width: 980px; max-width: 96vw">
-      <q-card-section>
+    <q-card style="width: 1080px; max-width: 96vw">
+      <q-card-section class="q-px-xl q-pt-lg q-pb-md">
         <div class="text-h6">Create Opportunity</div>
         <div class="text-caption text-grey-7">
-          Drop files, ingest and auto-populate fields, verify all, then create.
+          Drop files to start processing automatically.
         </div>
       </q-card-section>
 
       <q-separator />
 
-      <q-card-section style="max-height: 72vh; overflow: auto">
-        <q-form @submit.prevent="submit" class="q-gutter-md">
+      <q-card-section class="q-px-xl q-py-lg" style="max-height: 72vh; overflow: auto">
+        <q-form @submit.prevent="submit" class="q-gutter-lg">
           <div class="text-subtitle1">Add new artifact</div>
           <div class="text-caption text-grey-7">Drop your artifacts here</div>
           <div
@@ -26,130 +26,177 @@
             </div>
           </div>
 
-          <q-banner v-if="stagedFiles.length" class="bg-white text-black" rounded>
-            <div class="text-caption text-grey-7 q-mb-xs">Staged files:</div>
-            <div style="max-height: 120px; overflow: auto">
-              <div v-for="f in stagedFiles" :key="f.path || f.name" class="text-body2">
-                {{ f.name }} ({{ f.size }} bytes)
-              </div>
-            </div>
+          <q-table
+            v-if="ingestStatusRows.length"
+            dense
+            flat
+            bordered
+            row-key="fileName"
+            :rows="ingestStatusRows"
+            :columns="ingestStatusColumns"
+            :pagination="{ rowsPerPage: 10 }"
+          >
+            <template #body-cell-uploadStatus="props">
+              <q-td :props="props">
+                <q-badge :color="statusColor(props.value)">{{ props.value }}</q-badge>
+              </q-td>
+            </template>
+            <template #body-cell-markdownStatus="props">
+              <q-td :props="props">
+                <q-badge :color="statusColor(props.value)">{{ props.value }}</q-badge>
+              </q-td>
+            </template>
+            <template #body-cell-extractionStatus="props">
+              <q-td :props="props">
+                <q-badge :color="statusColor(props.value)">{{ props.value }}</q-badge>
+              </q-td>
+            </template>
+          </q-table>
+
+          <q-banner
+            v-if="processingDrop"
+            class="bg-blue-1 text-blue-10 processing-floating-banner"
+            rounded
+          >
+            <template #avatar>
+              <q-spinner color="primary" size="20px" />
+            </template>
+            {{ processingMessage || 'Processing dropped files...' }}
           </q-banner>
 
-          <div class="row items-center q-gutter-sm">
-            <q-btn
-              color="secondary"
-              label="Ingest & Populate Opportunity"
-              :loading="autofillLoading"
-              :disable="loading || autofillLoading"
-              @click="ingestAndPopulate"
+          <q-separator />
+
+          <div class="row q-col-gutter-xl">
+            <div class="col-12 col-md-6 q-gutter-md">
+              <div class="text-subtitle1">Company</div>
+
+              <div class="q-gutter-md">
+                <q-select
+                  v-model="form.company_id"
+                  outlined
+                  label="Existing Company"
+                  :options="companyOptions"
+                  :disable="loadingCompanies || loading || processingDrop"
+                  emit-value
+                  map-options
+                >
+                  <template #before-options>
+                    <q-item
+                      clickable
+                      class="bg-white"
+                      style="position: sticky; top: 0; z-index: 2"
+                      @click.stop.prevent="companyDialogOpen = true"
+                    >
+                      <q-item-section avatar>
+                        <q-icon name="add" />
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label>Create new company</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-separator />
+                  </template>
+                </q-select>
+
+                <div class="row items-center q-gutter-sm">
+                  <q-badge v-if="isUsingExistingCompany" color="positive">Existing record</q-badge>
+                  <q-btn
+                    v-if="showCompanyToggleButton"
+                    flat
+                    color="secondary"
+                    :label="companyToggleLabel"
+                    @click="toggleCompanySource"
+                  />
+                </div>
+
+                <q-input
+                  v-for="field in companyFields"
+                  :key="field.key"
+                  v-model="companyForm[field.key]"
+                  outlined
+                  :label="field.label"
+                  :type="field.inputType"
+                  :disable="loading || processingDrop || isUsingExistingCompany"
+                  :input-class="fieldInputClass('company', field.key)"
+                />
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6 q-gutter-md">
+              <div class="text-subtitle1">Opportunity</div>
+
+              <div class="q-gutter-md">
+                <q-input
+                  :model-value="generatedOpportunityName"
+                  outlined
+                  label="Opportunity Name (auto)"
+                  readonly
+                  disable
+                />
+
+                <q-select
+                  v-model="form.kind"
+                  outlined
+                  label="Opportunity Kind *"
+                  :options="kindOptions"
+                  :disable="loading || selectedCompanyIsAssetManager || processingDrop"
+                  emit-value
+                  map-options
+                />
+                <div v-if="selectedCompanyIsAssetManager" class="text-caption text-grey-7">
+                  Selected company is <b>Asset Manager</b>, so kind is forced to <b>fund</b>.
+                </div>
+
+                <q-input
+                  v-for="field in opportunityFields"
+                  :key="field.key"
+                  v-model="form[field.key]"
+                  outlined
+                  :label="field.label"
+                  :type="field.inputType"
+                  :disable="loading || processingDrop"
+                  :input-class="fieldInputClass('opportunity', field.key)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <q-separator />
+
+          <div class="q-gutter-md">
+            <div class="text-subtitle1">Primary Contact</div>
+            <q-input
+              v-for="field in contactFields"
+              :key="field.key"
+              v-model="contactForm[field.key]"
+              outlined
+              :label="field.label"
+              :type="field.inputType"
+              :disable="loading || processingDrop"
+              :input-class="fieldInputClass('contact', field.key)"
             />
-            <q-btn
-              v-if="autofillApplied"
-              color="positive"
-              label="VERIFY ALL"
-              :disable="verifyAllConfirmed || loading || autofillLoading"
-              @click="verifyAll"
-            />
-            <div v-if="autofillApplied && !verifyAllConfirmed" class="text-negative text-caption">
-              Verify all LLM-populated fields before creating.
-            </div>
-            <div v-if="verifyAllConfirmed" class="text-positive text-caption">All suggested fields verified.</div>
           </div>
 
-          <q-separator />
+          <q-separator v-if="assistantProposal.system_prompt" />
 
-          <div class="text-subtitle1">Opportunity</div>
-          <q-select
-            v-model="form.company_id"
-            outlined
-            :label="form.kind === 'round' ? 'Existing Company * (or provide company below)' : 'Existing Company (optional)'"
-            :options="companyOptions"
-            :disable="loadingCompanies || loading || autofillLoading"
-            emit-value
-            map-options
-          >
-            <template #before-options>
-              <q-item
-                clickable
-                class="bg-white"
-                style="position: sticky; top: 0; z-index: 2"
-                @click.stop.prevent="companyDialogOpen = true"
-              >
-                <q-item-section avatar>
-                  <q-icon name="add" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>Create new company</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-separator />
-            </template>
-          </q-select>
-
-          <q-select
-            v-model="form.kind"
-            outlined
-            label="Opportunity Kind *"
-            :options="kindOptions"
-            :disable="loading || selectedCompanyIsAssetManager || autofillLoading"
-            emit-value
-            map-options
-          />
-          <div v-if="selectedCompanyIsAssetManager" class="text-caption text-grey-7">
-            Selected company is <b>Asset Manager</b>, so kind is forced to <b>fund</b>.
-          </div>
-
-          <div class="row q-col-gutter-md">
-            <div v-for="field in opportunityFields" :key="field.key" class="col-12 col-md-6">
-              <q-input
-                v-model="form[field.key]"
-                outlined
-                :label="field.label"
-                :type="field.inputType"
-                :disable="loading || autofillLoading"
-                :input-class="fieldInputClass('opportunity', field.key)"
-              />
-            </div>
-          </div>
-
-          <q-separator />
-
-          <div class="text-subtitle1">Company</div>
-          <div class="row q-col-gutter-md">
-            <div v-for="field in companyFields" :key="field.key" class="col-12 col-md-6">
-              <q-input
-                v-model="companyForm[field.key]"
-                outlined
-                :label="field.label"
-                :type="field.inputType"
-                :disable="loading || autofillLoading"
-                :input-class="fieldInputClass('company', field.key)"
-              />
-            </div>
-          </div>
-
-          <q-separator />
-
-          <div class="text-subtitle1">Primary Contact</div>
-          <div class="row q-col-gutter-md">
-            <div v-for="field in contactFields" :key="field.key" class="col-12 col-md-6">
-              <q-input
-                v-model="contactForm[field.key]"
-                outlined
-                :label="field.label"
-                :type="field.inputType"
-                :disable="loading || autofillLoading"
-                :input-class="fieldInputClass('contact', field.key)"
-              />
-            </div>
-          </div>
+          <q-card v-if="assistantProposal.system_prompt" flat bordered>
+            <q-card-section>
+              <div class="text-subtitle1">Assistant Proposal</div>
+              <div class="text-body2"><b>Name:</b> {{ assistantProposal.name || 'Assistant' }}</div>
+              <div class="text-body2 q-mt-xs"><b>System prompt:</b></div>
+              <div class="text-caption" style="white-space: pre-wrap">{{ assistantProposal.system_prompt }}</div>
+              <div class="text-body2 q-mt-sm"><b>Tools:</b> {{ (assistantProposal.tools || []).join(', ') || 'None' }}</div>
+              <div class="text-body2"><b>Functions:</b> {{ (assistantProposal.functions || []).join(', ') || 'None' }}</div>
+              <div class="text-body2"><b>Context:</b> {{ (assistantProposal.context_sources || []).join(', ') || 'None' }}</div>
+            </q-card-section>
+          </q-card>
         </q-form>
       </q-card-section>
 
       <q-separator />
 
-      <q-card-actions align="right">
-        <q-btn flat label="Cancel" :disable="loading || autofillLoading" @click="open = false" />
+      <q-card-actions align="right" class="q-px-xl q-py-md">
+        <q-btn flat label="Cancel" :disable="loading || processingDrop" @click="onCancel" />
         <q-btn
           color="primary"
           label="Create"
@@ -165,7 +212,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import CompanyCreateDialog from './CompanyCreateDialog.vue'
 
@@ -184,19 +231,37 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const $q = useQuasar()
 
 const loading = ref(false)
-const autofillLoading = ref(false)
+const processingDrop = ref(false)
+const processingMessage = ref('')
 const loadingCompanies = ref(false)
 const companies = ref([])
 const companyDialogOpen = ref(false)
 const dragOver = ref(false)
-const stagedFiles = ref([])
-const autofillApplied = ref(false)
-const verifyAllConfirmed = ref(false)
-const llmFieldFlags = ref({})
+const ingestStatusByFile = ref({})
+
+const extractedCompanyForm = ref(null)
+const matchedCompanyMeta = ref(null)
+const useExtractedCompany = ref(false)
+
+const generatedNotes = ref([])
+const generatedTasks = ref([])
+const assistantProposal = ref({})
+
+const draftOpportunityId = ref(null)
+const draftArtifactIds = ref([])
+const didSubmit = ref(false)
+
+const autofilledFlags = ref({})
+
+const ingestStatusColumns = [
+  { name: 'fileName', label: 'File', field: 'fileName', align: 'left' },
+  { name: 'uploadStatus', label: 'Copy File', field: 'uploadStatus', align: 'left' },
+  { name: 'markdownStatus', label: 'Markdown Generated', field: 'markdownStatus', align: 'left' },
+  { name: 'extractionStatus', label: 'Data Extracted', field: 'extractionStatus', align: 'left' },
+]
 
 const opportunityFields = [
-  { key: 'Venture_Oppty_Name', label: 'Opportunity Name *', inputType: 'text' },
-  { key: 'Round_Stage', label: 'Round Stage', inputType: 'text' },
+  { key: 'Round_Stage', label: 'Funding Series', inputType: 'text' },
   { key: 'Type_of_Security', label: 'Type of Security', inputType: 'text' },
   { key: 'Investment_Ask', label: 'Investment Ask', inputType: 'number' },
   { key: 'Round_Amount', label: 'Round Amount', inputType: 'number' },
@@ -211,19 +276,6 @@ const opportunityFields = [
   { key: 'Pipeline_Stage', label: 'Pipeline Stage', inputType: 'text' },
   { key: 'Pipeline_Status', label: 'Pipeline Status', inputType: 'text' },
   { key: 'Raising_Status', label: 'Raising Status', inputType: 'text' },
-  { key: 'Board_Seats', label: 'Board Seats', inputType: 'text' },
-  { key: 'Information_Rights', label: 'Information Rights', inputType: 'text' },
-  { key: 'Voting_Rights', label: 'Voting Rights', inputType: 'text' },
-  { key: 'Liquidation_Preference', label: 'Liquidation Preference', inputType: 'text' },
-  { key: 'Anti_Dilution_Provisions', label: 'Anti Dilution Provisions', inputType: 'text' },
-  { key: 'Conversion_Features', label: 'Conversion Features', inputType: 'text' },
-  { key: 'Most_Favored_Nation', label: 'Most Favored Nation', inputType: 'text' },
-  { key: 'ROFO_ROR', label: 'ROFO ROR', inputType: 'text' },
-  { key: 'Co_Sale_Right', label: 'Co Sale Right', inputType: 'text' },
-  { key: 'Tag_Drag_Along', label: 'Tag Drag Along', inputType: 'text' },
-  { key: 'Put_Option', label: 'Put Option', inputType: 'text' },
-  { key: 'Over_Allotment_Option', label: 'Over Allotment Option', inputType: 'text' },
-  { key: 'Stacked_Series', label: 'Stacked Series', inputType: 'text' },
 ]
 
 const companyFields = [
@@ -245,14 +297,6 @@ const contactFields = [
   { key: 'LinkedIn', label: 'LinkedIn', inputType: 'text' },
   { key: 'Role', label: 'Role', inputType: 'text' },
   { key: 'Stakeholder_type', label: 'Stakeholder Type', inputType: 'text' },
-  { key: 'Closeness_Level', label: 'Closeness Level', inputType: 'text' },
-  { key: 'Comment', label: 'Comment', inputType: 'text' },
-  { key: 'Expertise', label: 'Expertise', inputType: 'text' },
-  { key: 'Degrees_Program', label: 'Degrees Program', inputType: 'text' },
-  { key: 'University', label: 'University', inputType: 'text' },
-  { key: 'Credentials', label: 'Credentials', inputType: 'text' },
-  { key: 'Tenure_at_Firm_yrs', label: 'Tenure at Firm (yrs)', inputType: 'number' },
-  { key: 'Country_based', label: 'Country Based', inputType: 'text' },
 ]
 
 const form = ref({})
@@ -260,12 +304,15 @@ const companyForm = ref({})
 const contactForm = ref({})
 
 const companyOptions = computed(() =>
-  (companies.value || [])
-    .filter((c) => c?.Company_Name)
-    .map((c) => ({
-      label: `${c.Company_Name}${c?.Company_Type ? ` (${c.Company_Type})` : ''}`,
-      value: c.id,
-    })),
+  [
+    { label: '-', value: null },
+    ...(companies.value || [])
+      .filter((c) => c?.Company_Name)
+      .map((c) => ({
+        label: `${c.Company_Name}${c?.Company_Type ? ` (${c.Company_Type})` : ''}`,
+        value: c.id,
+      })),
+  ],
 )
 
 const kindOptions = [
@@ -279,22 +326,38 @@ const selectedCompany = computed(
 const selectedCompanyIsAssetManager = computed(
   () => String(selectedCompany.value?.Company_Type || '').toLowerCase() === 'asset manager',
 )
+const isUsingExistingCompany = computed(() => Boolean(form.value?.company_id) && !useExtractedCompany.value)
+const showCompanyToggleButton = computed(() => Boolean(matchedCompanyMeta.value?.id))
+const companyToggleLabel = computed(() =>
+  useExtractedCompany.value ? 'Use existing company instead' : 'Use extracted data instead',
+)
+
+const ingestStatusRows = computed(() => Object.values(ingestStatusByFile.value || {}))
 
 const createDisabled = computed(() => {
-  if (loading.value || autofillLoading.value) return true
-  if (autofillApplied.value && !verifyAllConfirmed.value) return true
-  if (!String(form.value.Venture_Oppty_Name || '').trim()) return true
-  const hasCompanyFromForm = String(companyForm.value.Company_Name || '').trim().length > 0
-  if (form.value.kind === 'round' && !form.value.company_id && !hasCompanyFromForm) return true
-  return false
+  if (loading.value || processingDrop.value) return true
+  const hasCompany = String(companyForm.value.Company_Name || '').trim().length > 0 || !!form.value.company_id
+  const hasContact = String(contactForm.value.Name || '').trim().length > 0
+  return !hasCompany && !hasContact
+})
+
+const generatedOpportunityName = computed(() => {
+  const base =
+    String(companyForm.value.Company_Name || '').trim() ||
+    String(contactForm.value.Name || '').trim() ||
+    'Opportunity'
+  const series = String(form.value.Round_Stage || '').trim() || 'Unknown_Series'
+  const now = new Date()
+  const dd = String(now.getDate()).padStart(2, '0')
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const yyyy = String(now.getFullYear())
+  return `${dd}_${mm}_${yyyy}_${base.replace(/\s+/g, '_')}_${series.replace(/\s+/g, '_')}`
 })
 
 function resetForms() {
   form.value = {
     company_id: null,
     kind: 'round',
-    id: '',
-    Venture_Oppty_Name: '',
     Round_Stage: '',
     Type_of_Security: '',
     Investment_Ask: '',
@@ -310,19 +373,6 @@ function resetForms() {
     Pipeline_Stage: '',
     Pipeline_Status: '',
     Raising_Status: '',
-    Board_Seats: '',
-    Information_Rights: '',
-    Voting_Rights: '',
-    Liquidation_Preference: '',
-    Anti_Dilution_Provisions: '',
-    Conversion_Features: '',
-    Most_Favored_Nation: '',
-    ROFO_ROR: '',
-    Co_Sale_Right: '',
-    Tag_Drag_Along: '',
-    Put_Option: '',
-    Over_Allotment_Option: '',
-    Stacked_Series: '',
   }
   companyForm.value = {
     Company_Name: '',
@@ -342,15 +392,22 @@ function resetForms() {
     LinkedIn: '',
     Role: '',
     Stakeholder_type: '',
-    Closeness_Level: '',
-    Comment: '',
-    Expertise: '',
-    Degrees_Program: '',
-    University: '',
-    Credentials: '',
-    Tenure_at_Firm_yrs: '',
-    Country_based: '',
   }
+}
+
+function resetTransientState() {
+  dragOver.value = false
+  matchedCompanyMeta.value = null
+  extractedCompanyForm.value = null
+  useExtractedCompany.value = false
+  generatedNotes.value = []
+  generatedTasks.value = []
+  assistantProposal.value = {}
+  ingestStatusByFile.value = {}
+  processingMessage.value = ''
+  draftOpportunityId.value = null
+  draftArtifactIds.value = []
+  autofilledFlags.value = {}
 }
 
 async function loadCompanies() {
@@ -369,7 +426,204 @@ async function onCompanyCreated(company) {
   if (company?.id) form.value.company_id = company.id
 }
 
-function onDrop(e) {
+function stripHumanVerify(value) {
+  return String(value || '')
+    .replaceAll('[[HUMAN_VERIFY]]', '')
+    .replaceAll('[[/HUMAN_VERIFY]]', '')
+    .replaceAll('[HUMAN_VERIFY]', '')
+    .replaceAll('[/HUMAN_VERIFY]', '')
+    .trim()
+}
+
+function markAutofilled(section, key) {
+  autofilledFlags.value[`${section}.${key}`] = true
+}
+
+function fieldInputClass(section, key) {
+  return autofilledFlags.value[`${section}.${key}`] ? 'ec-autofilled-field' : ''
+}
+
+function initStatusForFiles(files = []) {
+  ingestStatusByFile.value = Object.fromEntries(
+    files.map((f) => [
+      f.name,
+      {
+        fileName: f.name,
+        uploadStatus: 'pending',
+        markdownStatus: 'pending',
+        extractionStatus: 'pending',
+      },
+    ]),
+  )
+}
+
+function updateStatusForAllFiles(partial = {}) {
+  const next = { ...ingestStatusByFile.value }
+  for (const [key, row] of Object.entries(next)) {
+    next[key] = { ...row, ...partial }
+  }
+  ingestStatusByFile.value = next
+}
+
+function lowerBaseName(fileName) {
+  const name = String(fileName || '').trim().toLowerCase()
+  if (!name) return ''
+  const dot = name.lastIndexOf('.')
+  return dot > 0 ? name.slice(0, dot) : name
+}
+
+async function findExistingDroppedFiles(files = []) {
+  if (!bridge.value?.artifacts?.list) return { existingNames: [], bothExist: false }
+  const result = await bridge.value.artifacts.list()
+  const artifacts = Array.isArray(result?.artifacts) ? result.artifacts : []
+
+  const rawNames = new Set(
+    artifacts
+      .filter((a) => String(a?.artifact_type || '').toLowerCase() === 'raw')
+      .map((a) => String(a?.fs_path || '').split('/').pop()?.toLowerCase())
+      .filter(Boolean),
+  )
+  const llmNames = new Set(
+    artifacts
+      .filter((a) => String(a?.artifact_type || '').toLowerCase() === 'llm-ready')
+      .map((a) => String(a?.fs_path || '').split('/').pop()?.toLowerCase())
+      .filter(Boolean),
+  )
+
+  const existingNames = []
+  let bothExist = false
+  for (const file of files) {
+    const rawName = String(file?.name || '').trim().toLowerCase()
+    if (!rawName) continue
+    const expectedMd = `${lowerBaseName(rawName)}.md`
+    const hasRaw = rawNames.has(rawName)
+    const hasMd = llmNames.has(expectedMd)
+    if (hasRaw || hasMd) existingNames.push(String(file?.name || '').trim())
+    if (hasRaw && hasMd) bothExist = true
+  }
+
+  return { existingNames, bothExist }
+}
+
+function applySuggestedValues(suggested = {}) {
+  for (const [key, value] of Object.entries(suggested?.opportunity || {})) {
+    if (!Object.prototype.hasOwnProperty.call(form.value, key)) continue
+    form.value[key] = value == null ? '' : stripHumanVerify(value)
+    markAutofilled('opportunity', key)
+  }
+  for (const [key, value] of Object.entries(suggested?.company || {})) {
+    if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
+    companyForm.value[key] = value == null ? '' : stripHumanVerify(value)
+    markAutofilled('company', key)
+  }
+  for (const [key, value] of Object.entries(suggested?.contact || {})) {
+    if (!Object.prototype.hasOwnProperty.call(contactForm.value, key)) continue
+    contactForm.value[key] = value == null ? '' : stripHumanVerify(value)
+    markAutofilled('contact', key)
+  }
+  generatedNotes.value = Array.isArray(suggested?.notes) ? suggested.notes : []
+  generatedTasks.value = Array.isArray(suggested?.tasks) ? suggested.tasks : []
+  assistantProposal.value = suggested?.assistant || {}
+}
+
+function applyMatchedExistingCompany(match = null) {
+  if (!match?.company_id || !match?.company) return
+  matchedCompanyMeta.value = match.company
+  extractedCompanyForm.value = { ...companyForm.value }
+  form.value.company_id = match.company_id
+  useExtractedCompany.value = false
+}
+
+function collectDraftArtifactIds(result) {
+  const ids = []
+  for (const row of result?.results || []) {
+    if (row?.raw?.artifact_id) ids.push(row.raw.artifact_id)
+    if (row?.llm_ready?.artifact_id) ids.push(row.llm_ready.artifact_id)
+  }
+  draftArtifactIds.value = ids
+}
+
+async function resolveGeneratedMarkdownPaths(ingestResult) {
+  const rows = Array.isArray(ingestResult?.results) ? ingestResult.results : []
+  const relPaths = rows
+    .map((row) => String(row?.llm_ready?.fs_path || '').trim())
+    .filter(Boolean)
+  if (!relPaths.length) return []
+  if (!bridge.value?.fs?.workspaceRoot) return []
+
+  const workspace = await bridge.value.fs.workspaceRoot()
+  const rootPath = String(workspace?.rootPath || '').trim()
+  if (!rootPath) return []
+
+  if (bridge.value?.path?.join) {
+    return relPaths.map((rel) => bridge.value.path.join(rootPath, rel))
+  }
+
+  return relPaths.map((rel) => `${rootPath}/${rel}`)
+}
+
+async function processDroppedFiles(files = []) {
+  const filePaths = files.map((f) => f.path).filter(Boolean)
+  if (!filePaths.length) return
+
+  processingDrop.value = true
+  try {
+    processingMessage.value = 'Checking if files already exist...'
+    const existingCheck = await findExistingDroppedFiles(files)
+    if (existingCheck.existingNames.length) {
+      const existingSet = new Set(existingCheck.existingNames.map((name) => String(name).toLowerCase()))
+      const next = { ...ingestStatusByFile.value }
+      for (const file of files) {
+        const fileName = String(file?.name || '')
+        const key = fileName.toLowerCase()
+        const existing = existingSet.has(key)
+        const previous = next[fileName] || {
+          fileName,
+          uploadStatus: 'pending',
+          markdownStatus: 'pending',
+          extractionStatus: 'pending',
+        }
+        next[fileName] = {
+          ...previous,
+          uploadStatus: existing ? 'existing' : 'skipped',
+          markdownStatus: existing ? 'existing' : 'skipped',
+          extractionStatus: 'skipped',
+        }
+      }
+      ingestStatusByFile.value = next
+      const listed = existingCheck.existingNames.join(', ')
+      const reason = existingCheck.bothExist ? 'raw and markdown files already exist' : 'files already exist'
+      throw new Error(`Skipped extraction: ${reason} for ${listed}.`)
+    }
+
+    processingMessage.value = 'Saving artifacts and generating markdown...'
+    const ingestResult = await bridge.value.artifacts.ingest({
+      filePaths,
+    })
+    collectDraftArtifactIds(ingestResult)
+
+    processingMessage.value = 'Extracting structured data from generated markdown files...'
+    updateStatusForAllFiles({ extractionStatus: 'pending' })
+    const markdownPaths = await resolveGeneratedMarkdownPaths(ingestResult)
+    if (!markdownPaths.length) {
+      throw new Error('No generated markdown files found for extraction.')
+    }
+    const preview = await bridge.value.autofill.previewFromFiles({ filePaths: markdownPaths })
+    applySuggestedValues(preview?.suggested || {})
+    applyMatchedExistingCompany(preview?.companyMatch || null)
+    updateStatusForAllFiles({ extractionStatus: 'completed' })
+
+    processingMessage.value = 'Files processed successfully.'
+    $q.notify({ type: 'positive', message: 'Artifacts ingested and fields populated.' })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e?.message || String(e) })
+  } finally {
+    processingDrop.value = false
+    processingMessage.value = ''
+  }
+}
+
+async function onDrop(e) {
   dragOver.value = false
   const files = Array.from(e?.dataTransfer?.files || [])
   if (!files.length) return
@@ -377,78 +631,20 @@ function onDrop(e) {
     const p = f?.path || bridge.value?.files?.getPathForFile?.(f) || f?.webkitRelativePath || null
     return { name: f.name, path: p, size: f.size }
   })
-  stagedFiles.value = summaries
-  $q.notify({ type: 'info', message: 'Files staged.' })
-  if (summaries.some((s) => !s.path)) {
-    $q.notify({
-      type: 'negative',
-      message:
-        'Could not read the local path for one or more dropped files. Please try again (or use a different file).',
-    })
-  }
+  initStatusForFiles(summaries)
+  await processDroppedFiles(summaries)
 }
 
-function clearVerificationState() {
-  llmFieldFlags.value = {}
-  verifyAllConfirmed.value = false
-  autofillApplied.value = false
-}
-
-function markField(section, key) {
-  llmFieldFlags.value[`${section}.${key}`] = true
-}
-
-function applySuggestedValues(suggested = {}) {
-  for (const [key, value] of Object.entries(suggested?.opportunity || {})) {
-    if (!Object.prototype.hasOwnProperty.call(form.value, key)) continue
-    form.value[key] = value == null ? '' : String(value)
-    markField('opportunity', key)
-  }
-  for (const [key, value] of Object.entries(suggested?.company || {})) {
-    if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
-    companyForm.value[key] = value == null ? '' : String(value)
-    markField('company', key)
-  }
-  for (const [key, value] of Object.entries(suggested?.contact || {})) {
-    if (!Object.prototype.hasOwnProperty.call(contactForm.value, key)) continue
-    contactForm.value[key] = value == null ? '' : String(value)
-    markField('contact', key)
-  }
-}
-
-function fieldInputClass(section, key) {
-  if (verifyAllConfirmed.value) return ''
-  return llmFieldFlags.value[`${section}.${key}`] ? 'text-negative text-weight-medium' : ''
-}
-
-async function ingestAndPopulate() {
-  if (!bridge.value?.autofill?.previewFromFiles) return
-  const filePaths = stagedFiles.value.map((f) => f.path).filter(Boolean)
-  if (!filePaths.length) {
-    $q.notify({ type: 'negative', message: 'Drop one or more files before ingesting.' })
+function toggleCompanySource() {
+  if (!matchedCompanyMeta.value?.id) return
+  if (useExtractedCompany.value) {
+    form.value.company_id = matchedCompanyMeta.value.id
+    useExtractedCompany.value = false
     return
   }
-  autofillLoading.value = true
-  try {
-    clearVerificationState()
-    const result = await bridge.value.autofill.previewFromFiles({
-      filePaths,
-      context: { kind: form.value.kind, company_id: form.value.company_id },
-    })
-    applySuggestedValues(result?.suggested || {})
-    autofillApplied.value = true
-    verifyAllConfirmed.value = false
-    $q.notify({ type: 'positive', message: 'Fields populated from file ingestion. Please verify all.' })
-  } catch (e) {
-    $q.notify({ type: 'negative', message: e?.message || String(e) })
-  } finally {
-    autofillLoading.value = false
-  }
-}
-
-function verifyAll() {
-  verifyAllConfirmed.value = true
-  $q.notify({ type: 'positive', message: 'All LLM-populated fields marked as verified.' })
+  form.value.company_id = null
+  if (extractedCompanyForm.value) companyForm.value = { ...extractedCompanyForm.value }
+  useExtractedCompany.value = true
 }
 
 function trimPayloadValues(input = {}) {
@@ -460,19 +656,85 @@ function trimPayloadValues(input = {}) {
   return out
 }
 
+function toSerializable(value) {
+  try {
+    return JSON.parse(JSON.stringify(value))
+  } catch {
+    return {}
+  }
+}
+
+async function ensureCompanySelectionForSubmit() {
+  if (!bridge.value?.companies?.create) return form.value.company_id || null
+  const existingCompanyId = String(form.value.company_id || '').trim()
+  if (existingCompanyId) return existingCompanyId
+
+  const companyPayload = trimPayloadValues(companyForm.value)
+  const companyName =
+    String(companyPayload.Company_Name || '').trim() || String(contactForm.value.Name || '').trim()
+  if (!companyName) return null
+
+  const created = await bridge.value.companies.create({
+    ...companyPayload,
+    Company_Name: companyName,
+    Company_Type: String(companyPayload.Company_Type || '').trim() || 'Other',
+  })
+  const createdCompanyId = String(created?.id || '').trim() || null
+  if (createdCompanyId) {
+    form.value.company_id = createdCompanyId
+    await loadCompanies()
+  }
+  return createdCompanyId
+}
+
 async function submit() {
-  if (!bridge.value?.opportunities?.create) return
+  if (
+    !bridge.value?.opportunities?.create ||
+    !bridge.value?.opportunities?.update ||
+    !bridge.value?.artifacts?.linkToOpportunity
+  ) {
+    return
+  }
   if (createDisabled.value) return
 
   loading.value = true
   try {
+    const selectedCompanyId = String(form.value.company_id || '').trim()
+    const companyName = String(companyForm.value.Company_Name || '').trim()
+    const contactName = String(contactForm.value.Name || '').trim()
+    if (!selectedCompanyId && !companyName && !contactName) {
+      throw new Error('Company name or Contact name is required.')
+    }
+
+    const ensuredCompanyId = await ensureCompanySelectionForSubmit()
+
     const payload = {
       ...form.value,
+      company_id: ensuredCompanyId || undefined,
+      id: draftOpportunityId.value || undefined,
+      Venture_Oppty_Name: generatedOpportunityName.value,
       company: trimPayloadValues(companyForm.value),
       primary_contact: trimPayloadValues(contactForm.value),
+      notes: generatedNotes.value,
+      tasks: generatedTasks.value,
+      assistant: assistantProposal.value,
     }
-    const result = await bridge.value.opportunities.create(payload)
+    const serializablePayload = toSerializable(payload)
+
+    const result = draftOpportunityId.value
+      ? await bridge.value.opportunities.update(serializablePayload)
+      : await bridge.value.opportunities.create(serializablePayload)
+
+    if (draftArtifactIds.value.length && result?.id) {
+      await bridge.value.artifacts.linkToOpportunity({
+        artifactIds: [...draftArtifactIds.value],
+        opportunityId: result.id,
+        pipelineId: 'pipeline_default',
+      })
+    }
+
     emit('created', result)
+    didSubmit.value = true
     window.dispatchEvent(new Event('ecvc:opportunities-changed'))
     open.value = false
   } catch (e) {
@@ -482,14 +744,30 @@ async function submit() {
   }
 }
 
+async function onCancel() {
+  open.value = false
+}
+
+function statusColor(value) {
+  const v = String(value || '').toLowerCase()
+  if (v === 'completed' || v === 'uploaded') return 'green-7'
+  if (v === 'existing') return 'blue-7'
+  if (v === 'skipped') return 'grey-7'
+  if (v === 'error' || v === 'failed') return 'negative'
+  return 'orange-7'
+}
+
 watch(
   () => props.modelValue,
   async (v) => {
-    if (!v) return
-    resetForms()
-    stagedFiles.value = []
-    dragOver.value = false
-    clearVerificationState()
+    if (!v) {
+      if (didSubmit.value) {
+        resetForms()
+        resetTransientState()
+        didSubmit.value = false
+      }
+      return
+    }
     await loadCompanies()
   },
 )
@@ -497,7 +775,91 @@ watch(
 watch(
   () => form.value.company_id,
   () => {
+    if (form.value.company_id) useExtractedCompany.value = false
     if (selectedCompanyIsAssetManager.value) form.value.kind = 'fund'
+    const selected = selectedCompany.value
+    if (!selected || useExtractedCompany.value) return
+    companyForm.value = {
+      ...companyForm.value,
+      Company_Name: selected.Company_Name || '',
+      Company_Type: selected.Company_Type || '',
+      One_Liner: selected.One_Liner || '',
+      Website: selected.Website || '',
+      Status: selected.Status || '',
+      Amount_Raised_AUMs: selected.Amount_Raised_AUMs || '',
+    }
   },
 )
+
+watch(
+  () => generatedOpportunityName.value,
+  (v) => {
+    form.value.Venture_Oppty_Name = v
+    markAutofilled('opportunity', 'Venture_Oppty_Name')
+  },
+  { immediate: true },
+)
+
+let offIngestStatus = null
+onMounted(() => {
+  resetForms()
+  resetTransientState()
+  didSubmit.value = false
+
+  if (!bridge.value?.artifacts?.onIngestStatus) return
+  offIngestStatus = bridge.value.artifacts.onIngestStatus((status) => {
+    if (status?.type !== 'progress') {
+      const t = status?.type
+      const type = t === 'success' ? 'positive' : t === 'error' ? 'negative' : 'info'
+      const message = String(status?.message || '').trim()
+      if (message) {
+        processingMessage.value = message
+        $q.notify({ type, message })
+      }
+      return
+    }
+
+    const fileName = String(status?.fileName || '').trim()
+    if (!fileName) return
+    const previous = ingestStatusByFile.value[fileName] || {
+      fileName,
+      uploadStatus: 'pending',
+      markdownStatus: 'pending',
+      extractionStatus: 'pending',
+    }
+    ingestStatusByFile.value = {
+      ...ingestStatusByFile.value,
+      [fileName]: {
+        ...previous,
+        uploadStatus: status.uploadStatus || previous.uploadStatus,
+        markdownStatus: status.markdownStatus || previous.markdownStatus,
+        extractionStatus: status.extractionStatus || previous.extractionStatus,
+      },
+    }
+    const message = String(status?.message || '').trim()
+    if (message) processingMessage.value = message
+  })
+})
+
+onBeforeUnmount(() => {
+  offIngestStatus?.()
+  offIngestStatus = null
+})
 </script>
+
+<style scoped>
+.processing-floating-banner {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  margin-left: auto;
+  width: fit-content;
+  max-width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.ec-autofilled-field {
+  color: #c62828;
+  font-style: italic;
+}
+</style>

@@ -51,6 +51,8 @@
         flat
         bordered
         row-key="id"
+        v-model:selected="selectedRows"
+        selection="multiple"
         :rows="rows"
         :columns="columns"
         :loading="loading"
@@ -70,6 +72,16 @@
           </q-td>
         </template>
       </q-table>
+
+      <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
+        <q-btn
+          color="negative"
+          unelevated
+          :disable="loading"
+          label="Delete All"
+          @click="confirmDeleteSelected"
+        />
+      </q-page-sticky>
     </div>
   </q-page>
 
@@ -98,9 +110,11 @@ const hasBridge = computed(
 )
 
 const rows = ref([])
+const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const companyDialogOpen = ref(false)
+const selectedCount = computed(() => selectedRows.value.length)
 
 const $q = useQuasar()
 const route = useRoute()
@@ -143,7 +157,8 @@ const columns = [
     field: 'Amount_Raised_AUMs',
     align: 'right',
     sortable: true,
-    format: (v) => (v === null || v === undefined || v === '' ? '' : Number(v).toLocaleString('en-US')),
+    format: (v) =>
+      v === null || v === undefined || v === '' ? '' : Number(v).toLocaleString('en-US'),
   },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
@@ -158,9 +173,11 @@ async function loadCompanies() {
   try {
     const result = await bridge.value.companies.list()
     rows.value = result?.companies || []
+    normalizeSelectedRows()
   } catch (e) {
     error.value = e?.message || String(e)
     rows.value = []
+    normalizeSelectedRows()
   } finally {
     loading.value = false
   }
@@ -176,28 +193,58 @@ async function onCompanyCreated() {
   await loadCompanies()
 }
 
+function normalizeSelectedRows() {
+  const activeIds = new Set(rows.value.map((row) => row.id))
+  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.id))
+}
+
+async function deleteCompany(row) {
+  await bridge.value.companies.delete(row.id)
+}
+
 async function confirmDelete(row) {
   if (!bridge.value?.companies?.delete) return
   const company = row?.Company_Name ? ` (${row.Company_Name})` : ''
 
-  $q
-    .dialog({
-      title: 'Delete company?',
-      message: `This will permanently delete this company${company}. If it has related opportunities, the delete will be blocked.`,
-      cancel: true,
-      persistent: true,
-    })
-    .onOk(async () => {
-      loading.value = true
-      try {
-        await bridge.value.companies.delete(row.id)
-        await loadCompanies()
-      } catch (e) {
-        $q.notify({ type: 'negative', message: e?.message || String(e) })
-      } finally {
-        loading.value = false
+  $q.dialog({
+    title: 'Delete company?',
+    message: `This will permanently delete this company${company}. If it has related opportunities, the delete will be blocked.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      await deleteCompany(row)
+      await loadCompanies()
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
+}
+
+async function confirmDeleteSelected() {
+  if (!bridge.value?.companies?.delete || selectedCount.value === 0) return
+  $q.dialog({
+    title: 'Delete selected companies?',
+    message: `This will permanently delete ${selectedCount.value} selected compan${selectedCount.value === 1 ? 'y' : 'ies'}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      for (const row of selectedRows.value) {
+        await deleteCompany(row)
       }
-    })
+      selectedRows.value = []
+      await loadCompanies()
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 onMounted(async () => {

@@ -51,6 +51,8 @@
         flat
         bordered
         row-key="id"
+        v-model:selected="selectedRows"
+        selection="multiple"
         :rows="rows"
         :columns="columns"
         :loading="loading"
@@ -70,6 +72,16 @@
           </q-td>
         </template>
       </q-table>
+
+      <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
+        <q-btn
+          color="negative"
+          unelevated
+          :disable="loading"
+          label="Delete All"
+          @click="confirmDeleteSelected"
+        />
+      </q-page-sticky>
     </div>
   </q-page>
 
@@ -98,9 +110,11 @@ const hasBridge = computed(
 )
 
 const rows = ref([])
+const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const contactDialogOpen = ref(false)
+const selectedCount = computed(() => selectedRows.value.length)
 
 const $q = useQuasar()
 const route = useRoute()
@@ -137,7 +151,13 @@ const columns = [
   { name: 'Email', label: 'Email', field: 'Email', align: 'left', sortable: true },
   { name: 'Phone', label: 'Phone', field: 'Phone', align: 'left', sortable: true },
   { name: 'Role', label: 'Role', field: 'Role', align: 'left', sortable: true },
-  { name: 'Stakeholder_type', label: 'Stakeholder', field: 'Stakeholder_type', align: 'left', sortable: true },
+  {
+    name: 'Stakeholder_type',
+    label: 'Stakeholder',
+    field: 'Stakeholder_type',
+    align: 'left',
+    sortable: true,
+  },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
@@ -151,9 +171,11 @@ async function loadContacts() {
   try {
     const result = await bridge.value.contacts.list()
     rows.value = result?.contacts || []
+    normalizeSelectedRows()
   } catch (e) {
     error.value = e?.message || String(e)
     rows.value = []
+    normalizeSelectedRows()
   } finally {
     loading.value = false
   }
@@ -169,28 +191,58 @@ async function onContactCreated() {
   await loadContacts()
 }
 
+function normalizeSelectedRows() {
+  const activeIds = new Set(rows.value.map((row) => row.id))
+  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.id))
+}
+
+async function deleteContact(row) {
+  await bridge.value.contacts.delete(row.id)
+}
+
 async function confirmDelete(row) {
   if (!bridge.value?.contacts?.delete) return
   const name = row?.Name ? ` (${row.Name})` : ''
 
-  $q
-    .dialog({
-      title: 'Delete contact?',
-      message: `This will permanently delete this contact${name}.`,
-      cancel: true,
-      persistent: true,
-    })
-    .onOk(async () => {
-      loading.value = true
-      try {
-        await bridge.value.contacts.delete(row.id)
-        await loadContacts()
-      } catch (e) {
-        $q.notify({ type: 'negative', message: e?.message || String(e) })
-      } finally {
-        loading.value = false
+  $q.dialog({
+    title: 'Delete contact?',
+    message: `This will permanently delete this contact${name}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      await deleteContact(row)
+      await loadContacts()
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
+}
+
+async function confirmDeleteSelected() {
+  if (!bridge.value?.contacts?.delete || selectedCount.value === 0) return
+  $q.dialog({
+    title: 'Delete selected contacts?',
+    message: `This will permanently delete ${selectedCount.value} selected contact${selectedCount.value === 1 ? '' : 's'}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      for (const row of selectedRows.value) {
+        await deleteContact(row)
       }
-    })
+      selectedRows.value = []
+      await loadContacts()
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 onMounted(async () => {

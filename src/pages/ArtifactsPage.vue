@@ -42,12 +42,7 @@
       <q-banner v-if="!loading && rows.length === 0" class="bg-grey-2 text-black q-mb-md" rounded>
         <div class="row items-center justify-between">
           <div>No artifacts created yet.</div>
-          <q-btn
-            color="primary"
-            outline
-            label="Create artifact"
-            @click="openCreateArtifact"
-          />
+          <q-btn color="primary" outline label="Create artifact" @click="openCreateArtifact" />
         </div>
       </q-banner>
 
@@ -56,6 +51,8 @@
         flat
         bordered
         row-key="artifact_id"
+        v-model:selected="selectedRows"
+        selection="multiple"
         :rows="rows"
         :columns="columns"
         :loading="loading"
@@ -75,6 +72,16 @@
           </q-td>
         </template>
       </q-table>
+
+      <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
+        <q-btn
+          color="negative"
+          unelevated
+          :disable="loading"
+          label="Delete All"
+          @click="confirmDeleteSelected"
+        />
+      </q-page-sticky>
     </div>
   </q-page>
 </template>
@@ -98,8 +105,10 @@ const hasBridge = computed(
 )
 
 const rows = ref([])
+const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
+const selectedCount = computed(() => selectedRows.value.length)
 
 const $q = useQuasar()
 
@@ -136,9 +145,11 @@ async function loadArtifacts() {
   try {
     const result = await bridge.value.artifacts.list()
     rows.value = result?.artifacts || []
+    normalizeSelectedRows()
   } catch (e) {
     error.value = e?.message || String(e)
     rows.value = []
+    normalizeSelectedRows()
   } finally {
     loading.value = false
   }
@@ -150,28 +161,58 @@ async function importRows(importedRows) {
   return result
 }
 
+function normalizeSelectedRows() {
+  const activeIds = new Set(rows.value.map((row) => row.artifact_id))
+  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.artifact_id))
+}
+
+async function deleteArtifact(row) {
+  await bridge.value.artifacts.delete(row.artifact_id)
+}
+
 async function confirmDelete(row) {
   if (!bridge.value?.artifacts?.delete) return
   const title = row?.title ? ` (${row.title})` : ''
 
-  $q
-    .dialog({
-      title: 'Delete artifact?',
-      message: `This will permanently delete this artifact${title}.`,
-      cancel: true,
-      persistent: true,
-    })
-    .onOk(async () => {
-      loading.value = true
-      try {
-        await bridge.value.artifacts.delete(row.artifact_id)
-        await loadArtifacts()
-      } catch (e) {
-        $q.notify({ type: 'negative', message: e?.message || String(e) })
-      } finally {
-        loading.value = false
+  $q.dialog({
+    title: 'Delete artifact?',
+    message: `This will permanently delete this artifact${title}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      await deleteArtifact(row)
+      await loadArtifacts()
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
+}
+
+async function confirmDeleteSelected() {
+  if (!bridge.value?.artifacts?.delete || selectedCount.value === 0) return
+  $q.dialog({
+    title: 'Delete selected artifacts?',
+    message: `This will permanently delete ${selectedCount.value} selected artifact${selectedCount.value === 1 ? '' : 's'}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      for (const row of selectedRows.value) {
+        await deleteArtifact(row)
       }
-    })
+      selectedRows.value = []
+      await loadArtifacts()
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 onMounted(() => {

@@ -219,6 +219,7 @@ CREATE TABLE IF NOT EXISTS Tasks (
   Priority TEXT,
   Timeline TEXT,
   Due_Date TEXT,
+  pipeline_id TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -345,6 +346,21 @@ CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS Notes (
+  id TEXT PRIMARY KEY,
+  title TEXT,
+  content TEXT NOT NULL,
+  reference_type TEXT NOT NULL CHECK (reference_type IN ('opportunity', 'task', 'company', 'contact', 'artifact', 'pipeline')),
+  reference_id TEXT NOT NULL,
+  created_by_uuid TEXT,
+  created_by_label TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_notes_reference ON Notes(reference_type, reference_id);
+CREATE INDEX IF NOT EXISTS idx_notes_created_at ON Notes(created_at);
 `
 
 const RELATION_JOIN_TABLES_SQL = `

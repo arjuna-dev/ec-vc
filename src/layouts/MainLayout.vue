@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header :height-hint="60">
+    <q-header :height-hint="124" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
@@ -13,8 +13,44 @@
           />
         </q-toolbar-title>
 
-        <div class="ec-shell-version">Quasar v{{ $q.version }}</div>
+        <div class="ec-shell-header-actions">
+          <q-btn
+            no-caps
+            flat
+            dense
+            class="ec-header-link ec-header-link--user"
+            icon="account_circle"
+            :label="drawerUserLabel"
+            @click="openUserMenuTarget"
+          />
+          <div class="ec-shell-header-divider" aria-hidden="true" />
+          <q-btn
+            no-caps
+            flat
+            dense
+            class="ec-header-link"
+            icon="settings"
+            label="Settings"
+            to="/settings"
+          />
+          <div class="ec-shell-version">Quasar v{{ $q.version }}</div>
+        </div>
       </q-toolbar>
+
+      <div class="ec-primary-nav">
+        <q-tabs class="ec-primary-nav__tabs" dense align="left" no-caps>
+          <q-route-tab
+            v-for="item in primaryNavigationItems"
+            :key="item.label"
+            :to="item.to"
+            :exact="item.exact"
+            :icon="item.icon"
+            :label="item.label"
+            inline-label
+            class="ec-primary-nav__tab"
+          />
+        </q-tabs>
+      </div>
     </q-header>
 
     <q-drawer
@@ -27,82 +63,22 @@
     >
       <div class="ec-drawer-content">
         <q-list class="ec-drawer-menu">
-          <q-item clickable class="ec-nav-item ec-nav-item--profile" @click="openUserMenuTarget">
+          <q-item
+            v-for="item in secondaryNavigationItems"
+            :key="item.label"
+            clickable
+            :to="item.to"
+            class="ec-nav-item"
+          >
             <q-item-section avatar>
-              <q-icon name="account_circle" />
+              <q-icon :name="item.icon" />
             </q-item-section>
             <q-item-section>
-              <q-item-label lines="1">{{ drawerUserLabel }}</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-separator class="ec-drawer-head-separator" />
-
-          <q-item clickable to="/" exact class="ec-nav-item">
-            <q-item-section avatar>
-              <q-icon name="home" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Home</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable to="/companies" class="ec-nav-item">
-            <q-item-section avatar>
-              <q-icon name="apartment" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Companies</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable to="/contacts" class="ec-nav-item">
-            <q-item-section avatar>
-              <q-icon name="people" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Contacts</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable to="/opportunities" class="ec-nav-item">
-            <q-item-section avatar>
-              <q-icon name="work" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Opportunities</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable to="/pipelines" class="ec-nav-item">
-            <q-item-section avatar>
-              <q-icon name="schema" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Pipelines</q-item-label>
-            </q-item-section>
-          </q-item>
-
-          <q-item clickable to="/artifacts" class="ec-nav-item">
-            <q-item-section avatar>
-              <q-icon name="attach_file" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Artifacts</q-item-label>
+              <q-item-label>{{ item.label }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
 
-        <div class="ec-drawer-settings">
-          <q-item clickable to="/settings" class="ec-nav-item ec-nav-item--settings">
-            <q-item-section avatar>
-              <q-icon name="settings" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>Settings</q-item-label>
-            </q-item-section>
-          </q-item>
-        </div>
       </div>
     </q-drawer>
 
@@ -177,6 +153,19 @@ const QUICK_WIDGET_ACTION_SIZE = 40
 const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
+const primaryNavigationItems = [
+  { label: 'Home', to: '/', exact: true, icon: 'home' },
+  { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
+  { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
+  { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
+  { label: 'Pipelines', to: '/pipelines', exact: true, icon: 'schema' },
+]
+const secondaryNavigationItems = [
+  { label: 'Artifacts', to: '/artifacts', icon: 'attach_file' },
+  { label: 'Notes', to: '/notes', icon: 'note' },
+  { label: 'Tasks', to: '/tasks', icon: 'check_circle' },
+  { label: 'Assistants', to: '/assistants', icon: 'smart_toy' },
+]
 
 const router = useRouter()
 const route = useRoute()
@@ -187,7 +176,7 @@ let quickWidgetDragState = null
 
 const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.value))
 const drawerUserLabel = computed(() =>
-  hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Click here to set user',
+  hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Set user',
 )
 
 const quickWidgetStyle = computed(() => ({
@@ -430,6 +419,15 @@ async function openOpportunityFromQuickAction() {
 
 async function openNoteFromQuickAction() {
   closeQuickActions()
+  globalThis.__ecvcOpenNoteDialog = true
+  try {
+    await router.push({ name: 'notes', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-note-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-note-dialog'))
+    }, 80)
+  }
 }
 
 async function openCompanyFromQuickAction() {
@@ -460,13 +458,13 @@ async function openContactFromQuickAction() {
 
 async function openTaskFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenArtifactDialog = true
+  globalThis.__ecvcOpenTaskDialog = true
   try {
-    await router.push({ name: 'artifacts', query: { create: '1' } })
+    await router.push({ name: 'tasks', query: { create: '1' } })
   } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
     setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
     }, 80)
   }
 }
@@ -607,6 +605,99 @@ watch(
 </script>
 
 <style scoped>
+.ec-shell-header-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.ec-shell-header-divider {
+  background: #cbd5e1;
+  height: 20px;
+  width: 1px;
+}
+
+.ec-header-link {
+  background: transparent !important;
+  border: 0;
+  box-shadow: none !important;
+  color: #475569 !important;
+  min-height: 32px;
+  padding: 0 4px;
+}
+
+.ec-header-link :deep(.q-icon) {
+  font-size: 16px;
+}
+
+.ec-header-link :deep(.q-btn__content) {
+  gap: 6px;
+}
+
+.ec-header-link--user {
+  max-width: 220px;
+}
+
+.ec-header-link--user :deep(.block) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ec-primary-nav {
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+  padding: 10px 16px;
+}
+
+.ec-primary-nav__tabs {
+  min-height: 44px;
+}
+
+.ec-primary-nav__tabs :deep(.q-tabs__content) {
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.ec-primary-nav__tab {
+  border-radius: 10px;
+  color: #475569;
+  min-height: 40px;
+  min-width: auto;
+  padding: 0 14px;
+  justify-content: flex-start;
+}
+
+.ec-primary-nav__tabs :deep(.q-tab__label) {
+  font-size: 15px;
+  font-weight: 300;
+  letter-spacing: 0;
+}
+
+.ec-primary-nav__tabs :deep(.q-tab__content) {
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.ec-primary-nav__tabs :deep(.q-tab .q-icon) {
+  font-size: 18px;
+}
+
+.ec-primary-nav__tabs :deep(.q-tab--active) {
+  color: #2f5ad9;
+}
+
+.ec-primary-nav__tabs :deep(.q-tab--active .q-tab__label) {
+  font-weight: 900;
+}
+
+.ec-primary-nav__tabs :deep(.q-tab__indicator) {
+  height: 3px;
+  border-radius: 999px;
+}
+
 .ec-quick-widget {
   position: fixed;
   z-index: 2000;
@@ -691,8 +782,9 @@ watch(
 
 .ec-quick-widget-action-label {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 300;
   line-height: 1.1;
+  letter-spacing: 0.04em;
   color: #1b1b1d;
   text-align: center;
   white-space: nowrap;
@@ -714,5 +806,16 @@ watch(
   width: 100% !important;
   height: 100% !important;
   display: block;
+}
+
+@media (max-width: 900px) {
+  .ec-header-link--user {
+    max-width: 152px;
+    min-width: 0;
+  }
+
+  .ec-shell-version {
+    display: none;
+  }
 }
 </style>
