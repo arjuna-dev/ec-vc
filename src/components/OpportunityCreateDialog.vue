@@ -70,45 +70,45 @@
             <div class="col-12 col-md-6 q-gutter-md">
               <div class="text-subtitle1">Company</div>
 
-              <q-select
-                v-model="form.company_id"
-                outlined
-                label="Existing Company"
-                :options="companyOptions"
-                :disable="loadingCompanies || loading || processingDrop"
-                emit-value
-                map-options
-              >
-                <template #before-options>
-                  <q-item
-                    clickable
-                    class="bg-white"
-                    style="position: sticky; top: 0; z-index: 2"
-                    @click.stop.prevent="companyDialogOpen = true"
-                  >
-                    <q-item-section avatar>
-                      <q-icon name="add" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Create new company</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-separator />
-                </template>
-              </q-select>
-
-              <div class="row items-center q-gutter-sm">
-                <q-badge v-if="isUsingExistingCompany" color="positive">Existing record</q-badge>
-                <q-btn
-                  v-if="showCompanyToggleButton"
-                  flat
-                  color="secondary"
-                  :label="companyToggleLabel"
-                  @click="toggleCompanySource"
-                />
-              </div>
-
               <div class="q-gutter-md">
+                <q-select
+                  v-model="form.company_id"
+                  outlined
+                  label="Existing Company"
+                  :options="companyOptions"
+                  :disable="loadingCompanies || loading || processingDrop"
+                  emit-value
+                  map-options
+                >
+                  <template #before-options>
+                    <q-item
+                      clickable
+                      class="bg-white"
+                      style="position: sticky; top: 0; z-index: 2"
+                      @click.stop.prevent="companyDialogOpen = true"
+                    >
+                      <q-item-section avatar>
+                        <q-icon name="add" />
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label>Create new company</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-separator />
+                  </template>
+                </q-select>
+
+                <div class="row items-center q-gutter-sm">
+                  <q-badge v-if="isUsingExistingCompany" color="positive">Existing record</q-badge>
+                  <q-btn
+                    v-if="showCompanyToggleButton"
+                    flat
+                    color="secondary"
+                    :label="companyToggleLabel"
+                    @click="toggleCompanySource"
+                  />
+                </div>
+
                 <q-input
                   v-for="field in companyFields"
                   :key="field.key"
@@ -125,28 +125,28 @@
             <div class="col-12 col-md-6 q-gutter-md">
               <div class="text-subtitle1">Opportunity</div>
 
-              <q-input
-                :model-value="generatedOpportunityName"
-                outlined
-                label="Opportunity Name (auto)"
-                readonly
-                disable
-              />
-
-              <q-select
-                v-model="form.kind"
-                outlined
-                label="Opportunity Kind *"
-                :options="kindOptions"
-                :disable="loading || selectedCompanyIsAssetManager || processingDrop"
-                emit-value
-                map-options
-              />
-              <div v-if="selectedCompanyIsAssetManager" class="text-caption text-grey-7">
-                Selected company is <b>Asset Manager</b>, so kind is forced to <b>fund</b>.
-              </div>
-
               <div class="q-gutter-md">
+                <q-input
+                  :model-value="generatedOpportunityName"
+                  outlined
+                  label="Opportunity Name (auto)"
+                  readonly
+                  disable
+                />
+
+                <q-select
+                  v-model="form.kind"
+                  outlined
+                  label="Opportunity Kind *"
+                  :options="kindOptions"
+                  :disable="loading || selectedCompanyIsAssetManager || processingDrop"
+                  emit-value
+                  map-options
+                />
+                <div v-if="selectedCompanyIsAssetManager" class="text-caption text-grey-7">
+                  Selected company is <b>Asset Manager</b>, so kind is forced to <b>fund</b>.
+                </div>
+
                 <q-input
                   v-for="field in opportunityFields"
                   :key="field.key"
@@ -393,6 +393,21 @@ function resetForms() {
     Role: '',
     Stakeholder_type: '',
   }
+}
+
+function resetTransientState() {
+  dragOver.value = false
+  matchedCompanyMeta.value = null
+  extractedCompanyForm.value = null
+  useExtractedCompany.value = false
+  generatedNotes.value = []
+  generatedTasks.value = []
+  assistantProposal.value = {}
+  ingestStatusByFile.value = {}
+  processingMessage.value = ''
+  draftOpportunityId.value = null
+  draftArtifactIds.value = []
+  autofilledFlags.value = {}
 }
 
 async function loadCompanies() {
@@ -729,26 +744,7 @@ async function submit() {
   }
 }
 
-async function cleanupDraft() {
-  if (!bridge.value?.artifacts?.delete || !bridge.value?.opportunities?.delete) return
-  for (const artifactId of draftArtifactIds.value) {
-    try {
-      await bridge.value.artifacts.delete(artifactId)
-    } catch {
-      // best effort
-    }
-  }
-  if (draftOpportunityId.value) {
-    try {
-      await bridge.value.opportunities.delete(draftOpportunityId.value)
-    } catch {
-      // best effort
-    }
-  }
-}
-
 async function onCancel() {
-  await cleanupDraft()
   open.value = false
 }
 
@@ -765,23 +761,13 @@ watch(
   () => props.modelValue,
   async (v) => {
     if (!v) {
-      if (!didSubmit.value) await cleanupDraft()
+      if (didSubmit.value) {
+        resetForms()
+        resetTransientState()
+        didSubmit.value = false
+      }
       return
     }
-    didSubmit.value = false
-    resetForms()
-    dragOver.value = false
-    matchedCompanyMeta.value = null
-    extractedCompanyForm.value = null
-    useExtractedCompany.value = false
-    generatedNotes.value = []
-    generatedTasks.value = []
-    assistantProposal.value = {}
-    ingestStatusByFile.value = {}
-    processingMessage.value = ''
-    draftOpportunityId.value = null
-    draftArtifactIds.value = []
-    autofilledFlags.value = {}
     await loadCompanies()
   },
 )
@@ -816,6 +802,10 @@ watch(
 
 let offIngestStatus = null
 onMounted(() => {
+  resetForms()
+  resetTransientState()
+  didSubmit.value = false
+
   if (!bridge.value?.artifacts?.onIngestStatus) return
   offIngestStatus = bridge.value.artifacts.onIngestStatus((status) => {
     if (status?.type !== 'progress') {

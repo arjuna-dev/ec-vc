@@ -28,6 +28,8 @@
       flat
       bordered
       row-key="id"
+      v-model:selected="selectedRows"
+      selection="multiple"
       :rows="rows"
       :columns="columns"
       :loading="loading"
@@ -35,10 +37,28 @@
     >
       <template #body-cell-actions="props">
         <q-td :props="props">
-          <q-btn dense flat round icon="delete" color="negative" :disable="loading" @click="confirmDelete(props.row)" />
+          <q-btn
+            dense
+            flat
+            round
+            icon="delete"
+            color="negative"
+            :disable="loading"
+            @click="confirmDelete(props.row)"
+          />
         </q-td>
       </template>
     </q-table>
+
+    <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
+      <q-btn
+        color="negative"
+        unelevated
+        :disable="loading"
+        label="Delete All"
+        @click="confirmDeleteSelected"
+      />
+    </q-page-sticky>
 
     <NoteCreateDialog v-model="dialogOpen" @created="onCreated" />
   </q-page>
@@ -53,9 +73,11 @@ import NoteCreateDialog from 'components/NoteCreateDialog.vue'
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const rows = ref([])
+const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const dialogOpen = ref(false)
+const selectedCount = computed(() => selectedRows.value.length)
 
 const route = useRoute()
 const router = useRouter()
@@ -67,7 +89,8 @@ const columns = [
   {
     name: 'linked_entity',
     label: 'Linked To',
-    field: (row) => row.opportunity_name || row.contact_name || row.pipeline_name || row.company_name || '',
+    field: (row) =>
+      row.opportunity_name || row.contact_name || row.pipeline_name || row.company_name || '',
     align: 'left',
     sortable: true,
   },
@@ -120,8 +143,11 @@ async function loadNotes() {
   try {
     const result = await bridge.value.notes.list()
     rows.value = result?.notes || []
+    normalizeSelectedRows()
   } catch (e) {
     error.value = e?.message || String(e)
+    rows.value = []
+    normalizeSelectedRows()
   } finally {
     loading.value = false
   }
@@ -137,19 +163,52 @@ async function onCreated() {
   await loadNotes()
 }
 
+function normalizeSelectedRows() {
+  const activeIds = new Set(rows.value.map((row) => row.id))
+  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.id))
+}
+
+async function deleteNote(row) {
+  await bridge.value.notes.delete(row.id)
+}
+
 async function confirmDelete(row) {
   if (!bridge.value?.notes?.delete) return
-  $q
-    .dialog({ title: 'Delete note?', message: 'This will permanently delete this note.', cancel: true, persistent: true })
-    .onOk(async () => {
-      loading.value = true
-      try {
-        await bridge.value.notes.delete(row.id)
-        await loadNotes()
-      } finally {
-        loading.value = false
+  $q.dialog({
+    title: 'Delete note?',
+    message: 'This will permanently delete this note.',
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      await deleteNote(row)
+      await loadNotes()
+    } finally {
+      loading.value = false
+    }
+  })
+}
+
+async function confirmDeleteSelected() {
+  if (!bridge.value?.notes?.delete || selectedCount.value === 0) return
+  $q.dialog({
+    title: 'Delete selected notes?',
+    message: `This will permanently delete ${selectedCount.value} selected note${selectedCount.value === 1 ? '' : 's'}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      for (const row of selectedRows.value) {
+        await deleteNote(row)
       }
-    })
+      selectedRows.value = []
+      await loadNotes()
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 onMounted(async () => {

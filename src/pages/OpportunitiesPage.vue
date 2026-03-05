@@ -42,7 +42,12 @@
       <q-banner v-if="!loading && rows.length === 0" class="bg-grey-2 text-black q-mb-md" rounded>
         <div class="row items-center justify-between">
           <div>No opportunities created yet.</div>
-          <q-btn color="primary" outline label="Create opportunity" @click="openCreateOpportunity" />
+          <q-btn
+            color="primary"
+            outline
+            label="Create opportunity"
+            @click="openCreateOpportunity"
+          />
         </div>
       </q-banner>
 
@@ -51,6 +56,8 @@
         flat
         bordered
         row-key="id"
+        v-model:selected="selectedRows"
+        selection="multiple"
         :rows="rows"
         :columns="columns"
         :loading="loading"
@@ -70,6 +77,16 @@
           </q-td>
         </template>
       </q-table>
+
+      <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
+        <q-btn
+          color="negative"
+          unelevated
+          :disable="loading"
+          label="Delete All"
+          @click="confirmDeleteSelected"
+        />
+      </q-page-sticky>
     </div>
   </q-page>
 </template>
@@ -93,8 +110,10 @@ const hasBridge = computed(
 )
 
 const rows = ref([])
+const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
+const selectedCount = computed(() => selectedRows.value.length)
 
 const $q = useQuasar()
 
@@ -108,16 +127,24 @@ const columns = [
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'Round_Stage', label: 'Round', field: 'Round_Stage', align: 'left', sortable: true },
   { name: 'Fund_Type', label: 'Fund Type', field: 'Fund_Type', align: 'left', sortable: true },
-  { name: 'opportunity_name', label: 'Opportunity Name', field: 'opportunity_name', align: 'left', sortable: true },
+  {
+    name: 'opportunity_name',
+    label: 'Opportunity Name',
+    field: 'opportunity_name',
+    align: 'left',
+    sortable: true,
+  },
   {
     name: 'size',
     label: 'Size / Target (USD)',
-    field: (row) => row.kind === 'fund' ? row.Fund_Size_Target : row.Round_Amount,
+    field: (row) => (row.kind === 'fund' ? row.Fund_Size_Target : row.Round_Amount),
     align: 'right',
     sortable: true,
     format: (_v, row) => {
       const value = row.kind === 'fund' ? row.Fund_Size_Target : row.Round_Amount
-      return value === null || value === undefined || value === '' ? '' : Number(value).toLocaleString('en-US')
+      return value === null || value === undefined || value === ''
+        ? ''
+        : Number(value).toLocaleString('en-US')
     },
   },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
@@ -146,9 +173,11 @@ async function loadOpportunities() {
   try {
     const result = await bridge.value.opportunities.list()
     rows.value = result?.opportunities || []
+    normalizeSelectedRows()
   } catch (e) {
     error.value = e?.message || String(e)
     rows.value = []
+    normalizeSelectedRows()
   } finally {
     loading.value = false
   }
@@ -160,28 +189,58 @@ async function importRows(importedRows) {
   return result
 }
 
+function normalizeSelectedRows() {
+  const activeIds = new Set(rows.value.map((row) => row.id))
+  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.id))
+}
+
+async function deleteOpportunity(row) {
+  await bridge.value.opportunities.delete(row.id)
+}
+
 async function confirmDelete(row) {
   if (!bridge.value?.opportunities?.delete) return
   const company = row?.Company_Name ? ` (${row.Company_Name})` : ''
 
-  $q
-    .dialog({
-      title: 'Delete opportunity?',
-      message: `This will permanently delete this opportunity${company}.`,
-      cancel: true,
-      persistent: true,
-    })
-    .onOk(async () => {
-      loading.value = true
-      try {
-        await bridge.value.opportunities.delete(row.id)
-        await loadOpportunities()
-      } catch (e) {
-        $q.notify({ type: 'negative', message: e?.message || String(e) })
-      } finally {
-        loading.value = false
+  $q.dialog({
+    title: 'Delete opportunity?',
+    message: `This will permanently delete this opportunity${company}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      await deleteOpportunity(row)
+      await loadOpportunities()
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
+}
+
+async function confirmDeleteSelected() {
+  if (!bridge.value?.opportunities?.delete || selectedCount.value === 0) return
+  $q.dialog({
+    title: 'Delete selected opportunities?',
+    message: `This will permanently delete ${selectedCount.value} selected opportunit${selectedCount.value === 1 ? 'y' : 'ies'}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      for (const row of selectedRows.value) {
+        await deleteOpportunity(row)
       }
-    })
+      selectedRows.value = []
+      await loadOpportunities()
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 function onChanged() {

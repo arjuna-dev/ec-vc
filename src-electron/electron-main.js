@@ -2766,6 +2766,7 @@ function createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kin
   return contactId
 }
 
+// eslint-disable-next-line no-unused-vars
 function createNotesForOpportunity(database, opportunityId, notes = []) {
   const rows = Array.isArray(notes) ? notes : []
   for (const note of rows) {
@@ -2794,6 +2795,7 @@ function createNotesForOpportunity(database, opportunityId, notes = []) {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 function createTasksForOpportunity(database, opportunityId, kind, tasks = []) {
   const rows = Array.isArray(tasks) ? tasks : []
   const edgeTable =
@@ -3078,12 +3080,13 @@ function createOpportunity(payload = {}) {
     runCreateStep('upsert primary contact link', () => {
       createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kind, payload.primary_contact)
     })
-    runCreateStep('create opportunity notes', () => {
-      createNotesForOpportunity(database, opportunityId, payload.notes)
-    })
-    runCreateStep('create opportunity tasks', () => {
-      createTasksForOpportunity(database, opportunityId, kind, payload.tasks)
-    })
+    // Temporarily disabled: skip LLM-generated notes/tasks creation during ingestion.
+    // runCreateStep('create opportunity notes', () => {
+    //   createNotesForOpportunity(database, opportunityId, payload.notes)
+    // })
+    // runCreateStep('create opportunity tasks', () => {
+    //   createTasksForOpportunity(database, opportunityId, kind, payload.tasks)
+    // })
     runCreateStep('create assistant prompt', () => {
       createAssistantPromptFromProposal(database, payload.assistant)
     })
@@ -3253,12 +3256,13 @@ function updateOpportunity(payload = {}) {
     runCreateStep('upsert primary contact link', () => {
       createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kind, payload.primary_contact)
     })
-    runCreateStep('create opportunity notes', () => {
-      createNotesForOpportunity(database, opportunityId, payload.notes)
-    })
-    runCreateStep('create opportunity tasks', () => {
-      createTasksForOpportunity(database, opportunityId, kind, payload.tasks)
-    })
+    // Temporarily disabled: skip LLM-generated notes/tasks creation during ingestion.
+    // runCreateStep('create opportunity notes', () => {
+    //   createNotesForOpportunity(database, opportunityId, payload.notes)
+    // })
+    // runCreateStep('create opportunity tasks', () => {
+    //   createTasksForOpportunity(database, opportunityId, kind, payload.tasks)
+    // })
     runCreateStep('create assistant prompt', () => {
       createAssistantPromptFromProposal(database, payload.assistant)
     })

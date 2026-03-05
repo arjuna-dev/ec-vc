@@ -28,6 +28,8 @@
       flat
       bordered
       row-key="id"
+      v-model:selected="selectedRows"
+      selection="multiple"
       :rows="rows"
       :columns="columns"
       :loading="loading"
@@ -35,10 +37,28 @@
     >
       <template #body-cell-actions="props">
         <q-td :props="props">
-          <q-btn dense flat round icon="delete" color="negative" :disable="loading" @click="confirmDelete(props.row)" />
+          <q-btn
+            dense
+            flat
+            round
+            icon="delete"
+            color="negative"
+            :disable="loading"
+            @click="confirmDelete(props.row)"
+          />
         </q-td>
       </template>
     </q-table>
+
+    <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
+      <q-btn
+        color="negative"
+        unelevated
+        :disable="loading"
+        label="Delete All"
+        @click="confirmDeleteSelected"
+      />
+    </q-page-sticky>
 
     <TaskCreateDialog v-model="dialogOpen" @created="onCreated" />
   </q-page>
@@ -53,9 +73,11 @@ import TaskCreateDialog from 'components/TaskCreateDialog.vue'
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const rows = ref([])
+const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const dialogOpen = ref(false)
+const selectedCount = computed(() => selectedRows.value.length)
 
 const route = useRoute()
 const router = useRouter()
@@ -67,9 +89,21 @@ const columns = [
   { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: true },
   { name: 'Priority', label: 'Priority', field: 'Priority', align: 'left', sortable: true },
   { name: 'Due_Date', label: 'Due', field: 'Due_Date', align: 'left', sortable: true },
-  { name: 'opportunity_name', label: 'Opportunity', field: 'opportunity_name', align: 'left', sortable: true },
+  {
+    name: 'opportunity_name',
+    label: 'Opportunity',
+    field: 'opportunity_name',
+    align: 'left',
+    sortable: true,
+  },
   { name: 'contact_name', label: 'Contact', field: 'contact_name', align: 'left', sortable: true },
-  { name: 'pipeline_name', label: 'Pipeline', field: 'pipeline_name', align: 'left', sortable: true },
+  {
+    name: 'pipeline_name',
+    label: 'Pipeline',
+    field: 'pipeline_name',
+    align: 'left',
+    sortable: true,
+  },
   { name: 'company_name', label: 'Company', field: 'company_name', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
@@ -119,8 +153,11 @@ async function loadTasks() {
   try {
     const result = await bridge.value.tasks.list()
     rows.value = result?.tasks || []
+    normalizeSelectedRows()
   } catch (e) {
     error.value = e?.message || String(e)
+    rows.value = []
+    normalizeSelectedRows()
   } finally {
     loading.value = false
   }
@@ -136,19 +173,52 @@ async function onCreated() {
   await loadTasks()
 }
 
+function normalizeSelectedRows() {
+  const activeIds = new Set(rows.value.map((row) => row.id))
+  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.id))
+}
+
+async function deleteTask(row) {
+  await bridge.value.tasks.delete(row.id)
+}
+
 async function confirmDelete(row) {
   if (!bridge.value?.tasks?.delete) return
-  $q
-    .dialog({ title: 'Delete task?', message: 'This will permanently delete this task.', cancel: true, persistent: true })
-    .onOk(async () => {
-      loading.value = true
-      try {
-        await bridge.value.tasks.delete(row.id)
-        await loadTasks()
-      } finally {
-        loading.value = false
+  $q.dialog({
+    title: 'Delete task?',
+    message: 'This will permanently delete this task.',
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      await deleteTask(row)
+      await loadTasks()
+    } finally {
+      loading.value = false
+    }
+  })
+}
+
+async function confirmDeleteSelected() {
+  if (!bridge.value?.tasks?.delete || selectedCount.value === 0) return
+  $q.dialog({
+    title: 'Delete selected tasks?',
+    message: `This will permanently delete ${selectedCount.value} selected task${selectedCount.value === 1 ? '' : 's'}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      for (const row of selectedRows.value) {
+        await deleteTask(row)
       }
-    })
+      selectedRows.value = []
+      await loadTasks()
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 onMounted(async () => {

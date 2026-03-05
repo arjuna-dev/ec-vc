@@ -1,6 +1,21 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import path from 'node:path'
 
+function extractIpcErrorMessage(error, channel) {
+  const raw = String(error?.message || error || '').trim()
+  const prefix = `Error invoking remote method '${channel}':`
+  if (raw.startsWith(prefix)) return raw.slice(prefix.length).trim()
+  return raw
+}
+
+function normalizeCompaniesDeleteError(error) {
+  const message = extractIpcErrorMessage(error, 'companies:delete')
+  if (message.includes('FOREIGN KEY constraint failed')) {
+    return 'You cannot delete a company which is associated with an existing Opportunity.'
+  }
+  return message || 'Failed to delete company.'
+}
+
 contextBridge.exposeInMainWorld('ecvc', {
   version: 1,
   files: {
@@ -43,7 +58,13 @@ contextBridge.exposeInMainWorld('ecvc', {
     list: () => ipcRenderer.invoke('companies:list'),
     create: (payload) => ipcRenderer.invoke('companies:create', payload),
     upsertMany: (rows) => ipcRenderer.invoke('companies:upsertMany', { rows }),
-    delete: (companyId) => ipcRenderer.invoke('companies:delete', { companyId }),
+    delete: async (companyId) => {
+      try {
+        return await ipcRenderer.invoke('companies:delete', { companyId })
+      } catch (error) {
+        throw new Error(normalizeCompaniesDeleteError(error))
+      }
+    },
   },
   opportunities: {
     list: () => ipcRenderer.invoke('opportunities:list'),

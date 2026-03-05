@@ -45,6 +45,8 @@
         flat
         bordered
         row-key="pipeline_id"
+        v-model:selected="selectedRows"
+        selection="multiple"
         :rows="pipelines"
         :columns="columns"
         :loading="loading"
@@ -119,6 +121,16 @@
           </q-td>
         </template>
       </q-table>
+
+      <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
+        <q-btn
+          color="negative"
+          unelevated
+          :disable="loading"
+          label="Delete All"
+          @click="confirmDeleteSelected"
+        />
+      </q-page-sticky>
     </div>
   </q-page>
 
@@ -147,9 +159,11 @@ const hasBridge = computed(
 )
 
 const pipelines = ref([])
+const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const pipelineDialogOpen = ref(false)
+const selectedCount = computed(() => selectedRows.value.length)
 
 const $q = useQuasar()
 const route = useRoute()
@@ -196,9 +210,11 @@ async function loadPipelines() {
   try {
     const result = await bridge.value.pipelines.list()
     pipelines.value = result?.pipelines || []
+    normalizeSelectedRows()
   } catch (e) {
     error.value = e?.message || String(e)
     pipelines.value = []
+    normalizeSelectedRows()
   } finally {
     loading.value = false
   }
@@ -237,10 +253,48 @@ async function confirmDelete(row) {
   }).onOk(async () => {
     loading.value = true
     try {
-      if (row.install_status === 'installed') {
-        await bridge.value.pipelines.uninstall(row.pipeline_id)
+      await deletePipeline(row)
+      await loadPipelines()
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
+}
+
+function normalizeSelectedRows() {
+  const activeIds = new Set(pipelines.value.map((row) => row.pipeline_id))
+  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.pipeline_id))
+}
+
+async function deletePipeline(row) {
+  if (row.install_status === 'installed') {
+    await bridge.value.pipelines.uninstall(row.pipeline_id)
+  }
+  await bridge.value.pipelines.delete(row.pipeline_id)
+}
+
+async function confirmDeleteSelected() {
+  if (!bridge.value?.pipelines?.delete || selectedCount.value === 0) return
+  const deletableRows = selectedRows.value.filter((row) => row.pipeline_id !== 'pipeline_default')
+  if (deletableRows.length === 0) {
+    $q.notify({ type: 'warning', message: 'The default pipeline cannot be deleted.' })
+    return
+  }
+
+  $q.dialog({
+    title: 'Delete selected pipelines?',
+    message: `This will permanently delete ${deletableRows.length} selected pipeline${deletableRows.length === 1 ? '' : 's'}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      for (const row of deletableRows) {
+        await deletePipeline(row)
       }
-      await bridge.value.pipelines.delete(row.pipeline_id)
+      selectedRows.value = []
       await loadPipelines()
     } catch (e) {
       $q.notify({ type: 'negative', message: e?.message || String(e) })
