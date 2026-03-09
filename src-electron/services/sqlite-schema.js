@@ -1156,22 +1156,21 @@ VALUES
 
 CREATE TABLE IF NOT EXISTS Artifacts (
   artifact_id TEXT PRIMARY KEY,
-  pipeline_run_id TEXT,
   opportunity_id TEXT,
-  pipeline_id TEXT,
-  stage_id TEXT,
+  source_artifact_id TEXT,
+  original_artifact_id TEXT,
+  assistant_system_prompt_id TEXT,
+  created_by TEXT,
   artifact_type TEXT NOT NULL CHECK (artifact_type IN ('raw','llm-ready','llm-generated')),
   artifact_role TEXT,
   artifact_format TEXT,
+  type TEXT CHECK (type IN ('raising_pitch_deck','commercial_pitch_deck','messages','emails','historical_data','forecast','other')),
   fs_path TEXT NOT NULL,
   fs_hash TEXT,
   fs_size_bytes INTEGER,
-  source_artifact_id TEXT,
-  original_artifact_id TEXT,
   generated_by TEXT NOT NULL CHECK (generated_by IN ('user','llm','system')),
   llm_provider TEXT,
   llm_model TEXT,
-  assistant_system_prompt_id TEXT,
   title TEXT,
   summary TEXT,
   confidence_score REAL,
@@ -1179,11 +1178,10 @@ CREATE TABLE IF NOT EXISTS Artifacts (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON DELETE SET NULL,
-  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE SET NULL,
-  FOREIGN KEY (stage_id) REFERENCES Pipeline_Stages(stage_id) ON DELETE SET NULL,
   FOREIGN KEY (source_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
   FOREIGN KEY (original_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
-  FOREIGN KEY (assistant_system_prompt_id) REFERENCES Assistant_System_Prompts(assistant_system_prompt_id) ON DELETE SET NULL
+  FOREIGN KEY (assistant_system_prompt_id) REFERENCES Assistant_System_Prompts(assistant_system_prompt_id) ON DELETE SET NULL,
+  FOREIGN KEY (created_by) REFERENCES Contacts(id) ON DELETE SET NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_Artifacts_unique_path
