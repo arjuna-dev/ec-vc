@@ -33,7 +33,7 @@
             label="Settings"
             to="/settings"
           />
-          <div class="ec-shell-version">Quasar v{{ $q.version }}</div>
+          <div class="ec-shell-version">MTK v0.0.1</div>
         </div>
       </q-toolbar>
 
@@ -78,7 +78,6 @@
             </q-item-section>
           </q-item>
         </q-list>
-
       </div>
     </q-drawer>
 
