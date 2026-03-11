@@ -103,10 +103,12 @@ CREATE TABLE IF NOT EXISTS Opportunities (
   Over_Allotment_Option TEXT,
   Stacked_Series TEXT,
   Owner TEXT,
+  Source_Contact TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (company_id) REFERENCES Companies(id) ON DELETE RESTRICT,
-  FOREIGN KEY (Owner) REFERENCES Contacts(id) ON DELETE SET NULL
+  FOREIGN KEY (Owner) REFERENCES Contacts(id) ON DELETE SET NULL,
+  FOREIGN KEY (Source_Contact) REFERENCES Contacts(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_Opportunities_company_id ON Opportunities(company_id);
