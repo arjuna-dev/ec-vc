@@ -112,6 +112,15 @@
               class="q-ml-sm"
               dense
               flat
+              color="primary"
+              label="Databook"
+              :disable="loading"
+              @click="openDatabook(props.row)"
+            />
+            <q-btn
+              class="q-ml-sm"
+              dense
+              flat
               round
               icon="delete"
               color="negative"
@@ -312,6 +321,12 @@ async function importRows(importedRows) {
 
 function openCreatePipeline() {
   pipelineDialogOpen.value = true
+}
+
+function openDatabook(row) {
+  const recordId = String(row?.pipeline_id || '').trim()
+  if (!recordId) return
+  router.push({ name: 'databook-view', params: { tableName: 'Pipelines', recordId } })
 }
 
 function onOpenPipelineDialog() {

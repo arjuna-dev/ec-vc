@@ -15,7 +15,7 @@ const routes = [
       { path: 'notes', name: 'notes', component: () => import('pages/NotesPage.vue') },
       { path: 'tasks', name: 'tasks', component: () => import('pages/TasksPage.vue') },
       { path: 'assistants', name: 'assistants', component: () => import('pages/AssistantsPage.vue') },
-      { path: 'databooks/:opportunityId', name: 'databook-view', component: () => import('pages/DatabookPage.vue') },
+      { path: 'databooks/:tableName/:recordId', name: 'databook-view', component: () => import('pages/DatabookPage.vue') },
     ],
   },
 

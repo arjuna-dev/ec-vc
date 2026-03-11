@@ -63,6 +63,15 @@
             <q-btn
               dense
               flat
+              color="primary"
+              label="Databook"
+              :disable="loading"
+              @click="openDatabook(props.row)"
+            />
+            <q-btn
+              class="q-ml-sm"
+              dense
+              flat
               round
               icon="delete"
               color="negative"
@@ -144,6 +153,12 @@ function consumeQueuedCompanyDialogOpen() {
   globalThis.__ecvcOpenCompanyDialog = false
   openCreateCompany()
   return true
+}
+
+function openDatabook(row) {
+  const recordId = String(row?.id || '').trim()
+  if (!recordId) return
+  router.push({ name: 'databook-view', params: { tableName: 'Companies', recordId } })
 }
 
 const columns = [

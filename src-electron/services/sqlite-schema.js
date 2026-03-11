@@ -41,13 +41,16 @@ CREATE INDEX IF NOT EXISTS idx_events_edited_at
 
 CREATE TABLE IF NOT EXISTS databook_snapshots (
   id TEXT PRIMARY KEY,
-  opportunity_id TEXT NOT NULL,
+  table_name TEXT NOT NULL,
+  record_id TEXT NOT NULL,
   payload_json TEXT NOT NULL,
   created_by_uuid TEXT NOT NULL,
   created_by_label TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON DELETE CASCADE
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE INDEX IF NOT EXISTS idx_databook_snapshots_record
+  ON databook_snapshots(table_name, record_id, created_at);
 
 CREATE TABLE IF NOT EXISTS Companies (
   id TEXT PRIMARY KEY,
@@ -1158,7 +1161,10 @@ VALUES
 
 CREATE TABLE IF NOT EXISTS Artifacts (
   artifact_id TEXT PRIMARY KEY,
+  pipeline_run_id TEXT,
   opportunity_id TEXT,
+  pipeline_id TEXT,
+  stage_id TEXT,
   source_artifact_id TEXT,
   original_artifact_id TEXT,
   assistant_system_prompt_id TEXT,

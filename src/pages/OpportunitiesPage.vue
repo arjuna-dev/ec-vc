@@ -68,6 +68,15 @@
             <q-btn
               dense
               flat
+              color="primary"
+              label="Databook"
+              :disable="loading"
+              @click="openDatabook(props.row)"
+            />
+            <q-btn
+              class="q-ml-sm"
+              dense
+              flat
               round
               icon="delete"
               color="negative"
@@ -94,6 +103,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
 import TableCsvActions from 'components/TableCsvActions.vue'
 
 const isElectronRuntime = computed(() => {
@@ -116,9 +126,16 @@ const error = ref('')
 const selectedCount = computed(() => selectedRows.value.length)
 
 const $q = useQuasar()
+const router = useRouter()
 
 function openCreateOpportunity() {
   globalThis?.dispatchEvent?.(new Event('ecvc:open-opportunity-dialog'))
+}
+
+function openDatabook(row) {
+  const recordId = String(row?.id || '').trim()
+  if (!recordId) return
+  router.push({ name: 'databook-view', params: { tableName: 'Opportunities', recordId } })
 }
 
 const columns = [

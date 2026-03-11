@@ -19,7 +19,8 @@
         <div class="col">
           <div class="text-h6">{{ databookTitle }}</div>
           <div class="text-caption text-grey-7">
-            Flattened view of Opportunity, Company, Contact, Round/Fund, Project/Tasks, and Artifacts.
+            Full row view for {{ entityLabel.toLowerCase() }}. Edit multiple fields and save a
+            new snapshot.
           </div>
         </div>
       </div>
@@ -58,7 +59,7 @@
       </q-list>
 
       <q-banner v-else-if="!loading" class="bg-grey-2 text-black q-mb-md" rounded>
-        No Databook fields available for this opportunity.
+        No Databook fields available for this record.
       </q-banner>
 
       <q-page-sticky position="top-right" :offset="[18, 18]">
@@ -104,7 +105,8 @@
           <q-card-section>
             <div class="text-h6">Set Editor Name</div>
             <div class="text-caption text-grey-7">
-              A display name is required before saving audited changes. You can also update it later in Settings.
+              A display name is required before saving audited changes. You can also update it
+              later in Settings.
             </div>
           </q-card-section>
           <q-card-section>
@@ -135,6 +137,13 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 const $q = useQuasar()
 
+const TABLE_LABELS = {
+  Companies: 'Company',
+  Contacts: 'Contact',
+  Opportunities: 'Opportunity',
+  Pipelines: 'Pipeline',
+}
+
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
   return /Electron/i.test(navigator.userAgent || '')
@@ -157,7 +166,7 @@ const hasVersionBridge = computed(
 const loading = ref(false)
 const error = ref('')
 const fields = ref([])
-const opportunity = ref(null)
+const currentView = ref(null)
 const actor = ref(null)
 const editMode = ref(false)
 const saving = ref(false)
@@ -170,12 +179,15 @@ const selectedVersionId = ref(null)
 const modifiedByMap = ref({})
 
 const isHistoricalMode = computed(() => !!selectedVersionId.value)
-
+const tableNameParam = computed(() => String(route.params.tableName || '').trim())
+const recordIdParam = computed(() => String(route.params.recordId || '').trim())
+const entityLabel = computed(
+  () => currentView.value?.entity_label || TABLE_LABELS[tableNameParam.value] || 'Record',
+)
 const databookTitle = computed(() => {
-  const name = String(opportunity.value?.opportunity_name || opportunity.value?.Venture_Oppty_Name || '').trim()
+  const name = String(currentView.value?.entity_name || '').trim()
   if (name) return `${name} Databook`
-  const id = String(route.params.opportunityId || '').trim()
-  return id ? `${id} Databook` : 'Databook'
+  return recordIdParam.value ? `${recordIdParam.value} Databook` : 'Databook'
 })
 
 function displayValue(value) {
@@ -183,8 +195,8 @@ function displayValue(value) {
   return text.length ? text : '-'
 }
 
-function normalizeIpcErrorMessage(error) {
-  const raw = String(error?.message || error || '').trim()
+function normalizeIpcErrorMessage(errorValue) {
+  const raw = String(errorValue?.message || errorValue || '').trim()
   if (!raw) return 'An unexpected error occurred.'
   return raw.replace(/^Error invoking remote method '[^']+':\s*/i, '').trim()
 }
@@ -229,8 +241,7 @@ async function saveChanges() {
     showUserLabelDialog.value = true
     return
   }
-  const opportunityId = String(route.params.opportunityId || '').trim()
-  if (!opportunityId) return
+  if (!tableNameParam.value || !recordIdParam.value) return
 
   const changes = fields.value
     .filter((field) => field.editable)
@@ -251,10 +262,15 @@ async function saveChanges() {
   saving.value = true
   error.value = ''
   try {
-    const result = await bridge.value.databooks.update({ opportunityId, changes })
-    opportunity.value = result?.view?.opportunity || opportunity.value
+    const result = await bridge.value.databooks.update({
+      tableName: tableNameParam.value,
+      recordId: recordIdParam.value,
+      changes,
+    })
+    currentView.value = result?.view || currentView.value
     fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : []
     cancelEdit()
+    await loadVersions()
   } catch (e) {
     const message = normalizeIpcErrorMessage(e)
     error.value = message
@@ -267,37 +283,38 @@ async function saveChanges() {
 
 async function loadDatabook() {
   if (!hasBridge.value) return
-  const opportunityId = String(route.params.opportunityId || '').trim()
-  if (!opportunityId) {
+  if (!tableNameParam.value || !recordIdParam.value) {
+    currentView.value = null
     fields.value = []
-    opportunity.value = null
+    versions.value = []
     return
   }
 
   loading.value = true
   error.value = ''
   try {
-    const result = await bridge.value.databooks.view(opportunityId)
-    opportunity.value = result?.opportunity || null
+    const result = await bridge.value.databooks.view(tableNameParam.value, recordIdParam.value)
+    currentView.value = result || null
     fields.value = Array.isArray(result?.fields) ? result.fields : []
     selectedVersionId.value = null
     modifiedByMap.value = {}
+    cancelEdit()
     await loadVersions()
     await refreshActor()
   } catch (e) {
-    error.value = e?.message || String(e)
+    error.value = normalizeIpcErrorMessage(e)
+    currentView.value = null
     fields.value = []
+    versions.value = []
   } finally {
     loading.value = false
   }
 }
 
 async function loadVersions() {
-  if (!hasVersionBridge.value) return
-  const opportunityId = String(route.params.opportunityId || '').trim()
-  if (!opportunityId) return
+  if (!hasVersionBridge.value || !tableNameParam.value || !recordIdParam.value) return
   try {
-    const result = await bridge.value.databooks.versions(opportunityId)
+    const result = await bridge.value.databooks.versions(tableNameParam.value, recordIdParam.value)
     versions.value = Array.isArray(result?.versions) ? result.versions : []
   } catch {
     versions.value = []
@@ -305,7 +322,7 @@ async function loadVersions() {
 }
 
 function fieldMapByKey(list = []) {
-  return Object.fromEntries((Array.isArray(list) ? list : []).map((f) => [f.key, f]))
+  return Object.fromEntries((Array.isArray(list) ? list : []).map((field) => [field.key, field]))
 }
 
 function eventKey(field = {}) {
@@ -320,8 +337,7 @@ async function openVersion(snapshotId) {
     const snapshot = await bridge.value.databooks.viewSnapshot(sid)
     const versionPayload = snapshot?.payload || {}
     const versionFields = Array.isArray(versionPayload?.fields) ? versionPayload.fields : []
-    const versionOpportunity = versionPayload?.opportunity || null
-    const versionIndex = versions.value.findIndex((v) => v.id === sid)
+    const versionIndex = versions.value.findIndex((version) => version.id === sid)
     const priorVersion = versionIndex >= 0 ? versions.value[versionIndex + 1] : null
 
     const changedKeys = []
@@ -337,30 +353,32 @@ async function openVersion(snapshotId) {
 
     const mods = {}
     if (changedKeys.length) {
-      const selectedVersion = versions.value.find((v) => v.id === sid)
+      const selectedVersion = versions.value.find((version) => version.id === sid)
       const eventsResult = await bridge.value.audit.events({
+        table_name: snapshot?.table_name || versionPayload?.table_name || tableNameParam.value,
+        record_id: snapshot?.record_id || versionPayload?.record_id || recordIdParam.value,
         since: priorVersion?.created_at || null,
         until: selectedVersion?.created_at || null,
         limit: 1000,
       })
       const events = Array.isArray(eventsResult?.events) ? eventsResult.events : []
       const latestEventByKey = {}
-      for (const ev of events) {
-        const key = `${ev.table_name || ''}|${ev.record_id || ''}|${ev.field_name || ''}`
-        if (!latestEventByKey[key]) latestEventByKey[key] = ev
+      for (const eventRow of events) {
+        const key = `${eventRow.table_name || ''}|${eventRow.record_id || ''}|${eventRow.field_name || ''}`
+        if (!latestEventByKey[key]) latestEventByKey[key] = eventRow
       }
       for (const key of changedKeys) {
-        const field = versionFields.find((f) => f.key === key)
+        const field = versionFields.find((candidate) => candidate.key === key)
         if (!field) continue
-        const ev = latestEventByKey[eventKey(field)]
-        mods[key] = ev?.edited_by_label || snapshot?.created_by_label || 'Unknown editor'
+        const eventRow = latestEventByKey[eventKey(field)]
+        mods[key] = eventRow?.edited_by_label || snapshot?.created_by_label || 'Unknown editor'
       }
     }
 
     selectedVersionId.value = sid
     editMode.value = false
     draftValues.value = {}
-    opportunity.value = versionOpportunity
+    currentView.value = versionPayload
     fields.value = versionFields
     modifiedByMap.value = mods
   } catch (e) {
@@ -377,7 +395,7 @@ async function switchToLatestVersion() {
 }
 
 watch(
-  () => route.params.opportunityId,
+  () => `${route.params.tableName || ''}:${route.params.recordId || ''}`,
   () => {
     loadDatabook()
   },

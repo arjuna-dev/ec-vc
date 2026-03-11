@@ -757,45 +757,24 @@ function listAssistantPrompts() {
   )
 }
 
-function listDatabooks() {
-  return dbAll(
-    `
-    SELECT
-      o.id AS opportunity_id,
-      COALESCE(
-        o.Venture_Oppty_Name,
-        CASE
-          WHEN c.Company_Name IS NOT NULL AND c.Company_Name <> '' THEN
-            replace(trim(c.Company_Name), ' ', '_') || '_' || substr(COALESCE(o.created_at, datetime('now')), 1, 10)
-          ELSE o.id
-        END
-      ) AS opportunity_name,
-      o.kind,
-      o.Raising_Status,
-      o.created_at
-    FROM Opportunities o
-    LEFT JOIN Companies c ON c.id = o.company_id
-    ORDER BY o.created_at DESC
-  `,
-  )
-}
-
-function listDatabookVersions(opportunityId) {
-  const oid = String(opportunityId || '').trim()
-  if (!oid) throw new Error('opportunityId is required')
+function listDatabookVersions(tableName, recordId) {
+  const config = getDatabookTableConfig(tableName)
+  const rid = normalizeNullableString(recordId)
+  if (!rid) throw new Error('recordId is required')
   return dbAll(
     `
     SELECT
       id,
-      opportunity_id,
+      table_name,
+      record_id,
       created_at,
       created_by_uuid,
       created_by_label
     FROM databook_snapshots
-    WHERE opportunity_id = ?
+    WHERE table_name = ? AND record_id = ?
     ORDER BY datetime(created_at) DESC, id DESC
   `,
-    [oid],
+    [config.tableName, rid],
   )
 }
 
@@ -806,7 +785,8 @@ function getDatabookSnapshot(snapshotId) {
     `
     SELECT
       id,
-      opportunity_id,
+      table_name,
+      record_id,
       payload_json,
       created_at,
       created_by_uuid,
@@ -824,7 +804,8 @@ function getDatabookSnapshot(snapshotId) {
   }
 }
 
-function getDatabookView(opportunityId) {
+// eslint-disable-next-line no-unused-vars
+function getLegacyOpportunityDatabookView(opportunityId) {
   const oid = String(opportunityId || '').trim()
   if (!oid) throw new Error('opportunityId is required')
   const database = initDb()
@@ -1670,6 +1651,137 @@ function getDatabookView(opportunityId) {
   return { opportunity, rows, fields }
 }
 
+const DATABOOK_TABLE_CONFIGS = Object.freeze({
+  Companies: {
+    tableName: 'Companies',
+    entityLabel: 'Company',
+    displayColumns: ['Company_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Contacts: {
+    tableName: 'Contacts',
+    entityLabel: 'Contact',
+    displayColumns: ['Name', 'Email', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Opportunities: {
+    tableName: 'Opportunities',
+    entityLabel: 'Opportunity',
+    displayColumns: ['Venture_Oppty_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Pipelines: {
+    tableName: 'Pipelines',
+    entityLabel: 'Pipeline',
+    displayColumns: ['name', 'pipeline_id'],
+    readonlyColumns: new Set([
+      'pipeline_id',
+      'install_status',
+      'install_error',
+      'installed_at',
+      'uninstalled_at',
+      'created_at',
+      'updated_at',
+    ]),
+  },
+})
+
+const DATABOOK_TABLE_ALIASES = Object.freeze({
+  companies: 'Companies',
+  company: 'Companies',
+  contacts: 'Contacts',
+  contact: 'Contacts',
+  opportunities: 'Opportunities',
+  opportunity: 'Opportunities',
+  pipelines: 'Pipelines',
+  pipeline: 'Pipelines',
+})
+
+function getDatabookTableConfig(tableName) {
+  const raw = normalizeNullableString(tableName)
+  if (!raw) throw new Error('tableName is required')
+  const canonical = DATABOOK_TABLE_ALIASES[String(raw).toLowerCase()] || raw
+  const config = DATABOOK_TABLE_CONFIGS[canonical]
+  if (!config) throw new Error(`Unsupported Databook table: ${raw}`)
+  return config
+}
+
+function formatDatabookFieldLabel(fieldName) {
+  const specialWords = {
+    id: 'ID',
+    api: 'API',
+    aum: 'AUM',
+    aums: 'AUMs',
+    llm: 'LLM',
+    rofo: 'ROFO',
+    ror: 'ROR',
+  }
+
+  return String(fieldName || '')
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map((word) => {
+      const lower = String(word).toLowerCase()
+      if (specialWords[lower]) return specialWords[lower]
+      return lower.charAt(0).toUpperCase() + lower.slice(1)
+    })
+    .join(' ')
+}
+
+function resolveDatabookEntityName(record, config, recordId) {
+  for (const columnName of config.displayColumns || []) {
+    const value = normalizeNullableString(record?.[columnName])
+    if (value) return value
+  }
+  return recordId
+}
+
+function isDatabookFieldEditable(config, tableMeta, columnName) {
+  if (!columnName) return false
+  if (columnName === tableMeta.pkColumn) return false
+  if (config.readonlyColumns?.has?.(columnName)) return false
+  return true
+}
+
+function getDatabookView(tableName, recordId) {
+  const database = initDb()
+  const config = getDatabookTableConfig(tableName)
+  const rid = normalizeNullableString(recordId)
+  if (!rid) throw new Error('recordId is required')
+
+  const tableMeta = getTableMeta(database, config.tableName)
+  const idColumn = tableMeta.pkColumn
+  if (!idColumn) throw new Error(`Databook table ${config.tableName} must have a primary key`)
+
+  const row = database
+    .prepare(
+      `SELECT * FROM ${quoteIdentifier(config.tableName)} WHERE ${quoteIdentifier(idColumn)} = ? LIMIT 1`,
+    )
+    .get(rid)
+  if (!row) throw new Error(`${config.entityLabel} not found: ${rid}`)
+
+  const fields = tableMeta.columnNames.map((columnName) => ({
+    key: `${config.tableName}|${rid}|${columnName}`,
+    section: config.entityLabel,
+    label: formatDatabookFieldLabel(columnName),
+    value: row?.[columnName] == null ? '' : String(row[columnName]),
+    editable: isDatabookFieldEditable(config, tableMeta, columnName),
+    table_name: config.tableName,
+    record_id: rid,
+    field_name: columnName,
+    id_column: idColumn,
+  }))
+
+  return {
+    table_name: config.tableName,
+    record_id: rid,
+    entity_label: config.entityLabel,
+    entity_name: resolveDatabookEntityName(row, config, rid),
+    record: row,
+    fields,
+  }
+}
+
 function createContact(payload = {}) {
   const database = initDb()
   const id = normalizeNullableString(payload.id) || `contact:${crypto.randomUUID()}`
@@ -2483,7 +2595,7 @@ function listEvents(filters = {}) {
     .all(...params, limit)
 }
 
-function applyAuditedChanges(changes = [], { createDatabookSnapshotForOpportunityId = null } = {}) {
+function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } = {}) {
   const database = initDb()
   const normalizedChanges = (Array.isArray(changes) ? changes : [])
     .map((change) => ({
@@ -2579,20 +2691,23 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotForOpportunit
     }
 
     let snapshotId = null
-    if (createDatabookSnapshotForOpportunityId) {
-      const snapshotPayload = getDatabookView(createDatabookSnapshotForOpportunityId)
+    if (createDatabookSnapshotFor?.tableName && createDatabookSnapshotFor?.recordId) {
+      const config = getDatabookTableConfig(createDatabookSnapshotFor.tableName)
+      const recordId = normalizeNullableString(createDatabookSnapshotFor.recordId)
+      const snapshotPayload = getDatabookView(config.tableName, recordId)
       snapshotId = `snapshot:${crypto.randomUUID()}`
       database
         .prepare(
           `
           INSERT INTO databook_snapshots (
-            id, opportunity_id, payload_json, created_by_uuid, created_by_label, created_at
-          ) VALUES (?, ?, ?, ?, ?, datetime('now'))
+            id, table_name, record_id, payload_json, created_by_uuid, created_by_label, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
         `,
         )
         .run(
           snapshotId,
-          createDatabookSnapshotForOpportunityId,
+          config.tableName,
+          recordId,
           JSON.stringify(snapshotPayload),
           actor.user_uuid,
           actor.user_label,
@@ -2881,12 +2996,17 @@ function createAssistantPromptFromProposal(database, proposal = {}) {
   return id
 }
 
-function createDatabookSnapshotForOpportunity(opportunityId, { source = 'create' } = {}) {
+function createDatabookSnapshot(tableName, recordId, { source = 'create' } = {}) {
   const database = initDb()
+  const config = getDatabookTableConfig(tableName)
+  const rid = normalizeNullableString(recordId)
+  if (!rid) throw new Error('recordId is required')
   const actor = getAuditActor(database)
-  const snapshotPayload = getDatabookView(opportunityId)
+  const snapshotPayload = getDatabookView(config.tableName, rid)
   snapshotPayload.__meta = {
     source,
+    table_name: config.tableName,
+    record_id: rid,
     created_at: new Date().toISOString(),
   }
   const snapshotId = `snapshot:${crypto.randomUUID()}`
@@ -2894,18 +3014,23 @@ function createDatabookSnapshotForOpportunity(opportunityId, { source = 'create'
     .prepare(
       `
       INSERT INTO databook_snapshots (
-        id, opportunity_id, payload_json, created_by_uuid, created_by_label, created_at
-      ) VALUES (?, ?, ?, ?, ?, datetime('now'))
+        id, table_name, record_id, payload_json, created_by_uuid, created_by_label, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
     `,
     )
     .run(
       snapshotId,
-      opportunityId,
+      config.tableName,
+      rid,
       JSON.stringify(snapshotPayload),
       actor.user_uuid,
       actor.user_label || 'Unknown editor',
     )
   return snapshotId
+}
+
+function createDatabookSnapshotForOpportunity(opportunityId, options = {}) {
+  return createDatabookSnapshot('Opportunities', opportunityId, options)
 }
 
 function ensureExistingCompanyId(database, maybeCompanyId) {
@@ -3606,19 +3731,14 @@ function registerIpc() {
     return deleteRow('Opportunities', 'id', String(opportunityId || ''))
   })
 
-  ipcMain.handle('databooks:list', async () => {
+  ipcMain.handle('databooks:view', async (_event, { tableName, recordId } = {}) => {
     initDb()
-    return { databooks: listDatabooks() }
+    return getDatabookView(tableName, recordId)
   })
 
-  ipcMain.handle('databooks:view', async (_event, { opportunityId } = {}) => {
+  ipcMain.handle('databooks:versions', async (_event, { tableName, recordId } = {}) => {
     initDb()
-    return getDatabookView(opportunityId)
-  })
-
-  ipcMain.handle('databooks:versions', async (_event, { opportunityId } = {}) => {
-    initDb()
-    return { versions: listDatabookVersions(opportunityId) }
+    return { versions: listDatabookVersions(tableName, recordId) }
   })
 
   ipcMain.handle('databooks:viewSnapshot', async (_event, { snapshotId } = {}) => {
@@ -3626,17 +3746,18 @@ function registerIpc() {
     return getDatabookSnapshot(snapshotId)
   })
 
-  ipcMain.handle('databooks:update', async (_event, { opportunityId, changes } = {}) => {
+  ipcMain.handle('databooks:update', async (_event, { tableName, recordId, changes } = {}) => {
     initDb()
     try {
-      const oid = normalizeNullableString(opportunityId)
-      if (!oid) throw new Error('opportunityId is required')
+      const config = getDatabookTableConfig(tableName)
+      const rid = normalizeNullableString(recordId)
+      if (!rid) throw new Error('recordId is required')
       const result = applyAuditedChanges(changes, {
-        createDatabookSnapshotForOpportunityId: oid,
+        createDatabookSnapshotFor: { tableName: config.tableName, recordId: rid },
       })
       return {
         ...result,
-        view: getDatabookView(oid),
+        view: getDatabookView(config.tableName, rid),
       }
     } catch (e) {
       console.error('databooks:update failed:', e)

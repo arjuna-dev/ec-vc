@@ -41,12 +41,60 @@ export function closeDb() {
 }
 
 function migrate(database) {
+  ensureTasksPipelineColumn(database)
+  ensureArtifactsCompatibilityColumns(database)
   database.exec(SCHEMA_V1_SQL)
+  ensureGenericDatabookSnapshots(database)
   cleanupLegacyOpportunityTriggers(database)
   ensureUserContactForeignKey(database)
   ensureArtifactLinkTriggersAllowUnlinkedArtifacts(database)
-  ensureTasksPipelineColumn(database)
   database.pragma('user_version = 1')
+}
+
+function ensureGenericDatabookSnapshots(database) {
+  if (!hasTable(database, 'databook_snapshots')) return
+
+  const hasTableName = hasColumn(database, 'databook_snapshots', 'table_name')
+  const hasRecordId = hasColumn(database, 'databook_snapshots', 'record_id')
+  if (hasTableName && hasRecordId) {
+    database.exec(`
+      CREATE INDEX IF NOT EXISTS idx_databook_snapshots_record
+      ON databook_snapshots(table_name, record_id, created_at)
+    `)
+    return
+  }
+
+  database.exec(`
+    ALTER TABLE databook_snapshots RENAME TO databook_snapshots_legacy;
+
+    CREATE TABLE databook_snapshots (
+      id TEXT PRIMARY KEY,
+      table_name TEXT NOT NULL,
+      record_id TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      created_by_uuid TEXT NOT NULL,
+      created_by_label TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX idx_databook_snapshots_record
+      ON databook_snapshots(table_name, record_id, created_at);
+
+    INSERT INTO databook_snapshots (
+      id, table_name, record_id, payload_json, created_by_uuid, created_by_label, created_at
+    )
+    SELECT
+      id,
+      'Opportunities',
+      opportunity_id,
+      payload_json,
+      created_by_uuid,
+      created_by_label,
+      created_at
+    FROM databook_snapshots_legacy;
+
+    DROP TABLE databook_snapshots_legacy;
+  `)
 }
 
 function cleanupLegacyOpportunityTriggers(database) {
@@ -103,6 +151,35 @@ function ensureTasksPipelineColumn(database) {
   if (!hasTable(database, 'Tasks')) return
   if (hasColumn(database, 'Tasks', 'pipeline_id')) return
   database.exec('ALTER TABLE Tasks ADD COLUMN pipeline_id TEXT')
+}
+
+function ensureArtifactsCompatibilityColumns(database) {
+  if (!hasTable(database, 'Artifacts')) return
+
+  const requiredColumns = [
+    ['pipeline_run_id', 'TEXT'],
+    ['pipeline_id', 'TEXT'],
+    ['stage_id', 'TEXT'],
+    ['source_artifact_id', 'TEXT'],
+    ['original_artifact_id', 'TEXT'],
+    ['assistant_system_prompt_id', 'TEXT'],
+    ['created_by', 'TEXT'],
+    ["artifact_type", "TEXT NOT NULL DEFAULT 'raw'"],
+    ['artifact_role', 'TEXT'],
+    ['artifact_format', 'TEXT'],
+    ['generated_by', "TEXT NOT NULL DEFAULT 'user'"],
+    ['llm_provider', 'TEXT'],
+    ['llm_model', 'TEXT'],
+    ['title', 'TEXT'],
+    ['summary', 'TEXT'],
+    ['confidence_score', 'REAL'],
+    ['status', 'TEXT'],
+  ]
+
+  for (const [columnName, columnType] of requiredColumns) {
+    if (hasColumn(database, 'Artifacts', columnName)) continue
+    database.exec(`ALTER TABLE Artifacts ADD COLUMN ${columnName} ${columnType}`)
+  }
 }
 
 function ensureArtifactLinkTriggersAllowUnlinkedArtifacts(database) {

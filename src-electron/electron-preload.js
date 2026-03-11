@@ -74,12 +74,11 @@ contextBridge.exposeInMainWorld('ecvc', {
     delete: (opportunityId) => ipcRenderer.invoke('opportunities:delete', { opportunityId }),
   },
   databooks: {
-    list: () => ipcRenderer.invoke('databooks:list'),
-    view: (opportunityId) => ipcRenderer.invoke('databooks:view', { opportunityId }),
-    versions: (opportunityId) => ipcRenderer.invoke('databooks:versions', { opportunityId }),
+    view: (tableName, recordId) => ipcRenderer.invoke('databooks:view', { tableName, recordId }),
+    versions: (tableName, recordId) => ipcRenderer.invoke('databooks:versions', { tableName, recordId }),
     viewSnapshot: (snapshotId) => ipcRenderer.invoke('databooks:viewSnapshot', { snapshotId }),
-    update: ({ opportunityId, changes } = {}) =>
-      ipcRenderer.invoke('databooks:update', { opportunityId, changes }),
+    update: ({ tableName, recordId, changes } = {}) =>
+      ipcRenderer.invoke('databooks:update', { tableName, recordId, changes }),
   },
   audit: {
     me: () => ipcRenderer.invoke('audit:me'),
