@@ -62,7 +62,6 @@ CREATE TABLE IF NOT EXISTS Companies (
   One_Liner TEXT,
   Status TEXT,
   Date_of_Incorporation TEXT,
-  Amount_Raised_AUMs REAL,
   Rounds_Opportunities_Count INTEGER,
   Pax INTEGER,
   Updates TEXT,
@@ -81,6 +80,24 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_Companies_company_name
 CREATE INDEX IF NOT EXISTS idx_Companies_city_id ON Companies(city_id);
 CREATE INDEX IF NOT EXISTS idx_Companies_country_id ON Companies(country_id);
 CREATE INDEX IF NOT EXISTS idx_Companies_region_id ON Companies(region_id);
+
+CREATE TABLE IF NOT EXISTS Asset_Manager_Companies (
+  company_id TEXT PRIMARY KEY,
+  AUM REAL,
+  Funds_Managed_Count INTEGER,
+  Investment_Count INTEGER,
+  Exit_Count INTEGER,
+  Asset_Classes TEXT,
+  Investment_Stages TEXT,
+  Investment_Focus_Regions TEXT,
+  Investment_Focus_Industries TEXT,
+  LP_Investor_Relationships TEXT,
+  Strategy_Defaults TEXT,
+  Portfolio_Construction_Defaults TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS Opportunities (
   id TEXT PRIMARY KEY,
@@ -1620,6 +1637,62 @@ BEGIN
       )
     THEN RAISE(ABORT, 'company city_id does not match region_id')
   END;
+END;
+
+-- Asset manager subtype rows are only valid for Companies with Company_Type = 'Asset Manager'
+CREATE TRIGGER IF NOT EXISTS trg_Asset_Manager_Companies_type_ins
+BEFORE INSERT ON Asset_Manager_Companies
+FOR EACH ROW
+BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1
+      FROM Companies c
+      WHERE c.id = NEW.company_id
+        AND c.Company_Type = 'Asset Manager'
+    )
+    THEN RAISE(ABORT, 'asset manager subtype requires parent company type Asset Manager')
+  END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Asset_Manager_Companies_type_upd
+BEFORE UPDATE OF company_id ON Asset_Manager_Companies
+FOR EACH ROW
+BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1
+      FROM Companies c
+      WHERE c.id = NEW.company_id
+        AND c.Company_Type = 'Asset Manager'
+    )
+    THEN RAISE(ABORT, 'asset manager subtype requires parent company type Asset Manager')
+  END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Companies_asset_manager_type_guard
+BEFORE UPDATE OF Company_Type ON Companies
+FOR EACH ROW
+BEGIN
+  SELECT CASE
+    WHEN NEW.Company_Type <> 'Asset Manager'
+      AND EXISTS (
+        SELECT 1
+        FROM Asset_Manager_Companies am
+        WHERE am.company_id = NEW.id
+      )
+    THEN RAISE(ABORT, 'cannot change company type while asset manager subtype exists')
+  END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Asset_Manager_Companies_updated_at
+AFTER UPDATE ON Asset_Manager_Companies
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Asset_Manager_Companies
+  SET updated_at = datetime('now')
+  WHERE company_id = OLD.company_id;
 END;
 
 -- Artifact must correspond to an existing Opportunity_Pipeline mapping
