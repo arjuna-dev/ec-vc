@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS Companies (
   id TEXT PRIMARY KEY,
   Company_Name TEXT,
   Company_Type TEXT NOT NULL,
+  city_id TEXT,
+  country_id TEXT,
+  region_id TEXT,
   One_Liner TEXT,
   Status TEXT,
   Date_of_Incorporation TEXT,
@@ -66,11 +69,18 @@ CREATE TABLE IF NOT EXISTS Companies (
   Website TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (Company_Type) REFERENCES company_types(type) ON UPDATE CASCADE ON DELETE RESTRICT
+  FOREIGN KEY (Company_Type) REFERENCES company_types(type) ON UPDATE CASCADE ON DELETE RESTRICT,
+  FOREIGN KEY (city_id) REFERENCES Cities(id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (country_id) REFERENCES Countries(id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (region_id) REFERENCES Regions(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_Companies_company_name
   ON Companies(Company_Name);
+
+CREATE INDEX IF NOT EXISTS idx_Companies_city_id ON Companies(city_id);
+CREATE INDEX IF NOT EXISTS idx_Companies_country_id ON Companies(country_id);
+CREATE INDEX IF NOT EXISTS idx_Companies_region_id ON Companies(region_id);
 
 CREATE TABLE IF NOT EXISTS Opportunities (
   id TEXT PRIMARY KEY,
@@ -1522,6 +1532,93 @@ BEGIN
       WHERE s.stage_id = NEW.stage_id AND s.pipeline_id = NEW.pipeline_id
     )
     THEN RAISE(ABORT, 'stage_id does not belong to pipeline_id')
+  END;
+END;
+
+-- Company location hierarchy must remain consistent across optional city/country/region selections
+CREATE TRIGGER IF NOT EXISTS trg_Companies_location_consistency_ins
+BEFORE INSERT ON Companies
+FOR EACH ROW
+BEGIN
+  SELECT CASE
+    WHEN NEW.city_id IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM Cities c
+        WHERE c.id = NEW.city_id
+          AND (
+            NEW.country_id IS NULL OR c.country_id = NEW.country_id
+          )
+      )
+    THEN RAISE(ABORT, 'company city_id does not match country_id')
+  END;
+
+  SELECT CASE
+    WHEN NEW.country_id IS NOT NULL
+      AND NEW.region_id IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM Countries c
+        WHERE c.id = NEW.country_id
+          AND c.region_id = NEW.region_id
+      )
+    THEN RAISE(ABORT, 'company country_id does not match region_id')
+  END;
+
+  SELECT CASE
+    WHEN NEW.city_id IS NOT NULL
+      AND NEW.region_id IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM Cities ci
+        JOIN Countries co ON co.id = ci.country_id
+        WHERE ci.id = NEW.city_id
+          AND co.region_id = NEW.region_id
+      )
+    THEN RAISE(ABORT, 'company city_id does not match region_id')
+  END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Companies_location_consistency_upd
+BEFORE UPDATE OF city_id, country_id, region_id ON Companies
+FOR EACH ROW
+BEGIN
+  SELECT CASE
+    WHEN NEW.city_id IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM Cities c
+        WHERE c.id = NEW.city_id
+          AND (
+            NEW.country_id IS NULL OR c.country_id = NEW.country_id
+          )
+      )
+    THEN RAISE(ABORT, 'company city_id does not match country_id')
+  END;
+
+  SELECT CASE
+    WHEN NEW.country_id IS NOT NULL
+      AND NEW.region_id IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM Countries c
+        WHERE c.id = NEW.country_id
+          AND c.region_id = NEW.region_id
+      )
+    THEN RAISE(ABORT, 'company country_id does not match region_id')
+  END;
+
+  SELECT CASE
+    WHEN NEW.city_id IS NOT NULL
+      AND NEW.region_id IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM Cities ci
+        JOIN Countries co ON co.id = ci.country_id
+        WHERE ci.id = NEW.city_id
+          AND co.region_id = NEW.region_id
+      )
+    THEN RAISE(ABORT, 'company city_id does not match region_id')
   END;
 END;
 
