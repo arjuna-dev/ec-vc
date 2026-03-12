@@ -83,8 +83,6 @@ CREATE TABLE IF NOT EXISTS Opportunities (
   First_Close_Date TEXT,
   Next_Close_Date TEXT,
   Final_Close_Date TEXT,
-  Pipeline_Stage TEXT,
-  Pipeline_Status TEXT,
   Raising_Status TEXT,
   Round_Stage TEXT,
   Type_of_Security TEXT,
@@ -287,7 +285,7 @@ CREATE TABLE IF NOT EXISTS BusinessModels (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS Locations (
+CREATE TABLE IF NOT EXISTS Regions (
   id TEXT PRIMARY KEY,
   Name TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -297,16 +295,24 @@ CREATE TABLE IF NOT EXISTS Locations (
 CREATE TABLE IF NOT EXISTS Countries (
   id TEXT PRIMARY KEY,
   Country_Name TEXT,
+  region_id TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (region_id) REFERENCES Regions(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_Countries_region_id ON Countries(region_id);
 
 CREATE TABLE IF NOT EXISTS Cities (
   id TEXT PRIMARY KEY,
   City_Name TEXT,
+  country_id TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (country_id) REFERENCES Countries(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_Cities_country_id ON Cities(country_id);
 
 CREATE TABLE IF NOT EXISTS VC_Terms_Glossary (
   id TEXT PRIMARY KEY,
@@ -371,32 +377,6 @@ CREATE INDEX IF NOT EXISTS idx_notes_created_at ON Notes(created_at);
 `
 
 const RELATION_JOIN_TABLES_SQL = `
-CREATE TABLE IF NOT EXISTS Countries_Locations_has_locations (
-  from_id TEXT NOT NULL,
-  to_id TEXT NOT NULL,
-  PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES Countries(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Locations(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_Countries_Locations_has_locations_to ON Countries_Locations_has_locations(to_id);
-
-CREATE TABLE IF NOT EXISTS Countries_Cities_has_cities (
-  from_id TEXT NOT NULL,
-  to_id TEXT NOT NULL,
-  PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES Countries(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Cities(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_Countries_Cities_has_cities_to ON Countries_Cities_has_cities(to_id);
-
-CREATE TABLE IF NOT EXISTS Cities_Locations_appears_in_locations (
-  from_id TEXT NOT NULL,
-  to_id TEXT NOT NULL,
-  PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES Cities(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Locations(id) ON UPDATE CASCADE ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_Cities_Locations_appears_in_locations_to ON Cities_Locations_appears_in_locations(to_id);
 
 CREATE TABLE IF NOT EXISTS Countries_Companies_governing_law (
   from_id TEXT NOT NULL,
@@ -416,14 +396,14 @@ CREATE TABLE IF NOT EXISTS Countries_Companies_ops_countries (
 );
 CREATE INDEX IF NOT EXISTS idx_Countries_Companies_ops_countries_to ON Countries_Companies_ops_countries(to_id);
 
-CREATE TABLE IF NOT EXISTS Locations_Companies_hq_location (
+CREATE TABLE IF NOT EXISTS Regions_Companies_hq_region (
   from_id TEXT NOT NULL,
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES Locations(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_id) REFERENCES Regions(id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_Locations_Companies_hq_location_to ON Locations_Companies_hq_location(to_id);
+CREATE INDEX IF NOT EXISTS idx_Regions_Companies_hq_region_to ON Regions_Companies_hq_region(to_id);
 
 CREATE TABLE IF NOT EXISTS Industries_Companies_industries (
   from_id TEXT NOT NULL,
@@ -1213,12 +1193,12 @@ CREATE TABLE IF NOT EXISTS Artifacts_Industries (
   FOREIGN KEY (industry_id) REFERENCES Industries(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS Artifacts_Locations (
+CREATE TABLE IF NOT EXISTS Artifacts_Regions (
   artifact_id TEXT NOT NULL,
-  location_id TEXT NOT NULL,
-  PRIMARY KEY (artifact_id, location_id),
+  region_id TEXT NOT NULL,
+  PRIMARY KEY (artifact_id, region_id),
   FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (location_id) REFERENCES Locations(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (region_id) REFERENCES Regions(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Artifact_Links (
