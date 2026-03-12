@@ -603,6 +603,15 @@ CREATE TABLE IF NOT EXISTS Countries_Opportunities_target_countries (
 );
 CREATE INDEX IF NOT EXISTS idx_Countries_Opportunities_target_countries_to ON Countries_Opportunities_target_countries(to_id);
 
+CREATE TABLE IF NOT EXISTS Regions_Opportunities_target_regions (
+  from_id TEXT NOT NULL,
+  to_id TEXT NOT NULL,
+  PRIMARY KEY (from_id, to_id),
+  FOREIGN KEY (from_id) REFERENCES Regions(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (to_id) REFERENCES Opportunities(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_Regions_Opportunities_target_regions_to ON Regions_Opportunities_target_regions(to_id);
+
 CREATE TABLE IF NOT EXISTS Industries_Opportunities_target_industries (
   from_id TEXT NOT NULL,
   to_id TEXT NOT NULL,
