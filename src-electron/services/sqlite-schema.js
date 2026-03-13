@@ -12,6 +12,15 @@ INSERT OR IGNORE INTO company_types (type) VALUES
   ('Government'),
   ('Other');
 
+CREATE TABLE IF NOT EXISTS company_stages (
+  stage TEXT PRIMARY KEY
+);
+
+INSERT OR IGNORE INTO company_stages (stage) VALUES
+  ('early'),
+  ('mid'),
+  ('late');
+
 CREATE TABLE IF NOT EXISTS app_settings (
   key TEXT PRIMARY KEY,
   value TEXT,
@@ -176,11 +185,21 @@ CREATE TABLE IF NOT EXISTS Fund_Opportunities (
   Target_Positions INTEGER,
   Follow_on_Reserve REAL,
   Investment_Stages TEXT,
-  Company_Stages TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS Fund_Opportunities_Company_Stages (
+  opportunity_id TEXT NOT NULL,
+  company_stage TEXT NOT NULL,
+  PRIMARY KEY (opportunity_id, company_stage),
+  FOREIGN KEY (opportunity_id) REFERENCES Fund_Opportunities(opportunity_id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (company_stage) REFERENCES company_stages(stage) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_Fund_Opportunities_Company_Stages_stage
+  ON Fund_Opportunities_Company_Stages(company_stage);
 
 CREATE TABLE IF NOT EXISTS LVPortfolio (
   id TEXT PRIMARY KEY,
