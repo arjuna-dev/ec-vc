@@ -43,8 +43,9 @@ export function closeDb() {
 function migrate(database) {
   ensureTasksPipelineColumn(database)
   ensureArtifactsCompatibilityColumns(database)
-  database.exec(SCHEMA_V1_SQL)
+  ensureLocationHierarchyColumns(database)
   ensureGenericDatabookSnapshots(database)
+  database.exec(SCHEMA_V1_SQL)
   cleanupLegacyOpportunityTriggers(database)
   ensureUserContactForeignKey(database)
   ensureArtifactLinkTriggersAllowUnlinkedArtifacts(database)
@@ -179,6 +180,27 @@ function ensureArtifactsCompatibilityColumns(database) {
   for (const [columnName, columnType] of requiredColumns) {
     if (hasColumn(database, 'Artifacts', columnName)) continue
     database.exec(`ALTER TABLE Artifacts ADD COLUMN ${columnName} ${columnType}`)
+  }
+}
+
+function ensureLocationHierarchyColumns(database) {
+  const tableColumns = [
+    ['Companies', [
+      ['city_id', 'TEXT'],
+      ['country_id', 'TEXT'],
+      ['region_id', 'TEXT'],
+    ]],
+    ['Countries', [['region_id', 'TEXT']]],
+    ['Cities', [['country_id', 'TEXT']]],
+  ]
+
+  for (const [tableName, requiredColumns] of tableColumns) {
+    if (!hasTable(database, tableName)) continue
+
+    for (const [columnName, columnType] of requiredColumns) {
+      if (hasColumn(database, tableName, columnName)) continue
+      database.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnType}`)
+    }
   }
 }
 
