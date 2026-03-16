@@ -72,8 +72,8 @@ async function runTests() {
     try {
       db.prepare(
         `
-        INSERT INTO Artifacts (artifact_id, opportunity_id, pipeline_id, stage_id, artifact_type, fs_path, generated_by)
-        VALUES ('art_999', ?, 'pipeline_default', 'stage_thesis_alignment', 'raw_input', '/path/test.pdf', 'user')
+        INSERT INTO Artifacts (artifact_id, opportunity_id, pipeline_id, stage_id, title)
+        VALUES ('art_999', ?, 'pipeline_default', 'stage_thesis_alignment', 'test artifact')
       `,
       ).run(opptyId)
       throw new Error('Integrity Check Failed: Allowed artifact for opportunity not in pipeline')
@@ -91,10 +91,16 @@ async function runTests() {
 
     db.prepare(
       `
-      INSERT INTO Artifacts (artifact_id, opportunity_id, pipeline_id, stage_id, artifact_type, fs_path, generated_by)
-      VALUES ('art_1', ?, 'pipeline_default', 'stage_thesis_alignment', 'raw_input', '/path/test.pdf', 'user')
-    `,
+      INSERT INTO Artifacts (artifact_id, opportunity_id, pipeline_id, stage_id, title)
+      VALUES ('art_1', ?, 'pipeline_default', 'stage_thesis_alignment', 'test artifact')
+      `,
     ).run(opptyId)
+    db.prepare(
+      `
+      INSERT INTO Artifact_Raw (artifact_id, fs_path, fs_hash, fs_size_bytes)
+      VALUES ('art_1', '/path/test.pdf', NULL, NULL)
+      `,
+    ).run()
     console.log('✅ Valid Workflow Insertion: SUCCESS')
 
     console.log('\n🎉 ALL TESTS PASSED: Schema is ready for production development.')

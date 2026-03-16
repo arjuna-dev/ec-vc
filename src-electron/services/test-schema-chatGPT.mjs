@@ -174,8 +174,11 @@ await runTest('Core tables exist', async () => {
     'Opportunity_Pipeline',
     'Fund_Pipeline',
     'Artifacts',
+    'Artifact_Raw',
+    'Artifact_Llm_Ready',
+    'Artifact_Llm_Generated',
     'Artifacts_Industries',
-    'Artifacts_Locations',
+    'Artifacts_Regions',
     'Artifact_Links',
   ]
 
@@ -189,7 +192,7 @@ await runTest('Important indexes exist (spot-check)', async () => {
   assert.equal(indexExists(db, 'idx_Opportunities_company_id'), true)
   assert.equal(indexExists(db, 'idx_Pipelines_single_default'), true)
   assert.equal(indexExists(db, 'idx_Pipelines_dir_name'), true)
-  assert.equal(indexExists(db, 'idx_Artifacts_unique_path'), true)
+  assert.equal(indexExists(db, 'idx_Artifact_Raw_unique_path'), true)
 })
 
 await runTest('Seeded default pipeline exists + stages inserted', async () => {
@@ -347,19 +350,10 @@ await runTest(
         db
           .prepare(
             `INSERT INTO Artifacts (
-              artifact_id, opportunity_id, pipeline_id, stage_id,
-              artifact_type, fs_path, generated_by
-            ) VALUES (?,?,?,?,?,?,?)`,
+              artifact_id, opportunity_id, pipeline_id, stage_id, title
+            ) VALUES (?,?,?,?,?)`,
           )
-          .run(
-            'a_fail',
-            'o_no_map',
-            'pipeline_default',
-            defaultStage,
-            'raw_input',
-            '/tmp/a_fail.txt',
-            'user',
-          ),
+          .run('a_fail', 'o_no_map', 'pipeline_default', defaultStage, 'fail artifact'),
       'artifact opportunity_id is not linked to pipeline_id',
     )
 
@@ -370,18 +364,12 @@ await runTest(
 
     db.prepare(
       `INSERT INTO Artifacts (
-        artifact_id, opportunity_id, pipeline_id, stage_id,
-        artifact_type, fs_path, generated_by
-      ) VALUES (?,?,?,?,?,?,?)`,
-    ).run(
-      'a_ok',
-      'o_no_map',
-      'pipeline_default',
-      defaultStage,
-      'raw_input',
-      '/tmp/a_ok.txt',
-      'user',
-    )
+        artifact_id, opportunity_id, pipeline_id, stage_id, title
+      ) VALUES (?,?,?,?,?)`,
+    ).run('a_ok', 'o_no_map', 'pipeline_default', defaultStage, 'ok artifact')
+    db.prepare(
+      `INSERT INTO Artifact_Raw (artifact_id, fs_path, fs_hash, fs_size_bytes) VALUES (?,?,?,?)`,
+    ).run('a_ok', '/tmp/a_ok.txt', null, null)
   },
 )
 
@@ -392,19 +380,10 @@ await runTest('Artifacts stage must belong to pipeline (trigger)', async () => {
       db
         .prepare(
           `INSERT INTO Artifacts (
-            artifact_id, opportunity_id, pipeline_id, stage_id,
-            artifact_type, fs_path, generated_by
-          ) VALUES (?,?,?,?,?,?,?)`,
+            artifact_id, opportunity_id, pipeline_id, stage_id, title
+          ) VALUES (?,?,?,?,?)`,
         )
-        .run(
-          'a_bad_stage',
-          'o_no_map',
-          'pipeline_default',
-          'p2_s1',
-          'raw_input',
-          '/tmp/a_bad_stage.txt',
-          'user',
-        ),
+        .run('a_bad_stage', 'o_no_map', 'pipeline_default', 'p2_s1', 'bad stage artifact'),
     'artifact stage_id does not belong to artifact pipeline_id',
   )
 })
@@ -437,10 +416,12 @@ await runTest('updated_at triggers work (Companies + Artifacts spot-check)', asy
 
   db.prepare(
     `INSERT OR IGNORE INTO Artifacts (
-      artifact_id, opportunity_id, pipeline_id, stage_id,
-      artifact_type, fs_path, generated_by
-    ) VALUES (?,?,?,?,?,?,?)`,
-  ).run('a_up', 'o_up', 'pipeline_default', defaultStage, 'note', '/tmp/a_up.txt', 'user')
+      artifact_id, opportunity_id, pipeline_id, stage_id, title
+    ) VALUES (?,?,?,?,?)`,
+  ).run('a_up', 'o_up', 'pipeline_default', defaultStage, 'up artifact')
+  db.prepare(
+    `INSERT OR IGNORE INTO Artifact_Raw (artifact_id, fs_path, fs_hash, fs_size_bytes) VALUES (?,?,?,?)`,
+  ).run('a_up', '/tmp/a_up.txt', null, null)
 
   const aBefore = nowRow(db, 'Artifacts', 'artifact_id', 'a_up').updated_at
   await sleep(1100)

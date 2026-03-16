@@ -147,7 +147,8 @@ function createPipeline(payload = {}) {
       .slice(0, 80) ||
     'pipeline'
 
-  const pipelineId = normalizeNullableString(payload.pipeline_id) || `pipeline:${crypto.randomUUID()}`
+  const pipelineId =
+    normalizeNullableString(payload.pipeline_id) || `pipeline:${crypto.randomUUID()}`
   const isDefault = pipelineId === 'pipeline_default' ? 1 : payload.is_default ? 1 : 0
 
   const tx = database.transaction(() => {
@@ -163,8 +164,17 @@ function createPipeline(payload = {}) {
     const providedStages = Array.isArray(payload.stages) ? payload.stages : []
     const stageLabels =
       providedStages.length > 0
-        ? providedStages.map((s) => String(s || '').trim()).filter(Boolean).slice(0, 50)
-        : ['Thesis alignment', 'Team analysis', 'Investment committee', 'Due diligence', 'Closing documents']
+        ? providedStages
+            .map((s) => String(s || '').trim())
+            .filter(Boolean)
+            .slice(0, 50)
+        : [
+            'Thesis alignment',
+            'Team analysis',
+            'Investment committee',
+            'Due diligence',
+            'Closing documents',
+          ]
 
     const insertStage = database.prepare(
       `
@@ -711,10 +721,14 @@ function upsertTasks(rows = []) {
       const companyId = normalizeNullableString(r?.company_id)
       const opportunity =
         opportunityId &&
-        database.prepare('SELECT id, kind FROM Opportunities WHERE id = ? LIMIT 1').get(opportunityId)
+        database
+          .prepare('SELECT id, kind FROM Opportunities WHERE id = ? LIMIT 1')
+          .get(opportunityId)
       if (opportunity?.id) {
         const edgeTable =
-          opportunity.kind === 'fund' ? 'Tasks_Opportunities_tasks_fund' : 'Tasks_Opportunities_tasks'
+          opportunity.kind === 'fund'
+            ? 'Tasks_Opportunities_tasks_fund'
+            : 'Tasks_Opportunities_tasks'
         database
           .prepare(`INSERT OR IGNORE INTO ${edgeTable} (from_id, to_id) VALUES (?, ?)`)
           .run(taskId, opportunity.id)
@@ -1050,7 +1064,7 @@ function getLegacyOpportunityDatabookView(opportunityId) {
           a.stage_id,
           a.fs_path,
           a.created_at AS artifact_created_at
-        FROM Artifacts a
+        FROM Artifact_Details a
         WHERE a.opportunity_id = ?
         ORDER BY COALESCE(a.created_at, ''), a.artifact_id
       `,
@@ -1614,7 +1628,8 @@ function getLegacyOpportunityDatabookView(opportunityId) {
     return {
       row_index: i + 1,
       opportunity_id: opportunity.id,
-      opportunity_name: opportunity.opportunity_name || opportunity.Venture_Oppty_Name || opportunity.id,
+      opportunity_name:
+        opportunity.opportunity_name || opportunity.Venture_Oppty_Name || opportunity.id,
       kind: opportunity.kind,
       Raising_Status: opportunity.Raising_Status,
       Company_Name: opportunity.Company_Name,
@@ -1834,7 +1849,7 @@ function listArtifacts() {
       a.pipeline_id,
       a.stage_id,
       a.created_at
-    FROM Artifacts a
+    FROM Artifact_Details a
     ORDER BY a.created_at DESC
   `,
   )
@@ -1853,7 +1868,7 @@ async function deleteArtifact(artifactId) {
   if (!id) throw new Error('artifactId is required')
 
   const artifact = database
-    .prepare('SELECT artifact_id, fs_path FROM Artifacts WHERE artifact_id = ? LIMIT 1')
+    .prepare('SELECT artifact_id, fs_path FROM Artifact_Details WHERE artifact_id = ? LIMIT 1')
     .get(id)
   if (!artifact) return { changes: 0, file_deleted: false, cleanup_warning: null }
 
@@ -1865,7 +1880,8 @@ async function deleteArtifact(artifactId) {
 
   if (result.changes > 0 && fsPath) {
     const refs = Number(
-      database.prepare('SELECT COUNT(*) AS c FROM Artifacts WHERE fs_path = ?').get(fsPath)?.c || 0,
+      database.prepare('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?').get(fsPath)
+        ?.c || 0,
     )
     if (refs === 0) {
       try {
@@ -2066,8 +2082,6 @@ function upsertArtifacts(rows = []) {
         opportunity_id: opportunityId,
         pipeline_id: pipelineId,
         stage_id: stageId,
-        artifact_type: artifactType,
-        artifact_role: normalizeNullableString(r?.artifact_role),
         artifact_format: normalizeNullableString(r?.artifact_format),
         fs_path: fsPath,
         fs_hash: normalizeNullableString(r?.fs_hash),
@@ -2077,11 +2091,11 @@ function upsertArtifacts(rows = []) {
         llm_provider: normalizeNullableString(r?.llm_provider),
         llm_model: normalizeNullableString(r?.llm_model),
         assistant_system_prompt_id: normalizeNullableString(r?.assistant_system_prompt_id),
+        original_artifact_id: normalizeNullableString(r?.original_artifact_id),
         title: normalizeNullableString(r?.title),
-        summary: normalizeNullableString(r?.summary),
-        confidence_score: normalizeNullableNumber(r?.confidence_score),
+        description:
+          normalizeNullableString(r?.description) || normalizeNullableString(r?.summary),
         status: normalizeNullableString(r?.status) || 'draft',
-        is_active: normalizeNullableNumber(r?.is_active) ?? 1,
       }
 
       try {
@@ -2090,41 +2104,76 @@ function upsertArtifacts(rows = []) {
             `
             INSERT INTO Artifacts (
               artifact_id, pipeline_run_id, opportunity_id, pipeline_id, stage_id,
-              artifact_type, artifact_role, artifact_format, fs_path, fs_hash, fs_size_bytes,
-              source_artifact_id, generated_by, llm_provider, llm_model, assistant_system_prompt_id,
-              title, summary, confidence_score, status, is_active
+              artifact_format, title, description, status
             )
             VALUES (
               @artifact_id, @pipeline_run_id, @opportunity_id, @pipeline_id, @stage_id,
-              @artifact_type, @artifact_role, @artifact_format, @fs_path, @fs_hash, @fs_size_bytes,
-              @source_artifact_id, @generated_by, @llm_provider, @llm_model, @assistant_system_prompt_id,
-              @title, @summary, @confidence_score, @status, @is_active
+              @artifact_format, @title, @description, @status
             )
             ON CONFLICT(artifact_id) DO UPDATE SET
               pipeline_run_id = excluded.pipeline_run_id,
               opportunity_id = excluded.opportunity_id,
               pipeline_id = excluded.pipeline_id,
               stage_id = excluded.stage_id,
-              artifact_type = excluded.artifact_type,
-              artifact_role = excluded.artifact_role,
               artifact_format = excluded.artifact_format,
-              fs_path = excluded.fs_path,
-              fs_hash = excluded.fs_hash,
-              fs_size_bytes = excluded.fs_size_bytes,
-              source_artifact_id = excluded.source_artifact_id,
-              generated_by = excluded.generated_by,
-              llm_provider = excluded.llm_provider,
-              llm_model = excluded.llm_model,
-              assistant_system_prompt_id = excluded.assistant_system_prompt_id,
               title = excluded.title,
-              summary = excluded.summary,
-              confidence_score = excluded.confidence_score,
+              description = excluded.description,
               status = excluded.status,
-              is_active = excluded.is_active,
               updated_at = datetime('now')
           `,
           )
           .run(payload)
+
+        database.prepare('DELETE FROM Artifact_Raw WHERE artifact_id = ?').run(artifactId)
+        database.prepare('DELETE FROM Artifact_Llm_Ready WHERE artifact_id = ?').run(artifactId)
+        database.prepare('DELETE FROM Artifact_Llm_Generated WHERE artifact_id = ?').run(artifactId)
+
+        if (artifactType === 'raw') {
+          database
+            .prepare(
+              `
+              INSERT INTO Artifact_Raw (
+                artifact_id, fs_path, fs_hash, fs_size_bytes
+              ) VALUES (
+                @artifact_id, @fs_path, @fs_hash, @fs_size_bytes
+              )
+            `,
+            )
+            .run(payload)
+        } else if (artifactType === 'llm-ready') {
+          database
+            .prepare(
+              `
+              INSERT INTO Artifact_Llm_Ready (
+                artifact_id, source_artifact_id, original_artifact_id, assistant_system_prompt_id,
+                generated_by, llm_provider, llm_model, fs_path, fs_hash, fs_size_bytes
+              ) VALUES (
+                @artifact_id, @source_artifact_id, @original_artifact_id, @assistant_system_prompt_id,
+                @generated_by, @llm_provider, @llm_model, @fs_path, @fs_hash, @fs_size_bytes
+              )
+            `,
+            )
+            .run({
+              ...payload,
+              generated_by: payload.generated_by === 'system' ? 'system' : 'llm',
+            })
+        } else if (artifactType === 'llm-generated') {
+          database
+            .prepare(
+              `
+              INSERT INTO Artifact_Llm_Generated (
+                artifact_id, source_artifact_id, original_artifact_id, assistant_system_prompt_id,
+                llm_provider, llm_model, fs_path, fs_hash, fs_size_bytes
+              ) VALUES (
+                @artifact_id, @source_artifact_id, @original_artifact_id, @assistant_system_prompt_id,
+                @llm_provider, @llm_model, @fs_path, @fs_hash, @fs_size_bytes
+              )
+            `,
+            )
+            .run(payload)
+        } else {
+          throw new Error(`Unsupported artifact_type: ${artifactType}`)
+        }
 
         if (exists) updated++
         else inserted++
@@ -2202,7 +2251,10 @@ let companiesRoundsCountColumnCache = null
 
 function getCompaniesRoundsCountColumn(database) {
   if (companiesRoundsCountColumnCache) return companiesRoundsCountColumnCache
-  const cols = database.prepare('PRAGMA table_info(Companies)').all().map((c) => c?.name)
+  const cols = database
+    .prepare('PRAGMA table_info(Companies)')
+    .all()
+    .map((c) => c?.name)
   if (cols.includes('Rounds_Opportunities_Count')) {
     companiesRoundsCountColumnCache = 'Rounds_Opportunities_Count'
     return companiesRoundsCountColumnCache
@@ -2227,9 +2279,11 @@ function companyIsAssetManager(database, companyId) {
   const row = database
     .prepare('SELECT Company_Type FROM Companies WHERE id = ? LIMIT 1')
     .get(companyId)
-  return String(row?.Company_Type || '')
-    .trim()
-    .toLowerCase() === 'asset manager'
+  return (
+    String(row?.Company_Type || '')
+      .trim()
+      .toLowerCase() === 'asset manager'
+  )
 }
 
 function upsertFundSubtype(database, opportunityId, source = {}) {
@@ -2288,7 +2342,8 @@ function deriveOpportunityName(
   const byFallback = makeOpportunityNameFromCompany(baseEntity)
   if (byFallback && series) return `${byFallback}_${String(series).trim().replace(/\s+/g, '_')}`
   if (byFallback) return byFallback
-  if (!companyId) return series ? `${makeOpportunityNameFromCompany('Opportunity')}_${series}` : null
+  if (!companyId)
+    return series ? `${makeOpportunityNameFromCompany('Opportunity')}_${series}` : null
   const row = database
     .prepare('SELECT Company_Name FROM Companies WHERE id = ? LIMIT 1')
     .get(companyId)
@@ -2332,16 +2387,12 @@ function coerceValueForColumn(rawValue, declaredType = '') {
     const plainNumericPattern = /^[+-]?(?:\d+|\d*\.\d+)(?:\s*[kKmMbB])?$/
     const commaNumericPattern = /^[+-]?\d{1,3}(?:,\d{3})+(?:\.\d+)?(?:\s*[kKmMbB])?$/
     if (!plainNumericPattern.test(text) && !commaNumericPattern.test(text)) {
-      throw new Error(
-        `Invalid number "${text}". Use formats like 1000000, 1,000,000, 1M, 2.5K.`,
-      )
+      throw new Error(`Invalid number "${text}". Use formats like 1000000, 1,000,000, 1M, 2.5K.`)
     }
     const normalized = text.replaceAll(',', '').replace(/\s+/g, '')
     const parts = normalized.match(/^([+-]?(?:\d+|\d*\.\d+))([kKmMbB])?$/)
     if (!parts) {
-      throw new Error(
-        `Invalid number "${text}". Use formats like 1000000, 1,000,000, 1M, 2.5K.`,
-      )
+      throw new Error(`Invalid number "${text}". Use formats like 1000000, 1,000,000, 1M, 2.5K.`)
     }
     const base = Number(parts[1])
     const suffix = String(parts[2] || '').toUpperCase()
@@ -2437,10 +2488,14 @@ function ensureAuditActor(database) {
   const userUuid = existingUuid || `user:${crypto.randomUUID()}`
   if (!existingUuid) setAppSetting(database, 'user_uuid', userUuid)
 
-  let userContactId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userContactId))
+  let userContactId = normalizeNullableString(
+    getAppSetting(database, APP_SETTING_KEYS.userContactId),
+  )
   let userLabel = ''
   if (userContactId) {
-    const row = database.prepare('SELECT Name FROM Contacts WHERE id = ? LIMIT 1').get(userContactId)
+    const row = database
+      .prepare('SELECT Name FROM Contacts WHERE id = ? LIMIT 1')
+      .get(userContactId)
     userLabel = normalizeNullableString(row?.Name)
     if (!userLabel) {
       setAppSetting(database, APP_SETTING_KEYS.userContactId, null)
@@ -2514,7 +2569,9 @@ function getContactById(database, contactId) {
 
 function getUserSettingsPayload(database) {
   const actor = getAuditActor(database)
-  const userContactId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userContactId))
+  const userContactId = normalizeNullableString(
+    getAppSetting(database, APP_SETTING_KEYS.userContactId),
+  )
   const userContact = userContactId ? getContactById(database, userContactId) : null
   return {
     auditUserUuid: actor.user_uuid,
@@ -2642,16 +2699,15 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
         )
         .get(change.record_id)
       if (!currentRow) {
-        throw new Error(
-          `Record not found in ${change.table_name}: ${idColumn}=${change.record_id}`,
-        )
+        throw new Error(`Record not found in ${change.table_name}: ${idColumn}=${change.record_id}`)
       }
 
       const oldValue = currentRow.value
       const newValue = coerceValueForColumn(change.new_value, tableMeta.types[change.field_name])
       if (oldValue === newValue) continue
 
-      const hasUpdatedAt = tableMeta.columnsSet.has('updated_at') && change.field_name !== 'updated_at'
+      const hasUpdatedAt =
+        tableMeta.columnsSet.has('updated_at') && change.field_name !== 'updated_at'
       if (hasUpdatedAt) {
         database
           .prepare(
@@ -2761,7 +2817,9 @@ function upsertCompanyFromAutofill(database, companyPayload = {}, fallbackCompan
     .prepare('SELECT id FROM Companies WHERE Company_Name = ? LIMIT 1')
     .get(normalizeNullableString(companyFields.Company_Name))
   const id =
-    normalizeNullableString(companyFields.id) || normalizeNullableString(fallbackCompanyId) || existing?.id
+    normalizeNullableString(companyFields.id) ||
+    normalizeNullableString(fallbackCompanyId) ||
+    existing?.id
   const result = createCompany({
     ...companyFields,
     id,
@@ -2770,7 +2828,12 @@ function upsertCompanyFromAutofill(database, companyPayload = {}, fallbackCompan
   return normalizeNullableString(result?.id) || normalizeNullableString(id)
 }
 
-function createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kind, contactPayload = {}) {
+function createOrUpdatePrimaryContactForOpportunity(
+  database,
+  opportunityId,
+  kind,
+  contactPayload = {},
+) {
   const payload = pickMeaningfulFields(contactPayload, [
     'id',
     'Name',
@@ -2788,14 +2851,20 @@ function createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kin
     'Tenure_at_Firm_yrs',
     'Country_based',
   ])
-  if (!hasMeaningfulValue(payload.Name) && !hasMeaningfulValue(payload.Email) && !hasMeaningfulValue(payload.Phone)) {
+  if (
+    !hasMeaningfulValue(payload.Name) &&
+    !hasMeaningfulValue(payload.Email) &&
+    !hasMeaningfulValue(payload.Phone)
+  ) {
     return null
   }
 
   const email = normalizeNullableString(payload.Email)
   const existing =
     email &&
-    database.prepare('SELECT id FROM Contacts WHERE Email = ? ORDER BY updated_at DESC LIMIT 1').get(email)
+    database
+      .prepare('SELECT id FROM Contacts WHERE Email = ? ORDER BY updated_at DESC LIMIT 1')
+      .get(email)
 
   let contactId = normalizeNullableString(payload.id) || existing?.id
   if (!contactId) {
@@ -2913,8 +2982,7 @@ function createNotesForOpportunity(database, opportunityId, notes = []) {
 // eslint-disable-next-line no-unused-vars
 function createTasksForOpportunity(database, opportunityId, kind, tasks = []) {
   const rows = Array.isArray(tasks) ? tasks : []
-  const edgeTable =
-    kind === 'fund' ? 'Tasks_Opportunities_tasks_fund' : 'Tasks_Opportunities_tasks'
+  const edgeTable = kind === 'fund' ? 'Tasks_Opportunities_tasks_fund' : 'Tasks_Opportunities_tasks'
   for (const task of rows) {
     const taskName = normalizeNullableString(task?.Task_Name)
     if (!taskName) continue
@@ -3111,7 +3179,8 @@ function createOpportunity(payload = {}) {
     throw new Error('Provide either Company name or Contact name')
   }
   if (!companyId && primaryContactName) {
-    const autoCompanyName = normalizeNullableString(payload?.company?.Company_Name) || primaryContactName
+    const autoCompanyName =
+      normalizeNullableString(payload?.company?.Company_Name) || primaryContactName
     companyId = upsertCompanyFromAutofill(
       database,
       {
@@ -3203,7 +3272,12 @@ function createOpportunity(payload = {}) {
     })
 
     runCreateStep('upsert primary contact link', () => {
-      createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kind, payload.primary_contact)
+      createOrUpdatePrimaryContactForOpportunity(
+        database,
+        opportunityId,
+        kind,
+        payload.primary_contact,
+      )
     })
     // Temporarily disabled: skip LLM-generated notes/tasks creation during ingestion.
     // runCreateStep('create opportunity notes', () => {
@@ -3230,7 +3304,9 @@ function createOpportunity(payload = {}) {
     throw e
   }
 
-  const snapshotId = createDatabookSnapshotForOpportunity(opportunityId, { source: 'autofill_create' })
+  const snapshotId = createDatabookSnapshotForOpportunity(opportunityId, {
+    source: 'autofill_create',
+  })
   return { id: opportunityId, snapshot_id: snapshotId }
 }
 
@@ -3257,7 +3333,8 @@ function updateOpportunity(payload = {}) {
     throw new Error('Provide either Company name or Contact name')
   }
   if (!companyId && primaryContactName) {
-    const autoCompanyName = normalizeNullableString(payload?.company?.Company_Name) || primaryContactName
+    const autoCompanyName =
+      normalizeNullableString(payload?.company?.Company_Name) || primaryContactName
     companyId = upsertCompanyFromAutofill(
       database,
       {
@@ -3379,7 +3456,12 @@ function updateOpportunity(payload = {}) {
     })
 
     runCreateStep('upsert primary contact link', () => {
-      createOrUpdatePrimaryContactForOpportunity(database, opportunityId, kind, payload.primary_contact)
+      createOrUpdatePrimaryContactForOpportunity(
+        database,
+        opportunityId,
+        kind,
+        payload.primary_contact,
+      )
     })
     // Temporarily disabled: skip LLM-generated notes/tasks creation during ingestion.
     // runCreateStep('create opportunity notes', () => {
@@ -3405,7 +3487,9 @@ function updateOpportunity(payload = {}) {
     throw e
   }
 
-  const snapshotId = createDatabookSnapshotForOpportunity(opportunityId, { source: 'autofill_update' })
+  const snapshotId = createDatabookSnapshotForOpportunity(opportunityId, {
+    source: 'autofill_update',
+  })
   return { id: opportunityId, snapshot_id: snapshotId }
 }
 
@@ -3431,7 +3515,9 @@ function upsertOpportunities(rows = []) {
         if (!companyId) {
           companyId = `company:${crypto.randomUUID()}`
           database
-            .prepare("INSERT INTO Companies (id, Company_Name, Company_Type) VALUES (?, ?, 'Other')")
+            .prepare(
+              "INSERT INTO Companies (id, Company_Name, Company_Type) VALUES (?, ?, 'Other')",
+            )
             .run(companyId, companyNameFromRow)
         }
       }
@@ -3456,8 +3542,7 @@ function upsertOpportunities(rows = []) {
             companyName: companyNameFromRow,
             contactName: normalizeNullableString(r?.primary_contact_name),
             fundingSeries: normalizeNullableString(r?.Round_Stage),
-          }) ||
-          opportunityId,
+          }) || opportunityId,
         Round_Stage: normalizeNullableString(r?.Round_Stage),
         Type_of_Security: normalizeNullableString(r?.Type_of_Security),
         Investment_Ask: normalizeNullableNumber(r?.Investment_Ask),

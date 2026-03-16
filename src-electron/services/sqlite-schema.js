@@ -223,10 +223,11 @@ CREATE TABLE IF NOT EXISTS InvestmentSchedule (
 CREATE TABLE IF NOT EXISTS Contacts (
   id TEXT PRIMARY KEY,
   Name TEXT,
-  Email TEXT,
+  Personal_Email TEXT,
+  Professional_Email TEXT,
   Phone TEXT,
   LinkedIn TEXT,
-  Role TEXT,
+  Current_Role TEXT,
   Stakeholder_type TEXT,
   Closeness_Level TEXT,
   Comment TEXT,
@@ -1200,44 +1201,126 @@ CREATE TABLE IF NOT EXISTS Artifacts (
   opportunity_id TEXT,
   pipeline_id TEXT,
   stage_id TEXT,
-  source_artifact_id TEXT,
-  original_artifact_id TEXT,
-  assistant_system_prompt_id TEXT,
   created_by TEXT,
-  artifact_type TEXT NOT NULL CHECK (artifact_type IN ('raw','llm-ready','llm-generated')),
-  artifact_role TEXT,
-  artifact_format TEXT,
+  artifact_format TEXT CHECK (
+    artifact_format IS NULL OR artifact_format IN (
+      'pdf','doc','docx','ppt','pptx','xls','xlsx','csv','txt','md','json','html',
+      'png','jpg','jpeg','webp','gif','tif','tiff','other'
+    )
+  ),
   type TEXT CHECK (type IN ('raising_pitch_deck','commercial_pitch_deck','messages','emails','historical_data','forecast','other')),
-  fs_path TEXT NOT NULL,
-  fs_hash TEXT,
-  fs_size_bytes INTEGER,
-  generated_by TEXT NOT NULL CHECK (generated_by IN ('user','llm','system')),
-  llm_provider TEXT,
-  llm_model TEXT,
   title TEXT,
-  summary TEXT,
-  confidence_score REAL,
+  description TEXT,
   status TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON DELETE SET NULL,
-  FOREIGN KEY (source_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
-  FOREIGN KEY (original_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
-  FOREIGN KEY (assistant_system_prompt_id) REFERENCES Assistant_System_Prompts(assistant_system_prompt_id) ON DELETE SET NULL,
+  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE SET NULL,
+  FOREIGN KEY (stage_id) REFERENCES Pipeline_Stages(stage_id) ON DELETE SET NULL,
   FOREIGN KEY (created_by) REFERENCES Contacts(id) ON DELETE SET NULL
 );
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_Artifacts_unique_path
-  ON Artifacts(fs_path);
 
 CREATE INDEX IF NOT EXISTS idx_Artifacts_pipeline_stage
   ON Artifacts(pipeline_id, stage_id);
 
-CREATE INDEX IF NOT EXISTS idx_Artifacts_source
-  ON Artifacts(source_artifact_id);
-
 CREATE INDEX IF NOT EXISTS idx_Artifacts_oppty_pipeline_stage_created
   ON Artifacts(opportunity_id, pipeline_id, stage_id, created_at);
+
+CREATE TABLE IF NOT EXISTS Artifact_Raw (
+  artifact_id TEXT PRIMARY KEY,
+  fs_path TEXT NOT NULL,
+  fs_hash TEXT,
+  fs_size_bytes INTEGER,
+  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_Artifact_Raw_unique_path
+  ON Artifact_Raw(fs_path);
+
+CREATE TABLE IF NOT EXISTS Artifact_Llm_Ready (
+  artifact_id TEXT PRIMARY KEY,
+  source_artifact_id TEXT,
+  original_artifact_id TEXT,
+  assistant_system_prompt_id TEXT,
+  generated_by TEXT NOT NULL CHECK (generated_by IN ('llm','system')),
+  llm_provider TEXT,
+  llm_model TEXT,
+  fs_path TEXT NOT NULL,
+  fs_hash TEXT,
+  fs_size_bytes INTEGER,
+  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE CASCADE,
+  FOREIGN KEY (source_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
+  FOREIGN KEY (original_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
+  FOREIGN KEY (assistant_system_prompt_id) REFERENCES Assistant_System_Prompts(assistant_system_prompt_id) ON DELETE SET NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_Artifact_Llm_Ready_unique_path
+  ON Artifact_Llm_Ready(fs_path);
+
+CREATE INDEX IF NOT EXISTS idx_Artifact_Llm_Ready_source
+  ON Artifact_Llm_Ready(source_artifact_id);
+
+CREATE TABLE IF NOT EXISTS Artifact_Llm_Generated (
+  artifact_id TEXT PRIMARY KEY,
+  source_artifact_id TEXT,
+  original_artifact_id TEXT,
+  assistant_system_prompt_id TEXT,
+  llm_provider TEXT,
+  llm_model TEXT,
+  fs_path TEXT NOT NULL,
+  fs_hash TEXT,
+  fs_size_bytes INTEGER,
+  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE CASCADE,
+  FOREIGN KEY (source_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
+  FOREIGN KEY (original_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
+  FOREIGN KEY (assistant_system_prompt_id) REFERENCES Assistant_System_Prompts(assistant_system_prompt_id) ON DELETE SET NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_Artifact_Llm_Generated_unique_path
+  ON Artifact_Llm_Generated(fs_path);
+
+CREATE INDEX IF NOT EXISTS idx_Artifact_Llm_Generated_source
+  ON Artifact_Llm_Generated(source_artifact_id);
+
+CREATE VIEW IF NOT EXISTS Artifact_Details AS
+SELECT
+  a.artifact_id,
+  a.pipeline_run_id,
+  a.opportunity_id,
+  a.pipeline_id,
+  a.stage_id,
+  a.created_by,
+  a.artifact_format,
+  a.type,
+  a.title,
+  a.description,
+  a.status,
+  a.created_at,
+  a.updated_at,
+  COALESCE(ar.fs_path, alr.fs_path, alg.fs_path) AS fs_path,
+  COALESCE(ar.fs_hash, alr.fs_hash, alg.fs_hash) AS fs_hash,
+  COALESCE(ar.fs_size_bytes, alr.fs_size_bytes, alg.fs_size_bytes) AS fs_size_bytes,
+  COALESCE(alr.source_artifact_id, alg.source_artifact_id) AS source_artifact_id,
+  COALESCE(alr.original_artifact_id, alg.original_artifact_id) AS original_artifact_id,
+  COALESCE(alr.assistant_system_prompt_id, alg.assistant_system_prompt_id) AS assistant_system_prompt_id,
+  CASE
+    WHEN ar.artifact_id IS NOT NULL THEN 'user'
+    WHEN alr.artifact_id IS NOT NULL THEN alr.generated_by
+    WHEN alg.artifact_id IS NOT NULL THEN 'llm'
+    ELSE NULL
+  END AS generated_by,
+  COALESCE(alr.llm_provider, alg.llm_provider) AS llm_provider,
+  COALESCE(alr.llm_model, alg.llm_model) AS llm_model,
+  CASE
+    WHEN ar.artifact_id IS NOT NULL THEN 'raw'
+    WHEN alr.artifact_id IS NOT NULL THEN 'llm-ready'
+    WHEN alg.artifact_id IS NOT NULL THEN 'llm-generated'
+    ELSE NULL
+  END AS artifact_type
+FROM Artifacts a
+LEFT JOIN Artifact_Raw ar ON ar.artifact_id = a.artifact_id
+LEFT JOIN Artifact_Llm_Ready alr ON alr.artifact_id = a.artifact_id
+LEFT JOIN Artifact_Llm_Generated alg ON alg.artifact_id = a.artifact_id;
 
 -- Join Tables referencing Artifacts (Moved to end)
 CREATE TABLE IF NOT EXISTS Artifacts_Industries (
@@ -1483,6 +1566,7 @@ END;
 CREATE TRIGGER IF NOT EXISTS trg_Artifacts_stage_matches_pipeline_ins
 BEFORE INSERT ON Artifacts
 FOR EACH ROW
+WHEN NEW.stage_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
 BEGIN
   SELECT
     CASE
@@ -1727,6 +1811,7 @@ END;
 CREATE TRIGGER IF NOT EXISTS trg_Artifacts_oppty_pipeline_exists_ins
 BEFORE INSERT ON Artifacts
 FOR EACH ROW
+WHEN NEW.opportunity_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
 BEGIN
   SELECT CASE
     WHEN NOT EXISTS (
@@ -1741,6 +1826,7 @@ END;
 CREATE TRIGGER IF NOT EXISTS trg_Artifacts_oppty_pipeline_exists_upd
 BEFORE UPDATE OF opportunity_id, pipeline_id ON Artifacts
 FOR EACH ROW
+WHEN NEW.opportunity_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
 BEGIN
   SELECT CASE
     WHEN NOT EXISTS (
@@ -1756,6 +1842,7 @@ END;
 CREATE TRIGGER IF NOT EXISTS trg_Artifacts_stage_matches_pipeline_upd
 BEFORE UPDATE OF stage_id, pipeline_id ON Artifacts
 FOR EACH ROW
+WHEN NEW.stage_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
 BEGIN
   SELECT CASE
     WHEN NOT EXISTS (
@@ -1764,6 +1851,33 @@ BEGIN
     )
     THEN RAISE(ABORT, 'artifact stage_id does not belong to artifact pipeline_id')
   END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Artifact_Raw_single_subtype_ins
+BEFORE INSERT ON Artifact_Raw
+FOR EACH ROW
+WHEN EXISTS (SELECT 1 FROM Artifact_Llm_Ready WHERE artifact_id = NEW.artifact_id)
+  OR EXISTS (SELECT 1 FROM Artifact_Llm_Generated WHERE artifact_id = NEW.artifact_id)
+BEGIN
+  SELECT RAISE(ABORT, 'artifact already belongs to another subtype table');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Artifact_Llm_Ready_single_subtype_ins
+BEFORE INSERT ON Artifact_Llm_Ready
+FOR EACH ROW
+WHEN EXISTS (SELECT 1 FROM Artifact_Raw WHERE artifact_id = NEW.artifact_id)
+  OR EXISTS (SELECT 1 FROM Artifact_Llm_Generated WHERE artifact_id = NEW.artifact_id)
+BEGIN
+  SELECT RAISE(ABORT, 'artifact already belongs to another subtype table');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Artifact_Llm_Generated_single_subtype_ins
+BEFORE INSERT ON Artifact_Llm_Generated
+FOR EACH ROW
+WHEN EXISTS (SELECT 1 FROM Artifact_Raw WHERE artifact_id = NEW.artifact_id)
+  OR EXISTS (SELECT 1 FROM Artifact_Llm_Ready WHERE artifact_id = NEW.artifact_id)
+BEGIN
+  SELECT RAISE(ABORT, 'artifact already belongs to another subtype table');
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_events_no_update
