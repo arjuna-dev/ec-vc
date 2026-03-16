@@ -169,16 +169,14 @@ function migrateArtifactsToSubtypeSchema(database) {
     DROP INDEX IF EXISTS idx_Artifacts_source;
     DROP INDEX IF EXISTS idx_Artifacts_pipeline_stage;
     DROP INDEX IF EXISTS idx_Artifacts_oppty_pipeline_stage_created;
+    DROP INDEX IF EXISTS idx_Artifacts_opportunity_created;
 
     ALTER TABLE Artifacts RENAME TO Artifacts_legacy;
     DROP VIEW IF EXISTS Artifact_Details;
 
     CREATE TABLE Artifacts (
       artifact_id TEXT PRIMARY KEY,
-      pipeline_run_id TEXT,
       opportunity_id TEXT,
-      pipeline_id TEXT,
-      stage_id TEXT,
       created_by TEXT,
       artifact_format TEXT CHECK (
         artifact_format IS NULL OR artifact_format IN (
@@ -189,37 +187,27 @@ function migrateArtifactsToSubtypeSchema(database) {
       type TEXT CHECK (type IN ('raising_pitch_deck','commercial_pitch_deck','messages','emails','historical_data','forecast','other')),
       title TEXT,
       description TEXT,
-      status TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON DELETE SET NULL,
-      FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE SET NULL,
-      FOREIGN KEY (stage_id) REFERENCES Pipeline_Stages(stage_id) ON DELETE SET NULL,
       FOREIGN KEY (created_by) REFERENCES Contacts(id) ON DELETE SET NULL
     );
 
-    CREATE INDEX idx_Artifacts_pipeline_stage
-      ON Artifacts(pipeline_id, stage_id);
-
-    CREATE INDEX idx_Artifacts_oppty_pipeline_stage_created
-      ON Artifacts(opportunity_id, pipeline_id, stage_id, created_at);
+    CREATE INDEX idx_Artifacts_opportunity_created
+      ON Artifacts(opportunity_id, created_at);
 
     INSERT INTO Artifacts (
-      artifact_id, pipeline_run_id, opportunity_id, pipeline_id, stage_id, created_by,
-      artifact_format, type, title, description, status, created_at, updated_at
+      artifact_id, opportunity_id, created_by,
+      artifact_format, type, title, description, created_at, updated_at
     )
     SELECT
       artifact_id,
-      pipeline_run_id,
       opportunity_id,
-      pipeline_id,
-      stage_id,
       created_by,
       artifact_format,
       type,
       title,
       description,
-      status,
       created_at,
       updated_at
     FROM Artifacts_legacy;
@@ -309,16 +297,12 @@ function migrateArtifactsToSubtypeSchema(database) {
     CREATE VIEW Artifact_Details AS
     SELECT
       a.artifact_id,
-      a.pipeline_run_id,
       a.opportunity_id,
-      a.pipeline_id,
-      a.stage_id,
       a.created_by,
       a.artifact_format,
       a.type,
       a.title,
       a.description,
-      a.status,
       a.created_at,
       a.updated_at,
       COALESCE(ar.fs_path, alr.fs_path, alg.fs_path) AS fs_path,
@@ -356,67 +340,6 @@ function ensureArtifactLinkTriggersAllowUnlinkedArtifacts(database) {
     DROP TRIGGER IF EXISTS trg_Artifacts_oppty_pipeline_exists_ins;
     DROP TRIGGER IF EXISTS trg_Artifacts_oppty_pipeline_exists_upd;
     DROP TRIGGER IF EXISTS trg_Artifacts_stage_matches_pipeline_upd;
-
-    CREATE TRIGGER IF NOT EXISTS trg_Artifacts_stage_matches_pipeline_ins
-    BEFORE INSERT ON Artifacts
-    FOR EACH ROW
-    WHEN NEW.stage_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
-    BEGIN
-      SELECT
-        CASE
-          WHEN NOT EXISTS (
-            SELECT 1
-            FROM Pipeline_Stages s
-            WHERE s.stage_id = NEW.stage_id
-              AND s.pipeline_id = NEW.pipeline_id
-          )
-          THEN RAISE(ABORT, 'artifact stage_id does not belong to artifact pipeline_id')
-        END;
-    END;
-
-    CREATE TRIGGER IF NOT EXISTS trg_Artifacts_oppty_pipeline_exists_ins
-    BEFORE INSERT ON Artifacts
-    FOR EACH ROW
-    WHEN NEW.opportunity_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
-    BEGIN
-      SELECT CASE
-        WHEN NOT EXISTS (
-          SELECT 1 FROM Opportunity_Pipeline op
-          WHERE op.opportunity_id = NEW.opportunity_id
-            AND op.pipeline_id = NEW.pipeline_id
-        )
-        THEN RAISE(ABORT, 'artifact opportunity_id is not linked to pipeline_id in Opportunity_Pipeline')
-      END;
-    END;
-
-    CREATE TRIGGER IF NOT EXISTS trg_Artifacts_oppty_pipeline_exists_upd
-    BEFORE UPDATE OF opportunity_id, pipeline_id ON Artifacts
-    FOR EACH ROW
-    WHEN NEW.opportunity_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
-    BEGIN
-      SELECT CASE
-        WHEN NOT EXISTS (
-          SELECT 1 FROM Opportunity_Pipeline op
-          WHERE op.opportunity_id = NEW.opportunity_id
-            AND op.pipeline_id = NEW.pipeline_id
-        )
-        THEN RAISE(ABORT, 'artifact opportunity_id is not linked to pipeline_id in Opportunity_Pipeline')
-      END;
-    END;
-
-    CREATE TRIGGER IF NOT EXISTS trg_Artifacts_stage_matches_pipeline_upd
-    BEFORE UPDATE OF stage_id, pipeline_id ON Artifacts
-    FOR EACH ROW
-    WHEN NEW.stage_id IS NOT NULL AND NEW.pipeline_id IS NOT NULL
-    BEGIN
-      SELECT CASE
-        WHEN NOT EXISTS (
-          SELECT 1 FROM Pipeline_Stages s
-          WHERE s.stage_id = NEW.stage_id AND s.pipeline_id = NEW.pipeline_id
-        )
-        THEN RAISE(ABORT, 'artifact stage_id does not belong to artifact pipeline_id')
-      END;
-    END;
   `)
 }
 

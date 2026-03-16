@@ -50,23 +50,6 @@ function listPipelines() {
   )
 }
 
-function firstStageIdForPipeline(pipelineId) {
-  const pid = normalizeNullableString(pipelineId)
-  if (!pid) return null
-  return (
-    dbAll(
-      `
-      SELECT stage_id
-      FROM Pipeline_Stages
-      WHERE pipeline_id = ?
-      ORDER BY position ASC
-      LIMIT 1
-    `,
-      [pid],
-    )?.[0]?.stage_id || null
-  )
-}
-
 function upsertPipelines(rows = []) {
   const database = initDb()
   const input = Array.isArray(rows) ? rows : []
@@ -1059,9 +1042,6 @@ function getLegacyOpportunityDatabookView(opportunityId) {
           a.artifact_id,
           a.title AS artifact_title,
           a.artifact_type,
-          a.status AS artifact_status,
-          a.pipeline_id,
-          a.stage_id,
           a.fs_path,
           a.created_at AS artifact_created_at
         FROM Artifact_Details a
@@ -1609,15 +1589,6 @@ function getLegacyOpportunityDatabookView(opportunityId) {
       fieldName: 'artifact_type',
       idColumn: 'artifact_id',
     })
-    addField({
-      section: prefix,
-      label: 'Status',
-      value: artifact.artifact_status,
-      tableName: 'Artifacts',
-      recordId: artifact.artifact_id,
-      fieldName: 'status',
-      idColumn: 'artifact_id',
-    })
   })
 
   const maxRows = Math.max(projects.length, tasks.length, artifacts.length, 1)
@@ -1843,11 +1814,8 @@ function listArtifacts() {
       a.artifact_id,
       a.title,
       a.artifact_type,
-      a.status,
       a.fs_path,
       a.opportunity_id,
-      a.pipeline_id,
-      a.stage_id,
       a.created_at
     FROM Artifact_Details a
     ORDER BY a.created_at DESC
@@ -2061,13 +2029,11 @@ function upsertArtifacts(rows = []) {
       const artifactId =
         normalizeNullableString(r?.artifact_id) || `artifact:${crypto.randomUUID()}`
       const opportunityId = normalizeNullableString(r?.opportunity_id)
-      const pipelineId = normalizeNullableString(r?.pipeline_id)
-      const stageId = normalizeNullableString(r?.stage_id)
       const artifactType = normalizeNullableString(r?.artifact_type)
       const fsPath = normalizeNullableString(r?.fs_path)
       const generatedBy = normalizeNullableString(r?.generated_by) || 'user'
 
-      if (!opportunityId || !pipelineId || !stageId || !artifactType || !fsPath) {
+      if (!opportunityId || !artifactType || !fsPath) {
         skipped++
         continue
       }
@@ -2078,10 +2044,7 @@ function upsertArtifacts(rows = []) {
 
       const payload = {
         artifact_id: artifactId,
-        pipeline_run_id: normalizeNullableString(r?.pipeline_run_id),
         opportunity_id: opportunityId,
-        pipeline_id: pipelineId,
-        stage_id: stageId,
         artifact_format: normalizeNullableString(r?.artifact_format),
         fs_path: fsPath,
         fs_hash: normalizeNullableString(r?.fs_hash),
@@ -2095,7 +2058,6 @@ function upsertArtifacts(rows = []) {
         title: normalizeNullableString(r?.title),
         description:
           normalizeNullableString(r?.description) || normalizeNullableString(r?.summary),
-        status: normalizeNullableString(r?.status) || 'draft',
       }
 
       try {
@@ -2103,22 +2065,16 @@ function upsertArtifacts(rows = []) {
           .prepare(
             `
             INSERT INTO Artifacts (
-              artifact_id, pipeline_run_id, opportunity_id, pipeline_id, stage_id,
-              artifact_format, title, description, status
+              artifact_id, opportunity_id, artifact_format, title, description
             )
             VALUES (
-              @artifact_id, @pipeline_run_id, @opportunity_id, @pipeline_id, @stage_id,
-              @artifact_format, @title, @description, @status
+              @artifact_id, @opportunity_id, @artifact_format, @title, @description
             )
             ON CONFLICT(artifact_id) DO UPDATE SET
-              pipeline_run_id = excluded.pipeline_run_id,
               opportunity_id = excluded.opportunity_id,
-              pipeline_id = excluded.pipeline_id,
-              stage_id = excluded.stage_id,
               artifact_format = excluded.artifact_format,
               title = excluded.title,
               description = excluded.description,
-              status = excluded.status,
               updated_at = datetime('now')
           `,
           )
@@ -2188,14 +2144,10 @@ function upsertArtifacts(rows = []) {
   return tx()
 }
 
-function linkArtifactsToOpportunity({ artifactIds = [], opportunityId, pipelineId } = {}) {
+function linkArtifactsToOpportunity({ artifactIds = [], opportunityId } = {}) {
   const database = initDb()
   const oid = normalizeNullableString(opportunityId)
   if (!oid) throw new Error('opportunityId is required')
-
-  const pid = normalizeNullableString(pipelineId) || 'pipeline_default'
-  const stageId = firstStageIdForPipeline(pid)
-  if (!stageId) throw new Error(`No pipeline stage found for pipeline: ${pid}`)
 
   const ids = Array.isArray(artifactIds)
     ? artifactIds.map((id) => normalizeNullableString(id)).filter(Boolean)
@@ -2203,30 +2155,18 @@ function linkArtifactsToOpportunity({ artifactIds = [], opportunityId, pipelineI
   if (!ids.length) return { linked: 0 }
 
   const tx = database.transaction(() => {
-    database
-      .prepare(
-        `
-        INSERT OR IGNORE INTO Opportunity_Pipeline (
-          opportunity_id, pipeline_id, stage_id, status
-        ) VALUES (?, ?, ?, 'active')
-      `,
-      )
-      .run(oid, pid, stageId)
-
     const stmt = database.prepare(
       `
       UPDATE Artifacts
       SET
         opportunity_id = ?,
-        pipeline_id = ?,
-        stage_id = ?,
         updated_at = datetime('now')
       WHERE artifact_id = ?
     `,
     )
     let linked = 0
     for (const artifactId of ids) {
-      const result = stmt.run(oid, pid, stageId, artifactId)
+      const result = stmt.run(oid, artifactId)
       linked += Number(result?.changes || 0)
     }
     return { linked }

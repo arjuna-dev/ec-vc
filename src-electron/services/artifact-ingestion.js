@@ -212,20 +212,6 @@ async function tryPopulateArtifactMetadata({ markdown, artifactId, openaiApiKey 
   }
 }
 
-function firstStageIdForPipeline(pipelineId) {
-  const rows = dbAll(
-    `
-    SELECT stage_id
-    FROM Pipeline_Stages
-    WHERE pipeline_id = ?
-    ORDER BY position ASC
-    LIMIT 1
-  `,
-    [String(pipelineId || '')],
-  )
-  return rows?.[0]?.stage_id || null
-}
-
 function emitFileStageStatus(emitStatus, fileName, updates = {}) {
   const payload = {
     type: 'progress',
@@ -279,7 +265,6 @@ export async function ingestArtifactsFromPaths({
   workspaceRoot,
   filePaths,
   opportunityId,
-  pipelineId,
   emitStatus,
   apiKeys = {},
 } = {}) {
@@ -289,7 +274,6 @@ export async function ingestArtifactsFromPaths({
   const openaiApiKey = normalizeApiKey(apiKeys?.openai)
   const geminiApiKey = normalizeApiKey(apiKeys?.gemini)
   const oppty = String(opportunityId || '').trim() || null
-  const pipeline = String(pipelineId || '').trim() || null
   if (!workspaceRoot) throw new Error('workspaceRoot is required')
   if (files.length === 0) {
     emitStatus?.({
@@ -298,8 +282,6 @@ export async function ingestArtifactsFromPaths({
     })
     throw new Error('No files provided to ingestion (filePaths was empty).')
   }
-
-  const stageId = pipeline ? firstStageIdForPipeline(pipeline) : null
 
   const rawDir = path.join(workspaceRoot, '0_company_docs', 'Artifacts', '0_raw')
   const llmDir = path.join(workspaceRoot, '0_company_docs', 'Artifacts', '1_llm-ready')
@@ -411,20 +393,14 @@ export async function ingestArtifactsFromPaths({
         INSERT INTO Artifacts (
           artifact_id,
           opportunity_id,
-          pipeline_id,
-          stage_id,
           title,
-          status,
           artifact_format
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?)
       `,
         [
           rawArtifactId,
           oppty,
-          pipeline,
-          stageId,
           baseName(originalFileName),
-          'created',
           originalExt.replace('.', '') || null,
         ],
       )
@@ -497,20 +473,14 @@ export async function ingestArtifactsFromPaths({
           INSERT INTO Artifacts (
             artifact_id,
             opportunity_id,
-            pipeline_id,
-            stage_id,
             title,
-            status,
             artifact_format
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?)
         `,
           [
             llmArtifactId,
             oppty,
-            pipeline,
-            stageId,
             baseName(originalFileName),
-            'created',
             'md',
           ],
         )
@@ -646,20 +616,14 @@ export async function ingestArtifactsFromPaths({
         INSERT INTO Artifacts (
           artifact_id,
           opportunity_id,
-          pipeline_id,
-          stage_id,
           title,
-          status,
           artifact_format
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?)
       `,
         [
           llmArtifactId,
           oppty,
-          pipeline,
-          stageId,
           baseName(originalFileName),
-          'created',
           'md',
         ],
       )
