@@ -73,3 +73,8 @@ quasar build
 ### Customize the configuration
 
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+
+### SQLite location in macOS fs
+
+- running from terminal: `'/Users/alejandrocamus/Library/Application Support/Electron'`
+- compiled: `'/Users/alejandrocamus/Library/Application Support/ec-vc'`
