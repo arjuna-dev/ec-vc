@@ -679,7 +679,8 @@ watch(displayRows, () => {
 
 .companies-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 16px;
   justify-content: space-between;
 }
@@ -688,15 +689,23 @@ watch(displayRows, () => {
 .companies-toolbar__right {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .companies-toolbar__left {
-  flex: 1 1 auto;
+  flex: 1 1 720px;
   min-width: 0;
 }
 
+.companies-toolbar__right {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
 .companies-toolbar__search {
+  flex: 1 1 300px;
+  min-width: 220px;
   width: 300px;
   max-width: 100%;
   background: #fff;
@@ -718,6 +727,7 @@ watch(displayRows, () => {
 
 .companies-toolbar__button,
 .companies-view-button {
+  flex: 0 0 auto;
   height: 32px;
   background: #fff;
   color: #0a0a0a;
@@ -856,20 +866,35 @@ watch(displayRows, () => {
   line-height: 20px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .companies-shell {
     padding: 20px;
     gap: 20px;
   }
 
-  .companies-toolbar,
-  .companies-toolbar__left,
-  .companies-toolbar__right {
+  .companies-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
+  .companies-toolbar__left,
+  .companies-toolbar__right {
+    flex: none;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .companies-toolbar__right {
+    margin-left: 0;
+  }
+
   .companies-toolbar__search {
+    flex: none;
+    width: 100%;
+  }
+
+  .companies-toolbar__button,
+  .companies-view-button {
     width: 100%;
   }
 }

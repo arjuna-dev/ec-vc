@@ -467,6 +467,18 @@ b,
   border-radius: var(--b10-radius-md);
 }
 
+.q-btn:not(.q-btn--round):not(.q-btn--stack) .q-btn__content {
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.q-btn:not(.q-btn--round):not(.q-btn--stack) .q-btn__content .block {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .q-field--outlined .q-field__control,
 .q-field--filled .q-field__control,
 .q-field--borderless .q-field__control {

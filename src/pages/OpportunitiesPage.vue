@@ -682,7 +682,8 @@ watch(displayRows, () => {
 
 .opportunities-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 16px;
   justify-content: space-between;
 }
@@ -691,15 +692,23 @@ watch(displayRows, () => {
 .opportunities-toolbar__right {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .opportunities-toolbar__left {
-  flex: 1 1 auto;
+  flex: 1 1 720px;
   min-width: 0;
 }
 
+.opportunities-toolbar__right {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
 .opportunities-toolbar__search {
+  flex: 1 1 300px;
+  min-width: 220px;
   width: 300px;
   max-width: 100%;
   background: #fff;
@@ -721,6 +730,7 @@ watch(displayRows, () => {
 
 .opportunities-toolbar__button,
 .opportunities-view-button {
+  flex: 0 0 auto;
   height: 32px;
   background: #fff;
   color: #0a0a0a;
@@ -859,20 +869,35 @@ watch(displayRows, () => {
   line-height: 20px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .opportunities-shell {
     padding: 20px;
     gap: 20px;
   }
 
-  .opportunities-toolbar,
-  .opportunities-toolbar__left,
-  .opportunities-toolbar__right {
+  .opportunities-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
+  .opportunities-toolbar__left,
+  .opportunities-toolbar__right {
+    flex: none;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .opportunities-toolbar__right {
+    margin-left: 0;
+  }
+
   .opportunities-toolbar__search {
+    flex: none;
+    width: 100%;
+  }
+
+  .opportunities-toolbar__button,
+  .opportunities-view-button {
     width: 100%;
   }
 }

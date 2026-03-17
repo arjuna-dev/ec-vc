@@ -775,7 +775,8 @@ watch(displayRows, () => {
 
 .pipelines-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 16px;
   justify-content: space-between;
 }
@@ -784,15 +785,23 @@ watch(displayRows, () => {
 .pipelines-toolbar__right {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .pipelines-toolbar__left {
-  flex: 1 1 auto;
+  flex: 1 1 720px;
   min-width: 0;
 }
 
+.pipelines-toolbar__right {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
 .pipelines-toolbar__search {
+  flex: 1 1 300px;
+  min-width: 220px;
   width: 300px;
   max-width: 100%;
   background: #fff;
@@ -814,6 +823,7 @@ watch(displayRows, () => {
 
 .pipelines-toolbar__button,
 .pipelines-view-button {
+  flex: 0 0 auto;
   height: 32px;
   background: #fff;
   color: #0a0a0a;
@@ -966,20 +976,35 @@ watch(displayRows, () => {
   align-items: center;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .pipelines-shell {
     padding: 20px;
     gap: 20px;
   }
 
-  .pipelines-toolbar,
-  .pipelines-toolbar__left,
-  .pipelines-toolbar__right {
+  .pipelines-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
+  .pipelines-toolbar__left,
+  .pipelines-toolbar__right {
+    flex: none;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pipelines-toolbar__right {
+    margin-left: 0;
+  }
+
   .pipelines-toolbar__search {
+    flex: none;
+    width: 100%;
+  }
+
+  .pipelines-toolbar__button,
+  .pipelines-view-button {
     width: 100%;
   }
 }

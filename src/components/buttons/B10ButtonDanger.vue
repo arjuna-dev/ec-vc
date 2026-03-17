@@ -93,8 +93,17 @@ const buttonClasses = computed(() => [
   min-height: 0;
 
   :deep(.q-btn__content) {
+    align-items: center;
+    flex-wrap: nowrap;
     gap: 8px;
     line-height: 1;
+    white-space: nowrap;
+  }
+
+  :deep(.q-btn__content .block) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   :deep(.q-icon) {

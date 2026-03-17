@@ -687,7 +687,8 @@ watch(displayRows, () => {
 
 .contacts-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 16px;
   justify-content: space-between;
 }
@@ -696,15 +697,23 @@ watch(displayRows, () => {
 .contacts-toolbar__right {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .contacts-toolbar__left {
-  flex: 1 1 auto;
+  flex: 1 1 720px;
   min-width: 0;
 }
 
+.contacts-toolbar__right {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
 .contacts-toolbar__search {
+  flex: 1 1 300px;
+  min-width: 220px;
   width: 300px;
   max-width: 100%;
   background: #fff;
@@ -726,6 +735,7 @@ watch(displayRows, () => {
 
 .contacts-toolbar__button,
 .contacts-view-button {
+  flex: 0 0 auto;
   height: 32px;
   background: #fff;
   color: #0a0a0a;
@@ -867,20 +877,35 @@ watch(displayRows, () => {
   line-height: 20px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   .contacts-shell {
     padding: 20px;
     gap: 20px;
   }
 
-  .contacts-toolbar,
-  .contacts-toolbar__left,
-  .contacts-toolbar__right {
+  .contacts-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
+  .contacts-toolbar__left,
+  .contacts-toolbar__right {
+    flex: none;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .contacts-toolbar__right {
+    margin-left: 0;
+  }
+
   .contacts-toolbar__search {
+    flex: none;
+    width: 100%;
+  }
+
+  .contacts-toolbar__button,
+  .contacts-view-button {
     width: 100%;
   }
 }
