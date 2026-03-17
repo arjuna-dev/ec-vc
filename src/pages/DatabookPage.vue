@@ -45,10 +45,9 @@
           />
 
           <q-btn-dropdown
-            color="secondary"
             no-caps
             unelevated
-            class="databook-heading__action"
+            class="databook-heading__action databook-heading__action--versions"
             label="Versions"
             :disable="loading || saving || !hasVersionBridge"
           >
@@ -69,10 +68,9 @@
           </q-btn-dropdown>
 
           <q-btn
-            color="primary"
             no-caps
             unelevated
-            class="databook-heading__action"
+            class="databook-heading__action databook-heading__action--edit"
             :icon="editMode ? 'close' : 'edit'"
             :label="editMode ? 'Close edit' : 'Edit'"
             :disable="loading || saving || !fields.length || isHistoricalMode"
@@ -87,14 +85,24 @@
 
       <template v-if="fields.length">
         <div v-if="isContactView" class="contact-databook">
-          <section class="contact-databook__hero">
+          <section
+            ref="contactHeroRef"
+            class="contact-databook__hero"
+            :style="contactHeroStyle"
+            @pointermove="onContactHeroPointerMove"
+            @pointerleave="onContactHeroPointerLeave"
+          >
             <div class="contact-databook__hero-main">
               <figure class="contact-databook__portrait">
                 <img
+                  v-if="hasContactCustomImage"
                   class="contact-databook__portrait-image"
                   :src="contactAvatarImage"
                   :alt="contactName || 'Contact portrait'"
                 />
+                <div v-else class="contact-databook__portrait-placeholder" aria-hidden="true">
+                  <q-icon name="account_circle" class="contact-databook__portrait-placeholder-icon" />
+                </div>
                 <div class="contact-databook__portrait-actions">
                   <q-btn
                     round
@@ -177,16 +185,69 @@
             </div>
 
             <div class="contact-databook__summary">
-              <div class="contact-databook__summary-label">Relationship snapshot</div>
-              <div class="contact-databook__summary-grid">
+              <div class="contact-databook__summary-header">
+                <div class="contact-databook__summary-label">Relationship snapshot</div>
+                <q-btn
+                  round
+                  flat
+                  dense
+                  icon="add"
+                  aria-label="Customize relationship snapshot"
+                  class="contact-databook__summary-add"
+                >
+                  <q-menu
+                    anchor="bottom right"
+                    self="top right"
+                    class="contact-databook__summary-menu"
+                  >
+                    <q-list dense style="min-width: 220px">
+                      <q-item-label header>Snapshot fields</q-item-label>
+                      <q-item
+                        v-for="option in availableContactSummaryOptions"
+                        :key="option.id"
+                        clickable
+                        @click="toggleContactSummaryStat(option.id)"
+                      >
+                        <q-item-section>{{ option.label }}</q-item-section>
+                        <q-item-section side>
+                          <q-icon :name="isContactSummaryStatSelected(option.id) ? 'check' : 'add'" />
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-btn>
+              </div>
+
+              <div v-if="contactSummaryStats.length" class="contact-databook__summary-grid">
                 <div
                   v-for="stat in contactSummaryStats"
-                  :key="stat.label"
+                  :key="stat.id"
                   class="contact-databook__summary-item"
                 >
                   <div class="contact-databook__summary-item-label">{{ stat.label }}</div>
-                  <div class="contact-databook__summary-item-value">{{ stat.value }}</div>
+                  <div class="contact-databook__summary-item-value">{{ stat.displayValue }}</div>
                 </div>
+              </div>
+              <div v-if="contactNotes.length" class="contact-databook__summary-notes-panel">
+                <div class="contact-databook__summary-notes-label">Latest notes</div>
+                <ul class="contact-databook__summary-notes">
+                  <li
+                    v-for="note in contactNotes"
+                    :key="note.id"
+                    class="contact-databook__summary-note"
+                  >
+                    <div class="contact-databook__summary-note-row">
+                      <div class="contact-databook__summary-note-title">{{ note.title }}</div>
+                      <div class="contact-databook__summary-note-meta">{{ note.created_at }}</div>
+                    </div>
+                    <div v-if="note.content" class="contact-databook__summary-note-content">
+                      {{ note.content }}
+                    </div>
+                  </li>
+                </ul>
+              </div>
+              <div v-else-if="!contactSummaryStats.length" class="contact-databook__summary-empty">
+                Use the + button to add the contact details you want to keep in view here.
               </div>
             </div>
           </section>
@@ -252,32 +313,42 @@
                 No fields are mapped to this section in the current contact schema yet.
               </q-banner>
 
-              <div v-else-if="activeContentSection.layout === 'note'" class="contact-note-card">
-                <template v-if="editMode && activeContentSection.fields[0]">
-                  <q-input
-                    v-model="draftValues[activeContentSection.fields[0].key]"
-                    type="textarea"
-                    autogrow
-                    outlined
-                    :disable="saving || !activeContentSection.fields[0].editable"
-                    :placeholder="activeContentSection.fields[0].editable ? 'Add context, notes, or next steps' : ''"
-                  />
-                </template>
-                <template v-else>
-                  <p class="contact-note-card__text">
-                    {{ displayValue(activeContentSection.fields[0]?.value) }}
-                  </p>
-                  <div
-                    v-if="
-                      isHistoricalMode &&
-                      activeContentSection.fields[0] &&
-                      modifiedByMap[activeContentSection.fields[0].key]
-                    "
-                    class="contact-section-card__modified"
-                  >
-                    modified by {{ modifiedByMap[activeContentSection.fields[0].key] }}
+              <div v-else-if="activeContentSection.layout === 'note'" class="contact-field-grid contact-field-grid--single">
+                <article
+                  v-if="activeContentSection.fields[0]"
+                  class="contact-field-card contact-field-card--note"
+                >
+                  <div class="contact-field-card__label">
+                    {{
+                      activeContentSection.fields[0].displayLabel || activeContentSection.fields[0].label
+                    }}
                   </div>
-                </template>
+                  <template v-if="editMode">
+                    <q-input
+                      v-model="draftValues[activeContentSection.fields[0].key]"
+                      type="textarea"
+                      autogrow
+                      outlined
+                      class="contact-field-card__input"
+                      :disable="saving || !activeContentSection.fields[0].editable"
+                      :placeholder="activeContentSection.fields[0].editable ? 'Add context, notes, or next steps' : ''"
+                    />
+                  </template>
+                  <template v-else>
+                    <p class="contact-note-card__text">
+                      {{ displayValue(activeContentSection.fields[0]?.value) }}
+                    </p>
+                    <div
+                      v-if="
+                        isHistoricalMode &&
+                        modifiedByMap[activeContentSection.fields[0].key]
+                      "
+                      class="contact-section-card__modified"
+                    >
+                      modified by {{ modifiedByMap[activeContentSection.fields[0].key] }}
+                    </div>
+                  </template>
+                </article>
               </div>
 
               <div v-else class="contact-field-grid">
@@ -442,6 +513,54 @@
         </q-card>
       </q-dialog>
 
+      <q-dialog v-model="showContactImageCropDialog" persistent>
+        <q-card class="contact-image-cropper-dialog">
+          <q-card-section>
+            <div class="text-h6">Crop image</div>
+            <div class="text-caption text-grey-7">
+              Drag to reposition and use zoom to fit the portrait frame.
+            </div>
+          </q-card-section>
+
+          <q-card-section class="contact-image-cropper-dialog__body">
+            <div class="contact-image-cropper" @pointerdown="startContactImageCropDrag">
+              <div class="contact-image-cropper__frame">
+                <img
+                  v-if="pendingContactImageSrc"
+                  :src="pendingContactImageSrc"
+                  alt="Selected contact portrait"
+                  class="contact-image-cropper__image"
+                  :style="contactImageCropStyle"
+                  draggable="false"
+                />
+                <div class="contact-image-cropper__overlay" />
+              </div>
+            </div>
+
+            <div class="contact-image-cropper__controls">
+              <div class="text-caption text-grey-7">Zoom</div>
+              <q-slider
+                v-model="contactImageCropZoom"
+                :min="1"
+                :max="3"
+                :step="0.01"
+                color="primary"
+              />
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn flat label="Cancel" :disable="uploadingContactImage" @click="cancelContactImageCrop" />
+            <q-btn
+              color="primary"
+              label="Save image"
+              :loading="uploadingContactImage"
+              @click="confirmContactImageCrop"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
       <input
         ref="contactImageInput"
         type="file"
@@ -454,7 +573,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -475,6 +594,33 @@ const TABLE_LIST_ROUTES = {
   Opportunities: { routeName: 'opportunities', label: 'Back to Opportunities' },
   Pipelines: { routeName: 'pipelines', label: 'Back to Pipelines' },
 }
+
+const DEFAULT_CONTACT_SUMMARY_STAT_IDS = ['role', 'stakeholder', 'country', 'phone']
+const CONTACT_IMAGE_CROP_FRAME_WIDTH = 280
+const CONTACT_IMAGE_CROP_FRAME_HEIGHT = 420
+const CONTACT_IMAGE_OUTPUT_WIDTH = 800
+const CONTACT_IMAGE_OUTPUT_HEIGHT = 1200
+const CONTACT_HERO_GRADIENT_DEFAULT = {
+  x: 88,
+  y: 14,
+  size: 52,
+}
+const CONTACT_SUMMARY_OPTIONS = [
+  { id: 'role', label: 'Current role', aliases: ['Current_Roles', 'Role'] },
+  { id: 'company', label: 'Current company', aliases: ['Current_Companies'] },
+  { id: 'expertise', label: 'Expertise', aliases: ['Expertise'] },
+  { id: 'stakeholder', label: 'Stakeholder type', aliases: ['Stakeholder_type'] },
+  { id: 'closeness', label: 'Closeness level', aliases: ['Closeness_Level'] },
+  { id: 'country', label: 'Based in', aliases: ['Country_based'] },
+  { id: 'phone', label: 'Phone', aliases: ['Phone'] },
+  { id: 'email', label: 'Business email', aliases: ['Business_Email', 'Email'] },
+  { id: 'personal-email', label: 'Personal email', aliases: ['Personal_Email'] },
+  { id: 'linkedin', label: 'LinkedIn', aliases: ['LinkedIn'] },
+  { id: 'tenure', label: 'Tenure at firm', aliases: ['Tenure_at_Firm', 'Tenure_at_Firm_yrs'] },
+  { id: 'university', label: 'University', aliases: ['University'] },
+  { id: 'credentials', label: 'Credentials', aliases: ['Credentials'] },
+  { id: 'updated', label: 'Updated', aliases: ['updated_at'] },
+]
 
 const CONTACT_SECTION_ICONS = {
   person: {
@@ -540,8 +686,17 @@ const versions = ref([])
 const selectedVersionId = ref(null)
 const modifiedByMap = ref({})
 const activeContactSection = ref('general-info')
+const contactHeroRef = ref(null)
 const contactImageInput = ref(null)
 const uploadingContactImage = ref(false)
+const showContactImageCropDialog = ref(false)
+const pendingContactImageSrc = ref('')
+const pendingContactImageNaturalSize = ref({ width: 0, height: 0 })
+const contactImageCropZoom = ref(1)
+const contactImageCropOffset = ref({ x: 0, y: 0 })
+const selectedContactSummaryStatIds = ref([])
+const contactNotes = ref([])
+const contactHeroGradient = ref({ ...CONTACT_HERO_GRADIENT_DEFAULT })
 
 const isHistoricalMode = computed(() => !!selectedVersionId.value)
 const tableNameParam = computed(() => String(route.params.tableName || '').trim())
@@ -566,11 +721,28 @@ const fieldByName = computed(() =>
 const contactImageField = computed(() => fieldByName.value.Profile_Image || null)
 const contactName = computed(() => getFieldDisplayValue('Name'))
 const contactRole = computed(() => getFieldDisplayValue('Role'))
-const contactAvatarImage = computed(() =>
-  getFieldDisplayValue('Profile_Image') ||
-  buildAvatarImage(contactName.value || getFieldDisplayValue('Email') || 'Contact'),
-)
+const contactAvatarImage = computed(() => getFieldDisplayValue('Profile_Image'))
 const hasContactCustomImage = computed(() => String(getFieldDisplayValue('Profile_Image') || '').trim().length > 0)
+const contactImageCropBaseScale = computed(() => {
+  const { width, height } = pendingContactImageNaturalSize.value
+  if (!width || !height) return 1
+  return Math.max(CONTACT_IMAGE_CROP_FRAME_WIDTH / width, CONTACT_IMAGE_CROP_FRAME_HEIGHT / height)
+})
+const contactImageCropDisplaySize = computed(() => ({
+  width: pendingContactImageNaturalSize.value.width * contactImageCropBaseScale.value * contactImageCropZoom.value,
+  height:
+    pendingContactImageNaturalSize.value.height * contactImageCropBaseScale.value * contactImageCropZoom.value,
+}))
+const contactImageCropStyle = computed(() => ({
+  width: `${contactImageCropDisplaySize.value.width}px`,
+  height: `${contactImageCropDisplaySize.value.height}px`,
+  transform: `translate(-50%, -50%) translate(${contactImageCropOffset.value.x}px, ${contactImageCropOffset.value.y}px)`,
+}))
+const contactHeroStyle = computed(() => ({
+  '--contact-hero-blob-x': `${contactHeroGradient.value.x}%`,
+  '--contact-hero-blob-y': `${contactHeroGradient.value.y}%`,
+  '--contact-hero-blob-size': `${contactHeroGradient.value.size}%`,
+}))
 const contactHeroPills = computed(() =>
   [
     getContactPill('Stakeholder_type', 'Stakeholder'),
@@ -578,12 +750,25 @@ const contactHeroPills = computed(() =>
     getContactPill('Country_based', 'Based in'),
   ].filter(Boolean),
 )
-const contactSummaryStats = computed(() => [
-  { label: 'Preferred channel', value: getFieldDisplayValue('Email') || 'Not set' },
-  { label: 'Phone', value: getFieldDisplayValue('Phone') || 'Not set' },
-  { label: 'LinkedIn', value: getFieldDisplayValue('LinkedIn') || 'Not set' },
-  { label: 'Updated', value: getFieldDisplayValue('updated_at') || 'Unknown' },
-])
+const contactSummaryStorageKey = computed(() => {
+  const userKey = normalizeUserLabel(actor.value?.user_label || '') || 'guest'
+  return `ecvc.contactSummary.${userKey}`
+})
+const availableContactSummaryOptions = computed(() =>
+  CONTACT_SUMMARY_OPTIONS.map((option) => ({
+    ...option,
+    value: resolveContactSummaryValue(option),
+  })),
+)
+const contactSummaryStats = computed(() => {
+  const selectedIds = new Set(selectedContactSummaryStatIds.value)
+  return availableContactSummaryOptions.value
+    .filter((option) => selectedIds.has(option.id))
+    .map((option) => ({
+      ...option,
+      displayValue: option.value || 'Not added yet',
+    }))
+})
 const contactActionLinks = computed(() => {
   const email = getFieldDisplayValue('Email')
   const phone = getFieldDisplayValue('Phone')
@@ -684,6 +869,15 @@ function displayValue(value) {
   return text.length ? text : '-'
 }
 
+function normalizeUserLabel(value) {
+  return String(value || '').trim()
+}
+
+function resolveContactSummaryValue(option = {}) {
+  const aliases = Array.isArray(option.aliases) ? option.aliases : []
+  return aliases.map((alias) => getFieldDisplayValue(alias)).find((value) => String(value || '').trim()) || ''
+}
+
 function getFieldDisplayValue(fieldName) {
   const field = fieldByName.value[fieldName]
   if (!field) return ''
@@ -695,6 +889,97 @@ function getContactPill(fieldName, prefix) {
   const value = getFieldDisplayValue(fieldName)
   if (!value) return null
   return { label: `${prefix}: ${value}` }
+}
+
+function loadContactSummarySelection(storageKey) {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = window.localStorage.getItem(storageKey)
+    const parsed = JSON.parse(raw || '[]')
+    return Array.isArray(parsed) ? parsed.filter((item) => typeof item === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function saveContactSummarySelection(storageKey, ids) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(ids))
+  } catch {
+    // Ignore storage write failures and keep the in-memory selection.
+  }
+}
+
+function syncContactSummarySelection() {
+  const validIds = CONTACT_SUMMARY_OPTIONS.map((option) => option.id)
+  const currentIds = selectedContactSummaryStatIds.value.filter((id) => validIds.includes(id))
+  if (currentIds.length) {
+    selectedContactSummaryStatIds.value = currentIds
+    saveContactSummarySelection(contactSummaryStorageKey.value, currentIds)
+    return
+  }
+
+  const defaults = DEFAULT_CONTACT_SUMMARY_STAT_IDS.filter((id) => validIds.includes(id))
+  const fallback = defaults.length ? defaults : validIds.slice(0, 4)
+  selectedContactSummaryStatIds.value = fallback
+  saveContactSummarySelection(contactSummaryStorageKey.value, fallback)
+}
+
+function isContactSummaryStatSelected(id) {
+  return selectedContactSummaryStatIds.value.includes(id)
+}
+
+function toggleContactSummaryStat(id) {
+  if (!id) return
+  const next = selectedContactSummaryStatIds.value.includes(id)
+    ? selectedContactSummaryStatIds.value.filter((candidate) => candidate !== id)
+    : [...selectedContactSummaryStatIds.value, id]
+
+  selectedContactSummaryStatIds.value = next
+  saveContactSummarySelection(contactSummaryStorageKey.value, next)
+}
+
+async function loadContactNotes() {
+  if (!bridge.value?.notes?.list || !isContactView.value || !recordIdParam.value) {
+    contactNotes.value = []
+    return
+  }
+
+  try {
+    const result = await bridge.value.notes.list()
+    const notes = Array.isArray(result?.notes) ? result.notes : []
+    contactNotes.value = notes
+      .filter(
+        (note) =>
+          String(note?.reference_type || '').trim() === 'contact' &&
+          String(note?.reference_id || '').trim() === recordIdParam.value,
+      )
+      .slice(0, 10)
+      .map((note) => ({
+        id: note.id,
+        title: String(note.title || 'Untitled note').trim() || 'Untitled note',
+        content: String(note.content || '')
+          .trim()
+          .replace(/\s+/g, ' ')
+          .slice(0, 140),
+        created_at: formatNoteDate(note.created_at),
+      }))
+  } catch {
+    contactNotes.value = []
+  }
+}
+
+function formatNoteDate(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return 'Unknown date'
+  const date = new Date(raw.replace(' ', 'T'))
+  if (Number.isNaN(date.getTime())) return raw
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date)
 }
 
 function resolveContactField(config = {}) {
@@ -726,56 +1011,6 @@ function normalizeExternalUrl(value) {
   if (!raw) return ''
   if (/^https?:\/\//i.test(raw)) return raw
   return `https://${raw}`
-}
-
-function buildAvatarImage(labelValue) {
-  const label = String(labelValue || 'Contact').trim()
-  const initials = label
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase?.() || '')
-    .join('') || 'C'
-
-  const palettes = [
-    ['#111111', '#404040'],
-    ['#ff5521', '#ff8c42'],
-    ['#2647ff', '#5a6fff'],
-    ['#1d1d1b', '#757575'],
-  ]
-  const [start, end] = palettes[Math.abs(hashString(label)) % palettes.length]
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="176" height="176" viewBox="0 0 176 176">
-      <defs>
-        <linearGradient id="avatarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="${start}" />
-          <stop offset="100%" stop-color="${end}" />
-        </linearGradient>
-      </defs>
-      <rect width="176" height="176" rx="44" fill="url(#avatarGradient)" />
-      <text x="88" y="98" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="700" fill="#ffffff">${escapeSvg(initials)}</text>
-    </svg>
-  `.trim()
-
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-}
-
-function hashString(value) {
-  let hash = 0
-  for (const char of String(value)) {
-    hash = (hash << 5) - hash + char.charCodeAt(0)
-    hash |= 0
-  }
-  return hash
-}
-
-function escapeSvg(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
 }
 
 function normalizeIpcErrorMessage(errorValue) {
@@ -906,11 +1141,13 @@ async function loadDatabook() {
     cancelEdit()
     await loadVersions()
     await refreshActor()
+    await loadContactNotes()
   } catch (e) {
     error.value = normalizeIpcErrorMessage(e)
     currentView.value = null
     fields.value = []
     versions.value = []
+    contactNotes.value = []
   } finally {
     loading.value = false
   }
@@ -1005,7 +1242,10 @@ function triggerContactImagePicker() {
 
 async function onContactImageSelected(event) {
   const file = event?.target?.files?.[0]
-  if (!file) return
+  if (!file) {
+    if (contactImageInput.value) contactImageInput.value.value = ''
+    return
+  }
 
   try {
     if (!contactImageField.value) throw new Error('Profile image field is not available for this contact.')
@@ -1013,27 +1253,16 @@ async function onContactImageSelected(event) {
       throw new Error('Please select an image file.')
     }
 
-    uploadingContactImage.value = true
     const imageData = await readFileAsDataUrl(file)
-    const saved = await applyDatabookChanges(
-      [
-        {
-          table_name: contactImageField.value.table_name,
-          record_id: contactImageField.value.record_id,
-          field_name: contactImageField.value.field_name,
-          id_column: contactImageField.value.id_column,
-          new_value: imageData,
-        },
-      ],
-      { syncDraftFieldNames: ['Profile_Image'] },
-    )
-    if (saved) {
-      $q.notify({ type: 'positive', message: 'Contact image updated.' })
-    }
+    const dimensions = await loadImageDimensions(imageData)
+    pendingContactImageSrc.value = imageData
+    pendingContactImageNaturalSize.value = dimensions
+    contactImageCropZoom.value = 1
+    contactImageCropOffset.value = { x: 0, y: 0 }
+    showContactImageCropDialog.value = true
   } catch (e) {
     $q.notify({ type: 'negative', message: e?.message || String(e) })
   } finally {
-    uploadingContactImage.value = false
     if (contactImageInput.value) contactImageInput.value.value = ''
   }
 }
@@ -1062,6 +1291,164 @@ async function removeContactImage() {
   }
 }
 
+async function saveContactImage(imageData) {
+  if (!contactImageField.value) return false
+  const saved = await applyDatabookChanges(
+    [
+      {
+        table_name: contactImageField.value.table_name,
+        record_id: contactImageField.value.record_id,
+        field_name: contactImageField.value.field_name,
+        id_column: contactImageField.value.id_column,
+        new_value: imageData,
+      },
+    ],
+    { syncDraftFieldNames: ['Profile_Image'] },
+  )
+  if (saved) {
+    $q.notify({ type: 'positive', message: 'Contact image updated.' })
+  }
+  return saved
+}
+
+function cancelContactImageCrop() {
+  showContactImageCropDialog.value = false
+  pendingContactImageSrc.value = ''
+  pendingContactImageNaturalSize.value = { width: 0, height: 0 }
+  contactImageCropZoom.value = 1
+  contactImageCropOffset.value = { x: 0, y: 0 }
+}
+
+let contactImageCropDragState = null
+
+function startContactImageCropDrag(event) {
+  if (!pendingContactImageSrc.value || uploadingContactImage.value) return
+  contactImageCropDragState = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    startOffset: { ...contactImageCropOffset.value },
+  }
+  window.addEventListener('pointermove', onContactImageCropPointerMove)
+  window.addEventListener('pointerup', stopContactImageCropDrag)
+  window.addEventListener('pointercancel', stopContactImageCropDrag)
+}
+
+function clampContactImageCropOffset(offset = { x: 0, y: 0 }) {
+  const maxX = Math.max(0, (contactImageCropDisplaySize.value.width - CONTACT_IMAGE_CROP_FRAME_WIDTH) / 2)
+  const maxY = Math.max(0, (contactImageCropDisplaySize.value.height - CONTACT_IMAGE_CROP_FRAME_HEIGHT) / 2)
+  return {
+    x: Math.min(maxX, Math.max(-maxX, offset.x)),
+    y: Math.min(maxY, Math.max(-maxY, offset.y)),
+  }
+}
+
+function onContactImageCropPointerMove(event) {
+  if (!contactImageCropDragState || event.pointerId !== contactImageCropDragState.pointerId) return
+  const dx = event.clientX - contactImageCropDragState.startX
+  const dy = event.clientY - contactImageCropDragState.startY
+  contactImageCropOffset.value = clampContactImageCropOffset({
+    x: contactImageCropDragState.startOffset.x + dx,
+    y: contactImageCropDragState.startOffset.y + dy,
+  })
+}
+
+function stopContactImageCropDrag(event) {
+  if (event && contactImageCropDragState && event.pointerId !== contactImageCropDragState.pointerId) return
+  contactImageCropDragState = null
+  window.removeEventListener('pointermove', onContactImageCropPointerMove)
+  window.removeEventListener('pointerup', stopContactImageCropDrag)
+  window.removeEventListener('pointercancel', stopContactImageCropDrag)
+}
+
+function onContactHeroPointerMove(event) {
+  if (!contactHeroRef.value) return
+  const rect = contactHeroRef.value.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+
+  contactHeroGradient.value = {
+    x: clamp(x, 8, 92),
+    y: clamp(y, 8, 92),
+    size: 60,
+  }
+}
+
+function onContactHeroPointerLeave() {
+  contactHeroGradient.value = { ...CONTACT_HERO_GRADIENT_DEFAULT }
+}
+
+function loadImageDimensions(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight })
+    image.onerror = () => reject(new Error('Unable to load the selected image.'))
+    image.src = src
+  })
+}
+
+async function renderContactImageCrop() {
+  if (!pendingContactImageSrc.value) throw new Error('Select an image before saving.')
+
+  const image = await new Promise((resolve, reject) => {
+    const nextImage = new Image()
+    nextImage.onload = () => resolve(nextImage)
+    nextImage.onerror = () => reject(new Error('Unable to prepare the selected image.'))
+    nextImage.src = pendingContactImageSrc.value
+  })
+
+  const scale = contactImageCropBaseScale.value * contactImageCropZoom.value
+  const drawWidth = pendingContactImageNaturalSize.value.width * scale
+  const drawHeight = pendingContactImageNaturalSize.value.height * scale
+  const left = CONTACT_IMAGE_CROP_FRAME_WIDTH / 2 - drawWidth / 2 + contactImageCropOffset.value.x
+  const top = CONTACT_IMAGE_CROP_FRAME_HEIGHT / 2 - drawHeight / 2 + contactImageCropOffset.value.y
+  const sourceX = Math.max(0, (0 - left) / scale)
+  const sourceY = Math.max(0, (0 - top) / scale)
+  const sourceWidth = Math.min(
+    pendingContactImageNaturalSize.value.width - sourceX,
+    CONTACT_IMAGE_CROP_FRAME_WIDTH / scale,
+  )
+  const sourceHeight = Math.min(
+    pendingContactImageNaturalSize.value.height - sourceY,
+    CONTACT_IMAGE_CROP_FRAME_HEIGHT / scale,
+  )
+
+  const canvas = document.createElement('canvas')
+  canvas.width = CONTACT_IMAGE_OUTPUT_WIDTH
+  canvas.height = CONTACT_IMAGE_OUTPUT_HEIGHT
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Unable to crop the selected image.')
+
+  ctx.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    CONTACT_IMAGE_OUTPUT_WIDTH,
+    CONTACT_IMAGE_OUTPUT_HEIGHT,
+  )
+
+  return canvas.toDataURL('image/jpeg', 0.92)
+}
+
+async function confirmContactImageCrop() {
+  uploadingContactImage.value = true
+  try {
+    const croppedImage = await renderContactImageCrop()
+    const saved = await saveContactImage(croppedImage)
+    if (saved) cancelContactImageCrop()
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e?.message || String(e) })
+  } finally {
+    uploadingContactImage.value = false
+  }
+}
+
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -1078,9 +1465,27 @@ watch(
   },
 )
 
+watch(contactImageCropZoom, () => {
+  contactImageCropOffset.value = clampContactImageCropOffset(contactImageCropOffset.value)
+})
+
+watch(
+  contactSummaryStorageKey,
+  (storageKey) => {
+    selectedContactSummaryStatIds.value = loadContactSummarySelection(storageKey)
+  },
+  { immediate: true },
+)
+
+watch(availableContactSummaryOptions, syncContactSummarySelection, { immediate: true })
+
 onMounted(() => {
   if (!hasBridge.value) return
   loadDatabook()
+})
+
+onBeforeUnmount(() => {
+  stopContactImageCropDrag()
 })
 </script>
 
@@ -1178,6 +1583,34 @@ onMounted(() => {
   border-radius: 999px;
 }
 
+.databook-heading__action--versions {
+  color: #4b5563;
+  background: #f3f4f6;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.databook-heading__action--versions:hover,
+.databook-heading__action--versions:focus-visible {
+  background: #e5e7eb;
+}
+
+.databook-heading__action--versions :deep(.q-icon),
+.databook-heading__action--versions :deep(.q-btn-dropdown__arrow) {
+  color: #6b7280;
+}
+
+.databook-heading__action--edit {
+  color: #ffffff;
+  background: var(--b10-brand-azul);
+  border: 1px solid var(--b10-brand-azul);
+}
+
+.databook-heading__action--edit:hover,
+.databook-heading__action--edit:focus-visible {
+  background: #1f3cf3;
+  border-color: #1f3cf3;
+}
+
 .contact-databook {
   display: flex;
   flex-direction: column;
@@ -1241,24 +1674,18 @@ onMounted(() => {
   padding: 0;
   overflow: hidden;
   background:
-    radial-gradient(circle at top left, rgba(255, 85, 33, 0.2), transparent 34%),
-    radial-gradient(circle at 85% 20%, rgba(38, 71, 255, 0.12), transparent 30%),
+    radial-gradient(
+      circle at var(--contact-hero-blob-x) var(--contact-hero-blob-y),
+      rgba(38, 71, 255, 0.2) 0%,
+      rgba(38, 71, 255, 0.16) calc(var(--contact-hero-blob-size) * 0.36),
+      rgba(38, 71, 255, 0.08) calc(var(--contact-hero-blob-size) * 0.58),
+      transparent var(--contact-hero-blob-size)
+    ),
     linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 24px;
   box-shadow: 0 20px 50px rgba(17, 17, 17, 0.06);
-}
-
-.contact-databook__hero::after {
-  position: absolute;
-  right: -48px;
-  bottom: -48px;
-  width: 180px;
-  height: 180px;
-  content: '';
-  background: rgba(235, 255, 90, 0.45);
-  border-radius: 50%;
-  filter: blur(10px);
+  transition: box-shadow 0.3s ease;
 }
 
 .contact-databook__hero-main,
@@ -1333,6 +1760,76 @@ onMounted(() => {
   object-fit: cover;
   object-position: center top;
   filter: grayscale(1) contrast(1.08);
+}
+
+.contact-databook__portrait-placeholder {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.18), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(17, 17, 17, 0.08) 100%);
+}
+
+.contact-databook__portrait-placeholder-icon {
+  font-size: clamp(124px, 18vw, 188px);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.contact-image-cropper-dialog {
+  width: 420px;
+  max-width: 94vw;
+}
+
+.contact-image-cropper-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.contact-image-cropper {
+  display: flex;
+  justify-content: center;
+  user-select: none;
+}
+
+.contact-image-cropper__frame {
+  position: relative;
+  width: 280px;
+  height: 420px;
+  overflow: hidden;
+  background: #e7e5e4;
+  border-radius: 20px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.contact-image-cropper__frame:active {
+  cursor: grabbing;
+}
+
+.contact-image-cropper__image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: none;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.contact-image-cropper__overlay {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 20px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26);
+  pointer-events: none;
+}
+
+.contact-image-cropper__controls {
+  padding: 0 10px;
 }
 
 .contact-databook__hero-copy {
@@ -1421,11 +1918,33 @@ onMounted(() => {
   color: #fff;
 }
 
+.contact-databook__summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .contact-databook__summary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-top: 18px;
+}
+
+.contact-databook__summary-add {
+  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.contact-databook__summary-add:hover,
+.contact-databook__summary-add:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.contact-databook__summary-menu {
+  border-radius: 16px;
 }
 
 .contact-databook__summary-item {
@@ -1450,6 +1969,88 @@ onMounted(() => {
   font-family: var(--font-body);
   font-size: var(--text-sm---medium);
   font-weight: var(--font-weight-medium);
+  line-height: 20px;
+}
+
+.contact-databook__summary-notes-panel {
+  margin-top: 18px;
+}
+
+.contact-databook__summary-notes-label {
+  color: rgba(255, 255, 255, 0.62);
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.contact-databook__summary-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-databook__summary-note {
+  position: relative;
+  padding-left: 18px;
+}
+
+.contact-databook__summary-note::before {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  content: '';
+  background: rgba(255, 255, 255, 0.62);
+  border-radius: 999px;
+}
+
+.contact-databook__summary-note-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contact-databook__summary-note-title {
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+}
+
+.contact-databook__summary-note-content {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  line-height: 20px;
+}
+
+.contact-databook__summary-note-meta {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.54);
+  font-family: var(--font-body);
+  font-size: var(--text-xs---regular);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.contact-databook__summary-empty {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
   line-height: 20px;
 }
 
@@ -1490,6 +2091,10 @@ onMounted(() => {
 .contact-side-card {
   padding: 22px;
   scroll-margin-top: 152px;
+}
+
+.contact-section-card--active {
+  min-height: 320px;
 }
 
 .contact-system-grid {
@@ -1556,6 +2161,10 @@ onMounted(() => {
   gap: 14px;
 }
 
+.contact-field-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .contact-field-card,
 .contact-side-card__field,
 .contact-side-card__meta-item {
@@ -1589,6 +2198,10 @@ onMounted(() => {
   line-height: 24px;
 }
 
+.contact-field-card__input {
+  margin-top: 10px;
+}
+
 .contact-section-card__modified {
   margin-top: 8px;
   color: #b42318;
@@ -1602,11 +2215,8 @@ onMounted(() => {
   border: 1px dashed rgba(17, 17, 17, 0.12);
 }
 
-.contact-note-card {
-  padding: 18px;
-  background: linear-gradient(180deg, #fffdf7 0%, #ffffff 100%);
-  border: 1px solid rgba(255, 85, 33, 0.12);
-  border-radius: 18px;
+.contact-field-card--note {
+  min-height: 184px;
 }
 
 .contact-note-card__text {

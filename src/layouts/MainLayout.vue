@@ -1,10 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header
-      :height-hint="showPrimaryNav ? 124 : 76"
-      class="ec-shell-header"
-      :class="{ 'ec-shell-header--compact': !showPrimaryNav }"
-    >
+    <q-header :height-hint="124" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
@@ -41,7 +37,7 @@
         </div>
       </q-toolbar>
 
-      <div v-if="showPrimaryNav" class="ec-primary-nav">
+      <div class="ec-primary-nav">
         <q-tabs class="ec-primary-nav__tabs" dense align="left" no-caps>
           <q-route-tab
             v-for="item in primaryNavigationItems"
@@ -180,9 +176,6 @@ let quickWidgetDragState = null
 const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.value))
 const drawerUserLabel = computed(() =>
   hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Set user',
-)
-const showPrimaryNav = computed(
-  () => !(route.name === 'databook-view' && String(route.params.tableName || '').trim() === 'Contacts'),
 )
 
 const quickWidgetStyle = computed(() => ({
@@ -611,10 +604,6 @@ watch(
 </script>
 
 <style scoped>
-.ec-shell-header--compact {
-  border-bottom: 1px solid #e5e7eb;
-}
-
 .ec-shell-header-actions {
   align-items: center;
   display: flex;
