@@ -289,6 +289,7 @@ export async function ingestArtifactsFromPaths({
   filePaths,
   opportunityId,
   pipelineId,
+  createdBy,
   emitStatus,
   apiKeys = {},
 } = {}) {
@@ -299,6 +300,7 @@ export async function ingestArtifactsFromPaths({
   const geminiApiKey = normalizeApiKey(apiKeys?.gemini)
   const oppty = String(opportunityId || '').trim() || null
   const pipeline = String(pipelineId || '').trim() || null
+  const createdByContactId = String(createdBy || '').trim() || null
   if (!workspaceRoot) throw new Error('workspaceRoot is required')
   if (files.length === 0) {
     emitStatus?.({
@@ -419,6 +421,7 @@ export async function ingestArtifactsFromPaths({
           opportunity_id,
           pipeline_id,
           stage_id,
+          created_by,
           artifact_type,
           fs_path,
           fs_hash,
@@ -427,13 +430,14 @@ export async function ingestArtifactsFromPaths({
           title,
           status,
           artifact_format
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
         [
           rawArtifactId,
           oppty,
           pipeline,
           stageId,
+          createdByContactId,
           'raw',
           rawRelPath,
           hash,
@@ -503,6 +507,7 @@ export async function ingestArtifactsFromPaths({
             opportunity_id,
             pipeline_id,
             stage_id,
+            created_by,
             artifact_type,
             fs_path,
             fs_hash,
@@ -512,13 +517,14 @@ export async function ingestArtifactsFromPaths({
             title,
             status,
             artifact_format
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
           [
             llmArtifactId,
             oppty,
             pipeline,
             stageId,
+            createdByContactId,
             'llm-ready',
             llmRelPath,
             hash,
@@ -651,6 +657,7 @@ export async function ingestArtifactsFromPaths({
           opportunity_id,
           pipeline_id,
           stage_id,
+          created_by,
           artifact_type,
           fs_path,
           fs_hash,
@@ -660,13 +667,14 @@ export async function ingestArtifactsFromPaths({
           title,
           status,
           artifact_format
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
         [
           llmArtifactId,
           oppty,
           pipeline,
           stageId,
+          createdByContactId,
           'llm-ready',
           llmRelPath,
           hash,

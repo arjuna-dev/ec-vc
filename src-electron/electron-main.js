@@ -2,10 +2,10 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
 import crypto from 'node:crypto'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import fse from 'fs-extra'
 
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from 'electron'
 import { createProjectStructure, DEFAULT_PROJECT_ROOT_NAME } from './services/project-structure.js'
 import { closeDb, dbAll, dbRun, getDbInfo, initDb } from './services/sqlite-db.js'
 import { mirrorPipelineToFs, removePipelineFromFs } from './services/pipeline-mirror.js'
@@ -1828,13 +1828,17 @@ function listArtifacts() {
     `
     SELECT
       a.artifact_id,
+      a.original_artifact_id,
       a.title,
       a.artifact_type,
+      a.artifact_format,
+      a.type,
       a.status,
       a.fs_path,
       a.opportunity_id,
       a.pipeline_id,
       a.stage_id,
+      a.created_by,
       a.created_at
     FROM Artifacts a
     ORDER BY a.created_at DESC
@@ -1847,6 +1851,44 @@ function isPathWithinRoot(rootPath, targetPath) {
   const target = path.resolve(String(targetPath || ''))
   const rel = path.relative(root, target)
   return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))
+}
+
+async function resolveArtifactFileForAction(artifactId) {
+  const database = initDb()
+  const workspace = await ensureWorkspace()
+  const id = normalizeNullableString(artifactId)
+  if (!id) throw new Error('artifactId is required')
+
+  const artifact = database
+    .prepare(
+      `
+      SELECT artifact_id, fs_path, title
+      FROM Artifacts
+      WHERE artifact_id = ?
+      LIMIT 1
+    `,
+    )
+    .get(id)
+
+  if (!artifact) throw new Error('Artifact not found.')
+
+  const relativePath = normalizeNullableString(artifact.fs_path)
+  if (!relativePath) throw new Error('Artifact file path is missing.')
+
+  const absolutePath = path.resolve(workspace.rootPath, relativePath)
+  if (!isPathWithinRoot(workspace.rootPath, absolutePath)) {
+    throw new Error('Artifact file is outside the workspace root.')
+  }
+
+  const exists = await fse.pathExists(absolutePath)
+  if (!exists) throw new Error('Artifact file could not be found on disk.')
+
+  return {
+    artifactId: artifact.artifact_id,
+    absolutePath,
+    fileName: path.basename(absolutePath),
+    title: normalizeNullableString(artifact.title),
+  }
 }
 
 async function deleteArtifact(artifactId) {
@@ -3858,6 +3900,70 @@ function registerIpc() {
     return deleteArtifact(artifactId)
   })
 
+  ipcMain.handle('artifacts:download', async (_event, { artifactId } = {}) => {
+    const artifact = await resolveArtifactFileForAction(artifactId)
+    const targetWindow = BrowserWindow.getFocusedWindow() || mainWindow || null
+    const downloadsPath = app.getPath('downloads')
+    const saveResult = await dialog.showSaveDialog(targetWindow, {
+      defaultPath: path.join(downloadsPath, artifact.fileName),
+    })
+
+    if (saveResult.canceled || !saveResult.filePath) {
+      return { canceled: true }
+    }
+
+    await fs.copyFile(artifact.absolutePath, saveResult.filePath)
+    return { canceled: false, filePath: saveResult.filePath }
+  })
+
+  ipcMain.handle('artifacts:preview', async (_event, { artifactId } = {}) => {
+    const artifact = await resolveArtifactFileForAction(artifactId)
+    const extension = path.extname(artifact.absolutePath).slice(1).toLowerCase()
+    const fileUrl = pathToFileURL(artifact.absolutePath).href
+
+    if (extension === 'pdf') {
+      const pdfBuffer = await fs.readFile(artifact.absolutePath)
+      return {
+        kind: 'pdf',
+        fileName: artifact.fileName,
+        fileDataBase64: pdfBuffer.toString('base64'),
+      }
+    }
+
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(extension)) {
+      return {
+        kind: 'image',
+        fileName: artifact.fileName,
+        fileUrl,
+      }
+    }
+
+    if (['txt', 'md', 'csv', 'json', 'log'].includes(extension)) {
+      const content = await fs.readFile(artifact.absolutePath, 'utf8')
+      const maxChars = 200000
+      const truncated = content.length > maxChars
+      return {
+        kind: 'text',
+        fileName: artifact.fileName,
+        content: truncated ? `${content.slice(0, maxChars)}\n\n[Preview truncated]` : content,
+        truncated,
+      }
+    }
+
+    return {
+      kind: 'unsupported',
+      fileName: artifact.fileName,
+      extension,
+    }
+  })
+
+  ipcMain.handle('artifacts:share', async (_event, { artifactId } = {}) => {
+    const artifact = await resolveArtifactFileForAction(artifactId)
+    clipboard.writeText(artifact.absolutePath)
+    shell.showItemInFolder(artifact.absolutePath)
+    return { absolutePath: artifact.absolutePath, copied: true }
+  })
+
   ipcMain.handle(
     'artifacts:linkToOpportunity',
     async (_event, { artifactIds, opportunityId, pipelineId } = {}) => {
@@ -3884,6 +3990,7 @@ function registerIpc() {
       filePaths: payload?.filePaths || payload?.files || [],
       opportunityId: payload?.opportunityId,
       pipelineId: payload?.pipelineId,
+      createdBy: payload?.createdBy,
       emitStatus,
       apiKeys: {
         openai: apiSettings.openaiApiKey,

@@ -181,6 +181,167 @@
                   </q-btn>
                 </div>
 
+                <div class="contact-databook__hero-notes-panel">
+                  <div class="contact-databook__hero-tabs" role="tablist" aria-label="Contact context">
+                    <button
+                      type="button"
+                      class="contact-databook__hero-tab"
+                      :class="{ 'contact-databook__hero-tab--active': contactHeroPanelTab === 'notes' }"
+                      @click="contactHeroPanelTab = 'notes'"
+                    >
+                      Latest notes
+                    </button>
+                    <button
+                      type="button"
+                      class="contact-databook__hero-tab"
+                      :class="{ 'contact-databook__hero-tab--active': contactHeroPanelTab === 'documents' }"
+                      @click="contactHeroPanelTab = 'documents'"
+                    >
+                      Related documents
+                    </button>
+                  </div>
+
+                  <ul v-if="contactHeroPanelTab === 'notes' && contactNotes.length" class="contact-databook__hero-notes">
+                    <li
+                      v-for="note in contactNotes"
+                      :key="note.id"
+                      class="contact-databook__hero-note"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ note.title }}</div>
+                        <div class="contact-databook__notes-meta">{{ note.created_at }}</div>
+                      </div>
+                      <div v-if="note.content" class="contact-databook__notes-content">
+                        {{ note.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div
+                    v-else-if="contactHeroPanelTab === 'notes'"
+                    class="contact-databook__hero-panel-empty"
+                  >
+                    No notes yet.
+                  </div>
+
+                  <ul
+                    v-if="contactHeroPanelTab === 'documents' && contactDocuments.length"
+                    class="contact-databook__hero-documents"
+                  >
+                    <li class="contact-databook__hero-document-drop">
+                      <div
+                        class="contact-databook__hero-dropzone"
+                        :class="{
+                          'contact-databook__hero-dropzone--active': contactDocumentsDragOver,
+                          'contact-databook__hero-dropzone--loading': uploadingContactDocuments,
+                        }"
+                        @dragover.prevent="contactDocumentsDragOver = true"
+                        @dragleave.prevent="contactDocumentsDragOver = false"
+                        @drop.prevent="onContactDocumentsDrop"
+                      >
+                        <q-icon
+                          :name="uploadingContactDocuments ? 'sync' : 'upload_file'"
+                          class="contact-databook__hero-dropzone-icon"
+                        />
+                        <div class="contact-databook__hero-dropzone-copy">
+                          {{ uploadingContactDocuments ? 'Uploading documents...' : 'Drop files here to attach them' }}
+                        </div>
+                      </div>
+                    </li>
+                    <li
+                      v-for="document in contactDocuments"
+                      :key="document.id"
+                      class="contact-databook__hero-document"
+                      :class="{
+                        'contact-databook__hero-document--loading':
+                          activeDocumentActionKey === `${document.artifactId}:preview`,
+                      }"
+                      tabindex="0"
+                      @click="previewContactDocument(document)"
+                      @keyup.enter.prevent="previewContactDocument(document)"
+                    >
+                      <div class="contact-databook__hero-document-thumb">
+                        <img
+                          v-if="document.thumbnailSrc"
+                          :src="document.thumbnailSrc"
+                          :alt="document.fileName"
+                          class="contact-databook__hero-document-thumb-image"
+                        />
+                        <template v-else>
+                          <q-icon
+                            :name="document.thumbnailIcon"
+                            class="contact-databook__hero-document-thumb-icon"
+                          />
+                          <div class="contact-databook__hero-document-thumb-ext">
+                            {{ document.thumbnailLabel }}
+                          </div>
+                        </template>
+                      </div>
+                      <div class="contact-databook__hero-document-copy">
+                        <div class="contact-databook__hero-document-meta">
+                          <div class="contact-databook__hero-document-name">{{ document.fileName }}</div>
+                          <div class="contact-databook__hero-document-date">{{ document.created_at }}</div>
+                          <div v-if="document.fileTypeLabel" class="contact-databook__hero-document-type">
+                            {{ document.fileTypeLabel }}
+                          </div>
+                        </div>
+                        <div class="contact-databook__hero-document-actions">
+                          <q-btn
+                            flat
+                            no-caps
+                            dense
+                            size="sm"
+                            icon="download"
+                            class="contact-databook__hero-document-action"
+                            :loading="activeDocumentActionKey === `${document.artifactId}:download`"
+                            @click.stop="downloadContactDocument(document)"
+                          >
+                            <span>Download</span>
+                          </q-btn>
+                          <q-btn
+                            flat
+                            no-caps
+                            dense
+                            size="sm"
+                            icon="share"
+                            class="contact-databook__hero-document-action"
+                            :loading="activeDocumentActionKey === `${document.artifactId}:share`"
+                            @click.stop="shareContactDocument(document)"
+                          >
+                            <span>Share</span>
+                          </q-btn>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                  <div
+                    v-else-if="contactHeroPanelTab === 'documents'"
+                    class="contact-databook__hero-documents-state"
+                  >
+                    <div
+                      class="contact-databook__hero-dropzone"
+                      :class="{
+                        'contact-databook__hero-dropzone--active': contactDocumentsDragOver,
+                        'contact-databook__hero-dropzone--loading': uploadingContactDocuments,
+                      }"
+                      @dragover.prevent="contactDocumentsDragOver = true"
+                      @dragleave.prevent="contactDocumentsDragOver = false"
+                      @drop.prevent="onContactDocumentsDrop"
+                    >
+                      <q-icon
+                        :name="uploadingContactDocuments ? 'sync' : 'upload_file'"
+                        class="contact-databook__hero-dropzone-icon"
+                      />
+                      <div class="contact-databook__hero-dropzone-copy">
+                        {{
+                          uploadingContactDocuments
+                            ? 'Uploading documents...'
+                            : 'Drop files here to attach them to this contact'
+                        }}
+                      </div>
+                    </div>
+                    <div class="contact-databook__hero-panel-empty">No related documents yet.</div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -228,25 +389,7 @@
                   <div class="contact-databook__summary-item-value">{{ stat.displayValue }}</div>
                 </div>
               </div>
-              <div v-if="contactNotes.length" class="contact-databook__summary-notes-panel">
-                <div class="contact-databook__summary-notes-label">Latest notes</div>
-                <ul class="contact-databook__summary-notes">
-                  <li
-                    v-for="note in contactNotes"
-                    :key="note.id"
-                    class="contact-databook__summary-note"
-                  >
-                    <div class="contact-databook__summary-note-row">
-                      <div class="contact-databook__summary-note-title">{{ note.title }}</div>
-                      <div class="contact-databook__summary-note-meta">{{ note.created_at }}</div>
-                    </div>
-                    <div v-if="note.content" class="contact-databook__summary-note-content">
-                      {{ note.content }}
-                    </div>
-                  </li>
-                </ul>
-              </div>
-              <div v-else-if="!contactSummaryStats.length" class="contact-databook__summary-empty">
+              <div v-else class="contact-databook__summary-empty">
                 Use the + button to add the contact details you want to keep in view here.
               </div>
             </div>
@@ -561,6 +704,95 @@
         </q-card>
       </q-dialog>
 
+      <q-dialog v-model="showDocumentPreviewDialog" maximized @hide="closeDocumentPreview">
+        <q-card class="contact-document-preview-dialog">
+          <q-card-section class="contact-document-preview-dialog__header">
+            <div>
+              <div class="text-h6">{{ documentPreview.fileName || 'Document preview' }}</div>
+              <div class="text-caption text-grey-7">
+                {{
+                  documentPreviewLoading
+                    ? 'Loading preview...'
+                    : documentPreview.kind === 'pdf'
+                      ? 'PDF preview'
+                      : documentPreview.kind === 'text'
+                        ? 'Text preview'
+                        : documentPreview.kind === 'image'
+                          ? 'Image preview'
+                          : 'Preview unavailable'
+                }}
+              </div>
+            </div>
+            <q-btn flat round dense icon="close" @click="closeDocumentPreview" />
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section class="contact-document-preview-dialog__body">
+            <div v-if="documentPreviewLoading" class="contact-document-preview-dialog__state">
+              <q-spinner size="32px" color="primary" />
+            </div>
+
+            <div v-else-if="documentPreview.kind === 'pdf'" class="contact-document-preview-dialog__pdf">
+              <div class="contact-document-preview-dialog__pdf-sidebar">
+                <button
+                  v-for="page in pdfPreviewPages"
+                  :key="page.pageNumber"
+                  type="button"
+                  class="contact-document-preview-dialog__pdf-thumb"
+                  :class="{
+                    'contact-document-preview-dialog__pdf-thumb--active':
+                      page.pageNumber === pdfPreviewSelectedPage,
+                  }"
+                  @click="selectPdfPreviewPage(page.pageNumber)"
+                >
+                  <img
+                    v-if="page.thumbnailSrc"
+                    :src="page.thumbnailSrc"
+                    :alt="`Page ${page.pageNumber}`"
+                    class="contact-document-preview-dialog__pdf-thumb-image"
+                  />
+                  <div class="contact-document-preview-dialog__pdf-thumb-label">
+                    {{ page.pageNumber }}
+                  </div>
+                </button>
+              </div>
+
+              <div class="contact-document-preview-dialog__pdf-main">
+                <img
+                  v-if="pdfPreviewCurrentPageSrc"
+                  :src="pdfPreviewCurrentPageSrc"
+                  :alt="`${documentPreview.fileName || 'PDF preview'} page ${pdfPreviewSelectedPage}`"
+                  class="contact-document-preview-dialog__pdf-page"
+                />
+                <div v-else class="contact-document-preview-dialog__state">
+                  <q-spinner size="32px" color="primary" />
+                </div>
+              </div>
+            </div>
+
+            <img
+              v-else-if="documentPreview.kind === 'image' && documentPreview.fileUrl"
+              :src="documentPreview.fileUrl"
+              :alt="documentPreview.fileName || 'Document preview'"
+              class="contact-document-preview-dialog__image"
+            />
+
+            <pre
+              v-else-if="documentPreview.kind === 'text'"
+              class="contact-document-preview-dialog__text"
+            ><code>{{ documentPreview.content || '' }}</code></pre>
+
+            <div v-else class="contact-document-preview-dialog__state">
+              <div class="text-body1">This file can’t be previewed in-app yet.</div>
+              <div class="text-caption text-grey-7">
+                Use Download or Share for this document type.
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
       <input
         ref="contactImageInput"
         type="file"
@@ -573,13 +805,19 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString()
 
 const TABLE_LABELS = {
   Companies: 'Company',
@@ -696,6 +934,27 @@ const contactImageCropZoom = ref(1)
 const contactImageCropOffset = ref({ x: 0, y: 0 })
 const selectedContactSummaryStatIds = ref([])
 const contactNotes = ref([])
+const contactDocuments = ref([])
+const contactHeroPanelTab = ref('documents')
+const contactDocumentsDragOver = ref(false)
+const uploadingContactDocuments = ref(false)
+const workspaceRoot = ref('')
+const activeDocumentActionKey = ref('')
+const showDocumentPreviewDialog = ref(false)
+const documentPreviewLoading = ref(false)
+const documentPreview = ref({
+  artifactId: '',
+  fileName: '',
+  kind: '',
+  fileUrl: '',
+  fileDataBase64: '',
+  content: '',
+})
+const pdfPreviewDocument = shallowRef(null)
+const pdfPreviewPages = ref([])
+const pdfPreviewSelectedPage = ref(1)
+const pdfPreviewCurrentPageSrc = ref('')
+let pdfPreviewRequestToken = 0
 const contactHeroGradient = ref({ ...CONTACT_HERO_GRADIENT_DEFAULT })
 
 const isHistoricalMode = computed(() => !!selectedVersionId.value)
@@ -943,6 +1202,7 @@ function toggleContactSummaryStat(id) {
 async function loadContactNotes() {
   if (!bridge.value?.notes?.list || !isContactView.value || !recordIdParam.value) {
     contactNotes.value = []
+    syncContactHeroPanelTab()
     return
   }
 
@@ -963,14 +1223,313 @@ async function loadContactNotes() {
           .trim()
           .replace(/\s+/g, ' ')
           .slice(0, 140),
-        created_at: formatNoteDate(note.created_at),
+        created_at: formatDisplayDate(note.created_at),
       }))
+    syncContactHeroPanelTab()
   } catch {
     contactNotes.value = []
+    syncContactHeroPanelTab()
   }
 }
 
-function formatNoteDate(value) {
+async function loadContactDocuments() {
+  if (!bridge.value?.artifacts?.list || !isContactView.value || !recordIdParam.value) {
+    contactDocuments.value = []
+    syncContactHeroPanelTab()
+    return
+  }
+
+  try {
+    await ensureWorkspaceRoot()
+    const [artifactResult, opportunitiesResult] = await Promise.all([
+      bridge.value.artifacts.list(),
+      bridge.value?.opportunities?.list ? bridge.value.opportunities.list() : Promise.resolve({ opportunities: [] }),
+    ])
+    const opportunities = Array.isArray(opportunitiesResult?.opportunities) ? opportunitiesResult.opportunities : []
+    const relatedOpportunities = new Map(
+      opportunities
+        .filter(
+          (opportunity) =>
+            String(opportunity?.Owner || '').trim() === recordIdParam.value ||
+            String(opportunity?.Source_Contact || '').trim() === recordIdParam.value,
+        )
+        .map((opportunity) => [
+          String(opportunity?.id || '').trim(),
+          String(opportunity?.Venture_Oppty_Name || opportunity?.opportunity_name || opportunity?.id || '')
+            .trim(),
+        ])
+        .filter(([id]) => id),
+    )
+
+    const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
+    const groupedArtifacts = new Map()
+
+    for (const artifact of artifacts) {
+      const createdBy = String(artifact?.created_by || '').trim()
+      const opportunityId = String(artifact?.opportunity_id || '').trim()
+      const isDirectMatch = createdBy === recordIdParam.value
+      const isOpportunityMatch = relatedOpportunities.has(opportunityId)
+      if (!isDirectMatch && !isOpportunityMatch) continue
+
+      const groupKey =
+        String(artifact?.original_artifact_id || '').trim() || String(artifact?.artifact_id || '').trim()
+      if (!groupKey) continue
+
+      const group = groupedArtifacts.get(groupKey) || []
+      group.push(artifact)
+      groupedArtifacts.set(groupKey, group)
+    }
+
+    contactDocuments.value = [...groupedArtifacts.values()]
+      .sort((left, right) => resolveDocumentGroupTimestamp(right) - resolveDocumentGroupTimestamp(left))
+      .slice(0, 6)
+      .map((group) => buildContactDocumentEntry(group))
+    syncContactHeroPanelTab()
+  } catch {
+    contactDocuments.value = []
+    syncContactHeroPanelTab()
+  }
+}
+
+function syncContactHeroPanelTab() {
+  if (contactHeroPanelTab.value !== 'notes' && contactHeroPanelTab.value !== 'documents') {
+    contactHeroPanelTab.value = 'documents'
+  }
+}
+
+async function ensureWorkspaceRoot() {
+  if (workspaceRoot.value || !bridge.value?.fs?.workspaceRoot) return workspaceRoot.value
+  try {
+    const result = await bridge.value.fs.workspaceRoot()
+    workspaceRoot.value = String(result?.rootPath || '').trim()
+  } catch {
+    workspaceRoot.value = ''
+  }
+  return workspaceRoot.value
+}
+
+function resolveDroppedFilePaths(files = []) {
+  return Array.from(files || [])
+    .map((file) => {
+      const path =
+        file?.path || bridge.value?.files?.getPathForFile?.(file) || file?.webkitRelativePath || null
+      return {
+        name: String(file?.name || '').trim(),
+        path: String(path || '').trim(),
+      }
+    })
+    .filter((file) => file.name || file.path)
+}
+
+async function onContactDocumentsDrop(event) {
+  contactDocumentsDragOver.value = false
+  if (uploadingContactDocuments.value || !bridge.value?.artifacts?.ingest || !recordIdParam.value) return
+
+  const droppedFiles = resolveDroppedFilePaths(Array.from(event?.dataTransfer?.files || []))
+  const validPaths = droppedFiles.map((file) => file.path).filter(Boolean)
+
+  if (!validPaths.length) {
+    $q.notify({
+      type: 'negative',
+      message: 'Could not read the dropped file path. Please try again with a local file.',
+    })
+    return
+  }
+
+  uploadingContactDocuments.value = true
+  try {
+    await bridge.value.artifacts.ingest({
+      filePaths: validPaths,
+      createdBy: recordIdParam.value,
+    })
+    contactHeroPanelTab.value = 'documents'
+    await loadContactDocuments()
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: `Could not upload document${validPaths.length === 1 ? '' : 's'}. ${e?.message || ''}`.trim(),
+    })
+  } finally {
+    uploadingContactDocuments.value = false
+  }
+}
+
+async function downloadContactDocument(document = {}) {
+  const artifactId = String(document?.artifactId || '').trim()
+  if (!artifactId || !bridge.value?.artifacts?.download) return
+
+  activeDocumentActionKey.value = `${artifactId}:download`
+  try {
+    const result = await bridge.value.artifacts.download({ artifactId })
+    if (result?.canceled) return
+    $q.notify({ type: 'positive', message: 'Document downloaded.' })
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: `Could not download document. ${e?.message || ''}`.trim(),
+    })
+  } finally {
+    activeDocumentActionKey.value = ''
+  }
+}
+
+async function previewContactDocument(document = {}) {
+  const artifactId = String(document?.artifactId || '').trim()
+  if (!artifactId || !bridge.value?.artifacts?.preview) return
+
+  pdfPreviewRequestToken += 1
+  activeDocumentActionKey.value = `${artifactId}:preview`
+  showDocumentPreviewDialog.value = true
+  documentPreviewLoading.value = true
+  documentPreview.value = {
+    artifactId,
+    fileName: String(document?.fileName || '').trim(),
+    kind: '',
+    fileUrl: '',
+    fileDataBase64: '',
+    content: '',
+  }
+  try {
+    const preview = await bridge.value.artifacts.preview({ artifactId })
+    documentPreview.value = {
+      artifactId,
+      fileName: String(preview?.fileName || document?.fileName || '').trim(),
+      kind: String(preview?.kind || '').trim(),
+      fileUrl: String(preview?.fileUrl || '').trim(),
+      fileDataBase64: String(preview?.fileDataBase64 || ''),
+      content: String(preview?.content || ''),
+    }
+    if (documentPreview.value.kind === 'pdf' && documentPreview.value.fileDataBase64) {
+      await loadPdfPreview(documentPreview.value.fileDataBase64)
+    }
+  } catch (e) {
+    showDocumentPreviewDialog.value = false
+    $q.notify({
+      type: 'negative',
+      message: `Could not preview document. ${e?.message || ''}`.trim(),
+    })
+  } finally {
+    documentPreviewLoading.value = false
+    activeDocumentActionKey.value = ''
+  }
+}
+
+async function loadPdfPreview(fileDataBase64) {
+  const requestToken = pdfPreviewRequestToken
+  await resetPdfPreview()
+
+  const loadingTask = pdfjsLib.getDocument({
+    data: decodeBase64ToUint8Array(fileDataBase64),
+  })
+  const pdfDocument = await loadingTask.promise
+  if (requestToken !== pdfPreviewRequestToken) {
+    await pdfDocument.destroy()
+    return
+  }
+
+  pdfPreviewDocument.value = pdfDocument
+
+  const pages = []
+  for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+    const page = await pdfDocument.getPage(pageNumber)
+    const thumbnailSrc = await renderPdfPageToDataUrl(page, 120)
+    pages.push({ pageNumber, thumbnailSrc })
+  }
+
+  if (requestToken !== pdfPreviewRequestToken) return
+  pdfPreviewPages.value = pages
+  await selectPdfPreviewPage(1)
+}
+
+function decodeBase64ToUint8Array(base64Value = '') {
+  const binary = globalThis.atob(String(base64Value || ''))
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index)
+  }
+  return bytes
+}
+
+async function selectPdfPreviewPage(pageNumber) {
+  const pdfDocument = pdfPreviewDocument.value
+  if (!pdfDocument) return
+
+  pdfPreviewSelectedPage.value = pageNumber
+  const page = await pdfDocument.getPage(pageNumber)
+  pdfPreviewCurrentPageSrc.value = await renderPdfPageToDataUrl(page, 1320)
+}
+
+async function renderPdfPageToDataUrl(page, targetWidth) {
+  const baseViewport = page.getViewport({ scale: 1 })
+  const scale = targetWidth && baseViewport.width ? targetWidth / baseViewport.width : 1
+  const viewport = page.getViewport({ scale })
+  const outputScale = typeof window !== 'undefined' ? Math.max(window.devicePixelRatio || 1, 1) : 1
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')
+  if (!context) return ''
+
+  canvas.width = Math.ceil(viewport.width * outputScale)
+  canvas.height = Math.ceil(viewport.height * outputScale)
+  canvas.style.width = `${viewport.width}px`
+  canvas.style.height = `${viewport.height}px`
+  context.setTransform(outputScale, 0, 0, outputScale, 0, 0)
+
+  await page.render({
+    canvasContext: context,
+    viewport,
+  }).promise
+
+  return canvas.toDataURL('image/png')
+}
+
+async function resetPdfPreview() {
+  pdfPreviewCurrentPageSrc.value = ''
+  pdfPreviewPages.value = []
+  pdfPreviewSelectedPage.value = 1
+
+  if (pdfPreviewDocument.value) {
+    await pdfPreviewDocument.value.destroy()
+    pdfPreviewDocument.value = null
+  }
+}
+
+function closeDocumentPreview() {
+  pdfPreviewRequestToken += 1
+  showDocumentPreviewDialog.value = false
+  documentPreviewLoading.value = false
+  documentPreview.value = {
+    artifactId: '',
+    fileName: '',
+    kind: '',
+    fileUrl: '',
+    fileDataBase64: '',
+    content: '',
+  }
+  resetPdfPreview()
+}
+
+async function shareContactDocument(document = {}) {
+  const artifactId = String(document?.artifactId || '').trim()
+  if (!artifactId || !bridge.value?.artifacts?.share) return
+
+  activeDocumentActionKey.value = `${artifactId}:share`
+  try {
+    await bridge.value.artifacts.share({ artifactId })
+    $q.notify({
+      type: 'positive',
+      message: 'File path copied and document revealed in Finder.',
+    })
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: `Could not prepare document for sharing. ${e?.message || ''}`.trim(),
+    })
+  } finally {
+    activeDocumentActionKey.value = ''
+  }
+}
+
+function formatDisplayDate(value) {
   const raw = String(value || '').trim()
   if (!raw) return 'Unknown date'
   const date = new Date(raw.replace(' ', 'T'))
@@ -980,6 +1539,152 @@ function formatNoteDate(value) {
     day: 'numeric',
     year: 'numeric',
   }).format(date)
+}
+
+function parseDateValue(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return 0
+  const timestamp = Date.parse(raw.replace(' ', 'T'))
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+function resolveDocumentGroupTimestamp(group = []) {
+  return Math.max(...group.map((artifact) => parseDateValue(artifact?.created_at)), 0)
+}
+
+function buildContactDocumentEntry(group = []) {
+  const previewArtifact = resolvePreferredDocumentArtifact(group)
+  const metadataArtifact = resolveMetadataDocumentArtifact(group)
+  const fileName = resolveArtifactFileName(previewArtifact)
+  const fileExtension = resolveArtifactExtension(previewArtifact)
+  const thumbnailSrc = resolveArtifactThumbnailSrc(previewArtifact, fileExtension)
+
+  return {
+    artifactId: String(previewArtifact?.artifact_id || '').trim(),
+    id:
+      String(previewArtifact?.artifact_id || '').trim() ||
+      `${previewArtifact?.fs_path || ''}:${previewArtifact?.created_at || ''}`,
+    fileName,
+    thumbnailSrc,
+    thumbnailIcon: resolveArtifactThumbnailIcon(fileExtension),
+    thumbnailLabel: resolveArtifactThumbnailLabel(fileExtension),
+    fileTypeLabel:
+      formatArtifactDomainLabel(metadataArtifact?.type) ||
+      formatArtifactTypeLabel(previewArtifact?.artifact_type) ||
+      (fileExtension ? fileExtension.toUpperCase() : 'Document'),
+    created_at: formatDisplayDate(previewArtifact?.created_at || metadataArtifact?.created_at),
+  }
+}
+
+function resolvePreferredDocumentArtifact(group = []) {
+  const rawArtifact = group.find((artifact) => String(artifact?.artifact_type || '').trim() === 'raw')
+  if (rawArtifact) return rawArtifact
+  return resolveMetadataDocumentArtifact(group)
+}
+
+function resolveMetadataDocumentArtifact(group = []) {
+  return [...group].sort(compareArtifactPriority)[0] || {}
+}
+
+function compareArtifactPriority(left = {}, right = {}) {
+  const priority = {
+    'llm-ready': 0,
+    raw: 1,
+    'llm-generated': 2,
+  }
+  const leftPriority = priority[String(left?.artifact_type || '').trim()] ?? 99
+  const rightPriority = priority[String(right?.artifact_type || '').trim()] ?? 99
+  if (leftPriority !== rightPriority) return leftPriority - rightPriority
+  return parseDateValue(right?.created_at) - parseDateValue(left?.created_at)
+}
+
+function resolveArtifactFileName(artifact = {}) {
+  const filePath = String(artifact?.fs_path || '').trim()
+  const fileName = filePath.split('/').pop() || ''
+  if (fileName) return fileName
+  const explicitTitle = String(artifact?.title || '').trim()
+  return explicitTitle || 'Untitled document'
+}
+
+function resolveArtifactExtension(artifact = {}) {
+  const fileName = resolveArtifactFileName(artifact)
+  const lastDotIndex = fileName.lastIndexOf('.')
+  if (lastDotIndex > -1 && lastDotIndex < fileName.length - 1) {
+    return fileName.slice(lastDotIndex + 1).toLowerCase()
+  }
+  return String(artifact?.artifact_format || '').trim().toLowerCase()
+}
+
+function resolveArtifactThumbnailSrc(artifact = {}, extension = '') {
+  if (!isPreviewableImageExtension(extension)) return ''
+  const relativePath = String(artifact?.fs_path || '').trim()
+  const absolutePath = resolveArtifactAbsolutePath(relativePath)
+  if (!absolutePath) return ''
+  return toFileUrl(absolutePath)
+}
+
+function resolveArtifactAbsolutePath(relativePath = '') {
+  const root = String(workspaceRoot.value || '').trim()
+  const cleanRelativePath = String(relativePath || '').trim().replace(/^[/\\]+/, '')
+  if (!root || !cleanRelativePath) return ''
+  return `${root.replace(/[\\/]+$/, '')}/${cleanRelativePath}`
+}
+
+function toFileUrl(absolutePath = '') {
+  const normalized = String(absolutePath || '').trim().replace(/\\/g, '/')
+  if (!normalized) return ''
+  return encodeURI(`${normalized.startsWith('/') ? 'file://' : 'file:///'}${normalized}`)
+}
+
+function isPreviewableImageExtension(extension = '') {
+  return ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(String(extension || '').toLowerCase())
+}
+
+function resolveArtifactThumbnailIcon(extension = '') {
+  const normalized = String(extension || '').toLowerCase()
+  if (normalized === 'pdf') return 'picture_as_pdf'
+  if (['ppt', 'pptx', 'key'].includes(normalized)) return 'slideshow'
+  if (['xls', 'xlsx', 'csv'].includes(normalized)) return 'table_chart'
+  if (['doc', 'docx', 'pages', 'txt', 'md'].includes(normalized)) return 'description'
+  if (['eml', 'msg'].includes(normalized)) return 'mail'
+  return 'insert_drive_file'
+}
+
+function resolveArtifactThumbnailLabel(extension = '') {
+  const normalized = String(extension || '').trim().toUpperCase()
+  if (!normalized) return 'FILE'
+  if (normalized.length <= 4) return normalized
+  return normalized.slice(0, 4)
+}
+
+function formatArtifactTypeLabel(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+
+  const labels = {
+    raw: 'Raw file',
+    'llm-ready': 'LLM-ready',
+    'llm-generated': 'AI-generated',
+  }
+
+  return labels[raw] || raw
+}
+
+function formatArtifactDomainLabel(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+
+  const labels = {
+    raising_pitch_deck: 'Raising pitch deck',
+    commercial_pitch_deck: 'Commercial pitch deck',
+    messages: 'Messages',
+    emails: 'Emails',
+    historical_data: 'Historical data',
+    forecast: 'Forecast',
+    other: 'Other',
+  }
+
+  return labels[raw] || raw.replace(/_/g, ' ')
 }
 
 function resolveContactField(config = {}) {
@@ -1142,12 +1847,14 @@ async function loadDatabook() {
     await loadVersions()
     await refreshActor()
     await loadContactNotes()
+    await loadContactDocuments()
   } catch (e) {
     error.value = normalizeIpcErrorMessage(e)
     currentView.value = null
     fields.value = []
     versions.value = []
     contactNotes.value = []
+    contactDocuments.value = []
   } finally {
     loading.value = false
   }
@@ -1486,6 +2193,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopContactImageCropDrag()
+  closeDocumentPreview()
 })
 </script>
 
@@ -1789,6 +2497,124 @@ onBeforeUnmount(() => {
   gap: 18px;
 }
 
+.contact-document-preview-dialog {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-document-preview-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.contact-document-preview-dialog__body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 0;
+  background: #f5f3ef;
+}
+
+.contact-document-preview-dialog__pdf,
+.contact-document-preview-dialog__image,
+.contact-document-preview-dialog__text,
+.contact-document-preview-dialog__state {
+  width: 100%;
+  min-height: calc(100vh - 120px);
+}
+
+.contact-document-preview-dialog__pdf {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr);
+  background: #ebe7df;
+}
+
+.contact-document-preview-dialog__pdf-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  padding: 16px 12px;
+  background: rgba(255, 255, 255, 0.72);
+  border-right: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.contact-document-preview-dialog__pdf-thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.contact-document-preview-dialog__pdf-thumb--active {
+  background: rgba(255, 255, 255, 0.86);
+  border-color: rgba(17, 17, 17, 0.1);
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.08);
+}
+
+.contact-document-preview-dialog__pdf-thumb-image {
+  display: block;
+  width: 100%;
+  background: #fff;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 10px;
+}
+
+.contact-document-preview-dialog__pdf-thumb-label {
+  color: #555;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+.contact-document-preview-dialog__pdf-main {
+  overflow: auto;
+  padding: 24px;
+}
+
+.contact-document-preview-dialog__pdf-page {
+  display: block;
+  width: min(100%, 1320px);
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 48px rgba(17, 17, 17, 0.14);
+}
+
+.contact-document-preview-dialog__image {
+  display: block;
+  object-fit: contain;
+  background: #d9d4cc;
+}
+
+.contact-document-preview-dialog__text {
+  overflow: auto;
+  margin: 0;
+  padding: 28px;
+  color: #111;
+  background: #fcfbf8;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.contact-document-preview-dialog__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
 .contact-image-cropper {
   display: flex;
   justify-content: center;
@@ -1906,6 +2732,359 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-medium);
 }
 
+.contact-databook__hero-notes-panel {
+  margin-top: 6px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(18px);
+}
+
+.contact-databook__hero-tabs {
+  display: inline-flex;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px;
+  background: rgba(17, 17, 17, 0.05);
+  border-radius: 999px;
+}
+
+.contact-databook__hero-tab {
+  padding: 7px 12px;
+  color: #6f6f6f;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.04em;
+  line-height: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.contact-databook__hero-tab:hover,
+.contact-databook__hero-tab:focus-visible {
+  color: #111;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.contact-databook__hero-tab--active {
+  color: #111;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.08);
+}
+
+.contact-databook__summary-notes-label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.contact-databook__hero-notes,
+.contact-databook__hero-documents,
+.contact-databook__summary-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-databook__hero-note,
+.contact-databook__hero-document,
+.contact-databook__summary-note {
+  position: relative;
+  padding-left: 18px;
+}
+
+.contact-databook__hero-note::before,
+.contact-databook__hero-document::before,
+.contact-databook__summary-note::before {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  content: '';
+  border-radius: 999px;
+}
+
+.contact-databook__hero-note::before {
+  background: rgba(17, 17, 17, 0.3);
+}
+
+.contact-databook__hero-document::before {
+  background: rgba(17, 17, 17, 0.3);
+}
+
+.contact-databook__notes-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contact-databook__notes-title {
+  font-family: var(--font-body);
+  font-size: var(--text-sm---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+}
+
+.contact-databook__notes-content {
+  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  line-height: 20px;
+}
+
+.contact-databook__notes-meta {
+  flex: 0 0 auto;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---regular);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.contact-databook__hero-note .contact-databook__notes-title {
+  color: #111;
+}
+
+.contact-databook__hero-note .contact-databook__notes-content {
+  color: #454545;
+}
+
+.contact-databook__hero-note .contact-databook__notes-meta {
+  color: #7a7a7a;
+}
+
+.contact-databook__hero-document .contact-databook__notes-title {
+  color: #111;
+}
+
+.contact-databook__hero-document .contact-databook__notes-content {
+  color: #454545;
+}
+
+.contact-databook__hero-document .contact-databook__notes-meta {
+  color: #7a7a7a;
+}
+
+.contact-databook__hero-documents-state {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.contact-databook__hero-document-drop {
+  padding-left: 0;
+}
+
+.contact-databook__hero-document-drop::before {
+  display: none;
+}
+
+.contact-databook__hero-document {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.contact-databook__hero-document::before {
+  display: none;
+}
+
+.contact-databook__hero-document:hover,
+.contact-databook__hero-document:focus-visible {
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.06);
+  transform: translateY(-1px);
+}
+
+.contact-databook__hero-document--loading {
+  opacity: 0.76;
+}
+
+.contact-databook__hero-document-thumb {
+  position: relative;
+  display: flex;
+  width: 58px;
+  height: 74px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(241, 237, 232, 0.92) 100%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.06);
+}
+
+.contact-databook__hero-document-thumb-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contact-databook__hero-document-thumb-icon {
+  font-size: 24px;
+  color: #3f3f3f;
+}
+
+.contact-databook__hero-document-thumb-ext {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 3px 7px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.contact-databook__hero-document-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contact-databook__hero-document-meta {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contact-databook__hero-document-name {
+  overflow: hidden;
+  color: #111;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contact-databook__hero-document-date {
+  color: #7a7a7a;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---regular);
+  line-height: 16px;
+}
+
+.contact-databook__hero-document-type {
+  color: #5e5e5e;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---regular);
+  line-height: 16px;
+}
+
+.contact-databook__hero-document-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.contact-databook__hero-document-action {
+  color: #111;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+}
+
+.contact-databook__hero-document-action :deep(.q-btn__content) {
+  gap: 4px;
+}
+
+.contact-databook__hero-dropzone {
+  display: flex;
+  min-height: 84px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  color: #4f4f4f;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1.5px dashed rgba(17, 17, 17, 0.14);
+  border-radius: 16px;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.contact-databook__hero-dropzone--active {
+  color: #111;
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(17, 17, 17, 0.32);
+  transform: translateY(-1px);
+}
+
+.contact-databook__hero-dropzone--loading {
+  color: #111;
+  background: rgba(255, 255, 255, 0.82);
+  border-style: solid;
+}
+
+.contact-databook__hero-dropzone-icon {
+  font-size: 18px;
+}
+
+.contact-databook__hero-dropzone-copy {
+  font-family: var(--font-body);
+  font-size: var(--text-sm---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+  text-align: center;
+}
+
+.contact-databook__hero-panel-empty {
+  margin-top: 10px;
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  line-height: 20px;
+}
+
 .contact-databook__summary {
   align-self: stretch;
   display: flex;
@@ -1978,69 +3157,23 @@ onBeforeUnmount(() => {
 
 .contact-databook__summary-notes-label {
   color: rgba(255, 255, 255, 0.62);
-  font-family: var(--font-body);
-  font-size: var(--text-xs---medium);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.08em;
-  line-height: 16px;
-  text-transform: uppercase;
-}
-
-.contact-databook__summary-notes {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
-  padding: 0;
-  list-style: none;
-}
-
-.contact-databook__summary-note {
-  position: relative;
-  padding-left: 18px;
 }
 
 .contact-databook__summary-note::before {
-  position: absolute;
-  top: 8px;
-  left: 0;
-  width: 6px;
-  height: 6px;
-  content: '';
   background: rgba(255, 255, 255, 0.62);
-  border-radius: 999px;
 }
 
-.contact-databook__summary-note-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.contact-databook__summary-note-title {
+.contact-databook__summary-note .contact-databook__notes-title {
   color: #fff;
-  font-family: var(--font-body);
-  font-size: var(--text-sm---medium);
-  font-weight: var(--font-weight-medium);
-  line-height: 20px;
 }
 
-.contact-databook__summary-note-content {
+.contact-databook__summary-note .contact-databook__notes-content {
   margin-top: 4px;
   color: rgba(255, 255, 255, 0.78);
-  font-family: var(--font-body);
-  font-size: var(--text-sm---regular);
-  line-height: 20px;
 }
 
-.contact-databook__summary-note-meta {
-  flex: 0 0 auto;
+.contact-databook__summary-note .contact-databook__notes-meta {
   color: rgba(255, 255, 255, 0.54);
-  font-family: var(--font-body);
-  font-size: var(--text-xs---regular);
-  line-height: 16px;
-  white-space: nowrap;
 }
 
 .contact-databook__summary-empty {

@@ -172,6 +172,7 @@ function ensureArtifactsCompatibilityColumns(database) {
     ['original_artifact_id', 'TEXT'],
     ['assistant_system_prompt_id', 'TEXT'],
     ['created_by', 'TEXT'],
+    ['type', 'TEXT'],
     ["artifact_type", "TEXT NOT NULL DEFAULT 'raw'"],
     ['artifact_role', 'TEXT'],
     ['artifact_format', 'TEXT'],
