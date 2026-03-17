@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header :height-hint="124" class="ec-shell-header">
+    <q-header :height-hint="108" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
@@ -37,19 +37,20 @@
         </div>
       </q-toolbar>
 
-      <div class="ec-primary-nav">
-        <q-tabs class="ec-primary-nav__tabs" dense align="left" no-caps>
-          <q-route-tab
-            v-for="item in primaryNavigationItems"
-            :key="item.label"
-            :to="item.to"
-            :exact="item.exact"
-            :icon="item.icon"
+      <div class="ec-breadcrumb-bar">
+        <q-breadcrumbs class="ec-breadcrumbs" separator="chevron_right">
+          <template #separator>
+            <q-icon name="chevron_right" size="16px" color="grey-5" />
+          </template>
+
+          <q-breadcrumbs-el
+            v-for="item in breadcrumbItems"
+            :key="`${item.label}-${item.to || 'current'}`"
             :label="item.label"
-            inline-label
-            class="ec-primary-nav__tab"
+            :to="item.current ? void 0 : item.to"
+            :class="{ 'ec-breadcrumbs__current': item.current }"
           />
-        </q-tabs>
+        </q-breadcrumbs>
       </div>
     </q-header>
 
@@ -62,22 +63,31 @@
       :overlay="false"
     >
       <div class="ec-drawer-content">
-        <q-list class="ec-drawer-menu">
-          <q-item
-            v-for="item in secondaryNavigationItems"
-            :key="item.label"
-            clickable
-            :to="item.to"
-            class="ec-nav-item"
+        <div class="ec-drawer-scroll">
+          <q-list
+            v-for="section in drawerNavigationSections"
+            :key="section.label"
+            class="ec-drawer-section"
           >
-            <q-item-section avatar>
-              <q-icon :name="item.icon" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ item.label }}</q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
+            <q-item-label header class="ec-nav-label">{{ section.label }}</q-item-label>
+
+            <q-item
+              v-for="item in section.items"
+              :key="item.label"
+              clickable
+              :to="item.to"
+              :exact="item.exact"
+              class="ec-nav-item"
+            >
+              <q-item-section avatar>
+                <q-icon :name="item.icon" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ item.label }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </div>
       </div>
     </q-drawer>
 
@@ -160,11 +170,32 @@ const primaryNavigationItems = [
   { label: 'Pipelines', to: '/pipelines', exact: true, icon: 'schema' },
 ]
 const secondaryNavigationItems = [
-  { label: 'Artifacts', to: '/artifacts', icon: 'attach_file' },
-  { label: 'Notes', to: '/notes', icon: 'note' },
-  { label: 'Tasks', to: '/tasks', icon: 'check_circle' },
-  { label: 'Assistants', to: '/assistants', icon: 'smart_toy' },
+  { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
+  { label: 'Notes', to: '/notes', exact: true, icon: 'note' },
+  { label: 'Tasks', to: '/tasks', exact: true, icon: 'check_circle' },
+  { label: 'Assistants', to: '/assistants', exact: true, icon: 'smart_toy' },
 ]
+const routeLabelByName = {
+  home: 'Home',
+  companies: 'Companies',
+  contacts: 'Contacts',
+  opportunities: 'Opportunities',
+  pipelines: 'Pipelines',
+  artifacts: 'Artifacts',
+  notes: 'Notes',
+  tasks: 'Tasks',
+  assistants: 'Assistants',
+  settings: 'Settings',
+  'user-settings': 'User settings',
+  'file-system': 'File system',
+  'databook-view': 'Databook',
+}
+const databookParentRouteByTableName = {
+  companies: '/companies',
+  contacts: '/contacts',
+  opportunities: '/opportunities',
+  pipelines: '/pipelines',
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -173,10 +204,52 @@ let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
 
+const drawerNavigationSections = computed(() => [
+  {
+    label: 'Main',
+    items: primaryNavigationItems,
+  },
+  {
+    label: 'Workspace',
+    items: secondaryNavigationItems,
+  },
+])
+
 const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.value))
 const drawerUserLabel = computed(() =>
   hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Set user',
 )
+const breadcrumbItems = computed(() => {
+  const currentRouteName = String(route.name || '')
+
+  if (!currentRouteName || currentRouteName === 'home') {
+    return [{ label: 'Home', to: '/', current: true }]
+  }
+
+  const items = [{ label: 'Home', to: '/' }]
+
+  if (currentRouteName === 'databook-view') {
+    const tableName = String(route.params.tableName || '').toLowerCase()
+    const parentRoute = databookParentRouteByTableName[tableName]
+    const parentLabel =
+      routeLabelByName[tableName] ||
+      (tableName ? toTitleCase(tableName.replace(/[-_]/g, ' ')) : '')
+
+    if (parentRoute && parentLabel) {
+      items.push({ label: parentLabel, to: parentRoute })
+    }
+
+    items.push({ label: 'Databook', current: true })
+    return items
+  }
+
+  items.push({
+    label: routeLabelByName[currentRouteName] || toTitleCase(currentRouteName.replace(/-/g, ' ')),
+    current: true,
+  })
+
+  return items
+})
 
 const quickWidgetStyle = computed(() => ({
   left: `${quickWidgetPosition.value.x}px`,
@@ -222,6 +295,14 @@ function toggleLeftDrawer() {
 
 function normalizeUserLabel(value) {
   return String(value || '').trim()
+}
+
+function toTitleCase(value) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ')
 }
 
 async function loadAuditUserLabel() {
@@ -643,59 +724,46 @@ watch(
   white-space: nowrap;
 }
 
-.ec-primary-nav {
+.ec-breadcrumb-bar {
   border-top: 1px solid #e5e7eb;
   background: #f8fafc;
-  padding: 10px 16px;
+  padding: 12px 16px;
 }
 
-.ec-primary-nav__tabs {
-  min-height: 44px;
+.ec-breadcrumbs {
+  color: #64748b;
+  min-height: 28px;
 }
 
-.ec-primary-nav__tabs :deep(.q-tabs__content) {
-  gap: 6px;
-  justify-content: flex-start;
-}
-
-.ec-primary-nav__tab {
-  border-radius: 10px;
-  color: #475569;
-  min-height: 40px;
-  min-width: auto;
-  padding: 0 14px;
-  justify-content: flex-start;
-}
-
-.ec-primary-nav__tabs :deep(.q-tab__label) {
+.ec-breadcrumbs :deep(.q-breadcrumbs__el) {
+  align-items: center;
+  color: #64748b;
+  display: inline-flex;
   font-size: var(--text-sm---light);
   font-weight: var(--font-weight-light);
-  letter-spacing: 0;
   line-height: 20px;
+  text-decoration: none;
 }
 
-.ec-primary-nav__tabs :deep(.q-tab__content) {
-  align-items: center;
-  flex-direction: row;
-  justify-content: flex-start;
-  gap: 8px;
-}
-
-.ec-primary-nav__tabs :deep(.q-tab .q-icon) {
-  font-size: 18px;
-}
-
-.ec-primary-nav__tabs :deep(.q-tab--active) {
+.ec-breadcrumbs :deep(.q-breadcrumbs__el:hover) {
   color: #2f5ad9;
 }
 
-.ec-primary-nav__tabs :deep(.q-tab--active .q-tab__label) {
-  font-weight: var(--font-weight-medium);
+.ec-breadcrumbs__current {
+  color: #0f172a !important;
+  font-weight: var(--font-weight-medium) !important;
+  pointer-events: none;
 }
 
-.ec-primary-nav__tabs :deep(.q-tab__indicator) {
-  height: 3px;
-  border-radius: 999px;
+.ec-drawer-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 0;
+}
+
+.ec-drawer-section + .ec-drawer-section {
+  margin-top: 10px;
 }
 
 .ec-quick-widget {
