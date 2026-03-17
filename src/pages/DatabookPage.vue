@@ -15,22 +15,69 @@
     </div>
 
     <div v-else class="databook-page">
-      <div class="databook-heading">
-        <q-btn
-          v-if="backLink"
-          flat
-          no-caps
-          icon="arrow_back"
-          class="databook-heading__back"
-          :label="backLink.label"
-          @click="router.push({ name: backLink.routeName })"
-        />
-        <div>
-          <div class="databook-heading__eyebrow">{{ entityLabel }} databook</div>
-          <div class="databook-heading__title">{{ databookTitle }}</div>
-          <div class="databook-heading__subtitle">
-            Review the full record, make edits in one place, and save a new audited snapshot.
+      <div class="databook-heading" :class="{ 'databook-heading--compact': isContactView }">
+        <div class="databook-heading__main">
+          <div>
+            <div class="databook-heading__eyebrow">{{ entityLabel }} databook</div>
+            <template v-if="isContactView">
+              <div class="databook-heading__subtitle">
+                Version history and edit controls for this contact record.
+              </div>
+            </template>
+            <template v-else>
+              <div class="databook-heading__title">{{ databookTitle }}</div>
+              <div class="databook-heading__subtitle">
+                Review the full record, make edits in one place, and save a new audited snapshot.
+              </div>
+            </template>
           </div>
+        </div>
+
+        <div class="databook-heading__actions">
+          <q-btn
+            v-if="backLink"
+            flat
+            no-caps
+            icon="arrow_back"
+            class="databook-heading__back databook-heading__action"
+            :label="backLink.label"
+            @click="router.push({ name: backLink.routeName })"
+          />
+
+          <q-btn-dropdown
+            color="secondary"
+            no-caps
+            unelevated
+            class="databook-heading__action"
+            label="Versions"
+            :disable="loading || saving || !hasVersionBridge"
+          >
+            <q-list style="min-width: 260px">
+              <q-item clickable v-close-popup @click="switchToLatestVersion">
+                <q-item-section>
+                  <q-item-label>Latest</q-item-label>
+                  <q-item-label caption>Current editable databook</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item v-for="v in versions" :key="v.id" clickable v-close-popup @click="openVersion(v.id)">
+                <q-item-section>
+                  <q-item-label>{{ v.created_at }}</q-item-label>
+                  <q-item-label caption>by {{ v.created_by_label || 'Unknown editor' }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+
+          <q-btn
+            color="primary"
+            no-caps
+            unelevated
+            class="databook-heading__action"
+            :icon="editMode ? 'close' : 'edit'"
+            :label="editMode ? 'Close edit' : 'Edit'"
+            :disable="loading || saving || !fields.length || isHistoricalMode"
+            @click="editMode ? cancelEdit() : enterEditMode()"
+          />
         </div>
       </div>
 
@@ -160,11 +207,41 @@
           <section class="contact-databook__details">
             <article v-if="activeContentSection" class="contact-section-card contact-section-card--active">
               <div class="contact-section-card__header">
-                <div>
-                  <div class="contact-section-card__eyebrow">{{ activeContentSection.category }}</div>
+                <div class="contact-section-card__intro">
                   <h2 class="contact-section-card__title">{{ activeContentSection.title }}</h2>
+                  <div v-if="activeContentSection.caption" class="contact-section-card__caption">
+                    {{ activeContentSection.caption }}
+                  </div>
                 </div>
-                <div class="contact-section-card__caption">{{ activeContentSection.caption }}</div>
+                <svg
+                  v-if="activeContentSection.icon"
+                  class="contact-section-card__icon"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle
+                    v-for="(shape, index) in activeContentSection.icon.circles || []"
+                    :key="`circle-${index}`"
+                    :cx="shape.cx"
+                    :cy="shape.cy"
+                    :r="shape.r"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.75"
+                    vector-effect="non-scaling-stroke"
+                  />
+                  <path
+                    v-for="(shape, index) in activeContentSection.icon.paths || []"
+                    :key="`path-${index}`"
+                    :d="shape"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.75"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    vector-effect="non-scaling-stroke"
+                  />
+                </svg>
               </div>
 
               <q-banner
@@ -236,8 +313,12 @@
 
             <div v-else-if="activeContactSection === 'system'" class="contact-system-grid">
               <article class="contact-side-card">
-                <div class="contact-side-card__eyebrow">System</div>
-                <h2 class="contact-side-card__title">Databook status</h2>
+                <div class="contact-side-card__header">
+                  <div class="contact-side-card__intro">
+                    <h2 class="contact-side-card__title">Databook status</h2>
+                    <div class="contact-side-card__eyebrow">System</div>
+                  </div>
+                </div>
                 <div class="contact-side-card__meta-list">
                   <div
                     v-for="item in contactMetaItems"
@@ -251,8 +332,12 @@
               </article>
 
               <article v-if="visibleSystemFields.length" class="contact-side-card">
-                <div class="contact-side-card__eyebrow">Full record</div>
-                <h2 class="contact-side-card__title">System fields</h2>
+                <div class="contact-side-card__header">
+                  <div class="contact-side-card__intro">
+                    <h2 class="contact-side-card__title">System fields</h2>
+                    <div class="contact-side-card__eyebrow">Full record</div>
+                  </div>
+                </div>
                 <div class="contact-side-card__stack">
                   <div
                     v-for="field in visibleSystemFields"
@@ -320,34 +405,6 @@
       <q-banner v-else-if="!loading" class="bg-grey-2 text-black" rounded>
         No Databook fields available for this record.
       </q-banner>
-
-      <q-page-sticky position="top-right" :offset="[18, 18]">
-        <div class="row q-gutter-sm">
-          <q-btn-dropdown color="secondary" label="Versions" :disable="loading || saving || !hasVersionBridge">
-            <q-list style="min-width: 260px">
-              <q-item clickable v-close-popup @click="switchToLatestVersion">
-                <q-item-section>
-                  <q-item-label>Latest</q-item-label>
-                  <q-item-label caption>Current editable databook</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item v-for="v in versions" :key="v.id" clickable v-close-popup @click="openVersion(v.id)">
-                <q-item-section>
-                  <q-item-label>{{ v.created_at }}</q-item-label>
-                  <q-item-label caption>by {{ v.created_by_label || 'Unknown editor' }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
-          <q-btn
-            round
-            color="primary"
-            :icon="editMode ? 'close' : 'edit'"
-            :disable="loading || saving || !fields.length || isHistoricalMode"
-            @click="editMode ? cancelEdit() : enterEditMode()"
-          />
-        </div>
-      </q-page-sticky>
 
       <q-page-sticky v-if="editMode" position="bottom" :offset="[0, 16]">
         <q-banner class="bg-grey-10 text-white q-pa-sm rounded-borders">
@@ -417,6 +474,36 @@ const TABLE_LIST_ROUTES = {
   Contacts: { routeName: 'contacts', label: 'Back to Contacts' },
   Opportunities: { routeName: 'opportunities', label: 'Back to Opportunities' },
   Pipelines: { routeName: 'pipelines', label: 'Back to Pipelines' },
+}
+
+const CONTACT_SECTION_ICONS = {
+  person: {
+    circles: [{ cx: 12, cy: 7.25, r: 3.15 }],
+    paths: ['M5 19.25c1.55-3.45 4.08-5.18 7-5.18s5.45 1.73 7 5.18'],
+  },
+  briefcase: {
+    paths: [
+      'M4.75 8.5h14.5a1.75 1.75 0 0 1 1.75 1.75v7a1.75 1.75 0 0 1-1.75 1.75H4.75A1.75 1.75 0 0 1 3 17.25v-7A1.75 1.75 0 0 1 4.75 8.5Z',
+      'M9 8.5V6.75A1.75 1.75 0 0 1 10.75 5h2.5A1.75 1.75 0 0 1 15 6.75V8.5',
+      'M3 12.25h18',
+    ],
+  },
+  book: {
+    paths: [
+      'M6.25 5.25h9.5A2.25 2.25 0 0 1 18 7.5v11.25H8.5A2.5 2.5 0 0 0 6 21.25V7.5a2.25 2.25 0 0 1 2.25-2.25Z',
+      'M6 18.75c0-1.38 1.12-2.5 2.5-2.5H18',
+      'M9.5 9.25h5',
+      'M9.5 12.25h5',
+    ],
+  },
+  note: {
+    paths: [
+      'M7.25 4.75h9.5A2.25 2.25 0 0 1 19 7v10a2.25 2.25 0 0 1-2.25 2.25h-9.5A2.25 2.25 0 0 1 5 17V7a2.25 2.25 0 0 1 2.25-2.25Z',
+      'M8.75 9.25h6.5',
+      'M8.75 12.25h6.5',
+      'M8.75 15.25h4.5',
+    ],
+  },
 }
 
 const isElectronRuntime = computed(() => {
@@ -520,6 +607,7 @@ const contactSections = computed(() => {
       anchor: 'general-info',
       category: 'General info',
       title: 'General info',
+      icon: CONTACT_SECTION_ICONS.person,
       caption: 'Core contact details and the main ways to reach this person.',
       fieldConfigs: [
         { label: 'Name', aliases: ['Name'] },
@@ -534,6 +622,7 @@ const contactSections = computed(() => {
       anchor: 'employment',
       category: 'Employment',
       title: 'Employment',
+      icon: CONTACT_SECTION_ICONS.briefcase,
       caption: 'Current role, tenure, expertise, and company context.',
       fieldConfigs: [
         { label: 'Previous companies', aliases: ['Previous_Companies'] },
@@ -547,6 +636,7 @@ const contactSections = computed(() => {
       anchor: 'studies',
       category: 'Studies',
       title: 'Studies',
+      icon: CONTACT_SECTION_ICONS.book,
       caption: 'Education background, program history, and professional credentials.',
       fieldConfigs: [
         { label: 'Degrees / Program', aliases: ['Degrees_Program'] },
@@ -558,6 +648,7 @@ const contactSections = computed(() => {
       anchor: 'other',
       category: 'Other',
       title: 'Other',
+      icon: CONTACT_SECTION_ICONS.note,
       caption: 'Open notes and supporting context that does not fit the other groups.',
       fieldConfigs: [{ label: 'Comments', aliases: ['Comments', 'Comment'] }],
       layout: 'note',
@@ -616,13 +707,14 @@ function resolveContactField(config = {}) {
   }
 }
 
-function createContactSection({ anchor, category, title, caption, fieldConfigs, layout = 'grid' }) {
+function createContactSection({ anchor, category, title, icon, caption, fieldConfigs, layout = 'grid' }) {
   const sectionFields = (fieldConfigs || []).map(resolveContactField).filter(Boolean)
 
   return {
     anchor,
     category,
     title,
+    icon,
     caption,
     layout,
     fields: sectionFields,
@@ -1006,6 +1098,17 @@ onMounted(() => {
   justify-content: space-between;
 }
 
+.databook-heading--compact {
+  align-items: center;
+}
+
+.databook-heading__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  min-width: 0;
+}
+
 .databook-heading__back {
   flex: 0 0 auto;
   color: #111;
@@ -1029,6 +1132,7 @@ onMounted(() => {
 }
 
 .databook-heading__title {
+  margin-top: 10px;
   color: #0a0a0a;
   font-family: var(--font-title);
   font-size: clamp(2rem, 3vw, 3rem);
@@ -1044,6 +1148,34 @@ onMounted(() => {
   font-size: var(--text-base---regular);
   font-weight: var(--font-weight-regular);
   line-height: 24px;
+}
+
+.databook-heading__actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.databook-heading--compact .databook-heading__eyebrow {
+  margin-bottom: 2px;
+}
+
+.databook-heading--compact .databook-heading__subtitle {
+  max-width: 440px;
+  margin-top: 0;
+  color: #707070;
+  font-size: var(--text-sm---regular);
+  line-height: 20px;
+}
+
+.databook-heading--compact .databook-heading__actions {
+  align-items: center;
+}
+
+.databook-heading__action {
+  border-radius: 999px;
 }
 
 .contact-databook {
@@ -1374,9 +1506,26 @@ onMounted(() => {
   margin-bottom: 18px;
 }
 
+.contact-section-card__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+}
+
+.contact-side-card__header {
+  margin-bottom: 18px;
+}
+
+.contact-side-card__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .contact-section-card__title,
 .contact-side-card__title {
-  margin: 6px 0 0;
+  margin: 0;
   color: #0a0a0a;
   font-family: var(--font-title);
   font-size: var(--text-2xl---black);
@@ -1385,13 +1534,20 @@ onMounted(() => {
 }
 
 .contact-section-card__caption {
-  max-width: 260px;
   color: #707070;
   font-family: var(--font-body);
   font-size: var(--text-sm---regular);
   font-weight: var(--font-weight-regular);
   line-height: 20px;
-  text-align: right;
+  text-align: left;
+}
+
+.contact-section-card__icon {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  margin-top: 1px;
+  color: #a3a3a3;
 }
 
 .contact-field-grid {
@@ -1462,7 +1618,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 18px;
+  margin-top: 0;
 }
 
 .databook-value-section {
@@ -1495,6 +1651,17 @@ onMounted(() => {
   .databook-heading {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .databook-heading__main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .databook-heading__actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .databook-heading__title {
