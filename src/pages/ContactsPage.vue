@@ -398,6 +398,9 @@ const displayRows = computed(() => {
 })
 
 function buildAvatarImage(row) {
+  const customImage = String(row?.Profile_Image || '').trim()
+  if (customImage) return customImage
+
   const label = String(row?.Name || row?.Email || 'Contact').trim()
   const initials = label
     .split(/\s+/)

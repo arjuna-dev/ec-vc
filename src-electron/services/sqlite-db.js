@@ -41,6 +41,7 @@ export function closeDb() {
 }
 
 function migrate(database) {
+  ensureContactImageColumn(database)
   ensureTasksPipelineColumn(database)
   ensureArtifactsCompatibilityColumns(database)
   ensureLocationHierarchyColumns(database)
@@ -50,6 +51,12 @@ function migrate(database) {
   ensureUserContactForeignKey(database)
   ensureArtifactLinkTriggersAllowUnlinkedArtifacts(database)
   database.pragma('user_version = 1')
+}
+
+function ensureContactImageColumn(database) {
+  if (!hasTable(database, 'Contacts')) return
+  if (hasColumn(database, 'Contacts', 'Profile_Image')) return
+  database.exec('ALTER TABLE Contacts ADD COLUMN Profile_Image TEXT')
 }
 
 function ensureGenericDatabookSnapshots(database) {

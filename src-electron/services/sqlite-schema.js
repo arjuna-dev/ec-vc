@@ -223,6 +223,7 @@ CREATE TABLE IF NOT EXISTS InvestmentSchedule (
 CREATE TABLE IF NOT EXISTS Contacts (
   id TEXT PRIMARY KEY,
   Name TEXT,
+  Profile_Image TEXT,
   Email TEXT,
   Phone TEXT,
   LinkedIn TEXT,

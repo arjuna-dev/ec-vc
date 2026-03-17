@@ -447,6 +447,7 @@ function listContacts() {
     SELECT
       id,
       Name,
+      Profile_Image,
       Email,
       Phone,
       Role,
@@ -1792,10 +1793,10 @@ function createContact(payload = {}) {
     .prepare(
       `
       INSERT INTO Contacts (
-        id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
+        id, Name, Profile_Image, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
         Comment, Expertise, Degrees_Program, University, Credentials, Tenure_at_Firm_yrs, Country_based
       ) VALUES (
-        @id, @Name, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type, @Closeness_Level,
+        @id, @Name, @Profile_Image, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type, @Closeness_Level,
         @Comment, @Expertise, @Degrees_Program, @University, @Credentials, @Tenure_at_Firm_yrs, @Country_based
       )
     `,
@@ -1803,6 +1804,7 @@ function createContact(payload = {}) {
     .run({
       id,
       Name: name,
+      Profile_Image: normalizeNullableString(payload.Profile_Image),
       Email: normalizeNullableString(payload.Email),
       Phone: normalizeNullableString(payload.Phone),
       LinkedIn: normalizeNullableString(payload.LinkedIn),
@@ -1973,6 +1975,7 @@ function upsertContacts(rows = []) {
       const payload = {
         id,
         Name: name,
+        Profile_Image: normalizeNullableString(r?.Profile_Image),
         Email: normalizeNullableString(r?.Email),
         Phone: normalizeNullableString(r?.Phone),
         LinkedIn: normalizeNullableString(r?.LinkedIn),
@@ -1994,15 +1997,16 @@ function upsertContacts(rows = []) {
         .prepare(
           `
           INSERT INTO Contacts (
-            id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
+            id, Name, Profile_Image, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
             Comment, Expertise, Degrees_Program, University, Credentials, Tenure_at_Firm_yrs, Country_based
           )
           VALUES (
-            @id, @Name, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type, @Closeness_Level,
+            @id, @Name, @Profile_Image, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type, @Closeness_Level,
             @Comment, @Expertise, @Degrees_Program, @University, @Credentials, @Tenure_at_Firm_yrs, @Country_based
           )
           ON CONFLICT(id) DO UPDATE SET
             Name = excluded.Name,
+            Profile_Image = excluded.Profile_Image,
             Email = excluded.Email,
             Phone = excluded.Phone,
             LinkedIn = excluded.LinkedIn,
