@@ -201,9 +201,12 @@
                     </button>
                   </div>
 
-                  <ul v-if="contactHeroPanelTab === 'notes' && contactNotes.length" class="contact-databook__hero-notes">
+                  <ul
+                    v-if="contactHeroPanelTab === 'notes' && contactHeroNotes.length"
+                    class="contact-databook__hero-notes"
+                  >
                     <li
-                      v-for="note in contactNotes"
+                      v-for="note in contactHeroNotes"
                       :key="note.id"
                       class="contact-databook__hero-note"
                     >
@@ -224,7 +227,7 @@
                   </div>
 
                   <ul
-                    v-if="contactHeroPanelTab === 'documents' && contactDocuments.length"
+                    v-if="contactHeroPanelTab === 'documents' && contactHeroDocuments.length"
                     class="contact-databook__hero-documents"
                   >
                     <li class="contact-databook__hero-document-drop">
@@ -248,7 +251,7 @@
                       </div>
                     </li>
                     <li
-                      v-for="document in contactDocuments"
+                      v-for="document in contactHeroDocuments"
                       :key="document.id"
                       class="contact-databook__hero-document"
                       :class="{
@@ -448,8 +451,139 @@
                 </svg>
               </div>
 
+              <div v-if="activeContentSection.anchor === 'other'" class="contact-context-grid">
+                <article class="contact-side-card">
+                  <div class="contact-side-card__header">
+                    <div class="contact-side-card__intro">
+                      <h3 class="contact-side-card__title">Notes</h3>
+                      <div class="contact-side-card__eyebrow">Contact history</div>
+                    </div>
+                  </div>
+
+                  <ul v-if="contactNotes.length" class="contact-databook__hero-notes">
+                    <li
+                      v-for="note in contactNotes"
+                      :key="note.id"
+                      class="contact-databook__hero-note"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ note.title }}</div>
+                        <div class="contact-databook__notes-meta">{{ note.created_at }}</div>
+                      </div>
+                      <div v-if="note.content" class="contact-databook__notes-content">
+                        {{ note.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div v-else class="contact-section-card__empty contact-context-card__empty">
+                    No notes yet for this contact.
+                  </div>
+                </article>
+
+                <article class="contact-side-card">
+                  <div class="contact-side-card__header">
+                    <div class="contact-side-card__intro">
+                      <h3 class="contact-side-card__title">Documents</h3>
+                      <div class="contact-side-card__eyebrow">Contact files</div>
+                    </div>
+                  </div>
+
+                  <div class="contact-databook__hero-documents-state">
+                    <div
+                      class="contact-databook__hero-dropzone"
+                      :class="{
+                        'contact-databook__hero-dropzone--active': contactDocumentsDragOver,
+                        'contact-databook__hero-dropzone--loading': uploadingContactDocuments,
+                      }"
+                      @dragover.prevent="contactDocumentsDragOver = true"
+                      @dragleave.prevent="contactDocumentsDragOver = false"
+                      @drop.prevent="onContactDocumentsDrop"
+                    >
+                      <q-icon
+                        :name="uploadingContactDocuments ? 'sync' : 'upload_file'"
+                        class="contact-databook__hero-dropzone-icon"
+                      />
+                      <div class="contact-databook__hero-dropzone-copy">
+                        {{ uploadingContactDocuments ? 'Uploading documents...' : 'Drop files here to attach them' }}
+                      </div>
+                    </div>
+
+                    <ul v-if="contactDocuments.length" class="contact-databook__hero-documents">
+                      <li
+                        v-for="document in contactDocuments"
+                        :key="document.id"
+                        class="contact-databook__hero-document"
+                        :class="{
+                          'contact-databook__hero-document--loading':
+                            activeDocumentActionKey === `${document.artifactId}:preview`,
+                        }"
+                        tabindex="0"
+                        @click="previewContactDocument(document)"
+                        @keyup.enter.prevent="previewContactDocument(document)"
+                      >
+                        <div class="contact-databook__hero-document-thumb">
+                          <img
+                            v-if="document.thumbnailSrc"
+                            :src="document.thumbnailSrc"
+                            :alt="document.fileName"
+                            class="contact-databook__hero-document-thumb-image"
+                          />
+                          <template v-else>
+                            <q-icon
+                              :name="document.thumbnailIcon"
+                              class="contact-databook__hero-document-thumb-icon"
+                            />
+                            <div class="contact-databook__hero-document-thumb-ext">
+                              {{ document.thumbnailLabel }}
+                            </div>
+                          </template>
+                        </div>
+
+                        <div class="contact-databook__hero-document-copy">
+                          <div class="contact-databook__hero-document-meta">
+                            <div class="contact-databook__hero-document-name">{{ document.fileName }}</div>
+                            <div class="contact-databook__hero-document-date">{{ document.created_at }}</div>
+                            <div v-if="document.fileTypeLabel" class="contact-databook__hero-document-type">
+                              {{ document.fileTypeLabel }}
+                            </div>
+                          </div>
+
+                          <div class="contact-databook__hero-document-actions">
+                            <q-btn
+                              dense
+                              flat
+                              no-caps
+                              size="sm"
+                              icon="download"
+                              label="Download"
+                              class="contact-databook__hero-document-action"
+                              :loading="activeDocumentActionKey === `${document.artifactId}:download`"
+                              @click.stop="downloadContactDocument(document)"
+                            />
+                            <q-btn
+                              dense
+                              flat
+                              no-caps
+                              size="sm"
+                              icon="share"
+                              label="Share"
+                              class="contact-databook__hero-document-action"
+                              :loading="activeDocumentActionKey === `${document.artifactId}:share`"
+                              @click.stop="shareContactDocument(document)"
+                            />
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                    <div v-else class="contact-section-card__empty contact-context-card__empty">
+                      No documents yet for this contact.
+                    </div>
+                  </div>
+                </article>
+              </div>
+
               <q-banner
-                v-if="!activeContentSection.fields.length"
+                v-else-if="!activeContentSection.fields.length"
                 class="contact-section-card__empty bg-grey-1 text-black"
                 rounded
               >
@@ -834,6 +968,8 @@ const TABLE_LIST_ROUTES = {
 }
 
 const DEFAULT_CONTACT_SUMMARY_STAT_IDS = ['role', 'stakeholder', 'country', 'phone']
+const CONTACT_HERO_NOTES_LIMIT = 10
+const CONTACT_HERO_DOCUMENTS_LIMIT = 6
 const CONTACT_IMAGE_CROP_FRAME_WIDTH = 280
 const CONTACT_IMAGE_CROP_FRAME_HEIGHT = 420
 const CONTACT_IMAGE_OUTPUT_WIDTH = 800
@@ -1093,9 +1229,8 @@ const contactSections = computed(() => {
       category: 'Other',
       title: 'Other',
       icon: CONTACT_SECTION_ICONS.note,
-      caption: 'Open notes and supporting context that does not fit the other groups.',
+      caption: 'All notes and related documents connected to this contact.',
       fieldConfigs: [{ label: 'Comments', aliases: ['Comments', 'Comment'] }],
-      layout: 'note',
     }),
   ]
 
@@ -1108,6 +1243,13 @@ const contactNavItems = computed(() => [
 const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
 )
+const contactHeroNotes = computed(() =>
+  contactNotes.value.slice(0, CONTACT_HERO_NOTES_LIMIT).map((note) => ({
+    ...note,
+    content: summarizeContactNoteContent(note.content),
+  })),
+)
+const contactHeroDocuments = computed(() => contactDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
 const contactMetaItems = computed(() => [
   { label: 'Record ID', value: getFieldDisplayValue('id') || recordIdParam.value || '-' },
   { label: 'Created', value: getFieldDisplayValue('created_at') || 'Unknown' },
@@ -1215,14 +1357,10 @@ async function loadContactNotes() {
           String(note?.reference_type || '').trim() === 'contact' &&
           String(note?.reference_id || '').trim() === recordIdParam.value,
       )
-      .slice(0, 10)
       .map((note) => ({
         id: note.id,
         title: String(note.title || 'Untitled note').trim() || 'Untitled note',
-        content: String(note.content || '')
-          .trim()
-          .replace(/\s+/g, ' ')
-          .slice(0, 140),
+        content: String(note.content || '').trim(),
         created_at: formatDisplayDate(note.created_at),
       }))
     syncContactHeroPanelTab()
@@ -1282,7 +1420,6 @@ async function loadContactDocuments() {
 
     contactDocuments.value = [...groupedArtifacts.values()]
       .sort((left, right) => resolveDocumentGroupTimestamp(right) - resolveDocumentGroupTimestamp(left))
-      .slice(0, 6)
       .map((group) => buildContactDocumentEntry(group))
     syncContactHeroPanelTab()
   } catch {
@@ -1539,6 +1676,13 @@ function formatDisplayDate(value) {
     day: 'numeric',
     year: 'numeric',
   }).format(date)
+}
+
+function summarizeContactNoteContent(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .slice(0, 140)
 }
 
 function parseDateValue(value) {
@@ -2845,6 +2989,8 @@ onBeforeUnmount(() => {
 
 .contact-databook__notes-content {
   margin-top: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
   font-family: var(--font-body);
   font-size: var(--text-sm---regular);
   line-height: 20px;
@@ -3230,10 +3376,22 @@ onBeforeUnmount(() => {
   min-height: 320px;
 }
 
-.contact-system-grid {
+.contact-system-grid,
+.contact-context-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+}
+
+.contact-context-card__empty {
+  padding: 14px 16px;
+  color: #6f6f6f;
+  background: #fbfbfb;
+  border: 1px dashed rgba(17, 17, 17, 0.12);
+  border-radius: 16px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  line-height: 20px;
 }
 
 .contact-section-card__header {
@@ -3447,7 +3605,8 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
-  .contact-system-grid {
+  .contact-system-grid,
+  .contact-context-grid {
     grid-template-columns: 1fr;
   }
 
