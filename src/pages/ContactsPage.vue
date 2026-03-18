@@ -184,15 +184,35 @@
 
           <div v-else class="row q-col-gutter-md contacts-cards-grid">
             <div v-for="row in displayRows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
-              <q-card flat bordered class="contact-card full-height" :style="getContactCardStyle(row)">
+              <q-card
+                flat
+                bordered
+                class="contact-card full-height"
+                :style="getContactCardStyle(row)"
+                @pointerenter="onContactCardPointerEnter"
+                @pointermove="onContactCardPointerMove"
+                @pointerleave="onContactCardPointerLeave"
+              >
                 <q-card-section class="contact-card__hero">
                   <div class="contact-card__hero-main">
-                    <figure class="contact-card__portrait">
+                    <figure
+                      class="contact-card__portrait"
+                      :class="{ 'contact-card__portrait--placeholder': !hasContactProfileImage(row) }"
+                    >
                       <img
+                        v-if="hasContactProfileImage(row)"
                         class="contact-card__portrait-image"
                         :src="buildAvatarImage(row)"
                         :alt="row.Name || 'Contact portrait'"
                       />
+                      <div v-else class="contact-card__portrait-placeholder" aria-hidden="true">
+                        <div
+                          class="contact-card__portrait-avatar"
+                          :style="{ backgroundColor: getContactAvatarColor(row) }"
+                        >
+                          {{ getContactInitials(row) }}
+                        </div>
+                      </div>
                     </figure>
 
                     <div class="contact-card__hero-side">
@@ -442,16 +462,8 @@ function buildAvatarImage(row) {
   const customImage = String(row?.Profile_Image || '').trim()
   if (customImage) return customImage
 
-  const label = String(row?.Name || row?.Email || 'Contact').trim()
-  const initials = label
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase?.() || '')
-    .join('') || 'C'
-
-  const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
-  const bg = palette[Math.abs(hashString(label)) % palette.length]
+  const initials = getContactInitials(row)
+  const bg = getContactAvatarColor(row)
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
       <rect width="112" height="112" rx="24" fill="${bg}" />
@@ -460,6 +472,28 @@ function buildAvatarImage(row) {
   `.trim()
 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+function hasContactProfileImage(row) {
+  return normalizeInputValue(row?.Profile_Image).length > 0
+}
+
+function getContactInitials(row) {
+  return getContactAvatarLabel(row)
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase?.() || '')
+    .join('') || 'C'
+}
+
+function getContactAvatarColor(row) {
+  const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
+  return palette[Math.abs(hashString(getContactAvatarLabel(row))) % palette.length]
+}
+
+function getContactAvatarLabel(row) {
+  return String(row?.Name || row?.Email || 'Contact').trim()
 }
 
 function hashString(value) {
@@ -481,18 +515,46 @@ function escapeSvg(value) {
 }
 
 function getContactCardStyle(row) {
-  const seed = Math.abs(hashString(`${row?.id || ''}:${row?.Name || row?.Email || 'contact'}`))
   const theme = getContactCompletenessTheme(countFilledContactFields(row))
   return {
-    '--contact-card-blob-x': `${20 + (seed % 56)}%`,
-    '--contact-card-blob-y': `${12 + (Math.floor(seed / 7) % 28)}%`,
-    '--contact-card-blob-size': `${34 + (Math.floor(seed / 13) % 16)}%`,
+    '--contact-card-blob-x': '50%',
+    '--contact-card-blob-y': '28%',
+    '--contact-card-blob-size': '31%',
+    '--contact-card-blob-opacity': '0',
     '--contact-card-blob-strong': theme.blobStrong,
     '--contact-card-blob-soft': theme.blobSoft,
     '--contact-card-blob-fade': theme.blobFade,
-    '--contact-card-surface-start': theme.surfaceStart,
-    '--contact-card-surface-end': theme.surfaceEnd,
   }
+}
+
+function onContactCardPointerEnter(event) {
+  updateContactCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--contact-card-blob-opacity', '1')
+}
+
+function onContactCardPointerMove(event) {
+  updateContactCardGradientPosition(event)
+}
+
+function onContactCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--contact-card-blob-opacity', '0')
+}
+
+function updateContactCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+
+  element.style.setProperty('--contact-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--contact-card-blob-y', `${clamp(y, 10, 90)}%`)
 }
 
 function getContactCardPills(row) {
@@ -1013,25 +1075,34 @@ watch(displayRows, () => {
   flex-direction: column;
   min-height: 100%;
   overflow: hidden;
-  background:
-    radial-gradient(
-      circle at var(--contact-card-blob-x) var(--contact-card-blob-y),
-      var(--contact-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
-      var(--contact-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--contact-card-blob-size) * 0.44),
-      var(--contact-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--contact-card-blob-size) * 0.62),
-      transparent var(--contact-card-blob-size)
-    ),
-    linear-gradient(
-      180deg,
-      var(--contact-card-surface-start, #ffffff) 0%,
-      var(--contact-card-surface-end, #f8f6f2) 100%
-    );
+  background: linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
   border-color: rgba(17, 17, 17, 0.08);
   border-radius: 24px;
   box-shadow: 0 18px 42px rgba(17, 17, 17, 0.06);
   transition:
     transform 180ms ease,
     box-shadow 180ms ease;
+}
+
+.contact-card::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--contact-card-blob-x) var(--contact-card-blob-y),
+    var(--contact-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--contact-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--contact-card-blob-size) * 0.46),
+    var(--contact-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--contact-card-blob-size) * 0.7),
+    transparent var(--contact-card-blob-size)
+  );
+  opacity: var(--contact-card-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.contact-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .contact-card:hover {
@@ -1045,8 +1116,8 @@ watch(displayRows, () => {
 
 .contact-card__hero-main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 208px;
-  height: 228px;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 292px;
 }
 
 .contact-card__hero-side {
@@ -1055,7 +1126,7 @@ watch(displayRows, () => {
   align-content: start;
   gap: 10px;
   min-width: 0;
-  padding: 16px 16px 14px 14px;
+  padding: 16px 18px 18px 14px;
   background: rgba(255, 255, 255, 0.22);
   overflow: hidden;
 }
@@ -1078,6 +1149,15 @@ watch(displayRows, () => {
   border-right: 1px solid rgba(17, 17, 17, 0.08);
 }
 
+.contact-card__portrait--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 28% 26%, rgba(255, 255, 255, 0.22), transparent 30%),
+    linear-gradient(180deg, #ebe7df 0%, #dcd6cd 100%);
+}
+
 .contact-card__portrait::after {
   position: absolute;
   inset: 0;
@@ -1092,6 +1172,35 @@ watch(displayRows, () => {
   height: 100%;
   object-fit: cover;
   filter: grayscale(1) contrast(1.08);
+}
+
+.contact-card__portrait-placeholder {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+}
+
+.contact-card__portrait-avatar {
+  display: flex;
+  width: clamp(104px, 42%, 136px);
+  height: clamp(104px, 42%, 136px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 36px rgba(17, 17, 17, 0.14);
+  font-family: var(--font-title);
+  font-size: clamp(2.4rem, 5vw, 3.5rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
 }
 
 .contact-card__hero-copy {
@@ -1205,7 +1314,7 @@ watch(displayRows, () => {
   flex: 1 1 auto;
   flex-direction: column;
   gap: 14px;
-  margin: 12px 20px 0;
+  margin: 20px 20px 0;
   padding: 16px 18px 18px;
   background: rgba(255, 255, 255, 0.74);
   border: 1px solid rgba(17, 17, 17, 0.08);
@@ -1335,7 +1444,7 @@ watch(displayRows, () => {
 
   .contact-card__hero-main {
     grid-template-columns: 1fr;
-    height: 276px;
+    height: 324px;
   }
 
   .contact-card__portrait {
@@ -1352,6 +1461,12 @@ watch(displayRows, () => {
   .contact-card__hero-side {
     gap: 12px;
     padding: 14px;
+  }
+
+  .contact-card__portrait-avatar {
+    width: 104px;
+    height: 104px;
+    font-size: 2.5rem;
   }
 
   .contact-card__quick-actions {
