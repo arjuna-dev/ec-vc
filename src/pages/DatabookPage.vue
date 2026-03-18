@@ -943,6 +943,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vu
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 
 const route = useRoute()
 const router = useRouter()
@@ -1133,10 +1134,24 @@ const contactImageCropStyle = computed(() => ({
   height: `${contactImageCropDisplaySize.value.height}px`,
   transform: `translate(-50%, -50%) translate(${contactImageCropOffset.value.x}px, ${contactImageCropOffset.value.y}px)`,
 }))
+const contactFilledFieldCount = computed(() =>
+  countFilledContactFields(
+    fields.value.map((field) => ({
+      field_name: field.field_name,
+      value: getFieldDisplayValue(field.field_name),
+    })),
+  ),
+)
+const contactHeroTheme = computed(() => getContactCompletenessTheme(contactFilledFieldCount.value))
 const contactHeroStyle = computed(() => ({
   '--contact-hero-blob-x': `${contactHeroGradient.value.x}%`,
   '--contact-hero-blob-y': `${contactHeroGradient.value.y}%`,
   '--contact-hero-blob-size': `${contactHeroGradient.value.size}%`,
+  '--contact-hero-blob-strong': contactHeroTheme.value.blobStrong,
+  '--contact-hero-blob-soft': contactHeroTheme.value.blobSoft,
+  '--contact-hero-blob-fade': contactHeroTheme.value.blobFade,
+  '--contact-hero-surface-start': contactHeroTheme.value.surfaceStart,
+  '--contact-hero-surface-end': contactHeroTheme.value.surfaceEnd,
 }))
 const contactHeroPills = computed(() =>
   [
@@ -2528,12 +2543,16 @@ onBeforeUnmount(() => {
   background:
     radial-gradient(
       circle at var(--contact-hero-blob-x) var(--contact-hero-blob-y),
-      rgba(38, 71, 255, 0.2) 0%,
-      rgba(38, 71, 255, 0.16) calc(var(--contact-hero-blob-size) * 0.36),
-      rgba(38, 71, 255, 0.08) calc(var(--contact-hero-blob-size) * 0.58),
+      var(--contact-hero-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+      var(--contact-hero-blob-soft, rgba(38, 71, 255, 0.14)) calc(var(--contact-hero-blob-size) * 0.36),
+      var(--contact-hero-blob-fade, rgba(38, 71, 255, 0.06)) calc(var(--contact-hero-blob-size) * 0.58),
       transparent var(--contact-hero-blob-size)
     ),
-    linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
+    linear-gradient(
+      180deg,
+      var(--contact-hero-surface-start, #ffffff) 0%,
+      var(--contact-hero-surface-end, #f8f6f2) 100%
+    );
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 24px;
   box-shadow: 0 20px 50px rgba(17, 17, 17, 0.06);

@@ -207,12 +207,18 @@
                           </div>
                         </div>
 
-                        <q-checkbox
-                          class="contact-card__checkbox"
-                          :model-value="isSelected(row)"
+                        <q-btn
+                          round
+                          dense
+                          size="sm"
+                          unelevated
+                          no-caps
+                          class="contact-card__select-button"
+                          :class="{ 'contact-card__select-button--active': isSelected(row) }"
+                          :icon="isSelected(row) ? 'check' : 'add'"
                           :disable="loading"
-                          color="dark"
-                          @update:model-value="toggleRowSelection(row, $event)"
+                          :aria-pressed="isSelected(row) ? 'true' : 'false'"
+                          @click.stop="toggleRowSelection(row)"
                         />
                       </div>
 
@@ -325,6 +331,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { exportFile, useQuasar } from 'quasar'
 import ContactCreateDialog from 'components/ContactCreateDialog.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
+import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 
 const isElectronRuntime = computed(() => {
@@ -475,10 +482,16 @@ function escapeSvg(value) {
 
 function getContactCardStyle(row) {
   const seed = Math.abs(hashString(`${row?.id || ''}:${row?.Name || row?.Email || 'contact'}`))
+  const theme = getContactCompletenessTheme(countFilledContactFields(row))
   return {
     '--contact-card-blob-x': `${20 + (seed % 56)}%`,
     '--contact-card-blob-y': `${12 + (Math.floor(seed / 7) % 28)}%`,
     '--contact-card-blob-size': `${34 + (Math.floor(seed / 13) % 16)}%`,
+    '--contact-card-blob-strong': theme.blobStrong,
+    '--contact-card-blob-soft': theme.blobSoft,
+    '--contact-card-blob-fade': theme.blobFade,
+    '--contact-card-surface-start': theme.surfaceStart,
+    '--contact-card-surface-end': theme.surfaceEnd,
   }
 }
 
@@ -679,17 +692,23 @@ async function onContactCreated() {
 }
 
 function normalizeSelectedRows() {
-  const activeIds = new Set(displayRows.value.map((row) => row.id))
-  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.id))
+  const activeIds = new Set(displayRows.value.map((row) => getRowId(row)))
+  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(getRowId(row)))
 }
 
 function isSelected(row) {
-  return selectedRows.value.some((selectedRow) => selectedRow.id === row?.id)
+  const rowId = getRowId(row)
+  if (!rowId) return false
+  return selectedRows.value.some((selectedRow) => getRowId(selectedRow) === rowId)
 }
 
 function toggleRowSelection(row, shouldSelect) {
-  const rowId = String(row?.id || '').trim()
+  const rowId = getRowId(row)
   if (!rowId) return
+
+  if (typeof shouldSelect !== 'boolean') {
+    shouldSelect = !isSelected(row)
+  }
 
   if (shouldSelect) {
     if (isSelected(row)) return
@@ -697,7 +716,11 @@ function toggleRowSelection(row, shouldSelect) {
     return
   }
 
-  selectedRows.value = selectedRows.value.filter((selectedRow) => selectedRow.id !== rowId)
+  selectedRows.value = selectedRows.value.filter((selectedRow) => getRowId(selectedRow) !== rowId)
+}
+
+function getRowId(row) {
+  return String(row?.id || '').trim()
 }
 
 async function deleteContact(row) {
@@ -993,11 +1016,16 @@ watch(displayRows, () => {
   background:
     radial-gradient(
       circle at var(--contact-card-blob-x) var(--contact-card-blob-y),
-      rgba(38, 71, 255, 0.16) 0%,
-      rgba(38, 71, 255, 0.1) calc(var(--contact-card-blob-size) * 0.44),
+      var(--contact-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+      var(--contact-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--contact-card-blob-size) * 0.44),
+      var(--contact-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--contact-card-blob-size) * 0.62),
       transparent var(--contact-card-blob-size)
     ),
-    linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
+    linear-gradient(
+      180deg,
+      var(--contact-card-surface-start, #ffffff) 0%,
+      var(--contact-card-surface-end, #f8f6f2) 100%
+    );
   border-color: rgba(17, 17, 17, 0.08);
   border-radius: 24px;
   box-shadow: 0 18px 42px rgba(17, 17, 17, 0.06);
@@ -1102,17 +1130,26 @@ watch(displayRows, () => {
   text-wrap: balance;
 }
 
-.contact-card__checkbox {
+.contact-card__select-button {
   position: relative;
   z-index: 2;
+  cursor: pointer;
   margin-right: -2px;
   margin-top: 0;
+  color: #111;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.08);
 }
 
-.contact-card__checkbox :deep(.q-checkbox__bg) {
-  background: rgba(255, 255, 255, 0.76);
-  border: 1px solid rgba(17, 17, 17, 0.12);
-  border-radius: 8px;
+.contact-card__select-button :deep(.q-btn__content) {
+  min-width: 0;
+}
+
+.contact-card__select-button--active {
+  color: #fff;
+  background: #111;
+  border-color: #111;
 }
 
 .contact-card__pill-row,

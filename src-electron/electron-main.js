@@ -444,15 +444,7 @@ function listOpportunities() {
 function listContacts() {
   return dbAll(
     `
-    SELECT
-      id,
-      Name,
-      Profile_Image,
-      Email,
-      Phone,
-      Role,
-      Stakeholder_type,
-      created_at
+    SELECT *
     FROM Contacts
     ORDER BY COALESCE(Name, '') ASC, created_at DESC
   `,
