@@ -89,8 +89,8 @@
             ref="contactHeroRef"
             class="contact-databook__hero"
             :style="contactHeroStyle"
+            @pointerenter="startContactHeroPointerTracking"
             @pointermove="onContactHeroPointerMove"
-            @pointerleave="onContactHeroPointerLeave"
           >
             <div class="contact-databook__hero-main">
               <figure class="contact-databook__portrait">
@@ -1093,6 +1093,7 @@ const pdfPreviewSelectedPage = ref(1)
 const pdfPreviewCurrentPageSrc = ref('')
 let pdfPreviewRequestToken = 0
 const contactHeroGradient = ref({ ...CONTACT_HERO_GRADIENT_DEFAULT })
+let contactHeroTrackingActive = false
 
 const isHistoricalMode = computed(() => !!selectedVersionId.value)
 const tableNameParam = computed(() => String(route.params.tableName || '').trim())
@@ -1150,8 +1151,6 @@ const contactHeroStyle = computed(() => ({
   '--contact-hero-blob-strong': contactHeroTheme.value.blobStrong,
   '--contact-hero-blob-soft': contactHeroTheme.value.blobSoft,
   '--contact-hero-blob-fade': contactHeroTheme.value.blobFade,
-  '--contact-hero-surface-start': contactHeroTheme.value.surfaceStart,
-  '--contact-hero-surface-end': contactHeroTheme.value.surfaceEnd,
 }))
 const contactHeroPills = computed(() =>
   [
@@ -2242,8 +2241,15 @@ function onContactHeroPointerMove(event) {
   }
 }
 
-function onContactHeroPointerLeave() {
-  contactHeroGradient.value = { ...CONTACT_HERO_GRADIENT_DEFAULT }
+function startContactHeroPointerTracking() {
+  if (contactHeroTrackingActive) return
+  contactHeroTrackingActive = true
+  window.addEventListener('pointermove', onContactHeroPointerMove)
+}
+
+function stopContactHeroPointerTracking() {
+  contactHeroTrackingActive = false
+  window.removeEventListener('pointermove', onContactHeroPointerMove)
 }
 
 function loadImageDimensions(src) {
@@ -2352,6 +2358,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopContactImageCropDrag()
+  stopContactHeroPointerTracking()
   closeDocumentPreview()
 })
 </script>
@@ -2548,11 +2555,7 @@ onBeforeUnmount(() => {
       var(--contact-hero-blob-fade, rgba(38, 71, 255, 0.06)) calc(var(--contact-hero-blob-size) * 0.58),
       transparent var(--contact-hero-blob-size)
     ),
-    linear-gradient(
-      180deg,
-      var(--contact-hero-surface-start, #ffffff) 0%,
-      var(--contact-hero-surface-end, #f8f6f2) 100%
-    );
+    linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 24px;
   box-shadow: 0 20px 50px rgba(17, 17, 17, 0.06);
