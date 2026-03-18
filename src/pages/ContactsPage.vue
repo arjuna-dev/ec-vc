@@ -99,7 +99,7 @@
                   @click="viewMode = option.value"
                 >
                   <q-item-section avatar>
-                    <q-icon :name="option.icon" color="black" />
+                    <q-icon :name="option.icon" />
                   </q-item-section>
                   <q-item-section>
                     <q-item-label>{{ option.label }}</q-item-label>
@@ -554,7 +554,7 @@ function getContactCardStyle(row) {
   return {
     '--contact-card-blob-x': '50%',
     '--contact-card-blob-y': '28%',
-    '--contact-card-blob-size': '31%',
+    '--contact-card-blob-size': '62%',
     '--contact-card-blob-opacity': '0',
     '--contact-card-blob-strong': theme.blobStrong,
     '--contact-card-blob-soft': theme.blobSoft,
@@ -1008,7 +1008,7 @@ watch(displayRows, () => {
   background: #fff;
   border: 1px solid #e5e5e5;
   border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
 }
 
 .contacts-toolbar__search :deep(.q-field__control),
@@ -1020,6 +1020,7 @@ watch(displayRows, () => {
 
 .contacts-toolbar__search :deep(.q-field__control) {
   padding: 0 12px;
+  box-shadow: none;
 }
 
 .contacts-toolbar__button,
