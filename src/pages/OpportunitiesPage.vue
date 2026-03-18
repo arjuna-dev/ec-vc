@@ -293,7 +293,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { exportFile, useQuasar } from 'quasar'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 
@@ -324,6 +324,7 @@ const selectedCount = computed(() => selectedRows.value.length)
 const heroAvatarImage = computed(() => buildAvatarImage('OP'))
 
 const $q = useQuasar()
+const route = useRoute()
 const router = useRouter()
 
 function openCreateOpportunity() {
@@ -333,7 +334,11 @@ function openCreateOpportunity() {
 function openDatabook(row) {
   const recordId = String(row?.id || '').trim()
   if (!recordId) return
-  router.push({ name: 'databook-view', params: { tableName: 'Opportunities', recordId } })
+  router.push({
+    name: 'databook-view',
+    params: { tableName: 'Opportunities', recordId },
+    query: { returnTo: route.fullPath },
+  })
 }
 
 const columns = [

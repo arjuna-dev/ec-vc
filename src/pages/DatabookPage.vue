@@ -40,8 +40,8 @@
             no-caps
             icon="arrow_back"
             class="databook-heading__back databook-heading__action"
-            :label="backLink.label"
-            @click="router.push({ name: backLink.routeName })"
+            label="Back"
+            @click="handleBackNavigation"
           />
 
           <q-btn-dropdown
@@ -1106,6 +1106,7 @@ const databookTitle = computed(() => {
   if (name) return `${name} Databook`
   return recordIdParam.value ? `${recordIdParam.value} Databook` : 'Databook'
 })
+const returnToPath = computed(() => String(route.query.returnTo || '').trim())
 const backLink = computed(
   () => TABLE_LIST_ROUTES[currentView.value?.table_name || tableNameParam.value] || null,
 )
@@ -1298,6 +1299,22 @@ function getFieldDisplayValue(fieldName) {
   if (!field) return ''
   if (!editMode.value) return String(field.value || '').trim()
   return String(draftValues.value[field.key] ?? field.value ?? '').trim()
+}
+
+function handleBackNavigation() {
+  if (returnToPath.value) {
+    router.push(returnToPath.value)
+    return
+  }
+
+  if (typeof window !== 'undefined' && window.history?.state?.back) {
+    router.back()
+    return
+  }
+
+  if (backLink.value) {
+    router.push({ name: backLink.value.routeName })
+  }
 }
 
 function getContactPill(fieldName, prefix) {

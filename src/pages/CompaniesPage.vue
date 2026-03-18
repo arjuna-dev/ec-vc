@@ -356,7 +356,11 @@ function consumeQueuedCompanyDialogOpen() {
 function openDatabook(row) {
   const recordId = String(row?.id || '').trim()
   if (!recordId) return
-  router.push({ name: 'databook-view', params: { tableName: 'Companies', recordId } })
+  router.push({
+    name: 'databook-view',
+    params: { tableName: 'Companies', recordId },
+    query: { returnTo: route.fullPath },
+  })
 }
 
 const columns = [

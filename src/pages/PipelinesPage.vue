@@ -653,7 +653,11 @@ function openCreatePipeline() {
 function openDatabook(row) {
   const recordId = String(row?.pipeline_id || '').trim()
   if (!recordId) return
-  router.push({ name: 'databook-view', params: { tableName: 'Pipelines', recordId } })
+  router.push({
+    name: 'databook-view',
+    params: { tableName: 'Pipelines', recordId },
+    query: { returnTo: route.fullPath },
+  })
 }
 
 function onOpenPipelineDialog() {

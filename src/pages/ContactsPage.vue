@@ -373,7 +373,6 @@ const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const contactDialogOpen = ref(false)
-const viewMode = ref('table')
 const searchQuery = ref('')
 const priorityMode = ref(false)
 const pagination = ref({ page: 1, rowsPerPage: 10 })
@@ -390,6 +389,8 @@ const contactCardDateFormatter = new Intl.DateTimeFormat(undefined, {
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
+const CONTACT_VIEW_MODES = new Set(['card', 'table'])
+const viewMode = ref(getRouteViewMode(route.query.view))
 
 function openCreateContact() {
   contactDialogOpen.value = true
@@ -420,7 +421,41 @@ function consumeQueuedContactDialogOpen() {
 function openDatabook(row) {
   const recordId = String(row?.id || '').trim()
   if (!recordId) return
-  router.push({ name: 'databook-view', params: { tableName: 'Contacts', recordId } })
+  router.push({
+    name: 'databook-view',
+    params: { tableName: 'Contacts', recordId },
+    query: { returnTo: getContactsReturnToPath() },
+  })
+}
+
+function getRouteViewMode(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  return CONTACT_VIEW_MODES.has(normalized) ? normalized : 'table'
+}
+
+function getContactsReturnToPath() {
+  const nextQuery = { ...route.query }
+
+  if (viewMode.value === 'card') nextQuery.view = 'card'
+  else delete nextQuery.view
+
+  return router.resolve({
+    path: route.path,
+    query: nextQuery,
+  }).fullPath
+}
+
+function syncViewModeQuery() {
+  const currentRouteView = getRouteViewMode(route.query.view)
+  const nextView = CONTACT_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'table'
+
+  if (currentRouteView === nextView) return
+
+  const nextQuery = { ...route.query }
+  if (nextView === 'card') nextQuery.view = 'card'
+  else delete nextQuery.view
+
+  router.replace({ query: nextQuery })
 }
 
 const displayRows = computed(() => {
@@ -852,6 +887,18 @@ watch(
     openCreateContactFromQuery()
   },
 )
+
+watch(
+  () => route.query.view,
+  (value) => {
+    const nextView = getRouteViewMode(value)
+    if (viewMode.value !== nextView) viewMode.value = nextView
+  },
+)
+
+watch(viewMode, () => {
+  syncViewModeQuery()
+})
 
 watch(displayRows, () => {
   normalizeSelectedRows()
