@@ -22,12 +22,62 @@
       <section class="contacts-shell">
         <div class="contacts-shell__hero">
           <div class="contacts-shell__copy">
-            <h2 class="contacts-shell__hero-title">Welcome back!</h2>
-            <p class="contacts-shell__hero-text">Here's a list of all of your contacts.</p>
+            <div class="contacts-shell__eyebrow">Contacts dashboard</div>
+            <h2 class="contacts-shell__hero-title">Relationship map at a glance.</h2>
+            <p class="contacts-shell__hero-text">{{ contactsHeroText }}</p>
+
+            <div class="contacts-shell__hero-meta">
+              <div class="contacts-shell__meta-pill">
+                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
+              </div>
+              <div v-if="selectedCount > 0" class="contacts-shell__meta-pill">
+                {{ selectedCount }} selected
+              </div>
+              <div class="contacts-shell__meta-pill">
+                {{ contactsDashboard.reachableRate }}% reachable
+              </div>
+            </div>
           </div>
-          <q-avatar size="36px" class="contacts-shell__hero-avatar">
-            <img :src="heroAvatarImage" alt="Contacts overview avatar" />
-          </q-avatar>
+
+          <div class="contacts-dashboard">
+            <div class="contacts-dashboard__stats">
+              <article
+                v-for="stat in contactsDashboardStats"
+                :key="stat.label"
+                class="contacts-dashboard__stat"
+                :class="`contacts-dashboard__stat--${stat.tone}`"
+              >
+                <div class="contacts-dashboard__stat-label">{{ stat.label }}</div>
+                <div class="contacts-dashboard__stat-value">{{ stat.value }}</div>
+                <div class="contacts-dashboard__stat-caption">{{ stat.caption }}</div>
+              </article>
+            </div>
+
+            <div class="contacts-dashboard__health">
+              <div class="contacts-dashboard__health-copy">
+                <div class="contacts-dashboard__health-label">Profile health</div>
+                <div class="contacts-dashboard__health-text">
+                  {{ contactsDashboard.richCount }} rich, {{ contactsDashboard.mediumCount }} medium,
+                  {{ contactsDashboard.sparseCount }} sparse
+                </div>
+              </div>
+
+              <div class="contacts-dashboard__health-bar" aria-hidden="true">
+                <span
+                  class="contacts-dashboard__health-segment contacts-dashboard__health-segment--sparse"
+                  :style="{ width: `${contactsDashboard.sparseShare}%` }"
+                />
+                <span
+                  class="contacts-dashboard__health-segment contacts-dashboard__health-segment--medium"
+                  :style="{ width: `${contactsDashboard.mediumShare}%` }"
+                />
+                <span
+                  class="contacts-dashboard__health-segment contacts-dashboard__health-segment--rich"
+                  :style="{ width: `${contactsDashboard.richShare}%` }"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="contacts-toolbar">
@@ -379,7 +429,6 @@ const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const selectedCount = computed(() => selectedRows.value.length)
 const rowsPerPageOptions = [10, 15, 25, 50]
-const heroAvatarImage = computed(() => buildAvatarImage({ Name: 'EC VC' }))
 const contactCardDateFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
   day: 'numeric',
@@ -391,6 +440,80 @@ const route = useRoute()
 const router = useRouter()
 const CONTACT_VIEW_MODES = new Set(['card', 'table'])
 const viewMode = ref(getRouteViewMode(route.query.view))
+const contactsDashboard = computed(() => {
+  const total = rows.value.length
+  const counts = rows.value.reduce(
+    (summary, row) => {
+      const filledCount = countFilledContactFields(row)
+      const email = normalizeInputValue(row?.Email)
+      const phone = normalizeInputValue(row?.Phone)
+      const linkedIn = normalizeInputValue(row?.LinkedIn)
+
+      if (email || phone) summary.reachableCount += 1
+      if (linkedIn) summary.linkedInCount += 1
+      if (!email && !phone && !linkedIn) summary.missingCoreCount += 1
+
+      if (filledCount < 3) summary.sparseCount += 1
+      else if (filledCount <= 8) summary.mediumCount += 1
+      else summary.richCount += 1
+
+      return summary
+    },
+    {
+      reachableCount: 0,
+      linkedInCount: 0,
+      missingCoreCount: 0,
+      sparseCount: 0,
+      mediumCount: 0,
+      richCount: 0,
+    },
+  )
+
+  const safeTotal = total || 1
+  return {
+    total,
+    ...counts,
+    reachableRate: Math.round((counts.reachableCount / safeTotal) * 100),
+    sparseShare: total ? (counts.sparseCount / total) * 100 : 0,
+    mediumShare: total ? (counts.mediumCount / total) * 100 : 0,
+    richShare: total ? (counts.richCount / total) * 100 : 0,
+  }
+})
+const contactsHeroText = computed(() => {
+  const { total, richCount, sparseCount, linkedInCount } = contactsDashboard.value
+
+  if (!total) {
+    return 'Start building your relationship map. Add contacts to track reachability, data quality, and warm paths.'
+  }
+
+  return `${total} contacts tracked, ${richCount} rich profiles ready to work, ${sparseCount} still need context, and ${linkedInCount} already include LinkedIn.`
+})
+const contactsDashboardStats = computed(() => [
+  {
+    label: 'Total contacts',
+    value: contactsDashboard.value.total,
+    caption: 'People in your network',
+    tone: 'neutral',
+  },
+  {
+    label: 'Reachable',
+    value: contactsDashboard.value.reachableCount,
+    caption: 'Email or phone available',
+    tone: 'rich',
+  },
+  {
+    label: 'Rich profiles',
+    value: contactsDashboard.value.richCount,
+    caption: 'Databooks with strong detail',
+    tone: 'rich',
+  },
+  {
+    label: 'Need enrichment',
+    value: contactsDashboard.value.sparseCount,
+    caption: 'Less than 3 fields filled',
+    tone: 'sparse',
+  },
+])
 
 function openCreateContact() {
   contactDialogOpen.value = true
@@ -430,13 +553,13 @@ function openDatabook(row) {
 
 function getRouteViewMode(value) {
   const normalized = String(value || '').trim().toLowerCase()
-  return CONTACT_VIEW_MODES.has(normalized) ? normalized : 'table'
+  return CONTACT_VIEW_MODES.has(normalized) ? normalized : 'card'
 }
 
 function getContactsReturnToPath() {
   const nextQuery = { ...route.query }
 
-  if (viewMode.value === 'card') nextQuery.view = 'card'
+  if (viewMode.value === 'table') nextQuery.view = 'table'
   else delete nextQuery.view
 
   return router.resolve({
@@ -447,12 +570,12 @@ function getContactsReturnToPath() {
 
 function syncViewModeQuery() {
   const currentRouteView = getRouteViewMode(route.query.view)
-  const nextView = CONTACT_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'table'
+  const nextView = CONTACT_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'card'
 
   if (currentRouteView === nextView) return
 
   const nextQuery = { ...route.query }
-  if (nextView === 'card') nextQuery.view = 'card'
+  if (nextView === 'table') nextQuery.view = 'table'
   else delete nextQuery.view
 
   router.replace({ query: nextQuery })
@@ -938,40 +1061,202 @@ watch(displayRows, () => {
 }
 
 .contacts-shell__hero {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: space-between;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 24px;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(235, 255, 90, 0.18), transparent 24%),
+    radial-gradient(circle at 14% 82%, rgba(38, 71, 255, 0.09), transparent 28%),
+    linear-gradient(180deg, #fdfcf8 0%, #f6f3eb 100%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 24px;
+}
+
+.contacts-shell__hero::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.64), transparent 38%),
+    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.36) 100%);
+  pointer-events: none;
 }
 
 .contacts-shell__copy {
   display: flex;
-  flex: 1 1 auto;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
   min-width: 0;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.contacts-shell__eyebrow {
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.16em;
+  line-height: 16px;
+  text-transform: uppercase;
 }
 
 .contacts-shell__hero-title {
   margin: 0;
   color: #0a0a0a;
   font-family: var(--font-title);
-  font-size: var(--text-2xl---black);
+  font-size: clamp(2rem, 3vw, 2.8rem);
   font-weight: var(--font-weight-black);
-  line-height: 32px;
+  line-height: 0.96;
+  max-width: 12ch;
 }
 
 .contacts-shell__hero-text {
   margin: 0;
-  color: #737373;
+  color: #5d5a54;
   font-family: var(--font-body);
-  font-size: var(--text-base---light);
-  font-weight: var(--font-weight-light);
+  font-size: var(--text-base---regular);
+  font-weight: var(--font-weight-regular);
   line-height: 24px;
+  max-width: 52ch;
 }
 
-.contacts-shell__hero-avatar {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+.contacts-shell__hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contacts-shell__meta-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  color: #4b4b4b;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.contacts-dashboard {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.contacts-dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.contacts-dashboard__stat {
+  display: flex;
+  min-height: 116px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 14px 28px rgba(17, 17, 17, 0.04);
+}
+
+.contacts-dashboard__stat--neutral {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(247, 244, 238, 0.94) 100%);
+}
+
+.contacts-dashboard__stat--rich {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(238, 241, 255, 0.96) 100%);
+}
+
+.contacts-dashboard__stat--sparse {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
+}
+
+.contacts-dashboard__stat-label,
+.contacts-dashboard__health-label {
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.contacts-dashboard__stat-value {
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.8rem, 2vw, 2.4rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+}
+
+.contacts-dashboard__stat-caption,
+.contacts-dashboard__health-text {
+  color: #5d5a54;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 20px;
+}
+
+.contacts-dashboard__health {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+}
+
+.contacts-dashboard__health-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contacts-dashboard__health-bar {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  background: rgba(17, 17, 17, 0.06);
+  border-radius: 999px;
+}
+
+.contacts-dashboard__health-segment {
+  display: block;
+  height: 100%;
+}
+
+.contacts-dashboard__health-segment--sparse {
+  background: #ff5521;
+}
+
+.contacts-dashboard__health-segment--medium {
+  background: #ebff5a;
+}
+
+.contacts-dashboard__health-segment--rich {
+  background: #2647ff;
 }
 
 .contacts-toolbar {
@@ -1165,16 +1450,16 @@ watch(displayRows, () => {
 .contact-card__hero-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 224px;
-  height: 292px;
+  height: 248px;
 }
 
 .contact-card__hero-side {
   display: grid;
   grid-template-rows: auto auto auto;
   align-content: start;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
-  padding: 16px 18px 18px 14px;
+  padding: 12px 16px 12px 12px;
   background: rgba(255, 255, 255, 0.22);
   overflow: hidden;
 }
@@ -1182,7 +1467,7 @@ watch(displayRows, () => {
 .contact-card__hero-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 10px;
   align-items: start;
 }
 
@@ -1255,8 +1540,7 @@ watch(displayRows, () => {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 4px;
-  padding-top: 1px;
+  gap: 3px;
 }
 
 .contact-card__eyebrow,
@@ -1458,6 +1742,10 @@ watch(displayRows, () => {
     gap: 20px;
   }
 
+  .contacts-shell__hero {
+    grid-template-columns: 1fr;
+  }
+
   .contacts-toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -1486,6 +1774,19 @@ watch(displayRows, () => {
 }
 
 @media (max-width: 640px) {
+  .contacts-shell__hero {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .contacts-dashboard__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .contacts-dashboard__stat {
+    min-height: 98px;
+  }
+
   .contact-card {
     border-radius: 20px;
   }
