@@ -85,6 +85,9 @@ contextBridge.exposeInMainWorld('ecvc', {
     setUserLabel: (userLabel) => ipcRenderer.invoke('audit:setUserLabel', { userLabel }),
     events: (filters) => ipcRenderer.invoke('audit:events', filters),
   },
+  links: {
+    openExternal: (url) => ipcRenderer.invoke('links:openExternal', { url }),
+  },
   contacts: {
     list: () => ipcRenderer.invoke('contacts:list'),
     create: (payload) => ipcRenderer.invoke('contacts:create', payload),

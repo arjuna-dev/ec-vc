@@ -3826,6 +3826,13 @@ function registerIpc() {
     return { events: listEvents(filters) }
   })
 
+  ipcMain.handle('links:openExternal', async (_event, { url } = {}) => {
+    const target = String(url || '').trim()
+    if (!target) return false
+    await shell.openExternal(target)
+    return true
+  })
+
   ipcMain.handle('contacts:list', async () => {
     initDb()
     return { contacts: listContacts() }

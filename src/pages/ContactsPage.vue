@@ -184,81 +184,110 @@
 
           <div v-else class="row q-col-gutter-md contacts-cards-grid">
             <div v-for="row in displayRows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
-              <q-card flat bordered class="contact-card full-height">
-                <q-card-section class="q-pb-sm">
-                  <div class="row items-start no-wrap">
-                    <div class="col-auto q-pr-md">
-                      <q-avatar size="56px" class="contact-card__avatar">
-                        <img :src="buildAvatarImage(row)" :alt="row.Name || 'Contact avatar'" />
-                      </q-avatar>
-                    </div>
-                    <div class="col">
-                      <div class="contact-card__eyebrow">Contact</div>
-                      <div class="contact-card__title">
-                        {{ row.Name || 'Unnamed contact' }}
-                      </div>
-                      <div v-if="row.Role" class="contact-card__role">{{ row.Role }}</div>
-                    </div>
-                    <div class="col-auto">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        @update:model-value="toggleRowSelection(row, $event)"
+              <q-card flat bordered class="contact-card full-height" :style="getContactCardStyle(row)">
+                <q-card-section class="contact-card__hero">
+                  <div class="contact-card__hero-main">
+                    <figure class="contact-card__portrait">
+                      <img
+                        class="contact-card__portrait-image"
+                        :src="buildAvatarImage(row)"
+                        :alt="row.Name || 'Contact portrait'"
                       />
+                    </figure>
+
+                    <div class="contact-card__hero-side">
+                      <div class="contact-card__hero-top">
+                        <div class="contact-card__hero-copy">
+                          <div class="contact-card__eyebrow">Contact profile</div>
+                          <div class="contact-card__title">
+                            {{ row.Name || 'Unnamed contact' }}
+                          </div>
+                          <div class="contact-card__role">
+                            {{ row.Role || 'Role not added yet' }}
+                          </div>
+                        </div>
+
+                        <q-checkbox
+                          class="contact-card__checkbox"
+                          :model-value="isSelected(row)"
+                          :disable="loading"
+                          color="dark"
+                          @update:model-value="toggleRowSelection(row, $event)"
+                        />
+                      </div>
+
+                      <div v-if="getContactCardPills(row).length" class="contact-card__pill-row">
+                        <q-badge
+                          v-for="pill in getContactCardPills(row)"
+                          :key="pill"
+                          class="contact-card__pill"
+                        >
+                          {{ pill }}
+                        </q-badge>
+                      </div>
+
+                      <div v-if="getContactCardActionLinks(row).length" class="contact-card__quick-actions">
+                        <q-btn
+                          v-for="link in getContactCardActionLinks(row)"
+                          :key="link.label"
+                          outline
+                          no-caps
+                          unelevated
+                          size="sm"
+                          class="contact-card__quick-action"
+                          type="button"
+                          @click="openContactCardAction(link, $event)"
+                        >
+                          <q-icon :name="link.icon" size="16px" class="q-mr-sm" />
+                          <span>{{ link.label }}</span>
+                        </q-btn>
+                      </div>
                     </div>
                   </div>
                 </q-card-section>
 
-                <q-separator />
+                <q-card-section class="contact-card__summary">
+                  <div class="contact-card__summary-label">Highlights</div>
 
-                <q-card-section class="q-gutter-sm">
-                  <div v-if="row.Email" class="contact-card__field">
-                    <q-icon name="mail" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.Email }}</span>
-                  </div>
-                  <div v-if="row.Phone" class="contact-card__field">
-                    <q-icon name="call" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.Phone }}</span>
-                  </div>
-                  <div v-if="row.LinkedIn" class="contact-card__field">
-                    <q-icon name="link" size="16px" class="q-mr-sm text-grey-7" />
-                    <span class="ellipsis">{{ row.LinkedIn }}</span>
-                  </div>
-                  <div class="row q-col-gutter-sm q-pt-xs">
-                    <div v-if="row.Stakeholder_type" class="col-auto">
-                      <q-badge outline color="grey-7" text-color="grey-8">
-                        {{ row.Stakeholder_type }}
-                      </q-badge>
+                  <div v-if="getContactCardDetails(row).length" class="contact-card__details">
+                    <div
+                      v-for="detail in getContactCardDetails(row)"
+                      :key="detail.label"
+                      class="contact-card__detail"
+                    >
+                      <q-icon :name="detail.icon" size="16px" class="contact-card__detail-icon" />
+                      <div class="contact-card__detail-copy">
+                        <div class="contact-card__detail-label">{{ detail.label }}</div>
+                        <div class="contact-card__detail-value">{{ detail.value }}</div>
+                      </div>
                     </div>
-                    <div v-if="row.created_at" class="col-auto">
-                      <q-badge outline color="grey-6" text-color="grey-8">
-                        {{ row.created_at }}
-                      </q-badge>
-                    </div>
+                  </div>
+
+                  <div v-else class="contact-card__summary-empty">
+                    Add more contact details to make this card richer.
                   </div>
                 </q-card-section>
 
-                <q-space />
-
-                <q-card-actions align="between">
+                <q-card-actions class="contact-card__footer">
                   <q-btn
-                    dense
-                    flat
-                    color="grey-9"
-                    label="Databook"
+                    no-caps
+                    unelevated
+                    class="contact-card__footer-action contact-card__footer-action--primary"
+                    label="Open databook"
                     :disable="loading"
                     @click="openDatabook(row)"
                   />
-                  <q-btn
-                    dense
-                    flat
-                    round
-                    icon="delete"
-                    color="grey-8"
-                    :disable="loading"
-                    @click="confirmDelete(row)"
-                  />
+
+                  <div class="contact-card__footer-actions">
+                    <q-btn
+                      flat
+                      round
+                      icon="delete"
+                      class="contact-card__icon-action"
+                      :disable="loading"
+                      @click="confirmDelete(row)"
+                    />
+                  </div>
                 </q-card-actions>
               </q-card>
             </div>
@@ -325,6 +354,11 @@ const fileInput = ref(null)
 const selectedCount = computed(() => selectedRows.value.length)
 const rowsPerPageOptions = [10, 15, 25, 50]
 const heroAvatarImage = computed(() => buildAvatarImage({ Name: 'EC VC' }))
+const contactCardDateFormatter = new Intl.DateTimeFormat(undefined, {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+})
 
 const $q = useQuasar()
 const route = useRoute()
@@ -437,6 +471,129 @@ function escapeSvg(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;')
+}
+
+function getContactCardStyle(row) {
+  const seed = Math.abs(hashString(`${row?.id || ''}:${row?.Name || row?.Email || 'contact'}`))
+  return {
+    '--contact-card-blob-x': `${20 + (seed % 56)}%`,
+    '--contact-card-blob-y': `${12 + (Math.floor(seed / 7) % 28)}%`,
+    '--contact-card-blob-size': `${34 + (Math.floor(seed / 13) % 16)}%`,
+  }
+}
+
+function getContactCardPills(row) {
+  return [
+    normalizeInputValue(row?.Stakeholder_type),
+    row?.Closeness_Level ? `Closeness ${normalizeInputValue(row.Closeness_Level)}` : '',
+    row?.Country_based ? `Based in ${normalizeInputValue(row.Country_based)}` : '',
+  ]
+    .filter(Boolean)
+    .slice(0, 3)
+}
+
+function getContactCardActionLinks(row) {
+  const email = normalizeInputValue(row?.Email)
+  const phone = normalizeInputValue(row?.Phone)
+  const linkedIn = normalizeInputValue(row?.LinkedIn)
+
+  return [
+    email ? { label: 'Email', icon: 'mail', href: `mailto:${email}`, external: false } : null,
+    phone ? { label: 'Call', icon: 'call', href: `tel:${phone}`, external: false } : null,
+    linkedIn
+      ? {
+          label: 'LinkedIn',
+          icon: 'north_east',
+          href: normalizeExternalUrl(linkedIn),
+          external: true,
+        }
+      : null,
+  ].filter(Boolean)
+}
+
+function getContactCardDetails(row) {
+  return [
+    row?.Email ? { label: 'Email', value: normalizeInputValue(row.Email), icon: 'mail' } : null,
+    row?.Phone ? { label: 'Phone', value: normalizeInputValue(row.Phone), icon: 'call' } : null,
+    row?.LinkedIn
+      ? {
+          label: 'LinkedIn',
+          value: formatLinkedInValue(row.LinkedIn),
+          icon: 'link',
+        }
+      : null,
+    row?.created_at
+      ? {
+          label: 'Created',
+          value: formatCardDate(row.created_at),
+          icon: 'schedule',
+        }
+      : null,
+    row?.Stakeholder_type
+      ? {
+          label: 'Stakeholder',
+          value: normalizeInputValue(row.Stakeholder_type),
+          icon: 'flag',
+        }
+      : null,
+  ]
+    .filter(Boolean)
+    .slice(0, 4)
+}
+
+async function openContactCardAction(link, event) {
+  event?.preventDefault?.()
+  event?.stopPropagation?.()
+
+  const href = normalizeInputValue(link?.href)
+  if (!href) return
+
+  try {
+    if (bridge.value?.links?.openExternal) {
+      await bridge.value.links.openExternal(href)
+      return
+    }
+
+    window.open(href, link?.external ? '_blank' : '_self', 'noopener,noreferrer')
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error?.message || 'Unable to open link.',
+    })
+  }
+}
+
+function normalizeInputValue(value) {
+  return String(value || '').trim()
+}
+
+function normalizeExternalUrl(value) {
+  const normalized = normalizeInputValue(value)
+  if (!normalized) return ''
+  if (/^[a-z][a-z\d+.-]*:/i.test(normalized)) return normalized
+  return `https://${normalized}`
+}
+
+function formatLinkedInValue(value) {
+  const normalized = normalizeExternalUrl(value)
+
+  try {
+    const url = new URL(normalized)
+    const path = url.pathname.replace(/\/$/, '')
+    return `${url.hostname.replace(/^www\./, '')}${path && path !== '/' ? path : ''}`
+  } catch {
+    return normalizeInputValue(value)
+  }
+}
+
+function formatCardDate(value) {
+  const normalized = normalizeInputValue(value)
+  if (!normalized) return ''
+
+  const parsed = new Date(normalized)
+  if (Number.isNaN(parsed.getTime())) return normalized
+
+  return contactCardDateFormatter.format(parsed)
 }
 
 const columns = [
@@ -828,53 +985,277 @@ watch(displayRows, () => {
 }
 
 .contact-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  border-radius: 8px;
-  border-color: #e5e5e5;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at var(--contact-card-blob-x) var(--contact-card-blob-y),
+      rgba(38, 71, 255, 0.16) 0%,
+      rgba(38, 71, 255, 0.1) calc(var(--contact-card-blob-size) * 0.44),
+      transparent var(--contact-card-blob-size)
+    ),
+    linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
+  border-color: rgba(17, 17, 17, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 18px 42px rgba(17, 17, 17, 0.06);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
-.contact-card__eyebrow {
+.contact-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+}
+
+.contact-card__hero {
+  padding: 0;
+}
+
+.contact-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 208px;
+  height: 228px;
+}
+
+.contact-card__hero-side {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px 16px 14px 14px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.contact-card__hero-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.contact-card__portrait {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #d8d4ca;
+  border-right: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.contact-card__portrait::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(17, 17, 17, 0.2) 100%);
+  pointer-events: none;
+}
+
+.contact-card__portrait-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.08);
+}
+
+.contact-card__hero-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 1px;
+}
+
+.contact-card__eyebrow,
+.contact-card__summary-label {
   color: #737373;
   font-family: var(--font-body);
-  font-size: var(--text-xs---light);
-  font-weight: var(--font-weight-light);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.14em;
   line-height: 16px;
   text-transform: uppercase;
 }
 
 .contact-card__title {
   color: #0a0a0a;
-  font-family: var(--font-body);
-  font-size: var(--text-base---black);
+  font-family: var(--font-title);
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
   font-weight: var(--font-weight-black);
-  line-height: 1.2;
-  letter-spacing: 0.02em;
+  line-height: 0.96;
 }
 
 .contact-card__role {
-  color: #737373;
+  color: #4b4b4b;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+  text-wrap: balance;
+}
+
+.contact-card__checkbox {
+  position: relative;
+  z-index: 2;
+  margin-right: -2px;
+  margin-top: 0;
+}
+
+.contact-card__checkbox :deep(.q-checkbox__bg) {
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-radius: 8px;
+}
+
+.contact-card__pill-row,
+.contact-card__footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.contact-card__pill-row {
+  align-content: flex-start;
+}
+
+.contact-card__quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  align-content: start;
+}
+
+.contact-card__pill {
+  padding: 6px 9px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
+
+.contact-card__quick-action {
+  min-height: 30px;
+  width: 100%;
+  padding: 0 10px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(17, 17, 17, 0.1);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.contact-card__quick-action :deep(.q-btn__content) {
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.contact-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  margin: 12px 20px 0;
+  padding: 16px 18px 18px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(18px);
+}
+
+.contact-card__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.contact-card__detail {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.contact-card__detail-icon {
+  margin-top: 2px;
+  color: #6f6f6f;
+}
+
+.contact-card__detail-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.contact-card__detail-label {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.contact-card__detail-value {
+  overflow: hidden;
+  color: #111;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contact-card__summary-empty {
+  color: #6f6f6f;
   font-family: var(--font-body);
   font-size: var(--text-sm---light);
   font-weight: var(--font-weight-light);
   line-height: 20px;
 }
 
-.contact-card__avatar {
-  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
-}
-
-.contact-card__field {
+.contact-card__footer {
   display: flex;
   align-items: center;
-  min-width: 0;
-  color: #404040;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.contact-card__footer-action {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
   font-family: var(--font-body);
   font-size: var(--text-sm---light);
-  font-weight: var(--font-weight-light);
+  font-weight: var(--font-weight-medium);
   line-height: 20px;
+}
+
+.contact-card__footer-action--primary {
+  color: #fff;
+  background: #111;
+}
+
+.contact-card__icon-action {
+  color: #111;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 17, 17, 0.1);
 }
 
 @media (max-width: 1200px) {
@@ -907,6 +1288,56 @@ watch(displayRows, () => {
   .contacts-toolbar__button,
   .contacts-view-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .contact-card {
+    border-radius: 20px;
+  }
+
+  .contact-card__hero-main {
+    grid-template-columns: 1fr;
+    height: 276px;
+  }
+
+  .contact-card__portrait {
+    min-height: 156px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+  }
+
+  .contact-card__hero-top {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .contact-card__hero-side {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .contact-card__quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-card__title {
+    font-size: 1.3rem;
+  }
+
+  .contact-card__summary,
+  .contact-card__footer {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+
+  .contact-card__details {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-card__footer {
+    padding-right: 0;
+    padding-left: 0;
   }
 }
 </style>
