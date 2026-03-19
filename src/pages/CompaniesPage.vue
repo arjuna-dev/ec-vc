@@ -418,6 +418,11 @@ const hasBridge = computed(
     !!bridge.value?.companies?.delete,
 )
 
+const $q = useQuasar()
+const route = useRoute()
+const router = useRouter()
+const COMPANY_VIEW_MODES = new Set(['card', 'table'])
+
 const rows = ref([])
 const selectedRows = ref([])
 const loading = ref(false)
@@ -425,7 +430,7 @@ const error = ref('')
 const companyDialogOpen = ref(false)
 const searchQuery = ref('')
 const priorityMode = ref(false)
-const viewMode = ref('table')
+const viewMode = ref(getRouteViewMode(route.query.view))
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const rowsPerPageOptions = [10, 15, 25, 50]
@@ -436,10 +441,6 @@ const companyCardDateFormatter = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
 })
 const COMPANY_COMPLETENESS_IGNORED_FIELDS = new Set(['id', 'created_at', 'updated_at'])
-
-const $q = useQuasar()
-const route = useRoute()
-const router = useRouter()
 
 function openCreateCompany() {
   companyDialogOpen.value = true
@@ -473,8 +474,38 @@ function openDatabook(row) {
   router.push({
     name: 'databook-view',
     params: { tableName: 'Companies', recordId },
-    query: { returnTo: route.fullPath },
+    query: { returnTo: getCompaniesReturnToPath() },
   })
+}
+
+function getRouteViewMode(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  return COMPANY_VIEW_MODES.has(normalized) ? normalized : 'table'
+}
+
+function getCompaniesReturnToPath() {
+  const nextQuery = { ...route.query }
+
+  if (viewMode.value === 'card') nextQuery.view = 'card'
+  else delete nextQuery.view
+
+  return router.resolve({
+    path: route.path,
+    query: nextQuery,
+  }).fullPath
+}
+
+function syncViewModeQuery() {
+  const currentRouteView = getRouteViewMode(route.query.view)
+  const nextView = COMPANY_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'table'
+
+  if (currentRouteView === nextView) return
+
+  const nextQuery = { ...route.query }
+  if (nextView === 'card') nextQuery.view = 'card'
+  else delete nextQuery.view
+
+  router.replace({ query: nextQuery })
 }
 
 const columns = [
@@ -1057,6 +1088,18 @@ watch(
   },
 )
 
+watch(
+  () => route.query.view,
+  (value) => {
+    const nextView = getRouteViewMode(value)
+    if (viewMode.value !== nextView) viewMode.value = nextView
+  },
+)
+
+watch(viewMode, () => {
+  syncViewModeQuery()
+})
+
 watch(displayRows, () => {
   normalizeSelectedRows()
 })
@@ -1481,7 +1524,7 @@ watch(displayRows, () => {
 .company-card__hero-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 224px;
-  height: 236px;
+  height: 248px;
 }
 
 .company-card__portrait {
@@ -1491,19 +1534,12 @@ watch(displayRows, () => {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.66), transparent 26%),
-    radial-gradient(circle at 76% 68%, rgba(255, 255, 255, 0.36), transparent 30%),
-    linear-gradient(180deg, #ebe7df 0%, #dcd6cd 100%);
-  border-right: 1px solid rgba(17, 17, 17, 0.08);
+  background: transparent;
+  border-right: 0;
 }
 
 .company-card__portrait::after {
-  position: absolute;
-  inset: 0;
-  content: '';
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(17, 17, 17, 0.12) 100%);
-  pointer-events: none;
+  display: none;
 }
 
 .company-card__portrait-shell {
@@ -1519,24 +1555,27 @@ watch(displayRows, () => {
 
 .company-card__portrait-badge {
   display: flex;
-  width: clamp(112px, 42%, 144px);
-  height: clamp(112px, 42%, 144px);
+  position: relative;
+  z-index: 1;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
   align-items: center;
   justify-content: center;
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 999px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 18px 36px rgba(17, 17, 17, 0.14);
+    0 18px 40px rgba(17, 17, 17, 0.16);
   font-family: var(--font-title);
   font-size: clamp(2.2rem, 4.2vw, 3rem);
   font-weight: var(--font-weight-black);
   letter-spacing: 0.02em;
+  overflow: hidden;
 }
 
 .company-card__portrait-badge--logo {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.96);
   border-color: rgba(17, 17, 17, 0.08);
 }
 
@@ -1553,10 +1592,11 @@ watch(displayRows, () => {
   display: grid;
   grid-template-rows: auto auto auto;
   align-content: start;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
-  padding: 14px 16px 14px 12px;
-  background: rgba(255, 255, 255, 0.24);
+  padding: 12px 16px 12px 12px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
 }
 
 .company-card__hero-top {
@@ -1599,9 +1639,15 @@ watch(displayRows, () => {
   font-weight: var(--font-weight-regular);
   line-height: 18px;
   text-wrap: balance;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .company-card__select-button {
+  position: relative;
+  z-index: 2;
   color: #111;
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(17, 17, 17, 0.14);
@@ -1615,11 +1661,21 @@ watch(displayRows, () => {
 }
 
 .company-card__pill-row,
-.company-card__footer-actions,
-.company-card__quick-actions {
+.company-card__footer-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.company-card__pill-row {
+  align-content: flex-start;
+}
+
+.company-card__quick-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  align-content: start;
 }
 
 .company-card__pill {
@@ -1636,6 +1692,7 @@ watch(displayRows, () => {
 
 .company-card__quick-action {
   min-height: 30px;
+  width: 100%;
   padding: 0 10px;
   color: #111;
   background: rgba(255, 255, 255, 0.78);
@@ -1656,7 +1713,7 @@ watch(displayRows, () => {
   flex: 1 1 auto;
   flex-direction: column;
   gap: 14px;
-  margin: 20px 20px 0;
+  margin: 16px 20px 0;
   padding: 16px 18px 18px;
   background: rgba(255, 255, 255, 0.74);
   border: 1px solid rgba(17, 17, 17, 0.08);
@@ -1704,7 +1761,7 @@ watch(displayRows, () => {
   font-family: var(--font-body);
   font-size: var(--text-sm---regular);
   font-weight: var(--font-weight-regular);
-  line-height: 20px;
+  line-height: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1809,7 +1866,7 @@ watch(displayRows, () => {
   .company-card__portrait {
     min-height: 148px;
     border-right: 0;
-    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+    border-bottom: 0;
   }
 
   .company-card__hero-side {

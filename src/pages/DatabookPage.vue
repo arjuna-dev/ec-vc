@@ -734,7 +734,7 @@
             @pointermove="onContactHeroPointerMove"
           >
             <div class="contact-databook__hero-main">
-              <figure class="contact-databook__portrait">
+              <figure class="contact-databook__portrait contact-databook__portrait--badge-only">
                 <div class="contact-databook__portrait-placeholder" aria-hidden="true">
                   <div
                     class="contact-databook__portrait-badge"
@@ -3568,6 +3568,14 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
+.contact-databook__portrait--badge-only {
+  background: transparent;
+}
+
+.contact-databook__portrait--badge-only::after {
+  display: none;
+}
+
 .contact-databook__portrait-actions {
   position: absolute;
   right: 14px;
@@ -3616,6 +3624,10 @@ onBeforeUnmount(() => {
   background:
     radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.18), transparent 32%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(17, 17, 17, 0.08) 100%);
+}
+
+.contact-databook__portrait--badge-only .contact-databook__portrait-placeholder {
+  background: transparent;
 }
 
 .contact-databook__portrait-placeholder-icon {
