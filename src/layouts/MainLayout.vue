@@ -13,28 +13,7 @@
           />
         </q-toolbar-title>
 
-        <div class="ec-shell-header-actions">
-          <q-btn
-            no-caps
-            flat
-            dense
-            class="ec-header-link ec-header-link--user"
-            icon="account_circle"
-            :label="drawerUserLabel"
-            @click="openUserMenuTarget"
-          />
-          <div class="ec-shell-header-divider" aria-hidden="true" />
-          <q-btn
-            no-caps
-            flat
-            dense
-            class="ec-header-link"
-            icon="settings"
-            label="Settings"
-            to="/settings"
-          />
-          <div class="ec-shell-version">MTK v0.0.1</div>
-        </div>
+        <div class="ec-shell-version">MTK v0.0.1</div>
       </q-toolbar>
 
       <div class="ec-breadcrumb-bar">
@@ -213,6 +192,23 @@ const drawerNavigationSections = computed(() => [
     label: 'Workspace',
     items: secondaryNavigationItems,
   },
+  {
+    label: 'Preferences',
+    items: [
+      {
+        label: hasAuditUserLabel.value ? `User: ${drawerUserLabel.value}` : 'Set user',
+        to: '/user-settings',
+        exact: true,
+        icon: 'account_circle',
+      },
+      {
+        label: 'Settings',
+        to: '/settings',
+        exact: true,
+        icon: 'settings',
+      },
+    ],
+  },
 ])
 
 const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.value))
@@ -320,10 +316,6 @@ async function loadAuditUserLabel() {
 
 async function syncUserNavState() {
   await loadAuditUserLabel()
-}
-
-async function openUserMenuTarget() {
-  await router.push({ name: 'user-settings' })
 }
 
 function openOpportunityDialog() {
@@ -685,45 +677,6 @@ watch(
 </script>
 
 <style scoped>
-.ec-shell-header-actions {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-}
-
-.ec-shell-header-divider {
-  background: #cbd5e1;
-  height: 20px;
-  width: 1px;
-}
-
-.ec-header-link {
-  background: transparent !important;
-  border: 0;
-  box-shadow: none !important;
-  color: #475569 !important;
-  min-height: 32px;
-  padding: 0 4px;
-}
-
-.ec-header-link :deep(.q-icon) {
-  font-size: 16px;
-}
-
-.ec-header-link :deep(.q-btn__content) {
-  gap: 6px;
-}
-
-.ec-header-link--user {
-  max-width: 220px;
-}
-
-.ec-header-link--user :deep(.block) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .ec-breadcrumb-bar {
   border-top: 1px solid #e5e7eb;
   background: #f8fafc;
@@ -877,11 +830,6 @@ watch(
 }
 
 @media (max-width: 900px) {
-  .ec-header-link--user {
-    max-width: 152px;
-    min-width: 0;
-  }
-
   .ec-shell-version {
     display: none;
   }
