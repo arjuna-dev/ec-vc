@@ -98,7 +98,10 @@
             @pointermove="onContactHeroPointerMove"
           >
             <div class="contact-databook__hero-main">
-              <figure class="contact-databook__portrait">
+              <figure
+                class="contact-databook__portrait"
+                :class="{ 'contact-databook__portrait--initials-only': !hasContactCustomImage }"
+              >
                 <img
                   v-if="hasContactCustomImage"
                   class="contact-databook__portrait-image"
@@ -106,7 +109,12 @@
                   :alt="contactName || 'Contact portrait'"
                 />
                 <div v-else class="contact-databook__portrait-placeholder" aria-hidden="true">
-                  <q-icon name="account_circle" class="contact-databook__portrait-placeholder-icon" />
+                  <div
+                    class="contact-databook__portrait-placeholder-initials"
+                    :style="{ backgroundColor: contactAvatarColor }"
+                  >
+                    {{ contactInitials }}
+                  </div>
                 </div>
                 <div class="contact-databook__portrait-actions">
                   <q-btn
@@ -1698,6 +1706,21 @@ const contactName = computed(() => getFieldDisplayValue('Name'))
 const contactRole = computed(() => getFieldDisplayValue('Role'))
 const contactAvatarImage = computed(() => getFieldDisplayValue('Profile_Image'))
 const hasContactCustomImage = computed(() => String(getFieldDisplayValue('Profile_Image') || '').trim().length > 0)
+const contactInitials = computed(() => {
+  const label = contactName.value || 'Contact'
+  return (
+    label
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'CO'
+  )
+})
+const contactAvatarColor = computed(() => {
+  const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
+  return palette[Math.abs(hashString(contactName.value || 'Contact')) % palette.length]
+})
 const companyLogoImage = computed(() => getFieldDisplayValue('Company_Logo'))
 const hasCompanyCustomLogo = computed(() => String(getFieldDisplayValue('Company_Logo') || '').trim().length > 0)
 const isCompanyImageCropTarget = computed(() => currentImageUploadTarget.value === 'company')
@@ -3568,6 +3591,14 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
+.contact-databook__portrait--initials-only {
+  background: transparent;
+}
+
+.contact-databook__portrait--initials-only::after {
+  display: none;
+}
+
 .contact-databook__portrait--badge-only {
   background: transparent;
 }
@@ -3624,6 +3655,10 @@ onBeforeUnmount(() => {
   background:
     radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.18), transparent 32%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(17, 17, 17, 0.08) 100%);
+}
+
+.contact-databook__portrait--initials-only .contact-databook__portrait-placeholder {
+  background: transparent;
 }
 
 .contact-databook__portrait--badge-only .contact-databook__portrait-placeholder {
