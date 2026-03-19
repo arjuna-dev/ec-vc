@@ -1486,9 +1486,12 @@ watch(displayRows, () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background:
-    radial-gradient(circle at 28% 26%, rgba(255, 255, 255, 0.22), transparent 30%),
-    linear-gradient(180deg, #ebe7df 0%, #dcd6cd 100%);
+  background: transparent;
+  border-right: 0;
+}
+
+.contact-card__portrait--placeholder::after {
+  display: none;
 }
 
 .contact-card__portrait::after {
