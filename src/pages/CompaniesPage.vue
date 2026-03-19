@@ -480,13 +480,13 @@ function openDatabook(row) {
 
 function getRouteViewMode(value) {
   const normalized = String(value || '').trim().toLowerCase()
-  return COMPANY_VIEW_MODES.has(normalized) ? normalized : 'table'
+  return COMPANY_VIEW_MODES.has(normalized) ? normalized : 'card'
 }
 
 function getCompaniesReturnToPath() {
   const nextQuery = { ...route.query }
 
-  if (viewMode.value === 'card') nextQuery.view = 'card'
+  if (viewMode.value === 'table') nextQuery.view = 'table'
   else delete nextQuery.view
 
   return router.resolve({
@@ -497,12 +497,12 @@ function getCompaniesReturnToPath() {
 
 function syncViewModeQuery() {
   const currentRouteView = getRouteViewMode(route.query.view)
-  const nextView = COMPANY_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'table'
+  const nextView = COMPANY_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'card'
 
   if (currentRouteView === nextView) return
 
   const nextQuery = { ...route.query }
-  if (nextView === 'card') nextQuery.view = 'card'
+  if (nextView === 'table') nextQuery.view = 'table'
   else delete nextQuery.view
 
   router.replace({ query: nextQuery })
