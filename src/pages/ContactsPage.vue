@@ -163,21 +163,35 @@ function openDatabook(row) {
 
 const columns = [
   { name: 'Name', label: 'Name', field: 'Name', align: 'left', sortable: true },
-  { name: 'Email', label: 'Email', field: 'Email', align: 'left', sortable: true },
-  { name: 'Phone', label: 'Phone', field: 'Phone', align: 'left', sortable: true },
-  { name: 'Role', label: 'Role', field: 'Role', align: 'left', sortable: true },
   {
-    name: 'Stakeholder_type',
-    label: 'Stakeholder',
-    field: 'Stakeholder_type',
+    name: 'Personal_Email',
+    label: 'Personal Email',
+    field: 'Personal_Email',
     align: 'left',
     sortable: true,
   },
-  { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
+  {
+    name: 'Professional_Email',
+    label: 'Professional Email',
+    field: 'Professional_Email',
+    align: 'left',
+    sortable: true,
+  },
+  { name: 'Phone', label: 'Phone', field: 'Phone', align: 'left', sortable: true },
+  { name: 'Country_based', label: 'Country', field: 'Country_based', align: 'left', sortable: true },
+  { name: 'LinkedIn', label: 'LinkedIn', field: 'LinkedIn', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
-const csvHeaders = ['id', 'Name', 'Email', 'Phone', 'LinkedIn', 'Role', 'Stakeholder_type']
+const csvHeaders = [
+  'id',
+  'Name',
+  'Personal_Email',
+  'Professional_Email',
+  'Phone',
+  'LinkedIn',
+  'Country_based',
+]
 
 async function loadContacts() {
   if (!hasBridge.value) return

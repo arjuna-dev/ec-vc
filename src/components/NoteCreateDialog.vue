@@ -95,7 +95,7 @@ const opportunityOptions = computed(() =>
 )
 const contactOptions = computed(() =>
   (contacts.value || []).map((c) => ({
-    label: c.Name || c.Email || c.id,
+    label: c.Name || c.Professional_Email || c.Personal_Email || c.id,
     value: c.id,
   })),
 )

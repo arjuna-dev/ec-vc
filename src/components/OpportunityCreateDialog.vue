@@ -292,11 +292,11 @@ const companyFields = [
 
 const contactFields = [
   { key: 'Name', label: 'Contact Name', inputType: 'text' },
-  { key: 'Email', label: 'Contact Email', inputType: 'text' },
+  { key: 'Personal_Email', label: 'Personal Email', inputType: 'email' },
+  { key: 'Professional_Email', label: 'Professional Email', inputType: 'email' },
   { key: 'Phone', label: 'Contact Phone', inputType: 'text' },
   { key: 'LinkedIn', label: 'LinkedIn', inputType: 'text' },
-  { key: 'Role', label: 'Role', inputType: 'text' },
-  { key: 'Stakeholder_type', label: 'Stakeholder Type', inputType: 'text' },
+  { key: 'Country_based', label: 'Country Based', inputType: 'text' },
 ]
 
 const form = ref({})
@@ -387,11 +387,11 @@ function resetForms() {
   }
   contactForm.value = {
     Name: '',
-    Email: '',
+    Personal_Email: '',
+    Professional_Email: '',
     Phone: '',
     LinkedIn: '',
-    Role: '',
-    Stakeholder_type: '',
+    Country_based: '',
   }
 }
 

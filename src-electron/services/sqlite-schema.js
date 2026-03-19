@@ -226,19 +226,13 @@ CREATE TABLE IF NOT EXISTS Contacts (
   Personal_Email TEXT,
   Professional_Email TEXT,
   Phone TEXT,
-  LinkedIn TEXT,
-  Current_Role TEXT,
-  Stakeholder_type TEXT,
-  Closeness_Level TEXT,
-  Comment TEXT,
-  Expertise TEXT,
-  Degrees_Program TEXT,
-  University TEXT,
-  Credentials TEXT,
-  Tenure_at_Firm_yrs REAL,
   Country_based TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  LinkedIn TEXT
+);
+
+CREATE TABLE IF NOT EXISTS Universities (
+  id TEXT PRIMARY KEY,
+  Name TEXT
 );
 
 CREATE TABLE IF NOT EXISTS EPL_Business_Units (
@@ -758,14 +752,31 @@ CREATE TABLE IF NOT EXISTS Companies_Contacts_current_company (
 );
 CREATE INDEX IF NOT EXISTS idx_Companies_Contacts_current_company_to ON Companies_Contacts_current_company(to_id);
 
-CREATE TABLE IF NOT EXISTS Contacts_Companies_companies_founded (
+CREATE TABLE IF NOT EXISTS Contacts_Companies_tenure (
   from_id TEXT NOT NULL,
   to_id TEXT NOT NULL,
+  current_company INTEGER NOT NULL DEFAULT 0 CHECK (current_company IN (0, 1)),
+  started_at_date TEXT,
+  ended_at_date TEXT,
+  role TEXT,
+  expertise TEXT,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_Contacts_Companies_companies_founded_to ON Contacts_Companies_companies_founded(to_id);
+CREATE INDEX IF NOT EXISTS idx_Contacts_Companies_tenure_to ON Contacts_Companies_tenure(to_id);
+
+CREATE TABLE IF NOT EXISTS Contacts_Universities_degrees (
+  from_id TEXT NOT NULL,
+  to_id TEXT NOT NULL,
+  degree TEXT NOT NULL,
+  credentials TEXT,
+  comments TEXT,
+  PRIMARY KEY (from_id, to_id, degree),
+  FOREIGN KEY (from_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (to_id) REFERENCES Universities(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_Contacts_Universities_degrees_to ON Contacts_Universities_degrees(to_id);
 
 CREATE TABLE IF NOT EXISTS Contacts_Companies_companies_invested (
   from_id TEXT NOT NULL,
@@ -1582,14 +1593,6 @@ FOR EACH ROW
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
   UPDATE Fund_Opportunities SET updated_at = datetime('now') WHERE opportunity_id = OLD.opportunity_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Contacts_updated_at
-AFTER UPDATE ON Contacts
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Contacts SET updated_at = datetime('now') WHERE id = OLD.id;
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_Artifacts_updated_at

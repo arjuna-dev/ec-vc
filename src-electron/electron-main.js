@@ -440,13 +440,13 @@ function listContacts() {
     SELECT
       id,
       Name,
-      Email,
+      Personal_Email,
+      Professional_Email,
       Phone,
-      Role,
-      Stakeholder_type,
-      created_at
+      Country_based,
+      LinkedIn
     FROM Contacts
-    ORDER BY COALESCE(Name, '') ASC, created_at DESC
+    ORDER BY COALESCE(Name, '') ASC, id DESC
   `,
   )
 }
@@ -935,8 +935,7 @@ function getLegacyOpportunityDatabookView(opportunityId) {
           contactIds,
           (placeholders) => `
             SELECT
-              id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
-              Comment, Expertise, Degrees_Program, University, Credentials, Tenure_at_Firm_yrs, Country_based
+              id, Name, Personal_Email, Professional_Email, Phone, LinkedIn, Country_based
             FROM Contacts
             WHERE id IN (${placeholders})
             ORDER BY COALESCE(Name, ''), id
@@ -1266,11 +1265,20 @@ function getLegacyOpportunityDatabookView(opportunityId) {
     })
     addField({
       section: 'Primary Contact',
-      label: 'Email',
-      value: primaryContact.Email,
+      label: 'Personal Email',
+      value: primaryContact.Personal_Email,
       tableName: 'Contacts',
       recordId: primaryContact.id,
-      fieldName: 'Email',
+      fieldName: 'Personal_Email',
+      idColumn: 'id',
+    })
+    addField({
+      section: 'Primary Contact',
+      label: 'Professional Email',
+      value: primaryContact.Professional_Email,
+      tableName: 'Contacts',
+      recordId: primaryContact.id,
+      fieldName: 'Professional_Email',
       idColumn: 'id',
     })
     addField({
@@ -1284,92 +1292,11 @@ function getLegacyOpportunityDatabookView(opportunityId) {
     })
     addField({
       section: 'Primary Contact',
-      label: 'Role',
-      value: primaryContact.Role,
-      tableName: 'Contacts',
-      recordId: primaryContact.id,
-      fieldName: 'Role',
-      idColumn: 'id',
-    })
-    addField({
-      section: 'Primary Contact',
       label: 'LinkedIn',
       value: primaryContact.LinkedIn,
       tableName: 'Contacts',
       recordId: primaryContact.id,
       fieldName: 'LinkedIn',
-      idColumn: 'id',
-    })
-    addField({
-      section: 'Primary Contact',
-      label: 'Stakeholder Type',
-      value: primaryContact.Stakeholder_type,
-      tableName: 'Contacts',
-      recordId: primaryContact.id,
-      fieldName: 'Stakeholder_type',
-      idColumn: 'id',
-    })
-    addField({
-      section: 'Primary Contact',
-      label: 'Closeness Level',
-      value: primaryContact.Closeness_Level,
-      tableName: 'Contacts',
-      recordId: primaryContact.id,
-      fieldName: 'Closeness_Level',
-      idColumn: 'id',
-    })
-    addField({
-      section: 'Primary Contact',
-      label: 'Comment',
-      value: primaryContact.Comment,
-      tableName: 'Contacts',
-      recordId: primaryContact.id,
-      fieldName: 'Comment',
-      idColumn: 'id',
-    })
-    addField({
-      section: 'Primary Contact',
-      label: 'Expertise',
-      value: primaryContact.Expertise,
-      tableName: 'Contacts',
-      recordId: primaryContact.id,
-      fieldName: 'Expertise',
-      idColumn: 'id',
-    })
-    addField({
-      section: 'Primary Contact',
-      label: 'Degrees Program',
-      value: primaryContact.Degrees_Program,
-      tableName: 'Contacts',
-      recordId: primaryContact.id,
-      fieldName: 'Degrees_Program',
-      idColumn: 'id',
-    })
-    addField({
-      section: 'Primary Contact',
-      label: 'University',
-      value: primaryContact.University,
-      tableName: 'Contacts',
-      recordId: primaryContact.id,
-      fieldName: 'University',
-      idColumn: 'id',
-    })
-    addField({
-      section: 'Primary Contact',
-      label: 'Credentials',
-      value: primaryContact.Credentials,
-      tableName: 'Contacts',
-      recordId: primaryContact.id,
-      fieldName: 'Credentials',
-      idColumn: 'id',
-    })
-    addField({
-      section: 'Primary Contact',
-      label: 'Tenure at Firm (yrs)',
-      value: primaryContact.Tenure_at_Firm_yrs,
-      tableName: 'Contacts',
-      recordId: primaryContact.id,
-      fieldName: 'Tenure_at_Firm_yrs',
       idColumn: 'id',
     })
     addField({
@@ -1618,9 +1545,10 @@ function getLegacyOpportunityDatabookView(opportunityId) {
       Previous_Post: round?.Previous_Post ?? opportunity.Previous_Post ?? null,
       primary_contact_id: primaryContact?.id || null,
       primary_contact_name: primaryContact?.Name || null,
-      primary_contact_email: primaryContact?.Email || null,
+      primary_contact_email:
+        primaryContact?.Professional_Email || primaryContact?.Personal_Email || null,
       primary_contact_phone: primaryContact?.Phone || null,
-      primary_contact_role: primaryContact?.Role || null,
+      primary_contact_role: null,
       Fund_Type: fund?.Fund_Type || null,
       Fund_Size_Target: fund?.Fund_Size_Target || null,
       Initial_Ticket_Size: fund?.Initial_Ticket_Size || null,
@@ -1647,8 +1575,8 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
   Contacts: {
     tableName: 'Contacts',
     entityLabel: 'Contact',
-    displayColumns: ['Name', 'Email', 'id'],
-    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+    displayColumns: ['Name', 'Professional_Email', 'Personal_Email', 'id'],
+    readonlyColumns: new Set(['id']),
   },
   Opportunities: {
     tableName: 'Opportunities',
@@ -1773,34 +1701,27 @@ function createContact(payload = {}) {
   const id = normalizeNullableString(payload.id) || `contact:${crypto.randomUUID()}`
   const name = normalizeNullableString(payload.Name)
   if (!name) throw new Error('Contact name is required')
+  const personalEmail =
+    normalizeNullableString(payload.Personal_Email) || normalizeNullableString(payload.Email)
+  const professionalEmail = normalizeNullableString(payload.Professional_Email)
 
   database
     .prepare(
       `
       INSERT INTO Contacts (
-        id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
-        Comment, Expertise, Degrees_Program, University, Credentials, Tenure_at_Firm_yrs, Country_based
+        id, Name, Personal_Email, Professional_Email, Phone, Country_based, LinkedIn
       ) VALUES (
-        @id, @Name, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type, @Closeness_Level,
-        @Comment, @Expertise, @Degrees_Program, @University, @Credentials, @Tenure_at_Firm_yrs, @Country_based
+        @id, @Name, @Personal_Email, @Professional_Email, @Phone, @Country_based, @LinkedIn
       )
     `,
     )
     .run({
       id,
       Name: name,
-      Email: normalizeNullableString(payload.Email),
+      Personal_Email: personalEmail,
+      Professional_Email: professionalEmail,
       Phone: normalizeNullableString(payload.Phone),
       LinkedIn: normalizeNullableString(payload.LinkedIn),
-      Role: normalizeNullableString(payload.Role),
-      Stakeholder_type: normalizeNullableString(payload.Stakeholder_type),
-      Closeness_Level: normalizeNullableString(payload.Closeness_Level),
-      Comment: normalizeNullableString(payload.Comment),
-      Expertise: normalizeNullableString(payload.Expertise),
-      Degrees_Program: normalizeNullableString(payload.Degrees_Program),
-      University: normalizeNullableString(payload.University),
-      Credentials: normalizeNullableString(payload.Credentials),
-      Tenure_at_Firm_yrs: normalizeNullableNumber(payload.Tenure_at_Firm_yrs),
       Country_based: normalizeNullableString(payload.Country_based),
     })
 
@@ -1948,8 +1869,11 @@ function upsertContacts(rows = []) {
     for (const r of input) {
       const id = normalizeNullableString(r?.id) || `contact:${crypto.randomUUID()}`
       const name = normalizeNullableString(r?.Name)
+      const personalEmail =
+        normalizeNullableString(r?.Personal_Email) || normalizeNullableString(r?.Email)
+      const professionalEmail = normalizeNullableString(r?.Professional_Email)
 
-      if (!name && !normalizeNullableString(r?.Email) && !normalizeNullableString(r?.Phone)) {
+      if (!name && !personalEmail && !professionalEmail && !normalizeNullableString(r?.Phone)) {
         skipped++
         continue
       }
@@ -1957,18 +1881,10 @@ function upsertContacts(rows = []) {
       const payload = {
         id,
         Name: name,
-        Email: normalizeNullableString(r?.Email),
+        Personal_Email: personalEmail,
+        Professional_Email: professionalEmail,
         Phone: normalizeNullableString(r?.Phone),
         LinkedIn: normalizeNullableString(r?.LinkedIn),
-        Role: normalizeNullableString(r?.Role),
-        Stakeholder_type: normalizeNullableString(r?.Stakeholder_type),
-        Closeness_Level: normalizeNullableString(r?.Closeness_Level),
-        Comment: normalizeNullableString(r?.Comment),
-        Expertise: normalizeNullableString(r?.Expertise),
-        Degrees_Program: normalizeNullableString(r?.Degrees_Program),
-        University: normalizeNullableString(r?.University),
-        Credentials: normalizeNullableString(r?.Credentials),
-        Tenure_at_Firm_yrs: normalizeNullableNumber(r?.Tenure_at_Firm_yrs),
         Country_based: normalizeNullableString(r?.Country_based),
       }
 
@@ -1978,29 +1894,18 @@ function upsertContacts(rows = []) {
         .prepare(
           `
           INSERT INTO Contacts (
-            id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
-            Comment, Expertise, Degrees_Program, University, Credentials, Tenure_at_Firm_yrs, Country_based
+            id, Name, Personal_Email, Professional_Email, Phone, LinkedIn, Country_based
           )
           VALUES (
-            @id, @Name, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type, @Closeness_Level,
-            @Comment, @Expertise, @Degrees_Program, @University, @Credentials, @Tenure_at_Firm_yrs, @Country_based
+            @id, @Name, @Personal_Email, @Professional_Email, @Phone, @LinkedIn, @Country_based
           )
           ON CONFLICT(id) DO UPDATE SET
             Name = excluded.Name,
-            Email = excluded.Email,
+            Personal_Email = excluded.Personal_Email,
+            Professional_Email = excluded.Professional_Email,
             Phone = excluded.Phone,
             LinkedIn = excluded.LinkedIn,
-            Role = excluded.Role,
-            Stakeholder_type = excluded.Stakeholder_type,
-            Closeness_Level = excluded.Closeness_Level,
-            Comment = excluded.Comment,
-            Expertise = excluded.Expertise,
-            Degrees_Program = excluded.Degrees_Program,
-            University = excluded.University,
-            Credentials = excluded.Credentials,
-            Tenure_at_Firm_yrs = excluded.Tenure_at_Firm_yrs,
-            Country_based = excluded.Country_based,
-            updated_at = datetime('now')
+            Country_based = excluded.Country_based
         `,
         )
         .run(payload)
@@ -2483,20 +2388,10 @@ function getContactById(database, contactId) {
       SELECT
         id,
         Name,
-        created_at,
-        updated_at,
-        Email,
+        Personal_Email,
+        Professional_Email,
         Phone,
         LinkedIn,
-        Role,
-        Stakeholder_type,
-        Closeness_Level,
-        Comment,
-        Expertise,
-        Degrees_Program,
-        University,
-        Credentials,
-        Tenure_at_Firm_yrs,
         Country_based
       FROM Contacts
       WHERE id = ?
@@ -2777,34 +2672,38 @@ function createOrUpdatePrimaryContactForOpportunity(
   const payload = pickMeaningfulFields(contactPayload, [
     'id',
     'Name',
+    'Personal_Email',
+    'Professional_Email',
     'Email',
     'Phone',
     'LinkedIn',
-    'Role',
-    'Stakeholder_type',
-    'Closeness_Level',
-    'Comment',
-    'Expertise',
-    'Degrees_Program',
-    'University',
-    'Credentials',
-    'Tenure_at_Firm_yrs',
     'Country_based',
   ])
+  const personalEmail =
+    normalizeNullableString(payload.Personal_Email) || normalizeNullableString(payload.Email)
+  const professionalEmail = normalizeNullableString(payload.Professional_Email)
   if (
     !hasMeaningfulValue(payload.Name) &&
-    !hasMeaningfulValue(payload.Email) &&
+    !personalEmail &&
+    !professionalEmail &&
     !hasMeaningfulValue(payload.Phone)
   ) {
     return null
   }
 
-  const email = normalizeNullableString(payload.Email)
   const existing =
-    email &&
+    (professionalEmail || personalEmail) &&
     database
-      .prepare('SELECT id FROM Contacts WHERE Email = ? ORDER BY updated_at DESC LIMIT 1')
-      .get(email)
+      .prepare(
+        `
+        SELECT id
+        FROM Contacts
+        WHERE Professional_Email = ? OR Personal_Email = ?
+        ORDER BY id DESC
+        LIMIT 1
+      `,
+      )
+      .get(professionalEmail || personalEmail, personalEmail || professionalEmail)
 
   let contactId = normalizeNullableString(payload.id) || existing?.id
   if (!contactId) {
@@ -2813,29 +2712,19 @@ function createOrUpdatePrimaryContactForOpportunity(
       .prepare(
         `
         INSERT INTO Contacts (
-          id, Name, Email, Phone, LinkedIn, Role, Stakeholder_type, Closeness_Level,
-          Comment, Expertise, Degrees_Program, University, Credentials, Tenure_at_Firm_yrs, Country_based
+          id, Name, Personal_Email, Professional_Email, Phone, LinkedIn, Country_based
         ) VALUES (
-          @id, @Name, @Email, @Phone, @LinkedIn, @Role, @Stakeholder_type, @Closeness_Level,
-          @Comment, @Expertise, @Degrees_Program, @University, @Credentials, @Tenure_at_Firm_yrs, @Country_based
+          @id, @Name, @Personal_Email, @Professional_Email, @Phone, @LinkedIn, @Country_based
         )
       `,
       )
       .run({
         id: contactId,
         Name: normalizeNullableString(payload.Name),
-        Email: normalizeNullableString(payload.Email),
+        Personal_Email: personalEmail,
+        Professional_Email: professionalEmail,
         Phone: normalizeNullableString(payload.Phone),
         LinkedIn: normalizeNullableString(payload.LinkedIn),
-        Role: normalizeNullableString(payload.Role),
-        Stakeholder_type: normalizeNullableString(payload.Stakeholder_type),
-        Closeness_Level: normalizeNullableString(payload.Closeness_Level),
-        Comment: normalizeNullableString(payload.Comment),
-        Expertise: normalizeNullableString(payload.Expertise),
-        Degrees_Program: normalizeNullableString(payload.Degrees_Program),
-        University: normalizeNullableString(payload.University),
-        Credentials: normalizeNullableString(payload.Credentials),
-        Tenure_at_Firm_yrs: normalizeNullableNumber(payload.Tenure_at_Firm_yrs),
         Country_based: normalizeNullableString(payload.Country_based),
       })
   } else {
@@ -2844,38 +2733,21 @@ function createOrUpdatePrimaryContactForOpportunity(
         `
         UPDATE Contacts SET
           Name = COALESCE(@Name, Name),
-          Email = COALESCE(@Email, Email),
+          Personal_Email = COALESCE(@Personal_Email, Personal_Email),
+          Professional_Email = COALESCE(@Professional_Email, Professional_Email),
           Phone = COALESCE(@Phone, Phone),
           LinkedIn = COALESCE(@LinkedIn, LinkedIn),
-          Role = COALESCE(@Role, Role),
-          Stakeholder_type = COALESCE(@Stakeholder_type, Stakeholder_type),
-          Closeness_Level = COALESCE(@Closeness_Level, Closeness_Level),
-          Comment = COALESCE(@Comment, Comment),
-          Expertise = COALESCE(@Expertise, Expertise),
-          Degrees_Program = COALESCE(@Degrees_Program, Degrees_Program),
-          University = COALESCE(@University, University),
-          Credentials = COALESCE(@Credentials, Credentials),
-          Tenure_at_Firm_yrs = COALESCE(@Tenure_at_Firm_yrs, Tenure_at_Firm_yrs),
-          Country_based = COALESCE(@Country_based, Country_based),
-          updated_at = datetime('now')
+          Country_based = COALESCE(@Country_based, Country_based)
         WHERE id = @id
       `,
       )
       .run({
         id: contactId,
         Name: normalizeNullableString(payload.Name),
-        Email: normalizeNullableString(payload.Email),
+        Personal_Email: personalEmail,
+        Professional_Email: professionalEmail,
         Phone: normalizeNullableString(payload.Phone),
         LinkedIn: normalizeNullableString(payload.LinkedIn),
-        Role: normalizeNullableString(payload.Role),
-        Stakeholder_type: normalizeNullableString(payload.Stakeholder_type),
-        Closeness_Level: normalizeNullableString(payload.Closeness_Level),
-        Comment: normalizeNullableString(payload.Comment),
-        Expertise: normalizeNullableString(payload.Expertise),
-        Degrees_Program: normalizeNullableString(payload.Degrees_Program),
-        University: normalizeNullableString(payload.University),
-        Credentials: normalizeNullableString(payload.Credentials),
-        Tenure_at_Firm_yrs: normalizeNullableNumber(payload.Tenure_at_Firm_yrs),
         Country_based: normalizeNullableString(payload.Country_based),
       })
   }
