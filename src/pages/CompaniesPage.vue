@@ -22,12 +22,62 @@
       <section class="companies-shell">
         <div class="companies-shell__hero">
           <div class="companies-shell__copy">
-            <h2 class="companies-shell__hero-title">Welcome back!</h2>
-            <p class="companies-shell__hero-text">Here's a list of all of your companies.</p>
+            <div class="companies-shell__eyebrow">Companies dashboard</div>
+            <h2 class="companies-shell__hero-title">Know which companies are ready to work.</h2>
+            <p class="companies-shell__hero-text">{{ companiesHeroText }}</p>
+
+            <div class="companies-shell__hero-meta">
+              <div class="companies-shell__meta-pill">
+                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
+              </div>
+              <div v-if="selectedCount > 0" class="companies-shell__meta-pill">
+                {{ selectedCount }} selected
+              </div>
+              <div class="companies-shell__meta-pill">
+                {{ companiesDashboard.typeRate }}% typed
+              </div>
+            </div>
           </div>
-          <q-avatar size="36px" class="companies-shell__hero-avatar">
-            <img :src="heroAvatarImage" alt="Companies overview avatar" />
-          </q-avatar>
+
+          <div class="companies-dashboard">
+            <div class="companies-dashboard__stats">
+              <article
+                v-for="stat in companiesDashboardStats"
+                :key="stat.label"
+                class="companies-dashboard__stat"
+                :class="`companies-dashboard__stat--${stat.tone}`"
+              >
+                <div class="companies-dashboard__stat-label">{{ stat.label }}</div>
+                <div class="companies-dashboard__stat-value">{{ stat.value }}</div>
+                <div class="companies-dashboard__stat-caption">{{ stat.caption }}</div>
+              </article>
+            </div>
+
+            <div class="companies-dashboard__health">
+              <div class="companies-dashboard__health-copy">
+                <div class="companies-dashboard__health-label">Profile health</div>
+                <div class="companies-dashboard__health-text">
+                  {{ companiesDashboard.richCount }} rich, {{ companiesDashboard.mediumCount }} medium,
+                  {{ companiesDashboard.sparseCount }} sparse
+                </div>
+              </div>
+
+              <div class="companies-dashboard__health-bar" aria-hidden="true">
+                <span
+                  class="companies-dashboard__health-segment companies-dashboard__health-segment--sparse"
+                  :style="{ width: `${companiesDashboard.sparseShare}%` }"
+                />
+                <span
+                  class="companies-dashboard__health-segment companies-dashboard__health-segment--medium"
+                  :style="{ width: `${companiesDashboard.mediumShare}%` }"
+                />
+                <span
+                  class="companies-dashboard__health-segment companies-dashboard__health-segment--rich"
+                  :style="{ width: `${companiesDashboard.richShare}%` }"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="companies-toolbar">
@@ -99,7 +149,7 @@
                   @click="viewMode = option.value"
                 >
                   <q-item-section avatar>
-                    <q-icon :name="option.icon" color="black" />
+                    <q-icon :name="option.icon" />
                   </q-item-section>
                   <q-item-section>
                     <q-item-label>{{ option.label }}</q-item-label>
@@ -321,7 +371,6 @@ const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const rowsPerPageOptions = [10, 15, 25, 50]
 const selectedCount = computed(() => selectedRows.value.length)
-const heroAvatarImage = computed(() => buildAvatarImage('CO'))
 
 const $q = useQuasar()
 const route = useRoute()
@@ -387,6 +436,85 @@ const viewOptions = [
   { label: 'Table', value: 'table', icon: 'view_list' },
 ]
 
+const companiesDashboard = computed(() => {
+  const total = rows.value.length
+  const summary = rows.value.reduce(
+    (accumulator, row) => {
+      const hasWebsite = normalizeCompanyValue(row?.Website).length > 0
+      const hasStatus = normalizeCompanyValue(row?.Status).length > 0
+      const hasType = normalizeCompanyValue(row?.Company_Type).length > 0
+      const hasCapital = hasCompanyCapital(row)
+      const profileScore = [hasWebsite, hasStatus, hasType, hasCapital].filter(Boolean).length
+
+      if (hasWebsite) accumulator.websiteCount += 1
+      if (hasStatus) accumulator.statusCount += 1
+      if (hasType) accumulator.typeCount += 1
+      if (hasCapital) accumulator.capitalCount += 1
+
+      if (profileScore <= 1) accumulator.sparseCount += 1
+      else if (profileScore <= 3) accumulator.mediumCount += 1
+      else accumulator.richCount += 1
+
+      return accumulator
+    },
+    {
+      websiteCount: 0,
+      statusCount: 0,
+      typeCount: 0,
+      capitalCount: 0,
+      sparseCount: 0,
+      mediumCount: 0,
+      richCount: 0,
+    },
+  )
+
+  return {
+    total,
+    ...summary,
+    typeRate: total ? Math.round((summary.typeCount / total) * 100) : 0,
+    sparseShare: total ? (summary.sparseCount / total) * 100 : 0,
+    mediumShare: total ? (summary.mediumCount / total) * 100 : 0,
+    richShare: total ? (summary.richCount / total) * 100 : 0,
+  }
+})
+
+const companiesHeroText = computed(() => {
+  const { total, capitalCount, websiteCount, sparseCount } = companiesDashboard.value
+
+  if (!total) {
+    return 'Build your company map here. Add companies to track coverage, capital context, and which records still need enrichment.'
+  }
+
+  return `${total} companies tracked, ${capitalCount} with capital context, ${websiteCount} with public websites, and ${sparseCount} still need enrichment.`
+})
+
+const companiesDashboardStats = computed(() => [
+  {
+    label: 'Total companies',
+    value: companiesDashboard.value.total,
+    caption: 'Organizations in your workspace',
+    tone: 'neutral',
+  },
+  {
+    label: 'Websites',
+    value: companiesDashboard.value.websiteCount,
+    caption: 'Public presence available',
+    tone: 'rich',
+  },
+  {
+    label: 'Capital tracked',
+    value: companiesDashboard.value.capitalCount,
+    caption: 'Raised or AUM captured',
+    tone: 'rich',
+  },
+  {
+    label: 'Need enrichment',
+    value: companiesDashboard.value.sparseCount,
+    caption: 'Missing core context',
+    tone: 'sparse',
+  },
+])
+
 const displayRows = computed(() => {
   const query = String(searchQuery.value || '')
     .trim()
@@ -418,6 +546,17 @@ function displayAmount(value) {
   return value === null || value === undefined || value === ''
     ? ''
     : Number(value).toLocaleString('en-US')
+}
+
+function normalizeCompanyValue(value) {
+  return String(value || '').trim()
+}
+
+function hasCompanyCapital(row) {
+  const value = normalizeCompanyValue(row?.Amount_Raised_AUMs)
+  if (!value) return false
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed > 0
 }
 
 function buildAvatarImage(label) {
@@ -646,39 +785,202 @@ watch(displayRows, () => {
 }
 
 .companies-shell__hero {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: space-between;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 24px;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 84% 16%, rgba(38, 71, 255, 0.14), transparent 24%),
+    radial-gradient(circle at 14% 86%, rgba(235, 255, 90, 0.2), transparent 26%),
+    linear-gradient(180deg, #fdfcf8 0%, #f5f2ea 100%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 24px;
+}
+
+.companies-shell__hero::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.64), transparent 38%),
+    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.34) 100%);
+  pointer-events: none;
 }
 
 .companies-shell__copy {
   display: flex;
-  flex: 1 1 auto;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.companies-shell__eyebrow {
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.16em;
+  line-height: 16px;
+  text-transform: uppercase;
 }
 
 .companies-shell__hero-title {
   margin: 0;
   color: #0a0a0a;
   font-family: var(--font-title);
-  font-size: var(--text-2xl---black);
+  font-size: clamp(2rem, 3vw, 2.8rem);
   font-weight: var(--font-weight-black);
-  line-height: 32px;
+  line-height: 0.96;
+  max-width: 12ch;
 }
 
 .companies-shell__hero-text {
   margin: 0;
-  color: #737373;
+  color: #5d5a54;
   font-family: var(--font-body);
-  font-size: var(--text-base---light);
-  font-weight: var(--font-weight-light);
+  font-size: var(--text-base---regular);
+  font-weight: var(--font-weight-regular);
   line-height: 24px;
+  max-width: 52ch;
 }
 
-.companies-shell__hero-avatar {
-  box-shadow: var(--box--shadow--shadow-xs);
+.companies-shell__hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.companies-shell__meta-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  color: #4b4b4b;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.companies-dashboard {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.companies-dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.companies-dashboard__stat {
+  display: flex;
+  min-height: 116px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 14px 28px rgba(17, 17, 17, 0.04);
+}
+
+.companies-dashboard__stat--neutral {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(247, 244, 238, 0.94) 100%);
+}
+
+.companies-dashboard__stat--rich {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(238, 241, 255, 0.96) 100%);
+}
+
+.companies-dashboard__stat--sparse {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
+}
+
+.companies-dashboard__stat-label,
+.companies-dashboard__health-label {
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.companies-dashboard__stat-value {
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.8rem, 2vw, 2.4rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+}
+
+.companies-dashboard__stat-caption,
+.companies-dashboard__health-text {
+  color: #5d5a54;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 20px;
+}
+
+.companies-dashboard__health {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+}
+
+.companies-dashboard__health-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.companies-dashboard__health-bar {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  background: rgba(17, 17, 17, 0.06);
+  border-radius: 999px;
+}
+
+.companies-dashboard__health-segment {
+  display: block;
+  height: 100%;
+}
+
+.companies-dashboard__health-segment--sparse {
+  background: #ff5521;
+}
+
+.companies-dashboard__health-segment--medium {
+  background: #ebff5a;
+}
+
+.companies-dashboard__health-segment--rich {
+  background: #2647ff;
 }
 
 .companies-toolbar {
@@ -876,6 +1178,10 @@ watch(displayRows, () => {
     gap: 20px;
   }
 
+  .companies-shell__hero {
+    grid-template-columns: 1fr;
+  }
+
   .companies-toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -900,6 +1206,21 @@ watch(displayRows, () => {
   .companies-toolbar__button,
   .companies-view-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .companies-shell__hero {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .companies-dashboard__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .companies-dashboard__stat {
+    min-height: 98px;
   }
 }
 </style>

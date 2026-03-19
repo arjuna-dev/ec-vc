@@ -15,13 +15,18 @@
     </div>
 
     <div v-else class="databook-page">
-      <div class="databook-heading" :class="{ 'databook-heading--compact': isContactView }">
+      <div class="databook-heading" :class="{ 'databook-heading--compact': isStructuredDatabookView }">
         <div class="databook-heading__main">
           <div>
             <div class="databook-heading__eyebrow">{{ entityLabel }} databook</div>
             <template v-if="isContactView">
               <div class="databook-heading__subtitle">
                 Version history and edit controls for this contact record.
+              </div>
+            </template>
+            <template v-else-if="isCompanyView">
+              <div class="databook-heading__subtitle">
+                Version history and edit controls for this company record.
               </div>
             </template>
             <template v-else>
@@ -720,6 +725,483 @@
           </section>
         </div>
 
+        <div v-else-if="isCompanyView" class="contact-databook">
+          <section
+            ref="contactHeroRef"
+            class="contact-databook__hero"
+            :style="contactHeroStyle"
+            @pointerenter="startContactHeroPointerTracking"
+            @pointermove="onContactHeroPointerMove"
+          >
+            <div class="contact-databook__hero-main">
+              <figure class="contact-databook__portrait">
+                <div class="contact-databook__portrait-placeholder" aria-hidden="true">
+                  <div
+                    class="contact-databook__portrait-placeholder-initials"
+                    :style="{ backgroundColor: companyAvatarColor }"
+                  >
+                    {{ companyInitials }}
+                  </div>
+                </div>
+              </figure>
+
+              <div class="contact-databook__hero-copy">
+                <div class="contact-databook__eyebrow">Company profile</div>
+                <h1 class="contact-databook__name">
+                  {{ companyName || 'Unnamed company' }}
+                </h1>
+                <div class="contact-databook__role">
+                  {{ companyOneLiner || companyType || 'Company story not added yet' }}
+                </div>
+
+                <div v-if="companyHeroPills.length" class="contact-databook__pill-row">
+                  <q-badge
+                    v-for="pill in companyHeroPills"
+                    :key="pill.label"
+                    class="contact-databook__pill"
+                  >
+                    {{ pill.label }}
+                  </q-badge>
+                </div>
+
+                <div v-if="companyActionLinks.length" class="contact-databook__actions">
+                  <q-btn
+                    v-for="link in companyActionLinks"
+                    :key="link.label"
+                    outline
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="contact-databook__action"
+                    :href="link.href"
+                    :target="link.external ? '_blank' : undefined"
+                    :rel="link.external ? 'noopener noreferrer' : undefined"
+                  >
+                    <q-icon :name="link.icon" size="16px" class="q-mr-sm" />
+                    <span>{{ link.label }}</span>
+                  </q-btn>
+                </div>
+
+                <div class="contact-databook__hero-notes-panel">
+                  <div class="contact-databook__hero-tabs" role="tablist" aria-label="Company context">
+                    <button
+                      type="button"
+                      class="contact-databook__hero-tab"
+                      :class="{ 'contact-databook__hero-tab--active': companyHeroPanelTab === 'notes' }"
+                      @click="companyHeroPanelTab = 'notes'"
+                    >
+                      Latest notes
+                    </button>
+                    <button
+                      type="button"
+                      class="contact-databook__hero-tab"
+                      :class="{ 'contact-databook__hero-tab--active': companyHeroPanelTab === 'documents' }"
+                      @click="companyHeroPanelTab = 'documents'"
+                    >
+                      Related documents
+                    </button>
+                  </div>
+
+                  <ul
+                    v-if="companyHeroPanelTab === 'notes' && companyHeroNotes.length"
+                    class="contact-databook__hero-notes"
+                  >
+                    <li
+                      v-for="note in companyHeroNotes"
+                      :key="note.id"
+                      class="contact-databook__hero-note"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ note.title }}</div>
+                        <div class="contact-databook__notes-meta">{{ note.created_at }}</div>
+                      </div>
+                      <div v-if="note.content" class="contact-databook__notes-content">
+                        {{ note.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div
+                    v-else-if="companyHeroPanelTab === 'notes'"
+                    class="contact-databook__hero-panel-empty"
+                  >
+                    No notes yet.
+                  </div>
+
+                  <ul
+                    v-if="companyHeroPanelTab === 'documents' && companyHeroDocuments.length"
+                    class="contact-databook__hero-documents"
+                  >
+                    <li
+                      v-for="document in companyHeroDocuments"
+                      :key="document.id"
+                      class="contact-databook__hero-document"
+                      :class="{
+                        'contact-databook__hero-document--loading':
+                          activeDocumentActionKey === `${document.artifactId}:preview`,
+                      }"
+                      tabindex="0"
+                      @click="previewContactDocument(document)"
+                      @keyup.enter.prevent="previewContactDocument(document)"
+                    >
+                      <div class="contact-databook__hero-document-thumb">
+                        <img
+                          v-if="document.thumbnailSrc"
+                          :src="document.thumbnailSrc"
+                          :alt="document.fileName"
+                          class="contact-databook__hero-document-thumb-image"
+                        />
+                        <template v-else>
+                          <q-icon
+                            :name="document.thumbnailIcon"
+                            class="contact-databook__hero-document-thumb-icon"
+                          />
+                          <div class="contact-databook__hero-document-thumb-ext">
+                            {{ document.thumbnailLabel }}
+                          </div>
+                        </template>
+                      </div>
+                      <div class="contact-databook__hero-document-copy">
+                        <div class="contact-databook__hero-document-meta">
+                          <div class="contact-databook__hero-document-name">{{ document.fileName }}</div>
+                          <div class="contact-databook__hero-document-date">{{ document.created_at }}</div>
+                          <div v-if="document.fileTypeLabel" class="contact-databook__hero-document-type">
+                            {{ document.fileTypeLabel }}
+                          </div>
+                        </div>
+                        <div class="contact-databook__hero-document-actions">
+                          <q-btn
+                            flat
+                            no-caps
+                            dense
+                            size="sm"
+                            icon="download"
+                            class="contact-databook__hero-document-action"
+                            :loading="activeDocumentActionKey === `${document.artifactId}:download`"
+                            @click.stop="downloadContactDocument(document)"
+                          >
+                            <span>Download</span>
+                          </q-btn>
+                          <q-btn
+                            flat
+                            no-caps
+                            dense
+                            size="sm"
+                            icon="share"
+                            class="contact-databook__hero-document-action"
+                            :loading="activeDocumentActionKey === `${document.artifactId}:share`"
+                            @click.stop="shareContactDocument(document)"
+                          >
+                            <span>Share</span>
+                          </q-btn>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                  <div
+                    v-else-if="companyHeroPanelTab === 'documents'"
+                    class="contact-databook__hero-panel-empty"
+                  >
+                    No related documents yet.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="contact-databook__summary">
+              <div class="contact-databook__summary-header">
+                <div class="contact-databook__summary-label">Company snapshot</div>
+                <q-btn
+                  round
+                  flat
+                  dense
+                  icon="add"
+                  aria-label="Customize company snapshot"
+                  class="contact-databook__summary-add"
+                >
+                  <q-menu
+                    anchor="bottom right"
+                    self="top right"
+                    class="contact-databook__summary-menu"
+                  >
+                    <q-list dense style="min-width: 220px">
+                      <q-item-label header>Snapshot fields</q-item-label>
+                      <q-item
+                        v-for="option in availableCompanySummaryOptions"
+                        :key="option.id"
+                        clickable
+                        @click="toggleCompanySummaryStat(option.id)"
+                      >
+                        <q-item-section>{{ option.label }}</q-item-section>
+                        <q-item-section side>
+                          <q-icon :name="isCompanySummaryStatSelected(option.id) ? 'check' : 'add'" />
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-btn>
+              </div>
+
+              <div v-if="companySummaryStats.length" class="contact-databook__summary-grid">
+                <div
+                  v-for="stat in companySummaryStats"
+                  :key="stat.id"
+                  class="contact-databook__summary-item"
+                >
+                  <div class="contact-databook__summary-item-label">{{ stat.label }}</div>
+                  <div class="contact-databook__summary-item-value">{{ stat.displayValue }}</div>
+                </div>
+              </div>
+              <div v-else class="contact-databook__summary-empty">
+                Use the + button to add the company details you want to keep in view here.
+              </div>
+            </div>
+          </section>
+
+          <section class="contact-databook__nav" aria-label="Company sections">
+            <button
+              v-for="section in companyNavItems"
+              :key="section.anchor"
+              type="button"
+              class="contact-databook__nav-item"
+              :class="{ 'contact-databook__nav-item--active': activeCompanySection === section.anchor }"
+              @click="activeCompanySection = section.anchor"
+            >
+              {{ section.title }}
+            </button>
+          </section>
+
+          <section class="contact-databook__details">
+            <article v-if="activeCompanyContentSection" class="contact-section-card contact-section-card--active">
+              <div class="contact-section-card__header">
+                <div class="contact-section-card__intro">
+                  <h2 class="contact-section-card__title">{{ activeCompanyContentSection.title }}</h2>
+                  <div v-if="activeCompanyContentSection.caption" class="contact-section-card__caption">
+                    {{ activeCompanyContentSection.caption }}
+                  </div>
+                </div>
+                <svg
+                  v-if="activeCompanyContentSection.icon"
+                  class="contact-section-card__icon"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle
+                    v-for="(shape, index) in activeCompanyContentSection.icon.circles || []"
+                    :key="`company-circle-${index}`"
+                    :cx="shape.cx"
+                    :cy="shape.cy"
+                    :r="shape.r"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.75"
+                    vector-effect="non-scaling-stroke"
+                  />
+                  <path
+                    v-for="(shape, index) in activeCompanyContentSection.icon.paths || []"
+                    :key="`company-path-${index}`"
+                    :d="shape"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.75"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    vector-effect="non-scaling-stroke"
+                  />
+                </svg>
+              </div>
+
+              <div v-if="activeCompanyContentSection.anchor === 'other'" class="contact-context-grid">
+                <article class="contact-side-card">
+                  <div class="contact-side-card__header">
+                    <div class="contact-side-card__intro">
+                      <h3 class="contact-side-card__title">Notes</h3>
+                      <div class="contact-side-card__eyebrow">Company history</div>
+                    </div>
+                  </div>
+
+                  <ul v-if="companyNotes.length" class="contact-databook__hero-notes">
+                    <li
+                      v-for="note in companyNotes"
+                      :key="note.id"
+                      class="contact-databook__hero-note"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ note.title }}</div>
+                        <div class="contact-databook__notes-meta">{{ note.created_at }}</div>
+                      </div>
+                      <div v-if="note.content" class="contact-databook__notes-content">
+                        {{ note.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div v-else class="contact-section-card__empty contact-context-card__empty">
+                    No notes yet for this company.
+                  </div>
+                </article>
+
+                <article class="contact-side-card">
+                  <div class="contact-side-card__header">
+                    <div class="contact-side-card__intro">
+                      <h3 class="contact-side-card__title">Updates</h3>
+                      <div class="contact-side-card__eyebrow">Latest context</div>
+                    </div>
+                  </div>
+
+                  <div v-if="companyUpdates" class="contact-note-card__text">
+                    {{ companyUpdates }}
+                  </div>
+                  <div v-else class="contact-section-card__empty contact-context-card__empty">
+                    No updates logged for this company yet.
+                  </div>
+                </article>
+              </div>
+
+              <q-banner
+                v-else-if="!activeCompanyContentSection.fields.length"
+                class="contact-section-card__empty bg-grey-1 text-black"
+                rounded
+              >
+                No fields are mapped to this section in the current company schema yet.
+              </q-banner>
+
+              <div
+                v-else-if="activeCompanyContentSection.layout === 'note'"
+                class="contact-field-grid contact-field-grid--single"
+              >
+                <article
+                  v-if="activeCompanyContentSection.fields[0]"
+                  class="contact-field-card contact-field-card--note"
+                >
+                  <div class="contact-field-card__label">
+                    {{
+                      activeCompanyContentSection.fields[0].displayLabel ||
+                      activeCompanyContentSection.fields[0].label
+                    }}
+                  </div>
+                  <template v-if="editMode">
+                    <q-input
+                      v-model="draftValues[activeCompanyContentSection.fields[0].key]"
+                      type="textarea"
+                      autogrow
+                      outlined
+                      class="contact-field-card__input"
+                      :disable="saving || !activeCompanyContentSection.fields[0].editable"
+                      :placeholder="
+                        activeCompanyContentSection.fields[0].editable
+                          ? 'Add updates, narrative, or context'
+                          : ''
+                      "
+                    />
+                  </template>
+                  <template v-else>
+                    <p class="contact-note-card__text">
+                      {{ displayValue(activeCompanyContentSection.fields[0]?.value) }}
+                    </p>
+                    <div
+                      v-if="
+                        isHistoricalMode &&
+                        modifiedByMap[activeCompanyContentSection.fields[0].key]
+                      "
+                      class="contact-section-card__modified"
+                    >
+                      modified by {{ modifiedByMap[activeCompanyContentSection.fields[0].key] }}
+                    </div>
+                  </template>
+                </article>
+              </div>
+
+              <div v-else class="contact-field-grid">
+                <article
+                  v-for="field in activeCompanyContentSection.fields"
+                  :key="field.key"
+                  class="contact-field-card"
+                >
+                  <div class="contact-field-card__label">{{ field.displayLabel || field.label }}</div>
+                  <div
+                    v-if="isHistoricalMode && modifiedByMap[field.key]"
+                    class="contact-section-card__modified"
+                  >
+                    modified by {{ modifiedByMap[field.key] }}
+                  </div>
+                  <template v-if="editMode">
+                    <q-input
+                      v-model="draftValues[field.key]"
+                      dense
+                      outlined
+                      :disable="saving || !field.editable"
+                      :placeholder="field.editable ? 'Enter value' : ''"
+                    />
+                  </template>
+                  <template v-else>
+                    <div class="contact-field-card__value">
+                      {{ displayValue(field.value) }}
+                    </div>
+                  </template>
+                </article>
+              </div>
+            </article>
+
+            <div v-else-if="activeCompanySection === 'system'" class="contact-system-grid">
+              <article class="contact-side-card">
+                <div class="contact-side-card__header">
+                  <div class="contact-side-card__intro">
+                    <h2 class="contact-side-card__title">Databook status</h2>
+                    <div class="contact-side-card__eyebrow">System</div>
+                  </div>
+                </div>
+                <div class="contact-side-card__meta-list">
+                  <div
+                    v-for="item in companyMetaItems"
+                    :key="item.label"
+                    class="contact-side-card__meta-item"
+                  >
+                    <div class="contact-side-card__meta-label">{{ item.label }}</div>
+                    <div class="contact-side-card__meta-value">{{ item.value }}</div>
+                  </div>
+                </div>
+              </article>
+
+              <article v-if="visibleSystemFields.length" class="contact-side-card">
+                <div class="contact-side-card__header">
+                  <div class="contact-side-card__intro">
+                    <h2 class="contact-side-card__title">System fields</h2>
+                    <div class="contact-side-card__eyebrow">Full record</div>
+                  </div>
+                </div>
+                <div class="contact-side-card__stack">
+                  <div
+                    v-for="field in visibleSystemFields"
+                    :key="field.key"
+                    class="contact-side-card__field"
+                  >
+                    <div class="contact-field-card__label">{{ field.label }}</div>
+                    <div
+                      v-if="isHistoricalMode && modifiedByMap[field.key]"
+                      class="contact-section-card__modified"
+                    >
+                      modified by {{ modifiedByMap[field.key] }}
+                    </div>
+                    <template v-if="editMode">
+                      <q-input
+                        v-model="draftValues[field.key]"
+                        dense
+                        outlined
+                        :disable="saving || !field.editable"
+                        :placeholder="field.editable ? 'Enter value' : ''"
+                      />
+                    </template>
+                    <template v-else>
+                      <div class="contact-field-card__value">
+                        {{ displayValue(field.value) }}
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+
         <q-list v-else bordered separator>
           <q-item v-for="field in fields" :key="field.key">
             <q-item-section>
@@ -969,6 +1451,7 @@ const TABLE_LIST_ROUTES = {
 }
 
 const DEFAULT_CONTACT_SUMMARY_STAT_IDS = ['role', 'stakeholder', 'country', 'phone']
+const DEFAULT_COMPANY_SUMMARY_STAT_IDS = ['type', 'status', 'website', 'raised']
 const CONTACT_HERO_NOTES_LIMIT = 10
 const CONTACT_HERO_DOCUMENTS_LIMIT = 6
 const CONTACT_IMAGE_CROP_FRAME_WIDTH = 280
@@ -996,8 +1479,34 @@ const CONTACT_SUMMARY_OPTIONS = [
   { id: 'credentials', label: 'Credentials', aliases: ['Credentials'] },
   { id: 'updated', label: 'Updated', aliases: ['updated_at'] },
 ]
+const COMPANY_SUMMARY_OPTIONS = [
+  { id: 'type', label: 'Company type', aliases: ['Company_Type'] },
+  { id: 'status', label: 'Status', aliases: ['Status'] },
+  { id: 'website', label: 'Website', aliases: ['Website'] },
+  { id: 'one-liner', label: 'One liner', aliases: ['One_Liner'] },
+  { id: 'raised', label: 'Amount raised / AUMs', aliases: ['Amount_Raised_AUMs'] },
+  { id: 'pax', label: 'Team size', aliases: ['Pax'] },
+  { id: 'founded', label: 'Date of incorporation', aliases: ['Date_of_Incorporation'] },
+  { id: 'updates', label: 'Updates', aliases: ['Updates'] },
+  { id: 'city', label: 'City', aliases: ['city_id'] },
+  { id: 'country', label: 'Country', aliases: ['country_id'] },
+  { id: 'region', label: 'Region', aliases: ['region_id'] },
+  { id: 'created', label: 'Created', aliases: ['created_at'] },
+  { id: 'updated', label: 'Updated', aliases: ['updated_at'] },
+]
 
 const CONTACT_SECTION_ICONS = {
+  building: {
+    paths: [
+      'M6 20V6.75A1.75 1.75 0 0 1 7.75 5h8.5A1.75 1.75 0 0 1 18 6.75V20',
+      'M3.5 20h17',
+      'M9 9.25h1.75',
+      'M13.25 9.25H15',
+      'M9 12.75h1.75',
+      'M13.25 12.75H15',
+      'M11.25 20v-3.5h1.5V20',
+    ],
+  },
   person: {
     circles: [{ cx: 12, cy: 7.25, r: 3.15 }],
     paths: ['M5 19.25c1.55-3.45 4.08-5.18 7-5.18s5.45 1.73 7 5.18'],
@@ -1061,6 +1570,7 @@ const versions = ref([])
 const selectedVersionId = ref(null)
 const modifiedByMap = ref({})
 const activeContactSection = ref('general-info')
+const activeCompanySection = ref('overview')
 const contactHeroRef = ref(null)
 const contactImageInput = ref(null)
 const uploadingContactImage = ref(false)
@@ -1070,9 +1580,13 @@ const pendingContactImageNaturalSize = ref({ width: 0, height: 0 })
 const contactImageCropZoom = ref(1)
 const contactImageCropOffset = ref({ x: 0, y: 0 })
 const selectedContactSummaryStatIds = ref([])
+const selectedCompanySummaryStatIds = ref([])
 const contactNotes = ref([])
+const companyNotes = ref([])
 const contactDocuments = ref([])
+const companyDocuments = ref([])
 const contactHeroPanelTab = ref('documents')
+const companyHeroPanelTab = ref('documents')
 const contactDocumentsDragOver = ref(false)
 const uploadingContactDocuments = ref(false)
 const workspaceRoot = ref('')
@@ -1113,6 +1627,10 @@ const backLink = computed(
 const isContactView = computed(
   () => (currentView.value?.table_name || tableNameParam.value) === 'Contacts',
 )
+const isCompanyView = computed(
+  () => (currentView.value?.table_name || tableNameParam.value) === 'Companies',
+)
+const isStructuredDatabookView = computed(() => isContactView.value || isCompanyView.value)
 const fieldByName = computed(() =>
   Object.fromEntries((fields.value || []).map((field) => [field.field_name, field])),
 )
@@ -1164,10 +1682,20 @@ const contactSummaryStorageKey = computed(() => {
   const userKey = normalizeUserLabel(actor.value?.user_label || '') || 'guest'
   return `ecvc.contactSummary.${userKey}`
 })
+const companySummaryStorageKey = computed(() => {
+  const userKey = normalizeUserLabel(actor.value?.user_label || '') || 'guest'
+  return `ecvc.companySummary.${userKey}`
+})
 const availableContactSummaryOptions = computed(() =>
   CONTACT_SUMMARY_OPTIONS.map((option) => ({
     ...option,
     value: resolveContactSummaryValue(option),
+  })),
+)
+const availableCompanySummaryOptions = computed(() =>
+  COMPANY_SUMMARY_OPTIONS.map((option) => ({
+    ...option,
+    value: resolveCompanySummaryValue(option),
   })),
 )
 const contactSummaryStats = computed(() => {
@@ -1178,6 +1706,56 @@ const contactSummaryStats = computed(() => {
       ...option,
       displayValue: option.value || 'Not added yet',
     }))
+})
+const companyName = computed(() => getFieldDisplayValue('Company_Name'))
+const companyType = computed(() => getFieldDisplayValue('Company_Type'))
+const companyOneLiner = computed(() => getFieldDisplayValue('One_Liner'))
+const companyWebsite = computed(() => getFieldDisplayValue('Website'))
+const companyUpdates = computed(() => getFieldDisplayValue('Updates'))
+const companyInitials = computed(() => {
+  const label = companyName.value || 'Company'
+  return (
+    label
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'CO'
+  )
+})
+const companyAvatarColor = computed(() => {
+  const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
+  return palette[Math.abs(hashString(companyName.value || 'Company')) % palette.length]
+})
+const companyHeroPills = computed(() =>
+  [
+    getCompanyPill('Company_Type', 'Type'),
+    getCompanyPill('Status', 'Status'),
+    getCompanyPill('Date_of_Incorporation', 'Founded'),
+    getCompanyPill('Pax', 'Team'),
+  ].filter(Boolean),
+)
+const companySummaryStats = computed(() => {
+  const selectedIds = new Set(selectedCompanySummaryStatIds.value)
+  return availableCompanySummaryOptions.value
+    .filter((option) => selectedIds.has(option.id))
+    .map((option) => ({
+      ...option,
+      displayValue: option.value || 'Not added yet',
+    }))
+})
+const companyActionLinks = computed(() => {
+  const website = companyWebsite.value
+  return [
+    website
+      ? {
+          label: 'Website',
+          icon: 'public',
+          href: normalizeExternalUrl(website),
+          external: true,
+        }
+      : null,
+  ].filter(Boolean)
 })
 const contactActionLinks = computed(() => {
   const email = getFieldDisplayValue('Email')
@@ -1196,6 +1774,55 @@ const contactActionLinks = computed(() => {
       : null,
   ].filter(Boolean)
 })
+const companySections = computed(() => [
+  createDatabookSection({
+    anchor: 'overview',
+    category: 'Overview',
+    title: 'Overview',
+    icon: CONTACT_SECTION_ICONS.building,
+    caption: 'Core company identity, website presence, and status.',
+    fieldConfigs: [
+      { label: 'Company name', aliases: ['Company_Name'] },
+      { label: 'One liner', aliases: ['One_Liner'] },
+      { label: 'Website', aliases: ['Website'] },
+      { label: 'Status', aliases: ['Status'] },
+    ],
+  }),
+  createDatabookSection({
+    anchor: 'business',
+    category: 'Business',
+    title: 'Business',
+    icon: CONTACT_SECTION_ICONS.briefcase,
+    caption: 'Type, size, incorporation, and capital context.',
+    fieldConfigs: [
+      { label: 'Company type', aliases: ['Company_Type'] },
+      { label: 'Date of incorporation', aliases: ['Date_of_Incorporation'] },
+      { label: 'Amount raised / AUMs', aliases: ['Amount_Raised_AUMs'] },
+      { label: 'Pax', aliases: ['Pax'] },
+    ],
+  }),
+  createDatabookSection({
+    anchor: 'location',
+    category: 'Location',
+    title: 'Location',
+    icon: CONTACT_SECTION_ICONS.book,
+    caption: 'Geographic context attached to this company record.',
+    fieldConfigs: [
+      { label: 'City', aliases: ['city_id'] },
+      { label: 'Country', aliases: ['country_id'] },
+      { label: 'Region', aliases: ['region_id'] },
+    ],
+  }),
+  createDatabookSection({
+    anchor: 'other',
+    category: 'Other',
+    title: 'Other',
+    icon: CONTACT_SECTION_ICONS.note,
+    caption: 'Narrative updates and notes connected to this company.',
+    fieldConfigs: [{ label: 'Updates', aliases: ['Updates'] }],
+    layout: 'note',
+  }),
+])
 const contactSections = computed(() => {
   const sections = [
     createContactSection({
@@ -1251,6 +1878,13 @@ const contactSections = computed(() => {
 
   return sections
 })
+const companyNavItems = computed(() => [
+  ...companySections.value.map((section) => ({ anchor: section.anchor, title: section.title })),
+  { anchor: 'system', title: 'System' },
+])
+const activeCompanyContentSection = computed(
+  () => companySections.value.find((section) => section.anchor === activeCompanySection.value) || null,
+)
 const contactNavItems = computed(() => [
   ...contactSections.value.map((section) => ({ anchor: section.anchor, title: section.title })),
   { anchor: 'system', title: 'System' },
@@ -1264,8 +1898,21 @@ const contactHeroNotes = computed(() =>
     content: summarizeContactNoteContent(note.content),
   })),
 )
+const companyHeroNotes = computed(() =>
+  companyNotes.value.slice(0, CONTACT_HERO_NOTES_LIMIT).map((note) => ({
+    ...note,
+    content: summarizeContactNoteContent(note.content),
+  })),
+)
 const contactHeroDocuments = computed(() => contactDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
+const companyHeroDocuments = computed(() => companyDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
 const contactMetaItems = computed(() => [
+  { label: 'Record ID', value: getFieldDisplayValue('id') || recordIdParam.value || '-' },
+  { label: 'Created', value: getFieldDisplayValue('created_at') || 'Unknown' },
+  { label: 'Last updated', value: getFieldDisplayValue('updated_at') || 'Unknown' },
+  { label: 'Mode', value: isHistoricalMode.value ? 'Historical snapshot' : 'Live databook' },
+])
+const companyMetaItems = computed(() => [
   { label: 'Record ID', value: getFieldDisplayValue('id') || recordIdParam.value || '-' },
   { label: 'Created', value: getFieldDisplayValue('created_at') || 'Unknown' },
   { label: 'Last updated', value: getFieldDisplayValue('updated_at') || 'Unknown' },
@@ -1294,6 +1941,11 @@ function resolveContactSummaryValue(option = {}) {
   return aliases.map((alias) => getFieldDisplayValue(alias)).find((value) => String(value || '').trim()) || ''
 }
 
+function resolveCompanySummaryValue(option = {}) {
+  const aliases = Array.isArray(option.aliases) ? option.aliases : []
+  return aliases.map((alias) => getFieldDisplayValue(alias)).find((value) => String(value || '').trim()) || ''
+}
+
 function getFieldDisplayValue(fieldName) {
   const field = fieldByName.value[fieldName]
   if (!field) return ''
@@ -1318,6 +1970,12 @@ function handleBackNavigation() {
 }
 
 function getContactPill(fieldName, prefix) {
+  const value = getFieldDisplayValue(fieldName)
+  if (!value) return null
+  return { label: `${prefix}: ${value}` }
+}
+
+function getCompanyPill(fieldName, prefix) {
   const value = getFieldDisplayValue(fieldName)
   if (!value) return null
   return { label: `${prefix}: ${value}` }
@@ -1372,6 +2030,35 @@ function toggleContactSummaryStat(id) {
   saveContactSummarySelection(contactSummaryStorageKey.value, next)
 }
 
+function syncCompanySummarySelection() {
+  const validIds = COMPANY_SUMMARY_OPTIONS.map((option) => option.id)
+  const currentIds = selectedCompanySummaryStatIds.value.filter((id) => validIds.includes(id))
+  if (currentIds.length) {
+    selectedCompanySummaryStatIds.value = currentIds
+    saveContactSummarySelection(companySummaryStorageKey.value, currentIds)
+    return
+  }
+
+  const defaults = DEFAULT_COMPANY_SUMMARY_STAT_IDS.filter((id) => validIds.includes(id))
+  const fallback = defaults.length ? defaults : validIds.slice(0, 4)
+  selectedCompanySummaryStatIds.value = fallback
+  saveContactSummarySelection(companySummaryStorageKey.value, fallback)
+}
+
+function isCompanySummaryStatSelected(id) {
+  return selectedCompanySummaryStatIds.value.includes(id)
+}
+
+function toggleCompanySummaryStat(id) {
+  if (!id) return
+  const next = selectedCompanySummaryStatIds.value.includes(id)
+    ? selectedCompanySummaryStatIds.value.filter((candidate) => candidate !== id)
+    : [...selectedCompanySummaryStatIds.value, id]
+
+  selectedCompanySummaryStatIds.value = next
+  saveContactSummarySelection(companySummaryStorageKey.value, next)
+}
+
 async function loadContactNotes() {
   if (!bridge.value?.notes?.list || !isContactView.value || !recordIdParam.value) {
     contactNotes.value = []
@@ -1398,6 +2085,81 @@ async function loadContactNotes() {
   } catch {
     contactNotes.value = []
     syncContactHeroPanelTab()
+  }
+}
+
+async function loadCompanyNotes() {
+  if (!bridge.value?.notes?.list || !isCompanyView.value || !recordIdParam.value) {
+    companyNotes.value = []
+    syncCompanyHeroPanelTab()
+    return
+  }
+
+  try {
+    const result = await bridge.value.notes.list()
+    const notes = Array.isArray(result?.notes) ? result.notes : []
+    companyNotes.value = notes
+      .filter(
+        (note) =>
+          String(note?.reference_type || '').trim() === 'company' &&
+          String(note?.reference_id || '').trim() === recordIdParam.value,
+      )
+      .map((note) => ({
+        id: note.id,
+        title: String(note.title || 'Untitled note').trim() || 'Untitled note',
+        content: String(note.content || '').trim(),
+        created_at: formatDisplayDate(note.created_at),
+      }))
+    syncCompanyHeroPanelTab()
+  } catch {
+    companyNotes.value = []
+    syncCompanyHeroPanelTab()
+  }
+}
+
+async function loadCompanyDocuments() {
+  if (!bridge.value?.artifacts?.list || !isCompanyView.value || !recordIdParam.value) {
+    companyDocuments.value = []
+    syncCompanyHeroPanelTab()
+    return
+  }
+
+  try {
+    const [artifactResult, opportunitiesResult] = await Promise.all([
+      bridge.value.artifacts.list(),
+      bridge.value?.opportunities?.list ? bridge.value.opportunities.list() : Promise.resolve({ opportunities: [] }),
+    ])
+    const opportunities = Array.isArray(opportunitiesResult?.opportunities) ? opportunitiesResult.opportunities : []
+    const relatedOpportunityIds = new Set(
+      opportunities
+        .filter((opportunity) => String(opportunity?.company_id || '').trim() === recordIdParam.value)
+        .map((opportunity) => String(opportunity?.id || '').trim())
+        .filter(Boolean),
+    )
+
+    const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
+    const groupedArtifacts = new Map()
+
+    for (const artifact of artifacts) {
+      const opportunityId = String(artifact?.opportunity_id || '').trim()
+      if (!relatedOpportunityIds.has(opportunityId)) continue
+
+      const groupKey =
+        String(artifact?.original_artifact_id || '').trim() || String(artifact?.artifact_id || '').trim()
+      if (!groupKey) continue
+
+      const group = groupedArtifacts.get(groupKey) || []
+      group.push(artifact)
+      groupedArtifacts.set(groupKey, group)
+    }
+
+    companyDocuments.value = [...groupedArtifacts.values()]
+      .sort((left, right) => resolveDocumentGroupTimestamp(right) - resolveDocumentGroupTimestamp(left))
+      .map((group) => buildContactDocumentEntry(group))
+    syncCompanyHeroPanelTab()
+  } catch {
+    companyDocuments.value = []
+    syncCompanyHeroPanelTab()
   }
 }
 
@@ -1462,6 +2224,12 @@ async function loadContactDocuments() {
 function syncContactHeroPanelTab() {
   if (contactHeroPanelTab.value !== 'notes' && contactHeroPanelTab.value !== 'documents') {
     contactHeroPanelTab.value = 'documents'
+  }
+}
+
+function syncCompanyHeroPanelTab() {
+  if (companyHeroPanelTab.value !== 'notes' && companyHeroPanelTab.value !== 'documents') {
+    companyHeroPanelTab.value = 'documents'
   }
 }
 
@@ -1862,7 +2630,7 @@ function formatArtifactDomainLabel(value) {
   return labels[raw] || raw.replace(/_/g, ' ')
 }
 
-function resolveContactField(config = {}) {
+function resolveDatabookField(config = {}) {
   const aliases = Array.isArray(config.aliases) ? config.aliases : []
   const field = aliases.map((alias) => fieldByName.value[alias]).find(Boolean)
   if (!field) return null
@@ -1873,7 +2641,21 @@ function resolveContactField(config = {}) {
 }
 
 function createContactSection({ anchor, category, title, icon, caption, fieldConfigs, layout = 'grid' }) {
-  const sectionFields = (fieldConfigs || []).map(resolveContactField).filter(Boolean)
+  const sectionFields = (fieldConfigs || []).map(resolveDatabookField).filter(Boolean)
+
+  return {
+    anchor,
+    category,
+    title,
+    icon,
+    caption,
+    layout,
+    fields: sectionFields,
+  }
+}
+
+function createDatabookSection({ anchor, category, title, icon, caption, fieldConfigs, layout = 'grid' }) {
+  const sectionFields = (fieldConfigs || []).map(resolveDatabookField).filter(Boolean)
 
   return {
     anchor,
@@ -1891,6 +2673,15 @@ function normalizeExternalUrl(value) {
   if (!raw) return ''
   if (/^https?:\/\//i.test(raw)) return raw
   return `https://${raw}`
+}
+
+function hashString(value) {
+  let hash = 0
+  for (const char of String(value || '')) {
+    hash = (hash << 5) - hash + char.charCodeAt(0)
+    hash |= 0
+  }
+  return hash
 }
 
 function normalizeIpcErrorMessage(errorValue) {
@@ -2023,6 +2814,8 @@ async function loadDatabook() {
     await refreshActor()
     await loadContactNotes()
     await loadContactDocuments()
+    await loadCompanyNotes()
+    await loadCompanyDocuments()
   } catch (e) {
     error.value = normalizeIpcErrorMessage(e)
     currentView.value = null
@@ -2030,6 +2823,8 @@ async function loadDatabook() {
     versions.value = []
     contactNotes.value = []
     contactDocuments.value = []
+    companyNotes.value = []
+    companyDocuments.value = []
   } finally {
     loading.value = false
   }
@@ -2368,6 +3163,16 @@ watch(
 
 watch(availableContactSummaryOptions, syncContactSummarySelection, { immediate: true })
 
+watch(
+  companySummaryStorageKey,
+  (storageKey) => {
+    selectedCompanySummaryStatIds.value = loadContactSummarySelection(storageKey)
+  },
+  { immediate: true },
+)
+
+watch(availableCompanySummaryOptions, syncCompanySummarySelection, { immediate: true })
+
 onMounted(() => {
   if (!hasBridge.value) return
   loadDatabook()
@@ -2667,6 +3472,24 @@ onBeforeUnmount(() => {
 .contact-databook__portrait-placeholder-icon {
   font-size: clamp(124px, 18vw, 188px);
   color: rgba(255, 255, 255, 0.92);
+}
+
+.contact-databook__portrait-placeholder-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(132px, 18vw, 188px);
+  height: clamp(132px, 18vw, 188px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 18px 40px rgba(17, 17, 17, 0.18);
+  color: rgba(255, 255, 255, 0.96);
+  font-family: var(--font-title);
+  font-size: clamp(2.6rem, 4vw, 4rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.04em;
 }
 
 .contact-image-cropper-dialog {
@@ -3268,6 +4091,11 @@ onBeforeUnmount(() => {
   font-family: var(--font-body);
   font-size: var(--text-sm---regular);
   line-height: 20px;
+}
+
+.contact-databook__hero-panel-empty--copy {
+  text-align: left;
+  white-space: pre-wrap;
 }
 
 .contact-databook__summary {

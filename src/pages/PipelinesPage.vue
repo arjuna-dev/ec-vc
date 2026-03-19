@@ -22,14 +22,62 @@
       <section class="pipelines-shell">
         <div class="pipelines-shell__hero">
           <div class="pipelines-shell__copy">
-            <h2 class="pipelines-shell__hero-title">Welcome back!</h2>
-            <p class="pipelines-shell__hero-text">
-              Here's a list of predefined pipelines you can create in the workspace.
-            </p>
+            <div class="pipelines-shell__eyebrow">Pipelines dashboard</div>
+            <h2 class="pipelines-shell__hero-title">See what is ready in your workspace.</h2>
+            <p class="pipelines-shell__hero-text">{{ pipelinesHeroText }}</p>
+
+            <div class="pipelines-shell__hero-meta">
+              <div class="pipelines-shell__meta-pill">
+                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
+              </div>
+              <div v-if="selectedCount > 0" class="pipelines-shell__meta-pill">
+                {{ selectedCount }} selected
+              </div>
+              <div class="pipelines-shell__meta-pill">
+                {{ pipelinesDashboard.totalStageCount }} stages mapped
+              </div>
+            </div>
           </div>
-          <q-avatar size="36px" class="pipelines-shell__hero-avatar">
-            <img :src="heroAvatarImage" alt="Pipelines overview avatar" />
-          </q-avatar>
+
+          <div class="pipelines-dashboard">
+            <div class="pipelines-dashboard__stats">
+              <article
+                v-for="stat in pipelinesDashboardStats"
+                :key="stat.label"
+                class="pipelines-dashboard__stat"
+                :class="`pipelines-dashboard__stat--${stat.tone}`"
+              >
+                <div class="pipelines-dashboard__stat-label">{{ stat.label }}</div>
+                <div class="pipelines-dashboard__stat-value">{{ stat.value }}</div>
+                <div class="pipelines-dashboard__stat-caption">{{ stat.caption }}</div>
+              </article>
+            </div>
+
+            <div class="pipelines-dashboard__health">
+              <div class="pipelines-dashboard__health-copy">
+                <div class="pipelines-dashboard__health-label">Workspace readiness</div>
+                <div class="pipelines-dashboard__health-text">
+                  {{ pipelinesDashboard.installedCount }} created, {{ pipelinesDashboard.busyCount }} in progress,
+                  {{ pipelinesDashboard.inactiveCount }} not created
+                </div>
+              </div>
+
+              <div class="pipelines-dashboard__health-bar" aria-hidden="true">
+                <span
+                  class="pipelines-dashboard__health-segment pipelines-dashboard__health-segment--sparse"
+                  :style="{ width: `${pipelinesDashboard.inactiveShare}%` }"
+                />
+                <span
+                  class="pipelines-dashboard__health-segment pipelines-dashboard__health-segment--medium"
+                  :style="{ width: `${pipelinesDashboard.busyShare}%` }"
+                />
+                <span
+                  class="pipelines-dashboard__health-segment pipelines-dashboard__health-segment--rich"
+                  :style="{ width: `${pipelinesDashboard.installedShare}%` }"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="pipelines-toolbar">
@@ -101,7 +149,7 @@
                   @click="viewMode = option.value"
                 >
                   <q-item-section avatar>
-                    <q-icon :name="option.icon" color="black" />
+                    <q-icon :name="option.icon" />
                   </q-item-section>
                   <q-item-section>
                     <q-item-label>{{ option.label }}</q-item-label>
@@ -358,7 +406,6 @@ const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const rowsPerPageOptions = [10, 15, 25, 50]
 const selectedCount = computed(() => selectedRows.value.length)
-const heroAvatarImage = computed(() => buildAvatarImage('PI'))
 
 const $q = useQuasar()
 const route = useRoute()
@@ -383,6 +430,80 @@ const viewOptions = [
   { label: 'Cards', value: 'card', icon: 'grid_view' },
   { label: 'Table', value: 'table', icon: 'view_list' },
 ]
+
+const pipelinesDashboard = computed(() => {
+  const total = pipelines.value.length
+  const summary = pipelines.value.reduce(
+    (accumulator, row) => {
+      const stages = parsedStages(row)
+      const stageCount = stages.length
+      const status = String(row?.install_status || '').trim()
+
+      accumulator.totalStageCount += stageCount
+      if (stageCount > 0) accumulator.stagedCount += 1
+      if (row?.pipeline_id === 'pipeline_default') accumulator.defaultCount += 1
+
+      if (status === 'installed') accumulator.installedCount += 1
+      else if (status === 'installing' || status === 'uninstalling') accumulator.busyCount += 1
+      else accumulator.inactiveCount += 1
+
+      return accumulator
+    },
+    {
+      installedCount: 0,
+      busyCount: 0,
+      inactiveCount: 0,
+      stagedCount: 0,
+      totalStageCount: 0,
+      defaultCount: 0,
+    },
+  )
+
+  return {
+    total,
+    ...summary,
+    installedShare: total ? (summary.installedCount / total) * 100 : 0,
+    busyShare: total ? (summary.busyCount / total) * 100 : 0,
+    inactiveShare: total ? (summary.inactiveCount / total) * 100 : 0,
+  }
+})
+
+const pipelinesHeroText = computed(() => {
+  const { total, installedCount, stagedCount, inactiveCount } = pipelinesDashboard.value
+
+  if (!total) {
+    return 'Create pipeline templates here to map your process, define stages, and activate them inside the workspace.'
+  }
+
+  return `${total} pipeline templates available, ${installedCount} already created in the workspace, ${stagedCount} with defined stages, and ${inactiveCount} still need setup.`
+})
+
+const pipelinesDashboardStats = computed(() => [
+  {
+    label: 'Total pipelines',
+    value: pipelinesDashboard.value.total,
+    caption: 'Templates available in the workspace',
+    tone: 'neutral',
+  },
+  {
+    label: 'Created',
+    value: pipelinesDashboard.value.installedCount,
+    caption: 'Already active in the workspace',
+    tone: 'rich',
+  },
+  {
+    label: 'Stage-ready',
+    value: pipelinesDashboard.value.stagedCount,
+    caption: 'Templates with defined stages',
+    tone: 'rich',
+  },
+  {
+    label: 'Need setup',
+    value: pipelinesDashboard.value.inactiveCount,
+    caption: 'Not yet created in the workspace',
+    tone: 'sparse',
+  },
+])
 
 function statusLabel(status) {
   if (status === 'installed') return 'Created'
@@ -742,39 +863,202 @@ watch(displayRows, () => {
 }
 
 .pipelines-shell__hero {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: space-between;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 24px;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(235, 255, 90, 0.18), transparent 24%),
+    radial-gradient(circle at 14% 84%, rgba(38, 71, 255, 0.1), transparent 28%),
+    linear-gradient(180deg, #fdfcf8 0%, #f5f2ea 100%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 24px;
+}
+
+.pipelines-shell__hero::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.64), transparent 38%),
+    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.34) 100%);
+  pointer-events: none;
 }
 
 .pipelines-shell__copy {
   display: flex;
-  flex: 1 1 auto;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.pipelines-shell__eyebrow {
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.16em;
+  line-height: 16px;
+  text-transform: uppercase;
 }
 
 .pipelines-shell__hero-title {
   margin: 0;
   color: #0a0a0a;
   font-family: var(--font-title);
-  font-size: var(--text-2xl---black);
+  font-size: clamp(2rem, 3vw, 2.8rem);
   font-weight: var(--font-weight-black);
-  line-height: 32px;
+  line-height: 0.96;
+  max-width: 12ch;
 }
 
 .pipelines-shell__hero-text {
   margin: 0;
-  color: #737373;
+  color: #5d5a54;
   font-family: var(--font-body);
-  font-size: var(--text-base---light);
-  font-weight: var(--font-weight-light);
+  font-size: var(--text-base---regular);
+  font-weight: var(--font-weight-regular);
   line-height: 24px;
+  max-width: 52ch;
 }
 
-.pipelines-shell__hero-avatar {
-  box-shadow: var(--box--shadow--shadow-xs);
+.pipelines-shell__hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pipelines-shell__meta-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  color: #4b4b4b;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.pipelines-dashboard {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pipelines-dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pipelines-dashboard__stat {
+  display: flex;
+  min-height: 116px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 14px 28px rgba(17, 17, 17, 0.04);
+}
+
+.pipelines-dashboard__stat--neutral {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(247, 244, 238, 0.94) 100%);
+}
+
+.pipelines-dashboard__stat--rich {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(238, 241, 255, 0.96) 100%);
+}
+
+.pipelines-dashboard__stat--sparse {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
+}
+
+.pipelines-dashboard__stat-label,
+.pipelines-dashboard__health-label {
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.pipelines-dashboard__stat-value {
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.8rem, 2vw, 2.4rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+}
+
+.pipelines-dashboard__stat-caption,
+.pipelines-dashboard__health-text {
+  color: #5d5a54;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 20px;
+}
+
+.pipelines-dashboard__health {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+}
+
+.pipelines-dashboard__health-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pipelines-dashboard__health-bar {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  background: rgba(17, 17, 17, 0.06);
+  border-radius: 999px;
+}
+
+.pipelines-dashboard__health-segment {
+  display: block;
+  height: 100%;
+}
+
+.pipelines-dashboard__health-segment--sparse {
+  background: #ff5521;
+}
+
+.pipelines-dashboard__health-segment--medium {
+  background: #ebff5a;
+}
+
+.pipelines-dashboard__health-segment--rich {
+  background: #2647ff;
 }
 
 .pipelines-toolbar {
@@ -986,6 +1270,10 @@ watch(displayRows, () => {
     gap: 20px;
   }
 
+  .pipelines-shell__hero {
+    grid-template-columns: 1fr;
+  }
+
   .pipelines-toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -1010,6 +1298,21 @@ watch(displayRows, () => {
   .pipelines-toolbar__button,
   .pipelines-view-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .pipelines-shell__hero {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .pipelines-dashboard__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .pipelines-dashboard__stat {
+    min-height: 98px;
   }
 }
 </style>

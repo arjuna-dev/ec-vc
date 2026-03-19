@@ -22,14 +22,62 @@
       <section class="opportunities-shell">
         <div class="opportunities-shell__hero">
           <div class="opportunities-shell__copy">
-            <h2 class="opportunities-shell__hero-title">Welcome back!</h2>
-            <p class="opportunities-shell__hero-text">
-              Here's a list of all of your opportunities.
-            </p>
+            <div class="opportunities-shell__eyebrow">Opportunities dashboard</div>
+            <h2 class="opportunities-shell__hero-title">See which deals are taking shape.</h2>
+            <p class="opportunities-shell__hero-text">{{ opportunitiesHeroText }}</p>
+
+            <div class="opportunities-shell__hero-meta">
+              <div class="opportunities-shell__meta-pill">
+                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
+              </div>
+              <div v-if="selectedCount > 0" class="opportunities-shell__meta-pill">
+                {{ selectedCount }} selected
+              </div>
+              <div class="opportunities-shell__meta-pill">
+                {{ opportunitiesDashboard.fundCount }} fund opportunities
+              </div>
+            </div>
           </div>
-          <q-avatar size="36px" class="opportunities-shell__hero-avatar">
-            <img :src="heroAvatarImage" alt="Opportunities overview avatar" />
-          </q-avatar>
+
+          <div class="opportunities-dashboard">
+            <div class="opportunities-dashboard__stats">
+              <article
+                v-for="stat in opportunitiesDashboardStats"
+                :key="stat.label"
+                class="opportunities-dashboard__stat"
+                :class="`opportunities-dashboard__stat--${stat.tone}`"
+              >
+                <div class="opportunities-dashboard__stat-label">{{ stat.label }}</div>
+                <div class="opportunities-dashboard__stat-value">{{ stat.value }}</div>
+                <div class="opportunities-dashboard__stat-caption">{{ stat.caption }}</div>
+              </article>
+            </div>
+
+            <div class="opportunities-dashboard__health">
+              <div class="opportunities-dashboard__health-copy">
+                <div class="opportunities-dashboard__health-label">Deal readiness</div>
+                <div class="opportunities-dashboard__health-text">
+                  {{ opportunitiesDashboard.richCount }} rich, {{ opportunitiesDashboard.mediumCount }} medium,
+                  {{ opportunitiesDashboard.sparseCount }} sparse
+                </div>
+              </div>
+
+              <div class="opportunities-dashboard__health-bar" aria-hidden="true">
+                <span
+                  class="opportunities-dashboard__health-segment opportunities-dashboard__health-segment--sparse"
+                  :style="{ width: `${opportunitiesDashboard.sparseShare}%` }"
+                />
+                <span
+                  class="opportunities-dashboard__health-segment opportunities-dashboard__health-segment--medium"
+                  :style="{ width: `${opportunitiesDashboard.mediumShare}%` }"
+                />
+                <span
+                  class="opportunities-dashboard__health-segment opportunities-dashboard__health-segment--rich"
+                  :style="{ width: `${opportunitiesDashboard.richShare}%` }"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="opportunities-toolbar">
@@ -101,7 +149,7 @@
                   @click="viewMode = option.value"
                 >
                   <q-item-section avatar>
-                    <q-icon :name="option.icon" color="black" />
+                    <q-icon :name="option.icon" />
                   </q-item-section>
                   <q-item-section>
                     <q-item-label>{{ option.label }}</q-item-label>
@@ -321,7 +369,6 @@ const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const rowsPerPageOptions = [10, 15, 25, 50]
 const selectedCount = computed(() => selectedRows.value.length)
-const heroAvatarImage = computed(() => buildAvatarImage('OP'))
 
 const $q = useQuasar()
 const route = useRoute()
@@ -386,6 +433,93 @@ const viewOptions = [
   { label: 'Table', value: 'table', icon: 'view_list' },
 ]
 
+const opportunitiesDashboard = computed(() => {
+  const total = rows.value.length
+  const summary = rows.value.reduce(
+    (accumulator, row) => {
+      const hasKind = normalizeOpportunityValue(row?.kind).length > 0
+      const hasOwner = normalizeOpportunityValue(row?.Company_Name).length > 0
+      const hasName =
+        normalizeOpportunityValue(row?.opportunity_name).length > 0 ||
+        normalizeOpportunityValue(row?.Venture_Oppty_Name).length > 0
+      const hasStage =
+        normalizeOpportunityValue(row?.Round_Stage).length > 0 ||
+        normalizeOpportunityValue(row?.Pipeline_Stage).length > 0
+      const hasFundType = normalizeOpportunityValue(row?.Fund_Type).length > 0
+      const hasSize = opportunityNumericSize(row) > 0
+      const hasStatus =
+        normalizeOpportunityValue(row?.Raising_Status).length > 0 ||
+        normalizeOpportunityValue(row?.Pipeline_Status).length > 0
+      const profileScore = [hasKind, hasOwner, hasName, hasStage, hasFundType, hasSize, hasStatus].filter(
+        Boolean,
+      ).length
+
+      if (hasStage) accumulator.stageCount += 1
+      if (hasSize) accumulator.sizeCount += 1
+      if (normalizeOpportunityValue(row?.kind).toLowerCase() === 'fund') accumulator.fundCount += 1
+
+      if (profileScore < 3) accumulator.sparseCount += 1
+      else if (profileScore <= 5) accumulator.mediumCount += 1
+      else accumulator.richCount += 1
+
+      return accumulator
+    },
+    {
+      stageCount: 0,
+      sizeCount: 0,
+      fundCount: 0,
+      sparseCount: 0,
+      mediumCount: 0,
+      richCount: 0,
+    },
+  )
+
+  return {
+    total,
+    ...summary,
+    sparseShare: total ? (summary.sparseCount / total) * 100 : 0,
+    mediumShare: total ? (summary.mediumCount / total) * 100 : 0,
+    richShare: total ? (summary.richCount / total) * 100 : 0,
+  }
+})
+
+const opportunitiesHeroText = computed(() => {
+  const { total, stageCount, sizeCount, sparseCount } = opportunitiesDashboard.value
+
+  if (!total) {
+    return 'Track every opportunity here. Add deal details to understand stage coverage, sizing, and which records still need context.'
+  }
+
+  return `${total} opportunities tracked, ${stageCount} already staged, ${sizeCount} sized, and ${sparseCount} still need more investment context.`
+})
+
+const opportunitiesDashboardStats = computed(() => [
+  {
+    label: 'Total opportunities',
+    value: opportunitiesDashboard.value.total,
+    caption: 'Deals and fund tracks in motion',
+    tone: 'neutral',
+  },
+  {
+    label: 'Staged',
+    value: opportunitiesDashboard.value.stageCount,
+    caption: 'Round or pipeline stage mapped',
+    tone: 'rich',
+  },
+  {
+    label: 'Sized',
+    value: opportunitiesDashboard.value.sizeCount,
+    caption: 'Amount or target captured',
+    tone: 'rich',
+  },
+  {
+    label: 'Need enrichment',
+    value: opportunitiesDashboard.value.sparseCount,
+    caption: 'Still missing key deal context',
+    tone: 'sparse',
+  },
+])
+
 const displayRows = computed(() => {
   const query = String(searchQuery.value || '')
     .trim()
@@ -431,6 +565,10 @@ function opportunityNumericSize(row) {
 function displaySize(row) {
   const value = opportunityNumericSize(row)
   return value ? value.toLocaleString('en-US') : ''
+}
+
+function normalizeOpportunityValue(value) {
+  return String(value || '').trim()
 }
 
 function buildAvatarImage(label) {
@@ -650,39 +788,202 @@ watch(displayRows, () => {
 }
 
 .opportunities-shell__hero {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: space-between;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 24px;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(255, 85, 33, 0.12), transparent 24%),
+    radial-gradient(circle at 14% 84%, rgba(38, 71, 255, 0.1), transparent 28%),
+    linear-gradient(180deg, #fdfcf8 0%, #f5f2ea 100%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 24px;
+}
+
+.opportunities-shell__hero::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.64), transparent 38%),
+    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.34) 100%);
+  pointer-events: none;
 }
 
 .opportunities-shell__copy {
   display: flex;
-  flex: 1 1 auto;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.opportunities-shell__eyebrow {
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.16em;
+  line-height: 16px;
+  text-transform: uppercase;
 }
 
 .opportunities-shell__hero-title {
   margin: 0;
   color: #0a0a0a;
   font-family: var(--font-title);
-  font-size: var(--text-2xl---black);
+  font-size: clamp(2rem, 3vw, 2.8rem);
   font-weight: var(--font-weight-black);
-  line-height: 32px;
+  line-height: 0.96;
+  max-width: 12ch;
 }
 
 .opportunities-shell__hero-text {
   margin: 0;
-  color: #737373;
+  color: #5d5a54;
   font-family: var(--font-body);
-  font-size: var(--text-base---light);
-  font-weight: var(--font-weight-light);
+  font-size: var(--text-base---regular);
+  font-weight: var(--font-weight-regular);
   line-height: 24px;
+  max-width: 52ch;
 }
 
-.opportunities-shell__hero-avatar {
-  box-shadow: var(--box--shadow--shadow-xs);
+.opportunities-shell__hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.opportunities-shell__meta-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  color: #4b4b4b;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.opportunities-dashboard {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.opportunities-dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.opportunities-dashboard__stat {
+  display: flex;
+  min-height: 116px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 14px 28px rgba(17, 17, 17, 0.04);
+}
+
+.opportunities-dashboard__stat--neutral {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(247, 244, 238, 0.94) 100%);
+}
+
+.opportunities-dashboard__stat--rich {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(238, 241, 255, 0.96) 100%);
+}
+
+.opportunities-dashboard__stat--sparse {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
+}
+
+.opportunities-dashboard__stat-label,
+.opportunities-dashboard__health-label {
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.opportunities-dashboard__stat-value {
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.8rem, 2vw, 2.4rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+}
+
+.opportunities-dashboard__stat-caption,
+.opportunities-dashboard__health-text {
+  color: #5d5a54;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 20px;
+}
+
+.opportunities-dashboard__health {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+}
+
+.opportunities-dashboard__health-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.opportunities-dashboard__health-bar {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  background: rgba(17, 17, 17, 0.06);
+  border-radius: 999px;
+}
+
+.opportunities-dashboard__health-segment {
+  display: block;
+  height: 100%;
+}
+
+.opportunities-dashboard__health-segment--sparse {
+  background: #ff5521;
+}
+
+.opportunities-dashboard__health-segment--medium {
+  background: #ebff5a;
+}
+
+.opportunities-dashboard__health-segment--rich {
+  background: #2647ff;
 }
 
 .opportunities-toolbar {
@@ -880,6 +1181,10 @@ watch(displayRows, () => {
     gap: 20px;
   }
 
+  .opportunities-shell__hero {
+    grid-template-columns: 1fr;
+  }
+
   .opportunities-toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -904,6 +1209,21 @@ watch(displayRows, () => {
   .opportunities-toolbar__button,
   .opportunities-view-button {
     width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .opportunities-shell__hero {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .opportunities-dashboard__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .opportunities-dashboard__stat {
+    min-height: 98px;
   }
 }
 </style>
