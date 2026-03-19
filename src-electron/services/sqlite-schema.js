@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS Companies (
   Pax INTEGER,
   Updates TEXT,
   Website TEXT,
+  Company_Logo TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (Company_Type) REFERENCES company_types(type) ON UPDATE CASCADE ON DELETE RESTRICT,

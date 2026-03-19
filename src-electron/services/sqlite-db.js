@@ -42,6 +42,7 @@ export function closeDb() {
 
 function migrate(database) {
   ensureContactImageColumn(database)
+  ensureCompanyLogoColumn(database)
   ensureTasksPipelineColumn(database)
   ensureArtifactsCompatibilityColumns(database)
   ensureLocationHierarchyColumns(database)
@@ -57,6 +58,12 @@ function ensureContactImageColumn(database) {
   if (!hasTable(database, 'Contacts')) return
   if (hasColumn(database, 'Contacts', 'Profile_Image')) return
   database.exec('ALTER TABLE Contacts ADD COLUMN Profile_Image TEXT')
+}
+
+function ensureCompanyLogoColumn(database) {
+  if (!hasTable(database, 'Companies')) return
+  if (hasColumn(database, 'Companies', 'Company_Logo')) return
+  database.exec('ALTER TABLE Companies ADD COLUMN Company_Logo TEXT')
 }
 
 function ensureGenericDatabookSnapshots(database) {

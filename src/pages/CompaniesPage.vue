@@ -234,78 +234,136 @@
 
           <div v-else class="row q-col-gutter-md companies-cards-grid">
             <div v-for="row in displayRows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
-              <q-card flat bordered class="company-card full-height">
-                <q-card-section class="q-pb-sm">
-                  <div class="row items-start no-wrap">
-                    <div class="col-auto q-pr-md">
-                      <q-avatar size="56px" class="company-card__avatar">
-                        <img :src="buildAvatarImage(row.Company_Name)" :alt="row.Company_Name || 'Company avatar'" />
-                      </q-avatar>
-                    </div>
-                    <div class="col">
-                      <div class="company-card__eyebrow">Company</div>
-                      <div class="company-card__title">
-                        {{ row.Company_Name || 'Unnamed company' }}
+              <q-card
+                flat
+                bordered
+                class="company-card full-height"
+                :style="getCompanyCardStyle(row)"
+                @pointerenter="onCompanyCardPointerEnter"
+                @pointermove="onCompanyCardPointerMove"
+                @pointerleave="onCompanyCardPointerLeave"
+              >
+                <q-card-section class="company-card__hero">
+                  <div class="company-card__hero-main">
+                    <figure class="company-card__portrait">
+                      <div class="company-card__portrait-shell" aria-hidden="true">
+                        <div
+                          class="company-card__portrait-badge"
+                          :class="{ 'company-card__portrait-badge--logo': hasCompanyLogo(row) }"
+                          :style="!hasCompanyLogo(row) ? { backgroundColor: getCompanyAvatarColor(row) } : undefined"
+                        >
+                          <img
+                            v-if="hasCompanyLogo(row)"
+                            class="company-card__portrait-logo"
+                            :src="buildAvatarImage(row)"
+                            :alt="row.Company_Name || 'Company logo'"
+                          />
+                          <template v-else>
+                            {{ getCompanyInitials(row) }}
+                          </template>
+                        </div>
                       </div>
-                      <div v-if="row.Company_Type" class="company-card__subtitle">
-                        {{ row.Company_Type }}
+                    </figure>
+
+                    <div class="company-card__hero-side">
+                      <div class="company-card__hero-top">
+                        <div class="company-card__hero-copy">
+                          <div class="company-card__eyebrow">Company profile</div>
+                          <div class="company-card__title">
+                            {{ row.Company_Name || 'Unnamed company' }}
+                          </div>
+                          <div class="company-card__subtitle">
+                            {{ getCompanyCardSubtitle(row) }}
+                          </div>
+                        </div>
+
+                        <q-btn
+                          round
+                          dense
+                          size="sm"
+                          unelevated
+                          no-caps
+                          class="company-card__select-button"
+                          :class="{ 'company-card__select-button--active': isSelected(row) }"
+                          :icon="isSelected(row) ? 'check' : 'add'"
+                          :disable="loading"
+                          :aria-pressed="isSelected(row) ? 'true' : 'false'"
+                          @click.stop="toggleRowSelection(row)"
+                        />
                       </div>
-                    </div>
-                    <div class="col-auto">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
+
+                      <div v-if="getCompanyCardPills(row).length" class="company-card__pill-row">
+                        <q-badge
+                          v-for="pill in getCompanyCardPills(row)"
+                          :key="pill"
+                          class="company-card__pill"
+                        >
+                          {{ pill }}
+                        </q-badge>
+                      </div>
+
+                      <div v-if="getCompanyCardActionLinks(row).length" class="company-card__quick-actions">
+                        <q-btn
+                          v-for="link in getCompanyCardActionLinks(row)"
+                          :key="link.label"
+                          outline
+                          no-caps
+                          unelevated
+                          size="sm"
+                          class="company-card__quick-action"
+                          type="button"
+                          @click="openCompanyCardAction(link, $event)"
+                        >
+                          <q-icon :name="link.icon" size="16px" class="q-mr-sm" />
+                          <span>{{ link.label }}</span>
+                        </q-btn>
+                      </div>
                     </div>
                   </div>
                 </q-card-section>
 
-                <q-separator />
+                <q-card-section class="company-card__summary">
+                  <div class="company-card__summary-label">Highlights</div>
 
-                <q-card-section class="q-gutter-sm">
-                  <div v-if="row.Website" class="company-card__field">
-                    <q-icon name="public" size="16px" class="q-mr-sm text-grey-7" />
-                    <span class="ellipsis">{{ row.Website }}</span>
-                  </div>
-                  <div v-if="row.Status" class="company-card__field">
-                    <q-icon name="schedule" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.Status }}</span>
-                  </div>
-                  <div v-if="displayAmount(row.Amount_Raised_AUMs)" class="company-card__field">
-                    <q-icon name="payments" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ displayAmount(row.Amount_Raised_AUMs) }}</span>
-                  </div>
-                  <div class="row q-col-gutter-sm q-pt-xs">
-                    <div v-if="row.created_at" class="col-auto">
-                      <q-badge outline color="grey-6" text-color="grey-8">
-                        {{ row.created_at }}
-                      </q-badge>
+                  <div v-if="getCompanyCardDetails(row).length" class="company-card__details">
+                    <div
+                      v-for="detail in getCompanyCardDetails(row)"
+                      :key="detail.label"
+                      class="company-card__detail"
+                    >
+                      <q-icon :name="detail.icon" size="16px" class="company-card__detail-icon" />
+                      <div class="company-card__detail-copy">
+                        <div class="company-card__detail-label">{{ detail.label }}</div>
+                        <div class="company-card__detail-value">{{ detail.value }}</div>
+                      </div>
                     </div>
+                  </div>
+
+                  <div v-else class="company-card__summary-empty">
+                    Add more company details to make this card richer.
                   </div>
                 </q-card-section>
 
-                <q-space />
-
-                <q-card-actions align="between">
+                <q-card-actions class="company-card__footer">
                   <q-btn
-                    dense
-                    flat
-                    color="grey-9"
-                    label="Databook"
+                    no-caps
+                    unelevated
+                    class="company-card__footer-action company-card__footer-action--primary"
+                    label="Open databook"
                     :disable="loading"
                     @click="openDatabook(row)"
                   />
-                  <q-btn
-                    dense
-                    flat
-                    round
-                    icon="delete"
-                    color="grey-8"
-                    :disable="loading"
-                    @click="confirmDelete(row)"
-                  />
+
+                  <div class="company-card__footer-actions">
+                    <q-btn
+                      flat
+                      round
+                      icon="delete"
+                      class="company-card__icon-action"
+                      :disable="loading"
+                      @click="confirmDelete(row)"
+                    />
+                  </div>
                 </q-card-actions>
               </q-card>
             </div>
@@ -344,6 +402,7 @@ import { exportFile, useQuasar } from 'quasar'
 import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
+import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -371,6 +430,12 @@ const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const rowsPerPageOptions = [10, 15, 25, 50]
 const selectedCount = computed(() => selectedRows.value.length)
+const companyCardDateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+})
+const COMPANY_COMPLETENESS_IGNORED_FIELDS = new Set(['id', 'created_at', 'updated_at'])
 
 const $q = useQuasar()
 const route = useRoute()
@@ -559,8 +624,35 @@ function hasCompanyCapital(row) {
   return Number.isFinite(parsed) && parsed > 0
 }
 
+function hasCompanyLogo(row) {
+  return normalizeCompanyValue(row?.Company_Logo).length > 0
+}
+
+function getCompanyInitials(row) {
+  const label = normalizeCompanyValue(row?.Company_Name) || 'Company'
+  return (
+    label
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'CO'
+  )
+}
+
+function getCompanyAvatarColor(row) {
+  const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
+  return palette[Math.abs(hashString(normalizeCompanyValue(row?.Company_Name) || 'Company')) % palette.length]
+}
+
 function buildAvatarImage(label) {
-  const text = String(label || 'Company').trim()
+  const customImage = String(label?.Company_Logo || '').trim()
+  if (customImage) return customImage
+
+  const text =
+    typeof label === 'object' && label !== null
+      ? String(label?.Company_Name || 'Company').trim()
+      : String(label || 'Company').trim()
   const initials = text
     .split(/\s+/)
     .filter(Boolean)
@@ -596,6 +688,215 @@ function escapeSvg(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;')
+}
+
+function getCompanyCardStyle(row) {
+  const theme = getContactCompletenessTheme(
+    countFilledContactFields(row, COMPANY_COMPLETENESS_IGNORED_FIELDS),
+  )
+
+  return {
+    '--company-card-blob-x': '50%',
+    '--company-card-blob-y': '32%',
+    '--company-card-blob-size': '58%',
+    '--company-card-blob-opacity': '0',
+    '--company-card-blob-strong': theme.blobStrong,
+    '--company-card-blob-soft': theme.blobSoft,
+    '--company-card-blob-fade': theme.blobFade,
+  }
+}
+
+function onCompanyCardPointerEnter(event) {
+  updateCompanyCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--company-card-blob-opacity', '1')
+}
+
+function onCompanyCardPointerMove(event) {
+  updateCompanyCardGradientPosition(event)
+}
+
+function onCompanyCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--company-card-blob-opacity', '0')
+}
+
+function updateCompanyCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+
+  element.style.setProperty('--company-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--company-card-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
+function getCompanyCardSubtitle(row) {
+  return (
+    normalizeCompanyValue(row?.One_Liner) ||
+    normalizeCompanyValue(row?.Company_Type) ||
+    'Company story not added yet'
+  )
+}
+
+function getCompanyCardPills(row) {
+  return [
+    normalizeCompanyValue(row?.Company_Type),
+    normalizeCompanyValue(row?.Status),
+    normalizeCompanyValue(row?.Pax) ? `Team ${normalizeCompanyValue(row.Pax)}` : '',
+    normalizeCompanyValue(row?.Date_of_Incorporation)
+      ? `Founded ${formatCompanyDate(row.Date_of_Incorporation)}`
+      : '',
+  ]
+    .filter(Boolean)
+    .slice(0, 3)
+}
+
+function getCompanyCardActionLinks(row) {
+  const website = normalizeCompanyValue(row?.Website)
+
+  return [
+    website
+      ? {
+          label: 'Website',
+          icon: 'public',
+          href: normalizeExternalUrl(website),
+          external: true,
+        }
+      : null,
+  ].filter(Boolean)
+}
+
+function getCompanyCardDetails(row) {
+  const location = getCompanyLocationValue(row)
+
+  return [
+    row?.Website
+      ? {
+          label: 'Website',
+          value: formatCompanyWebsiteValue(row.Website),
+          icon: 'public',
+        }
+      : null,
+    hasCompanyCapital(row)
+      ? {
+          label: 'Raised / AUM',
+          value: formatCompanyCurrency(row.Amount_Raised_AUMs),
+          icon: 'payments',
+        }
+      : null,
+    row?.Date_of_Incorporation
+      ? {
+          label: 'Founded',
+          value: formatCompanyDate(row.Date_of_Incorporation),
+          icon: 'calendar_today',
+        }
+      : null,
+    row?.Pax
+      ? {
+          label: 'Team',
+          value: normalizeCompanyValue(row.Pax),
+          icon: 'groups',
+        }
+      : null,
+    row?.created_at
+      ? {
+          label: 'Created',
+          value: formatCompanyDate(row.created_at),
+          icon: 'schedule',
+        }
+      : null,
+    row?.Status
+      ? {
+          label: 'Status',
+          value: normalizeCompanyValue(row.Status),
+          icon: 'flag',
+        }
+      : null,
+    location
+      ? {
+          label: 'Location',
+          value: location,
+          icon: 'place',
+        }
+      : null,
+  ]
+    .filter(Boolean)
+    .slice(0, 4)
+}
+
+async function openCompanyCardAction(link, event) {
+  event?.preventDefault?.()
+  event?.stopPropagation?.()
+
+  const href = normalizeCompanyValue(link?.href)
+  if (!href) return
+
+  try {
+    if (bridge.value?.links?.openExternal) {
+      await bridge.value.links.openExternal(href)
+      return
+    }
+
+    window.open(href, link?.external ? '_blank' : '_self', 'noopener,noreferrer')
+  } catch (actionError) {
+    $q.notify({
+      type: 'negative',
+      message: actionError?.message || 'Unable to open link.',
+    })
+  }
+}
+
+function normalizeExternalUrl(value) {
+  const normalized = normalizeCompanyValue(value)
+  if (!normalized) return ''
+  if (/^[a-z][a-z\d+.-]*:/i.test(normalized)) return normalized
+  return `https://${normalized}`
+}
+
+function formatCompanyWebsiteValue(value) {
+  const normalized = normalizeExternalUrl(value)
+
+  try {
+    const url = new URL(normalized)
+    return url.hostname.replace(/^www\./, '')
+  } catch {
+    return normalizeCompanyValue(value)
+  }
+}
+
+function formatCompanyCurrency(value) {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return normalizeCompanyValue(value)
+
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(numeric)
+}
+
+function formatCompanyDate(value) {
+  const normalized = normalizeCompanyValue(value)
+  if (!normalized) return ''
+
+  const parsed = new Date(normalized)
+  if (Number.isNaN(parsed.getTime())) return normalized
+
+  return companyCardDateFormatter.format(parsed)
+}
+
+function getCompanyLocationValue(row) {
+  return [row?.city_id, row?.country_id, row?.region_id]
+    .map((value) => normalizeCompanyValue(value))
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(', ')
 }
 
 function exportCompaniesCsv() {
@@ -659,25 +960,33 @@ async function onCompanyCreated() {
 }
 
 function normalizeSelectedRows() {
-  const activeIds = new Set(displayRows.value.map((row) => row.id))
-  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.id))
+  const activeIds = new Set(displayRows.value.map((row) => String(row?.id || '').trim()))
+  selectedRows.value = selectedRows.value.filter((row) =>
+    activeIds.has(String(row?.id || '').trim()),
+  )
 }
 
 function isSelected(row) {
-  return selectedRows.value.some((selectedRow) => selectedRow.id === row?.id)
+  const rowId = String(row?.id || '').trim()
+  if (!rowId) return false
+  return selectedRows.value.some((selectedRow) => String(selectedRow?.id || '').trim() === rowId)
 }
 
 function toggleRowSelection(row, shouldSelect) {
   const rowId = String(row?.id || '').trim()
   if (!rowId) return
 
-  if (shouldSelect) {
+  const nextSelection = typeof shouldSelect === 'boolean' ? shouldSelect : !isSelected(row)
+
+  if (nextSelection) {
     if (isSelected(row)) return
     selectedRows.value = [...selectedRows.value, row]
     return
   }
 
-  selectedRows.value = selectedRows.value.filter((selectedRow) => selectedRow.id !== rowId)
+  selectedRows.value = selectedRows.value.filter(
+    (selectedRow) => String(selectedRow?.id || '').trim() !== rowId,
+  )
 }
 
 async function deleteCompany(row) {
@@ -1124,52 +1433,317 @@ watch(displayRows, () => {
 }
 
 .company-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  border-radius: 8px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 240, 0.98) 100%);
+  border-radius: 28px;
   border-color: #e5e5e5;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 16px 40px rgba(17, 17, 17, 0.05);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
-.company-card__eyebrow {
+.company-card::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--company-card-blob-x) var(--company-card-blob-y),
+    var(--company-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--company-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--company-card-blob-size) * 0.46),
+    var(--company-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--company-card-blob-size) * 0.7),
+    transparent var(--company-card-blob-size)
+  );
+  opacity: var(--company-card-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.company-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.company-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+}
+
+.company-card__hero {
+  padding: 0;
+}
+
+.company-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 236px;
+}
+
+.company-card__portrait {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.66), transparent 26%),
+    radial-gradient(circle at 76% 68%, rgba(255, 255, 255, 0.36), transparent 30%),
+    linear-gradient(180deg, #ebe7df 0%, #dcd6cd 100%);
+  border-right: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.company-card__portrait::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(17, 17, 17, 0.12) 100%);
+  pointer-events: none;
+}
+
+.company-card__portrait-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.company-card__portrait-badge {
+  display: flex;
+  width: clamp(112px, 42%, 144px);
+  height: clamp(112px, 42%, 144px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 36px rgba(17, 17, 17, 0.14);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
+}
+
+.company-card__portrait-badge--logo {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(17, 17, 17, 0.08);
+}
+
+.company-card__portrait-logo {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.company-card__hero-side {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px 16px 14px 12px;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.company-card__hero-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.company-card__hero-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.company-card__eyebrow,
+.company-card__summary-label {
   color: #737373;
   font-family: var(--font-body);
-  font-size: var(--text-xs---light);
-  font-weight: var(--font-weight-light);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.14em;
   line-height: 16px;
   text-transform: uppercase;
 }
 
 .company-card__title {
   color: #0a0a0a;
-  font-family: var(--font-body);
-  font-size: var(--text-base---black);
+  font-family: var(--font-title);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
   font-weight: var(--font-weight-black);
-  line-height: 24px;
+  line-height: 0.96;
 }
 
 .company-card__subtitle {
-  color: #737373;
+  color: #4b4b4b;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+  text-wrap: balance;
+}
+
+.company-card__select-button {
+  color: #111;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.08);
+}
+
+.company-card__select-button--active {
+  color: #fff;
+  background: #111;
+  border-color: #111;
+}
+
+.company-card__pill-row,
+.company-card__footer-actions,
+.company-card__quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.company-card__pill {
+  padding: 6px 9px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
+
+.company-card__quick-action {
+  min-height: 30px;
+  padding: 0 10px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(17, 17, 17, 0.1);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.company-card__quick-action :deep(.q-btn__content) {
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.company-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  margin: 20px 20px 0;
+  padding: 16px 18px 18px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(18px);
+}
+
+.company-card__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.company-card__detail {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.company-card__detail-icon {
+  margin-top: 2px;
+  color: #6f6f6f;
+}
+
+.company-card__detail-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.company-card__detail-label {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.company-card__detail-value {
+  overflow: hidden;
+  color: #111;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.company-card__summary-empty {
+  color: #6f6f6f;
   font-family: var(--font-body);
   font-size: var(--text-sm---light);
   font-weight: var(--font-weight-light);
   line-height: 20px;
 }
 
-.company-card__avatar {
-  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
-}
-
-.company-card__field {
+.company-card__footer {
   display: flex;
   align-items: center;
-  min-width: 0;
-  color: #404040;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.company-card__footer-action {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
   font-family: var(--font-body);
   font-size: var(--text-sm---light);
-  font-weight: var(--font-weight-light);
+  font-weight: var(--font-weight-medium);
   line-height: 20px;
+}
+
+.company-card__footer-action--primary {
+  color: #fff;
+  background: #111;
+}
+
+.company-card__icon-action {
+  color: #111;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 17, 17, 0.1);
 }
 
 @media (max-width: 1200px) {
@@ -1221,6 +1795,41 @@ watch(displayRows, () => {
 
   .companies-dashboard__stat {
     min-height: 98px;
+  }
+
+  .company-card {
+    border-radius: 20px;
+  }
+
+  .company-card__hero-main {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .company-card__portrait {
+    min-height: 148px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+  }
+
+  .company-card__hero-side {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .company-card__details {
+    grid-template-columns: 1fr;
+  }
+
+  .company-card__summary,
+  .company-card__footer {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+
+  .company-card__footer {
+    padding-right: 0;
+    padding-left: 0;
   }
 }
 </style>

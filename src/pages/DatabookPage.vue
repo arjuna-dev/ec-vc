@@ -737,11 +737,59 @@
               <figure class="contact-databook__portrait">
                 <div class="contact-databook__portrait-placeholder" aria-hidden="true">
                   <div
-                    class="contact-databook__portrait-placeholder-initials"
-                    :style="{ backgroundColor: companyAvatarColor }"
+                    class="contact-databook__portrait-badge"
+                    :class="{ 'contact-databook__portrait-badge--logo': hasCompanyCustomLogo }"
+                    :style="!hasCompanyCustomLogo ? { backgroundColor: companyAvatarColor } : undefined"
                   >
-                    {{ companyInitials }}
+                    <img
+                      v-if="hasCompanyCustomLogo"
+                      class="contact-databook__portrait-logo"
+                      :src="companyLogoImage"
+                      :alt="companyName || 'Company logo'"
+                    />
+                    <template v-else>
+                      {{ companyInitials }}
+                    </template>
                   </div>
+                </div>
+                <div class="contact-databook__portrait-actions">
+                  <q-btn
+                    round
+                    dense
+                    size="sm"
+                    unelevated
+                    icon="edit"
+                    class="contact-databook__portrait-action"
+                    :loading="uploadingContactImage"
+                    :disable="saving || !companyLogoField"
+                  >
+                    <q-menu
+                      anchor="bottom right"
+                      self="top right"
+                      class="contact-databook__portrait-menu"
+                    >
+                      <q-list dense style="min-width: 168px">
+                        <q-item clickable v-close-popup @click="triggerCompanyLogoPicker">
+                          <q-item-section avatar>
+                            <q-icon name="image" />
+                          </q-item-section>
+                          <q-item-section>Change logo</q-item-section>
+                        </q-item>
+                        <q-item
+                          clickable
+                          v-close-popup
+                          :disable="!hasCompanyCustomLogo"
+                          @click="removeCompanyLogo"
+                        >
+                          <q-item-section avatar>
+                            <q-icon name="delete" />
+                          </q-item-section>
+                          <q-item-section>Delete logo</q-item-section>
+                        </q-item>
+                      </q-list>
+                    </q-menu>
+                    <q-tooltip>Change logo</q-tooltip>
+                  </q-btn>
                 </div>
               </figure>
 
@@ -1277,22 +1325,29 @@
           <q-card-section>
             <div class="text-h6">Crop image</div>
             <div class="text-caption text-grey-7">
-              Drag to reposition and use zoom to fit the portrait frame.
+              {{ contactImageCropCaption }}
             </div>
           </q-card-section>
 
           <q-card-section class="contact-image-cropper-dialog__body">
             <div class="contact-image-cropper" @pointerdown="startContactImageCropDrag">
-              <div class="contact-image-cropper__frame">
+              <div
+                class="contact-image-cropper__frame"
+                :class="{ 'contact-image-cropper__frame--circle': isCompanyImageCropTarget }"
+                :style="contactImageCropFrameStyle"
+              >
                 <img
                   v-if="pendingContactImageSrc"
                   :src="pendingContactImageSrc"
-                  alt="Selected contact portrait"
+                  alt="Selected image preview"
                   class="contact-image-cropper__image"
                   :style="contactImageCropStyle"
                   draggable="false"
                 />
-                <div class="contact-image-cropper__overlay" />
+                <div
+                  class="contact-image-cropper__overlay"
+                  :class="{ 'contact-image-cropper__overlay--circle': isCompanyImageCropTarget }"
+                />
               </div>
             </div>
 
@@ -1454,10 +1509,12 @@ const DEFAULT_CONTACT_SUMMARY_STAT_IDS = ['role', 'stakeholder', 'country', 'pho
 const DEFAULT_COMPANY_SUMMARY_STAT_IDS = ['type', 'status', 'website', 'raised']
 const CONTACT_HERO_NOTES_LIMIT = 10
 const CONTACT_HERO_DOCUMENTS_LIMIT = 6
-const CONTACT_IMAGE_CROP_FRAME_WIDTH = 280
-const CONTACT_IMAGE_CROP_FRAME_HEIGHT = 420
-const CONTACT_IMAGE_OUTPUT_WIDTH = 800
-const CONTACT_IMAGE_OUTPUT_HEIGHT = 1200
+const CONTACT_IMAGE_CROP_CONTACT_FRAME_WIDTH = 280
+const CONTACT_IMAGE_CROP_CONTACT_FRAME_HEIGHT = 420
+const CONTACT_IMAGE_CROP_COMPANY_FRAME_SIZE = 280
+const CONTACT_IMAGE_OUTPUT_CONTACT_WIDTH = 800
+const CONTACT_IMAGE_OUTPUT_CONTACT_HEIGHT = 1200
+const CONTACT_IMAGE_OUTPUT_COMPANY_SIZE = 800
 const CONTACT_HERO_GRADIENT_DEFAULT = {
   x: 88,
   y: 14,
@@ -1573,6 +1630,7 @@ const activeContactSection = ref('general-info')
 const activeCompanySection = ref('overview')
 const contactHeroRef = ref(null)
 const contactImageInput = ref(null)
+const currentImageUploadTarget = ref('contact')
 const uploadingContactImage = ref(false)
 const showContactImageCropDialog = ref(false)
 const pendingContactImageSrc = ref('')
@@ -1635,14 +1693,43 @@ const fieldByName = computed(() =>
   Object.fromEntries((fields.value || []).map((field) => [field.field_name, field])),
 )
 const contactImageField = computed(() => fieldByName.value.Profile_Image || null)
+const companyLogoField = computed(() => fieldByName.value.Company_Logo || null)
 const contactName = computed(() => getFieldDisplayValue('Name'))
 const contactRole = computed(() => getFieldDisplayValue('Role'))
 const contactAvatarImage = computed(() => getFieldDisplayValue('Profile_Image'))
 const hasContactCustomImage = computed(() => String(getFieldDisplayValue('Profile_Image') || '').trim().length > 0)
+const companyLogoImage = computed(() => getFieldDisplayValue('Company_Logo'))
+const hasCompanyCustomLogo = computed(() => String(getFieldDisplayValue('Company_Logo') || '').trim().length > 0)
+const isCompanyImageCropTarget = computed(() => currentImageUploadTarget.value === 'company')
+const contactImageCropFrameWidth = computed(() =>
+  isCompanyImageCropTarget.value
+    ? CONTACT_IMAGE_CROP_COMPANY_FRAME_SIZE
+    : CONTACT_IMAGE_CROP_CONTACT_FRAME_WIDTH,
+)
+const contactImageCropFrameHeight = computed(() =>
+  isCompanyImageCropTarget.value
+    ? CONTACT_IMAGE_CROP_COMPANY_FRAME_SIZE
+    : CONTACT_IMAGE_CROP_CONTACT_FRAME_HEIGHT,
+)
+const contactImageOutputWidth = computed(() =>
+  isCompanyImageCropTarget.value ? CONTACT_IMAGE_OUTPUT_COMPANY_SIZE : CONTACT_IMAGE_OUTPUT_CONTACT_WIDTH,
+)
+const contactImageOutputHeight = computed(() =>
+  isCompanyImageCropTarget.value ? CONTACT_IMAGE_OUTPUT_COMPANY_SIZE : CONTACT_IMAGE_OUTPUT_CONTACT_HEIGHT,
+)
+const contactImageCropFrameStyle = computed(() => ({
+  width: `${contactImageCropFrameWidth.value}px`,
+  height: `${contactImageCropFrameHeight.value}px`,
+}))
+const contactImageCropCaption = computed(() =>
+  isCompanyImageCropTarget.value
+    ? 'Drag to position the logo inside the circular frame.'
+    : 'Drag to reposition and use zoom to fit the portrait frame.',
+)
 const contactImageCropBaseScale = computed(() => {
   const { width, height } = pendingContactImageNaturalSize.value
   if (!width || !height) return 1
-  return Math.max(CONTACT_IMAGE_CROP_FRAME_WIDTH / width, CONTACT_IMAGE_CROP_FRAME_HEIGHT / height)
+  return Math.max(contactImageCropFrameWidth.value / width, contactImageCropFrameHeight.value / height)
 })
 const contactImageCropDisplaySize = computed(() => ({
   width: pendingContactImageNaturalSize.value.width * contactImageCropBaseScale.value * contactImageCropZoom.value,
@@ -2914,6 +3001,12 @@ async function switchToLatestVersion() {
 }
 
 function triggerContactImagePicker() {
+  currentImageUploadTarget.value = 'contact'
+  contactImageInput.value?.click?.()
+}
+
+function triggerCompanyLogoPicker() {
+  currentImageUploadTarget.value = 'company'
   contactImageInput.value?.click?.()
 }
 
@@ -2925,7 +3018,10 @@ async function onContactImageSelected(event) {
   }
 
   try {
-    if (!contactImageField.value) throw new Error('Profile image field is not available for this contact.')
+    const imageTargetConfig = getImageTargetConfig()
+    if (!imageTargetConfig.field) {
+      throw new Error(`${imageTargetConfig.label} field is not available for this record.`)
+    }
     if (!String(file.type || '').startsWith('image/')) {
       throw new Error('Please select an image file.')
     }
@@ -2946,22 +3042,40 @@ async function onContactImageSelected(event) {
 
 async function removeContactImage() {
   if (!contactImageField.value) return
+  await removeRecordImage({
+    field: contactImageField.value,
+    fieldName: 'Profile_Image',
+    successMessage: 'Contact image removed.',
+  })
+}
+
+async function removeCompanyLogo() {
+  if (!companyLogoField.value) return
+  await removeRecordImage({
+    field: companyLogoField.value,
+    fieldName: 'Company_Logo',
+    successMessage: 'Company logo removed.',
+  })
+}
+
+async function removeRecordImage({ field, fieldName, successMessage }) {
+  if (!field) return
   uploadingContactImage.value = true
   try {
     const saved = await applyDatabookChanges(
       [
         {
-          table_name: contactImageField.value.table_name,
-          record_id: contactImageField.value.record_id,
-          field_name: contactImageField.value.field_name,
-          id_column: contactImageField.value.id_column,
+          table_name: field.table_name,
+          record_id: field.record_id,
+          field_name: field.field_name,
+          id_column: field.id_column,
           new_value: '',
         },
       ],
-      { syncDraftFieldNames: ['Profile_Image'] },
+      { syncDraftFieldNames: [fieldName] },
     )
     if (saved) {
-      $q.notify({ type: 'positive', message: 'Contact image removed.' })
+      $q.notify({ type: 'positive', message: successMessage })
     }
   } finally {
     uploadingContactImage.value = false
@@ -2969,21 +3083,39 @@ async function removeContactImage() {
 }
 
 async function saveContactImage(imageData) {
-  if (!contactImageField.value) return false
+  return saveRecordImage({
+    field: contactImageField.value,
+    fieldName: 'Profile_Image',
+    imageData,
+    successMessage: 'Contact image updated.',
+  })
+}
+
+async function saveCompanyLogo(imageData) {
+  return saveRecordImage({
+    field: companyLogoField.value,
+    fieldName: 'Company_Logo',
+    imageData,
+    successMessage: 'Company logo updated.',
+  })
+}
+
+async function saveRecordImage({ field, fieldName, imageData, successMessage }) {
+  if (!field) return false
   const saved = await applyDatabookChanges(
     [
       {
-        table_name: contactImageField.value.table_name,
-        record_id: contactImageField.value.record_id,
-        field_name: contactImageField.value.field_name,
-        id_column: contactImageField.value.id_column,
+        table_name: field.table_name,
+        record_id: field.record_id,
+        field_name: field.field_name,
+        id_column: field.id_column,
         new_value: imageData,
       },
     ],
-    { syncDraftFieldNames: ['Profile_Image'] },
+    { syncDraftFieldNames: [fieldName] },
   )
   if (saved) {
-    $q.notify({ type: 'positive', message: 'Contact image updated.' })
+    $q.notify({ type: 'positive', message: successMessage })
   }
   return saved
 }
@@ -3012,8 +3144,8 @@ function startContactImageCropDrag(event) {
 }
 
 function clampContactImageCropOffset(offset = { x: 0, y: 0 }) {
-  const maxX = Math.max(0, (contactImageCropDisplaySize.value.width - CONTACT_IMAGE_CROP_FRAME_WIDTH) / 2)
-  const maxY = Math.max(0, (contactImageCropDisplaySize.value.height - CONTACT_IMAGE_CROP_FRAME_HEIGHT) / 2)
+  const maxX = Math.max(0, (contactImageCropDisplaySize.value.width - contactImageCropFrameWidth.value) / 2)
+  const maxY = Math.max(0, (contactImageCropDisplaySize.value.height - contactImageCropFrameHeight.value) / 2)
   return {
     x: Math.min(maxX, Math.max(-maxX, offset.x)),
     y: Math.min(maxY, Math.max(-maxY, offset.y)),
@@ -3086,22 +3218,22 @@ async function renderContactImageCrop() {
   const scale = contactImageCropBaseScale.value * contactImageCropZoom.value
   const drawWidth = pendingContactImageNaturalSize.value.width * scale
   const drawHeight = pendingContactImageNaturalSize.value.height * scale
-  const left = CONTACT_IMAGE_CROP_FRAME_WIDTH / 2 - drawWidth / 2 + contactImageCropOffset.value.x
-  const top = CONTACT_IMAGE_CROP_FRAME_HEIGHT / 2 - drawHeight / 2 + contactImageCropOffset.value.y
+  const left = contactImageCropFrameWidth.value / 2 - drawWidth / 2 + contactImageCropOffset.value.x
+  const top = contactImageCropFrameHeight.value / 2 - drawHeight / 2 + contactImageCropOffset.value.y
   const sourceX = Math.max(0, (0 - left) / scale)
   const sourceY = Math.max(0, (0 - top) / scale)
   const sourceWidth = Math.min(
     pendingContactImageNaturalSize.value.width - sourceX,
-    CONTACT_IMAGE_CROP_FRAME_WIDTH / scale,
+    contactImageCropFrameWidth.value / scale,
   )
   const sourceHeight = Math.min(
     pendingContactImageNaturalSize.value.height - sourceY,
-    CONTACT_IMAGE_CROP_FRAME_HEIGHT / scale,
+    contactImageCropFrameHeight.value / scale,
   )
 
   const canvas = document.createElement('canvas')
-  canvas.width = CONTACT_IMAGE_OUTPUT_WIDTH
-  canvas.height = CONTACT_IMAGE_OUTPUT_HEIGHT
+  canvas.width = contactImageOutputWidth.value
+  canvas.height = contactImageOutputHeight.value
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Unable to crop the selected image.')
 
@@ -3113,8 +3245,8 @@ async function renderContactImageCrop() {
     sourceHeight,
     0,
     0,
-    CONTACT_IMAGE_OUTPUT_WIDTH,
-    CONTACT_IMAGE_OUTPUT_HEIGHT,
+    contactImageOutputWidth.value,
+    contactImageOutputHeight.value,
   )
 
   return canvas.toDataURL('image/jpeg', 0.92)
@@ -3124,12 +3256,29 @@ async function confirmContactImageCrop() {
   uploadingContactImage.value = true
   try {
     const croppedImage = await renderContactImageCrop()
-    const saved = await saveContactImage(croppedImage)
+    const saved =
+      currentImageUploadTarget.value === 'company'
+        ? await saveCompanyLogo(croppedImage)
+        : await saveContactImage(croppedImage)
     if (saved) cancelContactImageCrop()
   } catch (e) {
     $q.notify({ type: 'negative', message: e?.message || String(e) })
   } finally {
     uploadingContactImage.value = false
+  }
+}
+
+function getImageTargetConfig() {
+  if (currentImageUploadTarget.value === 'company') {
+    return {
+      field: companyLogoField.value,
+      label: 'Company logo',
+    }
+  }
+
+  return {
+    field: contactImageField.value,
+    label: 'Profile image',
   }
 }
 
@@ -3492,6 +3641,37 @@ onBeforeUnmount(() => {
   letter-spacing: 0.04em;
 }
 
+.contact-databook__portrait-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(132px, 18vw, 188px);
+  height: clamp(132px, 18vw, 188px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 18px 40px rgba(17, 17, 17, 0.18);
+  color: rgba(255, 255, 255, 0.96);
+  font-family: var(--font-title);
+  font-size: clamp(2.6rem, 4vw, 4rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.04em;
+  overflow: hidden;
+}
+
+.contact-databook__portrait-badge--logo {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.contact-databook__portrait-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: none;
+}
+
 .contact-image-cropper-dialog {
   width: 420px;
   max-width: 94vw;
@@ -3638,6 +3818,10 @@ onBeforeUnmount(() => {
   touch-action: none;
 }
 
+.contact-image-cropper__frame--circle {
+  border-radius: 999px;
+}
+
 .contact-image-cropper__frame:active {
   cursor: grabbing;
 }
@@ -3658,6 +3842,10 @@ onBeforeUnmount(() => {
   border-radius: 20px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26);
   pointer-events: none;
+}
+
+.contact-image-cropper__overlay--circle {
+  border-radius: 999px;
 }
 
 .contact-image-cropper__controls {

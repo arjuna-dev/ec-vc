@@ -300,14 +300,7 @@ function listCompanies() {
   return dbAll(
     `
     SELECT
-      id,
-      Company_Name,
-      One_Liner,
-      Website,
-      Status,
-      Company_Type,
-      Amount_Raised_AUMs,
-      created_at
+      *
     FROM Companies
     WHERE Company_Name IS NOT NULL AND Company_Name <> ''
     ORDER BY Company_Name ASC
@@ -351,6 +344,7 @@ function createCompany(payload = {}) {
     Pax: normalizeNullableNumber(payload.Pax),
     Updates: normalizeNullableString(payload.Updates),
     Website: normalizeNullableString(payload.Website),
+    Company_Logo: normalizeNullableString(payload.Company_Logo),
   }
 
   const tx = database.transaction(() => {
@@ -360,10 +354,10 @@ function createCompany(payload = {}) {
           `
           INSERT INTO Companies (
             id, Company_Name, Company_Type, One_Liner, Status, Date_of_Incorporation,
-            Amount_Raised_AUMs${roundsCountColumn ? `, ${roundsCountColumn}` : ''}, Pax, Updates, Website
+            Amount_Raised_AUMs${roundsCountColumn ? `, ${roundsCountColumn}` : ''}, Pax, Updates, Website, Company_Logo
           ) VALUES (
             @id, @Company_Name, @Company_Type, @One_Liner, @Status, @Date_of_Incorporation,
-            @Amount_Raised_AUMs${roundsCountColumn ? ', @Rounds_Count' : ''}, @Pax, @Updates, @Website
+            @Amount_Raised_AUMs${roundsCountColumn ? ', @Rounds_Count' : ''}, @Pax, @Updates, @Website, @Company_Logo
           )
         `,
         )
@@ -385,6 +379,7 @@ function createCompany(payload = {}) {
           Pax = COALESCE(@Pax, Pax),
           Updates = COALESCE(@Updates, Updates),
           Website = COALESCE(@Website, Website),
+          Company_Logo = COALESCE(@Company_Logo, Company_Logo),
           updated_at = datetime('now')
         WHERE id = @id
       `,
@@ -1954,6 +1949,7 @@ function upsertCompanies(rows = []) {
       const payload = {
         id,
         Company_Name: companyName,
+        Company_Logo: normalizeNullableString(r?.Company_Logo),
         Website: normalizeNullableString(r?.Website),
         Status: normalizeNullableString(r?.Status),
         Company_Type: normalizeNullableString(r?.Company_Type),
@@ -1963,10 +1959,11 @@ function upsertCompanies(rows = []) {
       const result = database
         .prepare(
           `
-          INSERT INTO Companies (id, Company_Name, Website, Status, Company_Type, Amount_Raised_AUMs)
-          VALUES (@id, @Company_Name, @Website, @Status, @Company_Type, @Amount_Raised_AUMs)
+          INSERT INTO Companies (id, Company_Name, Company_Logo, Website, Status, Company_Type, Amount_Raised_AUMs)
+          VALUES (@id, @Company_Name, @Company_Logo, @Website, @Status, @Company_Type, @Amount_Raised_AUMs)
           ON CONFLICT(id) DO UPDATE SET
             Company_Name = excluded.Company_Name,
+            Company_Logo = excluded.Company_Logo,
             Website = excluded.Website,
             Status = excluded.Status,
             Company_Type = excluded.Company_Type,
