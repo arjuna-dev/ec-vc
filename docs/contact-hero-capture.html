@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contact Databook Hero Capture</title>
+    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+    <style>
+      :root {
+        --font-title: "Neue Machina", "Avenir Next", "Segoe UI", sans-serif;
+        --font-body: "Sequel Sans", "Avenir Next", "Segoe UI", sans-serif;
+        --font-weight-regular: 400;
+        --font-weight-medium: 500;
+        --font-weight-black: 900;
+        --text-xs---regular: 0.75rem;
+        --text-xs---medium: 0.75rem;
+        --text-sm---regular: 0.88rem;
+        --text-sm---medium: 0.88rem;
+        --text-lg---regular: 1.13rem;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 8px;
+        background:
+          linear-gradient(180deg, #f5f5f3 0%, #efefec 100%);
+        color: #111;
+        font-family: var(--font-body);
+      }
+
+      .capture-stage {
+        width: min(2024px, 100%);
+        margin: 0 auto;
+      }
+
+      .contact-databook__hero {
+        --contact-hero-blob-x: 31%;
+        --contact-hero-blob-y: 54%;
+        --contact-hero-blob-size: 46%;
+        --contact-hero-blob-strong: rgba(250, 233, 131, 0.34);
+        --contact-hero-blob-soft: rgba(248, 239, 178, 0.2);
+        --contact-hero-blob-fade: rgba(248, 239, 178, 0.02);
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1.88fr) minmax(500px, 0.92fr);
+        gap: 0;
+        min-height: 856px;
+        overflow: hidden;
+        background:
+          radial-gradient(
+            circle at var(--contact-hero-blob-x) var(--contact-hero-blob-y),
+            var(--contact-hero-blob-strong) 0%,
+            var(--contact-hero-blob-soft) calc(var(--contact-hero-blob-size) * 0.36),
+            var(--contact-hero-blob-fade) calc(var(--contact-hero-blob-size) * 0.58),
+            transparent var(--contact-hero-blob-size)
+          ),
+          linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
+        border: 1px solid rgba(17, 17, 17, 0.07);
+        border-radius: 28px;
+        box-shadow: 0 18px 40px rgba(17, 17, 17, 0.05);
+      }
+
+      .contact-databook__hero-main,
+      .contact-databook__summary {
+        position: relative;
+        z-index: 1;
+      }
+
+      .contact-databook__hero-main {
+        display: flex;
+        align-items: stretch;
+        min-width: 0;
+        min-height: 100%;
+      }
+
+      .contact-databook__portrait {
+        position: relative;
+        flex: 0 0 466px;
+        width: 466px;
+        min-height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #161616;
+        border-right: 1px solid rgba(17, 17, 17, 0.08);
+        border-radius: 28px 0 0 28px;
+      }
+
+      .contact-databook__portrait-scene {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0, rgba(255, 255, 255, 0.08) 24%, transparent 25%),
+          linear-gradient(180deg, #d6d6d6 0%, #a3a3a3 34%, #535353 62%, #121212 100%);
+        filter: grayscale(1);
+      }
+
+      .contact-databook__portrait-art {
+        position: absolute;
+        top: 18px;
+        left: 28px;
+        right: 18px;
+        height: 194px;
+        background:
+          radial-gradient(circle at 18% 35%, rgba(27, 27, 27, 0.88) 0 11%, transparent 12%),
+          radial-gradient(circle at 30% 18%, rgba(59, 59, 59, 0.76) 0 8%, transparent 9%),
+          radial-gradient(circle at 45% 58%, rgba(235, 235, 235, 0.88) 0 10%, transparent 11%),
+          radial-gradient(circle at 60% 22%, rgba(69, 69, 69, 0.8) 0 8%, transparent 9%),
+          radial-gradient(circle at 82% 38%, rgba(245, 245, 245, 0.92) 0 10%, transparent 11%),
+          linear-gradient(90deg, #353535 0 15%, #d7d7d7 15% 28%, #6f6f6f 28% 40%, #dedede 40% 58%, #444 58% 75%, #d2d2d2 75% 88%, #5e5e5e 88% 100%);
+        border-radius: 2px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+        opacity: 0.88;
+      }
+
+      .contact-databook__portrait-actions {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        z-index: 2;
+      }
+
+      .contact-databook__portrait-action {
+        display: inline-flex;
+        width: 30px;
+        height: 30px;
+        align-items: center;
+        justify-content: center;
+        color: #111;
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 999px;
+        box-shadow: 0 8px 22px rgba(17, 17, 17, 0.2);
+        border: 1px solid rgba(17, 17, 17, 0.08);
+      }
+
+      .contact-databook__portrait-action svg {
+        width: 13px;
+        height: 13px;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .contact-databook__portrait-monitor {
+        position: absolute;
+        bottom: 378px;
+        width: 124px;
+        height: 96px;
+        background: #111;
+        border-radius: 4px;
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.14);
+      }
+
+      .contact-databook__portrait-monitor::before {
+        position: absolute;
+        top: 20px;
+        left: 17px;
+        width: 42px;
+        height: 42px;
+        content: "";
+        background: #fff;
+        border-radius: 3px;
+        filter: blur(1px);
+        opacity: 0.9;
+      }
+
+      .contact-databook__portrait-monitor--left {
+        left: -8px;
+      }
+
+      .contact-databook__portrait-monitor--right {
+        left: 126px;
+        bottom: 372px;
+        width: 136px;
+        height: 104px;
+      }
+
+      .contact-databook__portrait-desk {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 156px;
+        height: 154px;
+        background:
+          linear-gradient(180deg, rgba(40, 40, 40, 0.12) 0, rgba(20, 20, 20, 0.1) 100%),
+          linear-gradient(90deg, #bfbfbf 0 56%, #a6a6a6 56% 100%);
+      }
+
+      .contact-databook__portrait-lamp {
+        position: absolute;
+        left: -86px;
+        bottom: -18px;
+        width: 190px;
+        height: 190px;
+        background:
+          radial-gradient(circle at 34% 34%, #fafafa 0 34%, #d9d9d9 35% 56%, #979797 57% 67%, transparent 68%),
+          radial-gradient(circle at 62% 68%, rgba(255, 255, 255, 0.32), transparent 36%);
+        border-radius: 999px;
+        filter: blur(0.4px);
+        opacity: 0.96;
+      }
+
+      .contact-databook__portrait-body {
+        position: absolute;
+        left: 94px;
+        bottom: -22px;
+        width: 232px;
+        height: 612px;
+        background: #0f0f0f;
+        border-radius: 126px 126px 24px 24px;
+      }
+
+      .contact-databook__portrait-hair {
+        position: absolute;
+        left: 100px;
+        bottom: 292px;
+        width: 160px;
+        height: 246px;
+        background:
+          radial-gradient(circle at 50% 10%, rgba(48, 48, 48, 0.54), transparent 42%),
+          #090909;
+        border-radius: 92px 92px 72px 72px;
+      }
+
+      .contact-databook__portrait-face {
+        position: absolute;
+        left: 152px;
+        bottom: 298px;
+        width: 74px;
+        height: 102px;
+        background: #808080;
+        border-radius: 46px 46px 34px 34px;
+        box-shadow: inset 0 -14px 18px rgba(0, 0, 0, 0.24);
+      }
+
+      .contact-databook__portrait-face::before,
+      .contact-databook__portrait-face::after {
+        position: absolute;
+        top: 44px;
+        width: 10px;
+        height: 3px;
+        content: "";
+        background: #1f1f1f;
+        border-radius: 4px;
+      }
+
+      .contact-databook__portrait-face::before {
+        left: 16px;
+      }
+
+      .contact-databook__portrait-face::after {
+        right: 16px;
+      }
+
+      .contact-databook__portrait-mustache {
+        position: absolute;
+        left: 168px;
+        bottom: 330px;
+        width: 42px;
+        height: 14px;
+        border-bottom: 5px solid #181818;
+        border-radius: 0 0 24px 24px;
+      }
+
+      .contact-databook__portrait-neck {
+        position: absolute;
+        left: 177px;
+        bottom: 276px;
+        width: 24px;
+        height: 28px;
+        background: #626262;
+        border-radius: 0 0 12px 12px;
+      }
+
+      .contact-databook__portrait-forearm {
+        position: absolute;
+        left: 112px;
+        bottom: -12px;
+        width: 74px;
+        height: 154px;
+        background: #7e7e7e;
+        border-radius: 44px;
+        transform: rotate(18deg);
+      }
+
+      .contact-databook__portrait-sleeve {
+        position: absolute;
+        left: 128px;
+        bottom: 38px;
+        width: 112px;
+        height: 120px;
+        background: #141414;
+        border-radius: 60px;
+        transform: rotate(20deg);
+      }
+
+      .contact-databook__hero-copy {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 0;
+        min-width: 0;
+        padding: 42px 28px 44px 24px;
+      }
+
+      .contact-databook__eyebrow,
+      .contact-databook__summary-label {
+        color: #6f6f6f;
+        font-family: var(--font-body);
+        font-size: var(--text-xs---medium);
+        font-weight: var(--font-weight-medium);
+        letter-spacing: 0.14em;
+        line-height: 16px;
+        text-transform: uppercase;
+      }
+
+      .contact-databook__name {
+        margin: 10px 0 0;
+        color: #0a0a0a;
+        font-family: var(--font-title);
+        font-size: clamp(4.1rem, 4.8vw, 5.2rem);
+        font-weight: var(--font-weight-black);
+        line-height: 0.9;
+        letter-spacing: -0.04em;
+      }
+
+      .contact-databook__role {
+        margin-top: 18px;
+        color: #454545;
+        font-family: var(--font-body);
+        font-size: 1.18rem;
+        font-weight: var(--font-weight-regular);
+        line-height: 24px;
+      }
+
+      .contact-databook__pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 22px;
+      }
+
+      .contact-databook__pill {
+        padding: 8px 14px;
+        color: #111;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(17, 17, 17, 0.1);
+        border-radius: 999px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+        font-size: 0.92rem;
+        font-weight: var(--font-weight-medium);
+      }
+
+      .contact-databook__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding-top: 20px;
+      }
+
+      .contact-databook__action {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 18px;
+        color: #111;
+        background: rgba(255, 251, 236, 0.66);
+        border: 1.4px solid rgba(17, 17, 17, 0.9);
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: var(--font-weight-medium);
+        text-decoration: none;
+      }
+
+      .contact-databook__action svg {
+        width: 21px;
+        height: 21px;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .contact-databook__hero-notes-panel {
+        width: min(100%, 798px);
+        margin-top: 22px;
+        padding: 22px 22px 26px;
+        background: rgba(255, 255, 255, 0.74);
+        border: 1px solid rgba(17, 17, 17, 0.08);
+        border-radius: 22px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(18px);
+      }
+
+      .contact-databook__hero-tabs {
+        display: inline-flex;
+        gap: 8px;
+        padding: 6px;
+        background: rgba(17, 17, 17, 0.06);
+        border-radius: 999px;
+      }
+
+      .contact-databook__hero-tab {
+        padding: 10px 18px;
+        color: #6f6f6f;
+        border: 0;
+        border-radius: 999px;
+        font-size: 0.86rem;
+        font-weight: var(--font-weight-medium);
+        letter-spacing: 0.04em;
+        line-height: 16px;
+        text-transform: uppercase;
+        background: transparent;
+      }
+
+      .contact-databook__hero-tab--active {
+        color: #111;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 8px 18px rgba(17, 17, 17, 0.08);
+      }
+
+      .contact-databook__hero-documents {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .contact-databook__hero-document-drop {
+        position: relative;
+      }
+
+      .contact-databook__hero-dropzone {
+        display: flex;
+        min-height: 106px;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        color: #545454;
+        background: rgba(255, 255, 255, 0.54);
+        border: 2px dashed rgba(17, 17, 17, 0.12);
+        border-radius: 24px;
+      }
+
+      .contact-databook__hero-dropzone svg {
+        width: 21px;
+        height: 21px;
+        stroke: currentColor;
+        stroke-width: 1.9;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .contact-databook__hero-dropzone-copy {
+        font-size: 1rem;
+        font-weight: var(--font-weight-medium);
+      }
+
+      .contact-databook__hero-document {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 10px 10px 10px 12px;
+      }
+
+      .contact-databook__hero-document-thumb {
+        position: relative;
+        display: flex;
+        width: 76px;
+        height: 92px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(243, 239, 233, 0.96) 100%);
+        border: 1px solid rgba(17, 17, 17, 0.08);
+        border-radius: 20px;
+        box-shadow: 0 10px 26px rgba(17, 17, 17, 0.08);
+      }
+
+      .contact-databook__hero-document-thumb-page {
+        position: absolute;
+        top: 10px;
+        left: 22px;
+        width: 32px;
+        height: 40px;
+        border: 3px solid #555;
+        border-radius: 4px;
+      }
+
+      .contact-databook__hero-document-thumb-page::before {
+        position: absolute;
+        right: -3px;
+        top: -3px;
+        width: 10px;
+        height: 10px;
+        content: "";
+        background: #fff;
+        border-top: 3px solid #555;
+        border-right: 3px solid #555;
+      }
+
+      .contact-databook__hero-document-thumb-pdf {
+        position: absolute;
+        left: 16px;
+        bottom: 12px;
+        padding: 4px 8px;
+        border: 1px solid rgba(17, 17, 17, 0.16);
+        border-radius: 999px;
+        color: #383838;
+        background: rgba(255, 255, 255, 0.92);
+        font-size: 0.78rem;
+        font-weight: var(--font-weight-medium);
+        letter-spacing: 0.06em;
+      }
+
+      .contact-databook__hero-document-copy {
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 0;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .contact-databook__hero-document-meta {
+        min-width: 0;
+      }
+
+      .contact-databook__hero-document-name {
+        overflow: hidden;
+        color: #111;
+        font-size: 0.95rem;
+        font-weight: var(--font-weight-medium);
+        line-height: 1.45;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .contact-databook__hero-document-date,
+      .contact-databook__hero-document-type {
+        color: #7a7a7a;
+        font-size: 0.84rem;
+        line-height: 1.45;
+      }
+
+      .contact-databook__hero-document-type {
+        color: #5a5a5a;
+      }
+
+      .contact-databook__hero-document-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .contact-databook__hero-document-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 12px;
+        color: #111;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(17, 17, 17, 0.08);
+        border-radius: 12px;
+        font-size: 0.84rem;
+        font-weight: var(--font-weight-medium);
+      }
+
+      .contact-databook__hero-document-action svg {
+        width: 17px;
+        height: 17px;
+        stroke: currentColor;
+        stroke-width: 1.9;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .contact-databook__summary {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        margin: 34px 36px 34px 22px;
+        padding: 34px 24px;
+        background: rgba(17, 17, 17, 0.94);
+        border-radius: 28px;
+        color: #fff;
+      }
+
+      .contact-databook__summary-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .contact-databook__summary-label {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .contact-databook__summary-add {
+        display: inline-flex;
+        width: 42px;
+        height: 42px;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 999px;
+        font-size: 2rem;
+        font-weight: 200;
+        line-height: 1;
+      }
+
+      .contact-databook__summary-empty {
+        margin-top: 24px;
+        padding: 16px 18px;
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        border-radius: 24px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.98rem;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 1500px) {
+        .contact-databook__hero {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .contact-databook__summary {
+          margin: 0 24px 24px;
+          min-height: 320px;
+        }
+      }
+
+      @media (max-width: 1080px) {
+        body {
+          padding: 20px;
+        }
+
+        .contact-databook__portrait {
+          width: 100%;
+          flex-basis: 360px;
+        }
+
+        .contact-databook__hero-main {
+          flex-direction: column;
+        }
+
+        .contact-databook__hero-copy {
+          padding: 28px 20px;
+        }
+
+        .contact-databook__hero-document-copy {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="capture-stage">
+      <section class="contact-databook__hero">
+        <div class="contact-databook__hero-main">
+          <figure class="contact-databook__portrait">
+            <div class="contact-databook__portrait-scene" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-art" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-monitor contact-databook__portrait-monitor--left" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-monitor contact-databook__portrait-monitor--right" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-desk" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-body" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-hair" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-face" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-mustache" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-neck" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-sleeve" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-forearm" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-lamp" aria-hidden="true"></div>
+            <div class="contact-databook__portrait-actions">
+              <div class="contact-databook__portrait-action">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 20l4.2-1 9.4-9.4-3.2-3.2L5 15.8 4 20z"></path>
+                  <path d="M13.8 5.2l3.2 3.2"></path>
+                </svg>
+              </div>
+            </div>
+          </figure>
+
+          <div class="contact-databook__hero-copy">
+            <div class="contact-databook__eyebrow">Contact profile</div>
+            <h1 class="contact-databook__name">Pablo Diaz Smith</h1>
+            <div class="contact-databook__role">Co-founder &amp; CEO</div>
+
+            <div class="contact-databook__pill-row">
+              <div class="contact-databook__pill">Stakeholder: Founder</div>
+              <div class="contact-databook__pill">Based in: Mexico</div>
+            </div>
+
+            <div class="contact-databook__actions">
+              <a class="contact-databook__action" href="#">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 7h16v10H4z"></path>
+                  <path d="M4 8l8 6 8-6"></path>
+                </svg>
+                <span>Email</span>
+              </a>
+              <a class="contact-databook__action" href="#">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7.5 4.5h3l1.5 4-2 1.8a14.2 14.2 0 0 0 3.7 3.7l1.8-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 5.5 6.7 2 2 0 0 1 7.5 4.5z"></path>
+                </svg>
+                <span>Call</span>
+              </a>
+              <a class="contact-databook__action" href="#">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 17L17 7"></path>
+                  <path d="M8 7h9v9"></path>
+                </svg>
+                <span>LinkedIn</span>
+              </a>
+            </div>
+
+            <div class="contact-databook__hero-notes-panel">
+              <div class="contact-databook__hero-tabs" role="tablist" aria-label="Contact context">
+                <button type="button" class="contact-databook__hero-tab">
+                  Latest notes
+                </button>
+                <button type="button" class="contact-databook__hero-tab contact-databook__hero-tab--active">
+                  Related documents
+                </button>
+              </div>
+
+              <ul class="contact-databook__hero-documents">
+                <li class="contact-databook__hero-document-drop">
+                  <div class="contact-databook__hero-dropzone">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 16V8"></path>
+                      <path d="M8.5 11.5L12 8l3.5 3.5"></path>
+                      <path d="M5 18h14"></path>
+                      <path d="M8 4h6l3 3v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+                    </svg>
+                    <div class="contact-databook__hero-dropzone-copy">Drop files here to attach them</div>
+                  </div>
+                </li>
+                <li class="contact-databook__hero-document">
+                  <div class="contact-databook__hero-document-thumb">
+                    <div class="contact-databook__hero-document-thumb-page"></div>
+                    <div class="contact-databook__hero-document-thumb-pdf">PDF</div>
+                  </div>
+
+                  <div class="contact-databook__hero-document-copy">
+                    <div class="contact-databook__hero-document-meta">
+                      <div class="contact-databook__hero-document-name">2023.06.20_Project Aster (Teaser)_vF.pdf</div>
+                      <div class="contact-databook__hero-document-date">Mar 17, 2026</div>
+                      <div class="contact-databook__hero-document-type">Raw file</div>
+                    </div>
+
+                    <div class="contact-databook__hero-document-actions">
+                      <div class="contact-databook__hero-document-action">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M12 4v10"></path>
+                          <path d="M8.5 10.5L12 14l3.5-3.5"></path>
+                          <path d="M5 19h14"></path>
+                        </svg>
+                        <span>Download</span>
+                      </div>
+                      <div class="contact-databook__hero-document-action">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M15 8a3 3 0 1 0-2.8-4H12a3 3 0 0 0 .2 1"></path>
+                          <path d="M7 14a3 3 0 1 0 2.8 4H10a3 3 0 0 0-.2-1"></path>
+                          <path d="M8.8 13.2l6.4-3.4"></path>
+                          <path d="M8.8 10.8l6.4 3.4"></path>
+                        </svg>
+                        <span>Share</span>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li class="contact-databook__hero-document">
+                  <div class="contact-databook__hero-document-thumb">
+                    <div class="contact-databook__hero-document-thumb-page"></div>
+                    <div class="contact-databook__hero-document-thumb-pdf">PDF</div>
+                  </div>
+
+                  <div class="contact-databook__hero-document-copy">
+                    <div class="contact-databook__hero-document-meta">
+                      <div class="contact-databook__hero-document-name">_SHOPPERAI __ Retailer 1.pdf</div>
+                      <div class="contact-databook__hero-document-date">Mar 17, 2026</div>
+                      <div class="contact-databook__hero-document-type">Raw file</div>
+                    </div>
+
+                    <div class="contact-databook__hero-document-actions">
+                      <div class="contact-databook__hero-document-action">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M12 4v10"></path>
+                          <path d="M8.5 10.5L12 14l3.5-3.5"></path>
+                          <path d="M5 19h14"></path>
+                        </svg>
+                        <span>Download</span>
+                      </div>
+                      <div class="contact-databook__hero-document-action">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M15 8a3 3 0 1 0-2.8-4H12a3 3 0 0 0 .2 1"></path>
+                          <path d="M7 14a3 3 0 1 0 2.8 4H10a3 3 0 0 0-.2-1"></path>
+                          <path d="M8.8 13.2l6.4-3.4"></path>
+                          <path d="M8.8 10.8l6.4 3.4"></path>
+                        </svg>
+                        <span>Share</span>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-databook__summary">
+          <div class="contact-databook__summary-header">
+            <div class="contact-databook__summary-label">Relationship snapshot</div>
+            <div class="contact-databook__summary-add">+</div>
+          </div>
+
+          <div class="contact-databook__summary-empty">
+            Use the + button to add the contact details you want to keep in view here.
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

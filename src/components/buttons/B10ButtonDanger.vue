@@ -84,18 +84,18 @@ const buttonClasses = computed(() => [
 <style scoped lang="scss">
 .b10-btn-danger {
   border: 1px solid transparent;
-  border-radius: 8px;
-  font-family: var(--font-body);
-  font-size: var(--text-base---regular);
-  font-weight: var(--font-weight-regular);
+  border-radius: var(--ds-button-radius);
+  font-family: var(--ds-button-font-family);
+  font-size: var(--ds-button-font-size);
+  font-weight: var(--ds-button-font-weight);
   letter-spacing: 0;
-  line-height: 20px;
+  line-height: var(--ds-button-line-height);
   min-height: 0;
 
   :deep(.q-btn__content) {
     align-items: center;
     flex-wrap: nowrap;
-    gap: 8px;
+    gap: var(--ds-button-gap);
     line-height: 1;
     white-space: nowrap;
   }
@@ -107,7 +107,7 @@ const buttonClasses = computed(() => [
   }
 
   :deep(.q-icon) {
-    font-size: 16px;
+    font-size: var(--ds-button-icon-size);
   }
 }
 
@@ -116,36 +116,36 @@ const buttonClasses = computed(() => [
 }
 
 .b10-btn-danger--primary.b10-btn-danger--state-default {
-  background: var(--b10-color-bg-danger-default);
-  border-color: var(--b10-color-border-danger-secondary);
-  color: var(--b10-color-text-danger-on-danger);
+  background: var(--ds-button-danger-bg);
+  border-color: var(--ds-button-danger-border);
+  color: var(--ds-button-danger-text);
 }
 
 .b10-btn-danger--primary.b10-btn-danger--state-default:not(.q-btn--disabled):hover,
 .b10-btn-danger--primary.b10-btn-danger--state-hover:not(.q-btn--disabled) {
-  background: var(--b10-color-bg-danger-hover);
-  border-color: var(--b10-color-border-danger-default);
-  color: var(--b10-color-text-danger-on-danger);
+  background: var(--ds-button-danger-bg-hover);
+  border-color: var(--ds-button-danger-border-strong);
+  color: var(--ds-button-danger-text);
 }
 
 .b10-btn-danger--subtle.b10-btn-danger--state-default {
   background: transparent;
   border-color: transparent;
-  color: var(--b10-color-text-danger-default);
+  color: var(--ds-button-danger-subtle-text);
 }
 
 .b10-btn-danger--subtle.b10-btn-danger--state-default:not(.q-btn--disabled):hover,
 .b10-btn-danger--subtle.b10-btn-danger--state-hover:not(.q-btn--disabled) {
-  background: var(--b10-color-bg-danger-tertiary-hover);
-  border-color: var(--b10-color-border-danger-default);
-  color: var(--b10-color-text-danger-default);
+  background: var(--ds-button-danger-subtle-bg-hover);
+  border-color: var(--ds-button-danger-border-strong);
+  color: var(--ds-button-danger-subtle-text);
 }
 
 .b10-btn-danger--state-disabled,
 .b10-btn-danger.q-btn--disabled {
-  background: var(--b10-color-bg-disabled-default);
-  border-color: var(--b10-color-border-disabled-default);
-  color: var(--b10-color-text-disabled-on-disabled);
+  background: var(--ds-button-disabled-bg);
+  border-color: var(--ds-button-disabled-border);
+  color: var(--ds-button-disabled-text);
   opacity: 1 !important;
 }
 </style>

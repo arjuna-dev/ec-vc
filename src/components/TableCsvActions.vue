@@ -34,10 +34,10 @@
 
 <style scoped>
 .small-text {
-  font-size: var(--text-xs---regular);
-  font-weight: var(--font-weight-regular);
-  line-height: 16px;
-  padding-right: 10px;
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
+  padding-right: var(--ds-space-10);
 }
 </style>
 

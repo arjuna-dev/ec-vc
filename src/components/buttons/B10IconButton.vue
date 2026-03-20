@@ -72,7 +72,7 @@ const buttonClasses = computed(() => [
 <style scoped lang="scss">
 .b10-icon-btn {
   border: 1px solid transparent;
-  border-radius: 32px;
+  border-radius: var(--ds-icon-button-radius);
   min-height: 0;
   min-width: 0;
 
@@ -81,54 +81,54 @@ const buttonClasses = computed(() => [
   }
 
   :deep(.q-icon) {
-    font-size: 20px;
+    font-size: var(--ds-icon-button-icon-size);
   }
 }
 
 .b10-icon-btn--primary.b10-icon-btn--state-default {
-  background: var(--b10-color-bg-brand-default);
-  border-color: var(--b10-color-border-brand-default);
-  color: var(--b10-color-text-brand-on-brand);
+  background: var(--ds-button-primary-bg);
+  border-color: var(--ds-button-primary-border);
+  color: var(--ds-button-primary-text);
 }
 
 .b10-icon-btn--primary.b10-icon-btn--state-default:not(.q-btn--disabled):hover,
 .b10-icon-btn--primary.b10-icon-btn--state-hover:not(.q-btn--disabled) {
-  background: var(--b10-color-bg-brand-hover);
-  border-color: var(--b10-color-border-brand-default);
-  color: var(--b10-color-text-brand-on-brand);
+  background: var(--ds-button-primary-bg-hover);
+  border-color: var(--ds-button-primary-border);
+  color: var(--ds-button-primary-text);
 }
 
 .b10-icon-btn--neutral.b10-icon-btn--state-default {
-  background: var(--b10-color-bg-default-secondary);
-  border-color: var(--b10-color-border-default);
-  color: var(--b10-color-text-default);
+  background: var(--ds-button-icon-neutral-bg);
+  border-color: var(--ds-button-icon-neutral-border);
+  color: var(--ds-button-neutral-text);
 }
 
 .b10-icon-btn--neutral.b10-icon-btn--state-default:not(.q-btn--disabled):hover,
 .b10-icon-btn--neutral.b10-icon-btn--state-hover:not(.q-btn--disabled) {
-  background: var(--b10-color-bg-default-secondary-hover);
-  border-color: var(--b10-color-border-default);
-  color: var(--b10-color-text-default);
+  background: var(--ds-button-icon-neutral-bg-hover);
+  border-color: var(--ds-button-icon-neutral-border);
+  color: var(--ds-button-neutral-text);
 }
 
 .b10-icon-btn--subtle.b10-icon-btn--state-default {
   background: transparent;
   border-color: transparent;
-  color: var(--b10-color-text-default);
+  color: var(--ds-button-icon-subtle-text);
 }
 
 .b10-icon-btn--subtle.b10-icon-btn--state-default:not(.q-btn--disabled):hover,
 .b10-icon-btn--subtle.b10-icon-btn--state-hover:not(.q-btn--disabled) {
-  background: var(--b10-color-bg-default-default-hover);
+  background: var(--ds-button-icon-subtle-bg-hover);
   border-color: transparent;
-  color: var(--b10-color-text-default);
+  color: var(--ds-button-icon-subtle-text);
 }
 
 .b10-icon-btn--state-disabled,
 .b10-icon-btn.q-btn--disabled {
-  background: var(--b10-color-bg-disabled-default);
-  border-color: var(--b10-color-border-disabled-default);
-  color: var(--b10-color-text-disabled-on-disabled);
+  background: var(--ds-button-disabled-bg);
+  border-color: var(--ds-button-disabled-border);
+  color: var(--ds-button-disabled-text);
   opacity: 1 !important;
 }
 </style>
