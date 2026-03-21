@@ -34,7 +34,9 @@
 
 <style scoped>
 .small-text {
-  font-size: 12px;
+  font-size: var(--text-xs---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 16px;
   padding-right: 10px;
 }
 </style>

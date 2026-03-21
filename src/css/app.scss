@@ -18,7 +18,7 @@
 
 @font-face {
   font-family: 'Sequel Sans';
-  src: url('/fonts/sequel-sans-light-disp.otf') format('opentype');
+  src: url('/fonts/sequel-sans-light-body.otf') format('opentype');
   font-style: normal;
   font-weight: 300;
   font-display: swap;
@@ -26,7 +26,39 @@
 
 @font-face {
   font-family: 'Sequel Sans';
-  src: url('/fonts/sequel-sans-black-disp.otf') format('opentype');
+  src: url('/fonts/sequel-sans-roman-body.otf') format('opentype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-medium-body.otf') format('opentype');
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-semibold-body.otf') format('opentype');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-bold-body.otf') format('opentype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-black-body.otf') format('opentype');
   font-style: normal;
   font-weight: 900;
   font-display: swap;
@@ -34,9 +66,33 @@
 
 @font-face {
   font-family: 'Sequel Sans';
-  src: url('/fonts/sequel-sans-oblique-disp.otf') format('opentype');
+  src: url('/fonts/sequel-sans-oblique-body.otf') format('opentype');
   font-style: oblique;
   font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-medium-oblique-body.otf') format('opentype');
+  font-style: oblique;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-semibold-oblique-body.otf') format('opentype');
+  font-style: oblique;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('/fonts/sequel-sans-bold-oblique-body.otf') format('opentype');
+  font-style: oblique;
+  font-weight: 700;
   font-display: swap;
 }
 
@@ -44,10 +100,151 @@
   --font-title: 'Neue Machina', 'Avenir Next', 'Segoe UI', sans-serif;
   --font-body: 'Sequel Sans', 'Avenir Next', 'Segoe UI', sans-serif;
   --font-code: 'Roboto', 'JetBrains Mono', 'SFMono-Regular', Menlo, monospace;
+  --font-weight-thin: 100;
+  --font-weight-extra-light: 200;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semi-bold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extra-bold: 800;
+  --font-weight-black: 900;
+
+  /* Text-size styles */
+  /* base size: text-base---regular (16px) */
+  --text-xs---black: 0.75rem;
+  --text-xs---extra--bold: 0.75rem;
+  --text-xs---bold: 0.75rem;
+  --text-xs---semi--bold: 0.75rem;
+  --text-xs---medium: 0.75rem;
+  --text-xs---regular: 0.75rem;
+  --text-xs---light: 0.75rem;
+  --text-xs---extra--light: 0.75rem;
+  --text-xs---thin: 0.75rem;
+  --text-sm---black: 0.88rem;
+  --text-sm---extra--bold: 0.88rem;
+  --text-sm---bold: 0.88rem;
+  --text-sm---semi--bold: 0.88rem;
+  --text-sm---medium: 0.88rem;
+  --text-sm---regular: 0.88rem;
+  --text-sm---light: 0.88rem;
+  --text-sm---extra--light: 0.88rem;
+  --text-sm---thin: 0.88rem;
+  --text-base---black: 1rem;
+  --text-base---extra--bold: 1rem;
+  --text-base---bold: 1rem;
+  --text-base---semi--bold: 1rem;
+  --text-base---medium: 1rem;
+  --text-base---regular: 1rem;
+  --text-base---light: 1rem;
+  --text-base---extra--light: 1rem;
+  --text-base---thin: 1rem;
+  --text-lg---black: 1.13rem;
+  --text-lg---extra--bold: 1.13rem;
+  --text-lg---bold: 1.13rem;
+  --text-lg---semi--bold: 1.13rem;
+  --text-lg---medium: 1.13rem;
+  --text-lg---regular: 1.13rem;
+  --text-lg---light: 1.13rem;
+  --text-lg---extra--light: 1.13rem;
+  --text-lg---thin: 1.13rem;
+  --text-xl---black: 1.25rem;
+  --text-xl---extra--bold: 1.25rem;
+  --text-xl---bold: 1.25rem;
+  --text-xl---semi--bold: 1.25rem;
+  --text-xl---medium: 1.25rem;
+  --text-xl---regular: 1.25rem;
+  --text-xl---light: 1.25rem;
+  --text-xl---extra--light: 1.25rem;
+  --text-xl---thin: 1.25rem;
+  --text-2xl---black: 1.5rem;
+  --text-2xl---extra--bold: 1.5rem;
+  --text-2xl---bold: 1.5rem;
+  --text-2xl---semi--bold: 1.5rem;
+  --text-2xl---medium: 1.5rem;
+  --text-2xl---regular: 1.5rem;
+  --text-2xl---light: 1.5rem;
+  --text-2xl---extra--light: 1.5rem;
+  --text-2xl---thin: 1.5rem;
+  --text-3xl---black: 1.88rem;
+  --text-3xl---extra--bold: 1.88rem;
+  --text-3xl---bold: 1.88rem;
+  --text-3xl---semi--bold: 1.88rem;
+  --text-3xl---medium: 1.88rem;
+  --text-3xl---regular: 1.88rem;
+  --text-3xl---light: 1.88rem;
+  --text-3xl---extra--light: 1.88rem;
+  --text-3xl---thin: 1.88rem;
+  --text-4xl---black: 2.25rem;
+  --text-4xl---extra--bold: 2.25rem;
+  --text-4xl---bold: 2.25rem;
+  --text-4xl---semi--bold: 2.25rem;
+  --text-4xl---medium: 2.25rem;
+  --text-4xl---regular: 2.25rem;
+  --text-4xl---light: 2.25rem;
+  --text-4xl---extra--light: 2.25rem;
+  --text-4xl---thin: 2.25rem;
+  --text-5xl---black: 3rem;
+  --text-5xl---extra--bold: 3rem;
+  --text-5xl---bold: 3rem;
+  --text-5xl---semi--bold: 3rem;
+  --text-5xl---medium: 3rem;
+  --text-5xl---regular: 3rem;
+  --text-5xl---light: 3rem;
+  --text-5xl---extra--light: 3rem;
+  --text-5xl---thin: 3rem;
+  --text-6xl---black: 3.75rem;
+  --text-6xl---extra--bold: 3.75rem;
+  --text-6xl---bold: 3.75rem;
+  --text-6xl---semi--bold: 3.75rem;
+  --text-6xl---medium: 3.75rem;
+  --text-6xl---regular: 3.75rem;
+  --text-6xl---light: 3.75rem;
+  --text-6xl---extra--light: 3.75rem;
+  --text-6xl---thin: 3.75rem;
+  --text-7xl---black: 4.5rem;
+  --text-7xl---extra--bold: 4.5rem;
+  --text-7xl---bold: 4.5rem;
+  --text-7xl---semi--bold: 4.5rem;
+  --text-7xl---medium: 4.5rem;
+  --text-7xl---regular: 4.5rem;
+  --text-7xl---light: 4.5rem;
+  --text-7xl---extra--light: 4.5rem;
+  --text-7xl---thin: 4.5rem;
+  --text-8xl---black: 6rem;
+  --text-8xl---extra--bold: 6rem;
+  --text-8xl---bold: 6rem;
+  --text-8xl---semi--bold: 6rem;
+  --text-8xl---medium: 6rem;
+  --text-8xl---regular: 6rem;
+  --text-8xl---light: 6rem;
+  --text-8xl---extra--light: 6rem;
+  --text-8xl---thin: 6rem;
+  --text-9xl---black: 8rem;
+  --text-9xl---extra--bold: 8rem;
+  --text-9xl---bold: 8rem;
+  --text-9xl---semi--bold: 8rem;
+  --text-9xl---medium: 8rem;
+  --text-9xl---regular: 8rem;
+  --text-9xl---light: 8rem;
+  --text-9xl---extra--light: 8rem;
+  --text-9xl---thin: 8rem;
+
   --lh-title: 1.2;
   --lh-body: 1.4;
   --lh-single-line: 1;
   --lh-code: 1.3;
+
+  /* Brand colors from Figma variables */
+  --b10-brand-naranja: #ff5521;
+  --b10-brand-negro: #1d1d1b;
+  --b10-brand-gris-oscuro: #757575;
+  --b10-brand-gris-claro: rgb(224 220 220 / 86.27%);
+  --b10-brand-blanco: #ffffff;
+  --b10-brand-azul: #2647ff;
+  --b10-brand-amarillo: #ebff5a;
+  --b10-brand-morado: #b677fe;
+
   --background: 210 40% 98%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
@@ -81,15 +278,96 @@
   --b10-color-text-danger-on-danger: #fff1ed;
   --b10-color-text-disabled-on-disabled: #b3b3b3;
   --b10-radius-md: 8px;
+
+  /* Effect styles */
+  --box--shadow--shadow-2xs: 0px 1px 0px rgba(0, 0, 0, 0.05);
+  --box--shadow--shadow-xs: 0px 1px 2px rgba(0, 0, 0, 0.1);
+  --box--shadow--shadow-sm: 0px 1px 3px rgba(0, 0, 0, 0.1);
+  --box--shadow--shadow-md: 0px 2px 4px rgba(0, 0, 0, 0.1), 0px 4px 6px rgba(0, 0, 0, 0.1);
+  --box--shadow--shadow-lg: 0px 4px 6px rgba(0, 0, 0, 0.1), 0px 10px 15px rgba(0, 0, 0, 0.1);
+  --box--shadow--shadow-xl: 0px 8px 10px rgba(0, 0, 0, 0.1), 0px 20px 25px rgba(0, 0, 0, 0.1);
+  --box--shadow--shadow-2xl: 0px 25px 50px rgba(0, 0, 0, 0.25);
+  --box--shadow--shadow-inner: inset 0px 2px 4px rgba(0, 0, 0, 0.06);
+  --box--shadow--shadow-none: 0px 0px 0px rgba(0, 0, 0, 0);
+  --box--shadow---focus-ring: 0px 0px 0px rgba(161, 161, 161, 0.5);
+  --box--shadow---destructive: 0px 0px 0px rgba(220, 38, 38, 0.2);
+  --backdrop--blur--backdrop-blur-none: blur(0px);
+  --backdrop--blur--backdrop-blur-sm: blur(4px);
+  --backdrop--blur--backdrop-blur: blur(8px);
+  --backdrop--blur--backdrop-blur-md: blur(12px);
+  --backdrop--blur--backdrop-blur-lg: blur(16px);
+  --backdrop--blur--backdrop-blur-xl: blur(24px);
+  --backdrop--blur--backdrop-blur-2xl: blur(40px);
+  --backdrop--blur--backdrop-blur-3xl: blur(64px);
+  --blur--blur-none-shadows: 0px 0px 0px rgba(0, 0, 0, 0);
+  --blur--blur-none-blur: blur(0px);
+  --blur--blur-sm-shadows: 0px 0px 0px rgba(0, 0, 0, 0);
+  --blur--blur-sm-blur: blur(4px);
+  --blur--blur-shadows: 0px 0px 0px rgba(0, 0, 0, 0);
+  --blur--blur-blur: blur(8px);
+  --blur--blur-md-shadows: 0px 0px 0px rgba(0, 0, 0, 0);
+  --blur--blur-md-blur: blur(12px);
+  --blur--blur-lg-shadows: 0px 0px 0px rgba(0, 0, 0, 0);
+  --blur--blur-lg-blur: blur(16px);
+  --blur--blur-xl-shadows: 0px 0px 0px rgba(0, 0, 0, 0);
+  --blur--blur-xl-blur: blur(24px);
+  --blur--blur-2xl-shadows: 0px 0px 0px rgba(0, 0, 0, 0);
+  --blur--blur-2xl-blur: blur(40px);
+  --blur--blur-3xl-shadows: 0px 0px 0px rgba(0, 0, 0, 0);
+  --blur--blur-3xl-blur: blur(64px);
+}
+
+$b10-type-line-heights: (
+  xs: 16px,
+  sm: 20px,
+  base: 24px,
+  lg: 28px,
+  xl: 28px,
+  2xl: 32px,
+  3xl: 36px,
+  4xl: 40px,
+  5xl: 48px,
+  6xl: 56px,
+  7xl: 64px,
+  8xl: 72px,
+  9xl: 80px,
+);
+
+$b10-type-weights: (
+  thin: var(--font-weight-thin),
+  extra--light: var(--font-weight-extra-light),
+  light: var(--font-weight-light),
+  regular: var(--font-weight-regular),
+  medium: var(--font-weight-medium),
+  semi--bold: var(--font-weight-semi-bold),
+  bold: var(--font-weight-bold),
+  extra--bold: var(--font-weight-extra-bold),
+  black: var(--font-weight-black),
+);
+
+@mixin b10-body-text($size-name, $weight-name, $letter-spacing: 0) {
+  font-family: var(--font-body);
+  font-size: var(--text-#{$size-name}---#{$weight-name});
+  font-weight: map-get($b10-type-weights, $weight-name);
+  line-height: map-get($b10-type-line-heights, $size-name);
+  letter-spacing: $letter-spacing;
+}
+
+@each $size-name, $line-height in $b10-type-line-heights {
+  @each $weight-name, $weight-value in $b10-type-weights {
+    .b10-text-#{$size-name}--#{$weight-name} {
+      @include b10-body-text($size-name, $weight-name);
+    }
+  }
 }
 
 body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: var(--font-body);
-  font-size: 16px;
-  font-weight: 300;
-  line-height: var(--lh-body);
+  font-size: var(--text-base---light);
+  font-weight: var(--font-weight-light);
+  line-height: map-get($b10-type-line-heights, base);
   letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
 }
@@ -114,7 +392,7 @@ em,
 .text-italic {
   font-family: var(--font-body);
   font-style: oblique;
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 .q-layout,
@@ -126,81 +404,61 @@ strong,
 b,
 .text-strong {
   font-family: var(--font-body);
-  font-weight: 900;
+  font-weight: var(--font-weight-black);
 }
 
 .text-h1 {
   font-family: var(--font-title);
-  font-size: 72px;
-  font-weight: 900;
-  line-height: var(--lh-title);
+  font-size: var(--text-7xl---black);
+  font-weight: var(--font-weight-black);
+  line-height: map-get($b10-type-line-heights, 7xl);
   letter-spacing: -3px;
 }
 
 .text-h2 {
   font-family: var(--font-title);
-  font-size: 48px;
-  font-weight: 900;
-  line-height: var(--lh-title);
+  font-size: var(--text-5xl---black);
+  font-weight: var(--font-weight-black);
+  line-height: map-get($b10-type-line-heights, 5xl);
   letter-spacing: -2px;
 }
 
 .text-h3 {
   font-family: var(--font-title);
-  font-size: 32px;
-  font-weight: 400;
-  line-height: var(--lh-title);
+  font-size: var(--text-4xl---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: map-get($b10-type-line-heights, 4xl);
   letter-spacing: 0;
 }
 
 .text-h4,
 .text-h6 {
-  font-family: var(--font-body);
-  font-size: 24px;
-  font-weight: 900;
-  line-height: var(--lh-title);
-  letter-spacing: -2px;
+  @include b10-body-text(2xl, black);
 }
 
 .text-h5,
 .text-subtitle1 {
-  font-family: var(--font-body);
-  font-size: 20px;
-  font-weight: 300;
-  line-height: var(--lh-title);
-  letter-spacing: 0;
+  @include b10-body-text(xl, light);
 }
 
 .text-subtitle2 {
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 900;
-  line-height: var(--lh-body);
-  letter-spacing: 0;
+  @include b10-body-text(sm, semi--bold);
 }
 
 .text-body1 {
-  font-family: var(--font-body);
-  font-size: 16px;
-  font-weight: 300;
-  line-height: var(--lh-body);
-  letter-spacing: 0;
+  @include b10-body-text(base, light);
 }
 
 .text-body2,
 .text-caption {
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 300;
-  line-height: var(--lh-body);
-  letter-spacing: 0;
+  @include b10-body-text(sm, light);
 }
 
 .q-field__native,
 .q-field__input {
   font-family: var(--font-body);
-  font-size: 16px;
-  font-weight: 300;
+  font-size: var(--text-base---light);
+  font-weight: var(--font-weight-light);
   line-height: var(--lh-single-line);
   letter-spacing: 0;
 }
@@ -265,18 +523,15 @@ b,
 
 .ec-shell-toolbar-fallback {
   font-family: var(--font-body);
-  font-size: 22px;
-  font-weight: 900;
-  line-height: var(--lh-title);
+  font-size: var(--text-2xl---black);
+  font-weight: var(--font-weight-black);
+  line-height: map-get($b10-type-line-heights, 2xl);
   letter-spacing: -1px;
 }
 
 .ec-shell-version {
   color: #64748b;
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 300;
-  line-height: var(--lh-body);
+  @include b10-body-text(sm, light);
   flex: 0 0 auto;
 }
 
@@ -298,9 +553,7 @@ body.body--light .q-drawer.q-drawer--left .q-item__label--caption {
 
 .ec-nav-label {
   color: #64748b;
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 900;
+  @include b10-body-text(sm, black, 0.08em);
   line-height: var(--lh-single-line);
   letter-spacing: 0.08em;
   text-transform: uppercase;

@@ -385,7 +385,8 @@ function maybeRecreateDb(dbPath) {
     pipelinesHasDirName &&
     opportunitiesHasCompanyId &&
     opportunitiesHasKind
-  const looksLikeOldSchema = Number(tablesCount || 0) > 0 && !looksLikeSupportedSchema
+  const looksLikeOldSchema =
+    Number(tablesCount || 0) > 0 && !looksLikeSupportedSchema
 
   if (!looksLikeOldSchema) return
 

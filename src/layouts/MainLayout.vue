@@ -668,9 +668,10 @@ watch(
 }
 
 .ec-primary-nav__tabs :deep(.q-tab__label) {
-  font-size: 15px;
-  font-weight: 300;
+  font-size: var(--text-sm---light);
+  font-weight: var(--font-weight-light);
   letter-spacing: 0;
+  line-height: 20px;
 }
 
 .ec-primary-nav__tabs :deep(.q-tab__content) {
@@ -689,7 +690,7 @@ watch(
 }
 
 .ec-primary-nav__tabs :deep(.q-tab--active .q-tab__label) {
-  font-weight: 900;
+  font-weight: var(--font-weight-medium);
 }
 
 .ec-primary-nav__tabs :deep(.q-tab__indicator) {
@@ -780,9 +781,9 @@ watch(
 }
 
 .ec-quick-widget-action-label {
-  font-size: 10px;
-  font-weight: 300;
-  line-height: 1.1;
+  font-size: var(--text-xs---light);
+  font-weight: var(--font-weight-light);
+  line-height: 16px;
   letter-spacing: 0.04em;
   color: #1b1b1d;
   text-align: center;

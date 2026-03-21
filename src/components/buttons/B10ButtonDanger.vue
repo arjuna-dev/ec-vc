@@ -86,10 +86,10 @@ const buttonClasses = computed(() => [
   border: 1px solid transparent;
   border-radius: 8px;
   font-family: var(--font-body);
-  font-size: 16px;
-  font-weight: 300;
+  font-size: var(--text-base---regular);
+  font-weight: var(--font-weight-regular);
   letter-spacing: 0;
-  line-height: 1;
+  line-height: 20px;
   min-height: 0;
 
   :deep(.q-btn__content) {
