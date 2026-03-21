@@ -76,5 +76,6 @@ See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-
 
 ### SQLite location in macOS fs
 
-- running from terminal: `'/Users/alejandrocamus/Library/Application Support/Electron'`
+- running from terminal: `'
+'`
 - compiled: `'/Users/alejandrocamus/Library/Application Support/ec-vc'`

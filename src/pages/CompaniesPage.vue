@@ -223,10 +223,6 @@
                     <q-icon name="schedule" size="16px" class="q-mr-sm text-grey-7" />
                     <span>{{ row.Status }}</span>
                   </div>
-                  <div v-if="displayAmount(row.Amount_Raised_AUMs)" class="company-card__field">
-                    <q-icon name="payments" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ displayAmount(row.Amount_Raised_AUMs) }}</span>
-                  </div>
                   <div class="row q-col-gutter-sm q-pt-xs">
                     <div v-if="row.created_at" class="col-auto">
                       <q-badge outline color="grey-6" text-color="grey-8">
@@ -364,19 +360,11 @@ const columns = [
   { name: 'Website', label: 'Website', field: 'Website', align: 'left', sortable: true },
   { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: true },
   { name: 'Company_Type', label: 'Type', field: 'Company_Type', align: 'left', sortable: true },
-  {
-    name: 'Amount_Raised_AUMs',
-    label: 'Raised/AUM (USD)',
-    field: 'Amount_Raised_AUMs',
-    align: 'right',
-    sortable: true,
-    format: (v) => displayAmount(v),
-  },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
-const csvHeaders = ['id', 'Company_Name', 'Website', 'Status', 'Company_Type', 'Amount_Raised_AUMs']
+const csvHeaders = ['id', 'Company_Name', 'Website', 'Status', 'Company_Type']
 
 const viewOptions = [
   { label: 'Cards', value: 'card', icon: 'grid_view' },
@@ -400,21 +388,15 @@ const displayRows = computed(() => {
 
   if (priorityMode.value) {
     items.sort((a, b) => {
-      const amountA = Number(a?.Amount_Raised_AUMs || 0)
-      const amountB = Number(b?.Amount_Raised_AUMs || 0)
-      if (amountA !== amountB) return amountB - amountA
+      const createdAtA = String(a?.created_at || '')
+      const createdAtB = String(b?.created_at || '')
+      if (createdAtA !== createdAtB) return createdAtB.localeCompare(createdAtA)
       return String(a?.Company_Name || '').localeCompare(String(b?.Company_Name || ''))
     })
   }
 
   return items
 })
-
-function displayAmount(value) {
-  return value === null || value === undefined || value === ''
-    ? ''
-    : Number(value).toLocaleString('en-US')
-}
 
 function buildAvatarImage(label) {
   const text = String(label || 'Company').trim()

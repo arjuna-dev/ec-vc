@@ -84,7 +84,6 @@ function schemaDefinition() {
               One_Liner: { type: 'string' },
               Status: { type: 'string' },
               Date_of_Incorporation: { type: 'string' },
-              Amount_Raised_AUMs: { type: 'number' },
               Pax: { type: 'number' },
               Updates: { type: 'string' },
               Website: { type: 'string' },

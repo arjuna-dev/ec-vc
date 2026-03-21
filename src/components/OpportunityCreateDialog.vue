@@ -284,7 +284,6 @@ const companyFields = [
   { key: 'One_Liner', label: 'One Liner', inputType: 'text' },
   { key: 'Status', label: 'Company Status', inputType: 'text' },
   { key: 'Date_of_Incorporation', label: 'Date of Incorporation', inputType: 'text' },
-  { key: 'Amount_Raised_AUMs', label: 'Amount Raised / AUMs', inputType: 'number' },
   { key: 'Pax', label: 'Pax', inputType: 'number' },
   { key: 'Updates', label: 'Updates', inputType: 'text' },
   { key: 'Website', label: 'Website', inputType: 'text' },
@@ -380,7 +379,6 @@ function resetForms() {
     One_Liner: '',
     Status: '',
     Date_of_Incorporation: '',
-    Amount_Raised_AUMs: '',
     Pax: '',
     Updates: '',
     Website: '',
@@ -786,7 +784,6 @@ watch(
       One_Liner: selected.One_Liner || '',
       Website: selected.Website || '',
       Status: selected.Status || '',
-      Amount_Raised_AUMs: selected.Amount_Raised_AUMs || '',
     }
   },
 )

@@ -299,7 +299,6 @@ function listCompanies() {
       Website,
       Status,
       Company_Type,
-      Amount_Raised_AUMs,
       created_at
     FROM Companies
     WHERE Company_Name IS NOT NULL AND Company_Name <> ''
@@ -339,7 +338,6 @@ function createCompany(payload = {}) {
     One_Liner: normalizeNullableString(payload.One_Liner),
     Status: normalizeNullableString(payload.Status),
     Date_of_Incorporation: normalizeNullableString(payload.Date_of_Incorporation),
-    Amount_Raised_AUMs: normalizeNullableNumber(payload.Amount_Raised_AUMs),
     Rounds_Count: roundsCount,
     Pax: normalizeNullableNumber(payload.Pax),
     Updates: normalizeNullableString(payload.Updates),
@@ -353,10 +351,10 @@ function createCompany(payload = {}) {
           `
           INSERT INTO Companies (
             id, Company_Name, Company_Type, One_Liner, Status, Date_of_Incorporation,
-            Amount_Raised_AUMs${roundsCountColumn ? `, ${roundsCountColumn}` : ''}, Pax, Updates, Website
+            ${roundsCountColumn ? `${roundsCountColumn}, ` : ''}Pax, Updates, Website
           ) VALUES (
             @id, @Company_Name, @Company_Type, @One_Liner, @Status, @Date_of_Incorporation,
-            @Amount_Raised_AUMs${roundsCountColumn ? ', @Rounds_Count' : ''}, @Pax, @Updates, @Website
+            ${roundsCountColumn ? '@Rounds_Count, ' : ''}@Pax, @Updates, @Website
           )
         `,
         )
@@ -373,7 +371,6 @@ function createCompany(payload = {}) {
           One_Liner = COALESCE(@One_Liner, One_Liner),
           Status = COALESCE(@Status, Status),
           Date_of_Incorporation = COALESCE(@Date_of_Incorporation, Date_of_Incorporation),
-          Amount_Raised_AUMs = COALESCE(@Amount_Raised_AUMs, Amount_Raised_AUMs),
           ${roundsCountColumn ? `${roundsCountColumn} = COALESCE(@Rounds_Count, ${roundsCountColumn}),` : ''}
           Pax = COALESCE(@Pax, Pax),
           Updates = COALESCE(@Updates, Updates),
@@ -1161,7 +1158,7 @@ function getLegacyOpportunityDatabookView(opportunityId) {
         `
         SELECT
           id, Company_Name, Company_Type, Website, One_Liner, Status,
-          Date_of_Incorporation, Amount_Raised_AUMs, Pax, Updates
+          Date_of_Incorporation, Pax, Updates
         FROM Companies
         WHERE id = ?
         LIMIT 1
@@ -1221,15 +1218,6 @@ function getLegacyOpportunityDatabookView(opportunityId) {
         tableName: 'Companies',
         recordId: companyRow.id,
         fieldName: 'Date_of_Incorporation',
-        idColumn: 'id',
-      })
-      addField({
-        section: 'Company',
-        label: 'Amount Raised / AUMs',
-        value: companyRow.Amount_Raised_AUMs,
-        tableName: 'Companies',
-        recordId: companyRow.id,
-        fieldName: 'Amount_Raised_AUMs',
         idColumn: 'id',
       })
       addField({
@@ -1826,20 +1814,18 @@ function upsertCompanies(rows = []) {
         Website: normalizeNullableString(r?.Website),
         Status: normalizeNullableString(r?.Status),
         Company_Type: normalizeNullableString(r?.Company_Type),
-        Amount_Raised_AUMs: normalizeNullableNumber(r?.Amount_Raised_AUMs),
       }
 
       const result = database
         .prepare(
           `
-          INSERT INTO Companies (id, Company_Name, Website, Status, Company_Type, Amount_Raised_AUMs)
-          VALUES (@id, @Company_Name, @Website, @Status, @Company_Type, @Amount_Raised_AUMs)
+          INSERT INTO Companies (id, Company_Name, Website, Status, Company_Type)
+          VALUES (@id, @Company_Name, @Website, @Status, @Company_Type)
           ON CONFLICT(id) DO UPDATE SET
             Company_Name = excluded.Company_Name,
             Website = excluded.Website,
             Status = excluded.Status,
             Company_Type = excluded.Company_Type,
-            Amount_Raised_AUMs = excluded.Amount_Raised_AUMs,
             updated_at = datetime('now')
         `,
         )
@@ -2639,7 +2625,6 @@ function upsertCompanyFromAutofill(database, companyPayload = {}, fallbackCompan
     'One_Liner',
     'Status',
     'Date_of_Incorporation',
-    'Amount_Raised_AUMs',
     'Rounds_Opportunities_Count',
     'Rounds_Funds_Count',
     'Pax',
