@@ -293,18 +293,254 @@ function listCompanies() {
   return dbAll(
     `
     SELECT
-      id,
-      Company_Name,
-      One_Liner,
-      Website,
-      Status,
-      Company_Type,
-      created_at
-    FROM Companies
-    WHERE Company_Name IS NOT NULL AND Company_Name <> ''
-    ORDER BY Company_Name ASC
+      c.id,
+      c.Company_Name,
+      c.Short_Name,
+      c.Website,
+      c.One_Liner,
+      c.Description,
+      c.Notable_News,
+      c.Updates,
+      c.created_by,
+      c.created_at,
+      c.updated_at,
+      cii.Company_Type,
+      cii.Legal_Entity,
+      cii.Date_of_Incorporation,
+      cii.incorporation_country_id,
+      ic.Country_Name AS Incorporation_Country_Name,
+      cii.Incorporation_Type,
+      coo.Company_Stage,
+      coo.Status,
+      coo.headquarters_city_id,
+      hc.City_Name AS Headquarters_City_Name,
+      coo.PAX_Count,
+      coo.PAX_Known
+    FROM Companies c
+    LEFT JOIN Company_Incorporation_Info cii ON cii.company_id = c.id
+    LEFT JOIN Countries ic ON ic.id = cii.incorporation_country_id
+    LEFT JOIN Company_Operations_Overview coo ON coo.company_id = c.id
+    LEFT JOIN Cities hc ON hc.id = coo.headquarters_city_id
+    WHERE c.Company_Name IS NOT NULL AND c.Company_Name <> ''
+    ORDER BY c.Company_Name ASC
   `,
   )
+}
+
+function normalizeCompanyType(database, value) {
+  const candidate = normalizeNullableString(value)
+  if (!candidate) return null
+  return (
+    normalizeNullableString(
+      database
+        .prepare('SELECT type FROM company_types WHERE lower(type) = lower(?) LIMIT 1')
+        .get(candidate)?.type,
+    ) || null
+  )
+}
+
+function normalizeNullableIntegerId(value) {
+  const numberValue = normalizeNullableNumber(value)
+  if (numberValue == null) return null
+  const intValue = Math.trunc(numberValue)
+  return intValue > 0 ? intValue : null
+}
+
+function upsertCompanyIncorporationInfo(database, companyId, source = {}) {
+  const payload = {
+    company_id: companyId,
+    Company_Type: normalizeCompanyType(database, source.Company_Type),
+    Legal_Entity: normalizeNullableString(source.Legal_Entity),
+    Date_of_Incorporation: normalizeNullableString(source.Date_of_Incorporation),
+    incorporation_country_id:
+      normalizeNullableString(source.incorporation_country_id) ||
+      normalizeNullableString(source.Incorporation_Country_Id) ||
+      normalizeNullableString(source.Incorporation_Country),
+    Incorporation_Type: normalizeNullableString(source.Incorporation_Type),
+  }
+
+  if (
+    !hasMeaningfulValue(payload.Company_Type) &&
+    !hasMeaningfulValue(payload.Legal_Entity) &&
+    !hasMeaningfulValue(payload.Date_of_Incorporation) &&
+    !hasMeaningfulValue(payload.incorporation_country_id) &&
+    !hasMeaningfulValue(payload.Incorporation_Type)
+  ) {
+    return
+  }
+
+  database
+    .prepare(
+      `
+      INSERT INTO Company_Incorporation_Info (
+        company_id, Company_Type, Legal_Entity, Date_of_Incorporation, incorporation_country_id,
+        Incorporation_Type
+      ) VALUES (
+        @company_id, @Company_Type, @Legal_Entity, @Date_of_Incorporation, @incorporation_country_id,
+        @Incorporation_Type
+      )
+      ON CONFLICT(company_id) DO UPDATE SET
+        Company_Type = COALESCE(excluded.Company_Type, Company_Incorporation_Info.Company_Type),
+        Legal_Entity = COALESCE(excluded.Legal_Entity, Company_Incorporation_Info.Legal_Entity),
+        Date_of_Incorporation = COALESCE(excluded.Date_of_Incorporation, Company_Incorporation_Info.Date_of_Incorporation),
+        incorporation_country_id = COALESCE(excluded.incorporation_country_id, Company_Incorporation_Info.incorporation_country_id),
+        Incorporation_Type = COALESCE(excluded.Incorporation_Type, Company_Incorporation_Info.Incorporation_Type),
+        updated_at = datetime('now')
+    `,
+    )
+    .run(payload)
+}
+
+function upsertCompanyOperationsOverview(database, companyId, source = {}) {
+  const payload = {
+    company_id: companyId,
+    Company_Stage: normalizeNullableString(source.Company_Stage),
+    Status: normalizeNullableString(source.Status),
+    headquarters_city_id:
+      normalizeNullableString(source.headquarters_city_id) ||
+      normalizeNullableString(source.Headquarters_City_Id) ||
+      normalizeNullableString(source.city_id),
+    PAX_Count:
+      normalizeNullableNumber(source.PAX_Count) ??
+      normalizeNullableNumber(source.Pax_Count) ??
+      normalizeNullableNumber(source.Pax),
+    PAX_Known:
+      normalizeNullableNumber(source.PAX_Known) ?? normalizeNullableNumber(source.Pax_Known),
+    business_structure_artifact_id:
+      normalizeNullableString(source.business_structure_artifact_id) ||
+      normalizeNullableString(source.Business_Structure_Artifact_Id),
+    corporate_structure_artifact_id:
+      normalizeNullableString(source.corporate_structure_artifact_id) ||
+      normalizeNullableString(source.Corporate_Structure_Artifact_Id),
+    organizational_structure_artifact_id:
+      normalizeNullableString(source.organizational_structure_artifact_id) ||
+      normalizeNullableString(source.Organizational_Structure_Artifact_Id),
+  }
+
+  if (
+    !hasMeaningfulValue(payload.Company_Stage) &&
+    !hasMeaningfulValue(payload.Status) &&
+    !hasMeaningfulValue(payload.headquarters_city_id) &&
+    !hasMeaningfulValue(payload.PAX_Count) &&
+    !hasMeaningfulValue(payload.PAX_Known) &&
+    !hasMeaningfulValue(payload.business_structure_artifact_id) &&
+    !hasMeaningfulValue(payload.corporate_structure_artifact_id) &&
+    !hasMeaningfulValue(payload.organizational_structure_artifact_id)
+  ) {
+    return
+  }
+
+  database
+    .prepare(
+      `
+      INSERT INTO Company_Operations_Overview (
+        company_id, Company_Stage, Status, headquarters_city_id, PAX_Count, PAX_Known,
+        business_structure_artifact_id, corporate_structure_artifact_id, organizational_structure_artifact_id
+      ) VALUES (
+        @company_id, @Company_Stage, @Status, @headquarters_city_id, @PAX_Count, @PAX_Known,
+        @business_structure_artifact_id, @corporate_structure_artifact_id, @organizational_structure_artifact_id
+      )
+      ON CONFLICT(company_id) DO UPDATE SET
+        Company_Stage = COALESCE(excluded.Company_Stage, Company_Operations_Overview.Company_Stage),
+        Status = COALESCE(excluded.Status, Company_Operations_Overview.Status),
+        headquarters_city_id = COALESCE(excluded.headquarters_city_id, Company_Operations_Overview.headquarters_city_id),
+        PAX_Count = COALESCE(excluded.PAX_Count, Company_Operations_Overview.PAX_Count),
+        PAX_Known = COALESCE(excluded.PAX_Known, Company_Operations_Overview.PAX_Known),
+        business_structure_artifact_id = COALESCE(excluded.business_structure_artifact_id, Company_Operations_Overview.business_structure_artifact_id),
+        corporate_structure_artifact_id = COALESCE(excluded.corporate_structure_artifact_id, Company_Operations_Overview.corporate_structure_artifact_id),
+        organizational_structure_artifact_id = COALESCE(excluded.organizational_structure_artifact_id, Company_Operations_Overview.organizational_structure_artifact_id),
+        updated_at = datetime('now')
+    `,
+    )
+    .run(payload)
+}
+
+function upsertCompanySubtable(database, tableName, companyId, values = {}) {
+  const entries = Object.entries(values).filter(([, value]) => hasMeaningfulValue(value))
+  if (!entries.length) return
+
+  const columnNames = ['company_id', ...entries.map(([key]) => key)]
+  const insertPlaceholders = columnNames.map((name) => `@${name}`).join(', ')
+  const updateAssignments = entries
+    .map(([key]) => {
+      const q = quoteIdentifier(key)
+      return `${q} = COALESCE(excluded.${q}, ${quoteIdentifier(tableName)}.${q})`
+    })
+    .concat("updated_at = datetime('now')")
+    .join(', ')
+
+  const payload = Object.fromEntries([['company_id', companyId], ...entries])
+  database
+    .prepare(
+      `
+      INSERT INTO ${quoteIdentifier(tableName)} (${columnNames.map(quoteIdentifier).join(', ')})
+      VALUES (${insertPlaceholders})
+      ON CONFLICT(company_id) DO UPDATE SET
+        ${updateAssignments}
+    `,
+    )
+    .run(payload)
+}
+
+function normalizeCompanyContactSet(items = []) {
+  const input = Array.isArray(items) ? items : []
+  const ids = []
+  for (const item of input) {
+    if (typeof item === 'string' || typeof item === 'number') {
+      const id = normalizeNullableString(item)
+      if (id) ids.push(id)
+      continue
+    }
+
+    if (!item || typeof item !== 'object') continue
+    const existingId = normalizeNullableString(item.id)
+    if (existingId) {
+      ids.push(existingId)
+      continue
+    }
+
+    const created = createContact(item)
+    if (created?.id) ids.push(created.id)
+  }
+
+  return [...new Set(ids)]
+}
+
+function syncCompanyContactSet(database, tableName, companyId, items = []) {
+  if (!Array.isArray(items)) return
+  const contactIds = normalizeCompanyContactSet(items)
+
+  database
+    .prepare(`DELETE FROM ${quoteIdentifier(tableName)} WHERE company_id = ?`)
+    .run(companyId)
+
+  const insert = database.prepare(
+    `INSERT OR IGNORE INTO ${quoteIdentifier(tableName)} (company_id, contact_id) VALUES (?, ?)`,
+  )
+  for (const contactId of contactIds) {
+    insert.run(companyId, contactId)
+  }
+}
+
+function listCompanyContacts(database, tableName, companyId) {
+  return database
+    .prepare(
+      `
+      SELECT
+        c.id,
+        c.Name,
+        c.Personal_Email,
+        c.Professional_Email,
+        c.Phone,
+        c.Country_based,
+        c.LinkedIn
+      FROM ${quoteIdentifier(tableName)} link
+      JOIN Contacts c ON c.id = link.contact_id
+      WHERE link.company_id = ?
+      ORDER BY COALESCE(c.Name, '') ASC, c.id ASC
+    `,
+    )
+    .all(companyId)
 }
 
 function createCompany(payload = {}) {
@@ -312,77 +548,182 @@ function createCompany(payload = {}) {
   if (!name) throw new Error('Company name is required')
 
   const database = initDb()
-  const companyTypeCandidate = normalizeNullableString(payload.Company_Type)
-  const companyType = companyTypeCandidate
-    ? normalizeNullableString(
-        database
-          .prepare('SELECT type FROM company_types WHERE lower(type) = lower(?) LIMIT 1')
-          .get(companyTypeCandidate)?.type,
-      ) || 'Other'
-    : 'Other'
-  const roundsCountColumn = getCompaniesRoundsCountColumn(database)
+  const actor = getAuditActor(database)
 
   const existing = database
     .prepare('SELECT id, Company_Name FROM Companies WHERE Company_Name = ? LIMIT 1')
     .get(name)
 
-  const id = normalizeNullableString(payload.id) || existing?.id || `company:${crypto.randomUUID()}`
-  const roundsCount =
-    normalizeNullableNumber(payload.Rounds_Opportunities_Count) ??
-    normalizeNullableNumber(payload.Rounds_Funds_Count)
-
-  const fields = {
-    id,
+  const mainFields = {
     Company_Name: name,
-    Company_Type: companyType,
-    One_Liner: normalizeNullableString(payload.One_Liner),
-    Status: normalizeNullableString(payload.Status),
-    Date_of_Incorporation: normalizeNullableString(payload.Date_of_Incorporation),
-    Rounds_Count: roundsCount,
-    Pax: normalizeNullableNumber(payload.Pax),
-    Updates: normalizeNullableString(payload.Updates),
+    Short_Name: normalizeNullableString(payload.Short_Name) || normalizeNullableString(payload.shortening),
     Website: normalizeNullableString(payload.Website),
+    One_Liner: normalizeNullableString(payload.One_Liner),
+    Description: normalizeNullableString(payload.Description),
+    Notable_News: normalizeNullableString(payload.Notable_News),
+    Updates: normalizeNullableString(payload.Updates),
+    created_by: actor.user_contact_id,
   }
+  const explicitId = normalizeNullableIntegerId(payload.id)
 
   const tx = database.transaction(() => {
+    let companyId = existing?.id ?? null
+
     if (!existing) {
+      const result = explicitId
+        ? database
+            .prepare(
+              `
+              INSERT INTO Companies (
+                id, Company_Name, Short_Name, Website, One_Liner, Description, Notable_News,
+                Updates, created_by
+              ) VALUES (
+                @id, @Company_Name, @Short_Name, @Website, @One_Liner, @Description, @Notable_News,
+                @Updates, @created_by
+              )
+            `,
+            )
+            .run({ id: explicitId, ...mainFields })
+        : database
+            .prepare(
+              `
+              INSERT INTO Companies (
+                Company_Name, Short_Name, Website, One_Liner, Description, Notable_News,
+                Updates, created_by
+              ) VALUES (
+                @Company_Name, @Short_Name, @Website, @One_Liner, @Description, @Notable_News,
+                @Updates, @created_by
+              )
+            `,
+            )
+            .run(mainFields)
+      companyId = explicitId ?? Number(result.lastInsertRowid)
+    } else {
       database
         .prepare(
           `
-          INSERT INTO Companies (
-            id, Company_Name, Company_Type, One_Liner, Status, Date_of_Incorporation,
-            ${roundsCountColumn ? `${roundsCountColumn}, ` : ''}Pax, Updates, Website
-          ) VALUES (
-            @id, @Company_Name, @Company_Type, @One_Liner, @Status, @Date_of_Incorporation,
-            ${roundsCountColumn ? '@Rounds_Count, ' : ''}@Pax, @Updates, @Website
-          )
+          UPDATE Companies SET
+            Short_Name = COALESCE(@Short_Name, Short_Name),
+            Website = COALESCE(@Website, Website),
+            One_Liner = COALESCE(@One_Liner, One_Liner),
+            Description = COALESCE(@Description, Description),
+            Notable_News = COALESCE(@Notable_News, Notable_News),
+            Updates = COALESCE(@Updates, Updates),
+            updated_at = datetime('now')
+          WHERE id = @id
         `,
         )
-        .run(fields)
-      return
+        .run({ id: companyId, ...mainFields })
     }
 
-    // If the company already existed, only patch in non-null fields.
     database
-      .prepare(
-        `
-        UPDATE Companies SET
-          Company_Type = COALESCE(@Company_Type, Company_Type),
-          One_Liner = COALESCE(@One_Liner, One_Liner),
-          Status = COALESCE(@Status, Status),
-          Date_of_Incorporation = COALESCE(@Date_of_Incorporation, Date_of_Incorporation),
-          ${roundsCountColumn ? `${roundsCountColumn} = COALESCE(@Rounds_Count, ${roundsCountColumn}),` : ''}
-          Pax = COALESCE(@Pax, Pax),
-          Updates = COALESCE(@Updates, Updates),
-          Website = COALESCE(@Website, Website),
-          updated_at = datetime('now')
-        WHERE id = @id
-      `,
-      )
-      .run(fields)
+      .prepare('INSERT OR IGNORE INTO Company_Incorporation_Info (company_id) VALUES (?)')
+      .run(companyId)
+    database
+      .prepare('INSERT OR IGNORE INTO Company_Operations_Overview (company_id) VALUES (?)')
+      .run(companyId)
+    database
+      .prepare('INSERT OR IGNORE INTO Company_Business_Overview (company_id) VALUES (?)')
+      .run(companyId)
+    database
+      .prepare('INSERT OR IGNORE INTO Company_Market_Overview (company_id) VALUES (?)')
+      .run(companyId)
+    database
+      .prepare('INSERT OR IGNORE INTO Company_Results_Overview (company_id) VALUES (?)')
+      .run(companyId)
+    database
+      .prepare('INSERT OR IGNORE INTO Company_Business_Plan (company_id) VALUES (?)')
+      .run(companyId)
+    database
+      .prepare('INSERT OR IGNORE INTO Company_Fund_Raising (company_id) VALUES (?)')
+      .run(companyId)
+
+    upsertCompanyIncorporationInfo(database, companyId, payload)
+    upsertCompanyOperationsOverview(database, companyId, payload)
+    upsertCompanySubtable(database, 'Company_Business_Overview', companyId, {
+      Mission_Vision: normalizeNullableString(payload.Mission_Vision),
+      Products_Services: normalizeNullableString(payload.Products_Services),
+      Key_Features: normalizeNullableString(payload.Key_Features),
+      Development_Stage: normalizeNullableString(payload.Development_Stage),
+      ICP: normalizeNullableString(payload.ICP),
+      Business_Model: normalizeNullableString(payload.Business_Model),
+      Pricing: normalizeNullableString(payload.Pricing),
+      Placement_Distribution: normalizeNullableString(payload.Placement_Distribution),
+    })
+    upsertCompanySubtable(database, 'Company_Market_Overview', companyId, {
+      Industry: normalizeNullableString(payload.Industry),
+      Niche: normalizeNullableString(payload.Niche),
+      Demand_Analysis: normalizeNullableString(payload.Demand_Analysis),
+      Supply_Analysis: normalizeNullableString(payload.Supply_Analysis),
+    })
+    upsertCompanySubtable(database, 'Company_Results_Overview', companyId, {
+      Traction_Overview: normalizeNullableString(payload.Traction_Overview),
+      Unit_Sales_By_Type_Artifact_Id: normalizeNullableString(payload.Unit_Sales_By_Type_Artifact_Id),
+      Unit_Sales_By_Region_Artifact_Id: normalizeNullableString(payload.Unit_Sales_By_Region_Artifact_Id),
+      Unit_Sales_By_Customer_Mix_Artifact_Id: normalizeNullableString(payload.Unit_Sales_By_Customer_Mix_Artifact_Id),
+      Revenue_Breakdown_By_Type_Artifact_Id: normalizeNullableString(payload.Revenue_Breakdown_By_Type_Artifact_Id),
+      Revenue_Breakdown_By_Region_Artifact_Id: normalizeNullableString(payload.Revenue_Breakdown_By_Region_Artifact_Id),
+      Revenue_Breakdown_By_Customer_Mix_Artifact_Id: normalizeNullableString(payload.Revenue_Breakdown_By_Customer_Mix_Artifact_Id),
+      Revenue_Breakdown_Top_10_Artifact_Id: normalizeNullableString(payload.Revenue_Breakdown_Top_10_Artifact_Id),
+      Cohorts_Analysis_By_Date_Artifact_Id: normalizeNullableString(payload.Cohorts_Analysis_By_Date_Artifact_Id),
+      Cohorts_Analysis_By_Product_Service_Artifact_Id: normalizeNullableString(payload.Cohorts_Analysis_By_Product_Service_Artifact_Id),
+      Direct_Costs_By_Product_Service_Artifact_Id: normalizeNullableString(payload.Direct_Costs_By_Product_Service_Artifact_Id),
+      Sales_Marketing_Costs_By_Product_Service_Artifact_Id: normalizeNullableString(payload.Sales_Marketing_Costs_By_Product_Service_Artifact_Id),
+      Customer_Acquisition_Cost: normalizeNullableNumber(payload.Customer_Acquisition_Cost),
+      Customer_Lifetime_Value: normalizeNullableNumber(payload.Customer_Lifetime_Value),
+      General_Admin_Expenses: normalizeNullableNumber(payload.General_Admin_Expenses),
+      Tech_Expenditure: normalizeNullableNumber(payload.Tech_Expenditure),
+      Income_Statement_Artifact_Id: normalizeNullableString(payload.Income_Statement_Artifact_Id),
+      Balance_Sheet_Artifact_Id: normalizeNullableString(payload.Balance_Sheet_Artifact_Id),
+      Cash_Flow_Artifact_Id: normalizeNullableString(payload.Cash_Flow_Artifact_Id),
+      Tax_Filings_Artifact_Id: normalizeNullableString(payload.Tax_Filings_Artifact_Id),
+      Bank_Statements_Artifact_Id: normalizeNullableString(payload.Bank_Statements_Artifact_Id),
+    })
+    upsertCompanySubtable(database, 'Company_Business_Plan', companyId, {
+      Overview: normalizeNullableString(payload.Overview),
+      Forecast: normalizeNullableString(payload.Forecast),
+      Short_Term_Objectives: normalizeNullableString(payload.Short_Term_Objectives),
+      Long_Term_Objectives: normalizeNullableString(payload.Long_Term_Objectives),
+      Use_of_Resources: normalizeNullableString(payload.Use_of_Resources),
+      Runway_Analysis: normalizeNullableString(payload.Runway_Analysis),
+      Capital_Needs: normalizeNullableString(payload.Capital_Needs),
+      Funding_Strategy: normalizeNullableString(payload.Funding_Strategy),
+    })
+    upsertCompanySubtable(database, 'Company_Fund_Raising', companyId, {
+      Shareholder_Structure_Artifact_Id: normalizeNullableString(payload.Shareholder_Structure_Artifact_Id),
+      Rounds_Funds_Count:
+        normalizeNullableNumber(payload.Rounds_Funds_Count) ??
+        normalizeNullableNumber(payload.Rounds_Count),
+      Amount_Raised: normalizeNullableNumber(payload.Amount_Raised),
+    })
+    syncCompanyContactSet(
+      database,
+      'Company_Incorporation_Legal_Founders',
+      companyId,
+      payload.Legal_Founders,
+    )
+    syncCompanyContactSet(
+      database,
+      'Company_Operations_Leadership_Team',
+      companyId,
+      payload.Leadership_Team,
+    )
+    syncCompanyContactSet(
+      database,
+      'Company_Operations_Advisors',
+      companyId,
+      payload.Advisors,
+    )
+    syncCompanyContactSet(
+      database,
+      'Company_Fund_Raising_Shareholders',
+      companyId,
+      payload.Shareholders,
+    )
+    return companyId
   })
 
-  tx()
+  const id = tx()
 
   return { id, Company_Name: name }
 }
@@ -1153,18 +1494,7 @@ function getLegacyOpportunityDatabookView(opportunityId) {
   })
 
   if (opportunity.company_id && hasTable('Companies')) {
-    const companyRow = database
-      .prepare(
-        `
-        SELECT
-          id, Company_Name, Company_Type, Website, One_Liner, Status,
-          Date_of_Incorporation, Pax, Updates
-        FROM Companies
-        WHERE id = ?
-        LIMIT 1
-      `,
-      )
-      .get(opportunity.company_id)
+    const companyRow = getCompanyAggregate(database, opportunity.company_id)
     if (companyRow) {
       addField({
         section: 'Company',
@@ -1179,10 +1509,10 @@ function getLegacyOpportunityDatabookView(opportunityId) {
         section: 'Company',
         label: 'Company Type',
         value: companyRow.Company_Type,
-        tableName: 'Companies',
+        tableName: 'Company_Incorporation_Info',
         recordId: companyRow.id,
         fieldName: 'Company_Type',
-        idColumn: 'id',
+        idColumn: 'company_id',
       })
       addField({
         section: 'Company',
@@ -1206,28 +1536,28 @@ function getLegacyOpportunityDatabookView(opportunityId) {
         section: 'Company',
         label: 'Status',
         value: companyRow.Status,
-        tableName: 'Companies',
+        tableName: 'Company_Operations_Overview',
         recordId: companyRow.id,
         fieldName: 'Status',
-        idColumn: 'id',
+        idColumn: 'company_id',
       })
       addField({
         section: 'Company',
         label: 'Date of Incorporation',
         value: companyRow.Date_of_Incorporation,
-        tableName: 'Companies',
+        tableName: 'Company_Incorporation_Info',
         recordId: companyRow.id,
         fieldName: 'Date_of_Incorporation',
-        idColumn: 'id',
+        idColumn: 'company_id',
       })
       addField({
         section: 'Company',
-        label: 'Pax',
-        value: companyRow.Pax,
-        tableName: 'Companies',
+        label: 'PAX Count',
+        value: companyRow.PAX_Count,
+        tableName: 'Company_Operations_Overview',
         recordId: companyRow.id,
-        fieldName: 'Pax',
-        idColumn: 'id',
+        fieldName: 'PAX_Count',
+        idColumn: 'company_id',
       })
       addField({
         section: 'Company',
@@ -1645,11 +1975,305 @@ function isDatabookFieldEditable(config, tableMeta, columnName) {
   return true
 }
 
+function getCompanyAggregate(database, companyId) {
+  const row =
+    database
+      .prepare(
+        `
+        SELECT
+          c.id,
+          c.Company_Name,
+          c.Short_Name,
+          c.Website,
+          c.One_Liner,
+          c.Description,
+          c.Notable_News,
+          c.Updates,
+          c.created_by,
+          c.created_at,
+          c.updated_at,
+          cii.Company_Type,
+          cii.Legal_Entity,
+          cii.Date_of_Incorporation,
+          cii.incorporation_country_id,
+          cii.Incorporation_Type,
+          coo.Company_Stage,
+          coo.Status,
+          coo.headquarters_city_id,
+          coo.PAX_Count,
+          coo.PAX_Known,
+          coo.business_structure_artifact_id,
+          coo.corporate_structure_artifact_id,
+          coo.organizational_structure_artifact_id,
+          cbo.Mission_Vision,
+          cbo.Products_Services,
+          cbo.Key_Features,
+          cbo.Development_Stage,
+          cbo.ICP,
+          cbo.Business_Model,
+          cbo.Pricing,
+          cbo.Placement_Distribution,
+          cmo.Industry,
+          cmo.Niche,
+          cmo.Demand_Analysis,
+          cmo.Supply_Analysis,
+          cro.Traction_Overview,
+          cro.Unit_Sales_By_Type_Artifact_Id,
+          cro.Unit_Sales_By_Region_Artifact_Id,
+          cro.Unit_Sales_By_Customer_Mix_Artifact_Id,
+          cro.Revenue_Breakdown_By_Type_Artifact_Id,
+          cro.Revenue_Breakdown_By_Region_Artifact_Id,
+          cro.Revenue_Breakdown_By_Customer_Mix_Artifact_Id,
+          cro.Revenue_Breakdown_Top_10_Artifact_Id,
+          cro.Cohorts_Analysis_By_Date_Artifact_Id,
+          cro.Cohorts_Analysis_By_Product_Service_Artifact_Id,
+          cro.Direct_Costs_By_Product_Service_Artifact_Id,
+          cro.Sales_Marketing_Costs_By_Product_Service_Artifact_Id,
+          cro.Customer_Acquisition_Cost,
+          cro.Customer_Lifetime_Value,
+          cro.General_Admin_Expenses,
+          cro.Tech_Expenditure,
+          cro.Income_Statement_Artifact_Id,
+          cro.Balance_Sheet_Artifact_Id,
+          cro.Cash_Flow_Artifact_Id,
+          cro.Tax_Filings_Artifact_Id,
+          cro.Bank_Statements_Artifact_Id,
+          cbp.Overview,
+          cbp.Forecast,
+          cbp.Short_Term_Objectives,
+          cbp.Long_Term_Objectives,
+          cbp.Use_of_Resources,
+          cbp.Runway_Analysis,
+          cbp.Capital_Needs,
+          cbp.Funding_Strategy,
+          cfr.Shareholder_Structure_Artifact_Id,
+          cfr.Rounds_Funds_Count,
+          cfr.Amount_Raised
+        FROM Companies c
+        LEFT JOIN Company_Incorporation_Info cii ON cii.company_id = c.id
+        LEFT JOIN Company_Operations_Overview coo ON coo.company_id = c.id
+        LEFT JOIN Company_Business_Overview cbo ON cbo.company_id = c.id
+        LEFT JOIN Company_Market_Overview cmo ON cmo.company_id = c.id
+        LEFT JOIN Company_Results_Overview cro ON cro.company_id = c.id
+        LEFT JOIN Company_Business_Plan cbp ON cbp.company_id = c.id
+        LEFT JOIN Company_Fund_Raising cfr ON cfr.company_id = c.id
+        WHERE c.id = ?
+        LIMIT 1
+      `,
+      )
+      .get(companyId) || null
+
+  if (!row) return null
+
+  row.Legal_Founders = listCompanyContacts(database, 'Company_Incorporation_Legal_Founders', row.id)
+  row.Leadership_Team = listCompanyContacts(database, 'Company_Operations_Leadership_Team', row.id)
+  row.Advisors = listCompanyContacts(database, 'Company_Operations_Advisors', row.id)
+  row.Shareholders = listCompanyContacts(database, 'Company_Fund_Raising_Shareholders', row.id)
+  return row
+}
+
+function buildCompanyDatabookView(database, recordId) {
+  const rid = normalizeNullableString(recordId)
+  if (!rid) throw new Error('recordId is required')
+
+  const row = getCompanyAggregate(database, rid)
+  if (!row) throw new Error(`Company not found: ${rid}`)
+
+  const mainFields = [
+    'id',
+    'Company_Name',
+    'Short_Name',
+    'Website',
+    'One_Liner',
+    'Description',
+    'Notable_News',
+    'Updates',
+    'created_by',
+    'created_at',
+    'updated_at',
+  ]
+  const incorporationFields = [
+    'Company_Type',
+    'Legal_Entity',
+    'Date_of_Incorporation',
+    'incorporation_country_id',
+    'Incorporation_Type',
+  ]
+  const operationsFields = [
+    'Company_Stage',
+    'Status',
+    'headquarters_city_id',
+    'PAX_Count',
+    'PAX_Known',
+    'business_structure_artifact_id',
+    'corporate_structure_artifact_id',
+    'organizational_structure_artifact_id',
+  ]
+  const businessOverviewFields = [
+    'Mission_Vision',
+    'Products_Services',
+    'Key_Features',
+    'Development_Stage',
+    'ICP',
+    'Business_Model',
+    'Pricing',
+    'Placement_Distribution',
+  ]
+  const marketOverviewFields = [
+    'Industry',
+    'Niche',
+    'Demand_Analysis',
+    'Supply_Analysis',
+  ]
+  const resultsOverviewFields = [
+    'Traction_Overview',
+    'Unit_Sales_By_Type_Artifact_Id',
+    'Unit_Sales_By_Region_Artifact_Id',
+    'Unit_Sales_By_Customer_Mix_Artifact_Id',
+    'Revenue_Breakdown_By_Type_Artifact_Id',
+    'Revenue_Breakdown_By_Region_Artifact_Id',
+    'Revenue_Breakdown_By_Customer_Mix_Artifact_Id',
+    'Revenue_Breakdown_Top_10_Artifact_Id',
+    'Cohorts_Analysis_By_Date_Artifact_Id',
+    'Cohorts_Analysis_By_Product_Service_Artifact_Id',
+    'Direct_Costs_By_Product_Service_Artifact_Id',
+    'Sales_Marketing_Costs_By_Product_Service_Artifact_Id',
+    'Customer_Acquisition_Cost',
+    'Customer_Lifetime_Value',
+    'General_Admin_Expenses',
+    'Tech_Expenditure',
+    'Income_Statement_Artifact_Id',
+    'Balance_Sheet_Artifact_Id',
+    'Cash_Flow_Artifact_Id',
+    'Tax_Filings_Artifact_Id',
+    'Bank_Statements_Artifact_Id',
+  ]
+  const businessPlanFields = [
+    'Overview',
+    'Forecast',
+    'Short_Term_Objectives',
+    'Long_Term_Objectives',
+    'Use_of_Resources',
+    'Runway_Analysis',
+    'Capital_Needs',
+    'Funding_Strategy',
+  ]
+  const fundRaisingFields = [
+    'Shareholder_Structure_Artifact_Id',
+    'Rounds_Funds_Count',
+    'Amount_Raised',
+  ]
+
+  const fields = [
+    ...mainFields.map((columnName) => ({
+      key: `Companies|${rid}|${columnName}`,
+      section: 'Company',
+      label: formatDatabookFieldLabel(columnName),
+      value: row?.[columnName] == null ? '' : String(row[columnName]),
+      editable: !new Set(['id', 'created_by', 'created_at', 'updated_at']).has(columnName),
+      table_name: 'Companies',
+      record_id: rid,
+      field_name: columnName,
+      id_column: 'id',
+    })),
+    ...incorporationFields.map((columnName) => ({
+      key: `Company_Incorporation_Info|${rid}|${columnName}`,
+      section: 'Company Incorporation',
+      label: formatDatabookFieldLabel(columnName),
+      value: row?.[columnName] == null ? '' : String(row[columnName]),
+      editable: !new Set(['created_at', 'updated_at']).has(columnName),
+      table_name: 'Company_Incorporation_Info',
+      record_id: rid,
+      field_name: columnName,
+      id_column: 'company_id',
+    })),
+    ...operationsFields.map((columnName) => ({
+      key: `Company_Operations_Overview|${rid}|${columnName}`,
+      section: 'Company Operations',
+      label: formatDatabookFieldLabel(columnName),
+      value: row?.[columnName] == null ? '' : String(row[columnName]),
+      editable: !new Set(['created_at', 'updated_at']).has(columnName),
+      table_name: 'Company_Operations_Overview',
+      record_id: rid,
+      field_name: columnName,
+      id_column: 'company_id',
+    })),
+    ...businessOverviewFields.map((columnName) => ({
+      key: `Company_Business_Overview|${rid}|${columnName}`,
+      section: 'Business Overview',
+      label: formatDatabookFieldLabel(columnName),
+      value: row?.[columnName] == null ? '' : String(row[columnName]),
+      editable: !new Set(['created_at', 'updated_at']).has(columnName),
+      table_name: 'Company_Business_Overview',
+      record_id: rid,
+      field_name: columnName,
+      id_column: 'company_id',
+    })),
+    ...marketOverviewFields.map((columnName) => ({
+      key: `Company_Market_Overview|${rid}|${columnName}`,
+      section: 'Market Overview',
+      label: formatDatabookFieldLabel(columnName),
+      value: row?.[columnName] == null ? '' : String(row[columnName]),
+      editable: !new Set(['created_at', 'updated_at']).has(columnName),
+      table_name: 'Company_Market_Overview',
+      record_id: rid,
+      field_name: columnName,
+      id_column: 'company_id',
+    })),
+    ...resultsOverviewFields.map((columnName) => ({
+      key: `Company_Results_Overview|${rid}|${columnName}`,
+      section: 'Results Overview',
+      label: formatDatabookFieldLabel(columnName),
+      value: row?.[columnName] == null ? '' : String(row[columnName]),
+      editable: !new Set(['created_at', 'updated_at']).has(columnName),
+      table_name: 'Company_Results_Overview',
+      record_id: rid,
+      field_name: columnName,
+      id_column: 'company_id',
+    })),
+    ...businessPlanFields.map((columnName) => ({
+      key: `Company_Business_Plan|${rid}|${columnName}`,
+      section: 'Business Plan',
+      label: formatDatabookFieldLabel(columnName),
+      value: row?.[columnName] == null ? '' : String(row[columnName]),
+      editable: !new Set(['created_at', 'updated_at']).has(columnName),
+      table_name: 'Company_Business_Plan',
+      record_id: rid,
+      field_name: columnName,
+      id_column: 'company_id',
+    })),
+    ...fundRaisingFields.map((columnName) => ({
+      key: `Company_Fund_Raising|${rid}|${columnName}`,
+      section: 'Fund Raising',
+      label: formatDatabookFieldLabel(columnName),
+      value: row?.[columnName] == null ? '' : String(row[columnName]),
+      editable: !new Set(['created_at', 'updated_at']).has(columnName),
+      table_name: 'Company_Fund_Raising',
+      record_id: rid,
+      field_name: columnName,
+      id_column: 'company_id',
+    })),
+  ]
+
+  return {
+    table_name: 'Companies',
+    record_id: rid,
+    entity_label: 'Company',
+    entity_name: normalizeNullableString(row.Company_Name) || rid,
+    record: row,
+    fields,
+  }
+}
+
 function getDatabookView(tableName, recordId) {
   const database = initDb()
   const config = getDatabookTableConfig(tableName)
   const rid = normalizeNullableString(recordId)
   if (!rid) throw new Error('recordId is required')
+
+  if (config.tableName === 'Companies') {
+    return buildCompanyDatabookView(database, rid)
+  }
 
   const tableMeta = getTableMeta(database, config.tableName)
   const idColumn = tableMeta.pkColumn
@@ -1806,35 +2430,9 @@ function upsertCompanies(rows = []) {
       const existing = database
         .prepare('SELECT id FROM Companies WHERE Company_Name = ? LIMIT 1')
         .get(companyName)
-      const id = normalizeNullableString(r?.id) || existing?.id || `company:${crypto.randomUUID()}`
-
-      const payload = {
-        id,
-        Company_Name: companyName,
-        Website: normalizeNullableString(r?.Website),
-        Status: normalizeNullableString(r?.Status),
-        Company_Type: normalizeNullableString(r?.Company_Type),
-      }
-
-      const result = database
-        .prepare(
-          `
-          INSERT INTO Companies (id, Company_Name, Website, Status, Company_Type)
-          VALUES (@id, @Company_Name, @Website, @Status, @Company_Type)
-          ON CONFLICT(id) DO UPDATE SET
-            Company_Name = excluded.Company_Name,
-            Website = excluded.Website,
-            Status = excluded.Status,
-            Company_Type = excluded.Company_Type,
-            updated_at = datetime('now')
-        `,
-        )
-        .run(payload)
-
-      if (result.changes > 0) {
-        if (existing?.id || normalizeNullableString(r?.id)) updated++
-        else inserted++
-      }
+      createCompany(r)
+      if (existing?.id || normalizeNullableIntegerId(r?.id)) updated++
+      else inserted++
     }
 
     return { inserted, updated, skipped }
@@ -2078,26 +2676,6 @@ function normalizeNullableNumber(value) {
   return Number.isFinite(n) ? n : null
 }
 
-let companiesRoundsCountColumnCache = null
-
-function getCompaniesRoundsCountColumn(database) {
-  if (companiesRoundsCountColumnCache) return companiesRoundsCountColumnCache
-  const cols = database
-    .prepare('PRAGMA table_info(Companies)')
-    .all()
-    .map((c) => c?.name)
-  if (cols.includes('Rounds_Opportunities_Count')) {
-    companiesRoundsCountColumnCache = 'Rounds_Opportunities_Count'
-    return companiesRoundsCountColumnCache
-  }
-  if (cols.includes('Rounds_Funds_Count')) {
-    companiesRoundsCountColumnCache = 'Rounds_Funds_Count'
-    return companiesRoundsCountColumnCache
-  }
-  companiesRoundsCountColumnCache = null
-  return null
-}
-
 function normalizeOpportunityKind(value) {
   const v = normalizeNullableString(value)
   if (!v) return null
@@ -2108,7 +2686,7 @@ function normalizeOpportunityKind(value) {
 function companyIsAssetManager(database, companyId) {
   if (!companyId) return false
   const row = database
-    .prepare('SELECT Company_Type FROM Companies WHERE id = ? LIMIT 1')
+    .prepare('SELECT Company_Type FROM Company_Incorporation_Info WHERE company_id = ? LIMIT 1')
     .get(companyId)
   return (
     String(row?.Company_Type || '')
@@ -2621,15 +3199,71 @@ function upsertCompanyFromAutofill(database, companyPayload = {}, fallbackCompan
   const companyFields = pickMeaningfulFields(companyPayload, [
     'id',
     'Company_Name',
+    'Short_Name',
     'Company_Type',
     'One_Liner',
+    'Description',
+    'Notable_News',
     'Status',
+    'Company_Stage',
     'Date_of_Incorporation',
-    'Rounds_Opportunities_Count',
-    'Rounds_Funds_Count',
+    'Legal_Entity',
+    'Incorporation_Type',
+    'Incorporation_Country',
+    'incorporation_country_id',
+    'headquarters_city_id',
+    'city_id',
     'Pax',
+    'PAX_Count',
+    'PAX_Known',
     'Updates',
     'Website',
+    'Mission_Vision',
+    'Products_Services',
+    'Key_Features',
+    'Development_Stage',
+    'ICP',
+    'Business_Model',
+    'Pricing',
+    'Placement_Distribution',
+    'Industry',
+    'Niche',
+    'Demand_Analysis',
+    'Supply_Analysis',
+    'Traction_Overview',
+    'Unit_Sales_By_Type_Artifact_Id',
+    'Unit_Sales_By_Region_Artifact_Id',
+    'Unit_Sales_By_Customer_Mix_Artifact_Id',
+    'Revenue_Breakdown_By_Type_Artifact_Id',
+    'Revenue_Breakdown_By_Region_Artifact_Id',
+    'Revenue_Breakdown_By_Customer_Mix_Artifact_Id',
+    'Revenue_Breakdown_Top_10_Artifact_Id',
+    'Cohorts_Analysis_By_Date_Artifact_Id',
+    'Cohorts_Analysis_By_Product_Service_Artifact_Id',
+    'Direct_Costs_By_Product_Service_Artifact_Id',
+    'Sales_Marketing_Costs_By_Product_Service_Artifact_Id',
+    'Customer_Acquisition_Cost',
+    'Customer_Lifetime_Value',
+    'General_Admin_Expenses',
+    'Tech_Expenditure',
+    'Income_Statement_Artifact_Id',
+    'Balance_Sheet_Artifact_Id',
+    'Cash_Flow_Artifact_Id',
+    'Tax_Filings_Artifact_Id',
+    'Bank_Statements_Artifact_Id',
+    'Overview',
+    'Forecast',
+    'Short_Term_Objectives',
+    'Long_Term_Objectives',
+    'Use_of_Resources',
+    'Runway_Analysis',
+    'Capital_Needs',
+    'Funding_Strategy',
+    'Shareholder_Structure_Artifact_Id',
+    'Legal_Founders',
+    'Leadership_Team',
+    'Advisors',
+    'Shareholders',
   ])
   if (!hasMeaningfulValue(companyFields.Company_Name)) return fallbackCompanyId
 
@@ -2637,15 +3271,15 @@ function upsertCompanyFromAutofill(database, companyPayload = {}, fallbackCompan
     .prepare('SELECT id FROM Companies WHERE Company_Name = ? LIMIT 1')
     .get(normalizeNullableString(companyFields.Company_Name))
   const id =
-    normalizeNullableString(companyFields.id) ||
-    normalizeNullableString(fallbackCompanyId) ||
+    normalizeNullableIntegerId(companyFields.id) ||
+    normalizeNullableIntegerId(fallbackCompanyId) ||
     existing?.id
   const result = createCompany({
     ...companyFields,
     id,
     Company_Type: normalizeNullableString(companyFields.Company_Type) || 'Other',
   })
-  return normalizeNullableString(result?.id) || normalizeNullableString(id)
+  return normalizeNullableIntegerId(result?.id) || normalizeNullableIntegerId(id)
 }
 
 function createOrUpdatePrimaryContactForOpportunity(
@@ -2899,7 +3533,7 @@ function createDatabookSnapshotForOpportunity(opportunityId, options = {}) {
 }
 
 function ensureExistingCompanyId(database, maybeCompanyId) {
-  const companyId = normalizeNullableString(maybeCompanyId)
+  const companyId = normalizeNullableIntegerId(maybeCompanyId)
   if (!companyId) return null
   const exists = database.prepare('SELECT 1 FROM Companies WHERE id = ? LIMIT 1').get(companyId)
   return exists ? companyId : null
@@ -3300,7 +3934,7 @@ function upsertOpportunities(rows = []) {
     let skipped = 0
 
     for (const r of input) {
-      const companyIdFromRow = normalizeNullableString(r?.company_id)
+      const companyIdFromRow = normalizeNullableIntegerId(r?.company_id)
       const companyNameFromRow = normalizeNullableString(r?.Company_Name)
 
       let companyId = companyIdFromRow
@@ -3310,12 +3944,10 @@ function upsertOpportunities(rows = []) {
           .get(companyNameFromRow)
         companyId = existing?.id
         if (!companyId) {
-          companyId = `company:${crypto.randomUUID()}`
-          database
-            .prepare(
-              "INSERT INTO Companies (id, Company_Name, Company_Type) VALUES (?, ?, 'Other')",
-            )
-            .run(companyId, companyNameFromRow)
+          companyId = createCompany({
+            Company_Name: companyNameFromRow,
+            Company_Type: 'Other',
+          }).id
         }
       }
 
