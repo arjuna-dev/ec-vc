@@ -76,6 +76,11 @@ See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-
 
 ### SQLite location in macOS fs
 
-- running from terminal: `'
-'`
-- compiled: `'/Users/alejandrocamus/Library/Application Support/ec-vc'`
+- running from terminal: `/Users/alejandrocamus/Library/Application Support/Electron`
+- compiled: `/Users/alejandrocamus/Library/Application Support/ec-vc`
+
+To remove do:
+
+```bash
+rm "/Users/alejandrocamus/Library/Application Support/Electron"/*.sqlite3*
+```
