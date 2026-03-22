@@ -12,11 +12,11 @@ INSERT OR IGNORE INTO company_types (type) VALUES
   ('Government'),
   ('Other');
 
-CREATE TABLE IF NOT EXISTS company_stages (
+CREATE TABLE IF NOT EXISTS Company_Stages (
   stage TEXT PRIMARY KEY
 );
 
-INSERT OR IGNORE INTO company_stages (stage) VALUES
+INSERT OR IGNORE INTO Company_Stages (stage) VALUES
   ('early'),
   ('mid'),
   ('late');
@@ -62,34 +62,53 @@ CREATE INDEX IF NOT EXISTS idx_databook_snapshots_record
   ON databook_snapshots(table_name, record_id, created_at);
 
 CREATE TABLE IF NOT EXISTS Companies (
-  id TEXT PRIMARY KEY,
-  Company_Name TEXT,
-  Company_Type TEXT NOT NULL,
-  city_id TEXT,
-  country_id TEXT,
-  region_id TEXT,
-  One_Liner TEXT,
-  Status TEXT,
-  Date_of_Incorporation TEXT,
-  Rounds_Opportunities_Count INTEGER,
-  Pax INTEGER,
-  Updates TEXT,
+  id INTEGER PRIMARY KEY,
+  Company_Name TEXT NOT NULL,
+  Short_Name TEXT,
   Website TEXT,
-  Company_Logo TEXT,
+  One_Liner TEXT,
+  Description TEXT,
+  Notable_News TEXT,
+  Updates TEXT,
+  created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (Company_Type) REFERENCES company_types(type) ON UPDATE CASCADE ON DELETE RESTRICT,
-  FOREIGN KEY (city_id) REFERENCES Cities(id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (country_id) REFERENCES Countries(id) ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY (region_id) REFERENCES Regions(id) ON UPDATE CASCADE ON DELETE SET NULL
+  FOREIGN KEY (created_by) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_Companies_company_name
   ON Companies(Company_Name);
 
-CREATE INDEX IF NOT EXISTS idx_Companies_city_id ON Companies(city_id);
-CREATE INDEX IF NOT EXISTS idx_Companies_country_id ON Companies(country_id);
-CREATE INDEX IF NOT EXISTS idx_Companies_region_id ON Companies(region_id);
+CREATE INDEX IF NOT EXISTS idx_Companies_created_by
+  ON Companies(created_by);
+
+CREATE TABLE IF NOT EXISTS Company_Incorporation_Info (
+  company_id INTEGER PRIMARY KEY,
+  Company_Type TEXT,
+  Legal_Entity TEXT,
+  Date_of_Incorporation TEXT,
+  incorporation_country_id TEXT,
+  Incorporation_Type TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (Company_Type) REFERENCES company_types(type) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (incorporation_country_id) REFERENCES Countries(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Company_Incorporation_Info_company_type
+  ON Company_Incorporation_Info(Company_Type);
+
+CREATE INDEX IF NOT EXISTS idx_Company_Incorporation_Info_country
+  ON Company_Incorporation_Info(incorporation_country_id);
+
+CREATE TABLE IF NOT EXISTS Company_Incorporation_Legal_Founders (
+  company_id INTEGER NOT NULL,
+  contact_id TEXT NOT NULL,
+  PRIMARY KEY (company_id, contact_id),
+  FOREIGN KEY (company_id) REFERENCES Company_Incorporation_Info(company_id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS Asset_Manager_Companies (
   company_id TEXT PRIMARY KEY,
@@ -196,7 +215,7 @@ CREATE TABLE IF NOT EXISTS Fund_Opportunities_Company_Stages (
   company_stage TEXT NOT NULL,
   PRIMARY KEY (opportunity_id, company_stage),
   FOREIGN KEY (opportunity_id) REFERENCES Fund_Opportunities(opportunity_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (company_stage) REFERENCES company_stages(stage) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (company_stage) REFERENCES Company_Stages(stage) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_Fund_Opportunities_Company_Stages_stage
@@ -224,22 +243,16 @@ CREATE TABLE IF NOT EXISTS InvestmentSchedule (
 CREATE TABLE IF NOT EXISTS Contacts (
   id TEXT PRIMARY KEY,
   Name TEXT,
-  Profile_Image TEXT,
-  Email TEXT,
+  Personal_Email TEXT,
+  Professional_Email TEXT,
   Phone TEXT,
-  LinkedIn TEXT,
-  Role TEXT,
-  Stakeholder_type TEXT,
-  Closeness_Level TEXT,
-  Comment TEXT,
-  Expertise TEXT,
-  Degrees_Program TEXT,
-  University TEXT,
-  Credentials TEXT,
-  Tenure_at_Firm_yrs REAL,
   Country_based TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  LinkedIn TEXT
+);
+
+CREATE TABLE IF NOT EXISTS Universities (
+  id TEXT PRIMARY KEY,
+  Name TEXT
 );
 
 CREATE TABLE IF NOT EXISTS EPL_Business_Units (
@@ -759,14 +772,31 @@ CREATE TABLE IF NOT EXISTS Companies_Contacts_current_company (
 );
 CREATE INDEX IF NOT EXISTS idx_Companies_Contacts_current_company_to ON Companies_Contacts_current_company(to_id);
 
-CREATE TABLE IF NOT EXISTS Contacts_Companies_companies_founded (
+CREATE TABLE IF NOT EXISTS Contacts_Companies_tenure (
   from_id TEXT NOT NULL,
   to_id TEXT NOT NULL,
+  current_company INTEGER NOT NULL DEFAULT 0 CHECK (current_company IN (0, 1)),
+  started_at_date TEXT,
+  ended_at_date TEXT,
+  role TEXT,
+  expertise TEXT,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_Contacts_Companies_companies_founded_to ON Contacts_Companies_companies_founded(to_id);
+CREATE INDEX IF NOT EXISTS idx_Contacts_Companies_tenure_to ON Contacts_Companies_tenure(to_id);
+
+CREATE TABLE IF NOT EXISTS Contacts_Universities_degrees (
+  from_id TEXT NOT NULL,
+  to_id TEXT NOT NULL,
+  degree TEXT NOT NULL,
+  credentials TEXT,
+  comments TEXT,
+  PRIMARY KEY (from_id, to_id, degree),
+  FOREIGN KEY (from_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (to_id) REFERENCES Universities(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_Contacts_Universities_degrees_to ON Contacts_Universities_degrees(to_id);
 
 CREATE TABLE IF NOT EXISTS Contacts_Companies_companies_invested (
   from_id TEXT NOT NULL,
@@ -1198,48 +1228,295 @@ VALUES
 
 CREATE TABLE IF NOT EXISTS Artifacts (
   artifact_id TEXT PRIMARY KEY,
-  pipeline_run_id TEXT,
   opportunity_id TEXT,
-  pipeline_id TEXT,
-  stage_id TEXT,
-  source_artifact_id TEXT,
-  original_artifact_id TEXT,
-  assistant_system_prompt_id TEXT,
   created_by TEXT,
-  artifact_type TEXT NOT NULL CHECK (artifact_type IN ('raw','llm-ready','llm-generated')),
-  artifact_role TEXT,
-  artifact_format TEXT,
+  artifact_format TEXT CHECK (
+    artifact_format IS NULL OR artifact_format IN (
+      'pdf','doc','docx','ppt','pptx','xls','xlsx','csv','txt','md','json','html',
+      'png','jpg','jpeg','webp','gif','tif','tiff','other'
+    )
+  ),
   type TEXT CHECK (type IN ('raising_pitch_deck','commercial_pitch_deck','messages','emails','historical_data','forecast','other')),
-  fs_path TEXT NOT NULL,
-  fs_hash TEXT,
-  fs_size_bytes INTEGER,
-  generated_by TEXT NOT NULL CHECK (generated_by IN ('user','llm','system')),
-  llm_provider TEXT,
-  llm_model TEXT,
   title TEXT,
-  summary TEXT,
-  confidence_score REAL,
-  status TEXT,
+  description TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (opportunity_id) REFERENCES Opportunities(id) ON DELETE SET NULL,
-  FOREIGN KEY (source_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
-  FOREIGN KEY (original_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
-  FOREIGN KEY (assistant_system_prompt_id) REFERENCES Assistant_System_Prompts(assistant_system_prompt_id) ON DELETE SET NULL,
   FOREIGN KEY (created_by) REFERENCES Contacts(id) ON DELETE SET NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_Artifacts_unique_path
-  ON Artifacts(fs_path);
+CREATE INDEX IF NOT EXISTS idx_Artifacts_opportunity_created
+  ON Artifacts(opportunity_id, created_at);
 
-CREATE INDEX IF NOT EXISTS idx_Artifacts_pipeline_stage
-  ON Artifacts(pipeline_id, stage_id);
+CREATE TABLE IF NOT EXISTS Artifact_Raw (
+  artifact_id TEXT PRIMARY KEY,
+  fs_path TEXT NOT NULL,
+  fs_hash TEXT,
+  fs_size_bytes INTEGER,
+  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE CASCADE
+);
 
-CREATE INDEX IF NOT EXISTS idx_Artifacts_source
-  ON Artifacts(source_artifact_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_Artifact_Raw_unique_path
+  ON Artifact_Raw(fs_path);
 
-CREATE INDEX IF NOT EXISTS idx_Artifacts_oppty_pipeline_stage_created
-  ON Artifacts(opportunity_id, pipeline_id, stage_id, created_at);
+CREATE TABLE IF NOT EXISTS Artifact_Llm_Ready (
+  artifact_id TEXT PRIMARY KEY,
+  source_artifact_id TEXT,
+  original_artifact_id TEXT,
+  assistant_system_prompt_id TEXT,
+  generated_by TEXT NOT NULL CHECK (generated_by IN ('llm','system')),
+  llm_provider TEXT,
+  llm_model TEXT,
+  fs_path TEXT NOT NULL,
+  fs_hash TEXT,
+  fs_size_bytes INTEGER,
+  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE CASCADE,
+  FOREIGN KEY (source_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
+  FOREIGN KEY (original_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
+  FOREIGN KEY (assistant_system_prompt_id) REFERENCES Assistant_System_Prompts(assistant_system_prompt_id) ON DELETE SET NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_Artifact_Llm_Ready_unique_path
+  ON Artifact_Llm_Ready(fs_path);
+
+CREATE INDEX IF NOT EXISTS idx_Artifact_Llm_Ready_source
+  ON Artifact_Llm_Ready(source_artifact_id);
+
+CREATE TABLE IF NOT EXISTS Artifact_Llm_Generated (
+  artifact_id TEXT PRIMARY KEY,
+  source_artifact_id TEXT,
+  original_artifact_id TEXT,
+  assistant_system_prompt_id TEXT,
+  llm_provider TEXT,
+  llm_model TEXT,
+  fs_path TEXT NOT NULL,
+  fs_hash TEXT,
+  fs_size_bytes INTEGER,
+  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE CASCADE,
+  FOREIGN KEY (source_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
+  FOREIGN KEY (original_artifact_id) REFERENCES Artifacts(artifact_id) ON DELETE SET NULL,
+  FOREIGN KEY (assistant_system_prompt_id) REFERENCES Assistant_System_Prompts(assistant_system_prompt_id) ON DELETE SET NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_Artifact_Llm_Generated_unique_path
+  ON Artifact_Llm_Generated(fs_path);
+
+CREATE INDEX IF NOT EXISTS idx_Artifact_Llm_Generated_source
+  ON Artifact_Llm_Generated(source_artifact_id);
+
+CREATE VIEW IF NOT EXISTS Artifact_Details AS
+SELECT
+  a.artifact_id,
+  a.opportunity_id,
+  a.created_by,
+  a.artifact_format,
+  a.type,
+  a.title,
+  a.description,
+  a.created_at,
+  a.updated_at,
+  COALESCE(ar.fs_path, alr.fs_path, alg.fs_path) AS fs_path,
+  COALESCE(ar.fs_hash, alr.fs_hash, alg.fs_hash) AS fs_hash,
+  COALESCE(ar.fs_size_bytes, alr.fs_size_bytes, alg.fs_size_bytes) AS fs_size_bytes,
+  COALESCE(alr.source_artifact_id, alg.source_artifact_id) AS source_artifact_id,
+  COALESCE(alr.original_artifact_id, alg.original_artifact_id) AS original_artifact_id,
+  COALESCE(alr.assistant_system_prompt_id, alg.assistant_system_prompt_id) AS assistant_system_prompt_id,
+  CASE
+    WHEN ar.artifact_id IS NOT NULL THEN 'user'
+    WHEN alr.artifact_id IS NOT NULL THEN alr.generated_by
+    WHEN alg.artifact_id IS NOT NULL THEN 'llm'
+    ELSE NULL
+  END AS generated_by,
+  COALESCE(alr.llm_provider, alg.llm_provider) AS llm_provider,
+  COALESCE(alr.llm_model, alg.llm_model) AS llm_model,
+  CASE
+    WHEN ar.artifact_id IS NOT NULL THEN 'raw'
+    WHEN alr.artifact_id IS NOT NULL THEN 'llm-ready'
+    WHEN alg.artifact_id IS NOT NULL THEN 'llm-generated'
+    ELSE NULL
+  END AS artifact_type
+FROM Artifacts a
+LEFT JOIN Artifact_Raw ar ON ar.artifact_id = a.artifact_id
+LEFT JOIN Artifact_Llm_Ready alr ON alr.artifact_id = a.artifact_id
+LEFT JOIN Artifact_Llm_Generated alg ON alg.artifact_id = a.artifact_id;
+
+CREATE TABLE IF NOT EXISTS Company_Operations_Overview (
+  company_id INTEGER PRIMARY KEY,
+  Company_Stage TEXT,
+  Status TEXT CHECK (Status IS NULL OR Status IN ('ongoing', 'closed')),
+  headquarters_city_id TEXT,
+  PAX_Count INTEGER,
+  PAX_Known INTEGER,
+  business_structure_artifact_id TEXT,
+  corporate_structure_artifact_id TEXT,
+  organizational_structure_artifact_id TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (Company_Stage) REFERENCES Company_Stages(stage) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (headquarters_city_id) REFERENCES Cities(id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (business_structure_artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (corporate_structure_artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (organizational_structure_artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Company_Operations_Overview_stage
+  ON Company_Operations_Overview(Company_Stage);
+
+CREATE INDEX IF NOT EXISTS idx_Company_Operations_Overview_hq_city
+  ON Company_Operations_Overview(headquarters_city_id);
+
+CREATE TABLE IF NOT EXISTS Company_Operations_Leadership_Team (
+  company_id INTEGER NOT NULL,
+  contact_id TEXT NOT NULL,
+  PRIMARY KEY (company_id, contact_id),
+  FOREIGN KEY (company_id) REFERENCES Company_Operations_Overview(company_id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Company_Operations_Advisors (
+  company_id INTEGER NOT NULL,
+  contact_id TEXT NOT NULL,
+  PRIMARY KEY (company_id, contact_id),
+  FOREIGN KEY (company_id) REFERENCES Company_Operations_Overview(company_id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Company_Business_Overview (
+  company_id INTEGER PRIMARY KEY,
+  Mission_Vision TEXT,
+  Products_Services TEXT,
+  Key_Features TEXT,
+  Development_Stage TEXT,
+  ICP TEXT,
+  Business_Model TEXT,
+  Pricing TEXT,
+  Placement_Distribution TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Company_Market_Overview (
+  company_id INTEGER PRIMARY KEY,
+  Industry TEXT,
+  Niche TEXT,
+  Demand_Analysis TEXT,
+  Supply_Analysis TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Company_Results_Overview (
+  company_id INTEGER PRIMARY KEY,
+  Traction_Overview TEXT,
+  Unit_Sales_By_Type_Artifact_Id TEXT,
+  Unit_Sales_By_Region_Artifact_Id TEXT,
+  Unit_Sales_By_Customer_Mix_Artifact_Id TEXT,
+  Revenue_Breakdown_By_Type_Artifact_Id TEXT,
+  Revenue_Breakdown_By_Region_Artifact_Id TEXT,
+  Revenue_Breakdown_By_Customer_Mix_Artifact_Id TEXT,
+  Revenue_Breakdown_Top_10_Artifact_Id TEXT,
+  Cohorts_Analysis_By_Date_Artifact_Id TEXT,
+  Cohorts_Analysis_By_Product_Service_Artifact_Id TEXT,
+  Direct_Costs_By_Product_Service_Artifact_Id TEXT,
+  Sales_Marketing_Costs_By_Product_Service_Artifact_Id TEXT,
+  Customer_Acquisition_Cost REAL,
+  Customer_Lifetime_Value REAL,
+  General_Admin_Expenses REAL,
+  Tech_Expenditure REAL,
+  Income_Statement_Artifact_Id TEXT,
+  Balance_Sheet_Artifact_Id TEXT,
+  Cash_Flow_Artifact_Id TEXT,
+  Tax_Filings_Artifact_Id TEXT,
+  Bank_Statements_Artifact_Id TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (Unit_Sales_By_Type_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Unit_Sales_By_Region_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Unit_Sales_By_Customer_Mix_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Revenue_Breakdown_By_Type_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Revenue_Breakdown_By_Region_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Revenue_Breakdown_By_Customer_Mix_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Revenue_Breakdown_Top_10_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Cohorts_Analysis_By_Date_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Cohorts_Analysis_By_Product_Service_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Direct_Costs_By_Product_Service_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Sales_Marketing_Costs_By_Product_Service_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Income_Statement_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Balance_Sheet_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Cash_Flow_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Tax_Filings_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Bank_Statements_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS Company_Business_Plan (
+  company_id INTEGER PRIMARY KEY,
+  Overview TEXT,
+  Forecast TEXT,
+  Short_Term_Objectives TEXT,
+  Long_Term_Objectives TEXT,
+  Use_of_Resources TEXT,
+  Runway_Analysis TEXT,
+  Capital_Needs TEXT,
+  Funding_Strategy TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Company_Fund_Raising (
+  company_id INTEGER PRIMARY KEY,
+  Shareholder_Structure_Artifact_Id TEXT,
+  Rounds_Funds_Count INTEGER,
+  Amount_Raised REAL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (Shareholder_Structure_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS Company_Fund_Raising_Shareholders (
+  company_id INTEGER NOT NULL,
+  contact_id TEXT NOT NULL,
+  PRIMARY KEY (company_id, contact_id),
+  FOREIGN KEY (company_id) REFERENCES Company_Fund_Raising(company_id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS company_document_types (
+  document_type TEXT PRIMARY KEY
+);
+
+INSERT OR IGNORE INTO company_document_types (document_type) VALUES
+  ('incorporation_certificate'),
+  ('incorporation_articles'),
+  ('company_bylaws'),
+  ('intellectual_property'),
+  ('yearly_statements'),
+  ('quarterly_statements'),
+  ('monthly_statements'),
+  ('descriptive_materials');
+
+CREATE TABLE IF NOT EXISTS Company_Artifacts (
+  artifact_id TEXT PRIMARY KEY,
+  document_type TEXT NOT NULL,
+  FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (document_type) REFERENCES company_document_types(document_type) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS idx_Company_Artifacts_document_type
+  ON Company_Artifacts(document_type);
+
+CREATE TABLE IF NOT EXISTS Companies_Artifacts_documents (
+  company_id INTEGER NOT NULL,
+  artifact_id TEXT NOT NULL,
+  PRIMARY KEY (company_id, artifact_id),
+  FOREIGN KEY (company_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (artifact_id) REFERENCES Company_Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE
+);
 
 -- Join Tables referencing Artifacts (Moved to end)
 CREATE TABLE IF NOT EXISTS Artifacts_Industries (
@@ -1481,23 +1758,6 @@ BEGIN
     END;
 END;
 
--- Enforce artifact stage belongs to artifact pipeline
-CREATE TRIGGER IF NOT EXISTS trg_Artifacts_stage_matches_pipeline_ins
-BEFORE INSERT ON Artifacts
-FOR EACH ROW
-BEGIN
-  SELECT
-    CASE
-      WHEN NOT EXISTS (
-        SELECT 1
-        FROM Pipeline_Stages s
-        WHERE s.stage_id = NEW.stage_id
-          AND s.pipeline_id = NEW.pipeline_id
-      )
-      THEN RAISE(ABORT, 'artifact stage_id does not belong to artifact pipeline_id')
-    END;
-END;
-
 -- 2. AUTO-UPDATE TIMESTAMP TRIGGERS (Core Tables)
 
 CREATE TRIGGER IF NOT EXISTS trg_Companies_updated_at
@@ -1506,6 +1766,76 @@ FOR EACH ROW
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
   UPDATE Companies SET updated_at = datetime('now') WHERE id = OLD.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Company_Incorporation_Info_updated_at
+AFTER UPDATE ON Company_Incorporation_Info
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Company_Incorporation_Info
+  SET updated_at = datetime('now')
+  WHERE company_id = OLD.company_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Company_Operations_Overview_updated_at
+AFTER UPDATE ON Company_Operations_Overview
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Company_Operations_Overview
+  SET updated_at = datetime('now')
+  WHERE company_id = OLD.company_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Company_Business_Overview_updated_at
+AFTER UPDATE ON Company_Business_Overview
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Company_Business_Overview
+  SET updated_at = datetime('now')
+  WHERE company_id = OLD.company_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Company_Market_Overview_updated_at
+AFTER UPDATE ON Company_Market_Overview
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Company_Market_Overview
+  SET updated_at = datetime('now')
+  WHERE company_id = OLD.company_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Company_Results_Overview_updated_at
+AFTER UPDATE ON Company_Results_Overview
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Company_Results_Overview
+  SET updated_at = datetime('now')
+  WHERE company_id = OLD.company_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Company_Business_Plan_updated_at
+AFTER UPDATE ON Company_Business_Plan
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Company_Business_Plan
+  SET updated_at = datetime('now')
+  WHERE company_id = OLD.company_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Company_Fund_Raising_updated_at
+AFTER UPDATE ON Company_Fund_Raising
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Company_Fund_Raising
+  SET updated_at = datetime('now')
+  WHERE company_id = OLD.company_id;
 END;
 
 
@@ -1531,14 +1861,6 @@ FOR EACH ROW
 WHEN NEW.updated_at = OLD.updated_at
 BEGIN
   UPDATE Fund_Opportunities SET updated_at = datetime('now') WHERE opportunity_id = OLD.opportunity_id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Contacts_updated_at
-AFTER UPDATE ON Contacts
-FOR EACH ROW
-WHEN NEW.updated_at = OLD.updated_at
-BEGIN
-  UPDATE Contacts SET updated_at = datetime('now') WHERE id = OLD.id;
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_Artifacts_updated_at
@@ -1582,94 +1904,7 @@ BEGIN
   END;
 END;
 
--- Company location hierarchy must remain consistent across optional city/country/region selections
-CREATE TRIGGER IF NOT EXISTS trg_Companies_location_consistency_ins
-BEFORE INSERT ON Companies
-FOR EACH ROW
-BEGIN
-  SELECT CASE
-    WHEN NEW.city_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT 1
-        FROM Cities c
-        WHERE c.id = NEW.city_id
-          AND (
-            NEW.country_id IS NULL OR c.country_id = NEW.country_id
-          )
-      )
-    THEN RAISE(ABORT, 'company city_id does not match country_id')
-  END;
-
-  SELECT CASE
-    WHEN NEW.country_id IS NOT NULL
-      AND NEW.region_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT 1
-        FROM Countries c
-        WHERE c.id = NEW.country_id
-          AND c.region_id = NEW.region_id
-      )
-    THEN RAISE(ABORT, 'company country_id does not match region_id')
-  END;
-
-  SELECT CASE
-    WHEN NEW.city_id IS NOT NULL
-      AND NEW.region_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT 1
-        FROM Cities ci
-        JOIN Countries co ON co.id = ci.country_id
-        WHERE ci.id = NEW.city_id
-          AND co.region_id = NEW.region_id
-      )
-    THEN RAISE(ABORT, 'company city_id does not match region_id')
-  END;
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_Companies_location_consistency_upd
-BEFORE UPDATE OF city_id, country_id, region_id ON Companies
-FOR EACH ROW
-BEGIN
-  SELECT CASE
-    WHEN NEW.city_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT 1
-        FROM Cities c
-        WHERE c.id = NEW.city_id
-          AND (
-            NEW.country_id IS NULL OR c.country_id = NEW.country_id
-          )
-      )
-    THEN RAISE(ABORT, 'company city_id does not match country_id')
-  END;
-
-  SELECT CASE
-    WHEN NEW.country_id IS NOT NULL
-      AND NEW.region_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT 1
-        FROM Countries c
-        WHERE c.id = NEW.country_id
-          AND c.region_id = NEW.region_id
-      )
-    THEN RAISE(ABORT, 'company country_id does not match region_id')
-  END;
-
-  SELECT CASE
-    WHEN NEW.city_id IS NOT NULL
-      AND NEW.region_id IS NOT NULL
-      AND NOT EXISTS (
-        SELECT 1
-        FROM Cities ci
-        JOIN Countries co ON co.id = ci.country_id
-        WHERE ci.id = NEW.city_id
-          AND co.region_id = NEW.region_id
-      )
-    THEN RAISE(ABORT, 'company city_id does not match region_id')
-  END;
-END;
-
--- Asset manager subtype rows are only valid for Companies with Company_Type = 'Asset Manager'
+-- Asset manager subtype rows are only valid for Companies whose incorporation info type is Asset Manager
 CREATE TRIGGER IF NOT EXISTS trg_Asset_Manager_Companies_type_ins
 BEFORE INSERT ON Asset_Manager_Companies
 FOR EACH ROW
@@ -1677,9 +1912,9 @@ BEGIN
   SELECT CASE
     WHEN NOT EXISTS (
       SELECT 1
-      FROM Companies c
-      WHERE c.id = NEW.company_id
-        AND c.Company_Type = 'Asset Manager'
+      FROM Company_Incorporation_Info cii
+      WHERE cii.company_id = NEW.company_id
+        AND cii.Company_Type = 'Asset Manager'
     )
     THEN RAISE(ABORT, 'asset manager subtype requires parent company type Asset Manager')
   END;
@@ -1692,16 +1927,16 @@ BEGIN
   SELECT CASE
     WHEN NOT EXISTS (
       SELECT 1
-      FROM Companies c
-      WHERE c.id = NEW.company_id
-        AND c.Company_Type = 'Asset Manager'
+      FROM Company_Incorporation_Info cii
+      WHERE cii.company_id = NEW.company_id
+        AND cii.Company_Type = 'Asset Manager'
     )
     THEN RAISE(ABORT, 'asset manager subtype requires parent company type Asset Manager')
   END;
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_Companies_asset_manager_type_guard
-BEFORE UPDATE OF Company_Type ON Companies
+CREATE TRIGGER IF NOT EXISTS trg_Company_Incorporation_Info_asset_manager_type_guard
+BEFORE UPDATE OF Company_Type ON Company_Incorporation_Info
 FOR EACH ROW
 BEGIN
   SELECT CASE
@@ -1709,7 +1944,7 @@ BEGIN
       AND EXISTS (
         SELECT 1
         FROM Asset_Manager_Companies am
-        WHERE am.company_id = NEW.id
+        WHERE am.company_id = NEW.company_id
       )
     THEN RAISE(ABORT, 'cannot change company type while asset manager subtype exists')
   END;
@@ -1725,47 +1960,31 @@ BEGIN
   WHERE company_id = OLD.company_id;
 END;
 
--- Artifact must correspond to an existing Opportunity_Pipeline mapping
-CREATE TRIGGER IF NOT EXISTS trg_Artifacts_oppty_pipeline_exists_ins
-BEFORE INSERT ON Artifacts
+CREATE TRIGGER IF NOT EXISTS trg_Artifact_Raw_single_subtype_ins
+BEFORE INSERT ON Artifact_Raw
 FOR EACH ROW
+WHEN EXISTS (SELECT 1 FROM Artifact_Llm_Ready WHERE artifact_id = NEW.artifact_id)
+  OR EXISTS (SELECT 1 FROM Artifact_Llm_Generated WHERE artifact_id = NEW.artifact_id)
 BEGIN
-  SELECT CASE
-    WHEN NOT EXISTS (
-      SELECT 1 FROM Opportunity_Pipeline op
-      WHERE op.opportunity_id = NEW.opportunity_id
-        AND op.pipeline_id = NEW.pipeline_id
-    )
-    THEN RAISE(ABORT, 'artifact opportunity_id is not linked to pipeline_id in Opportunity_Pipeline')
-  END;
+  SELECT RAISE(ABORT, 'artifact already belongs to another subtype table');
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_Artifacts_oppty_pipeline_exists_upd
-BEFORE UPDATE OF opportunity_id, pipeline_id ON Artifacts
+CREATE TRIGGER IF NOT EXISTS trg_Artifact_Llm_Ready_single_subtype_ins
+BEFORE INSERT ON Artifact_Llm_Ready
 FOR EACH ROW
+WHEN EXISTS (SELECT 1 FROM Artifact_Raw WHERE artifact_id = NEW.artifact_id)
+  OR EXISTS (SELECT 1 FROM Artifact_Llm_Generated WHERE artifact_id = NEW.artifact_id)
 BEGIN
-  SELECT CASE
-    WHEN NOT EXISTS (
-      SELECT 1 FROM Opportunity_Pipeline op
-      WHERE op.opportunity_id = NEW.opportunity_id
-        AND op.pipeline_id = NEW.pipeline_id
-    )
-    THEN RAISE(ABORT, 'artifact opportunity_id is not linked to pipeline_id in Opportunity_Pipeline')
-  END;
+  SELECT RAISE(ABORT, 'artifact already belongs to another subtype table');
 END;
 
--- Artifact stage must belong to artifact pipeline on UPDATE too
-CREATE TRIGGER IF NOT EXISTS trg_Artifacts_stage_matches_pipeline_upd
-BEFORE UPDATE OF stage_id, pipeline_id ON Artifacts
+CREATE TRIGGER IF NOT EXISTS trg_Artifact_Llm_Generated_single_subtype_ins
+BEFORE INSERT ON Artifact_Llm_Generated
 FOR EACH ROW
+WHEN EXISTS (SELECT 1 FROM Artifact_Raw WHERE artifact_id = NEW.artifact_id)
+  OR EXISTS (SELECT 1 FROM Artifact_Llm_Ready WHERE artifact_id = NEW.artifact_id)
 BEGIN
-  SELECT CASE
-    WHEN NOT EXISTS (
-      SELECT 1 FROM Pipeline_Stages s
-      WHERE s.stage_id = NEW.stage_id AND s.pipeline_id = NEW.pipeline_id
-    )
-    THEN RAISE(ABORT, 'artifact stage_id does not belong to artifact pipeline_id')
-  END;
+  SELECT RAISE(ABORT, 'artifact already belongs to another subtype table');
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_events_no_update

@@ -284,7 +284,6 @@ const companyFields = [
   { key: 'One_Liner', label: 'One Liner', inputType: 'text' },
   { key: 'Status', label: 'Company Status', inputType: 'text' },
   { key: 'Date_of_Incorporation', label: 'Date of Incorporation', inputType: 'text' },
-  { key: 'Amount_Raised_AUMs', label: 'Amount Raised / AUMs', inputType: 'number' },
   { key: 'Pax', label: 'Pax', inputType: 'number' },
   { key: 'Updates', label: 'Updates', inputType: 'text' },
   { key: 'Website', label: 'Website', inputType: 'text' },
@@ -292,11 +291,11 @@ const companyFields = [
 
 const contactFields = [
   { key: 'Name', label: 'Contact Name', inputType: 'text' },
-  { key: 'Email', label: 'Contact Email', inputType: 'text' },
+  { key: 'Personal_Email', label: 'Personal Email', inputType: 'email' },
+  { key: 'Professional_Email', label: 'Professional Email', inputType: 'email' },
   { key: 'Phone', label: 'Contact Phone', inputType: 'text' },
   { key: 'LinkedIn', label: 'LinkedIn', inputType: 'text' },
-  { key: 'Role', label: 'Role', inputType: 'text' },
-  { key: 'Stakeholder_type', label: 'Stakeholder Type', inputType: 'text' },
+  { key: 'Country_based', label: 'Country Based', inputType: 'text' },
 ]
 
 const form = ref({})
@@ -380,18 +379,17 @@ function resetForms() {
     One_Liner: '',
     Status: '',
     Date_of_Incorporation: '',
-    Amount_Raised_AUMs: '',
     Pax: '',
     Updates: '',
     Website: '',
   }
   contactForm.value = {
     Name: '',
-    Email: '',
+    Personal_Email: '',
+    Professional_Email: '',
     Phone: '',
     LinkedIn: '',
-    Role: '',
-    Stakeholder_type: '',
+    Country_based: '',
   }
 }
 
@@ -786,7 +784,6 @@ watch(
       One_Liner: selected.One_Liner || '',
       Website: selected.Website || '',
       Status: selected.Status || '',
-      Amount_Raised_AUMs: selected.Amount_Raised_AUMs || '',
     }
   },
 )

@@ -54,10 +54,20 @@
             <div class="text-subtitle2">Contact Profile</div>
 
             <q-input v-model="form.Name" outlined dense label="Name *" :disable="loading || saving" />
-            <q-input v-model="form.created_at" outlined dense label="created_at" readonly />
-            <q-input v-model="form.updated_at" outlined dense label="updated_at" readonly />
-
-            <q-input v-model="form.Email" outlined dense label="Email" :disable="loading || saving" />
+            <q-input
+              v-model="form.Personal_Email"
+              outlined
+              dense
+              label="Personal Email"
+              :disable="loading || saving"
+            />
+            <q-input
+              v-model="form.Professional_Email"
+              outlined
+              dense
+              label="Professional Email"
+              :disable="loading || saving"
+            />
             <q-input v-model="form.Phone" outlined dense label="Phone" :disable="loading || saving" />
             <q-input
               v-model="form.LinkedIn"
@@ -66,63 +76,11 @@
               label="LinkedIn"
               :disable="loading || saving"
             />
-            <q-input v-model="form.Role" outlined dense label="Role" :disable="loading || saving" />
-            <q-input
-              v-model="form.Stakeholder_type"
-              outlined
-              dense
-              label="Stakeholder_type"
-              :disable="loading || saving"
-            />
-            <q-input
-              v-model="form.Closeness_Level"
-              outlined
-              dense
-              label="Closeness_Level"
-              :disable="loading || saving"
-            />
-            <q-input v-model="form.Comment" outlined dense label="Comment" :disable="loading || saving" />
-            <q-input
-              v-model="form.Expertise"
-              outlined
-              dense
-              label="Expertise"
-              :disable="loading || saving"
-            />
-            <q-input
-              v-model="form.Degrees_Program"
-              outlined
-              dense
-              label="Degrees_Program"
-              :disable="loading || saving"
-            />
-            <q-input
-              v-model="form.University"
-              outlined
-              dense
-              label="University"
-              :disable="loading || saving"
-            />
-            <q-input
-              v-model="form.Credentials"
-              outlined
-              dense
-              label="Credentials"
-              :disable="loading || saving"
-            />
-            <q-input
-              v-model="form.Tenure_at_Firm_yrs"
-              outlined
-              dense
-              label="Tenure_at_Firm_yrs"
-              type="number"
-              :disable="loading || saving"
-            />
             <q-input
               v-model="form.Country_based"
               outlined
               dense
-              label="Country_based"
+              label="Country Based"
               :disable="loading || saving"
             />
           </q-card-section>
@@ -174,20 +132,10 @@ const error = ref('')
 const auditUserUuid = ref('')
 const form = ref({
   Name: '',
-  created_at: '',
-  updated_at: '',
-  Email: '',
+  Personal_Email: '',
+  Professional_Email: '',
   Phone: '',
   LinkedIn: '',
-  Role: '',
-  Stakeholder_type: '',
-  Closeness_Level: '',
-  Comment: '',
-  Expertise: '',
-  Degrees_Program: '',
-  University: '',
-  Credentials: '',
-  Tenure_at_Firm_yrs: '',
   Country_based: '',
 })
 
@@ -204,20 +152,10 @@ function normalizeInput(value) {
 function mapContactToForm(contact = null) {
   return {
     Name: contact?.Name || '',
-    created_at: contact?.created_at || '',
-    updated_at: contact?.updated_at || '',
-    Email: contact?.Email || '',
+    Personal_Email: contact?.Personal_Email || '',
+    Professional_Email: contact?.Professional_Email || '',
     Phone: contact?.Phone || '',
     LinkedIn: contact?.LinkedIn || '',
-    Role: contact?.Role || '',
-    Stakeholder_type: contact?.Stakeholder_type || '',
-    Closeness_Level: contact?.Closeness_Level || '',
-    Comment: contact?.Comment || '',
-    Expertise: contact?.Expertise || '',
-    Degrees_Program: contact?.Degrees_Program || '',
-    University: contact?.University || '',
-    Credentials: contact?.Credentials || '',
-    Tenure_at_Firm_yrs: contact?.Tenure_at_Firm_yrs == null ? '' : String(contact.Tenure_at_Firm_yrs),
     Country_based: contact?.Country_based || '',
   }
 }
@@ -253,18 +191,10 @@ async function saveUserSettings() {
     const payload = {
       contact: {
         Name: name,
-        Email: normalizeInput(form.value.Email),
+        Personal_Email: normalizeInput(form.value.Personal_Email),
+        Professional_Email: normalizeInput(form.value.Professional_Email),
         Phone: normalizeInput(form.value.Phone),
         LinkedIn: normalizeInput(form.value.LinkedIn),
-        Role: normalizeInput(form.value.Role),
-        Stakeholder_type: normalizeInput(form.value.Stakeholder_type),
-        Closeness_Level: normalizeInput(form.value.Closeness_Level),
-        Comment: normalizeInput(form.value.Comment),
-        Expertise: normalizeInput(form.value.Expertise),
-        Degrees_Program: normalizeInput(form.value.Degrees_Program),
-        University: normalizeInput(form.value.University),
-        Credentials: normalizeInput(form.value.Credentials),
-        Tenure_at_Firm_yrs: normalizeInput(form.value.Tenure_at_Firm_yrs),
         Country_based: normalizeInput(form.value.Country_based),
       },
     }

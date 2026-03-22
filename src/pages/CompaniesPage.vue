@@ -118,12 +118,11 @@
               dense
               outline
               no-caps
-              icon="flag"
-              label="Priority"
+              icon="refresh"
+              label="Refresh"
               class="companies-toolbar__button"
-              :class="{ 'companies-toolbar__button--active': priorityMode }"
-              :disable="loading"
-              @click="togglePriorityMode"
+              :loading="loading"
+              @click="loadCompanies"
             />
           </div>
 
@@ -429,7 +428,6 @@ const loading = ref(false)
 const error = ref('')
 const companyDialogOpen = ref(false)
 const searchQuery = ref('')
-const priorityMode = ref(false)
 const viewMode = ref(getRouteViewMode(route.query.view))
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
@@ -510,22 +508,30 @@ function syncViewModeQuery() {
 
 const columns = [
   { name: 'Company_Name', label: 'Company', field: 'Company_Name', align: 'left', sortable: true },
+  { name: 'Short_Name', label: 'Short Name', field: 'Short_Name', align: 'left', sortable: true },
   { name: 'Website', label: 'Website', field: 'Website', align: 'left', sortable: true },
   { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: true },
   { name: 'Company_Type', label: 'Type', field: 'Company_Type', align: 'left', sortable: true },
-  {
-    name: 'Amount_Raised_AUMs',
-    label: 'Raised/AUM (USD)',
-    field: 'Amount_Raised_AUMs',
-    align: 'right',
-    sortable: true,
-    format: (v) => displayAmount(v),
-  },
+  { name: 'Company_Stage', label: 'Stage', field: 'Company_Stage', align: 'left', sortable: true },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
-const csvHeaders = ['id', 'Company_Name', 'Website', 'Status', 'Company_Type', 'Amount_Raised_AUMs']
+const csvHeaders = [
+  'id',
+  'Company_Name',
+  'Short_Name',
+  'Website',
+  'One_Liner',
+  'Description',
+  'Company_Type',
+  'Company_Stage',
+  'Status',
+  'Date_of_Incorporation',
+  'Headquarters_City_Name',
+  'Incorporation_Country_Name',
+  'PAX_Count',
+]
 
 const viewOptions = [
   { label: 'Cards', value: 'card', icon: 'grid_view' },
@@ -539,13 +545,15 @@ const companiesDashboard = computed(() => {
       const hasWebsite = normalizeCompanyValue(row?.Website).length > 0
       const hasStatus = normalizeCompanyValue(row?.Status).length > 0
       const hasType = normalizeCompanyValue(row?.Company_Type).length > 0
-      const hasCapital = hasCompanyCapital(row)
-      const profileScore = [hasWebsite, hasStatus, hasType, hasCapital].filter(Boolean).length
+      const hasSummary =
+        normalizeCompanyValue(row?.One_Liner).length > 0 ||
+        normalizeCompanyValue(row?.Description).length > 0
+      const profileScore = [hasWebsite, hasStatus, hasType, hasSummary].filter(Boolean).length
 
       if (hasWebsite) accumulator.websiteCount += 1
       if (hasStatus) accumulator.statusCount += 1
       if (hasType) accumulator.typeCount += 1
-      if (hasCapital) accumulator.capitalCount += 1
+      if (hasSummary) accumulator.summaryCount += 1
 
       if (profileScore <= 1) accumulator.sparseCount += 1
       else if (profileScore <= 3) accumulator.mediumCount += 1
@@ -557,7 +565,7 @@ const companiesDashboard = computed(() => {
       websiteCount: 0,
       statusCount: 0,
       typeCount: 0,
-      capitalCount: 0,
+      summaryCount: 0,
       sparseCount: 0,
       mediumCount: 0,
       richCount: 0,
@@ -575,13 +583,13 @@ const companiesDashboard = computed(() => {
 })
 
 const companiesHeroText = computed(() => {
-  const { total, capitalCount, websiteCount, sparseCount } = companiesDashboard.value
+  const { total, summaryCount, websiteCount, sparseCount } = companiesDashboard.value
 
   if (!total) {
-    return 'Build your company map here. Add companies to track coverage, capital context, and which records still need enrichment.'
+    return 'Build your company map here. Add companies to track website coverage, operating context, and which records still need enrichment.'
   }
 
-  return `${total} companies tracked, ${capitalCount} with capital context, ${websiteCount} with public websites, and ${sparseCount} still need enrichment.`
+  return `${total} companies tracked, ${summaryCount} with a working summary, ${websiteCount} with public websites, and ${sparseCount} still need enrichment.`
 })
 
 const companiesDashboardStats = computed(() => [
@@ -598,9 +606,9 @@ const companiesDashboardStats = computed(() => [
     tone: 'rich',
   },
   {
-    label: 'Capital tracked',
-    value: companiesDashboard.value.capitalCount,
-    caption: 'Raised or AUM captured',
+    label: 'Summaries',
+    value: companiesDashboard.value.summaryCount,
+    caption: 'One-liner or description captured',
     tone: 'rich',
   },
   {
@@ -620,43 +628,31 @@ const displayRows = computed(() => {
 
   if (query) {
     items = items.filter((row) =>
-      [row?.Company_Name, row?.Website, row?.Status, row?.Company_Type, row?.created_at]
+      [
+        row?.Company_Name,
+        row?.Short_Name,
+        row?.Website,
+        row?.Status,
+        row?.Company_Type,
+        row?.Company_Stage,
+        row?.Headquarters_City_Name,
+        row?.Incorporation_Country_Name,
+        row?.created_at,
+      ]
         .map((value) => String(value || '').toLowerCase())
         .some((value) => value.includes(query)),
     )
   }
 
-  if (priorityMode.value) {
-    items.sort((a, b) => {
-      const amountA = Number(a?.Amount_Raised_AUMs || 0)
-      const amountB = Number(b?.Amount_Raised_AUMs || 0)
-      if (amountA !== amountB) return amountB - amountA
-      return String(a?.Company_Name || '').localeCompare(String(b?.Company_Name || ''))
-    })
-  }
-
   return items
 })
-
-function displayAmount(value) {
-  return value === null || value === undefined || value === ''
-    ? ''
-    : Number(value).toLocaleString('en-US')
-}
 
 function normalizeCompanyValue(value) {
   return String(value || '').trim()
 }
 
-function hasCompanyCapital(row) {
-  const value = normalizeCompanyValue(row?.Amount_Raised_AUMs)
-  if (!value) return false
-  const parsed = Number(value)
-  return Number.isFinite(parsed) && parsed > 0
-}
-
-function hasCompanyLogo(row) {
-  return normalizeCompanyValue(row?.Company_Logo).length > 0
+function hasCompanyLogo() {
+  return false
 }
 
 function getCompanyInitials(row) {
@@ -677,9 +673,6 @@ function getCompanyAvatarColor(row) {
 }
 
 function buildAvatarImage(label) {
-  const customImage = String(label?.Company_Logo || '').trim()
-  if (customImage) return customImage
-
   const text =
     typeof label === 'object' && label !== null
       ? String(label?.Company_Name || 'Company').trim()
@@ -778,8 +771,8 @@ function getCompanyCardSubtitle(row) {
 function getCompanyCardPills(row) {
   return [
     normalizeCompanyValue(row?.Company_Type),
-    normalizeCompanyValue(row?.Status),
-    normalizeCompanyValue(row?.Pax) ? `Team ${normalizeCompanyValue(row.Pax)}` : '',
+    normalizeCompanyValue(row?.Company_Stage) || normalizeCompanyValue(row?.Status),
+    normalizeCompanyValue(row?.PAX_Count) ? `Team ${normalizeCompanyValue(row.PAX_Count)}` : '',
     normalizeCompanyValue(row?.Date_of_Incorporation)
       ? `Founded ${formatCompanyDate(row.Date_of_Incorporation)}`
       : '',
@@ -814,13 +807,6 @@ function getCompanyCardDetails(row) {
           icon: 'public',
         }
       : null,
-    hasCompanyCapital(row)
-      ? {
-          label: 'Raised / AUM',
-          value: formatCompanyCurrency(row.Amount_Raised_AUMs),
-          icon: 'payments',
-        }
-      : null,
     row?.Date_of_Incorporation
       ? {
           label: 'Founded',
@@ -828,10 +814,10 @@ function getCompanyCardDetails(row) {
           icon: 'calendar_today',
         }
       : null,
-    row?.Pax
+    row?.PAX_Count
       ? {
           label: 'Team',
-          value: normalizeCompanyValue(row.Pax),
+          value: normalizeCompanyValue(row.PAX_Count),
           icon: 'groups',
         }
       : null,
@@ -901,17 +887,6 @@ function formatCompanyWebsiteValue(value) {
   }
 }
 
-function formatCompanyCurrency(value) {
-  const numeric = Number(value)
-  if (!Number.isFinite(numeric)) return normalizeCompanyValue(value)
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(numeric)
-}
-
 function formatCompanyDate(value) {
   const normalized = normalizeCompanyValue(value)
   if (!normalized) return ''
@@ -923,7 +898,7 @@ function formatCompanyDate(value) {
 }
 
 function getCompanyLocationValue(row) {
-  return [row?.city_id, row?.country_id, row?.region_id]
+  return [row?.Headquarters_City_Name, row?.Incorporation_Country_Name]
     .map((value) => normalizeCompanyValue(value))
     .filter(Boolean)
     .slice(0, 2)
@@ -957,10 +932,6 @@ async function onImportFileSelected(event) {
   } finally {
     if (fileInput.value) fileInput.value.value = ''
   }
-}
-
-function togglePriorityMode() {
-  priorityMode.value = !priorityMode.value
 }
 
 async function loadCompanies() {
@@ -1396,12 +1367,6 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
-}
-
-.companies-toolbar__button--active {
-  background: var(--ds-control-active-bg);
-  color: var(--ds-control-active-text);
-  border-color: var(--ds-control-active-border);
 }
 
 .companies-view-menu {

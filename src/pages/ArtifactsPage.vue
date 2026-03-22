@@ -119,23 +119,24 @@ function openCreateArtifact() {
 const columns = [
   { name: 'title', label: 'Title', field: 'title', align: 'left', sortable: true },
   { name: 'artifact_type', label: 'Type', field: 'artifact_type', align: 'left', sortable: true },
-  { name: 'status', label: 'Status', field: 'status', align: 'left', sortable: true },
-  { name: 'pipeline_id', label: 'Pipeline', field: 'pipeline_id', align: 'left', sortable: true },
-  { name: 'stage_id', label: 'Stage', field: 'stage_id', align: 'left', sortable: true },
+  { name: 'artifact_format', label: 'Format', field: 'artifact_format', align: 'left', sortable: true },
+  { name: 'type', label: 'Category', field: 'type', align: 'left', sortable: true },
+  { name: 'opportunity_id', label: 'Opportunity', field: 'opportunity_id', align: 'left', sortable: true },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
 const csvHeaders = [
   'artifact_id',
+  'original_artifact_id',
   'title',
   'artifact_type',
-  'status',
+  'artifact_format',
+  'type',
   'fs_path',
   'opportunity_id',
-  'pipeline_id',
-  'stage_id',
-  'generated_by',
+  'created_by',
+  'created_at',
 ]
 
 async function loadArtifacts() {

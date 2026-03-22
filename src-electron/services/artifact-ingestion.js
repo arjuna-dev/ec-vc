@@ -111,8 +111,7 @@ function getOpenAIClient({ apiKeyFromSettings } = {}) {
 }
 
 function getGoogleGenerativeAIClient({ apiKeyFromSettings } = {}) {
-  const apiKey =
-    normalizeApiKey(apiKeyFromSettings) || normalizeApiKey(process.env.GOOGLE_API_KEY)
+  const apiKey = normalizeApiKey(apiKeyFromSettings) || normalizeApiKey(process.env.GOOGLE_API_KEY)
   if (!apiKey) {
     throw new Error('Missing Gemini API key. Set it in Settings, or configure GOOGLE_API_KEY.')
   }
@@ -179,7 +178,7 @@ async function tryPopulateArtifactMetadata({ markdown, artifactId, openaiApiKey 
               type: 'text',
               text: [
                 'You will receive a Markdown document.',
-                'Return ONLY valid JSON with keys: title (string), summary (string), confidence_score (number between 0 and 1).',
+                'Return ONLY valid JSON with keys: title (string), summary (string)',
                 'Be concise but informative.',
                 '',
                 '--- MARKDOWN START ---',
@@ -197,42 +196,20 @@ async function tryPopulateArtifactMetadata({ markdown, artifactId, openaiApiKey 
 
     const title = typeof parsed?.title === 'string' ? parsed.title.trim() : null
     const summary = typeof parsed?.summary === 'string' ? parsed.summary.trim() : null
-    const confidence =
-      typeof parsed?.confidence_score === 'number' && Number.isFinite(parsed.confidence_score)
-        ? parsed.confidence_score
-        : null
-
     dbRun(
       `
       UPDATE Artifacts
       SET
         title = COALESCE(?, title),
-        summary = COALESCE(?, summary),
-        confidence_score = COALESCE(?, confidence_score),
-        llm_provider = COALESCE(llm_provider, 'openai'),
-        llm_model = COALESCE(llm_model, 'gpt-4o-mini'),
+        description = COALESCE(?, description),
         updated_at = datetime('now')
       WHERE artifact_id = ?
     `,
-      [title, summary, confidence, artifactId],
+      [title, summary, artifactId],
     )
   } catch {
     // Best-effort enrichment; ingestion shouldn't fail if this step fails.
   }
-}
-
-function firstStageIdForPipeline(pipelineId) {
-  const rows = dbAll(
-    `
-    SELECT stage_id
-    FROM Pipeline_Stages
-    WHERE pipeline_id = ?
-    ORDER BY position ASC
-    LIMIT 1
-  `,
-    [String(pipelineId || '')],
-  )
-  return rows?.[0]?.stage_id || null
 }
 
 function emitFileStageStatus(emitStatus, fileName, updates = {}) {
@@ -288,8 +265,6 @@ export async function ingestArtifactsFromPaths({
   workspaceRoot,
   filePaths,
   opportunityId,
-  pipelineId,
-  createdBy,
   emitStatus,
   apiKeys = {},
 } = {}) {
@@ -299,8 +274,6 @@ export async function ingestArtifactsFromPaths({
   const openaiApiKey = normalizeApiKey(apiKeys?.openai)
   const geminiApiKey = normalizeApiKey(apiKeys?.gemini)
   const oppty = String(opportunityId || '').trim() || null
-  const pipeline = String(pipelineId || '').trim() || null
-  const createdByContactId = String(createdBy || '').trim() || null
   if (!workspaceRoot) throw new Error('workspaceRoot is required')
   if (files.length === 0) {
     emitStatus?.({
@@ -309,8 +282,6 @@ export async function ingestArtifactsFromPaths({
     })
     throw new Error('No files provided to ingestion (filePaths was empty).')
   }
-
-  const stageId = pipeline ? firstStageIdForPipeline(pipeline) : null
 
   const rawDir = path.join(workspaceRoot, '0_company_docs', 'Artifacts', '0_raw')
   const llmDir = path.join(workspaceRoot, '0_company_docs', 'Artifacts', '1_llm-ready')
@@ -334,14 +305,17 @@ export async function ingestArtifactsFromPaths({
     if (await fse.pathExists(rawCandidatePath)) {
       const rawRelPath = toPosixPath(path.join('0_company_docs', 'Artifacts', '0_raw', fileName))
       const refs = Number(
-        dbAll('SELECT COUNT(*) AS c FROM Artifacts WHERE fs_path = ?', [rawRelPath])?.[0]?.c || 0,
+        dbAll('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?', [rawRelPath])?.[0]
+          ?.c || 0,
       )
       if (refs > 0) {
         emitStatus?.({
           type: 'error',
           message: `A file named "${fileName}" already exists. Rename the file and try again.`,
         })
-        throw new Error(`Duplicate filename: "${fileName}" already exists. Rename the file and try again.`)
+        throw new Error(
+          `Duplicate filename: "${fileName}" already exists. Rename the file and try again.`,
+        )
       }
 
       try {
@@ -419,34 +393,27 @@ export async function ingestArtifactsFromPaths({
         INSERT INTO Artifacts (
           artifact_id,
           opportunity_id,
-          pipeline_id,
-          stage_id,
-          created_by,
-          artifact_type,
-          fs_path,
-          fs_hash,
-          fs_size_bytes,
-          generated_by,
           title,
-          status,
           artifact_format
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?)
       `,
         [
           rawArtifactId,
           oppty,
-          pipeline,
-          stageId,
-          createdByContactId,
-          'raw',
-          rawRelPath,
-          hash,
-          stat.size,
-          'user',
           baseName(originalFileName),
-          'created',
           originalExt.replace('.', '') || null,
         ],
+      )
+      dbRun(
+        `
+        INSERT INTO Artifact_Raw (
+          artifact_id,
+          fs_path,
+          fs_hash,
+          fs_size_bytes
+        ) VALUES (?, ?, ?, ?)
+      `,
+        [rawArtifactId, rawRelPath, hash, stat.size],
       )
     } catch (e) {
       emitStatus?.({
@@ -472,7 +439,8 @@ export async function ingestArtifactsFromPaths({
   })
 
   for (const item of stagedFiles) {
-    const { sourceFilePath, originalFileName, originalExt, rawAbsPath, rawRelPath, rawArtifactId } = item
+    const { sourceFilePath, originalFileName, originalExt, rawAbsPath, rawRelPath, rawArtifactId } =
+      item
     emitFileStageStatus(emitStatus, originalFileName, {
       markdownStatus: 'pending',
       message: `Generating markdown for "${originalFileName}"...`,
@@ -505,36 +473,29 @@ export async function ingestArtifactsFromPaths({
           INSERT INTO Artifacts (
             artifact_id,
             opportunity_id,
-            pipeline_id,
-            stage_id,
-            created_by,
-            artifact_type,
-            fs_path,
-            fs_hash,
-            fs_size_bytes,
-            generated_by,
-            original_artifact_id,
             title,
-            status,
             artifact_format
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?)
         `,
           [
             llmArtifactId,
             oppty,
-            pipeline,
-            stageId,
-            createdByContactId,
-            'llm-ready',
-            llmRelPath,
-            hash,
-            stat.size,
-            'system',
-            rawArtifactId,
             baseName(originalFileName),
-            'created',
             'md',
           ],
+        )
+        dbRun(
+          `
+          INSERT INTO Artifact_Llm_Ready (
+            artifact_id,
+            original_artifact_id,
+            generated_by,
+            fs_path,
+            fs_hash,
+            fs_size_bytes
+          ) VALUES (?, ?, ?, ?, ?, ?)
+        `,
+          [llmArtifactId, rawArtifactId, 'system', llmRelPath, hash, stat.size],
         )
       } catch (e) {
         emitStatus?.({
@@ -655,36 +616,31 @@ export async function ingestArtifactsFromPaths({
         INSERT INTO Artifacts (
           artifact_id,
           opportunity_id,
-          pipeline_id,
-          stage_id,
-          created_by,
-          artifact_type,
-          fs_path,
-          fs_hash,
-          fs_size_bytes,
-          generated_by,
-          original_artifact_id,
           title,
-          status,
           artifact_format
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?)
       `,
         [
           llmArtifactId,
           oppty,
-          pipeline,
-          stageId,
-          createdByContactId,
-          'llm-ready',
-          llmRelPath,
-          hash,
-          stat.size,
-          'llm',
-          rawArtifactId,
           baseName(originalFileName),
-          'created',
           'md',
         ],
+      )
+      dbRun(
+        `
+        INSERT INTO Artifact_Llm_Ready (
+          artifact_id,
+          original_artifact_id,
+          generated_by,
+          fs_path,
+          fs_hash,
+          fs_size_bytes,
+          llm_provider,
+          llm_model
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+        [llmArtifactId, rawArtifactId, 'llm', llmRelPath, hash, stat.size, 'google', 'gemini-2.5-flash'],
       )
     } catch (e) {
       emitStatus?.({

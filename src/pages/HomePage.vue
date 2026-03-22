@@ -567,7 +567,10 @@ const activityItems = computed(() => [
     ...contacts.value.map((row) => ({
       key: `contacts-${row.id}`,
       title: row.Name || 'Untitled contact',
-      subtitle: row.Role ? `Contact • ${row.Role}` : 'Contact',
+      subtitle:
+        row.Professional_Email || row.Personal_Email
+          ? `Contact • ${row.Professional_Email || row.Personal_Email}`
+          : 'Contact',
       date: parseDateValue(row.created_at),
       icon: 'people',
       to: '/contacts',
@@ -673,8 +676,8 @@ const workspaceCoverage = computed(() => [
   },
   {
     label: 'Artifacts linked to deal flow',
-    caption: 'Artifacts tied to a pipeline or opportunity',
-    value: countWithAnyValue(artifacts.value, ['opportunity_id', 'pipeline_id']),
+    caption: 'Artifacts tied to an opportunity',
+    value: countWithAnyValue(artifacts.value, ['opportunity_id']),
   },
   {
     label: 'Notes linked to records',
@@ -692,7 +695,7 @@ const summaryCards = computed(() => [
   {
     ...collectionConfigByKey.contacts,
     count: contactsCount.value,
-    helper: `${countWithAnyValue(contacts.value, ['Email'])} with email`,
+    helper: `${countWithAnyValue(contacts.value, ['Personal_Email', 'Professional_Email'])} with email`,
   },
   {
     ...collectionConfigByKey.opportunities,
@@ -707,7 +710,7 @@ const summaryCards = computed(() => [
   {
     ...collectionConfigByKey.artifacts,
     count: artifactsCount.value,
-    helper: `${countWithAnyValue(artifacts.value, ['status'])} with status`,
+    helper: `${countWithAnyValue(artifacts.value, ['opportunity_id'])} linked to opportunities`,
   },
   {
     ...collectionConfigByKey.notes,

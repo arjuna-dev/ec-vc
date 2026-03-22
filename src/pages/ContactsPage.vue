@@ -118,12 +118,11 @@
               dense
               outline
               no-caps
-              icon="flag"
-              label="Priority"
+              icon="refresh"
+              label="Refresh"
               class="contacts-toolbar__button"
-              :class="{ 'contacts-toolbar__button--active': priorityMode }"
-              :disable="loading"
-              @click="togglePriorityMode"
+              :loading="loading"
+              @click="loadContacts"
             />
           </div>
 
@@ -273,7 +272,7 @@
                             {{ row.Name || 'Unnamed contact' }}
                           </div>
                           <div class="contact-card__role">
-                            {{ row.Role || 'Role not added yet' }}
+                            {{ primaryEmail(row) || row.Country_based || 'Add more contact details' }}
                           </div>
                         </div>
 
@@ -424,7 +423,6 @@ const loading = ref(false)
 const error = ref('')
 const contactDialogOpen = ref(false)
 const searchQuery = ref('')
-const priorityMode = ref(false)
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const selectedCount = computed(() => selectedRows.value.length)
@@ -445,7 +443,7 @@ const contactsDashboard = computed(() => {
   const counts = rows.value.reduce(
     (summary, row) => {
       const filledCount = countFilledContactFields(row)
-      const email = normalizeInputValue(row?.Email)
+      const email = primaryEmail(row)
       const phone = normalizeInputValue(row?.Phone)
       const linkedIn = normalizeInputValue(row?.LinkedIn)
 
@@ -453,8 +451,8 @@ const contactsDashboard = computed(() => {
       if (linkedIn) summary.linkedInCount += 1
       if (!email && !phone && !linkedIn) summary.missingCoreCount += 1
 
-      if (filledCount < 3) summary.sparseCount += 1
-      else if (filledCount <= 8) summary.mediumCount += 1
+      if (filledCount < 2) summary.sparseCount += 1
+      else if (filledCount < 5) summary.mediumCount += 1
       else summary.richCount += 1
 
       return summary
@@ -592,10 +590,10 @@ const displayRows = computed(() => {
     items = items.filter((row) =>
       [
         row?.Name,
-        row?.Email,
+        row?.Personal_Email,
+        row?.Professional_Email,
         row?.Phone,
-        row?.Role,
-        row?.Stakeholder_type,
+        row?.Country_based,
         row?.LinkedIn,
         row?.created_at,
       ]
@@ -604,22 +602,10 @@ const displayRows = computed(() => {
     )
   }
 
-  if (priorityMode.value) {
-    items.sort((a, b) => {
-      const priorityA = Number(a?.Closeness_Level || 0)
-      const priorityB = Number(b?.Closeness_Level || 0)
-      if (priorityA !== priorityB) return priorityB - priorityA
-      return String(a?.Name || '').localeCompare(String(b?.Name || ''))
-    })
-  }
-
   return items
 })
 
 function buildAvatarImage(row) {
-  const customImage = String(row?.Profile_Image || '').trim()
-  if (customImage) return customImage
-
   const initials = getContactInitials(row)
   const bg = getContactAvatarColor(row)
   const svg = `
@@ -632,8 +618,8 @@ function buildAvatarImage(row) {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
 
-function hasContactProfileImage(row) {
-  return normalizeInputValue(row?.Profile_Image).length > 0
+function hasContactProfileImage() {
+  return false
 }
 
 function getContactInitials(row) {
@@ -651,7 +637,7 @@ function getContactAvatarColor(row) {
 }
 
 function getContactAvatarLabel(row) {
-  return String(row?.Name || row?.Email || 'Contact').trim()
+  return String(row?.Name || row?.Professional_Email || row?.Personal_Email || 'Contact').trim()
 }
 
 function hashString(value) {
@@ -717,16 +703,16 @@ function updateContactCardGradientPosition(event) {
 
 function getContactCardPills(row) {
   return [
-    normalizeInputValue(row?.Stakeholder_type),
-    row?.Closeness_Level ? `Closeness ${normalizeInputValue(row.Closeness_Level)}` : '',
+    primaryEmail(row) ? 'Reachable' : '',
     row?.Country_based ? `Based in ${normalizeInputValue(row.Country_based)}` : '',
+    row?.LinkedIn ? 'LinkedIn' : '',
   ]
     .filter(Boolean)
     .slice(0, 3)
 }
 
 function getContactCardActionLinks(row) {
-  const email = normalizeInputValue(row?.Email)
+  const email = primaryEmail(row)
   const phone = normalizeInputValue(row?.Phone)
   const linkedIn = normalizeInputValue(row?.LinkedIn)
 
@@ -746,7 +732,20 @@ function getContactCardActionLinks(row) {
 
 function getContactCardDetails(row) {
   return [
-    row?.Email ? { label: 'Email', value: normalizeInputValue(row.Email), icon: 'mail' } : null,
+    row?.Professional_Email
+      ? {
+          label: 'Professional email',
+          value: normalizeInputValue(row.Professional_Email),
+          icon: 'work',
+        }
+      : null,
+    row?.Personal_Email
+      ? {
+          label: 'Personal email',
+          value: normalizeInputValue(row.Personal_Email),
+          icon: 'mail',
+        }
+      : null,
     row?.Phone ? { label: 'Phone', value: normalizeInputValue(row.Phone), icon: 'call' } : null,
     row?.LinkedIn
       ? {
@@ -762,11 +761,11 @@ function getContactCardDetails(row) {
           icon: 'schedule',
         }
       : null,
-    row?.Stakeholder_type
+    row?.Country_based
       ? {
-          label: 'Stakeholder',
-          value: normalizeInputValue(row.Stakeholder_type),
-          icon: 'flag',
+          label: 'Country',
+          value: normalizeInputValue(row.Country_based),
+          icon: 'public',
         }
       : null,
   ]
@@ -800,6 +799,10 @@ function normalizeInputValue(value) {
   return String(value || '').trim()
 }
 
+function primaryEmail(row) {
+  return normalizeInputValue(row?.Professional_Email) || normalizeInputValue(row?.Personal_Email)
+}
+
 function normalizeExternalUrl(value) {
   const normalized = normalizeInputValue(value)
   if (!normalized) return ''
@@ -831,21 +834,35 @@ function formatCardDate(value) {
 
 const columns = [
   { name: 'Name', label: 'Name', field: 'Name', align: 'left', sortable: true },
-  { name: 'Email', label: 'Email', field: 'Email', align: 'left', sortable: true },
-  { name: 'Phone', label: 'Phone', field: 'Phone', align: 'left', sortable: true },
-  { name: 'Role', label: 'Role', field: 'Role', align: 'left', sortable: true },
   {
-    name: 'Stakeholder_type',
-    label: 'Stakeholder',
-    field: 'Stakeholder_type',
+    name: 'Personal_Email',
+    label: 'Personal Email',
+    field: 'Personal_Email',
     align: 'left',
     sortable: true,
   },
+  {
+    name: 'Professional_Email',
+    label: 'Professional Email',
+    field: 'Professional_Email',
+    align: 'left',
+    sortable: true,
+  },
+  { name: 'Phone', label: 'Phone', field: 'Phone', align: 'left', sortable: true },
+  { name: 'Country_based', label: 'Country', field: 'Country_based', align: 'left', sortable: true },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
-const csvHeaders = ['id', 'Name', 'Email', 'Phone', 'LinkedIn', 'Role', 'Stakeholder_type']
+const csvHeaders = [
+  'id',
+  'Name',
+  'Personal_Email',
+  'Professional_Email',
+  'Phone',
+  'LinkedIn',
+  'Country_based',
+]
 const viewOptions = [
   { label: 'Cards', value: 'card', icon: 'grid_view' },
   { label: 'Table', value: 'table', icon: 'view_list' },
@@ -878,10 +895,6 @@ async function onImportFileSelected(event) {
   } finally {
     if (fileInput.value) fileInput.value.value = ''
   }
-}
-
-function togglePriorityMode() {
-  priorityMode.value = !priorityMode.value
 }
 
 async function loadContacts() {
@@ -1321,12 +1334,6 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
-}
-
-.contacts-toolbar__button--active {
-  background: var(--ds-control-active-bg);
-  color: var(--ds-control-active-text);
-  border-color: var(--ds-control-active-border);
 }
 
 .contacts-view-menu {

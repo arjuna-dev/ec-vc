@@ -82,8 +82,7 @@ const fields = [
   { key: 'One_Liner', label: 'One_Liner', inputType: 'text' },
   { key: 'Status', label: 'Status', inputType: 'text' },
   { key: 'Date_of_Incorporation', label: 'Date_of_Incorporation', inputType: 'text' },
-  { key: 'Amount_Raised_AUMs', label: 'Amount_Raised_AUMs', inputType: 'number' },
-  { key: 'Rounds_Opportunities_Count', label: 'Rounds_Opportunities_Count', inputType: 'number' },
+  { key: 'Rounds_Funds_Count', label: 'Rounds_Funds_Count', inputType: 'number' },
   { key: 'Pax', label: 'Pax', inputType: 'number' },
   { key: 'Website', label: 'Website', inputType: 'text' },
 ]
@@ -100,8 +99,7 @@ function resetForm() {
     One_Liner: '',
     Status: '',
     Date_of_Incorporation: '',
-    Amount_Raised_AUMs: '',
-    Rounds_Opportunities_Count: '',
+    Rounds_Funds_Count: '',
     Pax: '',
     Website: '',
   }

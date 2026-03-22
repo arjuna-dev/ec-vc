@@ -12,8 +12,6 @@
         <q-form @submit.prevent="submit" class="q-gutter-md">
           <q-input v-model="form.id" outlined label="ID (optional)" :disable="loading" />
           <q-input v-model="form.Name" autofocus outlined label="Name *" :disable="loading" />
-          <q-input v-model="form.created_at" outlined label="created_at" disable />
-          <q-input v-model="form.updated_at" outlined label="updated_at" disable />
 
           <div v-for="field in fields" :key="field.key" class="col-12 col-md-6">
             <q-input
@@ -55,19 +53,11 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const loading = ref(false)
 
 const fields = [
-  { key: 'Email', label: 'Email', inputType: 'text' },
+  { key: 'Personal_Email', label: 'Personal Email', inputType: 'email' },
+  { key: 'Professional_Email', label: 'Professional Email', inputType: 'email' },
   { key: 'Phone', label: 'Phone', inputType: 'text' },
   { key: 'LinkedIn', label: 'LinkedIn', inputType: 'text' },
-  { key: 'Role', label: 'Role', inputType: 'text' },
-  { key: 'Stakeholder_type', label: 'Stakeholder_type', inputType: 'text' },
-  { key: 'Closeness_Level', label: 'Closeness_Level', inputType: 'text' },
-  { key: 'Comment', label: 'Comment', inputType: 'text' },
-  { key: 'Expertise', label: 'Expertise', inputType: 'text' },
-  { key: 'Degrees_Program', label: 'Degrees_Program', inputType: 'text' },
-  { key: 'University', label: 'University', inputType: 'text' },
-  { key: 'Credentials', label: 'Credentials', inputType: 'text' },
-  { key: 'Tenure_at_Firm_yrs', label: 'Tenure_at_Firm_yrs', inputType: 'number' },
-  { key: 'Country_based', label: 'Country_based', inputType: 'text' },
+  { key: 'Country_based', label: 'Country Based', inputType: 'text' },
 ]
 
 const form = ref({})
@@ -76,20 +66,10 @@ function resetForm() {
   form.value = {
     id: '',
     Name: '',
-    created_at: '',
-    updated_at: '',
-    Email: '',
+    Personal_Email: '',
+    Professional_Email: '',
     Phone: '',
     LinkedIn: '',
-    Role: '',
-    Stakeholder_type: '',
-    Closeness_Level: '',
-    Comment: '',
-    Expertise: '',
-    Degrees_Program: '',
-    University: '',
-    Credentials: '',
-    Tenure_at_Firm_yrs: '',
     Country_based: '',
   }
 }

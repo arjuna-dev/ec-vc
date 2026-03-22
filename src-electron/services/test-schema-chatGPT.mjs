@@ -174,8 +174,11 @@ await runTest('Core tables exist', async () => {
     'Opportunity_Pipeline',
     'Fund_Pipeline',
     'Artifacts',
+    'Artifact_Raw',
+    'Artifact_Llm_Ready',
+    'Artifact_Llm_Generated',
     'Artifacts_Industries',
-    'Artifacts_Locations',
+    'Artifacts_Regions',
     'Artifact_Links',
   ]
 
@@ -189,7 +192,7 @@ await runTest('Important indexes exist (spot-check)', async () => {
   assert.equal(indexExists(db, 'idx_Opportunities_company_id'), true)
   assert.equal(indexExists(db, 'idx_Pipelines_single_default'), true)
   assert.equal(indexExists(db, 'idx_Pipelines_dir_name'), true)
-  assert.equal(indexExists(db, 'idx_Artifacts_unique_path'), true)
+  assert.equal(indexExists(db, 'idx_Artifact_Raw_unique_path'), true)
 })
 
 await runTest('Seeded default pipeline exists + stages inserted', async () => {
@@ -323,9 +326,7 @@ await runTest('Fund_Pipeline stage must belong to pipeline (trigger)', async () 
   )
 })
 
-await runTest(
-  "Artifacts require Opportunity_Pipeline row first (your 'nice requirement')",
-  async () => {
+await runTest('Artifacts can be inserted by opportunity without pipeline mapping', async () => {
     // Make a new opportunity without Opportunity_Pipeline mapping
     db.prepare(`INSERT OR IGNORE INTO Companies (id, Company_Name) VALUES (?,?)`).run(
       'c_art',
@@ -336,77 +337,14 @@ await runTest(
       'c_art',
     )
 
-    const defaultStage = querySingle(
-      db,
-      `SELECT stage_id FROM Pipeline_Stages WHERE pipeline_id='pipeline_default' ORDER BY position LIMIT 1`,
-    ).stage_id
-
-    // Should FAIL: no Opportunity_Pipeline row yet
-    mustThrow(
-      () =>
-        db
-          .prepare(
-            `INSERT INTO Artifacts (
-              artifact_id, opportunity_id, pipeline_id, stage_id,
-              artifact_type, fs_path, generated_by
-            ) VALUES (?,?,?,?,?,?,?)`,
-          )
-          .run(
-            'a_fail',
-            'o_no_map',
-            'pipeline_default',
-            defaultStage,
-            'raw_input',
-            '/tmp/a_fail.txt',
-            'user',
-          ),
-      'artifact opportunity_id is not linked to pipeline_id',
-    )
-
-    // Create mapping then insert should PASS
-    db.prepare(
-      `INSERT INTO Opportunity_Pipeline (opportunity_id, pipeline_id, stage_id) VALUES (?,?,?)`,
-    ).run('o_no_map', 'pipeline_default', defaultStage)
-
     db.prepare(
       `INSERT INTO Artifacts (
-        artifact_id, opportunity_id, pipeline_id, stage_id,
-        artifact_type, fs_path, generated_by
-      ) VALUES (?,?,?,?,?,?,?)`,
-    ).run(
-      'a_ok',
-      'o_no_map',
-      'pipeline_default',
-      defaultStage,
-      'raw_input',
-      '/tmp/a_ok.txt',
-      'user',
-    )
-  },
-)
-
-await runTest('Artifacts stage must belong to pipeline (trigger)', async () => {
-  // a_ok exists from prior test. Try inserting with stage from another pipeline
-  mustThrow(
-    () =>
-      db
-        .prepare(
-          `INSERT INTO Artifacts (
-            artifact_id, opportunity_id, pipeline_id, stage_id,
-            artifact_type, fs_path, generated_by
-          ) VALUES (?,?,?,?,?,?,?)`,
-        )
-        .run(
-          'a_bad_stage',
-          'o_no_map',
-          'pipeline_default',
-          'p2_s1',
-          'raw_input',
-          '/tmp/a_bad_stage.txt',
-          'user',
-        ),
-    'artifact stage_id does not belong to artifact pipeline_id',
-  )
+        artifact_id, opportunity_id, title
+      ) VALUES (?,?,?)`,
+    ).run('a_ok', 'o_no_map', 'ok artifact')
+    db.prepare(
+      `INSERT INTO Artifact_Raw (artifact_id, fs_path, fs_hash, fs_size_bytes) VALUES (?,?,?,?)`,
+    ).run('a_ok', '/tmp/a_ok.txt', null, null)
 })
 
 await runTest('updated_at triggers work (Companies + Artifacts spot-check)', async () => {
@@ -421,26 +359,19 @@ await runTest('updated_at triggers work (Companies + Artifacts spot-check)', asy
   assert.notEqual(after, before, 'Companies.updated_at should change after UPDATE')
 
   // Artifacts
-  const defaultStage = querySingle(
-    db,
-    `SELECT stage_id FROM Pipeline_Stages WHERE pipeline_id='pipeline_default' ORDER BY position LIMIT 1`,
-  ).stage_id
-
-  // ensure oppty mapping exists
   db.prepare(`INSERT OR IGNORE INTO Opportunities (id, company_id) VALUES (?,?)`).run(
     'o_up',
     'c_up',
   )
-  db.prepare(
-    `INSERT OR IGNORE INTO Opportunity_Pipeline (opportunity_id, pipeline_id, stage_id) VALUES (?,?,?)`,
-  ).run('o_up', 'pipeline_default', defaultStage)
 
   db.prepare(
     `INSERT OR IGNORE INTO Artifacts (
-      artifact_id, opportunity_id, pipeline_id, stage_id,
-      artifact_type, fs_path, generated_by
-    ) VALUES (?,?,?,?,?,?,?)`,
-  ).run('a_up', 'o_up', 'pipeline_default', defaultStage, 'note', '/tmp/a_up.txt', 'user')
+      artifact_id, opportunity_id, title
+    ) VALUES (?,?,?)`,
+  ).run('a_up', 'o_up', 'up artifact')
+  db.prepare(
+    `INSERT OR IGNORE INTO Artifact_Raw (artifact_id, fs_path, fs_hash, fs_size_bytes) VALUES (?,?,?,?)`,
+  ).run('a_up', '/tmp/a_up.txt', null, null)
 
   const aBefore = nowRow(db, 'Artifacts', 'artifact_id', 'a_up').updated_at
   await sleep(1100)

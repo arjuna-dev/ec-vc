@@ -1,0 +1,1 @@
+- At the moment we have no users and no real data. When you implement a sqlite feature never try to implement in a way that we support previous versions of the DB like having versions or similar. Think that the developers are expected to fully delete the DB locally.
