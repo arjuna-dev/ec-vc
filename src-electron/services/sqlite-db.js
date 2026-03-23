@@ -71,9 +71,14 @@ function maybeRecreateDb(dbPath) {
     hasTable(probe, 'Fund_Opportunities') &&
     hasTable(probe, 'databook_snapshots') &&
     hasColumn(probe, 'Pipelines', 'dir_name') &&
+    hasColumn(probe, 'Companies', 'created_by') &&
     hasColumn(probe, 'Opportunities', 'company_id') &&
     hasColumn(probe, 'Opportunities', 'kind') &&
+    hasColumn(probe, 'Contacts', 'Personal_Email') &&
+    hasColumn(probe, 'Contacts', 'Professional_Email') &&
     hasColumn(probe, 'Tasks', 'pipeline_id') &&
+    hasColumn(probe, 'Artifacts', 'created_by') &&
+    hasColumn(probe, 'Artifacts', 'type') &&
     hasColumn(probe, 'databook_snapshots', 'table_name') &&
     hasColumn(probe, 'databook_snapshots', 'record_id')
 
