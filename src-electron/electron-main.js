@@ -19,6 +19,17 @@ const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 let mainWindow
 
+function toDirName(value, fallback = 'project') {
+  return (
+    String(value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 80) || fallback
+  )
+}
+
 async function ensureWorkspace() {
   const baseDirPath = app.getPath('userData')
   return createProjectStructure(baseDirPath, DEFAULT_PROJECT_ROOT_NAME, undefined)
@@ -28,12 +39,11 @@ function listPipelines() {
   return dbAll(
     `
     SELECT 
-      p.pipeline_id, 
-      p.name, 
-      p.dir_name, 
-      p.is_default, 
-      p.install_status, 
-      p.install_error,
+      p.id AS pipeline_id, 
+      p.Project_Name AS name, 
+      CASE WHEN p.id = 'pipeline_default' THEN 1 ELSE 0 END AS is_default, 
+      po.install_status, 
+      po.install_error,
       json_group_array(
         json_object(
           'stage_id', s.stage_id,
@@ -42,12 +52,16 @@ function listPipelines() {
           'is_terminal', s.is_terminal
         )
       ) AS stages
-    FROM Pipelines p
-    LEFT JOIN Pipeline_Stages s ON p.pipeline_id = s.pipeline_id
-    GROUP BY p.pipeline_id
-    ORDER BY p.is_default DESC, p.name ASC
+    FROM Projects p
+    LEFT JOIN Project_Overview po ON po.project_id = p.id
+    LEFT JOIN Project_Stages s ON p.id = s.project_id
+    GROUP BY p.id
+    ORDER BY CASE WHEN p.id = 'pipeline_default' THEN 1 ELSE 0 END DESC, p.Project_Name ASC
     `,
-  )
+  ).map((row) => ({
+    ...row,
+    dir_name: toDirName(row.name, 'pipeline'),
+  }))
 }
 
 function upsertPipelines(rows = []) {
@@ -63,48 +77,39 @@ function upsertPipelines(rows = []) {
       const pipelineId =
         normalizeNullableString(r?.pipeline_id) || `pipeline:${crypto.randomUUID()}`
       const name = normalizeNullableString(r?.name)
-      const dirName =
-        normalizeNullableString(r?.dir_name) ||
-        String(name || '')
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '_')
-          .replace(/^_+|_+$/g, '')
-          .slice(0, 80) ||
-        'pipeline'
-      const isDefaultRaw = normalizeNullableString(r?.is_default)
-      const isDefault = isDefaultRaw === '1' || isDefaultRaw?.toLowerCase?.() === 'true' ? 1 : 0
-
       if (!name) {
         skipped++
         continue
       }
 
-      // Don't allow importing a second "default" accidentally.
-      const safeIsDefault = pipelineId === 'pipeline_default' ? isDefault : 0
-
       const exists = database
-        .prepare('SELECT 1 FROM Pipelines WHERE pipeline_id = ? LIMIT 1')
+        .prepare('SELECT 1 FROM Projects WHERE id = ? LIMIT 1')
         .get(pipelineId)
 
       database
         .prepare(
           `
-          INSERT INTO Pipelines (pipeline_id, name, dir_name, is_default)
-          VALUES (@pipeline_id, @name, @dir_name, @is_default)
-          ON CONFLICT(pipeline_id) DO UPDATE SET
-            name = excluded.name,
-            dir_name = excluded.dir_name,
-            is_default = excluded.is_default,
+          INSERT INTO Projects (id, Project_Name, created_at, updated_at)
+          VALUES (@project_id, @Project_Name, datetime('now'), datetime('now'))
+          ON CONFLICT(id) DO UPDATE SET
+            Project_Name = excluded.Project_Name,
             updated_at = datetime('now')
         `,
         )
         .run({
-          pipeline_id: pipelineId,
-          name,
-          dir_name: dirName,
-          is_default: safeIsDefault,
+          project_id: pipelineId,
+          Project_Name: name,
         })
+
+      database
+        .prepare(
+          `
+          INSERT INTO Project_Overview (project_id, created_at, updated_at)
+          VALUES (?, datetime('now'), datetime('now'))
+          ON CONFLICT(project_id) DO NOTHING
+        `,
+        )
+        .run(pipelineId)
 
       if (exists) updated++
       else inserted++
@@ -120,29 +125,28 @@ function createPipeline(payload = {}) {
   const database = initDb()
   const name = normalizeNullableString(payload.name)
   if (!name) throw new Error('Pipeline name is required')
-  const dirName =
-    normalizeNullableString(payload.dir_name) ||
-    String(name)
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .slice(0, 80) ||
-    'pipeline'
 
   const pipelineId =
     normalizeNullableString(payload.pipeline_id) || `pipeline:${crypto.randomUUID()}`
-  const isDefault = pipelineId === 'pipeline_default' ? 1 : payload.is_default ? 1 : 0
 
   const tx = database.transaction(() => {
     database
       .prepare(
         `
-        INSERT INTO Pipelines (pipeline_id, name, dir_name, is_default)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO Projects (id, Project_Name, created_at, updated_at)
+        VALUES (?, ?, datetime('now'), datetime('now'))
       `,
       )
-      .run(pipelineId, name, dirName, isDefault)
+      .run(pipelineId, name)
+
+    database
+      .prepare(
+        `
+        INSERT INTO Project_Overview (project_id, created_at, updated_at)
+        VALUES (?, datetime('now'), datetime('now'))
+      `,
+      )
+      .run(pipelineId)
 
     const providedStages = Array.isArray(payload.stages) ? payload.stages : []
     const stageLabels =
@@ -161,8 +165,8 @@ function createPipeline(payload = {}) {
 
     const insertStage = database.prepare(
       `
-      INSERT INTO Pipeline_Stages (stage_id, pipeline_id, name, position)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO Project_Stages (stage_id, project_id, name, position, is_terminal)
+      VALUES (?, ?, ?, ?, ?)
     `,
     )
 
@@ -179,7 +183,13 @@ function createPipeline(payload = {}) {
 
     for (let i = 0; i < stageLabels.length; i += 1) {
       const stageId = `${pipelineId}:stage_${i + 1}`
-      insertStage.run(stageId, pipelineId, stageDirName(i, stageLabels[i]), i + 1)
+      insertStage.run(
+        stageId,
+        pipelineId,
+        stageDirName(i, stageLabels[i]),
+        i + 1,
+        i === stageLabels.length - 1 ? 1 : 0,
+      )
     }
   })
 
@@ -192,49 +202,43 @@ async function installPipeline(pipelineId) {
   const workspace = await ensureWorkspace()
 
   const pipeline = dbAll(
-    'SELECT pipeline_id, name, dir_name, install_status FROM Pipelines WHERE pipeline_id = ? LIMIT 1',
+    `
+    SELECT
+      p.id AS pipeline_id,
+      p.Project_Name AS name,
+      po.install_status
+    FROM Projects p
+    LEFT JOIN Project_Overview po ON po.project_id = p.id
+    WHERE p.id = ?
+    LIMIT 1
+  `,
     [pipelineId],
   )?.[0]
   if (!pipeline) throw new Error(`Unknown pipeline: ${pipelineId}`)
   if (pipeline.install_status === 'installed') return { ok: true }
 
-  const dirName =
-    pipeline.dir_name ||
-    String(pipeline.name || '')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .slice(0, 80) ||
-    'pipeline'
-
-  if (!pipeline.dir_name && dirName) {
-    dbRun("UPDATE Pipelines SET dir_name = ?, updated_at = datetime('now') WHERE pipeline_id = ?", [
-      dirName,
-      pipelineId,
-    ])
-  }
+  const dirName = toDirName(pipeline.name, 'pipeline')
 
   dbRun(
-    "UPDATE Pipelines SET install_status = 'installing', install_error = NULL, updated_at = datetime('now') WHERE pipeline_id = ?",
+    "UPDATE Project_Overview SET install_status = 'installing', install_error = NULL, updated_at = datetime('now') WHERE project_id = ?",
     [pipelineId],
   )
 
   const stages = dbAll(
-    'SELECT name FROM Pipeline_Stages WHERE pipeline_id = ? ORDER BY position ASC',
+    'SELECT name FROM Project_Stages WHERE project_id = ? ORDER BY position ASC',
     [pipelineId],
   ).map((r) => r.name)
 
   try {
     await mirrorPipelineToFs(workspace.rootPath, dirName, stages)
     dbRun(
-      "UPDATE Pipelines SET install_status = 'installed', installed_at = datetime('now'), uninstalled_at = NULL, updated_at = datetime('now') WHERE pipeline_id = ?",
+      "UPDATE Project_Overview SET install_status = 'installed', installed_at = datetime('now'), updated_at = datetime('now') WHERE project_id = ?",
       [pipelineId],
     )
     return { ok: true }
   } catch (e) {
     dbRun(
-      "UPDATE Pipelines SET install_status = 'error', install_error = ?, updated_at = datetime('now') WHERE pipeline_id = ?",
+      "UPDATE Project_Overview SET install_status = 'error', install_error = ?, updated_at = datetime('now') WHERE project_id = ?",
       [e?.message || String(e), pipelineId],
     )
     throw e
@@ -245,44 +249,38 @@ async function uninstallPipeline(pipelineId) {
   const workspace = await ensureWorkspace()
 
   const pipeline = dbAll(
-    'SELECT pipeline_id, name, dir_name, install_status FROM Pipelines WHERE pipeline_id = ? LIMIT 1',
+    `
+    SELECT
+      p.id AS pipeline_id,
+      p.Project_Name AS name,
+      po.install_status
+    FROM Projects p
+    LEFT JOIN Project_Overview po ON po.project_id = p.id
+    WHERE p.id = ?
+    LIMIT 1
+  `,
     [pipelineId],
   )?.[0]
   if (!pipeline) throw new Error(`Unknown pipeline: ${pipelineId}`)
   if (pipeline.install_status === 'not_installed') return { ok: true }
 
-  const dirName =
-    pipeline.dir_name ||
-    String(pipeline.name || '')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .slice(0, 80) ||
-    'pipeline'
-
-  if (!pipeline.dir_name && dirName) {
-    dbRun("UPDATE Pipelines SET dir_name = ?, updated_at = datetime('now') WHERE pipeline_id = ?", [
-      dirName,
-      pipelineId,
-    ])
-  }
+  const dirName = toDirName(pipeline.name, 'pipeline')
 
   dbRun(
-    "UPDATE Pipelines SET install_status = 'uninstalling', install_error = NULL, updated_at = datetime('now') WHERE pipeline_id = ?",
+    "UPDATE Project_Overview SET install_status = 'uninstalling', install_error = NULL, updated_at = datetime('now') WHERE project_id = ?",
     [pipelineId],
   )
 
   try {
     await removePipelineFromFs(workspace.rootPath, dirName)
     dbRun(
-      "UPDATE Pipelines SET install_status = 'not_installed', uninstalled_at = datetime('now'), updated_at = datetime('now') WHERE pipeline_id = ?",
+      "UPDATE Project_Overview SET install_status = 'not_installed', updated_at = datetime('now') WHERE project_id = ?",
       [pipelineId],
     )
     return { ok: true }
   } catch (e) {
     dbRun(
-      "UPDATE Pipelines SET install_status = 'error', install_error = ?, updated_at = datetime('now') WHERE pipeline_id = ?",
+      "UPDATE Project_Overview SET install_status = 'error', install_error = ?, updated_at = datetime('now') WHERE project_id = ?",
       [e?.message || String(e), pipelineId],
     )
     throw e
@@ -728,7 +726,7 @@ function createCompany(payload = {}) {
     Description: normalizeNullableString(payload.Description),
     Notable_News: normalizeNullableString(payload.Notable_News),
     Updates: normalizeNullableString(payload.Updates),
-    created_by: actor.user_contact_id,
+    created_by: actor.user_id,
   }
   const explicitId = normalizeNullableIntegerId(payload.id)
 
@@ -960,68 +958,36 @@ function listNotes() {
     `
     SELECT
       n.id,
-      n.title,
-      n.content,
-      n.reference_type,
-      n.reference_id,
+      n.Note_Name,
+      n.Note_Content,
+      n.created_by,
       n.created_at,
-      o.Venture_Oppty_Name AS opportunity_name,
-      c.Name AS contact_name,
-      p.name AS pipeline_name,
-      co.Company_Name AS company_name
+      u.User_Name AS created_by_name,
+      u.User_PEmail AS created_by_email
     FROM Notes n
-    LEFT JOIN Opportunities o
-      ON n.reference_type = 'opportunity' AND o.id = n.reference_id
-    LEFT JOIN Contacts c
-      ON n.reference_type = 'contact' AND c.id = n.reference_id
-    LEFT JOIN Pipelines p
-      ON n.reference_type = 'pipeline' AND p.pipeline_id = n.reference_id
-    LEFT JOIN Companies co
-      ON n.reference_type = 'company' AND co.id = n.reference_id
+    LEFT JOIN Users u ON u.id = n.created_by
     ORDER BY n.created_at DESC, n.id DESC
   `,
   )
 }
 
-function pickNoteReference(payload = {}) {
-  const explicitReferenceType = normalizeNullableString(payload?.reference_type)
-  const explicitReferenceId = normalizeNullableString(payload?.reference_id)
-  if (explicitReferenceType && explicitReferenceId) {
-    return { referenceType: explicitReferenceType, referenceId: explicitReferenceId }
-  }
-
-  const opportunityId = normalizeNullableString(payload?.opportunity_id)
-  if (opportunityId) return { referenceType: 'opportunity', referenceId: opportunityId }
-
-  const contactId = normalizeNullableString(payload?.contact_id)
-  if (contactId) return { referenceType: 'contact', referenceId: contactId }
-
-  const pipelineId = normalizeNullableString(payload?.pipeline_id)
-  if (pipelineId) return { referenceType: 'pipeline', referenceId: pipelineId }
-
-  const companyId = normalizeNullableString(payload?.company_id)
-  if (companyId) return { referenceType: 'company', referenceId: companyId }
-
-  return { referenceType: 'opportunity', referenceId: '' }
-}
-
 function createNote(payload = {}) {
   const database = initDb()
-  const title = normalizeNullableString(payload?.title)
-  if (!title) throw new Error('Note title is required')
-  const content = normalizeNullableString(payload?.content) || ''
-  const { referenceType, referenceId } = pickNoteReference(payload)
+  const actor = getAuditActor(database, { requireUser: true })
+  const noteName = normalizeNullableString(payload?.Note_Name) || normalizeNullableString(payload?.title)
+  if (!noteName) throw new Error('Note name is required')
+  const noteContent =
+    normalizeNullableString(payload?.Note_Content) || normalizeNullableString(payload?.content) || ''
 
   const id = normalizeNullableString(payload?.id) || `note:${crypto.randomUUID()}`
   database
     .prepare(
       `
-      INSERT INTO Notes (
-        id, title, content, reference_type, reference_id, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      INSERT INTO Notes (id, created_by, Note_Name, Note_Content, created_at, updated_at)
+      VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
     `,
     )
-    .run(id, title, content, referenceType, referenceId)
+    .run(id, actor.user_id, noteName, noteContent)
   return { id }
 }
 
@@ -1034,36 +1000,31 @@ function upsertNotes(rows = []) {
     let skipped = 0
     for (const r of input) {
       const id = normalizeNullableString(r?.id) || `note:${crypto.randomUUID()}`
-      const title = normalizeNullableString(r?.title)
-      if (!title) {
+      const noteName = normalizeNullableString(r?.Note_Name) || normalizeNullableString(r?.title)
+      if (!noteName) {
         skipped += 1
         continue
       }
-      const content = normalizeNullableString(r?.content) || ''
-      const { referenceType, referenceId } = pickNoteReference(r)
+      const noteContent =
+        normalizeNullableString(r?.Note_Content) || normalizeNullableString(r?.content) || ''
       const exists = database.prepare('SELECT 1 FROM Notes WHERE id = ? LIMIT 1').get(id)
       database
         .prepare(
           `
-          INSERT INTO Notes (
-            id, title, content, reference_type, reference_id, created_at, updated_at
-          ) VALUES (
-            @id, @title, @content, @reference_type, @reference_id, datetime('now'), datetime('now')
-          )
+          INSERT INTO Notes (id, created_by, Note_Name, Note_Content, created_at, updated_at)
+          VALUES (@id, @created_by, @Note_Name, @Note_Content, datetime('now'), datetime('now'))
           ON CONFLICT(id) DO UPDATE SET
-            title = excluded.title,
-            content = excluded.content,
-            reference_type = excluded.reference_type,
-            reference_id = excluded.reference_id,
+            created_by = excluded.created_by,
+            Note_Name = excluded.Note_Name,
+            Note_Content = excluded.Note_Content,
             updated_at = datetime('now')
         `,
         )
         .run({
           id,
-          title,
-          content,
-          reference_type: referenceType,
-          reference_id: referenceId,
+          created_by: normalizeNullableString(r?.created_by),
+          Note_Name: noteName,
+          Note_Content: noteContent,
         })
       if (exists) updated += 1
       else inserted += 1
@@ -1208,8 +1169,7 @@ function listDatabookVersions(tableName, recordId) {
       table_name,
       record_id,
       created_at,
-      created_by_uuid,
-      created_by_label
+      created_by
     FROM databook_snapshots
     WHERE table_name = ? AND record_id = ?
     ORDER BY datetime(created_at) DESC, id DESC
@@ -1229,8 +1189,7 @@ function getDatabookSnapshot(snapshotId) {
       record_id,
       payload_json,
       created_at,
-      created_by_uuid,
-      created_by_label
+      created_by
     FROM databook_snapshots
     WHERE id = ?
     LIMIT 1
@@ -1405,14 +1364,15 @@ function getLegacyOpportunityDatabookView(opportunityId) {
     projectIds,
     (placeholders) => `
       SELECT
-        id AS project_id,
-        Project_Name,
-        Status AS project_status,
-        Priority_Level AS project_priority,
-        Due_Date AS project_due_date
-      FROM Projects
-      WHERE id IN (${placeholders})
-      ORDER BY COALESCE(Project_Name, ''), id
+        p.id AS project_id,
+        p.Project_Name,
+        po.Project_Status AS project_status,
+        po.Project_Priority_Rank AS project_priority,
+        po.Project_Due_Date AS project_due_date
+      FROM Projects p
+      LEFT JOIN Project_Overview po ON po.project_id = p.id
+      WHERE p.id IN (${placeholders})
+      ORDER BY COALESCE(p.Project_Name, ''), p.id
     `,
   )
 
@@ -1852,28 +1812,28 @@ function getLegacyOpportunityDatabookView(opportunityId) {
       section: prefix,
       label: 'Status',
       value: project.project_status,
-      tableName: 'Projects',
+      tableName: 'Project_Overview',
       recordId: project.project_id,
-      fieldName: 'Status',
-      idColumn: 'id',
+      fieldName: 'Project_Status',
+      idColumn: 'project_id',
     })
     addField({
       section: prefix,
       label: 'Priority',
       value: project.project_priority,
-      tableName: 'Projects',
+      tableName: 'Project_Overview',
       recordId: project.project_id,
-      fieldName: 'Priority_Level',
-      idColumn: 'id',
+      fieldName: 'Project_Priority_Rank',
+      idColumn: 'project_id',
     })
     addField({
       section: prefix,
       label: 'Due Date',
       value: project.project_due_date,
-      tableName: 'Projects',
+      tableName: 'Project_Overview',
       recordId: project.project_id,
-      fieldName: 'Due_Date',
-      idColumn: 'id',
+      fieldName: 'Project_Due_Date',
+      idColumn: 'project_id',
     })
   })
 
@@ -2006,15 +1966,14 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
   Pipelines: {
-    tableName: 'Pipelines',
+    tableName: 'Projects',
     entityLabel: 'Pipeline',
-    displayColumns: ['name', 'pipeline_id'],
+    displayColumns: ['Project_Name', 'id'],
     readonlyColumns: new Set([
-      'pipeline_id',
+      'id',
       'install_status',
       'install_error',
       'installed_at',
-      'uninstalled_at',
       'created_at',
       'updated_at',
     ]),
@@ -3149,10 +3108,6 @@ function createOrUpdateUserProfile(database, profile = {}) {
 }
 
 function ensureAuditActor(database) {
-  const existingUuid = normalizeNullableString(getAppSetting(database, 'user_uuid'))
-  const userUuid = existingUuid || `user:${crypto.randomUUID()}`
-  if (!existingUuid) setAppSetting(database, 'user_uuid', userUuid)
-
   let userId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
   let userContactId = normalizeNullableString(
     getAppSetting(database, APP_SETTING_KEYS.userContactId),
@@ -3196,15 +3151,17 @@ function ensureAuditActor(database) {
   }
 
   return {
-    user_uuid: userUuid,
     user_id: userId || null,
     user_label: userLabel,
     user_contact_id: userContactId || null,
   }
 }
 
-function getAuditActor(database, { requireLabel = false } = {}) {
+function getAuditActor(database, { requireLabel = false, requireUser = false } = {}) {
   const actor = ensureAuditActor(database)
+  if ((requireUser || requireLabel) && !actor.user_id) {
+    throw new Error('Saving is blocked: set your user profile before editing.')
+  }
   if (requireLabel && !actor.user_label) {
     throw new Error('Saving is blocked: set your user profile before editing.')
   }
@@ -3256,7 +3213,7 @@ function getUserSettingsPayload(database) {
   )
   const userContact = userContactId ? getContactById(database, userContactId) : null
   return {
-    auditUserUuid: actor.user_uuid,
+    auditUserId: actor.user_id,
     userId: user?.id || null,
     user,
     userContactId: userContact?.id || null,
@@ -3282,7 +3239,7 @@ function listEvents(filters = {}) {
   const params = []
   const tableName = normalizeNullableString(filters.table_name)
   const recordId = normalizeNullableString(filters.record_id)
-  const editedByUuid = normalizeNullableString(filters.edited_by_uuid)
+  const editedBy = normalizeNullableString(filters.edited_by || filters.edited_by_uuid)
   const since = normalizeNullableString(filters.since)
   const until = normalizeNullableString(filters.until)
   const limitRaw = Number(filters.limit)
@@ -3296,9 +3253,9 @@ function listEvents(filters = {}) {
     where.push('record_id = ?')
     params.push(recordId)
   }
-  if (editedByUuid) {
-    where.push('edited_by_uuid = ?')
-    params.push(editedByUuid)
+  if (editedBy) {
+    where.push('edited_by = ?')
+    params.push(editedBy)
   }
   if (since) {
     where.push('edited_at >= ?')
@@ -3320,8 +3277,7 @@ function listEvents(filters = {}) {
         field_name,
         old_value,
         new_value,
-        edited_by_uuid,
-        edited_by_label,
+        edited_by,
         edited_at
       FROM events
       ${whereSql}
@@ -3349,7 +3305,7 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
     return { updated: 0, events_created: 0, snapshot_id: null, actor }
   }
 
-  const actor = getAuditActor(database, { requireLabel: true })
+  const actor = getAuditActor(database, { requireUser: true })
 
   const tx = database.transaction(() => {
     let updated = 0
@@ -3409,8 +3365,8 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
           `
           INSERT INTO events (
             id, table_name, record_id, field_name, old_value, new_value,
-            edited_by_uuid, edited_by_label, edited_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            edited_by, edited_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
         `,
         )
         .run(
@@ -3420,8 +3376,7 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
           change.field_name,
           stringifyEventValue(oldValue),
           stringifyEventValue(newValue),
-          actor.user_uuid,
-          actor.user_label,
+          actor.user_id,
         )
       eventsCreated += 1
     }
@@ -3436,8 +3391,8 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
         .prepare(
           `
           INSERT INTO databook_snapshots (
-            id, table_name, record_id, payload_json, created_by_uuid, created_by_label, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+            id, table_name, record_id, payload_json, created_by, created_at
+          ) VALUES (?, ?, ?, ?, ?, datetime('now'))
         `,
         )
         .run(
@@ -3445,8 +3400,7 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
           config.tableName,
           recordId,
           JSON.stringify(snapshotPayload),
-          actor.user_uuid,
-          actor.user_label,
+          actor.user_id,
         )
     }
 
@@ -3665,27 +3619,26 @@ function createOrUpdatePrimaryContactForOpportunity(
 function createNotesForOpportunity(database, opportunityId, notes = []) {
   const rows = Array.isArray(notes) ? notes : []
   for (const note of rows) {
-    const content = normalizeNullableString(note?.content)
-    if (!content) continue
+    const noteContent =
+      normalizeNullableString(note?.Note_Content) || normalizeNullableString(note?.content)
+    if (!noteContent) continue
     const exists = database
-      .prepare(
-        'SELECT 1 FROM Notes WHERE reference_type = ? AND reference_id = ? AND content = ? LIMIT 1',
-      )
-      .get('opportunity', opportunityId, content)
+      .prepare('SELECT 1 FROM Notes WHERE Note_Content = ? LIMIT 1')
+      .get(noteContent)
     if (exists) continue
     database
       .prepare(
         `
         INSERT INTO Notes (
-          id, title, content, reference_type, reference_id, created_at, updated_at
-        ) VALUES (?, ?, ?, 'opportunity', ?, datetime('now'), datetime('now'))
+          id, created_by, Note_Name, Note_Content, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
       `,
       )
       .run(
         normalizeNullableString(note?.id) || `note:${crypto.randomUUID()}`,
-        normalizeNullableString(note?.title),
-        content,
-        opportunityId,
+        normalizeNullableString(note?.created_by),
+        normalizeNullableString(note?.Note_Name) || normalizeNullableString(note?.title),
+        noteContent,
       )
   }
 }
@@ -3778,7 +3731,7 @@ function createDatabookSnapshot(tableName, recordId, { source = 'create' } = {})
   const config = getDatabookTableConfig(tableName)
   const rid = normalizeNullableString(recordId)
   if (!rid) throw new Error('recordId is required')
-  const actor = getAuditActor(database)
+  const actor = getAuditActor(database, { requireUser: true })
   const snapshotPayload = getDatabookView(config.tableName, rid)
   snapshotPayload.__meta = {
     source,
@@ -3791,8 +3744,8 @@ function createDatabookSnapshot(tableName, recordId, { source = 'create' } = {})
     .prepare(
       `
       INSERT INTO databook_snapshots (
-        id, table_name, record_id, payload_json, created_by_uuid, created_by_label, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+        id, table_name, record_id, payload_json, created_by, created_at
+      ) VALUES (?, ?, ?, ?, ?, datetime('now'))
     `,
     )
     .run(
@@ -3800,8 +3753,7 @@ function createDatabookSnapshot(tableName, recordId, { source = 'create' } = {})
       config.tableName,
       rid,
       JSON.stringify(snapshotPayload),
-      actor.user_uuid,
-      actor.user_label || 'Unknown editor',
+      actor.user_id,
     )
   return snapshotId
 }
@@ -3821,8 +3773,8 @@ function ensureDefaultPipelineSeed(database) {
   database
     .prepare(
       `
-      INSERT OR IGNORE INTO Pipelines (pipeline_id, name, dir_name, is_default)
-      VALUES ('pipeline_default', 'Default Investment Pipeline', 'pipeline_default', 1)
+      INSERT OR IGNORE INTO Projects (id, Project_Name)
+      VALUES ('pipeline_default', 'Default Investment Pipeline')
     `,
     )
     .run()
@@ -3830,8 +3782,17 @@ function ensureDefaultPipelineSeed(database) {
   database
     .prepare(
       `
-      INSERT OR IGNORE INTO Pipeline_Stages (stage_id, pipeline_id, name, position)
-      VALUES ('stage_thesis_alignment', 'pipeline_default', '1_thesis_alignment', 1)
+      INSERT OR IGNORE INTO Project_Overview (project_id, Project_Status, Project_Priority_Rank)
+      VALUES ('pipeline_default', 'On-Going', 'Mid')
+    `,
+    )
+    .run()
+
+  database
+    .prepare(
+      `
+      INSERT OR IGNORE INTO Project_Stages (stage_id, project_id, name, position, is_terminal)
+      VALUES ('stage_thesis_alignment', 'pipeline_default', '1_thesis_alignment', 1, 0)
     `,
     )
     .run()
@@ -3844,13 +3805,13 @@ function buildOpportunityForeignKeyDebug(database, { companyId = null, kind = nu
     : null
   const pipelineExists = Boolean(
     database
-      .prepare("SELECT 1 FROM Pipelines WHERE pipeline_id = 'pipeline_default' LIMIT 1")
+      .prepare("SELECT 1 FROM Projects WHERE id = 'pipeline_default' LIMIT 1")
       .get(),
   )
   const stageExists = Boolean(
     database
       .prepare(
-        "SELECT 1 FROM Pipeline_Stages WHERE stage_id = 'stage_thesis_alignment' AND pipeline_id = 'pipeline_default' LIMIT 1",
+        "SELECT 1 FROM Project_Stages WHERE stage_id = 'stage_thesis_alignment' AND project_id = 'pipeline_default' LIMIT 1",
       )
       .get(),
   )
@@ -4476,7 +4437,7 @@ function registerIpc() {
     const pid = String(pipelineId || '')
     if (!pid) throw new Error('pipelineId is required')
     if (pid === 'pipeline_default') throw new Error('Cannot delete the default pipeline')
-    return deleteRow('Pipelines', 'pipeline_id', pid)
+    return deleteRow('Projects', 'id', pid)
   })
 
   ipcMain.handle('companies:list', async () => {

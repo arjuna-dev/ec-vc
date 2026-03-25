@@ -13,16 +13,16 @@ CREATE TABLE IF NOT EXISTS events (
   field_name TEXT NOT NULL,
   old_value TEXT,
   new_value TEXT,
-  edited_by_uuid TEXT NOT NULL,
-  edited_by_label TEXT NOT NULL,
-  edited_at TEXT NOT NULL DEFAULT (datetime('now'))
+  edited_by TEXT NOT NULL,
+  edited_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (edited_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
 CREATE INDEX IF NOT EXISTS idx_events_table_record
   ON events(table_name, record_id, edited_at);
 
 CREATE INDEX IF NOT EXISTS idx_events_editor
-  ON events(edited_by_uuid, edited_at);
+  ON events(edited_by, edited_at);
 
 CREATE INDEX IF NOT EXISTS idx_events_edited_at
   ON events(edited_at);
@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS databook_snapshots (
   table_name TEXT NOT NULL,
   record_id TEXT NOT NULL,
   payload_json TEXT NOT NULL,
-  created_by_uuid TEXT NOT NULL,
-  created_by_label TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
 CREATE INDEX IF NOT EXISTS idx_databook_snapshots_record
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS Companies (
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (created_by) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE SET NULL
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_Companies_company_name
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS Funds (
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (created_by) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE SET NULL
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_Funds_created_by
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS Fund_Strategy (
   Fund_Target_Positions INTEGER,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (fund_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (fund_id) REFERENCES Funds(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Fund_Strategy_Target_Regions (
@@ -248,7 +248,7 @@ CREATE TABLE IF NOT EXISTS Rounds (
   created_by TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (created_by) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE SET NULL
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_Rounds_created_by
@@ -377,14 +377,89 @@ CREATE TABLE IF NOT EXISTS EPL_Business_Units (
 
 CREATE TABLE IF NOT EXISTS Projects (
   id TEXT PRIMARY KEY,
+  created_by TEXT,
   Project_Name TEXT,
-  Type TEXT,
-  Status TEXT,
-  Priority_Level TEXT,
-  Timeline TEXT,
-  Due_Date TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS Project_Overview (
+  project_id TEXT PRIMARY KEY,
+  Project_Status TEXT CHECK (
+    Project_Status IS NULL OR Project_Status IN (
+      'Pre-Launch', 'On-Going', 'Paused', 'Finished', 'Dropped', 'Back-burner'
+    )
+  ),
+  Project_Priority_Rank TEXT CHECK (
+    Project_Priority_Rank IS NULL OR Project_Priority_Rank IN ('Low', 'Mid-Low', 'Mid', 'Mid-High', 'High')
+  ),
+  Project_Start_Date TEXT,
+  Project_Due_Date TEXT,
+  Project_End_Date TEXT,
+  Project_Target_Amount REAL,
+  Project_Summary TEXT,
+  install_status TEXT NOT NULL DEFAULT 'not_installed' CHECK (
+    install_status IN ('not_installed', 'installing', 'installed', 'uninstalling', 'error')
+  ),
+  install_error TEXT,
+  installed_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Project_Team (
+  project_id TEXT PRIMARY KEY,
+  Project_Team_Owner TEXT,
+  Project_Team_Other_Artifact_Id TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (Project_Team_Owner) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (Project_Team_Other_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Project_Team_owner
+  ON Project_Team(Project_Team_Owner);
+
+CREATE TABLE IF NOT EXISTS Project_Team_Lead (
+  project_id TEXT NOT NULL,
+  contact_id TEXT NOT NULL,
+  PRIMARY KEY (project_id, contact_id),
+  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Project_Team_Senior (
+  project_id TEXT NOT NULL,
+  contact_id TEXT NOT NULL,
+  PRIMARY KEY (project_id, contact_id),
+  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Project_Team_Mid (
+  project_id TEXT NOT NULL,
+  contact_id TEXT NOT NULL,
+  PRIMARY KEY (project_id, contact_id),
+  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Project_Team_Junior (
+  project_id TEXT NOT NULL,
+  contact_id TEXT NOT NULL,
+  PRIMARY KEY (project_id, contact_id),
+  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (contact_id) REFERENCES Contacts(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Project_Team_Agents (
+  project_id TEXT NOT NULL,
+  agent_name TEXT NOT NULL,
+  PRIMARY KEY (project_id, agent_name),
+  FOREIGN KEY (project_id) REFERENCES Projects(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Tasks (
@@ -392,7 +467,8 @@ CREATE TABLE IF NOT EXISTS Tasks (
   created_by TEXT,
   Task_Name TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS Task_Overview (
@@ -566,17 +642,15 @@ CREATE TABLE IF NOT EXISTS PipelineInvestmentProcess (
 
 CREATE TABLE IF NOT EXISTS Notes (
   id TEXT PRIMARY KEY,
-  title TEXT,
-  content TEXT NOT NULL,
-  reference_type TEXT NOT NULL CHECK (reference_type IN ('opportunity', 'task', 'company', 'contact', 'artifact', 'pipeline')),
-  reference_id TEXT NOT NULL,
-  created_by_uuid TEXT,
-  created_by_label TEXT,
+  created_by TEXT,
+  Note_Name TEXT,
+  Note_Content TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_notes_reference ON Notes(reference_type, reference_id);
+CREATE INDEX IF NOT EXISTS idx_notes_created_by ON Notes(created_by);
 CREATE INDEX IF NOT EXISTS idx_notes_created_at ON Notes(created_at);
 `
 
@@ -1278,38 +1352,17 @@ CREATE TABLE IF NOT EXISTS Assistant_System_Prompts (
 CREATE INDEX IF NOT EXISTS idx_Assistant_System_Prompts_active
   ON Assistant_System_Prompts(is_active);
 
-CREATE TABLE IF NOT EXISTS Pipelines (
-  pipeline_id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  dir_name TEXT,
-  is_default INTEGER NOT NULL DEFAULT 0 CHECK (is_default IN (0, 1)),
-  install_status TEXT NOT NULL DEFAULT 'not_installed' CHECK (install_status IN ('not_installed', 'installing', 'installed', 'uninstalling', 'error')),
-  install_error TEXT,
-  installed_at TEXT,
-  uninstalled_at TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_Pipelines_single_default
-  ON Pipelines(is_default)
-  WHERE is_default = 1;
-
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_Pipelines_dir_name
-  ON Pipelines(dir_name);
-
-CREATE TABLE IF NOT EXISTS Pipeline_Stages (
+CREATE TABLE IF NOT EXISTS Project_Stages (
   stage_id TEXT PRIMARY KEY,
-  pipeline_id TEXT NOT NULL,
+  project_id TEXT NOT NULL,
   name TEXT NOT NULL,
   position INTEGER NOT NULL,
   is_terminal INTEGER NOT NULL DEFAULT 0 CHECK (is_terminal IN (0, 1)),
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE CASCADE,
-  UNIQUE (pipeline_id, name),
-  UNIQUE (pipeline_id, position)
+  FOREIGN KEY (project_id) REFERENCES Projects(id) ON DELETE CASCADE,
+  UNIQUE (project_id, name),
+  UNIQUE (project_id, position)
 );
 
 CREATE TABLE IF NOT EXISTS Round_Pipeline (
@@ -1321,8 +1374,8 @@ CREATE TABLE IF NOT EXISTS Round_Pipeline (
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (round_id, pipeline_id),
   FOREIGN KEY (round_id) REFERENCES Rounds(id) ON DELETE CASCADE,
-  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE CASCADE,
-  FOREIGN KEY (stage_id) REFERENCES Pipeline_Stages(stage_id) ON DELETE RESTRICT
+  FOREIGN KEY (pipeline_id) REFERENCES Projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (stage_id) REFERENCES Project_Stages(stage_id) ON DELETE RESTRICT
 );
 
 CREATE INDEX IF NOT EXISTS idx_Round_Pipeline_pipeline
@@ -1340,8 +1393,8 @@ CREATE TABLE IF NOT EXISTS Fund_Pipeline (
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (fund_id, pipeline_id),
   FOREIGN KEY (fund_id) REFERENCES Funds(id) ON DELETE CASCADE,
-  FOREIGN KEY (pipeline_id) REFERENCES Pipelines(pipeline_id) ON DELETE CASCADE,
-  FOREIGN KEY (stage_id) REFERENCES Pipeline_Stages(stage_id) ON DELETE RESTRICT
+  FOREIGN KEY (pipeline_id) REFERENCES Projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (stage_id) REFERENCES Project_Stages(stage_id) ON DELETE RESTRICT
 );
 
 CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_pipeline
@@ -1350,16 +1403,19 @@ CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_pipeline
 CREATE INDEX IF NOT EXISTS idx_Fund_Pipeline_stage
   ON Fund_Pipeline(stage_id);
 
-INSERT OR IGNORE INTO Pipelines (pipeline_id, name, dir_name, is_default)
-VALUES ('pipeline_default', 'Default Investment Pipeline', 'pipeline_default', 1);
+INSERT OR IGNORE INTO Projects (id, Project_Name)
+VALUES ('pipeline_default', 'Default Investment Pipeline');
 
-INSERT OR IGNORE INTO Pipeline_Stages (stage_id, pipeline_id, name, position)
+INSERT OR IGNORE INTO Project_Overview (project_id, Project_Status, Project_Priority_Rank)
+VALUES ('pipeline_default', 'On-Going', 'Mid');
+
+INSERT OR IGNORE INTO Project_Stages (stage_id, project_id, name, position, is_terminal)
 VALUES
-  ('stage_thesis_alignment', 'pipeline_default', '1_thesis_alignment', 1),
-  ('stage_team_analysis', 'pipeline_default', '2_team_analysis', 2),
-  ('stage_investment_committee', 'pipeline_default', '3_investment_committee', 3),
-  ('stage_due_diligence', 'pipeline_default', '4_due_diligence', 4),
-  ('stage_closing_documents', 'pipeline_default', '5_closing_documents', 5);
+  ('stage_thesis_alignment', 'pipeline_default', '1_thesis_alignment', 1, 0),
+  ('stage_team_analysis', 'pipeline_default', '2_team_analysis', 2, 0),
+  ('stage_investment_committee', 'pipeline_default', '3_investment_committee', 3, 0),
+  ('stage_due_diligence', 'pipeline_default', '4_due_diligence', 4, 0),
+  ('stage_closing_documents', 'pipeline_default', '5_closing_documents', 5, 1);
 
 CREATE TABLE IF NOT EXISTS Artifacts (
   artifact_id TEXT PRIMARY KEY,
@@ -1380,7 +1436,7 @@ CREATE TABLE IF NOT EXISTS Artifacts (
   CHECK (round_id IS NULL OR fund_id IS NULL),
   FOREIGN KEY (round_id) REFERENCES Rounds(id) ON DELETE SET NULL,
   FOREIGN KEY (fund_id) REFERENCES Funds(id) ON DELETE SET NULL,
-  FOREIGN KEY (created_by) REFERENCES Contacts(id) ON DELETE SET NULL
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_Artifacts_round_created
@@ -1694,9 +1750,9 @@ BEGIN
     CASE
       WHEN NOT EXISTS (
         SELECT 1
-        FROM Pipeline_Stages s
+        FROM Project_Stages s
         WHERE s.stage_id = NEW.stage_id
-          AND s.pipeline_id = NEW.pipeline_id
+          AND s.project_id = NEW.pipeline_id
       )
       THEN RAISE(ABORT, 'stage_id does not belong to pipeline_id')
     END;
@@ -1710,9 +1766,9 @@ BEGIN
     CASE
       WHEN NOT EXISTS (
         SELECT 1
-        FROM Pipeline_Stages s
+        FROM Project_Stages s
         WHERE s.stage_id = NEW.stage_id
-          AND s.pipeline_id = NEW.pipeline_id
+          AND s.project_id = NEW.pipeline_id
       )
       THEN RAISE(ABORT, 'fund stage_id does not belong to pipeline_id')
     END;
@@ -1914,6 +1970,22 @@ BEGIN
   UPDATE Projects SET updated_at = datetime('now') WHERE id = OLD.id;
 END;
 
+CREATE TRIGGER IF NOT EXISTS trg_Project_Overview_updated_at
+AFTER UPDATE ON Project_Overview
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Project_Overview SET updated_at = datetime('now') WHERE project_id = OLD.project_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_Project_Team_updated_at
+AFTER UPDATE ON Project_Team
+FOR EACH ROW
+WHEN NEW.updated_at = OLD.updated_at
+BEGIN
+  UPDATE Project_Team SET updated_at = datetime('now') WHERE project_id = OLD.project_id;
+END;
+
 -- Stage must belong to pipeline on UPDATE too
 CREATE TRIGGER IF NOT EXISTS trg_Round_Pipeline_stage_matches_upd
 BEFORE UPDATE OF stage_id, pipeline_id ON Round_Pipeline
@@ -1921,8 +1993,8 @@ FOR EACH ROW
 BEGIN
   SELECT CASE
     WHEN NOT EXISTS (
-      SELECT 1 FROM Pipeline_Stages s
-      WHERE s.stage_id = NEW.stage_id AND s.pipeline_id = NEW.pipeline_id
+      SELECT 1 FROM Project_Stages s
+      WHERE s.stage_id = NEW.stage_id AND s.project_id = NEW.pipeline_id
     )
     THEN RAISE(ABORT, 'stage_id does not belong to pipeline_id')
   END;
@@ -1934,8 +2006,8 @@ FOR EACH ROW
 BEGIN
   SELECT CASE
     WHEN NOT EXISTS (
-      SELECT 1 FROM Pipeline_Stages s
-      WHERE s.stage_id = NEW.stage_id AND s.pipeline_id = NEW.pipeline_id
+      SELECT 1 FROM Project_Stages s
+      WHERE s.stage_id = NEW.stage_id AND s.project_id = NEW.pipeline_id
     )
     THEN RAISE(ABORT, 'fund stage_id does not belong to pipeline_id')
   END;

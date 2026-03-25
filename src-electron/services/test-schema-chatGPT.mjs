@@ -161,6 +161,14 @@ await runTest('Core tables exist', async () => {
     'Contacts',
     'EPL_Business_Units',
     'Projects',
+    'Project_Overview',
+    'Project_Team',
+    'Project_Team_Lead',
+    'Project_Team_Senior',
+    'Project_Team_Mid',
+    'Project_Team_Junior',
+    'Project_Team_Agents',
+    'Project_Stages',
     'Tasks',
     'Task_Overview',
     'Task_Team',
@@ -179,8 +187,6 @@ await runTest('Core tables exist', async () => {
     'PipelineInvestmentProcess',
     // pipeline subsystem
     'Assistant_System_Prompts',
-    'Pipelines',
-    'Pipeline_Stages',
     'Round_Pipeline',
     'Fund_Pipeline',
     'Artifacts',
@@ -200,18 +206,21 @@ await runTest('Core tables exist', async () => {
 await runTest('Important indexes exist (spot-check)', async () => {
   assert.equal(indexExists(db, 'idx_Companies_company_name'), true)
   assert.equal(indexExists(db, 'idx_Round_Overview_sponsor_company_id'), true)
-  assert.equal(indexExists(db, 'idx_Pipelines_single_default'), true)
-  assert.equal(indexExists(db, 'idx_Pipelines_dir_name'), true)
+  assert.equal(indexExists(db, 'idx_Project_Team_owner'), true)
+  assert.equal(indexExists(db, 'idx_Round_Pipeline_pipeline'), true)
   assert.equal(indexExists(db, 'idx_Artifact_Raw_unique_path'), true)
 })
 
 await runTest('Seeded default pipeline exists + stages inserted', async () => {
-  const p = querySingle(db, `SELECT * FROM Pipelines WHERE pipeline_id='pipeline_default'`)
+  const p = querySingle(db, `SELECT * FROM Projects WHERE id='pipeline_default'`)
   assert.ok(p, 'Expected pipeline_default row to exist')
+
+  const overview = querySingle(db, `SELECT * FROM Project_Overview WHERE project_id='pipeline_default'`)
+  assert.ok(overview, 'Expected overview row for pipeline_default')
 
   const stages = queryAll(
     db,
-    `SELECT * FROM Pipeline_Stages WHERE pipeline_id='pipeline_default' ORDER BY position ASC`,
+    `SELECT * FROM Project_Stages WHERE project_id='pipeline_default' ORDER BY position ASC`,
   )
   assert.equal(stages.length, 5, 'Expected 5 seeded stages for pipeline_default')
 })
@@ -246,6 +255,70 @@ await runTest('Users email is unique and Contacts can link to Users', async () =
         `INSERT INTO Contacts (id, Name, Personal_Email, linked_user_id) VALUES (?,?,?,?)`,
       ).run('contact_2', 'Alice Again', 'alice2@example.com', 'user_1'),
     'UNIQUE',
+  )
+})
+
+await runTest('Creator and audit fields reference Users', async () => {
+  db.prepare(`INSERT INTO Users (id, User_Name, User_PEmail) VALUES (?,?,?)`).run(
+    'user_owner',
+    'Owner User',
+    'owner.user@example.com',
+  )
+
+  db.prepare(`INSERT INTO Companies (id, Company_Name, created_by) VALUES (?,?,?)`).run(
+    20,
+    'CreatorCo',
+    'user_owner',
+  )
+  db.prepare(`INSERT INTO Funds (id, Fund_Name, created_by) VALUES (?,?,?)`).run(
+    'fund_owner',
+    'Creator Fund',
+    'user_owner',
+  )
+  db.prepare(`INSERT INTO Rounds (id, Round_Name, created_by) VALUES (?,?,?)`).run(
+    'round_owner',
+    'Creator Round',
+    'user_owner',
+  )
+  db.prepare(`INSERT INTO Tasks (id, Task_Name, created_by) VALUES (?,?,?)`).run(
+    'task_owner',
+    'Creator Task',
+    'user_owner',
+  )
+  db.prepare(`INSERT INTO Artifacts (artifact_id, title, created_by) VALUES (?,?,?)`).run(
+    'artifact_owner',
+    'Creator Artifact',
+    'user_owner',
+  )
+  db.prepare(`INSERT INTO Notes (id, Note_Name, Note_Content, created_by) VALUES (?,?,?,?)`).run(
+    'note_owner',
+    'Creator Note',
+    'Body',
+    'user_owner',
+  )
+  db.prepare(
+    `INSERT INTO events (id, table_name, record_id, field_name, new_value, edited_by) VALUES (?,?,?,?,?,?)`,
+  ).run('event_owner', 'Notes', 'note_owner', 'Note_Name', 'Creator Note', 'user_owner')
+  db.prepare(
+    `INSERT INTO databook_snapshots (id, table_name, record_id, payload_json, created_by) VALUES (?,?,?,?,?)`,
+  ).run('snapshot_owner', 'Notes', 'note_owner', '{"ok":true}', 'user_owner')
+
+  mustThrow(
+    () =>
+      db.prepare(`INSERT INTO Notes (id, Note_Name, Note_Content, created_by) VALUES (?,?,?,?)`).run(
+        'note_bad_owner',
+        'Bad Note',
+        'Body',
+        'missing_user',
+      ),
+    'FOREIGN KEY',
+  )
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO events (id, table_name, record_id, field_name, new_value, edited_by) VALUES (?,?,?,?,?,?)`,
+      ).run('event_bad_owner', 'Notes', 'note_owner', 'Note_Name', 'Bad', 'missing_user'),
+    'FOREIGN KEY',
   )
 })
 
@@ -459,14 +532,11 @@ await runTest('Join table CASCADE behavior sanity check', async () => {
 
 await runTest('Pipeline stage must belong to pipeline (Round_Pipeline trigger)', async () => {
   // make a second pipeline + stage
-  db.prepare(`INSERT INTO Pipelines (pipeline_id, name, dir_name) VALUES (?,?,?)`).run(
-    'p2',
-    'Pipeline2',
-    'pipeline_2',
-  )
+  db.prepare(`INSERT INTO Projects (id, Project_Name) VALUES (?,?)`).run('p2', 'Pipeline2')
+  db.prepare(`INSERT INTO Project_Overview (project_id) VALUES (?)`).run('p2')
   db.prepare(
-    `INSERT INTO Pipeline_Stages (stage_id, pipeline_id, name, position) VALUES (?,?,?,?)`,
-  ).run('p2_s1', 'p2', 'stage1', 1)
+    `INSERT INTO Project_Stages (stage_id, project_id, name, position, is_terminal) VALUES (?,?,?,?,?)`,
+  ).run('p2_s1', 'p2', 'stage1', 1, 0)
 
   db.prepare(`INSERT OR IGNORE INTO Rounds (id, Round_Name) VALUES (?,?)`).run('r_pipe', 'Pipe Round')
 
@@ -484,7 +554,7 @@ await runTest('Pipeline stage must belong to pipeline (Round_Pipeline trigger)',
   // This should PASS
   const defaultStage = querySingle(
     db,
-    `SELECT stage_id FROM Pipeline_Stages WHERE pipeline_id='pipeline_default' ORDER BY position LIMIT 1`,
+    `SELECT stage_id FROM Project_Stages WHERE project_id='pipeline_default' ORDER BY position LIMIT 1`,
   ).stage_id
 
   db.prepare(`INSERT INTO Round_Pipeline (round_id, pipeline_id, stage_id, status) VALUES (?,?,?,?)`).run(
@@ -510,7 +580,7 @@ await runTest('Fund_Pipeline stage must belong to pipeline (trigger)', async () 
   // match stage should pass
   const defaultStage = querySingle(
     db,
-    `SELECT stage_id FROM Pipeline_Stages WHERE pipeline_id='pipeline_default' ORDER BY position LIMIT 1`,
+    `SELECT stage_id FROM Project_Stages WHERE project_id='pipeline_default' ORDER BY position LIMIT 1`,
   ).stage_id
 
   db.prepare(`INSERT INTO Fund_Pipeline (fund_id, pipeline_id, stage_id) VALUES (?,?,?)`).run(
