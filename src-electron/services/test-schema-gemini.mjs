@@ -12,9 +12,10 @@ async function runTests() {
     db.exec(SCHEMA_V1_SQL)
     console.log('✅ Schema Initialization: SUCCESS')
 
-    // 2. Test Basic Insertion (Company & Opportunity)
-    const companyId = 'comp_123'
-    const opptyId = 'opp_123'
+    // 2. Test Basic Insertion (Company, Round, Fund)
+    const companyId = 123
+    const roundId = 'round_123'
+    const fundId = 'fund_123'
 
     db.prepare(
       `
@@ -25,10 +26,33 @@ async function runTests() {
 
     db.prepare(
       `
-      INSERT INTO Opportunities (id, company_id, Venture_Oppty_Name) 
-      VALUES (?, ?, 'Acme Seed Round')
+      INSERT INTO Rounds (id, Round_Name, created_by) 
+      VALUES (?, 'Acme Seed Round', NULL)
     `,
-    ).run(opptyId, companyId)
+    ).run(roundId)
+
+    db.prepare(
+      `
+      INSERT INTO Round_Overview (
+        round_id, sponsor_company_id, Round_Raising_Status, Round_Security_Type
+      ) VALUES (?, ?, 'Raising', 'Equity_Common')
+    `,
+    ).run(roundId, companyId)
+
+    db.prepare(
+      `
+      INSERT INTO Funds (id, Fund_Name, created_by)
+      VALUES (?, 'Acme Fund I', NULL)
+    `,
+    ).run(fundId)
+
+    db.prepare(
+      `
+      INSERT INTO Fund_Overview (
+        fund_id, Fund_Raising_Status, Fund_Period, Fund_Target_Size
+      ) VALUES (?, 'Raising', 'Raising', 10000000)
+    `,
+    ).run(fundId)
 
     console.log('✅ Basic Insertions & Foreign Keys: SUCCESS')
 
@@ -40,7 +64,7 @@ async function runTests() {
     // Wait a moment to ensure clock moves
     await new Promise((resolve) => setTimeout(resolve, 1100))
 
-    db.prepare("UPDATE Companies SET Status = 'Active' WHERE id = ?").run(companyId)
+    db.prepare("UPDATE Companies SET One_Liner = 'Active' WHERE id = ?").run(companyId)
     const updatedCompany = db
       .prepare('SELECT updated_at FROM Companies WHERE id = ?')
       .get(companyId)
@@ -55,30 +79,53 @@ async function runTests() {
     console.log('\n🧪 Testing Integrity Triggers (Expect Failures)...')
 
     try {
-      // Attempt to link opportunity to a stage that exists but in the WRONG pipeline
-      // Note: pipeline_default has 'stage_thesis_alignment'
+      // Attempt to link round to a stage that exists but in the WRONG pipeline
       db.prepare(
         `
-        INSERT INTO Opportunity_Pipeline (opportunity_id, pipeline_id, stage_id)
+        INSERT INTO Round_Pipeline (round_id, pipeline_id, stage_id)
         VALUES (?, 'non_existent_pipeline', 'stage_thesis_alignment')
       `,
-      ).run(opptyId)
+      ).run(roundId)
       throw new Error('Integrity Check Failed: Allowed invalid pipeline_id')
     } catch {
       console.log('✅ Pipeline/Stage Match Trigger: SUCCESS (Blocked invalid entry)')
     }
 
-    // 5. Test Artifact insertion linked directly to an opportunity
+    try {
+      db.prepare(
+        `
+        INSERT INTO Fund_Pipeline (fund_id, pipeline_id, stage_id)
+        VALUES (?, 'non_existent_pipeline', 'stage_thesis_alignment')
+      `,
+      ).run(fundId)
+      throw new Error('Integrity Check Failed: Allowed invalid fund pipeline_id')
+    } catch {
+      console.log('✅ Fund Pipeline/Stage Match Trigger: SUCCESS (Blocked invalid entry)')
+    }
+
+    // 5. Test Artifact insertion linked directly to a round/fund
     db.prepare(
       `
-      INSERT INTO Artifacts (artifact_id, opportunity_id, title)
+      INSERT INTO Artifacts (artifact_id, round_id, title)
       VALUES ('art_1', ?, 'test artifact')
       `,
-    ).run(opptyId)
+    ).run(roundId)
+    db.prepare(
+      `
+      INSERT INTO Artifacts (artifact_id, fund_id, title)
+      VALUES ('art_2', ?, 'test fund artifact')
+      `,
+    ).run(fundId)
     db.prepare(
       `
       INSERT INTO Artifact_Raw (artifact_id, fs_path, fs_hash, fs_size_bytes)
       VALUES ('art_1', '/path/test.pdf', NULL, NULL)
+      `,
+    ).run()
+    db.prepare(
+      `
+      INSERT INTO Artifact_Raw (artifact_id, fs_path, fs_hash, fs_size_bytes)
+      VALUES ('art_2', '/path/test-fund.pdf', NULL, NULL)
       `,
     ).run()
     console.log('✅ Artifact insertion by opportunity: SUCCESS')

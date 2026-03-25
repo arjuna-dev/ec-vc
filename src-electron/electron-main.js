@@ -307,20 +307,16 @@ function listCompanies() {
       cii.Company_Type,
       cii.Legal_Entity,
       cii.Date_of_Incorporation,
-      cii.incorporation_country_id,
-      ic.Country_Name AS Incorporation_Country_Name,
+      cii.incorporation_country,
       cii.Incorporation_Type,
       coo.Company_Stage,
       coo.Status,
-      coo.headquarters_city_id,
-      hc.City_Name AS Headquarters_City_Name,
+      coo.headquarters_city,
       coo.PAX_Count,
       coo.PAX_Known
     FROM Companies c
     LEFT JOIN Company_Incorporation_Info cii ON cii.company_id = c.id
-    LEFT JOIN Countries ic ON ic.id = cii.incorporation_country_id
     LEFT JOIN Company_Operations_Overview coo ON coo.company_id = c.id
-    LEFT JOIN Cities hc ON hc.id = coo.headquarters_city_id
     WHERE c.Company_Name IS NOT NULL AND c.Company_Name <> ''
     ORDER BY c.Company_Name ASC
   `,
@@ -330,13 +326,22 @@ function listCompanies() {
 function normalizeCompanyType(database, value) {
   const candidate = normalizeNullableString(value)
   if (!candidate) return null
-  return (
-    normalizeNullableString(
-      database
-        .prepare('SELECT type FROM company_types WHERE lower(type) = lower(?) LIMIT 1')
-        .get(candidate)?.type,
-    ) || null
-  )
+  const allowed = [
+    'Venture',
+    'Corporation',
+    'Asset Manager',
+    'Academia',
+    'Government',
+    'Other',
+  ]
+  return allowed.find((item) => item.toLowerCase() === candidate.toLowerCase()) || null
+}
+
+function normalizeCompanyStage(value) {
+  const candidate = normalizeNullableString(value)
+  if (!candidate) return null
+  const normalized = candidate.toLowerCase()
+  return ['early', 'mid', 'late'].includes(normalized) ? normalized : null
 }
 
 function normalizeNullableIntegerId(value) {
@@ -346,13 +351,172 @@ function normalizeNullableIntegerId(value) {
   return intValue > 0 ? intValue : null
 }
 
+function normalizeTaskStatus(value) {
+  const candidate = normalizeNullableString(value)
+  if (!candidate) return null
+  const normalized = candidate.trim().toLowerCase()
+  const allowed = new Map([
+    ['backlog', 'Backlog'],
+    ['in progress', 'In Progress'],
+    ['in_progress', 'In Progress'],
+    ['completed', 'Completed'],
+    ['closed', 'Closed'],
+  ])
+  return allowed.get(normalized) || null
+}
+
+function normalizeTaskPriorityRank(value) {
+  const candidate = normalizeNullableString(value)
+  if (!candidate) return null
+  const normalized = candidate.trim().toLowerCase()
+  const allowed = new Map([
+    ['low', 'Low'],
+    ['mid-low', 'Mid-Low'],
+    ['mid low', 'Mid-Low'],
+    ['mid', 'Mid'],
+    ['mid-high', 'Mid-High'],
+    ['mid high', 'Mid-High'],
+    ['high', 'High'],
+  ])
+  return allowed.get(normalized) || null
+}
+
+function normalizeTaskContactIds(value) {
+  const values = Array.isArray(value) ? value : value == null ? [] : [value]
+  return [...new Set(values.map((entry) => normalizeNullableString(entry)).filter(Boolean))]
+}
+
+function upsertTaskOverview(database, taskId, source = {}) {
+  const payload = {
+    task_id: taskId,
+    Task_Summary:
+      normalizeNullableString(source.Task_Summary) ||
+      normalizeNullableString(source.Task_Description) ||
+      normalizeNullableString(source.Task_Summary_Text),
+    Task_Status: normalizeTaskStatus(source.Task_Status || source.Status) || 'Backlog',
+    Task_Priority_Rank:
+      normalizeTaskPriorityRank(source.Task_Priority_Rank || source.Priority) || 'Mid',
+    Task_Start_Date: normalizeNullableString(source.Task_Start_Date || source.Start_Date),
+    Task_Due_Date: normalizeNullableString(source.Task_Due_Date || source.Due_Date),
+    Task_End_Date: normalizeNullableString(source.Task_End_Date || source.End_Date),
+  }
+
+  database
+    .prepare(
+      `
+      INSERT INTO Task_Overview (
+        task_id, Task_Summary, Task_Status, Task_Priority_Rank, Task_Start_Date, Task_Due_Date,
+        Task_End_Date, created_at, updated_at
+      ) VALUES (
+        @task_id, @Task_Summary, @Task_Status, @Task_Priority_Rank, @Task_Start_Date, @Task_Due_Date,
+        @Task_End_Date, datetime('now'), datetime('now')
+      )
+      ON CONFLICT(task_id) DO UPDATE SET
+        Task_Summary = excluded.Task_Summary,
+        Task_Status = excluded.Task_Status,
+        Task_Priority_Rank = excluded.Task_Priority_Rank,
+        Task_Start_Date = excluded.Task_Start_Date,
+        Task_Due_Date = excluded.Task_Due_Date,
+        Task_End_Date = excluded.Task_End_Date,
+        updated_at = datetime('now')
+    `,
+    )
+    .run(payload)
+}
+
+function replaceTaskContactLinks(database, tableName, taskId, contactIds) {
+  database.prepare(`DELETE FROM ${tableName} WHERE task_id = ?`).run(taskId)
+  const insert = database.prepare(
+    `INSERT OR IGNORE INTO ${tableName} (task_id, contact_id) VALUES (?, ?)`,
+  )
+  for (const contactId of contactIds) insert.run(taskId, contactId)
+}
+
+function upsertTaskTeam(database, taskId, source = {}) {
+  const ownerId =
+    normalizeNullableString(source.Task_Team_Owner) || normalizeNullableString(source.contact_id)
+
+  database
+    .prepare(
+      `
+      INSERT INTO Task_Team (task_id, Task_Team_Owner, created_at, updated_at)
+      VALUES (?, ?, datetime('now'), datetime('now'))
+      ON CONFLICT(task_id) DO UPDATE SET
+        Task_Team_Owner = excluded.Task_Team_Owner,
+        updated_at = datetime('now')
+    `,
+    )
+    .run(taskId, ownerId)
+
+  replaceTaskContactLinks(
+    database,
+    'Task_Team_Assigned',
+    taskId,
+    normalizeTaskContactIds(source.Task_Team_Assigned),
+  )
+  replaceTaskContactLinks(
+    database,
+    'Task_Team_Support',
+    taskId,
+    normalizeTaskContactIds(source.Task_Team_Support),
+  )
+}
+
+function syncTaskRelations(database, taskId, source = {}) {
+  const companyId = normalizeNullableString(source.company_id || source.Task_Company)
+  const projectId = normalizeNullableString(source.project_id || source.Task_Project)
+  const roundId =
+    normalizeNullableString(source.round_id || source.Task_Round) ||
+    (() => {
+      const candidate = normalizeNullableString(source.opportunity_id)
+      if (!candidate) return null
+      const round = database.prepare('SELECT id FROM Rounds WHERE id = ? LIMIT 1').get(candidate)
+      return round?.id || null
+    })()
+  const fundId =
+    normalizeNullableString(source.fund_id || source.Task_Fund) ||
+    (() => {
+      const candidate = normalizeNullableString(source.opportunity_id)
+      if (!candidate) return null
+      const fund = database.prepare('SELECT id FROM Funds WHERE id = ? LIMIT 1').get(candidate)
+      return fund?.id || null
+    })()
+
+  database.prepare('DELETE FROM Tasks_Companies_related_companies WHERE from_id = ?').run(taskId)
+  database.prepare('DELETE FROM Tasks_Projects_projects WHERE from_id = ?').run(taskId)
+  database.prepare('DELETE FROM Tasks_Rounds_related_round WHERE from_id = ?').run(taskId)
+  database.prepare('DELETE FROM Tasks_Funds_related_fund WHERE from_id = ?').run(taskId)
+
+  if (companyId) {
+    database
+      .prepare('INSERT OR IGNORE INTO Tasks_Companies_related_companies (from_id, to_id) VALUES (?, ?)')
+      .run(taskId, companyId)
+  }
+  if (projectId) {
+    database
+      .prepare('INSERT OR IGNORE INTO Tasks_Projects_projects (from_id, to_id) VALUES (?, ?)')
+      .run(taskId, projectId)
+  }
+  if (roundId) {
+    database
+      .prepare('INSERT OR IGNORE INTO Tasks_Rounds_related_round (from_id, to_id) VALUES (?, ?)')
+      .run(taskId, roundId)
+  }
+  if (fundId) {
+    database
+      .prepare('INSERT OR IGNORE INTO Tasks_Funds_related_fund (from_id, to_id) VALUES (?, ?)')
+      .run(taskId, fundId)
+  }
+}
+
 function upsertCompanyIncorporationInfo(database, companyId, source = {}) {
   const payload = {
     company_id: companyId,
     Company_Type: normalizeCompanyType(database, source.Company_Type),
     Legal_Entity: normalizeNullableString(source.Legal_Entity),
     Date_of_Incorporation: normalizeNullableString(source.Date_of_Incorporation),
-    incorporation_country_id:
+    incorporation_country:
+      normalizeNullableString(source.incorporation_country) ||
       normalizeNullableString(source.incorporation_country_id) ||
       normalizeNullableString(source.Incorporation_Country_Id) ||
       normalizeNullableString(source.Incorporation_Country),
@@ -363,7 +527,7 @@ function upsertCompanyIncorporationInfo(database, companyId, source = {}) {
     !hasMeaningfulValue(payload.Company_Type) &&
     !hasMeaningfulValue(payload.Legal_Entity) &&
     !hasMeaningfulValue(payload.Date_of_Incorporation) &&
-    !hasMeaningfulValue(payload.incorporation_country_id) &&
+    !hasMeaningfulValue(payload.incorporation_country) &&
     !hasMeaningfulValue(payload.Incorporation_Type)
   ) {
     return
@@ -373,17 +537,17 @@ function upsertCompanyIncorporationInfo(database, companyId, source = {}) {
     .prepare(
       `
       INSERT INTO Company_Incorporation_Info (
-        company_id, Company_Type, Legal_Entity, Date_of_Incorporation, incorporation_country_id,
+        company_id, Company_Type, Legal_Entity, Date_of_Incorporation, incorporation_country,
         Incorporation_Type
       ) VALUES (
-        @company_id, @Company_Type, @Legal_Entity, @Date_of_Incorporation, @incorporation_country_id,
+        @company_id, @Company_Type, @Legal_Entity, @Date_of_Incorporation, @incorporation_country,
         @Incorporation_Type
       )
       ON CONFLICT(company_id) DO UPDATE SET
         Company_Type = COALESCE(excluded.Company_Type, Company_Incorporation_Info.Company_Type),
         Legal_Entity = COALESCE(excluded.Legal_Entity, Company_Incorporation_Info.Legal_Entity),
         Date_of_Incorporation = COALESCE(excluded.Date_of_Incorporation, Company_Incorporation_Info.Date_of_Incorporation),
-        incorporation_country_id = COALESCE(excluded.incorporation_country_id, Company_Incorporation_Info.incorporation_country_id),
+        incorporation_country = COALESCE(excluded.incorporation_country, Company_Incorporation_Info.incorporation_country),
         Incorporation_Type = COALESCE(excluded.Incorporation_Type, Company_Incorporation_Info.Incorporation_Type),
         updated_at = datetime('now')
     `,
@@ -394,11 +558,13 @@ function upsertCompanyIncorporationInfo(database, companyId, source = {}) {
 function upsertCompanyOperationsOverview(database, companyId, source = {}) {
   const payload = {
     company_id: companyId,
-    Company_Stage: normalizeNullableString(source.Company_Stage),
+    Company_Stage: normalizeCompanyStage(source.Company_Stage),
     Status: normalizeNullableString(source.Status),
-    headquarters_city_id:
+    headquarters_city:
+      normalizeNullableString(source.headquarters_city) ||
       normalizeNullableString(source.headquarters_city_id) ||
       normalizeNullableString(source.Headquarters_City_Id) ||
+      normalizeNullableString(source.Headquarters_City) ||
       normalizeNullableString(source.city_id),
     PAX_Count:
       normalizeNullableNumber(source.PAX_Count) ??
@@ -420,7 +586,7 @@ function upsertCompanyOperationsOverview(database, companyId, source = {}) {
   if (
     !hasMeaningfulValue(payload.Company_Stage) &&
     !hasMeaningfulValue(payload.Status) &&
-    !hasMeaningfulValue(payload.headquarters_city_id) &&
+    !hasMeaningfulValue(payload.headquarters_city) &&
     !hasMeaningfulValue(payload.PAX_Count) &&
     !hasMeaningfulValue(payload.PAX_Known) &&
     !hasMeaningfulValue(payload.business_structure_artifact_id) &&
@@ -434,16 +600,16 @@ function upsertCompanyOperationsOverview(database, companyId, source = {}) {
     .prepare(
       `
       INSERT INTO Company_Operations_Overview (
-        company_id, Company_Stage, Status, headquarters_city_id, PAX_Count, PAX_Known,
+        company_id, Company_Stage, Status, headquarters_city, PAX_Count, PAX_Known,
         business_structure_artifact_id, corporate_structure_artifact_id, organizational_structure_artifact_id
       ) VALUES (
-        @company_id, @Company_Stage, @Status, @headquarters_city_id, @PAX_Count, @PAX_Known,
+        @company_id, @Company_Stage, @Status, @headquarters_city, @PAX_Count, @PAX_Known,
         @business_structure_artifact_id, @corporate_structure_artifact_id, @organizational_structure_artifact_id
       )
       ON CONFLICT(company_id) DO UPDATE SET
         Company_Stage = COALESCE(excluded.Company_Stage, Company_Operations_Overview.Company_Stage),
         Status = COALESCE(excluded.Status, Company_Operations_Overview.Status),
-        headquarters_city_id = COALESCE(excluded.headquarters_city_id, Company_Operations_Overview.headquarters_city_id),
+        headquarters_city = COALESCE(excluded.headquarters_city, Company_Operations_Overview.headquarters_city),
         PAX_Count = COALESCE(excluded.PAX_Count, Company_Operations_Overview.PAX_Count),
         PAX_Known = COALESCE(excluded.PAX_Known, Company_Operations_Overview.PAX_Known),
         business_structure_artifact_id = COALESCE(excluded.business_structure_artifact_id, Company_Operations_Overview.business_structure_artifact_id),
@@ -913,29 +1079,29 @@ function listTasksForPage() {
     SELECT DISTINCT
       t.id,
       t.Task_Name,
-      t.Task_Description,
-      t.Status,
-      t.Priority,
-      t.Due_Date,
-      t.pipeline_id,
+      tov.Task_Summary AS Task_Description,
+      tov.Task_Status AS Status,
+      tov.Task_Priority_Rank AS Priority,
+      tov.Task_Due_Date AS Due_Date,
+      NULL AS pipeline_id,
       t.created_at,
-      COALESCE(oround.Venture_Oppty_Name, ofund.Venture_Oppty_Name) AS opportunity_name,
-      COALESCE(oround.id, ofund.id) AS opportunity_id,
-      c.Name AS contact_name,
-      c.id AS contact_id,
+      COALESCE(r.Round_Name, f.Fund_Name) AS opportunity_name,
+      COALESCE(r.id, f.id) AS opportunity_id,
+      owner.Name AS contact_name,
+      owner.id AS contact_id,
       co.Company_Name AS company_name,
       co.id AS company_id,
-      p.name AS pipeline_name
+      NULL AS pipeline_name
     FROM Tasks t
-    LEFT JOIN Tasks_Opportunities_tasks tor ON tor.from_id = t.id
-    LEFT JOIN Opportunities oround ON oround.id = tor.to_id
-    LEFT JOIN Tasks_Opportunities_tasks_fund tof ON tof.from_id = t.id
-    LEFT JOIN Opportunities ofund ON ofund.id = tof.to_id
-    LEFT JOIN Contacts_Tasks_task_roles ctr ON ctr.to_id = t.id
-    LEFT JOIN Contacts c ON c.id = ctr.from_id
-    LEFT JOIN Companies_Tasks_tasks ctt ON ctt.to_id = t.id
-    LEFT JOIN Companies co ON co.id = ctt.from_id
-    LEFT JOIN Pipelines p ON p.pipeline_id = t.pipeline_id
+    LEFT JOIN Task_Overview tov ON tov.task_id = t.id
+    LEFT JOIN Task_Team tt ON tt.task_id = t.id
+    LEFT JOIN Contacts owner ON owner.id = tt.Task_Team_Owner
+    LEFT JOIN Tasks_Rounds_related_round trr ON trr.from_id = t.id
+    LEFT JOIN Rounds r ON r.id = trr.to_id
+    LEFT JOIN Tasks_Funds_related_fund trf ON trf.from_id = t.id
+    LEFT JOIN Funds f ON f.id = trf.to_id
+    LEFT JOIN Tasks_Companies_related_companies tcr ON tcr.from_id = t.id
+    LEFT JOIN Companies co ON co.id = tcr.to_id
     ORDER BY t.created_at DESC, t.id DESC
   `,
   )
@@ -946,49 +1112,23 @@ function createTask(payload = {}) {
   const taskName = normalizeNullableString(payload?.Task_Name)
   if (!taskName) throw new Error('Task name is required')
   const taskId = normalizeNullableString(payload?.id) || `task:${crypto.randomUUID()}`
-  const opportunityId = normalizeNullableString(payload?.opportunity_id)
-  const contactId = normalizeNullableString(payload?.contact_id)
-  const companyId = normalizeNullableString(payload?.company_id)
-  const pipelineId = normalizeNullableString(payload?.pipeline_id)
-  const opportunity =
-    opportunityId &&
-    database.prepare('SELECT id, kind FROM Opportunities WHERE id = ? LIMIT 1').get(opportunityId)
 
   database
     .prepare(
       `
-      INSERT INTO Tasks (
-        id, Task_Name, Task_Description, Status, Priority, Due_Date, pipeline_id, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      INSERT INTO Tasks (id, created_by, Task_Name, created_at, updated_at)
+      VALUES (?, ?, ?, datetime('now'), datetime('now'))
     `,
     )
     .run(
       taskId,
+      normalizeNullableString(payload?.Task_Creator) || normalizeNullableString(payload?.created_by),
       taskName,
-      normalizeNullableString(payload?.Task_Description),
-      normalizeNullableString(payload?.Status) || 'Open',
-      normalizeNullableString(payload?.Priority) || 'Medium',
-      normalizeNullableString(payload?.Due_Date),
-      pipelineId,
     )
 
-  if (opportunity?.id) {
-    const edgeTable =
-      opportunity.kind === 'fund' ? 'Tasks_Opportunities_tasks_fund' : 'Tasks_Opportunities_tasks'
-    database
-      .prepare(`INSERT OR IGNORE INTO ${edgeTable} (from_id, to_id) VALUES (?, ?)`)
-      .run(taskId, opportunity.id)
-  }
-  if (contactId) {
-    database
-      .prepare('INSERT OR IGNORE INTO Contacts_Tasks_task_roles (from_id, to_id) VALUES (?, ?)')
-      .run(contactId, taskId)
-  }
-  if (companyId) {
-    database
-      .prepare('INSERT OR IGNORE INTO Companies_Tasks_tasks (from_id, to_id) VALUES (?, ?)')
-      .run(companyId, taskId)
-  }
+  upsertTaskOverview(database, taskId, payload)
+  upsertTaskTeam(database, taskId, payload)
+  syncTaskRelations(database, taskId, payload)
 
   return { id: taskId }
 }
@@ -1008,62 +1148,27 @@ function upsertTasks(rows = []) {
       }
       const taskId = normalizeNullableString(r?.id) || `task:${crypto.randomUUID()}`
       const exists = database.prepare('SELECT 1 FROM Tasks WHERE id = ? LIMIT 1').get(taskId)
-      const pipelineId = normalizeNullableString(r?.pipeline_id)
       database
         .prepare(
           `
-          INSERT INTO Tasks (
-            id, Task_Name, Task_Description, Status, Priority, Due_Date, pipeline_id, created_at, updated_at
-          ) VALUES (
-            @id, @Task_Name, @Task_Description, @Status, @Priority, @Due_Date, @pipeline_id, datetime('now'), datetime('now')
-          )
+          INSERT INTO Tasks (id, created_by, Task_Name, created_at, updated_at)
+          VALUES (@id, @created_by, @Task_Name, datetime('now'), datetime('now'))
           ON CONFLICT(id) DO UPDATE SET
+            created_by = excluded.created_by,
             Task_Name = excluded.Task_Name,
-            Task_Description = excluded.Task_Description,
-            Status = excluded.Status,
-            Priority = excluded.Priority,
-            Due_Date = excluded.Due_Date,
-            pipeline_id = excluded.pipeline_id,
             updated_at = datetime('now')
         `,
         )
         .run({
           id: taskId,
+          created_by:
+            normalizeNullableString(r?.Task_Creator) || normalizeNullableString(r?.created_by),
           Task_Name: taskName,
-          Task_Description: normalizeNullableString(r?.Task_Description),
-          Status: normalizeNullableString(r?.Status) || 'Open',
-          Priority: normalizeNullableString(r?.Priority) || 'Medium',
-          Due_Date: normalizeNullableString(r?.Due_Date),
-          pipeline_id: pipelineId,
         })
 
-      const opportunityId = normalizeNullableString(r?.opportunity_id)
-      const contactId = normalizeNullableString(r?.contact_id)
-      const companyId = normalizeNullableString(r?.company_id)
-      const opportunity =
-        opportunityId &&
-        database
-          .prepare('SELECT id, kind FROM Opportunities WHERE id = ? LIMIT 1')
-          .get(opportunityId)
-      if (opportunity?.id) {
-        const edgeTable =
-          opportunity.kind === 'fund'
-            ? 'Tasks_Opportunities_tasks_fund'
-            : 'Tasks_Opportunities_tasks'
-        database
-          .prepare(`INSERT OR IGNORE INTO ${edgeTable} (from_id, to_id) VALUES (?, ?)`)
-          .run(taskId, opportunity.id)
-      }
-      if (contactId) {
-        database
-          .prepare('INSERT OR IGNORE INTO Contacts_Tasks_task_roles (from_id, to_id) VALUES (?, ?)')
-          .run(contactId, taskId)
-      }
-      if (companyId) {
-        database
-          .prepare('INSERT OR IGNORE INTO Companies_Tasks_tasks (from_id, to_id) VALUES (?, ?)')
-          .run(companyId, taskId)
-      }
+      upsertTaskOverview(database, taskId, r)
+      upsertTaskTeam(database, taskId, r)
+      syncTaskRelations(database, taskId, r)
 
       if (exists) updated += 1
       else inserted += 1
@@ -1313,12 +1418,9 @@ function getLegacyOpportunityDatabookView(opportunityId) {
 
   const directTaskIds = readEdgeIds(
     [
-      'Tasks_Opportunities_tasks',
-      'Tasks_Opportunities_tasks_fund',
-      'Tasks_Opportunities_related_round',
-      'Tasks_Opportunities_related_fund',
+      'Tasks_Rounds_tasks',
+      'Tasks_Rounds_related_round',
       'Tasks_Funds_tasks',
-      'Tasks_Funds_related_round',
       'Tasks_Funds_related_fund',
     ],
     oid,
@@ -1361,14 +1463,15 @@ function getLegacyOpportunityDatabookView(opportunityId) {
     taskIds,
     (placeholders) => `
       SELECT
-        id AS task_id,
-        Task_Name,
-        Status AS task_status,
-        Priority AS task_priority,
-        Due_Date AS task_due_date
-      FROM Tasks
+        t.id AS task_id,
+        t.Task_Name,
+        tov.Task_Status AS task_status,
+        tov.Task_Priority_Rank AS task_priority,
+        tov.Task_Due_Date AS task_due_date
+      FROM Tasks t
+      LEFT JOIN Task_Overview tov ON tov.task_id = t.id
       WHERE id IN (${placeholders})
-      ORDER BY COALESCE(Due_Date, ''), COALESCE(Task_Name, ''), id
+      ORDER BY COALESCE(tov.Task_Due_Date, ''), COALESCE(t.Task_Name, ''), t.id
     `,
   )
 
@@ -1789,28 +1892,28 @@ function getLegacyOpportunityDatabookView(opportunityId) {
       section: prefix,
       label: 'Status',
       value: task.task_status,
-      tableName: 'Tasks',
+      tableName: 'Task_Overview',
       recordId: task.task_id,
-      fieldName: 'Status',
-      idColumn: 'id',
+      fieldName: 'Task_Status',
+      idColumn: 'task_id',
     })
     addField({
       section: prefix,
       label: 'Priority',
       value: task.task_priority,
-      tableName: 'Tasks',
+      tableName: 'Task_Overview',
       recordId: task.task_id,
-      fieldName: 'Priority',
-      idColumn: 'id',
+      fieldName: 'Task_Priority_Rank',
+      idColumn: 'task_id',
     })
     addField({
       section: prefix,
       label: 'Due Date',
       value: task.task_due_date,
-      tableName: 'Tasks',
+      tableName: 'Task_Overview',
       recordId: task.task_id,
-      fieldName: 'Due_Date',
-      idColumn: 'id',
+      fieldName: 'Task_Due_Date',
+      idColumn: 'task_id',
     })
   })
 
@@ -1995,11 +2098,11 @@ function getCompanyAggregate(database, companyId) {
           cii.Company_Type,
           cii.Legal_Entity,
           cii.Date_of_Incorporation,
-          cii.incorporation_country_id,
+          cii.incorporation_country,
           cii.Incorporation_Type,
           coo.Company_Stage,
           coo.Status,
-          coo.headquarters_city_id,
+          coo.headquarters_city,
           coo.PAX_Count,
           coo.PAX_Known,
           coo.business_structure_artifact_id,
@@ -2096,13 +2199,13 @@ function buildCompanyDatabookView(database, recordId) {
     'Company_Type',
     'Legal_Entity',
     'Date_of_Incorporation',
-    'incorporation_country_id',
+    'incorporation_country',
     'Incorporation_Type',
   ]
   const operationsFields = [
     'Company_Stage',
     'Status',
-    'headquarters_city_id',
+    'headquarters_city',
     'PAX_Count',
     'PAX_Known',
     'business_structure_artifact_id',
@@ -2321,9 +2424,9 @@ function createContact(payload = {}) {
     .prepare(
       `
       INSERT INTO Contacts (
-        id, Name, Personal_Email, Professional_Email, Phone, Country_based, LinkedIn
+        id, Name, Personal_Email, Professional_Email, Phone, Country_based, LinkedIn, linked_user_id
       ) VALUES (
-        @id, @Name, @Personal_Email, @Professional_Email, @Phone, @Country_based, @LinkedIn
+        @id, @Name, @Personal_Email, @Professional_Email, @Phone, @Country_based, @LinkedIn, @linked_user_id
       )
     `,
     )
@@ -2335,6 +2438,7 @@ function createContact(payload = {}) {
       Phone: normalizeNullableString(payload.Phone),
       LinkedIn: normalizeNullableString(payload.LinkedIn),
       Country_based: normalizeNullableString(payload.Country_based),
+      linked_user_id: normalizeNullableString(payload.linked_user_id),
     })
 
   return { id }
@@ -2886,6 +2990,7 @@ function stringifyEventValue(value) {
 const APP_SETTING_KEYS = {
   openaiApiKey: 'openai_api_key',
   geminiApiKey: 'gemini_api_key',
+  userId: 'user_id',
   userContactId: 'user_contact_id',
 }
 
@@ -2934,35 +3039,168 @@ function setApiSettings(payload = {}) {
   return getSettingsPayload(database)
 }
 
+function getUserById(database, userId) {
+  const id = normalizeNullableString(userId)
+  if (!id) return null
+  return (
+    database
+      .prepare(
+        `
+      SELECT
+        id,
+        User_Name,
+        User_PEmail,
+        created_at,
+        updated_at
+      FROM Users
+      WHERE id = ?
+      LIMIT 1
+    `,
+      )
+      .get(id) || null
+  )
+}
+
+function createOrUpdateUserProfile(database, profile = {}) {
+  const name = normalizeNullableString(profile?.Name)
+  if (!name) throw new Error('User name is required')
+
+  const email =
+    normalizeNullableString(profile?.User_PEmail) ||
+    normalizeNullableString(profile?.Professional_Email) ||
+    normalizeNullableString(profile?.Personal_Email) ||
+    normalizeNullableString(profile?.Email)
+  if (!email) throw new Error('User email is required')
+
+  const storedUserId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
+  const existingByEmail = database
+    .prepare('SELECT id FROM Users WHERE User_PEmail = ? LIMIT 1')
+    .get(email)
+  const userId =
+    normalizeNullableString(profile?.linked_user_id) ||
+    storedUserId ||
+    existingByEmail?.id ||
+    `user:${crypto.randomUUID()}`
+
+  database
+    .prepare(
+      `
+      INSERT INTO Users (
+        id, User_Name, User_PEmail, created_at, updated_at
+      ) VALUES (
+        @id, @User_Name, @User_PEmail, datetime('now'), datetime('now')
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        User_Name = excluded.User_Name,
+        User_PEmail = excluded.User_PEmail,
+        updated_at = datetime('now')
+    `,
+    )
+    .run({
+      id: userId,
+      User_Name: name,
+      User_PEmail: email,
+    })
+
+  const storedContactId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userContactId))
+  const existingContact =
+    (storedContactId &&
+      database.prepare('SELECT id FROM Contacts WHERE id = ? LIMIT 1').get(storedContactId)) ||
+    database.prepare('SELECT id FROM Contacts WHERE linked_user_id = ? LIMIT 1').get(userId)
+
+  const contactId = existingContact?.id || `contact:${crypto.randomUUID()}`
+  const personalEmail = normalizeNullableString(profile?.Personal_Email) || email
+  const professionalEmail = normalizeNullableString(profile?.Professional_Email)
+
+  database
+    .prepare(
+      `
+      INSERT INTO Contacts (
+        id, Name, Personal_Email, Professional_Email, Phone, Country_based, LinkedIn, linked_user_id
+      ) VALUES (
+        @id, @Name, @Personal_Email, @Professional_Email, @Phone, @Country_based, @LinkedIn, @linked_user_id
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        Name = excluded.Name,
+        Personal_Email = excluded.Personal_Email,
+        Professional_Email = excluded.Professional_Email,
+        Phone = COALESCE(excluded.Phone, Contacts.Phone),
+        Country_based = COALESCE(excluded.Country_based, Contacts.Country_based),
+        LinkedIn = COALESCE(excluded.LinkedIn, Contacts.LinkedIn),
+        linked_user_id = excluded.linked_user_id
+    `,
+    )
+    .run({
+      id: contactId,
+      Name: name,
+      Personal_Email: personalEmail,
+      Professional_Email: professionalEmail,
+      Phone: normalizeNullableString(profile?.Phone),
+      Country_based: normalizeNullableString(profile?.Country_based),
+      LinkedIn: normalizeNullableString(profile?.LinkedIn),
+      linked_user_id: userId,
+    })
+
+  setAppSetting(database, APP_SETTING_KEYS.userId, userId)
+  setAppSetting(database, APP_SETTING_KEYS.userContactId, contactId)
+  setAppSetting(database, 'user_label', name)
+
+  return { userId, contactId, email, name }
+}
+
 function ensureAuditActor(database) {
   const existingUuid = normalizeNullableString(getAppSetting(database, 'user_uuid'))
   const userUuid = existingUuid || `user:${crypto.randomUUID()}`
   if (!existingUuid) setAppSetting(database, 'user_uuid', userUuid)
 
+  let userId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
   let userContactId = normalizeNullableString(
     getAppSetting(database, APP_SETTING_KEYS.userContactId),
   )
   let userLabel = ''
-  if (userContactId) {
-    const row = database
-      .prepare('SELECT Name FROM Contacts WHERE id = ? LIMIT 1')
-      .get(userContactId)
-    userLabel = normalizeNullableString(row?.Name)
-    if (!userLabel) {
-      setAppSetting(database, APP_SETTING_KEYS.userContactId, null)
-      userContactId = ''
+
+  if (userId) {
+    const user = getUserById(database, userId)
+    userLabel = normalizeNullableString(user?.User_Name)
+    if (!user) {
+      setAppSetting(database, APP_SETTING_KEYS.userId, null)
+      userId = ''
     }
   }
 
-  // Legacy fallback for old installs that stored only user_label.
-  if (!userLabel) userLabel = normalizeNullableString(getAppSetting(database, 'user_label'))
-  if (!userContactId && userLabel) {
-    const migrated = createContact({ Name: userLabel })
-    userContactId = migrated.id
-    setAppSetting(database, APP_SETTING_KEYS.userContactId, userContactId)
+  if (userContactId) {
+    const row = database
+      .prepare('SELECT id, Name, linked_user_id FROM Contacts WHERE id = ? LIMIT 1')
+      .get(userContactId)
+    if (!row?.id) {
+      setAppSetting(database, APP_SETTING_KEYS.userContactId, null)
+      userContactId = ''
+    } else {
+      userLabel = userLabel || normalizeNullableString(row?.Name)
+      if (!userId && normalizeNullableString(row?.linked_user_id)) {
+        userId = normalizeNullableString(row.linked_user_id)
+        setAppSetting(database, APP_SETTING_KEYS.userId, userId)
+      }
+    }
   }
 
-  return { user_uuid: userUuid, user_label: userLabel, user_contact_id: userContactId || null }
+  if (userId && !userContactId) {
+    const linkedContact = database
+      .prepare('SELECT id, Name FROM Contacts WHERE linked_user_id = ? LIMIT 1')
+      .get(userId)
+    if (linkedContact?.id) {
+      userContactId = linkedContact.id
+      userLabel = userLabel || normalizeNullableString(linkedContact?.Name)
+      setAppSetting(database, APP_SETTING_KEYS.userContactId, userContactId)
+    }
+  }
+
+  return {
+    user_uuid: userUuid,
+    user_id: userId || null,
+    user_label: userLabel,
+    user_contact_id: userContactId || null,
+  }
 }
 
 function getAuditActor(database, { requireLabel = false } = {}) {
@@ -2977,10 +3215,10 @@ function setAuditUserLabel(label) {
   const database = initDb()
   const trimmed = normalizeNullableString(label)
   if (!trimmed) throw new Error('User name should not be empty')
-  const result = createContact({ Name: trimmed })
-  setAppSetting(database, APP_SETTING_KEYS.userContactId, result.id)
-  // Keep legacy key in sync for old code paths/readers.
-  setAppSetting(database, 'user_label', trimmed)
+  const existingUser = getUserById(database, getAppSetting(database, APP_SETTING_KEYS.userId))
+  const existingEmail = normalizeNullableString(existingUser?.User_PEmail)
+  if (!existingEmail) throw new Error('User email is required before setting the user name.')
+  createOrUpdateUserProfile(database, { Name: trimmed, User_PEmail: existingEmail })
   return getAuditActor(database)
 }
 
@@ -2998,7 +3236,8 @@ function getContactById(database, contactId) {
         Professional_Email,
         Phone,
         LinkedIn,
-        Country_based
+        Country_based,
+        linked_user_id
       FROM Contacts
       WHERE id = ?
       LIMIT 1
@@ -3010,12 +3249,16 @@ function getContactById(database, contactId) {
 
 function getUserSettingsPayload(database) {
   const actor = getAuditActor(database)
+  const userId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
+  const user = userId ? getUserById(database, userId) : null
   const userContactId = normalizeNullableString(
     getAppSetting(database, APP_SETTING_KEYS.userContactId),
   )
   const userContact = userContactId ? getContactById(database, userContactId) : null
   return {
     auditUserUuid: actor.user_uuid,
+    userId: user?.id || null,
+    user,
     userContactId: userContact?.id || null,
     userContact,
   }
@@ -3029,11 +3272,7 @@ function setUserSettings(payload = {}) {
     throw new Error('contact is required')
   }
 
-  const created = createContact(contactPayload)
-  setAppSetting(database, APP_SETTING_KEYS.userContactId, created.id)
-  const contact = getContactById(database, created.id)
-  const userLabel = normalizeNullableString(contact?.Name)
-  if (userLabel) setAppSetting(database, 'user_label', userLabel)
+  createOrUpdateUserProfile(database, contactPayload)
   return getUserSettingsPayload(database)
 }
 
@@ -3252,9 +3491,8 @@ function upsertCompanyFromAutofill(database, companyPayload = {}, fallbackCompan
     'Legal_Entity',
     'Incorporation_Type',
     'Incorporation_Country',
-    'incorporation_country_id',
-    'headquarters_city_id',
-    'city_id',
+    'incorporation_country',
+    'headquarters_city',
     'Pax',
     'PAX_Count',
     'PAX_Known',
@@ -3455,7 +3693,7 @@ function createNotesForOpportunity(database, opportunityId, notes = []) {
 // eslint-disable-next-line no-unused-vars
 function createTasksForOpportunity(database, opportunityId, kind, tasks = []) {
   const rows = Array.isArray(tasks) ? tasks : []
-  const edgeTable = kind === 'fund' ? 'Tasks_Opportunities_tasks_fund' : 'Tasks_Opportunities_tasks'
+  const edgeTable = kind === 'fund' ? 'Tasks_Funds_related_fund' : 'Tasks_Rounds_related_round'
   for (const task of rows) {
     const taskName = normalizeNullableString(task?.Task_Name)
     if (!taskName) continue
@@ -3475,19 +3713,17 @@ function createTasksForOpportunity(database, opportunityId, kind, tasks = []) {
     database
       .prepare(
         `
-        INSERT INTO Tasks (
-          id, Task_Name, Task_Description, Status, Priority, Due_Date, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        INSERT INTO Tasks (id, created_by, Task_Name, created_at, updated_at)
+        VALUES (?, ?, ?, datetime('now'), datetime('now'))
       `,
       )
       .run(
         taskId,
+        normalizeNullableString(task?.Task_Creator) || normalizeNullableString(task?.created_by),
         taskName,
-        normalizeNullableString(task?.Task_Description),
-        normalizeNullableString(task?.Status) || 'Open',
-        normalizeNullableString(task?.Priority) || 'Medium',
-        normalizeNullableString(task?.Due_Date),
       )
+    upsertTaskOverview(database, taskId, task)
+    upsertTaskTeam(database, taskId, task)
     database
       .prepare(`INSERT OR IGNORE INTO ${edgeTable} (from_id, to_id) VALUES (?, ?)`)
       .run(taskId, opportunityId)

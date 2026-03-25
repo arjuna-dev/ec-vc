@@ -146,23 +146,33 @@ await runTest('Execute schema SQL', async () => {
 await runTest('Core tables exist', async () => {
   const requiredTables = [
     'Companies',
-    'Opportunities',
     'Funds',
+    'Fund_Overview',
+    'Fund_Strategy',
+    'Fund_Economics',
+    'Fund_Controls',
+    'Rounds',
+    'Round_Overview',
+    'Round_Economics',
+    'Round_Controls',
     'LVPortfolio',
     'InvestmentSchedule',
+    'Users',
     'Contacts',
     'EPL_Business_Units',
     'Projects',
     'Tasks',
+    'Task_Overview',
+    'Task_Team',
+    'Task_Team_Assigned',
+    'Task_Team_Support',
     'IC_Scorecard',
     'Intros',
     'Industries',
     'SectorGroups',
     'VerticalIndustries',
     'BusinessModels',
-    'Locations',
-    'Countries',
-    'Cities',
+    'Regions',
     'VC_Terms_Glossary',
     'Control_Terms_Description',
     'Resources',
@@ -171,7 +181,7 @@ await runTest('Core tables exist', async () => {
     'Assistant_System_Prompts',
     'Pipelines',
     'Pipeline_Stages',
-    'Opportunity_Pipeline',
+    'Round_Pipeline',
     'Fund_Pipeline',
     'Artifacts',
     'Artifact_Raw',
@@ -189,7 +199,7 @@ await runTest('Core tables exist', async () => {
 
 await runTest('Important indexes exist (spot-check)', async () => {
   assert.equal(indexExists(db, 'idx_Companies_company_name'), true)
-  assert.equal(indexExists(db, 'idx_Opportunities_company_id'), true)
+  assert.equal(indexExists(db, 'idx_Round_Overview_sponsor_company_id'), true)
   assert.equal(indexExists(db, 'idx_Pipelines_single_default'), true)
   assert.equal(indexExists(db, 'idx_Pipelines_dir_name'), true)
   assert.equal(indexExists(db, 'idx_Artifact_Raw_unique_path'), true)
@@ -208,57 +218,246 @@ await runTest('Seeded default pipeline exists + stages inserted', async () => {
 
 await runTest('Companies unique index enforced', async () => {
   const ins = db.prepare(`INSERT INTO Companies (id, Company_Name) VALUES (?, ?)`)
-  ins.run('c1', 'Acme')
-  mustThrow(() => ins.run('c2', 'Acme'), 'UNIQUE')
+  ins.run(1, 'Acme')
+  mustThrow(() => ins.run(2, 'Acme'), 'UNIQUE')
 })
 
-await runTest('Opportunities FK to Companies enforced + RESTRICT delete works', async () => {
-  db.prepare(`INSERT OR IGNORE INTO Companies (id, Company_Name) VALUES (?,?)`).run('c_fk', 'FKCo')
-  db.prepare(`INSERT INTO Opportunities (id, company_id, Venture_Oppty_Name) VALUES (?,?,?)`).run(
-    'o1',
-    'c_fk',
-    'Round 1',
+await runTest('Users email is unique and Contacts can link to Users', async () => {
+  db.prepare(`INSERT INTO Users (id, User_Name, User_PEmail) VALUES (?,?,?)`).run(
+    'user_1',
+    'Alice',
+    'alice@example.com',
   )
-
-  // can't insert opportunity with non-existent company
   mustThrow(
     () =>
-      db.prepare(`INSERT INTO Opportunities (id, company_id) VALUES (?,?)`).run('o_bad', 'nope'),
+      db.prepare(`INSERT INTO Users (id, User_Name, User_PEmail) VALUES (?,?,?)`).run(
+        'user_2',
+        'Alice Dup',
+        'alice@example.com',
+      ),
+    'UNIQUE',
+  )
+  db.prepare(
+    `INSERT INTO Contacts (id, Name, Personal_Email, linked_user_id) VALUES (?,?,?,?)`,
+  ).run('contact_1', 'Alice', 'alice@example.com', 'user_1')
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO Contacts (id, Name, Personal_Email, linked_user_id) VALUES (?,?,?,?)`,
+      ).run('contact_2', 'Alice Again', 'alice2@example.com', 'user_1'),
+    'UNIQUE',
+  )
+})
+
+await runTest('Check-in pattern constraints enforce allowed values', async () => {
+  db.prepare(`INSERT INTO Companies (id, Company_Name) VALUES (?,?)`).run(10, 'CheckCo')
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO Company_Incorporation_Info (company_id, Company_Type) VALUES (?,?)`,
+      ).run(10, 'NotACompanyType'),
+    'CHECK constraint failed',
+  )
+  db.prepare(
+    `INSERT INTO Company_Incorporation_Info (company_id, Company_Type) VALUES (?,?)`,
+  ).run(10, 'Venture')
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO Company_Operations_Overview (company_id, Company_Stage) VALUES (?,?)`,
+      ).run(10, 'NotACompanyStage'),
+    'CHECK constraint failed',
+  )
+
+  db.prepare(`INSERT INTO Funds (id, Fund_Name) VALUES (?,?)`).run('f_check', 'Check Fund')
+  db.prepare(`INSERT INTO Rounds (id, Round_Name) VALUES (?,?)`).run('r_check', 'Check Round')
+
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO Fund_Overview (fund_id, Fund_Raising_Status, Fund_Period) VALUES (?,?,?)`,
+      ).run('f_check', 'NotAStatus', 'Raising'),
+    'CHECK constraint failed',
+  )
+
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO Fund_Overview (fund_id, Fund_Raising_Status, Fund_Period) VALUES (?,?,?)`,
+      ).run('f_check', 'Raising', 'NotAPeriod'),
+    'CHECK constraint failed',
+  )
+
+  db.prepare(
+    `INSERT INTO Fund_Overview (fund_id, Fund_Raising_Status, Fund_Period) VALUES (?,?,?)`,
+  ).run('f_check', 'Raising', 'Deployment')
+
+  db.prepare(`INSERT INTO Fund_Strategy (fund_id) VALUES (?)`).run('f_check')
+
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO Fund_Strategy_Target_Asset_Types (fund_id, asset_type) VALUES (?,?)`,
+      ).run('f_check', 'NotAnAssetType'),
+    'CHECK constraint failed',
+  )
+
+  mustThrow(
+    () =>
+      db.prepare(`INSERT INTO Fund_Strategy_Target_Stages (fund_id, stage) VALUES (?,?)`).run(
+        'f_check',
+        'NotAStage',
+      ),
+    'CHECK constraint failed',
+  )
+
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO Round_Overview (round_id, Round_Raising_Status, Round_Security_Type) VALUES (?,?,?)`,
+      ).run('r_check', 'NotAStatus', 'Equity_Common'),
+    'CHECK constraint failed',
+  )
+
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO Round_Overview (round_id, Round_Raising_Status, Round_Security_Type) VALUES (?,?,?)`,
+      ).run('r_check', 'Raised', 'NotASecurityType'),
+    'CHECK constraint failed',
+  )
+
+  db.prepare(`INSERT INTO Artifacts (artifact_id, title) VALUES (?,?)`).run('a_doc', 'Doc')
+  mustThrow(
+    () =>
+      db.prepare(`INSERT INTO Company_Artifacts (artifact_id, document_type) VALUES (?,?)`).run(
+        'a_doc',
+        'not_a_doc_type',
+      ),
+    'CHECK constraint failed',
+  )
+
+  db.prepare(`INSERT INTO Tasks (id, Task_Name) VALUES (?,?)`).run('t_check', 'Check Task')
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO Task_Overview (task_id, Task_Status, Task_Priority_Rank) VALUES (?,?,?)`,
+      ).run('t_check', 'NotAStatus', 'Mid'),
+    'CHECK constraint failed',
+  )
+  mustThrow(
+    () =>
+      db.prepare(
+        `INSERT INTO Task_Overview (task_id, Task_Status, Task_Priority_Rank) VALUES (?,?,?)`,
+      ).run('t_check', 'Backlog', 'NotAPriority'),
+    'CHECK constraint failed',
+  )
+  db.prepare(
+    `INSERT INTO Task_Overview (task_id, Task_Status, Task_Priority_Rank) VALUES (?,?,?)`,
+  ).run('t_check', 'In Progress', 'Mid-High')
+})
+
+await runTest('Task team relations enforce contact foreign keys', async () => {
+  db.prepare(`INSERT INTO Tasks (id, Task_Name) VALUES (?,?)`).run('t_team', 'Team Task')
+  db.prepare(`INSERT INTO Contacts (id, Name, Personal_Email) VALUES (?,?,?)`).run(
+    'contact_owner',
+    'Owner',
+    'owner@example.com',
+  )
+  db.prepare(`INSERT INTO Contacts (id, Name, Personal_Email) VALUES (?,?,?)`).run(
+    'contact_assigned',
+    'Assigned',
+    'assigned@example.com',
+  )
+  db.prepare(`INSERT INTO Contacts (id, Name, Personal_Email) VALUES (?,?,?)`).run(
+    'contact_support',
+    'Support',
+    'support@example.com',
+  )
+
+  db.prepare(`INSERT INTO Task_Team (task_id, Task_Team_Owner) VALUES (?,?)`).run(
+    't_team',
+    'contact_owner',
+  )
+  db.prepare(`INSERT INTO Task_Team_Assigned (task_id, contact_id) VALUES (?,?)`).run(
+    't_team',
+    'contact_assigned',
+  )
+  db.prepare(`INSERT INTO Task_Team_Support (task_id, contact_id) VALUES (?,?)`).run(
+    't_team',
+    'contact_support',
+  )
+
+  mustThrow(
+    () =>
+      db.prepare(`INSERT INTO Task_Team (task_id, Task_Team_Owner) VALUES (?,?)`).run(
+        't_missing_owner',
+        'missing_contact',
+      ),
+    'FOREIGN KEY',
+  )
+  mustThrow(
+    () =>
+      db.prepare(`INSERT INTO Task_Team_Assigned (task_id, contact_id) VALUES (?,?)`).run(
+        't_team',
+        'missing_contact',
+      ),
+    'FOREIGN KEY',
+  )
+})
+
+await runTest('Round overview FK to Companies enforced + RESTRICT delete works', async () => {
+  db.prepare(`INSERT OR IGNORE INTO Companies (id, Company_Name) VALUES (?,?)`).run(3, 'FKCo')
+  db.prepare(`INSERT INTO Rounds (id, Round_Name) VALUES (?,?)`).run('r1', 'Round 1')
+  db.prepare(
+    `INSERT INTO Round_Overview (round_id, sponsor_company_id, Round_Raising_Status, Round_Security_Type) VALUES (?,?,?,?)`,
+  ).run('r1', 3, 'Raising', 'Equity_Common')
+
+  mustThrow(
+    () =>
+      db
+        .prepare(
+          `INSERT INTO Round_Overview (round_id, sponsor_company_id, Round_Raising_Status, Round_Security_Type) VALUES (?,?,?,?)`,
+        )
+        .run('r_bad', 9999, 'Raising', 'Equity_Common'),
     'FOREIGN KEY',
   )
 
-  // can't delete company while opportunity exists (RESTRICT)
-  mustThrow(() => db.prepare(`DELETE FROM Companies WHERE id=?`).run('c_fk'), 'FOREIGN KEY')
+  db.prepare(`INSERT INTO Funds (id, Fund_Name) VALUES (?,?)`).run('f_fk', 'Fund FK')
+  db.prepare(
+    `INSERT INTO Companies_Funds_has_funds (from_id, to_id) VALUES (?,?)`,
+  ).run(3, 'f_fk')
+  mustThrow(() => db.prepare(`DELETE FROM Companies WHERE id=?`).run(3), 'FOREIGN KEY')
 })
 
 await runTest('Join table CASCADE behavior sanity check', async () => {
-  db.prepare(`INSERT INTO Countries (id, Country_Name) VALUES (?,?)`).run('ct1', 'Country1')
-  db.prepare(`INSERT INTO Locations (id, Name) VALUES (?,?)`).run('l1', 'Location1')
+  db.prepare(`INSERT INTO Regions (id, Name) VALUES (?,?)`).run('rg_test', 'Test Region')
+  db.prepare(`INSERT INTO Companies (id, Company_Name) VALUES (?,?)`).run('101', 'Location1 Co')
 
-  db.prepare(`INSERT INTO Countries_Locations_has_locations (from_id, to_id) VALUES (?,?)`).run(
-    'ct1',
-    'l1',
+  db.prepare(`INSERT INTO Regions_Companies_hq_region (from_id, to_id) VALUES (?,?)`).run(
+    'rg_test',
+    '101',
   )
 
   const before = queryAll(
     db,
-    `SELECT * FROM Countries_Locations_has_locations WHERE from_id=? AND to_id=?`,
-    ['ct1', 'l1'],
+    `SELECT * FROM Regions_Companies_hq_region WHERE from_id=? AND to_id=?`,
+    ['rg_test', '101'],
   )
   assert.equal(before.length, 1)
 
-  // deleting the country should cascade delete join row
-  db.prepare(`DELETE FROM Countries WHERE id=?`).run('ct1')
+  // deleting the region should cascade delete join row
+  db.prepare(`DELETE FROM Regions WHERE id=?`).run('rg_test')
 
   const after = queryAll(
     db,
-    `SELECT * FROM Countries_Locations_has_locations WHERE from_id=? AND to_id=?`,
-    ['ct1', 'l1'],
+    `SELECT * FROM Regions_Companies_hq_region WHERE from_id=? AND to_id=?`,
+    ['rg_test', '101'],
   )
   assert.equal(after.length, 0)
 })
 
-await runTest('Pipeline stage must belong to pipeline (Opportunity_Pipeline trigger)', async () => {
+await runTest('Pipeline stage must belong to pipeline (Round_Pipeline trigger)', async () => {
   // make a second pipeline + stage
   db.prepare(`INSERT INTO Pipelines (pipeline_id, name, dir_name) VALUES (?,?,?)`).run(
     'p2',
@@ -269,24 +468,16 @@ await runTest('Pipeline stage must belong to pipeline (Opportunity_Pipeline trig
     `INSERT INTO Pipeline_Stages (stage_id, pipeline_id, name, position) VALUES (?,?,?,?)`,
   ).run('p2_s1', 'p2', 'stage1', 1)
 
-  // create a company + opportunity
-  db.prepare(`INSERT OR IGNORE INTO Companies (id, Company_Name) VALUES (?,?)`).run(
-    'c_pipe',
-    'PipeCo',
-  )
-  db.prepare(`INSERT OR IGNORE INTO Opportunities (id, company_id) VALUES (?,?)`).run(
-    'o_pipe',
-    'c_pipe',
-  )
+  db.prepare(`INSERT OR IGNORE INTO Rounds (id, Round_Name) VALUES (?,?)`).run('r_pipe', 'Pipe Round')
 
   // This should FAIL: pipeline_id='pipeline_default' but stage_id belongs to p2
   mustThrow(
     () =>
       db
         .prepare(
-          `INSERT INTO Opportunity_Pipeline (opportunity_id, pipeline_id, stage_id) VALUES (?,?,?)`,
+          `INSERT INTO Round_Pipeline (round_id, pipeline_id, stage_id) VALUES (?,?,?)`,
         )
-        .run('o_pipe', 'pipeline_default', 'p2_s1'),
+        .run('r_pipe', 'pipeline_default', 'p2_s1'),
     'stage_id does not belong to pipeline_id',
   )
 
@@ -296,13 +487,16 @@ await runTest('Pipeline stage must belong to pipeline (Opportunity_Pipeline trig
     `SELECT stage_id FROM Pipeline_Stages WHERE pipeline_id='pipeline_default' ORDER BY position LIMIT 1`,
   ).stage_id
 
-  db.prepare(
-    `INSERT INTO Opportunity_Pipeline (opportunity_id, pipeline_id, stage_id, status) VALUES (?,?,?,?)`,
-  ).run('o_pipe', 'pipeline_default', defaultStage, 'active')
+  db.prepare(`INSERT INTO Round_Pipeline (round_id, pipeline_id, stage_id, status) VALUES (?,?,?,?)`).run(
+    'r_pipe',
+    'pipeline_default',
+    defaultStage,
+    'active',
+  )
 })
 
 await runTest('Fund_Pipeline stage must belong to pipeline (trigger)', async () => {
-  db.prepare(`INSERT OR IGNORE INTO Funds (id, Fund_Oppty_Name) VALUES (?,?)`).run('f1', 'Fund1')
+  db.prepare(`INSERT OR IGNORE INTO Funds (id, Fund_Name) VALUES (?,?)`).run('f1', 'Fund1')
 
   // mismatch stage should fail
   mustThrow(
@@ -326,49 +520,47 @@ await runTest('Fund_Pipeline stage must belong to pipeline (trigger)', async () 
   )
 })
 
-await runTest('Artifacts can be inserted by opportunity without pipeline mapping', async () => {
-    // Make a new opportunity without Opportunity_Pipeline mapping
-    db.prepare(`INSERT OR IGNORE INTO Companies (id, Company_Name) VALUES (?,?)`).run(
-      'c_art',
-      'ArtCo',
-    )
-    db.prepare(`INSERT OR IGNORE INTO Opportunities (id, company_id) VALUES (?,?)`).run(
-      'o_no_map',
-      'c_art',
-    )
+await runTest('Artifacts can be inserted by round/fund without pipeline mapping', async () => {
+    db.prepare(`INSERT OR IGNORE INTO Rounds (id, Round_Name) VALUES (?,?)`).run('r_no_map', 'No Map Round')
+    db.prepare(`INSERT OR IGNORE INTO Funds (id, Fund_Name) VALUES (?,?)`).run('f_no_map', 'No Map Fund')
 
     db.prepare(
       `INSERT INTO Artifacts (
-        artifact_id, opportunity_id, title
+        artifact_id, round_id, title
       ) VALUES (?,?,?)`,
-    ).run('a_ok', 'o_no_map', 'ok artifact')
+    ).run('a_ok', 'r_no_map', 'ok artifact')
+    db.prepare(
+      `INSERT INTO Artifacts (
+        artifact_id, fund_id, title
+      ) VALUES (?,?,?)`,
+    ).run('a_ok_fund', 'f_no_map', 'ok fund artifact')
     db.prepare(
       `INSERT INTO Artifact_Raw (artifact_id, fs_path, fs_hash, fs_size_bytes) VALUES (?,?,?,?)`,
     ).run('a_ok', '/tmp/a_ok.txt', null, null)
+    db.prepare(
+      `INSERT INTO Artifact_Raw (artifact_id, fs_path, fs_hash, fs_size_bytes) VALUES (?,?,?,?)`,
+    ).run('a_ok_fund', '/tmp/a_ok_fund.txt', null, null)
 })
 
 await runTest('updated_at triggers work (Companies + Artifacts spot-check)', async () => {
   // Companies
-  db.prepare(`INSERT OR IGNORE INTO Companies (id, Company_Name) VALUES (?,?)`).run('c_up', 'UpCo')
-  const before = nowRow(db, 'Companies', 'id', 'c_up').updated_at
+  db.prepare(`INSERT OR IGNORE INTO Companies (id, Company_Name) VALUES (?,?)`).run(4, 'UpCo')
+  const before = nowRow(db, 'Companies', 'id', 4).updated_at
 
   await sleep(1100) // datetime('now') is 1-second resolution
-  db.prepare(`UPDATE Companies SET One_Liner=? WHERE id=?`).run('changed', 'c_up')
+  db.prepare(`UPDATE Companies SET One_Liner=? WHERE id=?`).run('changed', 4)
 
-  const after = nowRow(db, 'Companies', 'id', 'c_up').updated_at
+  const after = nowRow(db, 'Companies', 'id', 4).updated_at
   assert.notEqual(after, before, 'Companies.updated_at should change after UPDATE')
 
   // Artifacts
-  db.prepare(`INSERT OR IGNORE INTO Opportunities (id, company_id) VALUES (?,?)`).run(
-    'o_up',
-    'c_up',
-  )
+  db.prepare(`INSERT OR IGNORE INTO Rounds (id, Round_Name) VALUES (?,?)`).run('r_up', 'Up Round')
 
   db.prepare(
     `INSERT OR IGNORE INTO Artifacts (
-      artifact_id, opportunity_id, title
+      artifact_id, round_id, title
     ) VALUES (?,?,?)`,
-  ).run('a_up', 'o_up', 'up artifact')
+  ).run('a_up', 'r_up', 'up artifact')
   db.prepare(
     `INSERT OR IGNORE INTO Artifact_Raw (artifact_id, fs_path, fs_hash, fs_size_bytes) VALUES (?,?,?,?)`,
   ).run('a_up', '/tmp/a_up.txt', null, null)

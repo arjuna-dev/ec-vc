@@ -66,19 +66,27 @@ function maybeRecreateDb(dbPath) {
 
   const hasCurrentSchema =
     hasTable(probe, 'Pipelines') &&
-    hasTable(probe, 'Opportunity_Pipeline') &&
-    hasTable(probe, 'Round_Opportunities') &&
-    hasTable(probe, 'Fund_Opportunities') &&
+    hasTable(probe, 'Round_Pipeline') &&
+    hasTable(probe, 'Fund_Pipeline') &&
+    hasTable(probe, 'Rounds') &&
+    hasTable(probe, 'Funds') &&
+    hasTable(probe, 'Round_Overview') &&
+    hasTable(probe, 'Fund_Overview') &&
+    hasTable(probe, 'Users') &&
     hasTable(probe, 'databook_snapshots') &&
     hasColumn(probe, 'Pipelines', 'dir_name') &&
     hasColumn(probe, 'Companies', 'created_by') &&
-    hasColumn(probe, 'Opportunities', 'company_id') &&
-    hasColumn(probe, 'Opportunities', 'kind') &&
+    hasColumn(probe, 'Rounds', 'Round_Name') &&
+    hasColumn(probe, 'Funds', 'Fund_Name') &&
+    hasColumn(probe, 'Users', 'User_PEmail') &&
     hasColumn(probe, 'Contacts', 'Personal_Email') &&
     hasColumn(probe, 'Contacts', 'Professional_Email') &&
+    hasColumn(probe, 'Contacts', 'linked_user_id') &&
     hasColumn(probe, 'Tasks', 'pipeline_id') &&
     hasColumn(probe, 'Artifacts', 'created_by') &&
     hasColumn(probe, 'Artifacts', 'type') &&
+    hasColumn(probe, 'Artifacts', 'round_id') &&
+    hasColumn(probe, 'Artifacts', 'fund_id') &&
     hasColumn(probe, 'databook_snapshots', 'table_name') &&
     hasColumn(probe, 'databook_snapshots', 'record_id')
 
