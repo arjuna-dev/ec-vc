@@ -2,8 +2,8 @@
   <q-dialog v-model="open">
     <q-card style="width: 900px; max-width: 96vw">
       <q-card-section>
-        <div class="text-h6">Create Pipeline</div>
-        <div class="text-caption text-grey-7">Only pipeline name is required.</div>
+        <div class="text-h6">Create Project</div>
+        <div class="text-caption text-grey-7">Only project name is required.</div>
       </q-card-section>
 
       <q-separator />
@@ -14,7 +14,7 @@
             v-model="form.name"
             autofocus
             outlined
-            label="Pipeline Name *"
+            label="Project Name *"
             :disable="loading"
           />
 

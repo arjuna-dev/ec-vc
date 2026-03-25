@@ -4,6 +4,7 @@ import os from 'node:os'
 import crypto from 'node:crypto'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import fse from 'fs-extra'
+import isEmail from 'validator/lib/isEmail.js'
 
 import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from 'electron'
 import { createProjectStructure, DEFAULT_PROJECT_ROOT_NAME } from './services/project-structure.js'
@@ -896,42 +897,61 @@ function listOpportunities() {
   return dbAll(
     `
     SELECT
-      o.id,
-      o.kind,
-      o.company_id,
-      o.Investment_Ask,
-      o.Hard_Commits,
-      o.Soft_Commits,
-      o.First_Close_Date,
-      o.Next_Close_Date,
-      o.Final_Close_Date,
-      o.Round_Stage,
-      o.Type_of_Security,
-      o.Round_Amount,
-      o.Pre_Valuation,
-      o.Post_Valuation,
-      o.Previous_Post,
-      COALESCE(
-        o.Venture_Oppty_Name,
-        CASE
-          WHEN c.Company_Name IS NOT NULL AND c.Company_Name <> '' THEN
-            replace(trim(c.Company_Name), ' ', '_') || '_' || substr(COALESCE(o.created_at, datetime('now')), 1, 10)
-          ELSE o.id
-        END
-      ) AS opportunity_name,
-      o.Venture_Oppty_Name,
-      o.Round_Stage,
-      o.Round_Amount,
-      f.Fund_Type,
-      f.Fund_Size_Target,
-      o.Investment_Ask,
-      o.Raising_Status,
-      o.created_at,
+      r.id,
+      'round' AS kind,
+      ro.sponsor_company_id AS company_id,
+      ro.Round_Target_Size AS Investment_Ask,
+      ro.Round_Commited_Amounts AS Hard_Commits,
+      NULL AS Soft_Commits,
+      NULL AS First_Close_Date,
+      NULL AS Next_Close_Date,
+      ro.Round_Close_Date AS Final_Close_Date,
+      NULL AS Round_Stage,
+      ro.Round_Security_Type AS Type_of_Security,
+      ro.Round_Target_Size AS Round_Amount,
+      re.Round_Pre_Valuation AS Pre_Valuation,
+      re.Round_Post_Valuation AS Post_Valuation,
+      re.Round_Previous_Post_Valuation AS Previous_Post,
+      r.Round_Name AS opportunity_name,
+      r.Round_Name AS Venture_Oppty_Name,
+      NULL AS Fund_Type,
+      NULL AS Fund_Size_Target,
+      ro.Round_Raising_Status AS Raising_Status,
+      r.created_at,
       c.Company_Name
-    FROM Opportunities o
-    LEFT JOIN Companies c ON c.id = o.company_id
-    LEFT JOIN Fund_Opportunities f ON f.opportunity_id = o.id
-    ORDER BY o.created_at DESC
+    FROM Rounds r
+    LEFT JOIN Round_Overview ro ON ro.round_id = r.id
+    LEFT JOIN Round_Economics re ON re.round_id = r.id
+    LEFT JOIN Companies c ON c.id = ro.sponsor_company_id
+
+    UNION ALL
+
+    SELECT
+      f.id,
+      'fund' AS kind,
+      NULL AS company_id,
+      fo.Fund_Target_Size AS Investment_Ask,
+      fo.Fund_Commited_Amounts AS Hard_Commits,
+      NULL AS Soft_Commits,
+      NULL AS First_Close_Date,
+      NULL AS Next_Close_Date,
+      fo.Fund_Close_Date AS Final_Close_Date,
+      NULL AS Round_Stage,
+      NULL AS Type_of_Security,
+      NULL AS Round_Amount,
+      NULL AS Pre_Valuation,
+      NULL AS Post_Valuation,
+      NULL AS Previous_Post,
+      f.Fund_Name AS opportunity_name,
+      f.Fund_Name AS Venture_Oppty_Name,
+      NULL AS Fund_Type,
+      fo.Fund_Target_Size AS Fund_Size_Target,
+      fo.Fund_Raising_Status AS Raising_Status,
+      f.created_at,
+      NULL AS Company_Name
+    FROM Funds f
+    LEFT JOIN Fund_Overview fo ON fo.fund_id = f.id
+    ORDER BY created_at DESC
   `,
   )
 }
@@ -1070,6 +1090,7 @@ function listTasksForPage() {
 
 function createTask(payload = {}) {
   const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
   const taskName = normalizeNullableString(payload?.Task_Name)
   if (!taskName) throw new Error('Task name is required')
   const taskId = normalizeNullableString(payload?.id) || `task:${crypto.randomUUID()}`
@@ -1083,7 +1104,9 @@ function createTask(payload = {}) {
     )
     .run(
       taskId,
-      normalizeNullableString(payload?.Task_Creator) || normalizeNullableString(payload?.created_by),
+      normalizeNullableString(payload?.Task_Creator) ||
+        normalizeNullableString(payload?.created_by) ||
+        actor.user_id,
       taskName,
     )
 
@@ -1096,6 +1119,7 @@ function createTask(payload = {}) {
 
 function upsertTasks(rows = []) {
   const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
   const input = Array.isArray(rows) ? rows : []
   const tx = database.transaction(() => {
     let inserted = 0
@@ -1123,7 +1147,9 @@ function upsertTasks(rows = []) {
         .run({
           id: taskId,
           created_by:
-            normalizeNullableString(r?.Task_Creator) || normalizeNullableString(r?.created_by),
+            normalizeNullableString(r?.Task_Creator) ||
+            normalizeNullableString(r?.created_by) ||
+            actor.user_id,
           Task_Name: taskName,
         })
 
@@ -2414,7 +2440,9 @@ function listArtifacts() {
       a.artifact_format,
       a.type,
       a.fs_path,
-      a.opportunity_id,
+      a.round_id,
+      a.fund_id,
+      COALESCE(a.round_id, a.fund_id) AS opportunity_id,
       a.created_by,
       a.created_at
     FROM Artifact_Details a
@@ -2742,6 +2770,9 @@ function linkArtifactsToOpportunity({ artifactIds = [], opportunityId } = {}) {
   const database = initDb()
   const oid = normalizeNullableString(opportunityId)
   if (!oid) throw new Error('opportunityId is required')
+  const roundExists = Boolean(database.prepare('SELECT 1 FROM Rounds WHERE id = ? LIMIT 1').get(oid))
+  const fundExists = Boolean(database.prepare('SELECT 1 FROM Funds WHERE id = ? LIMIT 1').get(oid))
+  if (!roundExists && !fundExists) throw new Error('Opportunity not found')
 
   const ids = Array.isArray(artifactIds)
     ? artifactIds.map((id) => normalizeNullableString(id)).filter(Boolean)
@@ -2753,14 +2784,15 @@ function linkArtifactsToOpportunity({ artifactIds = [], opportunityId } = {}) {
       `
       UPDATE Artifacts
       SET
-        opportunity_id = ?,
+        round_id = ?,
+        fund_id = ?,
         updated_at = datetime('now')
       WHERE artifact_id = ?
     `,
     )
     let linked = 0
     for (const artifactId of ids) {
-      const result = stmt.run(oid, artifactId)
+      const result = stmt.run(roundExists ? oid : null, fundExists ? oid : null, artifactId)
       linked += Number(result?.changes || 0)
     }
     return { linked }
@@ -3030,6 +3062,7 @@ function createOrUpdateUserProfile(database, profile = {}) {
     normalizeNullableString(profile?.Personal_Email) ||
     normalizeNullableString(profile?.Email)
   if (!email) throw new Error('User email is required')
+  if (!isEmail(email)) throw new Error('User email must be a valid email address')
 
   const storedUserId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
   const existingByEmail = database
@@ -3177,6 +3210,17 @@ function setAuditUserLabel(label) {
   if (!existingEmail) throw new Error('User email is required before setting the user name.')
   createOrUpdateUserProfile(database, { Name: trimmed, User_PEmail: existingEmail })
   return getAuditActor(database)
+}
+
+function toUserFriendlySaveError(error, entityLabel = 'record') {
+  const message = String(error?.message || error || '').trim()
+  if (message.includes('set your user profile before editing')) {
+    return `Set up your user profile first before creating ${entityLabel}.`
+  }
+  if (message.includes('User email is required')) {
+    return 'Enter a valid email address in User Settings before saving.'
+  }
+  return message || `Could not save ${entityLabel}.`
 }
 
 function getContactById(database, contactId) {
@@ -4566,7 +4610,11 @@ function registerIpc() {
   })
   ipcMain.handle('notes:create', async (_event, payload = {}) => {
     initDb()
-    return createNote(payload)
+    try {
+      return createNote(payload)
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'notes'))
+    }
   })
   ipcMain.handle('notes:upsertMany', async (_event, { rows } = {}) => {
     initDb()
@@ -4583,11 +4631,19 @@ function registerIpc() {
   })
   ipcMain.handle('tasks:create', async (_event, payload = {}) => {
     initDb()
-    return createTask(payload)
+    try {
+      return createTask(payload)
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'tasks'))
+    }
   })
   ipcMain.handle('tasks:upsertMany', async (_event, { rows } = {}) => {
     initDb()
-    return upsertTasks(rows)
+    try {
+      return upsertTasks(rows)
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'tasks'))
+    }
   })
   ipcMain.handle('tasks:delete', async (_event, { taskId } = {}) => {
     initDb()

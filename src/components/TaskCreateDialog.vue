@@ -11,45 +11,59 @@
       <q-card-section class="q-gutter-md">
         <q-input v-model="form.Task_Name" outlined label="Task Name *" :disable="loading" />
         <q-select
-          v-model="form.opportunity_id"
+          v-model="form.Task_Team_Owner"
           outlined
-          label="Opportunity"
-          :options="opportunityOptions"
-          emit-value
-          map-options
-          :disable="loading"
-        />
-        <q-select
-          v-model="form.contact_id"
-          outlined
-          label="Contact"
+          label="Task Owner"
           :options="contactOptions"
           emit-value
           map-options
           :disable="loading"
         />
         <q-select
-          v-model="form.pipeline_id"
+          v-model="form.Task_Team_Assigned"
           outlined
-          label="Pipeline"
-          :options="pipelineOptions"
+          label="Assigned Team"
+          :options="contactOptions"
+          multiple
           emit-value
           map-options
           :disable="loading"
         />
         <q-select
-          v-model="form.company_id"
+          v-model="form.Task_Team_Support"
           outlined
-          label="Company"
-          :options="companyOptions"
+          label="Support Team"
+          :options="contactOptions"
+          multiple
           emit-value
           map-options
           :disable="loading"
         />
-        <q-input v-model="form.Task_Description" outlined type="textarea" autogrow label="Description" :disable="loading" />
-        <q-input v-model="form.Status" outlined label="Status" :disable="loading" />
-        <q-input v-model="form.Priority" outlined label="Priority" :disable="loading" />
-        <q-input v-model="form.Due_Date" outlined label="Due Date" :disable="loading" />
+        <q-input
+          v-model="form.Task_Summary"
+          outlined
+          type="textarea"
+          autogrow
+          label="Summary"
+          :disable="loading"
+        />
+        <q-select
+          v-model="form.Task_Status"
+          outlined
+          label="Status"
+          :options="statusOptions"
+          :disable="loading"
+        />
+        <q-select
+          v-model="form.Task_Priority_Rank"
+          outlined
+          label="Priority Rank"
+          :options="priorityOptions"
+          :disable="loading"
+        />
+        <q-input v-model="form.Task_Start_Date" outlined label="Start Date" :disable="loading" />
+        <q-input v-model="form.Task_Due_Date" outlined label="Due Date" :disable="loading" />
+        <q-input v-model="form.Task_End_Date" outlined label="End Date" :disable="loading" />
       </q-card-section>
 
       <q-separator />
@@ -77,80 +91,33 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const $q = useQuasar()
 
 const loading = ref(false)
-const opportunities = ref([])
 const contacts = ref([])
-const pipelines = ref([])
-const companies = ref([])
 const form = ref({
   Task_Name: '',
-  opportunity_id: '',
-  contact_id: '',
-  pipeline_id: '',
-  company_id: '',
-  Task_Description: '',
-  Status: 'Open',
-  Priority: 'Medium',
-  Due_Date: '',
+  Task_Summary: '',
+  Task_Status: 'Backlog',
+  Task_Priority_Rank: 'Mid',
+  Task_Start_Date: '',
+  Task_Due_Date: '',
+  Task_End_Date: '',
+  Task_Team_Owner: '',
+  Task_Team_Assigned: [],
+  Task_Team_Support: [],
 })
 
-const opportunityOptions = computed(() =>
-  (opportunities.value || []).map((o) => ({
-    label: o.opportunity_name || o.Venture_Oppty_Name || o.id,
-    value: o.id,
-  })),
-)
 const contactOptions = computed(() =>
   (contacts.value || []).map((c) => ({
     label: c.Name || c.Professional_Email || c.Personal_Email || c.id,
     value: c.id,
   })),
 )
-const pipelineOptions = computed(() =>
-  (pipelines.value || []).map((p) => ({
-    label: p.name || p.pipeline_id,
-    value: p.pipeline_id,
-  })),
-)
-const companyOptions = computed(() =>
-  (companies.value || []).map((c) => ({
-    label: c.Company_Name || c.id,
-    value: c.id,
-  })),
-)
+const statusOptions = ['Backlog', 'In Progress', 'Completed', 'Closed']
+const priorityOptions = ['Low', 'Mid-Low', 'Mid', 'Mid-High', 'High']
 
 async function loadReferences() {
-  const tasks = []
-
-  if (bridge.value?.opportunities?.list) {
-    tasks.push(
-      bridge.value.opportunities.list().then((result) => {
-        opportunities.value = result?.opportunities || []
-      }),
-    )
-  }
-  if (bridge.value?.contacts?.list) {
-    tasks.push(
-      bridge.value.contacts.list().then((result) => {
-        contacts.value = result?.contacts || []
-      }),
-    )
-  }
-  if (bridge.value?.pipelines?.list) {
-    tasks.push(
-      bridge.value.pipelines.list().then((result) => {
-        pipelines.value = result?.pipelines || []
-      }),
-    )
-  }
-  if (bridge.value?.companies?.list) {
-    tasks.push(
-      bridge.value.companies.list().then((result) => {
-        companies.value = result?.companies || []
-      }),
-    )
-  }
-
-  await Promise.all(tasks)
+  if (!bridge.value?.contacts?.list) return
+  const result = await bridge.value.contacts.list()
+  contacts.value = result?.contacts || []
 }
 
 async function submit() {
@@ -165,6 +132,9 @@ async function submit() {
     const result = await bridge.value.tasks.create({ ...form.value })
     emit('created', result)
     open.value = false
+    $q.notify({ type: 'positive', message: 'Task created.' })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e?.message || String(e) })
   } finally {
     loading.value = false
   }
@@ -176,14 +146,15 @@ watch(
     if (!v) return
     form.value = {
       Task_Name: '',
-      opportunity_id: '',
-      contact_id: '',
-      pipeline_id: '',
-      company_id: '',
-      Task_Description: '',
-      Status: 'Open',
-      Priority: 'Medium',
-      Due_Date: '',
+      Task_Summary: '',
+      Task_Status: 'Backlog',
+      Task_Priority_Rank: 'Mid',
+      Task_Start_Date: '',
+      Task_Due_Date: '',
+      Task_End_Date: '',
+      Task_Team_Owner: '',
+      Task_Team_Assigned: [],
+      Task_Team_Support: [],
     }
     await loadReferences()
   },

@@ -6,7 +6,7 @@
         <h1 class="home-dashboard__title">Home</h1>
         <p class="home-dashboard__subtitle">
           A live dashboard for the workspace, pulling together companies, contacts,
-          opportunities, pipelines, artifacts, notes, tasks, and assistants.
+          opportunities, projects, artifacts, notes, tasks, and assistants.
         </p>
       </div>
 
@@ -69,7 +69,7 @@
                 <strong>{{ hasLoadedOnce ? formatCompact(recentAddsCount) : '...' }}</strong>
               </div>
               <div class="home-dashboard__hero-stat">
-                <span class="home-dashboard__hero-stat-label">Pipelines active</span>
+                <span class="home-dashboard__hero-stat-label">Projects active</span>
                 <strong
                   >{{ hasLoadedOnce ? formatCompact(installedPipelinesCount) : '...' }}/{{
                     hasLoadedOnce ? formatCompact(pipelinesCount) : '...'
@@ -430,11 +430,11 @@ const collectionConfigs = [
   },
   {
     key: 'pipelines',
-    label: 'Pipelines',
+    label: 'Projects',
     icon: 'schema',
-    to: '/pipelines',
+    to: '/projects',
     accent: '#0f766e',
-    actionLabel: 'Open pipelines',
+    actionLabel: 'Open projects',
     load: async () => (await bridge.value.pipelines.list())?.pipelines || [],
   },
   {
@@ -585,11 +585,11 @@ const activityItems = computed(() => [
     })),
     ...pipelines.value.map((row) => ({
       key: `pipelines-${row.pipeline_id}`,
-      title: row.name || 'Untitled pipeline',
-      subtitle: row.install_status ? `Pipeline • ${statusLabel(row.install_status)}` : 'Pipeline',
+      title: row.name || 'Untitled project',
+      subtitle: row.install_status ? `Project • ${statusLabel(row.install_status)}` : 'Project',
       date: parseDateValue(row.created_at),
       icon: 'schema',
-      to: '/pipelines',
+      to: '/projects',
     })),
     ...artifacts.value.map((row) => ({
       key: `artifacts-${row.artifact_id}`,
@@ -601,8 +601,8 @@ const activityItems = computed(() => [
     })),
     ...notes.value.map((row) => ({
       key: `notes-${row.id}`,
-      title: row.title || 'Untitled note',
-      subtitle: row.reference_type ? `Note • ${row.reference_type}` : 'Note',
+      title: row.Note_Name || 'Untitled note',
+      subtitle: row.created_by_name ? `Note • ${row.created_by_name}` : 'Note',
       date: parseDateValue(row.created_at),
       icon: 'note',
       to: '/notes',

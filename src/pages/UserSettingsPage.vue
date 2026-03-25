@@ -30,35 +30,14 @@
 
         <q-card bordered flat>
           <q-card-section class="q-gutter-md">
-            <q-input
-              :model-value="auditUserUuid"
-              outlined
-              dense
-              readonly
-              label="User UUID (read-only)"
-            >
-              <template #append>
-                <q-btn
-                  flat
-                  dense
-                  round
-                  icon="content_copy"
-                  :disable="!auditUserUuid || loading || saving"
-                  @click="copyUserUuid"
-                />
-              </template>
-            </q-input>
-
-            <q-separator />
-
-            <div class="text-subtitle2">Contact Profile</div>
+            <div class="text-subtitle2">User Profile</div>
 
             <q-input v-model="form.Name" outlined dense label="Name *" :disable="loading || saving" />
             <q-input
-              v-model="form.Personal_Email"
+              v-model="form.User_PEmail"
               outlined
               dense
-              label="Personal Email"
+              label="Email *"
               :disable="loading || saving"
             />
             <q-input
@@ -114,6 +93,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
+import isEmail from 'validator/lib/isEmail.js'
 import B10Button from 'src/components/buttons/B10Button.vue'
 
 const $q = useQuasar()
@@ -129,10 +109,9 @@ const hasBridge = computed(() => !!bridge.value?.userSettings?.get && !!bridge.v
 const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
-const auditUserUuid = ref('')
 const form = ref({
   Name: '',
-  Personal_Email: '',
+  User_PEmail: '',
   Professional_Email: '',
   Phone: '',
   LinkedIn: '',
@@ -152,11 +131,20 @@ function normalizeInput(value) {
 function mapContactToForm(contact = null) {
   return {
     Name: contact?.Name || '',
-    Personal_Email: contact?.Personal_Email || '',
+    User_PEmail: '',
     Professional_Email: contact?.Professional_Email || '',
     Phone: contact?.Phone || '',
     LinkedIn: contact?.LinkedIn || '',
     Country_based: contact?.Country_based || '',
+  }
+}
+
+function mapUserSettingsToForm(result = null) {
+  const contact = result?.userContact || null
+  const user = result?.user || null
+  return {
+    ...mapContactToForm(contact),
+    User_PEmail: user?.User_PEmail || contact?.Professional_Email || contact?.Personal_Email || '',
   }
 }
 
@@ -166,8 +154,7 @@ async function loadUserSettings() {
   error.value = ''
   try {
     const result = await bridge.value.userSettings.get()
-    auditUserUuid.value = result?.auditUserUuid || ''
-    form.value = mapContactToForm(result?.userContact || null)
+    form.value = mapUserSettingsToForm(result)
   } catch (e) {
     error.value = normalizeIpcErrorMessage(e)
   } finally {
@@ -178,10 +165,23 @@ async function loadUserSettings() {
 async function saveUserSettings() {
   if (!hasBridge.value) return
   const name = normalizeInput(form.value.Name)
+  const email = normalizeInput(form.value.User_PEmail)
   if (!name) {
     const message = 'User name should not be empty'
     error.value = message
     $q.notify({ type: 'negative', message: `Error: ${message}` })
+    return
+  }
+  if (!email) {
+    const message = 'User email should not be empty'
+    error.value = message
+    $q.notify({ type: 'negative', message: `Error: ${message}` })
+    return
+  }
+  if (!isEmail(email)) {
+    const message = 'Enter a valid email address'
+    error.value = message
+    $q.notify({ type: 'negative', message })
     return
   }
 
@@ -191,7 +191,8 @@ async function saveUserSettings() {
     const payload = {
       contact: {
         Name: name,
-        Personal_Email: normalizeInput(form.value.Personal_Email),
+        User_PEmail: email,
+        Personal_Email: email,
         Professional_Email: normalizeInput(form.value.Professional_Email),
         Phone: normalizeInput(form.value.Phone),
         LinkedIn: normalizeInput(form.value.LinkedIn),
@@ -199,8 +200,7 @@ async function saveUserSettings() {
       },
     }
     const result = await bridge.value.userSettings.set(payload)
-    auditUserUuid.value = result?.auditUserUuid || ''
-    form.value = mapContactToForm(result?.userContact || null)
+    form.value = mapUserSettingsToForm(result)
     globalThis?.dispatchEvent?.(new Event('ecvc:user-label-changed'))
     $q.notify({ type: 'positive', message: 'User settings saved' })
   } catch (e) {
@@ -209,16 +209,6 @@ async function saveUserSettings() {
     $q.notify({ type: 'negative', message })
   } finally {
     saving.value = false
-  }
-}
-
-async function copyUserUuid() {
-  if (!auditUserUuid.value) return
-  try {
-    await navigator.clipboard.writeText(auditUserUuid.value)
-    $q.notify({ type: 'positive', message: 'User UUID copied' })
-  } catch (e) {
-    $q.notify({ type: 'negative', message: normalizeIpcErrorMessage(e) })
   }
 }
 

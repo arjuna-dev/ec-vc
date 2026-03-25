@@ -50,6 +50,35 @@
           >
             <q-item-label header class="ec-nav-label">{{ section.label }}</q-item-label>
 
+            <q-expansion-item
+              v-if="section.key === 'main'"
+              icon="work"
+              label="Opportunities"
+              default-opened
+              dense
+              expand-separator
+              class="ec-nav-expansion"
+            >
+              <q-list>
+                <q-item clickable to="/funds" exact class="ec-nav-item ec-nav-item--nested">
+                  <q-item-section avatar>
+                    <q-icon name="account_balance_wallet" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>Funds</q-item-label>
+                  </q-item-section>
+                </q-item>
+                <q-item clickable to="/rounds" exact class="ec-nav-item ec-nav-item--nested">
+                  <q-item-section avatar>
+                    <q-icon name="donut_large" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>Rounds</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-expansion-item>
+
             <q-item
               v-for="item in section.items"
               :key="item.label"
@@ -105,8 +134,6 @@
         <div ref="quickWidgetIconContainer" class="ec-quick-widget-icon" />
       </q-btn>
     </div>
-
-    <OpportunityCreateDialog v-model="opportunityDialogOpen" />
     <ArtifactAddDialog v-model="artifactDialogOpen" />
   </q-layout>
 </template>
@@ -121,11 +148,9 @@ import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
-import OpportunityCreateDialog from 'components/OpportunityCreateDialog.vue'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
-const opportunityDialogOpen = ref(false)
 const artifactDialogOpen = ref(false)
 const auditUserLabel = ref('')
 const logoContainer = ref(null)
@@ -145,8 +170,7 @@ const primaryNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
-  { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
-  { label: 'Pipelines', to: '/pipelines', exact: true, icon: 'schema' },
+  { label: 'Projects', to: '/projects', exact: true, icon: 'schema' },
 ]
 const secondaryNavigationItems = [
   { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
@@ -159,7 +183,10 @@ const routeLabelByName = {
   companies: 'Companies',
   contacts: 'Contacts',
   opportunities: 'Opportunities',
-  pipelines: 'Pipelines',
+  funds: 'Funds',
+  rounds: 'Rounds',
+  pipelines: 'Projects',
+  projects: 'Projects',
   artifacts: 'Artifacts',
   notes: 'Notes',
   tasks: 'Tasks',
@@ -173,7 +200,10 @@ const databookParentRouteByTableName = {
   companies: '/companies',
   contacts: '/contacts',
   opportunities: '/opportunities',
-  pipelines: '/pipelines',
+  funds: '/funds',
+  rounds: '/rounds',
+  pipelines: '/projects',
+  projects: '/projects',
 }
 
 const router = useRouter()
@@ -186,14 +216,17 @@ let quickWidgetDragState = null
 const drawerNavigationSections = computed(() => [
   {
     label: 'Main',
+    key: 'main',
     items: primaryNavigationItems,
   },
   {
     label: 'Workspace',
+    key: 'workspace',
     items: secondaryNavigationItems,
   },
   {
     label: 'Preferences',
+    key: 'preferences',
     items: [
       {
         label: hasAuditUserLabel.value ? `User: ${drawerUserLabel.value}` : 'Set user',
@@ -254,12 +287,6 @@ const quickWidgetStyle = computed(() => ({
 
 const quickWidgetActions = computed(() => [
   {
-    id: 'opportunity',
-    label: 'Opportunity',
-    icon: 'work',
-    onClick: openOpportunityFromQuickAction,
-  },
-  {
     id: 'contact',
     label: 'Contact',
     icon: 'people',
@@ -282,6 +309,12 @@ const quickWidgetActions = computed(() => [
     label: 'Task',
     icon: 'check_circle',
     onClick: openTaskFromQuickAction,
+  },
+  {
+    id: 'artifact',
+    label: 'Artifact',
+    icon: 'attach_file',
+    onClick: openArtifactFromQuickAction,
   },
 ])
 
@@ -316,10 +349,6 @@ async function loadAuditUserLabel() {
 
 async function syncUserNavState() {
   await loadAuditUserLabel()
-}
-
-function openOpportunityDialog() {
-  opportunityDialogOpen.value = true
 }
 
 function openArtifactDialog() {
@@ -476,19 +505,6 @@ function closeQuickActions() {
   playQuickWidgetBack()
 }
 
-async function openOpportunityFromQuickAction() {
-  closeQuickActions()
-  globalThis.__ecvcOpenOpportunityDialog = true
-  try {
-    await router.push({ name: 'opportunities', query: { create: '1' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-opportunity-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-opportunity-dialog'))
-    }, 80)
-  }
-}
-
 async function openNoteFromQuickAction() {
   closeQuickActions()
   globalThis.__ecvcOpenNoteDialog = true
@@ -537,6 +553,18 @@ async function openTaskFromQuickAction() {
     globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
     setTimeout(() => {
       globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
+    }, 80)
+  }
+}
+
+async function openArtifactFromQuickAction() {
+  closeQuickActions()
+  try {
+    await router.push({ name: 'artifacts' })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
     }, 80)
   }
 }
@@ -643,7 +671,6 @@ function playQuickWidgetOpen() {
 }
 
 onMounted(() => {
-  window.addEventListener('ecvc:open-opportunity-dialog', openOpportunityDialog)
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
   window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
@@ -654,7 +681,6 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('ecvc:open-opportunity-dialog', openOpportunityDialog)
   window.removeEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
   window.removeEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.removeEventListener('resize', onQuickWidgetResize)

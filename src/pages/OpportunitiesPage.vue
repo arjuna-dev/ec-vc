@@ -16,14 +16,14 @@
 
     <div v-else class="opportunities-page">
       <header class="opportunities-page__heading">
-        <h1 class="opportunities-page__title">Opportunities</h1>
+        <h1 class="opportunities-page__title">{{ currentOpportunityMode.title }}</h1>
       </header>
 
       <section class="opportunities-shell">
         <div class="opportunities-shell__hero">
           <div class="opportunities-shell__copy">
-            <div class="opportunities-shell__eyebrow">Opportunities dashboard</div>
-            <h2 class="opportunities-shell__hero-title">See which deals are taking shape.</h2>
+            <div class="opportunities-shell__eyebrow">{{ currentOpportunityMode.eyebrow }}</div>
+            <h2 class="opportunities-shell__hero-title">{{ currentOpportunityMode.heroTitle }}</h2>
             <p class="opportunities-shell__hero-text">{{ opportunitiesHeroText }}</p>
 
             <div class="opportunities-shell__hero-meta">
@@ -33,9 +33,7 @@
               <div v-if="selectedCount > 0" class="opportunities-shell__meta-pill">
                 {{ selectedCount }} selected
               </div>
-              <div class="opportunities-shell__meta-pill">
-                {{ opportunitiesDashboard.fundCount }} fund opportunities
-              </div>
+              <div class="opportunities-shell__meta-pill">{{ opportunitiesDashboard.filteredKindCount }} in view</div>
             </div>
           </div>
 
@@ -88,7 +86,7 @@
               outlined
               borderless
               class="opportunities-toolbar__search"
-              placeholder="Filter opportunities..."
+              :placeholder="`Filter ${currentOpportunityMode.queryLabel}...`"
               :disable="loading"
             />
 
@@ -99,7 +97,7 @@
               icon="add_circle_outline"
               label="Import CSV"
               class="opportunities-toolbar__button"
-              :disable="loading"
+              :disable="loading || !canMutateOpportunities"
               @click="pickImportFile"
             />
 
@@ -162,8 +160,8 @@
               variant="primary"
               size="small"
               icon-start="add"
-              label="Add Opportunity"
-              :disable="loading"
+              :label="addRecordLabel"
+              :disable="loading || !canMutateOpportunities"
               @click="openCreateOpportunity"
             />
           </div>
@@ -180,13 +178,14 @@
             rounded
           >
             <div class="row items-center justify-between">
-              <div>No opportunities found.</div>
+              <div>{{ currentOpportunityMode.emptyLabel }}</div>
               <q-btn
                 color="black"
                 text-color="white"
                 no-caps
                 unelevated
-                label="Create opportunity"
+                :label="addRecordLabel"
+                :disable="!canMutateOpportunities"
                 @click="openCreateOpportunity"
               />
             </div>
@@ -224,7 +223,7 @@
                     round
                     icon="delete"
                     color="grey-8"
-                    :disable="loading"
+                    :disable="true"
                     @click="confirmDelete(props.row)"
                   />
                 </div>
@@ -306,7 +305,7 @@
                     round
                     icon="delete"
                     color="grey-8"
-                    :disable="loading"
+                    :disable="true"
                     @click="confirmDelete(row)"
                   />
                 </q-card-actions>
@@ -316,7 +315,11 @@
         </div>
       </section>
 
-      <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
+      <q-page-sticky
+        v-if="selectedCount > 0 && canMutateOpportunities"
+        position="bottom-right"
+        :offset="[18 * 2, 18]"
+      >
         <q-btn
           color="black"
           text-color="white"
@@ -373,17 +376,56 @@ const selectedCount = computed(() => selectedRows.value.length)
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
+const currentOpportunityMode = computed(() => {
+  if (route.name === 'funds') {
+    return {
+      title: 'Funds',
+      eyebrow: 'Funds dashboard',
+      heroTitle: 'See which funds are taking shape.',
+      queryLabel: 'funds',
+      kind: 'fund',
+      emptyLabel: 'No funds found.',
+      createLabel: 'Add Fund',
+    }
+  }
+  if (route.name === 'rounds') {
+    return {
+      title: 'Rounds',
+      eyebrow: 'Rounds dashboard',
+      heroTitle: 'See which rounds are taking shape.',
+      queryLabel: 'rounds',
+      kind: 'round',
+      emptyLabel: 'No rounds found.',
+      createLabel: 'Add Round',
+    }
+  }
+  return {
+    title: 'Opportunities',
+    eyebrow: 'Opportunities dashboard',
+    heroTitle: 'See which deals are taking shape.',
+    queryLabel: 'opportunities',
+    kind: '',
+    emptyLabel: 'No opportunities found.',
+    createLabel: 'Add Opportunity',
+  }
+})
+const canMutateOpportunities = false
+const addRecordLabel = computed(() => currentOpportunityMode.value.createLabel)
 
 function openCreateOpportunity() {
-  globalThis?.dispatchEvent?.(new Event('ecvc:open-opportunity-dialog'))
+  $q.notify({
+    type: 'info',
+    message: `Creation is not wired yet for ${currentOpportunityMode.value.queryLabel}.`,
+  })
 }
 
 function openDatabook(row) {
   const recordId = String(row?.id || '').trim()
   if (!recordId) return
+  const tableName = row?.kind === 'fund' ? 'Funds' : row?.kind === 'round' ? 'Rounds' : 'Funds'
   router.push({
     name: 'databook-view',
-    params: { tableName: 'Opportunities', recordId },
+    params: { tableName, recordId },
     query: { returnTo: route.fullPath },
   })
 }
@@ -434,8 +476,8 @@ const viewOptions = [
 ]
 
 const opportunitiesDashboard = computed(() => {
-  const total = rows.value.length
-  const summary = rows.value.reduce(
+  const total = displayRows.value.length
+  const summary = displayRows.value.reduce(
     (accumulator, row) => {
       const hasKind = normalizeOpportunityValue(row?.kind).length > 0
       const hasOwner = normalizeOpportunityValue(row?.Company_Name).length > 0
@@ -457,6 +499,7 @@ const opportunitiesDashboard = computed(() => {
       if (hasStage) accumulator.stageCount += 1
       if (hasSize) accumulator.sizeCount += 1
       if (normalizeOpportunityValue(row?.kind).toLowerCase() === 'fund') accumulator.fundCount += 1
+      if (normalizeOpportunityValue(row?.kind).toLowerCase() === 'round') accumulator.roundCount += 1
 
       if (profileScore < 3) accumulator.sparseCount += 1
       else if (profileScore <= 5) accumulator.mediumCount += 1
@@ -468,6 +511,7 @@ const opportunitiesDashboard = computed(() => {
       stageCount: 0,
       sizeCount: 0,
       fundCount: 0,
+      roundCount: 0,
       sparseCount: 0,
       mediumCount: 0,
       richCount: 0,
@@ -480,6 +524,11 @@ const opportunitiesDashboard = computed(() => {
     sparseShare: total ? (summary.sparseCount / total) * 100 : 0,
     mediumShare: total ? (summary.mediumCount / total) * 100 : 0,
     richShare: total ? (summary.richCount / total) * 100 : 0,
+    filteredKindCount: currentOpportunityMode.value.kind
+      ? currentOpportunityMode.value.kind === 'fund'
+        ? summary.fundCount
+        : summary.roundCount
+      : total,
   }
 })
 
@@ -487,15 +536,15 @@ const opportunitiesHeroText = computed(() => {
   const { total, stageCount, sizeCount, sparseCount } = opportunitiesDashboard.value
 
   if (!total) {
-    return 'Track every opportunity here. Add deal details to understand stage coverage, sizing, and which records still need context.'
+    return `Track every ${currentOpportunityMode.value.queryLabel} record here. Add deal details to understand stage coverage, sizing, and which records still need context.`
   }
 
-  return `${total} opportunities tracked, ${stageCount} already staged, ${sizeCount} sized, and ${sparseCount} still need more investment context.`
+  return `${total} ${currentOpportunityMode.value.queryLabel} tracked, ${stageCount} already staged, ${sizeCount} sized, and ${sparseCount} still need more investment context.`
 })
 
 const opportunitiesDashboardStats = computed(() => [
   {
-    label: 'Total opportunities',
+    label: `Total ${currentOpportunityMode.value.queryLabel}`,
     value: opportunitiesDashboard.value.total,
     caption: 'Deals and fund tracks in motion',
     tone: 'neutral',
@@ -526,6 +575,12 @@ const displayRows = computed(() => {
     .toLowerCase()
 
   let items = [...rows.value]
+
+  if (currentOpportunityMode.value.kind) {
+    items = items.filter(
+      (row) => normalizeOpportunityValue(row?.kind).toLowerCase() === currentOpportunityMode.value.kind,
+    )
+  }
 
   if (query) {
     items = items.filter((row) =>
@@ -661,6 +716,9 @@ async function loadOpportunities() {
 }
 
 async function importRows(importedRows) {
+  if (!canMutateOpportunities) {
+    throw new Error(`Import is not wired yet for ${currentOpportunityMode.value.queryLabel}.`)
+  }
   const result = await bridge.value.opportunities.upsertMany(importedRows)
   await loadOpportunities()
   return result
@@ -689,11 +747,12 @@ function toggleRowSelection(row, shouldSelect) {
 }
 
 async function deleteOpportunity(row) {
+  if (!canMutateOpportunities) return
   await bridge.value.opportunities.delete(row.id)
 }
 
 async function confirmDelete(row) {
-  if (!bridge.value?.opportunities?.delete) return
+  if (!bridge.value?.opportunities?.delete || !canMutateOpportunities) return
   const company = row?.Company_Name ? ` (${row.Company_Name})` : ''
 
   $q.dialog({
@@ -715,7 +774,7 @@ async function confirmDelete(row) {
 }
 
 async function confirmDeleteSelected() {
-  if (!bridge.value?.opportunities?.delete || selectedCount.value === 0) return
+  if (!bridge.value?.opportunities?.delete || selectedCount.value === 0 || !canMutateOpportunities) return
   $q.dialog({
     title: 'Delete selected opportunities?',
     message: `This will permanently delete ${selectedCount.value} selected opportunit${selectedCount.value === 1 ? 'y' : 'ies'}.`,

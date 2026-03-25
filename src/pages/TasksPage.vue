@@ -85,25 +85,11 @@ const $q = useQuasar()
 
 const columns = [
   { name: 'Task_Name', label: 'Task', field: 'Task_Name', align: 'left', sortable: true },
-  { name: 'Task_Description', label: 'Description', field: 'Task_Description', align: 'left' },
+  { name: 'Task_Description', label: 'Summary', field: 'Task_Description', align: 'left' },
   { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: true },
   { name: 'Priority', label: 'Priority', field: 'Priority', align: 'left', sortable: true },
   { name: 'Due_Date', label: 'Due', field: 'Due_Date', align: 'left', sortable: true },
-  {
-    name: 'opportunity_name',
-    label: 'Opportunity',
-    field: 'opportunity_name',
-    align: 'left',
-    sortable: true,
-  },
-  { name: 'contact_name', label: 'Contact', field: 'contact_name', align: 'left', sortable: true },
-  {
-    name: 'pipeline_name',
-    label: 'Pipeline',
-    field: 'pipeline_name',
-    align: 'left',
-    sortable: true,
-  },
+  { name: 'contact_name', label: 'Owner', field: 'contact_name', align: 'left', sortable: true },
   { name: 'company_name', label: 'Company', field: 'company_name', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
@@ -111,14 +97,15 @@ const columns = [
 const csvHeaders = [
   'id',
   'Task_Name',
-  'Task_Description',
-  'Status',
-  'Priority',
-  'Due_Date',
-  'opportunity_id',
-  'contact_id',
-  'pipeline_id',
-  'company_id',
+  'Task_Summary',
+  'Task_Status',
+  'Task_Priority_Rank',
+  'Task_Start_Date',
+  'Task_Due_Date',
+  'Task_End_Date',
+  'Task_Team_Owner',
+  'Task_Team_Assigned',
+  'Task_Team_Support',
 ]
 
 function openCreateTask() {

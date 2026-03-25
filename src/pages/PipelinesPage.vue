@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Pipelines requires Electron. Run <code>quasar dev -m electron</code> or
+        Projects requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -16,13 +16,13 @@
 
     <div v-else class="pipelines-page">
       <header class="pipelines-page__heading">
-        <h1 class="pipelines-page__title">Pipelines</h1>
+        <h1 class="pipelines-page__title">Projects</h1>
       </header>
 
       <section class="pipelines-shell">
         <div class="pipelines-shell__hero">
           <div class="pipelines-shell__copy">
-            <div class="pipelines-shell__eyebrow">Pipelines dashboard</div>
+            <div class="pipelines-shell__eyebrow">Projects dashboard</div>
             <h2 class="pipelines-shell__hero-title">See what is ready in your workspace.</h2>
             <p class="pipelines-shell__hero-text">{{ pipelinesHeroText }}</p>
 
@@ -88,7 +88,7 @@
               outlined
               borderless
               class="pipelines-toolbar__search"
-              placeholder="Filter pipelines..."
+              placeholder="Filter projects..."
               :disable="loading"
             />
 
@@ -162,7 +162,7 @@
               variant="primary"
               size="small"
               icon-start="add"
-              label="Add Pipeline"
+              label="Add Project"
               :disable="loading"
               @click="openCreatePipeline"
             />
@@ -180,13 +180,13 @@
             rounded
           >
             <div class="row items-center justify-between">
-              <div>No pipelines found.</div>
+              <div>No projects found.</div>
               <q-btn
                 color="black"
                 text-color="white"
                 no-caps
                 unelevated
-                label="Create pipeline"
+                label="Create project"
                 @click="openCreatePipeline"
               />
             </div>
@@ -271,12 +271,12 @@
                   <div class="row items-start no-wrap">
                     <div class="col-auto q-pr-md">
                       <q-avatar size="56px" class="pipeline-card__avatar">
-                        <img :src="buildAvatarImage(row.name)" :alt="row.name || 'Pipeline avatar'" />
+                        <img :src="buildAvatarImage(row.name)" :alt="row.name || 'Project avatar'" />
                       </q-avatar>
                     </div>
                     <div class="col">
-                      <div class="pipeline-card__eyebrow">Pipeline</div>
-                      <div class="pipeline-card__title">{{ row.name || 'Unnamed pipeline' }}</div>
+                      <div class="pipeline-card__eyebrow">Project</div>
+                      <div class="pipeline-card__title">{{ row.name || 'Unnamed project' }}</div>
                       <div class="pipeline-card__subtitle">{{ statusLabel(row.install_status) }}</div>
                     </div>
                     <div class="col-auto">
@@ -412,7 +412,7 @@ const route = useRoute()
 const router = useRouter()
 
 const columns = [
-  { name: 'name', label: 'Pipeline Name', field: 'name', align: 'left', sortable: true },
+  { name: 'name', label: 'Project Name', field: 'name', align: 'left', sortable: true },
   {
     name: 'install_status',
     label: 'Status',
@@ -472,15 +472,15 @@ const pipelinesHeroText = computed(() => {
   const { total, installedCount, stagedCount, inactiveCount } = pipelinesDashboard.value
 
   if (!total) {
-    return 'Create pipeline templates here to map your process, define stages, and activate them inside the workspace.'
+    return 'Create project templates here to map your process, define stages, and activate them inside the workspace.'
   }
 
-  return `${total} pipeline templates available, ${installedCount} already created in the workspace, ${stagedCount} with defined stages, and ${inactiveCount} still need setup.`
+  return `${total} project templates available, ${installedCount} already created in the workspace, ${stagedCount} with defined stages, and ${inactiveCount} still need setup.`
 })
 
 const pipelinesDashboardStats = computed(() => [
   {
-    label: 'Total pipelines',
+    label: 'Total projects',
     value: pipelinesDashboard.value.total,
     caption: 'Templates available in the workspace',
     tone: 'neutral',
@@ -612,7 +612,7 @@ function escapeSvg(value) {
 
 function exportPipelinesCsv() {
   const csv = rowsToCsv(csvHeaders, displayRows.value)
-  const ok = exportFile('pipelines.csv', csv, 'text/csv')
+  const ok = exportFile('projects.csv', csv, 'text/csv')
   if (ok !== true) $q.notify({ type: 'negative', message: 'Browser denied file download.' })
 }
 
@@ -683,11 +683,11 @@ async function confirmDelete(row) {
   if (row?.pipeline_id === 'pipeline_default') return
 
   $q.dialog({
-    title: 'Delete pipeline?',
+    title: 'Delete project?',
     message:
       row.install_status === 'installed'
-        ? `This will uninstall and permanently delete pipeline "${row.name}".`
-        : `This will permanently delete pipeline "${row.name}".`,
+        ? `This will uninstall and permanently delete project "${row.name}".`
+        : `This will permanently delete project "${row.name}".`,
     cancel: true,
     persistent: true,
   }).onOk(async () => {
@@ -736,13 +736,13 @@ async function confirmDeleteSelected() {
   if (!bridge.value?.pipelines?.delete || selectedCount.value === 0) return
   const deletableRows = selectedRows.value.filter((row) => row.pipeline_id !== 'pipeline_default')
   if (deletableRows.length === 0) {
-    $q.notify({ type: 'warning', message: 'The default pipeline cannot be deleted.' })
+    $q.notify({ type: 'warning', message: 'The default project cannot be deleted.' })
     return
   }
 
   $q.dialog({
-    title: 'Delete selected pipelines?',
-    message: `This will permanently delete ${deletableRows.length} selected pipeline${deletableRows.length === 1 ? '' : 's'}.`,
+    title: 'Delete selected projects?',
+    message: `This will permanently delete ${deletableRows.length} selected project${deletableRows.length === 1 ? '' : 's'}.`,
     cancel: true,
     persistent: true,
   }).onOk(async () => {
@@ -776,7 +776,7 @@ function openDatabook(row) {
   if (!recordId) return
   router.push({
     name: 'databook-view',
-    params: { tableName: 'Pipelines', recordId },
+    params: { tableName: 'Projects', recordId },
     query: { returnTo: route.fullPath },
   })
 }

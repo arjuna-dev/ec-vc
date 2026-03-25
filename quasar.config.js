@@ -3,6 +3,16 @@
 
 import { defineConfig } from '#q-app/wrappers'
 import { rebuild } from '@electron/rebuild'
+import pkg from './package.json' with { type: 'json' }
+
+async function rebuildNativeElectronDeps() {
+  await rebuild({
+    buildPath: process.cwd(),
+    electronVersion: String(pkg.devDependencies.electron || '').replace(/^[^\d]*/, ''),
+    force: true,
+    onlyModules: ['better-sqlite3'],
+  })
+}
 
 export default defineConfig((ctx) => {
   return {
@@ -33,6 +43,11 @@ export default defineConfig((ctx) => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
+      beforeDev: async () => {
+        if (ctx.mode.electron) {
+          await rebuildNativeElectronDeps()
+        }
+      },
       target: {
         browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
         node: 'node20',

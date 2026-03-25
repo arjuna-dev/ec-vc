@@ -12,7 +12,8 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build",
-    "postinstall": "quasar prepare"
+    "electron:rebuild": "electron-rebuild -f -o better-sqlite3",
+    "postinstall": "quasar prepare && npm run electron:rebuild"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.20",
@@ -25,6 +26,7 @@
     "officeparser": "^6.0.4",
     "pdfjs-dist": "^5.5.207",
     "quasar": "^2.16.0",
+    "validator": "^13.15.26",
     "vue": "^3.5.22",
     "vue-grab": "^0.0.4",
     "vue-router": "^4.0.0"

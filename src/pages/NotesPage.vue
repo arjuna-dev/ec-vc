@@ -84,32 +84,15 @@ const router = useRouter()
 const $q = useQuasar()
 
 const columns = [
-  { name: 'title', label: 'Title', field: 'title', align: 'left', sortable: true },
-  { name: 'content', label: 'Content', field: 'content', align: 'left' },
-  {
-    name: 'linked_entity',
-    label: 'Linked To',
-    field: (row) =>
-      row.opportunity_name || row.contact_name || row.pipeline_name || row.company_name || '',
-    align: 'left',
-    sortable: true,
-  },
-  { name: 'reference_type', label: 'Type', field: 'reference_type', align: 'left', sortable: true },
+  { name: 'Note_Name', label: 'Note', field: 'Note_Name', align: 'left', sortable: true },
+  { name: 'Note_Content', label: 'Content', field: 'Note_Content', align: 'left' },
+  { name: 'created_by_name', label: 'Creator', field: 'created_by_name', align: 'left', sortable: true },
+  { name: 'created_by_email', label: 'Email', field: 'created_by_email', align: 'left', sortable: true },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
 ]
 
-const csvHeaders = [
-  'id',
-  'title',
-  'content',
-  'opportunity_id',
-  'contact_id',
-  'pipeline_id',
-  'company_id',
-  'reference_type',
-  'reference_id',
-]
+const csvHeaders = ['id', 'Note_Name', 'Note_Content', 'created_by', 'created_by_name', 'created_by_email', 'created_at']
 
 function openCreateNote() {
   dialogOpen.value = true
