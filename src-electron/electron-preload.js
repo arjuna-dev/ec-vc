@@ -66,6 +66,12 @@ contextBridge.exposeInMainWorld('ecvc', {
       }
     },
   },
+  funds: {
+    create: (payload) => ipcRenderer.invoke('funds:create', payload),
+  },
+  rounds: {
+    create: (payload) => ipcRenderer.invoke('rounds:create', payload),
+  },
   opportunities: {
     list: () => ipcRenderer.invoke('opportunities:list'),
     create: (payload) => ipcRenderer.invoke('opportunities:create', payload),

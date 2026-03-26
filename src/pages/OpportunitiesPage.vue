@@ -97,7 +97,7 @@
               icon="add_circle_outline"
               label="Import CSV"
               class="opportunities-toolbar__button"
-              :disable="loading || !canMutateOpportunities"
+              :disable="loading || !canImportOpportunities"
               @click="pickImportFile"
             />
 
@@ -161,7 +161,7 @@
               size="small"
               icon-start="add"
               :label="addRecordLabel"
-              :disable="loading || !canMutateOpportunities"
+              :disable="loading || !canCreateOpportunities"
               @click="openCreateOpportunity"
             />
           </div>
@@ -185,7 +185,7 @@
                 no-caps
                 unelevated
                 :label="addRecordLabel"
-                :disable="!canMutateOpportunities"
+                :disable="!canCreateOpportunities"
                 @click="openCreateOpportunity"
               />
             </div>
@@ -316,7 +316,7 @@
       </section>
 
       <q-page-sticky
-        v-if="selectedCount > 0 && canMutateOpportunities"
+        v-if="selectedCount > 0 && canDeleteOpportunities"
         position="bottom-right"
         :offset="[18 * 2, 18]"
       >
@@ -339,6 +339,17 @@
     style="display: none"
     @change="onImportFileSelected"
   />
+
+  <FundCreateDialog
+    v-if="dialogKind === 'fund'"
+    v-model="dialogOpen"
+    @created="onOpportunityCreated"
+  />
+  <RoundCreateDialog
+    v-else
+    v-model="dialogOpen"
+    @created="onOpportunityCreated"
+  />
 </template>
 
 <script setup>
@@ -346,6 +357,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { exportFile, useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import B10Button from 'src/components/buttons/B10Button.vue'
+import FundCreateDialog from 'src/components/FundCreateDialog.vue'
+import RoundCreateDialog from 'src/components/RoundCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 
 const isElectronRuntime = computed(() => {
@@ -365,6 +378,8 @@ const rows = ref([])
 const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
+const dialogOpen = ref(false)
+const dialogKind = ref('round')
 const searchQuery = ref('')
 const priorityMode = ref(false)
 const viewMode = ref('card')
@@ -409,14 +424,54 @@ const currentOpportunityMode = computed(() => {
     createLabel: 'Add Opportunity',
   }
 })
-const canMutateOpportunities = false
+const canCreateOpportunities = true
+const canImportOpportunities = false
+const canDeleteOpportunities = false
 const addRecordLabel = computed(() => currentOpportunityMode.value.createLabel)
 
 function openCreateOpportunity() {
-  $q.notify({
-    type: 'info',
-    message: `Creation is not wired yet for ${currentOpportunityMode.value.queryLabel}.`,
-  })
+  dialogKind.value = currentOpportunityMode.value.kind || 'round'
+  dialogOpen.value = true
+}
+
+function onOpenFundDialog() {
+  globalThis.__ecvcOpenFundDialog = false
+  dialogKind.value = 'fund'
+  dialogOpen.value = true
+}
+
+function onOpenRoundDialog() {
+  globalThis.__ecvcOpenRoundDialog = false
+  dialogKind.value = 'round'
+  dialogOpen.value = true
+}
+
+function openCreateFromQuery() {
+  const createValue = String(route.query.create || '').trim().toLowerCase()
+  if (!createValue) return
+  dialogKind.value = createValue === 'fund' ? 'fund' : 'round'
+  dialogOpen.value = true
+  globalThis.__ecvcOpenFundDialog = false
+  globalThis.__ecvcOpenRoundDialog = false
+  const nextQuery = { ...route.query }
+  delete nextQuery.create
+  router.replace({ query: nextQuery })
+}
+
+function consumeQueuedOpen() {
+  if (globalThis.__ecvcOpenFundDialog === true) {
+    onOpenFundDialog()
+    return true
+  }
+  if (globalThis.__ecvcOpenRoundDialog === true) {
+    onOpenRoundDialog()
+    return true
+  }
+  return false
+}
+
+async function onOpportunityCreated() {
+  await loadOpportunities()
 }
 
 function openDatabook(row) {
@@ -716,7 +771,7 @@ async function loadOpportunities() {
 }
 
 async function importRows(importedRows) {
-  if (!canMutateOpportunities) {
+  if (!canImportOpportunities) {
     throw new Error(`Import is not wired yet for ${currentOpportunityMode.value.queryLabel}.`)
   }
   const result = await bridge.value.opportunities.upsertMany(importedRows)
@@ -747,12 +802,12 @@ function toggleRowSelection(row, shouldSelect) {
 }
 
 async function deleteOpportunity(row) {
-  if (!canMutateOpportunities) return
+  if (!canDeleteOpportunities) return
   await bridge.value.opportunities.delete(row.id)
 }
 
 async function confirmDelete(row) {
-  if (!bridge.value?.opportunities?.delete || !canMutateOpportunities) return
+  if (!bridge.value?.opportunities?.delete || !canDeleteOpportunities) return
   const company = row?.Company_Name ? ` (${row.Company_Name})` : ''
 
   $q.dialog({
@@ -774,7 +829,7 @@ async function confirmDelete(row) {
 }
 
 async function confirmDeleteSelected() {
-  if (!bridge.value?.opportunities?.delete || selectedCount.value === 0 || !canMutateOpportunities) return
+  if (!bridge.value?.opportunities?.delete || selectedCount.value === 0 || !canDeleteOpportunities) return
   $q.dialog({
     title: 'Delete selected opportunities?',
     message: `This will permanently delete ${selectedCount.value} selected opportunit${selectedCount.value === 1 ? 'y' : 'ies'}.`,
@@ -803,16 +858,29 @@ function onChanged() {
 onMounted(() => {
   if (!hasBridge.value) return
   loadOpportunities()
+  consumeQueuedOpen()
+  openCreateFromQuery()
   window.addEventListener('ecvc:opportunities-changed', onChanged)
+  window.addEventListener('ecvc:open-fund-dialog', onOpenFundDialog)
+  window.addEventListener('ecvc:open-round-dialog', onOpenRoundDialog)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('ecvc:opportunities-changed', onChanged)
+  window.removeEventListener('ecvc:open-fund-dialog', onOpenFundDialog)
+  window.removeEventListener('ecvc:open-round-dialog', onOpenRoundDialog)
 })
 
 watch(displayRows, () => {
   normalizeSelectedRows()
 })
+
+watch(
+  () => route.query.create,
+  () => {
+    openCreateFromQuery()
+  },
+)
 </script>
 
 <style scoped>

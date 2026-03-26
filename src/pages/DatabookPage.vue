@@ -1503,6 +1503,8 @@ const TABLE_LABELS = {
   Companies: 'Company',
   Contacts: 'Contact',
   Opportunities: 'Opportunity',
+  Funds: 'Fund',
+  Rounds: 'Round',
   Pipelines: 'Pipeline',
 }
 
@@ -1510,6 +1512,8 @@ const TABLE_LIST_ROUTES = {
   Companies: { routeName: 'companies', label: 'Back to Companies' },
   Contacts: { routeName: 'contacts', label: 'Back to Contacts' },
   Opportunities: { routeName: 'opportunities', label: 'Back to Opportunities' },
+  Funds: { routeName: 'funds', label: 'Back to Funds' },
+  Rounds: { routeName: 'rounds', label: 'Back to Rounds' },
   Pipelines: { routeName: 'pipelines', label: 'Back to Pipelines' },
 }
 

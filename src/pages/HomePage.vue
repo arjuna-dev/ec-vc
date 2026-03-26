@@ -420,13 +420,28 @@ const collectionConfigs = [
     load: async () => (await bridge.value.contacts.list())?.contacts || [],
   },
   {
-    key: 'opportunities',
-    label: 'Opportunities',
-    icon: 'work',
-    to: '/opportunities',
+    key: 'funds',
+    label: 'Funds',
+    icon: 'account_balance_wallet',
+    to: '/funds',
     accent: '#ff5521',
-    actionLabel: 'Open opportunities',
-    load: async () => (await bridge.value.opportunities.list())?.opportunities || [],
+    actionLabel: 'Open funds',
+    load: async () =>
+      ((await bridge.value.opportunities.list())?.opportunities || []).filter(
+        (row) => String(row?.kind || '').trim().toLowerCase() === 'fund',
+      ),
+  },
+  {
+    key: 'rounds',
+    label: 'Rounds',
+    icon: 'donut_large',
+    to: '/rounds',
+    accent: '#ff7a59',
+    actionLabel: 'Open rounds',
+    load: async () =>
+      ((await bridge.value.opportunities.list())?.opportunities || []).filter(
+        (row) => String(row?.kind || '').trim().toLowerCase() === 'round',
+      ),
   },
   {
     key: 'pipelines',
@@ -490,7 +505,9 @@ const loadErrors = ref({})
 
 const companies = computed(() => collections.value.companies || [])
 const contacts = computed(() => collections.value.contacts || [])
-const opportunities = computed(() => collections.value.opportunities || [])
+const funds = computed(() => collections.value.funds || [])
+const rounds = computed(() => collections.value.rounds || [])
+const opportunities = computed(() => [...funds.value, ...rounds.value])
 const pipelines = computed(() => collections.value.pipelines || [])
 const artifacts = computed(() => collections.value.artifacts || [])
 const notes = computed(() => collections.value.notes || [])
@@ -500,6 +517,8 @@ const assistants = computed(() => collections.value.assistants || [])
 const companiesCount = computed(() => companies.value.length)
 const contactsCount = computed(() => contacts.value.length)
 const opportunitiesCount = computed(() => opportunities.value.length)
+const fundsCount = computed(() => funds.value.length)
+const roundsCount = computed(() => rounds.value.length)
 const pipelinesCount = computed(() => pipelines.value.length)
 const artifactsCount = computed(() => artifacts.value.length)
 const notesCount = computed(() => notes.value.length)
@@ -698,9 +717,14 @@ const summaryCards = computed(() => [
     helper: `${countWithAnyValue(contacts.value, ['Personal_Email', 'Professional_Email'])} with email`,
   },
   {
-    ...collectionConfigByKey.opportunities,
-    count: opportunitiesCount.value,
-    helper: `${countKind(opportunities.value, 'fund')} funds • ${countKind(opportunities.value, 'venture')} ventures`,
+    ...collectionConfigByKey.funds,
+    count: fundsCount.value,
+    helper: `${countWithAnyValue(funds.value, ['Fund_Size_Target', 'Investment_Ask'])} with size data`,
+  },
+  {
+    ...collectionConfigByKey.rounds,
+    count: roundsCount.value,
+    helper: `${countWithAnyValue(rounds.value, ['Round_Stage', 'Investment_Ask'])} with round data`,
   },
   {
     ...collectionConfigByKey.pipelines,
@@ -821,10 +845,6 @@ function parsePipelineStages(row) {
   } catch {
     return []
   }
-}
-
-function countKind(rows, kind) {
-  return rows.filter((row) => String(row?.kind || '').trim().toLowerCase() === kind).length
 }
 
 function countWithAnyValue(rows, fields) {

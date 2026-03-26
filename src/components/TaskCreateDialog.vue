@@ -114,6 +114,14 @@ const contactOptions = computed(() =>
 const statusOptions = ['Backlog', 'In Progress', 'Completed', 'Closed']
 const priorityOptions = ['Low', 'Mid-Low', 'Mid', 'Mid-High', 'High']
 
+function toSerializable(value) {
+  try {
+    return JSON.parse(JSON.stringify(value))
+  } catch {
+    return {}
+  }
+}
+
 async function loadReferences() {
   if (!bridge.value?.contacts?.list) return
   const result = await bridge.value.contacts.list()
@@ -129,7 +137,7 @@ async function submit() {
 
   loading.value = true
   try {
-    const result = await bridge.value.tasks.create({ ...form.value })
+    const result = await bridge.value.tasks.create(toSerializable(form.value))
     emit('created', result)
     open.value = false
     $q.notify({ type: 'positive', message: 'Task created.' })

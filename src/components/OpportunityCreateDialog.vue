@@ -2,7 +2,7 @@
   <q-dialog v-model="open">
     <q-card style="width: 1080px; max-width: 96vw">
       <q-card-section class="q-px-xl q-pt-lg q-pb-md">
-        <div class="text-h6">Create Opportunity</div>
+        <div class="text-h6">Create {{ entityLabel }}</div>
         <div class="text-caption text-grey-7">
           Drop files to start processing automatically.
         </div>
@@ -129,7 +129,7 @@
                 <q-input
                   :model-value="generatedOpportunityName"
                   outlined
-                  label="Opportunity Name (auto)"
+                  :label="`${entityLabel} Name (auto)`"
                   readonly
                   disable
                 />
@@ -139,7 +139,7 @@
                   outlined
                   label="Opportunity Kind *"
                   :options="kindOptions"
-                  :disable="loading || selectedCompanyIsAssetManager || processingDrop"
+                  :disable="loading || selectedCompanyIsAssetManager || processingDrop || props.lockKind"
                   emit-value
                   map-options
                 />
@@ -218,6 +218,8 @@ import CompanyCreateDialog from './CompanyCreateDialog.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
+  initialKind: { type: String, default: '' },
+  lockKind: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:modelValue', 'created'])
@@ -229,6 +231,11 @@ const open = computed({
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const $q = useQuasar()
+const entityType = computed(() => {
+  const normalized = String(props.initialKind || '').trim().toLowerCase()
+  return normalized === 'fund' ? 'fund' : 'round'
+})
+const entityLabel = computed(() => (entityType.value === 'fund' ? 'Fund' : 'Round'))
 
 const loading = ref(false)
 const processingDrop = ref(false)
@@ -260,23 +267,27 @@ const ingestStatusColumns = [
   { name: 'extractionStatus', label: 'Data Extracted', field: 'extractionStatus', align: 'left' },
 ]
 
-const opportunityFields = [
-  { key: 'Round_Stage', label: 'Funding Series', inputType: 'text' },
-  { key: 'Type_of_Security', label: 'Type of Security', inputType: 'text' },
-  { key: 'Investment_Ask', label: 'Investment Ask', inputType: 'number' },
-  { key: 'Round_Amount', label: 'Round Amount', inputType: 'number' },
-  { key: 'Hard_Commits', label: 'Hard Commits', inputType: 'number' },
-  { key: 'Soft_Commits', label: 'Soft Commits', inputType: 'number' },
-  { key: 'Pre_Valuation', label: 'Pre Valuation', inputType: 'number' },
-  { key: 'Post_Valuation', label: 'Post Valuation', inputType: 'number' },
-  { key: 'Previous_Post', label: 'Previous Post', inputType: 'number' },
-  { key: 'First_Close_Date', label: 'First Close Date', inputType: 'text' },
-  { key: 'Next_Close_Date', label: 'Next Close Date', inputType: 'text' },
-  { key: 'Final_Close_Date', label: 'Final Close Date', inputType: 'text' },
-  { key: 'Pipeline_Stage', label: 'Pipeline Stage', inputType: 'text' },
-  { key: 'Pipeline_Status', label: 'Pipeline Status', inputType: 'text' },
-  { key: 'Raising_Status', label: 'Raising Status', inputType: 'text' },
-]
+const opportunityFields = computed(() =>
+  entityType.value === 'fund'
+    ? [
+        { key: 'Investment_Ask', label: 'Fund Target Size', inputType: 'number' },
+        { key: 'Hard_Commits', label: 'Committed Amounts', inputType: 'number' },
+        { key: 'Final_Close_Date', label: 'Close Date', inputType: 'text' },
+        { key: 'Raising_Status', label: 'Fund Raising Status', inputType: 'text' },
+      ]
+    : [
+        { key: 'Round_Stage', label: 'Funding Series', inputType: 'text' },
+        { key: 'Type_of_Security', label: 'Type of Security', inputType: 'text' },
+        { key: 'Investment_Ask', label: 'Investment Ask', inputType: 'number' },
+        { key: 'Round_Amount', label: 'Round Amount', inputType: 'number' },
+        { key: 'Hard_Commits', label: 'Hard Commits', inputType: 'number' },
+        { key: 'Pre_Valuation', label: 'Pre Valuation', inputType: 'number' },
+        { key: 'Post_Valuation', label: 'Post Valuation', inputType: 'number' },
+        { key: 'Previous_Post', label: 'Previous Post', inputType: 'number' },
+        { key: 'Final_Close_Date', label: 'Final Close Date', inputType: 'text' },
+        { key: 'Raising_Status', label: 'Round Raising Status', inputType: 'text' },
+      ],
+)
 
 const companyFields = [
   { key: 'Company_Name', label: 'Company Name', inputType: 'text' },
@@ -344,19 +355,24 @@ const generatedOpportunityName = computed(() => {
   const base =
     String(companyForm.value.Company_Name || '').trim() ||
     String(contactForm.value.Name || '').trim() ||
-    'Opportunity'
-  const series = String(form.value.Round_Stage || '').trim() || 'Unknown_Series'
+    entityLabel.value
   const now = new Date()
   const dd = String(now.getDate()).padStart(2, '0')
   const mm = String(now.getMonth() + 1).padStart(2, '0')
   const yyyy = String(now.getFullYear())
+  if (entityType.value === 'fund') {
+    return `${dd}_${mm}_${yyyy}_${base.replace(/\s+/g, '_')}_Fund`
+  }
+  const series = String(form.value.Round_Stage || '').trim() || 'Unknown_Series'
   return `${dd}_${mm}_${yyyy}_${base.replace(/\s+/g, '_')}_${series.replace(/\s+/g, '_')}`
 })
 
 function resetForms() {
+  const normalizedKind = String(props.initialKind || '').trim().toLowerCase()
+  const defaultKind = normalizedKind === 'fund' || normalizedKind === 'round' ? normalizedKind : 'round'
   form.value = {
     company_id: null,
-    kind: 'round',
+    kind: defaultKind,
     Round_Stage: '',
     Type_of_Security: '',
     Investment_Ask: '',
@@ -687,8 +703,9 @@ async function ensureCompanySelectionForSubmit() {
 
 async function submit() {
   if (
-    !bridge.value?.opportunities?.create ||
-    !bridge.value?.opportunities?.update ||
+    !(
+      (entityType.value === 'fund' ? bridge.value?.funds?.create : bridge.value?.rounds?.create)
+    ) ||
     !bridge.value?.artifacts?.linkToOpportunity
   ) {
     return
@@ -719,9 +736,9 @@ async function submit() {
     }
     const serializablePayload = toSerializable(payload)
 
-    const result = draftOpportunityId.value
-      ? await bridge.value.opportunities.update(serializablePayload)
-      : await bridge.value.opportunities.create(serializablePayload)
+    const createRecord =
+      entityType.value === 'fund' ? bridge.value.funds.create : bridge.value.rounds.create
+    const result = await createRecord(serializablePayload)
 
     if (draftArtifactIds.value.length && result?.id) {
       await bridge.value.artifacts.linkToOpportunity({
@@ -743,6 +760,12 @@ async function submit() {
 }
 
 async function onCancel() {
+  const artifactIds = [...draftArtifactIds.value]
+  if (bridge.value?.artifacts?.delete && artifactIds.length) {
+    await Promise.allSettled(artifactIds.map((artifactId) => bridge.value.artifacts.delete(artifactId)))
+  }
+  resetForms()
+  resetTransientState()
   open.value = false
 }
 
@@ -775,6 +798,9 @@ watch(
   () => {
     if (form.value.company_id) useExtractedCompany.value = false
     if (selectedCompanyIsAssetManager.value) form.value.kind = 'fund'
+    else if (props.lockKind && props.initialKind) {
+      form.value.kind = String(props.initialKind).trim().toLowerCase()
+    }
     const selected = selectedCompany.value
     if (!selected || useExtractedCompany.value) return
     companyForm.value = {
@@ -795,6 +821,17 @@ watch(
     markAutofilled('opportunity', 'Venture_Oppty_Name')
   },
   { immediate: true },
+)
+
+watch(
+  () => props.initialKind,
+  (value) => {
+    if (!props.lockKind) return
+    const normalized = String(value || '').trim().toLowerCase()
+    if (normalized === 'fund' || normalized === 'round') {
+      form.value.kind = normalized
+    }
+  },
 )
 
 let offIngestStatus = null

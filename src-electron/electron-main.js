@@ -896,62 +896,65 @@ function createCompany(payload = {}) {
 function listOpportunities() {
   return dbAll(
     `
-    SELECT
-      r.id,
-      'round' AS kind,
-      ro.sponsor_company_id AS company_id,
-      ro.Round_Target_Size AS Investment_Ask,
-      ro.Round_Commited_Amounts AS Hard_Commits,
-      NULL AS Soft_Commits,
-      NULL AS First_Close_Date,
-      NULL AS Next_Close_Date,
-      ro.Round_Close_Date AS Final_Close_Date,
-      NULL AS Round_Stage,
-      ro.Round_Security_Type AS Type_of_Security,
-      ro.Round_Target_Size AS Round_Amount,
-      re.Round_Pre_Valuation AS Pre_Valuation,
-      re.Round_Post_Valuation AS Post_Valuation,
-      re.Round_Previous_Post_Valuation AS Previous_Post,
-      r.Round_Name AS opportunity_name,
-      r.Round_Name AS Venture_Oppty_Name,
-      NULL AS Fund_Type,
-      NULL AS Fund_Size_Target,
-      ro.Round_Raising_Status AS Raising_Status,
-      r.created_at,
-      c.Company_Name
-    FROM Rounds r
-    LEFT JOIN Round_Overview ro ON ro.round_id = r.id
-    LEFT JOIN Round_Economics re ON re.round_id = r.id
-    LEFT JOIN Companies c ON c.id = ro.sponsor_company_id
+    SELECT *
+    FROM (
+      SELECT
+        r.id,
+        'round' AS kind,
+        ro.sponsor_company_id AS company_id,
+        ro.Round_Target_Size AS Investment_Ask,
+        ro.Round_Commited_Amounts AS Hard_Commits,
+        NULL AS Soft_Commits,
+        NULL AS First_Close_Date,
+        NULL AS Next_Close_Date,
+        ro.Round_Close_Date AS Final_Close_Date,
+        NULL AS Round_Stage,
+        ro.Round_Security_Type AS Type_of_Security,
+        ro.Round_Target_Size AS Round_Amount,
+        re.Round_Pre_Valuation AS Pre_Valuation,
+        re.Round_Post_Valuation AS Post_Valuation,
+        re.Round_Previous_Post_Valuation AS Previous_Post,
+        r.Round_Name AS opportunity_name,
+        r.Round_Name AS Venture_Oppty_Name,
+        NULL AS Fund_Type,
+        NULL AS Fund_Size_Target,
+        ro.Round_Raising_Status AS Raising_Status,
+        r.created_at,
+        c.Company_Name
+      FROM Rounds r
+      LEFT JOIN Round_Overview ro ON ro.round_id = r.id
+      LEFT JOIN Round_Economics re ON re.round_id = r.id
+      LEFT JOIN Companies c ON c.id = ro.sponsor_company_id
 
-    UNION ALL
+      UNION ALL
 
-    SELECT
-      f.id,
-      'fund' AS kind,
-      NULL AS company_id,
-      fo.Fund_Target_Size AS Investment_Ask,
-      fo.Fund_Commited_Amounts AS Hard_Commits,
-      NULL AS Soft_Commits,
-      NULL AS First_Close_Date,
-      NULL AS Next_Close_Date,
-      fo.Fund_Close_Date AS Final_Close_Date,
-      NULL AS Round_Stage,
-      NULL AS Type_of_Security,
-      NULL AS Round_Amount,
-      NULL AS Pre_Valuation,
-      NULL AS Post_Valuation,
-      NULL AS Previous_Post,
-      f.Fund_Name AS opportunity_name,
-      f.Fund_Name AS Venture_Oppty_Name,
-      NULL AS Fund_Type,
-      fo.Fund_Target_Size AS Fund_Size_Target,
-      fo.Fund_Raising_Status AS Raising_Status,
-      f.created_at,
-      NULL AS Company_Name
-    FROM Funds f
-    LEFT JOIN Fund_Overview fo ON fo.fund_id = f.id
-    ORDER BY created_at DESC
+      SELECT
+        f.id,
+        'fund' AS kind,
+        NULL AS company_id,
+        fo.Fund_Target_Size AS Investment_Ask,
+        fo.Fund_Commited_Amounts AS Hard_Commits,
+        NULL AS Soft_Commits,
+        NULL AS First_Close_Date,
+        NULL AS Next_Close_Date,
+        fo.Fund_Close_Date AS Final_Close_Date,
+        NULL AS Round_Stage,
+        NULL AS Type_of_Security,
+        NULL AS Round_Amount,
+        NULL AS Pre_Valuation,
+        NULL AS Post_Valuation,
+        NULL AS Previous_Post,
+        f.Fund_Name AS opportunity_name,
+        f.Fund_Name AS Venture_Oppty_Name,
+        NULL AS Fund_Type,
+        fo.Fund_Target_Size AS Fund_Size_Target,
+        fo.Fund_Raising_Status AS Raising_Status,
+        f.created_at,
+        NULL AS Company_Name
+      FROM Funds f
+      LEFT JOIN Fund_Overview fo ON fo.fund_id = f.id
+    ) opportunities
+    ORDER BY created_at DESC, id DESC
   `,
   )
 }
@@ -1991,6 +1994,18 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['Venture_Oppty_Name', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
+  Funds: {
+    tableName: 'Funds',
+    entityLabel: 'Fund',
+    displayColumns: ['Fund_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Rounds: {
+    tableName: 'Rounds',
+    entityLabel: 'Round',
+    displayColumns: ['Round_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
   Pipelines: {
     tableName: 'Projects',
     entityLabel: 'Pipeline',
@@ -2013,6 +2028,10 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   contact: 'Contacts',
   opportunities: 'Opportunities',
   opportunity: 'Opportunities',
+  funds: 'Funds',
+  fund: 'Funds',
+  rounds: 'Rounds',
+  round: 'Rounds',
   pipelines: 'Pipelines',
   pipeline: 'Pipelines',
 })
@@ -2651,11 +2670,17 @@ function upsertArtifacts(rows = []) {
       const artifactId =
         normalizeNullableString(r?.artifact_id) || `artifact:${crypto.randomUUID()}`
       const opportunityId = normalizeNullableString(r?.opportunity_id)
+      const roundId =
+        normalizeNullableString(r?.round_id) ||
+        (opportunityId && !opportunityId.startsWith('fund:') ? opportunityId : null)
+      const fundId =
+        normalizeNullableString(r?.fund_id) ||
+        (opportunityId && opportunityId.startsWith('fund:') ? opportunityId : null)
       const artifactType = normalizeNullableString(r?.artifact_type)
       const fsPath = normalizeNullableString(r?.fs_path)
       const generatedBy = normalizeNullableString(r?.generated_by) || 'user'
 
-      if (!opportunityId || !artifactType || !fsPath) {
+      if ((!roundId && !fundId) || !artifactType || !fsPath) {
         skipped++
         continue
       }
@@ -2666,7 +2691,8 @@ function upsertArtifacts(rows = []) {
 
       const payload = {
         artifact_id: artifactId,
-        opportunity_id: opportunityId,
+        round_id: roundId,
+        fund_id: fundId,
         artifact_format: normalizeNullableString(r?.artifact_format),
         fs_path: fsPath,
         fs_hash: normalizeNullableString(r?.fs_hash),
@@ -2687,13 +2713,14 @@ function upsertArtifacts(rows = []) {
           .prepare(
             `
             INSERT INTO Artifacts (
-              artifact_id, opportunity_id, artifact_format, title, description
+              artifact_id, round_id, fund_id, artifact_format, title, description
             )
             VALUES (
-              @artifact_id, @opportunity_id, @artifact_format, @title, @description
+              @artifact_id, @round_id, @fund_id, @artifact_format, @title, @description
             )
             ON CONFLICT(artifact_id) DO UPDATE SET
-              opportunity_id = excluded.opportunity_id,
+              round_id = excluded.round_id,
+              fund_id = excluded.fund_id,
               artifact_format = excluded.artifact_format,
               title = excluded.title,
               description = excluded.description,
@@ -3806,6 +3833,207 @@ function createDatabookSnapshotForOpportunity(opportunityId, options = {}) {
   return createDatabookSnapshot('Opportunities', opportunityId, options)
 }
 
+function createDatabookSnapshotForFund(fundId, options = {}) {
+  return createDatabookSnapshot('Funds', fundId, options)
+}
+
+function createDatabookSnapshotForRound(roundId, options = {}) {
+  return createDatabookSnapshot('Rounds', roundId, options)
+}
+
+function normalizeEntityRaisingStatus(value) {
+  const candidate = normalizeNullableString(value)
+  if (!candidate) return null
+
+  const normalized = candidate.toLowerCase()
+  if (['raising', 'open', 'ongoing', 'active', 'in progress', 'in-progress'].includes(normalized)) {
+    return 'Raising'
+  }
+  if (['raised', 'closed', 'complete', 'completed'].includes(normalized)) {
+    return 'Raised'
+  }
+  if (['abandoned', 'inactive', 'dropped', 'lost'].includes(normalized)) {
+    return 'Abandoned'
+  }
+  return null
+}
+
+function normalizeRoundSecurityType(value) {
+  const candidate = normalizeNullableString(value)
+  if (!candidate) return null
+
+  const normalized = candidate.toLowerCase().replace(/[\s-]+/g, '_')
+  const directMap = {
+    debt_secured: 'Debt_Secured',
+    debt_unsecured: 'Debt_Unsecured',
+    debt_structured: 'Debt_Structured',
+    equity_common: 'Equity_Common',
+    common: 'Equity_Common',
+    equity_preferred: 'Equity_Preferred',
+    preferred: 'Equity_Preferred',
+    equity_safe: 'Equity_SAFE',
+    safe: 'Equity_SAFE',
+  }
+
+  return directMap[normalized] || null
+}
+
+function maybeCreatePrimaryContact(contactPayload = {}) {
+  const hasContactData = [
+    contactPayload?.Name,
+    contactPayload?.Personal_Email,
+    contactPayload?.Professional_Email,
+    contactPayload?.Phone,
+    contactPayload?.LinkedIn,
+  ].some(hasMeaningfulValue)
+  if (!hasContactData) return null
+  return createContact(contactPayload)?.id || null
+}
+
+function createFund(payload = {}) {
+  const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
+
+  if (payload?.company) {
+    createCompany(payload.company)
+  }
+
+  const primaryContactId = maybeCreatePrimaryContact(payload.primary_contact)
+  const fundId = normalizeNullableString(payload?.id) || `fund:${crypto.randomUUID()}`
+  const fundName =
+    normalizeNullableString(payload?.Fund_Name) ||
+    normalizeNullableString(payload?.Venture_Oppty_Name) ||
+    normalizeNullableString(payload?.company?.Company_Name) ||
+    normalizeNullableString(payload?.primary_contact?.Name) ||
+    fundId
+
+  const tx = database.transaction(() => {
+    database
+      .prepare(
+        `
+        INSERT INTO Funds (id, Fund_Name, created_by, created_at, updated_at)
+        VALUES (?, ?, ?, datetime('now'), datetime('now'))
+      `,
+      )
+      .run(fundId, fundName, actor.user_id)
+
+    database
+      .prepare(
+        `
+        INSERT INTO Fund_Overview (
+          fund_id, Fund_Raising_Status, Fund_Target_Size, Fund_Commited_Amounts,
+          Fund_Close_Date, Fund_Summary, created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      `,
+      )
+      .run(
+        fundId,
+        normalizeEntityRaisingStatus(payload?.Raising_Status),
+        normalizeNullableNumber(payload?.Investment_Ask) ?? normalizeNullableNumber(payload?.Round_Amount),
+        normalizeNullableNumber(payload?.Hard_Commits),
+        normalizeNullableString(payload?.Final_Close_Date),
+        normalizeNullableString(payload?.company?.One_Liner),
+      )
+
+    if (primaryContactId) {
+      database
+        .prepare(
+          `
+          INSERT OR IGNORE INTO Fund_Overview_Managers (fund_id, contact_id)
+          VALUES (?, ?)
+        `,
+        )
+        .run(fundId, primaryContactId)
+    }
+  })
+
+  tx()
+  const snapshotId = createDatabookSnapshotForFund(fundId, { source: 'fund_create' })
+  return { id: fundId, snapshot_id: snapshotId }
+}
+
+function createRound(payload = {}) {
+  const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
+
+  let companyId = ensureExistingCompanyId(database, payload.company_id)
+  if (!companyId && payload?.company) {
+    companyId = createCompany(payload.company)?.id || null
+  }
+  if (!companyId) {
+    throw new Error('Company is required to create a round.')
+  }
+
+  maybeCreatePrimaryContact(payload.primary_contact)
+  const roundId = normalizeNullableString(payload?.id) || `round:${crypto.randomUUID()}`
+  const roundName =
+    normalizeNullableString(payload?.Round_Name) ||
+    normalizeNullableString(payload?.Venture_Oppty_Name) ||
+    normalizeNullableString(payload?.company?.Company_Name) ||
+    roundId
+
+  const tx = database.transaction(() => {
+    database
+      .prepare(
+        `
+        INSERT INTO Rounds (id, Round_Name, created_by, created_at, updated_at)
+        VALUES (?, ?, ?, datetime('now'), datetime('now'))
+      `,
+      )
+      .run(roundId, roundName, actor.user_id)
+
+    database
+      .prepare(
+        `
+        INSERT INTO Round_Overview (
+          round_id, sponsor_company_id, Round_Raising_Status, Round_Security_Type,
+          Round_Target_Size, Round_Commited_Amounts, Round_Close_Date, Round_Summary,
+          created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      `,
+      )
+      .run(
+        roundId,
+        companyId,
+        normalizeEntityRaisingStatus(payload?.Raising_Status),
+        normalizeRoundSecurityType(payload?.Type_of_Security),
+        normalizeNullableNumber(payload?.Round_Amount) ?? normalizeNullableNumber(payload?.Investment_Ask),
+        normalizeNullableNumber(payload?.Hard_Commits),
+        normalizeNullableString(payload?.Final_Close_Date),
+        normalizeNullableString(payload?.company?.One_Liner),
+      )
+
+    if (
+      hasMeaningfulValue(payload?.Pre_Valuation) ||
+      hasMeaningfulValue(payload?.Post_Valuation) ||
+      hasMeaningfulValue(payload?.Previous_Post)
+    ) {
+      database
+        .prepare(
+          `
+          INSERT INTO Round_Economics (
+            round_id, Round_Pre_Valuation, Round_Post_Valuation, Round_Previous_Post_Valuation,
+            created_at, updated_at
+          )
+          VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
+        `,
+        )
+        .run(
+          roundId,
+          normalizeNullableNumber(payload?.Pre_Valuation),
+          normalizeNullableNumber(payload?.Post_Valuation),
+          normalizeNullableNumber(payload?.Previous_Post),
+        )
+    }
+  })
+
+  tx()
+  const snapshotId = createDatabookSnapshotForRound(roundId, { source: 'round_create' })
+  return { id: roundId, snapshot_id: snapshotId }
+}
+
 function ensureExistingCompanyId(database, maybeCompanyId) {
   const companyId = normalizeNullableIntegerId(maybeCompanyId)
   if (!companyId) return null
@@ -4502,6 +4730,16 @@ function registerIpc() {
   ipcMain.handle('companies:delete', async (_event, { companyId } = {}) => {
     initDb()
     return deleteRow('Companies', 'id', String(companyId || ''))
+  })
+
+  ipcMain.handle('funds:create', async (_event, payload = {}) => {
+    initDb()
+    return createFund(payload)
+  })
+
+  ipcMain.handle('rounds:create', async (_event, payload = {}) => {
+    initDb()
+    return createRound(payload)
   })
 
   ipcMain.handle('opportunities:list', async () => {
