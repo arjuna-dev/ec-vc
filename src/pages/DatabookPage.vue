@@ -2279,10 +2279,20 @@ async function resolveCompanyOpportunityIds(companyId) {
       const rows = await bridge.value.db.query(
         `
         SELECT DISTINCT id
-        FROM Opportunities
-        WHERE company_id = ?
+        FROM (
+          SELECT o.id
+          FROM Opportunities o
+          WHERE o.company_id = ?
+
+          UNION
+
+          SELECT r.id
+          FROM Rounds r
+          INNER JOIN Round_Overview ro ON ro.round_id = r.id
+          WHERE ro.sponsor_company_id = ?
+        ) related_opportunities
       `,
-        [normalizedCompanyId],
+        [normalizedCompanyId, normalizedCompanyId],
       )
       return new Set((Array.isArray(rows) ? rows : []).map((row) => String(row?.id || '').trim()).filter(Boolean))
     } catch {
