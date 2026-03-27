@@ -253,6 +253,10 @@
 
             <section class="opportunity-dialog-section">
               <div class="text-subtitle1">Opportunity</div>
+              <div class="text-caption text-grey-7 q-mb-sm">
+                These are first-order opportunity fields. Relationship fields below link this
+                {{ entityLabel.toLowerCase() }} to other canonical records.
+              </div>
 
               <div class="opportunity-dialog-section__grid">
                 <q-input
@@ -293,6 +297,42 @@
                   class="opportunity-dialog-section__field"
                   :disable="loading || processingDrop"
                   :input-class="fieldInputClass('opportunity', field.key)"
+                />
+              </div>
+
+              <q-separator class="q-my-md" />
+
+              <div class="text-subtitle2">Relationships</div>
+              <div class="opportunity-dialog-section__grid">
+                <q-select
+                  v-model="form.related_project_ids"
+                  outlined
+                  label="Related Projects"
+                  :options="projectOptions"
+                  multiple
+                  emit-value
+                  map-options
+                  use-input
+                  use-chips
+                  input-debounce="0"
+                  class="opportunity-dialog-section__field"
+                  :disable="loading || processingDrop"
+                  @filter="(value, update) => filterRelationshipOptions(value, update, 'project')"
+                />
+                <q-select
+                  v-model="form.related_task_ids"
+                  outlined
+                  label="Related Tasks"
+                  :options="taskOptions"
+                  multiple
+                  emit-value
+                  map-options
+                  use-input
+                  use-chips
+                  input-debounce="0"
+                  class="opportunity-dialog-section__field"
+                  :disable="loading || processingDrop"
+                  @filter="(value, update) => filterRelationshipOptions(value, update, 'task')"
                 />
               </div>
             </section>
@@ -432,6 +472,10 @@ const loadingCompanies = ref(false)
 const loadingContacts = ref(false)
 const companies = ref([])
 const contacts = ref([])
+const projects = ref([])
+const tasks = ref([])
+const filteredProjects = ref([])
+const filteredTasks = ref([])
 const existingOpportunityNames = ref([])
 const companyLinkMode = ref('new')
 const contactLinkMode = ref('new')
@@ -712,6 +756,8 @@ function resetForms() {
     Pipeline_Stage: '',
     Pipeline_Status: '',
     Raising_Status: '',
+    related_project_ids: [],
+    related_task_ids: [],
   }
   companyForm.value = createDefaultCompanyForm()
   contactForm.value = createDefaultContactForm()
@@ -769,6 +815,18 @@ async function loadExistingOpportunityNames() {
   existingOpportunityNames.value = opportunities
     .map((row) => normalizeOpportunityName(row?.opportunity_name || row?.Venture_Oppty_Name))
     .filter(Boolean)
+}
+
+async function loadRelationshipOptions() {
+  const [projectResult, taskResult] = await Promise.all([
+    bridge.value?.pipelines?.list ? bridge.value.pipelines.list() : Promise.resolve({ pipelines: [] }),
+    bridge.value?.tasks?.list ? bridge.value.tasks.list() : Promise.resolve({ tasks: [] }),
+  ])
+
+  projects.value = Array.isArray(projectResult?.pipelines) ? projectResult.pipelines : []
+  tasks.value = taskResult?.tasks || []
+  filteredProjects.value = [...projects.value]
+  filteredTasks.value = [...tasks.value]
 }
 
 function stripHumanVerify(value) {
@@ -1119,6 +1177,68 @@ function normalizeCompanyTypeValue(value) {
   return match?.value || (entityType.value === 'fund' ? 'Asset Manager' : 'Corporation')
 }
 
+function buildProjectLabel(project = {}) {
+  return String(project?.name || project?.Project_Name || project?.pipeline_id || project?.id || '').trim()
+}
+
+function buildTaskLabel(task = {}) {
+  const name = String(task?.Task_Name || '').trim()
+  const status = String(task?.Status || task?.Task_Status || '').trim()
+  return [name || String(task?.id || '').trim(), status].filter(Boolean).join(' - ')
+}
+
+const projectOptions = computed(() =>
+  (filteredProjects.value || []).map((project) => ({
+    label: buildProjectLabel(project),
+    value: String(project?.pipeline_id || project?.id || '').trim(),
+  })),
+)
+
+const taskOptions = computed(() =>
+  (filteredTasks.value || []).map((task) => ({
+    label: buildTaskLabel(task),
+    value: String(task?.id || '').trim(),
+  })),
+)
+
+function filterRelationshipOptions(value, update, type) {
+  update(() => {
+    const search = String(value || '').trim().toLowerCase()
+    const configs = {
+      project: {
+        source: projects.value,
+        assign: (items) => {
+          filteredProjects.value = items
+        },
+        fields: ['pipeline_id', 'name', 'Project_Name'],
+      },
+      task: {
+        source: tasks.value,
+        assign: (items) => {
+          filteredTasks.value = items
+        },
+        fields: ['id', 'Task_Name', 'Status', 'Task_Status'],
+      },
+    }
+
+    const config = configs[type]
+    if (!config) return
+    if (!search) {
+      config.assign([...config.source])
+      return
+    }
+
+    config.assign(
+      config.source.filter((item) =>
+        config.fields
+          .map((field) => String(item?.[field] || '').toLowerCase())
+          .join(' ')
+          .includes(search),
+      ),
+    )
+  })
+}
+
 function toSerializable(value) {
   try {
     return JSON.parse(JSON.stringify(value))
@@ -1158,6 +1278,37 @@ async function ensureCompanySelectionForSubmit() {
     await loadCompanies()
   }
   return createdCompanyId
+}
+
+async function syncOpportunityRelationships(opportunityId) {
+  if (!bridge.value?.db?.execute || !opportunityId) return
+
+  const relatedProjectIds = [
+    ...new Set((form.value.related_project_ids || []).map((id) => String(id || '').trim()).filter(Boolean)),
+  ]
+  const relatedTaskIds = [
+    ...new Set((form.value.related_task_ids || []).map((id) => String(id || '').trim()).filter(Boolean)),
+  ]
+  const projectTable =
+    entityType.value === 'fund' ? 'Projects_Funds_related_fund' : 'Projects_Rounds_related_round'
+  const taskTable =
+    entityType.value === 'fund' ? 'Tasks_Funds_related_fund' : 'Tasks_Rounds_related_round'
+
+  await bridge.value.db.execute(`DELETE FROM ${projectTable} WHERE to_id = ?`, [opportunityId])
+  for (const projectId of relatedProjectIds) {
+    await bridge.value.db.execute(
+      `INSERT OR IGNORE INTO ${projectTable} (from_id, to_id) VALUES (?, ?)`,
+      [projectId, opportunityId],
+    )
+  }
+
+  await bridge.value.db.execute(`DELETE FROM ${taskTable} WHERE to_id = ?`, [opportunityId])
+  for (const taskId of relatedTaskIds) {
+    await bridge.value.db.execute(
+      `INSERT OR IGNORE INTO ${taskTable} (from_id, to_id) VALUES (?, ?)`,
+      [taskId, opportunityId],
+    )
+  }
 }
 
 async function submit() {
@@ -1204,6 +1355,10 @@ async function submit() {
     const createRecord =
       entityType.value === 'fund' ? bridge.value.funds.create : bridge.value.rounds.create
     const result = await createRecord(serializablePayload)
+
+    if (result?.id) {
+      await syncOpportunityRelationships(result.id)
+    }
 
     if (draftArtifactIds.value.length && result?.id) {
       await bridge.value.artifacts.linkToOpportunity({
@@ -1322,6 +1477,7 @@ watch(
     await loadCompanies()
     await loadContacts()
     await loadExistingOpportunityNames()
+    await loadRelationshipOptions()
   },
 )
 
