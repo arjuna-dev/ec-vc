@@ -58,8 +58,26 @@
         :loading="loading"
         :pagination="{ rowsPerPage: 15 }"
       >
+        <template #body-cell-opportunity_id="props">
+          <q-td :props="props">
+            <div class="column">
+              <div>{{ resolveOpportunityLabel(props.row) }}</div>
+              <div class="text-caption text-grey-6">{{ props.row.opportunity_id || 'Unlinked' }}</div>
+            </div>
+          </q-td>
+        </template>
+
         <template #body-cell-actions="props">
           <q-td :props="props">
+            <q-btn
+              dense
+              flat
+              round
+              icon="tune"
+              color="primary"
+              :disable="loading || savingProperties"
+              @click="void openPropertiesDialog(props.row)"
+            />
             <q-btn
               dense
               flat
@@ -82,6 +100,129 @@
           @click="confirmDeleteSelected"
         />
       </q-page-sticky>
+
+      <q-dialog v-model="propertiesDialogOpen" persistent>
+        <q-card style="width: 720px; max-width: 96vw">
+          <q-card-section class="row items-start justify-between q-col-gutter-md">
+            <div class="col">
+              <div class="text-h6">Artifact Properties</div>
+              <div class="text-caption text-grey-7">
+                Review this artifact and manually adjust its linked opportunity when needed.
+              </div>
+            </div>
+            <div class="col-auto text-caption text-grey-6">
+              {{ propertiesForm.artifact_id || 'Unsaved artifact' }}
+            </div>
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            <q-banner v-if="propertiesError" class="bg-red-2 text-black q-mb-md" rounded>
+              {{ propertiesError }}
+            </q-banner>
+
+            <div class="row q-col-gutter-md">
+              <div class="col-12 col-md-8">
+                <q-input
+                  v-model="propertiesForm.title"
+                  outlined
+                  dense
+                  label="Title"
+                />
+              </div>
+              <div class="col-12 col-md-4">
+                <q-input
+                  :model-value="String(propertiesForm.artifact_type || '')"
+                  outlined
+                  dense
+                  label="Artifact Type"
+                  readonly
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="propertiesForm.opportunity_id"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                  clearable
+                  :options="opportunityOptions"
+                  label="Linked Opportunity"
+                  option-label="label"
+                  option-value="value"
+                  use-input
+                  input-debounce="0"
+                  @filter="filterOpportunityOptions"
+                />
+              </div>
+              <div class="col-12 col-md-3">
+                <q-input
+                  v-model="propertiesForm.artifact_format"
+                  outlined
+                  dense
+                  label="Format"
+                />
+              </div>
+              <div class="col-12 col-md-3">
+                <q-input
+                  :model-value="String(propertiesForm.type || '')"
+                  outlined
+                  dense
+                  label="Category"
+                  readonly
+                />
+              </div>
+              <div class="col-12">
+                <q-input
+                  v-model="propertiesForm.description"
+                  outlined
+                  type="textarea"
+                  autogrow
+                  label="Description"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  :model-value="String(propertiesForm.fs_path || '')"
+                  outlined
+                  dense
+                  label="File Path"
+                  readonly
+                />
+              </div>
+              <div class="col-12 col-md-3">
+                <q-input
+                  :model-value="String(propertiesForm.original_artifact_id || '')"
+                  outlined
+                  dense
+                  label="Original Artifact"
+                  readonly
+                />
+              </div>
+              <div class="col-12 col-md-3">
+                <q-input
+                  :model-value="String(propertiesForm.created_at || '')"
+                  outlined
+                  dense
+                  label="Created"
+                  readonly
+                />
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn flat label="Close" :disable="savingProperties" @click="closePropertiesDialog" />
+            <q-btn
+              color="primary"
+              unelevated
+              label="Save Properties"
+              :loading="savingProperties"
+              @click="saveArtifactProperties"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </div>
   </q-page>
 </template>
@@ -101,13 +242,20 @@ const hasBridge = computed(
   () =>
     !!bridge.value?.artifacts?.list &&
     !!bridge.value?.artifacts?.upsertMany &&
-    !!bridge.value?.artifacts?.delete,
+    !!bridge.value?.artifacts?.delete &&
+    !!bridge.value?.db?.execute,
 )
 
 const rows = ref([])
+const opportunities = ref([])
+const filteredOpportunityOptions = ref([])
 const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
+const propertiesDialogOpen = ref(false)
+const savingProperties = ref(false)
+const propertiesError = ref('')
+const propertiesForm = ref(createEmptyPropertiesForm())
 const selectedCount = computed(() => selectedRows.value.length)
 
 const $q = useQuasar()
@@ -139,6 +287,13 @@ const csvHeaders = [
   'created_at',
 ]
 
+const opportunityOptions = computed(() =>
+  filteredOpportunityOptions.value.map((opportunity) => ({
+    label: buildOpportunityOptionLabel(opportunity),
+    value: opportunity.id,
+  })),
+)
+
 async function loadArtifacts() {
   if (!hasBridge.value) return
   loading.value = true
@@ -162,9 +317,171 @@ async function importRows(importedRows) {
   return result
 }
 
+async function loadOpportunities() {
+  if (!bridge.value?.opportunities?.list) {
+    opportunities.value = []
+    filteredOpportunityOptions.value = []
+    return
+  }
+
+  try {
+    const result = await bridge.value.opportunities.list()
+    opportunities.value = Array.isArray(result?.opportunities) ? result.opportunities : []
+    filteredOpportunityOptions.value = [...opportunities.value]
+  } catch {
+    opportunities.value = []
+    filteredOpportunityOptions.value = []
+  }
+}
+
 function normalizeSelectedRows() {
   const activeIds = new Set(rows.value.map((row) => row.artifact_id))
   selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.artifact_id))
+}
+
+function createEmptyPropertiesForm() {
+  return {
+    artifact_id: '',
+    title: '',
+    artifact_type: '',
+    artifact_format: '',
+    type: '',
+    opportunity_id: null,
+    description: '',
+    fs_path: '',
+    original_artifact_id: '',
+    created_at: '',
+  }
+}
+
+function buildOpportunityOptionLabel(opportunity = {}) {
+  const name = String(opportunity?.opportunity_name || opportunity?.Venture_Oppty_Name || 'Untitled opportunity').trim()
+  const kind = String(opportunity?.kind || 'opportunity').trim()
+  const company = String(opportunity?.Company_Name || '').trim()
+  return company ? `${name} (${kind} • ${company})` : `${name} (${kind})`
+}
+
+function resolveOpportunityLabel(row = {}) {
+  const opportunityId = String(row?.opportunity_id || '').trim()
+  if (!opportunityId) return 'Unlinked'
+  const match = opportunities.value.find((opportunity) => String(opportunity?.id || '').trim() === opportunityId)
+  return match ? buildOpportunityOptionLabel(match) : opportunityId
+}
+
+function filterOpportunityOptions(value, update) {
+  update(() => {
+    const search = String(value || '').trim().toLowerCase()
+    if (!search) {
+      filteredOpportunityOptions.value = [...opportunities.value]
+      return
+    }
+
+    filteredOpportunityOptions.value = opportunities.value.filter((opportunity) => {
+      const haystack = [
+        opportunity?.opportunity_name,
+        opportunity?.Venture_Oppty_Name,
+        opportunity?.Company_Name,
+        opportunity?.kind,
+        opportunity?.id,
+      ]
+        .map((part) => String(part || '').toLowerCase())
+        .join(' ')
+      return haystack.includes(search)
+    })
+  })
+}
+
+async function openPropertiesDialog(row) {
+  propertiesError.value = ''
+  filteredOpportunityOptions.value = [...opportunities.value]
+  const nextForm = {
+    artifact_id: String(row?.artifact_id || ''),
+    title: String(row?.title || ''),
+    artifact_type: String(row?.artifact_type || ''),
+    artifact_format: String(row?.artifact_format || ''),
+    type: String(row?.type || ''),
+    opportunity_id: String(row?.opportunity_id || '').trim() || null,
+    description: '',
+    fs_path: String(row?.fs_path || ''),
+    original_artifact_id: String(row?.original_artifact_id || ''),
+    created_at: String(row?.created_at || ''),
+  }
+
+  if (bridge.value?.db?.query && nextForm.artifact_id) {
+    try {
+      const detailRows = await bridge.value.db.query(
+        `
+        SELECT description
+        FROM Artifact_Details
+        WHERE artifact_id = ?
+        LIMIT 1
+      `,
+        [nextForm.artifact_id],
+      )
+      const detail = Array.isArray(detailRows) ? detailRows[0] : null
+      nextForm.description = String(detail?.description || '')
+    } catch {
+      // Keep the dialog usable even if the detail lookup fails.
+    }
+  }
+
+  propertiesForm.value = nextForm
+  propertiesDialogOpen.value = true
+}
+
+function closePropertiesDialog() {
+  if (savingProperties.value) return
+  propertiesDialogOpen.value = false
+  propertiesError.value = ''
+  propertiesForm.value = createEmptyPropertiesForm()
+}
+
+async function saveArtifactProperties() {
+  if (!bridge.value?.db?.execute) return
+
+  const artifactId = String(propertiesForm.value.artifact_id || '').trim()
+  if (!artifactId) {
+    propertiesError.value = 'Artifact ID is missing.'
+    return
+  }
+
+  const opportunityId = String(propertiesForm.value.opportunity_id || '').trim()
+  const roundId = opportunityId && !opportunityId.startsWith('fund:') ? opportunityId : null
+  const fundId = opportunityId && opportunityId.startsWith('fund:') ? opportunityId : null
+
+  savingProperties.value = true
+  propertiesError.value = ''
+  try {
+    await bridge.value.db.execute(
+      `
+      UPDATE Artifacts
+      SET
+        round_id = ?,
+        fund_id = ?,
+        title = ?,
+        description = ?,
+        artifact_format = ?,
+        updated_at = datetime('now')
+      WHERE artifact_id = ?
+    `,
+      [
+        roundId,
+        fundId,
+        String(propertiesForm.value.title || '').trim() || null,
+        String(propertiesForm.value.description || '').trim() || null,
+        String(propertiesForm.value.artifact_format || '').trim().toLowerCase() || null,
+        artifactId,
+      ],
+    )
+
+    await loadArtifacts()
+    propertiesDialogOpen.value = false
+    $q.notify({ type: 'positive', message: 'Artifact properties updated.' })
+  } catch (e) {
+    propertiesError.value = e?.message || String(e)
+  } finally {
+    savingProperties.value = false
+  }
 }
 
 async function deleteArtifact(row) {
@@ -219,5 +536,6 @@ async function confirmDeleteSelected() {
 onMounted(() => {
   if (!hasBridge.value) return
   loadArtifacts()
+  loadOpportunities()
 })
 </script>
