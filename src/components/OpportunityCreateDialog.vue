@@ -302,6 +302,33 @@
 
           <div class="q-gutter-md">
             <div class="text-subtitle1">Primary Contact</div>
+            <div class="text-caption text-grey-7 q-mb-sm">
+              These are first-order contact fields. When a contact is linked, edits here save back to that
+              contact record.
+            </div>
+            <q-select
+              v-if="contactLinkMode === 'existing'"
+              v-model="contactForm.id"
+              outlined
+              label="Contact Name"
+              :options="contactOptions"
+              :disable="loadingContacts || loading || processingDrop"
+              emit-value
+              map-options
+              option-label="label"
+              option-value="value"
+              options-dense
+              use-input
+              input-debounce="0"
+              @filter="onContactOptionFilter"
+            />
+            <q-option-group
+              v-model="contactLinkMode"
+              inline
+              :options="contactLinkOptions"
+              color="primary"
+              :disable="loading || loadingContacts || processingDrop"
+            />
             <q-input
               v-for="field in contactFields"
               :key="field.key"
@@ -402,17 +429,22 @@ const loading = ref(false)
 const processingDrop = ref(false)
 const processingMessage = ref('')
 const loadingCompanies = ref(false)
+const loadingContacts = ref(false)
 const companies = ref([])
+const contacts = ref([])
 const existingOpportunityNames = ref([])
 const companyLinkMode = ref('new')
+const contactLinkMode = ref('new')
 const companySourceChoice = ref('input')
 const companyPreviewDialogOpen = ref(false)
 const companyPreviewSource = ref('input')
 const companyOptionFilter = ref('')
+const contactOptionFilter = ref('')
 const dragOver = ref(false)
 const ingestStatusByFile = ref({})
 
 const extractedCompanyForm = ref(null)
+const extractedContactForm = ref(null)
 
 const generatedNotes = ref([])
 const generatedTasks = ref([])
@@ -479,6 +511,10 @@ const companyLinkOptions = [
   { label: 'Create New', value: 'new' },
   { label: 'Link Existing', value: 'existing' },
 ]
+const contactLinkOptions = [
+  { label: 'Create New', value: 'new' },
+  { label: 'Link Existing', value: 'existing' },
+]
 const companyStatusOptions = [
   { label: 'On-Going', value: 'ongoing' },
   { label: 'Closed', value: 'closed' },
@@ -541,6 +577,35 @@ const companyOptions = computed(() => [
 
 const topSuggestedCompanies = computed(() => companyOptions.value.filter((option) => option.value).slice(0, 2))
 
+const rankedContacts = computed(() => {
+  const searchBase = normalizeComparisonText(
+    contactOptionFilter.value ||
+      contactForm.value.Name ||
+      contactForm.value.Professional_Email ||
+      contactForm.value.Personal_Email,
+  )
+
+  return (contacts.value || [])
+    .filter((contact) => contact?.Name || contact?.Professional_Email || contact?.Personal_Email)
+    .map((contact) => ({
+      contact,
+      score: scoreContactMatch(contact, searchBase),
+      label: buildContactOptionLabel(contact),
+    }))
+    .sort((left, right) => {
+      if (right.score !== left.score) return right.score - left.score
+      return left.label.localeCompare(right.label)
+    })
+})
+
+const contactOptions = computed(() => [
+  { label: '-', value: null },
+  ...rankedContacts.value.map(({ contact, label }) => ({
+    label,
+    value: contact.id,
+  })),
+])
+
 const kindOptions = [
   { label: 'Round', value: 'round' },
   { label: 'Fund', value: 'fund' },
@@ -548,6 +613,9 @@ const kindOptions = [
 
 const selectedCompany = computed(
   () => (companies.value || []).find((c) => c?.id === form.value?.company_id) || null,
+)
+const selectedContact = computed(
+  () => (contacts.value || []).find((contact) => contact?.id === contactForm.value?.id) || null,
 )
 const selectedCompanyIsAssetManager = computed(
   () => String(selectedCompany.value?.Company_Type || '').toLowerCase() === 'asset manager',
@@ -599,7 +667,7 @@ const ingestStatusRows = computed(() => Object.values(ingestStatusByFile.value |
 const createDisabled = computed(() => {
   if (loading.value || processingDrop.value) return true
   const hasCompany = String(companyForm.value.Company_Name || '').trim().length > 0 || !!form.value.company_id
-  const hasContact = String(contactForm.value.Name || '').trim().length > 0
+  const hasContact = String(contactForm.value.Name || '').trim().length > 0 || !!contactForm.value.id
   return !hasCompany && !hasContact
 })
 
@@ -646,14 +714,7 @@ function resetForms() {
     Raising_Status: '',
   }
   companyForm.value = createDefaultCompanyForm()
-  contactForm.value = {
-    Name: '',
-    Personal_Email: '',
-    Professional_Email: '',
-    Phone: '',
-    LinkedIn: '',
-    Country_based: '',
-  }
+  contactForm.value = createDefaultContactForm()
 }
 
 function resetTransientState() {
@@ -661,11 +722,14 @@ function resetTransientState() {
   extractedCompanyForm.value = null
   existingOpportunityNames.value = []
   companyLinkMode.value = 'new'
+  contactLinkMode.value = 'new'
   companySourceChoice.value = 'input'
   companyOptionFilter.value = ''
+  contactOptionFilter.value = ''
   companyPreviewDialogOpen.value = false
   companyPreviewSource.value = 'input'
   opportunityNameManuallyEdited.value = false
+  extractedContactForm.value = null
   generatedNotes.value = []
   generatedTasks.value = []
   assistantProposal.value = {}
@@ -684,6 +748,17 @@ async function loadCompanies() {
     companies.value = result?.companies || []
   } finally {
     loadingCompanies.value = false
+  }
+}
+
+async function loadContacts() {
+  if (!bridge.value?.contacts?.list) return
+  loadingContacts.value = true
+  try {
+    const result = await bridge.value.contacts.list()
+    contacts.value = result?.contacts || []
+  } finally {
+    loadingContacts.value = false
   }
 }
 
@@ -769,6 +844,32 @@ function buildCompanyFormFromSource(source = {}, overrides = {}) {
     Pax: stripHumanVerify(getCompanyFieldValue(source, 'Pax')),
     Updates: stripHumanVerify(getCompanyFieldValue(source, 'Updates')),
     Website: stripHumanVerify(getCompanyFieldValue(source, 'Website')),
+    ...overrides,
+  })
+}
+
+function createDefaultContactForm(overrides = {}) {
+  return {
+    id: '',
+    Name: '',
+    Personal_Email: '',
+    Professional_Email: '',
+    Phone: '',
+    LinkedIn: '',
+    Country_based: '',
+    ...overrides,
+  }
+}
+
+function buildContactFormFromSource(source = {}, overrides = {}) {
+  return createDefaultContactForm({
+    id: String(source?.id || '').trim(),
+    Name: stripHumanVerify(source?.Name),
+    Personal_Email: stripHumanVerify(source?.Personal_Email),
+    Professional_Email: stripHumanVerify(source?.Professional_Email || source?.Email),
+    Phone: stripHumanVerify(source?.Phone),
+    LinkedIn: stripHumanVerify(source?.LinkedIn),
+    Country_based: stripHumanVerify(source?.Country_based),
     ...overrides,
   })
 }
@@ -978,6 +1079,12 @@ function onCompanyOptionFilter(value, update) {
   })
 }
 
+function onContactOptionFilter(value, update) {
+  update(() => {
+    contactOptionFilter.value = value
+  })
+}
+
 function openCompanyPreview(source) {
   companyPreviewSource.value = source === 'legacy' ? 'legacy' : 'input'
   companyPreviewDialogOpen.value = true
@@ -1165,6 +1272,32 @@ function scoreCompanyMatch(company, inputValue) {
   return overlapScore + Math.max(0, 120 - lengthDelta)
 }
 
+function buildContactOptionLabel(contact = {}) {
+  const name = stripHumanVerify(contact?.Name)
+  const email = stripHumanVerify(contact?.Professional_Email || contact?.Personal_Email)
+  const phone = stripHumanVerify(contact?.Phone)
+  return [name || String(contact?.id || '').trim(), email, phone].filter(Boolean).join(' • ')
+}
+
+function scoreContactMatch(contact, inputValue) {
+  const label = normalizeComparisonText(
+    [contact?.Name, contact?.Professional_Email, contact?.Personal_Email, contact?.Phone]
+      .filter(Boolean)
+      .join(' '),
+  )
+  if (!label) return 0
+  if (!inputValue) return 1
+  if (label === inputValue) return 1000
+  if (label.includes(inputValue) || inputValue.includes(label)) return 700
+
+  const labelTokens = new Set(tokenizeComparisonText(label))
+  const inputTokens = tokenizeComparisonText(inputValue)
+  const tokenMatches = inputTokens.reduce((count, token) => count + (labelTokens.has(token) ? 1 : 0), 0)
+  const overlapScore = inputTokens.length ? Math.round((tokenMatches / inputTokens.length) * 300) : 0
+  const lengthDelta = Math.abs(label.length - inputValue.length)
+  return overlapScore + Math.max(0, 120 - lengthDelta)
+}
+
 function summarizeCompanySource(source = {}) {
   const name = stripHumanVerify(source?.Company_Name) || 'Unnamed company'
   const type = stripHumanVerify(source?.Company_Type)
@@ -1187,6 +1320,7 @@ watch(
       return
     }
     await loadCompanies()
+    await loadContacts()
     await loadExistingOpportunityNames()
   },
 )
@@ -1252,6 +1386,40 @@ watch(companySourceChoice, (value) => {
 
   if (selectedCompany.value) {
     companyForm.value = buildCompanyFormFromSource(selectedCompany.value)
+  }
+})
+
+watch(
+  () => contactForm.value.id,
+  () => {
+    if (contactLinkMode.value !== 'existing') return
+    if (selectedContact.value) {
+      contactForm.value = buildContactFormFromSource(selectedContact.value)
+    }
+  },
+)
+
+watch(contactLinkMode, (value) => {
+  if (value === 'new') {
+    if (extractedContactForm.value) {
+      contactForm.value = buildContactFormFromSource(extractedContactForm.value, { id: '' })
+    } else {
+      contactForm.value = createDefaultContactForm()
+    }
+    return
+  }
+
+  extractedContactForm.value = { ...contactForm.value, id: '' }
+
+  if (selectedContact.value) {
+    contactForm.value = buildContactFormFromSource(selectedContact.value)
+    return
+  }
+
+  const suggested = rankedContacts.value.find((entry) => entry?.contact?.id)
+  if (suggested?.contact?.id) {
+    contactForm.value = buildContactFormFromSource(suggested.contact)
+    return
   }
 })
 
