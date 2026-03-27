@@ -443,6 +443,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { removeIntakeDraft, updateIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -459,6 +460,7 @@ const open = computed({
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const $q = useQuasar()
+const intakeDraftState = useIntakeDraftState()
 const entityType = computed(() => {
   const normalized = String(props.initialKind || '').trim().toLowerCase()
   return normalized === 'fund' ? 'fund' : 'round'
@@ -592,6 +594,10 @@ const companyLayoutOrder = Object.freeze({
 const form = ref({})
 const companyForm = ref({})
 const contactForm = ref({})
+const activeDraft = computed(() => {
+  const draftId = String(intakeDraftState.activeDraftId || '').trim()
+  return draftId ? intakeDraftState.drafts[draftId] || null : null
+})
 
 const editableCompanyFields = computed(() => companyFields.filter((field) => field.key !== 'Company_Name'))
 
@@ -786,6 +792,74 @@ function resetTransientState() {
   autofilledFlags.value = {}
 }
 
+function buildDraftSnapshot() {
+  return {
+    stage: processingDrop.value ? 'Extracting' : activeDraft.value?.stage || 'Quick Review Needed',
+    droppedFiles: activeDraft.value?.droppedFiles || [],
+    ingestStatusByFile: { ...ingestStatusByFile.value },
+    generatedNotes: [...generatedNotes.value],
+    generatedTasks: [...generatedTasks.value],
+    assistantProposal: { ...assistantProposal.value },
+    draftArtifactIds: [...draftArtifactIds.value],
+    opportunityForm: JSON.parse(JSON.stringify(form.value || {})),
+    companyForm: JSON.parse(JSON.stringify(companyForm.value || {})),
+    contactForm: JSON.parse(JSON.stringify(contactForm.value || {})),
+    companyLinkMode: companyLinkMode.value,
+    contactLinkMode: contactLinkMode.value,
+    companySourceChoice: companySourceChoice.value,
+  }
+}
+
+function syncActiveDraft(updates = {}) {
+  if (!activeDraft.value?.id) return
+  updateIntakeDraft(activeDraft.value.id, {
+    ...buildDraftSnapshot(),
+    ...updates,
+  })
+}
+
+function hydrateFromActiveDraft() {
+  if (!activeDraft.value) return false
+  const hasMeaningfulDraftState =
+    Boolean(activeDraft.value.opportunityForm) ||
+    Boolean(activeDraft.value.companyForm) ||
+    Boolean(activeDraft.value.contactForm) ||
+    Object.keys(activeDraft.value.ingestStatusByFile || {}).length > 0 ||
+    (Array.isArray(activeDraft.value.draftArtifactIds) && activeDraft.value.draftArtifactIds.length > 0) ||
+    (Array.isArray(activeDraft.value.generatedNotes) && activeDraft.value.generatedNotes.length > 0) ||
+    (Array.isArray(activeDraft.value.generatedTasks) && activeDraft.value.generatedTasks.length > 0) ||
+    Object.keys(activeDraft.value.assistantProposal || {}).length > 0
+
+  if (activeDraft.value.opportunityForm) {
+    form.value = {
+      ...form.value,
+      ...activeDraft.value.opportunityForm,
+    }
+  }
+  if (activeDraft.value.companyForm) {
+    companyForm.value = {
+      ...companyForm.value,
+      ...activeDraft.value.companyForm,
+    }
+  }
+  if (activeDraft.value.contactForm) {
+    contactForm.value = {
+      ...contactForm.value,
+      ...activeDraft.value.contactForm,
+    }
+  }
+
+  companyLinkMode.value = activeDraft.value.companyLinkMode || companyLinkMode.value
+  contactLinkMode.value = activeDraft.value.contactLinkMode || contactLinkMode.value
+  companySourceChoice.value = activeDraft.value.companySourceChoice || companySourceChoice.value
+  ingestStatusByFile.value = { ...(activeDraft.value.ingestStatusByFile || {}) }
+  generatedNotes.value = Array.isArray(activeDraft.value.generatedNotes) ? [...activeDraft.value.generatedNotes] : []
+  generatedTasks.value = Array.isArray(activeDraft.value.generatedTasks) ? [...activeDraft.value.generatedTasks] : []
+  assistantProposal.value = { ...(activeDraft.value.assistantProposal || {}) }
+  draftArtifactIds.value = Array.isArray(activeDraft.value.draftArtifactIds) ? [...activeDraft.value.draftArtifactIds] : []
+  return hasMeaningfulDraftState
+}
+
 async function loadCompanies() {
   if (!bridge.value?.companies?.list) return
   loadingCompanies.value = true
@@ -944,6 +1018,7 @@ function initStatusForFiles(files = []) {
       },
     ]),
   )
+  syncActiveDraft({ stage: 'Extracting' })
 }
 
 function updateStatusForAllFiles(partial = {}) {
@@ -952,6 +1027,7 @@ function updateStatusForAllFiles(partial = {}) {
     next[key] = { ...row, ...partial }
   }
   ingestStatusByFile.value = next
+  syncActiveDraft()
 }
 
 function lowerBaseName(fileName) {
@@ -1020,6 +1096,7 @@ function applySuggestedValues(suggested = {}) {
   generatedNotes.value = Array.isArray(suggested?.notes) ? suggested.notes : []
   generatedTasks.value = Array.isArray(suggested?.tasks) ? suggested.tasks : []
   assistantProposal.value = suggested?.assistant || {}
+  syncActiveDraft({ stage: 'Matching' })
 }
 
 function applyMatchedExistingCompany(match = null) {
@@ -1028,6 +1105,7 @@ function applyMatchedExistingCompany(match = null) {
   companyLinkMode.value = 'existing'
   companySourceChoice.value = 'legacy'
   form.value.company_id = match.company_id
+  syncActiveDraft()
 }
 
 function collectDraftArtifactIds(result) {
@@ -1037,6 +1115,7 @@ function collectDraftArtifactIds(result) {
     if (row?.llm_ready?.artifact_id) ids.push(row.llm_ready.artifact_id)
   }
   draftArtifactIds.value = ids
+  syncActiveDraft()
 }
 
 async function resolveGeneratedMarkdownPaths(ingestResult) {
@@ -1087,6 +1166,7 @@ async function processDroppedFiles(files = []) {
         }
       }
       ingestStatusByFile.value = next
+      syncActiveDraft({ stage: 'Quick Review Needed' })
       const listed = existingCheck.existingNames.join(', ')
       const reason = existingCheck.bothExist ? 'raw and markdown files already exist' : 'files already exist'
       throw new Error(`Skipped extraction: ${reason} for ${listed}.`)
@@ -1108,6 +1188,7 @@ async function processDroppedFiles(files = []) {
     applySuggestedValues(preview?.suggested || {})
     applyMatchedExistingCompany(preview?.companyMatch || null)
     updateStatusForAllFiles({ extractionStatus: 'completed' })
+    syncActiveDraft({ stage: 'Ready for Review' })
 
     processingMessage.value = 'Files processed successfully.'
     $q.notify({ type: 'positive', message: 'Artifacts ingested and fields populated.' })
@@ -1368,6 +1449,10 @@ async function submit() {
       })
     }
 
+    if (activeDraft.value?.id) {
+      removeIntakeDraft(activeDraft.value.id)
+    }
+
     emit('created', result)
     didSubmit.value = true
     window.dispatchEvent(new Event('ecvc:opportunities-changed'))
@@ -1474,10 +1559,22 @@ watch(
       }
       return
     }
+    resetForms()
+    resetTransientState()
     await loadCompanies()
     await loadContacts()
     await loadExistingOpportunityNames()
     await loadRelationshipOptions()
+
+    const hydrated = hydrateFromActiveDraft()
+    const droppedFiles = activeDraft.value?.droppedFiles || []
+    const alreadyProcessed =
+      Object.keys(activeDraft.value?.ingestStatusByFile || {}).length > 0 ||
+      (Array.isArray(activeDraft.value?.draftArtifactIds) && activeDraft.value.draftArtifactIds.length > 0)
+    if (!hydrated && droppedFiles.length > 0 && !alreadyProcessed) {
+      initStatusForFiles(droppedFiles)
+      await processDroppedFiles(droppedFiles)
+    }
   },
 )
 
@@ -1636,6 +1733,7 @@ onMounted(() => {
         extractionStatus: status.extractionStatus || previous.extractionStatus,
       },
     }
+    syncActiveDraft()
     const message = String(status?.message || '').trim()
     if (message) processingMessage.value = message
   })
