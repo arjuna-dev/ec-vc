@@ -181,6 +181,74 @@
                   label="Description"
                 />
               </div>
+              <div class="col-12">
+                <div class="text-subtitle2 q-mb-sm">Relationships</div>
+              </div>
+              <div class="col-12 col-md-8">
+                <q-select
+                  v-model="propertiesForm.related_company_ids"
+                  outlined
+                  dense
+                  multiple
+                  emit-value
+                  map-options
+                  use-input
+                  use-chips
+                  input-debounce="0"
+                  :options="companyOptions"
+                  label="Related Companies"
+                  option-label="label"
+                  option-value="value"
+                  @filter="(value, update) => filterSelectableOptions(value, update, 'company')"
+                />
+              </div>
+              <div class="col-12 col-md-4">
+                <q-select
+                  v-model="propertiesForm.company_document_type"
+                  outlined
+                  dense
+                  clearable
+                  :disable="propertiesForm.related_company_ids.length === 0"
+                  :options="companyDocumentTypeOptions"
+                  label="Company Document Type"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="propertiesForm.related_industry_ids"
+                  outlined
+                  dense
+                  multiple
+                  emit-value
+                  map-options
+                  use-input
+                  use-chips
+                  input-debounce="0"
+                  :options="industryOptions"
+                  label="Related Industries"
+                  option-label="label"
+                  option-value="value"
+                  @filter="(value, update) => filterSelectableOptions(value, update, 'industry')"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="propertiesForm.related_region_ids"
+                  outlined
+                  dense
+                  multiple
+                  emit-value
+                  map-options
+                  use-input
+                  use-chips
+                  input-debounce="0"
+                  :options="regionOptions"
+                  label="Related Regions"
+                  option-label="label"
+                  option-value="value"
+                  @filter="(value, update) => filterSelectableOptions(value, update, 'region')"
+                />
+              </div>
               <div class="col-12 col-md-6">
                 <q-input
                   :model-value="String(propertiesForm.fs_path || '')"
@@ -243,12 +311,19 @@ const hasBridge = computed(
     !!bridge.value?.artifacts?.list &&
     !!bridge.value?.artifacts?.upsertMany &&
     !!bridge.value?.artifacts?.delete &&
-    !!bridge.value?.db?.execute,
+    !!bridge.value?.db?.execute &&
+    !!bridge.value?.db?.query,
 )
 
 const rows = ref([])
 const opportunities = ref([])
+const companies = ref([])
+const industries = ref([])
+const regions = ref([])
 const filteredOpportunityOptions = ref([])
+const filteredCompanyOptions = ref([])
+const filteredIndustryOptions = ref([])
+const filteredRegionOptions = ref([])
 const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
@@ -287,10 +362,42 @@ const csvHeaders = [
   'created_at',
 ]
 
+const companyDocumentTypeOptions = [
+  'incorporation_certificate',
+  'incorporation_articles',
+  'company_bylaws',
+  'intellectual_property',
+  'yearly_statements',
+  'quarterly_statements',
+  'monthly_statements',
+  'descriptive_materials',
+]
+
 const opportunityOptions = computed(() =>
   filteredOpportunityOptions.value.map((opportunity) => ({
     label: buildOpportunityOptionLabel(opportunity),
     value: opportunity.id,
+  })),
+)
+
+const companyOptions = computed(() =>
+  filteredCompanyOptions.value.map((company) => ({
+    label: buildCompanyOptionLabel(company),
+    value: String(company?.id || '').trim(),
+  })),
+)
+
+const industryOptions = computed(() =>
+  filteredIndustryOptions.value.map((industry) => ({
+    label: String(industry?.Industry_Name || industry?.id || '').trim(),
+    value: String(industry?.id || '').trim(),
+  })),
+)
+
+const regionOptions = computed(() =>
+  filteredRegionOptions.value.map((region) => ({
+    label: String(region?.Name || region?.id || '').trim(),
+    value: String(region?.id || '').trim(),
   })),
 )
 
@@ -334,6 +441,73 @@ async function loadOpportunities() {
   }
 }
 
+async function loadRelationshipOptions() {
+  await Promise.all([loadCompanies(), loadIndustries(), loadRegions()])
+}
+
+async function loadCompanies() {
+  if (!bridge.value?.companies?.list) {
+    companies.value = []
+    filteredCompanyOptions.value = []
+    return
+  }
+
+  try {
+    const result = await bridge.value.companies.list()
+    companies.value = Array.isArray(result?.companies) ? result.companies : []
+    filteredCompanyOptions.value = [...companies.value]
+  } catch {
+    companies.value = []
+    filteredCompanyOptions.value = []
+  }
+}
+
+async function loadIndustries() {
+  if (!bridge.value?.db?.query) {
+    industries.value = []
+    filteredIndustryOptions.value = []
+    return
+  }
+
+  try {
+    const rows = await bridge.value.db.query(
+      `
+      SELECT id, Industry_Name
+      FROM Industries
+      ORDER BY COALESCE(Industry_Name, id), id
+    `,
+    )
+    industries.value = Array.isArray(rows) ? rows : []
+    filteredIndustryOptions.value = [...industries.value]
+  } catch {
+    industries.value = []
+    filteredIndustryOptions.value = []
+  }
+}
+
+async function loadRegions() {
+  if (!bridge.value?.db?.query) {
+    regions.value = []
+    filteredRegionOptions.value = []
+    return
+  }
+
+  try {
+    const rows = await bridge.value.db.query(
+      `
+      SELECT id, Name
+      FROM Regions
+      ORDER BY COALESCE(Name, id), id
+    `,
+    )
+    regions.value = Array.isArray(rows) ? rows : []
+    filteredRegionOptions.value = [...regions.value]
+  } catch {
+    regions.value = []
+    filteredRegionOptions.value = []
+  }
+}
+
 function normalizeSelectedRows() {
   const activeIds = new Set(rows.value.map((row) => row.artifact_id))
   selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.artifact_id))
@@ -348,6 +522,10 @@ function createEmptyPropertiesForm() {
     type: '',
     opportunity_id: null,
     description: '',
+    related_company_ids: [],
+    company_document_type: null,
+    related_industry_ids: [],
+    related_region_ids: [],
     fs_path: '',
     original_artifact_id: '',
     created_at: '',
@@ -366,6 +544,12 @@ function resolveOpportunityLabel(row = {}) {
   if (!opportunityId) return 'Unlinked'
   const match = opportunities.value.find((opportunity) => String(opportunity?.id || '').trim() === opportunityId)
   return match ? buildOpportunityOptionLabel(match) : opportunityId
+}
+
+function buildCompanyOptionLabel(company = {}) {
+  const name = String(company?.Company_Name || '').trim()
+  const type = String(company?.Company_Type || '').trim()
+  return type ? `${name} (${type})` : name || String(company?.id || '').trim()
 }
 
 function filterOpportunityOptions(value, update) {
@@ -391,9 +575,57 @@ function filterOpportunityOptions(value, update) {
   })
 }
 
+function filterSelectableOptions(value, update, type) {
+  update(() => {
+    const search = String(value || '').trim().toLowerCase()
+    const configByType = {
+      company: {
+        source: companies.value,
+        assign: (items) => {
+          filteredCompanyOptions.value = items
+        },
+        fields: ['id', 'Company_Name', 'Company_Type', 'Website'],
+      },
+      industry: {
+        source: industries.value,
+        assign: (items) => {
+          filteredIndustryOptions.value = items
+        },
+        fields: ['id', 'Industry_Name'],
+      },
+      region: {
+        source: regions.value,
+        assign: (items) => {
+          filteredRegionOptions.value = items
+        },
+        fields: ['id', 'Name'],
+      },
+    }
+
+    const config = configByType[type]
+    if (!config) return
+    if (!search) {
+      config.assign([...config.source])
+      return
+    }
+
+    config.assign(
+      config.source.filter((item) =>
+        config.fields
+          .map((field) => String(item?.[field] || '').toLowerCase())
+          .join(' ')
+          .includes(search),
+      ),
+    )
+  })
+}
+
 async function openPropertiesDialog(row) {
   propertiesError.value = ''
   filteredOpportunityOptions.value = [...opportunities.value]
+  filteredCompanyOptions.value = [...companies.value]
+  filteredIndustryOptions.value = [...industries.value]
+  filteredRegionOptions.value = [...regions.value]
   const nextForm = {
     artifact_id: String(row?.artifact_id || ''),
     title: String(row?.title || ''),
@@ -402,6 +634,10 @@ async function openPropertiesDialog(row) {
     type: String(row?.type || ''),
     opportunity_id: String(row?.opportunity_id || '').trim() || null,
     description: '',
+    related_company_ids: [],
+    company_document_type: null,
+    related_industry_ids: [],
+    related_region_ids: [],
     fs_path: String(row?.fs_path || ''),
     original_artifact_id: String(row?.original_artifact_id || ''),
     created_at: String(row?.created_at || ''),
@@ -537,5 +773,6 @@ onMounted(() => {
   if (!hasBridge.value) return
   loadArtifacts()
   loadOpportunities()
+  loadRelationshipOptions()
 })
 </script>
