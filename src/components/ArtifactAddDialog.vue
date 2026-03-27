@@ -107,6 +107,12 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import OpportunityCreateDialog from './OpportunityCreateDialog.vue'
+import {
+  createIntakeDraft,
+  removeIntakeDraft,
+  updateIntakeDraft,
+  useIntakeDraftState,
+} from 'src/utils/intakeDraftState'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -121,18 +127,31 @@ const open = computed({
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const $q = useQuasar()
+const intakeDraftState = useIntakeDraftState()
 
 const loading = ref(false)
 const step = ref(1)
 const dragOver = ref(false)
-const droppedFiles = ref([])
 
 const opportunities = ref([])
 
-const opportunityId = ref(null)
-
 const opportunityDialogOpen = ref(false)
 const DEFAULT_PIPELINE_ID = 'pipeline_default'
+const activeDraft = computed(() => {
+  const draftId = String(intakeDraftState.activeDraftId || '').trim()
+  return draftId ? intakeDraftState.drafts[draftId] || null : null
+})
+const droppedFiles = computed(() => activeDraft.value?.droppedFiles || [])
+const opportunityId = computed({
+  get: () => activeDraft.value?.opportunityId || null,
+  set: (value) => {
+    if (!activeDraft.value?.id) return
+    updateIntakeDraft(activeDraft.value.id, {
+      opportunityId: value || null,
+      stage: value ? 'Quick Review Needed' : activeDraft.value.stage,
+    })
+  },
+})
 
 const opportunityOptions = computed(() =>
   (opportunities.value || []).map((o) => ({
@@ -154,7 +173,12 @@ async function loadAll() {
 
 async function onOpportunityCreated(result) {
   await loadAll()
-  if (result?.id) opportunityId.value = result.id
+  if (result?.id && activeDraft.value?.id) {
+    updateIntakeDraft(activeDraft.value.id, {
+      opportunityId: result.id,
+      stage: 'Quick Review Needed',
+    })
+  }
 }
 
 function onDrop(e) {
@@ -179,7 +203,11 @@ function stageDroppedFiles(files = []) {
   if (normalized.length === 0) return
   const summaries = summarizeDroppedFiles(normalized)
   step.value = 1
-  droppedFiles.value = summaries
+  createIntakeDraft({
+    droppedFiles: summaries,
+    opportunityId: null,
+    stage: 'Dropped',
+  })
   $q.notify({
     type: 'info',
     message: 'Files staged. Select an opportunity, then click Finish to start processing.',
@@ -200,11 +228,15 @@ async function finish() {
 
   loading.value = true
   try {
+    const activeDraftId = activeDraft.value?.id || null
     await bridge.value.artifacts.ingest({
       filePaths: droppedFiles.value.map((f) => f.path),
       pipelineId: DEFAULT_PIPELINE_ID,
       opportunityId: opportunityId.value,
     })
+    if (activeDraftId) {
+      removeIntakeDraft(activeDraftId)
+    }
     open.value = false
   } catch (_e) {
     // Error toasts are emitted by the main process; keep a fallback here.
@@ -221,9 +253,7 @@ watch(
   () => props.modelValue,
   async (v) => {
     if (!v) return
-    step.value = 1
-    opportunityId.value = null
-    droppedFiles.value = []
+    step.value = droppedFiles.value.length > 0 ? 2 : 1
     await loadAll()
   },
 )

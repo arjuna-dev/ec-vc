@@ -137,6 +137,7 @@ import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
+import { useIntakeDraftState } from 'src/utils/intakeDraftState'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -201,9 +202,11 @@ const databookParentRouteByTableName = {
 const router = useRouter()
 const route = useRoute()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
+const intakeDraftState = useIntakeDraftState()
 let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
+const intakeDraftCount = computed(() => intakeDraftState.draftOrder.length)
 
 const drawerNavigationSections = computed(() => [
   {
@@ -310,7 +313,7 @@ const quickWidgetActions = computed(() => [
   },
   {
     id: 'artifact',
-    label: 'Artifact',
+    label: intakeDraftCount.value > 0 ? `Artifact (${intakeDraftCount.value})` : 'Artifact',
     icon: 'attach_file',
     onClick: openArtifactFromQuickAction,
   },
