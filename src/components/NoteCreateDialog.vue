@@ -9,6 +9,10 @@
       <q-separator />
 
       <q-card-section class="q-gutter-md">
+        <div class="text-caption text-grey-7">
+          Note fields are first-order note metadata. In the current schema, notes persist their own metadata but
+          do not yet have saved first-level relationship links.
+        </div>
         <q-input v-model="form.Note_Name" outlined label="Note Name *" :disable="loading" />
         <q-input
           v-model="form.Note_Content"
