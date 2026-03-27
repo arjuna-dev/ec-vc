@@ -364,6 +364,27 @@ function normalizeTaskStatus(value) {
   return allowed.get(normalized) || null
 }
 
+function normalizeCompanyStatus(value) {
+  const candidate = normalizeNullableString(value)
+  if (!candidate) return null
+  const normalized = candidate.trim().toLowerCase()
+  const allowed = new Map([
+    ['ongoing', 'ongoing'],
+    ['active', 'ongoing'],
+    ['open', 'ongoing'],
+    ['operating', 'ongoing'],
+    ['live', 'ongoing'],
+    ['current', 'ongoing'],
+    ['closed', 'closed'],
+    ['inactive', 'closed'],
+    ['shutdown', 'closed'],
+    ['shut down', 'closed'],
+    ['terminated', 'closed'],
+    ['ended', 'closed'],
+  ])
+  return allowed.get(normalized) || null
+}
+
 function normalizeTaskPriorityRank(value) {
   const candidate = normalizeNullableString(value)
   if (!candidate) return null
@@ -558,7 +579,7 @@ function upsertCompanyOperationsOverview(database, companyId, source = {}) {
   const payload = {
     company_id: companyId,
     Company_Stage: normalizeCompanyStage(source.Company_Stage),
-    Status: normalizeNullableString(source.Status),
+    Status: normalizeCompanyStatus(source.Status),
     headquarters_city:
       normalizeNullableString(source.headquarters_city) ||
       normalizeNullableString(source.headquarters_city_id) ||
@@ -2034,6 +2055,8 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   round: 'Rounds',
   pipelines: 'Pipelines',
   pipeline: 'Pipelines',
+  projects: 'Pipelines',
+  project: 'Pipelines',
 })
 
 function getDatabookTableConfig(tableName) {
@@ -2561,6 +2584,26 @@ function deleteRow(tableName, idColumn, idValue) {
   if (!value) throw new Error(`${col} is required`)
   const result = database.prepare(`DELETE FROM ${t} WHERE ${col} = ?`).run(value)
   return { changes: result.changes }
+}
+
+function deleteOpportunityRow(opportunityId) {
+  const database = initDb()
+  const oid = String(opportunityId || '').trim()
+  if (!oid) throw new Error('opportunityId is required')
+
+  const roundExists = Boolean(database.prepare('SELECT 1 FROM Rounds WHERE id = ? LIMIT 1').get(oid))
+  if (roundExists) {
+    const result = database.prepare('DELETE FROM Rounds WHERE id = ?').run(oid)
+    return { changes: result.changes, table: 'Rounds' }
+  }
+
+  const fundExists = Boolean(database.prepare('SELECT 1 FROM Funds WHERE id = ? LIMIT 1').get(oid))
+  if (fundExists) {
+    const result = database.prepare('DELETE FROM Funds WHERE id = ?').run(oid)
+    return { changes: result.changes, table: 'Funds' }
+  }
+
+  return { changes: 0, table: null }
 }
 
 function upsertCompanies(rows = []) {
@@ -3890,6 +3933,21 @@ function maybeCreatePrimaryContact(contactPayload = {}) {
   return createContact(contactPayload)?.id || null
 }
 
+function assertUniqueOpportunityName(database, name, kind) {
+  const normalizedName = normalizeNullableString(name)
+  if (!normalizedName) throw new Error(`${kind} name is required`)
+
+  const existingRound = database
+    .prepare('SELECT id FROM Rounds WHERE lower(Round_Name) = lower(?) LIMIT 1')
+    .get(normalizedName)
+  if (existingRound?.id) throw new Error(`Opportunity name already exists: ${normalizedName}`)
+
+  const existingFund = database
+    .prepare('SELECT id FROM Funds WHERE lower(Fund_Name) = lower(?) LIMIT 1')
+    .get(normalizedName)
+  if (existingFund?.id) throw new Error(`Opportunity name already exists: ${normalizedName}`)
+}
+
 function createFund(payload = {}) {
   const database = initDb()
   const actor = getAuditActor(database, { requireUser: true })
@@ -3906,6 +3964,7 @@ function createFund(payload = {}) {
     normalizeNullableString(payload?.company?.Company_Name) ||
     normalizeNullableString(payload?.primary_contact?.Name) ||
     fundId
+  assertUniqueOpportunityName(database, fundName, 'Fund')
 
   const tx = database.transaction(() => {
     database
@@ -3972,6 +4031,7 @@ function createRound(payload = {}) {
     normalizeNullableString(payload?.Venture_Oppty_Name) ||
     normalizeNullableString(payload?.company?.Company_Name) ||
     roundId
+  assertUniqueOpportunityName(database, roundName, 'Round')
 
   const tx = database.transaction(() => {
     database
@@ -4763,7 +4823,7 @@ function registerIpc() {
 
   ipcMain.handle('opportunities:delete', async (_event, { opportunityId } = {}) => {
     initDb()
-    return deleteRow('Opportunities', 'id', String(opportunityId || ''))
+    return deleteOpportunityRow(opportunityId)
   })
 
   ipcMain.handle('databooks:view', async (_event, { tableName, recordId } = {}) => {

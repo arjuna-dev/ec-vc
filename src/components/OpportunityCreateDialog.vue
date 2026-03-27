@@ -66,72 +66,200 @@
 
           <q-separator />
 
-          <div class="row q-col-gutter-xl">
-            <div class="col-12 col-md-6 q-gutter-md">
+          <div class="opportunity-dialog-sections">
+            <section class="opportunity-dialog-section">
               <div class="text-subtitle1">Company</div>
 
-              <div class="q-gutter-md">
+              <div class="opportunity-dialog-section__grid">
+                <q-input
+                  v-if="companyLinkMode === 'new'"
+                  v-model="companyForm.Company_Name"
+                  outlined
+                  label="Company Name"
+                  class="opportunity-dialog-section__field opportunity-dialog-section__field--full"
+                  :style="{ order: companyLayoutOrder.Company_Name }"
+                  :disable="loading || processingDrop"
+                  :input-class="fieldInputClass('company', 'Company_Name')"
+                />
+
                 <q-select
+                  v-else
                   v-model="form.company_id"
                   outlined
-                  label="Existing Company"
+                  label="Company Name"
                   :options="companyOptions"
                   :disable="loadingCompanies || loading || processingDrop"
                   emit-value
                   map-options
-                >
-                  <template #before-options>
-                    <q-item
-                      clickable
-                      class="bg-white"
-                      style="position: sticky; top: 0; z-index: 2"
-                      @click.stop.prevent="companyDialogOpen = true"
-                    >
-                      <q-item-section avatar>
-                        <q-icon name="add" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label>Create new company</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-separator />
-                  </template>
-                </q-select>
+                  option-label="label"
+                  option-value="value"
+                  options-dense
+                  use-input
+                  input-debounce="0"
+                  class="opportunity-dialog-section__field opportunity-dialog-section__field--full"
+                  :style="{ order: companyLayoutOrder.Company_Name }"
+                  @filter="onCompanyOptionFilter"
+                />
 
-                <div class="row items-center q-gutter-sm">
-                  <q-badge v-if="isUsingExistingCompany" color="positive">Existing record</q-badge>
-                  <q-btn
-                    v-if="showCompanyToggleButton"
-                    flat
-                    color="secondary"
-                    :label="companyToggleLabel"
-                    @click="toggleCompanySource"
-                  />
+                <q-option-group
+                  v-model="companyLinkMode"
+                  inline
+                  :options="companyLinkOptions"
+                  color="primary"
+                  class="opportunity-dialog-section__field opportunity-dialog-section__field--full"
+                  :style="{ order: companyLayoutOrder.companyLinkMode }"
+                  :disable="loading || loadingCompanies || processingDrop"
+                />
+
+                <div
+                  v-if="companyLinkMode === 'existing' && topSuggestedCompanies.length"
+                  class="text-caption text-grey-7 opportunity-dialog-section__field opportunity-dialog-section__field--full"
+                  :style="{ order: companyLayoutOrder.bestMatches }"
+                >
+                  Best matches:
+                  {{ topSuggestedCompanies.map((option) => option.label).join(' • ') }}
                 </div>
 
-                <q-input
-                  v-for="field in companyFields"
-                  :key="field.key"
-                  v-model="companyForm[field.key]"
-                  outlined
-                  :label="field.label"
-                  :type="field.inputType"
-                  :disable="loading || processingDrop || isUsingExistingCompany"
-                  :input-class="fieldInputClass('company', field.key)"
-                />
-              </div>
-            </div>
+                <q-banner
+                  v-if="showCompanyMismatchBanner"
+                  class="bg-orange-1 text-orange-10 company-mismatch-banner opportunity-dialog-section__field opportunity-dialog-section__field--full"
+                  :style="{ order: companyLayoutOrder.mismatchBanner }"
+                  rounded
+                >
+                  Existing record and new input do not fully match. Choose which source to use.
+                </q-banner>
 
-            <div class="col-12 col-md-6 q-gutter-md">
+                <div
+                  v-if="showCompanySourceChoices"
+                  class="column q-gutter-sm company-source-choice-list opportunity-dialog-section__field opportunity-dialog-section__field--full"
+                  :style="{ order: companyLayoutOrder.sourceChoices }"
+                >
+                  <div class="text-caption text-grey-7">Resolve flagged company data</div>
+                  <div class="row q-col-gutter-sm">
+                    <div class="col-12 col-sm-6">
+                      <button
+                        type="button"
+                        class="company-source-choice"
+                        :class="{ 'company-source-choice--selected': companySourceChoice === 'input' }"
+                        @click="companySourceChoice = 'input'"
+                      >
+                        <div class="company-source-choice__top">
+                          <q-radio
+                            :model-value="companySourceChoice"
+                            val="input"
+                            label="New Input"
+                            color="primary"
+                          />
+                          <q-btn
+                            flat
+                            round
+                            dense
+                            icon="open_in_new"
+                            aria-label="Preview new input"
+                            @click.stop="openCompanyPreview('input')"
+                          />
+                        </div>
+                        <div class="company-source-choice__body">
+                          {{ companyInputSummary }}
+                        </div>
+                      </button>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                      <button
+                        type="button"
+                        class="company-source-choice"
+                        :class="{ 'company-source-choice--selected': companySourceChoice === 'legacy' }"
+                        @click="companySourceChoice = 'legacy'"
+                      >
+                        <div class="company-source-choice__top">
+                          <q-radio
+                            :model-value="companySourceChoice"
+                            val="legacy"
+                            label="Legacy Record"
+                            color="primary"
+                          />
+                          <q-btn
+                            flat
+                            round
+                            dense
+                            icon="open_in_new"
+                            aria-label="Preview legacy record"
+                            @click.stop="openCompanyPreview('legacy')"
+                          />
+                        </div>
+                        <div class="company-source-choice__body">
+                          {{ selectedCompanySummary }}
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <template v-for="field in editableCompanyFields" :key="field.key">
+                  <q-select
+                    v-if="field.key === 'Company_Type'"
+                    v-model="companyForm.Company_Type"
+                    outlined
+                    emit-value
+                    map-options
+                    :label="field.label"
+                    :options="companyTypeOptions"
+                    class="opportunity-dialog-section__field"
+                    :class="{
+                      'opportunity-dialog-section__field--full': companyFullWidthFieldKeys.has(field.key),
+                    }"
+                    :style="{ order: companyLayoutOrder[field.key] ?? 50 }"
+                    :disable="loading || processingDrop"
+                    :input-class="fieldInputClass('company', field.key)"
+                  />
+                  <q-select
+                    v-else-if="field.key === 'Status'"
+                    v-model="companyForm.Status"
+                    outlined
+                    emit-value
+                    map-options
+                    :label="field.label"
+                    :options="companyStatusOptions"
+                    class="opportunity-dialog-section__field"
+                    :class="{
+                      'opportunity-dialog-section__field--full': companyFullWidthFieldKeys.has(field.key),
+                    }"
+                    :style="{ order: companyLayoutOrder[field.key] ?? 50 }"
+                    :disable="loading || processingDrop"
+                    :input-class="fieldInputClass('company', field.key)"
+                  />
+                  <q-input
+                    v-else
+                    v-model="companyForm[field.key]"
+                    outlined
+                    :label="field.label"
+                    :type="field.inputType"
+                    class="opportunity-dialog-section__field"
+                    :class="{
+                      'opportunity-dialog-section__field--full': companyFullWidthFieldKeys.has(field.key),
+                    }"
+                    :style="{ order: companyLayoutOrder[field.key] ?? 50 }"
+                    :disable="loading || processingDrop"
+                    :input-class="fieldInputClass('company', field.key)"
+                  />
+                </template>
+              </div>
+            </section>
+
+            <section class="opportunity-dialog-section">
               <div class="text-subtitle1">Opportunity</div>
 
-              <div class="q-gutter-md">
+              <div class="opportunity-dialog-section__grid">
                 <q-input
-                  :model-value="generatedOpportunityName"
+                  v-model="form.Venture_Oppty_Name"
                   outlined
-                  :label="`${entityLabel} Name (auto)`"
-                  readonly
-                  disable
+                  :label="`${entityLabel} Name`"
+                  :error="Boolean(opportunityNameError)"
+                  :error-message="opportunityNameError"
+                  class="opportunity-dialog-section__field opportunity-dialog-section__field--full"
+                  :disable="loading || processingDrop"
+                  @update:model-value="markOpportunityNameEdited"
                 />
 
                 <q-select
@@ -139,11 +267,15 @@
                   outlined
                   label="Opportunity Kind *"
                   :options="kindOptions"
+                  class="opportunity-dialog-section__field"
                   :disable="loading || selectedCompanyIsAssetManager || processingDrop || props.lockKind"
                   emit-value
                   map-options
                 />
-                <div v-if="selectedCompanyIsAssetManager" class="text-caption text-grey-7">
+                <div
+                  v-if="selectedCompanyIsAssetManager"
+                  class="text-caption text-grey-7 opportunity-dialog-section__field"
+                >
                   Selected company is <b>Asset Manager</b>, so kind is forced to <b>fund</b>.
                 </div>
 
@@ -154,11 +286,12 @@
                   outlined
                   :label="field.label"
                   :type="field.inputType"
+                  class="opportunity-dialog-section__field"
                   :disable="loading || processingDrop"
                   :input-class="fieldInputClass('opportunity', field.key)"
                 />
               </div>
-            </div>
+            </section>
           </div>
 
           <q-separator />
@@ -207,14 +340,38 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+  <q-dialog v-model="companyPreviewDialogOpen">
+    <q-card style="width: 420px; max-width: 92vw">
+      <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
+        <div class="text-h6">{{ companyPreviewTitle }}</div>
+        <div class="text-caption text-grey-7">Review the selected company input.</div>
+      </q-card-section>
 
-  <CompanyCreateDialog v-model="companyDialogOpen" @created="onCompanyCreated" />
+      <q-card-section class="q-px-lg q-pb-md">
+        <div class="column q-gutter-sm">
+          <div
+            v-for="item in companyPreviewRows"
+            :key="item.label"
+            class="company-preview-row"
+          >
+            <div class="company-preview-row__label">{{ item.label }}</div>
+            <div class="company-preview-row__value">{{ item.value }}</div>
+          </div>
+        </div>
+      </q-card-section>
+
+      <q-separator />
+
+      <q-card-actions align="right" class="q-px-lg q-py-md">
+        <q-btn flat no-caps label="Close" @click="companyPreviewDialogOpen = false" />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import CompanyCreateDialog from './CompanyCreateDialog.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -242,13 +399,16 @@ const processingDrop = ref(false)
 const processingMessage = ref('')
 const loadingCompanies = ref(false)
 const companies = ref([])
-const companyDialogOpen = ref(false)
+const existingOpportunityNames = ref([])
+const companyLinkMode = ref('new')
+const companySourceChoice = ref('input')
+const companyPreviewDialogOpen = ref(false)
+const companyPreviewSource = ref('input')
+const companyOptionFilter = ref('')
 const dragOver = ref(false)
 const ingestStatusByFile = ref({})
 
 const extractedCompanyForm = ref(null)
-const matchedCompanyMeta = ref(null)
-const useExtractedCompany = ref(false)
 
 const generatedNotes = ref([])
 const generatedTasks = ref([])
@@ -257,6 +417,7 @@ const assistantProposal = ref({})
 const draftOpportunityId = ref(null)
 const draftArtifactIds = ref([])
 const didSubmit = ref(false)
+const opportunityNameManuallyEdited = ref(false)
 
 const autofilledFlags = ref({})
 
@@ -292,12 +453,13 @@ const opportunityFields = computed(() =>
 const companyFields = [
   { key: 'Company_Name', label: 'Company Name', inputType: 'text' },
   { key: 'Company_Type', label: 'Company Type', inputType: 'text' },
-  { key: 'One_Liner', label: 'One Liner', inputType: 'text' },
   { key: 'Status', label: 'Company Status', inputType: 'text' },
+  { key: 'Headquarters_City', label: 'HQ Location', inputType: 'text' },
   { key: 'Date_of_Incorporation', label: 'Date of Incorporation', inputType: 'text' },
-  { key: 'Pax', label: 'Pax', inputType: 'number' },
-  { key: 'Updates', label: 'Updates', inputType: 'text' },
   { key: 'Website', label: 'Website', inputType: 'text' },
+  { key: 'Pax', label: 'Estimated Pax Count', inputType: 'number' },
+  { key: 'One_Liner', label: 'One Liner', inputType: 'text' },
+  { key: 'Updates', label: 'Annotations', inputType: 'text' },
 ]
 
 const contactFields = [
@@ -309,21 +471,71 @@ const contactFields = [
   { key: 'Country_based', label: 'Country Based', inputType: 'text' },
 ]
 
+const companyLinkOptions = [
+  { label: 'Create New', value: 'new' },
+  { label: 'Link Existing', value: 'existing' },
+]
+const companyStatusOptions = [
+  { label: 'On-Going', value: 'ongoing' },
+  { label: 'Closed', value: 'closed' },
+]
+const companyTypeOptions = [
+  { label: 'Asset Manager', value: 'Asset Manager' },
+  { label: 'Venture', value: 'Venture' },
+  { label: 'Corporation', value: 'Corporation' },
+  { label: 'Academia', value: 'Academia' },
+  { label: 'Government', value: 'Government' },
+  { label: 'Other', value: 'Other' },
+]
+const companyFullWidthFieldKeys = new Set(['One_Liner', 'Updates'])
+const companyLayoutOrder = Object.freeze({
+  Company_Type: 1,
+  Status: 2,
+  Company_Name: 3,
+  companyLinkMode: 4,
+  linkExistingRecord: 5,
+  bestMatches: 6,
+  mismatchBanner: 7,
+  sourceChoices: 8,
+  Headquarters_City: 9,
+  Date_of_Incorporation: 10,
+  Website: 11,
+  Pax: 12,
+  One_Liner: 13,
+  Updates: 14,
+})
+
 const form = ref({})
 const companyForm = ref({})
 const contactForm = ref({})
 
-const companyOptions = computed(() =>
-  [
-    { label: '-', value: null },
-    ...(companies.value || [])
-      .filter((c) => c?.Company_Name)
-      .map((c) => ({
-        label: `${c.Company_Name}${c?.Company_Type ? ` (${c.Company_Type})` : ''}`,
-        value: c.id,
-      })),
-  ],
-)
+const editableCompanyFields = computed(() => companyFields.filter((field) => field.key !== 'Company_Name'))
+
+const rankedCompanies = computed(() => {
+  const searchBase = normalizeComparisonText(companyOptionFilter.value || companyForm.value.Company_Name)
+
+  return (companies.value || [])
+    .filter((company) => company?.Company_Name)
+    .map((company) => ({
+      company,
+      score: scoreCompanyMatch(company, searchBase),
+      label: `${company.Company_Name}${company?.Company_Type ? ` (${company.Company_Type})` : ''}`,
+    }))
+    .sort((left, right) => {
+      if (right.score !== left.score) return right.score - left.score
+      return left.label.localeCompare(right.label)
+    })
+})
+
+const companyOptions = computed(() => [
+  { label: '-', value: null },
+  ...rankedCompanies.value.map(({ company, label }) => ({
+    label,
+    value: company.id,
+  })),
+])
+
+const topSuggestedCompanies = computed(() => companyOptions.value.filter((option) => option.value).slice(0, 2))
 
 const kindOptions = [
   { label: 'Round', value: 'round' },
@@ -336,10 +548,46 @@ const selectedCompany = computed(
 const selectedCompanyIsAssetManager = computed(
   () => String(selectedCompany.value?.Company_Type || '').toLowerCase() === 'asset manager',
 )
-const isUsingExistingCompany = computed(() => Boolean(form.value?.company_id) && !useExtractedCompany.value)
-const showCompanyToggleButton = computed(() => Boolean(matchedCompanyMeta.value?.id))
-const companyToggleLabel = computed(() =>
-  useExtractedCompany.value ? 'Use existing company instead' : 'Use extracted data instead',
+
+const companyComparisonFields = computed(() =>
+  companyFields.filter((field) => {
+    if (field.key === 'Company_Name') return true
+    const inputValue = normalizeComparisonText(companyForm.value?.[field.key])
+    const legacyValue = normalizeComparisonText(getCompanyFieldValue(selectedCompany.value, field.key))
+    return inputValue || legacyValue
+  }),
+)
+
+const companyMismatches = computed(() => {
+  if (companyLinkMode.value !== 'existing' || !selectedCompany.value) return []
+
+  return companyComparisonFields.value.filter((field) => {
+    const inputValue = normalizeComparisonText(companyForm.value?.[field.key])
+    const legacyValue = normalizeComparisonText(getCompanyFieldValue(selectedCompany.value, field.key))
+    return inputValue && legacyValue && inputValue !== legacyValue
+  })
+})
+
+const showCompanyMismatchBanner = computed(() => companyMismatches.value.length > 0)
+const showCompanySourceChoices = computed(
+  () => companyLinkMode.value === 'existing' && Boolean(selectedCompany.value) && companyMismatches.value.length > 0,
+)
+
+const companyInputSummary = computed(() => summarizeCompanySource(companyForm.value))
+const selectedCompanySummary = computed(() => summarizeCompanySource(selectedCompany.value))
+const companyPreviewTitle = computed(() =>
+  companyPreviewSource.value === 'legacy' ? 'Legacy Record Input' : 'New Input',
+)
+const companyPreviewRows = computed(() =>
+  companyFields.map((field) => ({
+    label: field.label,
+    value:
+      stripHumanVerify(
+        companyPreviewSource.value === 'legacy'
+          ? getCompanyFieldValue(selectedCompany.value, field.key)
+          : companyForm.value?.[field.key],
+      ) || 'No value',
+  })),
 )
 
 const ingestStatusRows = computed(() => Object.values(ingestStatusByFile.value || {}))
@@ -351,20 +599,23 @@ const createDisabled = computed(() => {
   return !hasCompany && !hasContact
 })
 
-const generatedOpportunityName = computed(() => {
+const suggestedOpportunityName = computed(() => {
   const base =
     String(companyForm.value.Company_Name || '').trim() ||
     String(contactForm.value.Name || '').trim() ||
     entityLabel.value
-  const now = new Date()
-  const dd = String(now.getDate()).padStart(2, '0')
-  const mm = String(now.getMonth() + 1).padStart(2, '0')
-  const yyyy = String(now.getFullYear())
   if (entityType.value === 'fund') {
-    return `${dd}_${mm}_${yyyy}_${base.replace(/\s+/g, '_')}_Fund`
+    return `${base.replace(/\s+/g, '_')}_Fund`
   }
   const series = String(form.value.Round_Stage || '').trim() || 'Unknown_Series'
-  return `${dd}_${mm}_${yyyy}_${base.replace(/\s+/g, '_')}_${series.replace(/\s+/g, '_')}`
+  return `${base.replace(/\s+/g, '_')}_${series.replace(/\s+/g, '_')}`
+})
+
+const normalizedOpportunityName = computed(() => normalizeOpportunityName(form.value.Venture_Oppty_Name))
+const opportunityNameError = computed(() => {
+  const name = normalizedOpportunityName.value
+  if (!name) return `${entityLabel.value} name is required.`
+  return isOpportunityNameDuplicate(name) ? `${entityLabel.value} name must be unique.` : ''
 })
 
 function resetForms() {
@@ -373,6 +624,7 @@ function resetForms() {
   form.value = {
     company_id: null,
     kind: defaultKind,
+    Venture_Oppty_Name: '',
     Round_Stage: '',
     Type_of_Security: '',
     Investment_Ask: '',
@@ -391,9 +643,10 @@ function resetForms() {
   }
   companyForm.value = {
     Company_Name: '',
-    Company_Type: '',
+    Company_Type: entityType.value === 'fund' ? 'Asset Manager' : 'Corporation',
     One_Liner: '',
-    Status: '',
+    Status: 'ongoing',
+    Headquarters_City: '',
     Date_of_Incorporation: '',
     Pax: '',
     Updates: '',
@@ -411,9 +664,14 @@ function resetForms() {
 
 function resetTransientState() {
   dragOver.value = false
-  matchedCompanyMeta.value = null
   extractedCompanyForm.value = null
-  useExtractedCompany.value = false
+  existingOpportunityNames.value = []
+  companyLinkMode.value = 'new'
+  companySourceChoice.value = 'input'
+  companyOptionFilter.value = ''
+  companyPreviewDialogOpen.value = false
+  companyPreviewSource.value = 'input'
+  opportunityNameManuallyEdited.value = false
   generatedNotes.value = []
   generatedTasks.value = []
   assistantProposal.value = {}
@@ -435,9 +693,13 @@ async function loadCompanies() {
   }
 }
 
-async function onCompanyCreated(company) {
-  await loadCompanies()
-  if (company?.id) form.value.company_id = company.id
+async function loadExistingOpportunityNames() {
+  if (!bridge.value?.opportunities?.list) return
+  const result = await bridge.value.opportunities.list()
+  const opportunities = Array.isArray(result?.opportunities) ? result.opportunities : []
+  existingOpportunityNames.value = opportunities
+    .map((row) => normalizeOpportunityName(row?.opportunity_name || row?.Venture_Oppty_Name))
+    .filter(Boolean)
 }
 
 function stripHumanVerify(value) {
@@ -455,6 +717,33 @@ function markAutofilled(section, key) {
 
 function fieldInputClass(section, key) {
   return autofilledFlags.value[`${section}.${key}`] ? 'ec-autofilled-field' : ''
+}
+
+function normalizeOpportunityName(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\s+/g, '_')
+}
+
+function isOpportunityNameDuplicate(value) {
+  const candidate = normalizeOpportunityName(value).toLowerCase()
+  if (!candidate) return false
+  return existingOpportunityNames.value.some((existingName) => existingName.toLowerCase() === candidate)
+}
+
+function markOpportunityNameEdited() {
+  opportunityNameManuallyEdited.value = true
+}
+
+function getCompanyFieldValue(source, key) {
+  if (!source) return ''
+  if (key === 'Headquarters_City') {
+    return source.Headquarters_City ?? source.headquarters_city ?? ''
+  }
+  if (key === 'Pax') {
+    return source.Pax ?? source.PAX_Count ?? ''
+  }
+  return source[key] ?? ''
 }
 
 function initStatusForFiles(files = []) {
@@ -527,7 +816,14 @@ function applySuggestedValues(suggested = {}) {
   }
   for (const [key, value] of Object.entries(suggested?.company || {})) {
     if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
-    companyForm.value[key] = value == null ? '' : stripHumanVerify(value)
+    companyForm.value[key] =
+      key === 'Status'
+        ? normalizeCompanyStatusValue(value)
+        : key === 'Company_Type'
+          ? normalizeCompanyTypeValue(value)
+        : value == null
+          ? ''
+          : stripHumanVerify(value)
     markAutofilled('company', key)
   }
   for (const [key, value] of Object.entries(suggested?.contact || {})) {
@@ -542,10 +838,10 @@ function applySuggestedValues(suggested = {}) {
 
 function applyMatchedExistingCompany(match = null) {
   if (!match?.company_id || !match?.company) return
-  matchedCompanyMeta.value = match.company
   extractedCompanyForm.value = { ...companyForm.value }
+  companyLinkMode.value = 'existing'
+  companySourceChoice.value = 'legacy'
   form.value.company_id = match.company_id
-  useExtractedCompany.value = false
 }
 
 function collectDraftArtifactIds(result) {
@@ -649,16 +945,15 @@ async function onDrop(e) {
   await processDroppedFiles(summaries)
 }
 
-function toggleCompanySource() {
-  if (!matchedCompanyMeta.value?.id) return
-  if (useExtractedCompany.value) {
-    form.value.company_id = matchedCompanyMeta.value.id
-    useExtractedCompany.value = false
-    return
-  }
-  form.value.company_id = null
-  if (extractedCompanyForm.value) companyForm.value = { ...extractedCompanyForm.value }
-  useExtractedCompany.value = true
+function onCompanyOptionFilter(value, update) {
+  update(() => {
+    companyOptionFilter.value = value
+  })
+}
+
+function openCompanyPreview(source) {
+  companyPreviewSource.value = source === 'legacy' ? 'legacy' : 'input'
+  companyPreviewDialogOpen.value = true
 }
 
 function trimPayloadValues(input = {}) {
@@ -668,6 +963,26 @@ function trimPayloadValues(input = {}) {
     if (text.length) out[k] = text
   }
   return out
+}
+
+function normalizeCompanyStatusValue(value) {
+  const candidate = stripHumanVerify(value).trim().toLowerCase()
+  if (!candidate) return 'ongoing'
+  if (['ongoing', 'on-going', 'active', 'open', 'operating', 'live', 'current'].includes(candidate)) {
+    return 'ongoing'
+  }
+  if (['closed', 'inactive', 'shutdown', 'shut down', 'terminated', 'ended'].includes(candidate)) {
+    return 'closed'
+  }
+  return 'ongoing'
+}
+
+function normalizeCompanyTypeValue(value) {
+  const candidate = stripHumanVerify(value).trim().toLowerCase()
+  if (!candidate) return entityType.value === 'fund' ? 'Asset Manager' : 'Corporation'
+
+  const match = companyTypeOptions.find((option) => option.value.toLowerCase() === candidate)
+  return match?.value || (entityType.value === 'fund' ? 'Asset Manager' : 'Corporation')
 }
 
 function toSerializable(value) {
@@ -680,10 +995,20 @@ function toSerializable(value) {
 
 async function ensureCompanySelectionForSubmit() {
   if (!bridge.value?.companies?.create) return form.value.company_id || null
-  const existingCompanyId = String(form.value.company_id || '').trim()
-  if (existingCompanyId) return existingCompanyId
+  if (
+    companyLinkMode.value === 'existing' &&
+    companySourceChoice.value === 'legacy' &&
+    String(form.value.company_id || '').trim()
+  ) {
+    return String(form.value.company_id || '').trim()
+  }
 
-  const companyPayload = trimPayloadValues(companyForm.value)
+  const existingCompanyId = String(form.value.company_id || '').trim()
+  if (existingCompanyId && companyLinkMode.value === 'existing' && companySourceChoice.value !== 'input') {
+    return existingCompanyId
+  }
+
+  const companyPayload = trimPayloadValues(resolvedCompanyPayload.value)
   const companyName =
     String(companyPayload.Company_Name || '').trim() || String(contactForm.value.Name || '').trim()
   if (!companyName) return null
@@ -711,6 +1036,10 @@ async function submit() {
     return
   }
   if (createDisabled.value) return
+  if (opportunityNameError.value) {
+    $q.notify({ type: 'negative', message: opportunityNameError.value })
+    return
+  }
 
   loading.value = true
   try {
@@ -727,8 +1056,10 @@ async function submit() {
       ...form.value,
       company_id: ensuredCompanyId || undefined,
       id: draftOpportunityId.value || undefined,
-      Venture_Oppty_Name: generatedOpportunityName.value,
-      company: trimPayloadValues(companyForm.value),
+      Venture_Oppty_Name: normalizedOpportunityName.value,
+      Fund_Name: entityType.value === 'fund' ? normalizedOpportunityName.value : undefined,
+      Round_Name: entityType.value === 'round' ? normalizedOpportunityName.value : undefined,
+      company: trimPayloadValues(resolvedCompanyPayload.value),
       primary_contact: trimPayloadValues(contactForm.value),
       notes: generatedNotes.value,
       tasks: generatedTasks.value,
@@ -778,6 +1109,61 @@ function statusColor(value) {
   return 'orange-7'
 }
 
+function normalizeComparisonText(value) {
+  return stripHumanVerify(value).replace(/\s+/g, ' ').trim().toLowerCase()
+}
+
+function tokenizeComparisonText(value) {
+  return normalizeComparisonText(value)
+    .split(/[^a-z0-9]+/i)
+    .filter(Boolean)
+}
+
+function scoreCompanyMatch(company, inputValue) {
+  const companyName = normalizeComparisonText(company?.Company_Name)
+  if (!companyName) return 0
+  if (!inputValue) return 1
+  if (companyName === inputValue) return 1000
+  if (companyName.startsWith(inputValue) || inputValue.startsWith(companyName)) return 700
+  if (companyName.includes(inputValue) || inputValue.includes(companyName)) return 550
+
+  const companyTokens = new Set(tokenizeComparisonText(companyName))
+  const inputTokens = tokenizeComparisonText(inputValue)
+  const tokenMatches = inputTokens.reduce(
+    (count, token) => count + (companyTokens.has(token) ? 1 : 0),
+    0,
+  )
+  const overlapScore = inputTokens.length ? Math.round((tokenMatches / inputTokens.length) * 300) : 0
+  const lengthDelta = Math.abs(companyName.length - inputValue.length)
+  return overlapScore + Math.max(0, 120 - lengthDelta)
+}
+
+function summarizeCompanySource(source = {}) {
+  const name = stripHumanVerify(source?.Company_Name) || 'Unnamed company'
+  const type = stripHumanVerify(source?.Company_Type)
+  const website = stripHumanVerify(source?.Website)
+  const status = stripHumanVerify(source?.Status)
+  return [name, type, website, status].filter(Boolean).join(' • ')
+}
+
+const resolvedCompanyPayload = computed(() => {
+  if (companyLinkMode.value === 'existing' && companySourceChoice.value === 'legacy' && selectedCompany.value) {
+    return {
+      Company_Name: selectedCompany.value.Company_Name || '',
+      Company_Type: selectedCompany.value.Company_Type || '',
+      One_Liner: selectedCompany.value.One_Liner || '',
+      Status: selectedCompany.value.Status || '',
+      Headquarters_City: getCompanyFieldValue(selectedCompany.value, 'Headquarters_City'),
+      Date_of_Incorporation: selectedCompany.value.Date_of_Incorporation || '',
+      Pax: getCompanyFieldValue(selectedCompany.value, 'Pax'),
+      Updates: selectedCompany.value.Updates || '',
+      Website: selectedCompany.value.Website || '',
+    }
+  }
+
+  return { ...companyForm.value }
+})
+
 watch(
   () => props.modelValue,
   async (v) => {
@@ -790,33 +1176,51 @@ watch(
       return
     }
     await loadCompanies()
+    await loadExistingOpportunityNames()
   },
 )
 
 watch(
   () => form.value.company_id,
   () => {
-    if (form.value.company_id) useExtractedCompany.value = false
     if (selectedCompanyIsAssetManager.value) form.value.kind = 'fund'
     else if (props.lockKind && props.initialKind) {
       form.value.kind = String(props.initialKind).trim().toLowerCase()
     }
     const selected = selectedCompany.value
-    if (!selected || useExtractedCompany.value) return
-    companyForm.value = {
-      ...companyForm.value,
-      Company_Name: selected.Company_Name || '',
-      Company_Type: selected.Company_Type || '',
-      One_Liner: selected.One_Liner || '',
-      Website: selected.Website || '',
-      Status: selected.Status || '',
+    if (!selected) return
+    if (!String(companyForm.value.Company_Name || '').trim()) {
+      companyForm.value = {
+        ...companyForm.value,
+        Company_Name: selected.Company_Name || '',
+      }
     }
   },
 )
 
+watch(companyLinkMode, (value) => {
+  if (value === 'new') {
+    form.value.company_id = null
+    companySourceChoice.value = 'input'
+    return
+  }
+
+  if (form.value.company_id) {
+    companySourceChoice.value = 'legacy'
+    return
+  }
+
+  const suggested = topSuggestedCompanies.value[0]
+  if (suggested?.value) {
+    form.value.company_id = suggested.value
+    companySourceChoice.value = 'legacy'
+  }
+})
+
 watch(
-  () => generatedOpportunityName.value,
+  () => suggestedOpportunityName.value,
   (v) => {
+    if (opportunityNameManuallyEdited.value && normalizeOpportunityName(form.value.Venture_Oppty_Name)) return
     form.value.Venture_Oppty_Name = v
     markAutofilled('opportunity', 'Venture_Oppty_Name')
   },
@@ -895,5 +1299,112 @@ onBeforeUnmount(() => {
 .ec-autofilled-field {
   color: #c62828;
   font-style: italic;
+}
+
+.opportunity-dialog-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.opportunity-dialog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.opportunity-dialog-section__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+  width: 100%;
+}
+
+.opportunity-dialog-section__field {
+  min-width: 0;
+}
+
+.opportunity-dialog-section__field--full {
+  grid-column: 1 / -1;
+}
+
+.company-mismatch-banner {
+  border: 1px solid rgba(245, 124, 0, 0.2);
+}
+
+.company-source-choice {
+  width: 100%;
+  min-height: 116px;
+  padding: 12px;
+  text-align: left;
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 14px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.company-source-choice:hover,
+.company-source-choice:focus-visible {
+  border-color: rgba(38, 71, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(17, 17, 17, 0.08);
+}
+
+.company-source-choice--selected {
+  background: #f5f7ff;
+  border-color: rgba(38, 71, 255, 0.45);
+  box-shadow: 0 10px 26px rgba(38, 71, 255, 0.12);
+}
+
+.company-source-choice__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.company-source-choice__body {
+  margin-top: 10px;
+  color: #525252;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.company-preview-row {
+  padding: 10px 12px;
+  background: #f7f7f5;
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  border-radius: 10px;
+}
+
+.company-preview-row__label {
+  margin-bottom: 4px;
+  color: #737373;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.company-preview-row__value {
+  color: #171717;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 900px) {
+  .opportunity-dialog-section__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .opportunity-dialog-section__field--full {
+    grid-column: auto;
+  }
 }
 </style>

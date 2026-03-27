@@ -51,39 +51,7 @@
             <q-item-label header class="ec-nav-label">{{ section.label }}</q-item-label>
 
             <template v-for="item in section.items" :key="item.label">
-              <div v-if="item.children?.length" class="ec-nav-branch">
-                <q-item clickable class="ec-nav-item" @click="toggleDrawerBranch(item.id)">
-                  <q-item-section avatar>
-                    <q-icon :name="item.icon" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>{{ item.label }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-
-                <q-slide-transition>
-                  <q-list v-show="isDrawerBranchOpen(item.id)">
-                    <q-item
-                      v-for="child in item.children"
-                      :key="child.label"
-                      clickable
-                      :to="child.to"
-                      :exact="child.exact"
-                      class="ec-nav-item ec-nav-item--nested"
-                    >
-                      <q-item-section avatar>
-                        <q-icon :name="child.icon" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label>{{ child.label }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-slide-transition>
-              </div>
-
               <q-item
-                v-else
                 clickable
                 :to="item.to"
                 :exact="item.exact"
@@ -171,7 +139,6 @@ import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 
 const leftDrawerOpen = ref(false)
-const drawerBranchState = ref({ opportunities: true })
 const quickActionsOpen = ref(false)
 const quickOpportunityBranchOpen = ref(false)
 const artifactDialogOpen = ref(false)
@@ -192,15 +159,7 @@ const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const primaryNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
-  {
-    id: 'opportunities',
-    label: 'Opportunities',
-    icon: 'work',
-    children: [
-      { label: 'Funds', to: '/funds', exact: true, icon: 'account_balance_wallet' },
-      { label: 'Rounds', to: '/rounds', exact: true, icon: 'donut_large' },
-    ],
-  },
+  { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
   { label: 'Projects', to: '/projects', exact: true, icon: 'schema' },
@@ -374,17 +333,6 @@ const quickOpportunityBranchActions = computed(() => [
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
-}
-
-function isDrawerBranchOpen(id) {
-  return Boolean(drawerBranchState.value[id])
-}
-
-function toggleDrawerBranch(id) {
-  drawerBranchState.value = {
-    ...drawerBranchState.value,
-    [id]: !drawerBranchState.value[id],
-  }
 }
 
 function normalizeUserLabel(value) {
