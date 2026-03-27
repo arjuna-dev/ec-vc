@@ -69,6 +69,10 @@
           <div class="opportunity-dialog-sections">
             <section class="opportunity-dialog-section">
               <div class="text-subtitle1">Company</div>
+              <div class="text-caption text-grey-7 q-mb-sm">
+                These are first-order company fields. When a company is linked, edits here save back to that
+                company record.
+              </div>
 
               <div class="opportunity-dialog-section__grid">
                 <q-input
@@ -641,17 +645,7 @@ function resetForms() {
     Pipeline_Status: '',
     Raising_Status: '',
   }
-  companyForm.value = {
-    Company_Name: '',
-    Company_Type: entityType.value === 'fund' ? 'Asset Manager' : 'Corporation',
-    One_Liner: '',
-    Status: 'ongoing',
-    Headquarters_City: '',
-    Date_of_Incorporation: '',
-    Pax: '',
-    Updates: '',
-    Website: '',
-  }
+  companyForm.value = createDefaultCompanyForm()
   contactForm.value = {
     Name: '',
     Personal_Email: '',
@@ -737,6 +731,9 @@ function markOpportunityNameEdited() {
 
 function getCompanyFieldValue(source, key) {
   if (!source) return ''
+  if (key === 'Company_Name') {
+    return source.Company_Name ?? ''
+  }
   if (key === 'Headquarters_City') {
     return source.Headquarters_City ?? source.headquarters_city ?? ''
   }
@@ -744,6 +741,36 @@ function getCompanyFieldValue(source, key) {
     return source.Pax ?? source.PAX_Count ?? ''
   }
   return source[key] ?? ''
+}
+
+function createDefaultCompanyForm(overrides = {}) {
+  return {
+    Company_Name: '',
+    Company_Type: entityType.value === 'fund' ? 'Asset Manager' : 'Corporation',
+    One_Liner: '',
+    Status: 'ongoing',
+    Headquarters_City: '',
+    Date_of_Incorporation: '',
+    Pax: '',
+    Updates: '',
+    Website: '',
+    ...overrides,
+  }
+}
+
+function buildCompanyFormFromSource(source = {}, overrides = {}) {
+  return createDefaultCompanyForm({
+    Company_Name: stripHumanVerify(getCompanyFieldValue(source, 'Company_Name')),
+    Company_Type: normalizeCompanyTypeValue(getCompanyFieldValue(source, 'Company_Type')),
+    One_Liner: stripHumanVerify(getCompanyFieldValue(source, 'One_Liner')),
+    Status: normalizeCompanyStatusValue(getCompanyFieldValue(source, 'Status')),
+    Headquarters_City: stripHumanVerify(getCompanyFieldValue(source, 'Headquarters_City')),
+    Date_of_Incorporation: stripHumanVerify(getCompanyFieldValue(source, 'Date_of_Incorporation')),
+    Pax: stripHumanVerify(getCompanyFieldValue(source, 'Pax')),
+    Updates: stripHumanVerify(getCompanyFieldValue(source, 'Updates')),
+    Website: stripHumanVerify(getCompanyFieldValue(source, 'Website')),
+    ...overrides,
+  })
 }
 
 function initStatusForFiles(files = []) {
@@ -995,22 +1022,22 @@ function toSerializable(value) {
 
 async function ensureCompanySelectionForSubmit() {
   if (!bridge.value?.companies?.create) return form.value.company_id || null
-  if (
-    companyLinkMode.value === 'existing' &&
-    companySourceChoice.value === 'legacy' &&
-    String(form.value.company_id || '').trim()
-  ) {
-    return String(form.value.company_id || '').trim()
-  }
-
   const existingCompanyId = String(form.value.company_id || '').trim()
-  if (existingCompanyId && companyLinkMode.value === 'existing' && companySourceChoice.value !== 'input') {
-    return existingCompanyId
-  }
-
   const companyPayload = trimPayloadValues(resolvedCompanyPayload.value)
   const companyName =
     String(companyPayload.Company_Name || '').trim() || String(contactForm.value.Name || '').trim()
+
+  if (existingCompanyId && companyLinkMode.value === 'existing') {
+    await bridge.value.companies.create({
+      id: existingCompanyId,
+      ...companyPayload,
+      Company_Name: companyName || selectedCompany.value?.Company_Name || '',
+      Company_Type: String(companyPayload.Company_Type || '').trim() || selectedCompany.value?.Company_Type || 'Other',
+    })
+    await loadCompanies()
+    return existingCompanyId
+  }
+
   if (!companyName) return null
 
   const created = await bridge.value.companies.create({
@@ -1146,23 +1173,7 @@ function summarizeCompanySource(source = {}) {
   return [name, type, website, status].filter(Boolean).join(' • ')
 }
 
-const resolvedCompanyPayload = computed(() => {
-  if (companyLinkMode.value === 'existing' && companySourceChoice.value === 'legacy' && selectedCompany.value) {
-    return {
-      Company_Name: selectedCompany.value.Company_Name || '',
-      Company_Type: selectedCompany.value.Company_Type || '',
-      One_Liner: selectedCompany.value.One_Liner || '',
-      Status: selectedCompany.value.Status || '',
-      Headquarters_City: getCompanyFieldValue(selectedCompany.value, 'Headquarters_City'),
-      Date_of_Incorporation: selectedCompany.value.Date_of_Incorporation || '',
-      Pax: getCompanyFieldValue(selectedCompany.value, 'Pax'),
-      Updates: selectedCompany.value.Updates || '',
-      Website: selectedCompany.value.Website || '',
-    }
-  }
-
-  return { ...companyForm.value }
-})
+const resolvedCompanyPayload = computed(() => ({ ...companyForm.value }))
 
 watch(
   () => props.modelValue,
@@ -1189,11 +1200,14 @@ watch(
     }
     const selected = selectedCompany.value
     if (!selected) return
+    if (companyLinkMode.value === 'existing' && companySourceChoice.value === 'legacy') {
+      companyForm.value = buildCompanyFormFromSource(selected)
+      return
+    }
     if (!String(companyForm.value.Company_Name || '').trim()) {
-      companyForm.value = {
-        ...companyForm.value,
+      companyForm.value = buildCompanyFormFromSource(selected, {
         Company_Name: selected.Company_Name || '',
-      }
+      })
     }
   },
 )
@@ -1202,11 +1216,17 @@ watch(companyLinkMode, (value) => {
   if (value === 'new') {
     form.value.company_id = null
     companySourceChoice.value = 'input'
+    if (extractedCompanyForm.value) {
+      companyForm.value = buildCompanyFormFromSource(extractedCompanyForm.value)
+    }
     return
   }
 
   if (form.value.company_id) {
     companySourceChoice.value = 'legacy'
+    if (selectedCompany.value) {
+      companyForm.value = buildCompanyFormFromSource(selectedCompany.value)
+    }
     return
   }
 
@@ -1214,6 +1234,24 @@ watch(companyLinkMode, (value) => {
   if (suggested?.value) {
     form.value.company_id = suggested.value
     companySourceChoice.value = 'legacy'
+  }
+})
+
+watch(companySourceChoice, (value) => {
+  if (value === 'legacy') {
+    if (selectedCompany.value) {
+      companyForm.value = buildCompanyFormFromSource(selectedCompany.value)
+    }
+    return
+  }
+
+  if (extractedCompanyForm.value) {
+    companyForm.value = buildCompanyFormFromSource(extractedCompanyForm.value)
+    return
+  }
+
+  if (selectedCompany.value) {
+    companyForm.value = buildCompanyFormFromSource(selectedCompany.value)
   }
 })
 
