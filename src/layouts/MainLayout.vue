@@ -51,39 +51,7 @@
             <q-item-label header class="ec-nav-label">{{ section.label }}</q-item-label>
 
             <template v-for="item in section.items" :key="item.label">
-              <div v-if="item.children?.length" class="ec-nav-branch">
-                <q-item clickable class="ec-nav-item" @click="toggleDrawerBranch(item.id)">
-                  <q-item-section avatar>
-                    <q-icon :name="item.icon" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>{{ item.label }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-
-                <q-slide-transition>
-                  <q-list v-show="isDrawerBranchOpen(item.id)">
-                    <q-item
-                      v-for="child in item.children"
-                      :key="child.label"
-                      clickable
-                      :to="child.to"
-                      :exact="child.exact"
-                      class="ec-nav-item ec-nav-item--nested"
-                    >
-                      <q-item-section avatar>
-                        <q-icon :name="child.icon" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label>{{ child.label }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-slide-transition>
-              </div>
-
               <q-item
-                v-else
                 clickable
                 :to="item.to"
                 :exact="item.exact"
@@ -125,24 +93,6 @@
         <div class="ec-quick-widget-action-label">{{ action.label }}</div>
       </div>
 
-      <div
-        v-for="(action, index) in quickOpportunityBranchActions"
-        :key="action.id"
-        class="ec-quick-widget-action ec-quick-widget-action--branch"
-        :style="quickOpportunityBranchActionStyle(index)"
-      >
-        <q-btn
-          round
-          dense
-          unelevated
-          class="ec-quick-widget-action-button ec-quick-widget-action-button--branch"
-          :icon="action.icon"
-          :aria-label="action.label"
-          @click.stop="action.onClick"
-        />
-        <div class="ec-quick-widget-action-label">{{ action.label }}</div>
-      </div>
-
       <q-btn
         round
         unelevated
@@ -155,6 +105,55 @@
         <div ref="quickWidgetIconContainer" class="ec-quick-widget-icon" />
       </q-btn>
     </div>
+
+    <q-dialog v-model="opportunityKindDialogOpen">
+      <q-card style="width: 420px; max-width: 92vw">
+        <q-card-section class="q-px-xl q-pt-lg q-pb-sm">
+          <div class="text-h6">New Opportunity</div>
+          <div class="text-caption text-grey-7">
+            Choose which kind of opportunity you want to create.
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-px-xl q-pb-lg">
+          <div class="column q-gutter-sm">
+            <q-btn
+              unelevated
+              no-caps
+              align="left"
+              icon="account_balance_wallet"
+              label="New Fund"
+              class="ec-opportunity-kind-option"
+              @click="openFundDialogFromWidget"
+            />
+            <q-btn
+              unelevated
+              no-caps
+              align="left"
+              icon="donut_large"
+              label="New Round"
+              class="ec-opportunity-kind-option"
+              @click="openRoundDialogFromWidget"
+            />
+          </div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right" class="q-px-xl q-py-md">
+          <q-btn flat no-caps label="Cancel" @click="opportunityKindDialogOpen = false" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <FundCreateDialog
+      v-if="globalOpportunityDialogKind === 'fund'"
+      v-model="globalOpportunityDialogOpen"
+    />
+    <RoundCreateDialog
+      v-else
+      v-model="globalOpportunityDialogOpen"
+    />
     <ArtifactAddDialog v-model="artifactDialogOpen" />
   </q-layout>
 </template>
@@ -169,12 +168,15 @@ import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
+import FundCreateDialog from 'components/FundCreateDialog.vue'
+import RoundCreateDialog from 'components/RoundCreateDialog.vue'
 
 const leftDrawerOpen = ref(false)
-const drawerBranchState = ref({ opportunities: true })
 const quickActionsOpen = ref(false)
-const quickOpportunityBranchOpen = ref(false)
 const artifactDialogOpen = ref(false)
+const opportunityKindDialogOpen = ref(false)
+const globalOpportunityDialogOpen = ref(false)
+const globalOpportunityDialogKind = ref('round')
 const auditUserLabel = ref('')
 const logoContainer = ref(null)
 const logoReady = ref(false)
@@ -185,22 +187,13 @@ const quickWidgetIgnoreNextToggle = ref(false)
 
 const QUICK_WIDGET_TRIGGER_SIZE = 112
 const QUICK_WIDGET_ACTION_RADIUS = 96
-const QUICK_WIDGET_BRANCH_RADIUS = 88
 const QUICK_WIDGET_ACTION_SIZE = 40
 const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const primaryNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
-  {
-    id: 'opportunities',
-    label: 'Opportunities',
-    icon: 'work',
-    children: [
-      { label: 'Funds', to: '/funds', exact: true, icon: 'account_balance_wallet' },
-      { label: 'Rounds', to: '/rounds', exact: true, icon: 'donut_large' },
-    ],
-  },
+  { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
   { label: 'Projects', to: '/projects', exact: true, icon: 'schema' },
@@ -321,9 +314,9 @@ const quickWidgetStyle = computed(() => ({
 const quickWidgetActions = computed(() => [
   {
     id: 'opportunity',
-    label: 'Opportunity',
+    label: 'Opportunities',
     icon: 'work',
-    onClick: toggleQuickOpportunityBranch,
+    onClick: openOpportunityFromQuickAction,
   },
   {
     id: 'contact',
@@ -357,34 +350,8 @@ const quickWidgetActions = computed(() => [
   },
 ])
 
-const quickOpportunityBranchActions = computed(() => [
-  {
-    id: 'fund',
-    label: 'Fund',
-    icon: 'account_balance_wallet',
-    onClick: openFundFromQuickAction,
-  },
-  {
-    id: 'round',
-    label: 'Round',
-    icon: 'donut_large',
-    onClick: openRoundFromQuickAction,
-  },
-])
-
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
-}
-
-function isDrawerBranchOpen(id) {
-  return Boolean(drawerBranchState.value[id])
-}
-
-function toggleDrawerBranch(id) {
-  drawerBranchState.value = {
-    ...drawerBranchState.value,
-    [id]: !drawerBranchState.value[id],
-  }
 }
 
 function normalizeUserLabel(value) {
@@ -560,37 +527,6 @@ function quickWidgetActionStyle(index) {
   }
 }
 
-function quickOpportunityBranchActionStyle(index) {
-  const opportunityIndex = quickWidgetActions.value.findIndex((action) => action.id === 'opportunity')
-  const parentOffset =
-    opportunityIndex >= 0 ? quickWidgetActionOffset(opportunityIndex) : { x: 0, y: -QUICK_WIDGET_ACTION_RADIUS }
-  const parentAngle = quickWidgetActionAngle(opportunityIndex >= 0 ? opportunityIndex : 0)
-  const branchAngle = parentAngle + (index === 0 ? -30 : 30)
-  const branchAngleRad = (branchAngle * Math.PI) / 180
-  const branchOffsetX = parentOffset.x + Math.cos(branchAngleRad) * QUICK_WIDGET_BRANCH_RADIUS
-  const branchOffsetY = parentOffset.y + Math.sin(branchAngleRad) * QUICK_WIDGET_BRANCH_RADIUS
-
-  if (!quickActionsOpen.value || !quickOpportunityBranchOpen.value) {
-    return {
-      '--ec-quick-action-x': `${parentOffset.x.toFixed(2)}px`,
-      '--ec-quick-action-y': `${parentOffset.y.toFixed(2)}px`,
-      '--ec-quick-action-open-scale': '0.2',
-      opacity: '0',
-      pointerEvents: 'none',
-      transitionDelay: '0ms',
-    }
-  }
-
-  return {
-    '--ec-quick-action-x': `${branchOffsetX.toFixed(2)}px`,
-    '--ec-quick-action-y': `${branchOffsetY.toFixed(2)}px`,
-    '--ec-quick-action-open-scale': '1',
-    opacity: '1',
-    pointerEvents: 'auto',
-    transitionDelay: `${160 + index * 36}ms`,
-  }
-}
-
 function toggleQuickActions() {
   if (quickWidgetIgnoreNextToggle.value) {
     quickWidgetIgnoreNextToggle.value = false
@@ -600,21 +536,31 @@ function toggleQuickActions() {
     closeQuickActions()
     return
   }
-  quickOpportunityBranchOpen.value = false
   quickActionsOpen.value = true
   playQuickWidgetTo()
 }
 
 function closeQuickActions() {
   if (!quickActionsOpen.value) return
-  quickOpportunityBranchOpen.value = false
   quickActionsOpen.value = false
   playQuickWidgetBack()
 }
 
-function toggleQuickOpportunityBranch() {
-  if (!quickActionsOpen.value) return
-  quickOpportunityBranchOpen.value = !quickOpportunityBranchOpen.value
+async function openOpportunityFromQuickAction() {
+  closeQuickActions()
+  opportunityKindDialogOpen.value = true
+}
+
+function openFundDialogFromWidget() {
+  opportunityKindDialogOpen.value = false
+  globalOpportunityDialogKind.value = 'fund'
+  globalOpportunityDialogOpen.value = true
+}
+
+function openRoundDialogFromWidget() {
+  opportunityKindDialogOpen.value = false
+  globalOpportunityDialogKind.value = 'round'
+  globalOpportunityDialogOpen.value = true
 }
 
 async function openNoteFromQuickAction() {
@@ -677,32 +623,6 @@ async function openArtifactFromQuickAction() {
     globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
     setTimeout(() => {
       globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
-    }, 80)
-  }
-}
-
-async function openFundFromQuickAction() {
-  closeQuickActions()
-  globalThis.__ecvcOpenFundDialog = true
-  try {
-    await router.push({ name: 'funds', query: { create: 'fund' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-fund-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-fund-dialog'))
-    }, 80)
-  }
-}
-
-async function openRoundFromQuickAction() {
-  closeQuickActions()
-  globalThis.__ecvcOpenRoundDialog = true
-  try {
-    await router.push({ name: 'rounds', query: { create: 'round' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-round-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-round-dialog'))
     }, 80)
   }
 }
@@ -1012,6 +932,20 @@ watch(
   width: 100% !important;
   height: 100% !important;
   display: block;
+}
+
+.ec-opportunity-kind-option {
+  justify-content: flex-start;
+  min-height: 52px;
+  background: #f7f7f5;
+  color: #111111;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 14px;
+}
+
+.ec-opportunity-kind-option:hover,
+.ec-opportunity-kind-option:focus-visible {
+  background: #efefe9;
 }
 
 @media (max-width: 900px) {

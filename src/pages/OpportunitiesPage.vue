@@ -80,6 +80,19 @@
 
         <div class="opportunities-toolbar">
           <div class="opportunities-toolbar__left">
+            <q-btn-toggle
+              v-model="kindFilter"
+              dense
+              no-caps
+              unelevated
+              toggle-color="dark"
+              color="white"
+              text-color="grey-8"
+              class="opportunities-toolbar__toggle"
+              :options="kindFilterOptions"
+              :disable="loading"
+            />
+
             <q-input
               v-model="searchQuery"
               dense
@@ -223,7 +236,7 @@
                     round
                     icon="delete"
                     color="grey-8"
-                    :disable="true"
+                    :disable="loading || !canDeleteOpportunities"
                     @click="confirmDelete(props.row)"
                   />
                 </div>
@@ -244,7 +257,7 @@
                         />
                       </q-avatar>
                     </div>
-                    <div class="col">
+                    <div class="col opportunity-card__copy">
                       <div class="opportunity-card__eyebrow">{{ row.kind || 'Opportunity' }}</div>
                       <div class="opportunity-card__title">
                         {{ row.opportunity_name || row.Venture_Oppty_Name || 'Unnamed opportunity' }}
@@ -305,7 +318,7 @@
                     round
                     icon="delete"
                     color="grey-8"
-                    :disable="true"
+                    :disable="loading || !canDeleteOpportunities"
                     @click="confirmDelete(row)"
                   />
                 </q-card-actions>
@@ -361,6 +374,8 @@ import FundCreateDialog from 'src/components/FundCreateDialog.vue'
 import RoundCreateDialog from 'src/components/RoundCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 
+const ALL_OPPORTUNITIES_FILTER = 'all'
+
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
   return /Electron/i.test(navigator.userAgent || '')
@@ -380,6 +395,7 @@ const loading = ref(false)
 const error = ref('')
 const dialogOpen = ref(false)
 const dialogKind = ref('round')
+const kindFilter = ref(ALL_OPPORTUNITIES_FILTER)
 const searchQuery = ref('')
 const priorityMode = ref(false)
 const viewMode = ref('card')
@@ -391,8 +407,13 @@ const selectedCount = computed(() => selectedRows.value.length)
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
+const kindFilterOptions = [
+  { label: 'All', value: ALL_OPPORTUNITIES_FILTER },
+  { label: 'Funds', value: 'fund' },
+  { label: 'Rounds', value: 'round' },
+]
 const currentOpportunityMode = computed(() => {
-  if (route.name === 'funds') {
+  if (kindFilter.value === 'fund') {
     return {
       title: 'Funds',
       eyebrow: 'Funds dashboard',
@@ -403,7 +424,7 @@ const currentOpportunityMode = computed(() => {
       createLabel: 'Add Fund',
     }
   }
-  if (route.name === 'rounds') {
+  if (kindFilter.value === 'round') {
     return {
       title: 'Rounds',
       eyebrow: 'Rounds dashboard',
@@ -426,7 +447,7 @@ const currentOpportunityMode = computed(() => {
 })
 const canCreateOpportunities = true
 const canImportOpportunities = false
-const canDeleteOpportunities = false
+const canDeleteOpportunities = true
 const addRecordLabel = computed(() => currentOpportunityMode.value.createLabel)
 
 function openCreateOpportunity() {
@@ -855,6 +876,36 @@ function onChanged() {
   loadOpportunities()
 }
 
+function routeKindFilterValue() {
+  const routeName = String(route.name || '').trim().toLowerCase()
+  const queryKind = String(route.query.kind || '').trim().toLowerCase()
+
+  if (queryKind === 'fund' || queryKind === 'round') return queryKind
+  if (routeName === 'funds') return 'fund'
+  if (routeName === 'rounds') return 'round'
+  return ALL_OPPORTUNITIES_FILTER
+}
+
+function syncKindFilterFromRoute() {
+  kindFilter.value = routeKindFilterValue()
+}
+
+function syncRouteToKindFilter(nextKind) {
+  const normalizedKind =
+    nextKind === 'fund' || nextKind === 'round' ? nextKind : ALL_OPPORTUNITIES_FILTER
+  const nextQuery = { ...route.query }
+
+  if (normalizedKind === ALL_OPPORTUNITIES_FILTER) delete nextQuery.kind
+  else nextQuery.kind = normalizedKind
+
+  if (
+    route.name !== 'opportunities' ||
+    String(route.query.kind || '') !== String(nextQuery.kind || '')
+  ) {
+    router.replace({ name: 'opportunities', query: nextQuery })
+  }
+}
+
 onMounted(() => {
   if (!hasBridge.value) return
   loadOpportunities()
@@ -873,6 +924,19 @@ onBeforeUnmount(() => {
 
 watch(displayRows, () => {
   normalizeSelectedRows()
+})
+
+watch(
+  () => [route.name, route.query.kind],
+  () => {
+    syncKindFilterFromRoute()
+  },
+  { immediate: true },
+)
+
+watch(kindFilter, (nextKind, previousKind) => {
+  if (nextKind === previousKind) return
+  syncRouteToKindFilter(nextKind)
 })
 
 watch(
@@ -1139,6 +1203,14 @@ watch(
   margin-left: auto;
 }
 
+.opportunities-toolbar__toggle {
+  flex: 0 0 auto;
+  border: 1px solid var(--ds-control-border);
+  border-radius: 999px;
+  box-shadow: var(--ds-control-shadow);
+  overflow: hidden;
+}
+
 .opportunities-toolbar__search {
   flex: 1 1 300px;
   min-width: 220px;
@@ -1162,7 +1234,8 @@ watch(
 }
 
 .opportunities-toolbar__button,
-.opportunities-view-button {
+.opportunities-view-button,
+.opportunities-toolbar__toggle {
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
   background: var(--ds-control-surface);
@@ -1263,6 +1336,7 @@ watch(
 }
 
 .opportunity-card__eyebrow {
+  min-width: 0;
   color: #737373;
   font-family: var(--font-body);
   font-size: var(--text-xs---light);
@@ -1271,20 +1345,32 @@ watch(
   text-transform: uppercase;
 }
 
+.opportunity-card__copy {
+  min-width: 0;
+}
+
 .opportunity-card__title {
+  min-width: 0;
   color: #0a0a0a;
   font-family: var(--font-body);
   font-size: var(--text-base---black);
   font-weight: var(--font-weight-black);
   line-height: 24px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .opportunity-card__subtitle {
+  min-width: 0;
   color: #737373;
   font-family: var(--font-body);
   font-size: var(--text-sm---light);
   font-weight: var(--font-weight-light);
   line-height: 20px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .opportunity-card__avatar {
@@ -1334,7 +1420,8 @@ watch(
   }
 
   .opportunities-toolbar__button,
-  .opportunities-view-button {
+  .opportunities-view-button,
+  .opportunities-toolbar__toggle {
     width: 100%;
   }
 }
