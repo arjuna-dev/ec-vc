@@ -74,6 +74,57 @@
       <router-view />
     </q-page-container>
 
+    <div
+      v-if="intakeDraftCount > 0 && !draftTrayDismissed"
+      class="ec-intake-drafts"
+    >
+      <div class="ec-intake-drafts__header">
+        <div>
+          <div class="ec-intake-drafts__eyebrow">Draft Files</div>
+          <div class="ec-intake-drafts__title">{{ intakeDraftCount }} active</div>
+        </div>
+        <q-btn
+          flat
+          dense
+          round
+          icon="close"
+          aria-label="Hide draft files"
+          @click="draftTrayDismissed = true"
+        />
+      </div>
+
+      <div class="ec-intake-drafts__list">
+        <div
+          v-for="draft in intakeDrafts"
+          :key="draft.id"
+          class="ec-intake-drafts__item"
+        >
+          <div class="ec-intake-drafts__item-copy">
+            <div class="ec-intake-drafts__item-title">{{ draftPrimaryLabel(draft) }}</div>
+            <div class="ec-intake-drafts__item-meta">
+              {{ draft.stage || 'Draft' }} • {{ draft.droppedFiles?.length || 0 }} files
+            </div>
+            <div v-if="draftSecondaryLabel(draft)" class="ec-intake-drafts__item-subtitle">
+              {{ draftSecondaryLabel(draft) }}
+            </div>
+          </div>
+
+          <div class="ec-intake-drafts__item-actions">
+            <q-btn flat dense no-caps label="Resume" @click="resumeDraft(draft.id)" />
+            <q-btn
+              flat
+              dense
+              round
+              icon="delete"
+              color="negative"
+              aria-label="Discard draft"
+              @click="discardDraft(draft.id)"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="ec-quick-widget" :style="quickWidgetStyle">
       <div
         v-for="(action, index) in quickWidgetActions"
@@ -137,7 +188,7 @@ import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
-import { useIntakeDraftState } from 'src/utils/intakeDraftState'
+import { removeIntakeDraft, setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -150,6 +201,7 @@ const quickWidgetIconContainer = ref(null)
 const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
+const draftTrayDismissed = ref(false)
 
 const QUICK_WIDGET_TRIGGER_SIZE = 112
 const QUICK_WIDGET_ACTION_RADIUS = 96
@@ -207,6 +259,9 @@ let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
 const intakeDraftCount = computed(() => intakeDraftState.draftOrder.length)
+const intakeDrafts = computed(() =>
+  intakeDraftState.draftOrder.map((draftId) => intakeDraftState.drafts[draftId]).filter(Boolean),
+)
 
 const drawerNavigationSections = computed(() => [
   {
@@ -368,7 +423,29 @@ async function syncUserNavState() {
 }
 
 function openArtifactDialog() {
+  draftTrayDismissed.value = false
   artifactDialogOpen.value = true
+}
+
+function draftPrimaryLabel(draft = {}) {
+  return String(draft?.droppedFiles?.[0]?.name || '').trim() || 'Untitled draft'
+}
+
+function draftSecondaryLabel(draft = {}) {
+  const opportunityId = String(draft?.opportunityId || '').trim()
+  return opportunityId ? `Linked opportunity: ${opportunityId}` : ''
+}
+
+function resumeDraft(draftId) {
+  setActiveIntakeDraft(draftId)
+  openArtifactDialog()
+}
+
+function discardDraft(draftId) {
+  removeIntakeDraft(draftId)
+  if (intakeDraftState.draftOrder.length === 0) {
+    draftTrayDismissed.value = false
+  }
 }
 
 function clampQuickWidgetPosition(x, y) {
@@ -625,6 +702,7 @@ async function openArtifactFromQuickAction() {
   try {
     await router.push({ name: 'artifacts' })
   } finally {
+    draftTrayDismissed.value = false
     globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
     setTimeout(() => {
       globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
@@ -789,6 +867,13 @@ watch(
     syncUserNavState()
   },
 )
+
+watch(
+  () => intakeDraftCount.value,
+  (count) => {
+    if (count > 0) draftTrayDismissed.value = false
+  },
+)
 </script>
 
 <style scoped>
@@ -853,6 +938,99 @@ watch(
   width: 112px;
   height: 112px;
   overflow: visible;
+}
+
+.ec-intake-drafts {
+  position: fixed;
+  right: 20px;
+  bottom: 148px;
+  z-index: 1900;
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(420px, calc(100vh - 220px));
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(18px);
+}
+
+.ec-intake-drafts__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.ec-intake-drafts__eyebrow {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ec-intake-drafts__title {
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ec-intake-drafts__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: calc(min(420px, calc(100vh - 220px)) - 60px);
+  padding: 12px;
+  overflow: auto;
+}
+
+.ec-intake-drafts__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 12px 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
+}
+
+.ec-intake-drafts__item-copy {
+  min-width: 0;
+}
+
+.ec-intake-drafts__item-title {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ec-intake-drafts__item-meta,
+.ec-intake-drafts__item-subtitle {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ec-intake-drafts__item-meta {
+  margin-top: 4px;
+}
+
+.ec-intake-drafts__item-subtitle {
+  margin-top: 2px;
+}
+
+.ec-intake-drafts__item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .ec-quick-widget-trigger {
@@ -968,6 +1146,12 @@ watch(
 @media (max-width: 900px) {
   .ec-shell-version {
     display: none;
+  }
+
+  .ec-intake-drafts {
+    right: 12px;
+    bottom: 132px;
+    width: min(340px, calc(100vw - 24px));
   }
 }
 </style>
