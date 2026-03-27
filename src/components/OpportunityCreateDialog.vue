@@ -438,6 +438,70 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+  <q-dialog v-model="intakeReviewDialogOpen" persistent>
+    <q-card style="width: 560px; max-width: 94vw">
+      <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
+        <div class="text-h6">Guide Artifact Intake</div>
+        <div class="text-caption text-grey-7">
+          We found high-value metadata. Please confirm or adjust it while extraction continues.
+        </div>
+      </q-card-section>
+
+      <q-card-section class="q-px-lg q-pb-md">
+        <div class="column q-gutter-md">
+          <q-input
+            v-if="intakePromptFields.documentType"
+            :model-value="intakePromptFields.documentType.value"
+            outlined
+            label="Document Type"
+            @update:model-value="syncPromptField('documentType', $event)"
+          />
+          <q-input
+            v-if="intakePromptFields.sponsorCompany"
+            :model-value="intakePromptFields.sponsorCompany.value"
+            outlined
+            label="Sponsor Company"
+            @update:model-value="syncPromptField('sponsorCompany', $event)"
+          />
+          <q-input
+            v-if="intakePromptFields.relatedFund"
+            :model-value="intakePromptFields.relatedFund.value"
+            outlined
+            label="Related Fund"
+            @update:model-value="syncPromptField('relatedFund', $event)"
+          />
+          <q-input
+            v-if="intakePromptFields.relatedRound"
+            :model-value="intakePromptFields.relatedRound.value"
+            outlined
+            label="Related Round"
+            @update:model-value="syncPromptField('relatedRound', $event)"
+          />
+          <q-input
+            v-if="intakePromptFields.relatedContact"
+            :model-value="intakePromptFields.relatedContact.value"
+            outlined
+            label="Related Contact"
+            @update:model-value="syncPromptField('relatedContact', $event)"
+          />
+          <q-input
+            v-if="intakePromptFields.website"
+            :model-value="intakePromptFields.website.value"
+            outlined
+            label="Website"
+            @update:model-value="syncPromptField('website', $event)"
+          />
+        </div>
+      </q-card-section>
+
+      <q-separator />
+
+      <q-card-actions align="right" class="q-px-lg q-py-md">
+        <q-btn flat no-caps label="Skip for now" @click="dismissIntakeReviewDialog" />
+        <q-btn color="primary" no-caps label="Continue Processing" @click="dismissIntakeReviewDialog" />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
@@ -484,6 +548,9 @@ const contactLinkMode = ref('new')
 const companySourceChoice = ref('input')
 const companyPreviewDialogOpen = ref(false)
 const companyPreviewSource = ref('input')
+const intakeReviewDialogOpen = ref(false)
+const intakeReviewDelayElapsed = ref(false)
+const intakeReviewPromptShown = ref(false)
 const companyOptionFilter = ref('')
 const contactOptionFilter = ref('')
 const dragOver = ref(false)
@@ -509,6 +576,34 @@ const ingestStatusColumns = [
   { name: 'markdownStatus', label: 'Markdown Generated', field: 'markdownStatus', align: 'left' },
   { name: 'extractionStatus', label: 'Data Extracted', field: 'extractionStatus', align: 'left' },
 ]
+const intakePromptFields = computed(() => {
+  const documentType = inferDocumentTypeFromDraft()
+  const sponsorCompany = String(companyForm.value.Company_Name || '').trim()
+  const relatedFund =
+    entityType.value === 'fund'
+      ? String(form.value.Venture_Oppty_Name || '').trim()
+      : ''
+  const relatedRound =
+    entityType.value === 'round'
+      ? String(form.value.Round_Stage || form.value.Venture_Oppty_Name || '').trim()
+      : String(form.value.Round_Stage || '').trim()
+  const relatedContact = [
+    String(contactForm.value.Name || '').trim(),
+    String(contactForm.value.Professional_Email || contactForm.value.Personal_Email || '').trim(),
+  ]
+    .filter(Boolean)
+    .join(' - ')
+  const website = String(companyForm.value.Website || '').trim()
+
+  return {
+    documentType: documentType ? { value: documentType } : null,
+    sponsorCompany: sponsorCompany ? { value: sponsorCompany } : null,
+    relatedFund: relatedFund ? { value: relatedFund } : null,
+    relatedRound: relatedRound ? { value: relatedRound } : null,
+    relatedContact: relatedContact ? { value: relatedContact } : null,
+    website: website ? { value: website } : null,
+  }
+})
 
 const opportunityFields = computed(() =>
   entityType.value === 'fund'
@@ -790,6 +885,10 @@ function resetTransientState() {
   draftOpportunityId.value = null
   draftArtifactIds.value = []
   autofilledFlags.value = {}
+  intakeReviewDialogOpen.value = false
+  intakeReviewDelayElapsed.value = false
+  intakeReviewPromptShown.value = false
+  clearIntakeReviewTimer()
 }
 
 function buildDraftSnapshot() {
@@ -858,6 +957,88 @@ function hydrateFromActiveDraft() {
   assistantProposal.value = { ...(activeDraft.value.assistantProposal || {}) }
   draftArtifactIds.value = Array.isArray(activeDraft.value.draftArtifactIds) ? [...activeDraft.value.draftArtifactIds] : []
   return hasMeaningfulDraftState
+}
+
+function inferDocumentTypeFromDraft() {
+  const fileNames = (activeDraft.value?.droppedFiles || []).map((file) => String(file?.name || '').toLowerCase())
+  if (!fileNames.length) return ''
+  const joined = fileNames.join(' ')
+  if (joined.includes('pitch') || joined.includes('deck') || joined.includes('presentation')) return 'Pitch Deck'
+  if (joined.includes('term sheet') || joined.includes('termsheet')) return 'Term Sheet'
+  if (joined.includes('model') || joined.includes('.xlsx') || joined.includes('.xls')) return 'Financial Model'
+  if (joined.includes('memo')) return 'Investment Memo'
+  if (joined.includes('.pdf')) return 'PDF Document'
+  if (joined.includes('.doc') || joined.includes('.docx')) return 'Text Document'
+  return ''
+}
+
+let intakeReviewTimer = null
+
+function clearIntakeReviewTimer() {
+  if (intakeReviewTimer) {
+    clearTimeout(intakeReviewTimer)
+    intakeReviewTimer = null
+  }
+}
+
+function scheduleIntakeReviewDialog() {
+  clearIntakeReviewTimer()
+  intakeReviewDelayElapsed.value = false
+  intakeReviewPromptShown.value = false
+  intakeReviewTimer = setTimeout(() => {
+    intakeReviewDelayElapsed.value = true
+    maybeOpenIntakeReviewDialog()
+  }, 10000)
+}
+
+function maybeOpenIntakeReviewDialog() {
+  if (!intakeReviewDelayElapsed.value || intakeReviewPromptShown.value) return
+  const hasCandidate = Object.values(intakePromptFields.value).some(Boolean)
+  if (!hasCandidate) return
+  intakeReviewDialogOpen.value = true
+  intakeReviewPromptShown.value = true
+}
+
+function dismissIntakeReviewDialog() {
+  intakeReviewDialogOpen.value = false
+}
+
+function syncPromptField(fieldKey, value) {
+  const normalized = String(value || '').trim()
+  if (fieldKey === 'sponsorCompany') {
+    companyForm.value.Company_Name = normalized
+    markAutofilled('company', 'Company_Name')
+    syncActiveDraft()
+    return
+  }
+  if (fieldKey === 'relatedFund') {
+    form.value.Venture_Oppty_Name = normalized
+    form.value.kind = 'fund'
+    markAutofilled('opportunity', 'Venture_Oppty_Name')
+    syncActiveDraft()
+    return
+  }
+  if (fieldKey === 'relatedRound') {
+    form.value.Round_Stage = normalized
+    if (!String(form.value.Venture_Oppty_Name || '').trim()) {
+      form.value.Venture_Oppty_Name = normalized
+    }
+    form.value.kind = 'round'
+    markAutofilled('opportunity', 'Round_Stage')
+    syncActiveDraft()
+    return
+  }
+  if (fieldKey === 'relatedContact') {
+    contactForm.value.Name = normalized
+    markAutofilled('contact', 'Name')
+    syncActiveDraft()
+    return
+  }
+  if (fieldKey === 'website') {
+    companyForm.value.Website = normalized
+    markAutofilled('company', 'Website')
+    syncActiveDraft()
+  }
 }
 
 async function loadCompanies() {
@@ -1142,6 +1323,7 @@ async function processDroppedFiles(files = []) {
   if (!filePaths.length) return
 
   processingDrop.value = true
+  scheduleIntakeReviewDialog()
   try {
     processingMessage.value = 'Checking if files already exist...'
     const existingCheck = await findExistingDroppedFiles(files)
@@ -1187,16 +1369,17 @@ async function processDroppedFiles(files = []) {
     const preview = await bridge.value.autofill.previewFromFiles({ filePaths: markdownPaths })
     applySuggestedValues(preview?.suggested || {})
     applyMatchedExistingCompany(preview?.companyMatch || null)
+    maybeOpenIntakeReviewDialog()
     updateStatusForAllFiles({ extractionStatus: 'completed' })
     syncActiveDraft({ stage: 'Ready for Review' })
 
     processingMessage.value = 'Files processed successfully.'
-    $q.notify({ type: 'positive', message: 'Artifacts ingested and fields populated.' })
   } catch (e) {
     $q.notify({ type: 'negative', message: e?.message || String(e) })
   } finally {
     processingDrop.value = false
     processingMessage.value = ''
+    clearIntakeReviewTimer()
   }
 }
 
@@ -1707,11 +1890,12 @@ onMounted(() => {
   offIngestStatus = bridge.value.artifacts.onIngestStatus((status) => {
     if (status?.type !== 'progress') {
       const t = status?.type
-      const type = t === 'success' ? 'positive' : t === 'error' ? 'negative' : 'info'
       const message = String(status?.message || '').trim()
       if (message) {
         processingMessage.value = message
-        $q.notify({ type, message })
+        if (t === 'error') {
+          $q.notify({ type: 'negative', message })
+        }
       }
       return
     }
@@ -1742,6 +1926,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   offIngestStatus?.()
   offIngestStatus = null
+  clearIntakeReviewTimer()
 })
 </script>
 
