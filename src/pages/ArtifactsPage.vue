@@ -645,17 +645,58 @@ async function openPropertiesDialog(row) {
 
   if (bridge.value?.db?.query && nextForm.artifact_id) {
     try {
-      const detailRows = await bridge.value.db.query(
-        `
-        SELECT description
-        FROM Artifact_Details
-        WHERE artifact_id = ?
-        LIMIT 1
-      `,
-        [nextForm.artifact_id],
-      )
+      const [detailRows, companyRows, industryRows, regionRows] = await Promise.all([
+        bridge.value.db.query(
+          `
+          SELECT description
+          FROM Artifact_Details
+          WHERE artifact_id = ?
+          LIMIT 1
+        `,
+          [nextForm.artifact_id],
+        ),
+        bridge.value.db.query(
+          `
+          SELECT cad.company_id, ca.document_type
+          FROM Companies_Artifacts_documents cad
+          LEFT JOIN Company_Artifacts ca ON ca.artifact_id = cad.artifact_id
+          WHERE cad.artifact_id = ?
+          ORDER BY cad.company_id
+        `,
+          [nextForm.artifact_id],
+        ),
+        bridge.value.db.query(
+          `
+          SELECT industry_id
+          FROM Artifacts_Industries
+          WHERE artifact_id = ?
+          ORDER BY industry_id
+        `,
+          [nextForm.artifact_id],
+        ),
+        bridge.value.db.query(
+          `
+          SELECT region_id
+          FROM Artifacts_Regions
+          WHERE artifact_id = ?
+          ORDER BY region_id
+        `,
+          [nextForm.artifact_id],
+        ),
+      ])
       const detail = Array.isArray(detailRows) ? detailRows[0] : null
       nextForm.description = String(detail?.description || '')
+      const companyLinks = Array.isArray(companyRows) ? companyRows : []
+      nextForm.related_company_ids = companyLinks
+        .map((entry) => String(entry?.company_id || '').trim())
+        .filter(Boolean)
+      nextForm.company_document_type = String(companyLinks[0]?.document_type || '').trim() || null
+      nextForm.related_industry_ids = (Array.isArray(industryRows) ? industryRows : [])
+        .map((entry) => String(entry?.industry_id || '').trim())
+        .filter(Boolean)
+      nextForm.related_region_ids = (Array.isArray(regionRows) ? regionRows : [])
+        .map((entry) => String(entry?.region_id || '').trim())
+        .filter(Boolean)
     } catch {
       // Keep the dialog usable even if the detail lookup fails.
     }
@@ -684,6 +725,33 @@ async function saveArtifactProperties() {
   const opportunityId = String(propertiesForm.value.opportunity_id || '').trim()
   const roundId = opportunityId && !opportunityId.startsWith('fund:') ? opportunityId : null
   const fundId = opportunityId && opportunityId.startsWith('fund:') ? opportunityId : null
+  const relatedCompanyIds = [
+    ...new Set(
+      (propertiesForm.value.related_company_ids || [])
+        .map((id) => String(id || '').trim())
+        .filter(Boolean),
+    ),
+  ]
+  const relatedIndustryIds = [
+    ...new Set(
+      (propertiesForm.value.related_industry_ids || [])
+        .map((id) => String(id || '').trim())
+        .filter(Boolean),
+    ),
+  ]
+  const relatedRegionIds = [
+    ...new Set(
+      (propertiesForm.value.related_region_ids || [])
+        .map((id) => String(id || '').trim())
+        .filter(Boolean),
+    ),
+  ]
+  const companyDocumentType = String(propertiesForm.value.company_document_type || '').trim() || null
+
+  if (relatedCompanyIds.length > 0 && !companyDocumentType) {
+    propertiesError.value = 'Company Document Type is required when Related Companies are selected.'
+    return
+  }
 
   savingProperties.value = true
   propertiesError.value = ''
@@ -709,6 +777,44 @@ async function saveArtifactProperties() {
         artifactId,
       ],
     )
+
+    await bridge.value.db.execute('DELETE FROM Companies_Artifacts_documents WHERE artifact_id = ?', [artifactId])
+    if (relatedCompanyIds.length > 0) {
+      await bridge.value.db.execute(
+        `
+        INSERT INTO Company_Artifacts (artifact_id, document_type)
+        VALUES (?, ?)
+        ON CONFLICT(artifact_id) DO UPDATE SET
+          document_type = excluded.document_type
+      `,
+        [artifactId, companyDocumentType],
+      )
+
+      for (const companyId of relatedCompanyIds) {
+        await bridge.value.db.execute(
+          'INSERT OR IGNORE INTO Companies_Artifacts_documents (company_id, artifact_id) VALUES (?, ?)',
+          [companyId, artifactId],
+        )
+      }
+    } else {
+      await bridge.value.db.execute('DELETE FROM Company_Artifacts WHERE artifact_id = ?', [artifactId])
+    }
+
+    await bridge.value.db.execute('DELETE FROM Artifacts_Industries WHERE artifact_id = ?', [artifactId])
+    for (const industryId of relatedIndustryIds) {
+      await bridge.value.db.execute(
+        'INSERT OR IGNORE INTO Artifacts_Industries (artifact_id, industry_id) VALUES (?, ?)',
+        [artifactId, industryId],
+      )
+    }
+
+    await bridge.value.db.execute('DELETE FROM Artifacts_Regions WHERE artifact_id = ?', [artifactId])
+    for (const regionId of relatedRegionIds) {
+      await bridge.value.db.execute(
+        'INSERT OR IGNORE INTO Artifacts_Regions (artifact_id, region_id) VALUES (?, ?)',
+        [artifactId, regionId],
+      )
+    }
 
     await loadArtifacts()
     propertiesDialogOpen.value = false
