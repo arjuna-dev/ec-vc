@@ -1379,7 +1379,6 @@ async function processDroppedFiles(files = []) {
   } finally {
     processingDrop.value = false
     processingMessage.value = ''
-    clearIntakeReviewTimer()
   }
 }
 

@@ -105,7 +105,6 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useQuasar } from 'quasar'
 import OpportunityCreateDialog from './OpportunityCreateDialog.vue'
 import {
   createIntakeDraft,
@@ -126,7 +125,6 @@ const open = computed({
 })
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
-const $q = useQuasar()
 const intakeDraftState = useIntakeDraftState()
 
 const loading = ref(false)
@@ -208,17 +206,6 @@ function stageDroppedFiles(files = []) {
     opportunityId: null,
     stage: 'Dropped',
   })
-  $q.notify({
-    type: 'info',
-    message: 'Files staged. Select an opportunity, then click Finish to start processing.',
-  })
-  if (summaries.some((s) => !s.path)) {
-    $q.notify({
-      type: 'negative',
-      message:
-        'Could not read the local path for one or more dropped files. Please try again (or use a different file).',
-    })
-  }
 }
 
 async function finish() {
@@ -238,12 +225,8 @@ async function finish() {
       removeIntakeDraft(activeDraftId)
     }
     open.value = false
-  } catch (_e) {
-    // Error toasts are emitted by the main process; keep a fallback here.
-    $q.notify({
-      type: 'negative',
-      message: `Could not create the artifact record. Please try again. ${_e?.message || ''}`,
-    })
+  } catch {
+    // Keep the dialog open and let the downstream intake surface expose the error state.
   } finally {
     loading.value = false
   }
@@ -264,10 +247,10 @@ onMounted(() => {
   if (!bridge.value?.artifacts?.onIngestStatus) return
   offIngestStatus = bridge.value.artifacts.onIngestStatus((status) => {
     const t = status?.type
-    const type = t === 'success' ? 'positive' : t === 'error' ? 'negative' : 'info'
     const message = String(status?.message || '').trim()
-    if (!message) return
-    $q.notify({ type, message })
+    if (t === 'error' && message) {
+      console.error(message)
+    }
   })
 })
 
