@@ -2239,17 +2239,10 @@ async function loadCompanyDocuments() {
   }
 
   try {
-    const [artifactResult, opportunitiesResult] = await Promise.all([
+    const [artifactResult, relatedOpportunityIds] = await Promise.all([
       bridge.value.artifacts.list(),
-      bridge.value?.opportunities?.list ? bridge.value.opportunities.list() : Promise.resolve({ opportunities: [] }),
+      resolveCompanyOpportunityIds(recordIdParam.value),
     ])
-    const opportunities = Array.isArray(opportunitiesResult?.opportunities) ? opportunitiesResult.opportunities : []
-    const relatedOpportunityIds = new Set(
-      opportunities
-        .filter((opportunity) => String(opportunity?.company_id || '').trim() === recordIdParam.value)
-        .map((opportunity) => String(opportunity?.id || '').trim())
-        .filter(Boolean),
-    )
 
     const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
     const groupedArtifacts = new Map()
@@ -2275,6 +2268,44 @@ async function loadCompanyDocuments() {
     companyDocuments.value = []
     syncCompanyHeroPanelTab()
   }
+}
+
+async function resolveCompanyOpportunityIds(companyId) {
+  const normalizedCompanyId = String(companyId || '').trim()
+  if (!normalizedCompanyId) return new Set()
+
+  if (bridge.value?.db?.query) {
+    try {
+      const rows = await bridge.value.db.query(
+        `
+        SELECT DISTINCT id
+        FROM Opportunities
+        WHERE company_id = ?
+      `,
+        [normalizedCompanyId],
+      )
+      return new Set((Array.isArray(rows) ? rows : []).map((row) => String(row?.id || '').trim()).filter(Boolean))
+    } catch {
+      // Fall back to the generic opportunity list if direct querying is unavailable.
+    }
+  }
+
+  if (bridge.value?.opportunities?.list) {
+    try {
+      const result = await bridge.value.opportunities.list()
+      const opportunities = Array.isArray(result?.opportunities) ? result.opportunities : []
+      return new Set(
+        opportunities
+          .filter((opportunity) => String(opportunity?.company_id || '').trim() === normalizedCompanyId)
+          .map((opportunity) => String(opportunity?.id || '').trim())
+          .filter(Boolean),
+      )
+    } catch {
+      return new Set()
+    }
+  }
+
+  return new Set()
 }
 
 async function loadContactDocuments() {
