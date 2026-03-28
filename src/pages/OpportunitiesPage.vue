@@ -20,9 +20,10 @@
         <div class="opportunities-page__heading-actions">
           <q-btn
             dense
-            flat
+            unelevated
             round
             icon="download"
+            class="opportunities-page__heading-action"
             :disable="loading || !canImportOpportunities"
             @click="pickImportFile"
           >
@@ -30,9 +31,10 @@
           </q-btn>
           <q-btn
             dense
-            flat
+            unelevated
             round
             icon="upload"
+            class="opportunities-page__heading-action"
             :disable="loading || displayRows.length === 0"
             @click="exportOpportunitiesCsv"
           >
@@ -1033,6 +1035,17 @@ watch(
   align-items: center;
   gap: 6px;
   margin-left: auto;
+}
+
+.opportunities-page__heading-action {
+  color: var(--ds-color-text-primary);
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  box-shadow: var(--ds-shadow-card-soft);
+}
+
+.opportunities-page__heading-action.q-btn--disabled {
+  opacity: 0.6 !important;
 }
 
 .opportunities-shell {
