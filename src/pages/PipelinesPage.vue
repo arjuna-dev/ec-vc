@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Projects requires Electron. Run <code>quasar dev -m electron</code> or
+        Pipelines requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -16,13 +16,13 @@
 
     <div v-else class="pipelines-page">
       <header class="pipelines-page__heading">
-        <h1 class="pipelines-page__title">Projects</h1>
+        <h1 class="pipelines-page__title">Pipelines</h1>
       </header>
 
       <section class="pipelines-shell">
         <div class="pipelines-shell__hero">
           <div class="pipelines-shell__copy">
-            <div class="pipelines-shell__eyebrow">Projects dashboard</div>
+            <div class="pipelines-shell__eyebrow">Pipelines dashboard</div>
             <h2 class="pipelines-shell__hero-title">See what is ready in your workspace.</h2>
             <p class="pipelines-shell__hero-text">{{ pipelinesHeroText }}</p>
 
@@ -88,7 +88,7 @@
               outlined
               borderless
               class="pipelines-toolbar__search"
-              placeholder="Filter projects..."
+              placeholder="Filter pipelines..."
               :disable="loading"
             />
 
