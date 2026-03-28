@@ -1038,6 +1038,11 @@ function navigateBack() {
 <style scoped>
 .ec-shell-header {
   box-shadow: none !important;
+  background: transparent !important;
+}
+
+.ec-shell-toolbar {
+  background: transparent !important;
 }
 
 .ec-breadcrumb-bar {
@@ -1045,7 +1050,7 @@ function navigateBack() {
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-12);
-  background: var(--ds-color-surface-subtle);
+  background: transparent;
   padding: var(--ds-space-12) var(--ds-space-16);
 }
 
