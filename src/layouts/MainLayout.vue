@@ -63,12 +63,28 @@
         <div class="ec-drawer-scroll">
           <q-list
             v-for="section in drawerNavigationSections"
-            :key="section.label"
+            :key="section.key"
             class="ec-drawer-section"
           >
-            <q-item-label header class="ec-nav-label">{{ section.label }}</q-item-label>
+            <q-item
+              clickable
+              dense
+              class="ec-drawer-section__toggle"
+              @click="toggleDrawerSection(section.key)"
+            >
+              <q-item-section>
+                <q-item-label header class="ec-nav-label">{{ section.label }}</q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-icon
+                  :name="isDrawerSectionOpen(section.key) ? 'expand_less' : 'expand_more'"
+                  size="18px"
+                />
+              </q-item-section>
+            </q-item>
 
-            <template v-for="item in section.items" :key="item.label">
+            <template v-if="isDrawerSectionOpen(section.key)">
+              <template v-for="item in section.items" :key="item.label">
               <q-item
                 clickable
                 :to="item.to"
@@ -82,6 +98,7 @@
                   <q-item-label>{{ item.label }}</q-item-label>
                 </q-item-section>
               </q-item>
+              </template>
             </template>
           </q-list>
         </div>
@@ -262,6 +279,11 @@ const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
 const draftTrayDismissed = ref(false)
+const drawerSectionOpen = ref({
+  preferences: true,
+  main: true,
+  workspace: true,
+})
 
 const QUICK_WIDGET_TRIGGER_SIZE = 112
 const QUICK_WIDGET_ACTION_RADIUS = 96
@@ -272,15 +294,15 @@ const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const primaryNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
-  { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
-  { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
+  { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
+  { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
   { label: 'Pipelines', to: '/projects', exact: true, icon: 'schema' },
 ]
 const secondaryNavigationItems = [
-  { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
   { label: 'Notes', to: '/notes', exact: true, icon: 'note' },
   { label: 'Tasks', to: '/tasks', exact: true, icon: 'check_circle' },
+  { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
   { label: 'Assistants', to: '/assistants', exact: true, icon: 'smart_toy' },
 ]
 const routeLabelByName = {
@@ -326,16 +348,6 @@ const intakeDrafts = computed(() =>
 
 const drawerNavigationSections = computed(() => [
   {
-    label: 'Main',
-    key: 'main',
-    items: primaryNavigationItems,
-  },
-  {
-    label: 'Workspace',
-    key: 'workspace',
-    items: secondaryNavigationItems,
-  },
-  {
     label: 'Preferences',
     key: 'preferences',
     items: [
@@ -352,6 +364,16 @@ const drawerNavigationSections = computed(() => [
         icon: 'settings',
       },
     ],
+  },
+  {
+    label: 'Main',
+    key: 'main',
+    items: primaryNavigationItems,
+  },
+  {
+    label: 'Workspace',
+    key: 'workspace',
+    items: secondaryNavigationItems,
   },
 ])
 
@@ -451,6 +473,17 @@ const quickOpportunityBranchActions = computed(() => [
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
+}
+
+function isDrawerSectionOpen(sectionKey) {
+  return drawerSectionOpen.value[sectionKey] !== false
+}
+
+function toggleDrawerSection(sectionKey) {
+  drawerSectionOpen.value = {
+    ...drawerSectionOpen.value,
+    [sectionKey]: !isDrawerSectionOpen(sectionKey),
+  }
 }
 
 function normalizeUserLabel(value) {
