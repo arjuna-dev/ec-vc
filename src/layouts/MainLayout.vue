@@ -27,7 +27,10 @@
             :key="`${item.label}-${item.to || 'current'}`"
             :label="item.label"
             :to="item.current ? void 0 : item.to"
-            :class="{ 'ec-breadcrumbs__current': item.current }"
+            :class="{
+              'ec-breadcrumbs__current': item.current,
+              'ec-breadcrumbs__placeholder': item.placeholder,
+            }"
           />
         </q-breadcrumbs>
       </div>
@@ -362,6 +365,8 @@ const breadcrumbItems = computed(() => {
     items.push({ label: 'Databook', current: true })
     return items
   }
+
+  items.push({ label: '\u00A0', current: true, placeholder: true })
 
   return items
 })
@@ -951,6 +956,12 @@ watch(
   color: var(--ds-color-text-header) !important;
   font-weight: var(--ds-font-weight-medium) !important;
   pointer-events: none;
+}
+
+.ec-breadcrumbs__placeholder {
+  min-width: 4px;
+  padding: 0 !important;
+  color: transparent !important;
 }
 
 .ec-drawer-scroll {
