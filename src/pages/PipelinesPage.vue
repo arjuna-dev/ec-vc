@@ -114,6 +114,32 @@
             <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
 
             <q-select
+              v-model="regionFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="pipelines-toolbar__filter-control"
+              label="Region"
+              :options="regionFilterOptions"
+              :disable="true"
+            />
+
+            <q-select
+              v-model="industryFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="pipelines-toolbar__filter-control"
+              label="Industry"
+              :options="industryFilterOptions"
+              :disable="true"
+            />
+
+            <q-select
               v-model="stageFilter"
               dense
               outlined
@@ -381,6 +407,8 @@ const error = ref('')
 const pipelineDialogOpen = ref(false)
 const searchQuery = ref('')
 const pipelineKindFilter = ref('all')
+const regionFilter = ref('')
+const industryFilter = ref('')
 const stageFilter = ref('')
 const statusFilter = ref('')
 const viewMode = ref('card')
@@ -418,6 +446,8 @@ const pipelineKindOptions = [
   { label: 'Own', value: 'own' },
   { label: 'Others', value: 'others' },
 ]
+const regionFilterOptions = computed(() => [])
+const industryFilterOptions = computed(() => [])
 
 function uniquePipelineValues(resolver) {
   return [...new Set(pipelines.value.map((row) => normalizePipelineValue(resolver(row))).filter(Boolean))]
