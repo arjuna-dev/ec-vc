@@ -558,6 +558,7 @@
 
               <iframe
                 v-else-if="previewState.kind === 'pdf' && previewPdfSrc"
+                :key="previewPdfSrc"
                 :src="previewPdfSrc"
                 class="artifact-preview-dialog__frame"
                 title="Artifact PDF preview"
@@ -1024,10 +1025,13 @@ const previewConnectedClaimRows = computed(() => {
 
 const previewUsedClaimRows = computed(() => {
   if (previewState.value.kind === 'pdf') {
-    const pageKey = String(previewSelectedMarkdownSection.value?.key || '').trim()
-    if (!pageKey) return []
-    return previewConnectedClaimRows.value.filter(
-      (claim) => String(claim?.source_chunk_id || '').trim() === pageKey,
+    const sourceChunkIds = Array.isArray(previewSelectedMarkdownSection.value?.sourceChunkIds)
+      ? previewSelectedMarkdownSection.value.sourceChunkIds.map((value) => String(value || '').trim()).filter(Boolean)
+      : []
+    if (!sourceChunkIds.length) return []
+    const sourceChunkIdSet = new Set(sourceChunkIds)
+    return previewConnectedClaimRows.value.filter((claim) =>
+      sourceChunkIdSet.has(String(claim?.source_chunk_id || '').trim()),
     )
   }
   if (!previewSelectedSectionKey.value) return previewConnectedClaimRows.value
@@ -1056,6 +1060,16 @@ const previewMarkdownSections = computed(() => {
     return Boolean(pageRange || markdownText)
   })
 
+  if (previewState.value.kind === 'pdf' && previewPdfPageCount.value > 0) {
+    return buildPdfPageSections({
+      artifactId: previewMarkdownArtifactId.value || 'markdown',
+      pageCount: previewPdfPageCount.value,
+      chunkRows,
+      markdown: previewMarkdownContent.value,
+      usedClaims: previewConnectedClaimRows.value,
+    })
+  }
+
   if (chunkRows.length && hasStructuredChunkSections) {
     return chunkRows.map((chunk, index) => ({
       key: String(chunk?.chunk_id || `chunk:${index}`),
@@ -1064,25 +1078,19 @@ const previewMarkdownSections = computed(() => {
       used:
         Array.isArray(chunk?.used_by) && chunk.used_by.length > 0
           ? true
-          : previewUsedClaimRows.value.some(
+          : previewConnectedClaimRows.value.some(
               (claim) => String(claim?.source_chunk_id || '').trim() === String(chunk?.chunk_id || '').trim(),
             ),
       ownedFields: Array.isArray(chunk?.owned_fields) ? chunk.owned_fields.filter(Boolean) : [],
+      sourceChunkIds: [String(chunk?.chunk_id || `chunk:${index}`)],
     }))
   }
 
   if (!previewMarkdownContent.value.trim()) return []
-  if (previewState.value.kind === 'pdf') {
-    return derivePdfSlideSectionsFromMarkdown(previewMarkdownContent.value, {
-      artifactId: previewMarkdownArtifactId.value || 'markdown',
-      pageCount: previewPdfPageCount.value,
-      usedClaims: previewUsedClaimRows.value,
-    })
-  }
   return derivePreviewSectionsFromMarkdown(previewMarkdownContent.value, {
     artifactId: previewMarkdownArtifactId.value,
     isPdf: false,
-    usedClaims: previewUsedClaimRows.value,
+    usedClaims: previewConnectedClaimRows.value,
   })
 })
 
@@ -1820,14 +1828,90 @@ function formatPreviewSectionTitle(chunk = {}, index = 0) {
   return sectionHint || `Section ${index + 1}`
 }
 
-function extractSlideNumberFromTitle(title = '') {
-  const normalized = String(title || '').trim()
-  if (!normalized) return null
-  const directMatch = normalized.match(/\b(?:slide|page)\s+(\d+)\b/i)
-  if (directMatch) return Number(directMatch[1])
-  const headingMatch = normalized.match(/^(\d+)\b/)
-  if (headingMatch) return Number(headingMatch[1])
-  return null
+function expandPageRange(pageRange = '') {
+  const normalized = String(pageRange || '').trim()
+  if (!normalized) return []
+  const values = []
+  for (const part of normalized.split(',')) {
+    const token = String(part || '').trim()
+    if (!token) continue
+    const rangeMatch = token.match(/^(\d+)\s*-\s*(\d+)$/)
+    if (rangeMatch) {
+      const start = Number(rangeMatch[1])
+      const end = Number(rangeMatch[2])
+      if (start > 0 && end >= start) {
+        for (let page = start; page <= end; page += 1) values.push(page)
+      }
+      continue
+    }
+    const page = Number(token)
+    if (page > 0) values.push(page)
+  }
+  return [...new Set(values)]
+}
+
+function buildPdfPageSections({ artifactId = '', pageCount = 0, chunkRows = [], markdown = '', usedClaims = [] } = {}) {
+  const totalPages = Math.max(0, Number(pageCount || 0))
+  if (!totalPages) return []
+
+  const pages = Array.from({ length: totalPages }, (_, index) => ({
+    key: `${artifactId}:page:${index + 1}`,
+    title: `Page ${index + 1}`,
+    text: '',
+    sourceTitle: `Page ${index + 1}`,
+    used: false,
+    ownedFields: [],
+    sourceChunkIds: [],
+  }))
+
+  for (const chunk of chunkRows) {
+    const chunkId = String(chunk?.chunk_id || '').trim()
+    const pageNumbers = expandPageRange(chunk?.source_page_range)
+    if (!pageNumbers.length) continue
+    for (const pageNumber of pageNumbers) {
+      const page = pages[pageNumber - 1]
+      if (!page) continue
+      if (chunkId) page.sourceChunkIds.push(chunkId)
+      const chunkText = String(chunk?.markdown_text || '').trim()
+      if (chunkText) {
+        page.text = page.text ? `${page.text}\n\n${chunkText}` : chunkText
+      }
+      const chunkFields = Array.isArray(chunk?.owned_fields) ? chunk.owned_fields.filter(Boolean) : []
+      if (chunkFields.length) {
+        page.ownedFields = [...new Set([...page.ownedFields, ...chunkFields])]
+      }
+      const sectionHint = String(chunk?.section_hint || '').trim()
+      if (sectionHint) {
+        page.sourceTitle = sectionHint
+        page.title = `Page ${pageNumber} - ${sectionHint}`
+      }
+      if (Array.isArray(chunk?.used_by) && chunk.used_by.length > 0) {
+        page.used = true
+      }
+    }
+  }
+
+  for (const claim of usedClaims) {
+    const sourceChunkId = String(claim?.source_chunk_id || '').trim()
+    if (!sourceChunkId) continue
+    for (const page of pages) {
+      if (!page.sourceChunkIds.includes(sourceChunkId)) continue
+      page.used = true
+      if (claim?.field_key) {
+        page.ownedFields = [...new Set([...page.ownedFields, String(claim.field_key).trim()])]
+      }
+    }
+  }
+
+  if (!chunkRows.length && markdown.trim()) {
+    pages[0].text = markdown.trim()
+  }
+
+  return pages.map((page, index) => ({
+    ...page,
+    sourceChunkIds: [...new Set(page.sourceChunkIds)],
+    text: page.text.trim() || `No markdown mapped to Page ${index + 1} yet.`,
+  }))
 }
 
 function derivePreviewSectionsFromMarkdown(markdown = '', { artifactId = '', isPdf = false, usedClaims = [] } = {}) {
@@ -1899,69 +1983,6 @@ function derivePreviewSectionsFromMarkdown(markdown = '', { artifactId = '', isP
           ownedFields: usedClaims.map((claim) => claim.field_key).filter(Boolean),
         },
       ]
-}
-
-function derivePdfSlideSectionsFromMarkdown(
-  markdown = '',
-  { artifactId = '', pageCount = 0, usedClaims = [] } = {},
-) {
-  const totalPages = Math.max(0, Number(pageCount || 0))
-  if (!totalPages) {
-    return derivePreviewSectionsFromMarkdown(markdown, {
-      artifactId,
-      isPdf: true,
-      usedClaims,
-    })
-  }
-
-  const headingSections = derivePreviewSectionsFromMarkdown(markdown, {
-    artifactId,
-    isPdf: true,
-    usedClaims: [],
-  })
-
-  const headingSectionMap = new Map()
-  const unorderedSections = []
-  for (const section of headingSections) {
-    const slideNumber = extractSlideNumberFromTitle(section?.title)
-    if (slideNumber && slideNumber >= 1 && slideNumber <= totalPages && !headingSectionMap.has(slideNumber)) {
-      headingSectionMap.set(slideNumber, section)
-    } else {
-      unorderedSections.push(section)
-    }
-  }
-
-  return Array.from({ length: totalPages }, (_, index) => {
-    const slideNumber = index + 1
-    const headingSection = headingSectionMap.get(slideNumber) || unorderedSections.shift() || null
-    const headingTitle = String(headingSection?.title || '').trim()
-    const normalizedHeadingTitle =
-      headingTitle &&
-      headingTitle !== 'Document Review' &&
-      !/^slide\s+\d+$/i.test(headingTitle) &&
-      !/^section\s+\d+$/i.test(headingTitle)
-        ? headingTitle
-        : ''
-
-    const slideClaims = usedClaims.filter((claim) => {
-      const sourceChunkId = String(claim?.source_chunk_id || '').trim()
-      return sourceChunkId === `${artifactId}:slide:${slideNumber}`
-    })
-
-    return {
-      key: `${artifactId}:slide:${slideNumber}`,
-      title: normalizedHeadingTitle ? `Slide ${slideNumber} - ${normalizedHeadingTitle}` : `Slide ${slideNumber}`,
-      text:
-        String(headingSection?.text || '').trim() ||
-        `No markdown mapped to Slide ${slideNumber} yet.`,
-      sourceTitle: headingTitle || `Slide ${slideNumber}`,
-      used: slideClaims.length > 0,
-      ownedFields:
-        slideClaims.length > 0
-          ? slideClaims.map((claim) => claim.field_key).filter(Boolean)
-          : [],
-    }
-  })
 }
 
 async function loadPreviewReviewSidebar(artifactId = '') {
