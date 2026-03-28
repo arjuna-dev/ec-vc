@@ -47,7 +47,7 @@
           </q-btn>
         </div>
 
-        <div v-if="breadcrumbActions.length" class="ec-breadcrumb-actions">
+        <div class="ec-breadcrumb-actions">
           <span
             v-for="action in breadcrumbTextActions"
             :key="action.id"
@@ -76,12 +76,12 @@
             <q-tooltip v-if="!action.chip">{{ action.label }}</q-tooltip>
           </q-btn>
 
-          <div class="ec-breadcrumb-logo">
-            <div v-if="!logoReady" class="ec-breadcrumb-logo__fallback">B10</div>
+          <div class="ec-shell-toolbar-title ec-shell-toolbar-title--breadcrumb">
+            <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
             <div
               ref="logoContainer"
-              class="ec-breadcrumb-logo__lottie"
-              :class="{ 'ec-breadcrumb-logo__lottie--hidden': !logoReady }"
+              class="ec-shell-toolbar-lottie"
+              :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
             />
           </div>
         </div>
@@ -1177,29 +1177,32 @@ function navigateBack() {
   line-height: 1.2;
 }
 
-.ec-breadcrumb-logo {
+.ec-shell-toolbar-title {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 72px;
-  height: 32px;
-  margin-left: 10px;
-  flex: 0 0 72px;
+  min-width: 84px;
+  height: 36px;
 }
 
-.ec-breadcrumb-logo__fallback {
+.ec-shell-toolbar-title--breadcrumb {
+  margin-left: 10px;
+  flex: 0 0 84px;
+}
+
+.ec-shell-toolbar-fallback {
   color: var(--ds-color-text-primary);
   font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: 0.14em;
 }
 
-.ec-breadcrumb-logo__lottie {
-  width: 68px;
-  height: 32px;
+.ec-shell-toolbar-lottie {
+  width: 76px;
+  height: 36px;
 }
 
-.ec-breadcrumb-logo__lottie--hidden {
+.ec-shell-toolbar-lottie--hidden {
   opacity: 0;
 }
 
