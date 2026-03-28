@@ -1041,7 +1041,6 @@ function navigateBack() {
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-12);
-  border-top: 1px solid var(--ds-color-border-soft-alt);
   background: var(--ds-color-surface-subtle);
   padding: var(--ds-space-12) var(--ds-space-16);
 }
