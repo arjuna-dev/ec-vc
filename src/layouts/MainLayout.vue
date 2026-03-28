@@ -17,22 +17,36 @@
       </q-toolbar>
 
       <div class="ec-breadcrumb-bar">
-        <q-breadcrumbs class="ec-breadcrumbs" separator="chevron_right">
-          <template #separator>
-            <q-icon name="chevron_right" size="16px" color="grey-5" />
-          </template>
+        <div class="ec-breadcrumb-primary">
+          <q-btn
+            dense
+            flat
+            round
+            icon="arrow_back"
+            class="ec-breadcrumb-back"
+            :disable="!canNavigateBack"
+            @click="navigateBack"
+          >
+            <q-tooltip>Back</q-tooltip>
+          </q-btn>
 
-          <q-breadcrumbs-el
-            v-for="item in breadcrumbItems"
-            :key="`${item.label}-${item.to || 'current'}`"
-            :label="item.label"
-            :to="item.current ? void 0 : item.to"
-            :class="{
-              'ec-breadcrumbs__current': item.current,
-              'ec-breadcrumbs__placeholder': item.placeholder,
-            }"
-          />
-        </q-breadcrumbs>
+          <q-breadcrumbs class="ec-breadcrumbs" separator="chevron_right">
+            <template #separator>
+              <q-icon name="chevron_right" size="16px" color="grey-5" />
+            </template>
+
+            <q-breadcrumbs-el
+              v-for="item in breadcrumbItems"
+              :key="`${item.label}-${item.to || 'current'}`"
+              :label="item.label"
+              :to="item.current ? void 0 : item.to"
+              :class="{
+                'ec-breadcrumbs__current': item.current,
+                'ec-breadcrumbs__placeholder': item.placeholder,
+              }"
+            />
+          </q-breadcrumbs>
+        </div>
 
         <div v-if="breadcrumbActions.length" class="ec-breadcrumb-actions">
           <q-btn
@@ -338,6 +352,7 @@ const route = useRoute()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const intakeDraftState = useIntakeDraftState()
 const breadcrumbActionsState = useBreadcrumbActionsState()
+const previousRoutePath = ref('')
 let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
@@ -411,6 +426,17 @@ const breadcrumbItems = computed(() => {
 })
 
 const breadcrumbActions = computed(() => breadcrumbActionsState.actions || [])
+const breadcrumbBackFallback = computed(() => {
+  const fallback = [...breadcrumbItems.value]
+    .reverse()
+    .find((item) => !item.current && !item.placeholder && item.to)
+
+  return fallback?.to || (String(route.name || '') === 'home' ? '' : '/')
+})
+
+const canNavigateBack = computed(() =>
+  Boolean(previousRoutePath.value) || Boolean(breadcrumbBackFallback.value),
+)
 
 const quickWidgetStyle = computed(() => ({
   left: `${quickWidgetPosition.value.x}px`,
@@ -965,7 +991,10 @@ onBeforeUnmount(() => {
 
 watch(
   () => route.fullPath,
-  () => {
+  (nextPath, previousPath) => {
+    if (previousPath && previousPath !== nextPath) {
+      previousRoutePath.value = previousPath
+    }
     syncUserNavState()
   },
 )
@@ -981,6 +1010,17 @@ function resolveBreadcrumbActionDisabled(action) {
   if (typeof action?.disabled === 'function') return !!action.disabled()
   return !!action?.disabled
 }
+
+function navigateBack() {
+  if (previousRoutePath.value && previousRoutePath.value !== route.fullPath) {
+    router.push(previousRoutePath.value)
+    return
+  }
+
+  if (breadcrumbBackFallback.value) {
+    router.push(breadcrumbBackFallback.value)
+  }
+}
 </script>
 
 <style scoped>
@@ -992,6 +1032,18 @@ function resolveBreadcrumbActionDisabled(action) {
   border-top: 1px solid var(--ds-color-border-soft-alt);
   background: var(--ds-color-surface-subtle);
   padding: var(--ds-space-12) var(--ds-space-16);
+}
+
+.ec-breadcrumb-primary {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.ec-breadcrumb-back {
+  color: var(--ds-color-text-navigation);
+  flex: 0 0 auto;
 }
 
 .ec-breadcrumbs {
