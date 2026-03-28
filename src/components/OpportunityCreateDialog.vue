@@ -443,62 +443,216 @@
       <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
         <div class="text-h6">Guide Artifact Intake</div>
         <div class="text-caption text-grey-7">
-          We found high-value metadata. Please confirm or adjust it while extraction continues.
+          We found high-value metadata. Please confirm these fields before the rest of intake continues.
         </div>
       </q-card-section>
 
       <q-card-section class="q-px-lg q-pb-md">
         <div class="column q-gutter-md">
-          <q-input
-            v-if="intakePromptFields.documentType"
-            :model-value="intakePromptFields.documentType.value"
-            outlined
-            label="Document Type"
-            @update:model-value="syncPromptField('documentType', $event)"
-          />
-          <q-input
-            v-if="intakePromptFields.sponsorCompany"
-            :model-value="intakePromptFields.sponsorCompany.value"
-            outlined
-            label="Sponsor Company"
-            @update:model-value="syncPromptField('sponsorCompany', $event)"
-          />
-          <q-input
-            v-if="intakePromptFields.relatedFund"
-            :model-value="intakePromptFields.relatedFund.value"
-            outlined
-            label="Related Fund"
-            @update:model-value="syncPromptField('relatedFund', $event)"
-          />
-          <q-input
-            v-if="intakePromptFields.relatedRound"
-            :model-value="intakePromptFields.relatedRound.value"
-            outlined
-            label="Related Round"
-            @update:model-value="syncPromptField('relatedRound', $event)"
-          />
-          <q-input
-            v-if="intakePromptFields.relatedContact"
-            :model-value="intakePromptFields.relatedContact.value"
-            outlined
-            label="Related Contact"
-            @update:model-value="syncPromptField('relatedContact', $event)"
-          />
-          <q-input
-            v-if="intakePromptFields.website"
-            :model-value="intakePromptFields.website.value"
-            outlined
-            label="Website"
-            @update:model-value="syncPromptField('website', $event)"
-          />
+          <div
+            v-if="intakeVisibleFieldKeys.includes('documentType')"
+            class="row q-col-gutter-sm items-start"
+          >
+            <div class="col">
+              <q-select
+                :model-value="intakeReviewFields.documentType"
+                outlined
+                use-input
+                fill-input
+                hide-selected
+                new-value-mode="add-unique"
+                label="Document Type"
+                :options="intakeDocumentTypeOptions"
+                @update:model-value="updateIntakeReviewField('documentType', $event)"
+              />
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                no-caps
+                :outline="!intakeReviewVerified.documentType"
+                label="Verify"
+                @click="verifyIntakeReviewField('documentType')"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="intakeVisibleFieldKeys.includes('sponsorCompany')"
+            class="row q-col-gutter-sm items-start"
+          >
+            <div class="col">
+              <q-select
+                :model-value="intakeReviewFields.sponsorCompany"
+                outlined
+                use-input
+                fill-input
+                hide-selected
+                new-value-mode="add-unique"
+                label="Sponsor Company"
+                :options="intakeSponsorCompanyOptions"
+                @update:model-value="updateIntakeReviewField('sponsorCompany', $event)"
+              />
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                no-caps
+                :outline="!intakeReviewVerified.sponsorCompany"
+                label="Verify"
+                @click="verifyIntakeReviewField('sponsorCompany')"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="intakeVisibleFieldKeys.includes('relatedFund')"
+            class="row q-col-gutter-sm items-start"
+          >
+            <div class="col">
+              <q-select
+                :model-value="intakeReviewFields.relatedFund"
+                outlined
+                use-input
+                fill-input
+                hide-selected
+                new-value-mode="add-unique"
+                label="Related Fund"
+                :options="intakeFundOptions"
+                @update:model-value="updateIntakeReviewField('relatedFund', $event)"
+              />
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                no-caps
+                :outline="!intakeReviewVerified.relatedFund"
+                label="Verify"
+                @click="verifyIntakeReviewField('relatedFund')"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="intakeVisibleFieldKeys.includes('relatedRound')"
+            class="row q-col-gutter-sm items-start"
+          >
+            <div class="col">
+              <q-select
+                :model-value="intakeReviewFields.relatedRound"
+                outlined
+                use-input
+                fill-input
+                hide-selected
+                new-value-mode="add-unique"
+                label="Related Round"
+                :options="intakeRoundOptions"
+                @update:model-value="updateIntakeReviewField('relatedRound', $event)"
+              />
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                no-caps
+                :outline="!intakeReviewVerified.relatedRound"
+                label="Verify"
+                @click="verifyIntakeReviewField('relatedRound')"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="intakeVisibleFieldKeys.includes('relatedContact')"
+            class="row q-col-gutter-sm items-start"
+          >
+            <div class="col">
+              <q-select
+                :model-value="intakeReviewFields.relatedContact"
+                outlined
+                use-input
+                fill-input
+                hide-selected
+                new-value-mode="add-unique"
+                label="Related Contact"
+                :options="intakeContactPromptOptions"
+                @update:model-value="updateIntakeReviewField('relatedContact', $event)"
+              />
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                no-caps
+                :outline="!intakeReviewVerified.relatedContact"
+                label="Verify"
+                @click="verifyIntakeReviewField('relatedContact')"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="intakeVisibleFieldKeys.includes('website')"
+            class="row q-col-gutter-sm items-start"
+          >
+            <div class="col">
+              <q-input
+                :model-value="intakeReviewFields.website"
+                outlined
+                label="Website"
+                @update:model-value="updateIntakeReviewField('website', $event)"
+              />
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                no-caps
+                :outline="!intakeReviewVerified.website"
+                label="Verify"
+                @click="verifyIntakeReviewField('website')"
+              />
+            </div>
+          </div>
+
+          <q-card
+            v-if="intakeUsedInfoRows.length"
+            flat
+            bordered
+            class="bg-grey-1"
+          >
+            <q-card-section class="q-py-sm">
+              <div class="text-subtitle2">Used Metadata</div>
+              <div class="text-caption text-grey-7">
+                Verified items are treated as settled and should not be re-guessed by later intake steps.
+              </div>
+            </q-card-section>
+            <q-separator />
+            <q-card-section class="q-py-sm">
+              <div class="column q-gutter-sm">
+                <div
+                  v-for="row in intakeUsedInfoRows"
+                  :key="row.key"
+                  class="intake-used-row"
+                >
+                  <div class="text-body2"><b>{{ row.label }}:</b> {{ row.value }}</div>
+                  <div class="text-caption text-grey-7">
+                    Owner: {{ row.owner }} | Writes into: {{ row.target }} | Source: {{ row.source }}
+                  </div>
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
         </div>
       </q-card-section>
 
       <q-separator />
 
       <q-card-actions align="right" class="q-px-lg q-py-md">
-        <q-btn flat no-caps label="Skip for now" @click="dismissIntakeReviewDialog" />
-        <q-btn color="primary" no-caps label="Continue Processing" @click="dismissIntakeReviewDialog" />
+        <q-btn
+          color="primary"
+          no-caps
+          label="Continue Processing"
+          :disable="!intakeReviewReadyToContinue"
+          @click="confirmIntakeReviewDialog"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -538,6 +692,7 @@ const loadingCompanies = ref(false)
 const loadingContacts = ref(false)
 const companies = ref([])
 const contacts = ref([])
+const opportunities = ref([])
 const projects = ref([])
 const tasks = ref([])
 const filteredProjects = ref([])
@@ -551,6 +706,7 @@ const companyPreviewSource = ref('input')
 const intakeReviewDialogOpen = ref(false)
 const intakeReviewDelayElapsed = ref(false)
 const intakeReviewPromptShown = ref(false)
+const intakeReviewPending = ref(false)
 const companyOptionFilter = ref('')
 const contactOptionFilter = ref('')
 const dragOver = ref(false)
@@ -567,6 +723,11 @@ const draftOpportunityId = ref(null)
 const draftArtifactIds = ref([])
 const didSubmit = ref(false)
 const opportunityNameManuallyEdited = ref(false)
+const intakeReviewFields = ref(createDefaultIntakeReviewFields())
+const intakeReviewVerified = ref(createDefaultIntakeReviewVerified())
+const intakeLockedFields = ref(createDefaultIntakeReviewVerified())
+const intakeFieldSources = ref(createDefaultIntakeReviewSources())
+const deferredSuggestionPayload = ref(null)
 
 const autofilledFlags = ref({})
 
@@ -576,35 +737,6 @@ const ingestStatusColumns = [
   { name: 'markdownStatus', label: 'Markdown Generated', field: 'markdownStatus', align: 'left' },
   { name: 'extractionStatus', label: 'Data Extracted', field: 'extractionStatus', align: 'left' },
 ]
-const intakePromptFields = computed(() => {
-  const documentType = inferDocumentTypeFromDraft()
-  const sponsorCompany = String(companyForm.value.Company_Name || '').trim()
-  const relatedFund =
-    entityType.value === 'fund'
-      ? String(form.value.Venture_Oppty_Name || '').trim()
-      : ''
-  const relatedRound =
-    entityType.value === 'round'
-      ? String(form.value.Round_Stage || form.value.Venture_Oppty_Name || '').trim()
-      : String(form.value.Round_Stage || '').trim()
-  const relatedContact = [
-    String(contactForm.value.Name || '').trim(),
-    String(contactForm.value.Professional_Email || contactForm.value.Personal_Email || '').trim(),
-  ]
-    .filter(Boolean)
-    .join(' - ')
-  const website = String(companyForm.value.Website || '').trim()
-
-  return {
-    documentType: documentType ? { value: documentType } : null,
-    sponsorCompany: sponsorCompany ? { value: sponsorCompany } : null,
-    relatedFund: relatedFund ? { value: relatedFund } : null,
-    relatedRound: relatedRound ? { value: relatedRound } : null,
-    relatedContact: relatedContact ? { value: relatedContact } : null,
-    website: website ? { value: website } : null,
-  }
-})
-
 const opportunityFields = computed(() =>
   entityType.value === 'fund'
     ? [
@@ -751,6 +883,71 @@ const contactOptions = computed(() => [
   })),
 ])
 
+const intakeVisibleFieldKeys = computed(() =>
+  Object.entries(intakeReviewFields.value)
+    .filter(([, value]) => String(value || '').trim().length > 0)
+    .map(([key]) => key),
+)
+
+const intakeReviewReadyToContinue = computed(() => {
+  if (!intakeVisibleFieldKeys.value.length) return true
+  return intakeVisibleFieldKeys.value.every((key) => Boolean(intakeReviewVerified.value[key]))
+})
+
+const intakeUsedInfoRows = computed(() =>
+  Object.entries(intakeLockedFields.value)
+    .filter(([, isLocked]) => Boolean(isLocked))
+    .map(([key]) => ({
+      key,
+      label: intakeFieldLabel(key),
+      owner: intakeFieldOwner(key),
+      target: intakeFieldTarget(key),
+      value: intakeReviewFields.value[key] || 'No value',
+      source: intakeFieldSources.value[key] || 'User verified prompt suggestion',
+    })),
+)
+
+const intakeDocumentTypeOptions = [
+  'Pitch Deck',
+  'Term Sheet',
+  'Financial Model',
+  'Investment Memo',
+  'PDF Document',
+  'Text Document',
+]
+
+const intakeSponsorCompanyOptions = computed(() =>
+  buildPromptStringOptions([
+    intakeReviewFields.value.sponsorCompany,
+    ...companies.value.map((company) => stripHumanVerify(company?.Company_Name)),
+  ]),
+)
+
+const intakeFundOptions = computed(() =>
+  buildPromptStringOptions([
+    intakeReviewFields.value.relatedFund,
+    ...opportunities.value
+      .filter((row) => normalizeOpportunityKind(row) === 'fund')
+      .map((row) => buildOpportunityPromptLabel(row)),
+  ]),
+)
+
+const intakeRoundOptions = computed(() =>
+  buildPromptStringOptions([
+    intakeReviewFields.value.relatedRound,
+    ...opportunities.value
+      .filter((row) => normalizeOpportunityKind(row) === 'round')
+      .map((row) => buildOpportunityPromptLabel(row)),
+  ]),
+)
+
+const intakeContactPromptOptions = computed(() =>
+  buildPromptStringOptions([
+    intakeReviewFields.value.relatedContact,
+    ...contacts.value.map((contact) => buildContactOptionLabel(contact)),
+  ]),
+)
+
 const kindOptions = [
   { label: 'Round', value: 'round' },
   { label: 'Fund', value: 'fund' },
@@ -868,6 +1065,7 @@ function resetTransientState() {
   dragOver.value = false
   extractedCompanyForm.value = null
   existingOpportunityNames.value = []
+  opportunities.value = []
   companyLinkMode.value = 'new'
   contactLinkMode.value = 'new'
   companySourceChoice.value = 'input'
@@ -888,6 +1086,12 @@ function resetTransientState() {
   intakeReviewDialogOpen.value = false
   intakeReviewDelayElapsed.value = false
   intakeReviewPromptShown.value = false
+  intakeReviewPending.value = false
+  intakeReviewFields.value = createDefaultIntakeReviewFields()
+  intakeReviewVerified.value = createDefaultIntakeReviewVerified()
+  intakeLockedFields.value = createDefaultIntakeReviewVerified()
+  intakeFieldSources.value = createDefaultIntakeReviewSources()
+  deferredSuggestionPayload.value = null
   clearIntakeReviewTimer()
 }
 
@@ -906,6 +1110,10 @@ function buildDraftSnapshot() {
     companyLinkMode: companyLinkMode.value,
     contactLinkMode: contactLinkMode.value,
     companySourceChoice: companySourceChoice.value,
+    intakeReviewFields: { ...intakeReviewFields.value },
+    intakeReviewVerified: { ...intakeReviewVerified.value },
+    intakeLockedFields: { ...intakeLockedFields.value },
+    intakeFieldSources: { ...intakeFieldSources.value },
   }
 }
 
@@ -951,6 +1159,22 @@ function hydrateFromActiveDraft() {
   companyLinkMode.value = activeDraft.value.companyLinkMode || companyLinkMode.value
   contactLinkMode.value = activeDraft.value.contactLinkMode || contactLinkMode.value
   companySourceChoice.value = activeDraft.value.companySourceChoice || companySourceChoice.value
+  intakeReviewFields.value = {
+    ...createDefaultIntakeReviewFields(),
+    ...(activeDraft.value.intakeReviewFields || {}),
+  }
+  intakeReviewVerified.value = {
+    ...createDefaultIntakeReviewVerified(),
+    ...(activeDraft.value.intakeReviewVerified || {}),
+  }
+  intakeLockedFields.value = {
+    ...createDefaultIntakeReviewVerified(),
+    ...(activeDraft.value.intakeLockedFields || {}),
+  }
+  intakeFieldSources.value = {
+    ...createDefaultIntakeReviewSources(),
+    ...(activeDraft.value.intakeFieldSources || {}),
+  }
   ingestStatusByFile.value = { ...(activeDraft.value.ingestStatusByFile || {}) }
   generatedNotes.value = Array.isArray(activeDraft.value.generatedNotes) ? [...activeDraft.value.generatedNotes] : []
   generatedTasks.value = Array.isArray(activeDraft.value.generatedTasks) ? [...activeDraft.value.generatedTasks] : []
@@ -972,7 +1196,128 @@ function inferDocumentTypeFromDraft() {
   return ''
 }
 
+function createDefaultIntakeReviewFields(overrides = {}) {
+  return {
+    documentType: '',
+    sponsorCompany: '',
+    relatedFund: '',
+    relatedRound: '',
+    relatedContact: '',
+    website: '',
+    ...overrides,
+  }
+}
+
+function createDefaultIntakeReviewVerified(overrides = {}) {
+  return {
+    documentType: false,
+    sponsorCompany: false,
+    relatedFund: false,
+    relatedRound: false,
+    relatedContact: false,
+    website: false,
+    ...overrides,
+  }
+}
+
+function createDefaultIntakeReviewSources(overrides = {}) {
+  return {
+    documentType: '',
+    sponsorCompany: '',
+    relatedFund: '',
+    relatedRound: '',
+    relatedContact: '',
+    website: '',
+    ...overrides,
+  }
+}
+
+function intakeFieldLabel(fieldKey) {
+  return {
+    documentType: 'Document Type',
+    sponsorCompany: 'Sponsor Company',
+    relatedFund: 'Related Fund',
+    relatedRound: 'Related Round',
+    relatedContact: 'Related Contact',
+    website: 'Website',
+  }[fieldKey] || fieldKey
+}
+
+function intakeFieldOwner(fieldKey) {
+  return {
+    documentType: 'Artifacts',
+    sponsorCompany: 'Companies',
+    relatedFund: 'Funds',
+    relatedRound: 'Rounds',
+    relatedContact: 'Contacts',
+    website: 'Companies',
+  }[fieldKey] || 'Draft Intake'
+}
+
+function intakeFieldTarget(fieldKey) {
+  return {
+    documentType: 'Draft intake metadata',
+    sponsorCompany: 'Company section',
+    relatedFund: 'Opportunity section',
+    relatedRound: 'Opportunity section',
+    relatedContact: 'Primary Contact section',
+    website: 'Company section',
+  }[fieldKey] || 'Draft intake'
+}
+
+function buildIntakeReviewFieldsFromForms() {
+  const relatedContact = [
+    String(contactForm.value.Name || '').trim(),
+    String(contactForm.value.Professional_Email || contactForm.value.Personal_Email || '').trim(),
+  ]
+    .filter(Boolean)
+    .join(' - ')
+
+  return createDefaultIntakeReviewFields({
+    documentType: inferDocumentTypeFromDraft(),
+    sponsorCompany: String(companyForm.value.Company_Name || '').trim(),
+    relatedFund: entityType.value === 'fund' ? String(form.value.Venture_Oppty_Name || '').trim() : '',
+    relatedRound:
+      entityType.value === 'round'
+        ? String(form.value.Round_Stage || form.value.Venture_Oppty_Name || '').trim()
+        : String(form.value.Round_Stage || '').trim(),
+    relatedContact,
+    website: String(companyForm.value.Website || '').trim(),
+  })
+}
+
+function buildPromptStringOptions(values = []) {
+  return [...new Set(values.map((value) => String(value || '').trim()).filter(Boolean))]
+}
+
+function normalizeOpportunityKind(row = {}) {
+  const explicitKind = String(row?.kind || row?.opportunity_kind || '').trim().toLowerCase()
+  if (explicitKind === 'fund' || explicitKind === 'round') return explicitKind
+  return String(row?.Round_Stage || row?.round_stage || '').trim() ? 'round' : 'fund'
+}
+
+function buildOpportunityPromptLabel(row = {}) {
+  return (
+    stripHumanVerify(row?.Venture_Oppty_Name || row?.opportunity_name || row?.name) ||
+    stripHumanVerify(row?.Round_Stage || row?.round_stage) ||
+    ''
+  )
+}
+
+function findCompanyByName(name) {
+  const candidate = normalizeComparisonText(name)
+  if (!candidate) return null
+  return companies.value.find((company) => normalizeComparisonText(company?.Company_Name) === candidate) || null
+}
+
+function findContactByPromptLabel(label) {
+  const candidate = normalizeComparisonText(label)
+  if (!candidate) return null
+  return contacts.value.find((contact) => normalizeComparisonText(buildContactOptionLabel(contact)) === candidate) || null
+}
+
 let intakeReviewTimer = null
+let intakeReviewResolver = null
 
 function clearIntakeReviewTimer() {
   if (intakeReviewTimer) {
@@ -985,6 +1330,7 @@ function scheduleIntakeReviewDialog() {
   clearIntakeReviewTimer()
   intakeReviewDelayElapsed.value = false
   intakeReviewPromptShown.value = false
+  intakeReviewPending.value = false
   intakeReviewTimer = setTimeout(() => {
     intakeReviewDelayElapsed.value = true
     maybeOpenIntakeReviewDialog()
@@ -992,53 +1338,123 @@ function scheduleIntakeReviewDialog() {
 }
 
 function maybeOpenIntakeReviewDialog() {
-  if (!intakeReviewDelayElapsed.value || intakeReviewPromptShown.value) return
-  const hasCandidate = Object.values(intakePromptFields.value).some(Boolean)
-  if (!hasCandidate) return
-  intakeReviewDialogOpen.value = true
-  intakeReviewPromptShown.value = true
-}
-
-function dismissIntakeReviewDialog() {
-  intakeReviewDialogOpen.value = false
-}
-
-function syncPromptField(fieldKey, value) {
-  const normalized = String(value || '').trim()
-  if (fieldKey === 'sponsorCompany') {
-    companyForm.value.Company_Name = normalized
-    markAutofilled('company', 'Company_Name')
-    syncActiveDraft()
+  if (!intakeReviewPending.value || !intakeReviewDelayElapsed.value || intakeReviewPromptShown.value) return
+  const nextFields = buildIntakeReviewFieldsFromForms()
+  const hasCandidate = Object.values(nextFields).some((value) => String(value || '').trim())
+  if (!hasCandidate) {
+    resolveIntakeReviewGate()
     return
   }
-  if (fieldKey === 'relatedFund') {
+  intakeReviewFields.value = nextFields
+  intakeReviewVerified.value = createDefaultIntakeReviewVerified()
+  intakeReviewDialogOpen.value = true
+  intakeReviewPromptShown.value = true
+  processingMessage.value = 'Waiting for your confirmation on key metadata...'
+}
+
+function resolveIntakeReviewGate() {
+  intakeReviewPending.value = false
+  const resolver = intakeReviewResolver
+  intakeReviewResolver = null
+  if (resolver) resolver()
+}
+
+function confirmIntakeReviewDialog() {
+  if (!intakeReviewReadyToContinue.value) return
+  intakeReviewDialogOpen.value = false
+  processingMessage.value = 'Continuing extraction...'
+  resolveIntakeReviewGate()
+}
+
+function updateIntakeReviewField(fieldKey, value) {
+  intakeReviewFields.value = {
+    ...intakeReviewFields.value,
+    [fieldKey]: String(value || '').trim(),
+  }
+  intakeReviewVerified.value = {
+    ...intakeReviewVerified.value,
+    [fieldKey]: false,
+  }
+  intakeLockedFields.value = {
+    ...intakeLockedFields.value,
+    [fieldKey]: false,
+  }
+  intakeFieldSources.value = {
+    ...intakeFieldSources.value,
+    [fieldKey]: '',
+  }
+  syncActiveDraft()
+}
+
+function verifyIntakeReviewField(fieldKey) {
+  const normalized = String(intakeReviewFields.value[fieldKey] || '').trim()
+  if (!normalized) return
+  let sourceLabel = 'User verified prompt suggestion'
+  intakeLockedFields.value = {
+    ...intakeLockedFields.value,
+    [fieldKey]: true,
+  }
+  if (fieldKey === 'sponsorCompany') {
+    companyForm.value.Company_Name = normalized
+    const existingCompany = findCompanyByName(normalized)
+    if (existingCompany?.id) {
+      form.value.company_id = existingCompany.id
+      companyLinkMode.value = 'existing'
+      companySourceChoice.value = 'input'
+      sourceLabel = 'Selected existing company match'
+    }
+    markAutofilled('company', 'Company_Name')
+  } else if (fieldKey === 'relatedFund') {
     form.value.Venture_Oppty_Name = normalized
     form.value.kind = 'fund'
     markAutofilled('opportunity', 'Venture_Oppty_Name')
-    syncActiveDraft()
-    return
-  }
-  if (fieldKey === 'relatedRound') {
+  } else if (fieldKey === 'relatedRound') {
     form.value.Round_Stage = normalized
     if (!String(form.value.Venture_Oppty_Name || '').trim()) {
       form.value.Venture_Oppty_Name = normalized
     }
     form.value.kind = 'round'
     markAutofilled('opportunity', 'Round_Stage')
-    syncActiveDraft()
-    return
-  }
-  if (fieldKey === 'relatedContact') {
-    contactForm.value.Name = normalized
+  } else if (fieldKey === 'relatedContact') {
+    const existingContact = findContactByPromptLabel(normalized)
+    if (existingContact?.id) {
+      contactForm.value = buildContactFormFromSource(existingContact)
+      contactLinkMode.value = 'existing'
+      sourceLabel = 'Selected existing contact match'
+    } else {
+      contactForm.value.Name = normalized
+    }
     markAutofilled('contact', 'Name')
-    syncActiveDraft()
-    return
-  }
-  if (fieldKey === 'website') {
+  } else if (fieldKey === 'documentType') {
+    sourceLabel = 'Confirmed inferred document type'
+    syncActiveDraft({
+      inferredDocumentType: normalized,
+    })
+  } else if (fieldKey === 'website') {
     companyForm.value.Website = normalized
     markAutofilled('company', 'Website')
-    syncActiveDraft()
   }
+  intakeReviewVerified.value = {
+    ...intakeReviewVerified.value,
+    [fieldKey]: true,
+  }
+  intakeFieldSources.value = {
+    ...intakeFieldSources.value,
+    [fieldKey]: sourceLabel,
+  }
+  syncActiveDraft()
+}
+
+async function waitForIntakeReviewConfirmation() {
+  const nextFields = buildIntakeReviewFieldsFromForms()
+  const hasCandidate = Object.values(nextFields).some((value) => String(value || '').trim())
+  if (!hasCandidate) return
+  intakeReviewPending.value = true
+  maybeOpenIntakeReviewDialog()
+  if (!intakeReviewPending.value) return
+  await new Promise((resolve) => {
+    intakeReviewResolver = resolve
+  })
 }
 
 async function loadCompanies() {
@@ -1066,8 +1482,8 @@ async function loadContacts() {
 async function loadExistingOpportunityNames() {
   if (!bridge.value?.opportunities?.list) return
   const result = await bridge.value.opportunities.list()
-  const opportunities = Array.isArray(result?.opportunities) ? result.opportunities : []
-  existingOpportunityNames.value = opportunities
+  opportunities.value = Array.isArray(result?.opportunities) ? result.opportunities : []
+  existingOpportunityNames.value = opportunities.value
     .map((row) => normalizeOpportunityName(row?.opportunity_name || row?.Venture_Oppty_Name))
     .filter(Boolean)
 }
@@ -1251,14 +1667,18 @@ async function findExistingDroppedFiles(files = []) {
   return { existingNames, bothExist }
 }
 
-function applySuggestedValues(suggested = {}) {
+function applyPrimarySuggestedValues(suggested = {}) {
   for (const [key, value] of Object.entries(suggested?.opportunity || {})) {
     if (!Object.prototype.hasOwnProperty.call(form.value, key)) continue
+    if (key === 'Venture_Oppty_Name' && intakeLockedFields.value.relatedFund) continue
+    if (key === 'Round_Stage' && intakeLockedFields.value.relatedRound) continue
     form.value[key] = value == null ? '' : stripHumanVerify(value)
     markAutofilled('opportunity', key)
   }
   for (const [key, value] of Object.entries(suggested?.company || {})) {
     if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
+    if (key === 'Company_Name' && intakeLockedFields.value.sponsorCompany) continue
+    if (key === 'Website' && intakeLockedFields.value.website) continue
     companyForm.value[key] =
       key === 'Status'
         ? normalizeCompanyStatusValue(value)
@@ -1271,13 +1691,18 @@ function applySuggestedValues(suggested = {}) {
   }
   for (const [key, value] of Object.entries(suggested?.contact || {})) {
     if (!Object.prototype.hasOwnProperty.call(contactForm.value, key)) continue
+    if (key === 'Name' && intakeLockedFields.value.relatedContact) continue
     contactForm.value[key] = value == null ? '' : stripHumanVerify(value)
     markAutofilled('contact', key)
   }
+  syncActiveDraft({ stage: 'Matching' })
+}
+
+function applySecondarySuggestedValues(suggested = {}) {
   generatedNotes.value = Array.isArray(suggested?.notes) ? suggested.notes : []
   generatedTasks.value = Array.isArray(suggested?.tasks) ? suggested.tasks : []
   assistantProposal.value = suggested?.assistant || {}
-  syncActiveDraft({ stage: 'Matching' })
+  syncActiveDraft({ stage: 'Ready for Review' })
 }
 
 function applyMatchedExistingCompany(match = null) {
@@ -1367,11 +1792,13 @@ async function processDroppedFiles(files = []) {
       throw new Error('No generated markdown files found for extraction.')
     }
     const preview = await bridge.value.autofill.previewFromFiles({ filePaths: markdownPaths })
-    applySuggestedValues(preview?.suggested || {})
+    deferredSuggestionPayload.value = preview?.suggested || {}
+    applyPrimarySuggestedValues(deferredSuggestionPayload.value)
     applyMatchedExistingCompany(preview?.companyMatch || null)
-    maybeOpenIntakeReviewDialog()
+    await waitForIntakeReviewConfirmation()
+    applySecondarySuggestedValues(deferredSuggestionPayload.value)
+    deferredSuggestionPayload.value = null
     updateStatusForAllFiles({ extractionStatus: 'completed' })
-    syncActiveDraft({ stage: 'Ready for Review' })
 
     processingMessage.value = 'Files processed successfully.'
   } catch (e) {
