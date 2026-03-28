@@ -1028,12 +1028,6 @@ const releasedMarkdownChunkRows = computed(() =>
     })),
 )
 
-const usedMetadataClaimRows = computed(() =>
-  [...(activeDraft.value?.usedMetadataClaims || [])].sort((left, right) =>
-    String(right?.updated_at || '').localeCompare(String(left?.updated_at || '')),
-  ),
-)
-
 const intakeProgressMetrics = computed(() => {
   const rows = ingestStatusRows.value
   const totalFiles = rows.length
@@ -1053,14 +1047,12 @@ const intakeProgressMetrics = computed(() => {
     if (['completed', 'existing'].includes(String(row?.extractionStatus || ''))) completedSteps += 1
   }
 
-  const chunkBonus = releasedMarkdownChunkRows.value.length > 0 ? 0.05 : 0
-  const rawValue = totalSteps ? completedSteps / totalSteps + chunkBonus : 0
+  const rawValue = totalSteps ? completedSteps / totalSteps : 0
   const value = Math.min(1, rawValue)
 
   let label = 'Queued'
   if (processingDrop.value) label = processingMessage.value || 'Processing dropped files'
   else if (value >= 1) label = 'Ready for review'
-  else if (releasedMarkdownChunkRows.value.length) label = 'Markdown released for early extraction'
 
   return {
     value,
@@ -1089,20 +1081,16 @@ const intakeProgressFlags = computed(() => [
     key: 'extract',
     label: 'Early Extract',
     percent: 64,
-    active:
-      releasedMarkdownChunkRows.value.length > 0 ||
-      ingestStatusRows.value.some((row) => ['completed', 'existing'].includes(String(row?.extractionStatus || ''))),
+    active: ingestStatusRows.value.some((row) => ['completed', 'existing'].includes(String(row?.extractionStatus || ''))),
   },
   {
     key: 'review',
     label: 'Review',
     percent: 88,
-    active: Boolean(usedMetadataClaimRows.value.length) || intakeProgressValue.value >= 1,
+    active: intakeProgressValue.value >= 1,
   },
 ])
-const showIntakeProgressBar = computed(
-  () => ingestStatusRows.value.length > 0 || releasedMarkdownChunkRows.value.length > 0 || usedMetadataClaimRows.value.length > 0,
-)
+const showIntakeProgressBar = computed(() => ingestStatusRows.value.length > 0)
 
 const intakeDocumentTypeOptions = [
   'Pitch Deck',
