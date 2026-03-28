@@ -18,7 +18,12 @@
 
       <div class="ec-breadcrumb-bar">
         <div class="ec-breadcrumb-primary">
-          <q-breadcrumbs class="ec-breadcrumbs" separator="chevron_right">
+          <div v-if="isHomeRoute" class="ec-breadcrumb-title-block">
+            <div class="ec-breadcrumb-title">Home</div>
+            <div class="ec-breadcrumb-title-caption">Workspace cockpit</div>
+          </div>
+
+          <q-breadcrumbs v-else class="ec-breadcrumbs" separator="chevron_right">
             <template #separator>
               <q-icon name="chevron_right" size="16px" color="grey-5" />
             </template>
@@ -396,6 +401,7 @@ const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.val
 const drawerUserLabel = computed(() =>
   hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Set user',
 )
+const isHomeRoute = computed(() => String(route.name || '') === 'home')
 const breadcrumbItems = computed(() => {
   const currentRouteName = String(route.name || '')
 
@@ -1037,13 +1043,14 @@ function navigateBack() {
 .ec-breadcrumb-primary {
   display: flex;
   min-width: 0;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
 }
 
 .ec-breadcrumb-back {
   color: var(--ds-color-text-navigation);
   flex: 0 0 auto;
+  margin-bottom: 2px;
 }
 
 .ec-breadcrumbs {
@@ -1069,6 +1076,30 @@ function navigateBack() {
   color: var(--ds-color-text-header) !important;
   font-weight: var(--ds-font-weight-medium) !important;
   pointer-events: none;
+}
+
+.ec-breadcrumb-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ec-breadcrumb-title {
+  font-family: var(--font-title);
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.08em;
+  color: var(--ds-color-text-primary);
+}
+
+.ec-breadcrumb-title-caption {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6b7280;
 }
 
 .ec-breadcrumbs__placeholder {
