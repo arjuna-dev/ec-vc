@@ -566,6 +566,12 @@
                   label="Slide / Section"
                   :options="previewSectionOptions"
                 />
+                <div
+                  v-if="previewState.kind === 'pdf' && previewSectionOptions.length === 1 && previewSectionOptions[0]?.label === 'Document Review'"
+                  class="text-caption text-grey-6 q-mt-sm"
+                >
+                  Slide-level mappings are not available for this file yet, so this review falls back to document-wide markdown.
+                </div>
               </div>
 
               <div class="artifact-preview-sidebar__section">
@@ -910,13 +916,11 @@ const previewMarkdownSections = computed(() => {
     }))
   }
 
-  if (previewState.value.kind === 'pdf') return []
-
   if (!previewMarkdownContent.value.trim()) return []
   return [
     {
       key: previewMarkdownArtifactId.value || 'markdown',
-      title: 'Full Markdown',
+      title: previewState.value.kind === 'pdf' ? 'Document Review' : 'Full Markdown',
       text: previewMarkdownContent.value,
       used: previewUsedClaimRows.value.length > 0,
       ownedFields: previewUsedClaimRows.value.map((claim) => claim.field_key).filter(Boolean),
