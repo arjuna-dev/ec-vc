@@ -4,10 +4,6 @@
       <div class="home-dashboard__intro-copy">
         <div class="home-dashboard__eyebrow">Workspace cockpit</div>
         <h1 class="home-dashboard__title">Home</h1>
-        <p class="home-dashboard__subtitle">
-          A live dashboard for the workspace, pulling together companies, contacts,
-          opportunities, projects, artifacts, notes, tasks, and assistants.
-        </p>
       </div>
 
       <div class="home-dashboard__intro-actions">
