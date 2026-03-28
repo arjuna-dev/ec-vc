@@ -273,86 +273,83 @@
               class="col-12 col-sm-6 col-lg-4"
             >
               <q-card flat bordered class="pipeline-card full-height">
-                <q-card-section class="pipeline-card__hero">
-                  <div class="pipeline-card__hero-main">
-                    <figure class="pipeline-card__portrait">
-                      <div class="pipeline-card__portrait-shell">
-                        <div class="pipeline-card__portrait-badge">
-                          <img :src="buildAvatarImage(getPipelineCardTitle(row))" :alt="getPipelineCardTitle(row) || 'Project avatar'" />
-                        </div>
-                      </div>
-                    </figure>
+                <q-card-section class="pipeline-card__shell">
+                  <aside class="pipeline-card__stage-panel">
+                    <div class="pipeline-card__summary-label">Stages</div>
 
-                    <div class="pipeline-card__hero-side">
-                      <div class="pipeline-card__hero-top">
-                        <div class="pipeline-card__hero-copy">
-                          <div class="pipeline-card__eyebrow">Pipeline template</div>
-                          <div class="pipeline-card__title">{{ getPipelineCardTitle(row) }}</div>
-                          <div class="pipeline-card__subtitle">{{ getPipelineCardSubtitle(row) }}</div>
+                    <div v-if="getPipelineCardStages(row).length" class="pipeline-card__stage-map">
+                      <div
+                        v-for="(stage, stageIndex) in getPipelineCardStages(row)"
+                        :key="`${row.pipeline_id}-${stageIndex}-${stage?.name || 'stage'}`"
+                        class="pipeline-card__stage-stop"
+                      >
+                        <div class="pipeline-card__stage-chip">
+                          <div class="pipeline-card__stage-number">{{ stageIndex + 1 }}</div>
+                          <div class="pipeline-card__stage-name">
+                            {{ formatPipelineStageName(stage?.name) || `Stage ${stageIndex + 1}` }}
+                          </div>
                         </div>
-
-                        <q-checkbox
-                          :model-value="isSelected(row)"
-                          :disable="loading"
-                          color="dark"
-                          @update:model-value="toggleRowSelection(row, $event)"
+                        <div
+                          v-if="stageIndex < getPipelineCardStages(row).length - 1"
+                          class="pipeline-card__stage-connector"
+                          aria-hidden="true"
                         />
                       </div>
-
                     </div>
-                  </div>
-                </q-card-section>
 
-                <q-card-section class="pipeline-card__summary">
-                  <div class="pipeline-card__summary-label">Stages</div>
+                    <div v-if="!getPipelineCardStages(row).length" class="pipeline-card__summary-empty">
+                      No stages mapped yet.
+                    </div>
+                  </aside>
 
-                  <div v-if="getPipelineCardStages(row).length" class="pipeline-card__stage-map">
-                    <div
-                      v-for="(stage, stageIndex) in getPipelineCardStages(row)"
-                      :key="`${row.pipeline_id}-${stageIndex}-${stage?.name || 'stage'}`"
-                      class="pipeline-card__stage-stop"
-                    >
-                      <div class="pipeline-card__stage-chip">
-                        <div class="pipeline-card__stage-number">{{ stageIndex + 1 }}</div>
-                        <div class="pipeline-card__stage-name">
-                          {{ formatPipelineStageName(stage?.name) || `Stage ${stageIndex + 1}` }}
+                  <div class="pipeline-card__main">
+                    <div class="pipeline-card__hero-top">
+                      <div class="pipeline-card__hero-copy">
+                        <div class="pipeline-card__title">{{ getPipelineCardTitle(row) }}</div>
+                        <div class="pipeline-card__meta-stack">
+                          <div class="pipeline-card__meta-row">
+                            <span class="pipeline-card__meta-label">Owner</span>
+                            <span class="pipeline-card__meta-value">{{ getPipelineOwnerLabel(row) }}</span>
+                          </div>
+                          <div class="pipeline-card__meta-row">
+                            <span class="pipeline-card__meta-label">Assigned Team</span>
+                            <span class="pipeline-card__meta-value">{{ getPipelineTeamLabel(row) }}</span>
+                          </div>
                         </div>
                       </div>
-                      <div
-                        v-if="stageIndex < getPipelineCardStages(row).length - 1"
-                        class="pipeline-card__stage-connector"
-                        aria-hidden="true"
+
+                      <q-checkbox
+                        :model-value="isSelected(row)"
+                        :disable="loading"
+                        color="dark"
+                        @update:model-value="toggleRowSelection(row, $event)"
                       />
                     </div>
-                  </div>
 
-                  <div v-if="!getPipelineCardStages(row).length" class="pipeline-card__summary-empty">
-                    No stages mapped yet.
+                    <q-card-actions align="between" class="pipeline-card__footer">
+                      <div class="pipeline-card__footer-actions">
+                        <q-btn
+                          flat
+                          round
+                          icon="visibility"
+                          class="pipeline-card__icon-action"
+                          :disable="loading"
+                          @click="openDatabook(row)"
+                        />
+                      </div>
+                      <div class="pipeline-card__footer-actions">
+                        <q-btn
+                          flat
+                          round
+                          icon="delete"
+                          class="pipeline-card__icon-action"
+                          :disable="loading || row.pipeline_id === 'pipeline_default'"
+                          @click="confirmDelete(row)"
+                        />
+                      </div>
+                    </q-card-actions>
                   </div>
                 </q-card-section>
-
-                <q-card-actions align="between" class="pipeline-card__footer">
-                  <div class="pipeline-card__footer-actions">
-                    <q-btn
-                      flat
-                      round
-                      icon="visibility"
-                      class="pipeline-card__icon-action"
-                      :disable="loading"
-                      @click="openDatabook(row)"
-                    />
-                  </div>
-                  <div class="pipeline-card__footer-actions">
-                    <q-btn
-                      flat
-                      round
-                      icon="delete"
-                      class="pipeline-card__icon-action"
-                      :disable="loading || row.pipeline_id === 'pipeline_default'"
-                      @click="confirmDelete(row)"
-                    />
-                  </div>
-                </q-card-actions>
               </q-card>
             </div>
           </div>
@@ -406,6 +403,8 @@ const hasBridge = computed(
 )
 
 const pipelines = ref([])
+const pipelineOwnerById = ref({})
+const pipelineTeamById = ref({})
 const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
@@ -625,14 +624,6 @@ function stageSummary(row) {
     .join(', ')
 }
 
-function getPipelineCardSubtitle(row) {
-  if (row?.pipeline_id === 'pipeline_default') {
-    return 'User Pipeline'
-  }
-
-  return normalizePipelineValue(row?.dir_name) || 'Pipeline workflow not defined yet'
-}
-
 function getPipelineCardTitle(row) {
   if (row?.pipeline_id === 'pipeline_default') {
     return 'User Pipeline'
@@ -645,6 +636,17 @@ function getPipelineCardStages(row) {
   return parsedStages(row).filter((stage) => normalizePipelineValue(stage?.name))
 }
 
+function getPipelineOwnerLabel(row) {
+  const pipelineId = String(row?.pipeline_id || '').trim()
+  return pipelineOwnerById.value[pipelineId] || 'Unassigned'
+}
+
+function getPipelineTeamLabel(row) {
+  const pipelineId = String(row?.pipeline_id || '').trim()
+  const names = Array.isArray(pipelineTeamById.value[pipelineId]) ? pipelineTeamById.value[pipelineId] : []
+  return names.length ? names.join(', ') : 'No team assigned'
+}
+
 function formatPipelineStageName(name) {
   const cleaned = String(name || '')
     .replace(/^\s*\d+[\s._-]*/g, '')
@@ -653,45 +655,6 @@ function formatPipelineStageName(name) {
     .trim()
 
   return cleaned
-}
-
-function buildAvatarImage(label) {
-  const text = String(label || 'Pipeline').trim()
-  const initials = text
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase?.() || '')
-    .join('') || 'PI'
-
-  const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
-  const bg = palette[Math.abs(hashString(text)) % palette.length]
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
-      <rect width="112" height="112" rx="24" fill="${bg}" />
-      <text x="56" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff">${escapeSvg(initials)}</text>
-    </svg>
-  `.trim()
-
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-}
-
-function hashString(value) {
-  let hash = 0
-  for (const char of String(value)) {
-    hash = (hash << 5) - hash + char.charCodeAt(0)
-    hash |= 0
-  }
-  return hash
-}
-
-function escapeSvg(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
 }
 
 function exportPipelinesCsv() {
@@ -730,14 +693,67 @@ async function loadPipelines() {
   try {
     const result = await bridge.value.pipelines.list()
     pipelines.value = result?.pipelines || []
+    await loadPipelineTeamMetadata()
     normalizeSelectedRows()
   } catch (e) {
     error.value = e?.message || String(e)
     pipelines.value = []
+    pipelineOwnerById.value = {}
+    pipelineTeamById.value = {}
     normalizeSelectedRows()
   } finally {
     loading.value = false
   }
+}
+
+async function loadPipelineTeamMetadata() {
+  if (!bridge.value?.db?.query) {
+    pipelineOwnerById.value = {}
+    pipelineTeamById.value = {}
+    return
+  }
+
+  const ownerRows = await bridge.value.db.query(
+    `
+    SELECT
+      pt.project_id AS pipeline_id,
+      owner.Name AS owner_name
+    FROM Project_Team pt
+    LEFT JOIN Contacts owner ON owner.id = pt.Project_Team_Owner
+  `,
+  )
+
+  const teamRows = await bridge.value.db.query(
+    `
+    SELECT
+      cppr.to_id AS pipeline_id,
+      contact.Name AS contact_name
+    FROM Contacts_Projects_project_roles cppr
+    LEFT JOIN Contacts contact ON contact.id = cppr.from_id
+  `,
+  )
+
+  const nextOwnerById = {}
+  for (const row of Array.isArray(ownerRows) ? ownerRows : []) {
+    const pipelineId = String(row?.pipeline_id || '').trim()
+    const ownerName = normalizePipelineValue(row?.owner_name)
+    if (!pipelineId || !ownerName) continue
+    nextOwnerById[pipelineId] = ownerName
+  }
+
+  const nextTeamById = {}
+  for (const row of Array.isArray(teamRows) ? teamRows : []) {
+    const pipelineId = String(row?.pipeline_id || '').trim()
+    const contactName = normalizePipelineValue(row?.contact_name)
+    if (!pipelineId || !contactName) continue
+    if (!Array.isArray(nextTeamById[pipelineId])) nextTeamById[pipelineId] = []
+    if (!nextTeamById[pipelineId].includes(contactName) && nextOwnerById[pipelineId] !== contactName) {
+      nextTeamById[pipelineId].push(contactName)
+    }
+  }
+
+  pipelineOwnerById.value = nextOwnerById
+  pipelineTeamById.value = nextTeamById
 }
 
 async function togglePipeline(row) {
@@ -1336,68 +1352,34 @@ watch(displayRows, () => {
   overflow: hidden;
 }
 
-.pipeline-card__hero {
+.pipeline-card__shell {
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr);
+  flex: 1 1 auto;
+  gap: 0;
   padding: 0;
 }
 
-.pipeline-card__hero-main {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 224px;
-  height: 248px;
-}
-
-.pipeline-card__portrait {
-  position: relative;
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
+.pipeline-card__stage-panel {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 16px;
   background:
     radial-gradient(circle at 26% 24%, rgba(235, 255, 90, 0.16), transparent 28%),
     radial-gradient(circle at 74% 76%, rgba(38, 71, 255, 0.12), transparent 32%),
     linear-gradient(180deg, #fdfcf8 0%, #f5f2ea 100%);
+  border-right: 1px solid rgba(17, 17, 17, 0.08);
 }
 
-.pipeline-card__portrait-shell {
+.pipeline-card__main {
   display: flex;
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.pipeline-card__portrait-badge {
-  display: flex;
-  width: clamp(124px, 48%, 152px);
-  height: clamp(124px, 48%, 152px);
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 999px;
-  overflow: hidden;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 18px 40px rgba(17, 17, 17, 0.16);
-}
-
-.pipeline-card__portrait-badge img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.pipeline-card__hero-side {
-  display: grid;
-  grid-template-rows: auto auto;
-  align-content: start;
-  gap: 6px;
   min-width: 0;
-  padding: 12px 16px 12px 12px;
-  background: rgba(255, 255, 255, 0.22);
-  overflow: hidden;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 16px;
 }
 
 .pipeline-card__hero-top {
@@ -1411,10 +1393,9 @@ watch(displayRows, () => {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
 }
 
-.pipeline-card__eyebrow,
 .pipeline-card__summary-label {
   color: #737373;
   font-family: var(--font-body);
@@ -1433,17 +1414,36 @@ watch(displayRows, () => {
   line-height: 0.96;
 }
 
-.pipeline-card__subtitle {
+.pipeline-card__meta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pipeline-card__meta-row {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pipeline-card__meta-label {
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pipeline-card__meta-value {
   color: #4b4b4b;
   font-family: var(--font-body);
   font-size: var(--text-xs---regular);
   font-weight: var(--font-weight-regular);
   line-height: 18px;
   text-wrap: balance;
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
 }
 
 .pipeline-card__footer-actions {
@@ -1452,28 +1452,14 @@ watch(displayRows, () => {
   gap: 6px;
 }
 
-.pipeline-card__summary {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 16px;
-  margin: 20px 20px 0;
-  padding: 16px 18px 18px;
-  background: rgba(255, 255, 255, 0.74);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 18px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
-  backdrop-filter: blur(18px);
-}
-
 .pipeline-card__stage-map {
   display: flex;
-  max-height: 240px;
+  flex: 1 1 auto;
   flex-direction: column;
   align-items: flex-start;
   gap: 0;
   overflow-y: auto;
-  padding: 4px 2px 0;
+  padding: 2px 2px 0;
   scrollbar-width: thin;
 }
 
@@ -1546,7 +1532,7 @@ watch(displayRows, () => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 20px 20px;
+  padding: 0;
 }
 
 .pipeline-card__icon-action {
@@ -1600,29 +1586,17 @@ watch(displayRows, () => {
     min-height: 98px;
   }
 
-  .pipeline-card__hero-main {
+  .pipeline-card__shell {
     grid-template-columns: 1fr;
-    height: auto;
   }
 
-  .pipeline-card__portrait {
-    min-height: 156px;
+  .pipeline-card__stage-panel {
+    border-right: 0;
+    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
   }
 
-  .pipeline-card__hero-side {
-    gap: 12px;
-    padding: 14px;
-  }
-
-  .pipeline-card__summary,
-  .pipeline-card__footer {
-    margin-right: 16px;
-    margin-left: 16px;
-  }
-
-  .pipeline-card__footer {
-    padding-right: 0;
-    padding-left: 0;
+  .pipeline-card__main {
+    padding: 16px;
   }
 }
 </style>
