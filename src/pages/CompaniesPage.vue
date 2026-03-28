@@ -81,30 +81,7 @@
         </div>
 
         <div class="companies-toolbar">
-          <div class="companies-toolbar__left">
-            <q-input
-              v-model="searchQuery"
-              dense
-              outlined
-              borderless
-              class="companies-toolbar__search"
-              placeholder="Filter companies..."
-              :disable="loading"
-            />
-
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="refresh"
-              label="Refresh"
-              class="companies-toolbar__button"
-              :loading="loading"
-              @click="loadCompanies"
-            />
-          </div>
-
-          <div class="companies-toolbar__right">
+          <div class="companies-toolbar__block companies-toolbar__block--view">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -115,6 +92,31 @@
               class="companies-toolbar__toggle"
               :disable="loading"
               :options="viewOptions"
+            />
+          </div>
+
+          <div class="companies-toolbar__block companies-toolbar__block--search">
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="companies-toolbar__search"
+              placeholder="Filter companies..."
+              :disable="loading"
+            />
+          </div>
+
+          <div class="companies-toolbar__block companies-toolbar__block--actions">
+            <q-btn
+              dense
+              outline
+              no-caps
+              icon="refresh"
+              label="Refresh"
+              class="companies-toolbar__button"
+              :loading="loading"
+              @click="loadCompanies"
             />
           </div>
         </div>
@@ -1271,36 +1273,27 @@ watch(displayRows, () => {
 }
 
 .companies-toolbar {
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: space-between;
-}
-
-.companies-toolbar__left,
-.companies-toolbar__right {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(280px, 1fr) auto;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.companies-toolbar__left {
-  flex: 1 1 720px;
+  gap: 12px;
   min-width: 0;
 }
 
-.companies-toolbar__right {
-  flex: 0 0 auto;
-  margin-left: auto;
+.companies-toolbar__block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.companies-toolbar__block--search {
+  justify-content: stretch;
 }
 
 .companies-toolbar__search {
-  flex: 1 1 300px;
-  min-width: 220px;
-  width: 300px;
-  max-width: 100%;
+  width: 100%;
+  min-width: 0;
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -1732,23 +1725,16 @@ watch(displayRows, () => {
   }
 
   .companies-toolbar {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     align-items: stretch;
   }
 
-  .companies-toolbar__left,
-  .companies-toolbar__right {
-    flex: none;
+  .companies-toolbar__block {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .companies-toolbar__right {
-    margin-left: 0;
   }
 
   .companies-toolbar__search {
-    flex: none;
     width: 100%;
   }
 
