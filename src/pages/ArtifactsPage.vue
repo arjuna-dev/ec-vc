@@ -218,14 +218,22 @@
                 </div>
               </div>
               <div class="col-auto">
-                <q-chip
-                  dense
-                  square
-                  :color="artifactNeedsAttention(group.primaryArtifact) ? 'amber-2' : 'green-1'"
-                  :text-color="artifactNeedsAttention(group.primaryArtifact) ? 'amber-10' : 'green-10'"
-                >
-                  {{ artifactStatusLabel(group.primaryArtifact) }}
-                </q-chip>
+                <div class="artifact-card__header-controls">
+                  <q-chip
+                    dense
+                    square
+                    :color="artifactNeedsAttention(group.primaryArtifact) ? 'amber-2' : 'green-1'"
+                    :text-color="artifactNeedsAttention(group.primaryArtifact) ? 'amber-10' : 'green-10'"
+                  >
+                    {{ artifactStatusLabel(group.primaryArtifact) }}
+                  </q-chip>
+                  <q-checkbox
+                    :model-value="isSelected(group.primaryArtifact)"
+                    :disable="loading || savingProperties"
+                    color="dark"
+                    @update:model-value="toggleRowSelection(group.primaryArtifact, $event)"
+                  />
+                </div>
               </div>
             </div>
           </q-card-section>
@@ -1599,6 +1607,25 @@ async function loadRegions() {
 function normalizeSelectedRows() {
   const activeIds = new Set(displayArtifactRows.value.map((row) => row.artifact_id))
   selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.artifact_id))
+}
+
+function isSelected(row) {
+  const rowId = String(row?.artifact_id || '').trim()
+  if (!rowId) return false
+  return selectedRows.value.some((selectedRow) => String(selectedRow?.artifact_id || '').trim() === rowId)
+}
+
+function toggleRowSelection(row, shouldSelect) {
+  const rowId = String(row?.artifact_id || '').trim()
+  if (!rowId) return
+  if (shouldSelect) {
+    if (isSelected(row)) return
+    selectedRows.value = [...selectedRows.value, row]
+    return
+  }
+  selectedRows.value = selectedRows.value.filter(
+    (selectedRow) => String(selectedRow?.artifact_id || '').trim() !== rowId,
+  )
 }
 
 function parseDateValue(value) {
@@ -3060,6 +3087,13 @@ watch(displayArtifactRows, () => {
 
 .artifact-card__title-button:hover {
   color: #2563eb;
+}
+
+.artifact-card__header-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
 }
 
 .artifact-card__body {

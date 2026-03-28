@@ -283,18 +283,11 @@
                           </div>
                         </div>
 
-                        <q-btn
-                          round
-                          dense
-                          size="sm"
-                          unelevated
-                          no-caps
-                          class="contact-card__select-button"
-                          :class="{ 'contact-card__select-button--active': isSelected(row) }"
-                          :icon="isSelected(row) ? 'check' : 'add'"
+                        <q-checkbox
+                          :model-value="isSelected(row)"
                           :disable="loading"
-                          :aria-pressed="isSelected(row) ? 'true' : 'false'"
-                          @click.stop="toggleRowSelection(row)"
+                          color="dark"
+                          @update:model-value="toggleRowSelection(row, $event)"
                         />
                       </div>
 
@@ -1723,28 +1716,6 @@ watch(displayRows, () => {
   font-weight: var(--font-weight-regular);
   line-height: 18px;
   text-wrap: balance;
-}
-
-.contact-card__select-button {
-  position: relative;
-  z-index: 2;
-  cursor: pointer;
-  margin-right: -2px;
-  margin-top: 0;
-  color: #111;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(17, 17, 17, 0.14);
-  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.08);
-}
-
-.contact-card__select-button :deep(.q-btn__content) {
-  min-width: 0;
-}
-
-.contact-card__select-button--active {
-  color: #fff;
-  background: #111;
-  border-color: #111;
 }
 
 .contact-card__pill-row,
