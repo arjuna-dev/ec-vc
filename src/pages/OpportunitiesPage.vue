@@ -99,9 +99,13 @@
               outlined
               borderless
               class="opportunities-toolbar__search"
-              :placeholder="`Filter ${currentOpportunityMode.queryLabel}...`"
+              :placeholder="`Search ${currentOpportunityMode.queryLabel}...`"
               :disable="loading"
-            />
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
 
             <q-btn
               dense
@@ -124,21 +128,17 @@
               :disable="loading || displayRows.length === 0"
               @click="exportOpportunitiesCsv"
             />
-
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="flag"
-              label="Priority"
-              class="opportunities-toolbar__button"
-              :class="{ 'opportunities-toolbar__button--active': priorityMode }"
-              :disable="loading"
-              @click="togglePriorityMode"
-            />
           </div>
 
           <div class="opportunities-toolbar__right">
+            <B10Button
+              variant="primary"
+              size="small"
+              icon-start="add"
+              :label="addRecordLabel"
+              :disable="loading || !canCreateOpportunities"
+              @click="openCreateOpportunity"
+            />
             <q-btn-dropdown
               dense
               outline
@@ -168,16 +168,63 @@
                 </q-item>
               </q-list>
             </q-btn-dropdown>
-
-            <B10Button
-              variant="primary"
-              size="small"
-              icon-start="add"
-              :label="addRecordLabel"
-              :disable="loading || !canCreateOpportunities"
-              @click="openCreateOpportunity"
-            />
           </div>
+        </div>
+
+        <div class="opportunities-filterbar">
+          <div class="opportunities-filterbar__label">Gold filters</div>
+
+          <q-select
+            v-model="companyFilter"
+            dense
+            outlined
+            clearable
+            emit-value
+            map-options
+            class="opportunities-filterbar__control"
+            label="Sponsor Company"
+            :options="companyFilterOptions"
+            :disable="loading || companyFilterOptions.length === 0"
+          />
+
+          <q-select
+            v-model="stageFilter"
+            dense
+            outlined
+            clearable
+            emit-value
+            map-options
+            class="opportunities-filterbar__control"
+            label="Stage"
+            :options="stageFilterOptions"
+            :disable="loading || stageFilterOptions.length === 0"
+          />
+
+          <q-select
+            v-model="statusFilter"
+            dense
+            outlined
+            clearable
+            emit-value
+            map-options
+            class="opportunities-filterbar__control"
+            label="Status"
+            :options="statusFilterOptions"
+            :disable="loading || statusFilterOptions.length === 0"
+          />
+
+          <q-select
+            v-model="fundTypeFilter"
+            dense
+            outlined
+            clearable
+            emit-value
+            map-options
+            class="opportunities-filterbar__control"
+            label="Fund Type"
+            :options="fundTypeFilterOptions"
+            :disable="loading || fundTypeFilterOptions.length === 0"
+          />
         </div>
 
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>
@@ -397,7 +444,10 @@ const dialogOpen = ref(false)
 const dialogKind = ref('round')
 const kindFilter = ref(ALL_OPPORTUNITIES_FILTER)
 const searchQuery = ref('')
-const priorityMode = ref(false)
+const companyFilter = ref('')
+const stageFilter = ref('')
+const statusFilter = ref('')
+const fundTypeFilter = ref('')
 const viewMode = ref('card')
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
@@ -408,7 +458,7 @@ const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const kindFilterOptions = [
-  { label: 'All', value: ALL_OPPORTUNITIES_FILTER },
+  { label: 'All Funds/Rounds', value: ALL_OPPORTUNITIES_FILTER },
   { label: 'Funds', value: 'fund' },
   { label: 'Rounds', value: 'round' },
 ]
@@ -551,6 +601,21 @@ const viewOptions = [
   { label: 'Table', value: 'table', icon: 'view_list' },
 ]
 
+function uniqueOpportunityValues(resolver) {
+  return [...new Set(rows.value.map((row) => normalizeOpportunityValue(resolver(row))).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right))
+    .map((value) => ({ label: value, value }))
+}
+
+const companyFilterOptions = computed(() => uniqueOpportunityValues((row) => row?.Company_Name))
+const stageFilterOptions = computed(() =>
+  uniqueOpportunityValues((row) => row?.Round_Stage || row?.Pipeline_Stage),
+)
+const statusFilterOptions = computed(() =>
+  uniqueOpportunityValues((row) => row?.Raising_Status || row?.Pipeline_Status),
+)
+const fundTypeFilterOptions = computed(() => uniqueOpportunityValues((row) => row?.Fund_Type))
+
 const opportunitiesDashboard = computed(() => {
   const total = displayRows.value.length
   const summary = displayRows.value.reduce(
@@ -674,15 +739,24 @@ const displayRows = computed(() => {
     )
   }
 
-  if (priorityMode.value) {
-    items.sort((a, b) => {
-      const aSize = opportunityNumericSize(a)
-      const bSize = opportunityNumericSize(b)
-      if (aSize !== bSize) return bSize - aSize
-      return String(a?.opportunity_name || a?.Venture_Oppty_Name || '').localeCompare(
-        String(b?.opportunity_name || b?.Venture_Oppty_Name || ''),
-      )
-    })
+  if (companyFilter.value) {
+    items = items.filter((row) => normalizeOpportunityValue(row?.Company_Name) === companyFilter.value)
+  }
+
+  if (stageFilter.value) {
+    items = items.filter(
+      (row) => normalizeOpportunityValue(row?.Round_Stage || row?.Pipeline_Stage) === stageFilter.value,
+    )
+  }
+
+  if (statusFilter.value) {
+    items = items.filter(
+      (row) => normalizeOpportunityValue(row?.Raising_Status || row?.Pipeline_Status) === statusFilter.value,
+    )
+  }
+
+  if (fundTypeFilter.value) {
+    items = items.filter((row) => normalizeOpportunityValue(row?.Fund_Type) === fundTypeFilter.value)
   }
 
   return items
@@ -768,10 +842,6 @@ async function onImportFileSelected(event) {
   } finally {
     if (fileInput.value) fileInput.value.value = ''
   }
-}
-
-function togglePriorityMode() {
-  priorityMode.value = !priorityMode.value
 }
 
 async function loadOpportunities() {
@@ -1249,12 +1319,6 @@ watch(
   line-height: var(--ds-line-height-xs);
 }
 
-.opportunities-toolbar__button--active {
-  background: var(--ds-control-active-bg);
-  color: var(--ds-control-active-text);
-  border-color: var(--ds-control-active-border);
-}
-
 .opportunities-view-menu {
   min-width: 150px;
   background: var(--ds-control-surface);
@@ -1270,6 +1334,35 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.opportunities-filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-xl);
+}
+
+.opportunities-filterbar__label {
+  flex: 0 0 auto;
+  color: var(--ds-color-text-muted);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-medium);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: var(--ds-line-height-xs);
+  text-transform: uppercase;
+}
+
+.opportunities-filterbar__control {
+  flex: 1 1 180px;
+  min-width: 180px;
+  background: var(--ds-control-surface);
+  border-radius: var(--ds-control-radius);
 }
 
 .opportunities-empty-state {
@@ -1416,6 +1509,16 @@ watch(
 
   .opportunities-toolbar__search {
     flex: none;
+    width: 100%;
+  }
+
+  .opportunities-filterbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .opportunities-filterbar__control {
+    min-width: 0;
     width: 100%;
   }
 
