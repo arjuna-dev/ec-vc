@@ -482,15 +482,6 @@
             </div>
             <div class="col-auto">
               <q-btn
-                v-if="previewState.kind === 'pdf' && previewFocusStripHidden"
-                flat
-                dense
-                no-caps
-                icon="visibility"
-                label="Show Review Focus"
-                @click="void showPreviewFocusStripPanel()"
-              />
-              <q-btn
                 flat
                 dense
                 no-caps
@@ -506,51 +497,6 @@
 
           <q-card-section class="artifact-preview-dialog__body artifact-preview-dialog__body--split">
             <div class="artifact-preview-dialog__main">
-              <div
-                v-if="previewState.kind === 'pdf' && !previewFocusStripHidden"
-                class="artifact-preview-dialog__focus-strip"
-              >
-                <div class="artifact-preview-dialog__focus-copy">
-                  <div class="artifact-preview-dialog__focus-label">Review Focus</div>
-                  <div class="artifact-preview-dialog__focus-value">
-                    {{ previewSelectedFocusClaim?.field_label || 'Connected data item' }}
-                  </div>
-                </div>
-                <div class="artifact-preview-dialog__focus-tools">
-                  <q-btn
-                    flat
-                    dense
-                    no-caps
-                    icon="visibility_off"
-                    label="Hide"
-                    @click="previewFocusStripHidden = true"
-                  />
-                </div>
-                <div class="artifact-preview-dialog__focus-chips">
-                  <button
-                    v-if="!previewFocusClaimRows.length"
-                    type="button"
-                    class="artifact-preview-dialog__focus-chip artifact-preview-dialog__focus-chip--empty"
-                    @click="void ensurePreviewReviewDataLoaded()"
-                  >
-                    Load connected items
-                  </button>
-                  <button
-                    v-for="claim in previewFocusClaimRows"
-                    :key="claim.claim_id"
-                    type="button"
-                    class="artifact-preview-dialog__focus-chip"
-                    :class="{
-                      'artifact-preview-dialog__focus-chip--active':
-                        String(previewSelectedFocusClaimId || '') === String(claim.claim_id || ''),
-                    }"
-                    @click="selectPreviewFocusClaim(claim)"
-                  >
-                    {{ claim.field_label }}
-                  </button>
-                </div>
-              </div>
-
               <div v-if="previewLoading" class="artifact-preview-dialog__state">
                 <q-spinner color="primary" size="40px" />
                 <div class="text-subtitle2 q-mt-md">Loading artifact preview</div>
@@ -606,6 +552,69 @@
                 </div>
               </div>
 
+              <div class="artifact-preview-sidebar__section">
+                <div class="row items-center justify-between q-col-gutter-sm q-mb-sm">
+                  <div class="col">
+                    <div class="text-caption text-grey-7">Review Focus</div>
+                    <div class="text-body2">{{ previewSelectedFocusClaim?.field_label || 'Connected data items' }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      :icon="previewFocusStripHidden ? 'visibility' : 'visibility_off'"
+                      :aria-label="previewFocusStripHidden ? 'Show review focus' : 'Hide review focus'"
+                      @click="void togglePreviewFocusSidebarSection()"
+                    />
+                  </div>
+                </div>
+
+                <div v-if="!previewFocusStripHidden" class="column q-gutter-sm">
+                  <div v-if="previewFocusClaimRows.length" class="artifact-preview-sidebar__focus-chips">
+                    <button
+                      v-for="claim in previewFocusClaimRows"
+                      :key="claim.claim_id"
+                      type="button"
+                      class="artifact-preview-dialog__focus-chip"
+                      :class="{
+                        'artifact-preview-dialog__focus-chip--active':
+                          String(previewSelectedFocusClaimId || '') === String(claim.claim_id || ''),
+                      }"
+                      @click="selectPreviewFocusClaim(claim)"
+                    >
+                      {{ claim.field_label }}
+                    </button>
+                  </div>
+                  <div v-else class="row items-center justify-between q-col-gutter-sm">
+                    <div class="col text-caption text-grey-6">
+                      No connected data items are loaded for this review yet.
+                    </div>
+                    <div class="col-auto">
+                      <q-btn
+                        flat
+                        dense
+                        no-caps
+                        icon="restart_alt"
+                        label="Load connected items"
+                        @click="void ensurePreviewReviewDataLoaded({ force: true })"
+                      />
+                    </div>
+                  </div>
+
+                  <div v-if="previewSelectedFocusClaim" class="artifact-preview-sidebar__focus-card">
+                    <div class="artifact-preview-sidebar__claim-title">{{ previewSelectedFocusClaim.field_label }}</div>
+                    <div class="text-body2">{{ previewSelectedFocusClaim.field_value || 'No value' }}</div>
+                    <div class="text-caption text-grey-7 q-mt-xs">
+                      {{ previewSelectedFocusClaim.owner_table || 'Draft Intake' }} • {{ previewSelectedFocusClaim.consumer_lane || 'Review' }}
+                    </div>
+                    <div class="text-caption text-blue-9 q-mt-xs">
+                      Item box: {{ previewSelectedFocusClaim.item_box }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div v-if="previewState.kind === 'pdf' && previewPdfPageCount > 0" class="artifact-preview-sidebar__section">
                 <div class="row items-center justify-between q-col-gutter-sm">
                   <div class="col-auto">
@@ -630,6 +639,18 @@
                       @click="setPreviewCurrentPage(previewCurrentPage + 1)"
                     />
                   </div>
+                </div>
+                <div class="q-mt-sm">
+                  <q-select
+                    :model-value="previewCurrentPage"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    label="Jump to page"
+                    :options="previewPageOptions"
+                    @update:model-value="setPreviewCurrentPage"
+                  />
                 </div>
               </div>
 
@@ -1098,6 +1119,13 @@ const previewSectionOptions = computed(() =>
   previewMarkdownSections.value.map((section) => ({
     label: section.title,
     value: section.key,
+  })),
+)
+
+const previewPageOptions = computed(() =>
+  Array.from({ length: Math.max(0, Number(previewPdfPageCount.value || 0)) }, (_, index) => ({
+    label: `Page ${index + 1}`,
+    value: index + 1,
   })),
 )
 
@@ -1850,6 +1878,51 @@ function expandPageRange(pageRange = '') {
   return [...new Set(values)]
 }
 
+function parseMarkdownPageSections(markdown = '', totalPages = 0) {
+  const content = String(markdown || '').replaceAll('\r\n', '\n').trim()
+  const sections = new Map()
+  if (!content || totalPages <= 0) return sections
+
+  const lines = content.split('\n')
+  let currentPage = null
+  let currentTitle = ''
+  let buffer = []
+
+  const commit = () => {
+    if (!currentPage || currentPage < 1 || currentPage > totalPages) return
+    const text = buffer.join('\n').trim()
+    if (!text) return
+    sections.set(currentPage, {
+      text,
+      title: currentTitle || `Page ${currentPage}`,
+    })
+  }
+
+  for (const line of lines) {
+    const trimmed = String(line || '').trim()
+    const headingMatch = trimmed.match(/^#{1,6}\s+(.+)$/)
+    const candidate = headingMatch ? String(headingMatch[1] || '').trim() : trimmed
+    const pageMatch =
+      candidate.match(/\b(?:slide|page)\s+(\d+)\b(?:\s*[:-]\s*(.+))?$/i) ||
+      candidate.match(/^(\d+)\s*[-:.]\s*(.+)$/)
+
+    if (pageMatch) {
+      commit()
+      currentPage = Number(pageMatch[1])
+      currentTitle = String(pageMatch[2] || '').trim()
+      buffer = [line]
+      continue
+    }
+
+    if (currentPage) {
+      buffer.push(line)
+    }
+  }
+
+  commit()
+  return sections
+}
+
 function buildPdfPageSections({ artifactId = '', pageCount = 0, chunkRows = [], markdown = '', usedClaims = [] } = {}) {
   const totalPages = Math.max(0, Number(pageCount || 0))
   if (!totalPages) return []
@@ -1863,6 +1936,8 @@ function buildPdfPageSections({ artifactId = '', pageCount = 0, chunkRows = [], 
     ownedFields: [],
     sourceChunkIds: [],
   }))
+
+  const fallbackMarkdownSections = parseMarkdownPageSections(markdown, totalPages)
 
   for (const chunk of chunkRows) {
     const chunkId = String(chunk?.chunk_id || '').trim()
@@ -1888,6 +1963,19 @@ function buildPdfPageSections({ artifactId = '', pageCount = 0, chunkRows = [], 
       if (Array.isArray(chunk?.used_by) && chunk.used_by.length > 0) {
         page.used = true
       }
+    }
+  }
+
+  for (const [pageNumber, section] of fallbackMarkdownSections.entries()) {
+    const page = pages[pageNumber - 1]
+    if (!page) continue
+    if (!page.text.trim()) {
+      page.text = String(section?.text || '').trim()
+    }
+    const title = String(section?.title || '').trim()
+    if (title) {
+      page.sourceTitle = title
+      page.title = `Page ${pageNumber} - ${title}`
     }
   }
 
@@ -2028,16 +2116,18 @@ async function loadPreviewReviewSidebar(artifactId = '') {
   }
 }
 
-async function ensurePreviewReviewDataLoaded() {
+async function ensurePreviewReviewDataLoaded(options = {}) {
   if (!previewState.value.artifactId) return
   if (previewMarkdownLoading.value) return
-  if (previewMarkdownContent.value.trim() && previewMarkdownArtifactId.value) return
+  if (!options?.force && previewMarkdownContent.value.trim() && previewMarkdownArtifactId.value) return
   await loadPreviewReviewSidebar(previewState.value.artifactId)
 }
 
-async function showPreviewFocusStripPanel() {
-  previewFocusStripHidden.value = false
-  await ensurePreviewReviewDataLoaded()
+async function togglePreviewFocusSidebarSection() {
+  previewFocusStripHidden.value = !previewFocusStripHidden.value
+  if (!previewFocusStripHidden.value) {
+    await ensurePreviewReviewDataLoaded()
+  }
 }
 
 async function togglePreviewSidebar() {
@@ -2402,50 +2492,6 @@ watch(previewFocusClaimRows, (claims) => {
   justify-content: center;
 }
 
-.artifact-preview-dialog__focus-strip {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  right: 18px;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid rgba(148, 163, 184, 0.26);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
-}
-
-.artifact-preview-dialog__focus-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.artifact-preview-dialog__focus-tools {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.artifact-preview-dialog__focus-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.artifact-preview-dialog__focus-value {
-  font-size: 14px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
 .artifact-preview-dialog__focus-chips {
   display: flex;
   flex-wrap: wrap;
@@ -2559,6 +2605,19 @@ watch(previewFocusClaimRows, (claims) => {
   background: rgba(255, 251, 235, 0.92);
 }
 
+.artifact-preview-sidebar__focus-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.artifact-preview-sidebar__focus-card {
+  padding: 10px 12px;
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  border-radius: 12px;
+  background: rgba(239, 246, 255, 0.92);
+}
+
 .artifact-preview-sidebar__claim-title {
   margin-bottom: 4px;
   font-size: 12px;
@@ -2602,12 +2661,6 @@ watch(previewFocusClaimRows, (claims) => {
   .artifact-preview-sidebar {
     width: min(360px, 44vw);
   }
-
-  .artifact-preview-dialog__focus-strip {
-    top: 14px;
-    left: 14px;
-    right: 14px;
-  }
 }
 
 @media (max-width: 720px) {
@@ -2626,11 +2679,6 @@ watch(previewFocusClaimRows, (claims) => {
     min-height: 240px;
     border-left: 0;
     border-top: 1px solid rgba(148, 163, 184, 0.25);
-  }
-
-  .artifact-preview-dialog__focus-strip {
-    position: static;
-    margin: 14px;
   }
 }
 </style>
