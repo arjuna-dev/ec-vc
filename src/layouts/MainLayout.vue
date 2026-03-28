@@ -373,7 +373,7 @@ const drawerNavigationSections = computed(() => [
         icon: 'account_circle',
       },
       {
-        label: 'Settings',
+        label: 'Avatar Settings',
         to: '/settings',
         exact: true,
         icon: 'settings',
