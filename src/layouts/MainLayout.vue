@@ -1,19 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-header :height-hint="108" class="ec-shell-header">
-      <q-toolbar class="q-px-md ec-shell-toolbar">
-        <q-toolbar-title class="ec-shell-toolbar-title">
-          <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
-          <div
-            ref="logoContainer"
-            class="ec-shell-toolbar-lottie"
-            :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
-          />
-        </q-toolbar-title>
-
-        <div class="ec-shell-version">MTK v0.0.1</div>
-      </q-toolbar>
-
       <div class="ec-breadcrumb-bar">
         <div class="ec-breadcrumb-primary">
           <q-btn
@@ -88,6 +75,15 @@
           >
             <q-tooltip v-if="!action.chip">{{ action.label }}</q-tooltip>
           </q-btn>
+
+          <div class="ec-breadcrumb-logo">
+            <div v-if="!logoReady" class="ec-breadcrumb-logo__fallback">B10</div>
+            <div
+              ref="logoContainer"
+              class="ec-breadcrumb-logo__lottie"
+              :class="{ 'ec-breadcrumb-logo__lottie--hidden': !logoReady }"
+            />
+          </div>
         </div>
       </div>
     </q-header>
@@ -142,6 +138,10 @@
               </template>
             </template>
           </q-list>
+        </div>
+
+        <div class="ec-drawer-footer">
+          <div class="ec-drawer-version">MTK v0.0.1</div>
         </div>
       </div>
     </q-drawer>
@@ -1079,10 +1079,6 @@ function navigateBack() {
   background: transparent !important;
 }
 
-.ec-shell-toolbar {
-  background: transparent !important;
-}
-
 .ec-breadcrumb-bar {
   display: flex;
   align-items: center;
@@ -1178,11 +1174,55 @@ function navigateBack() {
   line-height: 1.2;
 }
 
+.ec-breadcrumb-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 28px;
+  margin-left: 6px;
+}
+
+.ec-breadcrumb-logo__fallback {
+  color: var(--ds-color-text-primary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.ec-breadcrumb-logo__lottie {
+  width: 40px;
+  height: 24px;
+}
+
+.ec-breadcrumb-logo__lottie--hidden {
+  opacity: 0;
+}
+
+.ec-drawer-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .ec-drawer-scroll {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding: var(--ds-space-14) var(--ds-space-0);
+}
+
+.ec-drawer-footer {
+  padding: 12px 16px 14px;
+}
+
+.ec-drawer-version {
+  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .ec-drawer-section + .ec-drawer-section {
@@ -1414,7 +1454,7 @@ function navigateBack() {
 }
 
 @media (max-width: 900px) {
-  .ec-shell-version {
+  .ec-drawer-version {
     display: none;
   }
 
