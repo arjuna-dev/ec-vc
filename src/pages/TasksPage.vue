@@ -756,7 +756,7 @@ watch(displayRows, () => {
 }
 
 .tasks-shell__hero-title {
-  margin: 0;
+  margin: 38px 0 0;
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-title);
   font-size: clamp(2rem, 3vw, 2.8rem);
