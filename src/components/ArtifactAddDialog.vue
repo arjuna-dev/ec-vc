@@ -100,6 +100,60 @@
     </q-card>
   </q-dialog>
 
+  <q-dialog v-model="intakeGuideDialogOpen" persistent>
+    <q-card style="width: 520px; max-width: 94vw">
+      <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
+        <div class="text-h6">Guide Artifact Intake</div>
+        <div class="text-caption text-grey-7">
+          Your files are staged. Confirm the first intake choices so we can move faster.
+        </div>
+      </q-card-section>
+
+      <q-card-section class="q-px-lg q-pb-md">
+        <div class="column q-gutter-md">
+          <q-select
+            v-model="intakeGuideForm.documentType"
+            outlined
+            use-input
+            fill-input
+            hide-selected
+            new-value-mode="add-unique"
+            label="Document Type"
+            :options="documentTypeOptions"
+          />
+          <q-select
+            v-model="intakeGuideForm.opportunityId"
+            outlined
+            label="Use Existing Opportunity"
+            :options="opportunityOptions"
+            emit-value
+            map-options
+            clearable
+          />
+        </div>
+      </q-card-section>
+
+      <q-separator />
+
+      <q-card-actions align="right" class="q-px-lg q-py-md">
+        <q-btn flat no-caps label="Keep Staged" @click="dismissIntakeGuideDialog" />
+        <q-btn
+          flat
+          no-caps
+          label="Use Existing Opportunity"
+          :disable="!intakeGuideForm.opportunityId"
+          @click="applyExistingOpportunityFromGuide"
+        />
+        <q-btn
+          color="primary"
+          no-caps
+          label="Create New Opportunity"
+          @click="openCreateOpportunityFromGuide"
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
   <OpportunityCreateDialog v-model="opportunityDialogOpen" @created="onOpportunityCreated" />
 </template>
 
@@ -134,6 +188,8 @@ const dragOver = ref(false)
 const opportunities = ref([])
 
 const opportunityDialogOpen = ref(false)
+const intakeGuideDialogOpen = ref(false)
+const intakeGuideForm = ref(createDefaultIntakeGuideForm())
 const DEFAULT_PIPELINE_ID = 'pipeline_default'
 const activeDraft = computed(() => {
   const draftId = String(intakeDraftState.activeDraftId || '').trim()
@@ -157,6 +213,17 @@ const opportunityOptions = computed(() =>
     value: o.id,
   })),
 )
+
+const documentTypeOptions = [
+  'Pitch Deck',
+  'Term Sheet',
+  'Financial Model',
+  'Investment Memo',
+  'PDF Document',
+  'Text Document',
+]
+
+let intakeGuideTimer = null
 
 async function loadAll() {
   if (!bridge.value?.opportunities?.list) return
@@ -206,6 +273,73 @@ function stageDroppedFiles(files = []) {
     opportunityId: null,
     stage: 'Dropped',
   })
+  intakeGuideForm.value = createDefaultIntakeGuideForm({
+    documentType: inferDocumentTypeFromFiles(summaries),
+  })
+  scheduleIntakeGuideDialog()
+}
+
+function createDefaultIntakeGuideForm(overrides = {}) {
+  return {
+    documentType: '',
+    opportunityId: null,
+    ...overrides,
+  }
+}
+
+function inferDocumentTypeFromFiles(files = []) {
+  const fileNames = (Array.isArray(files) ? files : []).map((file) => String(file?.name || '').toLowerCase())
+  if (!fileNames.length) return ''
+  const joined = fileNames.join(' ')
+  if (joined.includes('pitch') || joined.includes('deck') || joined.includes('presentation')) return 'Pitch Deck'
+  if (joined.includes('term sheet') || joined.includes('termsheet')) return 'Term Sheet'
+  if (joined.includes('model') || joined.includes('.xlsx') || joined.includes('.xls')) return 'Financial Model'
+  if (joined.includes('memo')) return 'Investment Memo'
+  if (joined.includes('.pdf')) return 'PDF Document'
+  if (joined.includes('.doc') || joined.includes('.docx')) return 'Text Document'
+  return ''
+}
+
+function clearIntakeGuideTimer() {
+  if (!intakeGuideTimer) return
+  clearTimeout(intakeGuideTimer)
+  intakeGuideTimer = null
+}
+
+function scheduleIntakeGuideDialog() {
+  clearIntakeGuideTimer()
+  intakeGuideTimer = setTimeout(() => {
+    if (!open.value || !activeDraft.value?.id || opportunityDialogOpen.value) return
+    intakeGuideDialogOpen.value = true
+  }, 10000)
+}
+
+function dismissIntakeGuideDialog() {
+  intakeGuideDialogOpen.value = false
+}
+
+function applyExistingOpportunityFromGuide() {
+  if (!activeDraft.value?.id || !intakeGuideForm.value.opportunityId) return
+  clearIntakeGuideTimer()
+  updateIntakeDraft(activeDraft.value.id, {
+    opportunityId: intakeGuideForm.value.opportunityId,
+    stage: 'Quick Review Needed',
+    inferredDocumentType: intakeGuideForm.value.documentType || null,
+  })
+  step.value = 2
+  intakeGuideDialogOpen.value = false
+}
+
+function openCreateOpportunityFromGuide() {
+  clearIntakeGuideTimer()
+  if (activeDraft.value?.id) {
+    updateIntakeDraft(activeDraft.value.id, {
+      inferredDocumentType: intakeGuideForm.value.documentType || null,
+      stage: 'Quick Review Needed',
+    })
+  }
+  intakeGuideDialogOpen.value = false
+  opportunityDialogOpen.value = true
 }
 
 async function finish() {
@@ -235,7 +369,11 @@ async function finish() {
 watch(
   () => props.modelValue,
   async (v) => {
-    if (!v) return
+    if (!v) {
+      intakeGuideDialogOpen.value = false
+      clearIntakeGuideTimer()
+      return
+    }
     step.value = droppedFiles.value.length > 0 ? 2 : 1
     await loadAll()
   },
@@ -257,6 +395,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   offIngestStatus?.()
   offIngestStatus = null
+  clearIntakeGuideTimer()
 })
 
 defineExpose({

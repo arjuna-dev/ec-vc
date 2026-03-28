@@ -78,20 +78,34 @@
                   <div class="text-caption text-grey-7">{{ intakeProgressLabel }}</div>
                 </div>
               </div>
-              <q-linear-progress
-                class="q-mt-md"
-                rounded
-                size="12px"
-                color="primary"
-                track-color="blue-1"
-                :value="intakeProgressValue"
-              />
             </q-card-section>
 
             <q-separator />
 
             <q-card-section class="q-pt-md">
               <div class="row q-col-gutter-lg">
+                <div class="col-12 col-md-3">
+                  <div class="text-subtitle2 q-mb-sm">Document Fill</div>
+                  <div class="intake-vertical-progress">
+                    <div class="intake-vertical-progress__track">
+                      <div
+                        class="intake-vertical-progress__fill"
+                        :style="{ height: `${intakeProgressPercent}%` }"
+                      />
+                      <div
+                        v-for="flag in intakeProgressFlags"
+                        :key="flag.key"
+                        class="intake-vertical-progress__flag"
+                        :class="{ 'intake-vertical-progress__flag--active': flag.active }"
+                        :style="{ bottom: `${flag.percent}%` }"
+                      >
+                        <span class="intake-vertical-progress__flag-dot" />
+                        <span class="intake-vertical-progress__flag-label">{{ flag.label }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="col-12 col-md-6">
                   <div class="text-subtitle2 q-mb-sm">Released Markdown</div>
                   <div v-if="releasedMarkdownChunkRows.length" class="column q-gutter-sm">
@@ -121,7 +135,7 @@
                   </div>
                 </div>
 
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-3">
                   <div class="text-subtitle2 q-mb-sm">Used Metadata Ownership</div>
                   <div v-if="usedMetadataClaimRows.length" class="column q-gutter-sm">
                     <div
@@ -989,8 +1003,11 @@ const intakeVisibleFieldKeys = computed(() =>
 )
 
 const intakeReviewReadyToContinue = computed(() => {
-  if (!intakeVisibleFieldKeys.value.length) return true
-  return intakeVisibleFieldKeys.value.every((key) => Boolean(intakeReviewVerified.value[key]))
+  const populatedKeys = Object.entries(intakeReviewFields.value)
+    .filter(([, value]) => String(value || '').trim().length > 0)
+    .map(([key]) => key)
+  if (!populatedKeys.length) return true
+  return populatedKeys.every((key) => Boolean(intakeReviewVerified.value[key]))
 })
 
 const intakeUsedInfoRows = computed(() =>
@@ -1064,6 +1081,34 @@ const intakeProgressMetrics = computed(() => {
 const intakeProgressValue = computed(() => intakeProgressMetrics.value.value)
 const intakeProgressPercent = computed(() => intakeProgressMetrics.value.percent)
 const intakeProgressLabel = computed(() => intakeProgressMetrics.value.label)
+const intakeProgressFlags = computed(() => [
+  {
+    key: 'drop',
+    label: 'Dropped',
+    percent: 12,
+    active: ingestStatusRows.value.length > 0,
+  },
+  {
+    key: 'markdown',
+    label: 'Markdown',
+    percent: 38,
+    active: ingestStatusRows.value.some((row) => ['completed', 'existing'].includes(String(row?.markdownStatus || ''))),
+  },
+  {
+    key: 'extract',
+    label: 'Early Extract',
+    percent: 64,
+    active:
+      releasedMarkdownChunkRows.value.length > 0 ||
+      ingestStatusRows.value.some((row) => ['completed', 'existing'].includes(String(row?.extractionStatus || ''))),
+  },
+  {
+    key: 'review',
+    label: 'Review',
+    percent: 88,
+    active: Boolean(usedMetadataClaimRows.value.length) || intakeProgressValue.value >= 1,
+  },
+])
 const showIntakeProgressPanel = computed(
   () => ingestStatusRows.value.length > 0 || releasedMarkdownChunkRows.value.length > 0 || usedMetadataClaimRows.value.length > 0,
 )
@@ -1512,7 +1557,7 @@ function scheduleIntakeReviewDialog() {
   clearIntakeReviewTimer()
   intakeReviewDelayElapsed.value = false
   intakeReviewPromptShown.value = false
-  intakeReviewPending.value = false
+  intakeReviewPending.value = true
   intakeReviewTimer = setTimeout(() => {
     intakeReviewDelayElapsed.value = true
     maybeOpenIntakeReviewDialog()
@@ -1523,7 +1568,12 @@ function maybeOpenIntakeReviewDialog() {
   if (!intakeReviewPending.value || !intakeReviewDelayElapsed.value || intakeReviewPromptShown.value) return
   const nextFields = buildIntakeReviewFieldsFromForms()
   intakeReviewFields.value = nextFields
-  intakeReviewVerified.value = createDefaultIntakeReviewVerified()
+  intakeReviewVerified.value = {
+    ...createDefaultIntakeReviewVerified(),
+    ...Object.fromEntries(
+      Object.entries(intakeReviewVerified.value).filter(([, verified]) => Boolean(verified)),
+    ),
+  }
   intakeReviewDialogOpen.value = true
   intakeReviewPromptShown.value = true
   processingMessage.value = 'Waiting for your confirmation on key metadata...'
@@ -1644,7 +1694,6 @@ function verifyIntakeReviewField(fieldKey) {
 async function waitForIntakeReviewConfirmation() {
   const nextFields = buildIntakeReviewFieldsFromForms()
   intakeReviewFields.value = nextFields
-  intakeReviewPending.value = true
   maybeOpenIntakeReviewDialog()
   if (!intakeReviewPending.value) return
   await new Promise((resolve) => {
@@ -2613,6 +2662,70 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(17, 17, 17, 0.06);
   border-radius: 12px;
+}
+
+.intake-vertical-progress {
+  display: flex;
+  justify-content: center;
+  min-height: 320px;
+  padding: 8px 0;
+}
+
+.intake-vertical-progress__track {
+  position: relative;
+  width: 28px;
+  min-height: 320px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(219, 234, 254, 0.9), rgba(239, 246, 255, 0.95)),
+    #eff6ff;
+  border: 1px solid rgba(59, 130, 246, 0.16);
+  overflow: visible;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+}
+
+.intake-vertical-progress__fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+  transition: height 0.28s ease;
+}
+
+.intake-vertical-progress__flag {
+  position: absolute;
+  left: calc(100% + 12px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateY(50%);
+  color: #94a3b8;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.intake-vertical-progress__flag--active {
+  color: #1d4ed8;
+  transform: translateY(50%) scale(1.02);
+}
+
+.intake-vertical-progress__flag-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 4px rgba(147, 197, 253, 0.22);
+}
+
+.intake-vertical-progress__flag-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .ec-autofilled-field {
