@@ -307,27 +307,22 @@
                   <div class="pipeline-card__summary-label">Stages</div>
 
                   <div v-if="getPipelineCardStages(row).length" class="pipeline-card__stage-map">
-                    <div class="pipeline-card__stage-track" aria-hidden="true" />
                     <div
                       v-for="(stage, stageIndex) in getPipelineCardStages(row)"
                       :key="`${row.pipeline_id}-${stageIndex}-${stage?.name || 'stage'}`"
                       class="pipeline-card__stage-stop"
                     >
-                      <div class="pipeline-card__stage-dot" />
-                      <div class="pipeline-card__stage-name">
-                        {{ stage?.name || `Stage ${stageIndex + 1}` }}
+                      <div class="pipeline-card__stage-chip">
+                        <div class="pipeline-card__stage-number">{{ stageIndex + 1 }}</div>
+                        <div class="pipeline-card__stage-name">
+                          {{ formatPipelineStageName(stage?.name) || `Stage ${stageIndex + 1}` }}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-
-                  <div v-if="getPipelineCardDetails(row).length" class="pipeline-card__meta-list">
-                    <div
-                      v-for="detail in getPipelineCardDetails(row)"
-                      :key="detail.label"
-                      class="pipeline-card__meta-item"
-                    >
-                      <span class="pipeline-card__meta-label">{{ detail.label }}</span>
-                      <span class="pipeline-card__meta-value">{{ detail.value }}</span>
+                      <div
+                        v-if="stageIndex < getPipelineCardStages(row).length - 1"
+                        class="pipeline-card__stage-connector"
+                        aria-hidden="true"
+                      />
                     </div>
                   </div>
 
@@ -632,7 +627,7 @@ function stageSummary(row) {
 
 function getPipelineCardSubtitle(row) {
   if (row?.pipeline_id === 'pipeline_default') {
-    return 'Default workspace pipeline'
+    return 'User Pipeline'
   }
 
   return normalizePipelineValue(row?.dir_name) || 'Pipeline workflow not defined yet'
@@ -642,23 +637,13 @@ function getPipelineCardStages(row) {
   return parsedStages(row).filter((stage) => normalizePipelineValue(stage?.name))
 }
 
-function getPipelineCardDetails(row) {
-  return [
-    row?.dir_name
-      ? {
-          label: 'Folder',
-          value: normalizePipelineValue(row.dir_name),
-        }
-      : null,
-    row?.pipeline_id === 'pipeline_default'
-      ? {
-          label: 'Role',
-          value: 'Default intake path',
-        }
-      : null,
-  ]
-    .filter(Boolean)
-    .slice(0, 4)
+function formatPipelineStageName(name) {
+  const cleaned = String(name || '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  return cleaned
 }
 
 function buildAvatarImage(label) {
@@ -822,7 +807,7 @@ async function confirmDeleteSelected() {
   if (!bridge.value?.pipelines?.delete || selectedCount.value === 0) return
   const deletableRows = selectedRows.value.filter((row) => row.pipeline_id !== 'pipeline_default')
   if (deletableRows.length === 0) {
-    $q.notify({ type: 'warning', message: 'The default project cannot be deleted.' })
+    $q.notify({ type: 'warning', message: 'The user pipeline cannot be deleted.' })
     return
   }
 
@@ -1473,81 +1458,64 @@ watch(displayRows, () => {
 }
 
 .pipeline-card__stage-map {
-  position: relative;
   display: flex;
+  align-items: center;
   gap: 0;
   overflow-x: auto;
-  padding: 6px 2px 0;
+  padding: 4px 2px 0;
   scrollbar-width: thin;
 }
 
-.pipeline-card__stage-track {
-  position: absolute;
-  top: 18px;
-  left: 32px;
-  right: 32px;
-  height: 2px;
-  background: rgba(17, 17, 17, 0.14);
-}
-
 .pipeline-card__stage-stop {
-  position: relative;
-  z-index: 1;
   display: flex;
-  min-width: 96px;
-  flex: 1 0 0;
-  flex-direction: column;
+  flex: 0 0 auto;
   align-items: center;
   gap: 10px;
-  text-align: center;
 }
 
-.pipeline-card__stage-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
+.pipeline-card__stage-chip {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.06);
+}
+
+.pipeline-card__stage-number {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
   background: #111;
-  border: 3px solid rgba(255, 255, 255, 0.96);
-  box-shadow: 0 0 0 1px rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
 }
 
 .pipeline-card__stage-name {
-  max-width: 92px;
-  color: #111;
-  font-family: var(--font-body);
-  font-size: var(--text-xs---medium);
-  font-weight: var(--font-weight-medium);
-  line-height: 16px;
-  word-break: break-word;
-}
-
-.pipeline-card__meta-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-}
-
-.pipeline-card__meta-item {
-  display: flex;
-  min-width: 0;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.pipeline-card__meta-label {
-  color: #6f6f6f;
-  font-family: var(--font-body);
-  font-size: var(--text-xs---medium);
-  font-weight: var(--font-weight-medium);
-  line-height: 16px;
-}
-
-.pipeline-card__meta-value {
+  max-width: 124px;
   color: #111;
   font-family: var(--font-body);
   font-size: var(--text-sm---regular);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-medium);
   line-height: 18px;
+  word-break: break-word;
+}
+
+.pipeline-card__stage-connector {
+  width: 28px;
+  height: 2px;
+  background: rgba(17, 17, 17, 0.18);
+  border-radius: 999px;
 }
 
 .pipeline-card__summary-empty {
