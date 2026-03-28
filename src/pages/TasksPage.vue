@@ -6,6 +6,18 @@
         <div class="text-caption text-grey-7">All tasks.</div>
       </div>
       <div class="col-auto">
+        <q-btn-toggle
+          v-model="viewMode"
+          dense
+          no-caps
+          unelevated
+          toggle-color="primary"
+          color="grey-3"
+          text-color="grey-8"
+          :options="viewOptions"
+        />
+      </div>
+      <div class="col-auto">
         <TableCsvActions
           filename-base="tasks"
           :headers="csvHeaders"
@@ -25,6 +37,7 @@
     </q-banner>
 
     <q-table
+      v-if="viewMode === 'table'"
       flat
       bordered
       row-key="id"
@@ -49,6 +62,70 @@
         </q-td>
       </template>
     </q-table>
+
+    <div v-else class="row q-col-gutter-md tasks-grid">
+      <div v-for="row in rows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
+        <q-card flat bordered class="task-card full-height">
+          <q-card-section class="q-pb-sm">
+            <div class="row items-start justify-between q-col-gutter-sm">
+              <div class="col">
+                <div class="task-card__title">{{ row.Task_Name || 'Untitled task' }}</div>
+                <div v-if="row.Task_Description" class="task-card__summary">
+                  {{ row.Task_Description }}
+                </div>
+              </div>
+              <div class="col-auto">
+                <q-checkbox
+                  :model-value="isSelected(row)"
+                  :disable="loading"
+                  color="primary"
+                  @update:model-value="toggleRowSelection(row, $event)"
+                />
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section class="q-gutter-sm">
+            <div v-if="row.Status" class="task-card__field">
+              <q-icon name="flag" size="16px" class="q-mr-sm text-grey-7" />
+              <span>{{ row.Status }}</span>
+            </div>
+            <div v-if="row.Priority" class="task-card__field">
+              <q-icon name="priority_high" size="16px" class="q-mr-sm text-grey-7" />
+              <span>{{ row.Priority }}</span>
+            </div>
+            <div v-if="row.Due_Date" class="task-card__field">
+              <q-icon name="event" size="16px" class="q-mr-sm text-grey-7" />
+              <span>{{ row.Due_Date }}</span>
+            </div>
+            <div v-if="row.contact_name" class="task-card__field">
+              <q-icon name="person" size="16px" class="q-mr-sm text-grey-7" />
+              <span>{{ row.contact_name }}</span>
+            </div>
+            <div v-if="row.company_name" class="task-card__field">
+              <q-icon name="apartment" size="16px" class="q-mr-sm text-grey-7" />
+              <span>{{ row.company_name }}</span>
+            </div>
+          </q-card-section>
+
+          <q-space />
+
+          <q-card-actions align="right">
+            <q-btn
+              dense
+              flat
+              round
+              icon="delete"
+              color="negative"
+              :disable="loading"
+              @click="confirmDelete(row)"
+            />
+          </q-card-actions>
+        </q-card>
+      </div>
+    </div>
 
     <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
       <q-btn
@@ -77,6 +154,7 @@ const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const dialogOpen = ref(false)
+const viewMode = ref('grid')
 const selectedCount = computed(() => selectedRows.value.length)
 
 const route = useRoute()
@@ -106,6 +184,11 @@ const csvHeaders = [
   'Task_Team_Owner',
   'Task_Team_Assigned',
   'Task_Team_Support',
+]
+
+const viewOptions = [
+  { label: 'Grid', value: 'grid', icon: 'grid_view' },
+  { label: 'Table', value: 'table', icon: 'view_list' },
 ]
 
 function openCreateTask() {
@@ -163,6 +246,21 @@ async function onCreated() {
 function normalizeSelectedRows() {
   const activeIds = new Set(rows.value.map((row) => row.id))
   selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.id))
+}
+
+function isSelected(row) {
+  return selectedRows.value.some((selectedRow) => selectedRow.id === row?.id)
+}
+
+function toggleRowSelection(row, shouldSelect) {
+  const rowId = String(row?.id || '').trim()
+  if (!rowId) return
+  if (shouldSelect) {
+    if (isSelected(row)) return
+    selectedRows.value = [...selectedRows.value, row]
+    return
+  }
+  selectedRows.value = selectedRows.value.filter((selectedRow) => String(selectedRow?.id || '').trim() !== rowId)
 }
 
 async function deleteTask(row) {
@@ -224,3 +322,40 @@ watch(
   () => openCreateFromQuery(),
 )
 </script>
+
+<style scoped>
+.tasks-grid {
+  align-items: stretch;
+}
+
+.task-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  border-radius: 18px;
+  border-color: rgba(148, 163, 184, 0.28);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.task-card__title {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.task-card__summary {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.task-card__field {
+  display: flex;
+  align-items: center;
+  color: #334155;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+</style>

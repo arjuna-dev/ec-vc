@@ -6,6 +6,18 @@
         <div class="text-caption text-grey-7">All notes.</div>
       </div>
       <div class="col-auto">
+        <q-btn-toggle
+          v-model="viewMode"
+          dense
+          no-caps
+          unelevated
+          toggle-color="primary"
+          color="grey-3"
+          text-color="grey-8"
+          :options="viewOptions"
+        />
+      </div>
+      <div class="col-auto">
         <TableCsvActions
           filename-base="notes"
           :headers="csvHeaders"
@@ -25,6 +37,7 @@
     </q-banner>
 
     <q-table
+      v-if="viewMode === 'table'"
       flat
       bordered
       row-key="id"
@@ -49,6 +62,59 @@
         </q-td>
       </template>
     </q-table>
+
+    <div v-else class="row q-col-gutter-md notes-grid">
+      <div v-for="row in rows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
+        <q-card flat bordered class="note-card full-height">
+          <q-card-section class="q-pb-sm">
+            <div class="row items-start justify-between q-col-gutter-sm">
+              <div class="col">
+                <div class="note-card__title">{{ row.Note_Name || 'Untitled note' }}</div>
+                <div v-if="row.created_at" class="note-card__meta">{{ row.created_at }}</div>
+              </div>
+              <div class="col-auto">
+                <q-checkbox
+                  :model-value="isSelected(row)"
+                  :disable="loading"
+                  color="primary"
+                  @update:model-value="toggleRowSelection(row, $event)"
+                />
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section class="q-gutter-sm">
+            <div v-if="row.Note_Content" class="note-card__content">
+              {{ row.Note_Content }}
+            </div>
+            <div v-if="row.created_by_name" class="note-card__field">
+              <q-icon name="person" size="16px" class="q-mr-sm text-grey-7" />
+              <span>{{ row.created_by_name }}</span>
+            </div>
+            <div v-if="row.created_by_email" class="note-card__field">
+              <q-icon name="mail" size="16px" class="q-mr-sm text-grey-7" />
+              <span>{{ row.created_by_email }}</span>
+            </div>
+          </q-card-section>
+
+          <q-space />
+
+          <q-card-actions align="right">
+            <q-btn
+              dense
+              flat
+              round
+              icon="delete"
+              color="negative"
+              :disable="loading"
+              @click="confirmDelete(row)"
+            />
+          </q-card-actions>
+        </q-card>
+      </div>
+    </div>
 
     <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
       <q-btn
@@ -77,6 +143,7 @@ const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const dialogOpen = ref(false)
+const viewMode = ref('grid')
 const selectedCount = computed(() => selectedRows.value.length)
 
 const route = useRoute()
@@ -93,6 +160,11 @@ const columns = [
 ]
 
 const csvHeaders = ['id', 'Note_Name', 'Note_Content', 'created_by', 'created_by_name', 'created_by_email', 'created_at']
+
+const viewOptions = [
+  { label: 'Grid', value: 'grid', icon: 'grid_view' },
+  { label: 'Table', value: 'table', icon: 'view_list' },
+]
 
 function openCreateNote() {
   dialogOpen.value = true
@@ -149,6 +221,21 @@ async function onCreated() {
 function normalizeSelectedRows() {
   const activeIds = new Set(rows.value.map((row) => row.id))
   selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.id))
+}
+
+function isSelected(row) {
+  return selectedRows.value.some((selectedRow) => selectedRow.id === row?.id)
+}
+
+function toggleRowSelection(row, shouldSelect) {
+  const rowId = String(row?.id || '').trim()
+  if (!rowId) return
+  if (shouldSelect) {
+    if (isSelected(row)) return
+    selectedRows.value = [...selectedRows.value, row]
+    return
+  }
+  selectedRows.value = selectedRows.value.filter((selectedRow) => String(selectedRow?.id || '').trim() !== rowId)
 }
 
 async function deleteNote(row) {
@@ -210,3 +297,49 @@ watch(
   () => openCreateFromQuery(),
 )
 </script>
+
+<style scoped>
+.notes-grid {
+  align-items: stretch;
+}
+
+.note-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  border-radius: 18px;
+  border-color: rgba(148, 163, 184, 0.28);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.note-card__title {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.note-card__meta {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.note-card__content {
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+}
+
+.note-card__field {
+  display: flex;
+  align-items: center;
+  color: #475569;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+</style>
