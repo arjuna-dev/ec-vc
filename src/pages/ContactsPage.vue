@@ -357,6 +357,14 @@
                     <q-btn
                       flat
                       round
+                      icon="visibility"
+                      class="contact-card__icon-action"
+                      :disable="loading"
+                      @click="openDatabook(row)"
+                    />
+                    <q-btn
+                      flat
+                      round
                       icon="delete"
                       class="contact-card__icon-action"
                       :disable="loading"

@@ -304,15 +304,26 @@
                     :disable="loading"
                     @click="openDatabook(row)"
                   />
-                  <q-btn
-                    dense
-                    flat
-                    round
-                    icon="delete"
-                    color="grey-8"
-                    :disable="loading || !canDeleteOpportunities"
-                    @click="confirmDelete(row)"
-                  />
+                  <div class="row items-center q-gutter-xs">
+                    <q-btn
+                      dense
+                      flat
+                      round
+                      icon="visibility"
+                      color="grey-8"
+                      :disable="loading"
+                      @click="openDatabook(row)"
+                    />
+                    <q-btn
+                      dense
+                      flat
+                      round
+                      icon="delete"
+                      color="grey-8"
+                      :disable="loading || !canDeleteOpportunities"
+                      @click="confirmDelete(row)"
+                    />
+                  </div>
                 </q-card-actions>
               </q-card>
             </div>
