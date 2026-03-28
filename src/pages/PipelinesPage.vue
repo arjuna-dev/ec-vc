@@ -1197,11 +1197,16 @@ watch(displayRows, () => {
 
 .pipelines-toolbar__kind-toggle :deep(.q-btn) {
   min-width: 84px;
+  width: 84px;
   padding-inline: 18px;
 }
 
 .pipelines-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
+}
+
+.pipelines-toolbar__kind-toggle :deep(.q-btn__content) {
+  justify-content: center;
 }
 
 .pipelines-toolbar__view-toggle :deep(.q-btn) {
