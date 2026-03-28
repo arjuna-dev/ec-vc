@@ -81,20 +81,7 @@
         </div>
 
         <div class="pipelines-toolbar">
-          <div class="pipelines-toolbar__left">
-            <q-input
-              v-model="searchQuery"
-              dense
-              outlined
-              borderless
-              class="pipelines-toolbar__search"
-              placeholder="Filter pipelines..."
-              :disable="loading"
-            />
-
-          </div>
-
-          <div class="pipelines-toolbar__right">
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--view">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -102,10 +89,71 @@
               toggle-color="primary"
               color="grey-3"
               text-color="grey-8"
-              class="pipelines-toolbar__toggle"
+              class="pipelines-toolbar__toggle pipelines-toolbar__view-toggle"
               :disable="loading"
               :options="viewOptions"
             />
+          </div>
+
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--kind">
+            <q-btn-toggle
+              v-model="pipelineKindFilter"
+              dense
+              no-caps
+              unelevated
+              toggle-color="dark"
+              color="white"
+              text-color="grey-8"
+              class="pipelines-toolbar__toggle pipelines-toolbar__kind-toggle"
+              :disable="loading"
+              :options="pipelineKindOptions"
+            />
+          </div>
+
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--filters">
+            <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
+
+            <q-select
+              v-model="stageFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="pipelines-toolbar__filter-control"
+              label="Stage"
+              :options="stageFilterOptions"
+              :disable="loading || stageFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="statusFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="pipelines-toolbar__filter-control"
+              label="Status"
+              :options="statusFilterOptions"
+              :disable="loading || statusFilterOptions.length === 0"
+            />
+          </div>
+
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--search">
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="pipelines-toolbar__search"
+              placeholder="Search pipelines..."
+              :disable="loading"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
           </div>
         </div>
 
@@ -332,6 +380,9 @@ const loading = ref(false)
 const error = ref('')
 const pipelineDialogOpen = ref(false)
 const searchQuery = ref('')
+const pipelineKindFilter = ref('all')
+const stageFilter = ref('')
+const statusFilter = ref('')
 const viewMode = ref('card')
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
@@ -362,6 +413,32 @@ const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
 ]
+const pipelineKindOptions = [
+  { label: 'All', value: 'all' },
+  { label: 'Own', value: 'own' },
+  { label: 'Others', value: 'others' },
+]
+
+function uniquePipelineValues(resolver) {
+  return [...new Set(pipelines.value.map((row) => normalizePipelineValue(resolver(row))).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right))
+    .map((value) => ({ label: value, value }))
+}
+
+const stageFilterOptions = computed(
+  () =>
+    [...new Set(
+      pipelines.value.flatMap((row) =>
+        parsedStages(row).map((stage) => normalizePipelineValue(stage?.name)).filter(Boolean),
+      ),
+    )]
+      .sort((left, right) => left.localeCompare(right))
+      .map((value) => ({ label: value, value })),
+)
+
+const statusFilterOptions = computed(() =>
+  uniquePipelineValues((row) => statusLabel(row?.install_status)),
+)
 
 const pipelinesDashboard = computed(() => {
   const total = pipelines.value.length
@@ -463,6 +540,22 @@ const displayRows = computed(() => {
 
   let items = [...pipelines.value]
 
+  if (pipelineKindFilter.value === 'own') {
+    items = items.filter((row) => isOwnPipeline(row))
+  } else if (pipelineKindFilter.value === 'others') {
+    items = items.filter((row) => !isOwnPipeline(row))
+  }
+
+  if (stageFilter.value) {
+    items = items.filter((row) =>
+      parsedStages(row).some((stage) => normalizePipelineValue(stage?.name) === stageFilter.value),
+    )
+  }
+
+  if (statusFilter.value) {
+    items = items.filter((row) => statusLabel(row?.install_status) === statusFilter.value)
+  }
+
   if (query) {
     items = items.filter((row) =>
       [row?.name, row?.dir_name, row?.install_status, stageSummary(row)]
@@ -480,6 +573,14 @@ function parsedStages(row) {
   } catch {
     return []
   }
+}
+
+function normalizePipelineValue(value) {
+  return String(value || '').trim()
+}
+
+function isOwnPipeline(row) {
+  return Boolean(row?.is_default) || String(row?.install_status || '').trim() === 'installed'
 }
 
 function stageSummary(row) {
@@ -996,36 +1097,36 @@ watch(displayRows, () => {
 }
 
 .pipelines-toolbar {
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: space-between;
-}
-
-.pipelines-toolbar__left,
-.pipelines-toolbar__right {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.pipelines-toolbar__left {
-  flex: 1 1 720px;
+  gap: 12px;
   min-width: 0;
 }
 
-.pipelines-toolbar__right {
+.pipelines-toolbar__block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pipelines-toolbar__block--filters {
+  flex-wrap: nowrap;
+}
+
+.pipelines-toolbar__block--search {
+  justify-content: flex-end;
+}
+
+.pipelines-toolbar__filters-icon {
+  color: var(--ds-color-text-muted);
   flex: 0 0 auto;
-  margin-left: auto;
 }
 
 .pipelines-toolbar__search {
-  flex: 1 1 300px;
-  min-width: 220px;
-  width: 300px;
-  max-width: 100%;
+  width: 100%;
+  min-width: 0;
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -1043,7 +1144,6 @@ watch(displayRows, () => {
   padding: 0 var(--ds-control-inline-padding);
 }
 
-.pipelines-toolbar__button,
 .pipelines-toolbar__toggle {
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
@@ -1056,6 +1156,31 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
+}
+
+.pipelines-toolbar__filter-control {
+  flex: 0 1 clamp(110px, 16vw, 160px);
+  min-width: 110px;
+  background: var(--ds-control-surface);
+  border-radius: var(--ds-control-radius);
+}
+
+.pipelines-toolbar__kind-toggle :deep(.q-btn) {
+  min-width: 84px;
+  padding-inline: 18px;
+}
+
+.pipelines-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.pipelines-toolbar__view-toggle :deep(.q-btn) {
+  min-width: 48px;
+  padding-inline: 12px;
+}
+
+.pipelines-toolbar__view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
 }
 
 .pipelines-surface {
@@ -1192,28 +1317,22 @@ watch(displayRows, () => {
   }
 
   .pipelines-toolbar {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     align-items: stretch;
   }
 
-  .pipelines-toolbar__left,
-  .pipelines-toolbar__right {
-    flex: none;
+  .pipelines-toolbar__block {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .pipelines-toolbar__right {
-    margin-left: 0;
   }
 
   .pipelines-toolbar__search {
-    flex: none;
     width: 100%;
   }
 
-  .pipelines-toolbar__button,
+  .pipelines-toolbar__filter-control,
   .pipelines-toolbar__toggle {
+    min-width: 0;
     width: 100%;
   }
 }
