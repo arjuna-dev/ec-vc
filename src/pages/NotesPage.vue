@@ -22,6 +22,7 @@
       </div>
       <div class="col-auto">
         <TableCsvActions
+          ref="csvActionsRef"
           filename-base="notes"
           :headers="csvHeaders"
           :rows="rows"
@@ -134,6 +135,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import NoteCreateDialog from 'components/NoteCreateDialog.vue'
+import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const rows = ref([])
@@ -143,10 +145,12 @@ const error = ref('')
 const dialogOpen = ref(false)
 const viewMode = ref('grid')
 const selectedCount = computed(() => selectedRows.value.length)
+const csvActionsRef = ref(null)
 
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
+const NOTES_BREADCRUMB_ACTION_OWNER = 'notes-page'
 
 const columns = [
   { name: 'Note_Name', label: 'Note', field: 'Note_Name', align: 'left', sortable: true },
@@ -280,6 +284,22 @@ async function confirmDeleteSelected() {
 }
 
 onMounted(async () => {
+  setBreadcrumbActions(NOTES_BREADCRUMB_ACTION_OWNER, [
+    {
+      id: 'import-csv',
+      label: 'Import CSV',
+      icon: 'download',
+      disabled: () => loading.value,
+      onClick: () => csvActionsRef.value?.pickFile?.(),
+    },
+    {
+      id: 'export-csv',
+      label: 'Export CSV',
+      icon: 'upload',
+      disabled: () => loading.value || rows.value.length === 0,
+      onClick: () => csvActionsRef.value?.exportCsv?.(),
+    },
+  ])
   window.addEventListener('ecvc:open-note-dialog', onOpenNoteDialog)
   await loadNotes()
   consumeQueuedOpen()
@@ -287,6 +307,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  clearBreadcrumbActions(NOTES_BREADCRUMB_ACTION_OWNER)
   window.removeEventListener('ecvc:open-note-dialog', onOpenNoteDialog)
 })
 

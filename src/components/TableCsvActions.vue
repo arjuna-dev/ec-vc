@@ -79,4 +79,9 @@ async function onFileSelected(e) {
     if (fileInput.value) fileInput.value.value = ''
   }
 }
+
+defineExpose({
+  exportCsv,
+  pickFile,
+})
 </script>

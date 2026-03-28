@@ -17,21 +17,6 @@
     <div v-else class="companies-page">
       <header class="companies-page__heading">
         <h1 class="companies-page__title">Companies</h1>
-        <div class="companies-page__heading-actions">
-          <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
-            <q-tooltip>Import CSV</q-tooltip>
-          </q-btn>
-          <q-btn
-            dense
-            flat
-            round
-            icon="upload"
-            :disable="loading || displayRows.length === 0"
-            @click="exportCompaniesCsv"
-          >
-            <q-tooltip>Export CSV</q-tooltip>
-          </q-btn>
-        </div>
       </header>
 
       <section class="companies-shell">
@@ -359,6 +344,7 @@ import { exportFile, useQuasar } from 'quasar'
 import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
+import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -378,6 +364,7 @@ const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const COMPANY_VIEW_MODES = new Set(['card', 'table'])
+const COMPANIES_BREADCRUMB_ACTION_OWNER = 'companies-page'
 
 const rows = ref([])
 const selectedRows = ref([])
@@ -998,6 +985,22 @@ async function confirmDeleteSelected() {
 }
 
 onMounted(async () => {
+  setBreadcrumbActions(COMPANIES_BREADCRUMB_ACTION_OWNER, [
+    {
+      id: 'import-csv',
+      label: 'Import CSV',
+      icon: 'download',
+      disabled: () => loading.value,
+      onClick: pickImportFile,
+    },
+    {
+      id: 'export-csv',
+      label: 'Export CSV',
+      icon: 'upload',
+      disabled: () => loading.value || displayRows.value.length === 0,
+      onClick: exportCompaniesCsv,
+    },
+  ])
   window.addEventListener('ecvc:open-company-dialog', onOpenCompanyDialog)
   if (!hasBridge.value) return
   await loadCompanies()
@@ -1006,6 +1009,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  clearBreadcrumbActions(COMPANIES_BREADCRUMB_ACTION_OWNER)
   window.removeEventListener('ecvc:open-company-dialog', onOpenCompanyDialog)
 })
 
@@ -1056,12 +1060,6 @@ watch(displayRows, () => {
   line-height: var(--ds-line-height-title);
 }
 
-.companies-page__heading-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-}
 
 .companies-shell {
   display: flex;

@@ -35,6 +35,7 @@
         </div>
         <div class="col-auto">
           <TableCsvActions
+            ref="csvActionsRef"
             filename-base="artifacts"
             :headers="csvHeaders"
             :rows="rows"
@@ -774,6 +775,7 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import { createIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
+import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
@@ -828,8 +830,10 @@ const propertiesError = ref('')
 const propertiesForm = ref(createEmptyPropertiesForm())
 const selectedCount = computed(() => selectedRows.value.length)
 const previewState = ref(createEmptyPreviewState())
+const csvActionsRef = ref(null)
 
 const $q = useQuasar()
+const ARTIFACTS_BREADCRUMB_ACTION_OWNER = 'artifacts-page'
 
 const viewModeOptions = [
   { label: 'Grid', value: 'grid', icon: 'grid_view' },
@@ -2285,6 +2289,22 @@ async function confirmDeleteSelected() {
 }
 
 onMounted(() => {
+  setBreadcrumbActions(ARTIFACTS_BREADCRUMB_ACTION_OWNER, [
+    {
+      id: 'import-csv',
+      label: 'Import CSV',
+      icon: 'download',
+      disabled: () => loading.value,
+      onClick: () => csvActionsRef.value?.pickFile?.(),
+    },
+    {
+      id: 'export-csv',
+      label: 'Export CSV',
+      icon: 'upload',
+      disabled: () => loading.value || rows.value.length === 0,
+      onClick: () => csvActionsRef.value?.exportCsv?.(),
+    },
+  ])
   if (!hasBridge.value) return
   loadArtifacts()
   loadOpportunities()
@@ -2292,6 +2312,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  clearBreadcrumbActions(ARTIFACTS_BREADCRUMB_ACTION_OWNER)
   resetPreviewPdfObjectUrl()
 })
 

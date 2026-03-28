@@ -17,21 +17,6 @@
     <div v-else class="pipelines-page">
       <header class="pipelines-page__heading">
         <h1 class="pipelines-page__title">Projects</h1>
-        <div class="pipelines-page__heading-actions">
-          <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
-            <q-tooltip>Import CSV</q-tooltip>
-          </q-btn>
-          <q-btn
-            dense
-            flat
-            round
-            icon="upload"
-            :disable="loading || displayRows.length === 0"
-            @click="exportPipelinesCsv"
-          >
-            <q-tooltip>Export CSV</q-tooltip>
-          </q-btn>
-        </div>
       </header>
 
       <section class="pipelines-shell">
@@ -325,6 +310,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { exportFile, useQuasar } from 'quasar'
 import PipelineCreateDialog from 'components/PipelineCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
+import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -355,6 +341,7 @@ const selectedCount = computed(() => selectedRows.value.length)
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
+const PROJECTS_BREADCRUMB_ACTION_OWNER = 'projects-page'
 
 const columns = [
   { name: 'name', label: 'Project Name', field: 'name', align: 'left', sortable: true },
@@ -735,6 +722,22 @@ async function onPipelineCreated() {
 }
 
 onMounted(async () => {
+  setBreadcrumbActions(PROJECTS_BREADCRUMB_ACTION_OWNER, [
+    {
+      id: 'import-csv',
+      label: 'Import CSV',
+      icon: 'download',
+      disabled: () => loading.value,
+      onClick: pickImportFile,
+    },
+    {
+      id: 'export-csv',
+      label: 'Export CSV',
+      icon: 'upload',
+      disabled: () => loading.value || displayRows.value.length === 0,
+      onClick: exportPipelinesCsv,
+    },
+  ])
   window.addEventListener('ecvc:open-pipeline-dialog', onOpenPipelineDialog)
   if (!hasBridge.value) return
   await loadPipelines()
@@ -743,6 +746,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  clearBreadcrumbActions(PROJECTS_BREADCRUMB_ACTION_OWNER)
   window.removeEventListener('ecvc:open-pipeline-dialog', onOpenPipelineDialog)
 })
 
@@ -781,12 +785,6 @@ watch(displayRows, () => {
   line-height: var(--ds-line-height-title);
 }
 
-.pipelines-page__heading-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-}
 
 .pipelines-shell {
   display: flex;

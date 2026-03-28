@@ -17,21 +17,6 @@
     <div v-else class="contacts-page">
       <header class="contacts-page__heading">
         <h1 class="contacts-page__title">Contacts</h1>
-        <div class="contacts-page__heading-actions">
-          <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
-            <q-tooltip>Import CSV</q-tooltip>
-          </q-btn>
-          <q-btn
-            dense
-            flat
-            round
-            icon="upload"
-            :disable="loading || displayRows.length === 0"
-            @click="exportContactsCsv"
-          >
-            <q-tooltip>Export CSV</q-tooltip>
-          </q-btn>
-        </div>
       </header>
 
       <section class="contacts-shell">
@@ -359,6 +344,7 @@ import { exportFile, useQuasar } from 'quasar'
 import ContactCreateDialog from 'components/ContactCreateDialog.vue'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
+import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -394,6 +380,7 @@ const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const CONTACT_VIEW_MODES = new Set(['card', 'table'])
+const CONTACTS_BREADCRUMB_ACTION_OWNER = 'contacts-page'
 const viewMode = ref(getRouteViewMode(route.query.view))
 const contactsDashboard = computed(() => {
   const total = rows.value.length
@@ -963,6 +950,22 @@ async function confirmDeleteSelected() {
 }
 
 onMounted(async () => {
+  setBreadcrumbActions(CONTACTS_BREADCRUMB_ACTION_OWNER, [
+    {
+      id: 'import-csv',
+      label: 'Import CSV',
+      icon: 'download',
+      disabled: () => loading.value,
+      onClick: pickImportFile,
+    },
+    {
+      id: 'export-csv',
+      label: 'Export CSV',
+      icon: 'upload',
+      disabled: () => loading.value || displayRows.value.length === 0,
+      onClick: exportContactsCsv,
+    },
+  ])
   window.addEventListener('ecvc:open-contact-dialog', onOpenContactDialog)
   if (!hasBridge.value) return
   await loadContacts()
@@ -971,6 +974,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  clearBreadcrumbActions(CONTACTS_BREADCRUMB_ACTION_OWNER)
   window.removeEventListener('ecvc:open-contact-dialog', onOpenContactDialog)
 })
 
@@ -1022,12 +1026,6 @@ watch(displayRows, () => {
   line-height: var(--ds-line-height-title);
 }
 
-.contacts-page__heading-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-}
 
 .contacts-shell {
   display: flex;
