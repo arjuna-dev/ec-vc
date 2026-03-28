@@ -26,17 +26,6 @@
             <h2 class="tasks-shell__hero-title">Keep the next actions visible and moving.</h2>
             <p class="tasks-shell__hero-text">{{ tasksHeroText }}</p>
 
-            <div class="tasks-shell__hero-meta">
-              <div class="tasks-shell__meta-pill">
-                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
-              </div>
-              <div v-if="selectedCount > 0" class="tasks-shell__meta-pill">
-                {{ selectedCount }} selected
-              </div>
-              <div class="tasks-shell__meta-pill">
-                {{ tasksDashboard.openRate }}% open
-              </div>
-            </div>
           </div>
 
           <div class="tasks-dashboard">

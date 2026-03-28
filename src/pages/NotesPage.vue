@@ -26,17 +26,6 @@
             <h2 class="notes-shell__hero-title">Capture what matters and find it quickly.</h2>
             <p class="notes-shell__hero-text">{{ notesHeroText }}</p>
 
-            <div class="notes-shell__hero-meta">
-              <div class="notes-shell__meta-pill">
-                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
-              </div>
-              <div v-if="selectedCount > 0" class="notes-shell__meta-pill">
-                {{ selectedCount }} selected
-              </div>
-              <div class="notes-shell__meta-pill">
-                {{ notesDashboard.namedRate }}% named
-              </div>
-            </div>
           </div>
 
           <div class="notes-dashboard">
