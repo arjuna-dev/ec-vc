@@ -509,6 +509,13 @@
                 </div>
                 <div class="artifact-preview-dialog__focus-chips">
                   <button
+                    type="button"
+                    class="artifact-preview-dialog__focus-chip artifact-preview-dialog__focus-chip--exit"
+                    @click="closePreviewDialog"
+                  >
+                    Exit Review
+                  </button>
+                  <button
                     v-for="section in previewSectionOptions"
                     :key="section.value"
                     type="button"
@@ -566,8 +573,15 @@
                       Review by selected slide/section and see where the extracted data writes.
                     </div>
                   </div>
-                  <div class="col-auto" v-if="showContinueDocumentReview">
+                  <div class="col-auto row items-center q-gutter-sm">
                     <q-btn
+                      flat
+                      no-caps
+                      label="Exit Review"
+                      @click="closePreviewDialog"
+                    />
+                    <q-btn
+                      v-if="showContinueDocumentReview"
                       color="primary"
                       outline
                       no-caps
@@ -2131,6 +2145,12 @@ watch(previewSectionOptions, (options) => {
   border-color: rgba(59, 130, 246, 0.42);
   background: rgba(219, 234, 254, 0.96);
   color: #1d4ed8;
+}
+
+.artifact-preview-dialog__focus-chip--exit {
+  border-color: rgba(148, 163, 184, 0.38);
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
 }
 
 .artifact-preview-dialog__state {
