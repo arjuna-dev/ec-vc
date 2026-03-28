@@ -57,10 +57,14 @@
             v-if="showIntakeProgressBar"
             class="intake-progress-strip"
           >
-            <div class="row items-center justify-between q-col-gutter-sm q-mb-xs">
-              <div class="col text-caption text-grey-7">Document fill</div>
-              <div class="col-auto text-caption text-grey-7">
-                {{ intakeProgressPercent }}% | {{ intakeProgressLabel }}
+            <div class="row items-center q-col-gutter-sm q-mb-xs">
+              <div class="col row items-center q-col-gutter-xs text-caption text-grey-7">
+                <q-spinner
+                  v-if="processingDrop"
+                  color="primary"
+                  size="16px"
+                />
+                <span>{{ intakeProgressLabel }}</span>
               </div>
             </div>
             <div class="intake-horizontal-progress intake-horizontal-progress--compact">
@@ -80,18 +84,10 @@
                 </div>
               </div>
             </div>
+            <div class="text-caption text-grey-7 q-mt-xs text-right">
+              {{ intakeProgressPercent }}%
+            </div>
           </div>
-
-          <q-banner
-            v-if="processingDrop"
-            class="bg-blue-1 text-blue-10 processing-floating-banner"
-            rounded
-          >
-            <template #avatar>
-              <q-spinner color="primary" size="20px" />
-            </template>
-            {{ processingMessage || 'Processing dropped files...' }}
-          </q-banner>
 
           <q-separator />
 
@@ -1435,6 +1431,25 @@ function inferDocumentTypeFromDraft() {
   return ''
 }
 
+function inferCompanyNameFromDraft() {
+  const sourceFiles = activeDraft.value?.droppedFiles?.length
+    ? activeDraft.value.droppedFiles
+    : droppedFilesForPrompt.value
+  const rawName = String(sourceFiles?.[0]?.name || '').trim()
+  if (!rawName) return ''
+  const baseName = rawName.replace(/\.[^.]+$/, '')
+  const firstSegment = baseName
+    .split(/[_-]+/)
+    .map((part) => String(part || '').trim())
+    .find((part) => part.length > 2)
+  if (!firstSegment) return ''
+  const normalized = firstSegment
+    .replace(/\b(deck|pitch|memo|model|term|sheet|presentation|fund|round|series|seed)\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+  return normalized || ''
+}
+
 function createDefaultIntakeReviewFields(overrides = {}) {
   return {
     sponsorCompany: '',
@@ -1545,7 +1560,7 @@ function buildIntakeReviewFieldsFromForms() {
     .join(' - ')
 
   return createDefaultIntakeReviewFields({
-    sponsorCompany: String(companyForm.value.Company_Name || '').trim(),
+    sponsorCompany: String(companyForm.value.Company_Name || '').trim() || inferCompanyNameFromDraft(),
     existingOpportunityMatch: findLikelyExistingOpportunityMatchLabel(),
     matchingDocumentName: existingDocumentNameMatches.value[0] || '',
     documentType: inferDocumentTypeFromDraft(),
