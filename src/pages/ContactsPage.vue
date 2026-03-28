@@ -353,6 +353,9 @@
                       :disable="loading"
                       @click="openDatabook(row)"
                     />
+                  </div>
+
+                  <div class="contact-card__footer-actions">
                     <q-btn
                       flat
                       round

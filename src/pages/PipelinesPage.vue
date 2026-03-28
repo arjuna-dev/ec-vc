@@ -322,16 +322,16 @@
                 <q-space />
 
                 <q-card-actions align="between" class="pipeline-card__actions">
-                  <q-btn
-                    dense
-                    outline
-                    no-caps
-                    color="grey-8"
-                    :label="row.install_status === 'installed' ? 'Deactivate' : 'Activate'"
-                    :disable="isBusy(row.install_status) || loading"
-                    @click="togglePipeline(row)"
-                  />
-                  <div class="row items-center q-gutter-xs">
+                  <div class="pipeline-card__footer-actions">
+                    <q-btn
+                      dense
+                      outline
+                      no-caps
+                      color="grey-8"
+                      :label="row.install_status === 'installed' ? 'Deactivate' : 'Activate'"
+                      :disable="isBusy(row.install_status) || loading"
+                      @click="togglePipeline(row)"
+                    />
                     <q-btn
                       dense
                       flat
@@ -341,6 +341,8 @@
                       :disable="loading"
                       @click="openDatabook(row)"
                     />
+                  </div>
+                  <div class="pipeline-card__footer-actions">
                     <q-btn
                       dense
                       flat
@@ -1346,6 +1348,12 @@ watch(displayRows, () => {
 
 .pipeline-card__actions {
   align-items: center;
+}
+
+.pipeline-card__footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 @media (max-width: 1200px) {

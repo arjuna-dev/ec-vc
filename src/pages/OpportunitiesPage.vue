@@ -295,8 +295,8 @@
 
                 <q-space />
 
-                <q-card-actions align="between">
-                  <div class="row items-center q-gutter-xs">
+                <q-card-actions align="between" class="opportunity-card__footer">
+                  <div class="opportunity-card__footer-actions">
                     <q-btn
                       dense
                       flat
@@ -306,6 +306,8 @@
                       :disable="loading"
                       @click="openDatabook(row)"
                     />
+                  </div>
+                  <div class="opportunity-card__footer-actions">
                     <q-btn
                       dense
                       flat
@@ -1452,6 +1454,12 @@ watch(
   font-size: var(--text-sm---light);
   font-weight: var(--font-weight-light);
   line-height: 20px;
+}
+
+.opportunity-card__footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 @media (max-width: 1200px) {
