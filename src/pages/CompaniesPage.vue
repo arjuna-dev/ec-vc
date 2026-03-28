@@ -114,6 +114,19 @@
             <q-icon name="tune" size="18px" class="companies-toolbar__filters-icon" />
 
             <q-select
+              v-model="locationFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="companies-toolbar__filter-control"
+              label="Location"
+              :options="locationFilterOptions"
+              :disable="loading || locationFilterOptions.length === 0"
+            />
+
+            <q-select
               v-model="stageFilter"
               dense
               outlined
@@ -137,19 +150,6 @@
               label="Industry"
               :options="industryFilterOptions"
               :disable="loading || industryFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="locationFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="companies-toolbar__filter-control"
-              label="Location"
-              :options="locationFilterOptions"
-              :disable="loading || locationFilterOptions.length === 0"
             />
 
             <q-select
