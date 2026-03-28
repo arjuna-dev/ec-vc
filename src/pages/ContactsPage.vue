@@ -81,30 +81,7 @@
         </div>
 
         <div class="contacts-toolbar">
-          <div class="contacts-toolbar__left">
-            <q-input
-              v-model="searchQuery"
-              dense
-              outlined
-              borderless
-              class="contacts-toolbar__search"
-              placeholder="Filter contacts..."
-              :disable="loading"
-            />
-
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="refresh"
-              label="Refresh"
-              class="contacts-toolbar__button"
-              :loading="loading"
-              @click="loadContacts"
-            />
-          </div>
-
-          <div class="contacts-toolbar__right">
+          <div class="contacts-toolbar__block contacts-toolbar__block--view">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -112,10 +89,97 @@
               toggle-color="primary"
               color="grey-3"
               text-color="grey-8"
-              class="contacts-toolbar__toggle"
+              class="contacts-toolbar__toggle contacts-toolbar__view-toggle"
               :disable="loading"
               :options="viewOptions"
             />
+          </div>
+
+          <div class="contacts-toolbar__block contacts-toolbar__block--kind">
+            <q-btn-toggle
+              v-model="contactKindFilter"
+              dense
+              no-caps
+              unelevated
+              toggle-color="dark"
+              color="white"
+              text-color="grey-8"
+              class="contacts-toolbar__toggle contacts-toolbar__kind-toggle"
+              :disable="loading"
+              :options="contactKindOptions"
+            />
+          </div>
+
+          <div class="contacts-toolbar__block contacts-toolbar__block--filters">
+            <q-icon name="tune" size="18px" class="contacts-toolbar__filters-icon" />
+
+            <q-select
+              v-model="locationFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="contacts-toolbar__filter-control"
+              label="Location"
+              :options="locationFilterOptions"
+              :disable="loading || locationFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="industryFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="contacts-toolbar__filter-control"
+              label="Industry"
+              :options="industryFilterOptions"
+              :disable="loading || industryFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="projectFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="contacts-toolbar__filter-control"
+              label="Projects"
+              :options="projectFilterOptions"
+              :disable="loading || projectFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="companyFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="contacts-toolbar__filter-control"
+              label="Company"
+              :options="companyFilterOptions"
+              :disable="loading || companyFilterOptions.length === 0"
+            />
+          </div>
+
+          <div class="contacts-toolbar__block contacts-toolbar__block--search">
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="contacts-toolbar__search"
+              placeholder="Search contacts..."
+              :disable="loading"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
           </div>
         </div>
 
@@ -365,6 +429,11 @@ const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const contactDialogOpen = ref(false)
+const contactKindFilter = ref('all')
+const locationFilter = ref('')
+const industryFilter = ref('')
+const projectFilter = ref('')
+const companyFilter = ref('')
 const searchQuery = ref('')
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
@@ -382,6 +451,11 @@ const router = useRouter()
 const CONTACT_VIEW_MODES = new Set(['card', 'table'])
 const CONTACTS_BREADCRUMB_ACTION_OWNER = 'contacts-page'
 const viewMode = ref(getRouteViewMode(route.query.view))
+const contactKindOptions = [
+  { label: 'All', value: 'all' },
+  { label: 'Connected', value: 'connected' },
+  { label: 'Reachable', value: 'reachable' },
+]
 const contactsDashboard = computed(() => {
   const total = rows.value.length
   const counts = rows.value.reduce(
@@ -457,6 +531,36 @@ const contactsDashboardStats = computed(() => [
   },
 ])
 
+function uniqueContactValues(resolver) {
+  return [...new Set(rows.value.map((row) => normalizeInputValue(resolver(row))).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right))
+    .map((value) => ({ label: value, value }))
+}
+
+const locationFilterOptions = computed(() => uniqueContactValues((row) => row?.Country_based))
+const industryFilterOptions = computed(() =>
+  uniqueContactValues(
+    (row) =>
+      row?.Industry_Name ||
+      row?.industry_name ||
+      row?.Industry ||
+      row?.industry ||
+      row?.Industry_Sector,
+  ),
+)
+const projectFilterOptions = computed(() =>
+  uniqueContactValues((row) => row?.project_name || row?.Project_Name || row?.current_project_name),
+)
+const companyFilterOptions = computed(() =>
+  uniqueContactValues(
+    (row) =>
+      row?.company_name ||
+      row?.Company_Name ||
+      row?.Current_Company_Name ||
+      row?.Organization_Name,
+  ),
+)
+
 function openCreateContact() {
   contactDialogOpen.value = true
 }
@@ -530,6 +634,49 @@ const displayRows = computed(() => {
 
   let items = [...rows.value]
 
+  if (contactKindFilter.value === 'connected') {
+    items = items.filter((row) => hasConnectedSignal(row))
+  } else if (contactKindFilter.value === 'reachable') {
+    items = items.filter((row) => hasReachableSignal(row))
+  }
+
+  if (locationFilter.value) {
+    items = items.filter((row) => normalizeInputValue(row?.Country_based) === locationFilter.value)
+  }
+
+  if (industryFilter.value) {
+    items = items.filter(
+      (row) =>
+        normalizeInputValue(
+          row?.Industry_Name ||
+            row?.industry_name ||
+            row?.Industry ||
+            row?.industry ||
+            row?.Industry_Sector,
+        ) === industryFilter.value,
+    )
+  }
+
+  if (projectFilter.value) {
+    items = items.filter(
+      (row) =>
+        normalizeInputValue(row?.project_name || row?.Project_Name || row?.current_project_name) ===
+        projectFilter.value,
+    )
+  }
+
+  if (companyFilter.value) {
+    items = items.filter(
+      (row) =>
+        normalizeInputValue(
+          row?.company_name ||
+            row?.Company_Name ||
+            row?.Current_Company_Name ||
+            row?.Organization_Name,
+        ) === companyFilter.value,
+    )
+  }
+
   if (query) {
     items = items.filter((row) =>
       [
@@ -548,6 +695,19 @@ const displayRows = computed(() => {
 
   return items
 })
+
+function hasConnectedSignal(row) {
+  return (
+    normalizeInputValue(row?.LinkedIn).length > 0 ||
+    normalizeInputValue(
+      row?.company_name || row?.Company_Name || row?.Current_Company_Name || row?.Organization_Name,
+    ).length > 0
+  )
+}
+
+function hasReachableSignal(row) {
+  return primaryEmail(row).length > 0 || normalizeInputValue(row?.Phone).length > 0
+}
 
 function buildAvatarImage(row) {
   const initials = getContactInitials(row)
@@ -1237,40 +1397,48 @@ watch(displayRows, () => {
 }
 
 .contacts-toolbar {
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: space-between;
-}
-
-.contacts-toolbar__left,
-.contacts-toolbar__right {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.contacts-toolbar__left {
-  flex: 1 1 720px;
+  gap: 12px;
   min-width: 0;
 }
 
-.contacts-toolbar__right {
+.contacts-toolbar__block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.contacts-toolbar__block--filters {
+  flex-wrap: nowrap;
+}
+
+.contacts-toolbar__block--search {
+  justify-content: flex-end;
+}
+
+.contacts-toolbar__filters-icon {
+  color: var(--ds-color-text-muted);
   flex: 0 0 auto;
-  margin-left: auto;
+}
+
+.contacts-toolbar__toggle {
+  flex: 0 0 auto;
+  border: 1px solid var(--ds-control-border);
+  border-radius: 999px;
+  box-shadow: var(--ds-control-shadow);
+  overflow: hidden;
 }
 
 .contacts-toolbar__search {
-  flex: 1 1 300px;
-  min-width: 220px;
-  width: 300px;
-  max-width: 100%;
+  width: 100%;
+  min-width: 0;
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
-  box-shadow: none;
+  box-shadow: var(--ds-control-shadow);
 }
 
 .contacts-toolbar__search :deep(.q-field__control),
@@ -1282,10 +1450,8 @@ watch(displayRows, () => {
 
 .contacts-toolbar__search :deep(.q-field__control) {
   padding: 0 var(--ds-control-inline-padding);
-  box-shadow: none;
 }
 
-.contacts-toolbar__button,
 .contacts-toolbar__toggle {
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
@@ -1298,6 +1464,31 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
+}
+
+.contacts-toolbar__kind-toggle :deep(.q-btn) {
+  min-width: 84px;
+  padding-inline: 18px;
+}
+
+.contacts-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.contacts-toolbar__view-toggle :deep(.q-btn) {
+  min-width: 48px;
+  padding-inline: 12px;
+}
+
+.contacts-toolbar__view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.contacts-toolbar__filter-control {
+  flex: 0 1 clamp(110px, 16vw, 160px);
+  min-width: 110px;
+  background: var(--ds-control-surface);
+  border-radius: var(--ds-control-radius);
 }
 
 .contacts-surface {
@@ -1710,28 +1901,16 @@ watch(displayRows, () => {
   }
 
   .contacts-toolbar {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     align-items: stretch;
   }
 
-  .contacts-toolbar__left,
-  .contacts-toolbar__right {
-    flex: none;
+  .contacts-toolbar__block {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .contacts-toolbar__right {
-    margin-left: 0;
   }
 
   .contacts-toolbar__search {
-    flex: none;
-    width: 100%;
-  }
-
-  .contacts-toolbar__button,
-  .contacts-toolbar__toggle {
     width: 100%;
   }
 }
