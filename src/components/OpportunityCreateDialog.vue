@@ -91,6 +91,25 @@
 
           <q-separator />
 
+          <div class="row items-center justify-between q-col-gutter-md q-pb-md">
+            <div class="col">
+              <div class="text-subtitle2">Input Source</div>
+              <div class="text-caption text-grey-7">
+                Start from the AI proposal, or switch to human input while you review the round.
+              </div>
+            </div>
+            <div class="col-auto">
+              <q-btn-toggle
+                v-model="inputSourceMode"
+                unelevated
+                toggle-color="primary"
+                color="grey-3"
+                text-color="grey-8"
+                :options="inputSourceOptions"
+              />
+            </div>
+          </div>
+
           <div class="opportunity-dialog-sections">
             <section class="opportunity-dialog-section">
               <div class="text-subtitle1">Company</div>
@@ -802,6 +821,7 @@ const existingOpportunityNames = ref([])
 const companyLinkMode = ref('new')
 const contactLinkMode = ref('new')
 const companySourceChoice = ref('input')
+const inputSourceMode = ref('ai')
 const companyPreviewDialogOpen = ref(false)
 const companyPreviewSource = ref('input')
 const intakeReviewDialogOpen = ref(false)
@@ -834,6 +854,11 @@ const intakeFieldSources = ref(createDefaultIntakeReviewSources())
 const deferredSuggestionPayload = ref(null)
 
 const autofilledFlags = ref({})
+
+const inputSourceOptions = [
+  { label: 'AI Proposal', value: 'ai' },
+  { label: 'Human Input', value: 'human' },
+]
 
 const ingestStatusColumns = [
   { name: 'fileName', label: 'File', field: 'fileName', align: 'left' },
@@ -1265,6 +1290,7 @@ function resetTransientState() {
   companyLinkMode.value = 'new'
   contactLinkMode.value = 'new'
   companySourceChoice.value = 'input'
+  inputSourceMode.value = 'ai'
   companyOptionFilter.value = ''
   contactOptionFilter.value = ''
   companyPreviewDialogOpen.value = false
@@ -1309,6 +1335,7 @@ function buildDraftSnapshot() {
     companyLinkMode: companyLinkMode.value,
     contactLinkMode: contactLinkMode.value,
     companySourceChoice: companySourceChoice.value,
+    inputSourceMode: inputSourceMode.value,
     existingDocumentNameMatches: [...existingDocumentNameMatches.value],
     intakeReviewFields: { ...intakeReviewFields.value },
     intakeReviewVerified: { ...intakeReviewVerified.value },
@@ -1372,6 +1399,7 @@ function hydrateFromActiveDraft() {
   companyLinkMode.value = activeDraft.value.companyLinkMode || companyLinkMode.value
   contactLinkMode.value = activeDraft.value.contactLinkMode || contactLinkMode.value
   companySourceChoice.value = activeDraft.value.companySourceChoice || companySourceChoice.value
+  inputSourceMode.value = activeDraft.value.inputSourceMode || inputSourceMode.value
   intakeReviewFields.value = {
     ...createDefaultIntakeReviewFields(),
     ...(activeDraft.value.intakeReviewFields || {}),
@@ -1904,6 +1932,7 @@ function markAutofilled(section, key) {
 }
 
 function fieldInputClass(section, key) {
+  if (inputSourceMode.value !== 'ai') return ''
   return autofilledFlags.value[`${section}.${key}`] ? 'ec-autofilled-field' : ''
 }
 
