@@ -501,7 +501,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import { createIntakeDraft } from 'src/utils/intakeDraftState'
@@ -536,6 +536,7 @@ const error = ref('')
 const viewMode = ref('grid')
 const previewDialogOpen = ref(false)
 const previewLoading = ref(false)
+const previewPdfObjectUrl = ref('')
 const propertiesDialogOpen = ref(false)
 const savingProperties = ref(false)
 const propertiesError = ref('')
@@ -654,6 +655,7 @@ const latestArtifactGroups = computed(() =>
 
 const previewPdfSrc = computed(() => {
   if (previewState.value.kind !== 'pdf') return ''
+  if (previewPdfObjectUrl.value) return previewPdfObjectUrl.value
   if (previewState.value.fileUrl) return previewState.value.fileUrl
   if (previewState.value.fileDataBase64) return `data:application/pdf;base64,${previewState.value.fileDataBase64}`
   return ''
@@ -1241,6 +1243,7 @@ async function previewArtifact(row, options = {}) {
   try {
     previewDialogOpen.value = true
     previewLoading.value = true
+    resetPreviewPdfObjectUrl()
     previewState.value = createEmptyPreviewState()
     const preview = await bridge.value.artifacts.preview({ artifactId })
     previewState.value = {
@@ -1250,6 +1253,9 @@ async function previewArtifact(row, options = {}) {
       fileUrl: String(preview?.fileUrl || '').trim(),
       fileDataBase64: String(preview?.fileDataBase64 || ''),
       content: String(preview?.content || ''),
+    }
+    if (previewState.value.kind === 'pdf' && previewState.value.fileDataBase64) {
+      previewPdfObjectUrl.value = buildPdfObjectUrl(previewState.value.fileDataBase64)
     }
     return previewState.value.kind
   } catch (e) {
@@ -1261,6 +1267,23 @@ async function previewArtifact(row, options = {}) {
   } finally {
     previewLoading.value = false
   }
+}
+
+function buildPdfObjectUrl(fileDataBase64 = '') {
+  const normalized = String(fileDataBase64 || '').trim()
+  if (!normalized || typeof window === 'undefined' || typeof window.atob !== 'function') return ''
+  const binary = window.atob(normalized)
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index)
+  }
+  return URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }))
+}
+
+function resetPreviewPdfObjectUrl() {
+  if (!previewPdfObjectUrl.value) return
+  URL.revokeObjectURL(previewPdfObjectUrl.value)
+  previewPdfObjectUrl.value = ''
 }
 
 function createEmptyPreviewState() {
@@ -1300,6 +1323,7 @@ async function openArtifactForReview(row) {
 function closePreviewDialog() {
   previewDialogOpen.value = false
   previewLoading.value = false
+  resetPreviewPdfObjectUrl()
   previewState.value = createEmptyPreviewState()
 }
 
@@ -1357,6 +1381,10 @@ onMounted(() => {
   loadArtifacts()
   loadOpportunities()
   loadRelationshipOptions()
+})
+
+onBeforeUnmount(() => {
+  resetPreviewPdfObjectUrl()
 })
 </script>
 
