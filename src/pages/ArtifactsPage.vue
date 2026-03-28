@@ -475,6 +475,33 @@
 
           <q-card-section class="artifact-preview-dialog__body artifact-preview-dialog__body--split">
             <div class="artifact-preview-dialog__main">
+              <div
+                v-if="previewState.kind === 'pdf' && previewSectionOptions.length"
+                class="artifact-preview-dialog__focus-strip"
+              >
+                <div class="artifact-preview-dialog__focus-copy">
+                  <div class="artifact-preview-dialog__focus-label">Review Focus</div>
+                  <div class="artifact-preview-dialog__focus-value">
+                    {{ previewSelectedMarkdownSection?.title || 'Select a slide' }}
+                  </div>
+                </div>
+                <div class="artifact-preview-dialog__focus-chips">
+                  <button
+                    v-for="section in previewSectionOptions"
+                    :key="section.value"
+                    type="button"
+                    class="artifact-preview-dialog__focus-chip"
+                    :class="{
+                      'artifact-preview-dialog__focus-chip--active':
+                        String(previewSelectedSectionKey || '') === String(section.value || ''),
+                    }"
+                    @click="previewSelectedSectionKey = section.value"
+                  >
+                    {{ section.label }}
+                  </button>
+                </div>
+              </div>
+
               <div v-if="previewLoading" class="artifact-preview-dialog__state">
                 <q-spinner color="primary" size="40px" />
                 <div class="text-subtitle2 q-mt-md">Loading artifact preview</div>
@@ -1919,8 +1946,82 @@ watch(previewSectionOptions, (options) => {
   display: flex;
   flex: 1;
   min-width: 0;
+  position: relative;
   align-items: stretch;
   justify-content: center;
+}
+
+.artifact-preview-dialog__focus-strip {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+.artifact-preview-dialog__focus-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.artifact-preview-dialog__focus-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.artifact-preview-dialog__focus-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.artifact-preview-dialog__focus-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.artifact-preview-dialog__focus-chip {
+  padding: 6px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.96);
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.artifact-preview-dialog__focus-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(59, 130, 246, 0.32);
+  color: #1d4ed8;
+}
+
+.artifact-preview-dialog__focus-chip--active {
+  border-color: rgba(59, 130, 246, 0.42);
+  background: rgba(219, 234, 254, 0.96);
+  color: #1d4ed8;
 }
 
 .artifact-preview-dialog__state {
@@ -2033,6 +2134,12 @@ watch(previewSectionOptions, (options) => {
   .artifact-preview-sidebar {
     width: min(360px, 44vw);
   }
+
+  .artifact-preview-dialog__focus-strip {
+    top: 14px;
+    left: 14px;
+    right: 14px;
+  }
 }
 
 @media (max-width: 720px) {
@@ -2051,6 +2158,11 @@ watch(previewSectionOptions, (options) => {
     min-height: 240px;
     border-left: 0;
     border-top: 1px solid rgba(148, 163, 184, 0.25);
+  }
+
+  .artifact-preview-dialog__focus-strip {
+    position: static;
+    margin: 14px;
   }
 }
 </style>
