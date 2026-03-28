@@ -12,8 +12,6 @@
             :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
           />
         </q-toolbar-title>
-
-        <div class="ec-shell-version">MTK v0.0.1</div>
       </q-toolbar>
 
       <div class="ec-breadcrumb-bar">
@@ -115,6 +113,10 @@
               </template>
             </template>
           </q-list>
+        </div>
+
+        <div class="ec-drawer-footer">
+          <div class="ec-drawer-version">MTK v0.0.1</div>
         </div>
       </div>
     </q-drawer>
@@ -1084,11 +1086,30 @@ function navigateBack() {
   margin-left: auto;
 }
 
+.ec-drawer-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .ec-drawer-scroll {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding: var(--ds-space-14) var(--ds-space-0);
+}
+
+.ec-drawer-footer {
+  padding: 12px 16px 14px;
+}
+
+.ec-drawer-version {
+  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .ec-drawer-section + .ec-drawer-section {
