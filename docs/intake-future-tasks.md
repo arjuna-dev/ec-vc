@@ -77,6 +77,68 @@ Desired outcome:
 
 - a practical checklist for tuning the live intake orchestration over time
 
+## 4. Group RAW And MD Versions In One Artifact Box
+
+Idea:
+
+- show the `RAW` and `MD` versions of the same document inside the same artifact box / card instead of making them feel like unrelated separate artifacts
+
+Desired behavior:
+
+- one visual artifact box represents the document
+- the box clearly shows which version is `RAW` and which is `MD`
+- both versions keep the same base name, with only the `RAW` / `MD` identifier distinguishing them
+
+Why it matters:
+
+- users think of these as the same document at different processing stages
+- it reduces clutter in the Artifacts area
+- it makes intake progress easier to understand at a glance
+
+What to investigate later:
+
+- whether this should be a pure frontend grouping behavior first
+- which existing artifact property should be used to identify `RAW` vs `MD`
+- how grouped artifacts should behave in grid view, table view, and properties view
+
+## 5. Clarify Artifact Naming Between RAW And MD
+
+Current observation:
+
+- users expect the `RAW` and `MD` versions to keep the same document name, with only a clear processing-stage label separating them
+
+Desired outcome:
+
+- artifact naming should make the pairing obvious
+- users should not need to mentally guess whether two entries are versions of the same document
+
+What to investigate later:
+
+- whether naming should be normalized in display only
+- whether the display label should be based on base file name plus a stage badge
+- whether the current artifact title / file name split is helping or causing confusion
+
+## 6. Clarify What Artifact Properties "Category" Means
+
+Current issue:
+
+- the `Category` field in `Artifact Properties` is unclear and does not communicate what kind of value the user is expected to see or edit
+
+Why it matters:
+
+- unclear labels create hesitation during manual review
+- users cannot tell whether `Category` is a system field, document classification, or business relationship field
+
+What to investigate later:
+
+- what database/source field is currently shown as `Category`
+- whether it should be renamed to something clearer like `Classification`, `Artifact Class`, or another explicit label
+- whether it should stay visible at all if it is not meaningful to users
+
+Desired outcome:
+
+- Artifact Properties labels should be understandable without internal schema knowledge
+
 ## Suggested Later Sequence
 
 1. stabilize current prompt behavior
