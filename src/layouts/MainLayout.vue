@@ -1106,10 +1106,10 @@ function navigateBack() {
 
 .ec-drawer-version {
   color: var(--ds-color-text-navigation);
-  font-size: 0.78rem;
-  font-weight: 300;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .ec-drawer-section + .ec-drawer-section {
