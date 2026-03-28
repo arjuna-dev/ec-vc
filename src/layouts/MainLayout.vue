@@ -2,38 +2,23 @@
   <q-layout view="lHh Lpr lFf">
     <q-header :height-hint="108" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
+        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
+
         <q-toolbar-title class="ec-shell-toolbar-title">
-          <div
-            class="ec-shell-toolbar-fallback"
-            :class="{ 'ec-shell-toolbar-fallback--muted': logoReady }"
-          >
-            B10
-          </div>
+          <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
           <div
             ref="logoContainer"
             class="ec-shell-toolbar-lottie"
             :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
           />
         </q-toolbar-title>
+
+        <div class="ec-shell-version">MTK v0.0.1</div>
       </q-toolbar>
 
       <div class="ec-breadcrumb-bar">
         <div class="ec-breadcrumb-primary">
-          <q-btn
-            dense
-            flat
-            round
-            icon="menu"
-            aria-label="Menu"
-            class="ec-breadcrumb-menu"
-            @click="toggleLeftDrawer"
-          />
-
-          <div v-if="showTitleBlock" class="ec-breadcrumb-title-block">
-            <div class="ec-breadcrumb-title">{{ currentHeaderTitle }}</div>
-          </div>
-
-          <q-breadcrumbs v-else class="ec-breadcrumbs" separator="chevron_right">
+          <q-breadcrumbs class="ec-breadcrumbs" separator="chevron_right">
             <template #separator>
               <q-icon name="chevron_right" size="16px" color="grey-5" />
             </template>
@@ -63,36 +48,19 @@
           </q-btn>
         </div>
 
-        <div class="ec-breadcrumb-secondary">
-          <div v-if="breadcrumbActions.length" class="ec-breadcrumb-actions">
-            <span
-              v-for="action in breadcrumbTextActions"
-              :key="action.id"
-              class="ec-breadcrumb-action-text"
-            >
-              {{ action.label }}
-            </span>
-
-            <q-btn
-              v-for="action in breadcrumbButtonActions"
-              :key="action.id"
-              dense
-              :flat="!action.chip"
-              :round="!action.chip"
-              :outline="!!action.chip && action.tone !== 'filled'"
-              :unelevated="!!action.chip && action.tone === 'filled'"
-              :no-caps="!!action.chip"
-              :color="action.color || (action.chip && action.tone === 'filled' ? 'black' : 'grey-7')"
-              :text-color="action.textColor || (action.chip && action.tone === 'filled' ? 'white' : undefined)"
-              :label="action.chip ? action.label : undefined"
-              :icon="action.icon"
-              :class="{ 'ec-breadcrumb-action-chip': action.chip }"
-              :disable="resolveBreadcrumbActionDisabled(action)"
-              @click="action.onClick?.()"
-            >
-              <q-tooltip v-if="!action.chip">{{ action.label }}</q-tooltip>
-            </q-btn>
-          </div>
+        <div v-if="breadcrumbActions.length" class="ec-breadcrumb-actions">
+          <q-btn
+            v-for="action in breadcrumbActions"
+            :key="action.id"
+            dense
+            flat
+            round
+            :icon="action.icon"
+            :disable="resolveBreadcrumbActionDisabled(action)"
+            @click="action.onClick?.()"
+          >
+            <q-tooltip>{{ action.label }}</q-tooltip>
+          </q-btn>
         </div>
       </div>
     </q-header>
@@ -147,10 +115,6 @@
               </template>
             </template>
           </q-list>
-        </div>
-
-        <div class="ec-drawer-footer">
-          <div class="ec-drawer-version">MTK v0.0.1</div>
         </div>
       </div>
     </q-drawer>
@@ -432,23 +396,6 @@ const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.val
 const drawerUserLabel = computed(() =>
   hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Set user',
 )
-const titleBlockRouteNames = new Set([
-  'home',
-  'companies',
-  'contacts',
-  'opportunities',
-  'pipelines',
-  'projects',
-  'artifacts',
-  'notes',
-  'tasks',
-  'assistants',
-])
-const showTitleBlock = computed(() => titleBlockRouteNames.has(String(route.name || '')))
-const currentHeaderTitle = computed(() => {
-  const currentRouteName = String(route.name || '')
-  return routeLabelByName[currentRouteName] || 'Home'
-})
 const breadcrumbItems = computed(() => {
   const currentRouteName = String(route.name || '')
 
@@ -479,12 +426,6 @@ const breadcrumbItems = computed(() => {
 })
 
 const breadcrumbActions = computed(() => breadcrumbActionsState.actions || [])
-const breadcrumbTextActions = computed(() =>
-  breadcrumbActions.value.filter((action) => action?.textOnly),
-)
-const breadcrumbButtonActions = computed(() =>
-  breadcrumbActions.value.filter((action) => !action?.textOnly),
-)
 const breadcrumbBackFallback = computed(() => {
   const fallback = [...breadcrumbItems.value]
     .reverse()
@@ -1083,45 +1024,26 @@ function navigateBack() {
 </script>
 
 <style scoped>
-.ec-shell-header {
-  box-shadow: none !important;
-  background: transparent !important;
-}
-
-.ec-shell-toolbar {
-  display: flex;
-  min-height: 48px;
-  padding: 8px 16px 0;
-  background: transparent !important;
-  justify-content: flex-end;
-}
-
 .ec-breadcrumb-bar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-12);
-  background: transparent;
+  border-top: 1px solid var(--ds-color-border-soft-alt);
+  background: var(--ds-color-surface-subtle);
   padding: var(--ds-space-12) var(--ds-space-16);
 }
 
 .ec-breadcrumb-primary {
   display: flex;
   min-width: 0;
-  align-items: flex-end;
+  align-items: center;
   gap: 8px;
-}
-
-.ec-breadcrumb-menu {
-  color: var(--ds-color-text-navigation);
-  flex: 0 0 auto;
-  margin-bottom: 2px;
 }
 
 .ec-breadcrumb-back {
   color: var(--ds-color-text-navigation);
   flex: 0 0 auto;
-  margin-bottom: 2px;
 }
 
 .ec-breadcrumbs {
@@ -1149,23 +1071,6 @@ function navigateBack() {
   pointer-events: none;
 }
 
-.ec-breadcrumb-title-block {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.ec-breadcrumb-title {
-  font-family: var(--font-title);
-  font-size: clamp(2.4rem, 5vw, 4rem);
-  font-weight: 900;
-  line-height: 0.95;
-  letter-spacing: -0.08em;
-  color: var(--ds-color-text-primary);
-}
-
-
 .ec-breadcrumbs__placeholder {
   min-width: 4px;
   padding: 0 !important;
@@ -1174,84 +1079,9 @@ function navigateBack() {
 
 .ec-breadcrumb-actions {
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 10px;
-  flex: 0 0 auto;
-}
-
-.ec-breadcrumb-action-chip {
-  border-radius: 999px;
-  padding-inline: 4px;
-}
-
-.ec-breadcrumb-action-text {
-  color: #94a3b8;
-  font-size: 0.74rem;
-  font-family: var(--ds-font-family-body);
-  font-weight: 300;
-  line-height: 1.2;
-  margin-bottom: 1px;
-}
-
-.ec-shell-toolbar-title {
-  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 92px;
-  height: 40px;
-  flex: 0 0 auto;
-  align-self: flex-start;
-  position: relative;
-}
-
-.ec-breadcrumb-secondary {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 10px;
+  gap: 6px;
   margin-left: auto;
-  min-width: 140px;
-  flex: 0 0 auto;
-}
-
-.ec-breadcrumb-actions :deep(.q-btn) {
-  align-self: flex-end;
-  margin-bottom: -1px;
-}
-
-.ec-shell-toolbar-fallback {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ds-color-text-primary);
-  font-size: 0.9rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-}
-
-.ec-shell-toolbar-fallback--muted {
-  opacity: 0.18;
-}
-
-.ec-shell-toolbar-lottie {
-  position: relative;
-  z-index: 1;
-  width: 84px;
-  height: 40px;
-}
-
-.ec-shell-toolbar-lottie--hidden {
-  opacity: 0;
-}
-
-.ec-drawer-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
 }
 
 .ec-drawer-scroll {
@@ -1259,18 +1089,6 @@ function navigateBack() {
   min-height: 0;
   overflow-y: auto;
   padding: var(--ds-space-14) var(--ds-space-0);
-}
-
-.ec-drawer-footer {
-  padding: 12px 16px 14px;
-}
-
-.ec-drawer-version {
-  color: #6b7280;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 .ec-drawer-section + .ec-drawer-section {
@@ -1502,7 +1320,7 @@ function navigateBack() {
 }
 
 @media (max-width: 900px) {
-  .ec-drawer-version {
+  .ec-shell-version {
     display: none;
   }
 

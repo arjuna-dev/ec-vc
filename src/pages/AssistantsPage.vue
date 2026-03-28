@@ -15,6 +15,10 @@
     </div>
 
     <div v-else class="assistants-page">
+      <header class="assistants-page__heading">
+        <h1 class="assistants-page__title">Assistants</h1>
+      </header>
+
       <section class="assistants-shell">
         <div class="assistants-shell__hero">
           <div class="assistants-shell__copy">
@@ -393,31 +397,17 @@ onMounted(loadAssistants)
 
 .assistants-page__heading {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: var(--ds-space-12);
-  flex-wrap: wrap;
-}
-
-.assistants-page__heading-copy {
-  max-width: 760px;
-}
-
-.assistants-page__eyebrow {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #6b7280;
 }
 
 .assistants-page__title {
-  margin: 6px 0 8px;
+  margin: 0;
   color: var(--ds-color-text-primary);
-  font-family: var(--font-title);
-  font-size: clamp(2.4rem, 5vw, 4rem);
-  font-weight: 900;
-  line-height: 0.95;
-  letter-spacing: -0.08em;
+  font-family: var(--ds-font-family-title);
+  font-size: var(--ds-font-size-4xl);
+  font-weight: var(--ds-font-weight-black);
+  line-height: var(--ds-line-height-title);
 }
 
 .assistants-shell {

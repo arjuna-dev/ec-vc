@@ -15,6 +15,10 @@
     </div>
 
     <div v-else class="artifacts-page">
+      <header class="artifacts-page__heading">
+        <h1 class="artifacts-page__title">Artifacts</h1>
+      </header>
+
       <section class="artifacts-shell">
         <div class="artifacts-shell__hero">
           <div class="artifacts-shell__copy">
@@ -2764,31 +2768,17 @@ watch(displayArtifactRows, () => {
 
 .artifacts-page__heading {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: var(--ds-space-12);
-  flex-wrap: wrap;
-}
-
-.artifacts-page__heading-copy {
-  max-width: 760px;
-}
-
-.artifacts-page__eyebrow {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #6b7280;
 }
 
 .artifacts-page__title {
-  margin: 6px 0 8px;
+  margin: 0;
   color: var(--ds-color-text-primary);
-  font-family: var(--font-title);
-  font-size: clamp(2.4rem, 5vw, 4rem);
-  font-weight: 900;
-  line-height: 0.95;
-  letter-spacing: -0.08em;
+  font-family: var(--ds-font-family-title);
+  font-size: var(--ds-font-size-4xl);
+  font-weight: var(--ds-font-weight-black);
+  line-height: var(--ds-line-height-title);
 }
 
 .artifacts-shell {
