@@ -174,6 +174,46 @@
         <div ref="quickWidgetIconContainer" class="ec-quick-widget-icon" />
       </q-btn>
     </div>
+    <q-dialog v-model="opportunityKindDialogOpen" persistent>
+      <q-card style="width: 420px; max-width: 92vw">
+        <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
+          <div class="text-h6">Choose Opportunity Type</div>
+          <div class="text-caption text-grey-7">
+            Start by confirming whether this opportunity is a fund or a round.
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-px-lg q-pb-md">
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-sm-6">
+              <q-btn
+                class="full-width"
+                color="primary"
+                icon="account_balance_wallet"
+                label="Fund"
+                @click="confirmOpportunityKind('fund')"
+              />
+            </div>
+            <div class="col-12 col-sm-6">
+              <q-btn
+                class="full-width"
+                outline
+                color="primary"
+                icon="donut_large"
+                label="Round"
+                @click="confirmOpportunityKind('round')"
+              />
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right" class="q-px-lg q-py-md">
+          <q-btn flat no-caps label="Close" @click="opportunityKindDialogOpen = false" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
     <ArtifactAddDialog v-model="artifactDialogOpen" />
   </q-layout>
 </template>
@@ -194,6 +234,7 @@ const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
 const quickOpportunityBranchOpen = ref(false)
 const artifactDialogOpen = ref(false)
+const opportunityKindDialogOpen = ref(false)
 const auditUserLabel = ref('')
 const logoContainer = ref(null)
 const logoReady = ref(false)
@@ -340,7 +381,7 @@ const quickWidgetActions = computed(() => [
     id: 'opportunity',
     label: 'Opportunity',
     icon: 'work',
-    onClick: toggleQuickOpportunityBranch,
+    onClick: openOpportunityKindDialog,
   },
   {
     id: 'contact',
@@ -640,9 +681,18 @@ function closeQuickActions() {
   playQuickWidgetBack()
 }
 
-function toggleQuickOpportunityBranch() {
-  if (!quickActionsOpen.value) return
-  quickOpportunityBranchOpen.value = !quickOpportunityBranchOpen.value
+function openOpportunityKindDialog() {
+  closeQuickActions()
+  opportunityKindDialogOpen.value = true
+}
+
+function confirmOpportunityKind(kind) {
+  opportunityKindDialogOpen.value = false
+  if (kind === 'fund') {
+    void openFundFromQuickAction()
+    return
+  }
+  void openRoundFromQuickAction()
 }
 
 async function openNoteFromQuickAction() {

@@ -111,7 +111,14 @@
 
       <q-card-section class="q-px-lg q-pb-md">
         <div class="column q-gutter-md">
+          <q-input
+            v-if="intakeGuideVisibleFields.includes('companyName')"
+            v-model="intakeGuideForm.companyName"
+            outlined
+            label="Company Name"
+          />
           <q-select
+            v-if="intakeGuideVisibleFields.includes('documentType')"
             v-model="intakeGuideForm.documentType"
             outlined
             use-input
@@ -120,15 +127,6 @@
             new-value-mode="add-unique"
             label="Document Type"
             :options="documentTypeOptions"
-          />
-          <q-select
-            v-model="intakeGuideForm.opportunityId"
-            outlined
-            label="Use Existing Opportunity"
-            :options="opportunityOptions"
-            emit-value
-            map-options
-            clearable
           />
         </div>
       </q-card-section>
@@ -140,9 +138,8 @@
         <q-btn
           flat
           no-caps
-          label="Use Existing Opportunity"
-          :disable="!intakeGuideForm.opportunityId"
-          @click="applyExistingOpportunityFromGuide"
+          label="Link Existing Opportunity"
+          @click="openExistingOpportunityStepFromGuide"
         />
         <q-btn
           color="primary"
@@ -214,6 +211,14 @@ const opportunityOptions = computed(() =>
   })),
 )
 
+const intakeGuideVisibleFields = computed(() => {
+  const visible = []
+  if (String(intakeGuideForm.value.companyName || '').trim()) visible.push('companyName')
+  if (String(intakeGuideForm.value.documentType || '').trim()) visible.push('documentType')
+  if (!visible.length) visible.push('documentType')
+  return visible
+})
+
 const documentTypeOptions = [
   'Pitch Deck',
   'Term Sheet',
@@ -274,6 +279,7 @@ function stageDroppedFiles(files = []) {
     stage: 'Dropped',
   })
   intakeGuideForm.value = createDefaultIntakeGuideForm({
+    companyName: inferCompanyNameFromFiles(summaries),
     documentType: inferDocumentTypeFromFiles(summaries),
   })
   scheduleIntakeGuideDialog()
@@ -281,8 +287,8 @@ function stageDroppedFiles(files = []) {
 
 function createDefaultIntakeGuideForm(overrides = {}) {
   return {
+    companyName: '',
     documentType: '',
-    opportunityId: null,
     ...overrides,
   }
 }
@@ -298,6 +304,19 @@ function inferDocumentTypeFromFiles(files = []) {
   if (joined.includes('.pdf')) return 'PDF Document'
   if (joined.includes('.doc') || joined.includes('.docx')) return 'Text Document'
   return ''
+}
+
+function inferCompanyNameFromFiles(files = []) {
+  const rawName = String(files?.[0]?.name || '').trim()
+  if (!rawName) return ''
+  const baseName = rawName.replace(/\.[^.]+$/, '')
+  const firstSegment = baseName
+    .split(/[_-]+/)
+    .map((part) => String(part || '').trim())
+    .find((part) => part.length > 2)
+  if (!firstSegment) return ''
+  const normalized = firstSegment.replace(/\b(deck|pitch|memo|model|term|sheet|presentation|fund|round)\b/gi, '').trim()
+  return normalized || ''
 }
 
 function clearIntakeGuideTimer() {
@@ -318,14 +337,15 @@ function dismissIntakeGuideDialog() {
   intakeGuideDialogOpen.value = false
 }
 
-function applyExistingOpportunityFromGuide() {
-  if (!activeDraft.value?.id || !intakeGuideForm.value.opportunityId) return
+function openExistingOpportunityStepFromGuide() {
   clearIntakeGuideTimer()
-  updateIntakeDraft(activeDraft.value.id, {
-    opportunityId: intakeGuideForm.value.opportunityId,
-    stage: 'Quick Review Needed',
-    inferredDocumentType: intakeGuideForm.value.documentType || null,
-  })
+  if (activeDraft.value?.id) {
+    updateIntakeDraft(activeDraft.value.id, {
+      inferredDocumentType: intakeGuideForm.value.documentType || null,
+      inferredCompanyName: intakeGuideForm.value.companyName || null,
+      stage: 'Quick Review Needed',
+    })
+  }
   step.value = 2
   intakeGuideDialogOpen.value = false
 }
@@ -335,6 +355,7 @@ function openCreateOpportunityFromGuide() {
   if (activeDraft.value?.id) {
     updateIntakeDraft(activeDraft.value.id, {
       inferredDocumentType: intakeGuideForm.value.documentType || null,
+      inferredCompanyName: intakeGuideForm.value.companyName || null,
       stage: 'Quick Review Needed',
     })
   }
