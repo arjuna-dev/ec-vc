@@ -1237,7 +1237,7 @@ watch(displayRows, () => {
 }
 
 .contacts-shell__hero-text {
-  margin: 0;
+  margin: auto 0 0;
   color: var(--ds-color-text-secondary);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-base-regular);

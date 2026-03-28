@@ -484,6 +484,7 @@ onMounted(loadAssistants)
 .assistants-shell__hero-text,
 .assistants-dashboard__stat-caption,
 .assistants-dashboard__health-text {
+  margin: auto 0 0;
   color: var(--ds-color-text-secondary);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-base-regular);

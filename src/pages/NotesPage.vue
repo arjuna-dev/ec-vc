@@ -677,6 +677,7 @@ watch(displayRows, () => {
 .notes-shell__hero-text,
 .notes-dashboard__stat-caption,
 .notes-dashboard__health-text {
+  margin: auto 0 0;
   color: var(--ds-color-text-secondary);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-base-regular);
