@@ -275,7 +275,7 @@ const primaryNavigationItems = [
   { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
-  { label: 'Projects', to: '/projects', exact: true, icon: 'schema' },
+  { label: 'Pipelines', to: '/projects', exact: true, icon: 'schema' },
 ]
 const secondaryNavigationItems = [
   { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
@@ -290,8 +290,8 @@ const routeLabelByName = {
   opportunities: 'Opportunities',
   funds: 'Funds',
   rounds: 'Rounds',
-  pipelines: 'Projects',
-  projects: 'Projects',
+  pipelines: 'Pipelines',
+  projects: 'Pipelines',
   artifacts: 'Artifacts',
   notes: 'Notes',
   tasks: 'Tasks',
