@@ -188,6 +188,25 @@
         </q-banner>
 
         <div class="companies-surface">
+          <div v-if="viewMode === 'table'" class="companies-table-tabs">
+            <q-tabs
+              v-model="companyTableTab"
+              dense
+              no-caps
+              inline-label
+              active-color="dark"
+              indicator-color="dark"
+              class="companies-table-tabs__nav"
+            >
+              <q-tab
+                v-for="tab in companyTableTabs"
+                :key="tab.value"
+                :name="tab.value"
+                :label="tab.label"
+              />
+            </q-tabs>
+          </div>
+
           <q-banner
             v-if="!loading && displayRows.length === 0"
             class="companies-empty-state bg-grey-1 text-black"
@@ -198,47 +217,7 @@
             </div>
           </q-banner>
 
-          <q-table
-            v-else-if="viewMode === 'table'"
-            class="companies-table"
-            flat
-            bordered
-            row-key="id"
-            v-model:selected="selectedRows"
-            v-model:pagination="pagination"
-            selection="multiple"
-            :rows="displayRows"
-            :columns="columns"
-            :loading="loading"
-            :rows-per-page-options="rowsPerPageOptions"
-          >
-            <template #body-cell-actions="props">
-              <q-td :props="props">
-                <div class="companies-table__actions">
-                  <q-btn
-                    dense
-                    flat
-                    round
-                    icon="visibility"
-                    color="grey-8"
-                    :disable="loading"
-                    @click="openDatabook(props.row)"
-                  />
-                  <q-btn
-                    dense
-                    flat
-                    round
-                    icon="delete"
-                    color="grey-8"
-                    :disable="loading"
-                    @click="confirmDelete(props.row)"
-                  />
-                </div>
-              </q-td>
-            </template>
-          </q-table>
-
-          <div v-else class="row q-col-gutter-md companies-cards-grid">
+          <div v-else-if="showCompanyCards" class="row q-col-gutter-md companies-cards-grid">
             <div v-for="row in displayRows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
               <q-card
                 flat
@@ -301,7 +280,10 @@
                         </q-badge>
                       </div>
 
-                      <div v-if="getCompanyCardActionLinks(row).length" class="company-card__quick-actions">
+                      <div
+                        v-if="getCompanyCardActionLinks(row).length"
+                        class="company-card__quick-actions"
+                      >
                         <q-btn
                           v-for="link in getCompanyCardActionLinks(row)"
                           :key="link.label"
@@ -344,15 +326,6 @@
                 </q-card-section>
 
                 <q-card-actions class="company-card__footer">
-                  <q-btn
-                    no-caps
-                    unelevated
-                    class="company-card__footer-action company-card__footer-action--primary"
-                    label="Open databook"
-                    :disable="loading"
-                    @click="openDatabook(row)"
-                  />
-
                   <div class="company-card__footer-actions">
                     <q-btn
                       flat
@@ -360,8 +333,21 @@
                       icon="visibility"
                       class="company-card__icon-action"
                       :disable="loading"
-                      @click="openDatabook(row)"
+                      title="Open curated view"
+                      @click="openEyeView(row)"
                     />
+                    <q-btn
+                      flat
+                      round
+                      icon="table_view"
+                      class="company-card__icon-action"
+                      :disable="loading"
+                      title="Open databook view"
+                      @click="openDataBookView(row)"
+                    />
+                  </div>
+
+                  <div class="company-card__footer-actions">
                     <q-btn
                       flat
                       round
@@ -375,6 +361,63 @@
               </q-card>
             </div>
           </div>
+
+          <q-table
+            v-else-if="showCompanyTable"
+            class="companies-table"
+            flat
+            bordered
+            row-key="id"
+            v-model:selected="selectedRows"
+            v-model:pagination="pagination"
+            selection="multiple"
+            :rows="displayRows"
+            :columns="activeCompanyColumns"
+            :loading="loading"
+            :rows-per-page-options="rowsPerPageOptions"
+          >
+            <template #body-cell-actions="props">
+              <q-td :props="props">
+                <div class="companies-table__actions">
+                  <q-btn
+                    dense
+                    flat
+                    round
+                    icon="visibility"
+                    color="grey-8"
+                    :disable="loading"
+                    @click="openEyeView(props.row)"
+                  />
+                  <q-btn
+                    dense
+                    flat
+                    round
+                    icon="table_view"
+                    color="grey-8"
+                    :disable="loading"
+                    @click="openDataBookView(props.row)"
+                  />
+                  <q-btn
+                    dense
+                    flat
+                    round
+                    icon="delete"
+                    color="grey-8"
+                    :disable="loading"
+                    @click="confirmDelete(props.row)"
+                  />
+                </div>
+              </q-td>
+            </template>
+          </q-table>
+
+          <q-banner
+            v-else
+            class="companies-empty-state bg-grey-1 text-black"
+            rounded
+          >
+            {{ activeCompanyTabMessage }}
+          </q-banner>
         </div>
       </section>
 
@@ -429,6 +472,16 @@ const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const COMPANY_VIEW_MODES = new Set(['card', 'table'])
+const COMPANY_TABLE_TABS = new Set([
+  'cards',
+  'all',
+  'metadata',
+  'contacts',
+  'rounds',
+  'funds',
+  'artifacts',
+  'notes',
+])
 const COMPANIES_BREADCRUMB_ACTION_OWNER = 'companies-page'
 
 const rows = ref([])
@@ -443,6 +496,7 @@ const locationFilter = ref('')
 const statusFilter = ref('')
 const searchQuery = ref('')
 const viewMode = ref(getRouteViewMode(route.query.view))
+const companyTableTab = ref(getRouteTableTab(route.query.tableTab))
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const rowsPerPageOptions = [10, 15, 25, 50]
@@ -490,9 +544,28 @@ function openDatabook(row) {
   })
 }
 
+function openEyeView(row) {
+  openDatabook(row)
+}
+
+function openDataBookView(row) {
+  const rowId = String(row?.id || '').trim()
+  if (rowId) {
+    const focusedRow = rows.value.find((entry) => String(entry?.id || '').trim() === rowId)
+    if (focusedRow) selectedRows.value = [focusedRow]
+  }
+  viewMode.value = 'table'
+  companyTableTab.value = 'cards'
+}
+
 function getRouteViewMode(value) {
   const normalized = String(value || '').trim().toLowerCase()
   return COMPANY_VIEW_MODES.has(normalized) ? normalized : 'card'
+}
+
+function getRouteTableTab(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  return COMPANY_TABLE_TABS.has(normalized) ? normalized : 'all'
 }
 
 function getCompaniesReturnToPath() {
@@ -500,6 +573,12 @@ function getCompaniesReturnToPath() {
 
   if (viewMode.value === 'table') nextQuery.view = 'table'
   else delete nextQuery.view
+
+  if (viewMode.value === 'table' && companyTableTab.value !== 'all') {
+    nextQuery.tableTab = companyTableTab.value
+  } else {
+    delete nextQuery.tableTab
+  }
 
   return router.resolve({
     path: route.path,
@@ -510,12 +589,21 @@ function getCompaniesReturnToPath() {
 function syncViewModeQuery() {
   const currentRouteView = getRouteViewMode(route.query.view)
   const nextView = COMPANY_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'card'
+  const currentRouteTableTab = getRouteTableTab(route.query.tableTab)
+  const nextTableTab = COMPANY_TABLE_TABS.has(companyTableTab.value) ? companyTableTab.value : 'all'
 
-  if (currentRouteView === nextView) return
+  if (
+    currentRouteView === nextView &&
+    (nextView !== 'table' || currentRouteTableTab === nextTableTab)
+  )
+    return
 
   const nextQuery = { ...route.query }
   if (nextView === 'table') nextQuery.view = 'table'
   else delete nextQuery.view
+
+  if (nextView === 'table' && nextTableTab !== 'all') nextQuery.tableTab = nextTableTab
+  else delete nextQuery.tableTab
 
   router.replace({ query: nextQuery })
 }
@@ -551,11 +639,60 @@ const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
 ]
+const companyTableTabs = [
+  { label: 'Cards', value: 'cards' },
+  { label: 'All', value: 'all' },
+  { label: 'Metadata', value: 'metadata' },
+  { label: 'Contacts', value: 'contacts' },
+  { label: 'Rounds', value: 'rounds' },
+  { label: 'Funds', value: 'funds' },
+  { label: 'Artifacts', value: 'artifacts' },
+  { label: 'Notes', value: 'notes' },
+]
 const companyKindOptions = [
   { label: 'All', value: 'all' },
   { label: 'Managers', value: 'asset_managers' },
   { label: 'Corps', value: 'corps' },
 ]
+
+const metadataColumns = [
+  columns.find((column) => column.name === 'Company_Name'),
+  columns.find((column) => column.name === 'Short_Name'),
+  columns.find((column) => column.name === 'Website'),
+  columns.find((column) => column.name === 'Status'),
+  columns.find((column) => column.name === 'Company_Type'),
+  columns.find((column) => column.name === 'Company_Stage'),
+  columns.find((column) => column.name === 'created_at'),
+  columns.find((column) => column.name === 'actions'),
+].filter(Boolean)
+
+const companyTableTabMessages = {
+  contacts: 'Contacts subsection will populate from company-linked level-2 relationships.',
+  rounds: 'Rounds subsection will populate from company-linked level-2 relationships.',
+  funds: 'Funds subsection will populate from company-linked level-2 relationships.',
+  artifacts: 'Artifacts subsection will populate from company-linked level-2 relationships.',
+  notes: 'Notes subsection will populate from company-linked level-2 relationships.',
+}
+
+const showCompanyCards = computed(
+  () => viewMode.value === 'card' || (viewMode.value === 'table' && companyTableTab.value === 'cards'),
+)
+
+const activeCompanyColumns = computed(() => {
+  if (companyTableTab.value === 'metadata') return metadataColumns
+  return columns
+})
+
+const showCompanyTable = computed(
+  () =>
+    viewMode.value === 'table' &&
+    companyTableTab.value !== 'cards' &&
+    !companyTableTabMessages[companyTableTab.value],
+)
+
+const activeCompanyTabMessage = computed(
+  () => companyTableTabMessages[companyTableTab.value] || 'No records found.',
+)
 
 function uniqueCompanyValues(resolver) {
   return [...new Set(rows.value.map((row) => normalizeCompanyValue(resolver(row))).filter(Boolean))]
@@ -1184,7 +1321,19 @@ watch(
   },
 )
 
+watch(
+  () => route.query.tableTab,
+  (value) => {
+    const nextTab = getRouteTableTab(value)
+    if (companyTableTab.value !== nextTab) companyTableTab.value = nextTab
+  },
+)
+
 watch(viewMode, () => {
+  syncViewModeQuery()
+})
+
+watch(companyTableTab, () => {
   syncViewModeQuery()
 })
 
