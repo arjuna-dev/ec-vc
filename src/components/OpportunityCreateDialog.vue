@@ -89,27 +89,6 @@
             </div>
           </div>
 
-          <q-separator />
-
-          <div class="row items-center justify-between q-col-gutter-md q-pb-md">
-            <div class="col">
-              <div class="text-subtitle2">Input Source</div>
-              <div class="text-caption text-grey-7">
-                Start from the AI proposal, or switch to human input while you review the round.
-              </div>
-            </div>
-            <div class="col-auto">
-              <q-btn-toggle
-                v-model="inputSourceMode"
-                unelevated
-                toggle-color="primary"
-                color="grey-3"
-                text-color="grey-8"
-                :options="inputSourceOptions"
-              />
-            </div>
-          </div>
-
           <div class="opportunity-dialog-sections">
             <section class="opportunity-dialog-section">
               <div class="text-subtitle1">Company</div>
@@ -119,35 +98,54 @@
               </div>
 
               <div class="opportunity-dialog-section__grid">
-                <q-input
-                  v-if="companyLinkMode === 'new'"
-                  v-model="companyForm.Company_Name"
-                  outlined
-                  label="Company Name"
+                <div
                   class="opportunity-dialog-section__field opportunity-dialog-section__field--full"
                   :style="{ order: companyLayoutOrder.Company_Name }"
-                  :disable="loading || processingDrop"
-                  :input-class="fieldInputClass('company', 'Company_Name')"
-                />
+                >
+                  <q-input
+                    v-if="companyLinkMode === 'new'"
+                    v-model="companyForm.Company_Name"
+                    outlined
+                    label="Company Name"
+                    :disable="loading || processingDrop"
+                    :input-class="fieldInputClass('company', 'Company_Name')"
+                  />
 
-                <q-select
-                  v-else
-                  v-model="form.company_id"
-                  outlined
-                  label="Company Name"
-                  :options="companyOptions"
-                  :disable="loadingCompanies || loading || processingDrop"
-                  emit-value
-                  map-options
-                  option-label="label"
-                  option-value="value"
-                  options-dense
-                  use-input
-                  input-debounce="0"
-                  class="opportunity-dialog-section__field opportunity-dialog-section__field--full"
-                  :style="{ order: companyLayoutOrder.Company_Name }"
-                  @filter="onCompanyOptionFilter"
-                />
+                  <q-select
+                    v-else
+                    v-model="form.company_id"
+                    outlined
+                    label="Company Name"
+                    :options="companyOptions"
+                    :disable="loadingCompanies || loading || processingDrop"
+                    emit-value
+                    map-options
+                    option-label="label"
+                    option-value="value"
+                    options-dense
+                    use-input
+                    input-debounce="0"
+                    @filter="onCompanyOptionFilter"
+                  />
+
+                  <div
+                    v-if="showFieldSourceToggle('company', 'Company_Name')"
+                    class="field-source-toggle"
+                  >
+                    <q-btn-toggle
+                      :model-value="getFieldSourceMode('company', 'Company_Name')"
+                      dense
+                      flat
+                      rounded
+                      no-caps
+                      toggle-color="primary"
+                      color="grey-2"
+                      text-color="grey-7"
+                      :options="fieldSourceOptions"
+                      @update:model-value="setFieldSourceMode('company', 'Company_Name', $event)"
+                    />
+                  </div>
+                </div>
 
                 <q-option-group
                   v-model="companyLinkMode"
@@ -245,52 +243,63 @@
                 </div>
 
                 <template v-for="field in editableCompanyFields" :key="field.key">
-                  <q-select
-                    v-if="field.key === 'Company_Type'"
-                    v-model="companyForm.Company_Type"
-                    outlined
-                    emit-value
-                    map-options
-                    :label="field.label"
-                    :options="companyTypeOptions"
+                  <div
                     class="opportunity-dialog-section__field"
                     :class="{
                       'opportunity-dialog-section__field--full': companyFullWidthFieldKeys.has(field.key),
                     }"
                     :style="{ order: companyLayoutOrder[field.key] ?? 50 }"
-                    :disable="loading || processingDrop"
-                    :input-class="fieldInputClass('company', field.key)"
-                  />
-                  <q-select
-                    v-else-if="field.key === 'Status'"
-                    v-model="companyForm.Status"
-                    outlined
-                    emit-value
-                    map-options
-                    :label="field.label"
-                    :options="companyStatusOptions"
-                    class="opportunity-dialog-section__field"
-                    :class="{
-                      'opportunity-dialog-section__field--full': companyFullWidthFieldKeys.has(field.key),
-                    }"
-                    :style="{ order: companyLayoutOrder[field.key] ?? 50 }"
-                    :disable="loading || processingDrop"
-                    :input-class="fieldInputClass('company', field.key)"
-                  />
-                  <q-input
-                    v-else
-                    v-model="companyForm[field.key]"
-                    outlined
-                    :label="field.label"
-                    :type="field.inputType"
-                    class="opportunity-dialog-section__field"
-                    :class="{
-                      'opportunity-dialog-section__field--full': companyFullWidthFieldKeys.has(field.key),
-                    }"
-                    :style="{ order: companyLayoutOrder[field.key] ?? 50 }"
-                    :disable="loading || processingDrop"
-                    :input-class="fieldInputClass('company', field.key)"
-                  />
+                  >
+                    <q-select
+                      v-if="field.key === 'Company_Type'"
+                      v-model="companyForm.Company_Type"
+                      outlined
+                      emit-value
+                      map-options
+                      :label="field.label"
+                      :options="companyTypeOptions"
+                      :disable="loading || processingDrop"
+                      :input-class="fieldInputClass('company', field.key)"
+                    />
+                    <q-select
+                      v-else-if="field.key === 'Status'"
+                      v-model="companyForm.Status"
+                      outlined
+                      emit-value
+                      map-options
+                      :label="field.label"
+                      :options="companyStatusOptions"
+                      :disable="loading || processingDrop"
+                      :input-class="fieldInputClass('company', field.key)"
+                    />
+                    <q-input
+                      v-else
+                      v-model="companyForm[field.key]"
+                      outlined
+                      :label="field.label"
+                      :type="field.inputType"
+                      :disable="loading || processingDrop"
+                      :input-class="fieldInputClass('company', field.key)"
+                    />
+
+                    <div
+                      v-if="showFieldSourceToggle('company', field.key)"
+                      class="field-source-toggle"
+                    >
+                      <q-btn-toggle
+                        :model-value="getFieldSourceMode('company', field.key)"
+                        dense
+                        flat
+                        rounded
+                        no-caps
+                        toggle-color="primary"
+                        color="grey-2"
+                        text-color="grey-7"
+                        :options="fieldSourceOptions"
+                        @update:model-value="setFieldSourceMode('company', field.key, $event)"
+                      />
+                    </div>
+                  </div>
                 </template>
               </div>
             </section>
@@ -303,16 +312,36 @@
               </div>
 
               <div class="opportunity-dialog-section__grid">
-                <q-input
-                  v-model="form.Venture_Oppty_Name"
-                  outlined
-                  :label="`${entityLabel} Name`"
-                  :error="Boolean(opportunityNameError)"
-                  :error-message="opportunityNameError"
-                  class="opportunity-dialog-section__field opportunity-dialog-section__field--full"
-                  :disable="loading || processingDrop"
-                  @update:model-value="markOpportunityNameEdited"
-                />
+                <div class="opportunity-dialog-section__field opportunity-dialog-section__field--full">
+                  <q-input
+                    v-model="form.Venture_Oppty_Name"
+                    outlined
+                    :label="`${entityLabel} Name`"
+                    :error="Boolean(opportunityNameError)"
+                    :error-message="opportunityNameError"
+                    :disable="loading || processingDrop"
+                    :input-class="fieldInputClass('opportunity', 'Venture_Oppty_Name')"
+                    @update:model-value="markOpportunityNameEdited"
+                  />
+
+                  <div
+                    v-if="showFieldSourceToggle('opportunity', 'Venture_Oppty_Name')"
+                    class="field-source-toggle"
+                  >
+                    <q-btn-toggle
+                      :model-value="getFieldSourceMode('opportunity', 'Venture_Oppty_Name')"
+                      dense
+                      flat
+                      rounded
+                      no-caps
+                      toggle-color="primary"
+                      color="grey-2"
+                      text-color="grey-7"
+                      :options="fieldSourceOptions"
+                      @update:model-value="setFieldSourceMode('opportunity', 'Venture_Oppty_Name', $event)"
+                    />
+                  </div>
+                </div>
 
                 <q-select
                   v-model="form.kind"
@@ -331,17 +360,38 @@
                   Selected company is <b>Asset Manager</b>, so kind is forced to <b>fund</b>.
                 </div>
 
-                <q-input
+                <div
                   v-for="field in opportunityFields"
                   :key="field.key"
-                  v-model="form[field.key]"
-                  outlined
-                  :label="field.label"
-                  :type="field.inputType"
                   class="opportunity-dialog-section__field"
-                  :disable="loading || processingDrop"
-                  :input-class="fieldInputClass('opportunity', field.key)"
-                />
+                >
+                  <q-input
+                    v-model="form[field.key]"
+                    outlined
+                    :label="field.label"
+                    :type="field.inputType"
+                    :disable="loading || processingDrop"
+                    :input-class="fieldInputClass('opportunity', field.key)"
+                  />
+
+                  <div
+                    v-if="showFieldSourceToggle('opportunity', field.key)"
+                    class="field-source-toggle"
+                  >
+                    <q-btn-toggle
+                      :model-value="getFieldSourceMode('opportunity', field.key)"
+                      dense
+                      flat
+                      rounded
+                      no-caps
+                      toggle-color="primary"
+                      color="grey-2"
+                      text-color="grey-7"
+                      :options="fieldSourceOptions"
+                      @update:model-value="setFieldSourceMode('opportunity', field.key, $event)"
+                    />
+                  </div>
+                </div>
               </div>
 
               <q-separator class="q-my-md" />
@@ -390,22 +440,40 @@
               These are first-order contact fields. When a contact is linked, edits here save back to that
               contact record.
             </div>
-            <q-select
-              v-if="contactLinkMode === 'existing'"
-              v-model="contactForm.id"
-              outlined
-              label="Contact Name"
-              :options="contactOptions"
-              :disable="loadingContacts || loading || processingDrop"
-              emit-value
-              map-options
-              option-label="label"
-              option-value="value"
-              options-dense
-              use-input
-              input-debounce="0"
-              @filter="onContactOptionFilter"
-            />
+            <div v-if="contactLinkMode === 'existing'">
+              <q-select
+                v-model="contactForm.id"
+                outlined
+                label="Contact Name"
+                :options="contactOptions"
+                :disable="loadingContacts || loading || processingDrop"
+                emit-value
+                map-options
+                option-label="label"
+                option-value="value"
+                options-dense
+                use-input
+                input-debounce="0"
+                @filter="onContactOptionFilter"
+              />
+              <div
+                v-if="showFieldSourceToggle('contact', 'id')"
+                class="field-source-toggle"
+              >
+                <q-btn-toggle
+                  :model-value="getFieldSourceMode('contact', 'id')"
+                  dense
+                  flat
+                  rounded
+                  no-caps
+                  toggle-color="primary"
+                  color="grey-2"
+                  text-color="grey-7"
+                  :options="fieldSourceOptions"
+                  @update:model-value="setFieldSourceMode('contact', 'id', $event)"
+                />
+              </div>
+            </div>
             <q-option-group
               v-model="contactLinkMode"
               inline
@@ -413,16 +481,33 @@
               color="primary"
               :disable="loading || loadingContacts || processingDrop"
             />
-            <q-input
-              v-for="field in contactFields"
-              :key="field.key"
-              v-model="contactForm[field.key]"
-              outlined
-              :label="field.label"
-              :type="field.inputType"
-              :disable="loading || processingDrop"
-              :input-class="fieldInputClass('contact', field.key)"
-            />
+            <div v-for="field in contactFields" :key="field.key">
+              <q-input
+                v-model="contactForm[field.key]"
+                outlined
+                :label="field.label"
+                :type="field.inputType"
+                :disable="loading || processingDrop"
+                :input-class="fieldInputClass('contact', field.key)"
+              />
+              <div
+                v-if="showFieldSourceToggle('contact', field.key)"
+                class="field-source-toggle"
+              >
+                <q-btn-toggle
+                  :model-value="getFieldSourceMode('contact', field.key)"
+                  dense
+                  flat
+                  rounded
+                  no-caps
+                  toggle-color="primary"
+                  color="grey-2"
+                  text-color="grey-7"
+                  :options="fieldSourceOptions"
+                  @update:model-value="setFieldSourceMode('contact', field.key, $event)"
+                />
+              </div>
+            </div>
           </div>
 
           <q-separator v-if="assistantProposal.system_prompt" />
@@ -821,7 +906,6 @@ const existingOpportunityNames = ref([])
 const companyLinkMode = ref('new')
 const contactLinkMode = ref('new')
 const companySourceChoice = ref('input')
-const inputSourceMode = ref('ai')
 const companyPreviewDialogOpen = ref(false)
 const companyPreviewSource = ref('input')
 const intakeReviewDialogOpen = ref(false)
@@ -854,10 +938,11 @@ const intakeFieldSources = ref(createDefaultIntakeReviewSources())
 const deferredSuggestionPayload = ref(null)
 
 const autofilledFlags = ref({})
+const fieldSourceModes = ref({})
 
-const inputSourceOptions = [
-  { label: 'AI Proposal', value: 'ai' },
-  { label: 'Human Input', value: 'human' },
+const fieldSourceOptions = [
+  { icon: 'auto_awesome', value: 'ai' },
+  { icon: 'edit', value: 'human' },
 ]
 
 const ingestStatusColumns = [
@@ -1290,7 +1375,6 @@ function resetTransientState() {
   companyLinkMode.value = 'new'
   contactLinkMode.value = 'new'
   companySourceChoice.value = 'input'
-  inputSourceMode.value = 'ai'
   companyOptionFilter.value = ''
   contactOptionFilter.value = ''
   companyPreviewDialogOpen.value = false
@@ -1307,6 +1391,7 @@ function resetTransientState() {
   droppedFilesForPrompt.value = []
   existingDocumentNameMatches.value = []
   autofilledFlags.value = {}
+  fieldSourceModes.value = {}
   intakeReviewDialogOpen.value = false
   intakeReviewDelayElapsed.value = false
   intakeReviewPromptShown.value = false
@@ -1335,7 +1420,7 @@ function buildDraftSnapshot() {
     companyLinkMode: companyLinkMode.value,
     contactLinkMode: contactLinkMode.value,
     companySourceChoice: companySourceChoice.value,
-    inputSourceMode: inputSourceMode.value,
+    fieldSourceModes: { ...fieldSourceModes.value },
     existingDocumentNameMatches: [...existingDocumentNameMatches.value],
     intakeReviewFields: { ...intakeReviewFields.value },
     intakeReviewVerified: { ...intakeReviewVerified.value },
@@ -1399,7 +1484,7 @@ function hydrateFromActiveDraft() {
   companyLinkMode.value = activeDraft.value.companyLinkMode || companyLinkMode.value
   contactLinkMode.value = activeDraft.value.contactLinkMode || contactLinkMode.value
   companySourceChoice.value = activeDraft.value.companySourceChoice || companySourceChoice.value
-  inputSourceMode.value = activeDraft.value.inputSourceMode || inputSourceMode.value
+  fieldSourceModes.value = { ...(activeDraft.value.fieldSourceModes || {}) }
   intakeReviewFields.value = {
     ...createDefaultIntakeReviewFields(),
     ...(activeDraft.value.intakeReviewFields || {}),
@@ -1929,11 +2014,33 @@ function stripHumanVerify(value) {
 
 function markAutofilled(section, key) {
   autofilledFlags.value[`${section}.${key}`] = true
+  if (!fieldSourceModes.value[`${section}.${key}`]) {
+    fieldSourceModes.value[`${section}.${key}`] = 'ai'
+  }
 }
 
 function fieldInputClass(section, key) {
-  if (inputSourceMode.value !== 'ai') return ''
-  return autofilledFlags.value[`${section}.${key}`] ? 'ec-autofilled-field' : ''
+  return getFieldSourceMode(section, key) === 'ai' && autofilledFlags.value[`${section}.${key}`]
+    ? 'ec-autofilled-field'
+    : ''
+}
+
+function getFieldSourceMode(section, key) {
+  const fieldKey = `${section}.${key}`
+  if (fieldSourceModes.value[fieldKey]) return fieldSourceModes.value[fieldKey]
+  return autofilledFlags.value[fieldKey] ? 'ai' : 'human'
+}
+
+function showFieldSourceToggle(section, key) {
+  return Boolean(autofilledFlags.value[`${section}.${key}`])
+}
+
+function setFieldSourceMode(section, key, value) {
+  fieldSourceModes.value = {
+    ...fieldSourceModes.value,
+    [`${section}.${key}`]: value === 'human' ? 'human' : 'ai',
+  }
+  syncActiveDraft()
 }
 
 function promptFieldClass(fieldKey) {
@@ -2969,6 +3076,24 @@ onBeforeUnmount(() => {
 
 .opportunity-dialog-section__field--full {
   grid-column: 1 / -1;
+}
+
+.field-source-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.field-source-toggle :deep(.q-btn-toggle) {
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(248, 250, 252, 0.96);
+}
+
+.field-source-toggle :deep(.q-btn) {
+  min-height: 28px;
+  min-width: 28px;
+  padding: 0 8px;
 }
 
 .company-mismatch-banner {
