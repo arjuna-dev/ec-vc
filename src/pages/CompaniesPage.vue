@@ -552,7 +552,7 @@ const viewOptions = [
 ]
 const companyKindOptions = [
   { label: 'All', value: 'all' },
-  { label: 'Asset Managers', value: 'asset_managers' },
+  { label: 'Managers', value: 'asset_managers' },
   { label: 'Corps', value: 'corps' },
 ]
 
