@@ -730,9 +730,6 @@
                   class="intake-used-row"
                 >
                   <div class="text-body2"><b>{{ row.label }}:</b> {{ row.value }}</div>
-                  <div class="text-caption text-grey-7">
-                    Owner: {{ row.owner }} | Writes into: {{ row.target }} | Source: {{ row.source }}
-                  </div>
                 </div>
               </div>
             </q-card-section>
@@ -1568,6 +1565,8 @@ function getPendingIntakeReviewFieldKeys(fields = intakeReviewFields.value) {
     if (key === 'relatedRound' && entityType.value !== 'round') return false
     const value = String(fields[key] || '').trim()
     if (!value) return false
+    const currentlyVerifiedValue = String(intakeReviewFields.value[key] || '').trim()
+    if (Boolean(intakeReviewVerified.value[key]) && currentlyVerifiedValue === value) return false
     return String(intakeConfirmedFieldValues.value[key] || '').trim() !== value
   })
 }
