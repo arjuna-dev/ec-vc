@@ -191,31 +191,32 @@
           bordered
           class="artifact-card full-height"
         >
-          <q-card-section class="artifact-card__header">
-            <div class="row items-start justify-between q-col-gutter-sm">
-              <div class="col">
-                <div class="text-overline text-grey-6">{{ formatGroupTypeLabel(group) }}</div>
-                <button
-                  type="button"
-                  class="artifact-card__title-button"
-                  @click="void openArtifactForReview(group.previewArtifact)"
-                >
-                  {{ group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Untitled artifact' }}
-                </button>
-                <div class="text-caption text-grey-7">
-                  {{ artifactDisplayName(group.previewArtifact) || artifactDisplayName(group.primaryArtifact) || 'Document' }}
+          <q-card-section class="artifact-card__hero">
+            <div class="artifact-card__hero-main">
+              <figure class="artifact-card__portrait">
+                <div class="artifact-card__portrait-shell" aria-hidden="true">
+                  <div class="artifact-card__portrait-badge">
+                    <q-icon name="description" size="24px" />
+                  </div>
                 </div>
-              </div>
-              <div class="col-auto">
-                <div class="artifact-card__header-controls">
-                  <q-chip
-                    dense
-                    square
-                    :color="artifactNeedsAttention(group.primaryArtifact) ? 'amber-2' : 'green-1'"
-                    :text-color="artifactNeedsAttention(group.primaryArtifact) ? 'amber-10' : 'green-10'"
-                  >
-                    {{ artifactStatusLabel(group.primaryArtifact) }}
-                  </q-chip>
+              </figure>
+
+              <div class="artifact-card__hero-side">
+                <div class="artifact-card__hero-top">
+                  <div class="artifact-card__hero-copy">
+                    <div class="artifact-card__eyebrow">{{ formatGroupTypeLabel(group) }}</div>
+                    <button
+                      type="button"
+                      class="artifact-card__title-button"
+                      @click="void openArtifactForReview(group.previewArtifact)"
+                    >
+                      {{ group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Untitled artifact' }}
+                    </button>
+                    <div class="artifact-card__subtitle">
+                      {{ getArtifactCardSubtitle(group) }}
+                    </div>
+                  </div>
+
                   <q-checkbox
                     :model-value="isSelected(group.primaryArtifact)"
                     :disable="loading || savingProperties"
@@ -223,104 +224,122 @@
                     @update:model-value="toggleRowSelection(group.primaryArtifact, $event)"
                   />
                 </div>
+
+                <div v-if="getArtifactCardPills(group).length" class="artifact-card__pill-row">
+                  <q-badge
+                    v-for="pill in getArtifactCardPills(group)"
+                    :key="pill"
+                    class="artifact-card__pill"
+                  >
+                    {{ pill }}
+                  </q-badge>
+                </div>
+
+                <div class="artifact-card__quick-actions">
+                  <q-btn
+                    outline
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="artifact-card__quick-action"
+                    icon="visibility"
+                    label="Preview"
+                    :disable="loading"
+                    @click="void openArtifactForReview(group.previewArtifact)"
+                  />
+                  <q-btn-dropdown
+                    outline
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="artifact-card__quick-action artifact-card__quick-action--dropdown"
+                    icon="share"
+                    label="Share"
+                    :disable="loading"
+                    dropdown-icon="keyboard_arrow_down"
+                  >
+                    <q-list dense style="min-width: 180px">
+                      <q-item clickable v-close-popup @click="void shareArtifact(group.previewArtifact)">
+                        <q-item-section avatar>
+                          <q-icon name="folder_open" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label>Reveal in Folder</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                      <q-item clickable v-close-popup @click="void downloadArtifact(group.previewArtifact)">
+                        <q-item-section avatar>
+                          <q-icon name="download" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label>Download</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-btn-dropdown>
+                  <q-btn
+                    outline
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="artifact-card__quick-action"
+                    :icon="artifactActionConfig(group.primaryArtifact).icon"
+                    :label="artifactActionConfig(group.primaryArtifact).label"
+                    :disable="loading || savingProperties"
+                    @click="continueArtifactIntake(group.primaryArtifact)"
+                  />
+                </div>
               </div>
             </div>
           </q-card-section>
 
-          <q-separator />
+          <q-card-section class="artifact-card__summary">
+            <div class="artifact-card__summary-label">Highlights</div>
 
-          <q-card-section class="artifact-card__body">
-            <div class="artifact-card__meta">
-              <div>
-                <span class="artifact-card__meta-label">Opportunity</span>
-                <div>{{ resolveOpportunityLabel(group.primaryArtifact) }}</div>
-              </div>
-              <div>
-                <span class="artifact-card__meta-label">Created</span>
-                <div>{{ formatArtifactDate(group.latestCreatedAt) }}</div>
-              </div>
-              <div>
-                <span class="artifact-card__meta-label">Format</span>
-                <div>{{ group.primaryArtifact.artifact_format || 'Unknown' }}</div>
-              </div>
-              <div>
-                <span class="artifact-card__meta-label">Versions</span>
-                <div>{{ group.versionSummary }}</div>
+            <div class="artifact-card__details">
+              <div
+                v-for="detail in getArtifactCardDetails(group)"
+                :key="detail.label"
+                class="artifact-card__detail"
+              >
+                <q-icon :name="detail.icon" size="16px" class="artifact-card__detail-icon" />
+                <div class="artifact-card__detail-copy">
+                  <div class="artifact-card__detail-label">{{ detail.label }}</div>
+                  <div class="artifact-card__detail-value">{{ detail.value }}</div>
+                </div>
               </div>
             </div>
 
             <div
               v-if="group.primaryArtifact.description"
-              class="text-caption text-grey-7 artifact-card__description"
+              class="artifact-card__description"
             >
               {{ group.primaryArtifact.description }}
             </div>
-
-            <div v-if="group.artifacts.length > 1" class="artifact-card__versions">
-              <q-chip
-                v-for="artifactVersion in group.artifacts"
-                :key="artifactVersion.artifact_id"
-                dense
-                square
-                color="grey-2"
-                text-color="grey-8"
-                class="artifact-card__version-chip"
-              >
-                {{ String(artifactVersion.artifact_type || 'artifact').toUpperCase() }}
-              </q-chip>
-            </div>
           </q-card-section>
 
-          <q-card-actions align="between" class="artifact-card__actions">
-            <div class="row items-center q-col-gutter-sm">
+          <q-card-actions class="artifact-card__footer">
+            <div class="artifact-card__footer-actions">
               <q-btn
                 flat
-                no-caps
+                round
                 icon="visibility"
-                label="Preview"
+                class="artifact-card__icon-action"
                 :disable="loading"
+                title="Open artifact review"
                 @click="void openArtifactForReview(group.previewArtifact)"
               />
-              <q-btn-dropdown
-                flat
-                no-caps
-                icon="share"
-                label="Share"
-                :disable="loading"
-                dropdown-icon="keyboard_arrow_down"
-              >
-                <q-list dense style="min-width: 180px">
-                  <q-item clickable v-close-popup @click="void shareArtifact(group.previewArtifact)">
-                    <q-item-section avatar>
-                      <q-icon name="folder_open" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Reveal in Folder</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable v-close-popup @click="void downloadArtifact(group.previewArtifact)">
-                    <q-item-section avatar>
-                      <q-icon name="download" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Download</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-              </q-btn-dropdown>
             </div>
-            <div class="row items-center q-col-gutter-sm">
+
+            <div class="artifact-card__footer-actions">
               <q-btn
-                color="primary"
-                unelevated
-                :round="artifactActionConfig(group.primaryArtifact).iconOnly"
-                :dense="artifactActionConfig(group.primaryArtifact).iconOnly"
-                :icon="artifactActionConfig(group.primaryArtifact).icon"
-                :label="artifactActionConfig(group.primaryArtifact).iconOnly ? undefined : artifactActionConfig(group.primaryArtifact).label"
-                :aria-label="artifactActionConfig(group.primaryArtifact).label"
-                :title="artifactActionConfig(group.primaryArtifact).label"
-                :disable="loading || savingProperties"
-                @click="continueArtifactIntake(group.primaryArtifact)"
+                flat
+                round
+                icon="delete"
+                class="artifact-card__icon-action"
+                :disable="loading"
+                title="Delete artifact"
+                @click="confirmDelete(group.primaryArtifact)"
               />
             </div>
           </q-card-actions>
@@ -1696,6 +1715,48 @@ function formatGroupTypeLabel(group = {}) {
   return 'artifact'
 }
 
+function getArtifactCardSubtitle(group = {}) {
+  const displayName =
+    artifactDisplayName(group?.previewArtifact) || artifactDisplayName(group?.primaryArtifact) || 'Document'
+  const title = String(group?.primaryArtifact?.title || '').trim()
+  if (displayName && displayName !== title) return displayName
+  const format = String(group?.primaryArtifact?.artifact_format || '').trim()
+  return format ? `${group?.versionSummary || 'Single version'} • ${format}` : group?.versionSummary || 'Document'
+}
+
+function getArtifactCardPills(group = {}) {
+  return [
+    artifactStatusLabel(group?.primaryArtifact),
+    String(group?.primaryArtifact?.artifact_format || '').trim(),
+    group?.artifacts?.length > 1 ? group.versionSummary : '',
+  ].filter(Boolean)
+}
+
+function getArtifactCardDetails(group = {}) {
+  return [
+    {
+      label: 'Opportunity',
+      value: resolveOpportunityLabel(group?.primaryArtifact),
+      icon: 'schema',
+    },
+    {
+      label: 'Created',
+      value: formatArtifactDate(group?.latestCreatedAt),
+      icon: 'schedule',
+    },
+    {
+      label: 'Format',
+      value: String(group?.primaryArtifact?.artifact_format || 'Unknown').trim(),
+      icon: 'description',
+    },
+    {
+      label: 'Versions',
+      value: String(group?.versionSummary || 'Single version').trim(),
+      icon: 'layers',
+    },
+  ]
+}
+
 function createEmptyPropertiesForm() {
   return {
     artifact_id: '',
@@ -3069,10 +3130,6 @@ watch(displayArtifactRows, () => {
     inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
 
-.artifact-card__header {
-  padding-bottom: 10px;
-}
-
 .artifact-card__title-button {
   display: block;
   width: 100%;
@@ -3091,65 +3148,209 @@ watch(displayArtifactRows, () => {
   color: #2563eb;
 }
 
-.artifact-card__header-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.artifact-card__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 14px;
+.artifact-card__hero {
   padding-bottom: 12px;
 }
 
-.artifact-card__meta {
+.artifact-card__hero-main {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: minmax(88px, 104px) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 16px;
 }
 
-.artifact-card__meta-label {
-  display: block;
-  margin-bottom: 4px;
+.artifact-card__portrait {
+  margin: 0;
+  min-height: 168px;
+  position: relative;
+}
+
+.artifact-card__portrait::after {
+  content: "";
+  position: absolute;
+  inset: 12px 8px -10px 8px;
+  border-radius: 26px;
+  background: rgba(14, 165, 233, 0.12);
+  filter: blur(14px);
+}
+
+.artifact-card__portrait-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100%;
+  min-height: 168px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(14, 165, 233, 0.2), rgba(37, 99, 235, 0.16)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.4));
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 16px 28px rgba(14, 165, 233, 0.14);
+}
+
+.artifact-card__portrait-badge {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #0f172a;
+  box-shadow:
+    0 14px 24px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84);
+}
+
+.artifact-card__hero-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 12px;
+}
+
+.artifact-card__hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.artifact-card__hero-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 6px;
+}
+
+.artifact-card__eyebrow {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #64748b;
 }
 
-.artifact-card__header .q-chip {
+.artifact-card__subtitle {
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.artifact-card__pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.artifact-card__pill {
   border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #334155;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.artifact-card__quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.artifact-card__quick-action {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #334155;
+}
+
+.artifact-card__quick-action--dropdown :deep(.q-btn-dropdown__arrow) {
+  margin-left: 2px;
+}
+
+.artifact-card__summary {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.artifact-card__summary-label {
+  font-size: 0.72rem;
   font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.artifact-card__details {
+  display: grid;
+  gap: 10px;
+}
+
+.artifact-card__detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.artifact-card__detail-icon {
+  margin-top: 2px;
+  color: #64748b;
+}
+
+.artifact-card__detail-copy {
+  min-width: 0;
+}
+
+.artifact-card__detail-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.artifact-card__detail-value {
+  margin-top: 2px;
+  color: #0f172a;
+  line-height: 1.45;
 }
 
 .artifact-card__description {
+  margin-top: auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #475569;
   display: -webkit-box;
   overflow: hidden;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
-.artifact-card__versions {
+.artifact-card__footer {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.artifact-card__version-chip {
-  margin: 0;
-  border-radius: 999px;
-}
-
-.artifact-card__actions {
-  padding: 10px 14px 14px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 14px;
   border-top: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(255, 255, 255, 0.54);
+}
+
+.artifact-card__footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.artifact-card__icon-action {
+  color: #475569;
 }
 
 .artifact-properties__versions {
@@ -3426,8 +3627,21 @@ watch(displayArtifactRows, () => {
     grid-template-columns: 1fr;
   }
 
-  .artifact-card__meta {
+  .artifact-card__hero-main {
     grid-template-columns: 1fr;
+  }
+
+  .artifact-card__portrait {
+    min-height: 132px;
+  }
+
+  .artifact-card__portrait-shell {
+    min-height: 132px;
+  }
+
+  .artifact-card__quick-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .artifact-preview-dialog__body--split {
