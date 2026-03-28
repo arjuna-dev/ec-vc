@@ -482,13 +482,13 @@
             </div>
             <div class="col-auto">
               <q-btn
-                v-if="showPreviewFocusStrip && previewFocusStripHidden"
+                v-if="previewState.kind === 'pdf' && previewFocusStripHidden"
                 flat
                 dense
                 no-caps
                 icon="visibility"
                 label="Show Review Focus"
-                @click="previewFocusStripHidden = false"
+                @click="void showPreviewFocusStripPanel()"
               />
               <q-btn
                 flat
@@ -507,7 +507,7 @@
           <q-card-section class="artifact-preview-dialog__body artifact-preview-dialog__body--split">
             <div class="artifact-preview-dialog__main">
               <div
-                v-if="showPreviewFocusStrip && !previewFocusStripHidden"
+                v-if="previewState.kind === 'pdf' && !previewFocusStripHidden"
                 class="artifact-preview-dialog__focus-strip"
               >
                 <div class="artifact-preview-dialog__focus-copy">
@@ -527,6 +527,14 @@
                   />
                 </div>
                 <div class="artifact-preview-dialog__focus-chips">
+                  <button
+                    v-if="!previewFocusClaimRows.length"
+                    type="button"
+                    class="artifact-preview-dialog__focus-chip artifact-preview-dialog__focus-chip--empty"
+                    @click="void ensurePreviewReviewDataLoaded()"
+                  >
+                    Load connected items
+                  </button>
                   <button
                     v-for="claim in previewFocusClaimRows"
                     :key="claim.claim_id"
@@ -1074,10 +1082,6 @@ const previewSelectedFocusClaim = computed(() => {
     null
   )
 })
-
-const showPreviewFocusStrip = computed(
-  () => previewState.value.kind === 'pdf' && previewFocusClaimRows.value.length > 0,
-)
 
 const previewPrimaryArtifact = computed(() => previewArtifactGroup.value?.primaryArtifact || null)
 
@@ -1945,6 +1949,18 @@ async function loadPreviewReviewSidebar(artifactId = '') {
   }
 }
 
+async function ensurePreviewReviewDataLoaded() {
+  if (!previewState.value.artifactId) return
+  if (previewMarkdownLoading.value) return
+  if (previewMarkdownContent.value.trim() && previewMarkdownArtifactId.value) return
+  await loadPreviewReviewSidebar(previewState.value.artifactId)
+}
+
+async function showPreviewFocusStripPanel() {
+  previewFocusStripHidden.value = false
+  await ensurePreviewReviewDataLoaded()
+}
+
 async function togglePreviewSidebar() {
   previewSidebarOpen.value = !previewSidebarOpen.value
   if (previewSidebarOpen.value && previewState.value.artifactId) {
@@ -2389,6 +2405,11 @@ watch(previewFocusClaimRows, (claims) => {
   border-color: rgba(148, 163, 184, 0.38);
   background: rgba(255, 255, 255, 0.96);
   color: #0f172a;
+}
+
+.artifact-preview-dialog__focus-chip--empty {
+  cursor: pointer;
+  border-style: dashed;
 }
 
 .artifact-preview-dialog__state {
