@@ -1105,9 +1105,9 @@ function navigateBack() {
 }
 
 .ec-drawer-version {
-  color: #6b7280;
+  color: var(--ds-color-text-navigation);
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 300;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
