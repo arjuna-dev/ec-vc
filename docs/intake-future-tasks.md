@@ -139,6 +139,29 @@ Desired outcome:
 
 - Artifact Properties labels should be understandable without internal schema knowledge
 
+## 7. Add Cautious Slide-Intent Review
+
+Current observation:
+
+- artifact review needs a stronger audit trail for where markdown and extracted metadata came from
+- however it is dangerous to assume all venture decks use the same slide order or structure
+
+Desired behavior:
+
+- slide titles such as `Disclosures`, `Executive Summary`, or `Contact` should be treated as hints
+- those hints should suggest candidate metadata fields with confidence, not force hard mappings
+- the review pane should show whether a slide mapping is exact, provisional, or unmapped
+
+Why it matters:
+
+- this is safer than pretending there is one universal deck format
+- it makes the audit trail more trustworthy
+- it helps users understand why one slide was used for a metadata field and another was not
+
+Reference:
+
+- see `docs/slide-intent-review-spec.md`
+
 ## Suggested Later Sequence
 
 1. stabilize current prompt behavior
