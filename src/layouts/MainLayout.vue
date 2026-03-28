@@ -1158,8 +1158,11 @@ function navigateBack() {
 .ec-breadcrumb-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
+  gap: 10px;
   margin-left: auto;
+  min-width: 220px;
+  flex: 0 0 auto;
 }
 
 .ec-breadcrumb-action-chip {
@@ -1178,21 +1181,22 @@ function navigateBack() {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  height: 28px;
-  margin-left: 6px;
+  min-width: 72px;
+  height: 32px;
+  margin-left: 10px;
+  flex: 0 0 72px;
 }
 
 .ec-breadcrumb-logo__fallback {
   color: var(--ds-color-text-primary);
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: 0.14em;
 }
 
 .ec-breadcrumb-logo__lottie {
-  width: 40px;
-  height: 24px;
+  width: 68px;
+  height: 32px;
 }
 
 .ec-breadcrumb-logo__lottie--hidden {
