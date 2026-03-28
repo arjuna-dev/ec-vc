@@ -92,80 +92,26 @@
               :disable="loading"
             />
 
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="add_circle_outline"
-              label="Import CSV"
-              class="pipelines-toolbar__button"
-              :disable="loading"
-              @click="pickImportFile"
-            />
-
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="download"
-              label="Export CSV"
-              class="pipelines-toolbar__button"
-              :disable="loading || displayRows.length === 0"
-              @click="exportPipelinesCsv"
-            />
-
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="flag"
-              label="Priority"
-              class="pipelines-toolbar__button"
-              :class="{ 'pipelines-toolbar__button--active': priorityMode }"
-              :disable="loading"
-              @click="togglePriorityMode"
-            />
           </div>
 
           <div class="pipelines-toolbar__right">
-            <q-btn-dropdown
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              outline
-              no-caps
-              icon="tune"
-              dropdown-icon="keyboard_arrow_down"
-              class="pipelines-view-button"
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="pipelines-toolbar__toggle"
               :disable="loading"
-              label="View"
-            >
-              <q-list class="pipelines-view-menu">
-                <q-item
-                  v-for="option in viewOptions"
-                  :key="option.value"
-                  clickable
-                  v-close-popup
-                  :active="viewMode === option.value"
-                  active-class="pipelines-view-menu__item--active"
-                  @click="viewMode = option.value"
-                >
-                  <q-item-section avatar>
-                    <q-icon :name="option.icon" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>{{ option.label }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
-
-            <B10Button
-              variant="primary"
-              size="small"
-              icon-start="add"
-              label="Add Project"
-              :disable="loading"
-              @click="openCreatePipeline"
+              :options="viewOptions"
             />
+            <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn dense flat round icon="upload" :disable="loading || displayRows.length === 0" @click="exportPipelinesCsv">
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -181,14 +127,6 @@
           >
             <div class="row items-center justify-between">
               <div>No projects found.</div>
-              <q-btn
-                color="black"
-                text-color="white"
-                no-caps
-                unelevated
-                label="Create project"
-                @click="openCreatePipeline"
-              />
             </div>
           </q-banner>
 
@@ -377,7 +315,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { exportFile, useQuasar } from 'quasar'
 import PipelineCreateDialog from 'components/PipelineCreateDialog.vue'
-import B10Button from 'src/components/buttons/B10Button.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 
 const isElectronRuntime = computed(() => {
@@ -400,7 +337,6 @@ const loading = ref(false)
 const error = ref('')
 const pipelineDialogOpen = ref(false)
 const searchQuery = ref('')
-const priorityMode = ref(false)
 const viewMode = ref('card')
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
@@ -427,8 +363,8 @@ const columns = [
 const csvHeaders = ['pipeline_id', 'name', 'dir_name', 'is_default']
 
 const viewOptions = [
-  { label: 'Cards', value: 'card', icon: 'grid_view' },
-  { label: 'Table', value: 'table', icon: 'view_list' },
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
 ]
 
 const pipelinesDashboard = computed(() => {
@@ -539,20 +475,6 @@ const displayRows = computed(() => {
     )
   }
 
-  if (priorityMode.value) {
-    items.sort((a, b) => {
-      const defaultScoreA = a?.pipeline_id === 'pipeline_default' ? 1 : 0
-      const defaultScoreB = b?.pipeline_id === 'pipeline_default' ? 1 : 0
-      if (defaultScoreA !== defaultScoreB) return defaultScoreB - defaultScoreA
-
-      const installedScoreA = a?.install_status === 'installed' ? 1 : 0
-      const installedScoreB = b?.install_status === 'installed' ? 1 : 0
-      if (installedScoreA !== installedScoreB) return installedScoreB - installedScoreA
-
-      return String(a?.name || '').localeCompare(String(b?.name || ''))
-    })
-  }
-
   return items
 })
 
@@ -637,10 +559,6 @@ async function onImportFileSelected(event) {
   } finally {
     if (fileInput.value) fileInput.value.value = ''
   }
-}
-
-function togglePriorityMode() {
-  priorityMode.value = !priorityMode.value
 }
 
 async function loadPipelines() {
@@ -1110,7 +1028,7 @@ watch(displayRows, () => {
 }
 
 .pipelines-toolbar__button,
-.pipelines-view-button {
+.pipelines-toolbar__toggle {
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
   background: var(--ds-control-surface);
@@ -1122,23 +1040,6 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
-}
-
-.pipelines-toolbar__button--active {
-  background: var(--ds-control-active-bg);
-  color: var(--ds-control-active-text);
-  border-color: var(--ds-control-active-border);
-}
-
-.pipelines-view-menu {
-  min-width: 150px;
-  background: var(--ds-control-surface);
-  color: var(--ds-control-menu-text);
-}
-
-.pipelines-view-menu__item--active {
-  background: var(--ds-control-active-bg);
-  color: var(--ds-control-active-text);
 }
 
 .pipelines-surface {
@@ -1296,7 +1197,7 @@ watch(displayRows, () => {
   }
 
   .pipelines-toolbar__button,
-  .pipelines-view-button {
+  .pipelines-toolbar__toggle {
     width: 100%;
   }
 }

@@ -36,8 +36,6 @@
             :headers="csvHeaders"
             :rows="rows"
             :on-import-rows="importRows"
-            :on-create="openCreateArtifact"
-            create-label="Add artifact"
           />
         </div>
         <div class="col-auto">
@@ -52,7 +50,6 @@
       <q-banner v-if="!loading && rows.length === 0" class="bg-grey-2 text-black q-mb-md" rounded>
         <div class="row items-center justify-between">
           <div>No artifacts created yet.</div>
-          <q-btn color="primary" outline label="Create artifact" @click="openCreateArtifact" />
         </div>
       </q-banner>
 
@@ -838,10 +835,6 @@ const viewModeOptions = [
   { label: 'Grid', value: 'grid', icon: 'grid_view' },
   { label: 'Table', value: 'table', icon: 'view_list' },
 ]
-
-function openCreateArtifact() {
-  globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
-}
 
 function continueArtifactIntake(row = {}) {
   const nextAction = artifactNextAction(row)

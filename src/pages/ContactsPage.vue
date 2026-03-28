@@ -96,28 +96,6 @@
               dense
               outline
               no-caps
-              icon="add_circle_outline"
-              label="Import CSV"
-              class="contacts-toolbar__button"
-              :disable="loading"
-              @click="pickImportFile"
-            />
-
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="download"
-              label="Export CSV"
-              class="contacts-toolbar__button"
-              :disable="loading || displayRows.length === 0"
-              @click="exportContactsCsv"
-            />
-
-            <q-btn
-              dense
-              outline
-              no-caps
               icon="refresh"
               label="Refresh"
               class="contacts-toolbar__button"
@@ -127,44 +105,23 @@
           </div>
 
           <div class="contacts-toolbar__right">
-            <q-btn-dropdown
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              outline
-              no-caps
-              icon="tune"
-              dropdown-icon="keyboard_arrow_down"
-              class="contacts-view-button"
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contacts-toolbar__toggle"
               :disable="loading"
-              label="View"
-            >
-              <q-list class="contacts-view-menu">
-                <q-item
-                  v-for="option in viewOptions"
-                  :key="option.value"
-                  clickable
-                  v-close-popup
-                  :active="viewMode === option.value"
-                  active-class="contacts-view-menu__item--active"
-                  @click="viewMode = option.value"
-                >
-                  <q-item-section avatar>
-                    <q-icon :name="option.icon" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>{{ option.label }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
-
-            <B10Button
-              variant="primary"
-              size="small"
-              icon-start="add"
-              label="Add Contact"
-              :disable="loading"
-              @click="openCreateContact"
+              :options="viewOptions"
             />
+            <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn dense flat round icon="upload" :disable="loading || displayRows.length === 0" @click="exportContactsCsv">
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -180,14 +137,6 @@
           >
             <div class="row items-center justify-between">
               <div>No contacts found.</div>
-              <q-btn
-                color="black"
-                text-color="white"
-                no-caps
-                unelevated
-                label="Create contact"
-                @click="contactDialogOpen = true"
-              />
             </div>
           </q-banner>
 
@@ -399,7 +348,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { exportFile, useQuasar } from 'quasar'
 import ContactCreateDialog from 'components/ContactCreateDialog.vue'
-import B10Button from 'src/components/buttons/B10Button.vue'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 
@@ -864,8 +812,8 @@ const csvHeaders = [
   'Country_based',
 ]
 const viewOptions = [
-  { label: 'Cards', value: 'card', icon: 'grid_view' },
-  { label: 'Table', value: 'table', icon: 'view_list' },
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
 ]
 
 function exportContactsCsv() {
@@ -1322,7 +1270,7 @@ watch(displayRows, () => {
 }
 
 .contacts-toolbar__button,
-.contacts-view-button {
+.contacts-toolbar__toggle {
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
   background: var(--ds-control-surface);
@@ -1334,17 +1282,6 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
-}
-
-.contacts-view-menu {
-  min-width: 150px;
-  background: var(--ds-control-surface);
-  color: var(--ds-control-menu-text);
-}
-
-.contacts-view-menu__item--active {
-  background: var(--ds-control-active-bg);
-  color: var(--ds-control-active-text);
 }
 
 .contacts-surface {
@@ -1778,7 +1715,7 @@ watch(displayRows, () => {
   }
 
   .contacts-toolbar__button,
-  .contacts-view-button {
+  .contacts-toolbar__toggle {
     width: 100%;
   }
 }

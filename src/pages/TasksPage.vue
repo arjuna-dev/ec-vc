@@ -23,8 +23,6 @@
           :headers="csvHeaders"
           :rows="rows"
           :on-import-rows="importRows"
-          :on-create="openCreateTask"
-          create-label="Add Task"
         />
       </div>
       <div class="col-auto">

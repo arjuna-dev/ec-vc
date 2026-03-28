@@ -1,26 +1,26 @@
 <template>
   <div class="row items-center q-gutter-sm">
     <q-btn
-      v-if="canCreate"
       dense
-      color="primary"
-      outline
-      icon="add"
-      :label="createLabelComputed"
-      class="small-text"
-      @click="onCreate"
-    />
-    <q-btn dense outline icon="download" label="Export CSV" class="small-text" @click="exportCsv" />
+      flat
+      round
+      icon="download"
+      :disable="!canImport"
+      @click="pickFile"
+    >
+      <q-tooltip>Import CSV</q-tooltip>
+    </q-btn>
 
     <q-btn
       dense
-      outline
+      flat
+      round
       icon="upload"
-      label="Import CSV"
-      :disable="!canImport"
-      @click="pickFile"
-      class="small-text"
-    />
+      :disable="rows.length === 0"
+      @click="exportCsv"
+    >
+      <q-tooltip>Export CSV</q-tooltip>
+    </q-btn>
 
     <input
       ref="fileInput"
@@ -32,15 +32,6 @@
   </div>
 </template>
 
-<style scoped>
-.small-text {
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
-  padding-right: var(--ds-space-10);
-}
-</style>
-
 <script setup>
 import { computed, ref } from 'vue'
 import { exportFile, useQuasar } from 'quasar'
@@ -51,18 +42,12 @@ const props = defineProps({
   headers: { type: Array, required: true },
   rows: { type: Array, required: true },
   onImportRows: { type: Function, default: null },
-  onCreate: { type: Function, default: null },
-  createLabel: { type: String, default: '' },
 })
 
 const $q = useQuasar()
 const fileInput = ref(null)
 
 const canImport = computed(() => typeof props.onImportRows === 'function')
-const canCreate = computed(() => typeof props.onCreate === 'function')
-const createLabelComputed = computed(() =>
-  props.createLabel ? String(props.createLabel) : 'Create',
-)
 
 function exportCsv() {
   const csv = rowsToCsv(props.headers, props.rows)

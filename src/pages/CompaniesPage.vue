@@ -96,28 +96,6 @@
               dense
               outline
               no-caps
-              icon="add_circle_outline"
-              label="Import CSV"
-              class="companies-toolbar__button"
-              :disable="loading"
-              @click="pickImportFile"
-            />
-
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="download"
-              label="Export CSV"
-              class="companies-toolbar__button"
-              :disable="loading || displayRows.length === 0"
-              @click="exportCompaniesCsv"
-            />
-
-            <q-btn
-              dense
-              outline
-              no-caps
               icon="refresh"
               label="Refresh"
               class="companies-toolbar__button"
@@ -127,44 +105,23 @@
           </div>
 
           <div class="companies-toolbar__right">
-            <q-btn-dropdown
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              outline
-              no-caps
-              icon="tune"
-              dropdown-icon="keyboard_arrow_down"
-              class="companies-view-button"
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="companies-toolbar__toggle"
               :disable="loading"
-              label="View"
-            >
-              <q-list class="companies-view-menu">
-                <q-item
-                  v-for="option in viewOptions"
-                  :key="option.value"
-                  clickable
-                  v-close-popup
-                  :active="viewMode === option.value"
-                  active-class="companies-view-menu__item--active"
-                  @click="viewMode = option.value"
-                >
-                  <q-item-section avatar>
-                    <q-icon :name="option.icon" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>{{ option.label }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
-
-            <B10Button
-              variant="primary"
-              size="small"
-              icon-start="add"
-              label="Add Company"
-              :disable="loading"
-              @click="openCreateCompany"
+              :options="viewOptions"
             />
+            <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn dense flat round icon="upload" :disable="loading || displayRows.length === 0" @click="exportCompaniesCsv">
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -180,14 +137,6 @@
           >
             <div class="row items-center justify-between">
               <div>No companies found.</div>
-              <q-btn
-                color="black"
-                text-color="white"
-                no-caps
-                unelevated
-                label="Create company"
-                @click="companyDialogOpen = true"
-              />
             </div>
           </q-banner>
 
@@ -399,7 +348,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { exportFile, useQuasar } from 'quasar'
 import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
-import B10Button from 'src/components/buttons/B10Button.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 
@@ -534,8 +482,8 @@ const csvHeaders = [
 ]
 
 const viewOptions = [
-  { label: 'Cards', value: 'card', icon: 'grid_view' },
-  { label: 'Table', value: 'table', icon: 'view_list' },
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
 ]
 
 const companiesDashboard = computed(() => {
@@ -1355,7 +1303,7 @@ watch(displayRows, () => {
 }
 
 .companies-toolbar__button,
-.companies-view-button {
+.companies-toolbar__toggle {
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
   background: var(--ds-control-surface);
@@ -1367,17 +1315,6 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
-}
-
-.companies-view-menu {
-  min-width: 150px;
-  background: var(--ds-control-surface);
-  color: var(--ds-control-menu-text);
-}
-
-.companies-view-menu__item--active {
-  background: var(--ds-control-active-bg);
-  color: var(--ds-control-active-text);
 }
 
 .companies-surface {
@@ -1800,7 +1737,7 @@ watch(displayRows, () => {
   }
 
   .companies-toolbar__button,
-  .companies-view-button {
+  .companies-toolbar__toggle {
     width: 100%;
   }
 }

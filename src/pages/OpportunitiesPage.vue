@@ -107,67 +107,40 @@
               </template>
             </q-input>
 
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="add_circle_outline"
-              label="Import CSV"
-              class="opportunities-toolbar__button"
-              :disable="loading || !canImportOpportunities"
-              @click="pickImportFile"
-            />
-
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="download"
-              label="Export CSV"
-              class="opportunities-toolbar__button"
-              :disable="loading || displayRows.length === 0"
-              @click="exportOpportunitiesCsv"
-            />
           </div>
 
           <div class="opportunities-toolbar__right">
-            <B10Button
-              variant="primary"
-              size="small"
-              icon-start="add"
-              :label="addRecordLabel"
-              :disable="loading || !canCreateOpportunities"
-              @click="openCreateOpportunity"
-            />
-            <q-btn-dropdown
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              outline
-              no-caps
-              icon="tune"
-              dropdown-icon="keyboard_arrow_down"
-              class="opportunities-view-button"
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="opportunities-toolbar__toggle"
               :disable="loading"
-              label="View"
+              :options="viewOptions"
+            />
+            <q-btn
+              dense
+              flat
+              round
+              icon="download"
+              :disable="loading || !canImportOpportunities"
+              @click="pickImportFile"
             >
-              <q-list class="opportunities-view-menu">
-                <q-item
-                  v-for="option in viewOptions"
-                  :key="option.value"
-                  clickable
-                  v-close-popup
-                  :active="viewMode === option.value"
-                  active-class="opportunities-view-menu__item--active"
-                  @click="viewMode = option.value"
-                >
-                  <q-item-section avatar>
-                    <q-icon :name="option.icon" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>{{ option.label }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn
+              dense
+              flat
+              round
+              icon="upload"
+              :disable="loading || displayRows.length === 0"
+              @click="exportOpportunitiesCsv"
+            >
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -239,15 +212,6 @@
           >
             <div class="row items-center justify-between">
               <div>{{ currentOpportunityMode.emptyLabel }}</div>
-              <q-btn
-                color="black"
-                text-color="white"
-                no-caps
-                unelevated
-                :label="addRecordLabel"
-                :disable="!canCreateOpportunities"
-                @click="openCreateOpportunity"
-              />
             </div>
           </q-banner>
 
@@ -416,7 +380,6 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { exportFile, useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
-import B10Button from 'src/components/buttons/B10Button.vue'
 import FundCreateDialog from 'src/components/FundCreateDialog.vue'
 import RoundCreateDialog from 'src/components/RoundCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
@@ -471,7 +434,6 @@ const currentOpportunityMode = computed(() => {
       queryLabel: 'funds',
       kind: 'fund',
       emptyLabel: 'No funds found.',
-      createLabel: 'Add Fund',
     }
   }
   if (kindFilter.value === 'round') {
@@ -482,7 +444,6 @@ const currentOpportunityMode = computed(() => {
       queryLabel: 'rounds',
       kind: 'round',
       emptyLabel: 'No rounds found.',
-      createLabel: 'Add Round',
     }
   }
   return {
@@ -492,18 +453,10 @@ const currentOpportunityMode = computed(() => {
     queryLabel: 'opportunities',
     kind: '',
     emptyLabel: 'No opportunities found.',
-    createLabel: 'Add Opportunity',
   }
 })
-const canCreateOpportunities = true
 const canImportOpportunities = false
 const canDeleteOpportunities = true
-const addRecordLabel = computed(() => currentOpportunityMode.value.createLabel)
-
-function openCreateOpportunity() {
-  dialogKind.value = currentOpportunityMode.value.kind || 'round'
-  dialogOpen.value = true
-}
 
 function onOpenFundDialog() {
   globalThis.__ecvcOpenFundDialog = false
@@ -597,8 +550,8 @@ const csvHeaders = [
 ]
 
 const viewOptions = [
-  { label: 'Cards', value: 'card', icon: 'grid_view' },
-  { label: 'Table', value: 'table', icon: 'view_list' },
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
 ]
 
 function uniqueOpportunityValues(resolver) {
@@ -1303,8 +1256,6 @@ watch(
   padding: 0 var(--ds-control-inline-padding);
 }
 
-.opportunities-toolbar__button,
-.opportunities-view-button,
 .opportunities-toolbar__toggle {
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
@@ -1317,17 +1268,6 @@ watch(
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
-}
-
-.opportunities-view-menu {
-  min-width: 150px;
-  background: var(--ds-control-surface);
-  color: var(--ds-control-menu-text);
-}
-
-.opportunities-view-menu__item--active {
-  background: var(--ds-control-active-bg);
-  color: var(--ds-control-active-text);
 }
 
 .opportunities-surface {
@@ -1522,8 +1462,6 @@ watch(
     width: 100%;
   }
 
-  .opportunities-toolbar__button,
-  .opportunities-view-button,
   .opportunities-toolbar__toggle {
     width: 100%;
   }

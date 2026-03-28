@@ -23,8 +23,6 @@
           :headers="csvHeaders"
           :rows="rows"
           :on-import-rows="importRows"
-          :on-create="openCreateNote"
-          create-label="Add Note"
         />
       </div>
       <div class="col-auto">
