@@ -369,18 +369,30 @@ function openCreateOpportunityFromGuide() {
 }
 
 async function finish() {
-  if (!bridge.value?.artifacts?.ingest) return
   if (!opportunityId.value) return
   if (droppedFiles.value.length === 0) return
 
   loading.value = true
   try {
     const activeDraftId = activeDraft.value?.id || null
-    await bridge.value.artifacts.ingest({
-      filePaths: droppedFiles.value.map((f) => f.path),
-      pipelineId: DEFAULT_PIPELINE_ID,
-      opportunityId: opportunityId.value,
-    })
+    const resumeArtifactIds = Array.isArray(activeDraft.value?.resumeArtifactIds)
+      ? activeDraft.value.resumeArtifactIds.map((artifactId) => String(artifactId || '').trim()).filter(Boolean)
+      : []
+
+    if (resumeArtifactIds.length > 0 && bridge.value?.artifacts?.linkToOpportunity) {
+      await bridge.value.artifacts.linkToOpportunity({
+        artifactIds: resumeArtifactIds,
+        opportunityId: opportunityId.value,
+        pipelineId: DEFAULT_PIPELINE_ID,
+      })
+    } else {
+      if (!bridge.value?.artifacts?.ingest) return
+      await bridge.value.artifacts.ingest({
+        filePaths: droppedFiles.value.map((f) => f.path),
+        pipelineId: DEFAULT_PIPELINE_ID,
+        opportunityId: opportunityId.value,
+      })
+    }
     if (activeDraftId) {
       removeIntakeDraft(activeDraftId)
     }

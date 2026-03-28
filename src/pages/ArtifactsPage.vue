@@ -142,7 +142,7 @@
                 :icon="artifactNeedsAttention(artifact) ? 'play_arrow' : 'tune'"
                 :label="artifactNeedsAttention(artifact) ? 'Continue Intake' : 'Open Properties'"
                 :disable="loading || savingProperties"
-                @click="void openPropertiesDialog(artifact)"
+                @click="artifactNeedsAttention(artifact) ? continueArtifactIntake(artifact) : void openPropertiesDialog(artifact)"
               />
             </div>
           </q-card-actions>
@@ -463,6 +463,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
+import { createIntakeDraft } from 'src/utils/intakeDraftState'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -509,6 +510,30 @@ const viewModeOptions = [
 ]
 
 function openCreateArtifact() {
+  globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+}
+
+function continueArtifactIntake(row = {}) {
+  const artifactId = String(row?.artifact_id || '').trim()
+  if (!artifactId) {
+    void openPropertiesDialog(row)
+    return
+  }
+
+  createIntakeDraft({
+    droppedFiles: [
+      {
+        name: artifactFileName(row) || String(row?.title || artifactId).trim(),
+        path: String(row?.fs_path || '').trim() || null,
+        size: 0,
+      },
+    ],
+    opportunityId: String(row?.opportunity_id || '').trim() || null,
+    stage: 'Quick Review Needed',
+    resumeArtifactIds: [artifactId],
+    resumeMode: 'existing-artifact-link',
+  })
+
   globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
 }
 
