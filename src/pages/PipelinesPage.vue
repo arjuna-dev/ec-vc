@@ -1470,7 +1470,7 @@ watch(displayRows, () => {
   display: flex;
   max-height: 240px;
   flex-direction: column;
-  align-items: stretch;
+  align-items: flex-start;
   gap: 0;
   overflow-y: auto;
   padding: 4px 2px 0;
@@ -1487,7 +1487,8 @@ watch(displayRows, () => {
 
 .pipeline-card__stage-chip {
   display: inline-flex;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   min-width: 0;
   align-items: center;
   gap: 10px;
