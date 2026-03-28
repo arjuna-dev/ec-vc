@@ -26,14 +26,6 @@
             <h2 class="assistants-shell__hero-title">Review the helpers powering your workflows.</h2>
             <p class="assistants-shell__hero-text">{{ assistantsHeroText }}</p>
 
-            <div class="assistants-shell__hero-meta">
-              <div class="assistants-shell__meta-pill">
-                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
-              </div>
-              <div class="assistants-shell__meta-pill">
-                {{ assistantsDashboard.promptRate }}% prompt-ready
-              </div>
-            </div>
           </div>
 
           <div class="assistants-dashboard">

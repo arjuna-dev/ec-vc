@@ -26,17 +26,6 @@
             <h2 class="companies-shell__hero-title">Know which companies are ready to work.</h2>
             <p class="companies-shell__hero-text">{{ companiesHeroText }}</p>
 
-            <div class="companies-shell__hero-meta">
-              <div class="companies-shell__meta-pill">
-                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
-              </div>
-              <div v-if="selectedCount > 0" class="companies-shell__meta-pill">
-                {{ selectedCount }} selected
-              </div>
-              <div class="companies-shell__meta-pill">
-                {{ companiesDashboard.typeRate }}% typed
-              </div>
-            </div>
           </div>
 
           <div class="companies-dashboard">

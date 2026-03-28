@@ -26,17 +26,6 @@
             <h2 class="artifacts-shell__hero-title">Review source files, links, and intake state in one place.</h2>
             <p class="artifacts-shell__hero-text">{{ artifactsHeroText }}</p>
 
-            <div class="artifacts-shell__hero-meta">
-              <div class="artifacts-shell__meta-pill">
-                {{ viewMode === 'grid' ? 'Grid view active' : 'Table view active' }}
-              </div>
-              <div v-if="selectedCount > 0" class="artifacts-shell__meta-pill">
-                {{ selectedCount }} selected
-              </div>
-              <div class="artifacts-shell__meta-pill">
-                {{ artifactsDashboard.readyRate }}% ready
-              </div>
-            </div>
           </div>
 
           <div class="artifacts-dashboard">

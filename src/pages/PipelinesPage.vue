@@ -26,17 +26,6 @@
             <h2 class="pipelines-shell__hero-title">See what is ready in your workspace.</h2>
             <p class="pipelines-shell__hero-text">{{ pipelinesHeroText }}</p>
 
-            <div class="pipelines-shell__hero-meta">
-              <div class="pipelines-shell__meta-pill">
-                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
-              </div>
-              <div v-if="selectedCount > 0" class="pipelines-shell__meta-pill">
-                {{ selectedCount }} selected
-              </div>
-              <div class="pipelines-shell__meta-pill">
-                {{ pipelinesDashboard.totalStageCount }} stages mapped
-              </div>
-            </div>
           </div>
 
           <div class="pipelines-dashboard">

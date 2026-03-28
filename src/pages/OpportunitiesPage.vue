@@ -26,15 +26,6 @@
             <h2 class="opportunities-shell__hero-title">{{ currentOpportunityMode.heroTitle }}</h2>
             <p class="opportunities-shell__hero-text">{{ opportunitiesHeroText }}</p>
 
-            <div class="opportunities-shell__hero-meta">
-              <div class="opportunities-shell__meta-pill">
-                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
-              </div>
-              <div v-if="selectedCount > 0" class="opportunities-shell__meta-pill">
-                {{ selectedCount }} selected
-              </div>
-              <div class="opportunities-shell__meta-pill">{{ opportunitiesDashboard.filteredKindCount }} in view</div>
-            </div>
           </div>
 
           <div class="opportunities-dashboard">

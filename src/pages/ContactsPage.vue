@@ -26,17 +26,6 @@
             <h2 class="contacts-shell__hero-title">Relationship map at a glance.</h2>
             <p class="contacts-shell__hero-text">{{ contactsHeroText }}</p>
 
-            <div class="contacts-shell__hero-meta">
-              <div class="contacts-shell__meta-pill">
-                {{ viewMode === 'card' ? 'Card view active' : 'Table view active' }}
-              </div>
-              <div v-if="selectedCount > 0" class="contacts-shell__meta-pill">
-                {{ selectedCount }} selected
-              </div>
-              <div class="contacts-shell__meta-pill">
-                {{ contactsDashboard.reachableRate }}% reachable
-              </div>
-            </div>
           </div>
 
           <div class="contacts-dashboard">
