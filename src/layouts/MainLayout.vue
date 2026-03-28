@@ -20,7 +20,6 @@
         <div class="ec-breadcrumb-primary">
           <div v-if="isHomeRoute" class="ec-breadcrumb-title-block">
             <div class="ec-breadcrumb-title">Home</div>
-            <div class="ec-breadcrumb-title-caption">Workspace cockpit</div>
           </div>
 
           <q-breadcrumbs v-else class="ec-breadcrumbs" separator="chevron_right">
@@ -1101,13 +1100,6 @@ function navigateBack() {
   color: var(--ds-color-text-primary);
 }
 
-.ec-breadcrumb-title-caption {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #6b7280;
-}
 
 .ec-breadcrumbs__placeholder {
   min-width: 4px;
