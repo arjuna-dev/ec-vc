@@ -822,6 +822,7 @@ const intakeReviewDialogOpen = ref(false)
 const intakeReviewDelayElapsed = ref(false)
 const intakeReviewPromptShown = ref(false)
 const intakeReviewPending = ref(false)
+const intakeConfirmedFieldValues = ref(createDefaultIntakeReviewFields())
 const companyOptionFilter = ref('')
 const contactOptionFilter = ref('')
 const dragOver = ref(false)
@@ -1004,11 +1005,9 @@ const intakeVisibleFieldKeys = computed(() =>
 )
 
 const intakeReviewReadyToContinue = computed(() => {
-  const populatedKeys = Object.entries(intakeReviewFields.value)
-    .filter(([, value]) => String(value || '').trim().length > 0)
-    .map(([key]) => key)
-  if (!populatedKeys.length) return true
-  return populatedKeys.every((key) => Boolean(intakeReviewVerified.value[key]))
+  const pendingKeys = getPendingIntakeReviewFieldKeys(intakeReviewFields.value)
+  if (!pendingKeys.length) return true
+  return pendingKeys.every((key) => Boolean(intakeReviewVerified.value[key]))
 })
 
 const intakeUsedInfoRows = computed(() =>
@@ -1297,6 +1296,7 @@ function resetTransientState() {
   intakeReviewPending.value = false
   intakeReviewFields.value = createDefaultIntakeReviewFields()
   intakeReviewVerified.value = createDefaultIntakeReviewVerified()
+  intakeConfirmedFieldValues.value = createDefaultIntakeReviewFields()
   intakeLockedFields.value = createDefaultIntakeReviewVerified()
   intakeFieldSources.value = createDefaultIntakeReviewSources()
   deferredSuggestionPayload.value = null
@@ -1320,6 +1320,7 @@ function buildDraftSnapshot() {
     companySourceChoice: companySourceChoice.value,
     intakeReviewFields: { ...intakeReviewFields.value },
     intakeReviewVerified: { ...intakeReviewVerified.value },
+    intakeConfirmedFieldValues: { ...intakeConfirmedFieldValues.value },
     intakeLockedFields: { ...intakeLockedFields.value },
     intakeFieldSources: { ...intakeFieldSources.value },
   }
@@ -1383,6 +1384,10 @@ function hydrateFromActiveDraft() {
   intakeReviewVerified.value = {
     ...createDefaultIntakeReviewVerified(),
     ...(activeDraft.value.intakeReviewVerified || {}),
+  }
+  intakeConfirmedFieldValues.value = {
+    ...createDefaultIntakeReviewFields(),
+    ...(activeDraft.value.intakeConfirmedFieldValues || {}),
   }
   intakeLockedFields.value = {
     ...createDefaultIntakeReviewVerified(),
@@ -1523,6 +1528,22 @@ function buildIntakeReviewFieldsFromForms() {
   })
 }
 
+function getPendingIntakeReviewFieldKeys(fields = intakeReviewFields.value) {
+  return Object.entries(fields)
+    .filter(([, value]) => String(value || '').trim().length > 0)
+    .map(([key, value]) => [key, String(value || '').trim()])
+    .filter(([key, value]) => String(intakeConfirmedFieldValues.value[key] || '').trim() !== value)
+    .map(([key]) => key)
+}
+
+function queueAdditionalIntakeReviewIfNeeded() {
+  if (!intakeReviewDelayElapsed.value || intakeReviewDialogOpen.value) return
+  if (!getPendingIntakeReviewFieldKeys(buildIntakeReviewFieldsFromForms()).length) return
+  intakeReviewPending.value = true
+  intakeReviewPromptShown.value = false
+  maybeOpenIntakeReviewDialog()
+}
+
 function buildPromptStringOptions(values = []) {
   return [...new Set(values.map((value) => String(value || '').trim()).filter(Boolean))]
 }
@@ -1577,12 +1598,15 @@ function scheduleIntakeReviewDialog() {
 function maybeOpenIntakeReviewDialog() {
   if (!intakeReviewPending.value || !intakeReviewDelayElapsed.value || intakeReviewPromptShown.value) return
   const nextFields = buildIntakeReviewFieldsFromForms()
+  const pendingKeys = getPendingIntakeReviewFieldKeys(nextFields)
+  if (!pendingKeys.length) {
+    resolveIntakeReviewGate()
+    return
+  }
   intakeReviewFields.value = nextFields
   intakeReviewVerified.value = {
     ...createDefaultIntakeReviewVerified(),
-    ...Object.fromEntries(
-      Object.entries(intakeReviewVerified.value).filter(([, verified]) => Boolean(verified)),
-    ),
+    ...Object.fromEntries(pendingKeys.map((key) => [key, false])),
   }
   intakeReviewDialogOpen.value = true
   intakeReviewPromptShown.value = true
@@ -1598,9 +1622,15 @@ function resolveIntakeReviewGate() {
 
 function confirmIntakeReviewDialog() {
   if (!intakeReviewReadyToContinue.value) return
+  const populatedEntries = Object.entries(intakeReviewFields.value).filter(([, value]) => String(value || '').trim().length > 0)
+  intakeConfirmedFieldValues.value = {
+    ...intakeConfirmedFieldValues.value,
+    ...Object.fromEntries(populatedEntries.map(([key, value]) => [key, String(value || '').trim()])),
+  }
   intakeReviewDialogOpen.value = false
   processingMessage.value = 'Continuing extraction...'
   resolveIntakeReviewGate()
+  queueAdditionalIntakeReviewIfNeeded()
 }
 
 function updateIntakeReviewField(fieldKey, value) {
@@ -1994,6 +2024,7 @@ function applyPrimarySuggestedValues(suggested = {}) {
     markAutofilled('contact', key)
   }
   syncActiveDraft({ stage: 'Matching' })
+  queueAdditionalIntakeReviewIfNeeded()
 }
 
 function applySecondarySuggestedValues(suggested = {}) {
@@ -2539,6 +2570,14 @@ watch(
         Company_Name: selected.Company_Name || '',
       })
     }
+  },
+)
+
+watch(
+  () => JSON.stringify(buildIntakeReviewFieldsFromForms()),
+  () => {
+    if (!processingDrop.value) return
+    queueAdditionalIntakeReviewIfNeeded()
   },
 )
 
