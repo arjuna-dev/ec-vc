@@ -162,9 +162,12 @@
               <q-btn
                 color="primary"
                 unelevated
-                no-caps
+                :round="artifactActionConfig(group.primaryArtifact).iconOnly"
+                :dense="artifactActionConfig(group.primaryArtifact).iconOnly"
                 :icon="artifactActionConfig(group.primaryArtifact).icon"
-                :label="artifactActionConfig(group.primaryArtifact).label"
+                :label="artifactActionConfig(group.primaryArtifact).iconOnly ? undefined : artifactActionConfig(group.primaryArtifact).label"
+                :aria-label="artifactActionConfig(group.primaryArtifact).label"
+                :title="artifactActionConfig(group.primaryArtifact).label"
                 :disable="loading || savingProperties"
                 @click="continueArtifactIntake(group.primaryArtifact)"
               />
@@ -1230,9 +1233,9 @@ function artifactStatusLabel(row = {}) {
 
 function artifactActionConfig(row = {}) {
   const nextAction = artifactNextAction(row)
-  if (nextAction === 'artifact-properties') return { icon: 'tune', label: 'Fix Properties' }
-  if (nextAction === 'link-opportunity') return { icon: 'link', label: 'Link Opportunity' }
-  return { icon: 'tune', label: 'Open Properties' }
+  if (nextAction === 'artifact-properties') return { icon: 'tune', label: 'Fix Properties', iconOnly: true }
+  if (nextAction === 'link-opportunity') return { icon: 'link', label: 'Link Opportunity', iconOnly: false }
+  return { icon: 'tune', label: 'Open Properties', iconOnly: true }
 }
 
 function filterOpportunityOptions(value, update) {
