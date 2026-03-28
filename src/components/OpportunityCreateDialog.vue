@@ -1896,6 +1896,35 @@ function updateStatusForAllFiles(partial = {}) {
   syncActiveDraft()
 }
 
+function isAutofillQuotaError(error) {
+  const message = String(error?.message || error || '').toLowerCase()
+  return (
+    message.includes('quota exceeded') ||
+    message.includes('rate limit') ||
+    message.includes('failed after 3 attempts') ||
+    message.includes('generate_content_free_tier_requests')
+  )
+}
+
+async function handleAutofillPreviewFallback(error) {
+  releaseIntakeExtractionLocks()
+  deferredSuggestionPayload.value = null
+  updateStatusForAllFiles({ extractionStatus: 'manual review' })
+  syncActiveDraft({
+    stage: 'Ready for Review',
+    extractionFallbackReason: String(error?.message || error || '').trim(),
+  })
+  processingMessage.value = 'AI extraction quota reached. Continue with manual review.'
+  intakeReviewDelayElapsed.value = true
+  intakeReviewPending.value = true
+  maybeOpenIntakeReviewDialog()
+  $q.notify({
+    type: 'warning',
+    message: 'AI quota reached. The files were staged and markdown is ready for manual review.',
+    timeout: 5000,
+  })
+}
+
 function lowerBaseName(fileName) {
   const name = String(fileName || '').trim().toLowerCase()
   if (!name) return ''
@@ -2084,7 +2113,16 @@ async function processDroppedFiles(files = []) {
     if (!markdownPaths.length) {
       throw new Error('No generated markdown files found for extraction.')
     }
-    const preview = await bridge.value.autofill.previewFromFiles({ filePaths: markdownPaths })
+    let preview = null
+    try {
+      preview = await bridge.value.autofill.previewFromFiles({ filePaths: markdownPaths })
+    } catch (error) {
+      if (isAutofillQuotaError(error)) {
+        await handleAutofillPreviewFallback(error)
+        return
+      }
+      throw error
+    }
     deferredSuggestionPayload.value = preview?.suggested || {}
     applyPrimarySuggestedValues(deferredSuggestionPayload.value)
     applyMatchedExistingCompany(preview?.companyMatch || null)
@@ -2096,6 +2134,7 @@ async function processDroppedFiles(files = []) {
 
     processingMessage.value = 'Files processed successfully.'
   } catch (e) {
+    updateStatusForAllFiles({ extractionStatus: 'failed' })
     $q.notify({ type: 'negative', message: e?.message || String(e) })
   } finally {
     processingDrop.value = false
@@ -2381,6 +2420,7 @@ function statusColor(value) {
   const v = String(value || '').toLowerCase()
   if (v === 'completed' || v === 'uploaded') return 'green-7'
   if (v === 'existing') return 'blue-7'
+  if (v === 'manual review') return 'amber-8'
   if (v === 'skipped') return 'grey-7'
   if (v === 'error' || v === 'failed') return 'negative'
   return 'orange-7'
