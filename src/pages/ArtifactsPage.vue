@@ -18,7 +18,17 @@
       <div class="row items-center q-col-gutter-sm page-title-section">
         <div class="col">
           <div class="text-h6">Artifacts</div>
-          <div class="text-caption text-grey-7">All artifacts stored in the database.</div>
+          <div class="text-caption text-grey-7">Latest artifacts, review actions, and manual intake nudges.</div>
+        </div>
+        <div class="col-auto">
+          <q-btn-toggle
+            v-model="viewMode"
+            unelevated
+            toggle-color="primary"
+            color="grey-3"
+            text-color="grey-8"
+            :options="viewModeOptions"
+          />
         </div>
         <div class="col-auto">
           <TableCsvActions
@@ -46,6 +56,99 @@
         </div>
       </q-banner>
 
+      <div v-else-if="viewMode === 'grid'" class="artifacts-grid">
+        <q-card
+          v-for="artifact in latestArtifacts"
+          :key="artifact.artifact_id"
+          flat
+          bordered
+          class="artifact-card"
+        >
+          <q-card-section class="artifact-card__header">
+            <div class="row items-start justify-between q-col-gutter-sm">
+              <div class="col">
+                <div class="text-overline text-grey-6">{{ artifact.artifact_type || 'artifact' }}</div>
+                <div class="text-subtitle1 artifact-card__title">
+                  {{ artifact.title || artifactFileName(artifact) || 'Untitled artifact' }}
+                </div>
+                <div class="text-caption text-grey-7">
+                  {{ artifactFileName(artifact) || artifact.artifact_id }}
+                </div>
+              </div>
+              <div class="col-auto">
+                <q-chip
+                  dense
+                  square
+                  :color="artifactNeedsAttention(artifact) ? 'amber-2' : 'green-1'"
+                  :text-color="artifactNeedsAttention(artifact) ? 'amber-10' : 'green-10'"
+                >
+                  {{ artifactNeedsAttention(artifact) ? 'Needs intake review' : 'Ready' }}
+                </q-chip>
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section class="artifact-card__body">
+            <div class="artifact-card__meta">
+              <div>
+                <span class="artifact-card__meta-label">Opportunity</span>
+                <div>{{ resolveOpportunityLabel(artifact) }}</div>
+              </div>
+              <div>
+                <span class="artifact-card__meta-label">Created</span>
+                <div>{{ formatArtifactDate(artifact.created_at) }}</div>
+              </div>
+              <div>
+                <span class="artifact-card__meta-label">Format</span>
+                <div>{{ artifact.artifact_format || 'Unknown' }}</div>
+              </div>
+              <div>
+                <span class="artifact-card__meta-label">Category</span>
+                <div>{{ artifact.type || 'Uncategorized' }}</div>
+              </div>
+            </div>
+
+            <div v-if="artifact.description" class="text-caption text-grey-7 artifact-card__description">
+              {{ artifact.description }}
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="between" class="artifact-card__actions">
+            <div class="row items-center q-col-gutter-sm">
+              <q-btn
+                flat
+                no-caps
+                icon="visibility"
+                label="Preview"
+                :disable="loading"
+                @click="void previewArtifact(artifact)"
+              />
+              <q-btn
+                flat
+                no-caps
+                icon="download"
+                label="Download"
+                :disable="loading"
+                @click="void downloadArtifact(artifact)"
+              />
+            </div>
+            <div class="row items-center q-col-gutter-sm">
+              <q-btn
+                color="primary"
+                unelevated
+                no-caps
+                :icon="artifactNeedsAttention(artifact) ? 'play_arrow' : 'tune'"
+                :label="artifactNeedsAttention(artifact) ? 'Continue Intake' : 'Open Properties'"
+                :disable="loading || savingProperties"
+                @click="void openPropertiesDialog(artifact)"
+              />
+            </div>
+          </q-card-actions>
+        </q-card>
+      </div>
+
       <q-table
         v-else
         flat
@@ -69,6 +172,15 @@
 
         <template #body-cell-actions="props">
           <q-td :props="props">
+            <q-btn
+              dense
+              flat
+              round
+              icon="visibility"
+              color="primary"
+              :disable="loading"
+              @click="void previewArtifact(props.row)"
+            />
             <q-btn
               dense
               flat
@@ -291,6 +403,58 @@
           </q-card-actions>
         </q-card>
       </q-dialog>
+
+      <q-dialog v-model="previewDialogOpen" maximized @hide="closePreviewDialog">
+        <q-card class="artifact-preview-dialog">
+          <q-card-section class="row items-center justify-between q-col-gutter-md">
+            <div class="col">
+              <div class="text-h6">{{ previewState.fileName || 'Artifact preview' }}</div>
+              <div class="text-caption text-grey-7">
+                {{ previewLoading ? 'Loading preview...' : previewKindLabel }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <q-btn flat round dense icon="close" @click="closePreviewDialog" />
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section class="artifact-preview-dialog__body">
+            <div v-if="previewLoading" class="artifact-preview-dialog__state">
+              <q-spinner color="primary" size="40px" />
+              <div class="text-subtitle2 q-mt-md">Loading artifact preview</div>
+            </div>
+
+            <iframe
+              v-else-if="previewState.kind === 'pdf' && previewPdfSrc"
+              :src="previewPdfSrc"
+              class="artifact-preview-dialog__frame"
+              title="Artifact PDF preview"
+            />
+
+            <img
+              v-else-if="previewState.kind === 'image' && previewState.fileUrl"
+              :src="previewState.fileUrl"
+              :alt="previewState.fileName || 'Artifact preview'"
+              class="artifact-preview-dialog__image"
+            />
+
+            <pre
+              v-else-if="previewState.kind === 'text'"
+              class="artifact-preview-dialog__text"
+            ><code>{{ previewState.content || '' }}</code></pre>
+
+            <div v-else class="artifact-preview-dialog__state">
+              <q-icon name="description" size="40px" color="grey-5" />
+              <div class="text-subtitle2 q-mt-md">Preview not available</div>
+              <div class="text-caption text-grey-7 q-mt-sm">
+                Try Download if this artifact format does not support inline preview yet.
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
     </div>
   </q-page>
 </template>
@@ -327,13 +491,22 @@ const filteredRegionOptions = ref([])
 const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
+const viewMode = ref('grid')
+const previewDialogOpen = ref(false)
+const previewLoading = ref(false)
 const propertiesDialogOpen = ref(false)
 const savingProperties = ref(false)
 const propertiesError = ref('')
 const propertiesForm = ref(createEmptyPropertiesForm())
 const selectedCount = computed(() => selectedRows.value.length)
+const previewState = ref(createEmptyPreviewState())
 
 const $q = useQuasar()
+
+const viewModeOptions = [
+  { label: 'Grid', value: 'grid', icon: 'grid_view' },
+  { label: 'Table', value: 'table', icon: 'view_list' },
+]
 
 function openCreateArtifact() {
   globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
@@ -400,6 +573,26 @@ const regionOptions = computed(() =>
     value: String(region?.id || '').trim(),
   })),
 )
+
+const latestArtifacts = computed(() =>
+  [...rows.value]
+    .sort((left, right) => String(right?.created_at || '').localeCompare(String(left?.created_at || '')))
+    .slice(0, 12),
+)
+
+const previewPdfSrc = computed(() => {
+  if (previewState.value.kind !== 'pdf') return ''
+  if (previewState.value.fileUrl) return previewState.value.fileUrl
+  if (previewState.value.fileDataBase64) return `data:application/pdf;base64,${previewState.value.fileDataBase64}`
+  return ''
+})
+
+const previewKindLabel = computed(() => {
+  if (previewState.value.kind === 'pdf') return 'PDF preview'
+  if (previewState.value.kind === 'image') return 'Image preview'
+  if (previewState.value.kind === 'text') return 'Text preview'
+  return 'Artifact preview'
+})
 
 async function loadArtifacts() {
   if (!hasBridge.value) return
@@ -550,6 +743,24 @@ function buildCompanyOptionLabel(company = {}) {
   const name = String(company?.Company_Name || '').trim()
   const type = String(company?.Company_Type || '').trim()
   return type ? `${name} (${type})` : name || String(company?.id || '').trim()
+}
+
+function artifactFileName(row = {}) {
+  const fsPath = String(row?.fs_path || '').trim()
+  if (!fsPath) return ''
+  return fsPath.split(/[\\/]/).pop() || ''
+}
+
+function formatArtifactDate(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return 'Unknown'
+  const parsed = new Date(raw)
+  if (Number.isNaN(parsed.getTime())) return raw
+  return parsed.toLocaleString()
+}
+
+function artifactNeedsAttention(row = {}) {
+  return !String(row?.opportunity_id || '').trim() || !String(row?.title || '').trim()
 }
 
 function filterOpportunityOptions(value, update) {
@@ -826,6 +1037,57 @@ async function saveArtifactProperties() {
   }
 }
 
+async function previewArtifact(row) {
+  const artifactId = String(row?.artifact_id || '').trim()
+  if (!artifactId || !bridge.value?.artifacts?.preview) return
+  try {
+    previewDialogOpen.value = true
+    previewLoading.value = true
+    previewState.value = createEmptyPreviewState()
+    const preview = await bridge.value.artifacts.preview({ artifactId })
+    previewState.value = {
+      artifactId,
+      fileName: String(preview?.fileName || artifactFileName(row) || row?.title || '').trim(),
+      kind: String(preview?.kind || '').trim(),
+      fileUrl: String(preview?.fileUrl || '').trim(),
+      fileDataBase64: String(preview?.fileDataBase64 || ''),
+      content: String(preview?.content || ''),
+    }
+  } catch (e) {
+    previewDialogOpen.value = false
+    $q.notify({ type: 'negative', message: e?.message || String(e) })
+  } finally {
+    previewLoading.value = false
+  }
+}
+
+function createEmptyPreviewState() {
+  return {
+    artifactId: '',
+    fileName: '',
+    kind: '',
+    fileUrl: '',
+    fileDataBase64: '',
+    content: '',
+  }
+}
+
+async function downloadArtifact(row) {
+  const artifactId = String(row?.artifact_id || '').trim()
+  if (!artifactId || !bridge.value?.artifacts?.download) return
+  try {
+    await bridge.value.artifacts.download({ artifactId })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e?.message || String(e) })
+  }
+}
+
+function closePreviewDialog() {
+  previewDialogOpen.value = false
+  previewLoading.value = false
+  previewState.value = createEmptyPreviewState()
+}
+
 async function deleteArtifact(row) {
   await bridge.value.artifacts.delete(row.artifact_id)
 }
@@ -882,3 +1144,118 @@ onMounted(() => {
   loadRelationshipOptions()
 })
 </script>
+
+<style scoped>
+.artifacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.artifact-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
+    #fff;
+}
+
+.artifact-card__header {
+  padding-bottom: 12px;
+}
+
+.artifact-card__title {
+  line-height: 1.25;
+}
+
+.artifact-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.artifact-card__meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.artifact-card__meta-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.artifact-card__description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.artifact-card__actions {
+  padding: 12px 16px 16px;
+}
+
+.artifact-preview-dialog {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.artifact-preview-dialog__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+.artifact-preview-dialog__state {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.artifact-preview-dialog__frame {
+  width: 100%;
+  height: 100%;
+  min-height: 70vh;
+  border: 0;
+  background: white;
+}
+
+.artifact-preview-dialog__image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.artifact-preview-dialog__text {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: white;
+  border-radius: 12px;
+}
+
+@media (max-width: 720px) {
+  .artifact-card__meta {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
