@@ -455,44 +455,144 @@
               </div>
             </div>
             <div class="col-auto">
+              <q-btn
+                flat
+                dense
+                no-caps
+                icon="right_panel_open"
+                :label="previewSidebarOpen ? 'Hide Review Sidebar' : 'Show Review Sidebar'"
+                @click="togglePreviewSidebar"
+              />
               <q-btn flat round dense icon="close" @click="closePreviewDialog" />
             </div>
           </q-card-section>
 
           <q-separator />
 
-          <q-card-section class="artifact-preview-dialog__body">
-            <div v-if="previewLoading" class="artifact-preview-dialog__state">
-              <q-spinner color="primary" size="40px" />
-              <div class="text-subtitle2 q-mt-md">Loading artifact preview</div>
-            </div>
+          <q-card-section class="artifact-preview-dialog__body artifact-preview-dialog__body--split">
+            <div class="artifact-preview-dialog__main">
+              <div v-if="previewLoading" class="artifact-preview-dialog__state">
+                <q-spinner color="primary" size="40px" />
+                <div class="text-subtitle2 q-mt-md">Loading artifact preview</div>
+              </div>
 
-            <iframe
-              v-else-if="previewState.kind === 'pdf' && previewPdfSrc"
-              :src="previewPdfSrc"
-              class="artifact-preview-dialog__frame"
-              title="Artifact PDF preview"
-            />
+              <iframe
+                v-else-if="previewState.kind === 'pdf' && previewPdfSrc"
+                :src="previewPdfSrc"
+                class="artifact-preview-dialog__frame"
+                title="Artifact PDF preview"
+              />
 
-            <img
-              v-else-if="previewState.kind === 'image' && previewState.fileUrl"
-              :src="previewState.fileUrl"
-              :alt="previewState.fileName || 'Artifact preview'"
-              class="artifact-preview-dialog__image"
-            />
+              <img
+                v-else-if="previewState.kind === 'image' && previewState.fileUrl"
+                :src="previewState.fileUrl"
+                :alt="previewState.fileName || 'Artifact preview'"
+                class="artifact-preview-dialog__image"
+              />
 
-            <pre
-              v-else-if="previewState.kind === 'text'"
-              class="artifact-preview-dialog__text"
-            ><code>{{ previewState.content || '' }}</code></pre>
+              <pre
+                v-else-if="previewState.kind === 'text'"
+                class="artifact-preview-dialog__text"
+              ><code>{{ previewState.content || '' }}</code></pre>
 
-            <div v-else class="artifact-preview-dialog__state">
-              <q-icon name="description" size="40px" color="grey-5" />
-              <div class="text-subtitle2 q-mt-md">Preview not available</div>
-              <div class="text-caption text-grey-7 q-mt-sm">
-                Try Download if this artifact format does not support inline preview yet.
+              <div v-else class="artifact-preview-dialog__state">
+                <q-icon name="description" size="40px" color="grey-5" />
+                <div class="text-subtitle2 q-mt-md">Preview not available</div>
+                <div class="text-caption text-grey-7 q-mt-sm">
+                  Try Download if this artifact format does not support inline preview yet.
+                </div>
               </div>
             </div>
+
+            <aside v-if="previewSidebarOpen" class="artifact-preview-sidebar">
+              <div class="artifact-preview-sidebar__section">
+                <div class="text-subtitle2">Extraction Review</div>
+                <div class="text-caption text-grey-7">
+                  Markdown and the highlighted sections used during extraction.
+                </div>
+              </div>
+
+              <div class="artifact-preview-sidebar__section">
+                <div class="text-caption text-grey-7 q-mb-sm">Used data sections</div>
+                <div v-if="previewUsedClaimRows.length" class="column q-gutter-sm">
+                  <div
+                    v-for="claim in previewUsedClaimRows"
+                    :key="claim.claim_id"
+                    class="artifact-preview-sidebar__claim"
+                  >
+                    <div class="artifact-preview-sidebar__claim-title">{{ claim.field_label }}</div>
+                    <div class="text-body2">{{ claim.field_value || 'No value' }}</div>
+                    <div class="text-caption text-grey-7">
+                      {{ claim.owner_table || 'Draft Intake' }} • {{ claim.consumer_lane || 'Review' }}
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="text-caption text-grey-6">
+                  No highlighted extraction sections are available for this artifact yet.
+                </div>
+              </div>
+
+              <div class="artifact-preview-sidebar__section artifact-preview-sidebar__section--grow">
+                <div class="row items-center justify-between q-mb-sm">
+                  <div class="text-caption text-grey-7">Markdown</div>
+                  <q-chip
+                    v-if="previewMarkdownSourceLabel"
+                    dense
+                    square
+                    color="grey-2"
+                    text-color="grey-8"
+                  >
+                    {{ previewMarkdownSourceLabel }}
+                  </q-chip>
+                </div>
+
+                <div v-if="previewMarkdownLoading" class="artifact-preview-sidebar__state">
+                  <q-spinner color="primary" size="20px" />
+                  <span>Loading markdown...</span>
+                </div>
+                <div v-else-if="previewMarkdownError" class="text-caption text-negative">
+                  {{ previewMarkdownError }}
+                </div>
+                <div v-else-if="previewMarkdownSections.length" class="column q-gutter-md">
+                  <div
+                    v-for="section in previewMarkdownSections"
+                    :key="section.key"
+                    class="artifact-preview-sidebar__markdown-block"
+                    :class="{ 'artifact-preview-sidebar__markdown-block--used': section.used }"
+                  >
+                    <div class="row items-center justify-between q-mb-xs">
+                      <div class="text-body2">{{ section.title }}</div>
+                      <q-chip
+                        v-if="section.used"
+                        dense
+                        square
+                        color="amber-2"
+                        text-color="amber-10"
+                      >
+                        Used
+                      </q-chip>
+                    </div>
+                    <div v-if="section.ownedFields.length" class="q-mb-sm">
+                      <q-chip
+                        v-for="fieldKey in section.ownedFields"
+                        :key="fieldKey"
+                        dense
+                        square
+                        color="blue-1"
+                        text-color="blue-9"
+                        class="q-mr-xs q-mb-xs"
+                      >
+                        {{ fieldKey }}
+                      </q-chip>
+                    </div>
+                    <pre class="artifact-preview-sidebar__markdown-text"><code>{{ section.text }}</code></pre>
+                  </div>
+                </div>
+                <div v-else class="text-caption text-grey-6">
+                  No markdown is available for this artifact yet.
+                </div>
+              </div>
+            </aside>
           </q-card-section>
         </q-card>
       </q-dialog>
@@ -504,7 +604,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
-import { createIntakeDraft } from 'src/utils/intakeDraftState'
+import { createIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -512,6 +612,7 @@ const isElectronRuntime = computed(() => {
 })
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
+const intakeDraftState = useIntakeDraftState()
 const hasBridge = computed(
   () =>
     !!bridge.value?.artifacts?.list &&
@@ -537,6 +638,11 @@ const viewMode = ref('grid')
 const previewDialogOpen = ref(false)
 const previewLoading = ref(false)
 const previewPdfObjectUrl = ref('')
+const previewSidebarOpen = ref(false)
+const previewMarkdownLoading = ref(false)
+const previewMarkdownError = ref('')
+const previewMarkdownContent = ref('')
+const previewMarkdownArtifactId = ref('')
 const propertiesDialogOpen = ref(false)
 const savingProperties = ref(false)
 const propertiesError = ref('')
@@ -666,6 +772,90 @@ const previewKindLabel = computed(() => {
   if (previewState.value.kind === 'image') return 'Image preview'
   if (previewState.value.kind === 'text') return 'Text preview'
   return 'Artifact preview'
+})
+
+const previewArtifactGroup = computed(() => {
+  const artifactId = String(previewState.value.artifactId || '').trim()
+  if (!artifactId) return null
+  return findArtifactGroup({ artifact_id: artifactId })
+})
+
+const previewReviewDraft = computed(() => {
+  const previewArtifactIds = new Set(
+    (previewArtifactGroup.value?.artifacts || [])
+      .map((artifact) => String(artifact?.artifact_id || '').trim())
+      .filter(Boolean),
+  )
+  if (!previewArtifactIds.size) return null
+
+  return Object.values(intakeDraftState.drafts || {}).find((draft) => {
+    const draftArtifactIds = [
+      ...(Array.isArray(draft?.draftArtifactIds) ? draft.draftArtifactIds : []),
+      ...(Array.isArray(draft?.resumeArtifactIds) ? draft.resumeArtifactIds : []),
+      ...Object.values(draft?.releasedMarkdownChunks || {}).map((chunk) => chunk?.artifact_id),
+    ]
+      .map((value) => String(value || '').trim())
+      .filter(Boolean)
+    return draftArtifactIds.some((artifactId) => previewArtifactIds.has(artifactId))
+  }) || null
+})
+
+const previewUsedClaimRows = computed(() => {
+  const draft = previewReviewDraft.value
+  const chunkIds = new Set(
+    Object.values(draft?.releasedMarkdownChunks || {})
+      .filter((chunk) => String(chunk?.artifact_id || '').trim() === previewMarkdownArtifactId.value)
+      .map((chunk) => String(chunk?.chunk_id || '').trim())
+      .filter(Boolean),
+  )
+
+  return (Array.isArray(draft?.usedMetadataClaims) ? draft.usedMetadataClaims : [])
+    .filter((claim) => !chunkIds.size || chunkIds.has(String(claim?.source_chunk_id || '').trim()))
+    .map((claim) => ({
+      ...claim,
+      field_label: formatClaimFieldLabel(claim?.field_key),
+    }))
+})
+
+const previewMarkdownSourceLabel = computed(() => {
+  const artifact = (previewArtifactGroup.value?.artifacts || []).find(
+    (entry) => String(entry?.artifact_id || '').trim() === previewMarkdownArtifactId.value,
+  )
+  const artifactType = String(artifact?.artifact_type || '').trim()
+  return artifactType ? artifactType.toUpperCase() : ''
+})
+
+const previewMarkdownSections = computed(() => {
+  const chunkMap = previewReviewDraft.value?.releasedMarkdownChunks || {}
+  const chunkRows = Object.values(chunkMap)
+    .filter((chunk) => String(chunk?.artifact_id || '').trim() === previewMarkdownArtifactId.value)
+    .sort((left, right) => String(left?.created_at || '').localeCompare(String(right?.created_at || '')))
+
+  if (chunkRows.length) {
+    return chunkRows.map((chunk, index) => ({
+      key: String(chunk?.chunk_id || `chunk:${index}`),
+      title: String(chunk?.section_hint || '').trim() || `Section ${index + 1}`,
+      text: String(chunk?.markdown_text || '').trim() || previewMarkdownContent.value || 'Markdown text not stored for this chunk yet.',
+      used:
+        Array.isArray(chunk?.used_by) && chunk.used_by.length > 0
+          ? true
+          : previewUsedClaimRows.value.some(
+              (claim) => String(claim?.source_chunk_id || '').trim() === String(chunk?.chunk_id || '').trim(),
+            ),
+      ownedFields: Array.isArray(chunk?.owned_fields) ? chunk.owned_fields.filter(Boolean) : [],
+    }))
+  }
+
+  if (!previewMarkdownContent.value.trim()) return []
+  return [
+    {
+      key: previewMarkdownArtifactId.value || 'markdown',
+      title: 'Markdown',
+      text: previewMarkdownContent.value,
+      used: previewUsedClaimRows.value.length > 0,
+      ownedFields: previewUsedClaimRows.value.map((claim) => claim.field_key).filter(Boolean),
+    },
+  ]
 })
 
 async function loadArtifacts() {
@@ -1257,6 +1447,9 @@ async function previewArtifact(row, options = {}) {
     if (previewState.value.kind === 'pdf' && previewState.value.fileDataBase64) {
       previewPdfObjectUrl.value = buildPdfObjectUrl(previewState.value.fileDataBase64)
     }
+    if (previewSidebarOpen.value) {
+      await loadPreviewReviewSidebar(artifactId)
+    }
     return previewState.value.kind
   } catch (e) {
     previewDialogOpen.value = false
@@ -1266,6 +1459,63 @@ async function previewArtifact(row, options = {}) {
     return ''
   } finally {
     previewLoading.value = false
+  }
+}
+
+function formatClaimFieldLabel(fieldKey = '') {
+  const raw = String(fieldKey || '').trim()
+  if (!raw) return 'Field'
+  return raw
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replaceAll('_', ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^./, (value) => value.toUpperCase())
+}
+
+async function loadPreviewReviewSidebar(artifactId = '') {
+  previewMarkdownLoading.value = true
+  previewMarkdownError.value = ''
+  previewMarkdownContent.value = ''
+  previewMarkdownArtifactId.value = ''
+
+  const group = findArtifactGroup({ artifact_id: artifactId })
+  const markdownArtifact = (group?.artifacts || []).find(
+    (artifact) => String(artifact?.artifact_type || '').trim().toLowerCase() === 'llm-ready',
+  )
+
+  if (!markdownArtifact?.artifact_id) {
+    previewMarkdownLoading.value = false
+    previewMarkdownError.value = 'No markdown sibling was found for this artifact group yet.'
+    return
+  }
+
+  previewMarkdownArtifactId.value = String(markdownArtifact.artifact_id || '').trim()
+
+  if (!bridge.value?.artifacts?.preview) {
+    previewMarkdownLoading.value = false
+    previewMarkdownError.value = 'Markdown preview is not available in this runtime.'
+    return
+  }
+
+  try {
+    const markdownPreview = await bridge.value.artifacts.preview({ artifactId: previewMarkdownArtifactId.value })
+    if (String(markdownPreview?.kind || '').trim() === 'text') {
+      previewMarkdownContent.value = String(markdownPreview?.content || '')
+    } else {
+      previewMarkdownError.value = 'The markdown sibling could not be rendered as text.'
+    }
+  } catch (e) {
+    previewMarkdownError.value = e?.message || String(e)
+  } finally {
+    previewMarkdownLoading.value = false
+  }
+}
+
+async function togglePreviewSidebar() {
+  previewSidebarOpen.value = !previewSidebarOpen.value
+  if (previewSidebarOpen.value && previewState.value.artifactId) {
+    await loadPreviewReviewSidebar(previewState.value.artifactId)
   }
 }
 
@@ -1323,6 +1573,11 @@ async function openArtifactForReview(row) {
 function closePreviewDialog() {
   previewDialogOpen.value = false
   previewLoading.value = false
+  previewSidebarOpen.value = false
+  previewMarkdownLoading.value = false
+  previewMarkdownError.value = ''
+  previewMarkdownContent.value = ''
+  previewMarkdownArtifactId.value = ''
   resetPreviewPdfObjectUrl()
   previewState.value = createEmptyPreviewState()
 }
@@ -1499,6 +1754,19 @@ onBeforeUnmount(() => {
   background: #f8fafc;
 }
 
+.artifact-preview-dialog__body--split {
+  gap: 0;
+  padding: 0;
+}
+
+.artifact-preview-dialog__main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: stretch;
+  justify-content: center;
+}
+
 .artifact-preview-dialog__state {
   display: flex;
   flex: 1;
@@ -1534,9 +1802,84 @@ onBeforeUnmount(() => {
   border-radius: 12px;
 }
 
+.artifact-preview-sidebar {
+  width: min(420px, 38vw);
+  min-width: 320px;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 16px;
+  overflow: auto;
+  border-left: 1px solid rgba(148, 163, 184, 0.25);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
+    #fff;
+}
+
+.artifact-preview-sidebar__section {
+  display: flex;
+  flex-direction: column;
+}
+
+.artifact-preview-sidebar__section--grow {
+  flex: 1;
+  min-height: 0;
+}
+
+.artifact-preview-sidebar__claim {
+  padding: 10px 12px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  border-radius: 12px;
+  background: rgba(255, 251, 235, 0.92);
+}
+
+.artifact-preview-sidebar__claim-title {
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #92400e;
+}
+
+.artifact-preview-sidebar__state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+}
+
+.artifact-preview-sidebar__markdown-block {
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.artifact-preview-sidebar__markdown-block--used {
+  border-color: rgba(251, 191, 36, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.3);
+  background: rgba(255, 251, 235, 0.92);
+}
+
+.artifact-preview-sidebar__markdown-text {
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 @media (max-width: 900px) {
   .artifacts-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .artifact-preview-sidebar {
+    width: min(360px, 44vw);
   }
 }
 
@@ -1547,6 +1890,19 @@ onBeforeUnmount(() => {
 
   .artifact-card__meta {
     grid-template-columns: 1fr;
+  }
+
+  .artifact-preview-dialog__body--split {
+    flex-direction: column;
+  }
+
+  .artifact-preview-sidebar {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    min-height: 240px;
+    border-left: 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
   }
 }
 </style>
