@@ -482,16 +482,7 @@
             </div>
             <div class="col-auto">
               <q-btn
-                v-if="previewState.kind === 'pdf' && previewSectionOptions.length > 1 && !previewFocusStripHidden"
-                flat
-                dense
-                no-caps
-                icon="visibility_off"
-                label="Hide Review Focus"
-                @click="previewFocusStripHidden = true"
-              />
-              <q-btn
-                v-else-if="previewState.kind === 'pdf' && previewSectionOptions.length > 1"
+                v-if="previewState.kind === 'pdf' && previewSectionOptions.length > 1 && previewFocusStripHidden"
                 flat
                 dense
                 no-caps
@@ -504,7 +495,7 @@
                 dense
                 no-caps
                 icon="right_panel_open"
-                :label="previewSidebarOpen ? 'Hide Review Sidebar' : 'Show Review Sidebar'"
+                :label="previewSidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'"
                 @click="togglePreviewSidebar"
               />
               <q-btn flat round dense icon="close" @click="closePreviewDialog" />
@@ -524,6 +515,16 @@
                   <div class="artifact-preview-dialog__focus-value">
                     {{ previewSelectedMarkdownSection?.title || 'Select a slide' }}
                   </div>
+                </div>
+                <div class="artifact-preview-dialog__focus-tools">
+                  <q-btn
+                    flat
+                    dense
+                    no-caps
+                    icon="visibility_off"
+                    label="Hide"
+                    @click="previewFocusStripHidden = true"
+                  />
                 </div>
                 <div class="artifact-preview-dialog__focus-chips">
                   <button
@@ -709,9 +710,15 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import { createIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString()
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -745,6 +752,7 @@ const viewMode = ref('grid')
 const previewDialogOpen = ref(false)
 const previewLoading = ref(false)
 const previewPdfObjectUrl = ref('')
+const previewPdfPageCount = ref(0)
 const previewSidebarOpen = ref(false)
 const previewFocusStripHidden = ref(false)
 const previewMarkdownLoading = ref(false)
@@ -967,9 +975,16 @@ const previewMarkdownSections = computed(() => {
   }
 
   if (!previewMarkdownContent.value.trim()) return []
+  if (previewState.value.kind === 'pdf') {
+    return derivePdfSlideSectionsFromMarkdown(previewMarkdownContent.value, {
+      artifactId: previewMarkdownArtifactId.value || 'markdown',
+      pageCount: previewPdfPageCount.value,
+      usedClaims: previewUsedClaimRows.value,
+    })
+  }
   return derivePreviewSectionsFromMarkdown(previewMarkdownContent.value, {
     artifactId: previewMarkdownArtifactId.value,
-    isPdf: previewState.value.kind === 'pdf',
+    isPdf: false,
     usedClaims: previewUsedClaimRows.value,
   })
 })
@@ -1597,6 +1612,7 @@ async function previewArtifact(row, options = {}) {
     previewDialogOpen.value = true
     previewLoading.value = true
     resetPreviewPdfObjectUrl()
+    previewPdfPageCount.value = 0
     previewState.value = createEmptyPreviewState()
     const preview = await bridge.value.artifacts.preview({ artifactId })
     previewState.value = {
@@ -1609,6 +1625,7 @@ async function previewArtifact(row, options = {}) {
     }
     if (previewState.value.kind === 'pdf' && previewState.value.fileDataBase64) {
       previewPdfObjectUrl.value = buildPdfObjectUrl(previewState.value.fileDataBase64)
+      previewPdfPageCount.value = await resolvePdfPageCount(previewState.value.fileDataBase64)
     }
     if (previewSidebarOpen.value) {
       await loadPreviewReviewSidebar(artifactId)
@@ -1729,6 +1746,57 @@ function derivePreviewSectionsFromMarkdown(markdown = '', { artifactId = '', isP
       ]
 }
 
+function derivePdfSlideSectionsFromMarkdown(
+  markdown = '',
+  { artifactId = '', pageCount = 0, usedClaims = [] } = {},
+) {
+  const totalPages = Math.max(0, Number(pageCount || 0))
+  if (!totalPages) {
+    return derivePreviewSectionsFromMarkdown(markdown, {
+      artifactId,
+      isPdf: true,
+      usedClaims,
+    })
+  }
+
+  const headingSections = derivePreviewSectionsFromMarkdown(markdown, {
+    artifactId,
+    isPdf: true,
+    usedClaims: [],
+  })
+
+  return Array.from({ length: totalPages }, (_, index) => {
+    const headingSection = headingSections[index] || null
+    const slideNumber = index + 1
+    const headingTitle = String(headingSection?.title || '').trim()
+    const normalizedHeadingTitle =
+      headingTitle &&
+      headingTitle !== 'Document Review' &&
+      !/^slide\s+\d+$/i.test(headingTitle) &&
+      !/^section\s+\d+$/i.test(headingTitle)
+        ? headingTitle
+        : ''
+
+    const slideClaims = usedClaims.filter((claim) => {
+      const sourceChunkId = String(claim?.source_chunk_id || '').trim()
+      return sourceChunkId === `${artifactId}:slide:${slideNumber}`
+    })
+
+    return {
+      key: `${artifactId}:slide:${slideNumber}`,
+      title: normalizedHeadingTitle ? `Slide ${slideNumber} - ${normalizedHeadingTitle}` : `Slide ${slideNumber}`,
+      text:
+        String(headingSection?.text || '').trim() ||
+        `No markdown mapped to Slide ${slideNumber} yet.`,
+      used: slideClaims.length > 0,
+      ownedFields:
+        slideClaims.length > 0
+          ? slideClaims.map((claim) => claim.field_key).filter(Boolean)
+          : [],
+    }
+  })
+}
+
 async function loadPreviewReviewSidebar(artifactId = '') {
   previewFocusStripHidden.value = false
   previewMarkdownLoading.value = true
@@ -1793,6 +1861,23 @@ function buildPdfObjectUrl(fileDataBase64 = '') {
   return URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }))
 }
 
+async function resolvePdfPageCount(fileDataBase64 = '') {
+  const normalized = String(fileDataBase64 || '').trim()
+  if (!normalized || typeof window === 'undefined' || typeof window.atob !== 'function') return 0
+  try {
+    const binary = window.atob(normalized)
+    const bytes = new Uint8Array(binary.length)
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index)
+    }
+    const loadingTask = pdfjsLib.getDocument({ data: bytes })
+    const pdfDocument = await loadingTask.promise
+    return Number(pdfDocument?.numPages || 0)
+  } catch {
+    return 0
+  }
+}
+
 function resetPreviewPdfObjectUrl() {
   if (!previewPdfObjectUrl.value) return
   URL.revokeObjectURL(previewPdfObjectUrl.value)
@@ -1851,6 +1936,7 @@ async function openArtifactForReview(row) {
 function closePreviewDialog() {
   previewDialogOpen.value = false
   previewLoading.value = false
+  previewPdfPageCount.value = 0
   previewSidebarOpen.value = false
   previewFocusStripHidden.value = false
   previewMarkdownLoading.value = false
@@ -2123,6 +2209,12 @@ watch(previewSectionOptions, (options) => {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.artifact-preview-dialog__focus-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .artifact-preview-dialog__focus-label {
