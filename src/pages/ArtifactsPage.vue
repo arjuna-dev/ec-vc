@@ -482,7 +482,7 @@
             </div>
             <div class="col-auto">
               <q-btn
-                v-if="previewState.kind === 'pdf' && previewSectionOptions.length > 1 && previewFocusStripHidden"
+                v-if="showPreviewFocusStrip && previewFocusStripHidden"
                 flat
                 dense
                 no-caps
@@ -507,13 +507,13 @@
           <q-card-section class="artifact-preview-dialog__body artifact-preview-dialog__body--split">
             <div class="artifact-preview-dialog__main">
               <div
-                v-if="previewState.kind === 'pdf' && previewSectionOptions.length > 1 && !previewFocusStripHidden"
+                v-if="showPreviewFocusStrip && !previewFocusStripHidden"
                 class="artifact-preview-dialog__focus-strip"
               >
                 <div class="artifact-preview-dialog__focus-copy">
                   <div class="artifact-preview-dialog__focus-label">Review Focus</div>
                   <div class="artifact-preview-dialog__focus-value">
-                    {{ previewSelectedMarkdownSection?.title || 'Select a slide' }}
+                    {{ previewSelectedFocusClaim?.field_label || 'Connected data item' }}
                   </div>
                 </div>
                 <div class="artifact-preview-dialog__focus-tools">
@@ -528,17 +528,17 @@
                 </div>
                 <div class="artifact-preview-dialog__focus-chips">
                   <button
-                    v-for="section in previewSectionOptions"
-                    :key="section.value"
+                    v-for="claim in previewFocusClaimRows"
+                    :key="claim.claim_id"
                     type="button"
                     class="artifact-preview-dialog__focus-chip"
                     :class="{
                       'artifact-preview-dialog__focus-chip--active':
-                        String(previewSelectedSectionKey || '') === String(section.value || ''),
+                        String(previewSelectedFocusClaimId || '') === String(claim.claim_id || ''),
                     }"
-                    @click="previewSelectedSectionKey = section.value"
+                    @click="selectPreviewFocusClaim(claim)"
                   >
-                    {{ section.label }}
+                    {{ claim.field_label }}
                   </button>
                 </div>
               </div>
@@ -766,6 +766,7 @@ const previewMarkdownError = ref('')
 const previewMarkdownContent = ref('')
 const previewMarkdownArtifactId = ref('')
 const previewSelectedSectionKey = ref('')
+const previewSelectedFocusClaimId = ref('')
 const propertiesDialogOpen = ref(false)
 const savingProperties = ref(false)
 const propertiesError = ref('')
@@ -923,7 +924,45 @@ const previewReviewDraft = computed(() => {
   }) || null
 })
 
-const previewUsedClaimRows = computed(() => {
+const CONNECTED_CLAIM_OWNER_TABLES = new Set([
+  'Companies',
+  'Rounds',
+  'Funds',
+  'Contacts',
+  'Tasks',
+  'Projects',
+  'Notes',
+  'Artifacts',
+  'Intros',
+  'PipelineInvestmentProcess',
+  'Regions',
+  'Industries',
+])
+
+const NOISY_REVIEW_FIELD_KEYS = new Set([
+  'documentType',
+  'artifactTitle',
+  'matchingDocumentName',
+])
+
+function isConnectedReviewClaim(claim = {}) {
+  const fieldValue = String(claim?.field_value || '').trim()
+  if (!fieldValue) return false
+
+  const fieldKey = String(claim?.field_key || '').trim()
+  if (NOISY_REVIEW_FIELD_KEYS.has(fieldKey)) return false
+
+  const ownerTable = String(claim?.owner_table || '').trim()
+  const consumerLane = String(claim?.consumer_lane || '').trim().toLowerCase()
+  const itemBox = formatClaimItemBox(fieldKey)
+
+  if (CONNECTED_CLAIM_OWNER_TABLES.has(ownerTable)) return true
+  if (itemBox === 'Opportunity section') return true
+  if (consumerLane === 'opportunity') return true
+  return false
+}
+
+const previewConnectedClaimRows = computed(() => {
   const draft = previewReviewDraft.value
   const chunkIds = new Set(
     Object.values(draft?.releasedMarkdownChunks || {})
@@ -935,14 +974,20 @@ const previewUsedClaimRows = computed(() => {
   return (Array.isArray(draft?.usedMetadataClaims) ? draft.usedMetadataClaims : [])
     .filter((claim) => {
       const sourceChunkId = String(claim?.source_chunk_id || '').trim()
-      if (previewSelectedSectionKey.value && chunkIds.size) return sourceChunkId === previewSelectedSectionKey.value
-      return !chunkIds.size || chunkIds.has(sourceChunkId)
+      return (!chunkIds.size || chunkIds.has(sourceChunkId)) && isConnectedReviewClaim(claim)
     })
     .map((claim) => ({
       ...claim,
       field_label: formatClaimFieldLabel(claim?.field_key),
       item_box: formatClaimItemBox(claim?.field_key),
     }))
+})
+
+const previewUsedClaimRows = computed(() => {
+  if (!previewSelectedSectionKey.value) return previewConnectedClaimRows.value
+  return previewConnectedClaimRows.value.filter(
+    (claim) => String(claim?.source_chunk_id || '').trim() === String(previewSelectedSectionKey.value || '').trim(),
+  )
 })
 
 const previewMarkdownSourceLabel = computed(() => {
@@ -1010,6 +1055,29 @@ const previewSelectedMarkdownSection = computed(() => {
     previewMarkdownSections.value[0]
   )
 })
+
+const previewFocusClaimRows = computed(() => {
+  const seen = new Set()
+  return previewConnectedClaimRows.value.filter((claim) => {
+    const key = `${String(claim?.field_key || '').trim()}::${String(claim?.field_value || '').trim()}`
+    if (!key.trim() || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+})
+
+const previewSelectedFocusClaim = computed(() => {
+  const selectedId = String(previewSelectedFocusClaimId.value || '').trim()
+  return (
+    previewFocusClaimRows.value.find((claim) => String(claim?.claim_id || '').trim() === selectedId) ||
+    previewFocusClaimRows.value[0] ||
+    null
+  )
+})
+
+const showPreviewFocusStrip = computed(
+  () => previewState.value.kind === 'pdf' && previewFocusClaimRows.value.length > 0,
+)
 
 const previewPrimaryArtifact = computed(() => previewArtifactGroup.value?.primaryArtifact || null)
 
@@ -1673,6 +1741,14 @@ function formatClaimItemBox(fieldKey = '') {
   }[String(fieldKey || '').trim()] || 'Dialog review'
 }
 
+function selectPreviewFocusClaim(claim = {}) {
+  previewSelectedFocusClaimId.value = String(claim?.claim_id || '').trim()
+  const sourceChunkId = String(claim?.source_chunk_id || '').trim()
+  if (sourceChunkId) {
+    previewSelectedSectionKey.value = sourceChunkId
+  }
+}
+
 function formatPreviewSectionTitle(chunk = {}, index = 0) {
   const pageRange = String(chunk?.source_page_range || '').trim()
   if (pageRange) {
@@ -1834,6 +1910,7 @@ async function loadPreviewReviewSidebar(artifactId = '') {
   previewMarkdownContent.value = ''
   previewMarkdownArtifactId.value = ''
   previewSelectedSectionKey.value = ''
+  previewSelectedFocusClaimId.value = ''
 
   const group = findArtifactGroup({ artifact_id: artifactId })
   const markdownArtifact = (group?.artifacts || []).find(
@@ -1974,6 +2051,7 @@ function closePreviewDialog() {
   previewMarkdownContent.value = ''
   previewMarkdownArtifactId.value = ''
   previewSelectedSectionKey.value = ''
+  previewSelectedFocusClaimId.value = ''
   resetPreviewPdfObjectUrl()
   previewState.value = createEmptyPreviewState()
 }
@@ -2047,6 +2125,17 @@ watch(previewSectionOptions, (options) => {
   }
   if (!currentValue || !options.some((option) => String(option?.value || '').trim() === currentValue)) {
     previewSelectedSectionKey.value = firstValue
+  }
+})
+
+watch(previewFocusClaimRows, (claims) => {
+  const currentValue = String(previewSelectedFocusClaimId.value || '').trim()
+  if (!claims.length) {
+    previewSelectedFocusClaimId.value = ''
+    return
+  }
+  if (!currentValue || !claims.some((claim) => String(claim?.claim_id || '').trim() === currentValue)) {
+    previewSelectedFocusClaimId.value = String(claims[0]?.claim_id || '').trim()
   }
 })
 </script>
