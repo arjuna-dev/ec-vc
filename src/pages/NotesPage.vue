@@ -794,7 +794,7 @@ watch(displayRows, () => {
 
 .notes-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 0.9fr) minmax(260px, 0.8fr);
+  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -807,21 +807,23 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
+.notes-toolbar__block--filters {
+  flex-wrap: nowrap;
+}
+
 .notes-toolbar__block--search {
   justify-content: flex-end;
 }
 
 .notes-toolbar__filters-icon {
   color: var(--ds-color-text-muted);
+  flex: 0 0 auto;
 }
 
 .notes-toolbar__toggle {
   flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
   border: 1px solid var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
+  border-radius: 999px;
   box-shadow: var(--ds-control-shadow);
   overflow: hidden;
 }
@@ -831,9 +833,17 @@ watch(displayRows, () => {
   padding-inline: 12px;
 }
 
+.notes-toolbar__view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
 .notes-toolbar__kind-toggle :deep(.q-btn) {
   min-width: 84px;
   padding-inline: 18px;
+}
+
+.notes-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
 }
 
 .notes-toolbar__search {
@@ -857,10 +867,24 @@ watch(displayRows, () => {
 }
 
 .notes-toolbar__filter-control {
-  flex: 0 1 clamp(140px, 18vw, 180px);
-  min-width: 140px;
+  flex: 0 1 clamp(110px, 16vw, 160px);
+  min-width: 110px;
   background: var(--ds-control-surface);
   border-radius: var(--ds-control-radius);
+}
+
+.notes-toolbar__toggle {
+  flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  background: var(--ds-control-surface);
+  color: var(--ds-control-text);
+  border-color: var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: var(--ds-control-shadow);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
 }
 
 .notes-surface {
