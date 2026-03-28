@@ -47,34 +47,36 @@
           </q-btn>
         </div>
 
-        <div class="ec-breadcrumb-actions">
-          <span
-            v-for="action in breadcrumbTextActions"
-            :key="action.id"
-            class="ec-breadcrumb-action-text"
-          >
-            {{ action.label }}
-          </span>
+        <div class="ec-breadcrumb-secondary">
+          <div v-if="breadcrumbActions.length" class="ec-breadcrumb-actions">
+            <span
+              v-for="action in breadcrumbTextActions"
+              :key="action.id"
+              class="ec-breadcrumb-action-text"
+            >
+              {{ action.label }}
+            </span>
 
-          <q-btn
-            v-for="action in breadcrumbButtonActions"
-            :key="action.id"
-            dense
-            :flat="!action.chip"
-            :round="!action.chip"
-            :outline="!!action.chip && action.tone !== 'filled'"
-            :unelevated="!!action.chip && action.tone === 'filled'"
-            :no-caps="!!action.chip"
-            :color="action.color || (action.chip && action.tone === 'filled' ? 'black' : 'grey-7')"
-            :text-color="action.textColor || (action.chip && action.tone === 'filled' ? 'white' : undefined)"
-            :label="action.chip ? action.label : undefined"
-            :icon="action.icon"
-            :class="{ 'ec-breadcrumb-action-chip': action.chip }"
-            :disable="resolveBreadcrumbActionDisabled(action)"
-            @click="action.onClick?.()"
-          >
-            <q-tooltip v-if="!action.chip">{{ action.label }}</q-tooltip>
-          </q-btn>
+            <q-btn
+              v-for="action in breadcrumbButtonActions"
+              :key="action.id"
+              dense
+              :flat="!action.chip"
+              :round="!action.chip"
+              :outline="!!action.chip && action.tone !== 'filled'"
+              :unelevated="!!action.chip && action.tone === 'filled'"
+              :no-caps="!!action.chip"
+              :color="action.color || (action.chip && action.tone === 'filled' ? 'black' : 'grey-7')"
+              :text-color="action.textColor || (action.chip && action.tone === 'filled' ? 'white' : undefined)"
+              :label="action.chip ? action.label : undefined"
+              :icon="action.icon"
+              :class="{ 'ec-breadcrumb-action-chip': action.chip }"
+              :disable="resolveBreadcrumbActionDisabled(action)"
+              @click="action.onClick?.()"
+            >
+              <q-tooltip v-if="!action.chip">{{ action.label }}</q-tooltip>
+            </q-btn>
+          </div>
 
           <div class="ec-shell-toolbar-title ec-shell-toolbar-title--breadcrumb">
             <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
@@ -1157,11 +1159,9 @@ function navigateBack() {
 
 .ec-breadcrumb-actions {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-end;
   gap: 10px;
-  margin-left: auto;
-  min-width: 220px;
   flex: 0 0 auto;
 }
 
@@ -1171,10 +1171,11 @@ function navigateBack() {
 }
 
 .ec-breadcrumb-action-text {
-  color: #6b7280;
-  font-size: 0.78rem;
-  font-weight: 500;
+  color: #94a3b8;
+  font-size: 0.74rem;
+  font-weight: 400;
   line-height: 1.2;
+  margin-bottom: 4px;
 }
 
 .ec-shell-toolbar-title {
@@ -1185,8 +1186,17 @@ function navigateBack() {
   height: 36px;
 }
 
+.ec-breadcrumb-secondary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-left: auto;
+  min-width: 140px;
+  flex: 0 0 auto;
+}
+
 .ec-shell-toolbar-title--breadcrumb {
-  margin-left: 10px;
   flex: 0 0 84px;
 }
 

@@ -987,6 +987,7 @@ watchEffect(() => {
       id: 'refresh-dashboard',
       label: 'Refresh dashboard',
       icon: 'refresh',
+      color: 'grey-5',
       disabled: () => loading.value,
       onClick: refreshDashboard,
     },
