@@ -1576,7 +1576,7 @@ async function previewArtifact(row, options = {}) {
     const preview = await bridge.value.artifacts.preview({ artifactId })
     previewState.value = {
       artifactId,
-      fileName: String(preview?.fileName || artifactFileName(row) || row?.title || '').trim(),
+      fileName: String(row?.title || artifactDisplayName(row) || preview?.fileName || '').trim(),
       kind: String(preview?.kind || '').trim(),
       fileUrl: String(preview?.fileUrl || '').trim(),
       fileDataBase64: String(preview?.fileDataBase64 || ''),
