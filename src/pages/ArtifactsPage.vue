@@ -112,6 +112,19 @@
             <q-icon name="tune" size="18px" class="artifacts-toolbar__filters-icon" />
 
             <q-select
+              v-model="companyFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="artifacts-toolbar__filter-control"
+              label="Company"
+              :options="companyFilterOptions"
+              :disable="loading || companyFilterOptions.length === 0"
+            />
+
+            <q-select
               v-model="opportunityFilter"
               dense
               outlined
@@ -125,29 +138,29 @@
             />
 
             <q-select
-              v-model="formatFilter"
+              v-model="projectFilter"
               dense
               outlined
               clearable
               emit-value
               map-options
               class="artifacts-toolbar__filter-control"
-              label="Format"
-              :options="formatFilterOptions"
-              :disable="loading || formatFilterOptions.length === 0"
+              label="Project"
+              :options="projectFilterOptions"
+              :disable="true"
             />
 
             <q-select
-              v-model="statusFilter"
+              v-model="typeFilter"
               dense
               outlined
               clearable
               emit-value
               map-options
               class="artifacts-toolbar__filter-control"
-              label="Status"
-              :options="statusFilterOptions"
-              :disable="loading || statusFilterOptions.length === 0"
+              label="Type"
+              :options="typeFilterOptions"
+              :disable="loading || typeFilterOptions.length === 0"
             />
           </div>
 
@@ -944,14 +957,16 @@ const filteredOpportunityOptions = ref([])
 const filteredCompanyOptions = ref([])
 const filteredIndustryOptions = ref([])
 const filteredRegionOptions = ref([])
+const artifactCompanyLinks = ref([])
 const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const viewMode = ref('grid')
 const artifactKindFilter = ref('all')
+const companyFilter = ref('')
 const opportunityFilter = ref('')
-const formatFilter = ref('')
-const statusFilter = ref('')
+const projectFilter = ref('')
+const typeFilter = ref('')
 const searchQuery = ref('')
 const previewDialogOpen = ref(false)
 const previewLoading = ref(false)
@@ -1095,16 +1110,37 @@ function uniqueArtifactValues(values = []) {
     .map((value) => ({ label: value, value }))
 }
 
+function getArtifactCompanyIds(row = {}) {
+  const artifactId = String(row?.artifact_id || '').trim()
+  if (!artifactId) return []
+  return artifactCompanyLinks.value
+    .filter((entry) => String(entry?.artifact_id || '').trim() === artifactId)
+    .map((entry) => String(entry?.company_id || '').trim())
+    .filter(Boolean)
+}
+
+const companyFilterOptions = computed(() =>
+  uniqueArtifactValues(
+    rows.value.flatMap((row) =>
+      getArtifactCompanyIds(row)
+        .map((companyId) =>
+          buildCompanyOptionLabel(
+            companies.value.find((company) => String(company?.id || '').trim() === companyId),
+          ),
+        )
+        .filter(Boolean),
+    ),
+  ),
+)
+
 const opportunityFilterOptions = computed(() =>
   uniqueArtifactValues(rows.value.map((row) => resolveOpportunityLabel(row))),
 )
 
-const formatFilterOptions = computed(() =>
-  uniqueArtifactValues(rows.value.map((row) => row?.artifact_format)),
-)
+const projectFilterOptions = computed(() => [])
 
-const statusFilterOptions = computed(() =>
-  uniqueArtifactValues(rows.value.map((row) => artifactStatusLabel(row))),
+const typeFilterOptions = computed(() =>
+  uniqueArtifactValues(rows.value.map((row) => row?.artifact_type)),
 )
 
 function matchesArtifactKind(row = {}) {
@@ -1116,9 +1152,19 @@ function matchesArtifactKind(row = {}) {
 function matchesArtifactFilters(row = {}, group = null) {
   if (!matchesArtifactKind(row)) return false
 
+  if (companyFilter.value) {
+    const companyLabels = getArtifactCompanyIds(row)
+      .map((companyId) =>
+        buildCompanyOptionLabel(
+          companies.value.find((company) => String(company?.id || '').trim() === companyId),
+        ),
+      )
+      .filter(Boolean)
+    if (!companyLabels.includes(companyFilter.value)) return false
+  }
+
   if (opportunityFilter.value && resolveOpportunityLabel(row) !== opportunityFilter.value) return false
-  if (formatFilter.value && normalizeArtifactFilterValue(row?.artifact_format) !== formatFilter.value) return false
-  if (statusFilter.value && artifactStatusLabel(row) !== statusFilter.value) return false
+  if (typeFilter.value && normalizeArtifactFilterValue(row?.artifact_type) !== typeFilter.value) return false
 
   const query = normalizeArtifactFilterValue(searchQuery.value).toLowerCase()
   if (!query) return true
@@ -1128,8 +1174,16 @@ function matchesArtifactFilters(row = {}, group = null) {
     row?.description,
     artifactDisplayName(row),
     artifactFileName(row),
+    getArtifactCompanyIds(row)
+      .map((companyId) =>
+        buildCompanyOptionLabel(
+          companies.value.find((company) => String(company?.id || '').trim() === companyId),
+        ),
+      )
+      .filter(Boolean)
+      .join(' '),
     resolveOpportunityLabel(row),
-    row?.artifact_format,
+    row?.artifact_type,
     group?.versionSummary,
     group?.primaryArtifact?.title,
   ]
@@ -1476,7 +1530,7 @@ async function loadOpportunities() {
 }
 
 async function loadRelationshipOptions() {
-  await Promise.all([loadCompanies(), loadIndustries(), loadRegions()])
+  await Promise.all([loadCompanies(), loadIndustries(), loadRegions(), loadArtifactCompanyLinks()])
 }
 
 async function loadCompanies() {
@@ -2056,6 +2110,26 @@ async function previewArtifact(row, options = {}) {
     return ''
   } finally {
     previewLoading.value = false
+  }
+}
+
+async function loadArtifactCompanyLinks() {
+  if (!bridge.value?.db?.query) {
+    artifactCompanyLinks.value = []
+    return
+  }
+
+  try {
+    const rows = await bridge.value.db.query(
+      `
+      SELECT artifact_id, company_id
+      FROM Companies_Artifacts_documents
+      ORDER BY artifact_id, company_id
+    `,
+    )
+    artifactCompanyLinks.value = Array.isArray(rows) ? rows : []
+  } catch {
+    artifactCompanyLinks.value = []
   }
 }
 
