@@ -193,7 +193,7 @@
               v-model="companyTableTab"
               dense
               no-caps
-              inline-label
+              align="left"
               active-color="dark"
               indicator-color="dark"
               class="companies-table-tabs__nav"
@@ -371,7 +371,7 @@
             v-model:selected="selectedRows"
             v-model:pagination="pagination"
             selection="multiple"
-            :rows="displayRows"
+            :rows="activeCompanyTableRows"
             :columns="activeCompanyColumns"
             :loading="loading"
             :rows-per-page-options="rowsPerPageOptions"
@@ -504,11 +504,15 @@ const COMPANY_TABLE_TABS = new Set([
   'cards',
   'all',
   'metadata',
-  'contacts',
-  'rounds',
-  'funds',
-  'artifacts',
-  'notes',
+  'kdb-relations',
+  'incorporation',
+  'documents',
+  'operations',
+  'business',
+  'market',
+  'results',
+  'business-plan',
+  'fund-raising',
 ])
 const COMPANIES_BREADCRUMB_ACTION_OWNER = 'companies-page'
 
@@ -618,21 +622,12 @@ function getCompaniesReturnToPath() {
 function syncViewModeQuery() {
   const currentRouteView = getRouteViewMode(route.query.view)
   const nextView = COMPANY_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'card'
-  const currentRouteTableTab = getRouteTableTab(route.query.tableTab)
-  const nextTableTab = COMPANY_TABLE_TABS.has(companyTableTab.value) ? companyTableTab.value : 'all'
 
-  if (
-    currentRouteView === nextView &&
-    (nextView !== 'table' || currentRouteTableTab === nextTableTab)
-  )
-    return
+  if (currentRouteView === nextView) return
 
   const nextQuery = { ...route.query }
   if (nextView === 'table') nextQuery.view = 'table'
   else delete nextQuery.view
-
-  if (nextView === 'table' && nextTableTab !== 'all') nextQuery.tableTab = nextTableTab
-  else delete nextQuery.tableTab
 
   router.replace({ query: nextQuery })
 }
@@ -672,11 +667,15 @@ const companyTableTabs = [
   { label: 'Cards', value: 'cards' },
   { label: 'All', value: 'all' },
   { label: 'Metadata', value: 'metadata' },
-  { label: 'Contacts', value: 'contacts' },
-  { label: 'Rounds', value: 'rounds' },
-  { label: 'Funds', value: 'funds' },
-  { label: 'Artifacts', value: 'artifacts' },
-  { label: 'Notes', value: 'notes' },
+  { label: 'KDB Relations', value: 'kdb-relations' },
+  { label: 'Incorporation', value: 'incorporation' },
+  { label: 'Documents', value: 'documents' },
+  { label: 'Operations', value: 'operations' },
+  { label: 'Business', value: 'business' },
+  { label: 'Market', value: 'market' },
+  { label: 'Results', value: 'results' },
+  { label: 'Business Plan', value: 'business-plan' },
+  { label: 'Fund Raising', value: 'fund-raising' },
 ]
 const companyKindOptions = [
   { label: 'All', value: 'all' },
@@ -694,54 +693,122 @@ const metadataColumns = [
   columns.find((column) => column.name === 'created_at'),
   columns.find((column) => column.name === 'actions'),
 ].filter(Boolean)
+const cardSummaryColumns = [
+  { name: 'Company_Name', label: 'Company', field: 'Company_Name', align: 'left', sortable: true },
+  { name: 'card_subtitle', label: 'Summary', field: 'card_subtitle', align: 'left' },
+  { name: 'Company_Type', label: 'Type', field: 'Company_Type', align: 'left', sortable: true },
+  { name: 'Company_Stage', label: 'Stage', field: 'Company_Stage', align: 'left', sortable: true },
+  { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: true },
+  { name: 'card_location', label: 'Location', field: 'card_location', align: 'left' },
+  { name: 'Website', label: 'Website', field: 'Website', align: 'left' },
+  { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
+]
 const companySectionRows = ref({
-  contacts: [],
-  rounds: [],
-  funds: [],
-  artifacts: [],
-  notes: [],
+  'kdb-relations': [],
+  incorporation: [],
+  documents: [],
+  operations: [],
+  business: [],
+  market: [],
+  results: [],
+  'business-plan': [],
+  'fund-raising': [],
 })
-const companySectionTabs = new Set(['contacts', 'rounds', 'funds', 'artifacts', 'notes'])
+const companySectionTabs = new Set([
+  'kdb-relations',
+  'incorporation',
+  'documents',
+  'operations',
+  'business',
+  'market',
+  'results',
+  'business-plan',
+  'fund-raising',
+])
 const companySectionColumns = {
-  contacts: [
-    { name: 'Name', label: 'Contact', field: 'Name', align: 'left', sortable: true },
-    { name: 'email', label: 'Email', field: 'email', align: 'left', sortable: true },
-    { name: 'Phone', label: 'Phone', field: 'Phone', align: 'left', sortable: true },
-    { name: 'relationship_types', label: 'Relationship', field: 'relationship_types', align: 'left' },
+  'kdb-relations': [
+    { name: 'contact_count', label: 'Contacts', field: 'contact_count', align: 'right' },
+    { name: 'company_count', label: 'Companies', field: 'company_count', align: 'right' },
+    { name: 'fund_count', label: 'Funds', field: 'fund_count', align: 'right' },
+    { name: 'round_count', label: 'Rounds', field: 'round_count', align: 'right' },
+    { name: 'project_count', label: 'Projects', field: 'project_count', align: 'right' },
+    { name: 'task_count', label: 'Tasks', field: 'task_count', align: 'right' },
+    { name: 'note_count', label: 'Notes', field: 'note_count', align: 'right' },
+    { name: 'artifact_count', label: 'Artifacts', field: 'artifact_count', align: 'right' },
   ],
-  rounds: [
-    { name: 'Round_Name', label: 'Round', field: 'Round_Name', align: 'left', sortable: true },
-    { name: 'Round_Raising_Status', label: 'Status', field: 'Round_Raising_Status', align: 'left' },
-    { name: 'Round_Target_Size', label: 'Target', field: 'Round_Target_Size', align: 'right', sortable: true },
-    { name: 'Round_Close_Date', label: 'Close Date', field: 'Round_Close_Date', align: 'left', sortable: true },
-    { name: 'relationship_sources', label: 'Link Type', field: 'relationship_sources', align: 'left' },
+  incorporation: [
+    { name: 'Legal_Entity', label: 'Legal Name', field: 'Legal_Entity', align: 'left' },
+    { name: 'Date_of_Incorporation', label: 'Incorporation Date', field: 'Date_of_Incorporation', align: 'left' },
+    { name: 'incorporation_country', label: 'Country', field: 'incorporation_country', align: 'left' },
+    { name: 'Incorporation_Type', label: 'Entity Type', field: 'Incorporation_Type', align: 'left' },
+    { name: 'founder_count', label: 'Founders', field: 'founder_count', align: 'right' },
   ],
-  funds: [
-    { name: 'Fund_Name', label: 'Fund', field: 'Fund_Name', align: 'left', sortable: true },
-    { name: 'Fund_Raising_Status', label: 'Status', field: 'Fund_Raising_Status', align: 'left' },
-    { name: 'Fund_Target_Size', label: 'Target', field: 'Fund_Target_Size', align: 'right', sortable: true },
-    { name: 'Fund_Close_Date', label: 'Close Date', field: 'Fund_Close_Date', align: 'left', sortable: true },
-  ],
-  artifacts: [
-    { name: 'title', label: 'Artifact', field: 'title', align: 'left', sortable: true },
+  documents: [
+    { name: 'title', label: 'Document', field: 'title', align: 'left', sortable: true },
     { name: 'document_type', label: 'Type', field: 'document_type', align: 'left', sortable: true },
     { name: 'artifact_format', label: 'Format', field: 'artifact_format', align: 'left', sortable: true },
     { name: 'updated_at', label: 'Updated', field: 'updated_at', align: 'left', sortable: true },
   ],
-  notes: [
-    { name: 'title', label: 'Note', field: 'title', align: 'left', sortable: true },
-    { name: 'content', label: 'Content', field: 'content', align: 'left' },
-    { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
+  operations: [
+    { name: 'Status', label: 'Status', field: 'Status', align: 'left' },
+    { name: 'Company_Stage', label: 'Stage', field: 'Company_Stage', align: 'left' },
+    { name: 'headquarters_city', label: 'HQ', field: 'headquarters_city', align: 'left' },
+    { name: 'PAX_Count', label: 'PAX Count', field: 'PAX_Count', align: 'right' },
+    { name: 'PAX_Known', label: 'PAX Known', field: 'PAX_Known', align: 'right' },
+    { name: 'leadership_count', label: 'Leadership', field: 'leadership_count', align: 'right' },
+    { name: 'advisor_count', label: 'Advisors', field: 'advisor_count', align: 'right' },
+  ],
+  business: [
+    { name: 'Mission_Vision', label: 'Mission / Vision', field: 'Mission_Vision', align: 'left' },
+    { name: 'Products_Services', label: 'Products', field: 'Products_Services', align: 'left' },
+    { name: 'Development_Stage', label: 'Development', field: 'Development_Stage', align: 'left' },
+    { name: 'ICP', label: 'ICP', field: 'ICP', align: 'left' },
+    { name: 'Business_Model', label: 'Business Model', field: 'Business_Model', align: 'left' },
+    { name: 'Pricing', label: 'Pricing', field: 'Pricing', align: 'left' },
+  ],
+  market: [
+    { name: 'Industry', label: 'Industry', field: 'Industry', align: 'left' },
+    { name: 'Niche', label: 'Niche', field: 'Niche', align: 'left' },
+    { name: 'Demand_Analysis', label: 'Demand Analysis', field: 'Demand_Analysis', align: 'left' },
+    { name: 'Supply_Analysis', label: 'Supply Analysis', field: 'Supply_Analysis', align: 'left' },
+  ],
+  results: [
+    { name: 'Traction_Overview', label: 'Traction', field: 'Traction_Overview', align: 'left' },
+    { name: 'Customer_Acquisition_Cost', label: 'CAC', field: 'Customer_Acquisition_Cost', align: 'right' },
+    { name: 'Customer_Lifetime_Value', label: 'LTV', field: 'Customer_Lifetime_Value', align: 'right' },
+    { name: 'General_Admin_Expenses', label: 'Admin', field: 'General_Admin_Expenses', align: 'right' },
+    { name: 'Tech_Expenditure', label: 'Tech', field: 'Tech_Expenditure', align: 'right' },
+  ],
+  'business-plan': [
+    { name: 'Overview', label: 'Overview', field: 'Overview', align: 'left' },
+    { name: 'Forecast', label: 'Forecast', field: 'Forecast', align: 'left' },
+    { name: 'Short_Term_Objectives', label: 'Short Term', field: 'Short_Term_Objectives', align: 'left' },
+    { name: 'Long_Term_Objectives', label: 'Long Term', field: 'Long_Term_Objectives', align: 'left' },
+    { name: 'Capital_Needs', label: 'Capital Needs', field: 'Capital_Needs', align: 'left' },
+    { name: 'Funding_Strategy', label: 'Funding Strategy', field: 'Funding_Strategy', align: 'left' },
+  ],
+  'fund-raising': [
+    { name: 'Rounds_Funds_Count', label: 'Rounds / Funds', field: 'Rounds_Funds_Count', align: 'right' },
+    { name: 'Amount_Raised', label: 'Amount Raised', field: 'Amount_Raised', align: 'right' },
+    { name: 'shareholder_count', label: 'Shareholders', field: 'shareholder_count', align: 'right' },
+    { name: 'Shareholder_Structure_Artifact_Id', label: 'Shareholder Structure', field: 'Shareholder_Structure_Artifact_Id', align: 'left' },
   ],
 }
 
-const showCompanyCards = computed(
-  () => viewMode.value === 'card' || (viewMode.value === 'table' && companyTableTab.value === 'cards'),
-)
+const showCompanyCards = computed(() => viewMode.value === 'card')
 
 const activeCompanyColumns = computed(() => {
+  if (companyTableTab.value === 'cards') return cardSummaryColumns
   if (companyTableTab.value === 'metadata') return metadataColumns
   return columns
+})
+const activeCompanyTableRows = computed(() => {
+  if (companyTableTab.value !== 'cards') return displayRows.value
+  return displayRows.value.map((row) => ({
+    ...row,
+    card_subtitle: getCompanyCardSubtitle(row),
+    card_location: getCompanyLocationValue(row),
+  }))
 })
 
 const activeCompanyRow = computed(() => {
@@ -761,7 +828,6 @@ const activeCompanyRow = computed(() => {
 const showCompanyMainTable = computed(
   () =>
     viewMode.value === 'table' &&
-    companyTableTab.value !== 'cards' &&
     !companySectionTabs.has(companyTableTab.value),
 )
 
@@ -1346,108 +1412,123 @@ async function loadCompanySectionRows() {
   try {
     let nextRows = []
 
-    if (activeTab === 'contacts' && bridge.value?.db?.query) {
+    if (activeTab === 'kdb-relations' && bridge.value?.db?.query) {
+      const [contactRows, companyRows, fundRows, roundRows, projectRows, taskRows, artifactRows] =
+        await Promise.all([
+          bridge.value.db.query(
+            `
+            SELECT contact_id FROM (
+              SELECT from_id AS contact_id, to_id AS company_id FROM Contacts_Companies_founders
+              UNION
+              SELECT from_id AS contact_id, to_id AS company_id FROM Contacts_Companies_related_contacts
+              UNION
+              SELECT from_id AS contact_id, to_id AS company_id FROM Contacts_Companies_captable_individuals
+              UNION
+              SELECT from_id AS contact_id, to_id AS company_id FROM Contacts_Companies_referred_by
+              UNION
+              SELECT from_id AS contact_id, to_id AS company_id FROM Contacts_Companies_referred_to
+              UNION
+              SELECT to_id AS contact_id, from_id AS company_id FROM Companies_Contacts_current_company
+              UNION
+              SELECT from_id AS contact_id, to_id AS company_id FROM Contacts_Companies_tenure
+            )
+            WHERE CAST(company_id AS TEXT) = ?
+          `,
+            [companyId],
+          ),
+          bridge.value.db.query(
+            `
+            SELECT from_id FROM (
+              SELECT from_id, to_id FROM Companies_Companies_captable_institutional_investors
+              UNION
+              SELECT from_id, to_id FROM Companies_Companies_companies_invested
+            )
+            WHERE CAST(to_id AS TEXT) = ?
+          `,
+            [companyId],
+          ),
+          bridge.value.db.query(
+            `
+            SELECT to_id
+            FROM Companies_Funds_has_funds
+            WHERE CAST(from_id AS TEXT) = ?
+          `,
+            [companyId],
+          ),
+          bridge.value.db.query(
+            `
+            SELECT round_id FROM (
+              SELECT to_id AS round_id, from_id AS company_id FROM Companies_Rounds_has_rounds
+              UNION
+              SELECT round_id, sponsor_company_id AS company_id FROM Round_Overview WHERE sponsor_company_id IS NOT NULL
+            )
+            WHERE CAST(company_id AS TEXT) = ?
+          `,
+            [companyId],
+          ),
+          bridge.value.db.query(
+            `
+            SELECT to_id
+            FROM Companies_Projects_projects
+            WHERE CAST(from_id AS TEXT) = ?
+          `,
+            [companyId],
+          ),
+          bridge.value.db.query(
+            `
+            SELECT to_id
+            FROM Companies_Tasks_tasks
+            WHERE CAST(from_id AS TEXT) = ?
+          `,
+            [companyId],
+          ),
+          bridge.value.db.query(
+            `
+            SELECT artifact_id
+            FROM Companies_Artifacts_documents
+            WHERE CAST(company_id AS TEXT) = ?
+          `,
+            [companyId],
+          ),
+        ])
+      const result = await bridge.value.notes.list?.()
+      const notes = Array.isArray(result?.notes) ? result.notes : []
+      nextRows = [
+        {
+          id: companyId,
+          contact_count: Array.isArray(contactRows) ? contactRows.length : 0,
+          company_count: Array.isArray(companyRows) ? companyRows.length : 0,
+          fund_count: Array.isArray(fundRows) ? fundRows.length : 0,
+          round_count: Array.isArray(roundRows) ? roundRows.length : 0,
+          project_count: Array.isArray(projectRows) ? projectRows.length : 0,
+          task_count: Array.isArray(taskRows) ? taskRows.length : 0,
+          note_count: notes.filter(
+            (note) =>
+              String(note?.reference_type || '').trim() === 'company' &&
+              String(note?.reference_id || '').trim() === companyId,
+          ).length,
+          artifact_count: Array.isArray(artifactRows) ? artifactRows.length : 0,
+        },
+      ]
+    } else if (activeTab === 'incorporation' && bridge.value?.db?.query) {
       const rowsResult = await bridge.value.db.query(
         `
         SELECT
-          c.id,
-          c.Name,
-          COALESCE(NULLIF(c.Professional_Email, ''), NULLIF(c.Personal_Email, '')) AS email,
-          c.Phone,
-          GROUP_CONCAT(DISTINCT rel.relationship_type) AS relationship_types
-        FROM (
-          SELECT from_id AS contact_id, to_id AS company_id, 'Founder' AS relationship_type
-          FROM Contacts_Companies_founders
-
-          UNION ALL
-
-          SELECT from_id AS contact_id, to_id AS company_id, 'Related contact' AS relationship_type
-          FROM Contacts_Companies_related_contacts
-
-          UNION ALL
-
-          SELECT from_id AS contact_id, to_id AS company_id, 'Cap table individual' AS relationship_type
-          FROM Contacts_Companies_captable_individuals
-
-          UNION ALL
-
-          SELECT from_id AS contact_id, to_id AS company_id, 'Referred by' AS relationship_type
-          FROM Contacts_Companies_referred_by
-
-          UNION ALL
-
-          SELECT from_id AS contact_id, to_id AS company_id, 'Referred to' AS relationship_type
-          FROM Contacts_Companies_referred_to
-
-          UNION ALL
-
-          SELECT to_id AS contact_id, from_id AS company_id, 'Current company' AS relationship_type
-          FROM Companies_Contacts_current_company
-
-          UNION ALL
-
-          SELECT
-            from_id AS contact_id,
-            to_id AS company_id,
-            COALESCE(NULLIF(role, ''), CASE WHEN current_company = 1 THEN 'Current role' ELSE 'Tenure' END) AS relationship_type
-          FROM Contacts_Companies_tenure
-        ) rel
-        INNER JOIN Contacts c ON c.id = rel.contact_id
-        WHERE CAST(rel.company_id AS TEXT) = ?
-        GROUP BY c.id, c.Name, c.Professional_Email, c.Personal_Email, c.Phone
-        ORDER BY COALESCE(NULLIF(c.Name, ''), email, c.id)
+          cii.company_id AS id,
+          cii.Legal_Entity,
+          cii.Date_of_Incorporation,
+          cii.incorporation_country,
+          cii.Incorporation_Type,
+          COUNT(DISTINCT cilf.contact_id) AS founder_count
+        FROM Company_Incorporation_Info cii
+        LEFT JOIN Company_Incorporation_Legal_Founders cilf ON cilf.company_id = cii.company_id
+        WHERE CAST(cii.company_id AS TEXT) = ?
+        GROUP BY cii.company_id, cii.Legal_Entity, cii.Date_of_Incorporation, cii.incorporation_country, cii.Incorporation_Type
       `,
         [companyId],
       )
       nextRows = Array.isArray(rowsResult) ? rowsResult : []
-    } else if (activeTab === 'rounds' && bridge.value?.db?.query) {
-      const rowsResult = await bridge.value.db.query(
-        `
-        SELECT
-          r.id,
-          r.Round_Name,
-          ro.Round_Raising_Status,
-          ro.Round_Target_Size,
-          ro.Round_Close_Date,
-          GROUP_CONCAT(DISTINCT rel.relationship_source) AS relationship_sources
-        FROM (
-          SELECT to_id AS round_id, from_id AS company_id, 'Company rounds' AS relationship_source
-          FROM Companies_Rounds_has_rounds
-
-          UNION ALL
-
-          SELECT round_id, sponsor_company_id AS company_id, 'Sponsored round' AS relationship_source
-          FROM Round_Overview
-          WHERE sponsor_company_id IS NOT NULL
-        ) rel
-        INNER JOIN Rounds r ON r.id = rel.round_id
-        LEFT JOIN Round_Overview ro ON ro.round_id = r.id
-        WHERE CAST(rel.company_id AS TEXT) = ?
-        GROUP BY r.id, r.Round_Name, ro.Round_Raising_Status, ro.Round_Target_Size, ro.Round_Close_Date
-        ORDER BY COALESCE(ro.Round_Close_Date, r.created_at) DESC, r.Round_Name
-      `,
-        [companyId],
-      )
-      nextRows = Array.isArray(rowsResult) ? rowsResult : []
-    } else if (activeTab === 'funds' && bridge.value?.db?.query) {
-      const rowsResult = await bridge.value.db.query(
-        `
-        SELECT
-          f.id,
-          f.Fund_Name,
-          fo.Fund_Raising_Status,
-          fo.Fund_Target_Size,
-          fo.Fund_Close_Date
-        FROM Companies_Funds_has_funds rel
-        INNER JOIN Funds f ON f.id = rel.to_id
-        LEFT JOIN Fund_Overview fo ON fo.fund_id = f.id
-        WHERE CAST(rel.from_id AS TEXT) = ?
-        ORDER BY COALESCE(fo.Fund_Close_Date, f.created_at) DESC, f.Fund_Name
-      `,
-        [companyId],
-      )
-      nextRows = Array.isArray(rowsResult) ? rowsResult : []
-    } else if (activeTab === 'artifacts' && bridge.value?.db?.query) {
+    } else if (activeTab === 'documents' && bridge.value?.db?.query) {
       const rowsResult = await bridge.value.db.query(
         `
         SELECT
@@ -1465,21 +1546,109 @@ async function loadCompanySectionRows() {
         [companyId],
       )
       nextRows = Array.isArray(rowsResult) ? rowsResult : []
-    } else if (activeTab === 'notes' && bridge.value?.notes?.list) {
-      const result = await bridge.value.notes.list()
-      const notes = Array.isArray(result?.notes) ? result.notes : []
-      nextRows = notes
-        .filter(
-          (note) =>
-            String(note?.reference_type || '').trim() === 'company' &&
-            String(note?.reference_id || '').trim() === companyId,
-        )
-        .map((note) => ({
-          id: note.id,
-          title: String(note?.title || note?.Note_Name || 'Untitled note').trim() || 'Untitled note',
-          content: String(note?.content || note?.Note_Content || '').trim(),
-          created_at: String(note?.created_at || '').trim(),
-        }))
+    } else if (activeTab === 'operations' && bridge.value?.db?.query) {
+      const rowsResult = await bridge.value.db.query(
+        `
+        SELECT
+          coo.company_id AS id,
+          coo.Status,
+          coo.Company_Stage,
+          coo.headquarters_city,
+          coo.PAX_Count,
+          coo.PAX_Known,
+          COUNT(DISTINCT colt.contact_id) AS leadership_count,
+          COUNT(DISTINCT coa.contact_id) AS advisor_count
+        FROM Company_Operations_Overview coo
+        LEFT JOIN Company_Operations_Leadership_Team colt ON colt.company_id = coo.company_id
+        LEFT JOIN Company_Operations_Advisors coa ON coa.company_id = coo.company_id
+        WHERE CAST(coo.company_id AS TEXT) = ?
+        GROUP BY coo.company_id, coo.Status, coo.Company_Stage, coo.headquarters_city, coo.PAX_Count, coo.PAX_Known
+      `,
+        [companyId],
+      )
+      nextRows = Array.isArray(rowsResult) ? rowsResult : []
+    } else if (activeTab === 'business' && bridge.value?.db?.query) {
+      const rowsResult = await bridge.value.db.query(
+        `
+        SELECT
+          cbo.company_id AS id,
+          cbo.Mission_Vision,
+          cbo.Products_Services,
+          cbo.Development_Stage,
+          cbo.ICP,
+          cbo.Business_Model,
+          cbo.Pricing
+        FROM Company_Business_Overview cbo
+        WHERE CAST(cbo.company_id AS TEXT) = ?
+      `,
+        [companyId],
+      )
+      nextRows = Array.isArray(rowsResult) ? rowsResult : []
+    } else if (activeTab === 'market' && bridge.value?.db?.query) {
+      const rowsResult = await bridge.value.db.query(
+        `
+        SELECT
+          cmo.company_id AS id,
+          cmo.Industry,
+          cmo.Niche,
+          cmo.Demand_Analysis,
+          cmo.Supply_Analysis
+        FROM Company_Market_Overview cmo
+        WHERE CAST(cmo.company_id AS TEXT) = ?
+      `,
+        [companyId],
+      )
+      nextRows = Array.isArray(rowsResult) ? rowsResult : []
+    } else if (activeTab === 'results' && bridge.value?.db?.query) {
+      const rowsResult = await bridge.value.db.query(
+        `
+        SELECT
+          cro.company_id AS id,
+          cro.Traction_Overview,
+          cro.Customer_Acquisition_Cost,
+          cro.Customer_Lifetime_Value,
+          cro.General_Admin_Expenses,
+          cro.Tech_Expenditure
+        FROM Company_Results_Overview cro
+        WHERE CAST(cro.company_id AS TEXT) = ?
+      `,
+        [companyId],
+      )
+      nextRows = Array.isArray(rowsResult) ? rowsResult : []
+    } else if (activeTab === 'business-plan' && bridge.value?.db?.query) {
+      const rowsResult = await bridge.value.db.query(
+        `
+        SELECT
+          cbp.company_id AS id,
+          cbp.Overview,
+          cbp.Forecast,
+          cbp.Short_Term_Objectives,
+          cbp.Long_Term_Objectives,
+          cbp.Capital_Needs,
+          cbp.Funding_Strategy
+        FROM Company_Business_Plan cbp
+        WHERE CAST(cbp.company_id AS TEXT) = ?
+      `,
+        [companyId],
+      )
+      nextRows = Array.isArray(rowsResult) ? rowsResult : []
+    } else if (activeTab === 'fund-raising' && bridge.value?.db?.query) {
+      const rowsResult = await bridge.value.db.query(
+        `
+        SELECT
+          cfr.company_id AS id,
+          cfr.Rounds_Funds_Count,
+          cfr.Amount_Raised,
+          cfr.Shareholder_Structure_Artifact_Id,
+          COUNT(DISTINCT cfrs.contact_id) AS shareholder_count
+        FROM Company_Fund_Raising cfr
+        LEFT JOIN Company_Fund_Raising_Shareholders cfrs ON cfrs.company_id = cfr.company_id
+        WHERE CAST(cfr.company_id AS TEXT) = ?
+        GROUP BY cfr.company_id, cfr.Rounds_Funds_Count, cfr.Amount_Raised, cfr.Shareholder_Structure_Artifact_Id
+      `,
+        [companyId],
+      )
+      nextRows = Array.isArray(rowsResult) ? rowsResult : []
     }
 
     if (requestToken !== companySectionRequestToken) return
@@ -1646,6 +1815,35 @@ watch(
   line-height: var(--ds-line-height-title);
 }
 
+.companies-table-tabs {
+  display: flex;
+  justify-content: flex-start;
+  padding-bottom: 4px;
+}
+
+.companies-table-tabs__nav {
+  width: 100%;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.12);
+}
+
+.companies-table-tabs__nav :deep(.q-tabs__content) {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.companies-table-tabs__nav :deep(.q-tab) {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.companies-table-tabs__nav :deep(.q-tab--active) {
+  background: #fff;
+  border-color: rgba(17, 17, 17, 0.2);
+}
 
 .companies-shell {
   display: flex;
