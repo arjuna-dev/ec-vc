@@ -58,8 +58,8 @@
 
       <div v-else-if="viewMode === 'grid'" class="artifacts-grid">
         <q-card
-          v-for="artifact in latestArtifacts"
-          :key="artifact.artifact_id"
+          v-for="group in latestArtifactGroups"
+          :key="group.groupId"
           flat
           bordered
           class="artifact-card"
@@ -67,22 +67,26 @@
           <q-card-section class="artifact-card__header">
             <div class="row items-start justify-between q-col-gutter-sm">
               <div class="col">
-                <div class="text-overline text-grey-6">{{ artifact.artifact_type || 'artifact' }}</div>
-                <div class="text-subtitle1 artifact-card__title">
-                  {{ artifact.title || artifactFileName(artifact) || 'Untitled artifact' }}
-                </div>
+                <div class="text-overline text-grey-6">{{ formatGroupTypeLabel(group) }}</div>
+                <button
+                  type="button"
+                  class="artifact-card__title-button"
+                  @click="void openArtifactForReview(group.previewArtifact)"
+                >
+                  {{ group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Untitled artifact' }}
+                </button>
                 <div class="text-caption text-grey-7">
-                  {{ artifactFileName(artifact) || artifact.artifact_id }}
+                  {{ artifactFileName(group.previewArtifact) || group.primaryArtifact.artifact_id }}
                 </div>
               </div>
               <div class="col-auto">
                 <q-chip
                   dense
                   square
-                  :color="artifactNeedsAttention(artifact) ? 'amber-2' : 'green-1'"
-                  :text-color="artifactNeedsAttention(artifact) ? 'amber-10' : 'green-10'"
+                  :color="artifactNeedsAttention(group.primaryArtifact) ? 'amber-2' : 'green-1'"
+                  :text-color="artifactNeedsAttention(group.primaryArtifact) ? 'amber-10' : 'green-10'"
                 >
-                  {{ artifactStatusLabel(artifact) }}
+                  {{ artifactStatusLabel(group.primaryArtifact) }}
                 </q-chip>
               </div>
             </div>
@@ -94,24 +98,41 @@
             <div class="artifact-card__meta">
               <div>
                 <span class="artifact-card__meta-label">Opportunity</span>
-                <div>{{ resolveOpportunityLabel(artifact) }}</div>
+                <div>{{ resolveOpportunityLabel(group.primaryArtifact) }}</div>
               </div>
               <div>
                 <span class="artifact-card__meta-label">Created</span>
-                <div>{{ formatArtifactDate(artifact.created_at) }}</div>
+                <div>{{ formatArtifactDate(group.latestCreatedAt) }}</div>
               </div>
               <div>
                 <span class="artifact-card__meta-label">Format</span>
-                <div>{{ artifact.artifact_format || 'Unknown' }}</div>
+                <div>{{ group.primaryArtifact.artifact_format || 'Unknown' }}</div>
               </div>
               <div>
-                <span class="artifact-card__meta-label">Category</span>
-                <div>{{ artifact.type || 'Uncategorized' }}</div>
+                <span class="artifact-card__meta-label">Versions</span>
+                <div>{{ group.versionSummary }}</div>
               </div>
             </div>
 
-            <div v-if="artifact.description" class="text-caption text-grey-7 artifact-card__description">
-              {{ artifact.description }}
+            <div
+              v-if="group.primaryArtifact.description"
+              class="text-caption text-grey-7 artifact-card__description"
+            >
+              {{ group.primaryArtifact.description }}
+            </div>
+
+            <div v-if="group.artifacts.length > 1" class="artifact-card__versions">
+              <q-chip
+                v-for="artifactVersion in group.artifacts"
+                :key="artifactVersion.artifact_id"
+                dense
+                square
+                color="grey-2"
+                text-color="grey-8"
+                class="artifact-card__version-chip"
+              >
+                {{ String(artifactVersion.artifact_type || 'artifact').toUpperCase() }}
+              </q-chip>
             </div>
           </q-card-section>
 
@@ -123,7 +144,7 @@
                 icon="visibility"
                 label="Preview"
                 :disable="loading"
-                @click="void previewArtifact(artifact)"
+                @click="void openArtifactForReview(group.previewArtifact)"
               />
               <q-btn
                 flat
@@ -131,7 +152,7 @@
                 icon="download"
                 label="Download"
                 :disable="loading"
-                @click="void downloadArtifact(artifact)"
+                @click="void downloadArtifact(group.previewArtifact)"
               />
             </div>
             <div class="row items-center q-col-gutter-sm">
@@ -139,10 +160,10 @@
                 color="primary"
                 unelevated
                 no-caps
-                :icon="artifactActionConfig(artifact).icon"
-                :label="artifactActionConfig(artifact).label"
+                :icon="artifactActionConfig(group.primaryArtifact).icon"
+                :label="artifactActionConfig(group.primaryArtifact).label"
                 :disable="loading || savingProperties"
-                @click="continueArtifactIntake(artifact)"
+                @click="continueArtifactIntake(group.primaryArtifact)"
               />
             </div>
           </q-card-actions>
@@ -179,7 +200,7 @@
               icon="visibility"
               color="primary"
               :disable="loading"
-              @click="void previewArtifact(props.row)"
+              @click="void openArtifactForReview(props.row)"
             />
             <q-btn
               dense
@@ -276,13 +297,22 @@
                 />
               </div>
               <div class="col-12 col-md-3">
-                <q-input
-                  :model-value="String(propertiesForm.type || '')"
-                  outlined
-                  dense
-                  label="Category"
-                  readonly
-                />
+                <div class="text-caption text-grey-7 q-mb-xs">Versions</div>
+                <div class="artifact-properties__versions">
+                  <q-chip
+                    v-for="artifactType in propertiesForm.group_artifact_types"
+                    :key="artifactType"
+                    dense
+                    square
+                    color="grey-2"
+                    text-color="grey-8"
+                  >
+                    {{ artifactType }}
+                  </q-chip>
+                  <span v-if="propertiesForm.group_artifact_types.length === 0" class="text-caption text-grey-6">
+                    Artifact
+                  </span>
+                </div>
               </div>
               <div class="col-12">
                 <q-input
@@ -368,7 +398,18 @@
                   dense
                   label="File Path"
                   readonly
-                />
+                >
+                  <template #append>
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      icon="visibility"
+                      :disable="!propertiesForm.artifact_id"
+                      @click="void openArtifactForReview({ artifact_id: propertiesForm.artifact_id, fs_path: propertiesForm.fs_path, title: propertiesForm.title })"
+                    />
+                  </template>
+                </q-input>
               </div>
               <div class="col-12 col-md-3">
                 <q-input
@@ -548,7 +589,6 @@ const columns = [
   { name: 'title', label: 'Title', field: 'title', align: 'left', sortable: true },
   { name: 'artifact_type', label: 'Type', field: 'artifact_type', align: 'left', sortable: true },
   { name: 'artifact_format', label: 'Format', field: 'artifact_format', align: 'left', sortable: true },
-  { name: 'type', label: 'Category', field: 'type', align: 'left', sortable: true },
   { name: 'opportunity_id', label: 'Opportunity', field: 'opportunity_id', align: 'left', sortable: true },
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
@@ -606,9 +646,9 @@ const regionOptions = computed(() =>
   })),
 )
 
-const latestArtifacts = computed(() =>
-  [...rows.value]
-    .sort((left, right) => String(right?.created_at || '').localeCompare(String(left?.created_at || '')))
+const latestArtifactGroups = computed(() =>
+  groupArtifacts(rows.value)
+    .sort((left, right) => parseDateValue(right.latestCreatedAt) - parseDateValue(left.latestCreatedAt))
     .slice(0, 12),
 )
 
@@ -738,6 +778,85 @@ function normalizeSelectedRows() {
   selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.artifact_id))
 }
 
+function parseDateValue(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return 0
+  const parsed = Date.parse(raw.replace(' ', 'T'))
+  return Number.isNaN(parsed) ? 0 : parsed
+}
+
+function artifactGroupKey(row = {}) {
+  return String(row?.original_artifact_id || row?.artifact_id || '').trim()
+}
+
+function compareArtifactPriority(left = {}, right = {}) {
+  const priority = {
+    'llm-ready': 0,
+    raw: 1,
+    'llm-generated': 2,
+  }
+  const leftPriority = priority[String(left?.artifact_type || '').trim().toLowerCase()] ?? 99
+  const rightPriority = priority[String(right?.artifact_type || '').trim().toLowerCase()] ?? 99
+  if (leftPriority !== rightPriority) return leftPriority - rightPriority
+  return parseDateValue(right?.created_at) - parseDateValue(left?.created_at)
+}
+
+function resolveMetadataArtifact(group = []) {
+  return [...group].sort(compareArtifactPriority)[0] || {}
+}
+
+function resolvePreviewArtifact(group = []) {
+  return (
+    group.find((artifact) => String(artifact?.artifact_type || '').trim().toLowerCase() === 'raw') ||
+    resolveMetadataArtifact(group)
+  )
+}
+
+function groupArtifacts(items = []) {
+  const grouped = new Map()
+  for (const item of items) {
+    const key = artifactGroupKey(item)
+    if (!key) continue
+    if (!grouped.has(key)) grouped.set(key, [])
+    grouped.get(key).push(item)
+  }
+
+  return [...grouped.entries()].map(([groupId, artifacts]) => {
+    const sortedArtifacts = [...artifacts].sort(compareArtifactPriority)
+    const primaryArtifact = resolveMetadataArtifact(sortedArtifacts)
+    const previewArtifact = resolvePreviewArtifact(sortedArtifacts)
+    const latestCreatedAt = sortedArtifacts.reduce((latest, artifact) => {
+      return parseDateValue(artifact?.created_at) > parseDateValue(latest) ? artifact?.created_at || '' : latest
+    }, '')
+    const versionSummary = sortedArtifacts
+      .map((artifact) => String(artifact?.artifact_type || 'artifact').trim().toUpperCase())
+      .filter(Boolean)
+      .join(' / ')
+
+    return {
+      groupId,
+      artifacts: sortedArtifacts,
+      primaryArtifact,
+      previewArtifact,
+      latestCreatedAt,
+      versionSummary: versionSummary || 'ARTIFACT',
+    }
+  })
+}
+
+function findArtifactGroup(row = {}) {
+  const key = artifactGroupKey(row)
+  if (!key) return null
+  return groupArtifacts(rows.value).find((group) => group.groupId === key) || null
+}
+
+function formatGroupTypeLabel(group = {}) {
+  const primaryType = String(group?.primaryArtifact?.artifact_type || '').trim()
+  if (primaryType) return primaryType
+  if ((group?.artifacts || []).length > 1) return 'artifact set'
+  return 'artifact'
+}
+
 function createEmptyPropertiesForm() {
   return {
     artifact_id: '',
@@ -747,6 +866,8 @@ function createEmptyPropertiesForm() {
     type: '',
     opportunity_id: null,
     description: '',
+    group_artifact_ids: [],
+    group_artifact_types: [],
     related_company_ids: [],
     company_document_type: null,
     related_industry_ids: [],
@@ -893,6 +1014,7 @@ async function openPropertiesDialog(row) {
   filteredCompanyOptions.value = [...companies.value]
   filteredIndustryOptions.value = [...industries.value]
   filteredRegionOptions.value = [...regions.value]
+  const artifactGroup = findArtifactGroup(row)
   const nextForm = {
     artifact_id: String(row?.artifact_id || ''),
     title: String(row?.title || ''),
@@ -901,6 +1023,12 @@ async function openPropertiesDialog(row) {
     type: String(row?.type || ''),
     opportunity_id: String(row?.opportunity_id || '').trim() || null,
     description: '',
+    group_artifact_ids:
+      artifactGroup?.artifacts?.map((artifact) => String(artifact?.artifact_id || '').trim()).filter(Boolean) || [],
+    group_artifact_types:
+      artifactGroup?.artifacts
+        ?.map((artifact) => String(artifact?.artifact_type || '').trim().toUpperCase())
+        .filter(Boolean) || [],
     related_company_ids: [],
     company_document_type: null,
     related_industry_ids: [],
@@ -989,6 +1117,15 @@ async function saveArtifactProperties() {
     return
   }
 
+  const targetArtifactIds = [
+    ...new Set(
+      (propertiesForm.value.group_artifact_ids || [])
+        .map((id) => String(id || '').trim())
+        .filter(Boolean),
+    ),
+  ]
+  if (targetArtifactIds.length === 0) targetArtifactIds.push(artifactId)
+
   const opportunityId = String(propertiesForm.value.opportunity_id || '').trim()
   const roundId = opportunityId && !opportunityId.startsWith('fund:') ? opportunityId : null
   const fundId = opportunityId && opportunityId.startsWith('fund:') ? opportunityId : null
@@ -1023,64 +1160,68 @@ async function saveArtifactProperties() {
   savingProperties.value = true
   propertiesError.value = ''
   try {
-    await bridge.value.db.execute(
-      `
-      UPDATE Artifacts
-      SET
-        round_id = ?,
-        fund_id = ?,
-        title = ?,
-        description = ?,
-        artifact_format = ?,
-        updated_at = datetime('now')
-      WHERE artifact_id = ?
-    `,
-      [
-        roundId,
-        fundId,
-        String(propertiesForm.value.title || '').trim() || null,
-        String(propertiesForm.value.description || '').trim() || null,
-        String(propertiesForm.value.artifact_format || '').trim().toLowerCase() || null,
-        artifactId,
-      ],
-    )
-
-    await bridge.value.db.execute('DELETE FROM Companies_Artifacts_documents WHERE artifact_id = ?', [artifactId])
-    if (relatedCompanyIds.length > 0) {
+    for (const targetArtifactId of targetArtifactIds) {
       await bridge.value.db.execute(
         `
-        INSERT INTO Company_Artifacts (artifact_id, document_type)
-        VALUES (?, ?)
-        ON CONFLICT(artifact_id) DO UPDATE SET
-          document_type = excluded.document_type
+        UPDATE Artifacts
+        SET
+          round_id = ?,
+          fund_id = ?,
+          title = ?,
+          description = ?,
+          artifact_format = ?,
+          updated_at = datetime('now')
+        WHERE artifact_id = ?
       `,
-        [artifactId, companyDocumentType],
+        [
+          roundId,
+          fundId,
+          String(propertiesForm.value.title || '').trim() || null,
+          String(propertiesForm.value.description || '').trim() || null,
+          String(propertiesForm.value.artifact_format || '').trim().toLowerCase() || null,
+          targetArtifactId,
+        ],
       )
 
-      for (const companyId of relatedCompanyIds) {
+      await bridge.value.db.execute('DELETE FROM Companies_Artifacts_documents WHERE artifact_id = ?', [
+        targetArtifactId,
+      ])
+      if (relatedCompanyIds.length > 0) {
         await bridge.value.db.execute(
-          'INSERT OR IGNORE INTO Companies_Artifacts_documents (company_id, artifact_id) VALUES (?, ?)',
-          [companyId, artifactId],
+          `
+          INSERT INTO Company_Artifacts (artifact_id, document_type)
+          VALUES (?, ?)
+          ON CONFLICT(artifact_id) DO UPDATE SET
+            document_type = excluded.document_type
+        `,
+          [targetArtifactId, companyDocumentType],
+        )
+
+        for (const companyId of relatedCompanyIds) {
+          await bridge.value.db.execute(
+            'INSERT OR IGNORE INTO Companies_Artifacts_documents (company_id, artifact_id) VALUES (?, ?)',
+            [companyId, targetArtifactId],
+          )
+        }
+      } else {
+        await bridge.value.db.execute('DELETE FROM Company_Artifacts WHERE artifact_id = ?', [targetArtifactId])
+      }
+
+      await bridge.value.db.execute('DELETE FROM Artifacts_Industries WHERE artifact_id = ?', [targetArtifactId])
+      for (const industryId of relatedIndustryIds) {
+        await bridge.value.db.execute(
+          'INSERT OR IGNORE INTO Artifacts_Industries (artifact_id, industry_id) VALUES (?, ?)',
+          [targetArtifactId, industryId],
         )
       }
-    } else {
-      await bridge.value.db.execute('DELETE FROM Company_Artifacts WHERE artifact_id = ?', [artifactId])
-    }
 
-    await bridge.value.db.execute('DELETE FROM Artifacts_Industries WHERE artifact_id = ?', [artifactId])
-    for (const industryId of relatedIndustryIds) {
-      await bridge.value.db.execute(
-        'INSERT OR IGNORE INTO Artifacts_Industries (artifact_id, industry_id) VALUES (?, ?)',
-        [artifactId, industryId],
-      )
-    }
-
-    await bridge.value.db.execute('DELETE FROM Artifacts_Regions WHERE artifact_id = ?', [artifactId])
-    for (const regionId of relatedRegionIds) {
-      await bridge.value.db.execute(
-        'INSERT OR IGNORE INTO Artifacts_Regions (artifact_id, region_id) VALUES (?, ?)',
-        [artifactId, regionId],
-      )
+      await bridge.value.db.execute('DELETE FROM Artifacts_Regions WHERE artifact_id = ?', [targetArtifactId])
+      for (const regionId of relatedRegionIds) {
+        await bridge.value.db.execute(
+          'INSERT OR IGNORE INTO Artifacts_Regions (artifact_id, region_id) VALUES (?, ?)',
+          [targetArtifactId, regionId],
+        )
+      }
     }
 
     await loadArtifacts()
@@ -1095,7 +1236,7 @@ async function saveArtifactProperties() {
 
 async function previewArtifact(row) {
   const artifactId = String(row?.artifact_id || '').trim()
-  if (!artifactId || !bridge.value?.artifacts?.preview) return
+  if (!artifactId || !bridge.value?.artifacts?.preview) return ''
   try {
     previewDialogOpen.value = true
     previewLoading.value = true
@@ -1109,9 +1250,11 @@ async function previewArtifact(row) {
       fileDataBase64: String(preview?.fileDataBase64 || ''),
       content: String(preview?.content || ''),
     }
+    return previewState.value.kind
   } catch (e) {
     previewDialogOpen.value = false
     $q.notify({ type: 'negative', message: e?.message || String(e) })
+    return ''
   } finally {
     previewLoading.value = false
   }
@@ -1133,6 +1276,19 @@ async function downloadArtifact(row) {
   if (!artifactId || !bridge.value?.artifacts?.download) return
   try {
     await bridge.value.artifacts.download({ artifactId })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e?.message || String(e) })
+  }
+}
+
+async function openArtifactForReview(row) {
+  const kind = await previewArtifact(row)
+  if (kind && kind !== 'unsupported') return
+  const artifactId = String(row?.artifact_id || '').trim()
+  if (!artifactId || !bridge.value?.artifacts?.share) return
+  try {
+    await bridge.value.artifacts.share({ artifactId })
+    $q.notify({ type: 'info', message: 'Preview is not available, so the original file was revealed in your folder.' })
   } catch (e) {
     $q.notify({ type: 'negative', message: e?.message || String(e) })
   }
@@ -1221,9 +1377,22 @@ onMounted(() => {
   padding-bottom: 8px;
 }
 
-.artifact-card__title {
+.artifact-card__title-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
   line-height: 1.25;
   font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.artifact-card__title-button:hover {
+  color: #2563eb;
 }
 
 .artifact-card__body {
@@ -1258,8 +1427,30 @@ onMounted(() => {
   -webkit-box-orient: vertical;
 }
 
+.artifact-card__versions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.artifact-card__version-chip {
+  margin: 0;
+}
+
 .artifact-card__actions {
   padding: 8px 12px 12px;
+}
+
+.artifact-properties__versions {
+  display: flex;
+  min-height: 40px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 4px;
+  background: rgba(248, 250, 252, 0.7);
 }
 
 .artifact-preview-dialog {
