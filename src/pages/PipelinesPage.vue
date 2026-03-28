@@ -1154,6 +1154,14 @@ watch(displayRows, () => {
   flex: 0 0 auto;
 }
 
+.pipelines-toolbar__toggle {
+  flex: 0 0 auto;
+  border: 1px solid var(--ds-control-border);
+  border-radius: 999px;
+  box-shadow: var(--ds-control-shadow);
+  overflow: hidden;
+}
+
 .pipelines-toolbar__search {
   width: 100%;
   min-width: 0;
