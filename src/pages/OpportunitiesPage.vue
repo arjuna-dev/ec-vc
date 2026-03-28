@@ -106,7 +106,62 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+          </div>
 
+          <div class="opportunities-toolbar__filters">
+            <q-icon name="tune" size="18px" class="opportunities-toolbar__filters-icon" />
+
+            <q-select
+              v-model="regionFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="opportunities-toolbar__filter-control"
+              label="Region"
+              :options="regionFilterOptions"
+              :disable="loading || regionFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="stageFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="opportunities-toolbar__filter-control"
+              label="Stage"
+              :options="stageFilterOptions"
+              :disable="loading || stageFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="industryFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="opportunities-toolbar__filter-control"
+              label="Industry"
+              :options="industryFilterOptions"
+              :disable="loading || industryFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="statusFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="opportunities-toolbar__filter-control"
+              label="Status"
+              :options="statusFilterOptions"
+              :disable="loading || statusFilterOptions.length === 0"
+            />
           </div>
 
           <div class="opportunities-toolbar__right">
@@ -142,62 +197,6 @@
               <q-tooltip>Export CSV</q-tooltip>
             </q-btn>
           </div>
-        </div>
-
-        <div class="opportunities-filterbar">
-          <div class="opportunities-filterbar__label">Gold filters</div>
-
-          <q-select
-            v-model="companyFilter"
-            dense
-            outlined
-            clearable
-            emit-value
-            map-options
-            class="opportunities-filterbar__control"
-            label="Sponsor Company"
-            :options="companyFilterOptions"
-            :disable="loading || companyFilterOptions.length === 0"
-          />
-
-          <q-select
-            v-model="stageFilter"
-            dense
-            outlined
-            clearable
-            emit-value
-            map-options
-            class="opportunities-filterbar__control"
-            label="Stage"
-            :options="stageFilterOptions"
-            :disable="loading || stageFilterOptions.length === 0"
-          />
-
-          <q-select
-            v-model="statusFilter"
-            dense
-            outlined
-            clearable
-            emit-value
-            map-options
-            class="opportunities-filterbar__control"
-            label="Status"
-            :options="statusFilterOptions"
-            :disable="loading || statusFilterOptions.length === 0"
-          />
-
-          <q-select
-            v-model="fundTypeFilter"
-            dense
-            outlined
-            clearable
-            emit-value
-            map-options
-            class="opportunities-filterbar__control"
-            label="Fund Type"
-            :options="fundTypeFilterOptions"
-            :disable="loading || fundTypeFilterOptions.length === 0"
-          />
         </div>
 
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>
@@ -407,10 +406,10 @@ const dialogOpen = ref(false)
 const dialogKind = ref('round')
 const kindFilter = ref(ALL_OPPORTUNITIES_FILTER)
 const searchQuery = ref('')
-const companyFilter = ref('')
+const regionFilter = ref('')
 const stageFilter = ref('')
+const industryFilter = ref('')
 const statusFilter = ref('')
-const fundTypeFilter = ref('')
 const viewMode = ref('card')
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
@@ -560,14 +559,31 @@ function uniqueOpportunityValues(resolver) {
     .map((value) => ({ label: value, value }))
 }
 
-const companyFilterOptions = computed(() => uniqueOpportunityValues((row) => row?.Company_Name))
+const regionFilterOptions = computed(() =>
+  uniqueOpportunityValues(
+    (row) =>
+      row?.Headquarters_City ||
+      row?.Headquarters_City_Name,
+  ),
+)
 const stageFilterOptions = computed(() =>
   uniqueOpportunityValues((row) => row?.Round_Stage || row?.Pipeline_Stage),
+)
+const industryFilterOptions = computed(() =>
+  uniqueOpportunityValues(
+    (row) =>
+      row?.Industry_Name ||
+      row?.Industry ||
+      row?.industry ||
+      row?.Industry_Sector ||
+      row?.Sector ||
+      row?.Vertical ||
+      row?.Company_Industry,
+  ),
 )
 const statusFilterOptions = computed(() =>
   uniqueOpportunityValues((row) => row?.Raising_Status || row?.Pipeline_Status),
 )
-const fundTypeFilterOptions = computed(() => uniqueOpportunityValues((row) => row?.Fund_Type))
 
 const opportunitiesDashboard = computed(() => {
   const total = displayRows.value.length
@@ -692,8 +708,14 @@ const displayRows = computed(() => {
     )
   }
 
-  if (companyFilter.value) {
-    items = items.filter((row) => normalizeOpportunityValue(row?.Company_Name) === companyFilter.value)
+  if (regionFilter.value) {
+    items = items.filter(
+      (row) =>
+        normalizeOpportunityValue(
+          row?.Headquarters_City ||
+            row?.Headquarters_City_Name,
+        ) === regionFilter.value,
+    )
   }
 
   if (stageFilter.value) {
@@ -708,8 +730,19 @@ const displayRows = computed(() => {
     )
   }
 
-  if (fundTypeFilter.value) {
-    items = items.filter((row) => normalizeOpportunityValue(row?.Fund_Type) === fundTypeFilter.value)
+  if (industryFilter.value) {
+    items = items.filter(
+      (row) =>
+        normalizeOpportunityValue(
+          row?.Industry_Name ||
+            row?.Industry ||
+            row?.industry ||
+            row?.Industry_Sector ||
+            row?.Sector ||
+            row?.Vertical ||
+            row?.Company_Industry,
+        ) === industryFilter.value,
+    )
   }
 
   return items
@@ -1222,9 +1255,23 @@ watch(
   gap: 20px;
 }
 
+.opportunities-toolbar__filters {
+  display: flex;
+  align-items: center;
+  flex: 1 1 520px;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
 .opportunities-toolbar__right {
   flex: 0 0 auto;
   margin-left: auto;
+}
+
+.opportunities-toolbar__filters-icon {
+  color: var(--ds-color-text-muted);
+  flex: 0 0 auto;
 }
 
 .opportunities-toolbar__toggle {
@@ -1256,6 +1303,13 @@ watch(
 
 .opportunities-toolbar__search :deep(.q-field__control) {
   padding: 0 var(--ds-control-inline-padding);
+}
+
+.opportunities-toolbar__filter-control {
+  flex: 1 1 132px;
+  min-width: 132px;
+  background: var(--ds-control-surface);
+  border-radius: var(--ds-control-radius);
 }
 
 .opportunities-toolbar__toggle {
@@ -1294,35 +1348,6 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.opportunities-filterbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  background: rgba(248, 250, 252, 0.9);
-  border: 1px solid var(--ds-color-border-soft);
-  border-radius: var(--ds-radius-xl);
-}
-
-.opportunities-filterbar__label {
-  flex: 0 0 auto;
-  color: var(--ds-color-text-muted);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-medium);
-  font-weight: var(--ds-font-weight-medium);
-  letter-spacing: 0.08em;
-  line-height: var(--ds-line-height-xs);
-  text-transform: uppercase;
-}
-
-.opportunities-filterbar__control {
-  flex: 1 1 180px;
-  min-width: 180px;
-  background: var(--ds-control-surface);
-  border-radius: var(--ds-control-radius);
 }
 
 .opportunities-empty-state {
@@ -1457,6 +1482,7 @@ watch(
   }
 
   .opportunities-toolbar__left,
+  .opportunities-toolbar__filters,
   .opportunities-toolbar__right {
     flex: none;
     flex-direction: column;
@@ -1473,12 +1499,7 @@ watch(
     margin-inline-start: 0;
   }
 
-  .opportunities-filterbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .opportunities-filterbar__control {
+  .opportunities-toolbar__filter-control {
     min-width: 0;
     width: 100%;
   }
