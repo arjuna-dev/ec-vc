@@ -723,6 +723,7 @@ const draftOpportunityId = ref(null)
 const draftArtifactIds = ref([])
 const didSubmit = ref(false)
 const opportunityNameManuallyEdited = ref(false)
+const droppedFilesForPrompt = ref([])
 const intakeReviewFields = ref(createDefaultIntakeReviewFields())
 const intakeReviewVerified = ref(createDefaultIntakeReviewVerified())
 const intakeLockedFields = ref(createDefaultIntakeReviewVerified())
@@ -884,9 +885,7 @@ const contactOptions = computed(() => [
 ])
 
 const intakeVisibleFieldKeys = computed(() =>
-  Object.entries(intakeReviewFields.value)
-    .filter(([, value]) => String(value || '').trim().length > 0)
-    .map(([key]) => key),
+  buildVisibleIntakeFieldKeys(intakeReviewFields.value),
 )
 
 const intakeReviewReadyToContinue = computed(() => {
@@ -1082,6 +1081,7 @@ function resetTransientState() {
   processingMessage.value = ''
   draftOpportunityId.value = null
   draftArtifactIds.value = []
+  droppedFilesForPrompt.value = []
   autofilledFlags.value = {}
   intakeReviewDialogOpen.value = false
   intakeReviewDelayElapsed.value = false
@@ -1184,7 +1184,10 @@ function hydrateFromActiveDraft() {
 }
 
 function inferDocumentTypeFromDraft() {
-  const fileNames = (activeDraft.value?.droppedFiles || []).map((file) => String(file?.name || '').toLowerCase())
+  const sourceFiles = activeDraft.value?.droppedFiles?.length
+    ? activeDraft.value.droppedFiles
+    : droppedFilesForPrompt.value
+  const fileNames = (sourceFiles || []).map((file) => String(file?.name || '').toLowerCase())
   if (!fileNames.length) return ''
   const joined = fileNames.join(' ')
   if (joined.includes('pitch') || joined.includes('deck') || joined.includes('presentation')) return 'Pitch Deck'
@@ -1206,6 +1209,23 @@ function createDefaultIntakeReviewFields(overrides = {}) {
     website: '',
     ...overrides,
   }
+}
+
+function buildVisibleIntakeFieldKeys(fields = {}) {
+  const keys = new Set()
+  const hasAnyValue = Object.values(fields).some((value) => String(value || '').trim())
+  if (hasAnyValue) {
+    for (const [key, value] of Object.entries(fields)) {
+      if (String(value || '').trim()) keys.add(key)
+    }
+  }
+  keys.add('documentType')
+  keys.add('sponsorCompany')
+  keys.add('relatedContact')
+  keys.add('website')
+  if (entityType.value === 'fund') keys.add('relatedFund')
+  else keys.add('relatedRound')
+  return [...keys]
 }
 
 function createDefaultIntakeReviewVerified(overrides = {}) {
@@ -1340,11 +1360,6 @@ function scheduleIntakeReviewDialog() {
 function maybeOpenIntakeReviewDialog() {
   if (!intakeReviewPending.value || !intakeReviewDelayElapsed.value || intakeReviewPromptShown.value) return
   const nextFields = buildIntakeReviewFieldsFromForms()
-  const hasCandidate = Object.values(nextFields).some((value) => String(value || '').trim())
-  if (!hasCandidate) {
-    resolveIntakeReviewGate()
-    return
-  }
   intakeReviewFields.value = nextFields
   intakeReviewVerified.value = createDefaultIntakeReviewVerified()
   intakeReviewDialogOpen.value = true
@@ -1447,8 +1462,7 @@ function verifyIntakeReviewField(fieldKey) {
 
 async function waitForIntakeReviewConfirmation() {
   const nextFields = buildIntakeReviewFieldsFromForms()
-  const hasCandidate = Object.values(nextFields).some((value) => String(value || '').trim())
-  if (!hasCandidate) return
+  intakeReviewFields.value = nextFields
   intakeReviewPending.value = true
   maybeOpenIntakeReviewDialog()
   if (!intakeReviewPending.value) return
@@ -1753,6 +1767,7 @@ async function processDroppedFiles(files = []) {
   if (!filePaths.length) return
 
   processingDrop.value = true
+  droppedFilesForPrompt.value = [...files]
   scheduleIntakeReviewDialog()
   try {
     processingMessage.value = 'Checking if files already exist...'
