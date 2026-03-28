@@ -149,14 +149,33 @@
                 :disable="loading"
                 @click="void openArtifactForReview(group.previewArtifact)"
               />
-              <q-btn
+              <q-btn-dropdown
                 flat
                 no-caps
-                icon="download"
-                label="Download"
+                icon="share"
+                label="Share"
                 :disable="loading"
-                @click="void downloadArtifact(group.previewArtifact)"
-              />
+                dropdown-icon="keyboard_arrow_down"
+              >
+                <q-list dense style="min-width: 180px">
+                  <q-item clickable v-close-popup @click="void shareArtifact(group.previewArtifact)">
+                    <q-item-section avatar>
+                      <q-icon name="folder_open" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>Reveal in Folder</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="void downloadArtifact(group.previewArtifact)">
+                    <q-item-section avatar>
+                      <q-icon name="download" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>Download</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
             </div>
             <div class="row items-center q-col-gutter-sm">
               <q-btn
@@ -1761,13 +1780,28 @@ async function downloadArtifact(row) {
   }
 }
 
+async function shareArtifact(row, options = {}) {
+  const artifactId = String(row?.artifact_id || '').trim()
+  if (!artifactId || !bridge.value?.artifacts?.share) return
+  const silent = Boolean(options?.silent)
+  try {
+    await bridge.value.artifacts.share({ artifactId })
+    if (!silent) {
+      $q.notify({ type: 'positive', message: 'Artifact path copied and revealed in folder.' })
+    }
+  } catch (e) {
+    if (!silent) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    }
+    throw e
+  }
+}
+
 async function openArtifactForReview(row) {
   const kind = await previewArtifact(row, { silent: true })
   if (kind && kind !== 'unsupported') return
-  const artifactId = String(row?.artifact_id || '').trim()
-  if (!artifactId || !bridge.value?.artifacts?.share) return
   try {
-    await bridge.value.artifacts.share({ artifactId })
+    await shareArtifact(row, { silent: true })
     $q.notify({ type: 'info', message: 'Inline preview was not available, so the original file was opened in your folder.' })
   } catch (e) {
     $q.notify({ type: 'negative', message: e?.message || String(e) })
