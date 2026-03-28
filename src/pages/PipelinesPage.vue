@@ -299,51 +299,45 @@
                         />
                       </div>
 
-                      <div v-if="getPipelineCardPills(row).length" class="pipeline-card__pill-row">
-                        <q-badge
-                          v-for="pill in getPipelineCardPills(row)"
-                          :key="pill"
-                          class="pipeline-card__pill"
-                        >
-                          {{ pill }}
-                        </q-badge>
-                      </div>
                     </div>
                   </div>
                 </q-card-section>
 
                 <q-card-section class="pipeline-card__summary">
-                  <div class="pipeline-card__summary-label">Highlights</div>
+                  <div class="pipeline-card__summary-label">Stages</div>
 
-                  <div v-if="getPipelineCardDetails(row).length" class="pipeline-card__details">
+                  <div v-if="getPipelineCardStages(row).length" class="pipeline-card__stage-map">
+                    <div class="pipeline-card__stage-track" aria-hidden="true" />
                     <div
-                      v-for="detail in getPipelineCardDetails(row)"
-                      :key="detail.label"
-                      class="pipeline-card__detail"
+                      v-for="(stage, stageIndex) in getPipelineCardStages(row)"
+                      :key="`${row.pipeline_id}-${stageIndex}-${stage?.name || 'stage'}`"
+                      class="pipeline-card__stage-stop"
                     >
-                      <q-icon :name="detail.icon" size="16px" class="pipeline-card__detail-icon" />
-                      <div class="pipeline-card__detail-copy">
-                        <div class="pipeline-card__detail-label">{{ detail.label }}</div>
-                        <div class="pipeline-card__detail-value">{{ detail.value }}</div>
+                      <div class="pipeline-card__stage-dot" />
+                      <div class="pipeline-card__stage-name">
+                        {{ stage?.name || `Stage ${stageIndex + 1}` }}
                       </div>
                     </div>
                   </div>
 
-                  <div v-else class="pipeline-card__summary-empty">
-                    Add more pipeline details to make this card richer.
+                  <div v-if="getPipelineCardDetails(row).length" class="pipeline-card__meta-list">
+                    <div
+                      v-for="detail in getPipelineCardDetails(row)"
+                      :key="detail.label"
+                      class="pipeline-card__meta-item"
+                    >
+                      <span class="pipeline-card__meta-label">{{ detail.label }}</span>
+                      <span class="pipeline-card__meta-value">{{ detail.value }}</span>
+                    </div>
+                  </div>
+
+                  <div v-if="!getPipelineCardStages(row).length" class="pipeline-card__summary-empty">
+                    No stages mapped yet.
                   </div>
                 </q-card-section>
 
                 <q-card-actions align="between" class="pipeline-card__footer">
                   <div class="pipeline-card__footer-actions">
-                    <q-btn
-                      no-caps
-                      outline
-                      class="pipeline-card__footer-action"
-                      :label="row.install_status === 'installed' ? 'Deactivate' : 'Activate'"
-                      :disable="isBusy(row.install_status) || loading"
-                      @click="togglePipeline(row)"
-                    />
                     <q-btn
                       flat
                       round
@@ -637,53 +631,31 @@ function stageSummary(row) {
 }
 
 function getPipelineCardSubtitle(row) {
-  return (
-    normalizePipelineValue(stageSummary(row)) ||
-    normalizePipelineValue(row?.dir_name) ||
-    statusLabel(row?.install_status) ||
-    'Pipeline workflow not defined yet'
-  )
+  if (row?.pipeline_id === 'pipeline_default') {
+    return 'Default workspace pipeline'
+  }
+
+  return normalizePipelineValue(row?.dir_name) || 'Pipeline workflow not defined yet'
 }
 
-function getPipelineCardPills(row) {
-  const stageCount = parsedStages(row).length
-  return [
-    statusLabel(row?.install_status),
-    row?.pipeline_id === 'pipeline_default' ? 'Default' : '',
-    stageCount ? `${stageCount} stage${stageCount === 1 ? '' : 's'}` : '',
-  ].filter(Boolean)
+function getPipelineCardStages(row) {
+  return parsedStages(row).filter((stage) => normalizePipelineValue(stage?.name))
 }
 
 function getPipelineCardDetails(row) {
-  const stageCount = parsedStages(row).length
-
   return [
     row?.dir_name
       ? {
           label: 'Folder',
           value: normalizePipelineValue(row.dir_name),
-          icon: 'folder',
         }
       : null,
-    stageCount
+    row?.pipeline_id === 'pipeline_default'
       ? {
-          label: 'Stages',
-          value: String(stageCount),
-          icon: 'schema',
+          label: 'Role',
+          value: 'Default intake path',
         }
       : null,
-    stageSummary(row)
-      ? {
-          label: 'Flow',
-          value: stageSummary(row),
-          icon: 'route',
-        }
-      : null,
-    {
-      label: 'Status',
-      value: statusLabel(row?.install_status),
-      icon: 'flag',
-    },
   ]
     .filter(Boolean)
     .slice(0, 4)
@@ -1480,30 +1452,17 @@ watch(displayRows, () => {
   -webkit-box-orient: vertical;
 }
 
-.pipeline-card__pill-row,
 .pipeline-card__footer-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.pipeline-card__pill {
-  padding: 6px 9px;
-  color: #111;
-  background: rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 999px;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
-  line-height: 1;
-}
-
 .pipeline-card__summary {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   margin: 20px 20px 0;
   padding: 16px 18px 18px;
   background: rgba(255, 255, 255, 0.74);
@@ -1513,32 +1472,69 @@ watch(displayRows, () => {
   backdrop-filter: blur(18px);
 }
 
-.pipeline-card__details {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 12px;
+.pipeline-card__stage-map {
+  position: relative;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding: 6px 2px 0;
+  scrollbar-width: thin;
 }
 
-.pipeline-card__detail {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+.pipeline-card__stage-track {
+  position: absolute;
+  top: 18px;
+  left: 32px;
+  right: 32px;
+  height: 2px;
+  background: rgba(17, 17, 17, 0.14);
+}
+
+.pipeline-card__stage-stop {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 96px;
+  flex: 1 0 0;
+  flex-direction: column;
+  align-items: center;
   gap: 10px;
-  align-items: start;
+  text-align: center;
 }
 
-.pipeline-card__detail-icon {
-  margin-top: 2px;
-  color: #6f6f6f;
+.pipeline-card__stage-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #111;
+  border: 3px solid rgba(255, 255, 255, 0.96);
+  box-shadow: 0 0 0 1px rgba(17, 17, 17, 0.08);
 }
 
-.pipeline-card__detail-copy {
+.pipeline-card__stage-name {
+  max-width: 92px;
+  color: #111;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+  word-break: break-word;
+}
+
+.pipeline-card__meta-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.pipeline-card__meta-item {
   display: flex;
   min-width: 0;
-  flex-direction: column;
-  gap: 1px;
+  align-items: baseline;
+  gap: 6px;
 }
 
-.pipeline-card__detail-label {
+.pipeline-card__meta-label {
   color: #6f6f6f;
   font-family: var(--font-body);
   font-size: var(--text-xs---medium);
@@ -1546,15 +1542,12 @@ watch(displayRows, () => {
   line-height: 16px;
 }
 
-.pipeline-card__detail-value {
-  overflow: hidden;
+.pipeline-card__meta-value {
   color: #111;
   font-family: var(--font-body);
   font-size: var(--text-sm---regular);
   font-weight: var(--font-weight-regular);
   line-height: 18px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .pipeline-card__summary-empty {
@@ -1571,16 +1564,6 @@ watch(displayRows, () => {
   justify-content: space-between;
   gap: 12px;
   padding: 16px 20px 20px;
-}
-
-.pipeline-card__footer-action {
-  min-height: 40px;
-  padding: 0 16px;
-  border-radius: 999px;
-  font-family: var(--font-body);
-  font-size: var(--text-sm---light);
-  font-weight: var(--font-weight-medium);
-  line-height: 20px;
 }
 
 .pipeline-card__icon-action {
@@ -1646,10 +1629,6 @@ watch(displayRows, () => {
   .pipeline-card__hero-side {
     gap: 12px;
     padding: 14px;
-  }
-
-  .pipeline-card__details {
-    grid-template-columns: 1fr;
   }
 
   .pipeline-card__summary,
