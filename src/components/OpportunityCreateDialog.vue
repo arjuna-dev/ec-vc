@@ -1000,9 +1000,10 @@ const contactOptions = computed(() => [
   })),
 ])
 
-const intakeVisibleFieldKeys = computed(() =>
-  buildVisibleIntakeFieldKeys(intakeReviewFields.value),
-)
+const intakeVisibleFieldKeys = computed(() => {
+  const pendingKeys = getPendingIntakeReviewFieldKeys(intakeReviewFields.value)
+  return pendingKeys.length ? pendingKeys : buildVisibleIntakeFieldKeys(intakeReviewFields.value)
+})
 
 const intakeReviewReadyToContinue = computed(() => {
   const pendingKeys = getPendingIntakeReviewFieldKeys(intakeReviewFields.value)
