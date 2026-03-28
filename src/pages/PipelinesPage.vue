@@ -22,7 +22,7 @@
       <section class="pipelines-shell">
         <div class="pipelines-shell__hero">
           <div class="pipelines-shell__copy">
-            <div class="pipelines-shell__eyebrow">Pipelines dashboard</div>
+            <div class="pipelines-shell__eyebrow">Dashboard</div>
             <h2 class="pipelines-shell__hero-title">See what is ready in your workspace.</h2>
             <p class="pipelines-shell__hero-text">{{ pipelinesHeroText }}</p>
 
@@ -1007,7 +1007,7 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-12);
-  justify-content: space-between;
+  justify-content: flex-start;
   min-width: 0;
   position: relative;
   z-index: 1;

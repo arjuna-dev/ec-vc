@@ -22,7 +22,7 @@
       <section class="artifacts-shell">
         <div class="artifacts-shell__hero">
           <div class="artifacts-shell__copy">
-            <div class="artifacts-shell__eyebrow">Artifacts dashboard</div>
+            <div class="artifacts-shell__eyebrow">Dashboard</div>
             <h2 class="artifacts-shell__hero-title">Review source files, links, and intake state in one place.</h2>
             <p class="artifacts-shell__hero-text">{{ artifactsHeroText }}</p>
 
@@ -2776,7 +2776,7 @@ watch(displayArtifactRows, () => {
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-12);
-  justify-content: space-between;
+  justify-content: flex-start;
   min-width: 0;
 }
 

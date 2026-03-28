@@ -22,7 +22,7 @@
       <section class="assistants-shell">
         <div class="assistants-shell__hero">
           <div class="assistants-shell__copy">
-            <div class="assistants-shell__eyebrow">Assistants dashboard</div>
+            <div class="assistants-shell__eyebrow">Dashboard</div>
             <h2 class="assistants-shell__hero-title">Review the helpers powering your workflows.</h2>
             <p class="assistants-shell__hero-text">{{ assistantsHeroText }}</p>
 
@@ -463,7 +463,7 @@ onMounted(loadAssistants)
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-12);
-  justify-content: space-between;
+  justify-content: flex-start;
   min-width: 0;
 }
 

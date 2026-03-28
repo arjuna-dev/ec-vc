@@ -22,7 +22,7 @@
       <section class="contacts-shell">
         <div class="contacts-shell__hero">
           <div class="contacts-shell__copy">
-            <div class="contacts-shell__eyebrow">Contacts dashboard</div>
+            <div class="contacts-shell__eyebrow">Dashboard</div>
             <h2 class="contacts-shell__hero-title">Relationship map at a glance.</h2>
             <p class="contacts-shell__hero-text">{{ contactsHeroText }}</p>
 
@@ -1222,7 +1222,7 @@ watch(displayRows, () => {
   flex-direction: column;
   gap: var(--ds-space-12);
   min-width: 0;
-  justify-content: space-between;
+  justify-content: flex-start;
   position: relative;
   z-index: 1;
 }

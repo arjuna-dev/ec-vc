@@ -416,7 +416,7 @@ const currentOpportunityMode = computed(() => {
   if (kindFilter.value === 'fund') {
     return {
       title: 'Funds',
-      eyebrow: 'Funds dashboard',
+      eyebrow: 'Dashboard',
       heroTitle: 'See which funds are taking shape.',
       queryLabel: 'funds',
       kind: 'fund',
@@ -426,7 +426,7 @@ const currentOpportunityMode = computed(() => {
   if (kindFilter.value === 'round') {
     return {
       title: 'Rounds',
-      eyebrow: 'Rounds dashboard',
+      eyebrow: 'Dashboard',
       heroTitle: 'See which rounds are taking shape.',
       queryLabel: 'rounds',
       kind: 'round',
@@ -435,7 +435,7 @@ const currentOpportunityMode = computed(() => {
   }
   return {
     title: 'Opportunities',
-    eyebrow: 'Opportunities dashboard',
+    eyebrow: 'Dashboard',
     heroTitle: 'See which deals are taking shape.',
     queryLabel: 'opportunities',
     kind: '',
@@ -1069,7 +1069,7 @@ watch(
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-12);
-  justify-content: space-between;
+  justify-content: flex-start;
   min-width: 0;
   position: relative;
   z-index: 1;

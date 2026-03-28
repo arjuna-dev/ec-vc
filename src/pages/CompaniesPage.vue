@@ -22,7 +22,7 @@
       <section class="companies-shell">
         <div class="companies-shell__hero">
           <div class="companies-shell__copy">
-            <div class="companies-shell__eyebrow">Companies dashboard</div>
+            <div class="companies-shell__eyebrow">Dashboard</div>
             <h2 class="companies-shell__hero-title">Know which companies are ready to work.</h2>
             <p class="companies-shell__hero-text">{{ companiesHeroText }}</p>
 
@@ -1875,7 +1875,7 @@ watch(
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-12);
-  justify-content: space-between;
+  justify-content: flex-start;
   min-width: 0;
   position: relative;
   z-index: 1;
