@@ -680,6 +680,12 @@
                         Used
                       </q-chip>
                     </div>
+                    <div
+                      v-if="previewSelectedMarkdownSection.sourceTitle"
+                      class="text-caption text-grey-7 q-mb-sm"
+                    >
+                      Source heading: {{ previewSelectedMarkdownSection.sourceTitle }}
+                    </div>
                     <div v-if="previewSelectedMarkdownSection.ownedFields.length" class="q-mb-sm">
                       <q-chip
                         v-for="fieldKey in previewSelectedMarkdownSection.ownedFields"
@@ -1677,6 +1683,16 @@ function formatPreviewSectionTitle(chunk = {}, index = 0) {
   return sectionHint || `Section ${index + 1}`
 }
 
+function extractSlideNumberFromTitle(title = '') {
+  const normalized = String(title || '').trim()
+  if (!normalized) return null
+  const directMatch = normalized.match(/\b(?:slide|page)\s+(\d+)\b/i)
+  if (directMatch) return Number(directMatch[1])
+  const headingMatch = normalized.match(/^(\d+)\b/)
+  if (headingMatch) return Number(headingMatch[1])
+  return null
+}
+
 function derivePreviewSectionsFromMarkdown(markdown = '', { artifactId = '', isPdf = false, usedClaims = [] } = {}) {
   const content = String(markdown || '').replaceAll('\r\n', '\n').trim()
   if (!content) return []
@@ -1727,6 +1743,7 @@ function derivePreviewSectionsFromMarkdown(markdown = '', { artifactId = '', isP
         key: section.key || `${artifactId || 'markdown'}:${index + 1}`,
         title: section.title || `${isPdf ? 'Slide' : 'Section'} ${index + 1}`,
         text,
+        sourceTitle: section.title || '',
         used: index === 0 && usedClaims.length > 0,
         ownedFields: index === 0 ? usedClaims.map((claim) => claim.field_key).filter(Boolean) : [],
       }
@@ -1740,6 +1757,7 @@ function derivePreviewSectionsFromMarkdown(markdown = '', { artifactId = '', isP
           key: artifactId || 'markdown',
           title: isPdf ? 'Document Review' : 'Full Markdown',
           text: content,
+          sourceTitle: isPdf ? 'Document Review' : 'Full Markdown',
           used: usedClaims.length > 0,
           ownedFields: usedClaims.map((claim) => claim.field_key).filter(Boolean),
         },
@@ -1765,9 +1783,20 @@ function derivePdfSlideSectionsFromMarkdown(
     usedClaims: [],
   })
 
+  const headingSectionMap = new Map()
+  const unorderedSections = []
+  for (const section of headingSections) {
+    const slideNumber = extractSlideNumberFromTitle(section?.title)
+    if (slideNumber && slideNumber >= 1 && slideNumber <= totalPages && !headingSectionMap.has(slideNumber)) {
+      headingSectionMap.set(slideNumber, section)
+    } else {
+      unorderedSections.push(section)
+    }
+  }
+
   return Array.from({ length: totalPages }, (_, index) => {
-    const headingSection = headingSections[index] || null
     const slideNumber = index + 1
+    const headingSection = headingSectionMap.get(slideNumber) || unorderedSections.shift() || null
     const headingTitle = String(headingSection?.title || '').trim()
     const normalizedHeadingTitle =
       headingTitle &&
@@ -1788,6 +1817,7 @@ function derivePdfSlideSectionsFromMarkdown(
       text:
         String(headingSection?.text || '').trim() ||
         `No markdown mapped to Slide ${slideNumber} yet.`,
+      sourceTitle: headingTitle || `Slide ${slideNumber}`,
       used: slideClaims.length > 0,
       ownedFields:
         slideClaims.length > 0
