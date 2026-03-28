@@ -1084,6 +1084,9 @@ function navigateBack() {
 }
 
 .ec-shell-toolbar {
+  display: flex;
+  min-height: 48px;
+  padding: 8px 16px 0;
   background: transparent !important;
   justify-content: flex-end;
 }
@@ -1193,6 +1196,7 @@ function navigateBack() {
   width: 92px;
   height: 40px;
   flex: 0 0 auto;
+  align-self: flex-start;
 }
 
 .ec-breadcrumb-secondary {
