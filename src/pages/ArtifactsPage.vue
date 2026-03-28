@@ -978,8 +978,8 @@ const $q = useQuasar()
 const ARTIFACTS_BREADCRUMB_ACTION_OWNER = 'artifacts-page'
 
 const viewModeOptions = [
-  { label: 'Grid', value: 'grid', icon: 'grid_view' },
-  { label: 'Table', value: 'table', icon: 'view_list' },
+  { value: 'grid', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
 ]
 const artifactKindOptions = [
   { label: 'All', value: 'all' },
