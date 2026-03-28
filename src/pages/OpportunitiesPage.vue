@@ -17,30 +17,6 @@
     <div v-else class="opportunities-page">
       <header class="opportunities-page__heading">
         <h1 class="opportunities-page__title">{{ currentOpportunityMode.title }}</h1>
-        <div class="opportunities-page__heading-actions">
-          <q-btn
-            dense
-            unelevated
-            round
-            icon="download"
-            class="opportunities-page__heading-action"
-            :disable="loading || !canImportOpportunities"
-            @click="pickImportFile"
-          >
-            <q-tooltip>Import CSV</q-tooltip>
-          </q-btn>
-          <q-btn
-            dense
-            unelevated
-            round
-            icon="upload"
-            class="opportunities-page__heading-action"
-            :disable="loading || displayRows.length === 0"
-            @click="exportOpportunitiesCsv"
-          >
-            <q-tooltip>Export CSV</q-tooltip>
-          </q-btn>
-        </div>
       </header>
 
       <section class="opportunities-shell">
@@ -386,6 +362,7 @@ import { useRoute, useRouter } from 'vue-router'
 import FundCreateDialog from 'src/components/FundCreateDialog.vue'
 import RoundCreateDialog from 'src/components/RoundCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
+import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 
 const ALL_OPPORTUNITIES_FILTER = 'all'
 
@@ -460,6 +437,7 @@ const currentOpportunityMode = computed(() => {
 })
 const canImportOpportunities = false
 const canDeleteOpportunities = true
+const OPPORTUNITIES_BREADCRUMB_ACTION_OWNER = 'opportunities-page'
 
 function onOpenFundDialog() {
   globalThis.__ecvcOpenFundDialog = false
@@ -967,6 +945,22 @@ function syncRouteToKindFilter(nextKind) {
 }
 
 onMounted(() => {
+  setBreadcrumbActions(OPPORTUNITIES_BREADCRUMB_ACTION_OWNER, [
+    {
+      id: 'import-csv',
+      label: 'Import CSV',
+      icon: 'download',
+      disabled: () => loading.value || !canImportOpportunities,
+      onClick: pickImportFile,
+    },
+    {
+      id: 'export-csv',
+      label: 'Export CSV',
+      icon: 'upload',
+      disabled: () => loading.value || displayRows.value.length === 0,
+      onClick: exportOpportunitiesCsv,
+    },
+  ])
   if (!hasBridge.value) return
   loadOpportunities()
   consumeQueuedOpen()
@@ -977,6 +971,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  clearBreadcrumbActions(OPPORTUNITIES_BREADCRUMB_ACTION_OWNER)
   window.removeEventListener('ecvc:opportunities-changed', onChanged)
   window.removeEventListener('ecvc:open-fund-dialog', onOpenFundDialog)
   window.removeEventListener('ecvc:open-round-dialog', onOpenRoundDialog)
@@ -1017,8 +1012,6 @@ watch(
 .opportunities-page__heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--ds-space-12);
 }
 
 .opportunities-page__title {
@@ -1028,24 +1021,6 @@ watch(
   font-size: var(--ds-font-size-4xl);
   font-weight: var(--ds-font-weight-black);
   line-height: var(--ds-line-height-title);
-}
-
-.opportunities-page__heading-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-}
-
-.opportunities-page__heading-action {
-  color: var(--ds-color-text-primary);
-  background: var(--ds-color-surface-base);
-  border: 1px solid var(--ds-color-border-soft);
-  box-shadow: var(--ds-shadow-card-soft);
-}
-
-.opportunities-page__heading-action.q-btn--disabled {
-  opacity: 0.6 !important;
 }
 
 .opportunities-shell {

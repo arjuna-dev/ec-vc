@@ -33,6 +33,21 @@
             }"
           />
         </q-breadcrumbs>
+
+        <div v-if="breadcrumbActions.length" class="ec-breadcrumb-actions">
+          <q-btn
+            v-for="action in breadcrumbActions"
+            :key="action.id"
+            dense
+            flat
+            round
+            :icon="action.icon"
+            :disable="resolveBreadcrumbActionDisabled(action)"
+            @click="action.onClick?.()"
+          >
+            <q-tooltip>{{ action.label }}</q-tooltip>
+          </q-btn>
+        </div>
       </div>
     </q-header>
 
@@ -232,6 +247,7 @@ import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import { removeIntakeDraft, setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
+import { useBreadcrumbActionsState } from 'src/utils/breadcrumbActionsState'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -299,6 +315,7 @@ const router = useRouter()
 const route = useRoute()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const intakeDraftState = useIntakeDraftState()
+const breadcrumbActionsState = useBreadcrumbActionsState()
 let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
@@ -370,6 +387,8 @@ const breadcrumbItems = computed(() => {
 
   return items
 })
+
+const breadcrumbActions = computed(() => breadcrumbActionsState.actions || [])
 
 const quickWidgetStyle = computed(() => ({
   left: `${quickWidgetPosition.value.x}px`,
@@ -924,10 +943,19 @@ watch(
     if (count > 0) draftTrayDismissed.value = false
   },
 )
+
+function resolveBreadcrumbActionDisabled(action) {
+  if (typeof action?.disabled === 'function') return !!action.disabled()
+  return !!action?.disabled
+}
 </script>
 
 <style scoped>
 .ec-breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-12);
   border-top: 1px solid var(--ds-color-border-soft-alt);
   background: var(--ds-color-surface-subtle);
   padding: var(--ds-space-12) var(--ds-space-16);
@@ -962,6 +990,13 @@ watch(
   min-width: 4px;
   padding: 0 !important;
   color: transparent !important;
+}
+
+.ec-breadcrumb-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .ec-drawer-scroll {
