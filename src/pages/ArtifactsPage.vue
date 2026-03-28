@@ -506,10 +506,35 @@
 
             <aside v-if="previewSidebarOpen" class="artifact-preview-sidebar">
               <div class="artifact-preview-sidebar__section">
-                <div class="text-subtitle2">Extraction Review</div>
-                <div class="text-caption text-grey-7">
-                  Markdown and the highlighted sections used during extraction.
+                <div class="row items-start justify-between q-col-gutter-sm">
+                  <div class="col">
+                    <div class="text-subtitle2">Extraction Review</div>
+                    <div class="text-caption text-grey-7">
+                      Review by selected slide/section and see where the extracted data writes.
+                    </div>
+                  </div>
+                  <div class="col-auto" v-if="showContinueDocumentReview">
+                    <q-btn
+                      color="primary"
+                      outline
+                      no-caps
+                      label="Continue Document Review"
+                      @click="continuePreviewDocumentReview"
+                    />
+                  </div>
                 </div>
+              </div>
+
+              <div class="artifact-preview-sidebar__section">
+                <q-select
+                  v-model="previewSelectedSectionKey"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                  label="Slide / Section"
+                  :options="previewSectionOptions"
+                />
               </div>
 
               <div class="artifact-preview-sidebar__section">
@@ -525,10 +550,13 @@
                     <div class="text-caption text-grey-7">
                       {{ claim.owner_table || 'Draft Intake' }} • {{ claim.consumer_lane || 'Review' }}
                     </div>
+                    <div class="text-caption text-blue-9 q-mt-xs">
+                      Item box: {{ claim.item_box }}
+                    </div>
                   </div>
                 </div>
                 <div v-else class="text-caption text-grey-6">
-                  No highlighted extraction sections are available for this artifact yet.
+                  No highlighted extraction sections are available for this slide/section yet.
                 </div>
               </div>
 
@@ -553,17 +581,16 @@
                 <div v-else-if="previewMarkdownError" class="text-caption text-negative">
                   {{ previewMarkdownError }}
                 </div>
-                <div v-else-if="previewMarkdownSections.length" class="column q-gutter-md">
+                <div v-else-if="previewSelectedMarkdownSection" class="column q-gutter-md">
                   <div
-                    v-for="section in previewMarkdownSections"
-                    :key="section.key"
+                    :key="previewSelectedMarkdownSection.key"
                     class="artifact-preview-sidebar__markdown-block"
-                    :class="{ 'artifact-preview-sidebar__markdown-block--used': section.used }"
+                    :class="{ 'artifact-preview-sidebar__markdown-block--used': previewSelectedMarkdownSection.used }"
                   >
                     <div class="row items-center justify-between q-mb-xs">
-                      <div class="text-body2">{{ section.title }}</div>
+                      <div class="text-body2">{{ previewSelectedMarkdownSection.title }}</div>
                       <q-chip
-                        v-if="section.used"
+                        v-if="previewSelectedMarkdownSection.used"
                         dense
                         square
                         color="amber-2"
@@ -572,9 +599,9 @@
                         Used
                       </q-chip>
                     </div>
-                    <div v-if="section.ownedFields.length" class="q-mb-sm">
+                    <div v-if="previewSelectedMarkdownSection.ownedFields.length" class="q-mb-sm">
                       <q-chip
-                        v-for="fieldKey in section.ownedFields"
+                        v-for="fieldKey in previewSelectedMarkdownSection.ownedFields"
                         :key="fieldKey"
                         dense
                         square
@@ -585,11 +612,11 @@
                         {{ fieldKey }}
                       </q-chip>
                     </div>
-                    <pre class="artifact-preview-sidebar__markdown-text"><code>{{ section.text }}</code></pre>
+                    <pre class="artifact-preview-sidebar__markdown-text"><code>{{ previewSelectedMarkdownSection.text }}</code></pre>
                   </div>
                 </div>
                 <div v-else class="text-caption text-grey-6">
-                  No markdown is available for this artifact yet.
+                  No markdown is available for this slide/section yet.
                 </div>
               </div>
             </aside>
@@ -601,7 +628,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import { createIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
@@ -643,6 +670,7 @@ const previewMarkdownLoading = ref(false)
 const previewMarkdownError = ref('')
 const previewMarkdownContent = ref('')
 const previewMarkdownArtifactId = ref('')
+const previewSelectedSectionKey = ref('')
 const propertiesDialogOpen = ref(false)
 const savingProperties = ref(false)
 const propertiesError = ref('')
@@ -810,10 +838,15 @@ const previewUsedClaimRows = computed(() => {
   )
 
   return (Array.isArray(draft?.usedMetadataClaims) ? draft.usedMetadataClaims : [])
-    .filter((claim) => !chunkIds.size || chunkIds.has(String(claim?.source_chunk_id || '').trim()))
+    .filter((claim) => {
+      const sourceChunkId = String(claim?.source_chunk_id || '').trim()
+      if (previewSelectedSectionKey.value) return sourceChunkId === previewSelectedSectionKey.value
+      return !chunkIds.size || chunkIds.has(sourceChunkId)
+    })
     .map((claim) => ({
       ...claim,
       field_label: formatClaimFieldLabel(claim?.field_key),
+      item_box: formatClaimItemBox(claim?.field_key),
     }))
 })
 
@@ -834,7 +867,7 @@ const previewMarkdownSections = computed(() => {
   if (chunkRows.length) {
     return chunkRows.map((chunk, index) => ({
       key: String(chunk?.chunk_id || `chunk:${index}`),
-      title: String(chunk?.section_hint || '').trim() || `Section ${index + 1}`,
+      title: formatPreviewSectionTitle(chunk, index),
       text: String(chunk?.markdown_text || '').trim() || previewMarkdownContent.value || 'Markdown text not stored for this chunk yet.',
       used:
         Array.isArray(chunk?.used_by) && chunk.used_by.length > 0
@@ -850,13 +883,38 @@ const previewMarkdownSections = computed(() => {
   return [
     {
       key: previewMarkdownArtifactId.value || 'markdown',
-      title: 'Markdown',
+      title: 'Full Markdown',
       text: previewMarkdownContent.value,
       used: previewUsedClaimRows.value.length > 0,
       ownedFields: previewUsedClaimRows.value.map((claim) => claim.field_key).filter(Boolean),
     },
   ]
 })
+
+const previewSectionOptions = computed(() =>
+  previewMarkdownSections.value.map((section) => ({
+    label: section.title,
+    value: section.key,
+  })),
+)
+
+const previewSelectedMarkdownSection = computed(() => {
+  if (!previewMarkdownSections.value.length) return null
+  const selectedKey = String(previewSelectedSectionKey.value || '').trim()
+  return (
+    previewMarkdownSections.value.find((section) => section.key === selectedKey) ||
+    previewMarkdownSections.value[0]
+  )
+})
+
+const previewPrimaryArtifact = computed(() => previewArtifactGroup.value?.primaryArtifact || null)
+
+const showContinueDocumentReview = computed(
+  () =>
+    Boolean(previewPrimaryArtifact.value?.artifact_id) &&
+    !previewMarkdownLoading.value &&
+    (!previewSelectedMarkdownSection.value || !previewUsedClaimRows.value.length),
+)
 
 async function loadArtifacts() {
   if (!hasBridge.value) return
@@ -1473,11 +1531,36 @@ function formatClaimFieldLabel(fieldKey = '') {
     .replace(/^./, (value) => value.toUpperCase())
 }
 
+function formatClaimItemBox(fieldKey = '') {
+  return {
+    sponsorCompany: 'Company section',
+    existingOpportunityMatch: 'Opportunity section',
+    matchingDocumentName: 'Artifact intake',
+    documentType: 'Artifact metadata',
+    artifactTitle: 'Artifact title',
+    relatedFund: 'Opportunity section',
+    relatedRound: 'Opportunity section',
+    relatedContact: 'Primary Contact section',
+    website: 'Company section',
+  }[String(fieldKey || '').trim()] || 'Dialog review'
+}
+
+function formatPreviewSectionTitle(chunk = {}, index = 0) {
+  const pageRange = String(chunk?.source_page_range || '').trim()
+  if (pageRange) {
+    if (pageRange.includes('-')) return `Slides ${pageRange}`
+    return `Slide ${pageRange}`
+  }
+  const sectionHint = String(chunk?.section_hint || '').trim()
+  return sectionHint || `Section ${index + 1}`
+}
+
 async function loadPreviewReviewSidebar(artifactId = '') {
   previewMarkdownLoading.value = true
   previewMarkdownError.value = ''
   previewMarkdownContent.value = ''
   previewMarkdownArtifactId.value = ''
+  previewSelectedSectionKey.value = ''
 
   const group = findArtifactGroup({ artifact_id: artifactId })
   const markdownArtifact = (group?.artifacts || []).find(
@@ -1517,6 +1600,11 @@ async function togglePreviewSidebar() {
   if (previewSidebarOpen.value && previewState.value.artifactId) {
     await loadPreviewReviewSidebar(previewState.value.artifactId)
   }
+}
+
+function continuePreviewDocumentReview() {
+  if (!previewPrimaryArtifact.value) return
+  continueArtifactIntake(previewPrimaryArtifact.value)
 }
 
 function buildPdfObjectUrl(fileDataBase64 = '') {
@@ -1578,6 +1666,7 @@ function closePreviewDialog() {
   previewMarkdownError.value = ''
   previewMarkdownContent.value = ''
   previewMarkdownArtifactId.value = ''
+  previewSelectedSectionKey.value = ''
   resetPreviewPdfObjectUrl()
   previewState.value = createEmptyPreviewState()
 }
@@ -1641,6 +1730,18 @@ onMounted(() => {
 onBeforeUnmount(() => {
   resetPreviewPdfObjectUrl()
 })
+
+watch(previewSectionOptions, (options) => {
+  const firstValue = String(options?.[0]?.value || '').trim()
+  const currentValue = String(previewSelectedSectionKey.value || '').trim()
+  if (!firstValue) {
+    previewSelectedSectionKey.value = ''
+    return
+  }
+  if (!currentValue || !options.some((option) => String(option?.value || '').trim() === currentValue)) {
+    previewSelectedSectionKey.value = firstValue
+  }
+})
 </script>
 
 <style scoped>
@@ -1654,13 +1755,48 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-height: 220px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.96)),
     #fff;
+  box-shadow:
+    0 20px 45px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.artifact-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(14, 165, 233, 0.14), transparent 38%),
+    radial-gradient(circle at 82% 0%, rgba(59, 130, 246, 0.12), transparent 34%),
+    radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.1), transparent 34%);
+}
+
+.artifact-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.artifact-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(59, 130, 246, 0.28);
+  box-shadow:
+    0 24px 52px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
 
 .artifact-card__header {
-  padding-bottom: 8px;
+  padding-bottom: 10px;
 }
 
 .artifact-card__title-button {
@@ -1686,7 +1822,7 @@ onBeforeUnmount(() => {
   flex: 1;
   flex-direction: column;
   gap: 10px;
-  padding-top: 12px;
+  padding-top: 14px;
   padding-bottom: 12px;
 }
 
@@ -1706,6 +1842,11 @@ onBeforeUnmount(() => {
   color: #64748b;
 }
 
+.artifact-card__header .q-chip {
+  border-radius: 999px;
+  font-weight: 700;
+}
+
 .artifact-card__description {
   display: -webkit-box;
   overflow: hidden;
@@ -1721,10 +1862,13 @@ onBeforeUnmount(() => {
 
 .artifact-card__version-chip {
   margin: 0;
+  border-radius: 999px;
 }
 
 .artifact-card__actions {
-  padding: 8px 12px 12px;
+  padding: 10px 14px 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(255, 255, 255, 0.54);
 }
 
 .artifact-properties__versions {
