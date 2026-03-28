@@ -16,7 +16,10 @@
 
     <div v-else class="assistants-page">
       <header class="assistants-page__heading">
-        <h1 class="assistants-page__title">Assistants</h1>
+        <div class="assistants-page__heading-copy">
+          <div class="assistants-page__eyebrow">Workspace cockpit</div>
+          <h1 class="assistants-page__title">Assistants</h1>
+        </div>
       </header>
 
       <section class="assistants-shell">
@@ -397,12 +400,25 @@ onMounted(loadAssistants)
 
 .assistants-page__heading {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--ds-space-12);
+  flex-wrap: wrap;
+}
+
+.assistants-page__heading-copy {
+  max-width: 760px;
+}
+
+.assistants-page__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6b7280;
 }
 
 .assistants-page__title {
-  margin: 0;
+  margin: 6px 0 8px;
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-title);
   font-size: var(--ds-font-size-4xl);

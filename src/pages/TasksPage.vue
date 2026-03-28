@@ -16,7 +16,10 @@
 
     <div v-else class="tasks-page">
       <header class="tasks-page__heading">
-        <h1 class="tasks-page__title">Tasks</h1>
+        <div class="tasks-page__heading-copy">
+          <div class="tasks-page__eyebrow">Workspace cockpit</div>
+          <h1 class="tasks-page__title">Tasks</h1>
+        </div>
       </header>
 
       <section class="tasks-shell">
@@ -670,12 +673,25 @@ watch(displayRows, () => {
 
 .tasks-page__heading {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--ds-space-12);
+  flex-wrap: wrap;
+}
+
+.tasks-page__heading-copy {
+  max-width: 760px;
+}
+
+.tasks-page__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6b7280;
 }
 
 .tasks-page__title {
-  margin: 0;
+  margin: 6px 0 8px;
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-title);
   font-size: var(--ds-font-size-4xl);

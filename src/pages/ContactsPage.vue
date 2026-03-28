@@ -16,7 +16,10 @@
 
     <div v-else class="contacts-page">
       <header class="contacts-page__heading">
-        <h1 class="contacts-page__title">Contacts</h1>
+        <div class="contacts-page__heading-copy">
+          <div class="contacts-page__eyebrow">Workspace cockpit</div>
+          <h1 class="contacts-page__title">Contacts</h1>
+        </div>
       </header>
 
       <section class="contacts-shell">
@@ -1155,13 +1158,26 @@ watch(displayRows, () => {
 
 .contacts-page__heading {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--ds-space-12);
+  flex-wrap: wrap;
+}
+
+.contacts-page__heading-copy {
+  max-width: 760px;
+}
+
+.contacts-page__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6b7280;
 }
 
 .contacts-page__title {
-  margin: 0;
+  margin: 6px 0 8px;
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-title);
   font-size: var(--ds-font-size-4xl);
