@@ -79,7 +79,21 @@
         </div>
 
         <div class="opportunities-toolbar">
-          <div class="opportunities-toolbar__left">
+          <div class="opportunities-toolbar__block opportunities-toolbar__block--view">
+            <q-btn-toggle
+              v-model="viewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="opportunities-toolbar__toggle opportunities-toolbar__view-toggle"
+              :disable="loading"
+              :options="viewOptions"
+            />
+          </div>
+
+          <div class="opportunities-toolbar__block opportunities-toolbar__block--kind">
             <q-btn-toggle
               v-model="kindFilter"
               dense
@@ -92,23 +106,9 @@
               :options="kindFilterOptions"
               :disable="loading"
             />
-
-            <q-input
-              v-model="searchQuery"
-              dense
-              outlined
-              borderless
-              class="opportunities-toolbar__search"
-              :placeholder="`Search ${currentOpportunityMode.queryLabel}...`"
-              :disable="loading"
-            >
-              <template #prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
           </div>
 
-          <div class="opportunities-toolbar__filters">
+          <div class="opportunities-toolbar__block opportunities-toolbar__block--filters">
             <q-icon name="tune" size="18px" class="opportunities-toolbar__filters-icon" />
 
             <q-select
@@ -164,18 +164,20 @@
             />
           </div>
 
-          <div class="opportunities-toolbar__right">
-            <q-btn-toggle
-              v-model="viewMode"
+          <div class="opportunities-toolbar__block opportunities-toolbar__block--search">
+            <q-input
+              v-model="searchQuery"
               dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="opportunities-toolbar__toggle opportunities-toolbar__view-toggle"
+              outlined
+              borderless
+              class="opportunities-toolbar__search"
+              :placeholder="`Search ${currentOpportunityMode.queryLabel}...`"
               :disable="loading"
-              :options="viewOptions"
-            />
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
           </div>
         </div>
 
@@ -1233,39 +1235,26 @@ watch(
 }
 
 .opportunities-toolbar {
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: space-between;
-}
-
-.opportunities-toolbar__left,
-.opportunities-toolbar__right {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.opportunities-toolbar__left {
-  flex: 1 1 720px;
-  min-width: 0;
-  gap: 20px;
-}
-
-.opportunities-toolbar__filters {
-  display: flex;
-  align-items: center;
-  flex: 1 1 520px;
-  flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
-.opportunities-toolbar__right {
-  flex: 0 0 auto;
-  margin-left: auto;
+.opportunities-toolbar__block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.opportunities-toolbar__block--filters {
+  flex-wrap: nowrap;
+}
+
+.opportunities-toolbar__block--search {
+  justify-content: flex-end;
 }
 
 .opportunities-toolbar__filters-icon {
@@ -1282,11 +1271,8 @@ watch(
 }
 
 .opportunities-toolbar__search {
-  flex: 0 1 34%;
-  min-width: 220px;
-  width: clamp(260px, 33vw, 420px);
-  max-width: 100%;
-  margin-inline-start: clamp(12px, 3vw, 44px);
+  width: 100%;
+  min-width: 0;
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -1305,8 +1291,8 @@ watch(
 }
 
 .opportunities-toolbar__filter-control {
-  flex: 1 1 132px;
-  min-width: 132px;
+  flex: 0 1 clamp(110px, 16vw, 160px);
+  min-width: 110px;
   background: var(--ds-control-surface);
   border-radius: var(--ds-control-radius);
 }
@@ -1476,26 +1462,17 @@ watch(
   }
 
   .opportunities-toolbar {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     align-items: stretch;
   }
 
-  .opportunities-toolbar__left,
-  .opportunities-toolbar__filters,
-  .opportunities-toolbar__right {
-    flex: none;
+  .opportunities-toolbar__block {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .opportunities-toolbar__right {
-    margin-left: 0;
   }
 
   .opportunities-toolbar__search {
-    flex: none;
     width: 100%;
-    margin-inline-start: 0;
   }
 
   .opportunities-toolbar__filter-control {
