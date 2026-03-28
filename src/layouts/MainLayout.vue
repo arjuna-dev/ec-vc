@@ -18,18 +18,6 @@
 
       <div class="ec-breadcrumb-bar">
         <div class="ec-breadcrumb-primary">
-          <q-btn
-            dense
-            flat
-            round
-            icon="arrow_back"
-            class="ec-breadcrumb-back"
-            :disable="!canNavigateBack"
-            @click="navigateBack"
-          >
-            <q-tooltip>Back</q-tooltip>
-          </q-btn>
-
           <q-breadcrumbs class="ec-breadcrumbs" separator="chevron_right">
             <template #separator>
               <q-icon name="chevron_right" size="16px" color="grey-5" />
@@ -46,6 +34,18 @@
               }"
             />
           </q-breadcrumbs>
+
+          <q-btn
+            dense
+            flat
+            round
+            icon="arrow_back"
+            class="ec-breadcrumb-back"
+            :disable="!canNavigateBack"
+            @click="navigateBack"
+          >
+            <q-tooltip>Back</q-tooltip>
+          </q-btn>
         </div>
 
         <div v-if="breadcrumbActions.length" class="ec-breadcrumb-actions">
