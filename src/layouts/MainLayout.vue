@@ -1173,7 +1173,8 @@ function navigateBack() {
 .ec-breadcrumb-action-text {
   color: #94a3b8;
   font-size: 0.74rem;
-  font-weight: 400;
+  font-family: var(--ds-font-family-body);
+  font-weight: 300;
   line-height: 1.2;
   margin-bottom: 4px;
 }
