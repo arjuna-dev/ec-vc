@@ -463,6 +463,8 @@
                 new-value-mode="add-unique"
                 label="Document Type"
                 :options="intakeDocumentTypeOptions"
+                :class="promptFieldClass('documentType')"
+                :input-class="promptFieldInputClass('documentType')"
                 @update:model-value="updateIntakeReviewField('documentType', $event)"
               />
             </div>
@@ -491,6 +493,8 @@
                 new-value-mode="add-unique"
                 label="Sponsor Company"
                 :options="intakeSponsorCompanyOptions"
+                :class="promptFieldClass('sponsorCompany')"
+                :input-class="promptFieldInputClass('sponsorCompany')"
                 @update:model-value="updateIntakeReviewField('sponsorCompany', $event)"
               />
             </div>
@@ -519,6 +523,8 @@
                 new-value-mode="add-unique"
                 label="Related Fund"
                 :options="intakeFundOptions"
+                :class="promptFieldClass('relatedFund')"
+                :input-class="promptFieldInputClass('relatedFund')"
                 @update:model-value="updateIntakeReviewField('relatedFund', $event)"
               />
             </div>
@@ -547,6 +553,8 @@
                 new-value-mode="add-unique"
                 label="Related Round"
                 :options="intakeRoundOptions"
+                :class="promptFieldClass('relatedRound')"
+                :input-class="promptFieldInputClass('relatedRound')"
                 @update:model-value="updateIntakeReviewField('relatedRound', $event)"
               />
             </div>
@@ -575,6 +583,8 @@
                 new-value-mode="add-unique"
                 label="Related Contact"
                 :options="intakeContactPromptOptions"
+                :class="promptFieldClass('relatedContact')"
+                :input-class="promptFieldInputClass('relatedContact')"
                 @update:model-value="updateIntakeReviewField('relatedContact', $event)"
               />
             </div>
@@ -598,6 +608,8 @@
                 :model-value="intakeReviewFields.website"
                 outlined
                 label="Website"
+                :class="promptFieldClass('website')"
+                :input-class="promptFieldInputClass('website')"
                 @update:model-value="updateIntakeReviewField('website', $event)"
               />
             </div>
@@ -1536,6 +1548,16 @@ function fieldInputClass(section, key) {
   return autofilledFlags.value[`${section}.${key}`] ? 'ec-autofilled-field' : ''
 }
 
+function promptFieldClass(fieldKey) {
+  const hasValue = String(intakeReviewFields.value[fieldKey] || '').trim().length > 0
+  return hasValue && !intakeReviewVerified.value[fieldKey] ? 'intake-proposed-field' : ''
+}
+
+function promptFieldInputClass(fieldKey) {
+  const hasValue = String(intakeReviewFields.value[fieldKey] || '').trim().length > 0
+  return hasValue && !intakeReviewVerified.value[fieldKey] ? 'intake-proposed-field__input' : ''
+}
+
 function normalizeOpportunityName(value) {
   return String(value || '')
     .trim()
@@ -2390,6 +2412,18 @@ onBeforeUnmount(() => {
 
 .ec-autofilled-field {
   color: #c62828;
+  font-style: italic;
+}
+
+.intake-proposed-field :deep(.q-field__control) {
+  background: #fff7e8;
+  border-color: rgba(245, 124, 0, 0.45);
+  box-shadow: 0 0 0 1px rgba(245, 124, 0, 0.16);
+}
+
+.intake-proposed-field :deep(.q-field__label),
+.intake-proposed-field__input {
+  color: #b45309;
   font-style: italic;
 }
 
