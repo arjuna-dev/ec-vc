@@ -363,8 +363,6 @@ const breadcrumbItems = computed(() => {
     return items
   }
 
-  items.push({ label: '...', current: true })
-
   return items
 })
 
