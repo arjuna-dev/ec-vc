@@ -998,7 +998,7 @@ const viewModeOptions = [
 ]
 const artifactKindOptions = [
   { label: 'All', value: 'all' },
-  { label: 'Needs Review', value: 'needs-review' },
+  { label: 'Pending', value: 'needs-review' },
   { label: 'Ready', value: 'ready' },
 ]
 
