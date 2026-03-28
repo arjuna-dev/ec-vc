@@ -88,7 +88,7 @@
               toggle-color="dark"
               color="white"
               text-color="grey-8"
-              class="opportunities-toolbar__toggle"
+              class="opportunities-toolbar__toggle opportunities-toolbar__kind-toggle"
               :options="kindFilterOptions"
               :disable="loading"
             />
@@ -117,7 +117,7 @@
               toggle-color="primary"
               color="grey-3"
               text-color="grey-8"
-              class="opportunities-toolbar__toggle"
+              class="opportunities-toolbar__toggle opportunities-toolbar__view-toggle"
               :disable="loading"
               :options="viewOptions"
             />
@@ -421,7 +421,7 @@ const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const kindFilterOptions = [
-  { label: 'All Funds/Rounds', value: ALL_OPPORTUNITIES_FILTER },
+  { label: 'All', value: ALL_OPPORTUNITIES_FILTER },
   { label: 'Funds', value: 'fund' },
   { label: 'Rounds', value: 'round' },
 ]
@@ -1219,6 +1219,7 @@ watch(
 .opportunities-toolbar__left {
   flex: 1 1 720px;
   min-width: 0;
+  gap: 20px;
 }
 
 .opportunities-toolbar__right {
@@ -1235,10 +1236,11 @@ watch(
 }
 
 .opportunities-toolbar__search {
-  flex: 1 1 300px;
+  flex: 0 1 34%;
   min-width: 220px;
-  width: 300px;
+  width: clamp(260px, 33vw, 420px);
   max-width: 100%;
+  margin-inline-start: clamp(12px, 3vw, 44px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -1268,6 +1270,24 @@ watch(
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
+}
+
+.opportunities-toolbar__kind-toggle :deep(.q-btn) {
+  min-width: 84px;
+  padding-inline: 18px;
+}
+
+.opportunities-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.opportunities-toolbar__view-toggle :deep(.q-btn) {
+  min-width: 48px;
+  padding-inline: 12px;
+}
+
+.opportunities-toolbar__view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
 }
 
 .opportunities-surface {
@@ -1450,6 +1470,7 @@ watch(
   .opportunities-toolbar__search {
     flex: none;
     width: 100%;
+    margin-inline-start: 0;
   }
 
   .opportunities-filterbar {
