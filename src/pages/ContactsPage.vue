@@ -15,13 +15,6 @@
     </div>
 
     <div v-else class="contacts-page">
-      <header class="contacts-page__heading">
-        <div class="contacts-page__heading-copy">
-          <h1 class="contacts-page__title">Contacts</h1>
-          <div class="contacts-page__eyebrow">Workspace cockpit</div>
-        </div>
-      </header>
-
       <section class="contacts-shell">
         <div class="contacts-shell__hero">
           <div class="contacts-shell__copy">

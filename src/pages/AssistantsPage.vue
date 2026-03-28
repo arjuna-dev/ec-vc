@@ -15,13 +15,6 @@
     </div>
 
     <div v-else class="assistants-page">
-      <header class="assistants-page__heading">
-        <div class="assistants-page__heading-copy">
-          <h1 class="assistants-page__title">Assistants</h1>
-          <div class="assistants-page__eyebrow">Workspace cockpit</div>
-        </div>
-      </header>
-
       <section class="assistants-shell">
         <div class="assistants-shell__hero">
           <div class="assistants-shell__copy">

@@ -15,13 +15,6 @@
     </div>
 
     <div v-else class="companies-page">
-      <header class="companies-page__heading">
-        <div class="companies-page__heading-copy">
-          <h1 class="companies-page__title">Companies</h1>
-          <div class="companies-page__eyebrow">Workspace cockpit</div>
-        </div>
-      </header>
-
       <section class="companies-shell">
         <div class="companies-shell__hero">
           <div class="companies-shell__copy">

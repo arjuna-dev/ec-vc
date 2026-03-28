@@ -979,19 +979,14 @@ watchEffect(() => {
           {
             id: 'last-updated',
             label: lastUpdatedLabel.value,
-            icon: 'sync',
-            chip: true,
-            disabled: true,
-            onClick: () => {},
+            textOnly: true,
           },
         ]
       : []),
     {
       id: 'refresh-dashboard',
-      label: 'Refresh',
+      label: 'Refresh dashboard',
       icon: 'refresh',
-      chip: true,
-      tone: 'filled',
       disabled: () => loading.value,
       onClick: refreshDashboard,
     },

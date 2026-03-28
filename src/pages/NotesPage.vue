@@ -15,13 +15,6 @@
     </div>
 
     <div v-else class="notes-page">
-      <header class="notes-page__heading">
-        <div class="notes-page__heading-copy">
-          <h1 class="notes-page__title">Notes</h1>
-          <div class="notes-page__eyebrow">Workspace cockpit</div>
-        </div>
-      </header>
-
       <section class="notes-shell">
         <div class="notes-shell__hero">
           <div class="notes-shell__copy">

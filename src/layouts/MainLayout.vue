@@ -18,8 +18,8 @@
 
       <div class="ec-breadcrumb-bar">
         <div class="ec-breadcrumb-primary">
-          <div v-if="isHomeRoute" class="ec-breadcrumb-title-block">
-            <div class="ec-breadcrumb-title">Home</div>
+          <div v-if="showTitleBlock" class="ec-breadcrumb-title-block">
+            <div class="ec-breadcrumb-title">{{ currentHeaderTitle }}</div>
           </div>
 
           <q-breadcrumbs v-else class="ec-breadcrumbs" separator="chevron_right">
@@ -53,8 +53,16 @@
         </div>
 
         <div v-if="breadcrumbActions.length" class="ec-breadcrumb-actions">
+          <span
+            v-for="action in breadcrumbTextActions"
+            :key="action.id"
+            class="ec-breadcrumb-action-text"
+          >
+            {{ action.label }}
+          </span>
+
           <q-btn
-            v-for="action in breadcrumbActions"
+            v-for="action in breadcrumbButtonActions"
             :key="action.id"
             dense
             :flat="!action.chip"
@@ -407,7 +415,23 @@ const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.val
 const drawerUserLabel = computed(() =>
   hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Set user',
 )
-const isHomeRoute = computed(() => String(route.name || '') === 'home')
+const titleBlockRouteNames = new Set([
+  'home',
+  'companies',
+  'contacts',
+  'opportunities',
+  'pipelines',
+  'projects',
+  'artifacts',
+  'notes',
+  'tasks',
+  'assistants',
+])
+const showTitleBlock = computed(() => titleBlockRouteNames.has(String(route.name || '')))
+const currentHeaderTitle = computed(() => {
+  const currentRouteName = String(route.name || '')
+  return routeLabelByName[currentRouteName] || 'Home'
+})
 const breadcrumbItems = computed(() => {
   const currentRouteName = String(route.name || '')
 
@@ -438,6 +462,12 @@ const breadcrumbItems = computed(() => {
 })
 
 const breadcrumbActions = computed(() => breadcrumbActionsState.actions || [])
+const breadcrumbTextActions = computed(() =>
+  breadcrumbActions.value.filter((action) => action?.textOnly),
+)
+const breadcrumbButtonActions = computed(() =>
+  breadcrumbActions.value.filter((action) => !action?.textOnly),
+)
 const breadcrumbBackFallback = computed(() => {
   const fallback = [...breadcrumbItems.value]
     .reverse()
@@ -1125,6 +1155,13 @@ function navigateBack() {
 .ec-breadcrumb-action-chip {
   border-radius: 999px;
   padding-inline: 4px;
+}
+
+.ec-breadcrumb-action-text {
+  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.2;
 }
 
 .ec-drawer-scroll {

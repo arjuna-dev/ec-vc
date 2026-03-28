@@ -15,13 +15,6 @@
     </div>
 
     <div v-else class="opportunities-page">
-      <header class="opportunities-page__heading">
-        <div class="opportunities-page__heading-copy">
-          <h1 class="opportunities-page__title">{{ currentOpportunityMode.title }}</h1>
-          <div class="opportunities-page__eyebrow">Workspace cockpit</div>
-        </div>
-      </header>
-
       <section class="opportunities-shell">
         <div class="opportunities-shell__hero">
           <div class="opportunities-shell__copy">

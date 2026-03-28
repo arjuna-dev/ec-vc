@@ -15,13 +15,6 @@
     </div>
 
     <div v-else class="pipelines-page">
-      <header class="pipelines-page__heading">
-        <div class="pipelines-page__heading-copy">
-          <h1 class="pipelines-page__title">Pipelines</h1>
-          <div class="pipelines-page__eyebrow">Workspace cockpit</div>
-        </div>
-      </header>
-
       <section class="pipelines-shell">
         <div class="pipelines-shell__hero">
           <div class="pipelines-shell__copy">

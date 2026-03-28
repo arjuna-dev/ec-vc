@@ -15,13 +15,6 @@
     </div>
 
     <div v-else class="tasks-page">
-      <header class="tasks-page__heading">
-        <div class="tasks-page__heading-copy">
-          <h1 class="tasks-page__title">Tasks</h1>
-          <div class="tasks-page__eyebrow">Workspace cockpit</div>
-        </div>
-      </header>
-
       <section class="tasks-shell">
         <div class="tasks-shell__hero">
           <div class="tasks-shell__copy">

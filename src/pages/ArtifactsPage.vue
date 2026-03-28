@@ -15,13 +15,6 @@
     </div>
 
     <div v-else class="artifacts-page">
-      <header class="artifacts-page__heading">
-        <div class="artifacts-page__heading-copy">
-          <h1 class="artifacts-page__title">Artifacts</h1>
-          <div class="artifacts-page__eyebrow">Workspace cockpit</div>
-        </div>
-      </header>
-
       <section class="artifacts-shell">
         <div class="artifacts-shell__hero">
           <div class="artifacts-shell__copy">
