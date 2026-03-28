@@ -2,14 +2,14 @@
   <q-layout view="lHh Lpr lFf">
     <q-header :height-hint="108" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
-        <q-toolbar-title class="ec-shell-toolbar-title">
+        <div class="ec-shell-toolbar-brand">
           <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
           <div
             ref="logoContainer"
             class="ec-shell-toolbar-lottie"
             :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
           />
-        </q-toolbar-title>
+        </div>
       </q-toolbar>
 
       <div class="ec-breadcrumb-bar">
@@ -1085,6 +1085,7 @@ function navigateBack() {
 
 .ec-shell-toolbar {
   background: transparent !important;
+  justify-content: flex-end;
 }
 
 .ec-breadcrumb-bar {
@@ -1185,12 +1186,13 @@ function navigateBack() {
   margin-bottom: 1px;
 }
 
-.ec-shell-toolbar-title {
+.ec-shell-toolbar-brand {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 84px;
-  height: 36px;
+  width: 92px;
+  height: 40px;
+  flex: 0 0 auto;
 }
 
 .ec-breadcrumb-secondary {
@@ -1216,8 +1218,8 @@ function navigateBack() {
 }
 
 .ec-shell-toolbar-lottie {
-  width: 76px;
-  height: 36px;
+  width: 84px;
+  height: 40px;
 }
 
 .ec-shell-toolbar-lottie--hidden {
