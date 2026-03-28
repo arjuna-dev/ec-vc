@@ -363,10 +363,7 @@ const breadcrumbItems = computed(() => {
     return items
   }
 
-  items.push({
-    label: routeLabelByName[currentRouteName] || toTitleCase(currentRouteName.replace(/-/g, ' ')),
-    current: true,
-  })
+  items.push({ label: '...', current: true })
 
   return items
 })
