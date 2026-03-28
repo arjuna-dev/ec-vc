@@ -511,35 +511,35 @@ const pipelinesHeroText = computed(() => {
   const { total, installedCount, stagedCount, inactiveCount } = pipelinesDashboard.value
 
   if (!total) {
-    return 'Create project templates here to map your process, define stages, and activate them inside the workspace.'
+    return 'Create pipeline templates here, define stages, and activate them in the workspace.'
   }
 
-  return `${total} project templates available, ${installedCount} already created in the workspace, ${stagedCount} with defined stages, and ${inactiveCount} still need setup.`
+  return `${total} templates tracked, ${installedCount} active, ${stagedCount} stage-ready, and ${inactiveCount} still need setup.`
 })
 
 const pipelinesDashboardStats = computed(() => [
   {
     label: 'Total projects',
     value: pipelinesDashboard.value.total,
-    caption: 'Templates available in the workspace',
+    caption: 'Templates in the workspace',
     tone: 'neutral',
   },
   {
     label: 'Created',
     value: pipelinesDashboard.value.installedCount,
-    caption: 'Already active in the workspace',
+    caption: 'Already active',
     tone: 'rich',
   },
   {
     label: 'Stage-ready',
     value: pipelinesDashboard.value.stagedCount,
-    caption: 'Templates with defined stages',
+    caption: 'With defined stages',
     tone: 'rich',
   },
   {
     label: 'Need setup',
     value: pipelinesDashboard.value.inactiveCount,
-    caption: 'Not yet created in the workspace',
+    caption: 'Still need setup',
     tone: 'sparse',
   },
 ])
