@@ -482,6 +482,24 @@
             </div>
             <div class="col-auto">
               <q-btn
+                v-if="previewState.kind === 'pdf' && previewSectionOptions.length > 1 && !previewFocusStripHidden"
+                flat
+                dense
+                no-caps
+                icon="visibility_off"
+                label="Hide Review Focus"
+                @click="previewFocusStripHidden = true"
+              />
+              <q-btn
+                v-else-if="previewState.kind === 'pdf' && previewSectionOptions.length > 1"
+                flat
+                dense
+                no-caps
+                icon="visibility"
+                label="Show Review Focus"
+                @click="previewFocusStripHidden = false"
+              />
+              <q-btn
                 flat
                 dense
                 no-caps
@@ -498,7 +516,7 @@
           <q-card-section class="artifact-preview-dialog__body artifact-preview-dialog__body--split">
             <div class="artifact-preview-dialog__main">
               <div
-                v-if="previewState.kind === 'pdf' && previewSectionOptions.length > 1"
+                v-if="previewState.kind === 'pdf' && previewSectionOptions.length > 1 && !previewFocusStripHidden"
                 class="artifact-preview-dialog__focus-strip"
               >
                 <div class="artifact-preview-dialog__focus-copy">
@@ -508,13 +526,6 @@
                   </div>
                 </div>
                 <div class="artifact-preview-dialog__focus-chips">
-                  <button
-                    type="button"
-                    class="artifact-preview-dialog__focus-chip artifact-preview-dialog__focus-chip--exit"
-                    @click="closePreviewDialog"
-                  >
-                    Exit Review
-                  </button>
                   <button
                     v-for="section in previewSectionOptions"
                     :key="section.value"
@@ -573,15 +584,8 @@
                       Review by selected slide/section and see where the extracted data writes.
                     </div>
                   </div>
-                  <div class="col-auto row items-center q-gutter-sm">
+                  <div class="col-auto" v-if="showContinueDocumentReview">
                     <q-btn
-                      flat
-                      no-caps
-                      label="Exit Review"
-                      @click="closePreviewDialog"
-                    />
-                    <q-btn
-                      v-if="showContinueDocumentReview"
                       color="primary"
                       outline
                       no-caps
@@ -742,6 +746,7 @@ const previewDialogOpen = ref(false)
 const previewLoading = ref(false)
 const previewPdfObjectUrl = ref('')
 const previewSidebarOpen = ref(false)
+const previewFocusStripHidden = ref(false)
 const previewMarkdownLoading = ref(false)
 const previewMarkdownError = ref('')
 const previewMarkdownContent = ref('')
@@ -940,7 +945,13 @@ const previewMarkdownSections = computed(() => {
     .filter((chunk) => String(chunk?.artifact_id || '').trim() === previewMarkdownArtifactId.value)
     .sort((left, right) => String(left?.created_at || '').localeCompare(String(right?.created_at || '')))
 
-  if (chunkRows.length) {
+  const hasStructuredChunkSections = chunkRows.some((chunk) => {
+    const pageRange = String(chunk?.source_page_range || '').trim()
+    const markdownText = String(chunk?.markdown_text || '').trim()
+    return Boolean(pageRange || markdownText)
+  })
+
+  if (chunkRows.length && hasStructuredChunkSections) {
     return chunkRows.map((chunk, index) => ({
       key: String(chunk?.chunk_id || `chunk:${index}`),
       title: formatPreviewSectionTitle(chunk, index),
@@ -1705,6 +1716,7 @@ function derivePreviewSectionsFromMarkdown(markdown = '', { artifactId = '', isP
 }
 
 async function loadPreviewReviewSidebar(artifactId = '') {
+  previewFocusStripHidden.value = false
   previewMarkdownLoading.value = true
   previewMarkdownError.value = ''
   previewMarkdownContent.value = ''
@@ -1826,6 +1838,7 @@ function closePreviewDialog() {
   previewDialogOpen.value = false
   previewLoading.value = false
   previewSidebarOpen.value = false
+  previewFocusStripHidden.value = false
   previewMarkdownLoading.value = false
   previewMarkdownError.value = ''
   previewMarkdownContent.value = ''
