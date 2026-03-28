@@ -639,6 +639,7 @@ function getPipelineCardStages(row) {
 
 function formatPipelineStageName(name) {
   const cleaned = String(name || '')
+    .replace(/^\s*\d+[\s._-]*/g, '')
     .replace(/[_-]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
@@ -1459,9 +1460,11 @@ watch(displayRows, () => {
 
 .pipeline-card__stage-map {
   display: flex;
-  align-items: center;
+  max-height: 240px;
+  flex-direction: column;
+  align-items: stretch;
   gap: 0;
-  overflow-x: auto;
+  overflow-y: auto;
   padding: 4px 2px 0;
   scrollbar-width: thin;
 }
@@ -1469,12 +1472,14 @@ watch(displayRows, () => {
 .pipeline-card__stage-stop {
   display: flex;
   flex: 0 0 auto;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .pipeline-card__stage-chip {
   display: inline-flex;
+  width: 100%;
   min-width: 0;
   align-items: center;
   gap: 10px;
@@ -1512,8 +1517,9 @@ watch(displayRows, () => {
 }
 
 .pipeline-card__stage-connector {
-  width: 28px;
-  height: 2px;
+  width: 2px;
+  height: 18px;
+  margin-left: 11px;
   background: rgba(17, 17, 17, 0.18);
   border-radius: 999px;
 }
