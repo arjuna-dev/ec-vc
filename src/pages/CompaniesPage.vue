@@ -336,15 +336,6 @@
                       title="Open curated view"
                       @click="openEyeView(row)"
                     />
-                    <q-btn
-                      flat
-                      round
-                      icon="table_view"
-                      class="company-card__icon-action"
-                      :disable="loading"
-                      title="Open databook view"
-                      @click="openDataBookView(row)"
-                    />
                   </div>
 
                   <div class="company-card__footer-actions">
