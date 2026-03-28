@@ -64,6 +64,88 @@
             {{ processingMessage || 'Processing dropped files...' }}
           </q-banner>
 
+          <q-card v-if="showIntakeProgressPanel" flat bordered class="intake-progress-card">
+            <q-card-section class="q-pb-sm">
+              <div class="row items-center justify-between q-col-gutter-md">
+                <div class="col">
+                  <div class="text-subtitle1">Intake Progress</div>
+                  <div class="text-caption text-grey-7">
+                    Tracking markdown release, early extraction, and used metadata ownership.
+                  </div>
+                </div>
+                <div class="col-auto text-right">
+                  <div class="text-subtitle2">{{ intakeProgressPercent }}%</div>
+                  <div class="text-caption text-grey-7">{{ intakeProgressLabel }}</div>
+                </div>
+              </div>
+              <q-linear-progress
+                class="q-mt-md"
+                rounded
+                size="12px"
+                color="primary"
+                track-color="blue-1"
+                :value="intakeProgressValue"
+              />
+            </q-card-section>
+
+            <q-separator />
+
+            <q-card-section class="q-pt-md">
+              <div class="row q-col-gutter-lg">
+                <div class="col-12 col-md-6">
+                  <div class="text-subtitle2 q-mb-sm">Released Markdown</div>
+                  <div v-if="releasedMarkdownChunkRows.length" class="column q-gutter-sm">
+                    <div
+                      v-for="chunk in releasedMarkdownChunkRows"
+                      :key="chunk.chunk_id"
+                      class="intake-progress-row"
+                    >
+                      <div class="row items-center justify-between q-col-gutter-sm">
+                        <div class="col">
+                          <div class="text-body2">{{ chunk.title }}</div>
+                          <div class="text-caption text-grey-7">
+                            {{ chunk.stage_status }}{{ chunk.source_page_range ? ` | ${chunk.source_page_range}` : '' }}
+                          </div>
+                        </div>
+                        <div class="col-auto">
+                          <q-badge color="primary">{{ chunk.owned_fields.length }} owned</q-badge>
+                        </div>
+                      </div>
+                      <div v-if="chunk.used_by.length" class="text-caption text-grey-7 q-mt-xs">
+                        Used by: {{ chunk.used_by.join(', ') }}
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="text-caption text-grey-7">
+                    No markdown chunks released yet.
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <div class="text-subtitle2 q-mb-sm">Used Metadata Ownership</div>
+                  <div v-if="usedMetadataClaimRows.length" class="column q-gutter-sm">
+                    <div
+                      v-for="claim in usedMetadataClaimRows"
+                      :key="claim.claim_id"
+                      class="intake-progress-row"
+                    >
+                      <div class="text-body2">{{ claim.field_key }}: {{ claim.field_value }}</div>
+                      <div class="text-caption text-grey-7">
+                        {{ claim.owner_table }} | {{ claim.consumer_lane }} | {{ claim.verification_state }}
+                      </div>
+                      <div class="text-caption text-grey-7">
+                        {{ claim.source_chunk_id || 'prompt/manual source' }}{{ claim.selected_source ? ` | ${claim.selected_source}` : '' }}
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="text-caption text-grey-7">
+                    No metadata ownership has been recorded yet.
+                  </div>
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
+
           <q-separator />
 
           <div class="opportunity-dialog-sections">
@@ -673,7 +755,13 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { removeIntakeDraft, updateIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
+import {
+  recordDraftMetadataClaim,
+  removeIntakeDraft,
+  updateIntakeDraft,
+  upsertDraftMarkdownChunk,
+  useIntakeDraftState,
+} from 'src/utils/intakeDraftState'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -916,6 +1004,68 @@ const intakeUsedInfoRows = computed(() =>
       value: intakeReviewFields.value[key] || 'No value',
       source: intakeFieldSources.value[key] || 'User verified prompt suggestion',
     })),
+)
+
+const releasedMarkdownChunkRows = computed(() =>
+  Object.values(activeDraft.value?.releasedMarkdownChunks || {})
+    .sort((left, right) => String(left?.created_at || '').localeCompare(String(right?.created_at || '')))
+    .map((chunk) => ({
+      ...chunk,
+      title:
+        String(chunk?.section_hint || '').trim() ||
+        String(chunk?.artifact_id || '').trim() ||
+        String(chunk?.chunk_id || '').trim(),
+      used_by: Array.isArray(chunk?.used_by) ? chunk.used_by : [],
+      owned_fields: Array.isArray(chunk?.owned_fields) ? chunk.owned_fields : [],
+    })),
+)
+
+const usedMetadataClaimRows = computed(() =>
+  [...(activeDraft.value?.usedMetadataClaims || [])].sort((left, right) =>
+    String(right?.updated_at || '').localeCompare(String(left?.updated_at || '')),
+  ),
+)
+
+const intakeProgressMetrics = computed(() => {
+  const rows = ingestStatusRows.value
+  const totalFiles = rows.length
+  if (!totalFiles) {
+    return {
+      value: 0,
+      percent: 0,
+      label: 'Waiting for dropped files',
+    }
+  }
+
+  const totalSteps = totalFiles * 3
+  let completedSteps = 0
+  for (const row of rows) {
+    if (['completed', 'existing'].includes(String(row?.uploadStatus || ''))) completedSteps += 1
+    if (['completed', 'existing'].includes(String(row?.markdownStatus || ''))) completedSteps += 1
+    if (['completed', 'existing'].includes(String(row?.extractionStatus || ''))) completedSteps += 1
+  }
+
+  const chunkBonus = releasedMarkdownChunkRows.value.length > 0 ? 0.05 : 0
+  const rawValue = totalSteps ? completedSteps / totalSteps + chunkBonus : 0
+  const value = Math.min(1, rawValue)
+
+  let label = 'Queued'
+  if (processingDrop.value) label = processingMessage.value || 'Processing dropped files'
+  else if (value >= 1) label = 'Ready for review'
+  else if (releasedMarkdownChunkRows.value.length) label = 'Markdown released for early extraction'
+
+  return {
+    value,
+    percent: Math.round(value * 100),
+    label,
+  }
+})
+
+const intakeProgressValue = computed(() => intakeProgressMetrics.value.value)
+const intakeProgressPercent = computed(() => intakeProgressMetrics.value.percent)
+const intakeProgressLabel = computed(() => intakeProgressMetrics.value.label)
+const showIntakeProgressPanel = computed(
+  () => ingestStatusRows.value.length > 0 || releasedMarkdownChunkRows.value.length > 0 || usedMetadataClaimRows.value.length > 0,
 )
 
 const intakeDocumentTypeOptions = [
@@ -1469,6 +1619,25 @@ function verifyIntakeReviewField(fieldKey) {
     ...intakeFieldSources.value,
     [fieldKey]: sourceLabel,
   }
+  if (activeDraft.value?.id) {
+    recordDraftMetadataClaim(activeDraft.value.id, {
+      fieldKey,
+      fieldValue: normalized,
+      ownerTable: intakeFieldOwner(fieldKey),
+      consumerLane:
+        fieldKey === 'sponsorCompany'
+          ? 'Company'
+          : fieldKey === 'relatedFund' || fieldKey === 'relatedRound'
+            ? 'Opportunity'
+            : fieldKey === 'relatedContact'
+              ? 'Contacts'
+              : 'Artifact Intake',
+      sourceChunkId: releasedMarkdownChunkRows.value[0]?.chunk_id || '',
+      sourceType: 'user_verified_prompt',
+      verificationState: 'verified',
+      selectedSource: sourceLabel,
+    })
+  }
   syncActiveDraft()
 }
 
@@ -1778,10 +1947,32 @@ async function resolveGeneratedMarkdownPaths(ingestResult) {
   if (!rootPath) return []
 
   if (bridge.value?.path?.join) {
-    return relPaths.map((rel) => bridge.value.path.join(rootPath, rel))
+    const joinedPaths = relPaths.map((rel) => bridge.value.path.join(rootPath, rel))
+    releaseMarkdownChunks(rows, joinedPaths)
+    return joinedPaths
   }
 
-  return relPaths.map((rel) => `${rootPath}/${rel}`)
+  const fallbackPaths = relPaths.map((rel) => `${rootPath}/${rel}`)
+  releaseMarkdownChunks(rows, fallbackPaths)
+  return fallbackPaths
+}
+
+function releaseMarkdownChunks(rows = [], absolutePaths = []) {
+  if (!activeDraft.value?.id) return
+  rows.forEach((row, index) => {
+    const path = absolutePaths[index] || ''
+    upsertDraftMarkdownChunk(activeDraft.value.id, {
+      chunkId: row?.llm_ready?.artifact_id || `markdown:${index + 1}`,
+      artifactId: row?.llm_ready?.artifact_id || null,
+      sectionHint: path ? path.split(/[\\/]/).pop() : `Markdown Chunk ${index + 1}`,
+      markdownText: '',
+      stageStatus: 'ready_for_early_extraction',
+      releasedAt: new Date().toISOString(),
+      usedBy: ['Company', 'Opportunity', 'Contacts'],
+      ownedFields: [],
+      confidence: 0.6,
+    })
+  })
 }
 
 async function processDroppedFiles(files = []) {
@@ -2408,6 +2599,20 @@ onBeforeUnmount(() => {
   width: fit-content;
   max-width: 100%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.intake-progress-card {
+  background:
+    linear-gradient(180deg, rgba(239, 246, 255, 0.96), rgba(255, 255, 255, 0.98)),
+    #ffffff;
+  border-color: rgba(59, 130, 246, 0.18);
+}
+
+.intake-progress-row {
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  border-radius: 12px;
 }
 
 .ec-autofilled-field {
