@@ -1,6 +1,17 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-header :height-hint="108" class="ec-shell-header">
+      <q-toolbar class="q-px-md ec-shell-toolbar">
+        <q-toolbar-title class="ec-shell-toolbar-title">
+          <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
+          <div
+            ref="logoContainer"
+            class="ec-shell-toolbar-lottie"
+            :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
+          />
+        </q-toolbar-title>
+      </q-toolbar>
+
       <div class="ec-breadcrumb-bar">
         <div class="ec-breadcrumb-primary">
           <q-btn
@@ -76,15 +87,6 @@
             >
               <q-tooltip v-if="!action.chip">{{ action.label }}</q-tooltip>
             </q-btn>
-          </div>
-
-          <div class="ec-shell-toolbar-title ec-shell-toolbar-title--breadcrumb">
-            <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
-            <div
-              ref="logoContainer"
-              class="ec-shell-toolbar-lottie"
-              :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
-            />
           </div>
         </div>
       </div>
@@ -1081,9 +1083,13 @@ function navigateBack() {
   background: transparent !important;
 }
 
+.ec-shell-toolbar {
+  background: transparent !important;
+}
+
 .ec-breadcrumb-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--ds-space-12);
   background: transparent;
@@ -1176,7 +1182,7 @@ function navigateBack() {
   font-family: var(--ds-font-family-body);
   font-weight: 300;
   line-height: 1.2;
-  margin-bottom: 4px;
+  margin-bottom: 1px;
 }
 
 .ec-shell-toolbar-title {
@@ -1197,8 +1203,9 @@ function navigateBack() {
   flex: 0 0 auto;
 }
 
-.ec-shell-toolbar-title--breadcrumb {
-  flex: 0 0 84px;
+.ec-breadcrumb-actions :deep(.q-btn) {
+  align-self: flex-end;
+  margin-bottom: -1px;
 }
 
 .ec-shell-toolbar-fallback {
