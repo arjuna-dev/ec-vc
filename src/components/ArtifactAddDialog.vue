@@ -310,13 +310,18 @@ function inferCompanyNameFromFiles(files = []) {
   const rawName = String(files?.[0]?.name || '').trim()
   if (!rawName) return ''
   const baseName = rawName.replace(/\.[^.]+$/, '')
+  const hasDelimiter = /[_-]/.test(baseName)
   const firstSegment = baseName
     .split(/[_-]+/)
     .map((part) => String(part || '').trim())
     .find((part) => part.length > 2)
   if (!firstSegment) return ''
   const normalized = firstSegment.replace(/\b(deck|pitch|memo|model|term|sheet|presentation|fund|round)\b/gi, '').trim()
-  return normalized || ''
+  if (!normalized) return ''
+  const tokenCount = normalized.split(/\s+/).filter(Boolean).length
+  const looksLikeTitle = /[:()]/.test(baseName) || tokenCount > 4 || normalized.length > 36
+  if (!hasDelimiter && looksLikeTitle) return ''
+  return normalized
 }
 
 function clearIntakeGuideTimer() {

@@ -599,6 +599,13 @@
             </div>
             <div class="col-auto">
               <q-btn
+                flat
+                no-caps
+                color="grey-7"
+                label="Not this"
+                @click="rejectIntakeReviewField('sponsorCompany')"
+              />
+              <q-btn
                 color="primary"
                 no-caps
                 :outline="!intakeReviewVerified.sponsorCompany"
@@ -628,6 +635,13 @@
               />
             </div>
             <div class="col-auto">
+              <q-btn
+                flat
+                no-caps
+                color="grey-7"
+                label="Not this"
+                @click="rejectIntakeReviewField('existingOpportunityMatch')"
+              />
               <q-btn
                 color="primary"
                 no-caps
@@ -659,6 +673,13 @@
             </div>
             <div class="col-auto">
               <q-btn
+                flat
+                no-caps
+                color="grey-7"
+                label="Not this"
+                @click="rejectIntakeReviewField('matchingDocumentName')"
+              />
+              <q-btn
                 color="primary"
                 no-caps
                 :outline="!intakeReviewVerified.matchingDocumentName"
@@ -688,6 +709,13 @@
               />
             </div>
             <div class="col-auto">
+              <q-btn
+                flat
+                no-caps
+                color="grey-7"
+                label="Not this"
+                @click="rejectIntakeReviewField('relatedFund')"
+              />
               <q-btn
                 color="primary"
                 no-caps
@@ -719,6 +747,13 @@
             </div>
             <div class="col-auto">
               <q-btn
+                flat
+                no-caps
+                color="grey-7"
+                label="Not this"
+                @click="rejectIntakeReviewField('relatedRound')"
+              />
+              <q-btn
                 color="primary"
                 no-caps
                 :outline="!intakeReviewVerified.relatedRound"
@@ -749,6 +784,13 @@
             </div>
             <div class="col-auto">
               <q-btn
+                flat
+                no-caps
+                color="grey-7"
+                label="Not this"
+                @click="rejectIntakeReviewField('relatedContact')"
+              />
+              <q-btn
                 color="primary"
                 no-caps
                 :outline="!intakeReviewVerified.relatedContact"
@@ -773,6 +815,13 @@
               />
             </div>
             <div class="col-auto">
+              <q-btn
+                flat
+                no-caps
+                color="grey-7"
+                label="Not this"
+                @click="rejectIntakeReviewField('website')"
+              />
               <q-btn
                 color="primary"
                 no-caps
@@ -804,11 +853,50 @@
             </div>
             <div class="col-auto">
               <q-btn
+                flat
+                no-caps
+                color="grey-7"
+                label="Not this"
+                @click="rejectIntakeReviewField('documentType')"
+              />
+              <q-btn
                 color="primary"
                 no-caps
                 :outline="!intakeReviewVerified.documentType"
                 label="Verify"
                 @click="verifyIntakeReviewField('documentType')"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="intakeVisibleFieldKeys.includes('artifactTitle')"
+            class="row q-col-gutter-sm items-start"
+          >
+            <div class="col">
+              <q-input
+                :model-value="intakeReviewFields.artifactTitle"
+                outlined
+                label="Artifact Title"
+                :class="promptFieldClass('artifactTitle')"
+                :input-class="promptFieldInputClass('artifactTitle')"
+                @update:model-value="updateIntakeReviewField('artifactTitle', $event)"
+              />
+            </div>
+            <div class="col-auto">
+              <q-btn
+                flat
+                no-caps
+                color="grey-7"
+                label="Not this"
+                @click="rejectIntakeReviewField('artifactTitle')"
+              />
+              <q-btn
+                color="primary"
+                no-caps
+                :outline="!intakeReviewVerified.artifactTitle"
+                label="Verify"
+                @click="verifyIntakeReviewField('artifactTitle')"
               />
             </div>
           </div>
@@ -913,6 +1001,7 @@ const intakeReviewDelayElapsed = ref(false)
 const intakeReviewPromptShown = ref(false)
 const intakeReviewPending = ref(false)
 const intakeConfirmedFieldValues = ref(createDefaultIntakeReviewFields())
+const intakeRejectedFieldValues = ref(createDefaultIntakeReviewFields())
 const companyOptionFilter = ref('')
 const contactOptionFilter = ref('')
 const dragOver = ref(false)
@@ -1399,6 +1488,7 @@ function resetTransientState() {
   intakeReviewFields.value = createDefaultIntakeReviewFields()
   intakeReviewVerified.value = createDefaultIntakeReviewVerified()
   intakeConfirmedFieldValues.value = createDefaultIntakeReviewFields()
+  intakeRejectedFieldValues.value = createDefaultIntakeReviewFields()
   intakeLockedFields.value = createDefaultIntakeReviewVerified()
   intakeFieldSources.value = createDefaultIntakeReviewSources()
   deferredSuggestionPayload.value = null
@@ -1425,6 +1515,7 @@ function buildDraftSnapshot() {
     intakeReviewFields: { ...intakeReviewFields.value },
     intakeReviewVerified: { ...intakeReviewVerified.value },
     intakeConfirmedFieldValues: { ...intakeConfirmedFieldValues.value },
+    intakeRejectedFieldValues: { ...intakeRejectedFieldValues.value },
     intakeLockedFields: { ...intakeLockedFields.value },
     intakeFieldSources: { ...intakeFieldSources.value },
   }
@@ -1497,6 +1588,10 @@ function hydrateFromActiveDraft() {
     ...createDefaultIntakeReviewFields(),
     ...(activeDraft.value.intakeConfirmedFieldValues || {}),
   }
+  intakeRejectedFieldValues.value = {
+    ...createDefaultIntakeReviewFields(),
+    ...(activeDraft.value.intakeRejectedFieldValues || {}),
+  }
   intakeLockedFields.value = {
     ...createDefaultIntakeReviewVerified(),
     ...(activeDraft.value.intakeLockedFields || {}),
@@ -1536,6 +1631,7 @@ function inferCompanyNameFromDraft() {
   const rawName = String(sourceFiles?.[0]?.name || '').trim()
   if (!rawName) return ''
   const baseName = rawName.replace(/\.[^.]+$/, '')
+  const hasDelimiter = /[_-]/.test(baseName)
   const firstSegment = baseName
     .split(/[_-]+/)
     .map((part) => String(part || '').trim())
@@ -1545,7 +1641,24 @@ function inferCompanyNameFromDraft() {
     .replace(/\b(deck|pitch|memo|model|term|sheet|presentation|fund|round|series|seed)\b/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim()
-  return normalized || ''
+  if (!normalized) return ''
+  const tokenCount = normalized.split(/\s+/).filter(Boolean).length
+  const looksLikeTitle = /[:()]/.test(baseName) || tokenCount > 4 || normalized.length > 36
+  if (!hasDelimiter && looksLikeTitle) return ''
+  return normalized
+}
+
+function inferArtifactTitleFromDraft() {
+  const sourceFiles = activeDraft.value?.droppedFiles?.length
+    ? activeDraft.value.droppedFiles
+    : droppedFilesForPrompt.value
+  const rawName = String(sourceFiles?.[0]?.name || '').trim()
+  if (!rawName) return ''
+  return rawName
+    .replace(/\.[^.]+$/, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
 }
 
 function createDefaultIntakeReviewFields(overrides = {}) {
@@ -1554,6 +1667,7 @@ function createDefaultIntakeReviewFields(overrides = {}) {
     existingOpportunityMatch: '',
     matchingDocumentName: '',
     documentType: '',
+    artifactTitle: '',
     relatedFund: '',
     relatedRound: '',
     relatedContact: '',
@@ -1571,6 +1685,7 @@ const INTAKE_REVIEW_PRIORITY = Object.freeze([
   'relatedFund',
   'relatedRound',
   'documentType',
+  'artifactTitle',
 ])
 
 function buildVisibleIntakeFieldKeys(fields = {}) {
@@ -1588,6 +1703,7 @@ function createDefaultIntakeReviewVerified(overrides = {}) {
     existingOpportunityMatch: false,
     matchingDocumentName: false,
     documentType: false,
+    artifactTitle: false,
     relatedFund: false,
     relatedRound: false,
     relatedContact: false,
@@ -1602,6 +1718,7 @@ function createDefaultIntakeReviewSources(overrides = {}) {
     existingOpportunityMatch: '',
     matchingDocumentName: '',
     documentType: '',
+    artifactTitle: '',
     relatedFund: '',
     relatedRound: '',
     relatedContact: '',
@@ -1616,6 +1733,7 @@ function intakeFieldLabel(fieldKey) {
     existingOpportunityMatch: 'Existing Opportunity Match',
     matchingDocumentName: 'Matching Document Name',
     documentType: 'Document Type',
+    artifactTitle: 'Artifact Title',
     relatedFund: 'Related Fund',
     relatedRound: 'Related Round',
     relatedContact: 'Related Contact',
@@ -1629,6 +1747,7 @@ function intakeFieldOwner(fieldKey) {
     existingOpportunityMatch: entityType.value === 'fund' ? 'Funds' : 'Rounds',
     matchingDocumentName: 'Artifacts',
     documentType: 'Artifacts',
+    artifactTitle: 'Artifacts',
     relatedFund: 'Funds',
     relatedRound: 'Rounds',
     relatedContact: 'Contacts',
@@ -1642,6 +1761,7 @@ function intakeFieldTarget(fieldKey) {
     existingOpportunityMatch: 'Opportunity section',
     matchingDocumentName: 'Artifact file intake',
     documentType: 'Draft intake metadata',
+    artifactTitle: 'Artifact title metadata',
     relatedFund: 'Opportunity section',
     relatedRound: 'Opportunity section',
     relatedContact: 'Primary Contact section',
@@ -1662,6 +1782,7 @@ function buildIntakeReviewFieldsFromForms() {
     existingOpportunityMatch: findLikelyExistingOpportunityMatchLabel(),
     matchingDocumentName: existingDocumentNameMatches.value[0] || '',
     documentType: inferDocumentTypeFromDraft(),
+    artifactTitle: inferArtifactTitleFromDraft(),
     relatedFund: entityType.value === 'fund' ? String(form.value.Venture_Oppty_Name || '').trim() : '',
     relatedRound:
       entityType.value === 'round'
@@ -1680,6 +1801,7 @@ function getPendingIntakeReviewFieldKeys(fields = intakeReviewFields.value) {
     if (!value) return false
     const currentlyVerifiedValue = String(intakeReviewFields.value[key] || '').trim()
     if (Boolean(intakeReviewVerified.value[key]) && currentlyVerifiedValue === value) return false
+    if (String(intakeRejectedFieldValues.value[key] || '').trim() === value) return false
     return String(intakeConfirmedFieldValues.value[key] || '').trim() !== value
   })
 }
@@ -1842,6 +1964,35 @@ function updateIntakeReviewField(fieldKey, value) {
     ...intakeFieldSources.value,
     [fieldKey]: '',
   }
+  intakeRejectedFieldValues.value = {
+    ...intakeRejectedFieldValues.value,
+    [fieldKey]: '',
+  }
+  syncActiveDraft()
+}
+
+function rejectIntakeReviewField(fieldKey) {
+  const normalized = String(intakeReviewFields.value[fieldKey] || '').trim()
+  intakeReviewFields.value = {
+    ...intakeReviewFields.value,
+    [fieldKey]: '',
+  }
+  intakeReviewVerified.value = {
+    ...intakeReviewVerified.value,
+    [fieldKey]: true,
+  }
+  intakeLockedFields.value = {
+    ...intakeLockedFields.value,
+    [fieldKey]: false,
+  }
+  intakeFieldSources.value = {
+    ...intakeFieldSources.value,
+    [fieldKey]: 'Rejected prompt suggestion',
+  }
+  intakeRejectedFieldValues.value = {
+    ...intakeRejectedFieldValues.value,
+    [fieldKey]: normalized,
+  }
   syncActiveDraft()
 }
 
@@ -1908,6 +2059,11 @@ function verifyIntakeReviewField(fieldKey) {
     sourceLabel = 'Confirmed inferred document type'
     syncActiveDraft({
       inferredDocumentType: normalized,
+    })
+  } else if (fieldKey === 'artifactTitle') {
+    sourceLabel = 'Confirmed inferred artifact title'
+    syncActiveDraft({
+      inferredArtifactTitle: normalized,
     })
   } else if (fieldKey === 'website') {
     companyForm.value.Website = normalized
