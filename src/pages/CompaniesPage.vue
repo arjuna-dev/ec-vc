@@ -89,7 +89,7 @@
               toggle-color="primary"
               color="grey-3"
               text-color="grey-8"
-              class="companies-toolbar__toggle"
+              class="companies-toolbar__toggle companies-toolbar__view-toggle"
               :disable="loading"
               :options="viewOptions"
             />
@@ -175,7 +175,11 @@
               class="companies-toolbar__search"
               placeholder="Search companies..."
               :disable="loading"
-            />
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
           </div>
         </div>
 
@@ -1423,7 +1427,7 @@ watch(displayRows, () => {
 
 .companies-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.2fr) minmax(260px, 0.7fr);
+  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1449,6 +1453,14 @@ watch(displayRows, () => {
   flex: 0 0 auto;
 }
 
+.companies-toolbar__toggle {
+  flex: 0 0 auto;
+  border: 1px solid var(--ds-control-border);
+  border-radius: 999px;
+  box-shadow: var(--ds-control-shadow);
+  overflow: hidden;
+}
+
 .companies-toolbar__search {
   width: 100%;
   min-width: 0;
@@ -1469,6 +1481,24 @@ watch(displayRows, () => {
   padding: 0 var(--ds-control-inline-padding);
 }
 
+.companies-toolbar__kind-toggle :deep(.q-btn) {
+  min-width: 84px;
+  padding-inline: 18px;
+}
+
+.companies-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.companies-toolbar__view-toggle :deep(.q-btn) {
+  min-width: 48px;
+  padding-inline: 12px;
+}
+
+.companies-toolbar__view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
 .companies-toolbar__toggle {
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
@@ -1481,15 +1511,6 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
-}
-
-.companies-toolbar__kind-toggle :deep(.q-btn) {
-  min-width: 84px;
-  padding-inline: 18px;
-}
-
-.companies-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 6px;
 }
 
 .companies-toolbar__filter-control {
@@ -1911,7 +1932,6 @@ watch(displayRows, () => {
     width: 100%;
   }
 
-  .companies-toolbar__button,
   .companies-toolbar__toggle {
     width: 100%;
   }
