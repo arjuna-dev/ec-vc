@@ -14,49 +14,173 @@
       </q-banner>
     </div>
 
-    <div v-else>
-      <div class="row items-center q-col-gutter-sm page-title-section">
-        <div class="col">
-          <div class="text-h6">Artifacts</div>
-          <div class="text-caption text-grey-7">Latest artifacts, review actions, and manual intake nudges.</div>
-        </div>
-        <div class="col-auto">
-          <q-btn-toggle
-            v-model="viewMode"
-            unelevated
-            toggle-color="primary"
-            color="grey-3"
-            text-color="grey-8"
-            :options="viewModeOptions"
-          />
-        </div>
-        <div class="col-auto">
-          <q-btn dense flat icon="refresh" :loading="loading" @click="loadArtifacts" />
-        </div>
-        <div class="col-auto">
-          <TableCsvActions
-            ref="csvActionsRef"
-            filename-base="artifacts"
-            :headers="csvHeaders"
-            :rows="rows"
-            :on-import-rows="importRows"
-          />
-        </div>
-      </div>
+    <div v-else class="artifacts-page">
+      <header class="artifacts-page__heading">
+        <h1 class="artifacts-page__title">Artifacts</h1>
+      </header>
 
-      <q-banner v-if="error" class="bg-red-2 text-black q-mb-md" rounded>
-        {{ error }}
-      </q-banner>
+      <section class="artifacts-shell">
+        <div class="artifacts-shell__hero">
+          <div class="artifacts-shell__copy">
+            <div class="artifacts-shell__eyebrow">Artifacts dashboard</div>
+            <h2 class="artifacts-shell__hero-title">Review source files, links, and intake state in one place.</h2>
+            <p class="artifacts-shell__hero-text">{{ artifactsHeroText }}</p>
 
-      <q-banner v-if="!loading && rows.length === 0" class="bg-grey-2 text-black q-mb-md" rounded>
-        <div class="row items-center justify-between">
-          <div>No artifacts created yet.</div>
+            <div class="artifacts-shell__hero-meta">
+              <div class="artifacts-shell__meta-pill">
+                {{ viewMode === 'grid' ? 'Grid view active' : 'Table view active' }}
+              </div>
+              <div v-if="selectedCount > 0" class="artifacts-shell__meta-pill">
+                {{ selectedCount }} selected
+              </div>
+              <div class="artifacts-shell__meta-pill">
+                {{ artifactsDashboard.readyRate }}% ready
+              </div>
+            </div>
+          </div>
+
+          <div class="artifacts-dashboard">
+            <div class="artifacts-dashboard__stats">
+              <article
+                v-for="stat in artifactsDashboardStats"
+                :key="stat.label"
+                class="artifacts-dashboard__stat"
+                :class="`artifacts-dashboard__stat--${stat.tone}`"
+              >
+                <div class="artifacts-dashboard__stat-label">{{ stat.label }}</div>
+                <div class="artifacts-dashboard__stat-value">{{ stat.value }}</div>
+                <div class="artifacts-dashboard__stat-caption">{{ stat.caption }}</div>
+              </article>
+            </div>
+
+            <div class="artifacts-dashboard__health">
+              <div class="artifacts-dashboard__health-copy">
+                <div class="artifacts-dashboard__health-label">Review health</div>
+                <div class="artifacts-dashboard__health-text">
+                  {{ artifactsDashboard.readyCount }} ready, {{ artifactsDashboard.attentionCount }} need review,
+                  {{ artifactsDashboard.linkedCount }} already linked
+                </div>
+              </div>
+
+              <div class="artifacts-dashboard__health-bar" aria-hidden="true">
+                <span
+                  class="artifacts-dashboard__health-segment artifacts-dashboard__health-segment--sparse"
+                  :style="{ width: `${artifactsDashboard.attentionShare}%` }"
+                />
+                <span
+                  class="artifacts-dashboard__health-segment artifacts-dashboard__health-segment--medium"
+                  :style="{ width: `${artifactsDashboard.linkedShare}%` }"
+                />
+                <span
+                  class="artifacts-dashboard__health-segment artifacts-dashboard__health-segment--rich"
+                  :style="{ width: `${artifactsDashboard.readyShare}%` }"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </q-banner>
 
-      <div v-else-if="viewMode === 'grid'" class="row q-col-gutter-md artifacts-grid">
+        <div class="artifacts-toolbar">
+          <div class="artifacts-toolbar__block artifacts-toolbar__block--view">
+            <q-btn-toggle
+              v-model="viewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="artifacts-toolbar__toggle artifacts-toolbar__view-toggle"
+              :options="viewModeOptions"
+            />
+          </div>
+
+          <div class="artifacts-toolbar__block artifacts-toolbar__block--kind">
+            <q-btn-toggle
+              v-model="artifactKindFilter"
+              dense
+              no-caps
+              unelevated
+              toggle-color="dark"
+              color="white"
+              text-color="grey-8"
+              class="artifacts-toolbar__toggle artifacts-toolbar__kind-toggle"
+              :options="artifactKindOptions"
+            />
+          </div>
+
+          <div class="artifacts-toolbar__block artifacts-toolbar__block--filters">
+            <q-icon name="tune" size="18px" class="artifacts-toolbar__filters-icon" />
+
+            <q-select
+              v-model="opportunityFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="artifacts-toolbar__filter-control"
+              label="Opportunity"
+              :options="opportunityFilterOptions"
+              :disable="loading || opportunityFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="formatFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="artifacts-toolbar__filter-control"
+              label="Format"
+              :options="formatFilterOptions"
+              :disable="loading || formatFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="statusFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="artifacts-toolbar__filter-control"
+              label="Status"
+              :options="statusFilterOptions"
+              :disable="loading || statusFilterOptions.length === 0"
+            />
+          </div>
+
+          <div class="artifacts-toolbar__block artifacts-toolbar__block--search">
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="artifacts-toolbar__search"
+              placeholder="Search artifacts..."
+              :disable="loading"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+          </div>
+        </div>
+
+        <q-banner v-if="error" class="bg-red-2 text-black" rounded>
+          {{ error }}
+        </q-banner>
+
+        <q-banner v-if="!loading && displayArtifactRows.length === 0" class="artifacts-empty-state bg-grey-2 text-black" rounded>
+          <div class="row items-center justify-between">
+            <div>No artifacts created yet.</div>
+          </div>
+        </q-banner>
+
+        <div v-else-if="viewMode === 'grid'" class="row q-col-gutter-md artifacts-grid">
         <div
-          v-for="group in latestArtifactGroups"
+          v-for="group in displayArtifactGroups"
           :key="group.groupId"
           class="col-12 col-sm-6 col-lg-4"
         >
@@ -192,20 +316,21 @@
           </q-card-actions>
         </q-card>
         </div>
-      </div>
+        </div>
 
-      <q-table
-        v-else
-        flat
-        bordered
-        row-key="artifact_id"
-        v-model:selected="selectedRows"
-        selection="multiple"
-        :rows="rows"
-        :columns="columns"
-        :loading="loading"
-        :pagination="{ rowsPerPage: 15 }"
-      >
+        <q-table
+          v-else
+          class="artifacts-table"
+          flat
+          bordered
+          row-key="artifact_id"
+          v-model:selected="selectedRows"
+          selection="multiple"
+          :rows="displayArtifactRows"
+          :columns="columns"
+          :loading="loading"
+          :pagination="{ rowsPerPage: 15 }"
+        >
         <template #body-cell-opportunity_id="props">
           <q-td :props="props">
             <div class="column">
@@ -246,11 +371,23 @@
             />
           </q-td>
         </template>
-      </q-table>
+        </q-table>
 
-      <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[18 * 2, 18]">
+        <div style="display: none">
+          <TableCsvActions
+            ref="csvActionsRef"
+            filename-base="artifacts"
+            :headers="csvHeaders"
+            :rows="displayArtifactRows"
+            :on-import-rows="importRows"
+          />
+        </div>
+      </section>
+
+      <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[36, 18]">
         <q-btn
-          color="negative"
+          color="black"
+          text-color="white"
           unelevated
           :disable="loading"
           label="Delete All"
@@ -811,6 +948,11 @@ const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const viewMode = ref('grid')
+const artifactKindFilter = ref('all')
+const opportunityFilter = ref('')
+const formatFilter = ref('')
+const statusFilter = ref('')
+const searchQuery = ref('')
 const previewDialogOpen = ref(false)
 const previewLoading = ref(false)
 const previewPdfObjectUrl = ref('')
@@ -838,6 +980,11 @@ const ARTIFACTS_BREADCRUMB_ACTION_OWNER = 'artifacts-page'
 const viewModeOptions = [
   { label: 'Grid', value: 'grid', icon: 'grid_view' },
   { label: 'Table', value: 'table', icon: 'view_list' },
+]
+const artifactKindOptions = [
+  { label: 'All', value: 'all' },
+  { label: 'Needs Review', value: 'needs-review' },
+  { label: 'Ready', value: 'ready' },
 ]
 
 function continueArtifactIntake(row = {}) {
@@ -937,6 +1084,123 @@ const latestArtifactGroups = computed(() =>
     .sort((left, right) => parseDateValue(right.latestCreatedAt) - parseDateValue(left.latestCreatedAt))
     .slice(0, 12),
 )
+
+function normalizeArtifactFilterValue(value) {
+  return String(value || '').trim()
+}
+
+function uniqueArtifactValues(values = []) {
+  return [...new Set(values.map((value) => normalizeArtifactFilterValue(value)).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right))
+    .map((value) => ({ label: value, value }))
+}
+
+const opportunityFilterOptions = computed(() =>
+  uniqueArtifactValues(rows.value.map((row) => resolveOpportunityLabel(row))),
+)
+
+const formatFilterOptions = computed(() =>
+  uniqueArtifactValues(rows.value.map((row) => row?.artifact_format)),
+)
+
+const statusFilterOptions = computed(() =>
+  uniqueArtifactValues(rows.value.map((row) => artifactStatusLabel(row))),
+)
+
+function matchesArtifactKind(row = {}) {
+  if (artifactKindFilter.value === 'needs-review') return artifactNeedsAttention(row)
+  if (artifactKindFilter.value === 'ready') return !artifactNeedsAttention(row)
+  return true
+}
+
+function matchesArtifactFilters(row = {}, group = null) {
+  if (!matchesArtifactKind(row)) return false
+
+  if (opportunityFilter.value && resolveOpportunityLabel(row) !== opportunityFilter.value) return false
+  if (formatFilter.value && normalizeArtifactFilterValue(row?.artifact_format) !== formatFilter.value) return false
+  if (statusFilter.value && artifactStatusLabel(row) !== statusFilter.value) return false
+
+  const query = normalizeArtifactFilterValue(searchQuery.value).toLowerCase()
+  if (!query) return true
+
+  const haystack = [
+    row?.title,
+    row?.description,
+    artifactDisplayName(row),
+    artifactFileName(row),
+    resolveOpportunityLabel(row),
+    row?.artifact_format,
+    group?.versionSummary,
+    group?.primaryArtifact?.title,
+  ]
+    .map((value) => String(value || '').toLowerCase())
+    .join(' ')
+
+  return haystack.includes(query)
+}
+
+const displayArtifactRows = computed(() =>
+  rows.value.filter((row) => matchesArtifactFilters(row)),
+)
+
+const displayArtifactGroups = computed(() =>
+  latestArtifactGroups.value.filter((group) => matchesArtifactFilters(group.primaryArtifact, group)),
+)
+
+const artifactsDashboard = computed(() => {
+  const total = rows.value.length
+  const attentionCount = rows.value.filter((row) => artifactNeedsAttention(row)).length
+  const readyCount = total - attentionCount
+  const linkedCount = rows.value.filter((row) => normalizeArtifactFilterValue(row?.opportunity_id)).length
+  const groupedCount = latestArtifactGroups.value.filter((group) => group.artifacts.length > 1).length
+  const safeTotal = total || 1
+  return {
+    total,
+    attentionCount,
+    readyCount,
+    linkedCount,
+    groupedCount,
+    readyRate: Math.round((readyCount / safeTotal) * 100),
+    attentionShare: total ? (attentionCount / total) * 100 : 0,
+    linkedShare: total ? (linkedCount / total) * 100 : 0,
+    readyShare: total ? (readyCount / total) * 100 : 0,
+  }
+})
+
+const artifactsHeroText = computed(() => {
+  const { total, readyCount, attentionCount, linkedCount } = artifactsDashboard.value
+  if (!total) {
+    return 'Drop source files here to start review, linking, and artifact cleanup.'
+  }
+  return `${total} artifacts tracked, ${readyCount} ready, ${attentionCount} still need attention, and ${linkedCount} already linked into opportunities.`
+})
+
+const artifactsDashboardStats = computed(() => [
+  {
+    label: 'Total artifacts',
+    value: artifactsDashboard.value.total,
+    caption: 'Files tracked in the workspace',
+    tone: 'neutral',
+  },
+  {
+    label: 'Ready',
+    value: artifactsDashboard.value.readyCount,
+    caption: 'No immediate review blockers',
+    tone: 'rich',
+  },
+  {
+    label: 'Linked',
+    value: artifactsDashboard.value.linkedCount,
+    caption: 'Already connected to an opportunity',
+    tone: 'rich',
+  },
+  {
+    label: 'Grouped',
+    value: artifactsDashboard.value.groupedCount,
+    caption: 'Have RAW and MD siblings together',
+    tone: 'sparse',
+  },
+])
 
 const previewPdfSrc = computed(() => {
   if (previewState.value.kind !== 'pdf') return ''
@@ -1279,7 +1543,7 @@ async function loadRegions() {
 }
 
 function normalizeSelectedRows() {
-  const activeIds = new Set(rows.value.map((row) => row.artifact_id))
+  const activeIds = new Set(displayArtifactRows.value.map((row) => row.artifact_id))
   selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.artifact_id))
 }
 
@@ -2338,9 +2602,298 @@ watch(previewFocusClaimRows, (claims) => {
     previewSelectedFocusClaimId.value = String(claims[0]?.claim_id || '').trim()
   }
 })
+
+watch(displayArtifactRows, () => {
+  normalizeSelectedRows()
+})
 </script>
 
 <style scoped>
+.artifacts-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-24);
+}
+
+.artifacts-page__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-12);
+}
+
+.artifacts-page__title {
+  margin: 0;
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-title);
+  font-size: var(--ds-font-size-4xl);
+  font-weight: var(--ds-font-weight-black);
+  line-height: var(--ds-line-height-title);
+}
+
+.artifacts-shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-32);
+  padding: var(--ds-space-32);
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
+}
+
+.artifacts-shell__hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: var(--ds-space-24);
+  padding: var(--ds-space-24);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(14, 165, 233, 0.14), transparent 24%),
+    radial-gradient(circle at 14% 84%, rgba(59, 130, 246, 0.1), transparent 28%),
+    linear-gradient(180deg, #fdfcf8 0%, #f5f2ea 100%);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-2xl);
+}
+
+.artifacts-shell__hero::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.64), transparent 38%),
+    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.34) 100%);
+  pointer-events: none;
+}
+
+.artifacts-shell__copy,
+.artifacts-dashboard {
+  position: relative;
+  z-index: 1;
+}
+
+.artifacts-shell__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-12);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.artifacts-shell__eyebrow,
+.artifacts-dashboard__stat-label,
+.artifacts-dashboard__health-label {
+  color: var(--ds-color-text-muted);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-medium);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: 0.12em;
+  line-height: var(--ds-line-height-xs);
+  text-transform: uppercase;
+}
+
+.artifacts-shell__hero-title {
+  margin: 0;
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-title);
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-weight: var(--ds-font-weight-black);
+  line-height: 0.96;
+  max-width: 13ch;
+}
+
+.artifacts-shell__hero-text,
+.artifacts-dashboard__stat-caption,
+.artifacts-dashboard__health-text {
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-base-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-base);
+}
+
+.artifacts-shell__hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-8);
+}
+
+.artifacts-shell__meta-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--ds-space-12);
+  color: var(--ds-color-text-subtle);
+  background: var(--ds-color-surface-overlay-72);
+  border: 1px solid var(--ds-color-border-strong);
+  border-radius: var(--ds-radius-pill);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-medium);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.artifacts-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-14);
+  min-width: 0;
+}
+
+.artifacts-dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-space-12);
+}
+
+.artifacts-dashboard__stat {
+  display: flex;
+  min-height: 116px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--ds-space-6);
+  padding: var(--ds-space-16);
+  background: var(--ds-color-surface-overlay-84);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-xl);
+  box-shadow: var(--ds-shadow-card-soft);
+}
+
+.artifacts-dashboard__stat--neutral {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(247, 244, 238, 0.94) 100%);
+}
+
+.artifacts-dashboard__stat--rich {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(238, 241, 255, 0.96) 100%);
+}
+
+.artifacts-dashboard__stat--sparse {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
+}
+
+.artifacts-dashboard__stat-value {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-title);
+  font-size: clamp(1.8rem, 2vw, 2.4rem);
+  font-weight: var(--ds-font-weight-black);
+  line-height: 0.92;
+}
+
+.artifacts-dashboard__health {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-12);
+  padding: var(--ds-space-16) var(--ds-space-18);
+  background: var(--ds-color-surface-overlay-78);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-xl);
+}
+
+.artifacts-dashboard__health-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+}
+
+.artifacts-dashboard__health-bar {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  background: var(--ds-color-fill-subtle);
+  border-radius: var(--ds-radius-pill);
+}
+
+.artifacts-dashboard__health-segment {
+  display: block;
+  height: 100%;
+}
+
+.artifacts-dashboard__health-segment--sparse {
+  background: #ff5521;
+}
+
+.artifacts-dashboard__health-segment--medium {
+  background: #ebff5a;
+}
+
+.artifacts-dashboard__health-segment--rich {
+  background: #2647ff;
+}
+
+.artifacts-toolbar {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) minmax(260px, 0.75fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.artifacts-toolbar__block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.artifacts-toolbar__block--search {
+  justify-content: flex-end;
+}
+
+.artifacts-toolbar__filters-icon {
+  color: var(--ds-color-text-muted);
+}
+
+.artifacts-toolbar__toggle {
+  flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  background: var(--ds-control-surface);
+  color: var(--ds-control-text);
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: var(--ds-control-shadow);
+  overflow: hidden;
+}
+
+.artifacts-toolbar__view-toggle :deep(.q-btn) {
+  min-width: 48px;
+  padding-inline: 12px;
+}
+
+.artifacts-toolbar__kind-toggle :deep(.q-btn) {
+  min-width: 100px;
+  padding-inline: 18px;
+}
+
+.artifacts-toolbar__filter-control {
+  flex: 0 1 clamp(110px, 16vw, 160px);
+  min-width: 110px;
+  background: var(--ds-control-surface);
+  border-radius: var(--ds-control-radius);
+}
+
+.artifacts-toolbar__search {
+  width: 100%;
+  min-width: 0;
+  background: var(--ds-control-surface);
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: var(--ds-control-shadow);
+}
+
+.artifacts-toolbar__search :deep(.q-field__control),
+.artifacts-toolbar__search :deep(.q-field__native),
+.artifacts-toolbar__search :deep(.q-field__input) {
+  min-height: var(--ds-control-height-md);
+  height: var(--ds-control-height-md);
+}
+
+.artifacts-toolbar__search :deep(.q-field__control) {
+  padding: 0 var(--ds-control-inline-padding);
+}
+
+.artifacts-empty-state {
+  padding: 24px;
+}
+
 .artifacts-grid {
   align-items: stretch;
 }
@@ -2671,13 +3224,74 @@ watch(previewFocusClaimRows, (claims) => {
   line-height: 1.45;
 }
 
+.artifacts-table {
+  border: 1px solid var(--ds-table-border);
+  border-radius: var(--ds-control-radius);
+  overflow: hidden;
+}
+
+.artifacts-table :deep(thead tr) {
+  background: var(--ds-table-header-bg);
+}
+
+.artifacts-table :deep(th) {
+  color: var(--ds-table-header-text);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-sm-medium);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.artifacts-table :deep(td) {
+  color: var(--ds-table-cell-text);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-light);
+}
+
 @media (max-width: 900px) {
   .artifact-preview-sidebar {
     width: min(360px, 44vw);
   }
 }
 
+@media (max-width: 1200px) {
+  .artifacts-shell {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .artifacts-shell__hero {
+    grid-template-columns: 1fr;
+  }
+
+  .artifacts-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .artifacts-toolbar__block {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .artifacts-toolbar__filter-control,
+  .artifacts-toolbar__search,
+  .artifacts-toolbar__toggle {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 @media (max-width: 720px) {
+  .artifacts-shell__hero {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .artifacts-dashboard__stats {
+    grid-template-columns: 1fr;
+  }
+
   .artifact-card__meta {
     grid-template-columns: 1fr;
   }
