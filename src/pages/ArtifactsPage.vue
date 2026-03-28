@@ -1148,38 +1148,41 @@ onMounted(() => {
 <style scoped>
 .artifacts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
 }
 
 .artifact-card {
   display: flex;
   flex-direction: column;
-  min-height: 260px;
+  min-height: 220px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
     #fff;
 }
 
 .artifact-card__header {
-  padding-bottom: 12px;
+  padding-bottom: 8px;
 }
 
 .artifact-card__title {
   line-height: 1.25;
+  font-size: 1rem;
 }
 
 .artifact-card__body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .artifact-card__meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .artifact-card__meta-label {
@@ -1195,12 +1198,12 @@ onMounted(() => {
 .artifact-card__description {
   display: -webkit-box;
   overflow: hidden;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
 .artifact-card__actions {
-  padding: 12px 16px 16px;
+  padding: 8px 12px 12px;
 }
 
 .artifact-preview-dialog {
@@ -1253,7 +1256,17 @@ onMounted(() => {
   border-radius: 12px;
 }
 
+@media (max-width: 900px) {
+  .artifacts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 720px) {
+  .artifacts-grid {
+    grid-template-columns: 1fr;
+  }
+
   .artifact-card__meta {
     grid-template-columns: 1fr;
   }
