@@ -127,19 +127,6 @@
             />
 
             <q-select
-              v-model="industryFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="pipelines-toolbar__filter-control"
-              label="Industry"
-              :options="industryFilterOptions"
-              :disable="true"
-            />
-
-            <q-select
               v-model="stageFilter"
               dense
               outlined
@@ -150,6 +137,19 @@
               label="Stage"
               :options="stageFilterOptions"
               :disable="loading || stageFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="industryFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="pipelines-toolbar__filter-control"
+              label="Industry"
+              :options="industryFilterOptions"
+              :disable="true"
             />
 
             <q-select
