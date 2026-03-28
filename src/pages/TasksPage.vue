@@ -112,16 +112,29 @@
             <q-icon name="tune" size="18px" class="tasks-toolbar__filters-icon" />
 
             <q-select
-              v-model="statusFilter"
+              v-model="ownerFilter"
               dense
               outlined
               clearable
               emit-value
               map-options
               class="tasks-toolbar__filter-control"
-              label="Status"
-              :options="statusFilterOptions"
-              :disable="loading || statusFilterOptions.length === 0"
+              label="Owner"
+              :options="ownerFilterOptions"
+              :disable="loading || ownerFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="projectFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="tasks-toolbar__filter-control"
+              label="Project"
+              :options="projectFilterOptions"
+              :disable="loading || projectFilterOptions.length === 0"
             />
 
             <q-select
@@ -138,29 +151,16 @@
             />
 
             <q-select
-              v-model="companyFilter"
+              v-model="statusFilter"
               dense
               outlined
               clearable
               emit-value
               map-options
               class="tasks-toolbar__filter-control"
-              label="Company"
-              :options="companyFilterOptions"
-              :disable="loading || companyFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="ownerFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="tasks-toolbar__filter-control"
-              label="Owner"
-              :options="ownerFilterOptions"
-              :disable="loading || ownerFilterOptions.length === 0"
+              label="Status"
+              :options="statusFilterOptions"
+              :disable="loading || statusFilterOptions.length === 0"
             />
           </div>
 
@@ -350,8 +350,8 @@ const viewMode = ref('card')
 const taskKindFilter = ref('all')
 const statusFilter = ref('')
 const priorityFilter = ref('')
-const companyFilter = ref('')
 const ownerFilter = ref('')
+const projectFilter = ref('')
 const searchQuery = ref('')
 const selectedCount = computed(() => selectedRows.value.length)
 const csvActionsRef = ref(null)
@@ -415,8 +415,10 @@ function isCompletedTask(row = {}) {
 
 const statusFilterOptions = computed(() => uniqueTaskValues((row) => row?.Status))
 const priorityFilterOptions = computed(() => uniqueTaskValues((row) => row?.Priority))
-const companyFilterOptions = computed(() => uniqueTaskValues((row) => row?.company_name))
 const ownerFilterOptions = computed(() => uniqueTaskValues((row) => row?.contact_name))
+const projectFilterOptions = computed(() =>
+  uniqueTaskValues((row) => row?.project_name || row?.Project_Name || row?.current_project_name),
+)
 
 const tasksDashboard = computed(() => {
   const total = rows.value.length
@@ -487,11 +489,15 @@ const displayRows = computed(() => {
   if (priorityFilter.value) {
     items = items.filter((row) => normalizeTaskValue(row?.Priority) === priorityFilter.value)
   }
-  if (companyFilter.value) {
-    items = items.filter((row) => normalizeTaskValue(row?.company_name) === companyFilter.value)
-  }
   if (ownerFilter.value) {
     items = items.filter((row) => normalizeTaskValue(row?.contact_name) === ownerFilter.value)
+  }
+  if (projectFilter.value) {
+    items = items.filter(
+      (row) =>
+        normalizeTaskValue(row?.project_name || row?.Project_Name || row?.current_project_name) ===
+        projectFilter.value,
+    )
   }
 
   if (query) {
