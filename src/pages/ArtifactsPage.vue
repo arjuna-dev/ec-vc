@@ -1241,8 +1241,22 @@ function artifactFileName(row = {}) {
   return fsPath.split(/[\\/]/).pop() || ''
 }
 
+function looksLikeUuid(value = '') {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    String(value || '').trim(),
+  )
+}
+
+function artifactBaseName(row = {}) {
+  const fileName = artifactFileName(row)
+  if (!fileName) return ''
+  return fileName.replace(/\.[^.]+$/, '').trim()
+}
+
 function artifactDisplayName(row = {}) {
-  return String(row?.title || '').trim() || artifactFileName(row)
+  const title = String(row?.title || '').trim()
+  if (title && !looksLikeUuid(title)) return title
+  return artifactBaseName(row) || artifactFileName(row)
 }
 
 function formatArtifactDate(value) {
