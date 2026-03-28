@@ -22,7 +22,7 @@
       <section class="tasks-shell">
         <div class="tasks-shell__hero">
           <div class="tasks-shell__copy">
-            <div class="tasks-shell__eyebrow">Tasks dashboard</div>
+            <div class="tasks-shell__eyebrow">Dashboard</div>
             <h2 class="tasks-shell__hero-title">Keep the next actions visible and moving.</h2>
             <p class="tasks-shell__hero-text">{{ tasksHeroText }}</p>
 
@@ -754,9 +754,7 @@ watch(displayRows, () => {
   max-width: 12ch;
 }
 
-.tasks-shell__hero-text,
-.tasks-dashboard__stat-caption,
-.tasks-dashboard__health-text {
+.tasks-shell__hero-text {
   margin: auto 0 0;
   color: var(--ds-color-text-secondary);
   font-family: var(--ds-font-family-body);
@@ -768,6 +766,15 @@ watch(displayRows, () => {
 .tasks-shell__hero-text {
   display: flex;
   align-items: flex-end;
+}
+
+.tasks-dashboard__stat-caption,
+.tasks-dashboard__health-text {
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-sm-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-sm);
 }
 
 .tasks-shell__hero-meta {

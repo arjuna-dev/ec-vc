@@ -22,7 +22,7 @@
       <section class="notes-shell">
         <div class="notes-shell__hero">
           <div class="notes-shell__copy">
-            <div class="notes-shell__eyebrow">Notes dashboard</div>
+            <div class="notes-shell__eyebrow">Dashboard</div>
             <h2 class="notes-shell__hero-title">Capture what matters and find it quickly.</h2>
             <p class="notes-shell__hero-text">{{ notesHeroText }}</p>
 
@@ -663,9 +663,7 @@ watch(displayRows, () => {
   max-width: 12ch;
 }
 
-.notes-shell__hero-text,
-.notes-dashboard__stat-caption,
-.notes-dashboard__health-text {
+.notes-shell__hero-text {
   margin: auto 0 0;
   color: var(--ds-color-text-secondary);
   font-family: var(--ds-font-family-body);
@@ -677,6 +675,15 @@ watch(displayRows, () => {
 .notes-shell__hero-text {
   display: flex;
   align-items: flex-end;
+}
+
+.notes-dashboard__stat-caption,
+.notes-dashboard__health-text {
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-sm-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-sm);
 }
 
 .notes-shell__hero-meta {

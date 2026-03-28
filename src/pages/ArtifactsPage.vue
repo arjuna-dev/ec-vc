@@ -2791,9 +2791,7 @@ watch(displayArtifactRows, () => {
   max-width: 13ch;
 }
 
-.artifacts-shell__hero-text,
-.artifacts-dashboard__stat-caption,
-.artifacts-dashboard__health-text {
+.artifacts-shell__hero-text {
   margin: auto 0 0;
   color: var(--ds-color-text-secondary);
   font-family: var(--ds-font-family-body);
@@ -2805,6 +2803,15 @@ watch(displayArtifactRows, () => {
 .artifacts-shell__hero-text {
   display: flex;
   align-items: flex-end;
+}
+
+.artifacts-dashboard__stat-caption,
+.artifacts-dashboard__health-text {
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-sm-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-sm);
 }
 
 .artifacts-shell__hero-meta {
