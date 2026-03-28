@@ -273,82 +273,92 @@
               class="col-12 col-sm-6 col-lg-4"
             >
               <q-card flat bordered class="pipeline-card full-height">
-                <q-card-section class="q-pb-sm">
-                  <div class="row items-start justify-between q-col-gutter-sm">
-                    <div class="col">
-                      <div class="row items-start no-wrap">
-                        <div class="col-auto q-pr-md">
-                          <q-avatar size="56px" class="pipeline-card__avatar">
-                            <img :src="buildAvatarImage(row.name)" :alt="row.name || 'Project avatar'" />
-                          </q-avatar>
-                        </div>
-                        <div class="col">
-                          <div class="pipeline-card__eyebrow">Project</div>
-                          <div class="pipeline-card__title">{{ row.name || 'Unnamed project' }}</div>
-                          <div class="pipeline-card__subtitle">{{ statusLabel(row.install_status) }}</div>
+                <q-card-section class="pipeline-card__hero">
+                  <div class="pipeline-card__hero-main">
+                    <figure class="pipeline-card__portrait">
+                      <div class="pipeline-card__portrait-shell">
+                        <div class="pipeline-card__portrait-badge">
+                          <img :src="buildAvatarImage(row.name)" :alt="row.name || 'Project avatar'" />
                         </div>
                       </div>
-                    </div>
-                    <div class="col-auto">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
+                    </figure>
+
+                    <div class="pipeline-card__hero-side">
+                      <div class="pipeline-card__hero-top">
+                        <div class="pipeline-card__hero-copy">
+                          <div class="pipeline-card__eyebrow">Pipeline template</div>
+                          <div class="pipeline-card__title">{{ row.name || 'Unnamed project' }}</div>
+                          <div class="pipeline-card__subtitle">{{ getPipelineCardSubtitle(row) }}</div>
+                        </div>
+
+                        <q-checkbox
+                          :model-value="isSelected(row)"
+                          :disable="loading"
+                          color="dark"
+                          @update:model-value="toggleRowSelection(row, $event)"
+                        />
+                      </div>
+
+                      <div v-if="getPipelineCardPills(row).length" class="pipeline-card__pill-row">
+                        <q-badge
+                          v-for="pill in getPipelineCardPills(row)"
+                          :key="pill"
+                          class="pipeline-card__pill"
+                        >
+                          {{ pill }}
+                        </q-badge>
+                      </div>
                     </div>
                   </div>
                 </q-card-section>
 
-                <q-separator />
+                <q-card-section class="pipeline-card__summary">
+                  <div class="pipeline-card__summary-label">Highlights</div>
 
-                <q-card-section class="q-gutter-sm">
-                  <div class="row q-col-gutter-sm">
-                    <div class="col-auto">
-                      <q-badge :color="statusColor(row.install_status)" outline>
-                        {{ statusLabel(row.install_status) }}
-                      </q-badge>
-                    </div>
-                    <div v-if="row.pipeline_id === 'pipeline_default'" class="col-auto">
-                      <q-badge outline color="grey-6" text-color="grey-8">Default</q-badge>
+                  <div v-if="getPipelineCardDetails(row).length" class="pipeline-card__details">
+                    <div
+                      v-for="detail in getPipelineCardDetails(row)"
+                      :key="detail.label"
+                      class="pipeline-card__detail"
+                    >
+                      <q-icon :name="detail.icon" size="16px" class="pipeline-card__detail-icon" />
+                      <div class="pipeline-card__detail-copy">
+                        <div class="pipeline-card__detail-label">{{ detail.label }}</div>
+                        <div class="pipeline-card__detail-value">{{ detail.value }}</div>
+                      </div>
                     </div>
                   </div>
-                  <div class="pipeline-card__field">
-                    <q-icon name="schema" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ stageSummary(row) || 'No stages available' }}</span>
+
+                  <div v-else class="pipeline-card__summary-empty">
+                    Add more pipeline details to make this card richer.
                   </div>
                 </q-card-section>
 
-                <q-space />
-
-                <q-card-actions align="between" class="pipeline-card__actions">
+                <q-card-actions align="between" class="pipeline-card__footer">
                   <div class="pipeline-card__footer-actions">
                     <q-btn
-                      dense
-                      outline
                       no-caps
-                      color="grey-8"
+                      outline
+                      class="pipeline-card__footer-action"
                       :label="row.install_status === 'installed' ? 'Deactivate' : 'Activate'"
                       :disable="isBusy(row.install_status) || loading"
                       @click="togglePipeline(row)"
                     />
                     <q-btn
-                      dense
                       flat
                       round
                       icon="visibility"
-                      color="grey-8"
+                      class="pipeline-card__icon-action"
                       :disable="loading"
                       @click="openDatabook(row)"
                     />
                   </div>
                   <div class="pipeline-card__footer-actions">
                     <q-btn
-                      dense
                       flat
                       round
                       icon="delete"
-                      color="grey-8"
+                      class="pipeline-card__icon-action"
                       :disable="loading || row.pipeline_id === 'pipeline_default'"
                       @click="confirmDelete(row)"
                     />
@@ -624,6 +634,59 @@ function stageSummary(row) {
     .map((stage) => stage?.name)
     .filter(Boolean)
     .join(', ')
+}
+
+function getPipelineCardSubtitle(row) {
+  return (
+    normalizePipelineValue(stageSummary(row)) ||
+    normalizePipelineValue(row?.dir_name) ||
+    statusLabel(row?.install_status) ||
+    'Pipeline workflow not defined yet'
+  )
+}
+
+function getPipelineCardPills(row) {
+  const stageCount = parsedStages(row).length
+  return [
+    statusLabel(row?.install_status),
+    row?.pipeline_id === 'pipeline_default' ? 'Default' : '',
+    stageCount ? `${stageCount} stage${stageCount === 1 ? '' : 's'}` : '',
+  ].filter(Boolean)
+}
+
+function getPipelineCardDetails(row) {
+  const stageCount = parsedStages(row).length
+
+  return [
+    row?.dir_name
+      ? {
+          label: 'Folder',
+          value: normalizePipelineValue(row.dir_name),
+          icon: 'folder',
+        }
+      : null,
+    stageCount
+      ? {
+          label: 'Stages',
+          value: String(stageCount),
+          icon: 'schema',
+        }
+      : null,
+    stageSummary(row)
+      ? {
+          label: 'Flow',
+          value: stageSummary(row),
+          icon: 'route',
+        }
+      : null,
+    {
+      label: 'Status',
+      value: statusLabel(row?.install_status),
+      icon: 'flag',
+    },
+  ]
+    .filter(Boolean)
+    .slice(0, 4)
 }
 
 function buildAvatarImage(label) {
@@ -1301,59 +1364,229 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  border-radius: 8px;
-  border-color: #e5e5e5;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-radius: 20px;
+  border-color: rgba(17, 17, 17, 0.1);
+  box-shadow: 0 12px 30px rgba(17, 17, 17, 0.06);
+  overflow: hidden;
 }
 
-.pipeline-card__eyebrow {
+.pipeline-card__hero {
+  padding: 0;
+}
+
+.pipeline-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
+}
+
+.pipeline-card__portrait {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 26% 24%, rgba(235, 255, 90, 0.16), transparent 28%),
+    radial-gradient(circle at 74% 76%, rgba(38, 71, 255, 0.12), transparent 32%),
+    linear-gradient(180deg, #fdfcf8 0%, #f5f2ea 100%);
+}
+
+.pipeline-card__portrait-shell {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.pipeline-card__portrait-badge {
+  display: flex;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+}
+
+.pipeline-card__portrait-badge img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pipeline-card__hero-side {
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 16px 12px 12px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.pipeline-card__hero-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.pipeline-card__hero-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pipeline-card__eyebrow,
+.pipeline-card__summary-label {
   color: #737373;
   font-family: var(--font-body);
-  font-size: var(--text-xs---light);
-  font-weight: var(--font-weight-light);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.14em;
   line-height: 16px;
   text-transform: uppercase;
 }
 
 .pipeline-card__title {
   color: #0a0a0a;
-  font-family: var(--font-body);
-  font-size: var(--text-base---black);
+  font-family: var(--font-title);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
   font-weight: var(--font-weight-black);
-  line-height: 24px;
+  line-height: 0.96;
 }
 
 .pipeline-card__subtitle {
-  color: #737373;
+  color: #4b4b4b;
   font-family: var(--font-body);
-  font-size: var(--text-sm---light);
-  font-weight: var(--font-weight-light);
-  line-height: 20px;
+  font-size: var(--text-xs---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+  text-wrap: balance;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
-.pipeline-card__avatar {
-  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
-}
-
-.pipeline-card__field {
-  display: flex;
-  align-items: flex-start;
-  min-width: 0;
-  color: #404040;
-  font-family: var(--font-body);
-  font-size: var(--text-sm---light);
-  font-weight: var(--font-weight-light);
-  line-height: 20px;
-}
-
-.pipeline-card__actions {
-  align-items: center;
-}
-
+.pipeline-card__pill-row,
 .pipeline-card__footer-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pipeline-card__pill {
+  padding: 6px 9px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
+
+.pipeline-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  margin: 20px 20px 0;
+  padding: 16px 18px 18px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(18px);
+}
+
+.pipeline-card__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.pipeline-card__detail {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.pipeline-card__detail-icon {
+  margin-top: 2px;
+  color: #6f6f6f;
+}
+
+.pipeline-card__detail-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pipeline-card__detail-label {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 16px;
+}
+
+.pipeline-card__detail-value {
+  overflow: hidden;
+  color: #111;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pipeline-card__summary-empty {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---light);
+  font-weight: var(--font-weight-light);
+  line-height: 20px;
+}
+
+.pipeline-card__footer {
+  display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 20px;
+}
+
+.pipeline-card__footer-action {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---light);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+}
+
+.pipeline-card__icon-action {
+  color: #111;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 17, 17, 0.1);
 }
 
 @media (max-width: 1200px) {
@@ -1399,6 +1632,35 @@ watch(displayRows, () => {
 
   .pipelines-dashboard__stat {
     min-height: 98px;
+  }
+
+  .pipeline-card__hero-main {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .pipeline-card__portrait {
+    min-height: 156px;
+  }
+
+  .pipeline-card__hero-side {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .pipeline-card__details {
+    grid-template-columns: 1fr;
+  }
+
+  .pipeline-card__summary,
+  .pipeline-card__footer {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+
+  .pipeline-card__footer {
+    padding-right: 0;
+    padding-left: 0;
   }
 }
 </style>
