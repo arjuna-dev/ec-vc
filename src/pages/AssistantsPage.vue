@@ -170,20 +170,42 @@
           <div v-else class="row q-col-gutter-md assistants-cards-grid">
             <div v-for="assistant in displayRows" :key="assistant.assistant_system_prompt_id" class="col-12 col-md-6 col-lg-4">
               <q-card flat bordered class="assistant-card full-height">
-                <q-card-section>
-                  <div class="assistant-card__eyebrow">Assistant</div>
-                  <div class="assistant-card__title">
-                    {{ assistant.name || 'Unnamed assistant' }}
+                <q-card-section class="assistant-card__header">
+                  <div class="row items-start justify-between q-col-gutter-sm no-wrap">
+                    <div class="col">
+                      <div class="assistant-card__eyebrow">Assistant</div>
+                      <div class="assistant-card__title">
+                        {{ assistant.name || 'Unnamed assistant' }}
+                      </div>
+                      <div v-if="assistant.version" class="assistant-card__meta">
+                        Version {{ assistant.version }}
+                      </div>
+                    </div>
+                    <div class="col-auto">
+                      <q-chip
+                        dense
+                        square
+                        :color="assistant.system_prompt ? 'green-1' : 'amber-2'"
+                        :text-color="assistant.system_prompt ? 'green-10' : 'amber-10'"
+                      >
+                        {{ assistant.system_prompt ? 'Prompted' : 'Needs prompt' }}
+                      </q-chip>
+                    </div>
                   </div>
-                  <div v-if="assistant.version" class="assistant-card__meta">
-                    Version {{ assistant.version }}
+                </q-card-section>
+
+                <q-separator />
+
+                <q-card-section class="assistant-card__body">
+                  <div class="assistant-card__section">
+                    <div class="assistant-card__section-label">System Prompt</div>
+                    <div class="assistant-card__block">{{ assistant.system_prompt || 'No system prompt.' }}</div>
                   </div>
 
-                  <div class="assistant-card__section-label">System Prompt</div>
-                  <div class="assistant-card__block">{{ assistant.system_prompt || 'No system prompt.' }}</div>
-
-                  <div class="assistant-card__section-label">Tools / Functions / Context</div>
-                  <div class="assistant-card__block">{{ assistant.input_contract || 'None' }}</div>
+                  <div class="assistant-card__section">
+                    <div class="assistant-card__section-label">Tools / Functions / Context</div>
+                    <div class="assistant-card__block">{{ assistant.input_contract || 'None' }}</div>
+                  </div>
                 </q-card-section>
               </q-card>
             </div>
@@ -658,12 +680,55 @@ onMounted(loadAssistants)
 }
 
 .assistant-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  border-radius: 18px;
-  border-color: rgba(148, 163, 184, 0.28);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  border-radius: 24px;
+  border-color: rgba(148, 163, 184, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
+    #fff;
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.assistant-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 16%, rgba(38, 71, 255, 0.08), transparent 34%),
+    radial-gradient(circle at 88% 0%, rgba(235, 255, 90, 0.1), transparent 28%);
+}
+
+.assistant-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.assistant-card__header {
+  padding-bottom: 10px;
+}
+
+.assistant-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.assistant-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .assistant-card__eyebrow {
@@ -688,8 +753,6 @@ onMounted(loadAssistants)
 }
 
 .assistant-card__section-label {
-  margin-top: 12px;
-  margin-bottom: 6px;
   color: #64748b;
   font-size: 0.75rem;
   font-weight: 700;
@@ -702,6 +765,10 @@ onMounted(loadAssistants)
   font-size: 0.86rem;
   line-height: 1.5;
   white-space: pre-wrap;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 7;
+  -webkit-box-orient: vertical;
 }
 
 @media (max-width: 1200px) {
