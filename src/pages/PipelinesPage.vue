@@ -278,7 +278,7 @@
                     <figure class="pipeline-card__portrait">
                       <div class="pipeline-card__portrait-shell">
                         <div class="pipeline-card__portrait-badge">
-                          <img :src="buildAvatarImage(row.name)" :alt="row.name || 'Project avatar'" />
+                          <img :src="buildAvatarImage(getPipelineCardTitle(row))" :alt="getPipelineCardTitle(row) || 'Project avatar'" />
                         </div>
                       </div>
                     </figure>
@@ -287,7 +287,7 @@
                       <div class="pipeline-card__hero-top">
                         <div class="pipeline-card__hero-copy">
                           <div class="pipeline-card__eyebrow">Pipeline template</div>
-                          <div class="pipeline-card__title">{{ row.name || 'Unnamed project' }}</div>
+                          <div class="pipeline-card__title">{{ getPipelineCardTitle(row) }}</div>
                           <div class="pipeline-card__subtitle">{{ getPipelineCardSubtitle(row) }}</div>
                         </div>
 
@@ -631,6 +631,14 @@ function getPipelineCardSubtitle(row) {
   }
 
   return normalizePipelineValue(row?.dir_name) || 'Pipeline workflow not defined yet'
+}
+
+function getPipelineCardTitle(row) {
+  if (row?.pipeline_id === 'pipeline_default') {
+    return 'User Pipeline'
+  }
+
+  return normalizePipelineValue(row?.name) || 'Unnamed project'
 }
 
 function getPipelineCardStages(row) {
