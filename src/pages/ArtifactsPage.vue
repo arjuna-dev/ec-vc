@@ -82,7 +82,7 @@
                   :color="artifactNeedsAttention(artifact) ? 'amber-2' : 'green-1'"
                   :text-color="artifactNeedsAttention(artifact) ? 'amber-10' : 'green-10'"
                 >
-                  {{ artifactNeedsAttention(artifact) ? 'Needs intake review' : 'Ready' }}
+                  {{ artifactStatusLabel(artifact) }}
                 </q-chip>
               </div>
             </div>
@@ -139,10 +139,10 @@
                 color="primary"
                 unelevated
                 no-caps
-                :icon="artifactNeedsAttention(artifact) ? 'play_arrow' : 'tune'"
-                :label="artifactNeedsAttention(artifact) ? 'Continue Intake' : 'Open Properties'"
+                :icon="artifactActionConfig(artifact).icon"
+                :label="artifactActionConfig(artifact).label"
                 :disable="loading || savingProperties"
-                @click="artifactNeedsAttention(artifact) ? continueArtifactIntake(artifact) : void openPropertiesDialog(artifact)"
+                @click="continueArtifactIntake(artifact)"
               />
             </div>
           </q-card-actions>
@@ -514,6 +514,12 @@ function openCreateArtifact() {
 }
 
 function continueArtifactIntake(row = {}) {
+  const nextAction = artifactNextAction(row)
+  if (nextAction === 'artifact-properties' || nextAction === 'ready') {
+    void openPropertiesDialog(row)
+    return
+  }
+
   const artifactId = String(row?.artifact_id || '').trim()
   if (!artifactId) {
     void openPropertiesDialog(row)
@@ -532,6 +538,7 @@ function continueArtifactIntake(row = {}) {
     stage: 'Quick Review Needed',
     resumeArtifactIds: [artifactId],
     resumeMode: 'existing-artifact-link',
+    nextAction,
   })
 
   globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
@@ -785,7 +792,31 @@ function formatArtifactDate(value) {
 }
 
 function artifactNeedsAttention(row = {}) {
-  return !String(row?.opportunity_id || '').trim() || !String(row?.title || '').trim()
+  return artifactNextAction(row) !== 'ready'
+}
+
+function artifactNextAction(row = {}) {
+  const title = String(row?.title || '').trim()
+  const description = String(row?.description || '').trim()
+  const opportunityId = String(row?.opportunity_id || '').trim()
+
+  if (!title || !description) return 'artifact-properties'
+  if (!opportunityId) return 'link-opportunity'
+  return 'ready'
+}
+
+function artifactStatusLabel(row = {}) {
+  const nextAction = artifactNextAction(row)
+  if (nextAction === 'artifact-properties') return 'Needs properties'
+  if (nextAction === 'link-opportunity') return 'Needs opportunity link'
+  return 'Ready'
+}
+
+function artifactActionConfig(row = {}) {
+  const nextAction = artifactNextAction(row)
+  if (nextAction === 'artifact-properties') return { icon: 'tune', label: 'Fix Properties' }
+  if (nextAction === 'link-opportunity') return { icon: 'link', label: 'Link Opportunity' }
+  return { icon: 'tune', label: 'Open Properties' }
 }
 
 function filterOpportunityOptions(value, update) {

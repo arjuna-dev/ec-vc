@@ -2,9 +2,9 @@
   <q-dialog v-model="open">
     <q-card style="width: 760px; max-width: 96vw">
       <q-card-section>
-        <div class="text-h6">Add new artifacts</div>
+        <div class="text-h6">{{ dialogTitle }}</div>
         <div class="text-caption text-grey-7">
-          Drop files first, then select the opportunity.
+          {{ dialogCaption }}
         </div>
       </q-card-section>
 
@@ -36,10 +36,18 @@
         </div>
 
         <div v-else class="q-gutter-md">
+          <q-banner
+            v-if="isResumeLinkMode"
+            class="bg-blue-1 text-blue-10"
+            rounded
+          >
+            This step is only for linking the existing artifact to an opportunity. You can close and return later if
+            you are not ready to link it yet.
+          </q-banner>
           <q-select
             v-model="opportunityId"
             outlined
-            label="Opportunity *"
+            :label="isResumeLinkMode ? 'Link Opportunity' : 'Opportunity *'"
             :options="opportunityOptions"
             emit-value
             map-options
@@ -91,7 +99,7 @@
         <q-btn
           v-if="step === 2"
           color="primary"
-          label="Finish"
+          :label="isResumeLinkMode ? 'Link Artifact' : 'Finish'"
           :disable="!opportunityId || loading"
           :loading="loading"
           @click="finish"
@@ -209,6 +217,14 @@ const opportunityOptions = computed(() =>
     label: `${o.Company_Name || 'Unknown'}${o.Round_Stage ? ` — ${o.Round_Stage}` : ''}`,
     value: o.id,
   })),
+)
+
+const isResumeLinkMode = computed(() => String(activeDraft.value?.resumeMode || '').trim() === 'existing-artifact-link')
+const dialogTitle = computed(() => (isResumeLinkMode.value ? 'Continue Artifact Intake' : 'Add new artifacts'))
+const dialogCaption = computed(() =>
+  isResumeLinkMode.value
+    ? 'Resume this artifact at the opportunity-linking step.'
+    : 'Drop files first, then select the opportunity.',
 )
 
 const intakeGuideVisibleFields = computed(() => {
