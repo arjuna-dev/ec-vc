@@ -2,8 +2,8 @@
   <q-page class="home-dashboard q-pa-md">
     <section class="home-dashboard__intro">
       <div class="home-dashboard__intro-copy">
-        <div class="home-dashboard__eyebrow">Workspace cockpit</div>
         <h1 class="home-dashboard__title">Home</h1>
+        <div class="home-dashboard__eyebrow">Workspace cockpit</div>
       </div>
 
       <div class="home-dashboard__intro-actions">

@@ -17,8 +17,8 @@
     <div v-else class="pipelines-page">
       <header class="pipelines-page__heading">
         <div class="pipelines-page__heading-copy">
-          <div class="pipelines-page__eyebrow">Workspace cockpit</div>
           <h1 class="pipelines-page__title">Pipelines</h1>
+          <div class="pipelines-page__eyebrow">Workspace cockpit</div>
         </div>
       </header>
 

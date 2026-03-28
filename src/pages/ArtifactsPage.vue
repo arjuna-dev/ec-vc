@@ -17,8 +17,8 @@
     <div v-else class="artifacts-page">
       <header class="artifacts-page__heading">
         <div class="artifacts-page__heading-copy">
-          <div class="artifacts-page__eyebrow">Workspace cockpit</div>
           <h1 class="artifacts-page__title">Artifacts</h1>
+          <div class="artifacts-page__eyebrow">Workspace cockpit</div>
         </div>
       </header>
 

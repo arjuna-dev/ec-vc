@@ -17,8 +17,8 @@
     <div v-else class="tasks-page">
       <header class="tasks-page__heading">
         <div class="tasks-page__heading-copy">
-          <div class="tasks-page__eyebrow">Workspace cockpit</div>
           <h1 class="tasks-page__title">Tasks</h1>
+          <div class="tasks-page__eyebrow">Workspace cockpit</div>
         </div>
       </header>
 

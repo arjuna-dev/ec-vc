@@ -17,8 +17,8 @@
     <div v-else class="notes-page">
       <header class="notes-page__heading">
         <div class="notes-page__heading-copy">
-          <div class="notes-page__eyebrow">Workspace cockpit</div>
           <h1 class="notes-page__title">Notes</h1>
+          <div class="notes-page__eyebrow">Workspace cockpit</div>
         </div>
       </header>
 
