@@ -17,6 +17,21 @@
     <div v-else class="contacts-page">
       <header class="contacts-page__heading">
         <h1 class="contacts-page__title">Contacts</h1>
+        <div class="contacts-page__heading-actions">
+          <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
+            <q-tooltip>Import CSV</q-tooltip>
+          </q-btn>
+          <q-btn
+            dense
+            flat
+            round
+            icon="upload"
+            :disable="loading || displayRows.length === 0"
+            @click="exportContactsCsv"
+          >
+            <q-tooltip>Export CSV</q-tooltip>
+          </q-btn>
+        </div>
       </header>
 
       <section class="contacts-shell">
@@ -116,12 +131,6 @@
               :disable="loading"
               :options="viewOptions"
             />
-            <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn dense flat round icon="upload" :disable="loading || displayRows.length === 0" @click="exportContactsCsv">
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
           </div>
         </div>
 
@@ -999,6 +1008,8 @@ watch(displayRows, () => {
 .contacts-page__heading {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-12);
 }
 
 .contacts-page__title {
@@ -1009,6 +1020,13 @@ watch(displayRows, () => {
   font-weight: var(--ds-font-weight-black);
   letter-spacing: 0;
   line-height: var(--ds-line-height-title);
+}
+
+.contacts-page__heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .contacts-shell {

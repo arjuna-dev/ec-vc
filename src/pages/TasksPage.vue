@@ -18,15 +18,15 @@
         />
       </div>
       <div class="col-auto">
+        <q-btn dense flat icon="refresh" :loading="loading" @click="loadTasks" />
+      </div>
+      <div class="col-auto">
         <TableCsvActions
           filename-base="tasks"
           :headers="csvHeaders"
           :rows="rows"
           :on-import-rows="importRows"
         />
-      </div>
-      <div class="col-auto">
-        <q-btn dense flat icon="refresh" :loading="loading" @click="loadTasks" />
       </div>
     </div>
 

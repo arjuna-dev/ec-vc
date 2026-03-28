@@ -17,6 +17,21 @@
     <div v-else class="companies-page">
       <header class="companies-page__heading">
         <h1 class="companies-page__title">Companies</h1>
+        <div class="companies-page__heading-actions">
+          <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
+            <q-tooltip>Import CSV</q-tooltip>
+          </q-btn>
+          <q-btn
+            dense
+            flat
+            round
+            icon="upload"
+            :disable="loading || displayRows.length === 0"
+            @click="exportCompaniesCsv"
+          >
+            <q-tooltip>Export CSV</q-tooltip>
+          </q-btn>
+        </div>
       </header>
 
       <section class="companies-shell">
@@ -116,12 +131,6 @@
               :disable="loading"
               :options="viewOptions"
             />
-            <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn dense flat round icon="upload" :disable="loading || displayRows.length === 0" @click="exportCompaniesCsv">
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
           </div>
         </div>
 
@@ -1034,6 +1043,8 @@ watch(displayRows, () => {
 .companies-page__heading {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-12);
 }
 
 .companies-page__title {
@@ -1043,6 +1054,13 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-4xl);
   font-weight: var(--ds-font-weight-black);
   line-height: var(--ds-line-height-title);
+}
+
+.companies-page__heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .companies-shell {

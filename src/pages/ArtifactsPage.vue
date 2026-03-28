@@ -31,15 +31,15 @@
           />
         </div>
         <div class="col-auto">
+          <q-btn dense flat icon="refresh" :loading="loading" @click="loadArtifacts" />
+        </div>
+        <div class="col-auto">
           <TableCsvActions
             filename-base="artifacts"
             :headers="csvHeaders"
             :rows="rows"
             :on-import-rows="importRows"
           />
-        </div>
-        <div class="col-auto">
-          <q-btn dense flat icon="refresh" :loading="loading" @click="loadArtifacts" />
         </div>
       </div>
 

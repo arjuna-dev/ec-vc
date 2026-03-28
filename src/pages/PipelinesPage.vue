@@ -17,6 +17,21 @@
     <div v-else class="pipelines-page">
       <header class="pipelines-page__heading">
         <h1 class="pipelines-page__title">Projects</h1>
+        <div class="pipelines-page__heading-actions">
+          <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
+            <q-tooltip>Import CSV</q-tooltip>
+          </q-btn>
+          <q-btn
+            dense
+            flat
+            round
+            icon="upload"
+            :disable="loading || displayRows.length === 0"
+            @click="exportPipelinesCsv"
+          >
+            <q-tooltip>Export CSV</q-tooltip>
+          </q-btn>
+        </div>
       </header>
 
       <section class="pipelines-shell">
@@ -106,12 +121,6 @@
               :disable="loading"
               :options="viewOptions"
             />
-            <q-btn dense flat round icon="download" :disable="loading" @click="pickImportFile">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn dense flat round icon="upload" :disable="loading || displayRows.length === 0" @click="exportPipelinesCsv">
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
           </div>
         </div>
 
@@ -759,6 +768,8 @@ watch(displayRows, () => {
 .pipelines-page__heading {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-12);
 }
 
 .pipelines-page__title {
@@ -768,6 +779,13 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-4xl);
   font-weight: var(--ds-font-weight-black);
   line-height: var(--ds-line-height-title);
+}
+
+.pipelines-page__heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .pipelines-shell {
