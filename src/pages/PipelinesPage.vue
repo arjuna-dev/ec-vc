@@ -274,16 +274,20 @@
             >
               <q-card flat bordered class="pipeline-card full-height">
                 <q-card-section class="q-pb-sm">
-                  <div class="row items-start no-wrap">
-                    <div class="col-auto q-pr-md">
-                      <q-avatar size="56px" class="pipeline-card__avatar">
-                        <img :src="buildAvatarImage(row.name)" :alt="row.name || 'Project avatar'" />
-                      </q-avatar>
-                    </div>
+                  <div class="row items-start justify-between q-col-gutter-sm">
                     <div class="col">
-                      <div class="pipeline-card__eyebrow">Project</div>
-                      <div class="pipeline-card__title">{{ row.name || 'Unnamed project' }}</div>
-                      <div class="pipeline-card__subtitle">{{ statusLabel(row.install_status) }}</div>
+                      <div class="row items-start no-wrap">
+                        <div class="col-auto q-pr-md">
+                          <q-avatar size="56px" class="pipeline-card__avatar">
+                            <img :src="buildAvatarImage(row.name)" :alt="row.name || 'Project avatar'" />
+                          </q-avatar>
+                        </div>
+                        <div class="col">
+                          <div class="pipeline-card__eyebrow">Project</div>
+                          <div class="pipeline-card__title">{{ row.name || 'Unnamed project' }}</div>
+                          <div class="pipeline-card__subtitle">{{ statusLabel(row.install_status) }}</div>
+                        </div>
+                      </div>
                     </div>
                     <div class="col-auto">
                       <q-checkbox
