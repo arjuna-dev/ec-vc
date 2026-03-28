@@ -95,6 +95,77 @@
             />
           </div>
 
+          <div class="companies-toolbar__block companies-toolbar__block--kind">
+            <q-btn-toggle
+              v-model="companyKindFilter"
+              dense
+              no-caps
+              unelevated
+              toggle-color="dark"
+              color="white"
+              text-color="grey-8"
+              class="companies-toolbar__toggle companies-toolbar__kind-toggle"
+              :disable="loading"
+              :options="companyKindOptions"
+            />
+          </div>
+
+          <div class="companies-toolbar__block companies-toolbar__block--filters">
+            <q-icon name="tune" size="18px" class="companies-toolbar__filters-icon" />
+
+            <q-select
+              v-model="stageFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="companies-toolbar__filter-control"
+              label="Stage"
+              :options="stageFilterOptions"
+              :disable="loading || stageFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="industryFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="companies-toolbar__filter-control"
+              label="Industry"
+              :options="industryFilterOptions"
+              :disable="loading || industryFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="locationFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="companies-toolbar__filter-control"
+              label="Location"
+              :options="locationFilterOptions"
+              :disable="loading || locationFilterOptions.length === 0"
+            />
+
+            <q-select
+              v-model="statusFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="companies-toolbar__filter-control"
+              label="Status"
+              :options="statusFilterOptions"
+              :disable="loading || statusFilterOptions.length === 0"
+            />
+          </div>
+
           <div class="companies-toolbar__block companies-toolbar__block--search">
             <q-input
               v-model="searchQuery"
@@ -102,21 +173,8 @@
               outlined
               borderless
               class="companies-toolbar__search"
-              placeholder="Filter companies..."
+              placeholder="Search companies..."
               :disable="loading"
-            />
-          </div>
-
-          <div class="companies-toolbar__block companies-toolbar__block--actions">
-            <q-btn
-              dense
-              outline
-              no-caps
-              icon="refresh"
-              label="Refresh"
-              class="companies-toolbar__button"
-              :loading="loading"
-              @click="loadCompanies"
             />
           </div>
         </div>
@@ -373,6 +431,11 @@ const selectedRows = ref([])
 const loading = ref(false)
 const error = ref('')
 const companyDialogOpen = ref(false)
+const companyKindFilter = ref('all')
+const stageFilter = ref('')
+const industryFilter = ref('')
+const locationFilter = ref('')
+const statusFilter = ref('')
 const searchQuery = ref('')
 const viewMode = ref(getRouteViewMode(route.query.view))
 const pagination = ref({ page: 1, rowsPerPage: 10 })
@@ -483,6 +546,33 @@ const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
 ]
+const companyKindOptions = [
+  { label: 'All', value: 'all' },
+  { label: 'Asset Managers', value: 'asset_managers' },
+  { label: 'Corps', value: 'corps' },
+]
+
+function uniqueCompanyValues(resolver) {
+  return [...new Set(rows.value.map((row) => normalizeCompanyValue(resolver(row))).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right))
+    .map((value) => ({ label: value, value }))
+}
+
+const stageFilterOptions = computed(() => uniqueCompanyValues((row) => row?.Company_Stage))
+const industryFilterOptions = computed(() =>
+  uniqueCompanyValues(
+    (row) =>
+      row?.Industry_Name ||
+      row?.Industry ||
+      row?.Industry_Sector ||
+      row?.Sector ||
+      row?.Vertical,
+  ),
+)
+const locationFilterOptions = computed(() =>
+  uniqueCompanyValues((row) => row?.Headquarters_City_Name || row?.Incorporation_Country_Name),
+)
+const statusFilterOptions = computed(() => uniqueCompanyValues((row) => row?.Status))
 
 const companiesDashboard = computed(() => {
   const total = rows.value.length
@@ -572,6 +662,41 @@ const displayRows = computed(() => {
 
   let items = [...rows.value]
 
+  if (companyKindFilter.value === 'asset_managers') {
+    items = items.filter((row) => classifyCompanyKind(row) === 'asset_managers')
+  } else if (companyKindFilter.value === 'corps') {
+    items = items.filter((row) => classifyCompanyKind(row) === 'corps')
+  }
+
+  if (stageFilter.value) {
+    items = items.filter((row) => normalizeCompanyValue(row?.Company_Stage) === stageFilter.value)
+  }
+
+  if (industryFilter.value) {
+    items = items.filter(
+      (row) =>
+        normalizeCompanyValue(
+          row?.Industry_Name ||
+            row?.Industry ||
+            row?.Industry_Sector ||
+            row?.Sector ||
+            row?.Vertical,
+        ) === industryFilter.value,
+    )
+  }
+
+  if (locationFilter.value) {
+    items = items.filter(
+      (row) =>
+        normalizeCompanyValue(row?.Headquarters_City_Name || row?.Incorporation_Country_Name) ===
+        locationFilter.value,
+    )
+  }
+
+  if (statusFilter.value) {
+    items = items.filter((row) => normalizeCompanyValue(row?.Status) === statusFilter.value)
+  }
+
   if (query) {
     items = items.filter((row) =>
       [
@@ -595,6 +720,30 @@ const displayRows = computed(() => {
 
 function normalizeCompanyValue(value) {
   return String(value || '').trim()
+}
+
+function classifyCompanyKind(row) {
+  const companyType = normalizeCompanyValue(row?.Company_Type).toLowerCase()
+  const companyName = normalizeCompanyValue(row?.Company_Name).toLowerCase()
+  const summary = normalizeCompanyValue(row?.One_Liner || row?.Description).toLowerCase()
+  const combined = `${companyType} ${companyName} ${summary}`.trim()
+  const assetManagerHints = [
+    'asset manager',
+    'investment manager',
+    'fund manager',
+    'venture partner',
+    'venture capital',
+    'asset management',
+    'investment adviser',
+    'investment advisor',
+    'registered investment adviser',
+    'ria',
+    'family office',
+    'fund',
+    'gp',
+  ]
+
+  return assetManagerHints.some((hint) => combined.includes(hint)) ? 'asset_managers' : 'corps'
 }
 
 function hasCompanyLogo() {
@@ -1274,7 +1423,7 @@ watch(displayRows, () => {
 
 .companies-toolbar {
   display: grid;
-  grid-template-columns: auto minmax(280px, 1fr) auto;
+  grid-template-columns: auto auto minmax(0, 1.2fr) minmax(260px, 0.7fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1287,8 +1436,17 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
+.companies-toolbar__block--filters {
+  flex-wrap: nowrap;
+}
+
 .companies-toolbar__block--search {
-  justify-content: stretch;
+  justify-content: flex-end;
+}
+
+.companies-toolbar__filters-icon {
+  color: var(--ds-color-text-muted);
+  flex: 0 0 auto;
 }
 
 .companies-toolbar__search {
@@ -1311,7 +1469,6 @@ watch(displayRows, () => {
   padding: 0 var(--ds-control-inline-padding);
 }
 
-.companies-toolbar__button,
 .companies-toolbar__toggle {
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
@@ -1324,6 +1481,22 @@ watch(displayRows, () => {
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
+}
+
+.companies-toolbar__kind-toggle :deep(.q-btn) {
+  min-width: 84px;
+  padding-inline: 18px;
+}
+
+.companies-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.companies-toolbar__filter-control {
+  flex: 0 1 clamp(110px, 16vw, 160px);
+  min-width: 110px;
+  background: var(--ds-control-surface);
+  border-radius: var(--ds-control-radius);
 }
 
 .companies-surface {
