@@ -1191,10 +1191,13 @@ const intakeVisibleFieldKeys = computed(() => {
   return pendingKeys.length ? pendingKeys : buildVisibleIntakeFieldKeys(intakeReviewFields.value)
 })
 
+const intakeReviewVisiblePendingKeys = computed(() =>
+  intakeVisibleFieldKeys.value.filter((key) => String(intakeReviewFields.value[key] || '').trim().length > 0),
+)
+
 const intakeReviewReadyToContinue = computed(() => {
-  const pendingKeys = getPendingIntakeReviewFieldKeys(intakeReviewFields.value)
-  if (!pendingKeys.length) return true
-  return pendingKeys.every((key) => Boolean(intakeReviewVerified.value[key]))
+  if (!intakeReviewVisiblePendingKeys.value.length) return true
+  return intakeReviewVisiblePendingKeys.value.every((key) => Boolean(intakeReviewVerified.value[key]))
 })
 
 const intakeUsedInfoRows = computed(() =>
