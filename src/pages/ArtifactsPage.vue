@@ -479,7 +479,7 @@
           <q-card-section class="artifact-preview-dialog__body artifact-preview-dialog__body--split">
             <div class="artifact-preview-dialog__main">
               <div
-                v-if="previewState.kind === 'pdf' && previewSectionOptions.length"
+                v-if="previewState.kind === 'pdf' && previewSectionOptions.length > 1"
                 class="artifact-preview-dialog__focus-strip"
               >
                 <div class="artifact-preview-dialog__focus-copy">
@@ -559,7 +559,7 @@
                 </div>
               </div>
 
-              <div class="artifact-preview-sidebar__section">
+              <div v-if="previewSectionOptions.length > 1" class="artifact-preview-sidebar__section">
                 <q-select
                   v-model="previewSelectedSectionKey"
                   outlined
@@ -569,10 +569,13 @@
                   label="Slide / Section"
                   :options="previewSectionOptions"
                 />
-                <div
-                  v-if="previewState.kind === 'pdf' && previewSectionOptions.length === 1 && previewSectionOptions[0]?.label === 'Document Review'"
-                  class="text-caption text-grey-6 q-mt-sm"
-                >
+              </div>
+
+              <div
+                v-if="previewState.kind === 'pdf' && previewSectionOptions.length <= 1"
+                class="artifact-preview-sidebar__section"
+              >
+                <div class="text-caption text-grey-6">
                   Slide-level mappings are not available for this file yet, so this review falls back to document-wide markdown.
                 </div>
               </div>
@@ -880,7 +883,7 @@ const previewUsedClaimRows = computed(() => {
   return (Array.isArray(draft?.usedMetadataClaims) ? draft.usedMetadataClaims : [])
     .filter((claim) => {
       const sourceChunkId = String(claim?.source_chunk_id || '').trim()
-      if (previewSelectedSectionKey.value) return sourceChunkId === previewSelectedSectionKey.value
+      if (previewSelectedSectionKey.value && chunkIds.size) return sourceChunkId === previewSelectedSectionKey.value
       return !chunkIds.size || chunkIds.has(sourceChunkId)
     })
     .map((claim) => ({
@@ -920,15 +923,11 @@ const previewMarkdownSections = computed(() => {
   }
 
   if (!previewMarkdownContent.value.trim()) return []
-  return [
-    {
-      key: previewMarkdownArtifactId.value || 'markdown',
-      title: previewState.value.kind === 'pdf' ? 'Document Review' : 'Full Markdown',
-      text: previewMarkdownContent.value,
-      used: previewUsedClaimRows.value.length > 0,
-      ownedFields: previewUsedClaimRows.value.map((claim) => claim.field_key).filter(Boolean),
-    },
-  ]
+  return derivePreviewSectionsFromMarkdown(previewMarkdownContent.value, {
+    artifactId: previewMarkdownArtifactId.value,
+    isPdf: previewState.value.kind === 'pdf',
+    usedClaims: previewUsedClaimRows.value,
+  })
 })
 
 const previewSectionOptions = computed(() =>
@@ -1601,6 +1600,75 @@ function formatPreviewSectionTitle(chunk = {}, index = 0) {
   }
   const sectionHint = String(chunk?.section_hint || '').trim()
   return sectionHint || `Section ${index + 1}`
+}
+
+function derivePreviewSectionsFromMarkdown(markdown = '', { artifactId = '', isPdf = false, usedClaims = [] } = {}) {
+  const content = String(markdown || '').replaceAll('\r\n', '\n').trim()
+  if (!content) return []
+
+  const lines = content.split('\n')
+  const sections = []
+  let current = null
+
+  const startSection = (title, line) => {
+    if (current) sections.push(current)
+    current = {
+      key: `${artifactId || 'markdown'}:${sections.length + 1}`,
+      title: title || `${isPdf ? 'Slide' : 'Section'} ${sections.length + 1}`,
+      lines: line ? [line] : [],
+    }
+  }
+
+  for (const line of lines) {
+    const trimmed = String(line || '').trim()
+    const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/)
+    const slideMatch = trimmed.match(/^(slide|page)\s+(\d+)(?:\s*[:-]\s*(.+))?$/i)
+
+    if (headingMatch) {
+      startSection(headingMatch[2].trim(), line)
+      continue
+    }
+
+    if (slideMatch) {
+      const kind = /^page/i.test(slideMatch[1]) ? 'Page' : 'Slide'
+      const suffix = String(slideMatch[3] || '').trim()
+      startSection(`${kind} ${slideMatch[2]}${suffix ? ` - ${suffix}` : ''}`, line)
+      continue
+    }
+
+    if (!current) {
+      startSection(isPdf ? 'Document Review' : 'Full Markdown', '')
+    }
+    current.lines.push(line)
+  }
+
+  if (current) sections.push(current)
+
+  const normalizedSections = sections
+    .map((section, index) => {
+      const text = section.lines.join('\n').trim()
+      if (!text) return null
+      return {
+        key: section.key || `${artifactId || 'markdown'}:${index + 1}`,
+        title: section.title || `${isPdf ? 'Slide' : 'Section'} ${index + 1}`,
+        text,
+        used: index === 0 && usedClaims.length > 0,
+        ownedFields: index === 0 ? usedClaims.map((claim) => claim.field_key).filter(Boolean) : [],
+      }
+    })
+    .filter(Boolean)
+
+  return normalizedSections.length
+    ? normalizedSections
+    : [
+        {
+          key: artifactId || 'markdown',
+          title: isPdf ? 'Document Review' : 'Full Markdown',
+          text: content,
+          used: usedClaims.length > 0,
+          ownedFields: usedClaims.map((claim) => claim.field_key).filter(Boolean),
+        },
+      ]
 }
 
 async function loadPreviewReviewSidebar(artifactId = '') {
