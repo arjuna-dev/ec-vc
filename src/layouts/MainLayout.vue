@@ -2,8 +2,6 @@
   <q-layout view="lHh Lpr lFf">
     <q-header :height-hint="108" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
-        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
-
         <q-toolbar-title class="ec-shell-toolbar-title">
           <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
           <div
@@ -18,6 +16,16 @@
 
       <div class="ec-breadcrumb-bar">
         <div class="ec-breadcrumb-primary">
+          <q-btn
+            dense
+            flat
+            round
+            icon="menu"
+            aria-label="Menu"
+            class="ec-breadcrumb-menu"
+            @click="toggleLeftDrawer"
+          />
+
           <div v-if="showTitleBlock" class="ec-breadcrumb-title-block">
             <div class="ec-breadcrumb-title">{{ currentHeaderTitle }}</div>
           </div>
@@ -1089,6 +1097,12 @@ function navigateBack() {
   min-width: 0;
   align-items: flex-end;
   gap: 8px;
+}
+
+.ec-breadcrumb-menu {
+  color: var(--ds-color-text-navigation);
+  flex: 0 0 auto;
+  margin-bottom: 2px;
 }
 
 .ec-breadcrumb-back {
