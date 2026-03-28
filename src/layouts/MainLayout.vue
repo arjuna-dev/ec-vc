@@ -58,13 +58,20 @@
             v-for="action in breadcrumbActions"
             :key="action.id"
             dense
-            flat
-            round
+            :flat="!action.chip"
+            :round="!action.chip"
+            :outline="!!action.chip && action.tone !== 'filled'"
+            :unelevated="!!action.chip && action.tone === 'filled'"
+            :no-caps="!!action.chip"
+            :color="action.color || (action.chip && action.tone === 'filled' ? 'black' : 'grey-7')"
+            :text-color="action.textColor || (action.chip && action.tone === 'filled' ? 'white' : undefined)"
+            :label="action.chip ? action.label : undefined"
             :icon="action.icon"
+            :class="{ 'ec-breadcrumb-action-chip': action.chip }"
             :disable="resolveBreadcrumbActionDisabled(action)"
             @click="action.onClick?.()"
           >
-            <q-tooltip>{{ action.label }}</q-tooltip>
+            <q-tooltip v-if="!action.chip">{{ action.label }}</q-tooltip>
           </q-btn>
         </div>
       </div>
@@ -1113,6 +1120,11 @@ function navigateBack() {
   align-items: center;
   gap: 6px;
   margin-left: auto;
+}
+
+.ec-breadcrumb-action-chip {
+  border-radius: 999px;
+  padding-inline: 4px;
 }
 
 .ec-drawer-scroll {
