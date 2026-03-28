@@ -17,6 +17,28 @@
     <div v-else class="opportunities-page">
       <header class="opportunities-page__heading">
         <h1 class="opportunities-page__title">{{ currentOpportunityMode.title }}</h1>
+        <div class="opportunities-page__heading-actions">
+          <q-btn
+            dense
+            flat
+            round
+            icon="download"
+            :disable="loading || !canImportOpportunities"
+            @click="pickImportFile"
+          >
+            <q-tooltip>Import CSV</q-tooltip>
+          </q-btn>
+          <q-btn
+            dense
+            flat
+            round
+            icon="upload"
+            :disable="loading || displayRows.length === 0"
+            @click="exportOpportunitiesCsv"
+          >
+            <q-tooltip>Export CSV</q-tooltip>
+          </q-btn>
+        </div>
       </header>
 
       <section class="opportunities-shell">
@@ -176,26 +198,6 @@
               :disable="loading"
               :options="viewOptions"
             />
-            <q-btn
-              dense
-              flat
-              round
-              icon="download"
-              :disable="loading || !canImportOpportunities"
-              @click="pickImportFile"
-            >
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn
-              dense
-              flat
-              round
-              icon="upload"
-              :disable="loading || displayRows.length === 0"
-              @click="exportOpportunitiesCsv"
-            >
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
           </div>
         </div>
 
@@ -1013,6 +1015,8 @@ watch(
 .opportunities-page__heading {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-12);
 }
 
 .opportunities-page__title {
@@ -1022,6 +1026,13 @@ watch(
   font-size: var(--ds-font-size-4xl);
   font-weight: var(--ds-font-weight-black);
   line-height: var(--ds-line-height-title);
+}
+
+.opportunities-page__heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
 }
 
 .opportunities-shell {
