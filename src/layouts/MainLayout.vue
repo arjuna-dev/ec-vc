@@ -2,14 +2,19 @@
   <q-layout view="lHh Lpr lFf">
     <q-header :height-hint="108" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
-        <div class="ec-shell-toolbar-brand">
-          <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
+        <q-toolbar-title class="ec-shell-toolbar-title">
+          <div
+            class="ec-shell-toolbar-fallback"
+            :class="{ 'ec-shell-toolbar-fallback--muted': logoReady }"
+          >
+            B10
+          </div>
           <div
             ref="logoContainer"
             class="ec-shell-toolbar-lottie"
             :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
           />
-        </div>
+        </q-toolbar-title>
       </q-toolbar>
 
       <div class="ec-breadcrumb-bar">
@@ -1189,7 +1194,7 @@ function navigateBack() {
   margin-bottom: 1px;
 }
 
-.ec-shell-toolbar-brand {
+.ec-shell-toolbar-title {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1197,6 +1202,7 @@ function navigateBack() {
   height: 40px;
   flex: 0 0 auto;
   align-self: flex-start;
+  position: relative;
 }
 
 .ec-breadcrumb-secondary {
@@ -1215,13 +1221,24 @@ function navigateBack() {
 }
 
 .ec-shell-toolbar-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--ds-color-text-primary);
   font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: 0.14em;
 }
 
+.ec-shell-toolbar-fallback--muted {
+  opacity: 0.18;
+}
+
 .ec-shell-toolbar-lottie {
+  position: relative;
+  z-index: 1;
   width: 84px;
   height: 40px;
 }
