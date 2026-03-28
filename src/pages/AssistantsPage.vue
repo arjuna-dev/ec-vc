@@ -110,16 +110,55 @@
             <q-icon name="tune" size="18px" class="assistants-toolbar__filters-icon" />
 
             <q-select
-              v-model="versionFilter"
+              v-model="ownerFilter"
               dense
               outlined
               clearable
               emit-value
               map-options
               class="assistants-toolbar__filter-control"
-              label="Version"
-              :options="versionFilterOptions"
-              :disable="loading || versionFilterOptions.length === 0"
+              label="Owner"
+              :options="ownerFilterOptions"
+              :disable="true"
+            />
+
+            <q-select
+              v-model="projectFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="assistants-toolbar__filter-control"
+              label="Projects"
+              :options="projectFilterOptions"
+              :disable="true"
+            />
+
+            <q-select
+              v-model="levelFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="assistants-toolbar__filter-control"
+              label="Level"
+              :options="levelFilterOptions"
+              :disable="true"
+            />
+
+            <q-select
+              v-model="statusFilter"
+              dense
+              outlined
+              clearable
+              emit-value
+              map-options
+              class="assistants-toolbar__filter-control"
+              label="Status"
+              :options="statusFilterOptions"
+              :disable="true"
             />
           </div>
 
@@ -231,7 +270,10 @@ const loading = ref(false)
 const error = ref('')
 const viewMode = ref('card')
 const assistantKindFilter = ref('all')
-const versionFilter = ref('')
+const ownerFilter = ref('')
+const projectFilter = ref('')
+const levelFilter = ref('')
+const statusFilter = ref('')
 const searchQuery = ref('')
 
 const viewOptions = [
@@ -256,11 +298,10 @@ function normalizeAssistantValue(value) {
   return String(value || '').trim()
 }
 
-const versionFilterOptions = computed(() =>
-  [...new Set(rows.value.map((row) => normalizeAssistantValue(row?.version)).filter(Boolean))]
-    .sort((left, right) => left.localeCompare(right))
-    .map((value) => ({ label: value, value })),
-)
+const ownerFilterOptions = computed(() => [])
+const projectFilterOptions = computed(() => [])
+const levelFilterOptions = computed(() => [])
+const statusFilterOptions = computed(() => [])
 
 const assistantsDashboard = computed(() => {
   const total = rows.value.length
@@ -325,10 +366,6 @@ const displayRows = computed(() => {
     items = items.filter((row) => normalizeAssistantValue(row?.system_prompt))
   } else if (assistantKindFilter.value === 'unprompted') {
     items = items.filter((row) => !normalizeAssistantValue(row?.system_prompt))
-  }
-
-  if (versionFilter.value) {
-    items = items.filter((row) => normalizeAssistantValue(row?.version) === versionFilter.value)
   }
 
   if (query) {
@@ -572,7 +609,7 @@ onMounted(loadAssistants)
 
 .assistants-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 0.8fr) minmax(260px, 0.9fr);
+  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -585,21 +622,23 @@ onMounted(loadAssistants)
   min-width: 0;
 }
 
+.assistants-toolbar__block--filters {
+  flex-wrap: nowrap;
+}
+
 .assistants-toolbar__block--search {
   justify-content: flex-end;
 }
 
 .assistants-toolbar__filters-icon {
   color: var(--ds-color-text-muted);
+  flex: 0 0 auto;
 }
 
 .assistants-toolbar__toggle {
   flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
   border: 1px solid var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
+  border-radius: 999px;
   box-shadow: var(--ds-control-shadow);
   overflow: hidden;
 }
@@ -609,14 +648,22 @@ onMounted(loadAssistants)
   padding-inline: 12px;
 }
 
+.assistants-toolbar__view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
 .assistants-toolbar__kind-toggle :deep(.q-btn) {
-  min-width: 96px;
+  min-width: 84px;
   padding-inline: 18px;
 }
 
+.assistants-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
 .assistants-toolbar__filter-control {
-  flex: 0 1 clamp(140px, 18vw, 180px);
-  min-width: 140px;
+  flex: 0 1 clamp(110px, 16vw, 160px);
+  min-width: 110px;
   background: var(--ds-control-surface);
   border-radius: var(--ds-control-radius);
 }
@@ -639,6 +686,20 @@ onMounted(loadAssistants)
 
 .assistants-toolbar__search :deep(.q-field__control) {
   padding: 0 var(--ds-control-inline-padding);
+}
+
+.assistants-toolbar__toggle {
+  flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  background: var(--ds-control-surface);
+  color: var(--ds-control-text);
+  border-color: var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: var(--ds-control-shadow);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
 }
 
 .assistants-surface {
