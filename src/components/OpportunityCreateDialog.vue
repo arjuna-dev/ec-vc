@@ -86,21 +86,21 @@
               <div class="row q-col-gutter-lg">
                 <div class="col-12 col-md-3">
                   <div class="text-subtitle2 q-mb-sm">Document Fill</div>
-                  <div class="intake-vertical-progress">
-                    <div class="intake-vertical-progress__track">
+                  <div class="intake-horizontal-progress">
+                    <div class="intake-horizontal-progress__track">
                       <div
-                        class="intake-vertical-progress__fill"
-                        :style="{ height: `${intakeProgressPercent}%` }"
+                        class="intake-horizontal-progress__fill"
+                        :style="{ width: `${intakeProgressPercent}%` }"
                       />
                       <div
                         v-for="flag in intakeProgressFlags"
                         :key="flag.key"
-                        class="intake-vertical-progress__flag"
-                        :class="{ 'intake-vertical-progress__flag--active': flag.active }"
-                        :style="{ bottom: `${flag.percent}%` }"
+                        class="intake-horizontal-progress__flag"
+                        :class="{ 'intake-horizontal-progress__flag--active': flag.active }"
+                        :style="{ left: `${flag.percent}%` }"
                       >
-                        <span class="intake-vertical-progress__flag-dot" />
-                        <span class="intake-vertical-progress__flag-label">{{ flag.label }}</span>
+                        <span class="intake-horizontal-progress__flag-dot" />
+                        <span class="intake-horizontal-progress__flag-label">{{ flag.label }}</span>
                       </div>
                     </div>
                   </div>
@@ -770,6 +770,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import {
+  createIntakeDraft,
   recordDraftMetadataClaim,
   removeIntakeDraft,
   updateIntakeDraft,
@@ -1330,6 +1331,15 @@ function syncActiveDraft(updates = {}) {
     ...buildDraftSnapshot(),
     ...updates,
   })
+}
+
+function ensureActiveDraftForFiles(files = []) {
+  if (activeDraft.value?.id) return activeDraft.value.id
+  const draft = createIntakeDraft({
+    droppedFiles: files,
+    stage: 'Dropped',
+  })
+  return draft?.id || null
 }
 
 function hydrateFromActiveDraft() {
@@ -2028,6 +2038,7 @@ async function processDroppedFiles(files = []) {
   const filePaths = files.map((f) => f.path).filter(Boolean)
   if (!filePaths.length) return
 
+  ensureActiveDraftForFiles(files)
   processingDrop.value = true
   droppedFilesForPrompt.value = [...files]
   scheduleIntakeReviewDialog()
@@ -2664,56 +2675,54 @@ onBeforeUnmount(() => {
   border-radius: 12px;
 }
 
-.intake-vertical-progress {
-  display: flex;
-  justify-content: center;
-  min-height: 320px;
-  padding: 8px 0;
+.intake-horizontal-progress {
+  padding: 18px 8px 8px;
 }
 
-.intake-vertical-progress__track {
+.intake-horizontal-progress__track {
   position: relative;
-  width: 28px;
-  min-height: 320px;
+  width: 100%;
+  height: 22px;
   border-radius: 999px;
   background:
-    linear-gradient(180deg, rgba(219, 234, 254, 0.9), rgba(239, 246, 255, 0.95)),
+    linear-gradient(90deg, rgba(219, 234, 254, 0.9), rgba(239, 246, 255, 0.95)),
     #eff6ff;
   border: 1px solid rgba(59, 130, 246, 0.16);
   overflow: visible;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
 }
 
-.intake-vertical-progress__fill {
+.intake-horizontal-progress__fill {
   position: absolute;
-  left: 0;
-  right: 0;
+  top: 0;
   bottom: 0;
+  left: 0;
   border-radius: 999px;
-  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+  background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%);
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
-  transition: height 0.28s ease;
+  transition: width 0.28s ease;
 }
 
-.intake-vertical-progress__flag {
+.intake-horizontal-progress__flag {
   position: absolute;
-  left: calc(100% + 12px);
+  top: calc(100% + 10px);
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 8px;
-  transform: translateY(50%);
+  transform: translateX(-50%);
   color: #94a3b8;
   transition:
     color 0.2s ease,
     transform 0.2s ease;
 }
 
-.intake-vertical-progress__flag--active {
+.intake-horizontal-progress__flag--active {
   color: #1d4ed8;
-  transform: translateY(50%) scale(1.02);
+  transform: translateX(-50%) scale(1.02);
 }
 
-.intake-vertical-progress__flag-dot {
+.intake-horizontal-progress__flag-dot {
   width: 10px;
   height: 10px;
   border-radius: 999px;
@@ -2721,7 +2730,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 4px rgba(147, 197, 253, 0.22);
 }
 
-.intake-vertical-progress__flag-label {
+.intake-horizontal-progress__flag-label {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
