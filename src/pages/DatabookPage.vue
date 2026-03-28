@@ -1066,7 +1066,7 @@
                 </svg>
               </div>
 
-              <div v-if="activeCompanyContentSection.anchor === 'other'" class="contact-context-grid">
+              <div v-if="activeCompanyContentSection.anchor === 'notes'" class="contact-context-grid">
                 <article class="contact-side-card">
                   <div class="contact-side-card__header">
                     <div class="contact-side-card__intro">
@@ -1094,20 +1094,83 @@
                     No notes yet for this company.
                   </div>
                 </article>
+              </div>
+
+              <div
+                v-else-if="activeCompanyContentSection.anchor === 'artifacts'"
+                class="contact-context-grid"
+              >
+                <article class="contact-side-card">
+                  <div class="contact-side-card__header">
+                    <div class="contact-side-card__intro">
+                      <h3 class="contact-side-card__title">Related documents</h3>
+                      <div class="contact-side-card__eyebrow">Artifacts</div>
+                    </div>
+                  </div>
+
+                  <ul v-if="companyDocuments.length" class="contact-databook__hero-documents">
+                    <li
+                      v-for="document in companyDocuments"
+                      :key="document.id"
+                      class="contact-databook__hero-document"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ document.name }}</div>
+                        <div class="contact-databook__notes-meta">{{ document.fileTypeLabel }}</div>
+                      </div>
+                      <div class="contact-databook__notes-content">
+                        {{ document.summary || 'Open the document preview for more detail.' }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div v-else class="contact-section-card__empty contact-context-card__empty">
+                    No related documents yet for this company.
+                  </div>
+                </article>
+              </div>
+
+              <div
+                v-else-if="isCompanyRelationSection(activeCompanyContentSection.anchor)"
+                class="contact-context-grid"
+              >
+                <article class="contact-side-card">
+                  <div class="contact-side-card__header">
+                    <div class="contact-side-card__intro">
+                      <h3 class="contact-side-card__title">{{ activeCompanyContentSection.title }}</h3>
+                      <div class="contact-side-card__eyebrow">Level 2 relationship</div>
+                    </div>
+                  </div>
+
+                  <ul v-if="activeCompanyRelationItems.length" class="contact-databook__hero-notes">
+                    <li
+                      v-for="item in activeCompanyRelationItems"
+                      :key="item.id"
+                      class="contact-databook__hero-note"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ item.title }}</div>
+                        <div v-if="item.meta" class="contact-databook__notes-meta">{{ item.meta }}</div>
+                      </div>
+                      <div v-if="item.content" class="contact-databook__notes-content">
+                        {{ item.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div v-else class="contact-section-card__empty contact-context-card__empty">
+                    No {{ activeCompanyContentSection.title.toLowerCase() }} linked yet for this company.
+                  </div>
+                </article>
 
                 <article class="contact-side-card">
                   <div class="contact-side-card__header">
                     <div class="contact-side-card__intro">
-                      <h3 class="contact-side-card__title">Updates</h3>
-                      <div class="contact-side-card__eyebrow">Latest context</div>
+                      <h3 class="contact-side-card__title">What this section means</h3>
+                      <div class="contact-side-card__eyebrow">Schema guide</div>
                     </div>
                   </div>
 
-                  <div v-if="companyUpdates" class="contact-note-card__text">
-                    {{ companyUpdates }}
-                  </div>
-                  <div v-else class="contact-section-card__empty contact-context-card__empty">
-                    No updates logged for this company yet.
+                  <div class="contact-note-card__text">
+                    {{ activeCompanyContentSection.caption }}
                   </div>
                 </article>
               </div>
@@ -1639,7 +1702,7 @@ const versions = ref([])
 const selectedVersionId = ref(null)
 const modifiedByMap = ref({})
 const activeContactSection = ref('general-info')
-const activeCompanySection = ref('overview')
+const activeCompanySection = ref('metadata')
 const contactHeroRef = ref(null)
 const contactImageInput = ref(null)
 const currentImageUploadTarget = ref('contact')
@@ -1655,6 +1718,9 @@ const contactNotes = ref([])
 const companyNotes = ref([])
 const contactDocuments = ref([])
 const companyDocuments = ref([])
+const companyLinkedContacts = ref([])
+const companyLinkedRounds = ref([])
+const companyLinkedFunds = ref([])
 const contactHeroPanelTab = ref('documents')
 const companyHeroPanelTab = ref('documents')
 const contactDocumentsDragOver = ref(false)
@@ -1825,7 +1891,6 @@ const companyName = computed(() => getFieldDisplayValue('Company_Name'))
 const companyType = computed(() => getFieldDisplayValue('Company_Type'))
 const companyOneLiner = computed(() => getFieldDisplayValue('One_Liner'))
 const companyWebsite = computed(() => getFieldDisplayValue('Website'))
-const companyUpdates = computed(() => getFieldDisplayValue('Updates'))
 const companyInitials = computed(() => {
   const label = companyName.value || 'Company'
   return (
@@ -1890,51 +1955,67 @@ const contactActionLinks = computed(() => {
 })
 const companySections = computed(() => [
   createDatabookSection({
-    anchor: 'overview',
-    category: 'Overview',
-    title: 'Overview',
+    anchor: 'metadata',
+    category: 'Metadata',
+    title: 'Metadata',
     icon: CONTACT_SECTION_ICONS.building,
-    caption: 'Core company identity, website presence, and status.',
+    caption: 'Core company identity and first-order company fields.',
     fieldConfigs: [
       { label: 'Company name', aliases: ['Company_Name'] },
+      { label: 'Short name', aliases: ['Short_Name'] },
       { label: 'One liner', aliases: ['One_Liner'] },
       { label: 'Website', aliases: ['Website'] },
       { label: 'Status', aliases: ['Status'] },
-    ],
-  }),
-  createDatabookSection({
-    anchor: 'business',
-    category: 'Business',
-    title: 'Business',
-    icon: CONTACT_SECTION_ICONS.briefcase,
-    caption: 'Type, size, incorporation, and capital context.',
-    fieldConfigs: [
       { label: 'Company type', aliases: ['Company_Type'] },
+      { label: 'Company stage', aliases: ['Company_Stage'] },
       { label: 'Date of incorporation', aliases: ['Date_of_Incorporation'] },
       { label: 'Amount raised / AUMs', aliases: ['Amount_Raised_AUMs'] },
       { label: 'Pax', aliases: ['Pax'] },
-    ],
-  }),
-  createDatabookSection({
-    anchor: 'location',
-    category: 'Location',
-    title: 'Location',
-    icon: CONTACT_SECTION_ICONS.book,
-    caption: 'Geographic context attached to this company record.',
-    fieldConfigs: [
       { label: 'City', aliases: ['city_id'] },
       { label: 'Country', aliases: ['country_id'] },
       { label: 'Region', aliases: ['region_id'] },
+      { label: 'Updates', aliases: ['Updates'] },
     ],
   }),
   createDatabookSection({
-    anchor: 'other',
-    category: 'Other',
-    title: 'Other',
+    anchor: 'contacts',
+    category: 'Contacts',
+    title: 'Contacts',
+    icon: CONTACT_SECTION_ICONS.person,
+    caption: 'People linked to this company through the current schema relationships.',
+    fieldConfigs: [],
+  }),
+  createDatabookSection({
+    anchor: 'rounds',
+    category: 'Rounds',
+    title: 'Rounds',
+    icon: CONTACT_SECTION_ICONS.briefcase,
+    caption: 'Rounds connected to this company through direct or sponsor relationships.',
+    fieldConfigs: [],
+  }),
+  createDatabookSection({
+    anchor: 'funds',
+    category: 'Funds',
+    title: 'Funds',
+    icon: CONTACT_SECTION_ICONS.book,
+    caption: 'Funds directly linked to this company in the relationship tables.',
+    fieldConfigs: [],
+  }),
+  createDatabookSection({
+    anchor: 'artifacts',
+    category: 'Artifacts',
+    title: 'Artifacts',
     icon: CONTACT_SECTION_ICONS.note,
-    caption: 'Narrative updates and notes connected to this company.',
-    fieldConfigs: [{ label: 'Updates', aliases: ['Updates'] }],
-    layout: 'note',
+    caption: 'Related documents and files connected to this company.',
+    fieldConfigs: [],
+  }),
+  createDatabookSection({
+    anchor: 'notes',
+    category: 'Notes',
+    title: 'Notes',
+    icon: CONTACT_SECTION_ICONS.note,
+    caption: 'Narrative context and notes connected to this company.',
+    fieldConfigs: [],
   }),
 ])
 const contactSections = computed(() => {
@@ -1992,10 +2073,9 @@ const contactSections = computed(() => {
 
   return sections
 })
-const companyNavItems = computed(() => [
-  ...companySections.value.map((section) => ({ anchor: section.anchor, title: section.title })),
-  { anchor: 'system', title: 'System' },
-])
+const companyNavItems = computed(() =>
+  companySections.value.map((section) => ({ anchor: section.anchor, title: section.title })),
+)
 const activeCompanyContentSection = computed(
   () => companySections.value.find((section) => section.anchor === activeCompanySection.value) || null,
 )
@@ -2020,6 +2100,29 @@ const companyHeroNotes = computed(() =>
 )
 const contactHeroDocuments = computed(() => contactDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
 const companyHeroDocuments = computed(() => companyDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
+const companyRelationItemsBySection = computed(() => ({
+  contacts: companyLinkedContacts.value.map((row) => ({
+    id: String(row?.id || '').trim(),
+    title: String(row?.Name || row?.email || 'Unnamed contact').trim() || 'Unnamed contact',
+    meta: String(row?.relationship_types || '').trim(),
+    content: [row?.email, row?.Phone].filter(Boolean).join(' • '),
+  })),
+  rounds: companyLinkedRounds.value.map((row) => ({
+    id: String(row?.id || '').trim(),
+    title: String(row?.Round_Name || 'Unnamed round').trim() || 'Unnamed round',
+    meta: String(row?.relationship_sources || row?.Round_Raising_Status || '').trim(),
+    content: [row?.Round_Target_Size, row?.Round_Close_Date].filter(Boolean).join(' • '),
+  })),
+  funds: companyLinkedFunds.value.map((row) => ({
+    id: String(row?.id || '').trim(),
+    title: String(row?.Fund_Name || 'Unnamed fund').trim() || 'Unnamed fund',
+    meta: String(row?.Fund_Raising_Status || '').trim(),
+    content: [row?.Fund_Target_Size, row?.Fund_Close_Date].filter(Boolean).join(' • '),
+  })),
+}))
+const activeCompanyRelationItems = computed(
+  () => companyRelationItemsBySection.value[activeCompanySection.value] || [],
+)
 const contactMetaItems = computed(() => [
   { label: 'Record ID', value: getFieldDisplayValue('id') || recordIdParam.value || '-' },
   { label: 'Created', value: getFieldDisplayValue('created_at') || 'Unknown' },
@@ -2228,6 +2331,128 @@ async function loadCompanyNotes() {
   } catch {
     companyNotes.value = []
     syncCompanyHeroPanelTab()
+  }
+}
+
+function isCompanyRelationSection(anchor = '') {
+  return ['contacts', 'rounds', 'funds'].includes(String(anchor || '').trim())
+}
+
+async function loadCompanyRelationships() {
+  if (!bridge.value?.db?.query || !isCompanyView.value || !recordIdParam.value) {
+    companyLinkedContacts.value = []
+    companyLinkedRounds.value = []
+    companyLinkedFunds.value = []
+    return
+  }
+
+  try {
+    const companyId = String(recordIdParam.value || '').trim()
+    const [contactRows, roundRows, fundRows] = await Promise.all([
+      bridge.value.db.query(
+        `
+        SELECT
+          c.id,
+          c.Name,
+          COALESCE(NULLIF(c.Professional_Email, ''), NULLIF(c.Personal_Email, '')) AS email,
+          c.Phone,
+          GROUP_CONCAT(DISTINCT rel.relationship_type) AS relationship_types
+        FROM (
+          SELECT from_id AS contact_id, to_id AS company_id, 'Founder' AS relationship_type
+          FROM Contacts_Companies_founders
+
+          UNION ALL
+
+          SELECT from_id AS contact_id, to_id AS company_id, 'Related contact' AS relationship_type
+          FROM Contacts_Companies_related_contacts
+
+          UNION ALL
+
+          SELECT from_id AS contact_id, to_id AS company_id, 'Cap table individual' AS relationship_type
+          FROM Contacts_Companies_captable_individuals
+
+          UNION ALL
+
+          SELECT from_id AS contact_id, to_id AS company_id, 'Referred by' AS relationship_type
+          FROM Contacts_Companies_referred_by
+
+          UNION ALL
+
+          SELECT from_id AS contact_id, to_id AS company_id, 'Referred to' AS relationship_type
+          FROM Contacts_Companies_referred_to
+
+          UNION ALL
+
+          SELECT to_id AS contact_id, from_id AS company_id, 'Current company' AS relationship_type
+          FROM Companies_Contacts_current_company
+
+          UNION ALL
+
+          SELECT
+            from_id AS contact_id,
+            to_id AS company_id,
+            COALESCE(NULLIF(role, ''), CASE WHEN current_company = 1 THEN 'Current role' ELSE 'Tenure' END) AS relationship_type
+          FROM Contacts_Companies_tenure
+        ) rel
+        INNER JOIN Contacts c ON c.id = rel.contact_id
+        WHERE CAST(rel.company_id AS TEXT) = ?
+        GROUP BY c.id, c.Name, c.Professional_Email, c.Personal_Email, c.Phone
+        ORDER BY COALESCE(NULLIF(c.Name, ''), email, c.id)
+      `,
+        [companyId],
+      ),
+      bridge.value.db.query(
+        `
+        SELECT
+          r.id,
+          r.Round_Name,
+          ro.Round_Raising_Status,
+          ro.Round_Target_Size,
+          ro.Round_Close_Date,
+          GROUP_CONCAT(DISTINCT rel.relationship_source) AS relationship_sources
+        FROM (
+          SELECT to_id AS round_id, from_id AS company_id, 'Company rounds' AS relationship_source
+          FROM Companies_Rounds_has_rounds
+
+          UNION ALL
+
+          SELECT round_id, sponsor_company_id AS company_id, 'Sponsored round' AS relationship_source
+          FROM Round_Overview
+          WHERE sponsor_company_id IS NOT NULL
+        ) rel
+        INNER JOIN Rounds r ON r.id = rel.round_id
+        LEFT JOIN Round_Overview ro ON ro.round_id = r.id
+        WHERE CAST(rel.company_id AS TEXT) = ?
+        GROUP BY r.id, r.Round_Name, ro.Round_Raising_Status, ro.Round_Target_Size, ro.Round_Close_Date
+        ORDER BY COALESCE(ro.Round_Close_Date, r.created_at) DESC, r.Round_Name
+      `,
+        [companyId],
+      ),
+      bridge.value.db.query(
+        `
+        SELECT
+          f.id,
+          f.Fund_Name,
+          fo.Fund_Raising_Status,
+          fo.Fund_Target_Size,
+          fo.Fund_Close_Date
+        FROM Companies_Funds_has_funds rel
+        INNER JOIN Funds f ON f.id = rel.to_id
+        LEFT JOIN Fund_Overview fo ON fo.fund_id = f.id
+        WHERE CAST(rel.from_id AS TEXT) = ?
+        ORDER BY COALESCE(fo.Fund_Close_Date, f.created_at) DESC, f.Fund_Name
+      `,
+        [companyId],
+      ),
+    ])
+
+    companyLinkedContacts.value = Array.isArray(contactRows) ? contactRows : []
+    companyLinkedRounds.value = Array.isArray(roundRows) ? roundRows : []
+    companyLinkedFunds.value = Array.isArray(fundRows) ? fundRows : []
+  } catch {
+    companyLinkedContacts.value = []
+    companyLinkedRounds.value = []
+    companyLinkedFunds.value = []
   }
 }
 
@@ -2970,6 +3195,7 @@ async function loadDatabook() {
     await loadContactNotes()
     await loadContactDocuments()
     await loadCompanyNotes()
+    await loadCompanyRelationships()
     await loadCompanyDocuments()
   } catch (e) {
     error.value = normalizeIpcErrorMessage(e)
@@ -2980,6 +3206,9 @@ async function loadDatabook() {
     contactDocuments.value = []
     companyNotes.value = []
     companyDocuments.value = []
+    companyLinkedContacts.value = []
+    companyLinkedRounds.value = []
+    companyLinkedFunds.value = []
   } finally {
     loading.value = false
   }
@@ -3362,9 +3591,18 @@ function readFileAsDataUrl(file) {
 watch(
   () => `${route.params.tableName || ''}:${route.params.recordId || ''}`,
   () => {
+    activeContactSection.value = 'general-info'
+    activeCompanySection.value = 'metadata'
     loadDatabook()
   },
 )
+
+watch(companySections, (sections) => {
+  const anchors = new Set((sections || []).map((section) => section.anchor))
+  if (!anchors.has(activeCompanySection.value) && sections?.length) {
+    activeCompanySection.value = sections[0].anchor
+  }
+})
 
 watch(contactImageCropZoom, () => {
   contactImageCropOffset.value = clampContactImageCropOffset(contactImageCropOffset.value)
