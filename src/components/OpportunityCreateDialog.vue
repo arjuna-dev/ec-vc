@@ -53,6 +53,35 @@
             </template>
           </q-table>
 
+          <div
+            v-if="showIntakeProgressBar"
+            class="intake-progress-strip"
+          >
+            <div class="row items-center justify-between q-col-gutter-sm q-mb-xs">
+              <div class="col text-caption text-grey-7">Document fill</div>
+              <div class="col-auto text-caption text-grey-7">
+                {{ intakeProgressPercent }}% | {{ intakeProgressLabel }}
+              </div>
+            </div>
+            <div class="intake-horizontal-progress intake-horizontal-progress--compact">
+              <div class="intake-horizontal-progress__track">
+                <div
+                  class="intake-horizontal-progress__fill"
+                  :style="{ width: `${intakeProgressPercent}%` }"
+                />
+                <div
+                  v-for="flag in intakeProgressFlags"
+                  :key="flag.key"
+                  class="intake-horizontal-progress__flag"
+                  :class="{ 'intake-horizontal-progress__flag--active': flag.active }"
+                  :style="{ left: `${flag.percent}%` }"
+                >
+                  <span class="intake-horizontal-progress__flag-dot" />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <q-banner
             v-if="processingDrop"
             class="bg-blue-1 text-blue-10 processing-floating-banner"
@@ -63,102 +92,6 @@
             </template>
             {{ processingMessage || 'Processing dropped files...' }}
           </q-banner>
-
-          <q-card v-if="showIntakeProgressPanel" flat bordered class="intake-progress-card">
-            <q-card-section class="q-pb-sm">
-              <div class="row items-center justify-between q-col-gutter-md">
-                <div class="col">
-                  <div class="text-subtitle1">Intake Progress</div>
-                  <div class="text-caption text-grey-7">
-                    Tracking markdown release, early extraction, and used metadata ownership.
-                  </div>
-                </div>
-                <div class="col-auto text-right">
-                  <div class="text-subtitle2">{{ intakeProgressPercent }}%</div>
-                  <div class="text-caption text-grey-7">{{ intakeProgressLabel }}</div>
-                </div>
-              </div>
-            </q-card-section>
-
-            <q-separator />
-
-            <q-card-section class="q-pt-md">
-              <div class="row q-col-gutter-lg">
-                <div class="col-12 col-md-3">
-                  <div class="text-subtitle2 q-mb-sm">Document Fill</div>
-                  <div class="intake-horizontal-progress">
-                    <div class="intake-horizontal-progress__track">
-                      <div
-                        class="intake-horizontal-progress__fill"
-                        :style="{ width: `${intakeProgressPercent}%` }"
-                      />
-                      <div
-                        v-for="flag in intakeProgressFlags"
-                        :key="flag.key"
-                        class="intake-horizontal-progress__flag"
-                        :class="{ 'intake-horizontal-progress__flag--active': flag.active }"
-                        :style="{ left: `${flag.percent}%` }"
-                      >
-                        <span class="intake-horizontal-progress__flag-dot" />
-                        <span class="intake-horizontal-progress__flag-label">{{ flag.label }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-12 col-md-6">
-                  <div class="text-subtitle2 q-mb-sm">Released Markdown</div>
-                  <div v-if="releasedMarkdownChunkRows.length" class="column q-gutter-sm">
-                    <div
-                      v-for="chunk in releasedMarkdownChunkRows"
-                      :key="chunk.chunk_id"
-                      class="intake-progress-row"
-                    >
-                      <div class="row items-center justify-between q-col-gutter-sm">
-                        <div class="col">
-                          <div class="text-body2">{{ chunk.title }}</div>
-                          <div class="text-caption text-grey-7">
-                            {{ chunk.stage_status }}{{ chunk.source_page_range ? ` | ${chunk.source_page_range}` : '' }}
-                          </div>
-                        </div>
-                        <div class="col-auto">
-                          <q-badge color="primary">{{ chunk.owned_fields.length }} owned</q-badge>
-                        </div>
-                      </div>
-                      <div v-if="chunk.used_by.length" class="text-caption text-grey-7 q-mt-xs">
-                        Used by: {{ chunk.used_by.join(', ') }}
-                      </div>
-                    </div>
-                  </div>
-                  <div v-else class="text-caption text-grey-7">
-                    No markdown chunks released yet.
-                  </div>
-                </div>
-
-                <div class="col-12 col-md-3">
-                  <div class="text-subtitle2 q-mb-sm">Used Metadata Ownership</div>
-                  <div v-if="usedMetadataClaimRows.length" class="column q-gutter-sm">
-                    <div
-                      v-for="claim in usedMetadataClaimRows"
-                      :key="claim.claim_id"
-                      class="intake-progress-row"
-                    >
-                      <div class="text-body2">{{ claim.field_key }}: {{ claim.field_value }}</div>
-                      <div class="text-caption text-grey-7">
-                        {{ claim.owner_table }} | {{ claim.consumer_lane }} | {{ claim.verification_state }}
-                      </div>
-                      <div class="text-caption text-grey-7">
-                        {{ claim.source_chunk_id || 'prompt/manual source' }}{{ claim.selected_source ? ` | ${claim.selected_source}` : '' }}
-                      </div>
-                    </div>
-                  </div>
-                  <div v-else class="text-caption text-grey-7">
-                    No metadata ownership has been recorded yet.
-                  </div>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
 
           <q-separator />
 
@@ -537,44 +470,14 @@
   <q-dialog v-model="intakeReviewDialogOpen" persistent>
     <q-card style="width: 560px; max-width: 94vw">
       <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
-        <div class="text-h6">Guide Artifact Intake</div>
+        <div class="text-h6">Priority Review</div>
         <div class="text-caption text-grey-7">
-          We found high-value metadata. Please confirm these fields before the rest of intake continues.
+          We found the earliest high-value matches. Please confirm these before intake keeps moving.
         </div>
       </q-card-section>
 
       <q-card-section class="q-px-lg q-pb-md">
         <div class="column q-gutter-md">
-          <div
-            v-if="intakeVisibleFieldKeys.includes('documentType')"
-            class="row q-col-gutter-sm items-start"
-          >
-            <div class="col">
-              <q-select
-                :model-value="intakeReviewFields.documentType"
-                outlined
-                use-input
-                fill-input
-                hide-selected
-                new-value-mode="add-unique"
-                label="Document Type"
-                :options="intakeDocumentTypeOptions"
-                :class="promptFieldClass('documentType')"
-                :input-class="promptFieldInputClass('documentType')"
-                @update:model-value="updateIntakeReviewField('documentType', $event)"
-              />
-            </div>
-            <div class="col-auto">
-              <q-btn
-                color="primary"
-                no-caps
-                :outline="!intakeReviewVerified.documentType"
-                label="Verify"
-                @click="verifyIntakeReviewField('documentType')"
-              />
-            </div>
-          </div>
-
           <div
             v-if="intakeVisibleFieldKeys.includes('sponsorCompany')"
             class="row q-col-gutter-sm items-start"
@@ -601,6 +504,66 @@
                 :outline="!intakeReviewVerified.sponsorCompany"
                 label="Verify"
                 @click="verifyIntakeReviewField('sponsorCompany')"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="intakeVisibleFieldKeys.includes('existingOpportunityMatch')"
+            class="row q-col-gutter-sm items-start"
+          >
+            <div class="col">
+              <q-select
+                :model-value="intakeReviewFields.existingOpportunityMatch"
+                outlined
+                use-input
+                fill-input
+                hide-selected
+                new-value-mode="add-unique"
+                label="Existing Opportunity Match"
+                :options="intakeExistingOpportunityOptions"
+                :class="promptFieldClass('existingOpportunityMatch')"
+                :input-class="promptFieldInputClass('existingOpportunityMatch')"
+                @update:model-value="updateIntakeReviewField('existingOpportunityMatch', $event)"
+              />
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                no-caps
+                :outline="!intakeReviewVerified.existingOpportunityMatch"
+                label="Verify"
+                @click="verifyIntakeReviewField('existingOpportunityMatch')"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="intakeVisibleFieldKeys.includes('matchingDocumentName')"
+            class="row q-col-gutter-sm items-start"
+          >
+            <div class="col">
+              <q-select
+                :model-value="intakeReviewFields.matchingDocumentName"
+                outlined
+                use-input
+                fill-input
+                hide-selected
+                new-value-mode="add-unique"
+                label="Matching Document Name"
+                :options="intakeMatchingDocumentOptions"
+                :class="promptFieldClass('matchingDocumentName')"
+                :input-class="promptFieldInputClass('matchingDocumentName')"
+                @update:model-value="updateIntakeReviewField('matchingDocumentName', $event)"
+              />
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                no-caps
+                :outline="!intakeReviewVerified.matchingDocumentName"
+                label="Verify"
+                @click="verifyIntakeReviewField('matchingDocumentName')"
               />
             </div>
           </div>
@@ -716,6 +679,36 @@
                 :outline="!intakeReviewVerified.website"
                 label="Verify"
                 @click="verifyIntakeReviewField('website')"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="intakeVisibleFieldKeys.includes('documentType')"
+            class="row q-col-gutter-sm items-start"
+          >
+            <div class="col">
+              <q-select
+                :model-value="intakeReviewFields.documentType"
+                outlined
+                use-input
+                fill-input
+                hide-selected
+                new-value-mode="add-unique"
+                label="Document Type"
+                :options="intakeDocumentTypeOptions"
+                :class="promptFieldClass('documentType')"
+                :input-class="promptFieldInputClass('documentType')"
+                @update:model-value="updateIntakeReviewField('documentType', $event)"
+              />
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                no-caps
+                :outline="!intakeReviewVerified.documentType"
+                label="Verify"
+                @click="verifyIntakeReviewField('documentType')"
               />
             </div>
           </div>
@@ -840,6 +833,7 @@ const draftArtifactIds = ref([])
 const didSubmit = ref(false)
 const opportunityNameManuallyEdited = ref(false)
 const droppedFilesForPrompt = ref([])
+const existingDocumentNameMatches = ref([])
 const intakeReviewFields = ref(createDefaultIntakeReviewFields())
 const intakeReviewVerified = ref(createDefaultIntakeReviewVerified())
 const intakeLockedFields = ref(createDefaultIntakeReviewVerified())
@@ -1110,7 +1104,7 @@ const intakeProgressFlags = computed(() => [
     active: Boolean(usedMetadataClaimRows.value.length) || intakeProgressValue.value >= 1,
   },
 ])
-const showIntakeProgressPanel = computed(
+const showIntakeProgressBar = computed(
   () => ingestStatusRows.value.length > 0 || releasedMarkdownChunkRows.value.length > 0 || usedMetadataClaimRows.value.length > 0,
 )
 
@@ -1127,6 +1121,20 @@ const intakeSponsorCompanyOptions = computed(() =>
   buildPromptStringOptions([
     intakeReviewFields.value.sponsorCompany,
     ...companies.value.map((company) => stripHumanVerify(company?.Company_Name)),
+  ]),
+)
+
+const intakeExistingOpportunityOptions = computed(() =>
+  buildPromptStringOptions([
+    intakeReviewFields.value.existingOpportunityMatch,
+    ...opportunities.value.map((row) => buildFullOpportunityPromptLabel(row)),
+  ]),
+)
+
+const intakeMatchingDocumentOptions = computed(() =>
+  buildPromptStringOptions([
+    intakeReviewFields.value.matchingDocumentName,
+    ...existingDocumentNameMatches.value,
   ]),
 )
 
@@ -1290,6 +1298,7 @@ function resetTransientState() {
   draftOpportunityId.value = null
   draftArtifactIds.value = []
   droppedFilesForPrompt.value = []
+  existingDocumentNameMatches.value = []
   autofilledFlags.value = {}
   intakeReviewDialogOpen.value = false
   intakeReviewDelayElapsed.value = false
@@ -1319,6 +1328,7 @@ function buildDraftSnapshot() {
     companyLinkMode: companyLinkMode.value,
     contactLinkMode: contactLinkMode.value,
     companySourceChoice: companySourceChoice.value,
+    existingDocumentNameMatches: [...existingDocumentNameMatches.value],
     intakeReviewFields: { ...intakeReviewFields.value },
     intakeReviewVerified: { ...intakeReviewVerified.value },
     intakeConfirmedFieldValues: { ...intakeConfirmedFieldValues.value },
@@ -1374,6 +1384,9 @@ function hydrateFromActiveDraft() {
       ...activeDraft.value.contactForm,
     }
   }
+  existingDocumentNameMatches.value = Array.isArray(activeDraft.value.existingDocumentNameMatches)
+    ? [...activeDraft.value.existingDocumentNameMatches]
+    : []
 
   companyLinkMode.value = activeDraft.value.companyLinkMode || companyLinkMode.value
   contactLinkMode.value = activeDraft.value.contactLinkMode || contactLinkMode.value
@@ -1424,8 +1437,10 @@ function inferDocumentTypeFromDraft() {
 
 function createDefaultIntakeReviewFields(overrides = {}) {
   return {
-    documentType: '',
     sponsorCompany: '',
+    existingOpportunityMatch: '',
+    matchingDocumentName: '',
+    documentType: '',
     relatedFund: '',
     relatedRound: '',
     relatedContact: '',
@@ -1434,27 +1449,32 @@ function createDefaultIntakeReviewFields(overrides = {}) {
   }
 }
 
+const INTAKE_REVIEW_PRIORITY = Object.freeze([
+  'sponsorCompany',
+  'existingOpportunityMatch',
+  'matchingDocumentName',
+  'relatedContact',
+  'website',
+  'relatedFund',
+  'relatedRound',
+  'documentType',
+])
+
 function buildVisibleIntakeFieldKeys(fields = {}) {
-  const keys = new Set()
-  const hasAnyValue = Object.values(fields).some((value) => String(value || '').trim())
-  if (hasAnyValue) {
-    for (const [key, value] of Object.entries(fields)) {
-      if (String(value || '').trim()) keys.add(key)
-    }
-  }
-  keys.add('documentType')
-  keys.add('sponsorCompany')
-  keys.add('relatedContact')
-  keys.add('website')
-  if (entityType.value === 'fund') keys.add('relatedFund')
-  else keys.add('relatedRound')
-  return [...keys]
+  const prioritized = INTAKE_REVIEW_PRIORITY.filter((key) => {
+    if (key === 'relatedFund') return entityType.value === 'fund' && String(fields[key] || '').trim()
+    if (key === 'relatedRound') return entityType.value === 'round' && String(fields[key] || '').trim()
+    return String(fields[key] || '').trim()
+  })
+  return prioritized.length ? prioritized : ['documentType']
 }
 
 function createDefaultIntakeReviewVerified(overrides = {}) {
   return {
-    documentType: false,
     sponsorCompany: false,
+    existingOpportunityMatch: false,
+    matchingDocumentName: false,
+    documentType: false,
     relatedFund: false,
     relatedRound: false,
     relatedContact: false,
@@ -1465,8 +1485,10 @@ function createDefaultIntakeReviewVerified(overrides = {}) {
 
 function createDefaultIntakeReviewSources(overrides = {}) {
   return {
-    documentType: '',
     sponsorCompany: '',
+    existingOpportunityMatch: '',
+    matchingDocumentName: '',
+    documentType: '',
     relatedFund: '',
     relatedRound: '',
     relatedContact: '',
@@ -1477,8 +1499,10 @@ function createDefaultIntakeReviewSources(overrides = {}) {
 
 function intakeFieldLabel(fieldKey) {
   return {
-    documentType: 'Document Type',
     sponsorCompany: 'Sponsor Company',
+    existingOpportunityMatch: 'Existing Opportunity Match',
+    matchingDocumentName: 'Matching Document Name',
+    documentType: 'Document Type',
     relatedFund: 'Related Fund',
     relatedRound: 'Related Round',
     relatedContact: 'Related Contact',
@@ -1488,8 +1512,10 @@ function intakeFieldLabel(fieldKey) {
 
 function intakeFieldOwner(fieldKey) {
   return {
-    documentType: 'Artifacts',
     sponsorCompany: 'Companies',
+    existingOpportunityMatch: entityType.value === 'fund' ? 'Funds' : 'Rounds',
+    matchingDocumentName: 'Artifacts',
+    documentType: 'Artifacts',
     relatedFund: 'Funds',
     relatedRound: 'Rounds',
     relatedContact: 'Contacts',
@@ -1499,8 +1525,10 @@ function intakeFieldOwner(fieldKey) {
 
 function intakeFieldTarget(fieldKey) {
   return {
-    documentType: 'Draft intake metadata',
     sponsorCompany: 'Company section',
+    existingOpportunityMatch: 'Opportunity section',
+    matchingDocumentName: 'Artifact file intake',
+    documentType: 'Draft intake metadata',
     relatedFund: 'Opportunity section',
     relatedRound: 'Opportunity section',
     relatedContact: 'Primary Contact section',
@@ -1517,8 +1545,10 @@ function buildIntakeReviewFieldsFromForms() {
     .join(' - ')
 
   return createDefaultIntakeReviewFields({
-    documentType: inferDocumentTypeFromDraft(),
     sponsorCompany: String(companyForm.value.Company_Name || '').trim(),
+    existingOpportunityMatch: findLikelyExistingOpportunityMatchLabel(),
+    matchingDocumentName: existingDocumentNameMatches.value[0] || '',
+    documentType: inferDocumentTypeFromDraft(),
     relatedFund: entityType.value === 'fund' ? String(form.value.Venture_Oppty_Name || '').trim() : '',
     relatedRound:
       entityType.value === 'round'
@@ -1530,11 +1560,13 @@ function buildIntakeReviewFieldsFromForms() {
 }
 
 function getPendingIntakeReviewFieldKeys(fields = intakeReviewFields.value) {
-  return Object.entries(fields)
-    .filter(([, value]) => String(value || '').trim().length > 0)
-    .map(([key, value]) => [key, String(value || '').trim()])
-    .filter(([key, value]) => String(intakeConfirmedFieldValues.value[key] || '').trim() !== value)
-    .map(([key]) => key)
+  return INTAKE_REVIEW_PRIORITY.filter((key) => {
+    if (key === 'relatedFund' && entityType.value !== 'fund') return false
+    if (key === 'relatedRound' && entityType.value !== 'round') return false
+    const value = String(fields[key] || '').trim()
+    if (!value) return false
+    return String(intakeConfirmedFieldValues.value[key] || '').trim() !== value
+  })
 }
 
 function queueAdditionalIntakeReviewIfNeeded() {
@@ -1561,6 +1593,50 @@ function buildOpportunityPromptLabel(row = {}) {
     stripHumanVerify(row?.Round_Stage || row?.round_stage) ||
     ''
   )
+}
+
+function buildFullOpportunityPromptLabel(row = {}) {
+  const companyName = stripHumanVerify(row?.Company_Name || row?.company_name)
+  const opportunityLabel = buildOpportunityPromptLabel(row)
+  if (companyName && opportunityLabel) return `${companyName} - ${opportunityLabel}`
+  return companyName || opportunityLabel || ''
+}
+
+function findOpportunityByPromptLabel(label) {
+  const candidate = normalizeComparisonText(label)
+  if (!candidate) return null
+  return (
+    opportunities.value.find((row) => normalizeComparisonText(buildFullOpportunityPromptLabel(row)) === candidate) ||
+    opportunities.value.find((row) => normalizeComparisonText(buildOpportunityPromptLabel(row)) === candidate) ||
+    null
+  )
+}
+
+function scoreOpportunityPromptMatch(row = {}) {
+  const companyCandidate = normalizeComparisonText(companyForm.value.Company_Name)
+  const nameCandidate = normalizeComparisonText(
+    entityType.value === 'fund'
+      ? form.value.Venture_Oppty_Name
+      : form.value.Venture_Oppty_Name || form.value.Round_Stage,
+  )
+  const rowCompany = normalizeComparisonText(row?.Company_Name || row?.company_name)
+  const rowName = normalizeComparisonText(buildOpportunityPromptLabel(row))
+  const rowKind = normalizeOpportunityKind(row)
+
+  let score = 0
+  if (rowKind === entityType.value) score += 2
+  if (companyCandidate && rowCompany === companyCandidate) score += 4
+  if (nameCandidate && rowName === nameCandidate) score += 5
+  if (companyCandidate && nameCandidate && rowCompany === companyCandidate && rowName === nameCandidate) score += 3
+  return score
+}
+
+function findLikelyExistingOpportunityMatchLabel() {
+  const ranked = [...opportunities.value]
+    .map((row) => ({ row, score: scoreOpportunityPromptMatch(row) }))
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score)
+  return ranked.length ? buildFullOpportunityPromptLabel(ranked[0].row) : ''
 }
 
 function findCompanyByName(name) {
@@ -1672,6 +1748,26 @@ function verifyIntakeReviewField(fieldKey) {
       sourceLabel = 'Selected existing company match'
     }
     markAutofilled('company', 'Company_Name')
+  } else if (fieldKey === 'existingOpportunityMatch') {
+    const existingOpportunity = findOpportunityByPromptLabel(normalized)
+    if (existingOpportunity) {
+      form.value.Venture_Oppty_Name = stripHumanVerify(
+        existingOpportunity?.Venture_Oppty_Name || existingOpportunity?.opportunity_name || existingOpportunity?.name,
+      )
+      form.value.Round_Stage = stripHumanVerify(existingOpportunity?.Round_Stage || existingOpportunity?.round_stage)
+      form.value.kind = normalizeOpportunityKind(existingOpportunity)
+      if (!String(companyForm.value.Company_Name || '').trim()) {
+        companyForm.value.Company_Name = stripHumanVerify(existingOpportunity?.Company_Name || existingOpportunity?.company_name)
+      }
+      sourceLabel = 'Selected existing opportunity match'
+      markAutofilled('opportunity', 'Venture_Oppty_Name')
+      if (String(form.value.Round_Stage || '').trim()) markAutofilled('opportunity', 'Round_Stage')
+    }
+  } else if (fieldKey === 'matchingDocumentName') {
+    sourceLabel = 'Acknowledged existing document name match'
+    syncActiveDraft({
+      acknowledgedExistingDocumentName: normalized,
+    })
   } else if (fieldKey === 'relatedFund') {
     form.value.Venture_Oppty_Name = normalized
     form.value.kind = 'fund'
@@ -1718,8 +1814,10 @@ function verifyIntakeReviewField(fieldKey) {
       consumerLane:
         fieldKey === 'sponsorCompany'
           ? 'Company'
-          : fieldKey === 'relatedFund' || fieldKey === 'relatedRound'
+          : fieldKey === 'existingOpportunityMatch' || fieldKey === 'relatedFund' || fieldKey === 'relatedRound'
             ? 'Opportunity'
+            : fieldKey === 'matchingDocumentName'
+              ? 'Artifact Intake'
             : fieldKey === 'relatedContact'
               ? 'Contacts'
               : 'Artifact Intake',
@@ -2102,35 +2200,17 @@ async function processDroppedFiles(files = []) {
   ensureActiveDraftForFiles(files)
   processingDrop.value = true
   droppedFilesForPrompt.value = [...files]
+  existingDocumentNameMatches.value = []
   scheduleIntakeReviewDialog()
   try {
     processingMessage.value = 'Checking if files already exist...'
     const existingCheck = await findExistingDroppedFiles(files)
     if (existingCheck.existingNames.length) {
-      const existingSet = new Set(existingCheck.existingNames.map((name) => String(name).toLowerCase()))
-      const next = { ...ingestStatusByFile.value }
-      for (const file of files) {
-        const fileName = String(file?.name || '')
-        const key = fileName.toLowerCase()
-        const existing = existingSet.has(key)
-        const previous = next[fileName] || {
-          fileName,
-          uploadStatus: 'pending',
-          markdownStatus: 'pending',
-          extractionStatus: 'pending',
-        }
-        next[fileName] = {
-          ...previous,
-          uploadStatus: existing ? 'existing' : 'skipped',
-          markdownStatus: existing ? 'existing' : 'skipped',
-          extractionStatus: 'skipped',
-        }
-      }
-      ingestStatusByFile.value = next
-      syncActiveDraft({ stage: 'Quick Review Needed' })
-      const listed = existingCheck.existingNames.join(', ')
-      const reason = existingCheck.bothExist ? 'raw and markdown files already exist' : 'files already exist'
-      throw new Error(`Skipped extraction: ${reason} for ${listed}.`)
+      existingDocumentNameMatches.value = [...existingCheck.existingNames]
+      syncActiveDraft({
+        stage: 'Quick Review Needed',
+        existingDocumentNameMatches: [...existingCheck.existingNames],
+      })
     }
 
     processingMessage.value = 'Saving artifacts and generating markdown...'
@@ -2739,30 +2819,30 @@ onBeforeUnmount(() => {
   width: fit-content;
   max-width: 100%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.intake-progress-card {
-  background:
-    linear-gradient(180deg, rgba(239, 246, 255, 0.96), rgba(255, 255, 255, 0.98)),
-    #ffffff;
-  border-color: rgba(59, 130, 246, 0.18);
-}
-
-.intake-progress-row {
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(17, 17, 17, 0.06);
-  border-radius: 12px;
+  margin-top: 10px;
 }
 
 .intake-horizontal-progress {
   padding: 18px 8px 8px;
 }
 
+.intake-progress-strip {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 8px 10px 4px;
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.intake-horizontal-progress--compact {
+  padding: 4px 2px 0;
+}
+
 .intake-horizontal-progress__track {
   position: relative;
   width: 100%;
-  height: 22px;
+  height: 12px;
   border-radius: 999px;
   background:
     linear-gradient(90deg, rgba(219, 234, 254, 0.9), rgba(239, 246, 255, 0.95)),
@@ -2785,12 +2865,12 @@ onBeforeUnmount(() => {
 
 .intake-horizontal-progress__flag {
   position: absolute;
-  top: calc(100% + 10px);
+  top: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  transform: translateX(-50%);
+  gap: 0;
+  transform: translate(-50%, -50%);
   color: #94a3b8;
   transition:
     color 0.2s ease,
@@ -2799,22 +2879,19 @@ onBeforeUnmount(() => {
 
 .intake-horizontal-progress__flag--active {
   color: #1d4ed8;
-  transform: translateX(-50%) scale(1.02);
+  transform: translate(-50%, -50%) scale(1.02);
 }
 
 .intake-horizontal-progress__flag-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   background: currentColor;
-  box-shadow: 0 0 0 4px rgba(147, 197, 253, 0.22);
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.18);
 }
 
 .intake-horizontal-progress__flag-label {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+  display: none;
 }
 
 .ec-autofilled-field {
