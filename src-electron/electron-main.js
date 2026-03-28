@@ -2510,7 +2510,7 @@ async function resolveArtifactFileForAction(artifactId) {
     .prepare(
       `
       SELECT artifact_id, fs_path, title
-      FROM Artifacts
+      FROM Artifact_Details
       WHERE artifact_id = ?
       LIMIT 1
     `,
