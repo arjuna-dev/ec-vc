@@ -590,7 +590,7 @@
                   <div class="col">
                     <div class="text-subtitle2">Extraction Review</div>
                     <div class="text-caption text-grey-7">
-                      Review by selected slide/section and see where the extracted data writes.
+                      Review by PDF page and see where the extracted data writes.
                     </div>
                   </div>
                   <div class="col-auto" v-if="showContinueDocumentReview">
@@ -605,7 +605,34 @@
                 </div>
               </div>
 
-              <div v-if="previewSectionOptions.length > 1" class="artifact-preview-sidebar__section">
+              <div v-if="previewState.kind === 'pdf' && previewPdfPageCount > 0" class="artifact-preview-sidebar__section">
+                <div class="row items-center justify-between q-col-gutter-sm">
+                  <div class="col-auto">
+                    <q-btn
+                      flat
+                      dense
+                      icon="chevron_left"
+                      :disable="previewCurrentPage <= 1"
+                      @click="setPreviewCurrentPage(previewCurrentPage - 1)"
+                    />
+                  </div>
+                  <div class="col text-center">
+                    <div class="text-caption text-grey-7">Page Review</div>
+                    <div class="text-body2">Page {{ previewCurrentPage }} of {{ previewPdfPageCount }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <q-btn
+                      flat
+                      dense
+                      icon="chevron_right"
+                      :disable="previewCurrentPage >= previewPdfPageCount"
+                      @click="setPreviewCurrentPage(previewCurrentPage + 1)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div v-else-if="previewSectionOptions.length > 1" class="artifact-preview-sidebar__section">
                 <q-select
                   v-model="previewSelectedSectionKey"
                   outlined
@@ -618,11 +645,11 @@
               </div>
 
               <div
-                v-if="previewState.kind === 'pdf' && previewSectionOptions.length <= 1"
+                v-if="previewState.kind === 'pdf' && previewPdfPageCount <= 0"
                 class="artifact-preview-sidebar__section"
               >
                 <div class="text-caption text-grey-6">
-                  Slide-level mappings are not available for this file yet, so this review falls back to document-wide markdown.
+                  Page-level mappings are not available for this file yet, so this review falls back to document-wide markdown.
                 </div>
               </div>
 
@@ -645,7 +672,7 @@
                   </div>
                 </div>
                 <div v-else class="text-caption text-grey-6">
-                  No highlighted extraction sections are available for this slide/section yet.
+                  No connected data items are available for this page yet.
                 </div>
               </div>
 
@@ -775,6 +802,7 @@ const previewMarkdownContent = ref('')
 const previewMarkdownArtifactId = ref('')
 const previewSelectedSectionKey = ref('')
 const previewSelectedFocusClaimId = ref('')
+const previewCurrentPage = ref(1)
 const propertiesDialogOpen = ref(false)
 const savingProperties = ref(false)
 const propertiesError = ref('')
@@ -893,10 +921,13 @@ const latestArtifactGroups = computed(() =>
 
 const previewPdfSrc = computed(() => {
   if (previewState.value.kind !== 'pdf') return ''
-  if (previewPdfObjectUrl.value) return previewPdfObjectUrl.value
-  if (previewState.value.fileUrl) return previewState.value.fileUrl
-  if (previewState.value.fileDataBase64) return `data:application/pdf;base64,${previewState.value.fileDataBase64}`
-  return ''
+  const base =
+    previewPdfObjectUrl.value ||
+    previewState.value.fileUrl ||
+    (previewState.value.fileDataBase64 ? `data:application/pdf;base64,${previewState.value.fileDataBase64}` : '')
+  if (!base) return ''
+  const page = Math.max(1, Number(previewCurrentPage.value || 1))
+  return `${base}#page=${page}`
 })
 
 const previewKindLabel = computed(() => {
@@ -992,6 +1023,13 @@ const previewConnectedClaimRows = computed(() => {
 })
 
 const previewUsedClaimRows = computed(() => {
+  if (previewState.value.kind === 'pdf') {
+    const pageKey = String(previewSelectedMarkdownSection.value?.key || '').trim()
+    if (!pageKey) return []
+    return previewConnectedClaimRows.value.filter(
+      (claim) => String(claim?.source_chunk_id || '').trim() === pageKey,
+    )
+  }
   if (!previewSelectedSectionKey.value) return previewConnectedClaimRows.value
   return previewConnectedClaimRows.value.filter(
     (claim) => String(claim?.source_chunk_id || '').trim() === String(previewSelectedSectionKey.value || '').trim(),
@@ -1057,6 +1095,10 @@ const previewSectionOptions = computed(() =>
 
 const previewSelectedMarkdownSection = computed(() => {
   if (!previewMarkdownSections.value.length) return null
+  if (previewState.value.kind === 'pdf') {
+    const page = Math.max(1, Math.min(Number(previewCurrentPage.value || 1), previewMarkdownSections.value.length))
+    return previewMarkdownSections.value[page - 1] || null
+  }
   const selectedKey = String(previewSelectedSectionKey.value || '').trim()
   return (
     previewMarkdownSections.value.find((section) => section.key === selectedKey) ||
@@ -1748,9 +1790,24 @@ function formatClaimItemBox(fieldKey = '') {
 function selectPreviewFocusClaim(claim = {}) {
   previewSelectedFocusClaimId.value = String(claim?.claim_id || '').trim()
   const sourceChunkId = String(claim?.source_chunk_id || '').trim()
+  if (previewState.value.kind === 'pdf') {
+    const match =
+      sourceChunkId.match(/:slide:(\d+)$/i) ||
+      sourceChunkId.match(/:page:(\d+)$/i) ||
+      String(claim?.field_label || '').match(/\b(\d+)\b/)
+    if (match?.[1]) {
+      setPreviewCurrentPage(Number(match[1]))
+      return
+    }
+  }
   if (sourceChunkId) {
     previewSelectedSectionKey.value = sourceChunkId
   }
+}
+
+function setPreviewCurrentPage(value) {
+  const nextPage = Math.max(1, Math.min(Number(previewPdfPageCount.value || 1), Number(value || 1)))
+  previewCurrentPage.value = nextPage
 }
 
 function formatPreviewSectionTitle(chunk = {}, index = 0) {
@@ -1915,6 +1972,7 @@ async function loadPreviewReviewSidebar(artifactId = '') {
   previewMarkdownArtifactId.value = ''
   previewSelectedSectionKey.value = ''
   previewSelectedFocusClaimId.value = ''
+  previewCurrentPage.value = 1
 
   const group = findArtifactGroup({ artifact_id: artifactId })
   const markdownArtifact = (group?.artifacts || []).find(
@@ -2068,6 +2126,7 @@ function closePreviewDialog() {
   previewMarkdownArtifactId.value = ''
   previewSelectedSectionKey.value = ''
   previewSelectedFocusClaimId.value = ''
+  previewCurrentPage.value = 1
   resetPreviewPdfObjectUrl()
   previewState.value = createEmptyPreviewState()
 }
