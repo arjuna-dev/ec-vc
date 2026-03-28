@@ -621,7 +621,7 @@
             <q-card-section class="q-py-sm">
               <div class="text-subtitle2">Used Metadata</div>
               <div class="text-caption text-grey-7">
-                Verified items are treated as settled and should not be re-guessed by later intake steps.
+                Verified items guide extraction, but you can still change the final values in the dialog before create.
               </div>
             </q-card-section>
             <q-separator />
@@ -1457,6 +1457,11 @@ async function waitForIntakeReviewConfirmation() {
   })
 }
 
+function releaseIntakeExtractionLocks() {
+  intakeLockedFields.value = createDefaultIntakeReviewVerified()
+  syncActiveDraft()
+}
+
 async function loadCompanies() {
   if (!bridge.value?.companies?.list) return
   loadingCompanies.value = true
@@ -1797,6 +1802,7 @@ async function processDroppedFiles(files = []) {
     applyMatchedExistingCompany(preview?.companyMatch || null)
     await waitForIntakeReviewConfirmation()
     applySecondarySuggestedValues(deferredSuggestionPayload.value)
+    releaseIntakeExtractionLocks()
     deferredSuggestionPayload.value = null
     updateStatusForAllFiles({ extractionStatus: 'completed' })
 
