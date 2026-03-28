@@ -1036,6 +1036,10 @@ function navigateBack() {
 </script>
 
 <style scoped>
+.ec-shell-header {
+  box-shadow: none !important;
+}
+
 .ec-breadcrumb-bar {
   display: flex;
   align-items: center;
