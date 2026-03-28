@@ -56,13 +56,16 @@
         </div>
       </q-banner>
 
-      <div v-else-if="viewMode === 'grid'" class="artifacts-grid">
-        <q-card
+      <div v-else-if="viewMode === 'grid'" class="row q-col-gutter-md artifacts-grid">
+        <div
           v-for="group in latestArtifactGroups"
           :key="group.groupId"
+          class="col-12 col-sm-6 col-lg-4"
+        >
+        <q-card
           flat
           bordered
-          class="artifact-card"
+          class="artifact-card full-height"
         >
           <q-card-section class="artifact-card__header">
             <div class="row items-start justify-between q-col-gutter-sm">
@@ -76,7 +79,7 @@
                   {{ group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Untitled artifact' }}
                 </button>
                 <div class="text-caption text-grey-7">
-                  {{ artifactFileName(group.previewArtifact) || group.primaryArtifact.artifact_id }}
+                  {{ artifactDisplayName(group.previewArtifact) || artifactDisplayName(group.primaryArtifact) || 'Document' }}
                 </div>
               </div>
               <div class="col-auto">
@@ -168,6 +171,7 @@
             </div>
           </q-card-actions>
         </q-card>
+        </div>
       </div>
 
       <q-table
@@ -244,7 +248,7 @@
               </div>
             </div>
             <div class="col-auto text-caption text-grey-6">
-              {{ propertiesForm.artifact_id || 'Unsaved artifact' }}
+              {{ artifactDisplayName(propertiesForm) || 'Artifact' }}
             </div>
           </q-card-section>
 
@@ -518,7 +522,7 @@
                       color="primary"
                       outline
                       no-caps
-                      label="Continue Document Review"
+                      :label="previewContinueActionConfig.label"
                       @click="continuePreviewDocumentReview"
                     />
                   </div>
@@ -879,6 +883,8 @@ const previewMarkdownSections = computed(() => {
     }))
   }
 
+  if (previewState.value.kind === 'pdf') return []
+
   if (!previewMarkdownContent.value.trim()) return []
   return [
     {
@@ -914,6 +920,10 @@ const showContinueDocumentReview = computed(
     Boolean(previewPrimaryArtifact.value?.artifact_id) &&
     !previewMarkdownLoading.value &&
     (!previewSelectedMarkdownSection.value || !previewUsedClaimRows.value.length),
+)
+
+const previewContinueActionConfig = computed(() =>
+  artifactActionConfig(previewPrimaryArtifact.value || {}),
 )
 
 async function loadArtifacts() {
@@ -1152,6 +1162,10 @@ function artifactFileName(row = {}) {
   const fsPath = String(row?.fs_path || '').trim()
   if (!fsPath) return ''
   return fsPath.split(/[\\/]/).pop() || ''
+}
+
+function artifactDisplayName(row = {}) {
+  return String(row?.title || '').trim() || artifactFileName(row)
 }
 
 function formatArtifactDate(value) {
@@ -1746,15 +1760,13 @@ watch(previewSectionOptions, (options) => {
 
 <style scoped>
 .artifacts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  align-items: stretch;
 }
 
 .artifact-card {
   display: flex;
   flex-direction: column;
-  min-height: 220px;
+  min-height: 0;
   position: relative;
   overflow: hidden;
   border-radius: 28px;
@@ -1850,7 +1862,7 @@ watch(previewSectionOptions, (options) => {
 .artifact-card__description {
   display: -webkit-box;
   overflow: hidden;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
 }
 
@@ -2018,20 +2030,12 @@ watch(previewSectionOptions, (options) => {
 }
 
 @media (max-width: 900px) {
-  .artifacts-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .artifact-preview-sidebar {
     width: min(360px, 44vw);
   }
 }
 
 @media (max-width: 720px) {
-  .artifacts-grid {
-    grid-template-columns: 1fr;
-  }
-
   .artifact-card__meta {
     grid-template-columns: 1fr;
   }
