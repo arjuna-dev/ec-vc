@@ -1234,9 +1234,10 @@ async function saveArtifactProperties() {
   }
 }
 
-async function previewArtifact(row) {
+async function previewArtifact(row, options = {}) {
   const artifactId = String(row?.artifact_id || '').trim()
   if (!artifactId || !bridge.value?.artifacts?.preview) return ''
+  const silent = Boolean(options?.silent)
   try {
     previewDialogOpen.value = true
     previewLoading.value = true
@@ -1253,7 +1254,9 @@ async function previewArtifact(row) {
     return previewState.value.kind
   } catch (e) {
     previewDialogOpen.value = false
-    $q.notify({ type: 'negative', message: e?.message || String(e) })
+    if (!silent) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    }
     return ''
   } finally {
     previewLoading.value = false
@@ -1282,13 +1285,13 @@ async function downloadArtifact(row) {
 }
 
 async function openArtifactForReview(row) {
-  const kind = await previewArtifact(row)
+  const kind = await previewArtifact(row, { silent: true })
   if (kind && kind !== 'unsupported') return
   const artifactId = String(row?.artifact_id || '').trim()
   if (!artifactId || !bridge.value?.artifacts?.share) return
   try {
     await bridge.value.artifacts.share({ artifactId })
-    $q.notify({ type: 'info', message: 'Preview is not available, so the original file was revealed in your folder.' })
+    $q.notify({ type: 'info', message: 'Inline preview was not available, so the original file was opened in your folder.' })
   } catch (e) {
     $q.notify({ type: 'negative', message: e?.message || String(e) })
   }
