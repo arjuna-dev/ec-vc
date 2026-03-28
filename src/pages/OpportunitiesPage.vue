@@ -296,14 +296,6 @@
                 <q-space />
 
                 <q-card-actions align="between">
-                  <q-btn
-                    dense
-                    flat
-                    color="grey-9"
-                    label="Databook"
-                    :disable="loading"
-                    @click="openDatabook(row)"
-                  />
                   <div class="row items-center q-gutter-xs">
                     <q-btn
                       dense

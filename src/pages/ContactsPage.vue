@@ -344,15 +344,6 @@
                 </q-card-section>
 
                 <q-card-actions class="contact-card__footer">
-                  <q-btn
-                    no-caps
-                    unelevated
-                    class="contact-card__footer-action contact-card__footer-action--primary"
-                    label="Open databook"
-                    :disable="loading"
-                    @click="openDatabook(row)"
-                  />
-
                   <div class="contact-card__footer-actions">
                     <q-btn
                       flat
