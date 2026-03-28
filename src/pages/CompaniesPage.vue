@@ -363,7 +363,7 @@
           </div>
 
           <q-table
-            v-else-if="showCompanyTable"
+            v-else-if="showCompanyMainTable"
             class="companies-table"
             flat
             bordered
@@ -411,13 +411,41 @@
             </template>
           </q-table>
 
-          <q-banner
-            v-else
-            class="companies-empty-state bg-grey-1 text-black"
-            rounded
-          >
-            {{ activeCompanyTabMessage }}
-          </q-banner>
+          <div v-else-if="showCompanySectionTable" class="companies-section-table">
+            <div class="companies-section-table__header">
+              <div>
+                <div class="companies-section-table__eyebrow">{{ activeCompanySectionLabel }}</div>
+                <div class="companies-section-table__title">
+                  {{ activeCompanySectionTitle }}
+                </div>
+              </div>
+
+              <q-badge v-if="activeCompanyRow" outline color="grey-8" class="companies-section-table__badge">
+                {{ activeCompanyRow.Company_Name || 'Selected company' }}
+              </q-badge>
+            </div>
+
+            <q-banner
+              v-if="!activeCompanyRow"
+              class="companies-empty-state bg-grey-1 text-black"
+              rounded
+            >
+              Pick a company to open this subsection.
+            </q-banner>
+
+            <q-table
+              v-else
+              class="companies-table companies-table--subsection"
+              flat
+              bordered
+              :row-key="activeCompanySectionRowKey"
+              :rows="activeCompanySectionRows"
+              :columns="activeCompanySectionColumns"
+              :loading="companySectionLoading"
+              :pagination="{ page: 1, rowsPerPage: 10 }"
+              :rows-per-page-options="[10, 15, 25]"
+            />
+          </div>
         </div>
       </section>
 
@@ -487,6 +515,7 @@ const COMPANIES_BREADCRUMB_ACTION_OWNER = 'companies-page'
 const rows = ref([])
 const selectedRows = ref([])
 const loading = ref(false)
+const companySectionLoading = ref(false)
 const error = ref('')
 const companyDialogOpen = ref(false)
 const companyKindFilter = ref('all')
@@ -665,13 +694,45 @@ const metadataColumns = [
   columns.find((column) => column.name === 'created_at'),
   columns.find((column) => column.name === 'actions'),
 ].filter(Boolean)
-
-const companyTableTabMessages = {
-  contacts: 'Contacts subsection will populate from company-linked level-2 relationships.',
-  rounds: 'Rounds subsection will populate from company-linked level-2 relationships.',
-  funds: 'Funds subsection will populate from company-linked level-2 relationships.',
-  artifacts: 'Artifacts subsection will populate from company-linked level-2 relationships.',
-  notes: 'Notes subsection will populate from company-linked level-2 relationships.',
+const companySectionRows = ref({
+  contacts: [],
+  rounds: [],
+  funds: [],
+  artifacts: [],
+  notes: [],
+})
+const companySectionTabs = new Set(['contacts', 'rounds', 'funds', 'artifacts', 'notes'])
+const companySectionColumns = {
+  contacts: [
+    { name: 'Name', label: 'Contact', field: 'Name', align: 'left', sortable: true },
+    { name: 'email', label: 'Email', field: 'email', align: 'left', sortable: true },
+    { name: 'Phone', label: 'Phone', field: 'Phone', align: 'left', sortable: true },
+    { name: 'relationship_types', label: 'Relationship', field: 'relationship_types', align: 'left' },
+  ],
+  rounds: [
+    { name: 'Round_Name', label: 'Round', field: 'Round_Name', align: 'left', sortable: true },
+    { name: 'Round_Raising_Status', label: 'Status', field: 'Round_Raising_Status', align: 'left' },
+    { name: 'Round_Target_Size', label: 'Target', field: 'Round_Target_Size', align: 'right', sortable: true },
+    { name: 'Round_Close_Date', label: 'Close Date', field: 'Round_Close_Date', align: 'left', sortable: true },
+    { name: 'relationship_sources', label: 'Link Type', field: 'relationship_sources', align: 'left' },
+  ],
+  funds: [
+    { name: 'Fund_Name', label: 'Fund', field: 'Fund_Name', align: 'left', sortable: true },
+    { name: 'Fund_Raising_Status', label: 'Status', field: 'Fund_Raising_Status', align: 'left' },
+    { name: 'Fund_Target_Size', label: 'Target', field: 'Fund_Target_Size', align: 'right', sortable: true },
+    { name: 'Fund_Close_Date', label: 'Close Date', field: 'Fund_Close_Date', align: 'left', sortable: true },
+  ],
+  artifacts: [
+    { name: 'title', label: 'Artifact', field: 'title', align: 'left', sortable: true },
+    { name: 'document_type', label: 'Type', field: 'document_type', align: 'left', sortable: true },
+    { name: 'artifact_format', label: 'Format', field: 'artifact_format', align: 'left', sortable: true },
+    { name: 'updated_at', label: 'Updated', field: 'updated_at', align: 'left', sortable: true },
+  ],
+  notes: [
+    { name: 'title', label: 'Note', field: 'title', align: 'left', sortable: true },
+    { name: 'content', label: 'Content', field: 'content', align: 'left' },
+    { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
+  ],
 }
 
 const showCompanyCards = computed(
@@ -683,15 +744,51 @@ const activeCompanyColumns = computed(() => {
   return columns
 })
 
-const showCompanyTable = computed(
+const activeCompanyRow = computed(() => {
+  const visibleRows = displayRows.value
+  if (!visibleRows.length) return null
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  return (
+    visibleRows.find((row) => selectedIds.has(String(row?.id || '').trim())) ||
+    visibleRows[0] ||
+    null
+  )
+})
+
+const showCompanyMainTable = computed(
   () =>
     viewMode.value === 'table' &&
     companyTableTab.value !== 'cards' &&
-    !companyTableTabMessages[companyTableTab.value],
+    !companySectionTabs.has(companyTableTab.value),
 )
 
-const activeCompanyTabMessage = computed(
-  () => companyTableTabMessages[companyTableTab.value] || 'No records found.',
+const showCompanySectionTable = computed(
+  () => viewMode.value === 'table' && companySectionTabs.has(companyTableTab.value),
+)
+
+const activeCompanySectionRows = computed(
+  () => companySectionRows.value[companyTableTab.value] || [],
+)
+
+const activeCompanySectionColumns = computed(
+  () => companySectionColumns[companyTableTab.value] || [],
+)
+
+const activeCompanySectionLabel = computed(() => {
+  const currentTab = companyTableTabs.find((tab) => tab.value === companyTableTab.value)
+  return currentTab?.label || 'Section'
+})
+
+const activeCompanySectionTitle = computed(() => {
+  if (!activeCompanyRow.value) return 'No company selected'
+  return `${activeCompanySectionLabel.value} linked to ${activeCompanyRow.value.Company_Name || 'this company'}`
+})
+
+const activeCompanySectionRowKey = computed(() =>
+  companyTableTab.value === 'artifacts' || companyTableTab.value === 'notes' ? 'id' : 'id',
 )
 
 function uniqueCompanyValues(resolver) {
@@ -1228,6 +1325,182 @@ function toggleRowSelection(row, shouldSelect) {
   )
 }
 
+let companySectionRequestToken = 0
+
+async function loadCompanySectionRows() {
+  if (!companySectionTabs.has(companyTableTab.value)) return
+
+  const companyId = String(activeCompanyRow.value?.id || '').trim()
+  const activeTab = companyTableTab.value
+  const requestToken = ++companySectionRequestToken
+
+  if (!companyId) {
+    companySectionRows.value = {
+      ...companySectionRows.value,
+      [activeTab]: [],
+    }
+    return
+  }
+
+  companySectionLoading.value = true
+  try {
+    let nextRows = []
+
+    if (activeTab === 'contacts' && bridge.value?.db?.query) {
+      const rowsResult = await bridge.value.db.query(
+        `
+        SELECT
+          c.id,
+          c.Name,
+          COALESCE(NULLIF(c.Professional_Email, ''), NULLIF(c.Personal_Email, '')) AS email,
+          c.Phone,
+          GROUP_CONCAT(DISTINCT rel.relationship_type) AS relationship_types
+        FROM (
+          SELECT from_id AS contact_id, to_id AS company_id, 'Founder' AS relationship_type
+          FROM Contacts_Companies_founders
+
+          UNION ALL
+
+          SELECT from_id AS contact_id, to_id AS company_id, 'Related contact' AS relationship_type
+          FROM Contacts_Companies_related_contacts
+
+          UNION ALL
+
+          SELECT from_id AS contact_id, to_id AS company_id, 'Cap table individual' AS relationship_type
+          FROM Contacts_Companies_captable_individuals
+
+          UNION ALL
+
+          SELECT from_id AS contact_id, to_id AS company_id, 'Referred by' AS relationship_type
+          FROM Contacts_Companies_referred_by
+
+          UNION ALL
+
+          SELECT from_id AS contact_id, to_id AS company_id, 'Referred to' AS relationship_type
+          FROM Contacts_Companies_referred_to
+
+          UNION ALL
+
+          SELECT to_id AS contact_id, from_id AS company_id, 'Current company' AS relationship_type
+          FROM Companies_Contacts_current_company
+
+          UNION ALL
+
+          SELECT
+            from_id AS contact_id,
+            to_id AS company_id,
+            COALESCE(NULLIF(role, ''), CASE WHEN current_company = 1 THEN 'Current role' ELSE 'Tenure' END) AS relationship_type
+          FROM Contacts_Companies_tenure
+        ) rel
+        INNER JOIN Contacts c ON c.id = rel.contact_id
+        WHERE CAST(rel.company_id AS TEXT) = ?
+        GROUP BY c.id, c.Name, c.Professional_Email, c.Personal_Email, c.Phone
+        ORDER BY COALESCE(NULLIF(c.Name, ''), email, c.id)
+      `,
+        [companyId],
+      )
+      nextRows = Array.isArray(rowsResult) ? rowsResult : []
+    } else if (activeTab === 'rounds' && bridge.value?.db?.query) {
+      const rowsResult = await bridge.value.db.query(
+        `
+        SELECT
+          r.id,
+          r.Round_Name,
+          ro.Round_Raising_Status,
+          ro.Round_Target_Size,
+          ro.Round_Close_Date,
+          GROUP_CONCAT(DISTINCT rel.relationship_source) AS relationship_sources
+        FROM (
+          SELECT to_id AS round_id, from_id AS company_id, 'Company rounds' AS relationship_source
+          FROM Companies_Rounds_has_rounds
+
+          UNION ALL
+
+          SELECT round_id, sponsor_company_id AS company_id, 'Sponsored round' AS relationship_source
+          FROM Round_Overview
+          WHERE sponsor_company_id IS NOT NULL
+        ) rel
+        INNER JOIN Rounds r ON r.id = rel.round_id
+        LEFT JOIN Round_Overview ro ON ro.round_id = r.id
+        WHERE CAST(rel.company_id AS TEXT) = ?
+        GROUP BY r.id, r.Round_Name, ro.Round_Raising_Status, ro.Round_Target_Size, ro.Round_Close_Date
+        ORDER BY COALESCE(ro.Round_Close_Date, r.created_at) DESC, r.Round_Name
+      `,
+        [companyId],
+      )
+      nextRows = Array.isArray(rowsResult) ? rowsResult : []
+    } else if (activeTab === 'funds' && bridge.value?.db?.query) {
+      const rowsResult = await bridge.value.db.query(
+        `
+        SELECT
+          f.id,
+          f.Fund_Name,
+          fo.Fund_Raising_Status,
+          fo.Fund_Target_Size,
+          fo.Fund_Close_Date
+        FROM Companies_Funds_has_funds rel
+        INNER JOIN Funds f ON f.id = rel.to_id
+        LEFT JOIN Fund_Overview fo ON fo.fund_id = f.id
+        WHERE CAST(rel.from_id AS TEXT) = ?
+        ORDER BY COALESCE(fo.Fund_Close_Date, f.created_at) DESC, f.Fund_Name
+      `,
+        [companyId],
+      )
+      nextRows = Array.isArray(rowsResult) ? rowsResult : []
+    } else if (activeTab === 'artifacts' && bridge.value?.db?.query) {
+      const rowsResult = await bridge.value.db.query(
+        `
+        SELECT
+          ca.artifact_id AS id,
+          COALESCE(NULLIF(a.title, ''), ca.artifact_id) AS title,
+          ca.document_type,
+          a.artifact_format,
+          COALESCE(a.updated_at, a.created_at) AS updated_at
+        FROM Companies_Artifacts_documents rel
+        INNER JOIN Company_Artifacts ca ON ca.artifact_id = rel.artifact_id
+        LEFT JOIN Artifacts a ON a.artifact_id = ca.artifact_id
+        WHERE CAST(rel.company_id AS TEXT) = ?
+        ORDER BY COALESCE(a.updated_at, a.created_at) DESC, title
+      `,
+        [companyId],
+      )
+      nextRows = Array.isArray(rowsResult) ? rowsResult : []
+    } else if (activeTab === 'notes' && bridge.value?.notes?.list) {
+      const result = await bridge.value.notes.list()
+      const notes = Array.isArray(result?.notes) ? result.notes : []
+      nextRows = notes
+        .filter(
+          (note) =>
+            String(note?.reference_type || '').trim() === 'company' &&
+            String(note?.reference_id || '').trim() === companyId,
+        )
+        .map((note) => ({
+          id: note.id,
+          title: String(note?.title || note?.Note_Name || 'Untitled note').trim() || 'Untitled note',
+          content: String(note?.content || note?.Note_Content || '').trim(),
+          created_at: String(note?.created_at || '').trim(),
+        }))
+    }
+
+    if (requestToken !== companySectionRequestToken) return
+    companySectionRows.value = {
+      ...companySectionRows.value,
+      [activeTab]: nextRows,
+    }
+  } catch (e) {
+    if (requestToken !== companySectionRequestToken) return
+    companySectionRows.value = {
+      ...companySectionRows.value,
+      [activeTab]: [],
+    }
+    error.value = e?.message || String(e)
+  } finally {
+    if (requestToken === companySectionRequestToken) {
+      companySectionLoading.value = false
+    }
+  }
+}
+
 async function deleteCompany(row) {
   await bridge.value.companies.delete(row.id)
 }
@@ -1340,6 +1613,14 @@ watch(companyTableTab, () => {
 watch(displayRows, () => {
   normalizeSelectedRows()
 })
+
+watch(
+  () => [companyTableTab.value, String(activeCompanyRow.value?.id || '').trim()].join(':'),
+  async () => {
+    if (!companySectionTabs.has(companyTableTab.value)) return
+    await loadCompanySectionRows()
+  },
+)
 </script>
 
 <style scoped>
@@ -2041,6 +2322,40 @@ watch(displayRows, () => {
   color: #111;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(17, 17, 17, 0.1);
+}
+
+.companies-section-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.companies-section-table__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.companies-section-table__eyebrow {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.companies-section-table__title {
+  color: #111;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
+}
+
+.companies-section-table__badge {
+  flex-shrink: 0;
 }
 
 @media (max-width: 1200px) {
