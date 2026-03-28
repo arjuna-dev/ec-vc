@@ -116,6 +116,59 @@ This means the app should favor:
 - fewer idle extractors
 - less repeated review of already-owned facts
 
+## Recommended Batch Size
+
+Do not treat every batch as the same size.
+
+The first markdown batch should optimize for speed and early-value metadata, not completeness.
+
+Recommended rule:
+
+- `Batch 1`
+  target about `750 words`
+- `Batch 1 hard cap`
+  no more than `1,000 words`
+- `Batch 2+`
+  target about `1,000 words`
+- `Batch 2+ flexible range`
+  roughly `800-1,200 words` depending on lane readiness
+
+Whenever possible, release at the nearest logical section boundary instead of splitting in the middle of a useful block.
+
+That means batch release should be based on:
+
+- section boundary, or
+- word target / hard cap
+
+whichever gives the faster and cleaner result.
+
+## Disclaimer Removal
+
+Before the first batch is released, boilerplate and disclaimer-style text should be stripped when it is confidently identifiable.
+
+Examples include:
+
+- legal boilerplate
+- generic confidentiality notices
+- repeated footer text
+- duplicated disclaimer pages
+
+The goal is for early extraction lanes to receive the first useful business content as quickly as possible.
+
+## Batch Pacing
+
+Do not release later markdown batches only because more text exists.
+
+Release pacing should also consider whether the early extraction lanes are ready for more content.
+
+The intended rule is:
+
+- release the first batch quickly
+- let `Company`, `Opportunity`, and `Contacts` begin work
+- release the next batch when those early lanes have capacity or still need unresolved information
+
+This avoids flooding the downstream intake flow with too much content too early.
+
 ## Early Prompt Strategy
 
 Early prompts should come from the first released chunks whenever possible.
