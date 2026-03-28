@@ -776,6 +776,11 @@ watch(displayRows, () => {
   line-height: var(--ds-line-height-base);
 }
 
+.tasks-shell__hero-text {
+  display: flex;
+  align-items: flex-end;
+}
+
 .tasks-shell__hero-meta {
   display: flex;
   flex-wrap: wrap;

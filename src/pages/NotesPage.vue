@@ -685,6 +685,11 @@ watch(displayRows, () => {
   line-height: var(--ds-line-height-base);
 }
 
+.notes-shell__hero-text {
+  display: flex;
+  align-items: flex-end;
+}
+
 .notes-shell__hero-meta {
   display: flex;
   flex-wrap: wrap;

@@ -1892,6 +1892,8 @@ watch(
 
 .companies-shell__hero-text {
   margin: auto 0 0;
+  display: flex;
+  align-items: flex-end;
   color: var(--ds-color-text-secondary);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-base-regular);

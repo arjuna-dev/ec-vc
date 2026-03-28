@@ -492,6 +492,11 @@ onMounted(loadAssistants)
   line-height: var(--ds-line-height-base);
 }
 
+.assistants-shell__hero-text {
+  display: flex;
+  align-items: flex-end;
+}
+
 .assistants-shell__hero-meta {
   display: flex;
   flex-wrap: wrap;

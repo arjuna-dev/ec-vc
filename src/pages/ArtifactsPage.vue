@@ -2802,6 +2802,11 @@ watch(displayArtifactRows, () => {
   line-height: var(--ds-line-height-base);
 }
 
+.artifacts-shell__hero-text {
+  display: flex;
+  align-items: flex-end;
+}
+
 .artifacts-shell__hero-meta {
   display: flex;
   flex-wrap: wrap;
