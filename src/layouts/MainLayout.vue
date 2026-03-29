@@ -52,7 +52,7 @@
       v-model="leftDrawerOpen"
       show-if-above
       bordered
-      :width="264"
+      :width="280"
       behavior="desktop"
       :overlay="false"
     >
@@ -1187,6 +1187,10 @@ function goBack() {
 
 .ec-drawer-section + .ec-drawer-section {
   margin-top: var(--ds-space-10);
+}
+
+.ec-nav-label {
+  white-space: nowrap;
 }
 
 .ec-nav-branch {
