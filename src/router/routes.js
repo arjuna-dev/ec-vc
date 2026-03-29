@@ -14,6 +14,7 @@ const routes = [
       { path: 'industries', name: 'industries', component: () => import('pages/IndustriesPage.vue') },
       { path: 'stages', name: 'stages', component: () => import('pages/StagesPage.vue') },
       { path: 'shared-knowledge', name: 'shared-knowledge', component: () => import('pages/SharedKnowledgePage.vue') },
+      { path: 'marketplace', name: 'marketplace', component: () => import('pages/MarketplacePage.vue') },
       { path: 'merch-events', name: 'merch-events', component: () => import('pages/MerchEventsPage.vue') },
       { path: '', name: 'home', component: () => import('pages/HomePage.vue') },
       { path: 'file-system', name: 'file-system', component: () => import('pages/IndexPage.vue') },

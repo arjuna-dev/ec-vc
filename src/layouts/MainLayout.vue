@@ -367,6 +367,7 @@ const ownerWorldNavigationItems = [
   { label: 'Industries', to: '/industries', exact: true, icon: 'domain', parentKey: 'radars' },
   { label: 'Stages', to: '/stages', exact: true, icon: 'stairs', parentKey: 'radars' },
   { label: 'Shared Knowledge', to: '/shared-knowledge', exact: true, icon: 'auto_stories' },
+  { label: 'Marketplace', to: '/marketplace', exact: true, icon: 'storefront' },
   { label: 'Events', to: '/merch-events', exact: true, icon: 'calendar_month' },
 ].map((item) => (
   item.parentKey
@@ -421,6 +422,7 @@ const routeLabelByName = {
   industries: 'Industries',
   stages: 'Stages',
   'shared-knowledge': 'Shared Knowledge',
+  marketplace: 'Marketplace',
   'merch-events': 'Events',
   'file-system': 'File System',
   'databook-view': 'Databook',
