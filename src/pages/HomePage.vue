@@ -1004,6 +1004,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-top: 16px;
 }
 
 .home-dashboard__hero {
