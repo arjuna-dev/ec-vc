@@ -1063,12 +1063,14 @@ function refreshCurrentPage() {
 }
 
 .ec-shell-header-divider {
-  height: 24px;
+  height: 36px;
   margin-bottom: 20px;
   background: linear-gradient(
     180deg,
     rgb(255 255 255 / 1) 0%,
-    rgb(250 250 250 / 0.96) 28%,
+    rgb(253 253 253 / 0.99) 18%,
+    rgb(249 249 249 / 0.94) 42%,
+    rgb(244 245 246 / 0.88) 68%,
     hsl(var(--background)) 100%
   );
 }
