@@ -1393,10 +1393,23 @@ function goBack() {
   color: var(--ds-color-text-primary-deep);
   text-align: center;
   white-space: nowrap;
-  background: var(--ds-color-surface-overlay-96);
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: var(--ds-radius-sm);
   padding: var(--ds-space-2) var(--ds-space-6);
   box-shadow: var(--ds-shadow-floating-label);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition:
+    opacity 0.14s ease,
+    transform 0.16s ease;
+}
+
+.ec-quick-widget-action:hover .ec-quick-widget-action-label,
+.ec-quick-widget-action:focus-within .ec-quick-widget-action-label {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .ec-quick-widget-icon {
