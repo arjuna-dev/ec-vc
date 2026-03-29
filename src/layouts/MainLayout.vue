@@ -402,7 +402,7 @@ const tokenzMarketNavigationItems = [
   { label: 'Home', to: '/tokenz-market-home', exact: true, icon: 'toll' },
   { label: 'Wallet', to: '/tokenz-wallet', exact: true, icon: 'account_balance_wallet' },
   { label: 'Markets', to: '/tokenz-markets', exact: true, icon: 'newspaper' },
-  { label: 'Vehicles', to: '/tokenz-vehicles', exact: true, icon: 'gavel' },
+  { label: 'Vehicles', to: '/tokenz-vehicles', exact: true, icon: 'layers' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--primary',
