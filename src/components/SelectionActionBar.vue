@@ -9,7 +9,7 @@
         flat
         round
         icon="share"
-        color="grey-7"
+        class="selection-action-bar__share-btn"
         :disable="loading"
         aria-label="Share selected"
         @click="$emit('share')"
@@ -77,5 +77,9 @@ defineEmits(['share', 'delete'])
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
+}
+
+.selection-action-bar__share-btn {
+  color: var(--ds-color-brand-blue);
 }
 </style>
