@@ -1085,24 +1085,6 @@ watch(displayRows, () => {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
   gap: var(--ds-space-24);
-  padding: var(--ds-space-24);
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 82% 18%, rgba(235, 255, 90, 0.18), transparent 24%),
-    radial-gradient(circle at 14% 82%, rgba(38, 71, 255, 0.09), transparent 28%),
-    linear-gradient(180deg, #fdfcf8 0%, #f6f3eb 100%);
-  border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-2xl);
-}
-
-.contacts-shell__hero::before {
-  position: absolute;
-  inset: 0;
-  content: '';
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.64), transparent 38%),
-    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.36) 100%);
-  pointer-events: none;
 }
 
 .contacts-shell__copy {
@@ -1781,11 +1763,6 @@ watch(displayRows, () => {
 }
 
 @media (max-width: 640px) {
-  .contacts-shell__hero {
-    padding: 18px;
-    border-radius: 20px;
-  }
-
   .contacts-dashboard__stats {
     grid-template-columns: 1fr;
   }

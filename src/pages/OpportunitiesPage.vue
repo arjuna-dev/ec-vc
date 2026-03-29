@@ -937,24 +937,6 @@ watch(
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
   gap: var(--ds-space-24);
-  padding: var(--ds-space-24);
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 82% 18%, rgba(255, 85, 33, 0.12), transparent 24%),
-    radial-gradient(circle at 14% 84%, rgba(38, 71, 255, 0.1), transparent 28%),
-    linear-gradient(180deg, #fdfcf8 0%, #f5f2ea 100%);
-  border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-2xl);
-}
-
-.opportunities-shell__hero::before {
-  position: absolute;
-  inset: 0;
-  content: '';
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.64), transparent 38%),
-    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.34) 100%);
-  pointer-events: none;
 }
 
 .opportunities-shell__copy {
@@ -1393,11 +1375,6 @@ watch(
 }
 
 @media (max-width: 640px) {
-  .opportunities-shell__hero {
-    padding: 18px;
-    border-radius: 20px;
-  }
-
   .opportunities-dashboard__stats {
     grid-template-columns: 1fr;
   }
