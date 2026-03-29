@@ -1344,10 +1344,10 @@ function goBack() {
   left: 50%;
   top: 50%;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--ds-space-4);
-  min-width: 56px;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   transform: translate(calc(-50% + var(--ec-quick-action-x)), calc(-50% + var(--ec-quick-action-y)))
     scale(var(--ec-quick-action-open-scale));
   transition:
@@ -1385,6 +1385,9 @@ function goBack() {
 }
 
 .ec-quick-widget-action-label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 8px);
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-light);
   line-height: var(--ds-line-height-xs);
@@ -1398,7 +1401,7 @@ function goBack() {
   padding: var(--ds-space-2) var(--ds-space-6);
   box-shadow: var(--ds-shadow-floating-label);
   opacity: 0;
-  transform: translateY(4px);
+  transform: translate(-50%, 4px);
   pointer-events: none;
   transition:
     opacity 0.14s ease,
@@ -1408,7 +1411,7 @@ function goBack() {
 .ec-quick-widget-action:hover .ec-quick-widget-action-label,
 .ec-quick-widget-action:focus-within .ec-quick-widget-action-label {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
 }
 
 .ec-quick-widget-icon {
