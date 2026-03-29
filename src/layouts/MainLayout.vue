@@ -1178,15 +1178,15 @@ function goBack() {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--ds-space-14) var(--ds-space-0);
+  padding: 10px var(--ds-space-0) 8px;
 }
 
 .ec-drawer-footer {
-  padding: 12px 16px 14px;
+  padding: 8px 16px 10px;
 }
 
 .ec-drawer-section + .ec-drawer-section {
-  margin-top: var(--ds-space-10);
+  margin-top: 6px;
 }
 
 .ec-nav-label {
