@@ -443,11 +443,6 @@ const intakeDrafts = computed(() =>
 
 const drawerNavigationSections = computed(() => [
   {
-    label: 'Dealz World',
-    key: 'preferences',
-    items: ownerWorldNavigationItems,
-  },
-  {
     label: 'My Workspace',
     key: 'main',
     items: [
@@ -465,6 +460,11 @@ const drawerNavigationSections = computed(() => [
         parentKey: 'workspace',
       })),
     ],
+  },
+  {
+    label: 'Dealz World',
+    key: 'preferences',
+    items: ownerWorldNavigationItems,
   },
 ])
 
