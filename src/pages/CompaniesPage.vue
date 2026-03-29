@@ -1737,11 +1737,7 @@ watch(
 .companies-shell {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-32);
-  padding: var(--ds-space-32);
-  background: var(--ds-color-surface-base);
-  border: 1px solid var(--ds-color-border-soft);
-  border-radius: var(--ds-radius-lg);
+  gap: 40px;
 }
 
 .companies-shell__hero {
@@ -1749,6 +1745,10 @@ watch(
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
   gap: var(--ds-space-24);
+  padding: var(--ds-space-32);
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
 }
 
 .companies-shell__copy {
@@ -1933,6 +1933,10 @@ watch(
   align-items: center;
   gap: 12px;
   min-width: 0;
+  padding: 24px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
 }
 
 .companies-toolbar__block {
@@ -2433,17 +2437,18 @@ watch(
 
 @media (max-width: 1200px) {
   .companies-shell {
-    padding: 20px;
-    gap: 20px;
+    gap: 32px;
   }
 
   .companies-shell__hero {
     grid-template-columns: 1fr;
+    padding: 24px;
   }
 
   .companies-toolbar {
     grid-template-columns: 1fr;
     align-items: stretch;
+    padding: 20px;
   }
 
   .companies-toolbar__block {

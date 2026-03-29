@@ -558,11 +558,7 @@ watch(displayRows, () => {
 .notes-shell {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-32);
-  padding: var(--ds-space-32);
-  background: var(--ds-color-surface-base);
-  border: 1px solid var(--ds-color-border-soft);
-  border-radius: var(--ds-radius-lg);
+  gap: 40px;
 }
 
 .notes-shell__hero {
@@ -570,6 +566,10 @@ watch(displayRows, () => {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
   gap: var(--ds-space-24);
+  padding: var(--ds-space-32);
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
 }
 
 .notes-shell__copy,
@@ -745,6 +745,10 @@ watch(displayRows, () => {
   align-items: center;
   gap: 12px;
   min-width: 0;
+  padding: 24px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
 }
 
 .notes-toolbar__block {
@@ -930,17 +934,18 @@ watch(displayRows, () => {
 
 @media (max-width: 1200px) {
   .notes-shell {
-    padding: 20px;
-    gap: 20px;
+    gap: 32px;
   }
 
   .notes-shell__hero {
     grid-template-columns: 1fr;
+    padding: 24px;
   }
 
   .notes-toolbar {
     grid-template-columns: 1fr;
     align-items: stretch;
+    padding: 20px;
   }
 
   .notes-toolbar__block {

@@ -330,11 +330,7 @@ onMounted(loadAssistants)
 .assistants-shell {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-32);
-  padding: var(--ds-space-32);
-  background: var(--ds-color-surface-base);
-  border: 1px solid var(--ds-color-border-soft);
-  border-radius: var(--ds-radius-lg);
+  gap: 40px;
 }
 
 .assistants-shell__hero {
@@ -342,6 +338,10 @@ onMounted(loadAssistants)
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
   gap: var(--ds-space-24);
+  padding: var(--ds-space-32);
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
 }
 
 .assistants-shell__copy,
@@ -517,6 +517,10 @@ onMounted(loadAssistants)
   align-items: center;
   gap: 12px;
   min-width: 0;
+  padding: 24px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
 }
 
 .assistants-toolbar__block {
@@ -740,17 +744,18 @@ onMounted(loadAssistants)
 
 @media (max-width: 1200px) {
   .assistants-shell {
-    padding: 20px;
-    gap: 20px;
+    gap: 32px;
   }
 
   .assistants-shell__hero {
     grid-template-columns: 1fr;
+    padding: 24px;
   }
 
   .assistants-toolbar {
     grid-template-columns: 1fr;
     align-items: stretch;
+    padding: 20px;
   }
 
   .assistants-toolbar__block {
