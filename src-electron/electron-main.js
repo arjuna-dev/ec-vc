@@ -12,6 +12,7 @@ import { closeDb, dbAll, dbRun, getDbInfo, initDb } from './services/sqlite-db.j
 import { mirrorPipelineToFs, removePipelineFromFs } from './services/pipeline-mirror.js'
 import { ingestArtifactsFromPaths } from './services/artifact-ingestion.js'
 import { previewAutofillFromFiles } from './services/autofill-extraction.js'
+import { syncWorkspaceWorkbookMirror } from './services/workspace-workbook-mirror.js'
 import {
   getNetworkDatabasesPath,
   NETWORK_DATABASES_DIR,
@@ -59,6 +60,15 @@ function toDirName(value, fallback = 'project') {
 async function ensureWorkspace() {
   const baseDirPath = app.getPath('userData')
   return createProjectStructure(baseDirPath, DEFAULT_PROJECT_ROOT_NAME, undefined)
+}
+
+async function syncWorkspaceWorkbooksSafe(workspaceRootPath = null) {
+  try {
+    const workspace = workspaceRootPath ? { rootPath: workspaceRootPath } : await ensureWorkspace()
+    await syncWorkspaceWorkbookMirror(workspace.rootPath)
+  } catch (error) {
+    console.error('workspace workbook mirror failed:', error)
+  }
 }
 
 function listPipelines() {
@@ -4739,6 +4749,7 @@ function registerIpc() {
 
   ipcMain.handle('workspace:getRoot', async () => {
     const result = await ensureWorkspace()
+    await syncWorkspaceWorkbooksSafe(result.rootPath)
     return { rootPath: result.rootPath }
   })
 
@@ -4757,7 +4768,9 @@ function registerIpc() {
   })
 
   ipcMain.handle('user-settings:set', async (_event, payload = {}) => {
-    return setUserSettings(payload)
+    const result = setUserSettings(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('autofill:previewFromFiles', async (_event, payload = {}) => {
@@ -4788,12 +4801,16 @@ function registerIpc() {
 
   ipcMain.handle('pipelines:upsertMany', async (_event, { rows } = {}) => {
     initDb()
-    return upsertPipelines(rows)
+    const result = upsertPipelines(rows)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('pipelines:create', async (_event, payload) => {
     initDb()
-    return createPipeline(payload)
+    const result = createPipeline(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('pipelines:delete', async (_event, { pipelineId } = {}) => {
@@ -4801,7 +4818,9 @@ function registerIpc() {
     const pid = String(pipelineId || '')
     if (!pid) throw new Error('pipelineId is required')
     if (pid === 'pipeline_default') throw new Error('Cannot delete the default pipeline')
-    return deleteRow('Projects', 'id', pid)
+    const result = deleteRow('Projects', 'id', pid)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('companies:list', async () => {
@@ -4811,27 +4830,37 @@ function registerIpc() {
 
   ipcMain.handle('companies:create', async (_event, payload) => {
     initDb()
-    return createCompany(payload)
+    const result = createCompany(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('companies:upsertMany', async (_event, { rows } = {}) => {
     initDb()
-    return upsertCompanies(rows)
+    const result = upsertCompanies(rows)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('companies:delete', async (_event, { companyId } = {}) => {
     initDb()
-    return deleteRow('Companies', 'id', String(companyId || ''))
+    const result = deleteRow('Companies', 'id', String(companyId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('funds:create', async (_event, payload = {}) => {
     initDb()
-    return createFund(payload)
+    const result = createFund(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('rounds:create', async (_event, payload = {}) => {
     initDb()
-    return createRound(payload)
+    const result = createRound(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('opportunities:list', async () => {
@@ -4841,21 +4870,29 @@ function registerIpc() {
 
   ipcMain.handle('opportunities:create', async (_event, payload) => {
     initDb()
-    return createOpportunity(payload)
+    const result = createOpportunity(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
   ipcMain.handle('opportunities:update', async (_event, payload) => {
     initDb()
-    return updateOpportunity(payload)
+    const result = updateOpportunity(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('opportunities:upsertMany', async (_event, { rows } = {}) => {
     initDb()
-    return upsertOpportunities(rows)
+    const result = upsertOpportunities(rows)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('opportunities:delete', async (_event, { opportunityId } = {}) => {
     initDb()
-    return deleteOpportunityRow(opportunityId)
+    const result = deleteOpportunityRow(opportunityId)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('databooks:view', async (_event, { tableName, recordId } = {}) => {
@@ -4882,6 +4919,7 @@ function registerIpc() {
       const result = applyAuditedChanges(changes, {
         createDatabookSnapshotFor: { tableName: config.tableName, recordId: rid },
       })
+      await syncWorkspaceWorkbooksSafe()
       return {
         ...result,
         view: getDatabookView(config.tableName, rid),
@@ -4921,17 +4959,23 @@ function registerIpc() {
 
   ipcMain.handle('contacts:create', async (_event, payload) => {
     initDb()
-    return createContact(payload)
+    const result = createContact(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('contacts:upsertMany', async (_event, { rows } = {}) => {
     initDb()
-    return upsertContacts(rows)
+    const result = upsertContacts(rows)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('contacts:delete', async (_event, { contactId } = {}) => {
     initDb()
-    return deleteRow('Contacts', 'id', String(contactId || ''))
+    const result = deleteRow('Contacts', 'id', String(contactId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('notes:list', async () => {
@@ -4941,18 +4985,24 @@ function registerIpc() {
   ipcMain.handle('notes:create', async (_event, payload = {}) => {
     initDb()
     try {
-      return createNote(payload)
+      const result = createNote(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
     } catch (e) {
       throw new Error(toUserFriendlySaveError(e, 'notes'))
     }
   })
   ipcMain.handle('notes:upsertMany', async (_event, { rows } = {}) => {
     initDb()
-    return upsertNotes(rows)
+    const result = upsertNotes(rows)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
   ipcMain.handle('notes:delete', async (_event, { noteId } = {}) => {
     initDb()
-    return deleteRow('Notes', 'id', String(noteId || ''))
+    const result = deleteRow('Notes', 'id', String(noteId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('tasks:list', async () => {
@@ -4962,7 +5012,9 @@ function registerIpc() {
   ipcMain.handle('tasks:create', async (_event, payload = {}) => {
     initDb()
     try {
-      return createTask(payload)
+      const result = createTask(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
     } catch (e) {
       throw new Error(toUserFriendlySaveError(e, 'tasks'))
     }
@@ -4970,14 +5022,18 @@ function registerIpc() {
   ipcMain.handle('tasks:upsertMany', async (_event, { rows } = {}) => {
     initDb()
     try {
-      return upsertTasks(rows)
+      const result = upsertTasks(rows)
+      await syncWorkspaceWorkbooksSafe()
+      return result
     } catch (e) {
       throw new Error(toUserFriendlySaveError(e, 'tasks'))
     }
   })
   ipcMain.handle('tasks:delete', async (_event, { taskId } = {}) => {
     initDb()
-    return deleteRow('Tasks', 'id', String(taskId || ''))
+    const result = deleteRow('Tasks', 'id', String(taskId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('assistants:list', async () => {
@@ -4992,12 +5048,16 @@ function registerIpc() {
 
   ipcMain.handle('artifacts:upsertMany', async (_event, { rows } = {}) => {
     initDb()
-    return upsertArtifacts(rows)
+    const result = upsertArtifacts(rows)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('artifacts:delete', async (_event, { artifactId } = {}) => {
     initDb()
-    return deleteArtifact(artifactId)
+    const result = await deleteArtifact(artifactId)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('artifacts:download', async (_event, { artifactId } = {}) => {
@@ -5068,7 +5128,9 @@ function registerIpc() {
     'artifacts:linkToOpportunity',
     async (_event, { artifactIds, opportunityId, pipelineId } = {}) => {
       initDb()
-      return linkArtifactsToOpportunity({ artifactIds, opportunityId, pipelineId })
+      const result = linkArtifactsToOpportunity({ artifactIds, opportunityId, pipelineId })
+      await syncWorkspaceWorkbooksSafe()
+      return result
     },
   )
 
@@ -5104,6 +5166,7 @@ function registerIpc() {
           message: `Artifacts saved in ${workspace.rootPath}/${USER_WORKSPACE_DIR}/${NETWORK_DATABASES_DIR}/Artifacts`,
         })
       }
+    await syncWorkspaceWorkbooksSafe(workspace.rootPath)
     return result
   })
 
@@ -5175,7 +5238,7 @@ app.whenReady().then(() => {
   const database = initDb()
   ensureAuditActor(database)
   registerIpc()
-  ensureWorkspace()
+  ensureWorkspace().then((workspace) => syncWorkspaceWorkbooksSafe(workspace.rootPath))
   return createWindow()
 })
 
