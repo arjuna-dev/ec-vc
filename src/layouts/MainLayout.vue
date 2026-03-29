@@ -1246,12 +1246,18 @@ function goBack() {
   width: 32px;
   height: 32px;
   border-radius: 999px;
-  color: #1d1d1b;
+  color: #ffffff;
   background:
-    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.18) 44%, transparent 45%),
-    linear-gradient(135deg, #ff8a65, #ff5521 58%, #ffb36b);
+    radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03) 42%, transparent 43%),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--ds-color-text-primary-deep) 82%, #4cc3ff 18%),
+      var(--ds-color-text-primary-deep) 62%,
+      color-mix(in srgb, var(--ds-color-text-primary-deep) 74%, white 26%)
+    );
+  border: 1px solid rgba(255, 255, 255, 0.92);
   box-shadow:
-    0 10px 22px rgba(255, 85, 33, 0.28),
+    0 10px 22px rgba(15, 23, 42, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
