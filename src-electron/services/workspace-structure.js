@@ -6,11 +6,12 @@ export const NETWORK_DATABASE_SECTION_DIR_NAMES = {
   Users: '1. Users',
   Artifacts: '2. Artifacts',
   Contacts: '3. Contacts',
-  Company: '4. Company',
+  Company: '4. Companies',
   Opportunities: '5. Opportunities',
   Pipelines: '6. Pipelines',
   Notes: '7. Notes',
   Tasks: '8. Tasks',
+  Agents: '9. Agents',
 }
 export const NETWORK_DATABASE_SECTION_DIRS = Object.values(NETWORK_DATABASE_SECTION_DIR_NAMES)
 export const ARTIFACTS_SECTION_DIR = NETWORK_DATABASE_SECTION_DIR_NAMES.Artifacts

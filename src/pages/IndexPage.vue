@@ -171,6 +171,10 @@ function goToPath () {
 onMounted(async () => {
   if (!hasBridge.value) return
   const result = await bridge.value.fs.workspaceRoot()
-  await loadDirectory(result.rootPath)
+  const workspaceRootPath = String(result?.rootPath || '').trim()
+  const initialPath = workspaceRootPath
+    ? bridge.value.path.join(workspaceRootPath, 'User')
+    : workspaceRootPath
+  await loadDirectory(initialPath)
 })
 </script>

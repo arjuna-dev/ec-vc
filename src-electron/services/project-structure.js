@@ -27,6 +27,7 @@ export const DEFAULT_PROJECT_STRUCTURE = {
       [getNetworkDatabaseSectionDirName('Pipelines')]: {},
       [getNetworkDatabaseSectionDirName('Notes')]: {},
       [getNetworkDatabaseSectionDirName('Tasks')]: {},
+      [getNetworkDatabaseSectionDirName('Agents')]: {},
     },
   },
 }
@@ -83,6 +84,10 @@ async function migrateLegacyWorkspaceStructure(rootPath) {
   )
   await moveDirectoryContents(
     path.join(rootPath, USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Company'),
+    getNetworkDatabaseSectionPath(rootPath, 'Company'),
+  )
+  await moveDirectoryContents(
+    path.join(rootPath, USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Companies'),
     getNetworkDatabaseSectionPath(rootPath, 'Company'),
   )
   await moveDirectoryContents(

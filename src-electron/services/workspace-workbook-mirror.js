@@ -312,6 +312,17 @@ const TOKEN_GROUPS = {
     'Note_Task',
     'Note_Note',
   ],
+  Agent: [
+    'Agent_ID',
+    'Agent_Name',
+    'Agent_Version',
+    'Agent_Description',
+    'Agent_System_Prompt',
+    'Agent_Input_Contract',
+    'Agent_Output_Contract',
+    'Agent_Schema_Name',
+    'Agent_Created_At',
+  ],
 }
 
 const CHANGE_LOG_LABELS = [
@@ -454,6 +465,14 @@ const WORKBOOK_DEFINITIONS = [
     eventTables: ['Notes'],
     getRows: listNoteRows,
   },
+  {
+    key: 'Agent',
+    fileName: '9. Agents.xlsx',
+    sheetName: 'Agents',
+    targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Agents'),
+    eventTables: ['Assistant_System_Prompts'],
+    getRows: listAgentRows,
+  },
 ]
 
 const ENTITY_SECTION_LENGTHS = {
@@ -466,6 +485,7 @@ const ENTITY_SECTION_LENGTHS = {
   Project: [5, 9, 9, 8],
   Task: [5, 9, 6, 4],
   Note: [5, 9],
+  Agent: [5, 4],
 }
 
 function listArtifactRows() {
@@ -893,6 +913,25 @@ function listNoteRows() {
       NULL AS Note_Note
     FROM Notes n
     ORDER BY COALESCE(n.created_at, '') DESC, n.id DESC
+  `,
+  )
+}
+
+function listAgentRows() {
+  return dbAll(
+    `
+    SELECT
+      assistant_system_prompt_id AS Agent_ID,
+      name AS Agent_Name,
+      version AS Agent_Version,
+      description AS Agent_Description,
+      system_prompt AS Agent_System_Prompt,
+      input_contract AS Agent_Input_Contract,
+      output_contract AS Agent_Output_Contract,
+      schema_name AS Agent_Schema_Name,
+      created_at AS Agent_Created_At
+    FROM Assistant_System_Prompts
+    ORDER BY COALESCE(created_at, '') DESC, assistant_system_prompt_id DESC
   `,
   )
 }
