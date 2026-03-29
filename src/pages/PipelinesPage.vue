@@ -965,7 +965,6 @@ watch(displayRows, () => {
   position: relative;
   z-index: 1;
 }
-}
 
 .pipelines-shell__copy {
   display: flex;
