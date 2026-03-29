@@ -455,8 +455,9 @@ const drawerNavigationSections = computed(() => [
       {
         kind: 'toggle',
         label: 'Files',
-        itemClass: 'ec-nav-item--workspace-toggle',
+        itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
         icon: 'folder',
+        iconSize: '22px',
         toggleKey: 'workspace',
       },
       ...workspaceNavigationItems.map((item) => ({
