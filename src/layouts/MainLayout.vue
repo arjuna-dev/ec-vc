@@ -17,6 +17,7 @@
               dense
               flat
               round
+              class="ec-shell-toolbar-action-btn"
               :icon="action.icon"
               :disable="resolveBreadcrumbActionDisabled(action)"
               @click="action.onClick?.()"
@@ -824,7 +825,7 @@ function initLogoAnimation() {
     autoplay: true,
     animationData: logoAnimationData,
     rendererSettings: {
-      preserveAspectRatio: 'xMidYMid meet',
+      preserveAspectRatio: 'xMaxYMid meet',
     },
   })
 
@@ -998,6 +999,13 @@ function resolveBreadcrumbActionDisabled(action) {
   font-weight: var(--ds-font-weight-light);
   line-height: var(--ds-line-height-sm);
   white-space: nowrap;
+  align-self: flex-end;
+  margin-bottom: 2px;
+}
+
+.ec-shell-toolbar-action-btn {
+  align-self: flex-end;
+  margin-bottom: 1px;
 }
 
 .ec-shell-toolbar-title {
