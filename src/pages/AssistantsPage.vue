@@ -123,85 +123,9 @@
           {{ error }}
         </q-banner>
 
-        <section class="assistants-hierarchy">
-          <div class="assistants-hierarchy__header">
-            <div>
-              <div class="assistants-hierarchy__eyebrow">Agent Roster</div>
-              <h3 class="assistants-hierarchy__title">Agent roles by scope and responsibility.</h3>
-            </div>
-            <div class="assistants-hierarchy__caption">
-              This page is for the agent roster and card view only. Avatar-level design lives in the Avatar section.
-            </div>
-          </div>
-
-          <div
-            v-for="section in agentHierarchySections"
-            :key="section.level"
-            class="assistants-hierarchy__level"
-          >
-            <div class="assistants-hierarchy__level-header">
-              <div>
-                <div class="assistants-hierarchy__level-eyebrow">{{ section.levelLabel }}</div>
-                <div class="assistants-hierarchy__level-title">{{ section.levelName }}</div>
-              </div>
-              <div class="assistants-hierarchy__level-copy">{{ section.description }}</div>
-            </div>
-
-            <div class="row q-col-gutter-md assistants-hierarchy__grid">
-              <div
-                v-for="agent in section.items"
-                :key="agent.name"
-                class="col-12 col-md-6 col-xl-4"
-              >
-                <q-card flat bordered class="agent-hierarchy-card full-height">
-                  <q-card-section class="agent-hierarchy-card__header">
-                    <div class="row items-start justify-between q-col-gutter-sm no-wrap">
-                      <div class="col">
-                        <div class="agent-hierarchy-card__title">{{ agent.name }}</div>
-                        <div class="agent-hierarchy-card__meta">
-                          {{ agent.domain }} - Parent {{ agent.parent }}
-                        </div>
-                      </div>
-                    </div>
-                  </q-card-section>
-
-                  <q-separator />
-
-                  <q-card-section class="agent-hierarchy-card__body">
-                    <div class="agent-hierarchy-card__section">
-                      <div class="agent-hierarchy-card__section-label">Mission</div>
-                      <div class="agent-hierarchy-card__block">{{ agent.mission }}</div>
-                    </div>
-
-                    <div class="agent-hierarchy-card__section">
-                      <div class="agent-hierarchy-card__section-label">Managed Scope</div>
-                      <div class="agent-hierarchy-card__block">{{ agent.scope }}</div>
-                    </div>
-
-                    <div class="agent-hierarchy-card__section">
-                      <div class="agent-hierarchy-card__section-label">Primary Responsibilities</div>
-                      <div class="agent-hierarchy-card__pills">
-                        <q-chip
-                          v-for="responsibility in agent.responsibilities"
-                          :key="responsibility"
-                          dense
-                          square
-                          class="agent-hierarchy-card__pill"
-                        >
-                          {{ responsibility }}
-                        </q-chip>
-                      </div>
-                    </div>
-                  </q-card-section>
-                </q-card>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <div class="assistants-surface">
           <q-banner
-            v-if="!loading && displayRows.length === 0"
+            v-if="!loading && (viewMode === 'org' ? filteredOrgSections.length === 0 : displayRows.length === 0)"
             class="assistants-empty-state bg-grey-1 text-black"
             rounded
           >
@@ -238,46 +162,81 @@
             </template>
           </q-table>
 
-          <div v-else-if="viewMode === 'org'" class="assistants-org-view">
+          <section v-else-if="viewMode === 'org'" class="assistants-hierarchy">
+            <div class="assistants-hierarchy__header">
+              <div>
+                <div class="assistants-hierarchy__eyebrow">Agent Structure</div>
+                <h3 class="assistants-hierarchy__title">Agent roles by scope and responsibility.</h3>
+              </div>
+              <div class="assistants-hierarchy__caption">
+                Avatar-level design lives in the Avatar section. This view is just the agent org structure.
+              </div>
+            </div>
+
             <div
               v-for="section in filteredOrgSections"
               :key="section.level"
-              class="assistants-org-view__section"
+              class="assistants-hierarchy__level"
             >
-              <div class="assistants-org-view__section-header">
+              <div class="assistants-hierarchy__level-header">
                 <div>
-                  <div class="assistants-org-view__section-eyebrow">{{ section.levelLabel }}</div>
-                  <div class="assistants-org-view__section-title">{{ section.levelName }}</div>
+                  <div class="assistants-hierarchy__level-eyebrow">{{ section.levelLabel }}</div>
+                  <div class="assistants-hierarchy__level-title">{{ section.levelName }}</div>
                 </div>
-                <div class="assistants-org-view__section-copy">{{ section.description }}</div>
+                <div class="assistants-hierarchy__level-copy">{{ section.description }}</div>
               </div>
 
-              <div class="assistants-org-view__list">
+              <div class="row q-col-gutter-md assistants-hierarchy__grid">
                 <div
                   v-for="agent in section.items"
                   :key="agent.name"
-                  class="assistants-org-view__item"
+                  class="col-12 col-md-6 col-xl-4"
                 >
-                  <div class="assistants-org-view__item-top">
-                    <div>
-                      <div class="assistants-org-view__item-title">{{ agent.name }}</div>
-                      <div class="assistants-org-view__item-meta">
-                        {{ agent.domain }} - Parent {{ agent.parent }}
+                  <q-card flat bordered class="agent-hierarchy-card full-height">
+                    <q-card-section class="agent-hierarchy-card__header">
+                      <div class="row items-start justify-between q-col-gutter-sm no-wrap">
+                        <div class="col">
+                          <div class="agent-hierarchy-card__title">{{ agent.name }}</div>
+                          <div class="agent-hierarchy-card__meta">
+                            {{ agent.domain }} - Parent {{ agent.parent }}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </q-card-section>
 
-                  <div class="assistants-org-view__item-body">
-                    <div class="assistants-org-view__item-mission">{{ agent.mission }}</div>
-                    <div class="assistants-org-view__item-footer">
-                      <span>{{ agent.scope }}</span>
-                      <span>{{ agent.nextAction }}</span>
-                    </div>
-                  </div>
+                    <q-separator />
+
+                    <q-card-section class="agent-hierarchy-card__body">
+                      <div class="agent-hierarchy-card__section">
+                        <div class="agent-hierarchy-card__section-label">Mission</div>
+                        <div class="agent-hierarchy-card__block">{{ agent.mission }}</div>
+                      </div>
+
+                      <div class="agent-hierarchy-card__section">
+                        <div class="agent-hierarchy-card__section-label">Managed Scope</div>
+                        <div class="agent-hierarchy-card__block">{{ agent.scope }}</div>
+                      </div>
+
+                      <div class="agent-hierarchy-card__section">
+                        <div class="agent-hierarchy-card__section-label">Primary Responsibilities</div>
+                        <div class="agent-hierarchy-card__pills">
+                          <q-chip
+                            v-for="responsibility in agent.responsibilities"
+                            :key="responsibility"
+                            dense
+                            square
+                            class="agent-hierarchy-card__pill"
+                          >
+                            {{ responsibility }}
+                          </q-chip>
+                        </div>
+                      </div>
+                    </q-card-section>
+                  </q-card>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
           <div v-else class="row q-col-gutter-md assistants-cards-grid">
             <div v-for="assistant in displayRows" :key="assistant.assistant_system_prompt_id" class="col-12 col-md-6 col-lg-4">
@@ -1165,111 +1124,6 @@ onMounted(loadAssistants)
   gap: 16px;
 }
 
-.assistants-org-view {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.assistants-org-view__section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.82);
-}
-
-.assistants-org-view__section-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.assistants-org-view__section-eyebrow {
-  color: var(--ds-color-text-muted);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-medium);
-  font-weight: var(--ds-font-weight-medium);
-  letter-spacing: 0.08em;
-  line-height: var(--ds-line-height-xs);
-  text-transform: uppercase;
-}
-
-.assistants-org-view__section-title {
-  margin-top: 6px;
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: 1.05rem;
-  font-weight: var(--ds-font-weight-black);
-  line-height: 1;
-}
-
-.assistants-org-view__section-copy {
-  max-width: 42ch;
-  color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-regular);
-  line-height: var(--ds-line-height-sm);
-}
-
-.assistants-org-view__list {
-  display: grid;
-  gap: 12px;
-}
-
-.assistants-org-view__item {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px 16px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.assistants-org-view__item-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.assistants-org-view__item-title {
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: 1rem;
-  font-weight: var(--ds-font-weight-black);
-  line-height: 1.1;
-}
-
-.assistants-org-view__item-meta,
-.assistants-org-view__item-mission,
-.assistants-org-view__item-footer {
-  color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-regular);
-  line-height: var(--ds-line-height-sm);
-}
-
-.assistants-org-view__item-meta {
-  margin-top: 4px;
-}
-
-.assistants-org-view__item-body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.assistants-org-view__item-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
 .assistants-hierarchy {
   display: flex;
   flex-direction: column;
@@ -1713,11 +1567,6 @@ onMounted(loadAssistants)
   .assistants-toolbar__block {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .assistants-org-view__section-header,
-  .assistants-org-view__item-top {
-    flex-direction: column;
   }
 
   .assistants-toolbar__filter-control,
