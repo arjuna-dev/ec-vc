@@ -4,9 +4,6 @@
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <div class="ec-shell-toolbar-heading">
           <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
-          <div class="ec-shell-page-title">
-            <span class="ec-shell-page-title__label">{{ currentHeaderTitle }}</span>
-          </div>
         </div>
 
         <q-toolbar-title class="ec-shell-toolbar-title">
@@ -435,20 +432,6 @@ const breadcrumbItems = computed(() => {
 
   return items
 })
-const currentHeaderTitle = computed(() => {
-  const currentRouteName = String(route.name || '')
-
-  if (!currentRouteName || currentRouteName === 'home') {
-    return 'Home'
-  }
-
-  if (currentRouteName === 'databook-view') {
-    return 'Databook'
-  }
-
-  return routeLabelByName[currentRouteName] || toTitleCase(currentRouteName.replace(/[-_]/g, ' '))
-})
-
 const breadcrumbActions = computed(() => breadcrumbActionsState.actions || [])
 const breadcrumbBackFallback = computed(() => {
   const fallback = [...breadcrumbItems.value]
@@ -1057,25 +1040,9 @@ function navigateBack() {
 .ec-shell-toolbar-heading {
   display: flex;
   align-items: center;
-  gap: var(--ds-space-12);
+  gap: 0;
   min-width: 0;
   flex: 0 1 auto;
-}
-
-.ec-shell-page-title {
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.ec-shell-page-title__label {
-  align-items: center;
-  color: var(--ds-color-text-navigation);
-  display: inline-flex;
-  font-size: var(--ds-font-size-sm);
-  font-weight: var(--ds-font-weight-light);
-  line-height: var(--ds-line-height-sm);
-  text-decoration: none;
 }
 
 .ec-shell-toolbar-title {
