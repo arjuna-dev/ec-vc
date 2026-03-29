@@ -107,6 +107,7 @@
 
         <div class="ec-drawer-footer">
           <q-item dense class="ec-nav-item ec-nav-item--footer">
+            <q-item-section avatar class="ec-nav-item__footer-spacer" />
             <q-item-section>
               <q-item-label>MTK v0.0.1</q-item-label>
             </q-item-section>
@@ -1232,6 +1233,24 @@ function goBack() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.ec-nav-item--footer {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.ec-nav-item--footer :deep(.q-item__section) {
+  align-items: flex-start;
+}
+
+.ec-nav-item--footer :deep(.q-item__label) {
+  font-size: 11px;
+  text-align: left;
+}
+
+.ec-nav-item__footer-spacer {
+  min-width: 40px;
 }
 
 .ec-nav-item--secondary :deep(.q-item__label) {
