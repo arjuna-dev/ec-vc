@@ -1085,9 +1085,11 @@ function navigateBack() {
 
 .ec-shell-page-title {
   color: var(--ds-color-text-header);
-  font-size: var(--ds-font-size-sm);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-sm);
+  font-family: var(--font-title);
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.08em;
   white-space: nowrap;
 }
 
