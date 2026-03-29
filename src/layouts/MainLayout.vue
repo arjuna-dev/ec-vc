@@ -1057,6 +1057,7 @@ function refreshCurrentPage() {
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
+  margin-left: auto;
   min-width: 0;
 }
 
