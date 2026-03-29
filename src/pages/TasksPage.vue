@@ -229,16 +229,12 @@
         </div>
       </section>
 
-      <q-page-sticky v-if="selectedCount > 0" position="bottom-right" :offset="[36, 18]">
-        <q-btn
-          color="black"
-          text-color="white"
-          unelevated
-          :disable="loading"
-          label="Delete All"
-          @click="confirmDeleteSelected"
-        />
-      </q-page-sticky>
+      <SelectionActionBar
+        :count="selectedCount"
+        :loading="loading"
+        @share="shareSelected"
+        @delete="confirmDeleteSelected"
+      />
     </div>
 
     <div style="display: none">
@@ -259,9 +255,11 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
+import SelectionActionBar from 'components/SelectionActionBar.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import TaskCreateDialog from 'components/TaskCreateDialog.vue'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
+import { copySelectionSummary } from 'src/utils/selectionShare'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -554,6 +552,23 @@ async function confirmDeleteSelected() {
       loading.value = false
     }
   })
+}
+
+async function shareSelected() {
+  if (selectedCount.value === 0) return
+  try {
+    await copySelectionSummary({
+      rows: selectedRows.value,
+      getLabel: (row) => normalizeTaskValue(row?.Task_Name) || `Task ${row?.id || ''}`.trim(),
+      entityLabel: 'tasks',
+    })
+    $q.notify({
+      type: 'positive',
+      message: `Copied ${selectedCount.value} selected task${selectedCount.value === 1 ? '' : 's'}.`,
+    })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e?.message || String(e) })
+  }
 }
 
 onMounted(async () => {

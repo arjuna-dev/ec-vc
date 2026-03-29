@@ -262,20 +262,13 @@
         </div>
       </section>
 
-      <q-page-sticky
-        v-if="selectedCount > 0 && canDeleteOpportunities"
-        position="bottom-right"
-        :offset="[18 * 2, 18]"
-      >
-        <q-btn
-          color="black"
-          text-color="white"
-          unelevated
-          :disable="loading"
-          label="Delete All"
-          @click="confirmDeleteSelected"
-        />
-      </q-page-sticky>
+      <SelectionActionBar
+        :count="selectedCount"
+        :loading="loading"
+        :can-delete="canDeleteOpportunities"
+        @share="shareSelected"
+        @delete="confirmDeleteSelected"
+      />
     </div>
   </q-page>
 
@@ -303,10 +296,12 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { exportFile, useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import SelectionActionBar from 'components/SelectionActionBar.vue'
 import FundCreateDialog from 'src/components/FundCreateDialog.vue'
 import RoundCreateDialog from 'src/components/RoundCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
+import { copySelectionSummary } from 'src/utils/selectionShare'
 
 const ALL_OPPORTUNITIES_FILTER = 'all'
 
@@ -820,6 +815,27 @@ async function confirmDeleteSelected() {
       loading.value = false
     }
   })
+}
+
+async function shareSelected() {
+  if (selectedCount.value === 0) return
+  try {
+    await copySelectionSummary({
+      rows: selectedRows.value,
+      getLabel: (row) =>
+        normalizeOpportunityValue(row?.opportunity_name) ||
+        normalizeOpportunityValue(row?.Venture_Oppty_Name) ||
+        normalizeOpportunityValue(row?.Company_Name) ||
+        `Opportunity ${row?.id || ''}`.trim(),
+      entityLabel: 'opportunities',
+    })
+    $q.notify({
+      type: 'positive',
+      message: `Copied ${selectedCount.value} selected opportunit${selectedCount.value === 1 ? 'y' : 'ies'}.`,
+    })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e?.message || String(e) })
+  }
 }
 
 function onChanged() {
