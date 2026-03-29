@@ -1074,6 +1074,7 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   gap: 40px;
+  padding-top: 16px;
 }
 
 .contacts-shell__hero {

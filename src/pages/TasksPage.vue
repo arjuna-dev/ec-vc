@@ -606,6 +606,7 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   gap: 40px;
+  padding-top: 16px;
 }
 
 .tasks-shell__hero {

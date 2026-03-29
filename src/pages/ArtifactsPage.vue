@@ -2686,6 +2686,7 @@ watch(displayArtifactRows, () => {
   display: flex;
   flex-direction: column;
   gap: 40px;
+  padding-top: 16px;
 }
 
 .artifacts-shell__hero {

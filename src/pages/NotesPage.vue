@@ -559,6 +559,7 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   gap: 40px;
+  padding-top: 16px;
 }
 
 .notes-shell__hero {

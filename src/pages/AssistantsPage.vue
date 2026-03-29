@@ -331,6 +331,7 @@ onMounted(loadAssistants)
   display: flex;
   flex-direction: column;
   gap: 40px;
+  padding-top: 16px;
 }
 
 .assistants-shell__hero {
