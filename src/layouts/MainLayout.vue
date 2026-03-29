@@ -5,6 +5,14 @@
         <div class="ec-shell-toolbar-heading">
           <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
           <div class="ec-shell-page-title">{{ currentHeaderTitle }}</div>
+          <q-btn
+            flat
+            dense
+            no-caps
+            label="Back"
+            class="ec-shell-back-btn"
+            @click="goBack"
+          />
         </div>
 
         <q-toolbar-title class="ec-shell-toolbar-title">
@@ -993,6 +1001,15 @@ function refreshCurrentPage() {
   router.go(0)
 }
 
+function goBack() {
+  if (typeof window !== 'undefined' && window.history.length > 1) {
+    router.back()
+    return
+  }
+
+  router.push({ name: 'home' })
+}
+
 </script>
 
 <style scoped>
@@ -1020,6 +1037,20 @@ function refreshCurrentPage() {
   line-height: 0.95;
   letter-spacing: -0.08em;
   white-space: nowrap;
+}
+
+.ec-shell-back-btn {
+  align-self: flex-end;
+  padding: 0 6px;
+  color: var(--ds-color-text-header);
+  font-size: var(--ds-font-size-sm);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.ec-shell-back-btn :deep(.q-btn__content) {
+  font-weight: 800;
 }
 
 .ec-shell-toolbar-actions {
