@@ -330,6 +330,7 @@ const draftTrayDismissed = ref(false)
 const drawerSectionOpen = ref({
   preferences: true,
   main: true,
+  radars: true,
   workspace: true,
 })
 
@@ -347,13 +348,31 @@ const mainNavigationItems = [
   { label: 'Agents', to: '/assistants', exact: true, icon: 'theater_comedy' },
 ]
 const ownerWorldNavigationItems = [
-  { label: 'Team Spaces', to: '/team-spaces', exact: true, icon: 'groups_2' },
-  { label: 'Dealz Radar', to: '/dealz-radar', exact: true, icon: 'radar' },
-  { label: 'Regions', to: '/regions', exact: true, icon: 'public' },
-  { label: 'Asset Classes', to: '/asset-classes', exact: true, icon: 'category' },
-  { label: 'Industries', to: '/industries', exact: true, icon: 'domain' },
-  { label: 'Stages', to: '/stages', exact: true, icon: 'stairs' },
-]
+  { label: 'Dealz World Home', to: '/dealz-world-home', exact: true, icon: 'cottage' },
+  { label: 'Workspaces', to: '/workspaces', exact: true, icon: 'groups_2' },
+  { label: 'Pipelines', to: '/world-pipelines', exact: true, icon: 'schema' },
+  {
+    kind: 'toggle',
+    label: 'Radars',
+    itemClass: 'ec-nav-item--workspace-toggle',
+    icon: 'radar',
+    toggleKey: 'radars',
+  },
+  { label: 'Regions', to: '/regions', exact: true, icon: 'public', parentKey: 'radars' },
+  { label: 'Asset Classes', to: '/asset-classes', exact: true, icon: 'category', parentKey: 'radars' },
+  { label: 'Industries', to: '/industries', exact: true, icon: 'domain', parentKey: 'radars' },
+  { label: 'Stages', to: '/stages', exact: true, icon: 'stairs', parentKey: 'radars' },
+  { label: 'Shared Knowledge', to: '/shared-knowledge', exact: true, icon: 'menu_book' },
+  { label: 'Merch & Events', to: '/merch-events', exact: true, icon: 'celebration' },
+].map((item) => (
+  item.parentKey
+    ? {
+        ...item,
+        itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
+        iconSize: '18px',
+      }
+    : item
+))
 const workspaceNavigationItems = [
   { label: 'Users', to: '/users', exact: true, icon: 'badge' },
   { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
@@ -385,12 +404,16 @@ const routeLabelByName = {
   assistants: 'Agents',
   settings: 'Avatar',
   'user-settings': 'Settings',
-  'team-spaces': 'Team Spaces',
-  'dealz-radar': 'Dealz Radar',
+  'dealz-world-home': 'Dealz World Home',
+  workspaces: 'Workspaces',
+  'world-pipelines': 'Pipelines',
+  radars: 'Radars',
   regions: 'Regions',
   'asset-classes': 'Asset Classes',
   industries: 'Industries',
   stages: 'Stages',
+  'shared-knowledge': 'Shared Knowledge',
+  'merch-events': 'Merch & Events',
   'file-system': 'File System',
   'databook-view': 'Databook',
 }

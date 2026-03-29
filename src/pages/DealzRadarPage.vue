@@ -4,16 +4,16 @@
       <div class="world-shell__hero">
         <div class="world-shell__copy">
           <div class="world-shell__eyebrow">Dealz World</div>
-          <h2 class="world-shell__title">Dealz Radar</h2>
+          <h2 class="world-shell__title">Radars</h2>
           <p class="world-shell__text">
-            Define the discovery and watch-layer of your world so inbound signals can be tracked
+            Define the discovery and watch-layers of your world so inbound signals can be tracked
             before they become structured opportunities.
           </p>
         </div>
 
         <div class="world-shell__panel">
           <div class="world-shell__panel-label">Current Focus</div>
-          <div class="world-shell__panel-value">Create the radar that spots and prioritizes new signals.</div>
+          <div class="world-shell__panel-value">Create the radar layers that spot and prioritize new signals.</div>
           <div class="world-shell__panel-caption">This page is ready for the next sourcing pass.</div>
         </div>
       </div>
@@ -23,7 +23,7 @@
           <q-card flat bordered class="world-card">
             <q-card-section>
               <div class="world-card__eyebrow">Purpose</div>
-              <div class="world-card__title">Signal intake layer</div>
+              <div class="world-card__title">Signal watch layer</div>
               <div class="world-card__copy">
                 Use Dealz Radar to model where early signals, watchlists, and thematic scans should
                 live before formal intake.

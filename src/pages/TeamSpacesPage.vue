@@ -4,16 +4,16 @@
       <div class="world-shell__hero">
         <div class="world-shell__copy">
           <div class="world-shell__eyebrow">Dealz World</div>
-          <h2 class="world-shell__title">Team Spaces</h2>
+          <h2 class="world-shell__title">Workspaces</h2>
           <p class="world-shell__text">
-            Define the collaborative spaces your node uses so teams, workflows, and permissions can
-            be organized by operating context.
+            Define the working spaces your node uses so teams, workflows, and permissions can be
+            organized by operating context.
           </p>
         </div>
 
         <div class="world-shell__panel">
           <div class="world-shell__panel-label">Current Focus</div>
-          <div class="world-shell__panel-value">Shape the shared spaces that teams will work inside.</div>
+          <div class="world-shell__panel-value">Shape the spaces that structure how work happens.</div>
           <div class="world-shell__panel-caption">This page is ready for the next organizational pass.</div>
         </div>
       </div>
@@ -23,10 +23,10 @@
           <q-card flat bordered class="world-card">
             <q-card-section>
               <div class="world-card__eyebrow">Purpose</div>
-              <div class="world-card__title">Collaborative containers</div>
+              <div class="world-card__title">Operating containers</div>
               <div class="world-card__copy">
-                Use team spaces to model different working environments, permissions, and shared
-                mission scopes.
+                Use workspaces to model different environments, permissions, and shared mission
+                scopes.
               </div>
             </q-card-section>
           </q-card>
