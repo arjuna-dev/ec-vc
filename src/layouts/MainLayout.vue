@@ -1065,6 +1065,7 @@ function refreshCurrentPage() {
 .ec-shell-header-divider {
   height: 24px;
   margin-bottom: 20px;
+  border-top: 1px solid #e5e7eb;
   background: linear-gradient(
     180deg,
     rgb(255 255 255 / 1) 0%,
