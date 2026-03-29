@@ -1203,7 +1203,7 @@ function goBack() {
 
 .ec-quick-widget {
   position: fixed;
-  z-index: 2000;
+  z-index: 4000;
   width: 112px;
   height: 112px;
   overflow: visible;
