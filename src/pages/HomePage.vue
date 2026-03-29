@@ -114,7 +114,14 @@
 
       <div class="row q-col-gutter-md">
         <div class="col-12 col-xl-5">
-          <q-card flat bordered class="home-dashboard__panel full-height">
+          <q-card
+            flat
+            bordered
+            class="home-dashboard__panel full-height"
+            @pointerenter="onDashboardPanelPointerEnter"
+            @pointermove="onDashboardPanelPointerMove"
+            @pointerleave="onDashboardPanelPointerLeave"
+          >
             <q-card-section class="home-dashboard__panel-header">
               <div>
                 <div class="home-dashboard__panel-title">Recent activity</div>
@@ -156,7 +163,14 @@
         </div>
 
         <div class="col-12 col-md-6 col-xl-3">
-          <q-card flat bordered class="home-dashboard__panel full-height">
+          <q-card
+            flat
+            bordered
+            class="home-dashboard__panel full-height"
+            @pointerenter="onDashboardPanelPointerEnter"
+            @pointermove="onDashboardPanelPointerMove"
+            @pointerleave="onDashboardPanelPointerLeave"
+          >
             <q-card-section class="home-dashboard__panel-header">
               <div>
                 <div class="home-dashboard__panel-title">Task focus</div>
@@ -231,7 +245,14 @@
         </div>
 
         <div class="col-12 col-md-6 col-xl-4">
-          <q-card flat bordered class="home-dashboard__panel full-height">
+          <q-card
+            flat
+            bordered
+            class="home-dashboard__panel full-height"
+            @pointerenter="onDashboardPanelPointerEnter"
+            @pointermove="onDashboardPanelPointerMove"
+            @pointerleave="onDashboardPanelPointerLeave"
+          >
             <q-card-section class="home-dashboard__panel-header">
               <div>
                 <div class="home-dashboard__panel-title">Workspace signals</div>
@@ -867,6 +888,36 @@ function ratio(part, total) {
   return Math.max(0, Math.min(1, part / total))
 }
 
+function onDashboardPanelPointerEnter(event) {
+  updateDashboardPanelGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--home-dashboard-panel-blob-opacity', '1')
+}
+
+function onDashboardPanelPointerMove(event) {
+  updateDashboardPanelGradientPosition(event)
+}
+
+function onDashboardPanelPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--home-dashboard-panel-blob-opacity', '0')
+}
+
+function updateDashboardPanelGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+
+  element.style.setProperty('--home-dashboard-panel-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--home-dashboard-panel-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
 function formatCompact(value) {
   return new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(
     Number(value || 0),
@@ -1131,7 +1182,37 @@ onBeforeUnmount(() => {
     box-shadow 180ms ease;
 }
 
+.home-dashboard__panel {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.home-dashboard__panel::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--home-dashboard-panel-blob-x, 50%) var(--home-dashboard-panel-blob-y, 28%),
+    rgba(38, 71, 255, 0.2) 0%,
+    rgba(38, 71, 255, 0.1) calc(var(--home-dashboard-panel-blob-size, 62%) * 0.46),
+    rgba(38, 71, 255, 0.05) calc(var(--home-dashboard-panel-blob-size, 62%) * 0.7),
+    transparent var(--home-dashboard-panel-blob-size, 62%)
+  );
+  opacity: var(--home-dashboard-panel-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.home-dashboard__panel > * {
+  position: relative;
+  z-index: 1;
+}
+
 .home-dashboard__metric-card:hover,
+.home-dashboard__panel:hover,
 .home-dashboard__shortcut-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 18px 34px rgba(15, 23, 42, 0.08);
