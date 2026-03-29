@@ -342,8 +342,8 @@ const routeLabelByName = {
   notes: 'Notes',
   tasks: 'Tasks',
   assistants: 'Agents',
-  settings: 'Avatar Settings',
-  'user-settings': 'Owner Settings',
+  settings: 'Avatar',
+  'user-settings': 'Owner',
   'file-system': 'File system',
   'databook-view': 'Databook',
 }
@@ -367,13 +367,13 @@ const drawerNavigationSections = computed(() => [
     key: 'preferences',
     items: [
       {
-        label: 'Owner Settings',
+        label: 'Owner',
         to: '/user-settings',
         exact: true,
         icon: 'settings',
       },
       {
-        label: 'Avatar Settings',
+        label: 'Avatar',
         to: '/settings',
         exact: true,
         icon: 'account_circle',
