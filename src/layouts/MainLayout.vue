@@ -622,17 +622,17 @@ function quickWidgetActionAngle(index) {
 }
 
 function quickWidgetActionOffsetById(actionId, radius = QUICK_WIDGET_ACTION_RADIUS) {
-  const diagonal = radius * 0.72
-  const offsets = {
-    opportunity: { x: 0, y: -radius },
-    task: { x: radius, y: 0 },
-    note: { x: -radius, y: 0 },
-    contact: { x: diagonal, y: diagonal },
-    company: { x: -diagonal, y: diagonal },
-    artifact: { x: 0, y: radius },
-  }
+  const circleOrder = ['opportunity', 'task', 'contact', 'artifact', 'company', 'note']
+  const resolvedId = String(actionId || '').trim()
+  const orderIndex = circleOrder.indexOf(resolvedId)
+  const angleIndex = orderIndex >= 0 ? orderIndex : 0
+  const angleRad = (quickWidgetActionAngle(angleIndex) * Math.PI) / 180
+  const centerYOffset = 10
 
-  return offsets[String(actionId || '').trim()] || { x: 0, y: -radius }
+  return {
+    x: Math.cos(angleRad) * radius,
+    y: Math.sin(angleRad) * radius + centerYOffset,
+  }
 }
 
 function quickWidgetActionOffset(index, radius = QUICK_WIDGET_ACTION_RADIUS) {
