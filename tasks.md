@@ -38,6 +38,12 @@
 
 ## 2. Pipeline MVP Tasks (4 Weeks Total)
 
+### 2.0 Product Language
+
+- [ ] **TASK-010:** Create product glossary for naming conventions
+  - Define canonical terms such as `Owner`, `Node_OWNER`, `Users`, `Contacts`, `Agents`, and workspace/file labels
+  - Use the glossary to keep app copy, file naming, and future agent behavior consistent
+
 ### 2.1 Week 1: Foundation and FS Operations
 
 **Goal:** Get basic file system mirroring and structure creation working

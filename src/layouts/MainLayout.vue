@@ -304,10 +304,17 @@ const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
-  { label: 'Users', to: '/users', exact: true, icon: 'groups' },
-  { label: 'Agents', to: '/assistants', exact: true, icon: 'smart_toy' },
+  {
+    label: 'Agents',
+    to: '/assistants',
+    exact: true,
+    icon: 'smart_toy',
+    itemClass: 'ec-nav-item--feature',
+    iconSize: '20px',
+  },
 ]
 const workspaceNavigationItems = [
+  { label: '1. Users', to: '/users', exact: true, icon: 'groups' },
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
@@ -335,8 +342,8 @@ const routeLabelByName = {
   notes: 'Notes',
   tasks: 'Tasks',
   assistants: 'Agents',
-  settings: 'Settings',
-  'user-settings': 'User settings',
+  settings: 'Avatar Settings',
+  'user-settings': 'Owner Settings',
   'file-system': 'File system',
   'databook-view': 'Databook',
 }
@@ -360,16 +367,18 @@ const drawerNavigationSections = computed(() => [
     key: 'preferences',
     items: [
       {
-        label: hasAuditUserLabel.value ? `User: ${drawerUserLabel.value}` : 'Set user',
+        label: 'Owner Settings',
         to: '/user-settings',
         exact: true,
-        icon: 'account_circle',
+        icon: 'settings',
       },
       {
         label: 'Avatar Settings',
         to: '/settings',
         exact: true,
-        icon: 'settings',
+        icon: 'account_circle',
+        itemClass: 'ec-nav-item--feature',
+        iconSize: '20px',
       },
     ],
   },
@@ -386,10 +395,6 @@ const drawerNavigationSections = computed(() => [
   },
 ])
 
-const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.value))
-const drawerUserLabel = computed(() =>
-  hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Set user',
-)
 const currentHeaderTitle = computed(() => {
   const currentRouteName = String(route.name || '')
 
@@ -1228,6 +1233,26 @@ function goBack() {
 
 .ec-nav-item--secondary :deep(.q-item__section--avatar) {
   min-width: 34px;
+}
+
+.ec-nav-item--feature :deep(.q-item__section--avatar) {
+  min-width: 40px;
+}
+
+.ec-nav-item--feature :deep(.q-icon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: #1d1d1b;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.18) 44%, transparent 45%),
+    linear-gradient(135deg, #ff8a65, #ff5521 58%, #ffb36b);
+  box-shadow:
+    0 10px 22px rgba(255, 85, 33, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .ec-quick-widget {
