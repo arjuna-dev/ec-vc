@@ -621,12 +621,23 @@ function quickWidgetActionAngle(index) {
   return -90 - (360 / total) * index
 }
 
-function quickWidgetActionOffset(index, radius = QUICK_WIDGET_ACTION_RADIUS) {
-  const angleRad = (quickWidgetActionAngle(index) * Math.PI) / 180
-  return {
-    x: Math.cos(angleRad) * radius,
-    y: Math.sin(angleRad) * radius,
+function quickWidgetActionOffsetById(actionId, radius = QUICK_WIDGET_ACTION_RADIUS) {
+  const diagonal = radius * 0.72
+  const offsets = {
+    opportunity: { x: 0, y: -radius },
+    task: { x: radius, y: 0 },
+    note: { x: -radius, y: 0 },
+    contact: { x: diagonal, y: diagonal },
+    company: { x: -diagonal, y: diagonal },
+    artifact: { x: 0, y: radius },
   }
+
+  return offsets[String(actionId || '').trim()] || { x: 0, y: -radius }
+}
+
+function quickWidgetActionOffset(index, radius = QUICK_WIDGET_ACTION_RADIUS) {
+  const action = quickWidgetActions.value[index]
+  return quickWidgetActionOffsetById(action?.id, radius)
 }
 
 function onQuickWidgetPointerDown(evt) {
