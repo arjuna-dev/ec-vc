@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 export const USER_WORKSPACE_DIR = 'User'
-export const NETWORK_DATABASES_DIR = 'Network Data Bases'
+export const NETWORK_DATABASES_DIR = 'WORKSPACE FILES'
 export const NETWORK_DATABASE_SECTION_DIRS = [
   'Contacts',
   'Company',

@@ -309,6 +309,7 @@ const secondaryNavigationItems = [
   { label: 'Tasks', to: '/tasks', exact: true, icon: 'check_circle' },
   { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
   { label: 'Assistants', to: '/assistants', exact: true, icon: 'smart_toy' },
+  { label: 'Browse File System', to: '/file-system', exact: true, icon: 'folder_open' },
 ]
 const routeLabelByName = {
   home: 'Home',
@@ -367,7 +368,7 @@ const drawerNavigationSections = computed(() => [
     items: primaryNavigationItems,
   },
   {
-    label: 'Workspace',
+    label: 'WORKSPACE FILES',
     key: 'workspace',
     items: secondaryNavigationItems,
   },
