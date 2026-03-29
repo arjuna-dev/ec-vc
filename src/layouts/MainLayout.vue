@@ -7,27 +7,26 @@
           <div class="ec-shell-page-title">{{ currentHeaderTitle }}</div>
         </div>
 
-        <div v-if="toolbarActions.length" class="ec-shell-toolbar-actions">
-          <template v-for="action in toolbarActions" :key="action.id">
-            <div v-if="action.kind === 'text'" class="ec-shell-toolbar-status">
-              {{ action.label }}
-            </div>
-            <q-btn
-              v-else
-              dense
-              flat
-              round
-              class="ec-shell-toolbar-action-btn"
-              :icon="action.icon"
-              :disable="resolveBreadcrumbActionDisabled(action)"
-              @click="action.onClick?.()"
-            >
-              <q-tooltip>{{ action.label }}</q-tooltip>
-            </q-btn>
-          </template>
-        </div>
-
         <q-toolbar-title class="ec-shell-toolbar-title">
+          <div v-if="toolbarActions.length" class="ec-shell-toolbar-actions">
+            <template v-for="action in toolbarActions" :key="action.id">
+              <div v-if="action.kind === 'text'" class="ec-shell-toolbar-status">
+                {{ action.label }}
+              </div>
+              <q-btn
+                v-else
+                dense
+                flat
+                round
+                class="ec-shell-toolbar-action-btn"
+                :icon="action.icon"
+                :disable="resolveBreadcrumbActionDisabled(action)"
+                @click="action.onClick?.()"
+              >
+                <q-tooltip>{{ action.label }}</q-tooltip>
+              </q-btn>
+            </template>
+          </div>
           <div class="ec-shell-brand-box">
             <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
             <div
@@ -1028,7 +1027,6 @@ function refreshCurrentPage() {
   display: flex;
   align-items: flex-end;
   gap: var(--ds-space-10);
-  margin-left: auto;
 }
 
 .ec-shell-toolbar-status {
