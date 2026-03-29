@@ -561,7 +561,7 @@ function clampQuickWidgetPosition(x, y) {
   const actionHalfSize = (QUICK_WIDGET_ACTION_SIZE * QUICK_WIDGET_ACTION_HOVER_SCALE) / 2
   const openRadius = QUICK_WIDGET_ACTION_RADIUS + actionHalfSize + 20
   const minX = QUICK_WIDGET_MARGIN + openRadius - triggerRadius
-  const minY = QUICK_WIDGET_MARGIN + openRadius - triggerRadius
+  const minY = QUICK_WIDGET_MARGIN
   const maxX = window.innerWidth - QUICK_WIDGET_MARGIN - openRadius - triggerRadius
   const maxY = window.innerHeight - QUICK_WIDGET_MARGIN - openRadius - triggerRadius
   const fallbackX = Math.max(0, (window.innerWidth - QUICK_WIDGET_TRIGGER_SIZE) / 2)
