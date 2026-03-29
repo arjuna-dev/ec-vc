@@ -9,6 +9,7 @@
             flat
             dense
             no-caps
+            icon="west"
             label="Back"
             class="ec-shell-back-btn"
             @click="goBack"
@@ -1051,6 +1052,10 @@ function goBack() {
 
 .ec-shell-back-btn :deep(.q-btn__content) {
   font-weight: 800;
+}
+
+.ec-shell-back-btn :deep(.q-icon) {
+  font-size: 1em;
 }
 
 .ec-shell-toolbar-actions {
