@@ -18,6 +18,17 @@ const CHANGE_LOG_TOKENS = [
   'Edited_At',
 ]
 
+const CHANGE_LOG_IDS = [
+  'Id_0.1.1',
+  'Id_0.1.2',
+  'Id_0.1.3',
+  'Id_0.1.4',
+  'Id_0.1.5',
+  'Id_0.1.6',
+  'Id_0.1.7',
+  'Id_0.1.8',
+]
+
 const TOKEN_GROUPS = {
   Artifact: [
     'Artifact_ID',
@@ -453,6 +464,18 @@ const WORKBOOK_DEFINITIONS = [
     getRows: listNoteRows,
   },
 ]
+
+const ENTITY_SECTION_LENGTHS = {
+  Artifact: [5, 8],
+  User: [3, 8],
+  Contact: [7, 8, 1, 1],
+  Company: [8, 9, 5, 8, 11, 13, 3, 18, 7, 4],
+  Fund: [5, 9, 16, 7, 5],
+  Round: [5, 8, 8, 9, 5],
+  Project: [5, 9, 9, 8],
+  Task: [5, 9, 6, 4],
+  Note: [5, 9],
+}
 
 function listArtifactRows() {
   return dbAll(
@@ -930,12 +953,48 @@ function labelForToken(token) {
     .join(' ')
 }
 
-function toWorksheetRows(tokens, records, labels = null) {
+function buildIdLabels(entityKey, tokens) {
+  const entityNumberByKey = {
+    Artifact: 1,
+    User: 2,
+    Contact: 3,
+    Company: 4,
+    Fund: 5,
+    Round: 6,
+    Project: 7,
+    Task: 8,
+    Note: 9,
+  }
+  const entityNumber = entityNumberByKey[entityKey]
+  const sectionLengths = ENTITY_SECTION_LENGTHS[entityKey] || []
+  if (!entityNumber || !sectionLengths.length) {
+    return tokens.map((_token, index) => `Id_${entityNumber || 0}.1.${index + 1}`)
+  }
+
+  const ids = []
+  let tokenIndex = 0
+  for (let sectionIndex = 0; sectionIndex < sectionLengths.length; sectionIndex += 1) {
+    const length = sectionLengths[sectionIndex]
+    for (let itemIndex = 0; itemIndex < length && tokenIndex < tokens.length; itemIndex += 1) {
+      ids.push(`Id_${entityNumber}.${sectionIndex + 1}.${itemIndex + 1}`)
+      tokenIndex += 1
+    }
+  }
+  let overflowIndex = 1
+  while (ids.length < tokens.length) {
+    ids.push(`Id_${entityNumber}.${sectionLengths.length || 1}.${overflowIndex}`)
+    overflowIndex += 1
+  }
+  return ids
+}
+
+function toWorksheetRows(tokens, records, labels = null, idLabels = null) {
   const headerLabels = Array.isArray(labels) ? labels : tokens.map((token) => labelForToken(token))
+  const ids = Array.isArray(idLabels) ? idLabels : tokens.map(() => '')
   const bodyRows = (Array.isArray(records) ? records : []).map((record) =>
     tokens.map((token) => normalizeCellValue(record?.[token])),
   )
-  return [tokens, headerLabels, ...bodyRows]
+  return [ids, tokens, headerLabels, ...bodyRows]
 }
 
 function joinPipeValue(...values) {
@@ -975,7 +1034,7 @@ function buildWorksheetXml(rows, { freezeHeaderRows = false } = {}) {
   const lastCellRef =
     safeRows.length > 0 && maxColumns > 0 ? `${columnName(maxColumns)}${safeRows.length}` : 'A1'
   const sheetView = freezeHeaderRows
-    ? '<sheetViews><sheetView workbookViewId="0"><pane ySplit="2" topLeftCell="A3" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+    ? '<sheetViews><sheetView workbookViewId="0"><pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
     : '<sheetViews><sheetView workbookViewId="0"/></sheetViews>'
   const sheetRows = safeRows
     .map((row, rowIndex) => {
@@ -1188,12 +1247,17 @@ export async function syncWorkspaceWorkbookMirror(workspaceRootPath, options = {
       const workbookBuffer = createWorkbookBuffer([
         {
           name: definition.sheetName,
-          rows: toWorksheetRows(TOKEN_GROUPS[definition.key], recordRows),
+          rows: toWorksheetRows(
+            TOKEN_GROUPS[definition.key],
+            recordRows,
+            null,
+            buildIdLabels(definition.key, TOKEN_GROUPS[definition.key]),
+          ),
           freezeHeaderRows: true,
         },
         {
           name: 'Change_Log',
-          rows: toWorksheetRows(CHANGE_LOG_TOKENS, changeLogRows, CHANGE_LOG_LABELS),
+          rows: toWorksheetRows(CHANGE_LOG_TOKENS, changeLogRows, CHANGE_LOG_LABELS, CHANGE_LOG_IDS),
           freezeHeaderRows: true,
         },
       ])
