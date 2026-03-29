@@ -16,7 +16,12 @@
 
     <div v-else class="assistants-page">
       <section class="assistants-shell">
-        <div class="assistants-shell__hero">
+        <div
+          class="assistants-shell__hero"
+          @pointerenter="onHeroDashboardPointerEnter"
+          @pointermove="onHeroDashboardPointerMove"
+          @pointerleave="onHeroDashboardPointerLeave"
+        >
           <div class="assistants-shell__copy">
             <div class="assistants-shell__eyebrow">Dashboard</div>
             <h2 class="assistants-shell__hero-title">Review the helpers powering your workflows.</h2>
@@ -197,6 +202,37 @@ const isElectronRuntime = computed(() => {
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(() => !!bridge.value?.assistants?.list)
+
+function onHeroDashboardPointerEnter(event) {
+  updateHeroDashboardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--hero-dashboard-blob-opacity', '1')
+}
+
+function onHeroDashboardPointerMove(event) {
+  updateHeroDashboardGradientPosition(event)
+}
+
+function onHeroDashboardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--hero-dashboard-blob-opacity', '0')
+}
+
+function updateHeroDashboardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+
+  element.style.setProperty('--hero-dashboard-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--hero-dashboard-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
 const rows = ref([])
 const loading = ref(false)
 const error = ref('')
@@ -342,6 +378,37 @@ onMounted(loadAssistants)
   background: var(--ds-color-surface-base);
   border: 1px solid var(--ds-color-border-soft);
   border-radius: var(--ds-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--ds-shadow-card-soft);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.assistants-shell__hero::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--hero-dashboard-blob-x, 50%) var(--hero-dashboard-blob-y, 28%),
+    rgba(38, 71, 255, 0.2) 0%,
+    rgba(38, 71, 255, 0.1) calc(var(--hero-dashboard-blob-size, 62%) * 0.46),
+    rgba(38, 71, 255, 0.05) calc(var(--hero-dashboard-blob-size, 62%) * 0.7),
+    transparent var(--hero-dashboard-blob-size, 62%)
+  );
+  opacity: var(--hero-dashboard-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.assistants-shell__hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+}
+
+.assistants-shell__hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .assistants-shell__copy,
