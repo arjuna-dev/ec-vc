@@ -512,7 +512,7 @@ b,
 
 .ec-shell-toolbar-title {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 26px;
   min-width: 0;
   padding: 0;
@@ -522,7 +522,7 @@ b,
   width: 120px;
   height: 51px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-end;
   flex: 0 0 auto;
 }
