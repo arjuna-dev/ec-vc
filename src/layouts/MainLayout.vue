@@ -1061,9 +1061,9 @@ function navigateBack() {
 }
 
 .ec-shell-page-title {
-  color: var(--ds-color-text-navigation);
+  color: var(--ds-color-text-header);
   font-size: var(--ds-font-size-sm);
-  font-weight: var(--ds-font-weight-light);
+  font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-sm);
   letter-spacing: 0;
   white-space: nowrap;
