@@ -188,7 +188,6 @@
                       </q-avatar>
                     </div>
                     <div class="col opportunity-card__copy">
-                      <div class="opportunity-card__eyebrow">{{ row.kind || 'Opportunity' }}</div>
                       <div class="opportunity-card__title">
                         {{ row.opportunity_name || row.Venture_Oppty_Name || 'Unnamed opportunity' }}
                       </div>
@@ -1284,16 +1283,6 @@ watch(
   border-radius: 8px;
   border-color: #e5e5e5;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-.opportunity-card__eyebrow {
-  min-width: 0;
-  color: #737373;
-  font-family: var(--font-body);
-  font-size: var(--text-xs---light);
-  font-weight: var(--font-weight-light);
-  line-height: 16px;
-  text-transform: uppercase;
 }
 
 .opportunity-card__copy {

@@ -151,7 +151,6 @@
               <div class="artifact-card__hero-side">
                 <div class="artifact-card__hero-top">
                   <div class="artifact-card__hero-copy">
-                    <div class="artifact-card__eyebrow">{{ formatGroupTypeLabel(group) }}</div>
                     <button
                       type="button"
                       class="artifact-card__title-button"
@@ -1622,13 +1621,6 @@ function findArtifactGroup(row = {}) {
   const key = artifactGroupKey(row)
   if (!key) return null
   return groupArtifacts(rows.value).find((group) => group.groupId === key) || null
-}
-
-function formatGroupTypeLabel(group = {}) {
-  const primaryType = String(group?.primaryArtifact?.artifact_type || '').trim()
-  if (primaryType) return primaryType
-  if ((group?.artifacts || []).length > 1) return 'artifact set'
-  return 'artifact'
 }
 
 function getArtifactCardSubtitle(group = {}) {
@@ -3115,14 +3107,6 @@ watch(displayArtifactRows, () => {
   flex-direction: column;
   min-width: 0;
   gap: 6px;
-}
-
-.artifact-card__eyebrow {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #64748b;
 }
 
 .artifact-card__subtitle {

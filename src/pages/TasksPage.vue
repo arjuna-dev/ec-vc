@@ -169,7 +169,6 @@
                 <q-card-section class="q-pb-sm">
                   <div class="row items-start justify-between q-col-gutter-sm">
                     <div class="col">
-                      <div class="task-card__eyebrow">Task</div>
                       <div class="task-card__title">{{ row.Task_Name || 'Untitled task' }}</div>
                       <div v-if="row.Task_Description" class="task-card__summary">
                         {{ row.Task_Description }}
@@ -939,14 +938,6 @@ watch(displayRows, () => {
   border-radius: 18px;
   border-color: rgba(148, 163, 184, 0.28);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-}
-
-.task-card__eyebrow {
-  color: #737373;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .task-card__title {

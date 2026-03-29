@@ -169,7 +169,6 @@
                 <q-card-section class="q-pb-sm">
                   <div class="row items-start justify-between q-col-gutter-sm">
                     <div class="col">
-                      <div class="note-card__eyebrow">Note</div>
                       <div class="note-card__title">{{ row.Note_Name || 'Untitled note' }}</div>
                       <div v-if="row.created_at" class="note-card__meta">{{ row.created_at }}</div>
                     </div>
@@ -892,14 +891,6 @@ watch(displayRows, () => {
   border-radius: 18px;
   border-color: rgba(148, 163, 184, 0.28);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-}
-
-.note-card__eyebrow {
-  color: #737373;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .note-card__title {

@@ -210,7 +210,6 @@
                     <div class="contact-card__hero-side">
                       <div class="contact-card__hero-top">
                         <div class="contact-card__hero-copy">
-                          <div class="contact-card__eyebrow">Contact profile</div>
                           <div class="contact-card__title">
                             {{ row.Name || 'Unnamed contact' }}
                           </div>
@@ -1571,7 +1570,6 @@ watch(displayRows, () => {
   gap: 3px;
 }
 
-.contact-card__eyebrow,
 .contact-card__summary-label {
   color: #737373;
   font-family: var(--font-body);

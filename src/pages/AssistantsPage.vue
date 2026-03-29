@@ -145,7 +145,6 @@
                 <q-card-section class="assistant-card__header">
                   <div class="row items-start justify-between q-col-gutter-sm no-wrap">
                     <div class="col">
-                      <div class="assistant-card__eyebrow">Assistant</div>
                       <div class="assistant-card__title">
                         {{ assistant.name || 'Unnamed assistant' }}
                       </div>
@@ -701,14 +700,6 @@ onMounted(loadAssistants)
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.82);
-}
-
-.assistant-card__eyebrow {
-  color: #737373;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .assistant-card__title {

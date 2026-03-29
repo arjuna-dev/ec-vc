@@ -189,7 +189,6 @@
                     <div class="company-card__hero-side">
                       <div class="company-card__hero-top">
                         <div class="company-card__hero-copy">
-                          <div class="company-card__eyebrow">Company profile</div>
                           <div class="company-card__title">
                             {{ row.Company_Name || 'Unnamed company' }}
                           </div>
@@ -2227,7 +2226,6 @@ watch(
   gap: 4px;
 }
 
-.company-card__eyebrow,
 .company-card__summary-label {
   color: #737373;
   font-family: var(--font-body);
