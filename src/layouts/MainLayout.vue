@@ -399,10 +399,10 @@ const workspaceNavigationItems = [
   iconSize: '18px',
 }))
 const tokenzMarketNavigationItems = [
-  { label: 'Home', to: '/tokenz-market-home', exact: true, icon: 'currency_bitcoin' },
+  { label: 'Home', to: '/tokenz-market-home', exact: true, icon: 'toll' },
   { label: 'Wallet', to: '/tokenz-wallet', exact: true, icon: 'account_balance_wallet' },
-  { label: 'Markets', to: '/tokenz-markets', exact: true, icon: 'monitoring' },
-  { label: 'Vehicles', to: '/tokenz-vehicles', exact: true, icon: 'airport_shuttle' },
+  { label: 'Markets', to: '/tokenz-markets', exact: true, icon: 'newspaper' },
+  { label: 'Vehicles', to: '/tokenz-vehicles', exact: true, icon: 'gavel' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--primary',
