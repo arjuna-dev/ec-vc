@@ -343,7 +343,7 @@ const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const mainNavigationItems = [
-  { label: 'Home', to: '/', exact: true, icon: 'home' },
+  { label: 'Home', to: '/', exact: true, icon: 'accessibility_new' },
   { label: 'Settings', to: '/user-settings', exact: true, icon: 'settings' },
   { label: 'Avatar', to: '/settings', exact: true, icon: 'smart_toy' },
   { label: 'Agents', to: '/assistants', exact: true, icon: 'theater_comedy' },
