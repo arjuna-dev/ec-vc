@@ -4,7 +4,6 @@ import path from 'node:path'
 import { dbAll } from './sqlite-db.js'
 import {
   getNetworkDatabaseSectionPath,
-  getUserWorkspacePath,
 } from './workspace-structure.js'
 
 const CHANGE_LOG_TOKENS = [
@@ -18,16 +17,8 @@ const CHANGE_LOG_TOKENS = [
   'Edited_At',
 ]
 
-const CHANGE_LOG_IDS = [
-  'Id_0.1.1',
-  'Id_0.1.2',
-  'Id_0.1.3',
-  'Id_0.1.4',
-  'Id_0.1.5',
-  'Id_0.1.6',
-  'Id_0.1.7',
-  'Id_0.1.8',
-]
+const CHANGE_LOG_LEVEL2 = ['1', '1', '1', '1', '1', '1', '1', '1']
+const CHANGE_LOG_LEVEL3 = ['1', '2', '3', '4', '5', '6', '7', '8']
 
 const TOKEN_GROUPS = {
   Artifact: [
@@ -380,24 +371,24 @@ const TOKEN_LABEL_OVERRIDES = {
 
 const WORKBOOK_DEFINITIONS = [
   {
+    key: 'User',
+    fileName: '1. Users.xlsx',
+    sheetName: 'Users',
+    targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Users'),
+    eventTables: ['Users'],
+    getRows: listUserRows,
+  },
+  {
     key: 'Artifact',
-    fileName: '01_Artifacts.xlsx',
+    fileName: '2. Artifacts.xlsx',
     sheetName: 'Artifacts',
     targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Artifacts'),
     eventTables: ['Artifacts', 'Artifact_Raw', 'Artifact_Llm_Ready', 'Artifact_Llm_Generated'],
     getRows: listArtifactRows,
   },
   {
-    key: 'User',
-    fileName: '02_Users.xlsx',
-    sheetName: 'Users',
-    targetDir: (workspaceRootPath) => getUserWorkspacePath(workspaceRootPath),
-    eventTables: ['Users'],
-    getRows: listUserRows,
-  },
-  {
     key: 'Contact',
-    fileName: '03_Contacts.xlsx',
+    fileName: '3. Contacts.xlsx',
     sheetName: 'Contacts',
     targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Contacts'),
     eventTables: ['Contacts'],
@@ -405,7 +396,7 @@ const WORKBOOK_DEFINITIONS = [
   },
   {
     key: 'Company',
-    fileName: '04_Companies.xlsx',
+    fileName: '4. Companies.xlsx',
     sheetName: 'Companies',
     targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Company'),
     eventTables: [
@@ -422,7 +413,7 @@ const WORKBOOK_DEFINITIONS = [
   },
   {
     key: 'Fund',
-    fileName: '05_Funds.xlsx',
+    fileName: '5.1 Funds.xlsx',
     sheetName: 'Funds',
     targetDir: (workspaceRootPath) =>
       getNetworkDatabaseSectionPath(workspaceRootPath, 'Opportunities'),
@@ -431,7 +422,7 @@ const WORKBOOK_DEFINITIONS = [
   },
   {
     key: 'Round',
-    fileName: '06_Rounds.xlsx',
+    fileName: '5.2 Rounds.xlsx',
     sheetName: 'Rounds',
     targetDir: (workspaceRootPath) =>
       getNetworkDatabaseSectionPath(workspaceRootPath, 'Opportunities'),
@@ -440,8 +431,8 @@ const WORKBOOK_DEFINITIONS = [
   },
   {
     key: 'Project',
-    fileName: '07_Pipelines.xlsx',
-    aliasFileNames: ['07_User_Default_Pipeline.xlsx'],
+    fileName: '6. Pipelines.xlsx',
+    aliasFileNames: ['6. User_Default_Pipeline.xlsx'],
     sheetName: 'Pipelines',
     targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Pipelines'),
     eventTables: ['Projects', 'Project_Overview', 'Project_Stages', 'Project_Team'],
@@ -449,7 +440,7 @@ const WORKBOOK_DEFINITIONS = [
   },
   {
     key: 'Task',
-    fileName: '08_Tasks.xlsx',
+    fileName: '8. Tasks.xlsx',
     sheetName: 'Tasks',
     targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Tasks'),
     eventTables: ['Tasks', 'Task_Overview', 'Task_Team'],
@@ -457,7 +448,7 @@ const WORKBOOK_DEFINITIONS = [
   },
   {
     key: 'Note',
-    fileName: '09_Notes.xlsx',
+    fileName: '7. Notes.xlsx',
     sheetName: 'Notes',
     targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Notes'),
     eventTables: ['Notes'],
@@ -953,48 +944,43 @@ function labelForToken(token) {
     .join(' ')
 }
 
-function buildIdLabels(entityKey, tokens) {
-  const entityNumberByKey = {
-    Artifact: 1,
-    User: 2,
-    Contact: 3,
-    Company: 4,
-    Fund: 5,
-    Round: 6,
-    Project: 7,
-    Task: 8,
-    Note: 9,
-  }
-  const entityNumber = entityNumberByKey[entityKey]
+function buildStructureRows(entityKey, tokens) {
   const sectionLengths = ENTITY_SECTION_LENGTHS[entityKey] || []
-  if (!entityNumber || !sectionLengths.length) {
-    return tokens.map((_token, index) => `Id_${entityNumber || 0}.1.${index + 1}`)
+  if (!sectionLengths.length) {
+    return {
+      level2: tokens.map(() => '1'),
+      level3: tokens.map((_token, index) => String(index + 1)),
+    }
   }
 
-  const ids = []
+  const level2 = []
+  const level3 = []
   let tokenIndex = 0
   for (let sectionIndex = 0; sectionIndex < sectionLengths.length; sectionIndex += 1) {
     const length = sectionLengths[sectionIndex]
     for (let itemIndex = 0; itemIndex < length && tokenIndex < tokens.length; itemIndex += 1) {
-      ids.push(`Id_${entityNumber}.${sectionIndex + 1}.${itemIndex + 1}`)
+      level2.push(String(sectionIndex + 1))
+      level3.push(String(itemIndex + 1))
       tokenIndex += 1
     }
   }
   let overflowIndex = 1
-  while (ids.length < tokens.length) {
-    ids.push(`Id_${entityNumber}.${sectionLengths.length || 1}.${overflowIndex}`)
+  while (level2.length < tokens.length) {
+    level2.push(String(sectionLengths.length || 1))
+    level3.push(String(overflowIndex))
     overflowIndex += 1
   }
-  return ids
+  return { level2, level3 }
 }
 
-function toWorksheetRows(tokens, records, labels = null, idLabels = null) {
+function toWorksheetRows(tokens, records, labels = null, structureRows = null) {
   const headerLabels = Array.isArray(labels) ? labels : tokens.map((token) => labelForToken(token))
-  const ids = Array.isArray(idLabels) ? idLabels : tokens.map(() => '')
+  const level2 = Array.isArray(structureRows?.level2) ? structureRows.level2 : tokens.map(() => '')
+  const level3 = Array.isArray(structureRows?.level3) ? structureRows.level3 : tokens.map(() => '')
   const bodyRows = (Array.isArray(records) ? records : []).map((record) =>
     tokens.map((token) => normalizeCellValue(record?.[token])),
   )
-  return [ids, tokens, headerLabels, ...bodyRows]
+  return [level2, level3, tokens, headerLabels, ...bodyRows]
 }
 
 function joinPipeValue(...values) {
@@ -1034,7 +1020,7 @@ function buildWorksheetXml(rows, { freezeHeaderRows = false } = {}) {
   const lastCellRef =
     safeRows.length > 0 && maxColumns > 0 ? `${columnName(maxColumns)}${safeRows.length}` : 'A1'
   const sheetView = freezeHeaderRows
-    ? '<sheetViews><sheetView workbookViewId="0"><pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+    ? '<sheetViews><sheetView workbookViewId="0"><pane ySplit="4" topLeftCell="A5" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
     : '<sheetViews><sheetView workbookViewId="0"/></sheetViews>'
   const sheetRows = safeRows
     .map((row, rowIndex) => {
@@ -1251,13 +1237,16 @@ export async function syncWorkspaceWorkbookMirror(workspaceRootPath, options = {
             TOKEN_GROUPS[definition.key],
             recordRows,
             null,
-            buildIdLabels(definition.key, TOKEN_GROUPS[definition.key]),
+            buildStructureRows(definition.key, TOKEN_GROUPS[definition.key]),
           ),
           freezeHeaderRows: true,
         },
         {
           name: 'Change_Log',
-          rows: toWorksheetRows(CHANGE_LOG_TOKENS, changeLogRows, CHANGE_LOG_LABELS, CHANGE_LOG_IDS),
+          rows: toWorksheetRows(CHANGE_LOG_TOKENS, changeLogRows, CHANGE_LOG_LABELS, {
+            level2: CHANGE_LOG_LEVEL2,
+            level3: CHANGE_LOG_LEVEL3,
+          }),
           freezeHeaderRows: true,
         },
       ])

@@ -100,6 +100,9 @@ contextBridge.exposeInMainWorld('ecvc', {
     upsertMany: (rows) => ipcRenderer.invoke('contacts:upsertMany', { rows }),
     delete: (contactId) => ipcRenderer.invoke('contacts:delete', { contactId }),
   },
+  users: {
+    list: () => ipcRenderer.invoke('users:list'),
+  },
   notes: {
     list: () => ipcRenderer.invoke('notes:list'),
     create: (payload) => ipcRenderer.invoke('notes:create', payload),

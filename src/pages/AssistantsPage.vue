@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Assistants requires Electron. Run <code>quasar dev -m electron</code> or
+        Agents requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -24,7 +24,7 @@
         >
           <div class="assistants-shell__copy">
             <div class="assistants-shell__eyebrow">Dashboard</div>
-            <h2 class="assistants-shell__hero-title">Review the helpers powering your workflows.</h2>
+            <h2 class="assistants-shell__hero-title">Review the agents powering your workflows.</h2>
             <p class="assistants-shell__hero-text">{{ assistantsHeroText }}</p>
 
           </div>
@@ -107,7 +107,7 @@
               outlined
               borderless
               class="assistants-toolbar__search"
-              placeholder="Search assistants..."
+              placeholder="Search agents..."
               :disable="loading"
             >
               <template #prepend>
@@ -128,7 +128,7 @@
             rounded
           >
             <div class="row items-center justify-between">
-              <div>No assistants found.</div>
+              <div>No agents found.</div>
             </div>
           </q-banner>
 
@@ -287,12 +287,12 @@ const assistantsHeroText = computed(() => {
   if (!total) {
     return 'Assistant configurations will appear here as your workspace generates and stores them.'
   }
-  return `${total} assistants tracked, ${promptedCount} with system prompts, ${versionedCount} versioned, and ${contractCount} already carrying input contract context.`
+  return `${total} agents tracked, ${promptedCount} with system prompts, ${versionedCount} versioned, and ${contractCount} already carrying input contract context.`
 })
 
 const assistantsDashboardStats = computed(() => [
   {
-    label: 'Total assistants',
+    label: 'Total agents',
     value: assistantsDashboard.value.total,
     caption: 'Configurations available in the workspace',
     tone: 'neutral',

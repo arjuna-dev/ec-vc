@@ -1032,6 +1032,21 @@ function listContacts() {
   )
 }
 
+function listUsers() {
+  return dbAll(
+    `
+    SELECT
+      id,
+      User_Name,
+      User_PEmail,
+      created_at,
+      updated_at
+    FROM Users
+    ORDER BY COALESCE(User_Name, '') ASC, id ASC
+  `,
+  )
+}
+
 function listNotes() {
   return dbAll(
     `
@@ -4955,6 +4970,11 @@ function registerIpc() {
   ipcMain.handle('contacts:list', async () => {
     initDb()
     return { contacts: listContacts() }
+  })
+
+  ipcMain.handle('users:list', async () => {
+    initDb()
+    return { users: listUsers() }
   })
 
   ipcMain.handle('contacts:create', async (_event, payload) => {

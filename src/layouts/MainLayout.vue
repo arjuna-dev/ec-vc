@@ -70,7 +70,11 @@
               @click="toggleDrawerSection(section.key)"
             >
               <q-item-section>
-                <q-item-label header class="ec-nav-label">{{ section.label }}</q-item-label>
+                <q-item-label
+                  header
+                  class="ec-nav-label"
+                  :class="section.labelClass"
+                >{{ section.label }}</q-item-label>
               </q-item-section>
               <q-item-section side>
                 <q-icon
@@ -87,9 +91,10 @@
                 :to="item.to"
                 :exact="item.exact"
                 class="ec-nav-item"
+                :class="item.itemClass"
               >
                 <q-item-section avatar>
-                  <q-icon :name="item.icon" />
+                  <q-icon :name="item.icon" :size="item.iconSize || '24px'" />
                 </q-item-section>
                 <q-item-section>
                   <q-item-label>{{ item.label }}</q-item-label>
@@ -297,10 +302,12 @@ const QUICK_WIDGET_ACTION_SIZE = 40
 const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
-const primaryNavigationItems = [
+const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
+  { label: 'Users', to: '/users', exact: true, icon: 'groups' },
+  { label: 'Agents', to: '/assistants', exact: true, icon: 'smart_toy' },
 ]
-const secondaryNavigationItems = [
+const workspaceNavigationItems = [
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
@@ -308,13 +315,17 @@ const secondaryNavigationItems = [
   { label: 'Notes', to: '/notes', exact: true, icon: 'note' },
   { label: 'Tasks', to: '/tasks', exact: true, icon: 'check_circle' },
   { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
-  { label: 'Assistants', to: '/assistants', exact: true, icon: 'smart_toy' },
   { label: 'Browse File System', to: '/file-system', exact: true, icon: 'folder_open' },
-]
+].map((item) => ({
+  ...item,
+  itemClass: 'ec-nav-item--secondary',
+  iconSize: '18px',
+}))
 const routeLabelByName = {
   home: 'Home',
   companies: 'Companies',
   contacts: 'Contacts',
+  users: 'Users',
   opportunities: 'Opportunities',
   funds: 'Funds',
   rounds: 'Rounds',
@@ -323,7 +334,7 @@ const routeLabelByName = {
   artifacts: 'Artifacts',
   notes: 'Notes',
   tasks: 'Tasks',
-  assistants: 'Assistants',
+  assistants: 'Agents',
   settings: 'Settings',
   'user-settings': 'User settings',
   'file-system': 'File system',
@@ -365,12 +376,13 @@ const drawerNavigationSections = computed(() => [
   {
     label: 'Main',
     key: 'main',
-    items: primaryNavigationItems,
+    items: mainNavigationItems,
   },
   {
     label: 'WORKSPACE FILES',
     key: 'workspace',
-    items: secondaryNavigationItems,
+    labelClass: 'ec-nav-label--secondary',
+    items: workspaceNavigationItems,
   },
 ])
 
@@ -1193,6 +1205,10 @@ function goBack() {
   white-space: nowrap;
 }
 
+.ec-nav-label--secondary {
+  font-size: 11px;
+}
+
 .ec-nav-branch {
   display: flex;
   flex-direction: column;
@@ -1204,6 +1220,14 @@ function goBack() {
 
 .ec-nav-item--nested :deep(.q-item__section--avatar) {
   min-width: 40px;
+}
+
+.ec-nav-item--secondary :deep(.q-item__label) {
+  font-size: 11px;
+}
+
+.ec-nav-item--secondary :deep(.q-item__section--avatar) {
+  min-width: 34px;
 }
 
 .ec-quick-widget {

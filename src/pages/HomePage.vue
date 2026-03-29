@@ -468,11 +468,11 @@ const collectionConfigs = [
   },
   {
     key: 'assistants',
-    label: 'Assistants',
+    label: 'Agents',
     icon: 'smart_toy',
     to: '/assistants',
     accent: '#db2777',
-    actionLabel: 'Open assistants',
+    actionLabel: 'Open agents',
     load: async () => (await bridge.value.assistants.list())?.assistants || [],
   },
 ]
@@ -737,7 +737,7 @@ const summaryCards = computed(() => [
   {
     ...collectionConfigByKey.assistants,
     count: assistantsCount.value,
-    helper: assistants.value.length > 0 ? 'Assistant configs available' : 'No assistant configs yet',
+    helper: assistants.value.length > 0 ? 'Agent configs available' : 'No agent configs yet',
   },
 ])
 

@@ -3,6 +3,7 @@ import fse from 'fs-extra'
 import {
   ARTIFACT_STAGE_DIRS,
   getArtifactsSectionPath,
+  getNetworkDatabaseSectionDirName,
   getNetworkDatabaseSectionPath,
   getPipelinesSectionPath,
   NETWORK_DATABASES_DIR,
@@ -14,17 +15,18 @@ export const DEFAULT_PROJECT_ROOT_NAME = 'ec-vc'
 export const DEFAULT_PROJECT_STRUCTURE = {
   [USER_WORKSPACE_DIR]: {
     [NETWORK_DATABASES_DIR]: {
-      Contacts: {},
-      Company: {},
-      Opportunities: {},
-      Pipelines: {},
-      Notes: {},
-      Tasks: {},
-      Artifacts: {
+      [getNetworkDatabaseSectionDirName('Users')]: {},
+      [getNetworkDatabaseSectionDirName('Artifacts')]: {
         [ARTIFACT_STAGE_DIRS[0]]: {},
         [ARTIFACT_STAGE_DIRS[1]]: {},
         [ARTIFACT_STAGE_DIRS[2]]: {},
       },
+      [getNetworkDatabaseSectionDirName('Contacts')]: {},
+      [getNetworkDatabaseSectionDirName('Company')]: {},
+      [getNetworkDatabaseSectionDirName('Opportunities')]: {},
+      [getNetworkDatabaseSectionDirName('Pipelines')]: {},
+      [getNetworkDatabaseSectionDirName('Notes')]: {},
+      [getNetworkDatabaseSectionDirName('Tasks')]: {},
     },
   },
 }
@@ -59,6 +61,13 @@ async function moveDirectoryContents(sourceDir, destinationDir) {
   await removeDirectoryIfEmpty(sourceDir)
 }
 
+async function moveFileIfPresent(sourcePath, destinationPath) {
+  if (!(await fse.pathExists(sourcePath))) return
+  await fse.ensureDir(path.dirname(destinationPath))
+  if (await fse.pathExists(destinationPath)) return
+  await fse.move(sourcePath, destinationPath, { overwrite: false })
+}
+
 async function migrateLegacyWorkspaceStructure(rootPath) {
   const legacyCompanyDocsPath = path.join(rootPath, '0_company_docs')
   const legacyArtifactsPath = path.join(legacyCompanyDocsPath, 'Artifacts')
@@ -68,6 +77,38 @@ async function migrateLegacyWorkspaceStructure(rootPath) {
   await moveDirectoryContents(legacyArtifactsPath, getArtifactsSectionPath(rootPath))
   await moveDirectoryContents(legacyCompanyDocsPath, getNetworkDatabaseSectionPath(rootPath, 'Company'))
   await moveDirectoryContents(legacyPipelinesPath, getPipelinesSectionPath(rootPath))
+  await moveDirectoryContents(
+    path.join(rootPath, USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Contacts'),
+    getNetworkDatabaseSectionPath(rootPath, 'Contacts'),
+  )
+  await moveDirectoryContents(
+    path.join(rootPath, USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Company'),
+    getNetworkDatabaseSectionPath(rootPath, 'Company'),
+  )
+  await moveDirectoryContents(
+    path.join(rootPath, USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Opportunities'),
+    getNetworkDatabaseSectionPath(rootPath, 'Opportunities'),
+  )
+  await moveDirectoryContents(
+    path.join(rootPath, USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Pipelines'),
+    getNetworkDatabaseSectionPath(rootPath, 'Pipelines'),
+  )
+  await moveDirectoryContents(
+    path.join(rootPath, USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Notes'),
+    getNetworkDatabaseSectionPath(rootPath, 'Notes'),
+  )
+  await moveDirectoryContents(
+    path.join(rootPath, USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Tasks'),
+    getNetworkDatabaseSectionPath(rootPath, 'Tasks'),
+  )
+  await moveDirectoryContents(
+    path.join(rootPath, USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Artifacts'),
+    getNetworkDatabaseSectionPath(rootPath, 'Artifacts'),
+  )
+  await moveFileIfPresent(
+    path.join(rootPath, USER_WORKSPACE_DIR, '02_Users.xlsx'),
+    path.join(getNetworkDatabaseSectionPath(rootPath, 'Users'), '1. Users.xlsx'),
+  )
 
   for (const legacyPortfolioPath of legacyPortfolioPaths) {
     await moveDirectoryContents(

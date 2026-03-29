@@ -15,6 +15,7 @@ const routes = [
       { path: 'artifacts', name: 'artifacts', component: () => import('pages/ArtifactsPage.vue') },
       { path: 'companies', name: 'companies', component: () => import('pages/CompaniesPage.vue') },
       { path: 'contacts', name: 'contacts', component: () => import('pages/ContactsPage.vue') },
+      { path: 'users', name: 'users', component: () => import('pages/UsersPage.vue') },
       { path: 'notes', name: 'notes', component: () => import('pages/NotesPage.vue') },
       { path: 'tasks', name: 'tasks', component: () => import('pages/TasksPage.vue') },
       { path: 'assistants', name: 'assistants', component: () => import('pages/AssistantsPage.vue') },
