@@ -513,13 +513,13 @@ b,
 .ec-shell-toolbar-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
   padding: 0;
 }
 
 .ec-shell-brand-box {
-  width: fit-content;
+  width: 120px;
   height: 51px;
   display: flex;
   align-items: center;
@@ -529,7 +529,7 @@ b,
 
 .ec-shell-toolbar-lottie {
   display: block;
-  width: 345px;
+  width: 120px;
   max-width: 100%;
   height: 51px;
 }
