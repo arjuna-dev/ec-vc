@@ -54,6 +54,50 @@
   - Keep the runtime independent from any single LLM provider or model
   - Support script-based execution so agents can be reused outside the app UI
 
+### 2.0A Agent Operating System
+
+- [ ] **TASK-013:** Finalize Avatar and agent designation model
+  - Use `Avatar` as the Level 0 Owner-facing designation in product language
+  - Keep `Agents` page focused on Levels 1 to 3 only
+  - Align glossary, page titles, and future file naming around this distinction
+
+- [ ] **TASK-014:** Build repeatable agent card system
+  - Standardize the agent card format across grid, table, and org views
+  - Keep agent roster UX separate from per-agent blueprint/design views
+  - Prepare card slots for future customization of portrait, class, parameters, and progression
+
+- [ ] **TASK-015:** Design game-like agent and user profile UX
+  - Agents should support pokemon / made-up robot style portrait customization
+  - User profiles should support bit / lego style portrait direction
+  - Define how appearance, role, and parameters can be modified without breaking the core data model
+
+- [ ] **TASK-016:** Build file-driven agent definition format
+  - Define one repeatable structure for `agent.md`, `agent.config.json`, prompt fragments, and task playbooks
+  - Make agent definitions executable by scripts, not only through the app UI
+  - Keep provider choice swappable through adapters
+
+- [ ] **TASK-017:** Build first independent runtime pilot
+  - Create a first script-driven pilot agent outside the UI runtime
+  - Prefer `Avatar` or `Intake Steward` as the first agent
+  - Validate that one agent can run from files plus adapter configuration rather than app-bound logic
+
+### 2.0B Priority Workstreams
+
+- [ ] **TASK-018:** Design artifact intake module as first mission
+  - Define landing, review, routing, and filing behavior for artifacts
+  - Map which agent levels participate in intake
+  - Make intake the first real mission exercised through the agent system
+
+- [ ] **TASK-019:** Build per-agent views
+  - Move blueprint and design detail into each individual agent view
+  - Keep the `Agents` page as roster/cards only
+  - Prepare one agent detail view that can later read from markdown/config files
+
+- [ ] **TASK-020:** Add org-structure and level navigation polish
+  - Keep `All`, `L1`, `L2`, `L3`, and org-structure navigation coherent
+  - Refine hierarchy browsing so levels, parents, and domains are easy to inspect
+  - Make sure the hierarchy remains usable as the number of agents grows
+
 ### 2.1 Week 1: Foundation and FS Operations
 
 **Goal:** Get basic file system mirroring and structure creation working
