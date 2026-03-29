@@ -108,7 +108,7 @@
         <div class="ec-drawer-footer">
           <q-item dense class="ec-nav-item ec-nav-item--footer">
             <q-item-section>
-              <q-item-label>MTK v0.0.1</q-item-label>
+              <q-item-label>App version: MTK v0.0.1</q-item-label>
             </q-item-section>
           </q-item>
         </div>
@@ -1237,6 +1237,18 @@ function goBack() {
 .ec-nav-item--footer {
   margin-left: 8px;
   margin-right: 8px;
+}
+
+.ec-nav-item--footer :deep(.q-item__section--main) {
+  padding-left: 0;
+}
+
+.ec-nav-item--footer :deep(.q-item__section--main ~ .q-item__section--main) {
+  margin-left: 0;
+}
+
+.ec-nav-item--footer :deep(.q-focus-helper) {
+  display: none;
 }
 
 .ec-nav-item--footer :deep(.q-item__section) {
