@@ -346,7 +346,11 @@ const mainNavigationItems = [
   { label: 'Settings', to: '/user-settings', exact: true, icon: 'manage_accounts' },
   { label: 'Avatar', to: '/settings', exact: true, icon: 'smart_toy' },
   { label: 'Agents', to: '/assistants', exact: true, icon: 'theater_comedy' },
-]
+].map((item) => ({
+  ...item,
+  itemClass: 'ec-nav-item--primary',
+  iconSize: '22px',
+}))
 const ownerWorldNavigationItems = [
   { label: 'Home', to: '/dealz-world-home', exact: true, icon: 'newspaper' },
   { label: 'Workspaces', to: '/workspaces', exact: true, icon: 'dns' },
@@ -371,7 +375,11 @@ const ownerWorldNavigationItems = [
         itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
         iconSize: '18px',
       }
-    : item
+    : {
+        ...item,
+        itemClass: item.itemClass ? `ec-nav-item--primary ${item.itemClass}` : 'ec-nav-item--primary',
+        iconSize: '22px',
+      }
 ))
 const workspaceNavigationItems = [
   { label: 'Users', to: '/users', exact: true, icon: 'badge' },
@@ -1322,6 +1330,15 @@ function goBack() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.ec-nav-item--primary :deep(.q-item__label) {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.ec-nav-item--primary {
+  min-height: 34px;
 }
 
 .ec-nav-icon--widget-blue {
