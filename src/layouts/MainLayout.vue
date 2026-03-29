@@ -1068,9 +1068,9 @@ function refreshCurrentPage() {
   border-top: 1px solid #e5e7eb;
   background: linear-gradient(
     180deg,
-    rgb(255 255 255 / 1) 0%,
-    rgb(250 250 250 / 0.96) 28%,
-    hsl(var(--background)) 100%
+    hsl(var(--background)) 0%,
+    rgb(250 250 250 / 0.96) 72%,
+    rgb(255 255 255 / 1) 100%
   );
 }
 
