@@ -1041,7 +1041,6 @@ function refreshCurrentPage() {
 
 .ec-shell-toolbar-action-btn {
   align-self: flex-end;
-  margin-bottom: 1px;
 }
 
 .ec-shell-toolbar-action-btn :deep(.q-btn__content) {
