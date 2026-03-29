@@ -1061,6 +1061,8 @@ function navigateBack() {
 }
 
 .ec-shell-page-title {
+  display: inline-flex;
+  align-items: center;
   color: var(--ds-color-text-header);
   font-size: var(--ds-font-size-sm);
   font-weight: var(--ds-font-weight-medium);
@@ -1154,10 +1156,6 @@ function navigateBack() {
 }
 
 @media (max-width: 720px) {
-  .ec-shell-page-title {
-    font-size: 1.375rem;
-  }
-
   .ec-shell-toolbar-lottie {
     width: 72px;
     height: 28px;
