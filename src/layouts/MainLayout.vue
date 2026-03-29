@@ -326,6 +326,7 @@ const route = useRoute()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const intakeDraftState = useIntakeDraftState()
 const breadcrumbActionsState = useBreadcrumbActionsState()
+const fallbackToolbarUpdatedAt = ref(new Date())
 let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
@@ -383,9 +384,40 @@ const currentHeaderTitle = computed(() => {
   return routeLabelByName[currentRouteName] || toTitleCase(currentRouteName.replace(/[-_]/g, ' '))
 })
 const breadcrumbActions = computed(() => breadcrumbActionsState.actions || [])
-const toolbarActions = computed(() =>
-  String(route.name || '') === 'home' ? breadcrumbActions.value : [],
-)
+const fallbackToolbarUpdatedLabel = computed(() => {
+  const value = fallbackToolbarUpdatedAt.value
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+    return ''
+  }
+
+  const formatted = new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(value)
+
+  return `Updated ${formatted}`
+})
+const toolbarActions = computed(() => {
+  if (String(route.name || '') === 'home') {
+    return breadcrumbActions.value
+  }
+
+  return [
+    {
+      id: 'global-updated',
+      kind: 'text',
+      label: fallbackToolbarUpdatedLabel.value,
+    },
+    {
+      id: 'global-refresh',
+      icon: 'refresh',
+      label: 'Refresh',
+      onClick: refreshCurrentPage,
+    },
+  ]
+})
 
 const quickWidgetStyle = computed(() => ({
   left: `${quickWidgetPosition.value.x}px`,
@@ -941,6 +973,7 @@ onBeforeUnmount(() => {
 watch(
   () => route.fullPath,
   () => {
+    fallbackToolbarUpdatedAt.value = new Date()
     syncUserNavState()
   },
 )
@@ -955,6 +988,11 @@ watch(
 function resolveBreadcrumbActionDisabled(action) {
   if (typeof action?.disabled === 'function') return !!action.disabled()
   return !!action?.disabled
+}
+
+function refreshCurrentPage() {
+  fallbackToolbarUpdatedAt.value = new Date()
+  router.go(0)
 }
 
 </script>
@@ -1013,7 +1051,6 @@ function resolveBreadcrumbActionDisabled(action) {
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
-  margin-left: auto;
   min-width: 0;
 }
 
