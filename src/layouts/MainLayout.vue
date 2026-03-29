@@ -87,6 +87,17 @@
             <template v-if="isDrawerSectionOpen(section.key)">
               <template v-for="item in section.items" :key="item.label">
               <q-item
+                v-if="item.kind === 'subheader'"
+                dense
+                class="ec-nav-subheader"
+                :class="item.itemClass"
+              >
+                <q-item-section>
+                  <q-item-label class="ec-nav-label" :class="item.labelClass">{{ item.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item
+                v-else
                 clickable
                 :to="item.to"
                 :exact="item.exact"
@@ -377,13 +388,16 @@ const drawerNavigationSections = computed(() => [
   {
     label: 'Main',
     key: 'main',
-    items: mainNavigationItems,
-  },
-  {
-    label: 'WORKSPACE FILES',
-    key: 'workspace',
-    labelClass: 'ec-nav-label--secondary',
-    items: workspaceNavigationItems,
+    items: [
+      ...mainNavigationItems,
+      {
+        kind: 'subheader',
+        label: 'WORKSPACE FILES',
+        itemClass: 'ec-nav-subheader--secondary',
+        labelClass: 'ec-nav-label--secondary',
+      },
+      ...workspaceNavigationItems,
+    ],
   },
 ])
 
@@ -1204,6 +1218,15 @@ function goBack() {
 
 .ec-nav-label--secondary {
   font-size: 11px;
+}
+
+.ec-nav-subheader {
+  min-height: auto;
+  padding: 10px 16px 4px 16px;
+}
+
+.ec-nav-subheader--secondary {
+  margin-top: 6px;
 }
 
 .ec-nav-branch {
