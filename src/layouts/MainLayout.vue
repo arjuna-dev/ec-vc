@@ -291,12 +291,12 @@ const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const primaryNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
+]
+const secondaryNavigationItems = [
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
   { label: 'Pipelines', to: '/projects', exact: true, icon: 'schema' },
-]
-const secondaryNavigationItems = [
   { label: 'Notes', to: '/notes', exact: true, icon: 'note' },
   { label: 'Tasks', to: '/tasks', exact: true, icon: 'check_circle' },
   { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
