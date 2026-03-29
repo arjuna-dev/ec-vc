@@ -353,7 +353,7 @@ const mainNavigationItems = [
 }))
 const ownerWorldNavigationItems = [
   { label: 'Home', to: '/dealz-world-home', exact: true, icon: 'newspaper' },
-  { label: 'Workspaces', to: '/workspaces', exact: true, icon: 'dns' },
+  { label: 'Spaces', to: '/workspaces', exact: true, icon: 'dns' },
   { label: 'Pipelines', to: '/world-pipelines', exact: true, icon: 'filter_alt' },
   {
     kind: 'toggle',
@@ -414,7 +414,7 @@ const routeLabelByName = {
   settings: 'Avatar',
   'user-settings': 'Settings',
   'dealz-world-home': 'Home',
-  workspaces: 'Workspaces',
+  workspaces: 'Spaces',
   'world-pipelines': 'Pipelines',
   radars: 'Radars',
   regions: 'Regions',
