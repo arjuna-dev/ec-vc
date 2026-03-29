@@ -99,63 +99,8 @@
             />
           </div>
 
-          <div class="companies-toolbar__block companies-toolbar__block--filters">
-            <q-icon name="tune" size="18px" class="companies-toolbar__filters-icon" />
-
-            <q-select
-              v-model="locationFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="companies-toolbar__filter-control"
-              label="Location"
-              :options="locationFilterOptions"
-              :disable="loading || locationFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="stageFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="companies-toolbar__filter-control"
-              label="Stage"
-              :options="stageFilterOptions"
-              :disable="loading || stageFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="industryFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="companies-toolbar__filter-control"
-              label="Industry"
-              :options="industryFilterOptions"
-              :disable="loading || industryFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="statusFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="companies-toolbar__filter-control"
-              label="Status"
-              :options="statusFilterOptions"
-              :disable="loading || statusFilterOptions.length === 0"
-            />
-          </div>
-
           <div class="companies-toolbar__block companies-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="companies-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -169,6 +114,12 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="exportCompaniesCsv">
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -836,28 +787,6 @@ const activeCompanySectionTitle = computed(() => {
 const activeCompanySectionRowKey = computed(() =>
   companyTableTab.value === 'artifacts' || companyTableTab.value === 'notes' ? 'id' : 'id',
 )
-
-function uniqueCompanyValues(resolver) {
-  return [...new Set(rows.value.map((row) => normalizeCompanyValue(resolver(row))).filter(Boolean))]
-    .sort((left, right) => left.localeCompare(right))
-    .map((value) => ({ label: value, value }))
-}
-
-const stageFilterOptions = computed(() => uniqueCompanyValues((row) => row?.Company_Stage))
-const industryFilterOptions = computed(() =>
-  uniqueCompanyValues(
-    (row) =>
-      row?.Industry_Name ||
-      row?.Industry ||
-      row?.Industry_Sector ||
-      row?.Sector ||
-      row?.Vertical,
-  ),
-)
-const locationFilterOptions = computed(() =>
-  uniqueCompanyValues((row) => row?.Headquarters_City_Name || row?.Incorporation_Country_Name),
-)
-const statusFilterOptions = computed(() => uniqueCompanyValues((row) => row?.Status))
 
 const companiesDashboard = computed(() => {
   const total = rows.value.length
@@ -2056,7 +1985,9 @@ watch(
 }
 
 .companies-toolbar__block--search {
+  grid-column: -2 / -1;
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .companies-toolbar__filters-icon {

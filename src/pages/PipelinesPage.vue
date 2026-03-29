@@ -99,63 +99,8 @@
             />
           </div>
 
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--filters">
-            <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
-
-            <q-select
-              v-model="regionFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="pipelines-toolbar__filter-control"
-              label="Region"
-              :options="regionFilterOptions"
-              :disable="true"
-            />
-
-            <q-select
-              v-model="stageFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="pipelines-toolbar__filter-control"
-              label="Stage"
-              :options="stageFilterOptions"
-              :disable="loading || stageFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="industryFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="pipelines-toolbar__filter-control"
-              label="Industry"
-              :options="industryFilterOptions"
-              :disable="true"
-            />
-
-            <q-select
-              v-model="statusFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="pipelines-toolbar__filter-control"
-              label="Status"
-              :options="statusFilterOptions"
-              :disable="loading || statusFilterOptions.length === 0"
-            />
-          </div>
-
           <div class="pipelines-toolbar__block pipelines-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -169,6 +114,12 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="exportPipelinesCsv">
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -400,8 +351,6 @@ const error = ref('')
 const pipelineDialogOpen = ref(false)
 const searchQuery = ref('')
 const pipelineKindFilter = ref('all')
-const regionFilter = ref('')
-const industryFilter = ref('')
 const stageFilter = ref('')
 const statusFilter = ref('')
 const viewMode = ref('card')
@@ -439,30 +388,6 @@ const pipelineKindOptions = [
   { label: 'Own', value: 'own' },
   { label: 'Others', value: 'others' },
 ]
-const regionFilterOptions = computed(() => [])
-const industryFilterOptions = computed(() => [])
-
-function uniquePipelineValues(resolver) {
-  return [...new Set(pipelines.value.map((row) => normalizePipelineValue(resolver(row))).filter(Boolean))]
-    .sort((left, right) => left.localeCompare(right))
-    .map((value) => ({ label: value, value }))
-}
-
-const stageFilterOptions = computed(
-  () =>
-    [...new Set(
-      pipelines.value.flatMap((row) =>
-        parsedStages(row).map((stage) => normalizePipelineValue(stage?.name)).filter(Boolean),
-      ),
-    )]
-      .sort((left, right) => left.localeCompare(right))
-      .map((value) => ({ label: value, value })),
-)
-
-const statusFilterOptions = computed(() =>
-  uniquePipelineValues((row) => statusLabel(row?.install_status)),
-)
-
 const pipelinesDashboard = computed(() => {
   const total = pipelines.value.length
   const summary = pipelines.value.reduce(
@@ -1188,7 +1113,9 @@ watch(displayRows, () => {
 }
 
 .pipelines-toolbar__block--search {
+  grid-column: -2 / -1;
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .pipelines-toolbar__filters-icon {

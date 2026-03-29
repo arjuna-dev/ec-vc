@@ -99,63 +99,8 @@
             />
           </div>
 
-          <div class="contacts-toolbar__block contacts-toolbar__block--filters">
-            <q-icon name="tune" size="18px" class="contacts-toolbar__filters-icon" />
-
-            <q-select
-              v-model="locationFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="contacts-toolbar__filter-control"
-              label="Location"
-              :options="locationFilterOptions"
-              :disable="loading || locationFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="industryFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="contacts-toolbar__filter-control"
-              label="Industry"
-              :options="industryFilterOptions"
-              :disable="loading || industryFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="projectFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="contacts-toolbar__filter-control"
-              label="Projects"
-              :options="projectFilterOptions"
-              :disable="loading || projectFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="companyFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="contacts-toolbar__filter-control"
-              label="Company"
-              :options="companyFilterOptions"
-              :disable="loading || companyFilterOptions.length === 0"
-            />
-          </div>
-
           <div class="contacts-toolbar__block contacts-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="contacts-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -169,6 +114,12 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="exportContactsCsv">
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -514,36 +465,6 @@ const contactsDashboardStats = computed(() => [
     tone: 'sparse',
   },
 ])
-
-function uniqueContactValues(resolver) {
-  return [...new Set(rows.value.map((row) => normalizeInputValue(resolver(row))).filter(Boolean))]
-    .sort((left, right) => left.localeCompare(right))
-    .map((value) => ({ label: value, value }))
-}
-
-const locationFilterOptions = computed(() => uniqueContactValues((row) => row?.Country_based))
-const industryFilterOptions = computed(() =>
-  uniqueContactValues(
-    (row) =>
-      row?.Industry_Name ||
-      row?.industry_name ||
-      row?.Industry ||
-      row?.industry ||
-      row?.Industry_Sector,
-  ),
-)
-const projectFilterOptions = computed(() =>
-  uniqueContactValues((row) => row?.project_name || row?.Project_Name || row?.current_project_name),
-)
-const companyFilterOptions = computed(() =>
-  uniqueContactValues(
-    (row) =>
-      row?.company_name ||
-      row?.Company_Name ||
-      row?.Current_Company_Name ||
-      row?.Organization_Name,
-  ),
-)
 
 function openCreateContact() {
   contactDialogOpen.value = true
@@ -1402,7 +1323,9 @@ watch(displayRows, () => {
 }
 
 .contacts-toolbar__block--search {
+  grid-column: -2 / -1;
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .contacts-toolbar__filters-icon {

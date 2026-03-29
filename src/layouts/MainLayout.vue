@@ -38,39 +38,6 @@
         </q-toolbar-title>
       </q-toolbar>
 
-      <div v-if="showBreadcrumbBar" class="ec-breadcrumb-bar">
-        <div class="ec-breadcrumb-primary">
-          <q-breadcrumbs class="ec-breadcrumbs" separator="chevron_right">
-            <template #separator>
-              <q-icon name="chevron_right" size="16px" color="grey-5" />
-            </template>
-
-            <q-breadcrumbs-el
-              v-for="item in breadcrumbItems"
-              :key="`${item.label}-${item.to || 'current'}`"
-              :label="item.label"
-              :to="item.current ? void 0 : item.to"
-              :class="{
-                'ec-breadcrumbs__current': item.current,
-                'ec-breadcrumbs__placeholder': item.placeholder,
-              }"
-            />
-          </q-breadcrumbs>
-
-          <q-btn
-            dense
-            flat
-            round
-            icon="arrow_back"
-            class="ec-breadcrumb-back"
-            :disable="!canNavigateBack"
-            @click="navigateBack"
-          >
-            <q-tooltip>Back</q-tooltip>
-          </q-btn>
-        </div>
-
-      </div>
     </q-header>
 
     <q-drawer
@@ -353,22 +320,11 @@ const routeLabelByName = {
   'file-system': 'File system',
   'databook-view': 'Databook',
 }
-const databookParentRouteByTableName = {
-  companies: '/companies',
-  contacts: '/contacts',
-  opportunities: '/opportunities',
-  funds: '/funds',
-  rounds: '/rounds',
-  pipelines: '/projects',
-  projects: '/projects',
-}
-
 const router = useRouter()
 const route = useRoute()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const intakeDraftState = useIntakeDraftState()
 const breadcrumbActionsState = useBreadcrumbActionsState()
-const previousRoutePath = ref('')
 let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
@@ -412,46 +368,6 @@ const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.val
 const drawerUserLabel = computed(() =>
   hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Set user',
 )
-const topLevelRouteNames = new Set([
-  'home',
-  'companies',
-  'contacts',
-  'opportunities',
-  'pipelines',
-  'projects',
-  'artifacts',
-  'notes',
-  'tasks',
-  'assistants',
-])
-const breadcrumbItems = computed(() => {
-  const currentRouteName = String(route.name || '')
-
-  if (!currentRouteName || currentRouteName === 'home') {
-    return [{ label: 'Home', to: '/', current: true }]
-  }
-
-  const items = [{ label: 'Home', to: '/' }]
-
-  if (currentRouteName === 'databook-view') {
-    const tableName = String(route.params.tableName || '').toLowerCase()
-    const parentRoute = databookParentRouteByTableName[tableName]
-    const parentLabel =
-      routeLabelByName[tableName] ||
-      (tableName ? toTitleCase(tableName.replace(/[-_]/g, ' ')) : '')
-
-    if (parentRoute && parentLabel) {
-      items.push({ label: parentLabel, to: parentRoute })
-    }
-
-    items.push({ label: 'Databook', current: true })
-    return items
-  }
-
-  items.push({ label: '\u00A0', current: true, placeholder: true })
-
-  return items
-})
 const currentHeaderTitle = computed(() => {
   const currentRouteName = String(route.name || '')
 
@@ -466,21 +382,8 @@ const currentHeaderTitle = computed(() => {
   return routeLabelByName[currentRouteName] || toTitleCase(currentRouteName.replace(/[-_]/g, ' '))
 })
 const breadcrumbActions = computed(() => breadcrumbActionsState.actions || [])
-const toolbarActions = computed(() => breadcrumbActions.value)
-const showBreadcrumbBar = computed(() => {
-  const currentRouteName = String(route.name || '')
-  return !topLevelRouteNames.has(currentRouteName)
-})
-const breadcrumbBackFallback = computed(() => {
-  const fallback = [...breadcrumbItems.value]
-    .reverse()
-    .find((item) => !item.current && !item.placeholder && item.to)
-
-  return fallback?.to || (String(route.name || '') === 'home' ? '' : '/')
-})
-
-const canNavigateBack = computed(() =>
-  Boolean(previousRoutePath.value) || Boolean(breadcrumbBackFallback.value),
+const toolbarActions = computed(() =>
+  String(route.name || '') === 'home' ? breadcrumbActions.value : [],
 )
 
 const quickWidgetStyle = computed(() => ({
@@ -1036,10 +939,7 @@ onBeforeUnmount(() => {
 
 watch(
   () => route.fullPath,
-  (nextPath, previousPath) => {
-    if (previousPath && previousPath !== nextPath) {
-      previousRoutePath.value = previousPath
-    }
+  () => {
     syncUserNavState()
   },
 )
@@ -1056,16 +956,6 @@ function resolveBreadcrumbActionDisabled(action) {
   return !!action?.disabled
 }
 
-function navigateBack() {
-  if (previousRoutePath.value && previousRoutePath.value !== route.fullPath) {
-    router.push(previousRoutePath.value)
-    return
-  }
-
-  if (breadcrumbBackFallback.value) {
-    router.push(breadcrumbBackFallback.value)
-  }
-}
 </script>
 
 <style scoped>
@@ -1115,6 +1005,7 @@ function navigateBack() {
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
+  margin-left: auto;
   min-width: 0;
 }
 

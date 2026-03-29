@@ -97,63 +97,8 @@
             />
           </div>
 
-          <div class="artifacts-toolbar__block artifacts-toolbar__block--filters">
-            <q-icon name="tune" size="18px" class="artifacts-toolbar__filters-icon" />
-
-            <q-select
-              v-model="companyFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="artifacts-toolbar__filter-control"
-              label="Company"
-              :options="companyFilterOptions"
-              :disable="loading || companyFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="opportunityFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="artifacts-toolbar__filter-control"
-              label="Opportunity"
-              :options="opportunityFilterOptions"
-              :disable="loading || opportunityFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="projectFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="artifacts-toolbar__filter-control"
-              label="Project"
-              :options="projectFilterOptions"
-              :disable="true"
-            />
-
-            <q-select
-              v-model="typeFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="artifacts-toolbar__filter-control"
-              label="Type"
-              :options="typeFilterOptions"
-              :disable="loading || typeFilterOptions.length === 0"
-            />
-          </div>
-
           <div class="artifacts-toolbar__block artifacts-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="artifacts-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -167,6 +112,12 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="csvActionsRef?.pickFile?.()">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayArtifactRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -981,7 +932,6 @@ const viewMode = ref('grid')
 const artifactKindFilter = ref('all')
 const companyFilter = ref('')
 const opportunityFilter = ref('')
-const projectFilter = ref('')
 const typeFilter = ref('')
 const searchQuery = ref('')
 const previewDialogOpen = ref(false)
@@ -1120,12 +1070,6 @@ function normalizeArtifactFilterValue(value) {
   return String(value || '').trim()
 }
 
-function uniqueArtifactValues(values = []) {
-  return [...new Set(values.map((value) => normalizeArtifactFilterValue(value)).filter(Boolean))]
-    .sort((left, right) => left.localeCompare(right))
-    .map((value) => ({ label: value, value }))
-}
-
 function getArtifactCompanyIds(row = {}) {
   const artifactId = String(row?.artifact_id || '').trim()
   if (!artifactId) return []
@@ -1134,30 +1078,6 @@ function getArtifactCompanyIds(row = {}) {
     .map((entry) => String(entry?.company_id || '').trim())
     .filter(Boolean)
 }
-
-const companyFilterOptions = computed(() =>
-  uniqueArtifactValues(
-    rows.value.flatMap((row) =>
-      getArtifactCompanyIds(row)
-        .map((companyId) =>
-          buildCompanyOptionLabel(
-            companies.value.find((company) => String(company?.id || '').trim() === companyId),
-          ),
-        )
-        .filter(Boolean),
-    ),
-  ),
-)
-
-const opportunityFilterOptions = computed(() =>
-  uniqueArtifactValues(rows.value.map((row) => resolveOpportunityLabel(row))),
-)
-
-const projectFilterOptions = computed(() => [])
-
-const typeFilterOptions = computed(() =>
-  uniqueArtifactValues(rows.value.map((row) => row?.artifact_type)),
-)
 
 function matchesArtifactKind(row = {}) {
   if (artifactKindFilter.value === 'needs-review') return artifactNeedsAttention(row)
@@ -3003,7 +2923,9 @@ watch(displayArtifactRows, () => {
 }
 
 .artifacts-toolbar__block--search {
+  grid-column: -2 / -1;
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .artifacts-toolbar__filters-icon {

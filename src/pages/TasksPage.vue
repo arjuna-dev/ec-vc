@@ -97,63 +97,8 @@
             />
           </div>
 
-          <div class="tasks-toolbar__block tasks-toolbar__block--filters">
-            <q-icon name="tune" size="18px" class="tasks-toolbar__filters-icon" />
-
-            <q-select
-              v-model="ownerFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="tasks-toolbar__filter-control"
-              label="Owner"
-              :options="ownerFilterOptions"
-              :disable="loading || ownerFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="projectFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="tasks-toolbar__filter-control"
-              label="Project"
-              :options="projectFilterOptions"
-              :disable="loading || projectFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="priorityFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="tasks-toolbar__filter-control"
-              label="Priority"
-              :options="priorityFilterOptions"
-              :disable="loading || priorityFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="statusFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="tasks-toolbar__filter-control"
-              label="Status"
-              :options="statusFilterOptions"
-              :disable="loading || statusFilterOptions.length === 0"
-            />
-          </div>
-
           <div class="tasks-toolbar__block tasks-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="tasks-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -167,6 +112,12 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="csvActionsRef?.pickFile?.()">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -392,22 +343,9 @@ function normalizeTaskValue(value) {
   return String(value || '').trim()
 }
 
-function uniqueTaskValues(resolver) {
-  return [...new Set(rows.value.map((row) => normalizeTaskValue(resolver(row))).filter(Boolean))]
-    .sort((left, right) => left.localeCompare(right))
-    .map((value) => ({ label: value, value }))
-}
-
 function isCompletedTask(row = {}) {
   return /done|complete|completed|closed/i.test(normalizeTaskValue(row?.Status))
 }
-
-const statusFilterOptions = computed(() => uniqueTaskValues((row) => row?.Status))
-const priorityFilterOptions = computed(() => uniqueTaskValues((row) => row?.Priority))
-const ownerFilterOptions = computed(() => uniqueTaskValues((row) => row?.contact_name))
-const projectFilterOptions = computed(() =>
-  uniqueTaskValues((row) => row?.project_name || row?.Project_Name || row?.current_project_name),
-)
 
 const tasksDashboard = computed(() => {
   const total = rows.value.length
@@ -910,7 +848,9 @@ watch(displayRows, () => {
 }
 
 .tasks-toolbar__block--search {
+  grid-column: -2 / -1;
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .tasks-toolbar__toggle {

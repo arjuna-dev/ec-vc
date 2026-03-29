@@ -99,63 +99,8 @@
             />
           </div>
 
-          <div class="opportunities-toolbar__block opportunities-toolbar__block--filters">
-            <q-icon name="tune" size="18px" class="opportunities-toolbar__filters-icon" />
-
-            <q-select
-              v-model="regionFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="opportunities-toolbar__filter-control"
-              label="Region"
-              :options="regionFilterOptions"
-              :disable="loading || regionFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="stageFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="opportunities-toolbar__filter-control"
-              label="Stage"
-              :options="stageFilterOptions"
-              :disable="loading || stageFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="industryFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="opportunities-toolbar__filter-control"
-              label="Industry"
-              :options="industryFilterOptions"
-              :disable="loading || industryFilterOptions.length === 0"
-            />
-
-            <q-select
-              v-model="statusFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="opportunities-toolbar__filter-control"
-              label="Status"
-              :options="statusFilterOptions"
-              :disable="loading || statusFilterOptions.length === 0"
-            />
-          </div>
-
           <div class="opportunities-toolbar__block opportunities-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="opportunities-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -169,6 +114,12 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="exportOpportunitiesCsv">
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -532,38 +483,6 @@ const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
 ]
-
-function uniqueOpportunityValues(resolver) {
-  return [...new Set(rows.value.map((row) => normalizeOpportunityValue(resolver(row))).filter(Boolean))]
-    .sort((left, right) => left.localeCompare(right))
-    .map((value) => ({ label: value, value }))
-}
-
-const regionFilterOptions = computed(() =>
-  uniqueOpportunityValues(
-    (row) =>
-      row?.Headquarters_City ||
-      row?.Headquarters_City_Name,
-  ),
-)
-const stageFilterOptions = computed(() =>
-  uniqueOpportunityValues((row) => row?.Round_Stage || row?.Pipeline_Stage),
-)
-const industryFilterOptions = computed(() =>
-  uniqueOpportunityValues(
-    (row) =>
-      row?.Industry_Name ||
-      row?.Industry ||
-      row?.industry ||
-      row?.Industry_Sector ||
-      row?.Sector ||
-      row?.Vertical ||
-      row?.Company_Industry,
-  ),
-)
-const statusFilterOptions = computed(() =>
-  uniqueOpportunityValues((row) => row?.Raising_Status || row?.Pipeline_Status),
-)
 
 const opportunitiesDashboard = computed(() => {
   const total = displayRows.value.length
@@ -1252,7 +1171,9 @@ watch(
 }
 
 .opportunities-toolbar__block--search {
+  grid-column: -2 / -1;
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .opportunities-toolbar__filters-icon {

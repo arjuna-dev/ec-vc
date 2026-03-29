@@ -97,24 +97,8 @@
             />
           </div>
 
-          <div class="notes-toolbar__block notes-toolbar__block--filters">
-            <q-icon name="tune" size="18px" class="notes-toolbar__filters-icon" />
-
-            <q-select
-              v-model="creatorFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="notes-toolbar__filter-control"
-              label="Creator"
-              :options="creatorFilterOptions"
-              :disable="loading || creatorFilterOptions.length === 0"
-            />
-          </div>
-
           <div class="notes-toolbar__block notes-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="notes-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -128,6 +112,12 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="csvActionsRef?.pickFile?.()">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -324,14 +314,6 @@ const noteKindOptions = [
 function normalizeNoteValue(value) {
   return String(value || '').trim()
 }
-
-function uniqueNoteValues(resolver) {
-  return [...new Set(rows.value.map((row) => normalizeNoteValue(resolver(row))).filter(Boolean))]
-    .sort((left, right) => left.localeCompare(right))
-    .map((value) => ({ label: value, value }))
-}
-
-const creatorFilterOptions = computed(() => uniqueNoteValues((row) => row?.created_by_name))
 
 const notesDashboard = computed(() => {
   const total = rows.value.length
@@ -814,7 +796,9 @@ watch(displayRows, () => {
 }
 
 .notes-toolbar__block--search {
+  grid-column: -2 / -1;
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .notes-toolbar__filters-icon {

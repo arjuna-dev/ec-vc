@@ -98,63 +98,8 @@
             />
           </div>
 
-          <div class="assistants-toolbar__block assistants-toolbar__block--filters">
-            <q-icon name="tune" size="18px" class="assistants-toolbar__filters-icon" />
-
-            <q-select
-              v-model="ownerFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="assistants-toolbar__filter-control"
-              label="Owner"
-              :options="ownerFilterOptions"
-              :disable="true"
-            />
-
-            <q-select
-              v-model="projectFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="assistants-toolbar__filter-control"
-              label="Projects"
-              :options="projectFilterOptions"
-              :disable="true"
-            />
-
-            <q-select
-              v-model="levelFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="assistants-toolbar__filter-control"
-              label="Level"
-              :options="levelFilterOptions"
-              :disable="true"
-            />
-
-            <q-select
-              v-model="statusFilter"
-              dense
-              outlined
-              clearable
-              emit-value
-              map-options
-              class="assistants-toolbar__filter-control"
-              label="Status"
-              :options="statusFilterOptions"
-              :disable="true"
-            />
-          </div>
-
           <div class="assistants-toolbar__block assistants-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="assistants-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -262,10 +207,6 @@ const loading = ref(false)
 const error = ref('')
 const viewMode = ref('card')
 const assistantKindFilter = ref('all')
-const ownerFilter = ref('')
-const projectFilter = ref('')
-const levelFilter = ref('')
-const statusFilter = ref('')
 const searchQuery = ref('')
 
 const viewOptions = [
@@ -289,11 +230,6 @@ const columns = [
 function normalizeAssistantValue(value) {
   return String(value || '').trim()
 }
-
-const ownerFilterOptions = computed(() => [])
-const projectFilterOptions = computed(() => [])
-const levelFilterOptions = computed(() => [])
-const statusFilterOptions = computed(() => [])
 
 const assistantsDashboard = computed(() => {
   const total = rows.value.length
@@ -632,7 +568,9 @@ onMounted(loadAssistants)
 }
 
 .assistants-toolbar__block--search {
+  grid-column: -2 / -1;
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .assistants-toolbar__filters-icon {
