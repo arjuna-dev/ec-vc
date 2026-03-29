@@ -353,7 +353,7 @@ const mainNavigationItems = [
   iconSize: '22px',
 }))
 const ownerWorldNavigationItems = [
-  { label: 'Home', to: '/dealz-world-home', exact: true, icon: 'newspaper' },
+  { label: 'Home', to: '/dealz-world-home', exact: true, icon: 'public' },
   { label: 'Spaces', to: '/workspaces', exact: true, icon: 'dns' },
   { label: 'Pipelines', to: '/world-pipelines', exact: true, icon: 'filter_alt' },
   {
@@ -398,6 +398,16 @@ const workspaceNavigationItems = [
   itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   iconSize: '18px',
 }))
+const tokenzMarketNavigationItems = [
+  { label: 'Home', to: '/tokenz-market-home', exact: true, icon: 'currency_bitcoin' },
+  { label: 'Wallet', to: '/tokenz-wallet', exact: true, icon: 'account_balance_wallet' },
+  { label: 'Markets', to: '/tokenz-markets', exact: true, icon: 'monitoring' },
+  { label: 'Vehicles', to: '/tokenz-vehicles', exact: true, icon: 'airport_shuttle' },
+].map((item) => ({
+  ...item,
+  itemClass: 'ec-nav-item--primary',
+  iconSize: '22px',
+}))
 const routeLabelByName = {
   home: 'Home',
   companies: 'Companies',
@@ -425,6 +435,10 @@ const routeLabelByName = {
   'shared-knowledge': 'Shared Knowledge',
   marketplace: 'Marketplace',
   'merch-events': 'Events',
+  'tokenz-market-home': 'Home',
+  'tokenz-wallet': 'Wallet',
+  'tokenz-markets': 'Markets',
+  'tokenz-vehicles': 'Vehicles',
   'file-system': 'File System',
   'databook-view': 'Databook',
 }
@@ -470,7 +484,7 @@ const drawerNavigationSections = computed(() => [
   {
     label: 'Tokenz Market',
     key: 'tokenzMarket',
-    items: [],
+    items: tokenzMarketNavigationItems,
   },
 ])
 
