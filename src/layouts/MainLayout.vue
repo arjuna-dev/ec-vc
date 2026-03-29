@@ -1041,6 +1041,7 @@ function refreshCurrentPage() {
 
 .ec-shell-toolbar-action-btn {
   align-self: flex-end;
+  color: color-mix(in srgb, var(--ds-color-text-navigation) 72%, white 28%);
 }
 
 .ec-shell-toolbar-action-btn :deep(.q-btn__content) {
@@ -1048,7 +1049,7 @@ function refreshCurrentPage() {
 }
 
 .ec-shell-toolbar-action-btn :deep(.q-icon) {
-  transform: translateY(2px);
+  transform: translateY(-3px);
 }
 
 .ec-shell-toolbar-title {
