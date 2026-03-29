@@ -1044,14 +1044,6 @@ function refreshCurrentPage() {
   margin-bottom: 1px;
 }
 
-.ec-shell-toolbar-action-btn :deep(.q-btn__content) {
-  align-items: flex-end;
-}
-
-.ec-shell-toolbar-action-btn :deep(.q-icon) {
-  transform: translateY(2px);
-}
-
 .ec-shell-toolbar-title {
   flex: 0 0 auto;
   display: flex;
