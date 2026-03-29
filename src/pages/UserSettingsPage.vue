@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        User Settings requires Electron. Run <code>quasar dev -m electron</code> or
+        Settings requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -17,10 +17,9 @@
     <div v-else class="row justify-center">
       <div class="col-12 col-md-8 col-lg-6">
         <div class="page-title-section">
-          <div class="text-h6 q-mb-xs">User Settings</div>
+          <div class="text-h6 q-mb-xs">Settings</div>
           <div class="text-caption text-grey-7">
-            Configure the local app user profile. Saving creates a contact and links it as current
-            user.
+            Configure the Owner-side profile and local identity links for this node.
           </div>
         </div>
 
