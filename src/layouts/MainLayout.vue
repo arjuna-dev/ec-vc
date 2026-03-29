@@ -1,8 +1,11 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+    <q-layout view="lHh Lpr lFf">
     <q-header :height-hint="108" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
-        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
+        <div class="ec-shell-toolbar-heading">
+          <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
+          <div class="ec-shell-page-title">{{ currentHeaderTitle }}</div>
+        </div>
 
         <q-toolbar-title class="ec-shell-toolbar-title">
           <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
@@ -429,6 +432,19 @@ const breadcrumbItems = computed(() => {
   items.push({ label: '\u00A0', current: true, placeholder: true })
 
   return items
+})
+const currentHeaderTitle = computed(() => {
+  const currentRouteName = String(route.name || '')
+
+  if (!currentRouteName || currentRouteName === 'home') {
+    return 'Home'
+  }
+
+  if (currentRouteName === 'databook-view') {
+    return 'Databook'
+  }
+
+  return routeLabelByName[currentRouteName] || toTitleCase(currentRouteName.replace(/[-_]/g, ' '))
 })
 
 const breadcrumbActions = computed(() => breadcrumbActionsState.actions || [])
@@ -1030,6 +1046,53 @@ function navigateBack() {
 </script>
 
 <style scoped>
+.ec-shell-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-12);
+}
+
+.ec-shell-toolbar-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-12);
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.ec-shell-page-title {
+  color: var(--ds-color-text-header);
+  font-size: clamp(1.625rem, 1.4rem + 0.8vw, 2.125rem);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.ec-shell-toolbar-title {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
+}
+
+.ec-shell-toolbar-fallback {
+  color: var(--ds-color-text-header);
+  font-size: 1.125rem;
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.08em;
+}
+
+.ec-shell-toolbar-lottie {
+  width: 88px;
+  height: 32px;
+}
+
+.ec-shell-toolbar-lottie--hidden {
+  opacity: 0;
+}
+
 .ec-breadcrumb-bar {
   display: flex;
   align-items: center;
@@ -1088,6 +1151,17 @@ function navigateBack() {
   align-items: center;
   gap: 6px;
   margin-left: auto;
+}
+
+@media (max-width: 720px) {
+  .ec-shell-page-title {
+    font-size: 1.375rem;
+  }
+
+  .ec-shell-toolbar-lottie {
+    width: 72px;
+    height: 28px;
+  }
 }
 
 .ec-drawer-content {
