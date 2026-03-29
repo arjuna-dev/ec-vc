@@ -1061,11 +1061,11 @@ function navigateBack() {
 }
 
 .ec-shell-page-title {
-  color: var(--ds-color-text-header);
-  font-size: clamp(1.625rem, 1.4rem + 0.8vw, 2.125rem);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
+  color: var(--ds-color-text-navigation);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-light);
+  line-height: var(--ds-line-height-sm);
+  letter-spacing: 0;
   white-space: nowrap;
 }
 
