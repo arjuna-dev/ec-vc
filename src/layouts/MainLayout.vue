@@ -4,19 +4,41 @@
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <div class="ec-shell-toolbar-heading">
           <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
+          <div class="ec-shell-page-title">{{ currentHeaderTitle }}</div>
+        </div>
+
+        <div v-if="toolbarActions.length" class="ec-shell-toolbar-actions">
+          <template v-for="action in toolbarActions" :key="action.id">
+            <div v-if="action.kind === 'text'" class="ec-shell-toolbar-status">
+              {{ action.label }}
+            </div>
+            <q-btn
+              v-else
+              dense
+              flat
+              round
+              :icon="action.icon"
+              :disable="resolveBreadcrumbActionDisabled(action)"
+              @click="action.onClick?.()"
+            >
+              <q-tooltip>{{ action.label }}</q-tooltip>
+            </q-btn>
+          </template>
         </div>
 
         <q-toolbar-title class="ec-shell-toolbar-title">
-          <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
-          <div
-            ref="logoContainer"
-            class="ec-shell-toolbar-lottie"
-            :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
-          />
+          <div class="ec-shell-brand-box">
+            <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
+            <div
+              ref="logoContainer"
+              class="ec-shell-toolbar-lottie"
+              :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
+            />
+          </div>
         </q-toolbar-title>
       </q-toolbar>
 
-      <div class="ec-breadcrumb-bar">
+      <div v-if="showBreadcrumbBar" class="ec-breadcrumb-bar">
         <div class="ec-breadcrumb-primary">
           <q-breadcrumbs class="ec-breadcrumbs" separator="chevron_right">
             <template #separator>
@@ -48,20 +70,6 @@
           </q-btn>
         </div>
 
-        <div v-if="breadcrumbActions.length" class="ec-breadcrumb-actions">
-          <q-btn
-            v-for="action in breadcrumbActions"
-            :key="action.id"
-            dense
-            flat
-            round
-            :icon="action.icon"
-            :disable="resolveBreadcrumbActionDisabled(action)"
-            @click="action.onClick?.()"
-          >
-            <q-tooltip>{{ action.label }}</q-tooltip>
-          </q-btn>
-        </div>
       </div>
     </q-header>
 
@@ -404,6 +412,18 @@ const hasAuditUserLabel = computed(() => !!normalizeUserLabel(auditUserLabel.val
 const drawerUserLabel = computed(() =>
   hasAuditUserLabel.value ? normalizeUserLabel(auditUserLabel.value) : 'Set user',
 )
+const topLevelRouteNames = new Set([
+  'home',
+  'companies',
+  'contacts',
+  'opportunities',
+  'pipelines',
+  'projects',
+  'artifacts',
+  'notes',
+  'tasks',
+  'assistants',
+])
 const breadcrumbItems = computed(() => {
   const currentRouteName = String(route.name || '')
 
@@ -432,7 +452,25 @@ const breadcrumbItems = computed(() => {
 
   return items
 })
+const currentHeaderTitle = computed(() => {
+  const currentRouteName = String(route.name || '')
+
+  if (!currentRouteName || currentRouteName === 'home') {
+    return 'Home'
+  }
+
+  if (currentRouteName === 'databook-view') {
+    return 'Databook'
+  }
+
+  return routeLabelByName[currentRouteName] || toTitleCase(currentRouteName.replace(/[-_]/g, ' '))
+})
 const breadcrumbActions = computed(() => breadcrumbActionsState.actions || [])
+const toolbarActions = computed(() => breadcrumbActions.value)
+const showBreadcrumbBar = computed(() => {
+  const currentRouteName = String(route.name || '')
+  return !topLevelRouteNames.has(currentRouteName)
+})
 const breadcrumbBackFallback = computed(() => {
   const fallback = [...breadcrumbItems.value]
     .reverse()
@@ -1033,40 +1071,47 @@ function navigateBack() {
 <style scoped>
 .ec-shell-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--ds-space-12);
 }
 
 .ec-shell-toolbar-heading {
   display: flex;
-  align-items: center;
-  gap: 0;
+  align-items: flex-end;
+  gap: var(--ds-space-10);
   min-width: 0;
   flex: 0 1 auto;
 }
 
+.ec-shell-page-title {
+  color: var(--ds-color-text-header);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-sm);
+  white-space: nowrap;
+}
+
+.ec-shell-toolbar-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ds-space-10);
+  margin-left: auto;
+}
+
+.ec-shell-toolbar-status {
+  color: var(--ds-color-text-navigation);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-light);
+  line-height: var(--ds-line-height-sm);
+  white-space: nowrap;
+}
+
 .ec-shell-toolbar-title {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   display: flex;
   justify-content: flex-end;
-  align-items: center;
+  align-items: flex-end;
   min-width: 0;
-}
-
-.ec-shell-toolbar-fallback {
-  color: var(--ds-color-text-header);
-  font-size: 1.125rem;
-  font-weight: var(--ds-font-weight-semibold);
-  letter-spacing: 0.08em;
-}
-
-.ec-shell-toolbar-lottie {
-  width: 88px;
-  height: 32px;
-}
-
-.ec-shell-toolbar-lottie--hidden {
-  opacity: 0;
 }
 
 .ec-breadcrumb-bar {
@@ -1127,13 +1172,6 @@ function navigateBack() {
   align-items: center;
   gap: 6px;
   margin-left: auto;
-}
-
-@media (max-width: 720px) {
-  .ec-shell-toolbar-lottie {
-    width: 72px;
-    height: 28px;
-  }
 }
 
 .ec-drawer-content {

@@ -517,6 +517,15 @@ b,
   min-width: 0;
 }
 
+.ec-shell-brand-box {
+  width: 200px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 200px;
+}
+
 .ec-shell-toolbar-lottie {
   display: block;
   width: 200px;
@@ -525,9 +534,7 @@ b,
 }
 
 .ec-shell-toolbar-lottie--hidden {
-  width: 0;
-  height: 0;
-  overflow: hidden;
+  opacity: 0;
 }
 
 .ec-shell-toolbar-lottie svg {
