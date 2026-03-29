@@ -116,7 +116,11 @@
         </div>
 
         <div class="ec-drawer-footer">
-          <div class="ec-drawer-version">MTK v0.0.1</div>
+          <q-item dense class="ec-nav-item ec-nav-item--footer">
+            <q-item-section>
+              <q-item-label>MTK v0.0.1</q-item-label>
+            </q-item-section>
+          </q-item>
         </div>
       </div>
     </q-drawer>
@@ -1102,14 +1106,6 @@ function navigateBack() {
 
 .ec-drawer-footer {
   padding: 12px 16px 14px;
-}
-
-.ec-drawer-version {
-  color: var(--ds-color-text-navigation);
-  font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
 }
 
 .ec-drawer-section + .ec-drawer-section {
