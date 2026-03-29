@@ -404,7 +404,6 @@ const viewOptions = [
 
 const assistantLevelOptions = [
   { label: 'All', value: 'all' },
-  { label: 'L0', value: 'level-0' },
   { label: 'L1', value: 'level-1' },
   { label: 'L2', value: 'level-2' },
   { label: 'L3', value: 'level-3' },
