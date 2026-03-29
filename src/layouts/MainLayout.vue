@@ -1367,6 +1367,7 @@ function goBack() {
   border-radius: var(--ds-radius-round);
   background: var(--ds-color-text-primary-deep) !important;
   color: var(--ds-color-surface-inverse) !important;
+  border: 1px solid rgba(255, 255, 255, 0.92);
   box-shadow: var(--ds-shadow-fab);
   transition: transform 0.16s ease;
 }
