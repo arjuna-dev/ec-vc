@@ -1227,12 +1227,23 @@ function goBack() {
   min-width: 40px;
 }
 
+.ec-nav-item :deep(.q-item__section--avatar) {
+  min-width: 40px;
+  justify-content: center;
+}
+
+.ec-nav-item :deep(.q-icon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .ec-nav-item--secondary :deep(.q-item__label) {
   font-size: 11px;
 }
 
 .ec-nav-item--secondary :deep(.q-item__section--avatar) {
-  min-width: 34px;
+  min-width: 40px;
 }
 
 .ec-nav-item--feature :deep(.q-item__section--avatar) {
