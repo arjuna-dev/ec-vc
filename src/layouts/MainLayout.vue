@@ -312,7 +312,7 @@ const mainNavigationItems = [
   },
 ]
 const workspaceNavigationItems = [
-  { label: '1. Users', to: '/users', exact: true, icon: 'groups' },
+  { label: 'Users', to: '/users', exact: true, icon: 'groups' },
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
