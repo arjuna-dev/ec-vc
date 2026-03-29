@@ -44,6 +44,16 @@
   - Define canonical terms such as `Owner`, `Node_OWNER`, `Users`, `Contacts`, `Agents`, and workspace/file labels
   - Use the glossary to keep app copy, file naming, and future agent behavior consistent
 
+- [ ] **TASK-011:** Define agent operating system hierarchy
+  - Establish Level 0 through Level 3 agent roles and responsibilities
+  - Map Level 1 agents to workspace sections and Level 2/3 agents to process and leaf ownership
+  - Use the hierarchy to drive the `Agents` page card model and future orchestration behavior
+
+- [ ] **TASK-012:** Define file-driven agent runtime framework
+  - Make agent definitions runnable from markdown and structured config files
+  - Keep the runtime independent from any single LLM provider or model
+  - Support script-based execution so agents can be reused outside the app UI
+
 ### 2.1 Week 1: Foundation and FS Operations
 
 **Goal:** Get basic file system mirroring and structure creation working
