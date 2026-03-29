@@ -348,21 +348,21 @@ const mainNavigationItems = [
   { label: 'Agents', to: '/assistants', exact: true, icon: 'theater_comedy' },
 ]
 const ownerWorldNavigationItems = [
-  { label: 'Home', to: '/dealz-world-home', exact: true, icon: 'satellite_alt' },
+  { label: 'Home', to: '/dealz-world-home', exact: true, icon: 'newspaper' },
   { label: 'Workspaces', to: '/workspaces', exact: true, icon: 'dns' },
-  { label: 'Pipelines', to: '/world-pipelines', exact: true, icon: 'plumbing' },
+  { label: 'Pipelines', to: '/world-pipelines', exact: true, icon: 'filter_alt' },
   {
     kind: 'toggle',
     label: 'Radars',
     itemClass: 'ec-nav-item--workspace-toggle',
-    icon: 'radar',
+    icon: 'satellite_alt',
     toggleKey: 'radars',
   },
   { label: 'Regions', to: '/regions', exact: true, icon: 'public', parentKey: 'radars' },
   { label: 'Asset Classes', to: '/asset-classes', exact: true, icon: 'category', parentKey: 'radars' },
   { label: 'Industries', to: '/industries', exact: true, icon: 'domain', parentKey: 'radars' },
   { label: 'Stages', to: '/stages', exact: true, icon: 'stairs', parentKey: 'radars' },
-  { label: 'Shared Knowledge', to: '/shared-knowledge', exact: true, icon: 'psychology' },
+  { label: 'Shared Knowledge', to: '/shared-knowledge', exact: true, icon: 'auto_stories' },
   { label: 'Events', to: '/merch-events', exact: true, icon: 'calendar_month' },
 ].map((item) => (
   item.parentKey
