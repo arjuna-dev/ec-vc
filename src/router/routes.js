@@ -5,6 +5,8 @@ const routes = [
     children: [
       { path: 'user-settings', name: 'user-settings', component: () => import('pages/UserSettingsPage.vue') },
       { path: 'settings', name: 'settings', component: () => import('pages/SettingsPage.vue') },
+      { path: 'regions', name: 'regions', component: () => import('pages/RegionsPage.vue') },
+      { path: 'asset-classes', name: 'asset-classes', component: () => import('pages/AssetClassesPage.vue') },
       { path: '', name: 'home', component: () => import('pages/HomePage.vue') },
       { path: 'file-system', name: 'file-system', component: () => import('pages/IndexPage.vue') },
       { path: 'pipelines', name: 'pipelines', component: () => import('pages/PipelinesPage.vue') },

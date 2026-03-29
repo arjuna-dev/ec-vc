@@ -342,6 +342,13 @@ const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
+  { label: 'Settings', to: '/user-settings', exact: true, icon: 'manage_accounts' },
+  { label: 'Avatar', to: '/settings', exact: true, icon: 'smart_toy' },
+  { label: 'Agents', to: '/assistants', exact: true, icon: 'theater_comedy' },
+]
+const ownerWorldNavigationItems = [
+  { label: 'Regions', to: '/regions', exact: true, icon: 'public' },
+  { label: 'Asset Classes', to: '/asset-classes', exact: true, icon: 'category' },
 ]
 const workspaceNavigationItems = [
   { label: 'Users', to: '/users', exact: true, icon: 'badge' },
@@ -374,6 +381,8 @@ const routeLabelByName = {
   assistants: 'Agents',
   settings: 'Avatar',
   'user-settings': 'Settings',
+  regions: 'Regions',
+  'asset-classes': 'Asset Classes',
   'file-system': 'File System',
   'databook-view': 'Databook',
 }
@@ -393,31 +402,12 @@ const intakeDrafts = computed(() =>
 
 const drawerNavigationSections = computed(() => [
   {
-    label: 'Owner',
+    label: 'Dealz World',
     key: 'preferences',
-    items: [
-      {
-        label: 'Settings',
-        to: '/user-settings',
-        exact: true,
-        icon: 'manage_accounts',
-      },
-      {
-        label: 'Avatar',
-        to: '/settings',
-        exact: true,
-        icon: 'smart_toy',
-      },
-      {
-        label: 'Agents',
-        to: '/assistants',
-        exact: true,
-        icon: 'theater_comedy',
-      },
-    ],
+    items: ownerWorldNavigationItems,
   },
   {
-    label: 'Workspace',
+    label: "Owner's Workspace",
     key: 'main',
     items: [
       ...mainNavigationItems,
