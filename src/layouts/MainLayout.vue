@@ -347,8 +347,12 @@ const mainNavigationItems = [
   { label: 'Agents', to: '/assistants', exact: true, icon: 'theater_comedy' },
 ]
 const ownerWorldNavigationItems = [
+  { label: 'Team Spaces', to: '/team-spaces', exact: true, icon: 'groups_2' },
+  { label: 'Dealz Radar', to: '/dealz-radar', exact: true, icon: 'radar' },
   { label: 'Regions', to: '/regions', exact: true, icon: 'public' },
   { label: 'Asset Classes', to: '/asset-classes', exact: true, icon: 'category' },
+  { label: 'Industries', to: '/industries', exact: true, icon: 'domain' },
+  { label: 'Stages', to: '/stages', exact: true, icon: 'stairs' },
 ]
 const workspaceNavigationItems = [
   { label: 'Users', to: '/users', exact: true, icon: 'badge' },
@@ -381,8 +385,12 @@ const routeLabelByName = {
   assistants: 'Agents',
   settings: 'Avatar',
   'user-settings': 'Settings',
+  'team-spaces': 'Team Spaces',
+  'dealz-radar': 'Dealz Radar',
   regions: 'Regions',
   'asset-classes': 'Asset Classes',
+  industries: 'Industries',
+  stages: 'Stages',
   'file-system': 'File System',
   'databook-view': 'Databook',
 }
@@ -407,7 +415,7 @@ const drawerNavigationSections = computed(() => [
     items: ownerWorldNavigationItems,
   },
   {
-    label: "Owner's Workspace",
+    label: 'My Workspace',
     key: 'main',
     items: [
       ...mainNavigationItems,
