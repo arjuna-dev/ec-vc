@@ -15,10 +15,6 @@
     </div>
 
     <div v-else class="pipelines-page">
-      <header class="pipelines-page__heading">
-        <h1 class="pipelines-page__title">Pipelines</h1>
-      </header>
-
       <section class="pipelines-shell">
         <div class="pipelines-shell__hero">
           <div class="pipelines-shell__copy">
@@ -864,23 +860,6 @@ watch(displayRows, () => {
   flex-direction: column;
   gap: var(--ds-space-24);
 }
-
-.pipelines-page__heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ds-space-12);
-}
-
-.pipelines-page__title {
-  margin: 0;
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: var(--ds-font-size-4xl);
-  font-weight: var(--ds-font-weight-black);
-  line-height: var(--ds-line-height-title);
-}
-
 
 .pipelines-shell {
   display: flex;

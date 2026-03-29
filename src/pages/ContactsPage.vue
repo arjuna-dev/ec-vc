@@ -15,10 +15,6 @@
     </div>
 
     <div v-else class="contacts-page">
-      <header class="contacts-page__heading">
-        <h1 class="contacts-page__title">Contacts</h1>
-      </header>
-
       <section class="contacts-shell">
         <div class="contacts-shell__hero">
           <div class="contacts-shell__copy">
@@ -1073,24 +1069,6 @@ watch(displayRows, () => {
   flex-direction: column;
   gap: var(--ds-space-24);
 }
-
-.contacts-page__heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ds-space-12);
-}
-
-.contacts-page__title {
-  margin: 0;
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: var(--ds-font-size-4xl);
-  font-weight: var(--ds-font-weight-black);
-  letter-spacing: 0;
-  line-height: var(--ds-line-height-title);
-}
-
 
 .contacts-shell {
   display: flex;

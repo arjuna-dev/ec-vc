@@ -15,10 +15,6 @@
     </div>
 
     <div v-else class="notes-page">
-      <header class="notes-page__heading">
-        <h1 class="notes-page__title">Notes</h1>
-      </header>
-
       <section class="notes-shell">
         <div class="notes-shell__hero">
           <div class="notes-shell__copy">
@@ -557,21 +553,6 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-24);
-}
-
-.notes-page__heading {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-12);
-}
-
-.notes-page__title {
-  margin: 0;
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: var(--ds-font-size-4xl);
-  font-weight: var(--ds-font-weight-black);
-  line-height: var(--ds-line-height-title);
 }
 
 .notes-shell {

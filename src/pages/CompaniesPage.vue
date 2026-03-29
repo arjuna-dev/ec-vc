@@ -15,10 +15,6 @@
     </div>
 
     <div v-else class="companies-page">
-      <header class="companies-page__heading">
-        <h1 class="companies-page__title">Companies</h1>
-      </header>
-
       <section class="companies-shell">
         <div class="companies-shell__hero">
           <div class="companies-shell__copy">
@@ -1706,22 +1702,6 @@ watch(
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-24);
-}
-
-.companies-page__heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ds-space-12);
-}
-
-.companies-page__title {
-  margin: 0;
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: var(--ds-font-size-4xl);
-  font-weight: var(--ds-font-weight-black);
-  line-height: var(--ds-line-height-title);
 }
 
 .companies-table-tabs {

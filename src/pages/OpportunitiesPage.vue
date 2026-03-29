@@ -15,10 +15,6 @@
     </div>
 
     <div v-else class="opportunities-page">
-      <header class="opportunities-page__heading">
-        <h1 class="opportunities-page__title">{{ currentOpportunityMode.title }}</h1>
-      </header>
-
       <section class="opportunities-shell">
         <div class="opportunities-shell__hero">
           <div class="opportunities-shell__copy">
@@ -924,20 +920,6 @@ watch(
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-24);
-}
-
-.opportunities-page__heading {
-  display: flex;
-  align-items: center;
-}
-
-.opportunities-page__title {
-  margin: 0;
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: var(--ds-font-size-4xl);
-  font-weight: var(--ds-font-weight-black);
-  line-height: var(--ds-line-height-title);
 }
 
 .opportunities-shell {
