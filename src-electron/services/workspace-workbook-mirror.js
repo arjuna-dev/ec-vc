@@ -430,6 +430,7 @@ const WORKBOOK_DEFINITIONS = [
   {
     key: 'Project',
     fileName: '07_Pipelines.xlsx',
+    aliasFileNames: ['07_User_Default_Pipeline.xlsx'],
     sheetName: 'Pipelines',
     targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Pipelines'),
     eventTables: ['Projects', 'Project_Overview', 'Project_Stages', 'Project_Team'],
@@ -776,7 +777,7 @@ function listProjectRows() {
       NULL AS Project_Fund,
       NULL AS Project_Round,
       NULL AS Project_Project,
-      project_tasks.task_ids AS Project_Task,
+      NULL AS Project_Task,
       NULL AS Project_Note,
       po.Project_Status,
       stage_info.stage_names AS Project_Stages,
@@ -788,11 +789,11 @@ function listProjectRows() {
       po.Project_Target_Amount,
       po.Project_Summary,
       pt.Project_Team_Owner,
-      lead.contact_ids AS Project_Team_Lead,
-      senior.contact_ids AS Project_Team_Senior,
-      mid.contact_ids AS Project_Team_Mid,
-      junior.contact_ids AS Project_Team_Junior,
-      agents.contact_ids AS Project_Team_Agents,
+      NULL AS Project_Team_Lead,
+      NULL AS Project_Team_Senior,
+      NULL AS Project_Team_Mid,
+      NULL AS Project_Team_Junior,
+      NULL AS Project_Team_Agents,
       pt.Project_Team_Other_Artifact_Id AS Project_Team_Other,
       NULL AS Project_Team
     FROM Projects p
@@ -803,12 +804,6 @@ function listProjectRows() {
       FROM Project_Stages
       GROUP BY project_id
     ) stage_info ON stage_info.project_id = p.id
-    LEFT JOIN (SELECT from_id AS project_id, group_concat(to_id, '|') AS task_ids FROM Projects_Tasks_has_tasks GROUP BY from_id) project_tasks ON project_tasks.project_id = p.id
-    LEFT JOIN (SELECT project_id, group_concat(contact_id, '|') AS contact_ids FROM Project_Team_Lead GROUP BY project_id) lead ON lead.project_id = p.id
-    LEFT JOIN (SELECT project_id, group_concat(contact_id, '|') AS contact_ids FROM Project_Team_Senior GROUP BY project_id) senior ON senior.project_id = p.id
-    LEFT JOIN (SELECT project_id, group_concat(contact_id, '|') AS contact_ids FROM Project_Team_Mid GROUP BY project_id) mid ON mid.project_id = p.id
-    LEFT JOIN (SELECT project_id, group_concat(contact_id, '|') AS contact_ids FROM Project_Team_Junior GROUP BY project_id) junior ON junior.project_id = p.id
-    LEFT JOIN (SELECT project_id, group_concat(contact_id, '|') AS contact_ids FROM Project_Team_Agents GROUP BY project_id) agents ON agents.project_id = p.id
     ORDER BY COALESCE(p.Project_Name, '') ASC, p.id ASC
   `,
   ).map((row) => ({
@@ -1176,25 +1171,43 @@ function crc32(buffer) {
   return (current ^ 0xffffffff) >>> 0
 }
 
-export async function syncWorkspaceWorkbookMirror(workspaceRootPath) {
+export async function syncWorkspaceWorkbookMirror(workspaceRootPath, options = {}) {
+  const skipPaths = new Set(Array.isArray(options?.skipPaths) ? options.skipPaths : options?.skipPaths ? [...options.skipPaths] : [])
+  const workbookPaths = []
+  const writtenPaths = []
   for (const definition of WORKBOOK_DEFINITIONS) {
-    const recordRows = definition.getRows()
-    const changeLogRows = listEventRows(definition.eventTables)
-    const workbookBuffer = createWorkbookBuffer([
-      {
-        name: definition.sheetName,
-        rows: toWorksheetRows(TOKEN_GROUPS[definition.key], recordRows),
-        freezeHeaderRows: true,
-      },
-      {
-        name: 'Change_Log',
-        rows: toWorksheetRows(CHANGE_LOG_TOKENS, changeLogRows, CHANGE_LOG_LABELS),
-        freezeHeaderRows: true,
-      },
-    ])
-
     const targetDir = definition.targetDir(workspaceRootPath)
-    await fs.mkdir(targetDir, { recursive: true })
-    await fs.writeFile(path.join(targetDir, definition.fileName), workbookBuffer)
+    const fileNames = [definition.fileName, ...(definition.aliasFileNames || [])]
+    for (const fileName of fileNames) {
+      workbookPaths.push(path.join(targetDir, fileName))
+    }
+
+    try {
+      const recordRows = definition.getRows()
+      const changeLogRows = listEventRows(definition.eventTables)
+      const workbookBuffer = createWorkbookBuffer([
+        {
+          name: definition.sheetName,
+          rows: toWorksheetRows(TOKEN_GROUPS[definition.key], recordRows),
+          freezeHeaderRows: true,
+        },
+        {
+          name: 'Change_Log',
+          rows: toWorksheetRows(CHANGE_LOG_TOKENS, changeLogRows, CHANGE_LOG_LABELS),
+          freezeHeaderRows: true,
+        },
+      ])
+
+      await fs.mkdir(targetDir, { recursive: true })
+      for (const fileName of fileNames) {
+        const filePath = path.join(targetDir, fileName)
+        if (skipPaths.has(filePath)) continue
+        await fs.writeFile(filePath, workbookBuffer)
+        writtenPaths.push(filePath)
+      }
+    } catch (error) {
+      console.error(`workspace workbook mirror failed for ${definition.fileName}:`, error)
+    }
   }
+  return { workbookPaths, writtenPaths }
 }
