@@ -1,35 +1,5 @@
 <template>
   <q-page class="home-dashboard q-pa-md">
-    <section class="home-dashboard__intro">
-      <div class="home-dashboard__intro-copy">
-        <h1 class="home-dashboard__title">Home</h1>
-      </div>
-
-      <div class="home-dashboard__intro-actions">
-        <q-chip
-          v-if="lastUpdatedLabel"
-          dense
-          outline
-          color="grey-7"
-          icon="sync"
-          class="home-dashboard__refresh-chip"
-        >
-          {{ lastUpdatedLabel }}
-        </q-chip>
-
-        <q-btn
-          unelevated
-          no-caps
-          color="black"
-          text-color="white"
-          icon="refresh"
-          :loading="loading"
-          label="Refresh"
-          @click="refreshDashboard"
-        />
-      </div>
-    </section>
-
     <q-banner v-if="!isElectronRuntime" class="bg-orange-2 text-black" rounded>
       Home dashboard live data requires Electron. Run <code>quasar dev -m electron</code> or
       <code>quasar build -m electron</code>.
@@ -374,7 +344,8 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
+import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -486,6 +457,7 @@ const collectionConfigs = [
 ]
 
 const collectionConfigByKey = Object.fromEntries(collectionConfigs.map((config) => [config.key, config]))
+const HOME_BREADCRUMB_ACTION_OWNER = 'home-page'
 
 function createEmptyCollections() {
   return Object.fromEntries(collectionConfigs.map((config) => [config.key, []]))
@@ -993,6 +965,27 @@ function extractErrorMessage(error) {
   return error?.message || String(error)
 }
 
+watchEffect(() => {
+  setBreadcrumbActions(HOME_BREADCRUMB_ACTION_OWNER, [
+    ...(lastUpdatedLabel.value
+      ? [
+          {
+            id: 'home-updated',
+            kind: 'text',
+            label: lastUpdatedLabel.value,
+          },
+        ]
+      : []),
+    {
+      id: 'home-refresh',
+      icon: 'refresh',
+      label: 'Refresh',
+      disabled: loading.value,
+      onClick: refreshDashboard,
+    },
+  ])
+})
+
 onMounted(() => {
   refreshDashboard()
   window.addEventListener('focus', onWindowFocus)
@@ -1000,6 +993,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  clearBreadcrumbActions(HOME_BREADCRUMB_ACTION_OWNER)
   window.removeEventListener('focus', onWindowFocus)
   document.removeEventListener('visibilitychange', onVisibilityChange)
 })
@@ -1011,23 +1005,6 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 16px;
 }
-
-.home-dashboard__intro {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.home-dashboard__intro-copy {
-  max-width: 760px;
-}
-
-.home-dashboard__eyebrow {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #6b7280;
 }
