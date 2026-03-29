@@ -331,6 +331,7 @@ const drawerSectionOpen = ref({
   preferences: true,
   main: true,
   radars: true,
+  tokenzMarket: true,
   workspace: true,
 })
 
@@ -465,6 +466,11 @@ const drawerNavigationSections = computed(() => [
     label: 'Dealz World',
     key: 'preferences',
     items: ownerWorldNavigationItems,
+  },
+  {
+    label: 'Tokenz Market',
+    key: 'tokenzMarket',
+    items: [],
   },
 ])
 
