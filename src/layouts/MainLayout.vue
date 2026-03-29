@@ -86,8 +86,34 @@
 
             <template v-if="isDrawerSectionOpen(section.key)">
               <template v-for="item in section.items" :key="item.label">
+              <template v-if="!item.parentKey || isDrawerSectionOpen(item.parentKey)">
               <q-item
-                v-if="item.kind === 'subheader'"
+                v-if="item.kind === 'toggle'"
+                clickable
+                dense
+                class="ec-nav-item"
+                :class="item.itemClass"
+                @click="toggleDrawerSection(item.toggleKey)"
+              >
+                <q-item-section avatar>
+                  <q-icon
+                    :name="item.icon"
+                    :size="item.iconSize || '24px'"
+                    :class="item.iconClass"
+                  />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ item.label }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-icon
+                    :name="isDrawerSectionOpen(item.toggleKey) ? 'expand_less' : 'expand_more'"
+                    size="18px"
+                  />
+                </q-item-section>
+              </q-item>
+              <q-item
+                v-else-if="item.kind === 'subheader'"
                 dense
                 class="ec-nav-subheader"
                 :class="item.itemClass"
@@ -105,12 +131,17 @@
                 :class="item.itemClass"
               >
                 <q-item-section avatar>
-                  <q-icon :name="item.icon" :size="item.iconSize || '24px'" />
+                  <q-icon
+                    :name="item.icon"
+                    :size="item.iconSize || '24px'"
+                    :class="item.iconClass"
+                  />
                 </q-item-section>
                 <q-item-section>
                   <q-item-label>{{ item.label }}</q-item-label>
                 </q-item-section>
               </q-item>
+              </template>
               </template>
             </template>
           </q-list>
@@ -311,26 +342,20 @@ const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
-  {
-    label: 'Agents',
-    to: '/assistants',
-    exact: true,
-    icon: 'smart_toy',
-  },
 ]
 const workspaceNavigationItems = [
-  { label: 'Users', to: '/users', exact: true, icon: 'groups' },
+  { label: 'Users', to: '/users', exact: true, icon: 'badge' },
+  { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
   { label: 'Pipelines', to: '/projects', exact: true, icon: 'schema' },
   { label: 'Notes', to: '/notes', exact: true, icon: 'note' },
   { label: 'Tasks', to: '/tasks', exact: true, icon: 'check_circle' },
-  { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
-  { label: 'Browse File System', to: '/file-system', exact: true, icon: 'folder_open' },
+  { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
 ].map((item) => ({
   ...item,
-  itemClass: 'ec-nav-item--secondary',
+  itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   iconSize: '18px',
 }))
 const routeLabelByName = {
@@ -348,8 +373,8 @@ const routeLabelByName = {
   tasks: 'Tasks',
   assistants: 'Agents',
   settings: 'Avatar',
-  'user-settings': 'Owner',
-  'file-system': 'File system',
+  'user-settings': 'Settings',
+  'file-system': 'File System',
   'databook-view': 'Databook',
 }
 const router = useRouter()
@@ -368,35 +393,45 @@ const intakeDrafts = computed(() =>
 
 const drawerNavigationSections = computed(() => [
   {
-    label: 'Preferences',
+    label: 'Owner',
     key: 'preferences',
     items: [
       {
-        label: 'Owner',
+        label: 'Settings',
         to: '/user-settings',
         exact: true,
-        icon: 'settings',
+        icon: 'manage_accounts',
       },
       {
         label: 'Avatar',
         to: '/settings',
         exact: true,
-        icon: 'account_circle',
+        icon: 'smart_toy',
+      },
+      {
+        label: 'Agents',
+        to: '/assistants',
+        exact: true,
+        icon: 'theater_comedy',
       },
     ],
   },
   {
-    label: 'Main',
+    label: 'Workspace',
     key: 'main',
     items: [
       ...mainNavigationItems,
       {
-        kind: 'subheader',
-        label: 'WORKSPACE FILES',
-        itemClass: 'ec-nav-subheader--secondary',
-        labelClass: 'ec-nav-label--secondary',
+        kind: 'toggle',
+        label: 'Files',
+        itemClass: 'ec-nav-item--workspace-toggle',
+        icon: 'folder',
+        toggleKey: 'workspace',
       },
-      ...workspaceNavigationItems,
+      ...workspaceNavigationItems.map((item) => ({
+        ...item,
+        parentKey: 'workspace',
+      })),
     ],
   },
 ])
@@ -1205,7 +1240,10 @@ function goBack() {
 }
 
 .ec-drawer-footer {
-  padding: 8px 16px 10px;
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 10px 16px;
 }
 
 .ec-drawer-section + .ec-drawer-section {
@@ -1229,13 +1267,25 @@ function goBack() {
   margin-top: 6px;
 }
 
+.ec-nav-item--workspace-toggle {
+  margin-top: 6px;
+}
+
+.ec-nav-item--workspace-toggle :deep(.q-item__section--avatar) {
+  align-items: center;
+}
+
+.ec-nav-item--workspace-toggle :deep(.q-item__section--avatar .q-icon) {
+  transform: translateY(-1px);
+}
+
 .ec-nav-branch {
   display: flex;
   flex-direction: column;
 }
 
 .ec-nav-item--nested {
-  margin-left: var(--ds-space-16);
+  padding-left: var(--ds-space-16);
 }
 
 .ec-nav-item--nested :deep(.q-item__section--avatar) {
@@ -1253,7 +1303,14 @@ function goBack() {
   justify-content: center;
 }
 
+.ec-nav-icon--widget-blue {
+  color: var(--b10-brand-azul, #2647ff);
+}
+
 .ec-drawer-footer__text {
+  display: flex;
+  align-items: center;
+  min-height: 20px;
   padding-left: 16px;
   font-size: 11px;
   text-align: left;
@@ -1264,8 +1321,25 @@ function goBack() {
   font-size: 11px;
 }
 
+.ec-nav-item--secondary {
+  margin-left: 24px;
+}
+
 .ec-nav-item--secondary :deep(.q-item__section--avatar) {
   min-width: 40px;
+}
+
+.ec-nav-item--workspace-child {
+  min-height: 28px;
+}
+
+.ec-nav-item--workspace-child + .ec-nav-item--workspace-child {
+  margin-top: -1px;
+}
+
+.ec-nav-item--workspace-child :deep(.q-item__section) {
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 
 .ec-quick-widget {
