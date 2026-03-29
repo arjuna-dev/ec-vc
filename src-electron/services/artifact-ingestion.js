@@ -9,6 +9,12 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 
 import { dbAll, dbRun, initDb } from './sqlite-db.js'
+import {
+  getArtifactLlmReadyPath,
+  getArtifactRawPath,
+  NETWORK_DATABASES_DIR,
+  USER_WORKSPACE_DIR,
+} from './workspace-structure.js'
 
 function safeBasename(filePath) {
   return path.basename(String(filePath || ''))
@@ -290,8 +296,8 @@ export async function ingestArtifactsFromPaths({
     throw new Error('No files provided to ingestion (filePaths was empty).')
   }
 
-  const rawDir = path.join(workspaceRoot, '0_company_docs', 'Artifacts', '0_raw')
-  const llmDir = path.join(workspaceRoot, '0_company_docs', 'Artifacts', '1_llm-ready')
+  const rawDir = getArtifactRawPath(workspaceRoot)
+  const llmDir = getArtifactLlmReadyPath(workspaceRoot)
   await fse.ensureDir(rawDir)
   await fse.ensureDir(llmDir)
 
@@ -310,7 +316,9 @@ export async function ingestArtifactsFromPaths({
 
     const rawCandidatePath = path.join(rawDir, fileName)
     if (await fse.pathExists(rawCandidatePath)) {
-      const rawRelPath = toPosixPath(path.join('0_company_docs', 'Artifacts', '0_raw', fileName))
+      const rawRelPath = toPosixPath(
+        path.join(USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Artifacts', '0_raw', fileName),
+      )
       const refs = Number(
         dbAll('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?', [rawRelPath])?.[0]
           ?.c || 0,
@@ -388,7 +396,13 @@ export async function ingestArtifactsFromPaths({
     })
 
     const rawRelPath = toPosixPath(
-      path.join('0_company_docs', 'Artifacts', '0_raw', path.basename(rawAbsPath)),
+      path.join(
+        USER_WORKSPACE_DIR,
+        NETWORK_DATABASES_DIR,
+        'Artifacts',
+        '0_raw',
+        path.basename(rawAbsPath),
+      ),
     )
     const rawArtifactId = `artifact:${crypto.randomUUID()}`
 
@@ -471,7 +485,13 @@ export async function ingestArtifactsFromPaths({
       }
 
       const llmRelPath = toPosixPath(
-        path.join('0_company_docs', 'Artifacts', '1_llm-ready', path.basename(llmAbsPath)),
+        path.join(
+          USER_WORKSPACE_DIR,
+          NETWORK_DATABASES_DIR,
+          'Artifacts',
+          '1_llm-ready',
+          path.basename(llmAbsPath),
+        ),
       )
       const llmArtifactId = `artifact:${crypto.randomUUID()}`
 
@@ -617,7 +637,13 @@ export async function ingestArtifactsFromPaths({
     }
 
     const llmRelPath = toPosixPath(
-      path.join('0_company_docs', 'Artifacts', '1_llm-ready', path.basename(llmAbsPath)),
+      path.join(
+        USER_WORKSPACE_DIR,
+        NETWORK_DATABASES_DIR,
+        'Artifacts',
+        '1_llm-ready',
+        path.basename(llmAbsPath),
+      ),
     )
     const llmArtifactId = `artifact:${crypto.randomUUID()}`
 

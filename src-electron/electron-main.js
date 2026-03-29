@@ -12,6 +12,12 @@ import { closeDb, dbAll, dbRun, getDbInfo, initDb } from './services/sqlite-db.j
 import { mirrorPipelineToFs, removePipelineFromFs } from './services/pipeline-mirror.js'
 import { ingestArtifactsFromPaths } from './services/artifact-ingestion.js'
 import { previewAutofillFromFiles } from './services/autofill-extraction.js'
+import {
+  getNetworkDatabasesPath,
+  NETWORK_DATABASES_DIR,
+  NETWORK_DATABASE_SECTION_DIRS,
+  USER_WORKSPACE_DIR,
+} from './services/workspace-structure.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -19,6 +25,25 @@ const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 let mainWindow
+
+function compareWorkspaceEntries(a, b, orderMap = null) {
+  if (a.type !== b.type) {
+    if (a.type === 'directory') return -1
+    if (b.type === 'directory') return 1
+  }
+
+  if (orderMap && a.type === 'directory' && b.type === 'directory') {
+    const aRank = orderMap.get(a.name)
+    const bRank = orderMap.get(b.name)
+    const hasARank = aRank !== undefined
+    const hasBRank = bRank !== undefined
+
+    if (hasARank && hasBRank && aRank !== bRank) return aRank - bRank
+    if (hasARank !== hasBRank) return hasARank ? -1 : 1
+  }
+
+  return a.name.localeCompare(b.name)
+}
 
 function toDirName(value, fallback = 'project') {
   return (
@@ -4671,8 +4696,21 @@ function registerIpc() {
 
   ipcMain.handle('fs:readdir', async (_event, dirPath) => {
     const resolvedPath = path.resolve(String(dirPath || ''))
+    const workspace = await ensureWorkspace()
+    const workspaceRootPath = path.resolve(workspace.rootPath)
+    const userWorkspacePath = path.resolve(path.join(workspace.rootPath, USER_WORKSPACE_DIR))
+    const networkDatabasesPath = path.resolve(getNetworkDatabasesPath(workspace.rootPath))
 
     const dirents = await fs.readdir(resolvedPath, { withFileTypes: true })
+    let sortOrder = null
+    if (resolvedPath === workspaceRootPath) {
+      sortOrder = new Map([[USER_WORKSPACE_DIR, 0]])
+    } else if (resolvedPath === userWorkspacePath) {
+      sortOrder = new Map([[NETWORK_DATABASES_DIR, 0]])
+    } else if (resolvedPath === networkDatabasesPath) {
+      sortOrder = new Map(NETWORK_DATABASE_SECTION_DIRS.map((name, index) => [name, index]))
+    }
+
     const entries = dirents
       .filter((d) => !d.name.startsWith('.'))
       .map((d) => {
@@ -4683,13 +4721,7 @@ function registerIpc() {
           type: d.isDirectory() ? 'directory' : d.isFile() ? 'file' : 'other',
         }
       })
-      .sort((a, b) => {
-        if (a.type !== b.type) {
-          if (a.type === 'directory') return -1
-          if (b.type === 'directory') return 1
-        }
-        return a.name.localeCompare(b.name)
-      })
+      .sort((a, b) => compareWorkspaceEntries(a, b, sortOrder))
 
     return { path: resolvedPath, entries }
   })
@@ -5066,12 +5098,12 @@ function registerIpc() {
       },
     })
     const count = Array.isArray(result?.results) ? result.results.length : 0
-    if (count > 0) {
-      emitStatus?.({
-        type: 'success',
-        message: `Artifacts saved in ${workspace.rootPath}/0_company_docs/Artifacts`,
-      })
-    }
+      if (count > 0) {
+        emitStatus?.({
+          type: 'success',
+          message: `Artifacts saved in ${workspace.rootPath}/${USER_WORKSPACE_DIR}/${NETWORK_DATABASES_DIR}/Artifacts`,
+        })
+      }
     return result
   })
 
