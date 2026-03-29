@@ -4,7 +4,9 @@
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <div class="ec-shell-toolbar-heading">
           <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
-          <div class="ec-shell-page-title">{{ currentHeaderTitle }}</div>
+          <div class="ec-shell-page-title">
+            <span class="ec-shell-page-title__label">{{ currentHeaderTitle }}</span>
+          </div>
         </div>
 
         <q-toolbar-title class="ec-shell-toolbar-title">
@@ -1063,12 +1065,17 @@ function navigateBack() {
 .ec-shell-page-title {
   display: inline-flex;
   align-items: center;
-  color: var(--ds-color-text-header);
-  font-size: var(--ds-font-size-sm);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-sm);
-  letter-spacing: 0;
   white-space: nowrap;
+}
+
+.ec-shell-page-title__label {
+  align-items: center;
+  color: var(--ds-color-text-navigation);
+  display: inline-flex;
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-light);
+  line-height: var(--ds-line-height-sm);
+  text-decoration: none;
 }
 
 .ec-shell-toolbar-title {
