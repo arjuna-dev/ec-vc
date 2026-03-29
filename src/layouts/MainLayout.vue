@@ -309,8 +309,6 @@ const mainNavigationItems = [
     to: '/assistants',
     exact: true,
     icon: 'smart_toy',
-    itemClass: 'ec-nav-item--feature',
-    iconSize: '20px',
   },
 ]
 const workspaceNavigationItems = [
@@ -377,8 +375,6 @@ const drawerNavigationSections = computed(() => [
         to: '/settings',
         exact: true,
         icon: 'account_circle',
-        itemClass: 'ec-nav-item--feature',
-        iconSize: '20px',
       },
     ],
   },
@@ -1244,35 +1240,6 @@ function goBack() {
 
 .ec-nav-item--secondary :deep(.q-item__section--avatar) {
   min-width: 40px;
-}
-
-.ec-nav-item--feature :deep(.q-item__section--avatar) {
-  min-width: 40px;
-  width: 32px;
-  height: 32px;
-  max-width: 32px;
-  min-height: 32px;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03) 42%, transparent 43%),
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--ds-color-text-primary-deep) 82%, #4cc3ff 18%),
-      var(--ds-color-text-primary-deep) 62%,
-      color-mix(in srgb, var(--ds-color-text-primary-deep) 74%, white 26%)
-    ) !important;
-  border: 1px solid rgba(255, 255, 255, 0.92) !important;
-  box-shadow:
-    0 10px 22px rgba(15, 23, 42, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45);
-}
-
-.ec-nav-item--feature :deep(.q-icon) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff;
 }
 
 .ec-quick-widget {
