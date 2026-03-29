@@ -291,7 +291,7 @@ const drawerSectionOpen = ref({
 })
 
 const QUICK_WIDGET_TRIGGER_SIZE = 112
-const QUICK_WIDGET_ACTION_RADIUS = 96
+const QUICK_WIDGET_ACTION_RADIUS = 84
 const QUICK_WIDGET_BRANCH_RADIUS = 88
 const QUICK_WIDGET_ACTION_SIZE = 40
 const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
@@ -627,11 +627,10 @@ function quickWidgetActionOffsetById(actionId, radius = QUICK_WIDGET_ACTION_RADI
   const orderIndex = circleOrder.indexOf(resolvedId)
   const angleIndex = orderIndex >= 0 ? orderIndex : 0
   const angleRad = (quickWidgetActionAngle(angleIndex) * Math.PI) / 180
-  const centerYOffset = 10
 
   return {
     x: Math.cos(angleRad) * radius,
-    y: Math.sin(angleRad) * radius + centerYOffset,
+    y: Math.sin(angleRad) * radius,
   }
 }
 
