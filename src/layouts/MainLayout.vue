@@ -1073,8 +1073,8 @@ function navigateBack() {
   display: flex;
   align-items: flex-end;
   gap: var(--ds-space-12);
-  padding-top: calc(var(--ds-space-12) + 50px);
-  padding-bottom: 10px;
+  padding-top: calc(var(--ds-space-12) + 70px);
+  padding-bottom: 30px;
 }
 
 .ec-shell-toolbar-heading {
