@@ -1074,6 +1074,7 @@ function navigateBack() {
   align-items: flex-end;
   gap: var(--ds-space-12);
   padding-top: calc(var(--ds-space-12) + 10px);
+  padding-bottom: 10px;
 }
 
 .ec-shell-toolbar-heading {
