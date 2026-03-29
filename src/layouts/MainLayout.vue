@@ -1049,7 +1049,7 @@ function refreshCurrentPage() {
 }
 
 .ec-shell-toolbar-action-btn :deep(.q-icon) {
-  transform: translateY(-3px);
+  transform: translateY(-1px);
 }
 
 .ec-shell-toolbar-title {
