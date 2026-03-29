@@ -1,6 +1,6 @@
 <template>
     <q-layout view="lHh Lpr lFf">
-    <q-header :height-hint="108" class="ec-shell-header">
+    <q-header :height-hint="152" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <div class="ec-shell-toolbar-heading">
           <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
@@ -37,6 +37,7 @@
           </div>
         </q-toolbar-title>
       </q-toolbar>
+      <div class="ec-shell-header-divider" aria-hidden="true" />
 
     </q-header>
 
@@ -1059,6 +1060,17 @@ function refreshCurrentPage() {
   align-items: flex-end;
   margin-left: auto;
   min-width: 0;
+}
+
+.ec-shell-header-divider {
+  height: 24px;
+  margin-bottom: 20px;
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 1) 0%,
+    rgb(250 250 250 / 0.96) 28%,
+    hsl(var(--background)) 100%
+  );
 }
 
 .ec-breadcrumb-bar {
