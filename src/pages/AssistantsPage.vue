@@ -240,7 +240,15 @@
 
           <div v-else class="row q-col-gutter-md assistants-cards-grid">
             <div v-for="assistant in displayRows" :key="assistant.assistant_system_prompt_id" class="col-12 col-md-6 col-lg-4">
-              <q-card flat bordered class="assistant-card full-height">
+              <q-card
+                flat
+                bordered
+                class="assistant-card full-height"
+                :style="getAgentCardStyle(assistant)"
+                @pointerenter="onAgentCardPointerEnter"
+                @pointermove="onAgentCardPointerMove"
+                @pointerleave="onAgentCardPointerLeave"
+              >
                 <q-card-section class="assistant-card__hero">
                   <div class="assistant-card__hero-main">
                     <figure class="assistant-card__portrait">
@@ -261,10 +269,13 @@
                           <div class="assistant-card__title">
                             {{ assistant.name || 'Unnamed agent' }}
                           </div>
-                        <div class="assistant-card__subtitle">
-                          {{ assistant.domain }} - {{ assistant.levelLabel }} - Parent {{ assistant.parent || 'Unknown' }}
+                          <div class="assistant-card__role">
+                            {{ assistant.domain || 'Agent domain' }} • {{ assistant.levelLabel || 'Unassigned level' }}
+                          </div>
                         </div>
-                      </div>
+                        <q-badge class="assistant-card__level-badge">
+                          {{ assistant.parent || 'Avatar' }}
+                        </q-badge>
                       </div>
 
                       <div class="assistant-card__pill-row">
@@ -299,7 +310,7 @@
                 <q-card-section class="assistant-card__summary">
                   <div class="assistant-card__summary-label">Highlights</div>
 
-                  <div class="assistant-card__details">
+                  <div v-if="getAgentCardDetails(assistant).length" class="assistant-card__details">
                     <div
                       v-for="detail in getAgentCardDetails(assistant)"
                       :key="detail.label"
@@ -311,6 +322,10 @@
                         <div class="assistant-card__detail-value">{{ detail.value }}</div>
                       </div>
                     </div>
+                  </div>
+
+                  <div v-else class="assistant-card__summary-empty">
+                    Add more linked agent detail to make this card richer.
                   </div>
                 </q-card-section>
 
@@ -689,6 +704,72 @@ function getAgentPortraitGradient(agent) {
     'linear-gradient(180deg, rgba(37,154,111,0.95), rgba(138,225,193,0.78))',
   ]
   return gradients[Math.abs(hashString(agent.domain)) % gradients.length]
+}
+
+function getAgentCardStyle(agent) {
+  const toneIndex = Math.abs(hashString(`${agent.domain}:${agent.level}`)) % 4
+  const tones = [
+    {
+      strong: 'rgba(38, 71, 255, 0.2)',
+      soft: 'rgba(38, 71, 255, 0.1)',
+      fade: 'rgba(38, 71, 255, 0.05)',
+    },
+    {
+      strong: 'rgba(255, 122, 0, 0.18)',
+      soft: 'rgba(255, 169, 77, 0.1)',
+      fade: 'rgba(255, 169, 77, 0.05)',
+    },
+    {
+      strong: 'rgba(31, 160, 118, 0.18)',
+      soft: 'rgba(88, 214, 169, 0.1)',
+      fade: 'rgba(88, 214, 169, 0.05)',
+    },
+    {
+      strong: 'rgba(111, 76, 255, 0.18)',
+      soft: 'rgba(157, 129, 255, 0.1)',
+      fade: 'rgba(157, 129, 255, 0.05)',
+    },
+  ]
+  const tone = tones[toneIndex]
+  return {
+    '--assistant-card-blob-x': '50%',
+    '--assistant-card-blob-y': '28%',
+    '--assistant-card-blob-size': '62%',
+    '--assistant-card-blob-opacity': '0',
+    '--assistant-card-blob-strong': tone.strong,
+    '--assistant-card-blob-soft': tone.soft,
+    '--assistant-card-blob-fade': tone.fade,
+  }
+}
+
+function onAgentCardPointerEnter(event) {
+  updateAgentCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--assistant-card-blob-opacity', '1')
+}
+
+function onAgentCardPointerMove(event) {
+  updateAgentCardGradientPosition(event)
+}
+
+function onAgentCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--assistant-card-blob-opacity', '0')
+}
+
+function updateAgentCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+
+  element.style.setProperty('--assistant-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--assistant-card-blob-y', `${clamp(y, 10, 90)}%`)
 }
 
 function getAgentCardPills(agent) {
@@ -1330,24 +1411,29 @@ onMounted(loadAssistants)
   flex-direction: column;
   min-height: 100%;
   overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
+  border-color: rgba(17, 17, 17, 0.08);
   border-radius: 24px;
-  border-color: rgba(148, 163, 184, 0.22);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
-    #fff;
-  box-shadow:
-    0 18px 40px rgba(15, 23, 42, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 42px rgba(17, 17, 17, 0.06);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .assistant-card::before {
   content: '';
   position: absolute;
   inset: 0;
+  background: radial-gradient(
+    circle at var(--assistant-card-blob-x) var(--assistant-card-blob-y),
+    var(--assistant-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--assistant-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--assistant-card-blob-size) * 0.46),
+    var(--assistant-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--assistant-card-blob-size) * 0.7),
+    transparent var(--assistant-card-blob-size)
+  );
+  opacity: var(--assistant-card-blob-opacity, 0);
   pointer-events: none;
-  background:
-    radial-gradient(circle at 14% 16%, rgba(38, 71, 255, 0.08), transparent 34%),
-    radial-gradient(circle at 88% 0%, rgba(235, 255, 90, 0.1), transparent 28%);
+  transition: opacity 180ms ease;
 }
 
 .assistant-card > * {
@@ -1355,165 +1441,248 @@ onMounted(loadAssistants)
   z-index: 1;
 }
 
+.assistant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+}
+
 .assistant-card__hero {
-  padding-bottom: 12px;
+  padding: 0;
 }
 
 .assistant-card__hero-main {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
 }
 
 .assistant-card__portrait {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
   margin: 0;
-  flex: 0 0 108px;
+  overflow: hidden;
+  background: #d8d4ca;
+  border-right: 1px solid rgba(17, 17, 17, 0.08);
 }
 
 .assistant-card__portrait-shell {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 108px;
-  height: 108px;
-  border-radius: 28px;
+  width: 100%;
+  height: 100%;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.8), transparent 55%),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.02));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.14), transparent 55%),
+    linear-gradient(180deg, rgba(17, 17, 17, 0.04), rgba(17, 17, 17, 0.16));
+}
+
+.assistant-card__portrait::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(17, 17, 17, 0.2) 100%);
+  pointer-events: none;
 }
 
 .assistant-card__portrait-badge {
   display: flex;
-  width: 82px;
-  height: 82px;
+  width: clamp(118px, 44%, 148px);
+  height: clamp(118px, 44%, 148px);
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 32px;
   color: #fff;
   box-shadow:
-    0 10px 22px rgba(15, 23, 42, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 36px rgba(17, 17, 17, 0.14);
 }
 
 .assistant-card__portrait-mark {
-  font-family: var(--ds-font-family-title);
-  font-size: 1.35rem;
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.8vw, 3rem);
   font-weight: var(--ds-font-weight-black);
   line-height: 1;
+  letter-spacing: 0.02em;
 }
 
 .assistant-card__portrait-frame {
-  margin-top: 6px;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
+  margin-top: 8px;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.1em;
 }
 
 .assistant-card__hero-side {
-  display: flex;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
   min-width: 0;
-  flex: 1;
-  flex-direction: column;
-  gap: 12px;
+  gap: 6px;
+  padding: 12px 16px 12px 12px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
 }
 
 .assistant-card__hero-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
 }
 
 .assistant-card__hero-copy {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .assistant-card__title {
-  color: #0f172a;
-  font-family: var(--ds-font-family-title);
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.2;
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
 }
 
-.assistant-card__subtitle,
+.assistant-card__role,
 .assistant-card__meta {
-  margin-top: 6px;
-  color: #64748b;
-  font-size: 0.8rem;
-  line-height: 1.4;
+  color: #4b4b4b;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+  text-wrap: balance;
+}
+
+.assistant-card__level-badge {
+  padding: 6px 9px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
 }
 
 .assistant-card__pill-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
+  align-content: flex-start;
 }
 
 .assistant-card__pill {
-  background: rgba(38, 71, 255, 0.08);
-  color: #2647ff;
-  border: 1px solid rgba(38, 71, 255, 0.12);
+  padding: 6px 9px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
 }
 
 .assistant-card__quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  align-content: start;
 }
 
 .assistant-card__quick-action {
+  min-height: 30px;
+  width: 100%;
+  padding: 0 10px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(17, 17, 17, 0.1);
   border-radius: 999px;
-  border-color: rgba(15, 23, 42, 0.12);
-  background: rgba(255, 255, 255, 0.9);
-  color: #334155;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.assistant-card__quick-action :deep(.q-btn__content) {
+  min-width: 0;
+  justify-content: flex-start;
 }
 
 .assistant-card__summary {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 14px;
+  margin: 20px 20px 0;
+  padding: 16px 18px 18px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(18px);
 }
 
 .assistant-card__summary-label,
 .assistant-card__detail-label {
-  color: #64748b;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.14em;
+  line-height: 16px;
   text-transform: uppercase;
 }
 
 .assistant-card__details {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
 }
 
 .assistant-card__detail {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 10px;
-  padding: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.82);
+  align-items: start;
 }
 
 .assistant-card__detail-icon {
-  color: #2647ff;
-  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #6f6f6f;
 }
 
 .assistant-card__detail-copy {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .assistant-card__detail-value {
-  margin-top: 4px;
-  color: #334155;
-  font-size: 0.86rem;
-  line-height: 1.5;
+  overflow: hidden;
+  color: #111;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assistant-card__summary-empty {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---light);
+  font-weight: var(--font-weight-light);
+  line-height: 20px;
 }
 
 .assistant-card__footer {
@@ -1521,22 +1690,32 @@ onMounted(loadAssistants)
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-top: 0;
+  padding: 16px 20px 20px;
 }
 
 .assistant-card__footer-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .assistant-card__footer-chip {
-  background: rgba(15, 23, 42, 0.06);
-  color: #334155;
+  padding: 6px 9px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
 }
 
 .assistant-card__icon-action {
-  color: #2647ff;
+  color: #111;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 17, 17, 0.1);
 }
 
 @media (max-width: 1200px) {
@@ -1577,17 +1756,62 @@ onMounted(loadAssistants)
   }
 
   .assistant-card__hero-main {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    height: 324px;
   }
 
   .assistant-card__portrait {
-    flex-basis: auto;
+    min-height: 156px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+  }
+
+  .assistant-card__hero-top {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .assistant-card__hero-side {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .assistant-card__portrait-badge {
+    width: 104px;
+    height: 104px;
+  }
+
+  .assistant-card__quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .assistant-card__title {
+    font-size: 1.3rem;
+  }
+
+  .assistant-card__summary,
+  .assistant-card__footer {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+
+  .assistant-card__details {
+    grid-template-columns: 1fr;
+  }
+
+  .assistant-card__footer {
+    padding-right: 0;
+    padding-left: 0;
   }
 }
 
 @media (max-width: 640px) {
   .assistants-dashboard__stats {
     grid-template-columns: 1fr;
+  }
+
+  .assistant-card {
+    border-radius: 20px;
   }
 }
 </style>
