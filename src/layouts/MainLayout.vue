@@ -106,11 +106,7 @@
         </div>
 
         <div class="ec-drawer-footer">
-          <q-item dense class="ec-nav-item ec-nav-item--footer">
-            <q-item-section>
-              <q-item-label>App version: MTK v0.0.1</q-item-label>
-            </q-item-section>
-          </q-item>
+          <div class="ec-drawer-footer__text">App version: MTK v0.0.1</div>
         </div>
       </div>
     </q-drawer>
@@ -1234,30 +1230,11 @@ function goBack() {
   justify-content: center;
 }
 
-.ec-nav-item--footer {
-  margin-left: 8px;
-  margin-right: 8px;
-}
-
-.ec-nav-item--footer :deep(.q-item__section--main) {
-  padding-left: 0;
-}
-
-.ec-nav-item--footer :deep(.q-item__section--main ~ .q-item__section--main) {
-  margin-left: 0;
-}
-
-.ec-nav-item--footer :deep(.q-focus-helper) {
-  display: none;
-}
-
-.ec-nav-item--footer :deep(.q-item__section) {
-  align-items: flex-start;
-}
-
-.ec-nav-item--footer :deep(.q-item__label) {
+.ec-drawer-footer__text {
+  padding-left: 16px;
   font-size: 11px;
   text-align: left;
+  line-height: 1.2;
 }
 
 .ec-nav-item--secondary :deep(.q-item__label) {
