@@ -1248,16 +1248,11 @@ function goBack() {
 
 .ec-nav-item--feature :deep(.q-item__section--avatar) {
   min-width: 40px;
-}
-
-.ec-nav-item--feature :deep(.q-icon) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 32px;
+  max-width: 32px;
+  min-height: 32px;
   border-radius: 999px;
-  color: #ffffff !important;
   background:
     radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03) 42%, transparent 43%),
     linear-gradient(
@@ -1270,6 +1265,13 @@ function goBack() {
   box-shadow:
     0 10px 22px rgba(15, 23, 42, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.ec-nav-item--feature :deep(.q-icon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff !important;
   -webkit-text-fill-color: #ffffff;
 }
 
