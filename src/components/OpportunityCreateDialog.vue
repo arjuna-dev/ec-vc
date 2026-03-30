@@ -66,6 +66,17 @@
                 />
                 <span>{{ intakeProgressLabel }}</span>
               </div>
+              <div v-if="showReviewNowButton" class="col-auto">
+                <q-btn
+                  flat
+                  dense
+                  no-caps
+                  color="primary"
+                  icon="rule"
+                  label="Review now"
+                  @click="openIntakeReviewNow"
+                />
+              </div>
             </div>
             <div class="intake-horizontal-progress intake-horizontal-progress--compact">
               <div class="intake-horizontal-progress__track">
@@ -1248,6 +1259,12 @@ const intakeReviewVisiblePendingKeys = computed(() =>
   intakeVisibleFieldKeys.value.filter((key) => String(intakeReviewFields.value[key] || '').trim().length > 0),
 )
 
+const showReviewNowButton = computed(() => {
+  if (intakeReviewDialogOpen.value) return false
+  if (processingDrop.value) return true
+  return getPendingIntakeReviewFieldKeys(buildIntakeReviewFieldsFromForms()).length > 0
+})
+
 const intakeReviewReadyToContinue = computed(() => {
   if (!intakeReviewVisiblePendingKeys.value.length) return true
   return intakeReviewVisiblePendingKeys.value.every((key) => Boolean(intakeReviewVerified.value[key]))
@@ -1978,6 +1995,25 @@ function maybeOpenIntakeReviewDialog() {
   intakeReviewDialogOpen.value = true
   intakeReviewPromptShown.value = true
   processingMessage.value = 'Waiting for your confirmation on key metadata...'
+}
+
+function openIntakeReviewNow() {
+  const nextFields = buildIntakeReviewFieldsFromForms()
+  const pendingKeys = getPendingIntakeReviewFieldKeys(nextFields)
+  if (!pendingKeys.length) {
+    $q.notify({
+      type: 'info',
+      message: processingDrop.value
+        ? 'Verification prompts will appear as soon as reviewable values are extracted.'
+        : 'There are no reviewable values waiting right now.',
+    })
+    return
+  }
+
+  intakeReviewDelayElapsed.value = true
+  intakeReviewPending.value = true
+  intakeReviewPromptShown.value = false
+  maybeOpenIntakeReviewDialog()
 }
 
 function buildNextIntakeReviewVerified(nextFields = {}) {
