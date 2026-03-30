@@ -263,6 +263,16 @@
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
 
         <div class="avatar-loadout">
+          <div class="avatar-loadout__toolbar">
+            <div class="avatar-loadout__toolbar-copy">
+              <q-icon name="view_carousel" size="18px" class="avatar-loadout__toolbar-icon" />
+              <div>
+                <div class="avatar-card__eyebrow">Loadout Toolbar</div>
+                <div class="avatar-loadout__toolbar-text">{{ loadoutToolbarText }}</div>
+              </div>
+            </div>
+          </div>
+
           <div class="avatar-loadout__header">
             <div>
               <div class="avatar-card__eyebrow">Loadout Deck</div>
@@ -583,6 +593,9 @@ const avatarBuildDeck = computed(() => [
     previewStyle: createPreviewStyle('solar-gold'),
   },
 ])
+const loadoutToolbarText = computed(
+  () => `${avatarBuildDeck.value.length} build${avatarBuildDeck.value.length === 1 ? '' : 's'} ready to load`
+)
 
 watch(
   avatarProfile,
@@ -1050,6 +1063,55 @@ onMounted(() => {
   padding: 0 12px 12px;
 }
 
+.avatar-loadout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.avatar-loadout__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+}
+
+.avatar-loadout__toolbar-copy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-loadout__toolbar-icon {
+  color: #475569;
+}
+
+.avatar-loadout__toolbar-text {
+  color: #475569;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.avatar-loadout__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.avatar-loadout__title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1.35rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+}
+
 @media (max-width: 1200px) {
   .avatar-shell__hero,
   .avatar-builds-inline {
@@ -1064,6 +1126,10 @@ onMounted(() => {
 
   .avatar-card__header-actions {
     align-items: flex-start;
+  }
+
+  .avatar-loadout__header {
+    flex-direction: column;
   }
 }
 
