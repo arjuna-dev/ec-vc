@@ -569,7 +569,7 @@
         </q-card>
       </q-dialog>
 
-      <q-dialog v-model="previewDialogOpen" @hide="closePreviewDialog">
+      <q-dialog v-model="previewDialogOpen" full-width @hide="closePreviewDialog">
         <q-card class="artifact-preview-dialog">
           <q-card-section class="row items-center justify-between q-col-gutter-md">
             <div class="col">
@@ -3608,8 +3608,10 @@ watch(displayArtifactRows, () => {
 .artifact-preview-dialog {
   display: flex;
   flex-direction: column;
-  width: min(1840px, 98vw);
+  width: calc(100vw - 48px);
+  max-width: none;
   height: min(92vh, 980px);
+  margin: 0;
   border-radius: 28px;
   overflow: hidden;
   background:
