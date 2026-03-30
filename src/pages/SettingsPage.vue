@@ -16,80 +16,83 @@
 
     <div v-else class="avatar-page">
       <section class="avatar-shell">
-        <div
-          class="avatar-shell__hero"
-          :style="avatarHeroStyle"
-          @pointerenter="onHeroDashboardPointerEnter"
-          @pointermove="onHeroDashboardPointerMove"
-          @pointerleave="onHeroDashboardPointerLeave"
-        >
-          <div class="avatar-shell__copy">
-            <h2 class="avatar-shell__hero-title">Tune your Avatar</h2>
+        <div class="avatar-studio">
+          <div class="avatar-studio__main">
+            <div
+              class="avatar-shell__hero"
+              :style="avatarHeroStyle"
+              @pointerenter="onHeroDashboardPointerEnter"
+              @pointermove="onHeroDashboardPointerMove"
+              @pointerleave="onHeroDashboardPointerLeave"
+            >
+              <div class="avatar-shell__copy">
+                <h2 class="avatar-shell__hero-title">Tune your Avatar</h2>
 
-            <div class="avatar-preview-inline">
-              <div class="avatar-preview-inline__stage">
-                <div class="avatar-preview-inline__bot" :style="avatarBotStyle">
-                  <q-icon name="smart_toy" class="avatar-preview-inline__icon" />
+                <div class="avatar-preview-inline">
+                  <div class="avatar-preview-inline__stage">
+                    <div class="avatar-preview-inline__bot" :style="avatarBotStyle">
+                      <q-icon name="smart_toy" class="avatar-preview-inline__icon" />
+                    </div>
+                  </div>
+                  <div class="avatar-preview-inline__name">{{ avatarProfile.name || 'Mini-Me' }}</div>
+                  <div class="avatar-preview-inline__meta">
+                    {{ avatarArchetypeLabel }} / {{ avatarColorLabel }} / {{ avatarTemperamentLabel }}
+                  </div>
+                </div>
+
+                <p class="avatar-shell__hero-text">{{ avatarSummaryText }}</p>
+              </div>
+
+              <div class="avatar-hero-stats">
+                <div v-for="stat in avatarHeroStats" :key="stat.label" class="avatar-hero-stat">
+                  <div class="avatar-hero-stat__label">{{ stat.label }}</div>
+                  <div class="avatar-hero-stat__value">{{ stat.value }}</div>
+                  <div class="avatar-hero-stat__caption">{{ stat.caption }}</div>
                 </div>
               </div>
-              <div class="avatar-preview-inline__name">{{ avatarProfile.name || 'Mini-Me' }}</div>
-              <div class="avatar-preview-inline__meta">
-                {{ avatarArchetypeLabel }} · {{ avatarColorLabel }} · {{ avatarTemperamentLabel }}
+            </div>
+
+            <div class="avatar-toolbar">
+              <div class="avatar-toolbar__status">
+                <q-icon name="construction" size="18px" class="avatar-toolbar__icon" />
+                <div>
+                  <div class="avatar-toolbar__eyebrow">Builder Status</div>
+                  <div class="avatar-toolbar__text">{{ avatarStatusText }}</div>
+                </div>
+              </div>
+
+              <div class="avatar-toolbar__actions">
+                <B10Button
+                  variant="subtle"
+                  icon-start="refresh"
+                  label="Reload Keys"
+                  :disable="saving"
+                  :loading="loading"
+                  @click="loadSettings"
+                />
+                <B10Button
+                  variant="primary"
+                  icon-start="save"
+                  label="Save Keys"
+                  :loading="saving"
+                  :disable="loading"
+                  @click="saveSettings"
+                />
               </div>
             </div>
-
-            <p class="avatar-shell__hero-text">{{ avatarSummaryText }}</p>
           </div>
-
-          <div class="avatar-hero-stats">
-            <div v-for="stat in avatarHeroStats" :key="stat.label" class="avatar-hero-stat">
-              <div class="avatar-hero-stat__label">{{ stat.label }}</div>
-              <div class="avatar-hero-stat__value">{{ stat.value }}</div>
-              <div class="avatar-hero-stat__caption">{{ stat.caption }}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="avatar-toolbar">
-          <div class="avatar-toolbar__status">
-            <q-icon name="construction" size="18px" class="avatar-toolbar__icon" />
-            <div>
-              <div class="avatar-toolbar__eyebrow">Builder Status</div>
-              <div class="avatar-toolbar__text">{{ avatarStatusText }}</div>
-            </div>
-          </div>
-
-          <div class="avatar-toolbar__actions">
-            <B10Button
-              variant="subtle"
-              icon-start="refresh"
-              label="Reload Keys"
-              :disable="saving"
-              :loading="loading"
-              @click="loadSettings"
-            />
-            <B10Button
-              variant="primary"
-              icon-start="save"
-              label="Save Keys"
-              :loading="saving"
-              :disable="loading"
-              @click="saveSettings"
-            />
-          </div>
-        </div>
 
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
 
-        <div class="avatar-grid">
+        <div class="avatar-studio__side">
           <q-card flat bordered class="avatar-card">
             <q-card-section class="avatar-card__header">
               <div>
-                <div class="avatar-card__eyebrow">Avatar</div>
-                <div class="avatar-card__title">Create the avatar</div>
+                <div class="avatar-card__eyebrow">Avatar Tuning</div>
+                <div class="avatar-card__title">Tune the shell</div>
               </div>
               <div class="avatar-card__caption">
-                Build the identity shell the owner will play with while shaping the node.
+                Set how the avatar looks, sounds, and introduces itself in the workspace.
               </div>
             </q-card-section>
             <q-separator />
@@ -236,26 +239,6 @@
                     label="System Notes"
                   />
                 </div>
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <div class="avatar-grid avatar-grid--lower">
-          <q-card flat bordered class="avatar-card">
-            <q-card-section class="avatar-card__header">
-              <div>
-                <div class="avatar-card__eyebrow">API Keys</div>
-                <div class="avatar-card__title">Provider access</div>
-              </div>
-              <div class="avatar-card__caption">
-                Keys are saved locally through the app bridge. Builder preferences stay local in the
-                browser layer.
-              </div>
-            </q-card-section>
-            <q-separator />
-            <q-card-section class="avatar-card__body">
-              <div class="row q-col-gutter-md">
                 <div class="col-12">
                   <q-input
                     v-model="openaiApiKey"
@@ -297,34 +280,56 @@
               </div>
             </q-card-section>
           </q-card>
+        </div>
 
-          <q-card flat bordered class="avatar-sidecar">
-            <q-card-section class="avatar-sidecar__header">
-              <div class="avatar-card__eyebrow">Loadout</div>
-              <div class="avatar-sidecar__title">Current build</div>
-            </q-card-section>
-            <q-separator />
-            <q-card-section class="avatar-sidecar__body">
-              <div class="avatar-sidecar__item">
-                <span>Name</span><strong>{{ avatarProfile.name || 'Mini-Me' }}</strong>
-              </div>
-              <div class="avatar-sidecar__item">
-                <span>Archetype</span><strong>{{ avatarArchetypeLabel }}</strong>
-              </div>
-              <div class="avatar-sidecar__item">
-                <span>Provider</span><strong>{{ llmProviderLabel }}</strong>
-              </div>
-              <div class="avatar-sidecar__item">
-                <span>Model</span><strong>{{ llmModelLabel }}</strong>
-              </div>
-              <div class="avatar-sidecar__item">
-                <span>Voice</span><strong>{{ avatarVoiceLabel }}</strong>
-              </div>
-              <div class="avatar-sidecar__item">
-                <span>Autonomy</span><strong>{{ autonomyLabel }}</strong>
-              </div>
-            </q-card-section>
-          </q-card>
+        <div class="avatar-loadout">
+          <div class="avatar-loadout__header">
+            <div>
+              <div class="avatar-card__eyebrow">Loadout Deck</div>
+              <div class="avatar-loadout__title">Previous and alternate builds</div>
+            </div>
+            <div class="avatar-card__caption">
+              Swap between saved moods and operator setups while shaping the right avatar fit.
+            </div>
+          </div>
+
+          <div class="avatar-loadout__grid">
+            <q-card
+              v-for="build in avatarBuildDeck"
+              :key="build.id"
+              flat
+              bordered
+              class="avatar-build-card"
+            >
+              <q-card-section class="avatar-build-card__header">
+                <div class="avatar-build-card__badge" :style="build.previewStyle">
+                  <q-icon name="smart_toy" class="avatar-build-card__icon" />
+                </div>
+                <div>
+                  <div class="avatar-build-card__title">{{ build.name }}</div>
+                  <div class="avatar-build-card__meta">
+                    {{ build.archetypeLabel }} / {{ build.colorLabel }} / {{ build.temperamentLabel }}
+                  </div>
+                </div>
+              </q-card-section>
+              <q-card-section class="avatar-build-card__body">
+                <div class="avatar-build-card__summary">{{ build.summary }}</div>
+                <div class="avatar-build-card__stats">
+                  <span>{{ build.providerLabel }}</span>
+                  <span>{{ build.modelLabel }}</span>
+                  <span>{{ build.autonomyLabel }}</span>
+                </div>
+              </q-card-section>
+              <q-card-actions align="right" class="avatar-build-card__actions">
+                <B10Button
+                  variant="subtle"
+                  icon-start="download"
+                  label="Load"
+                  @click="applyBuildPreset(build)"
+                />
+              </q-card-actions>
+            </q-card>
+          </div>
         </div>
       </section>
     </div>
@@ -461,9 +466,6 @@ const avatarColorLabel = computed(
 const avatarTemperamentLabel = computed(
   () => avatarTemperamentOptions.find((option) => option.value === avatarProfile.value.temperament)?.label || 'Calm'
 )
-const avatarVoiceLabel = computed(
-  () => avatarVoiceOptions.find((option) => option.value === avatarProfile.value.voice)?.label || 'Founder-friendly'
-)
 const llmProviderLabel = computed(
   () => providerOptions.find((option) => option.value === llmProfile.value.provider)?.label || 'Hybrid'
 )
@@ -477,6 +479,14 @@ const autonomyLabel = computed(
 const avatarSummaryText = computed(
   () => normalizeInput(avatarProfile.value.originStory) || defaultAvatarProfile.originStory
 )
+const avatarThemeFor = (colorway) => avatarThemeMap[colorway] || avatarThemeMap['aurora-blue']
+const createPreviewStyle = (colorway) => {
+  const theme = avatarThemeFor(colorway)
+  return {
+    '--avatar-build-main': theme.botMain,
+    '--avatar-build-glow': theme.botGlow,
+  }
+}
 const avatarHeroStats = computed(() => [
   {
     label: 'Name',
@@ -518,6 +528,100 @@ const avatarBotStyle = computed(() => {
     '--avatar-bot-eye': theme.botEye,
   }
 })
+const avatarBuildDeck = computed(() => [
+  {
+    id: 'current-build',
+    name: avatarProfile.value.name || 'Mini-Me',
+    archetype: avatarProfile.value.archetype,
+    colorway: avatarProfile.value.colorway,
+    temperament: avatarProfile.value.temperament,
+    voice: avatarProfile.value.voice,
+    originStory: avatarProfile.value.originStory,
+    provider: llmProfile.value.provider,
+    model: llmProfile.value.model,
+    responseStyle: llmProfile.value.responseStyle,
+    autonomy: llmProfile.value.autonomy,
+    temperature: llmProfile.value.temperature,
+    systemNotes: llmProfile.value.systemNotes,
+    archetypeLabel: avatarArchetypeLabel.value,
+    colorLabel: avatarColorLabel.value,
+    temperamentLabel: avatarTemperamentLabel.value,
+    providerLabel: llmProviderLabel.value,
+    modelLabel: llmModelLabel.value,
+    autonomyLabel: autonomyLabel.value,
+    summary: avatarSummaryText.value,
+    previewStyle: createPreviewStyle(avatarProfile.value.colorway),
+  },
+  {
+    id: 'boardroom-keeper',
+    name: 'Boardroom Keeper',
+    archetype: 'guardian',
+    colorway: 'forest-mint',
+    temperament: 'warm',
+    voice: 'executive-strategist',
+    originStory: 'A calm room-holder built for sensitive partner updates and trust-heavy threads.',
+    provider: 'hybrid',
+    model: 'deep-reasoning',
+    responseStyle: 'analytical',
+    autonomy: 'guard-railed',
+    temperature: 0.5,
+    systemNotes: 'Stay measured, organized, and protective of context.',
+    archetypeLabel: 'Guardian',
+    colorLabel: 'Forest Mint',
+    temperamentLabel: 'Warm',
+    providerLabel: 'Hybrid',
+    modelLabel: 'Deep reasoning',
+    autonomyLabel: 'Guard-railed',
+    summary: 'A calm room-holder built for sensitive partner updates and trust-heavy threads.',
+    previewStyle: createPreviewStyle('forest-mint'),
+  },
+  {
+    id: 'deal-scout',
+    name: 'Deal Scout',
+    archetype: 'scout',
+    colorway: 'signal-coral',
+    temperament: 'sharp',
+    voice: 'concise-operator',
+    originStory: 'A quick pattern finder for intake, triage, and first-pass sorting.',
+    provider: 'openai',
+    model: 'fast-model',
+    responseStyle: 'practical',
+    autonomy: 'proactive',
+    temperature: 0.6,
+    systemNotes: 'Keep momentum high and summarize fast.',
+    archetypeLabel: 'Scout',
+    colorLabel: 'Signal Coral',
+    temperamentLabel: 'Sharp',
+    providerLabel: 'OpenAI',
+    modelLabel: 'Fast model',
+    autonomyLabel: 'Proactive',
+    summary: 'A quick pattern finder for intake, triage, and first-pass sorting.',
+    previewStyle: createPreviewStyle('signal-coral'),
+  },
+  {
+    id: 'founder-guide',
+    name: 'Founder Guide',
+    archetype: 'guide',
+    colorway: 'solar-gold',
+    temperament: 'bold',
+    voice: 'playful-guide',
+    originStory: 'A brighter coaching build for brainstorming, motivation, and narrative work.',
+    provider: 'gemini',
+    model: 'balanced-default',
+    responseStyle: 'creative',
+    autonomy: 'balanced',
+    temperature: 1.0,
+    systemNotes: 'Be encouraging, flexible, and imagination-friendly.',
+    archetypeLabel: 'Guide',
+    colorLabel: 'Solar Gold',
+    temperamentLabel: 'Bold',
+    providerLabel: 'Gemini',
+    modelLabel: 'Balanced default',
+    autonomyLabel: 'Balanced',
+    summary: 'A brighter coaching build for brainstorming, motivation, and narrative work.',
+    previewStyle: createPreviewStyle('solar-gold'),
+  },
+])
 
 watch(
   avatarProfile,
@@ -593,6 +697,26 @@ function normalizeInput(value) {
   return String(value || '').trim()
 }
 
+function applyBuildPreset(build) {
+  avatarProfile.value = {
+    name: build.name,
+    archetype: build.archetype,
+    colorway: build.colorway,
+    temperament: build.temperament,
+    voice: build.voice,
+    originStory: build.originStory,
+  }
+  llmProfile.value = {
+    provider: build.provider,
+    model: build.model,
+    responseStyle: build.responseStyle,
+    autonomy: build.autonomy,
+    temperature: build.temperature,
+    systemNotes: build.systemNotes,
+  }
+  $q.notify({ type: 'positive', message: `${build.name} loaded` })
+}
+
 function normalizeIpcErrorMessage(errorValue) {
   const raw = String(errorValue?.message || errorValue || '').trim()
   if (!raw) return 'An unexpected error occurred.'
@@ -652,6 +776,20 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.avatar-studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.avatar-studio__main,
+.avatar-studio__side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .avatar-shell__hero {
@@ -850,16 +988,6 @@ onMounted(() => {
   color: #475569;
 }
 
-.avatar-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.avatar-grid--lower {
-  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
-}
-
 .avatar-card,
 .avatar-sidecar {
   border-color: rgba(15, 23, 42, 0.08);
@@ -899,40 +1027,119 @@ onMounted(() => {
   gap: 12px;
 }
 
-.avatar-sidecar__body {
+.avatar-loadout {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
 }
 
-.avatar-sidecar__item {
+.avatar-loadout__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.avatar-loadout__title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1.35rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+}
+
+.avatar-loadout__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.avatar-build-card {
+  border-color: rgba(15, 23, 42, 0.08);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
+}
+
+.avatar-build-card__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.78);
+  gap: 14px;
+  padding: 18px 18px 12px;
 }
 
-.avatar-sidecar__item span {
+.avatar-build-card__badge {
+  display: flex;
+  width: 62px;
+  height: 72px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 24px 24px 20px 20px;
+  background: var(--avatar-build-main);
+  box-shadow:
+    0 16px 28px var(--avatar-build-glow),
+    0 8px 18px rgba(15, 23, 42, 0.1);
+}
+
+.avatar-build-card__icon {
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 34px;
+}
+
+.avatar-build-card__title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1.1;
+}
+
+.avatar-build-card__meta {
+  margin-top: 6px;
   color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.avatar-build-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 18px 16px;
+}
+
+.avatar-build-card__summary {
+  color: #475569;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.avatar-build-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.avatar-build-card__stats span {
+  padding: 6px 9px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #334155;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
-.avatar-sidecar__item strong {
-  color: #0f172a;
-  font-size: 0.95rem;
+.avatar-build-card__actions {
+  padding: 0 12px 12px;
 }
 
 @media (max-width: 1200px) {
+  .avatar-studio,
   .avatar-shell__hero,
-  .avatar-grid,
-  .avatar-grid--lower {
+  .avatar-loadout__grid {
     grid-template-columns: 1fr;
   }
 
@@ -944,7 +1151,8 @@ onMounted(() => {
   .avatar-toolbar__status,
   .avatar-toolbar__actions,
   .avatar-card__header,
-  .avatar-sidecar__header {
+  .avatar-sidecar__header,
+  .avatar-loadout__header {
     flex-direction: column;
     align-items: stretch;
   }
@@ -956,8 +1164,7 @@ onMounted(() => {
 
 @media (max-width: 640px) {
   .avatar-shell__hero,
-  .avatar-card__body,
-  .avatar-sidecar__body {
+  .avatar-card__body {
     padding: 20px;
   }
 

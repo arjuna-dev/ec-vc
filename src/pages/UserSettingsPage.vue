@@ -16,81 +16,194 @@
 
     <div v-else class="settings-page">
       <section class="settings-shell">
-        <div
-          class="settings-shell__hero"
-          @pointerenter="onHeroDashboardPointerEnter"
-          @pointermove="onHeroDashboardPointerMove"
-          @pointerleave="onHeroDashboardPointerLeave"
-        >
-          <div class="settings-shell__copy">
-            <div class="settings-shell__eyebrow">Dashboard</div>
-            <h2 class="settings-shell__hero-title">Your node settings, owner identity, and local profile.</h2>
-            <p class="settings-shell__hero-text">{{ settingsHeroText }}</p>
-          </div>
+        <div class="settings-studio">
+          <div class="settings-studio__main">
+            <div
+              class="settings-shell__hero"
+              @pointerenter="onHeroDashboardPointerEnter"
+              @pointermove="onHeroDashboardPointerMove"
+              @pointerleave="onHeroDashboardPointerLeave"
+            >
+              <div class="settings-shell__copy">
+                <h2 class="settings-shell__hero-title">Tune your Settings</h2>
 
-          <div class="settings-dashboard">
-            <div class="settings-dashboard__stats">
-              <article
-                v-for="stat in settingsDashboardStats"
-                :key="stat.label"
-                class="settings-dashboard__stat"
-                :class="`settings-dashboard__stat--${stat.tone}`"
-              >
-                <div class="settings-dashboard__stat-label">{{ stat.label }}</div>
-                <div class="settings-dashboard__stat-value">{{ stat.value }}</div>
-                <div class="settings-dashboard__stat-caption">{{ stat.caption }}</div>
-              </article>
+                <div class="settings-identity-preview">
+                  <div class="settings-identity-preview__badge">
+                    <q-icon name="settings" class="settings-identity-preview__icon" />
+                  </div>
+                  <div class="settings-identity-preview__name">{{ form.Name || 'Owner Profile' }}</div>
+                  <div class="settings-identity-preview__meta">
+                    {{ form.User_PEmail || 'Primary email pending' }} /
+                    {{ form.Country_based || 'Region pending' }}
+                  </div>
+                </div>
+
+                <p class="settings-shell__hero-text">{{ settingsHeroText }}</p>
+              </div>
+
+              <div class="settings-dashboard">
+                <div class="settings-dashboard__stats">
+                  <article
+                    v-for="stat in settingsDashboardStats"
+                    :key="stat.label"
+                    class="settings-dashboard__stat"
+                    :class="`settings-dashboard__stat--${stat.tone}`"
+                  >
+                    <div class="settings-dashboard__stat-label">{{ stat.label }}</div>
+                    <div class="settings-dashboard__stat-value">{{ stat.value }}</div>
+                    <div class="settings-dashboard__stat-caption">{{ stat.caption }}</div>
+                  </article>
+                </div>
+
+                <div class="settings-dashboard__health">
+                  <div class="settings-dashboard__health-copy">
+                    <div class="settings-dashboard__health-label">Profile health</div>
+                    <div class="settings-dashboard__health-text">
+                      {{ profileCompleteness.completeCount }} fields complete,
+                      {{ profileCompleteness.missingCount }} still open
+                    </div>
+                  </div>
+
+                  <div class="settings-dashboard__health-bar" aria-hidden="true">
+                    <span
+                      class="settings-dashboard__health-segment settings-dashboard__health-segment--missing"
+                      :style="{ width: `${profileCompleteness.missingShare}%` }"
+                    />
+                    <span
+                      class="settings-dashboard__health-segment settings-dashboard__health-segment--complete"
+                      :style="{ width: `${profileCompleteness.completeShare}%` }"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="settings-dashboard__health">
-              <div class="settings-dashboard__health-copy">
-                <div class="settings-dashboard__health-label">Profile health</div>
-                <div class="settings-dashboard__health-text">
-                  {{ profileCompleteness.completeCount }} fields complete,
-                  {{ profileCompleteness.missingCount }} still open
+            <div class="settings-toolbar">
+              <div class="settings-toolbar__block settings-toolbar__block--status">
+                <q-icon name="tune" size="18px" class="settings-toolbar__filters-icon" />
+                <div class="settings-toolbar__status-copy">
+                  <div class="settings-toolbar__status-label">Node profile</div>
+                  <div class="settings-toolbar__status-value">{{ settingsStatusText }}</div>
                 </div>
               </div>
 
-              <div class="settings-dashboard__health-bar" aria-hidden="true">
-                <span
-                  class="settings-dashboard__health-segment settings-dashboard__health-segment--missing"
-                  :style="{ width: `${profileCompleteness.missingShare}%` }"
+              <div class="settings-toolbar__block settings-toolbar__block--actions">
+                <B10Button
+                  variant="subtle"
+                  icon-start="refresh"
+                  label="Reload"
+                  :disable="saving"
+                  :loading="loading"
+                  @click="loadUserSettings"
                 />
-                <span
-                  class="settings-dashboard__health-segment settings-dashboard__health-segment--complete"
-                  :style="{ width: `${profileCompleteness.completeShare}%` }"
+                <B10Button
+                  variant="primary"
+                  icon-start="save"
+                  label="Save Settings"
+                  :loading="saving"
+                  :disable="loading"
+                  @click="saveUserSettings"
                 />
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="settings-toolbar">
-          <div class="settings-toolbar__block settings-toolbar__block--status">
-            <q-icon name="tune" size="18px" class="settings-toolbar__filters-icon" />
-            <div class="settings-toolbar__status-copy">
-              <div class="settings-toolbar__status-label">Node profile</div>
-              <div class="settings-toolbar__status-value">{{ settingsStatusText }}</div>
-            </div>
-          </div>
+          <div class="settings-studio__side">
+            <q-card bordered flat class="settings-form-card">
+              <q-card-section class="settings-form-card__header">
+                <div>
+                  <div class="settings-form-card__eyebrow">Owner profile</div>
+                  <div class="settings-form-card__title">Local node settings</div>
+                </div>
+                <div class="settings-form-card__caption">
+                  Keep the local owner identity complete so Avatar, Files, and future agents all read
+                  from the same base profile.
+                </div>
+              </q-card-section>
 
-          <div class="settings-toolbar__block settings-toolbar__block--actions">
-            <B10Button
-              variant="subtle"
-              icon-start="refresh"
-              label="Reload"
-              :disable="saving"
-              :loading="loading"
-              @click="loadUserSettings"
-            />
-            <B10Button
-              variant="primary"
-              icon-start="save"
-              label="Save Settings"
-              :loading="saving"
-              :disable="loading"
-              @click="saveUserSettings"
-            />
+              <q-separator />
+
+              <q-card-section class="settings-form-card__body">
+                <div class="row q-col-gutter-md">
+                  <div class="col-12 col-md-6">
+                    <q-input
+                      v-model="form.Name"
+                      outlined
+                      dense
+                      label="Name *"
+                      :disable="loading || saving"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-input
+                      v-model="form.User_PEmail"
+                      outlined
+                      dense
+                      label="Email *"
+                      :disable="loading || saving"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-input
+                      v-model="form.Professional_Email"
+                      outlined
+                      dense
+                      label="Professional Email"
+                      :disable="loading || saving"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-input
+                      v-model="form.Phone"
+                      outlined
+                      dense
+                      label="Phone"
+                      :disable="loading || saving"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-input
+                      v-model="form.LinkedIn"
+                      outlined
+                      dense
+                      label="LinkedIn"
+                      :disable="loading || saving"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-input
+                      v-model="form.Country_based"
+                      outlined
+                      dense
+                      label="Country Based"
+                      :disable="loading || saving"
+                    />
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <q-card bordered flat class="settings-sidecar">
+              <q-card-section class="settings-sidecar__header">
+                <div class="settings-form-card__eyebrow">Profile Signals</div>
+                <div class="settings-sidecar__title">Current setup</div>
+              </q-card-section>
+              <q-separator />
+              <q-card-section class="settings-sidecar__body">
+                <div class="settings-sidecar__item">
+                  <span>Name</span><strong>{{ form.Name || '--' }}</strong>
+                </div>
+                <div class="settings-sidecar__item">
+                  <span>Email</span><strong>{{ form.User_PEmail || '--' }}</strong>
+                </div>
+                <div class="settings-sidecar__item">
+                  <span>Phone</span><strong>{{ form.Phone || '--' }}</strong>
+                </div>
+                <div class="settings-sidecar__item">
+                  <span>Region</span><strong>{{ form.Country_based || '--' }}</strong>
+                </div>
+              </q-card-section>
+            </q-card>
           </div>
         </div>
 
@@ -98,68 +211,32 @@
           {{ error }}
         </q-banner>
 
-        <div class="settings-surface">
-          <q-card bordered flat class="settings-form-card">
-            <q-card-section class="settings-form-card__header">
-              <div>
-                <div class="settings-form-card__eyebrow">Owner profile</div>
-                <div class="settings-form-card__title">Local node settings</div>
-              </div>
-              <div class="settings-form-card__caption">
-                Keep the local owner identity complete so Avatar, Files, and future agents all read
-                from the same base profile.
-              </div>
-            </q-card-section>
+        <div class="settings-loadout">
+          <div class="settings-loadout__header">
+            <div>
+              <div class="settings-form-card__eyebrow">Identity Deck</div>
+              <div class="settings-loadout__title">Profile focus cards</div>
+            </div>
+            <div class="settings-form-card__caption">
+              A quick read on what is ready, what is missing, and what the node will lean on next.
+            </div>
+          </div>
 
-            <q-separator />
-
-            <q-card-section class="settings-form-card__body">
-              <div class="row q-col-gutter-md">
-                <div class="col-12 col-md-6">
-                  <q-input v-model="form.Name" outlined dense label="Name *" :disable="loading || saving" />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="form.User_PEmail"
-                    outlined
-                    dense
-                    label="Email *"
-                    :disable="loading || saving"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="form.Professional_Email"
-                    outlined
-                    dense
-                    label="Professional Email"
-                    :disable="loading || saving"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-input v-model="form.Phone" outlined dense label="Phone" :disable="loading || saving" />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="form.LinkedIn"
-                    outlined
-                    dense
-                    label="LinkedIn"
-                    :disable="loading || saving"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="form.Country_based"
-                    outlined
-                    dense
-                    label="Country Based"
-                    :disable="loading || saving"
-                  />
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
+          <div class="settings-loadout__grid">
+            <q-card
+              v-for="card in settingsFocusCards"
+              :key="card.label"
+              flat
+              bordered
+              class="settings-focus-card"
+            >
+              <q-card-section class="settings-focus-card__body">
+                <div class="settings-focus-card__label">{{ card.label }}</div>
+                <div class="settings-focus-card__value">{{ card.value }}</div>
+                <div class="settings-focus-card__caption">{{ card.caption }}</div>
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
       </section>
     </div>
@@ -253,6 +330,32 @@ const settingsDashboardStats = computed(() => [
     value: `${profileCompleteness.value.completeCount}/${profileCompleteness.value.total}`,
     caption: `${profileCompleteness.value.missingCount} fields remaining`,
     tone: profileCompleteness.value.missingCount === 0 ? 'rich' : 'neutral',
+  },
+])
+
+const settingsFocusCards = computed(() => [
+  {
+    label: 'Profile readiness',
+    value: `${profileCompleteness.value.completeCount}/${profileCompleteness.value.total}`,
+    caption:
+      profileCompleteness.value.missingCount === 0
+        ? 'Everything needed is in place.'
+        : `${profileCompleteness.value.missingCount} details still need to be filled in.`,
+  },
+  {
+    label: 'Primary identity',
+    value: form.value.Name || 'Name pending',
+    caption: form.value.User_PEmail || 'Add the main email so the node has a stable owner identity.',
+  },
+  {
+    label: 'Professional layer',
+    value: form.value.Professional_Email || 'Professional email pending',
+    caption: form.value.LinkedIn || 'LinkedIn not set yet.',
+  },
+  {
+    label: 'Regional anchor',
+    value: form.value.Country_based || 'Country pending',
+    caption: form.value.Phone || 'Phone not set yet.',
   },
 ])
 
@@ -393,6 +496,20 @@ onMounted(() => {
   gap: 24px;
 }
 
+.settings-studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.settings-studio__main,
+.settings-studio__side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
 .settings-shell__hero {
   position: relative;
   display: grid;
@@ -444,11 +561,11 @@ onMounted(() => {
   gap: 16px;
 }
 
-.settings-shell__eyebrow,
 .settings-dashboard__stat-label,
 .settings-dashboard__health-label,
 .settings-form-card__eyebrow,
-.settings-toolbar__status-label {
+.settings-toolbar__status-label,
+.settings-focus-card__label {
   color: #64748b;
   font-size: 0.75rem;
   font-weight: 700;
@@ -471,6 +588,48 @@ onMounted(() => {
   font-family: var(--font-body);
   font-size: 0.98rem;
   line-height: 1.65;
+}
+
+.settings-identity-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-identity-preview__badge {
+  display: flex;
+  width: 98px;
+  height: 112px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 30px 30px 24px 24px;
+  background: linear-gradient(180deg, #6a91ff 0%, #335cff 100%);
+  box-shadow:
+    0 24px 36px rgba(79, 124, 255, 0.28),
+    0 10px 28px rgba(15, 23, 42, 0.12);
+}
+
+.settings-identity-preview__icon {
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 54px;
+}
+
+.settings-identity-preview__name {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1.08rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  text-align: center;
+}
+
+.settings-identity-preview__meta {
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 .settings-dashboard {
@@ -520,7 +679,8 @@ onMounted(() => {
 .settings-dashboard__stat-caption,
 .settings-dashboard__health-text,
 .settings-toolbar__status-value,
-.settings-form-card__caption {
+.settings-form-card__caption,
+.settings-focus-card__caption {
   color: #475569;
   font-family: var(--font-body);
   font-size: 0.88rem;
@@ -581,6 +741,11 @@ onMounted(() => {
   gap: 12px;
 }
 
+.settings-toolbar__block--actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
 .settings-toolbar__filters-icon {
   color: #475569;
 }
@@ -588,21 +753,11 @@ onMounted(() => {
 .settings-toolbar__status-copy {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
-.settings-toolbar__block--actions {
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-.settings-surface {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.settings-form-card {
+.settings-form-card,
+.settings-sidecar {
   border-radius: 24px;
   border-color: rgba(15, 23, 42, 0.08);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
@@ -617,27 +772,115 @@ onMounted(() => {
   padding: 22px 24px 18px;
 }
 
-.settings-form-card__title {
-  margin-top: 6px;
+.settings-form-card__title,
+.settings-sidecar__title,
+.settings-loadout__title {
   color: #0f172a;
   font-family: var(--font-title);
-  font-size: 1.15rem;
   font-weight: var(--font-weight-black);
   line-height: 1;
 }
 
-.settings-form-card__caption {
-  max-width: 48ch;
+.settings-form-card__title,
+.settings-sidecar__title {
+  font-size: 1.1rem;
 }
 
-.settings-form-card__body {
+.settings-form-card__body,
+.settings-sidecar__body {
   padding: 24px;
 }
 
-@media (max-width: 1200px) {
+.settings-sidecar__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 24px 18px;
+}
+
+.settings-sidecar__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-sidecar__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.settings-sidecar__item span {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-sidecar__item strong {
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.settings-loadout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settings-loadout__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.settings-loadout__title {
+  font-size: 1.35rem;
+}
+
+.settings-loadout__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.settings-focus-card {
+  border-color: rgba(15, 23, 42, 0.08);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
+}
+
+.settings-focus-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+}
+
+.settings-focus-card__value {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1.1;
+}
+
+@media (max-width: 1120px) {
+  .settings-studio,
   .settings-shell__hero {
     grid-template-columns: 1fr;
-    padding: 24px;
+  }
+
+  .settings-dashboard__stats {
+    grid-template-columns: 1fr;
   }
 
   .settings-toolbar {
@@ -645,27 +888,32 @@ onMounted(() => {
     align-items: stretch;
   }
 
-  .settings-toolbar__block {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .settings-toolbar__block--actions {
+  .settings-toolbar__block--actions,
+  .settings-form-card__header,
+  .settings-loadout__header {
     justify-content: flex-start;
   }
 
-  .settings-form-card__header {
+  .settings-form-card__header,
+  .settings-loadout__header {
     flex-direction: column;
+  }
+
+  .settings-loadout__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
-  .settings-dashboard__stats {
-    grid-template-columns: 1fr;
+  .settings-shell__hero,
+  .settings-toolbar,
+  .settings-form-card__body,
+  .settings-sidecar__body {
+    padding: 20px;
   }
 
-  .settings-form-card__body {
-    padding: 20px;
+  .settings-loadout__grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
