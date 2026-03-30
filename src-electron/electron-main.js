@@ -2569,7 +2569,7 @@ async function resolveArtifactFileForAction(artifactId) {
 
   if (!artifact) throw new Error('Artifact not found.')
 
-  const relativePath = normalizeNullableString(artifact.fs_path)
+  const relativePath = normalizeLegacyArtifactWorkspacePath(normalizeNullableString(artifact.fs_path))
   if (!relativePath) throw new Error('Artifact file path is missing.')
 
   const absolutePath = path.resolve(workspace.rootPath, relativePath)
@@ -2588,6 +2588,15 @@ async function resolveArtifactFileForAction(artifactId) {
   }
 }
 
+function normalizeLegacyArtifactWorkspacePath(relativePath) {
+  const normalized = String(relativePath || '').trim()
+  if (!normalized) return ''
+
+  return normalized
+    .replace(/User[\\/]+WORKSPACE FILES[\\/]+Artifacts(?=[\\/])/i, 'User/WORKSPACE FILES/2. Artifacts')
+    .replace(/User[\\/]+WORKSPACE FILES[\\/]+Company(?=[\\/])/i, 'User/WORKSPACE FILES/4. Companies')
+}
+
 async function deleteArtifact(artifactId) {
   const database = initDb()
   const id = String(artifactId || '').trim()
@@ -2598,7 +2607,7 @@ async function deleteArtifact(artifactId) {
     .get(id)
   if (!artifact) return { changes: 0, file_deleted: false, cleanup_warning: null }
 
-  const fsPath = normalizeNullableString(artifact.fs_path)
+  const fsPath = normalizeLegacyArtifactWorkspacePath(normalizeNullableString(artifact.fs_path))
   const result = database.prepare('DELETE FROM Artifacts WHERE artifact_id = ?').run(id)
 
   let fileDeleted = false
