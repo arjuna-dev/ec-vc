@@ -264,22 +264,12 @@
 
         <div class="avatar-loadout">
           <div class="avatar-loadout__toolbar">
-            <div class="avatar-loadout__toolbar-copy">
+            <div class="avatar-loadout__toolbar-block">
               <q-icon name="view_carousel" size="18px" class="avatar-loadout__toolbar-icon" />
               <div>
-                <div class="avatar-card__eyebrow">Loadout Toolbar</div>
+                <div class="avatar-loadout__toolbar-label">Loadout Deck</div>
                 <div class="avatar-loadout__toolbar-text">{{ loadoutToolbarText }}</div>
               </div>
-            </div>
-          </div>
-
-          <div class="avatar-loadout__header">
-            <div>
-              <div class="avatar-card__eyebrow">Loadout Deck</div>
-              <div class="avatar-loadout__title">Previous and alternate builds</div>
-            </div>
-            <div class="avatar-card__caption">
-              Swap between saved moods and operator setups while shaping the right avatar fit.
             </div>
           </div>
 
@@ -1091,46 +1081,44 @@ onMounted(() => {
 }
 
 .avatar-loadout__toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  padding: 14px 18px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+  min-width: 0;
+  padding: 24px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
 }
 
-.avatar-loadout__toolbar-copy {
+.avatar-loadout__toolbar-block {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .avatar-loadout__toolbar-icon {
-  color: #475569;
+  color: var(--ds-color-text-muted);
+  flex: 0 0 auto;
+}
+
+.avatar-loadout__toolbar-label {
+  color: var(--ds-color-text-muted);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-medium);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: var(--ds-line-height-xs);
+  text-transform: uppercase;
 }
 
 .avatar-loadout__toolbar-text {
-  color: #475569;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-body);
   font-size: 0.92rem;
   line-height: 1.5;
-}
-
-.avatar-loadout__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.avatar-loadout__title {
-  color: #0f172a;
-  font-family: var(--font-title);
-  font-size: 1.35rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1;
 }
 
 @media (max-width: 1200px) {
@@ -1147,10 +1135,6 @@ onMounted(() => {
 
   .avatar-card__header-actions {
     align-items: flex-start;
-  }
-
-  .avatar-loadout__header {
-    flex-direction: column;
   }
 }
 
