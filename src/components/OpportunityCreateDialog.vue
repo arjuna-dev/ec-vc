@@ -89,6 +89,38 @@
             </div>
           </div>
 
+          <div v-if="releasedMarkdownChunkRows.length" class="column q-gutter-md">
+            <div>
+              <div class="text-subtitle1">Document Preview</div>
+              <div class="text-caption text-grey-7">
+                Review the generated markdown before the intake continues.
+              </div>
+            </div>
+
+            <div class="row q-col-gutter-md">
+              <div
+                v-for="chunk in releasedMarkdownChunkRows.slice(0, 3)"
+                :key="chunk.chunk_id"
+                class="col-12 col-md-4"
+              >
+                <q-card flat bordered class="full-height bg-grey-1">
+                  <q-card-section class="q-pb-sm">
+                    <div class="text-subtitle2">{{ chunk.title || 'Markdown chunk' }}</div>
+                    <div class="text-caption text-grey-7">
+                      {{ chunk.used_by.join(' • ') || 'Ready for extraction' }}
+                    </div>
+                  </q-card-section>
+                  <q-separator />
+                  <q-card-section>
+                    <div class="text-body2" style="white-space: pre-wrap">
+                      {{ truncateMarkdownPreview(chunk.markdown_text) || 'Preview loading...' }}
+                    </div>
+                  </q-card-section>
+                </q-card>
+              </div>
+            </div>
+          </div>
+
           <div class="opportunity-dialog-sections">
             <section class="opportunity-dialog-section">
               <div class="text-subtitle1">Company</div>
@@ -2218,6 +2250,14 @@ function normalizeOpportunityName(value) {
     .replace(/\s+/g, '_')
 }
 
+function truncateMarkdownPreview(value, maxLength = 420) {
+  const normalized = String(value || '').trim()
+  if (!normalized) return ''
+  return normalized.length > maxLength
+    ? `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`
+    : normalized
+}
+
 function isOpportunityNameDuplicate(value) {
   const candidate = normalizeOpportunityName(value).toLowerCase()
   if (!candidate) return false
@@ -2463,12 +2503,12 @@ async function resolveGeneratedMarkdownPaths(ingestResult) {
 
   if (bridge.value?.path?.join) {
     const joinedPaths = relPaths.map((rel) => bridge.value.path.join(rootPath, rel))
-    releaseMarkdownChunks(rows, joinedPaths)
+    await releaseMarkdownChunks(rows, joinedPaths)
     return joinedPaths
   }
 
   const fallbackPaths = relPaths.map((rel) => `${rootPath}/${rel}`)
-  releaseMarkdownChunks(rows, fallbackPaths)
+  await releaseMarkdownChunks(rows, fallbackPaths)
   return fallbackPaths
 }
 
@@ -2481,15 +2521,28 @@ function normalizeLegacyWorkspaceRelativePath(relPath) {
     .replace(/User[\\/]+WORKSPACE FILES[\\/]+Company(?=[\\/])/i, 'User/WORKSPACE FILES/4. Companies')
 }
 
-function releaseMarkdownChunks(rows = [], absolutePaths = []) {
+async function releaseMarkdownChunks(rows = [], absolutePaths = []) {
   if (!activeDraft.value?.id) return
+  const previews = await Promise.all(
+    rows.map(async (row) => {
+      const artifactId = String(row?.llm_ready?.artifact_id || '').trim()
+      if (!artifactId || !bridge.value?.artifacts?.preview) return ''
+      try {
+        const preview = await bridge.value.artifacts.preview({ artifactId })
+        return String(preview?.content || '')
+      } catch {
+        return ''
+      }
+    }),
+  )
+
   rows.forEach((row, index) => {
     const path = absolutePaths[index] || ''
     upsertDraftMarkdownChunk(activeDraft.value.id, {
       chunkId: row?.llm_ready?.artifact_id || `markdown:${index + 1}`,
       artifactId: row?.llm_ready?.artifact_id || null,
       sectionHint: path ? path.split(/[\\/]/).pop() : `Markdown Chunk ${index + 1}`,
-      markdownText: '',
+      markdownText: previews[index] || '',
       stageStatus: 'ready_for_early_extraction',
       releasedAt: new Date().toISOString(),
       usedBy: ['Company', 'Opportunity', 'Contacts'],
