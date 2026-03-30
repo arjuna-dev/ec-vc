@@ -1011,11 +1011,11 @@ onMounted(() => {
 }
 
 .avatar-slider__label {
-  color: #0f172a;
+  color: rgba(0, 0, 0, 0.6);
   font-family: var(--font-body);
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25;
 }
 
 .avatar-build-card {
