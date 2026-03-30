@@ -904,36 +904,51 @@
                       </div>
                     </div>
 
-                    <div v-if="tab.rows.length" class="artifact-preview-dialog__claim-grid">
-                      <article
-                        v-for="claim in tab.rows"
-                        :key="claim.claim_id"
-                        class="artifact-preview-dialog__claim-card"
+                    <div v-if="tab.groups.length" class="artifact-preview-dialog__group-stack">
+                      <section
+                        v-for="group in tab.groups"
+                        :key="`${tab.key}:${group.key}`"
+                        class="artifact-preview-dialog__group"
                       >
-                        <div class="artifact-preview-dialog__claim-card-top">
-                          <div>
-                            <div class="artifact-preview-dialog__claim-card-label">{{ claim.field_label }}</div>
-                            <div class="artifact-preview-dialog__claim-card-value">{{ claim.field_value || 'No value' }}</div>
+                        <div class="artifact-preview-dialog__group-head">
+                          <div class="text-subtitle2">{{ group.label }}</div>
+                          <div class="text-caption text-grey-7">
+                            {{ group.caption }}
                           </div>
-                          <q-chip
-                            dense
-                            square
-                            :color="claim.verification_state === 'verified' ? 'green-1' : 'amber-2'"
-                            :text-color="claim.verification_state === 'verified' ? 'green-9' : 'amber-10'"
+                        </div>
+
+                        <div class="artifact-preview-dialog__claim-grid">
+                          <article
+                            v-for="claim in group.rows"
+                            :key="claim.claim_id"
+                            class="artifact-preview-dialog__claim-card"
                           >
-                            {{ claim.verification_state === 'verified' ? 'Verified' : 'Proposed' }}
-                          </q-chip>
+                            <div class="artifact-preview-dialog__claim-card-top">
+                              <div>
+                                <div class="artifact-preview-dialog__claim-card-label">{{ claim.field_label }}</div>
+                                <div class="artifact-preview-dialog__claim-card-value">{{ claim.field_value || 'No value' }}</div>
+                              </div>
+                              <q-chip
+                                dense
+                                square
+                                :color="claim.verification_state === 'verified' ? 'green-1' : 'amber-2'"
+                                :text-color="claim.verification_state === 'verified' ? 'green-9' : 'amber-10'"
+                              >
+                                {{ claim.verification_state === 'verified' ? 'Verified' : 'Proposed' }}
+                              </q-chip>
+                            </div>
+                            <div class="text-caption text-grey-7">
+                              {{ claim.owner_table || 'Draft Intake' }} • {{ claim.consumer_lane || 'Review' }}
+                            </div>
+                            <div class="text-caption text-blue-9 q-mt-xs">
+                              Golden item: {{ claim.item_box }}
+                            </div>
+                            <div v-if="claim.source_chunk_id" class="text-caption text-grey-6 q-mt-xs">
+                              Source chunk: {{ claim.source_chunk_id }}
+                            </div>
+                          </article>
                         </div>
-                        <div class="text-caption text-grey-7">
-                          {{ claim.owner_table || 'Draft Intake' }} • {{ claim.consumer_lane || 'Review' }}
-                        </div>
-                        <div class="text-caption text-blue-9 q-mt-xs">
-                          Golden item: {{ claim.item_box }}
-                        </div>
-                        <div v-if="claim.source_chunk_id" class="text-caption text-grey-6 q-mt-xs">
-                          Source chunk: {{ claim.source_chunk_id }}
-                        </div>
-                      </article>
+                      </section>
                     </div>
                     <div v-else class="artifact-preview-dialog__tab-empty text-caption text-grey-6">
                       No linked review items are available for this file system area yet.
@@ -1042,7 +1057,7 @@ const previewMarkdownArtifactId = ref('')
 const previewSelectedSectionKey = ref('')
 const previewSelectedFocusClaimId = ref('')
 const previewCurrentPage = ref(1)
-const previewReviewTab = ref('golden-items')
+const previewReviewTab = ref('users')
 const propertiesDialogOpen = ref(false)
 const savingProperties = ref(false)
 const propertiesError = ref('')
@@ -1442,6 +1457,28 @@ const previewReviewDraft = computed(() => {
   }) || null
 })
 
+const PREVIEW_FILE_REVIEW_TABS = [
+  { key: 'users', label: '1. Users', caption: 'Owner and guest data points that belong in the Users file.' },
+  { key: 'artifacts', label: '2. Artifacts', caption: 'Artifact metadata and filing checks for the Artifacts file.' },
+  { key: 'contacts', label: '3. Contacts', caption: 'Contact records and person-linked golden items.' },
+  { key: 'companies', label: '4. Companies', caption: 'Company golden items ordered by company subsections.' },
+  { key: 'opportunities', label: '5. Opportunities', caption: 'Fund, round, and opportunity-linked review items.' },
+  { key: 'pipelines', label: '6. Pipelines', caption: 'Pipeline and project golden items for filing.' },
+  { key: 'notes', label: '7. Notes', caption: 'Notes-linked review items and observations.' },
+  { key: 'tasks', label: '8. Tasks', caption: 'Task-linked review items that still need filing.' },
+]
+
+const PREVIEW_SUBSECTION_ORDERS = {
+  users: ['Owner section', 'Team section', 'Guest section', 'General review'],
+  artifacts: ['Artifact metadata', 'Artifact title', 'Artifact intake', 'General review'],
+  contacts: ['Primary Contact section', 'Contact section', 'General review'],
+  companies: ['Company section', 'General review'],
+  opportunities: ['Opportunity section', 'Fund section', 'Round section', 'General review'],
+  pipelines: ['Pipeline section', 'General review'],
+  notes: ['Notes section', 'General review'],
+  tasks: ['Tasks section', 'Task section', 'General review'],
+}
+
 const CONNECTED_CLAIM_OWNER_TABLES = new Set([
   'Companies',
   'Rounds',
@@ -1620,43 +1657,87 @@ const previewSelectedFocusClaim = computed(() => {
 
 function previewTabKeyForClaim(claim = {}) {
   const ownerTable = String(claim?.owner_table || '').trim()
-  if (ownerTable) return ownerTable.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-  const itemBox = String(claim?.item_box || '').trim()
-  return itemBox ? itemBox.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'draft-intake'
+  const itemBox = String(claim?.item_box || '').trim().toLowerCase()
+  const consumerLane = String(claim?.consumer_lane || '').trim().toLowerCase()
+
+  if (ownerTable === 'Users') return 'users'
+  if (ownerTable === 'Artifacts') return 'artifacts'
+  if (ownerTable === 'Contacts') return 'contacts'
+  if (ownerTable === 'Companies') return 'companies'
+  if (ownerTable === 'Projects') return 'pipelines'
+  if (ownerTable === 'Notes') return 'notes'
+  if (ownerTable === 'Tasks') return 'tasks'
+  if (ownerTable === 'Funds' || ownerTable === 'Rounds') return 'opportunities'
+  if (consumerLane === 'opportunity' || itemBox === 'opportunity section') return 'opportunities'
+  if (itemBox.includes('contact')) return 'contacts'
+  if (itemBox.includes('company')) return 'companies'
+  if (itemBox.includes('artifact')) return 'artifacts'
+  return ''
 }
 
-function previewTabLabelForClaim(claim = {}) {
+function previewSubsectionLabelForClaim(claim = {}) {
   const ownerTable = String(claim?.owner_table || '').trim()
-  if (ownerTable) return ownerTable
   const itemBox = String(claim?.item_box || '').trim()
-  return itemBox || 'Draft Intake'
+  if (itemBox && itemBox !== 'Dialog review') return itemBox
+  if (ownerTable === 'Users') return 'Owner section'
+  if (ownerTable === 'Funds') return 'Fund section'
+  if (ownerTable === 'Rounds') return 'Round section'
+  if (ownerTable === 'Projects') return 'Pipeline section'
+  if (ownerTable === 'Tasks') return 'Task section'
+  if (ownerTable === 'Notes') return 'Notes section'
+  if (ownerTable) return `${ownerTable} section`
+  return 'General review'
+}
+
+function comparePreviewSubsectionLabels(tabKey, leftLabel, rightLabel) {
+  const order = PREVIEW_SUBSECTION_ORDERS[tabKey] || []
+  const leftIndex = order.indexOf(leftLabel)
+  const rightIndex = order.indexOf(rightLabel)
+  if (leftIndex !== -1 || rightIndex !== -1) {
+    if (leftIndex === -1) return 1
+    if (rightIndex === -1) return -1
+    return leftIndex - rightIndex
+  }
+  return leftLabel.localeCompare(rightLabel)
 }
 
 const previewReviewTabs = computed(() => {
-  const tabs = [
-    {
-      key: 'golden-items',
-      label: 'Golden Items',
-      caption: 'Priority claims and linked review items across the current document.',
-      rows: previewUsedClaimRows.value,
-    },
-  ]
+  return PREVIEW_FILE_REVIEW_TABS.map((tab) => {
+    const rows = previewConnectedClaimRows.value.filter((claim) => previewTabKeyForClaim(claim) === tab.key)
+    const grouped = new Map()
 
-  const grouped = new Map()
-  for (const claim of previewConnectedClaimRows.value) {
-    const key = previewTabKeyForClaim(claim)
-    if (!grouped.has(key)) {
-      grouped.set(key, {
-        key,
-        label: previewTabLabelForClaim(claim),
-        caption: `Items that map into ${previewTabLabelForClaim(claim)} in the file system.`,
-        rows: [],
-      })
+    for (const claim of rows) {
+      const groupLabel = previewSubsectionLabelForClaim(claim)
+      const groupKey = groupLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      if (!grouped.has(groupKey)) {
+        grouped.set(groupKey, {
+          key: groupKey,
+          label: groupLabel,
+          caption: `Golden items that belong in ${groupLabel}.`,
+          rows: [],
+        })
+      }
+      grouped.get(groupKey).rows.push(claim)
     }
-    grouped.get(key).rows.push(claim)
-  }
 
-  return [...tabs, ...grouped.values()]
+    const groups = [...grouped.values()]
+      .map((group) => ({
+        ...group,
+        rows: [...group.rows].sort((left, right) => {
+          const leftLabel = String(left?.field_label || '').toLowerCase()
+          const rightLabel = String(right?.field_label || '').toLowerCase()
+          if (leftLabel !== rightLabel) return leftLabel.localeCompare(rightLabel)
+          return String(left?.field_value || '').localeCompare(String(right?.field_value || ''))
+        }),
+      }))
+      .sort((left, right) => comparePreviewSubsectionLabels(tab.key, left.label, right.label))
+
+    return {
+      ...tab,
+      rows,
+      groups,
+    }
+  })
 })
 
 const previewPrimaryArtifact = computed(() => previewArtifactGroup.value?.primaryArtifact || null)
@@ -1673,7 +1754,7 @@ watch(
   (tabs) => {
     const current = String(previewReviewTab.value || '').trim()
     if (!tabs.some((tab) => tab.key === current)) {
-      previewReviewTab.value = tabs[0]?.key || 'golden-items'
+      previewReviewTab.value = tabs[0]?.key || 'users'
     }
   },
   { immediate: true },
@@ -2802,7 +2883,7 @@ function closePreviewDialog() {
   previewSelectedSectionKey.value = ''
   previewSelectedFocusClaimId.value = ''
   previewCurrentPage.value = 1
-  previewReviewTab.value = 'golden-items'
+  previewReviewTab.value = 'users'
   resetPreviewPdfObjectUrl()
   previewState.value = createEmptyPreviewState()
 }
@@ -3522,8 +3603,8 @@ watch(displayArtifactRows, () => {
 .artifact-preview-dialog {
   display: flex;
   flex-direction: column;
-  width: min(1360px, 94vw);
-  height: min(88vh, 920px);
+  width: min(1840px, 98vw);
+  height: min(92vh, 980px);
   border-radius: 28px;
   overflow: hidden;
   background:
@@ -3687,6 +3768,24 @@ watch(displayArtifactRows, () => {
 .artifact-preview-dialog__tab-panel {
   height: 100%;
   overflow: auto;
+}
+
+.artifact-preview-dialog__group-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.artifact-preview-dialog__group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.artifact-preview-dialog__group-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .artifact-preview-dialog__panel-head {
