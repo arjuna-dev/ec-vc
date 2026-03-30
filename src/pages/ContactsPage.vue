@@ -417,7 +417,6 @@ const viewMode = ref(getRouteViewMode(route.query.view))
 const contactKindOptions = [
   { label: 'All', value: 'all' },
   { label: 'Connected', value: 'connected' },
-  { label: 'Reachable', value: 'reachable' },
 ]
 const contactsDashboard = computed(() => {
   const total = rows.value.length
@@ -569,8 +568,6 @@ const displayRows = computed(() => {
 
   if (contactKindFilter.value === 'connected') {
     items = items.filter((row) => hasConnectedSignal(row))
-  } else if (contactKindFilter.value === 'reachable') {
-    items = items.filter((row) => hasReachableSignal(row))
   }
 
   if (locationFilter.value) {
@@ -636,10 +633,6 @@ function hasConnectedSignal(row) {
       row?.company_name || row?.Company_Name || row?.Current_Company_Name || row?.Organization_Name,
     ).length > 0
   )
-}
-
-function hasReachableSignal(row) {
-  return primaryEmail(row).length > 0 || normalizeInputValue(row?.Phone).length > 0
 }
 
 function buildAvatarImage(row) {
