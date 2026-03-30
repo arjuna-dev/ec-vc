@@ -260,6 +260,17 @@ Recommended visible fields:
 - `next_action`
 - `resume_available`
 
+Recommended operator context fields:
+
+- `avatar_profile`
+- `active_role`
+- `role_focus`
+- `operator_mode`
+- `review_aggressiveness`
+
+These should help explain which `Avatar` / `Role` configuration is currently guiding intake behavior,
+without turning the tracker into the full `Avatar` builder.
+
 Recommended stage values:
 
 - `Dropped`
@@ -296,6 +307,23 @@ The user should be able to say:
 - "I can resume exactly where I left off"
 
 without losing confidence or context
+
+## Avatar And Role Parameters
+
+The intake tracker should acknowledge that intake is being operated through an `Avatar` plus one or more `Roles`.
+
+For this pass, the tracker does not need the entire builder surface.
+It only needs the operating parameters that help explain why intake behaves the way it does.
+
+Examples:
+
+- which `Role` is currently leading intake
+- whether the operator is in a conservative or aggressive review mode
+- whether matching should favor existing records or favor new record creation
+- whether verification prompting should be lighter or stricter
+
+The full tuning controls should stay primarily in `Avatar` and `Roles` page views.
+The intake tracker should expose only the subset that matters to the live intake session.
 
 ## Out of Scope For This Pass
 

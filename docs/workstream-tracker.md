@@ -25,6 +25,7 @@ This is meant to reduce context loss while we move between product, schema, and 
 - Verification dialog behavior and staged review UX
 - Visible document preview during staged markdown intake
 - Tracker-driven restart point for `Company`, `Opportunity`, and `Contacts` first-pass extraction
+- Include `Avatar` and `Roles` parameters in the intake control surface so operator behavior can be tuned with the workstream
 
 ## Pending
 
@@ -36,6 +37,7 @@ This is meant to reduce context loss while we move between product, schema, and 
 - Build a clearer intake tracker surface that shows stage, blockers, and next action per draft
 - Add a consistent resume affordance in both card and table views for unfinished artifacts
 - Define role ownership for intake stages under the new `Roles` / `Avatar` direction
+- Decide which `Avatar` and `Role` parameters belong in the tracker versus inside dedicated `Avatar` / `Roles` views
 
 ## Parked For Later
 

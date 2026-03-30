@@ -102,6 +102,7 @@
   - Show each active intake draft with stage, files, released chunks, verification state, and next action
   - Make the tracker a first-class UI surface instead of hidden draft state only
   - Keep the tracker aligned with staged markdown release and early extraction lanes
+  - Include the live `Avatar` / `Role` operating parameters that matter to the current intake session
 
 - [ ] **TASK-022:** Finish dependable resume flow for artifact intake
   - Ensure unfinished artifacts reopen the real processing draft before any fallback flow
@@ -112,6 +113,11 @@
   - Do not re-ask for inputs that are already verified unless the suggested value changed
   - Allow skip-and-continue behavior without breaking the tracker state
   - Keep verified information expandable and inspectable during review
+
+- [ ] **TASK-024:** Define intake-facing Avatar and Role parameters
+  - Decide which `Avatar` and `Role` settings influence artifact intake behavior directly
+  - Keep the tracker-facing subset small and understandable
+  - Leave full tuning surfaces in the `Avatar` and `Roles` pages
 
 ### 2.1 Week 1: Foundation and FS Operations
 
