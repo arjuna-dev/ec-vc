@@ -335,12 +335,26 @@ const viewOptions = [
 
 const noteKindOptions = [
   { label: 'All', value: 'all' },
-  { label: 'Named', value: 'named' },
-  { label: 'Untitled', value: 'untitled' },
+  { label: 'Favorites', value: 'favorites' },
+  { label: 'Recent', value: 'recent' },
 ]
 
 function normalizeNoteValue(value) {
   return String(value || '').trim()
+}
+
+function parseNoteDateValue(value) {
+  const raw = normalizeNoteValue(value)
+  if (!raw) return 0
+  const timestamp = Date.parse(raw)
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+function isRecentNote(row = {}) {
+  const timestamp = parseNoteDateValue(row?.updated_at || row?.created_at)
+  if (!timestamp) return false
+  const ageMs = Date.now() - timestamp
+  return ageMs <= 1000 * 60 * 60 * 24 * 14
 }
 
 const notesDashboard = computed(() => {
@@ -400,10 +414,10 @@ const displayRows = computed(() => {
   const query = normalizeNoteValue(searchQuery.value).toLowerCase()
   let items = [...rows.value]
 
-  if (noteKindFilter.value === 'named') {
+  if (noteKindFilter.value === 'favorites') {
     items = items.filter((row) => normalizeNoteValue(row?.Note_Name))
-  } else if (noteKindFilter.value === 'untitled') {
-    items = items.filter((row) => !normalizeNoteValue(row?.Note_Name))
+  } else if (noteKindFilter.value === 'recent') {
+    items = items.filter((row) => isRecentNote(row))
   }
 
   if (creatorFilter.value) {
