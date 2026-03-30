@@ -303,16 +303,37 @@
                 title="Open artifact review"
                 @click="void openArtifactForReview(group.previewArtifact)"
               />
-              <q-btn
+              <q-btn-dropdown
                 v-if="artifactNeedsAttention(group.primaryArtifact)"
                 flat
                 round
+                dense
+                dropdown-icon="arrow_drop_down"
                 icon="play_circle"
                 class="artifact-card__icon-action artifact-card__icon-action--resume"
                 :disable="loading || savingProperties"
-                title="Resume artifact processing"
-                @click="continueArtifactIntake(group.primaryArtifact)"
-              />
+              >
+                <q-list dense style="min-width: 220px">
+                  <q-item clickable v-close-popup @click="continueArtifactIntake(group.primaryArtifact)">
+                    <q-item-section avatar>
+                      <q-icon name="play_circle" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>Resume intake</q-item-label>
+                      <q-item-label caption>Jump back into the current processing flow.</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item clickable v-close-popup @click="void reviewArtifactMarkdown(group.primaryArtifact)">
+                    <q-item-section avatar>
+                      <q-icon name="rule" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>Review markdown fields</q-item-label>
+                      <q-item-label caption>Work through the markdown and select fields and inputs.</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
             </div>
 
             <div class="artifact-card__footer-actions">
@@ -684,15 +705,15 @@
                       Review by PDF page and see where the extracted data writes.
                     </div>
                   </div>
-                  <div class="col-auto" v-if="showContinueDocumentReview">
-                    <q-btn
-                      color="primary"
-                      outline
-                      no-caps
-                      :label="previewContinueActionConfig.label"
-                      @click="continuePreviewDocumentReview"
-                    />
-                  </div>
+              <div class="col-auto" v-if="showContinueDocumentReview">
+                <q-btn
+                  color="primary"
+                  outline
+                  no-caps
+                  label="Review markdown fields"
+                  @click="continuePreviewDocumentReview"
+                />
+              </div>
                 </div>
               </div>
 
@@ -1590,10 +1611,6 @@ const showContinueDocumentReview = computed(
     Boolean(previewPrimaryArtifact.value?.artifact_id) &&
     !previewMarkdownLoading.value &&
     (!previewSelectedMarkdownSection.value || !previewUsedClaimRows.value.length),
-)
-
-const previewContinueActionConfig = computed(() =>
-  artifactActionConfig(previewPrimaryArtifact.value || {}),
 )
 
 async function loadArtifacts() {
@@ -2635,7 +2652,7 @@ async function togglePreviewSidebar() {
 
 function continuePreviewDocumentReview() {
   if (!previewPrimaryArtifact.value) return
-  continueArtifactIntake(previewPrimaryArtifact.value)
+  void reviewArtifactMarkdown(previewPrimaryArtifact.value)
 }
 
 function buildPdfObjectUrl(fileDataBase64 = '') {
@@ -2719,6 +2736,23 @@ async function openArtifactForReview(row) {
   } catch (e) {
     $q.notify({ type: 'negative', message: e?.message || String(e) })
   }
+}
+
+async function reviewArtifactMarkdown(row) {
+  previewSidebarOpen.value = true
+  previewFocusStripHidden.value = false
+  const kind = await previewArtifact(row, { silent: true })
+  if (!previewDialogOpen.value) return
+
+  await ensurePreviewReviewDataLoaded({ force: true })
+
+  $q.notify({
+    type: 'info',
+    message:
+      kind === 'unsupported'
+        ? 'Markdown review is open in the sidebar even though the original file cannot be previewed inline.'
+        : 'Markdown review is ready. Work through the sections and choose the fields you want to carry forward.',
+  })
 }
 
 function closePreviewDialog() {
