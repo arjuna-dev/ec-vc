@@ -330,6 +330,23 @@ function emitFileStageStatus(emitStatus, fileName, updates = {}) {
   emitStatus?.(payload)
 }
 
+function emitDuplicateSkipStatus({
+  emitStatus,
+  fileName,
+  message,
+}) {
+  emitStatus?.({
+    type: 'warning',
+    message,
+  })
+  emitFileStageStatus(emitStatus, fileName, {
+    uploadStatus: 'existing',
+    markdownStatus: 'existing',
+    extractionStatus: 'existing',
+    message,
+  })
+}
+
 export async function buildLlmReadyMarkdownFromFile(sourceFilePath, { geminiApiKey } = {}) {
   const resolvedPath = String(sourceFilePath || '')
   if (!resolvedPath) throw new Error('sourceFilePath is required')
@@ -389,8 +406,10 @@ export async function ingestArtifactsFromPaths({
   await fse.ensureDir(llmDir)
 
   const seenUploadHashes = new Set()
+  const duplicateHashesNotified = new Set()
   const plannedRawNames = new Set()
   const plannedFiles = []
+  const skippedDuplicates = []
 
   for (const srcPath of files) {
     const sourceFilePath = String(srcPath || '')
@@ -413,26 +432,45 @@ export async function ingestArtifactsFromPaths({
     const sourceHash = await sha256FileHex(sourceFilePath)
 
     if (seenUploadHashes.has(sourceHash)) {
-      emitStatus?.({
-        type: 'error',
-        message: `An exact duplicate of "${originalFileName}" is already in this upload batch. Merge or delete the duplicate file and keep the file system clean.`,
+      const duplicateMessage = `Skipped exact duplicate "${originalFileName}" already present in this upload batch. Merge or delete the duplicate file to keep the file system clean.`
+      if (!duplicateHashesNotified.has(sourceHash)) {
+        emitDuplicateSkipStatus({
+          emitStatus,
+          fileName: originalFileName,
+          message: duplicateMessage,
+        })
+        duplicateHashesNotified.add(sourceHash)
+      }
+      skippedDuplicates.push({
+        source: sourceFilePath,
+        fileName: originalFileName,
+        reason: 'duplicate-in-upload',
+        message: duplicateMessage,
       })
-      throw new Error(
-        `Exact duplicate in upload: "${originalFileName}". Merge or delete the duplicate file and try again.`,
-      )
+      continue
     }
     seenUploadHashes.add(sourceHash)
 
     const existingExactMatch = findExistingArtifactByHash(sourceHash)
     if (existingExactMatch) {
       const existingPath = String(existingExactMatch?.fs_path || '').trim() || 'the workspace'
-      emitStatus?.({
-        type: 'error',
-        message: `An exact duplicate of "${originalFileName}" already exists in ${existingPath}. Merge or delete the duplicate file to keep the file system clean.`,
+      const duplicateMessage = `Skipped exact duplicate "${originalFileName}" because an identical file already exists in ${existingPath}. Merge or delete the duplicate file to keep the file system clean.`
+      if (!duplicateHashesNotified.has(sourceHash)) {
+        emitDuplicateSkipStatus({
+          emitStatus,
+          fileName: originalFileName,
+          message: duplicateMessage,
+        })
+        duplicateHashesNotified.add(sourceHash)
+      }
+      skippedDuplicates.push({
+        source: sourceFilePath,
+        fileName: originalFileName,
+        reason: 'duplicate-existing',
+        existingPath,
+        message: duplicateMessage,
       })
-      throw new Error(
-        `Exact duplicate detected for "${originalFileName}". An identical file already exists in ${existingPath}. Merge or delete the duplicate file and try again.`,
-      )
+      continue
     }
 
     const rawDestination = await resolveRawDestination({
@@ -444,13 +482,23 @@ export async function ingestArtifactsFromPaths({
 
     if (rawDestination.duplicate) {
       const duplicatePath = String(rawDestination.existingPath || '').trim() || 'the workspace'
-      emitStatus?.({
-        type: 'error',
-        message: `An exact duplicate of "${originalFileName}" already exists in ${duplicatePath}. Merge or delete the duplicate file to keep the file system clean.`,
+      const duplicateMessage = `Skipped exact duplicate "${originalFileName}" because an identical file already exists in ${duplicatePath}. Merge or delete the duplicate file to keep the file system clean.`
+      if (!duplicateHashesNotified.has(sourceHash)) {
+        emitDuplicateSkipStatus({
+          emitStatus,
+          fileName: originalFileName,
+          message: duplicateMessage,
+        })
+        duplicateHashesNotified.add(sourceHash)
+      }
+      skippedDuplicates.push({
+        source: sourceFilePath,
+        fileName: originalFileName,
+        reason: 'duplicate-raw-destination',
+        existingPath: duplicatePath,
+        message: duplicateMessage,
       })
-      throw new Error(
-        `Exact duplicate detected for "${originalFileName}". An identical file already exists in ${duplicatePath}. Merge or delete the duplicate file and try again.`,
-      )
+      continue
     }
 
     plannedRawNames.add(String(rawDestination.fileName || '').trim().toLowerCase())
@@ -812,9 +860,12 @@ export async function ingestArtifactsFromPaths({
   }
 
   emitStatus?.({
-    type: 'success',
-    message: `Successfully created and saved ${files.length} artifact${files.length === 1 ? '' : 's'} with database records.`,
+    type: results.length > 0 ? 'success' : 'warning',
+    message:
+      results.length > 0
+        ? `Successfully created and saved ${results.length} artifact${results.length === 1 ? '' : 's'} with database records.${skippedDuplicates.length ? ` Skipped ${skippedDuplicates.length} exact duplicate${skippedDuplicates.length === 1 ? '' : 's'}.` : ''}`
+        : `No new artifacts were saved.${skippedDuplicates.length ? ` Skipped ${skippedDuplicates.length} exact duplicate${skippedDuplicates.length === 1 ? '' : 's'}.` : ''}`,
   })
 
-  return { results }
+  return { results, skippedDuplicates }
 }
