@@ -24,7 +24,7 @@
         >
           <div class="assistants-shell__copy">
             <div class="assistants-shell__eyebrow">Dashboard</div>
-            <h2 class="assistants-shell__hero-title">Review the SRR cards powering your workflows.</h2>
+            <h2 class="assistants-shell__hero-title">Review your Avatar roles.</h2>
             <p class="assistants-shell__hero-text">{{ assistantsHeroText }}</p>
 
           </div>
