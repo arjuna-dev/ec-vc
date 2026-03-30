@@ -1042,6 +1042,8 @@ function continueArtifactIntake(row = {}) {
     return
   }
 
+  if (resumeArtifactDraftForRow(row)) return
+
   createIntakeDraft({
     droppedFiles: [
       {
@@ -1286,6 +1288,52 @@ function resumeArtifactProcessing() {
   if (!draftId) return
   setActiveIntakeDraft(draftId)
   globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+}
+
+function findDraftForArtifact(row = {}) {
+  const artifactIds = new Set(
+    findArtifactGroup(row)
+      ?.artifacts?.map((artifact) => String(artifact?.artifact_id || '').trim())
+      .filter(Boolean) || [String(row?.artifact_id || '').trim()].filter(Boolean),
+  )
+  if (!artifactIds.size) return null
+
+  const activeDraftId = String(intakeDraftState.activeDraftId || '').trim()
+  const orderedDrafts = [
+    ...(activeDraftId && intakeDraftState.drafts?.[activeDraftId]
+      ? [intakeDraftState.drafts[activeDraftId]]
+      : []),
+    ...Object.values(intakeDraftState.drafts || {})
+      .filter((draft) => String(draft?.id || '').trim() !== activeDraftId)
+      .sort(
+        (left, right) =>
+          parseDateValue(String(right?.updatedAt || right?.updated_at || right?.createdAt || '')) -
+          parseDateValue(String(left?.updatedAt || left?.updated_at || left?.createdAt || '')),
+      ),
+  ]
+
+  return (
+    orderedDrafts.find((draft) => {
+      if (!draftHasResumeState(draft)) return false
+      const draftArtifactIds = [
+        ...(Array.isArray(draft?.draftArtifactIds) ? draft.draftArtifactIds : []),
+        ...(Array.isArray(draft?.resumeArtifactIds) ? draft.resumeArtifactIds : []),
+        ...Object.values(draft?.releasedMarkdownChunks || {}).map((chunk) => chunk?.artifact_id),
+      ]
+        .map((value) => String(value || '').trim())
+        .filter(Boolean)
+
+      return draftArtifactIds.some((artifactId) => artifactIds.has(artifactId))
+    }) || null
+  )
+}
+
+function resumeArtifactDraftForRow(row = {}) {
+  const draftId = String(findDraftForArtifact(row)?.id || '').trim()
+  if (!draftId) return false
+  setActiveIntakeDraft(draftId)
+  globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+  return true
 }
 
 const artifactsDashboardStats = computed(() => [
