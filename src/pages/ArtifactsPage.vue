@@ -122,6 +122,29 @@
           </div>
         </div>
 
+        <q-banner
+          v-if="resumeIntakeDraft"
+          class="artifacts-resume-banner bg-blue-1 text-blue-10"
+          rounded
+        >
+          <div class="row items-center justify-between q-col-gutter-md">
+            <div class="col">
+              <div class="text-subtitle2">Resume artifact processing</div>
+              <div class="text-caption">
+                {{ resumeIntakeBannerText }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                no-caps
+                label="Return to Processing"
+                @click="resumeArtifactProcessing"
+              />
+            </div>
+          </div>
+        </q-banner>
+
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>
           {{ error }}
         </q-banner>
@@ -888,7 +911,7 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { useQuasar } from 'quasar'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
-import { createIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
+import { createIntakeDraft, setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 
@@ -1192,6 +1215,68 @@ const artifactsHeroText = computed(() => {
   }
   return `${total} artifacts tracked, ${readyCount} ready, ${attentionCount} still need attention, and ${linkedCount} already linked into opportunities.`
 })
+
+function draftHasResumeState(draft = {}) {
+  if (!draft || typeof draft !== 'object') return false
+
+  return Boolean(
+    String(draft?.resumeMode || '').trim() === 'existing-artifact-link' ||
+    draft?.opportunityForm ||
+    draft?.companyForm ||
+    draft?.contactForm ||
+    Object.keys(draft?.ingestStatusByFile || {}).length > 0 ||
+    Object.keys(draft?.releasedMarkdownChunks || {}).length > 0 ||
+    (Array.isArray(draft?.draftArtifactIds) && draft.draftArtifactIds.length > 0) ||
+    (Array.isArray(draft?.resumeArtifactIds) && draft.resumeArtifactIds.length > 0) ||
+    (Array.isArray(draft?.generatedNotes) && draft.generatedNotes.length > 0) ||
+    (Array.isArray(draft?.generatedTasks) && draft.generatedTasks.length > 0) ||
+    Object.keys(draft?.assistantProposal || {}).length > 0
+  )
+}
+
+const resumeIntakeDraft = computed(() => {
+  const activeDraftId = String(intakeDraftState.activeDraftId || '').trim()
+  const orderedDrafts = [
+    ...(activeDraftId && intakeDraftState.drafts?.[activeDraftId]
+      ? [intakeDraftState.drafts[activeDraftId]]
+      : []),
+    ...Object.values(intakeDraftState.drafts || {})
+      .filter((draft) => String(draft?.id || '').trim() !== activeDraftId)
+      .sort(
+        (left, right) =>
+          parseDateValue(String(right?.updatedAt || right?.updated_at || right?.createdAt || '')) -
+          parseDateValue(String(left?.updatedAt || left?.updated_at || left?.createdAt || '')),
+      ),
+  ]
+
+  return orderedDrafts.find((draft) => draftHasResumeState(draft)) || null
+})
+
+const resumeIntakeBannerText = computed(() => {
+  const draft = resumeIntakeDraft.value
+  if (!draft) return ''
+
+  const fileCount = Array.isArray(draft?.droppedFiles) ? draft.droppedFiles.length : 0
+  const stage = String(draft?.stage || '').trim() || 'In progress'
+  const linkedMode = String(draft?.resumeMode || '').trim() === 'existing-artifact-link'
+
+  if (linkedMode) {
+    return `Draft is waiting at ${stage.toLowerCase()}. Jump back in and finish linking the artifact.`
+  }
+
+  if (fileCount === 1) {
+    return `1 file is mid-intake at ${stage.toLowerCase()}. Jump back into the processing window.`
+  }
+
+  return `${fileCount || 'Your'} files are mid-intake at ${stage.toLowerCase()}. Jump back into the processing window.`
+})
+
+function resumeArtifactProcessing() {
+  const draftId = String(resumeIntakeDraft.value?.id || '').trim()
+  if (!draftId) return
+  setActiveIntakeDraft(draftId)
+  globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
+}
 
 const artifactsDashboardStats = computed(() => [
   {
@@ -3043,6 +3128,10 @@ watch(displayArtifactRows, () => {
 
 .artifacts-empty-state {
   padding: 24px;
+}
+
+.artifacts-resume-banner {
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .artifacts-grid {
