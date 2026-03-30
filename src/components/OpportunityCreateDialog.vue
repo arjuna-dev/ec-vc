@@ -939,14 +939,27 @@
             bordered
             class="bg-grey-1"
           >
-            <q-card-section class="q-py-sm">
-              <div class="text-subtitle2">Used Metadata</div>
-              <div class="text-caption text-grey-7">
-                Verified items guide extraction, but you can still change the final values in the dialog before create.
+            <q-card-section class="q-py-sm row items-center justify-between no-wrap q-col-gutter-sm">
+              <div class="col">
+                <div class="text-subtitle2">Verified Information</div>
+                <div class="text-caption text-grey-7">
+                  Verified items guide extraction, but you can still change final values in the dialog before create.
+                </div>
+              </div>
+              <div class="col-auto">
+                <q-btn
+                  flat
+                  dense
+                  no-caps
+                  color="primary"
+                  :label="intakeUsedInfoExpanded ? 'Hide' : 'View'"
+                  :icon="intakeUsedInfoExpanded ? 'expand_less' : 'expand_more'"
+                  @click="intakeUsedInfoExpanded = !intakeUsedInfoExpanded"
+                />
               </div>
             </q-card-section>
-            <q-separator />
-            <q-card-section class="q-py-sm">
+            <q-separator v-if="intakeUsedInfoExpanded" />
+            <q-card-section v-if="intakeUsedInfoExpanded" class="q-py-sm">
               <div class="column q-gutter-sm">
                 <div
                   v-for="row in intakeUsedInfoRows"
@@ -964,6 +977,13 @@
       <q-separator />
 
       <q-card-actions align="right" class="q-px-lg q-py-md">
+        <q-btn
+          flat
+          no-caps
+          color="grey-7"
+          label="Skip for now"
+          @click="skipIntakeReviewDialog"
+        />
         <q-btn
           color="primary"
           no-caps
@@ -1029,6 +1049,7 @@ const companySourceChoice = ref('input')
 const companyPreviewDialogOpen = ref(false)
 const companyPreviewSource = ref('input')
 const intakeReviewDialogOpen = ref(false)
+const intakeUsedInfoExpanded = ref(false)
 const intakeReviewDelayElapsed = ref(false)
 const intakeReviewPromptShown = ref(false)
 const intakeReviewPending = ref(false)
@@ -1953,13 +1974,38 @@ function maybeOpenIntakeReviewDialog() {
     return
   }
   intakeReviewFields.value = nextFields
-  intakeReviewVerified.value = {
-    ...createDefaultIntakeReviewVerified(),
-    ...Object.fromEntries(pendingKeys.map((key) => [key, false])),
-  }
+  intakeReviewVerified.value = buildNextIntakeReviewVerified(nextFields)
   intakeReviewDialogOpen.value = true
   intakeReviewPromptShown.value = true
   processingMessage.value = 'Waiting for your confirmation on key metadata...'
+}
+
+function buildNextIntakeReviewVerified(nextFields = {}) {
+  const nextVerified = {
+    ...createDefaultIntakeReviewVerified(),
+    ...intakeReviewVerified.value,
+  }
+
+  for (const key of INTAKE_REVIEW_PRIORITY) {
+    const nextValue = String(nextFields[key] || '').trim()
+    const currentValue = String(intakeReviewFields.value[key] || '').trim()
+    const confirmedValue = String(intakeConfirmedFieldValues.value[key] || '').trim()
+
+    if (!nextValue) {
+      nextVerified[key] = false
+      continue
+    }
+
+    if (nextVerified[key] && currentValue === nextValue) continue
+    if (confirmedValue && confirmedValue === nextValue) {
+      nextVerified[key] = true
+      continue
+    }
+
+    nextVerified[key] = false
+  }
+
+  return nextVerified
 }
 
 function resolveIntakeReviewGate() {
@@ -1980,6 +2026,13 @@ function confirmIntakeReviewDialog() {
   processingMessage.value = 'Continuing extraction...'
   resolveIntakeReviewGate()
   queueAdditionalIntakeReviewIfNeeded()
+}
+
+function skipIntakeReviewDialog() {
+  intakeReviewDialogOpen.value = false
+  intakeReviewPromptShown.value = false
+  processingMessage.value = 'Continuing extraction without additional verification...'
+  resolveIntakeReviewGate()
 }
 
 function updateIntakeReviewField(fieldKey, value) {
@@ -2137,8 +2190,6 @@ function verifyIntakeReviewField(fieldKey) {
 }
 
 async function waitForIntakeReviewConfirmation() {
-  const nextFields = buildIntakeReviewFieldsFromForms()
-  intakeReviewFields.value = nextFields
   maybeOpenIntakeReviewDialog()
   if (!intakeReviewPending.value) return
   await new Promise((resolve) => {
