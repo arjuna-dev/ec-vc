@@ -82,10 +82,8 @@
             </div>
           </div>
 
-        <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
-
-        <div class="avatar-studio__side">
-          <q-card flat bordered class="avatar-card">
+          <div class="avatar-studio__side">
+            <q-card flat bordered class="avatar-card">
             <q-card-section class="avatar-card__header">
               <div>
                 <div class="avatar-card__eyebrow">Avatar Tuning</div>
@@ -158,129 +156,134 @@
             </q-card-section>
           </q-card>
 
-          <q-card flat bordered class="avatar-card">
-            <q-card-section class="avatar-card__header">
-              <div>
-                <div class="avatar-card__eyebrow">LLM Control</div>
-                <div class="avatar-card__title">Tune the operator</div>
-              </div>
-              <div class="avatar-card__caption">
-                Keep the familiar model controls and API fields close to the avatar builder.
-              </div>
-            </q-card-section>
-            <q-separator />
-            <q-card-section class="avatar-card__body">
-              <div class="row q-col-gutter-md">
+            <q-card flat bordered class="avatar-card">
+              <q-card-section class="avatar-card__header">
                 <div class="col-12 col-md-6">
-                  <q-select
-                    v-model="llmProfile.provider"
-                    outlined
-                    dense
-                    emit-value
-                    map-options
-                    label="Preferred Provider"
-                    :options="providerOptions"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-select
-                    v-model="llmProfile.model"
-                    outlined
-                    dense
-                    emit-value
-                    map-options
-                    label="Preferred Model"
-                    :options="modelOptions"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-select
-                    v-model="llmProfile.responseStyle"
-                    outlined
-                    dense
-                    emit-value
-                    map-options
-                    label="Response Style"
-                    :options="responseStyleOptions"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-select
-                    v-model="llmProfile.autonomy"
-                    outlined
-                    dense
-                    emit-value
-                    map-options
-                    label="Autonomy"
-                    :options="autonomyOptions"
-                  />
-                </div>
-                <div class="col-12">
-                  <div class="avatar-slider">
-                    <div class="avatar-slider__row">
-                      <div class="avatar-card__eyebrow">Temperature</div>
-                      <div class="avatar-slider__value">{{ llmProfile.temperature.toFixed(1) }}</div>
-                    </div>
-                    <q-slider
-                      v-model="llmProfile.temperature"
-                      :min="0"
-                      :max="1.5"
-                      :step="0.1"
-                      color="primary"
-                    />
+                  <div>
+                    <div class="avatar-card__eyebrow">LLM Control</div>
+                    <div class="avatar-card__title">Tune the operator</div>
                   </div>
                 </div>
-                <div class="col-12">
-                  <q-input
-                    v-model="llmProfile.systemNotes"
-                    outlined
-                    autogrow
-                    type="textarea"
-                    label="System Notes"
-                  />
+                <div class="avatar-card__caption">
+                  Keep the familiar model controls and API fields close to the avatar builder.
                 </div>
-                <div class="col-12">
-                  <q-input
-                    v-model="openaiApiKey"
-                    outlined
-                    :type="showOpenaiApiKey ? 'text' : 'password'"
-                    label="OpenAI API Key"
-                    :disable="loading || saving"
-                  >
-                    <template #append>
-                      <B10IconButton
-                        variant="subtle"
-                        size="small"
-                        :icon="showOpenaiApiKey ? 'visibility_off' : 'visibility'"
-                        :disable="loading || saving"
-                        @click="showOpenaiApiKey = !showOpenaiApiKey"
+              </q-card-section>
+              <q-separator />
+              <q-card-section class="avatar-card__body">
+                <div class="row q-col-gutter-md">
+                  <div class="col-12 col-md-6">
+                    <q-select
+                      v-model="llmProfile.provider"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      label="Preferred Provider"
+                      :options="providerOptions"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-select
+                      v-model="llmProfile.model"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      label="Preferred Model"
+                      :options="modelOptions"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-select
+                      v-model="llmProfile.responseStyle"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      label="Response Style"
+                      :options="responseStyleOptions"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-select
+                      v-model="llmProfile.autonomy"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      label="Autonomy"
+                      :options="autonomyOptions"
+                    />
+                  </div>
+                  <div class="col-12">
+                    <div class="avatar-slider">
+                      <div class="avatar-slider__row">
+                        <div class="avatar-card__eyebrow">Temperature</div>
+                        <div class="avatar-slider__value">{{ llmProfile.temperature.toFixed(1) }}</div>
+                      </div>
+                      <q-slider
+                        v-model="llmProfile.temperature"
+                        :min="0"
+                        :max="1.5"
+                        :step="0.1"
+                        color="primary"
                       />
-                    </template>
-                  </q-input>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <q-input
+                      v-model="llmProfile.systemNotes"
+                      outlined
+                      autogrow
+                      type="textarea"
+                      label="System Notes"
+                    />
+                  </div>
+                  <div class="col-12">
+                    <q-input
+                      v-model="openaiApiKey"
+                      outlined
+                      :type="showOpenaiApiKey ? 'text' : 'password'"
+                      label="OpenAI API Key"
+                      :disable="loading || saving"
+                    >
+                      <template #append>
+                        <B10IconButton
+                          variant="subtle"
+                          size="small"
+                          :icon="showOpenaiApiKey ? 'visibility_off' : 'visibility'"
+                          :disable="loading || saving"
+                          @click="showOpenaiApiKey = !showOpenaiApiKey"
+                        />
+                      </template>
+                    </q-input>
+                  </div>
+                  <div class="col-12">
+                    <q-input
+                      v-model="geminiApiKey"
+                      outlined
+                      :type="showGeminiApiKey ? 'text' : 'password'"
+                      label="Gemini API Key"
+                      :disable="loading || saving"
+                    >
+                      <template #append>
+                        <B10IconButton
+                          variant="subtle"
+                          size="small"
+                          :icon="showGeminiApiKey ? 'visibility_off' : 'visibility'"
+                          :disable="loading || saving"
+                          @click="showGeminiApiKey = !showGeminiApiKey"
+                        />
+                      </template>
+                    </q-input>
+                  </div>
                 </div>
-                <div class="col-12">
-                  <q-input
-                    v-model="geminiApiKey"
-                    outlined
-                    :type="showGeminiApiKey ? 'text' : 'password'"
-                    label="Gemini API Key"
-                    :disable="loading || saving"
-                  >
-                    <template #append>
-                      <B10IconButton
-                        variant="subtle"
-                        size="small"
-                        :icon="showGeminiApiKey ? 'visibility_off' : 'visibility'"
-                        :disable="loading || saving"
-                        @click="showGeminiApiKey = !showGeminiApiKey"
-                      />
-                    </template>
-                  </q-input>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
+
+        <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
 
         <div class="avatar-loadout">
           <div class="avatar-loadout__header">
