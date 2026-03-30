@@ -2452,7 +2452,7 @@ function collectDraftArtifactIds(result) {
 async function resolveGeneratedMarkdownPaths(ingestResult) {
   const rows = Array.isArray(ingestResult?.results) ? ingestResult.results : []
   const relPaths = rows
-    .map((row) => String(row?.llm_ready?.fs_path || '').trim())
+    .map((row) => normalizeLegacyWorkspaceRelativePath(String(row?.llm_ready?.fs_path || '').trim()))
     .filter(Boolean)
   if (!relPaths.length) return []
   if (!bridge.value?.fs?.workspaceRoot) return []
@@ -2470,6 +2470,15 @@ async function resolveGeneratedMarkdownPaths(ingestResult) {
   const fallbackPaths = relPaths.map((rel) => `${rootPath}/${rel}`)
   releaseMarkdownChunks(rows, fallbackPaths)
   return fallbackPaths
+}
+
+function normalizeLegacyWorkspaceRelativePath(relPath) {
+  const normalized = String(relPath || '').trim()
+  if (!normalized) return ''
+
+  return normalized
+    .replace(/User[\\/]+WORKSPACE FILES[\\/]+Artifacts(?=[\\/])/i, 'User/WORKSPACE FILES/2. Artifacts')
+    .replace(/User[\\/]+WORKSPACE FILES[\\/]+Company(?=[\\/])/i, 'User/WORKSPACE FILES/4. Companies')
 }
 
 function releaseMarkdownChunks(rows = [], absolutePaths = []) {
