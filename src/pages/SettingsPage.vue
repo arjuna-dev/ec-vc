@@ -29,10 +29,7 @@
             <div class="avatar-preview-inline">
               <div class="avatar-preview-inline__stage">
                 <div class="avatar-preview-inline__bot" :style="avatarBotStyle">
-                  <div class="avatar-preview-inline__bot-core">
-                    <div class="avatar-preview-inline__bot-eyes"><span /><span /></div>
-                    <div class="avatar-preview-inline__bot-mouth" />
-                  </div>
+                  <q-icon name="smart_toy" class="avatar-preview-inline__icon" />
                 </div>
               </div>
               <div class="avatar-preview-inline__name">{{ avatarProfile.name || 'Mini-Me' }}</div>
@@ -739,7 +736,7 @@ onMounted(() => {
 .avatar-preview-inline {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
 }
 
@@ -750,7 +747,7 @@ onMounted(() => {
   width: 180px;
   min-height: 150px;
   border-radius: 24px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(226, 232, 240, 0.18));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(226, 232, 240, 0.08));
 }
 
 .avatar-preview-inline__bot {
@@ -759,44 +756,20 @@ onMounted(() => {
   height: 126px;
   align-items: center;
   justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.52);
   border-radius: 32px 32px 28px 28px;
   background: var(--avatar-bot-main);
   box-shadow:
-    0 18px 32px var(--avatar-bot-glow),
+    0 24px 36px var(--avatar-bot-glow),
+    0 10px 28px rgba(15, 23, 42, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  transform: translateY(-4px);
 }
 
-.avatar-preview-inline__bot-core {
-  display: flex;
-  width: 72px;
-  height: 72px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  border-radius: 22px;
-  background: rgba(15, 23, 42, 0.2);
-}
-
-.avatar-preview-inline__bot-eyes {
-  display: flex;
-  gap: 12px;
-}
-
-.avatar-preview-inline__bot-eyes span {
-  display: block;
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: var(--avatar-bot-eye);
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.44);
-}
-
-.avatar-preview-inline__bot-mouth {
-  width: 28px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.58);
+.avatar-preview-inline__icon {
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 58px;
+  filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.18));
 }
 
 .avatar-preview-inline__name,
@@ -807,12 +780,14 @@ onMounted(() => {
   font-size: 1.1rem;
   font-weight: var(--font-weight-black);
   line-height: 1;
+  text-align: center;
 }
 
 .avatar-preview-inline__meta {
   color: #64748b;
   font-size: 0.9rem;
   font-weight: 600;
+  text-align: center;
 }
 
 .avatar-hero-stats {
@@ -996,9 +971,8 @@ onMounted(() => {
     height: 112px;
   }
 
-  .avatar-preview-inline__bot-core {
-    width: 64px;
-    height: 64px;
+  .avatar-preview-inline__icon {
+    font-size: 50px;
   }
 
   .avatar-hero-stats {
