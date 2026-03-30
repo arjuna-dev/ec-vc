@@ -16,100 +16,67 @@
 
     <div v-else class="settings-page">
       <section class="settings-shell">
-        <div class="settings-studio">
-          <div class="settings-studio__main">
-            <div
-              class="settings-shell__hero"
-              @pointerenter="onHeroDashboardPointerEnter"
-              @pointermove="onHeroDashboardPointerMove"
-              @pointerleave="onHeroDashboardPointerLeave"
-            >
-              <div class="settings-shell__copy">
-                <h2 class="settings-shell__hero-title">Tune your Settings</h2>
+        <div
+          class="settings-shell__hero"
+          @pointerenter="onHeroDashboardPointerEnter"
+          @pointermove="onHeroDashboardPointerMove"
+          @pointerleave="onHeroDashboardPointerLeave"
+        >
+          <div class="settings-shell__copy">
+            <h2 class="settings-shell__hero-title">Tune your Settings</h2>
 
-                <div class="settings-identity-preview">
-                  <div class="settings-identity-preview__badge">
-                    <q-icon name="settings" class="settings-identity-preview__icon" />
-                  </div>
-                  <div class="settings-identity-preview__name">{{ form.Name || 'Owner Profile' }}</div>
-                  <div class="settings-identity-preview__meta">
-                    {{ form.User_PEmail || 'Primary email pending' }} /
-                    {{ form.Country_based || 'Region pending' }}
-                  </div>
-                </div>
-
-                <p class="settings-shell__hero-text">{{ settingsHeroText }}</p>
+            <div class="settings-identity-preview">
+              <div class="settings-identity-preview__badge">
+                <q-icon name="settings" class="settings-identity-preview__icon" />
               </div>
-
-              <div class="settings-dashboard">
-                <div class="settings-dashboard__stats">
-                  <article
-                    v-for="stat in settingsDashboardStats"
-                    :key="stat.label"
-                    class="settings-dashboard__stat"
-                    :class="`settings-dashboard__stat--${stat.tone}`"
-                  >
-                    <div class="settings-dashboard__stat-label">{{ stat.label }}</div>
-                    <div class="settings-dashboard__stat-value">{{ stat.value }}</div>
-                    <div class="settings-dashboard__stat-caption">{{ stat.caption }}</div>
-                  </article>
-                </div>
-
-                <div class="settings-dashboard__health">
-                  <div class="settings-dashboard__health-copy">
-                    <div class="settings-dashboard__health-label">Profile health</div>
-                    <div class="settings-dashboard__health-text">
-                      {{ profileCompleteness.completeCount }} fields complete,
-                      {{ profileCompleteness.missingCount }} still open
-                    </div>
-                  </div>
-
-                  <div class="settings-dashboard__health-bar" aria-hidden="true">
-                    <span
-                      class="settings-dashboard__health-segment settings-dashboard__health-segment--missing"
-                      :style="{ width: `${profileCompleteness.missingShare}%` }"
-                    />
-                    <span
-                      class="settings-dashboard__health-segment settings-dashboard__health-segment--complete"
-                      :style="{ width: `${profileCompleteness.completeShare}%` }"
-                    />
-                  </div>
-                </div>
+              <div class="settings-identity-preview__name">{{ form.Name || 'Owner Profile' }}</div>
+              <div class="settings-identity-preview__meta">
+                {{ form.User_PEmail || 'Primary email pending' }} /
+                {{ form.Country_based || 'Region pending' }}
               </div>
             </div>
 
-            <div class="settings-toolbar">
-              <div class="settings-toolbar__block settings-toolbar__block--status">
-                <q-icon name="tune" size="18px" class="settings-toolbar__filters-icon" />
-                <div class="settings-toolbar__status-copy">
-                  <div class="settings-toolbar__status-label">Node profile</div>
-                  <div class="settings-toolbar__status-value">{{ settingsStatusText }}</div>
-                </div>
+            <p class="settings-shell__hero-text">{{ settingsHeroText }}</p>
+
+            <div class="settings-dashboard">
+              <div class="settings-dashboard__stats">
+                <article
+                  v-for="stat in settingsDashboardStats"
+                  :key="stat.label"
+                  class="settings-dashboard__stat"
+                  :class="`settings-dashboard__stat--${stat.tone}`"
+                >
+                  <div class="settings-dashboard__stat-label">{{ stat.label }}</div>
+                  <div class="settings-dashboard__stat-value">{{ stat.value }}</div>
+                  <div class="settings-dashboard__stat-caption">{{ stat.caption }}</div>
+                </article>
               </div>
 
-              <div class="settings-toolbar__block settings-toolbar__block--actions">
-                <B10Button
-                  variant="subtle"
-                  icon-start="refresh"
-                  label="Reload"
-                  :disable="saving"
-                  :loading="loading"
-                  @click="loadUserSettings"
-                />
-                <B10Button
-                  variant="primary"
-                  icon-start="save"
-                  label="Save Settings"
-                  :loading="saving"
-                  :disable="loading"
-                  @click="saveUserSettings"
-                />
+              <div class="settings-dashboard__health">
+                <div class="settings-dashboard__health-copy">
+                  <div class="settings-dashboard__health-label">Profile health</div>
+                  <div class="settings-dashboard__health-text">
+                    {{ profileCompleteness.completeCount }} fields complete,
+                    {{ profileCompleteness.missingCount }} still open
+                  </div>
+                </div>
+
+                <div class="settings-dashboard__health-bar" aria-hidden="true">
+                  <span
+                    class="settings-dashboard__health-segment settings-dashboard__health-segment--missing"
+                    :style="{ width: `${profileCompleteness.missingShare}%` }"
+                  />
+                  <span
+                    class="settings-dashboard__health-segment settings-dashboard__health-segment--complete"
+                    :style="{ width: `${profileCompleteness.completeShare}%` }"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="settings-studio__side">
-            <q-card bordered flat class="settings-form-card">
+          <div class="settings-hero-controls">
+            <q-card bordered flat class="settings-form-card settings-form-card--hero">
               <q-card-section class="settings-form-card__header">
                 <div>
                   <div class="settings-form-card__eyebrow">Owner profile</div>
@@ -183,7 +150,7 @@
               </q-card-section>
             </q-card>
 
-            <q-card bordered flat class="settings-sidecar">
+            <q-card bordered flat class="settings-sidecar settings-sidecar--hero">
               <q-card-section class="settings-sidecar__header">
                 <div class="settings-form-card__eyebrow">Profile Signals</div>
                 <div class="settings-sidecar__title">Current setup</div>
@@ -204,6 +171,36 @@
                 </div>
               </q-card-section>
             </q-card>
+          </div>
+
+        </div>
+
+        <div class="settings-toolbar">
+          <div class="settings-toolbar__block settings-toolbar__block--status">
+            <q-icon name="tune" size="18px" class="settings-toolbar__filters-icon" />
+            <div class="settings-toolbar__status-copy">
+              <div class="settings-toolbar__status-label">Node profile</div>
+              <div class="settings-toolbar__status-value">{{ settingsStatusText }}</div>
+            </div>
+          </div>
+
+          <div class="settings-toolbar__block settings-toolbar__block--actions">
+            <B10Button
+              variant="subtle"
+              icon-start="refresh"
+              label="Reload"
+              :disable="saving"
+              :loading="loading"
+              @click="loadUserSettings"
+            />
+            <B10Button
+              variant="primary"
+              icon-start="save"
+              label="Save Settings"
+              :loading="saving"
+              :disable="loading"
+              @click="saveUserSettings"
+            />
           </div>
         </div>
 
@@ -496,24 +493,10 @@ onMounted(() => {
   gap: 24px;
 }
 
-.settings-studio {
-  display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
-  gap: 18px;
-  align-items: start;
-}
-
-.settings-studio__main,
-.settings-studio__side {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
 .settings-shell__hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.95fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);
   gap: 24px;
   padding: 28px;
   overflow: hidden;
@@ -558,6 +541,12 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-hero-controls {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
@@ -764,6 +753,12 @@ onMounted(() => {
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
 }
 
+.settings-form-card--hero,
+.settings-sidecar--hero {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(14px);
+}
+
 .settings-form-card__header {
   display: flex;
   align-items: flex-start;
@@ -874,7 +869,6 @@ onMounted(() => {
 }
 
 @media (max-width: 1120px) {
-  .settings-studio,
   .settings-shell__hero {
     grid-template-columns: 1fr;
   }
