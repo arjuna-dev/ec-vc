@@ -50,18 +50,37 @@
           </div>
 
           <div class="avatar-hero-controls">
+            <div class="avatar-hero-controls__frame">
+              <div class="avatar-card__switcher">
+                <B10IconButton
+                  variant="subtle"
+                  size="small"
+                  icon="chevron_left"
+                  aria-label="Show previous avatar control panel"
+                  @click="showPreviousHeroControl"
+                />
+                <div class="avatar-card__switcher-label">{{ activeHeroControlStepLabel }}</div>
+                <B10IconButton
+                  variant="subtle"
+                  size="small"
+                  icon="chevron_right"
+                  aria-label="Show next avatar control panel"
+                  @click="showNextHeroControl"
+                />
+              </div>
+            </div>
             <q-card flat bordered class="avatar-card avatar-card--hero">
               <q-card-section class="avatar-card__header">
-                <div>
-                  <div class="avatar-card__eyebrow">Avatar Tuning</div>
-                  <div class="avatar-card__title">Tune the shell</div>
+                <div class="avatar-card__header-copy">
+                  <div class="avatar-card__eyebrow">{{ activeHeroControlEyebrow }}</div>
+                  <div class="avatar-card__title">{{ activeHeroControlTitle }}</div>
                 </div>
-                <div class="avatar-card__caption">
-                  Set how the avatar looks, sounds, and introduces itself in the workspace.
+                <div class="avatar-card__header-actions">
+                  <div class="avatar-card__caption">{{ activeHeroControlCaption }}</div>
                 </div>
               </q-card-section>
               <q-separator />
-              <q-card-section class="avatar-card__body">
+              <q-card-section v-if="activeHeroControl === 'shell'" class="avatar-card__body">
                 <div class="row q-col-gutter-md">
                   <div class="col-12">
                     <q-input v-model="avatarProfile.name" outlined dense label="Avatar Name" />
@@ -121,20 +140,7 @@
                   </div>
                 </div>
               </q-card-section>
-            </q-card>
-
-            <q-card flat bordered class="avatar-card avatar-card--hero">
-              <q-card-section class="avatar-card__header">
-                <div>
-                  <div class="avatar-card__eyebrow">LLM Control</div>
-                  <div class="avatar-card__title">Tune the operator</div>
-                </div>
-                <div class="avatar-card__caption">
-                  Keep the familiar model controls and API fields close to the avatar builder.
-                </div>
-              </q-card-section>
-              <q-separator />
-              <q-card-section class="avatar-card__body">
+              <q-card-section v-else-if="activeHeroControl === 'operator'" class="avatar-card__body">
                 <div class="row q-col-gutter-md">
                   <div class="col-12 col-md-6">
                     <q-select
@@ -244,6 +250,45 @@
                   </div>
                 </div>
               </q-card-section>
+              <q-card-section v-else class="avatar-card__body avatar-card__body--builds">
+                <div class="avatar-builds-inline">
+                  <q-card
+                    v-for="build in avatarBuildDeck"
+                    :key="build.id"
+                    flat
+                    bordered
+                    class="avatar-build-card"
+                  >
+                    <q-card-section class="avatar-build-card__header">
+                      <div class="avatar-build-card__badge" :style="build.previewStyle">
+                        <q-icon name="smart_toy" class="avatar-build-card__icon" />
+                      </div>
+                      <div>
+                        <div class="avatar-build-card__title">{{ build.name }}</div>
+                        <div class="avatar-build-card__meta">
+                          {{ build.archetypeLabel }} / {{ build.colorLabel }} / {{ build.temperamentLabel }}
+                        </div>
+                      </div>
+                    </q-card-section>
+                    <q-card-section class="avatar-build-card__body">
+                      <div class="avatar-build-card__summary">{{ build.summary }}</div>
+                      <div class="avatar-build-card__stats">
+                        <span>{{ build.providerLabel }}</span>
+                        <span>{{ build.modelLabel }}</span>
+                        <span>{{ build.autonomyLabel }}</span>
+                      </div>
+                    </q-card-section>
+                    <q-card-actions align="right" class="avatar-build-card__actions">
+                      <B10Button
+                        variant="subtle"
+                        icon-start="download"
+                        label="Load"
+                        @click="applyBuildPreset(build)"
+                      />
+                    </q-card-actions>
+                  </q-card>
+                </div>
+              </q-card-section>
             </q-card>
           </div>
         </div>
@@ -278,56 +323,6 @@
         </div>
 
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
-
-        <div class="avatar-loadout">
-          <div class="avatar-loadout__header">
-            <div>
-              <div class="avatar-card__eyebrow">Loadout Deck</div>
-              <div class="avatar-loadout__title">Previous and alternate builds</div>
-            </div>
-            <div class="avatar-card__caption">
-              Swap between saved moods and operator setups while shaping the right avatar fit.
-            </div>
-          </div>
-
-          <div class="avatar-loadout__grid">
-            <q-card
-              v-for="build in avatarBuildDeck"
-              :key="build.id"
-              flat
-              bordered
-              class="avatar-build-card"
-            >
-              <q-card-section class="avatar-build-card__header">
-                <div class="avatar-build-card__badge" :style="build.previewStyle">
-                  <q-icon name="smart_toy" class="avatar-build-card__icon" />
-                </div>
-                <div>
-                  <div class="avatar-build-card__title">{{ build.name }}</div>
-                  <div class="avatar-build-card__meta">
-                    {{ build.archetypeLabel }} / {{ build.colorLabel }} / {{ build.temperamentLabel }}
-                  </div>
-                </div>
-              </q-card-section>
-              <q-card-section class="avatar-build-card__body">
-                <div class="avatar-build-card__summary">{{ build.summary }}</div>
-                <div class="avatar-build-card__stats">
-                  <span>{{ build.providerLabel }}</span>
-                  <span>{{ build.modelLabel }}</span>
-                  <span>{{ build.autonomyLabel }}</span>
-                </div>
-              </q-card-section>
-              <q-card-actions align="right" class="avatar-build-card__actions">
-                <B10Button
-                  variant="subtle"
-                  icon-start="download"
-                  label="Load"
-                  @click="applyBuildPreset(build)"
-                />
-              </q-card-actions>
-            </q-card>
-          </div>
-        </div>
       </section>
     </div>
   </q-page>
@@ -416,6 +411,7 @@ const hasBridge = computed(() => !!bridge.value?.settings?.get && !!bridge.value
 const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
+const activeHeroControl = ref('shell')
 const openaiApiKey = ref('')
 const geminiApiKey = ref('')
 const showOpenaiApiKey = ref(false)
@@ -471,6 +467,30 @@ const llmModelLabel = computed(
 )
 const autonomyLabel = computed(
   () => autonomyOptions.find((option) => option.value === llmProfile.value.autonomy)?.label || 'Balanced'
+)
+const activeHeroControlEyebrow = computed(() =>
+  activeHeroControl.value === 'shell'
+    ? 'Avatar Tuning'
+    : activeHeroControl.value === 'operator'
+      ? 'LLM Control'
+      : 'Loadout Deck'
+)
+const activeHeroControlTitle = computed(() =>
+  activeHeroControl.value === 'shell'
+    ? 'Tune the shell'
+    : activeHeroControl.value === 'operator'
+      ? 'Tune the operator'
+      : 'Previous and alternate builds'
+)
+const activeHeroControlCaption = computed(() =>
+  activeHeroControl.value === 'shell'
+    ? 'Set how the avatar looks, sounds, and introduces itself in the workspace.'
+    : activeHeroControl.value === 'operator'
+      ? 'Keep the familiar model controls and API fields close to the avatar builder.'
+      : 'Swap between saved moods and operator setups while shaping the right avatar fit.'
+)
+const activeHeroControlStepLabel = computed(() =>
+  activeHeroControl.value === 'shell' ? '1 / 3' : activeHeroControl.value === 'operator' ? '2 / 3' : '3 / 3'
 )
 
 const avatarSummaryText = computed(
@@ -694,6 +714,24 @@ function normalizeInput(value) {
   return String(value || '').trim()
 }
 
+function showPreviousHeroControl() {
+  activeHeroControl.value =
+    activeHeroControl.value === 'shell'
+      ? 'builds'
+      : activeHeroControl.value === 'operator'
+        ? 'shell'
+        : 'operator'
+}
+
+function showNextHeroControl() {
+  activeHeroControl.value =
+    activeHeroControl.value === 'shell'
+      ? 'operator'
+      : activeHeroControl.value === 'operator'
+        ? 'builds'
+        : 'shell'
+}
+
 function applyBuildPreset(build) {
   avatarProfile.value = {
     name: build.name,
@@ -830,6 +868,12 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.avatar-hero-controls__frame {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -6px;
 }
 
 .avatar-card__eyebrow,
@@ -1004,6 +1048,45 @@ onMounted(() => {
   padding: 24px;
 }
 
+.avatar-card__header-copy,
+.avatar-card__header-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.avatar-card__header-actions {
+  align-items: flex-end;
+}
+
+.avatar-card__switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.avatar-card__switcher-label {
+  min-width: 40px;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.avatar-card__body--builds {
+  padding-top: 18px;
+}
+
+.avatar-builds-inline {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
 .avatar-slider {
   display: flex;
   flex-direction: column;
@@ -1019,33 +1102,6 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-}
-
-.avatar-loadout {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.avatar-loadout__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.avatar-loadout__title {
-  color: #0f172a;
-  font-family: var(--font-title);
-  font-size: 1.35rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1;
-}
-
-.avatar-loadout__grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
 }
 
 .avatar-build-card {
@@ -1132,7 +1188,7 @@ onMounted(() => {
 
 @media (max-width: 1200px) {
   .avatar-shell__hero,
-  .avatar-loadout__grid {
+  .avatar-builds-inline {
     grid-template-columns: 1fr;
   }
 
@@ -1144,14 +1200,17 @@ onMounted(() => {
   .avatar-toolbar__status,
   .avatar-toolbar__actions,
   .avatar-card__header,
-  .avatar-sidecar__header,
-  .avatar-loadout__header {
+  .avatar-sidecar__header {
     flex-direction: column;
     align-items: stretch;
   }
 
   .avatar-toolbar__actions {
     justify-content: flex-start;
+  }
+
+  .avatar-card__header-actions {
+    align-items: flex-start;
   }
 }
 
