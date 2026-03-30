@@ -140,6 +140,110 @@
             </q-card>
           </div>
         </div>
+
+        <div class="settings-secondary-shell">
+          <div class="settings-secondary-toolbar">
+            <div class="settings-secondary-toolbar__copy">
+              <q-icon name="tune" size="18px" class="settings-secondary-toolbar__icon" />
+              <div>
+                <div class="settings-secondary-toolbar__label">My Workspace</div>
+                <div class="settings-secondary-toolbar__text">{{ workspaceToolbarText }}</div>
+              </div>
+            </div>
+          </div>
+
+          <q-card bordered flat class="settings-form-card settings-form-card--workspace">
+            <q-card-section class="settings-form-card__header">
+              <div>
+                <div class="settings-form-card__eyebrow">Workspace tuning</div>
+                <div class="settings-form-card__title">My Workspace settings</div>
+              </div>
+              <div class="settings-form-card__caption">
+                Shape how your workspace lands, mirrors, and behaves without touching the core data model.
+              </div>
+            </q-card-section>
+
+            <q-separator />
+
+            <q-card-section class="settings-form-card__body">
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-md-6">
+                  <q-select
+                    v-model="workspaceSettings.defaultLanding"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    label="Default Landing"
+                    :options="workspaceLandingOptions"
+                  />
+                </div>
+                <div class="col-12 col-md-6">
+                  <q-select
+                    v-model="workspaceSettings.workspaceMode"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    label="Workspace Mode"
+                    :options="workspaceModeOptions"
+                  />
+                </div>
+                <div class="col-12 col-md-6">
+                  <q-select
+                    v-model="workspaceSettings.fileMirroring"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    label="File Mirroring"
+                    :options="fileMirroringOptions"
+                  />
+                </div>
+                <div class="col-12 col-md-6">
+                  <q-select
+                    v-model="workspaceSettings.reviewCadence"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    label="Review Cadence"
+                    :options="workspaceCadenceOptions"
+                  />
+                </div>
+                <div class="col-12">
+                  <q-input
+                    v-model="workspaceSettings.workspaceIntent"
+                    outlined
+                    autogrow
+                    type="textarea"
+                    label="Workspace Intent"
+                  />
+                </div>
+              </div>
+            </q-card-section>
+
+            <q-separator />
+
+            <q-card-actions align="right" class="settings-form-card__actions">
+              <B10Button
+                variant="subtle"
+                icon-start="refresh"
+                label="Reload Workspace"
+                :disable="savingWorkspaceSettings"
+                @click="loadWorkspaceSettings"
+              />
+              <B10Button
+                variant="primary"
+                icon-start="save"
+                label="Save Workspace"
+                :loading="savingWorkspaceSettings"
+                :disable="!hasWorkspaceChanges"
+                @click="saveWorkspaceSettings"
+              />
+            </q-card-actions>
+          </q-card>
+        </div>
       </section>
     </div>
   </q-page>
@@ -152,6 +256,34 @@ import isEmail from 'validator/lib/isEmail.js'
 import B10Button from 'src/components/buttons/B10Button.vue'
 
 const $q = useQuasar()
+const WORKSPACE_SETTINGS_STORAGE_KEY = 'ecvc.workspaceSettings'
+const defaultWorkspaceSettings = {
+  defaultLanding: 'home',
+  workspaceMode: 'balanced',
+  fileMirroring: 'balanced',
+  reviewCadence: 'weekly',
+  workspaceIntent: 'Keep My Workspace coherent, readable, and ready to branch from clean files.',
+}
+const workspaceLandingOptions = [
+  { label: 'Home', value: 'home' },
+  { label: 'Files', value: 'files' },
+  { label: 'Roles', value: 'roles' },
+]
+const workspaceModeOptions = [
+  { label: 'Focused', value: 'focused' },
+  { label: 'Balanced', value: 'balanced' },
+  { label: 'Expanded', value: 'expanded' },
+]
+const fileMirroringOptions = [
+  { label: 'App-first', value: 'app-first' },
+  { label: 'Balanced', value: 'balanced' },
+  { label: 'File-first', value: 'file-first' },
+]
+const workspaceCadenceOptions = [
+  { label: 'Daily', value: 'daily' },
+  { label: 'Weekly', value: 'weekly' },
+  { label: 'Monthly', value: 'monthly' },
+]
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -163,6 +295,7 @@ const hasBridge = computed(() => !!bridge.value?.userSettings?.get && !!bridge.v
 
 const loading = ref(false)
 const saving = ref(false)
+const savingWorkspaceSettings = ref(false)
 const error = ref('')
 const form = ref({
   Name: '',
@@ -180,6 +313,8 @@ const savedForm = ref({
   LinkedIn: '',
   Country_based: '',
 })
+const workspaceSettings = ref({ ...defaultWorkspaceSettings })
+const savedWorkspaceSettings = ref({ ...defaultWorkspaceSettings })
 
 const settingsHeroText = computed(() => {
   if (loading.value) return 'Loading the local owner profile and node settings.'
@@ -241,9 +376,27 @@ function normalizedFormSignature(value) {
   })
 }
 
+function normalizedWorkspaceSignature(value) {
+  return JSON.stringify({
+    defaultLanding: String(value?.defaultLanding || ''),
+    workspaceMode: String(value?.workspaceMode || ''),
+    fileMirroring: String(value?.fileMirroring || ''),
+    reviewCadence: String(value?.reviewCadence || ''),
+    workspaceIntent: normalizeInput(value?.workspaceIntent),
+  })
+}
+
 const hasUnsavedChanges = computed(
   () => normalizedFormSignature(form.value) !== normalizedFormSignature(savedForm.value)
 )
+const hasWorkspaceChanges = computed(
+  () => normalizedWorkspaceSignature(workspaceSettings.value) !== normalizedWorkspaceSignature(savedWorkspaceSettings.value)
+)
+const workspaceToolbarText = computed(() => {
+  const landing = workspaceLandingOptions.find((option) => option.value === workspaceSettings.value.defaultLanding)?.label || 'Home'
+  const mode = workspaceModeOptions.find((option) => option.value === workspaceSettings.value.workspaceMode)?.label || 'Balanced'
+  return `${landing} landing • ${mode} workspace mode`
+})
 
 function mapContactToForm(contact = null) {
   return {
@@ -331,13 +484,48 @@ async function saveUserSettings() {
   }
 }
 
+function loadWorkspaceSettings() {
+  if (typeof window === 'undefined') return
+
+  try {
+    const storedValue = window.localStorage.getItem(WORKSPACE_SETTINGS_STORAGE_KEY)
+    workspaceSettings.value = storedValue
+      ? { ...defaultWorkspaceSettings, ...JSON.parse(storedValue) }
+      : { ...defaultWorkspaceSettings }
+  } catch {
+    workspaceSettings.value = { ...defaultWorkspaceSettings }
+  }
+
+  savedWorkspaceSettings.value = { ...workspaceSettings.value }
+}
+
+async function saveWorkspaceSettings() {
+  if (typeof window === 'undefined') return
+
+  savingWorkspaceSettings.value = true
+  try {
+    window.localStorage.setItem(WORKSPACE_SETTINGS_STORAGE_KEY, JSON.stringify(workspaceSettings.value))
+    savedWorkspaceSettings.value = { ...workspaceSettings.value }
+    $q.notify({ type: 'positive', message: 'My Workspace settings saved' })
+  } finally {
+    savingWorkspaceSettings.value = false
+  }
+}
+
 onMounted(() => {
+  loadWorkspaceSettings()
   if (!hasBridge.value) return
   loadUserSettings()
 })
 </script>
 
 <style scoped>
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .settings-shell {
   display: flex;
   flex-direction: column;
@@ -503,6 +691,53 @@ onMounted(() => {
   padding: 16px 24px 22px;
 }
 
+.settings-secondary-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settings-secondary-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 24px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
+}
+
+.settings-secondary-toolbar__copy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.settings-secondary-toolbar__icon {
+  color: var(--ds-color-text-muted);
+  flex: 0 0 auto;
+}
+
+.settings-secondary-toolbar__label {
+  color: var(--ds-color-text-muted);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-medium);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: var(--ds-line-height-xs);
+  text-transform: uppercase;
+}
+
+.settings-secondary-toolbar__text {
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-body);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
 @media (max-width: 1120px) {
   .settings-shell__hero {
     grid-template-columns: 1fr;
@@ -517,6 +752,10 @@ onMounted(() => {
   .settings-shell__hero,
   .settings-form-card__body,
   .settings-form-card__actions {
+    padding: 20px;
+  }
+
+  .settings-secondary-toolbar {
     padding: 20px;
   }
 

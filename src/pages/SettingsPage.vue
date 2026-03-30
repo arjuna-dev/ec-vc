@@ -266,20 +266,52 @@
 
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
 
-        <div class="avatar-loadout">
-          <div class="avatar-loadout__toolbar">
-            <div class="avatar-loadout__toolbar-block">
-              <q-icon name="view_carousel" size="18px" class="avatar-loadout__toolbar-icon" />
-              <div>
-                <div class="avatar-loadout__toolbar-label">Loadout Deck</div>
-                <div class="avatar-loadout__toolbar-text">{{ loadoutToolbarText }}</div>
-              </div>
-            </div>
+        <div class="avatar-toolbar">
+          <div class="avatar-toolbar__block avatar-toolbar__block--kind">
+            <q-btn-toggle
+              v-model="buildFilter"
+              dense
+              no-caps
+              unelevated
+              toggle-color="dark"
+              color="white"
+              text-color="grey-8"
+              class="avatar-toolbar__toggle avatar-toolbar__kind-toggle"
+              :options="buildFilterOptions"
+            />
           </div>
 
-          <div class="avatar-builds-inline">
+          <div class="avatar-toolbar__block avatar-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="avatar-toolbar__filters-icon" />
+            <q-input
+              v-model="buildSearchQuery"
+              dense
+              outlined
+              borderless
+              class="avatar-toolbar__search"
+              placeholder="Search avatar builds..."
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+          </div>
+        </div>
+
+        <div class="avatar-surface">
+          <q-banner
+            v-if="filteredAvatarBuildDeck.length === 0"
+            class="avatar-empty-state bg-grey-1 text-black"
+            rounded
+          >
+            <div class="row items-center justify-between">
+              <div>No avatar builds found.</div>
+            </div>
+          </q-banner>
+
+          <div v-else class="avatar-builds-inline">
             <q-card
-              v-for="build in avatarBuildDeck"
+              v-for="build in filteredAvatarBuildDeck"
               :key="build.id"
               flat
               bordered
@@ -402,6 +434,8 @@ const saving = ref(false)
 const error = ref('')
 const activeHeroControl = ref('shell')
 const heroControlOrder = ['shell', 'operator', 'keys']
+const buildFilter = ref('all')
+const buildSearchQuery = ref('')
 const openaiApiKey = ref('')
 const geminiApiKey = ref('')
 const showOpenaiApiKey = ref(false)
@@ -597,9 +631,39 @@ const avatarBuildDeck = computed(() => [
     previewStyle: createPreviewStyle('solar-gold'),
   },
 ])
-const loadoutToolbarText = computed(
-  () => `${avatarBuildDeck.value.length} build${avatarBuildDeck.value.length === 1 ? '' : 's'} ready to load`
-)
+const buildFilterOptions = [
+  { label: 'All', value: 'all' },
+  { label: 'Live Build', value: 'live' },
+  { label: 'Alternates', value: 'alternate' },
+]
+const filteredAvatarBuildDeck = computed(() => {
+  const query = normalizeInput(buildSearchQuery.value).toLowerCase()
+  let items = [...avatarBuildDeck.value]
+
+  if (buildFilter.value === 'live') {
+    items = items.filter((build) => build.id === 'current-build')
+  } else if (buildFilter.value === 'alternate') {
+    items = items.filter((build) => build.id !== 'current-build')
+  }
+
+  if (query) {
+    items = items.filter((build) =>
+      [
+        build.name,
+        build.summary,
+        build.archetypeLabel,
+        build.colorLabel,
+        build.temperamentLabel,
+        build.providerLabel,
+        build.modelLabel,
+      ]
+        .map((value) => String(value || '').toLowerCase())
+        .some((value) => value.includes(query)),
+    )
+  }
+
+  return items
+})
 
 watch(
   avatarProfile,
@@ -841,8 +905,7 @@ onMounted(() => {
   max-width: 9ch;
 }
 
-.avatar-card__eyebrow,
-.avatar-toolbar__eyebrow {
+.avatar-card__eyebrow {
   margin: 0;
   color: #0f172a;
   font-family: var(--font-title);
@@ -852,8 +915,7 @@ onMounted(() => {
 }
 
 .avatar-shell__hero-text,
-.avatar-card__caption,
-.avatar-toolbar__text {
+.avatar-card__caption {
   color: #475569;
   font-family: var(--font-body);
   line-height: 1.6;
@@ -1094,15 +1156,9 @@ onMounted(() => {
   padding: 0 12px 12px;
 }
 
-.avatar-loadout {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.avatar-loadout__toolbar {
+.avatar-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1112,39 +1168,87 @@ onMounted(() => {
   border-radius: var(--ds-radius-lg);
 }
 
-.avatar-loadout__toolbar-block {
+.avatar-toolbar__block {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
 }
 
-.avatar-loadout__toolbar-icon {
+.avatar-toolbar__block--search {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.avatar-toolbar__filters-icon {
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
 }
 
-.avatar-loadout__toolbar-label {
-  color: var(--ds-color-text-muted);
+.avatar-toolbar__toggle {
+  flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  background: var(--ds-control-surface);
+  color: var(--ds-control-text);
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: var(--ds-control-shadow);
   font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-medium);
-  font-weight: var(--ds-font-weight-medium);
-  letter-spacing: 0.08em;
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
-  text-transform: uppercase;
+  overflow: hidden;
 }
 
-.avatar-loadout__toolbar-text {
-  color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-family-body);
-  font-size: 0.92rem;
-  line-height: 1.5;
+.avatar-toolbar__kind-toggle :deep(.q-btn) {
+  min-width: 90px;
+  padding-inline: 16px;
+}
+
+.avatar-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.avatar-toolbar__search {
+  width: 100%;
+  min-width: 0;
+  background: var(--ds-control-surface);
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: var(--ds-control-shadow);
+}
+
+.avatar-toolbar__search :deep(.q-field__control),
+.avatar-toolbar__search :deep(.q-field__native),
+.avatar-toolbar__search :deep(.q-field__input) {
+  min-height: var(--ds-control-height-md);
+  height: var(--ds-control-height-md);
+}
+
+.avatar-toolbar__search :deep(.q-field__control) {
+  padding: 0 var(--ds-control-inline-padding);
+}
+
+.avatar-surface {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.avatar-empty-state {
+  padding: 24px;
 }
 
 @media (max-width: 1200px) {
   .avatar-shell__hero,
   .avatar-builds-inline {
     grid-template-columns: 1fr;
+  }
+
+  .avatar-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    padding: 20px;
   }
 
   .avatar-card__header,
@@ -1155,6 +1259,17 @@ onMounted(() => {
 
   .avatar-card__header-actions {
     align-items: flex-start;
+  }
+
+  .avatar-toolbar__block {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .avatar-toolbar__search,
+  .avatar-toolbar__toggle {
+    width: 100%;
+    min-width: 0;
   }
 }
 
