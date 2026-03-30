@@ -264,68 +264,58 @@
                   @click="saveSettings"
                 />
               </q-card-actions>
-              <q-card-section v-else class="avatar-card__body avatar-card__body--builds">
-                <div class="avatar-builds-inline">
-                  <q-card
-                    v-for="build in avatarBuildDeck"
-                    :key="build.id"
-                    flat
-                    bordered
-                    class="avatar-build-card"
-                    clickable
-                    @click="applyBuildPreset(build)"
-                  >
-                    <q-card-section class="avatar-build-card__header">
-                      <div class="avatar-build-card__badge" :style="build.previewStyle">
-                        <q-icon name="smart_toy" class="avatar-build-card__icon" />
-                      </div>
-                      <div>
-                        <div class="avatar-build-card__title">{{ build.name }}</div>
-                        <div class="avatar-build-card__meta">
-                          {{ build.archetypeLabel }} / {{ build.colorLabel }} / {{ build.temperamentLabel }}
-                        </div>
-                      </div>
-                    </q-card-section>
-                    <q-card-section class="avatar-build-card__body">
-                      <div class="avatar-build-card__summary">{{ build.summary }}</div>
-                    </q-card-section>
-                    <q-card-actions align="right" class="avatar-build-card__actions">
-                      <B10Button
-                        variant="subtle"
-                        icon-start="download"
-                        label="Load"
-                        @click.stop="applyBuildPreset(build)"
-                      />
-                    </q-card-actions>
-                  </q-card>
-                </div>
-              </q-card-section>
             </q-card>
           </div>
         </div>
 
-        <div class="avatar-toolbar">
-          <div class="avatar-toolbar__status">
-            <q-icon name="construction" size="18px" class="avatar-toolbar__icon" />
+        <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
+
+        <div class="avatar-loadout">
+          <div class="avatar-loadout__header">
             <div>
-              <div class="avatar-toolbar__eyebrow">Builder Status</div>
-              <div class="avatar-toolbar__text">{{ avatarStatusText }}</div>
+              <div class="avatar-card__eyebrow">Loadout Deck</div>
+              <div class="avatar-loadout__title">Previous and alternate builds</div>
+            </div>
+            <div class="avatar-card__caption">
+              Swap between saved moods and operator setups while shaping the right avatar fit.
             </div>
           </div>
 
-          <div class="avatar-toolbar__actions">
-            <B10Button
-              variant="subtle"
-              icon-start="refresh"
-              label="Reload Keys"
-              :disable="saving"
-              :loading="loading"
-              @click="loadSettings"
-            />
+          <div class="avatar-builds-inline">
+            <q-card
+              v-for="build in avatarBuildDeck"
+              :key="build.id"
+              flat
+              bordered
+              class="avatar-build-card"
+              clickable
+              @click="applyBuildPreset(build)"
+            >
+              <q-card-section class="avatar-build-card__header">
+                <div class="avatar-build-card__badge" :style="build.previewStyle">
+                  <q-icon name="smart_toy" class="avatar-build-card__icon" />
+                </div>
+                <div>
+                  <div class="avatar-build-card__title">{{ build.name }}</div>
+                  <div class="avatar-build-card__meta">
+                    {{ build.archetypeLabel }} / {{ build.colorLabel }} / {{ build.temperamentLabel }}
+                  </div>
+                </div>
+              </q-card-section>
+              <q-card-section class="avatar-build-card__body">
+                <div class="avatar-build-card__summary">{{ build.summary }}</div>
+              </q-card-section>
+              <q-card-actions align="right" class="avatar-build-card__actions">
+                <B10Button
+                  variant="subtle"
+                  icon-start="download"
+                  label="Load"
+                  @click.stop="applyBuildPreset(build)"
+                />
+              </q-card-actions>
+            </q-card>
           </div>
         </div>
-
-        <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
       </section>
     </div>
   </q-page>
@@ -472,29 +462,17 @@ const autonomyLabel = computed(
   () => autonomyOptions.find((option) => option.value === llmProfile.value.autonomy)?.label || 'Balanced'
 )
 const activeHeroControlEyebrow = computed(() =>
-  activeHeroControl.value === 'shell'
-    ? 'Avatar Tuning'
-    : activeHeroControl.value === 'operator'
-      ? 'LLM Control'
-      : 'Loadout Deck'
+  activeHeroControl.value === 'shell' ? 'Avatar Tuning' : 'LLM Control'
 )
 const activeHeroControlTitle = computed(() =>
-  activeHeroControl.value === 'shell'
-    ? 'Tune the shell'
-    : activeHeroControl.value === 'operator'
-      ? 'Tune the operator'
-      : 'Previous and alternate builds'
+  activeHeroControl.value === 'shell' ? 'Tune the shell' : 'Tune the operator'
 )
 const activeHeroControlCaption = computed(() =>
   activeHeroControl.value === 'shell'
     ? 'Set how the avatar looks, sounds, and introduces itself in the workspace.'
-    : activeHeroControl.value === 'operator'
-      ? 'Keep the familiar model controls and API fields close to the avatar builder.'
-      : 'Swap between saved moods and operator setups while shaping the right avatar fit.'
+    : 'Keep the familiar model controls and API fields close to the avatar builder.'
 )
-const activeHeroControlStepLabel = computed(() =>
-  activeHeroControl.value === 'shell' ? '1 / 3' : activeHeroControl.value === 'operator' ? '2 / 3' : '3 / 3'
-)
+const activeHeroControlStepLabel = computed(() => (activeHeroControl.value === 'shell' ? '1 / 2' : '2 / 2'))
 
 const avatarSummaryText = computed(
   () => normalizeInput(avatarProfile.value.originStory) || defaultAvatarProfile.originStory
@@ -529,13 +507,6 @@ const avatarHeroStats = computed(() => [
     caption: `${llmProfile.value.temperature.toFixed(1)} temp`,
   },
 ])
-const avatarStatusText = computed(() =>
-  saving.value
-    ? 'Saving provider keys...'
-    : loading.value
-      ? 'Loading avatar control surface...'
-      : `${avatarProfile.value.name || 'Mini-Me'} is set to ${avatarArchetypeLabel.value.toLowerCase()} mode with ${llmProviderLabel.value}.`
-)
 const avatarHeroStyle = computed(() => {
   const theme = avatarThemeMap[avatarProfile.value.colorway] || avatarThemeMap['aurora-blue']
   return { '--avatar-hero-soft': theme.soft, '--avatar-hero-shadow': theme.shadow }
@@ -718,21 +689,11 @@ function normalizeInput(value) {
 }
 
 function showPreviousHeroControl() {
-  activeHeroControl.value =
-    activeHeroControl.value === 'shell'
-      ? 'builds'
-      : activeHeroControl.value === 'operator'
-        ? 'shell'
-        : 'operator'
+  activeHeroControl.value = activeHeroControl.value === 'shell' ? 'operator' : 'shell'
 }
 
 function showNextHeroControl() {
-  activeHeroControl.value =
-    activeHeroControl.value === 'shell'
-      ? 'operator'
-      : activeHeroControl.value === 'operator'
-        ? 'builds'
-        : 'shell'
+  activeHeroControl.value = activeHeroControl.value === 'shell' ? 'operator' : 'shell'
 }
 
 function applyBuildPreset(build) {
@@ -996,34 +957,6 @@ onMounted(() => {
   line-height: 1.5;
 }
 
-.avatar-toolbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
-  padding: 16px 18px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
-}
-
-.avatar-toolbar__status,
-.avatar-toolbar__actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.avatar-toolbar__actions {
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-.avatar-toolbar__icon {
-  color: #475569;
-}
-
 .avatar-card,
 .avatar-sidecar {
   border-color: rgba(15, 23, 42, 0.08);
@@ -1193,21 +1126,10 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
-  .avatar-toolbar {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-  }
-
-  .avatar-toolbar__status,
-  .avatar-toolbar__actions,
   .avatar-card__header,
   .avatar-sidecar__header {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .avatar-toolbar__actions {
-    justify-content: flex-start;
   }
 
   .avatar-card__header-actions {
