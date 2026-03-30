@@ -2015,9 +2015,19 @@ function resolveIntakeReviewGate() {
   if (resolver) resolver()
 }
 
+function applyConfirmedIntakeReviewFields(fieldKeys = []) {
+  for (const fieldKey of fieldKeys) {
+    const normalized = String(intakeReviewFields.value[fieldKey] || '').trim()
+    if (!normalized) continue
+    verifyIntakeReviewField(fieldKey)
+  }
+}
+
 function confirmIntakeReviewDialog() {
   if (!intakeReviewReadyToContinue.value) return
   const populatedEntries = Object.entries(intakeReviewFields.value).filter(([, value]) => String(value || '').trim().length > 0)
+  const populatedKeys = populatedEntries.map(([key]) => key)
+  applyConfirmedIntakeReviewFields(populatedKeys)
   intakeConfirmedFieldValues.value = {
     ...intakeConfirmedFieldValues.value,
     ...Object.fromEntries(populatedEntries.map(([key, value]) => [key, String(value || '').trim()])),
