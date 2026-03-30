@@ -65,7 +65,7 @@
               <q-card-section class="avatar-card__header">
                 <div class="avatar-card__header-copy">
                   <div class="avatar-card__eyebrow">{{ activeHeroControlEyebrow }}</div>
-                  <div class="avatar-card__title">{{ activeHeroControlTitle }}</div>
+                  <div v-if="activeHeroControlTitle" class="avatar-card__title">{{ activeHeroControlTitle }}</div>
                 </div>
                 <div class="avatar-card__header-actions">
                   <div class="avatar-card__caption">{{ activeHeroControlCaption }}</div>
@@ -181,7 +181,7 @@
                   <div class="col-12">
                     <div class="avatar-slider">
                       <div class="avatar-slider__row">
-                        <div class="avatar-card__eyebrow">Temperature</div>
+                        <div class="avatar-slider__label">Temperature</div>
                         <div class="avatar-slider__value">{{ llmProfile.temperature.toFixed(1) }}</div>
                       </div>
                       <q-slider
@@ -464,11 +464,9 @@ const autonomyLabel = computed(
   () => autonomyOptions.find((option) => option.value === llmProfile.value.autonomy)?.label || 'Balanced'
 )
 const activeHeroControlEyebrow = computed(() =>
-  activeHeroControl.value === 'shell' ? 'Avatar Tuning' : 'LLM Control'
+  activeHeroControl.value === 'shell' ? 'Tune Shell' : 'LLM Control'
 )
-const activeHeroControlTitle = computed(() =>
-  activeHeroControl.value === 'shell' ? 'Tune the shell' : 'Tune the operator'
-)
+const activeHeroControlTitle = computed(() => '')
 const activeHeroControlCaption = computed(() =>
   activeHeroControl.value === 'shell'
     ? 'Set how the avatar looks, sounds, and introduces itself in the workspace.'
@@ -823,8 +821,6 @@ onMounted(() => {
   margin-bottom: -6px;
 }
 
-.avatar-card__eyebrow,
-.avatar-toolbar__eyebrow,
 .avatar-shell__hero-title {
   margin: 0;
   color: #0f172a;
@@ -833,6 +829,16 @@ onMounted(() => {
   font-weight: var(--font-weight-black);
   line-height: 0.94;
   max-width: 9ch;
+}
+
+.avatar-card__eyebrow,
+.avatar-toolbar__eyebrow {
+  margin: 0;
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: clamp(1.5rem, 2.25vw, 2.175rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.94;
 }
 
 .avatar-shell__hero-text,
@@ -883,7 +889,6 @@ onMounted(() => {
 }
 
 .avatar-preview-inline__name,
-.avatar-card__title,
 .avatar-sidecar__title {
   color: #0f172a;
   font-family: var(--font-title);
@@ -891,6 +896,14 @@ onMounted(() => {
   font-weight: var(--font-weight-black);
   line-height: 1;
   text-align: center;
+}
+
+.avatar-card__title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
 }
 
 .avatar-preview-inline__meta {
@@ -985,6 +998,14 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.avatar-slider__label {
+  color: #0f172a;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 .avatar-build-card {
