@@ -258,6 +258,8 @@
                     flat
                     bordered
                     class="avatar-build-card"
+                    clickable
+                    @click="applyBuildPreset(build)"
                   >
                     <q-card-section class="avatar-build-card__header">
                       <div class="avatar-build-card__badge" :style="build.previewStyle">
@@ -272,18 +274,13 @@
                     </q-card-section>
                     <q-card-section class="avatar-build-card__body">
                       <div class="avatar-build-card__summary">{{ build.summary }}</div>
-                      <div class="avatar-build-card__stats">
-                        <span>{{ build.providerLabel }}</span>
-                        <span>{{ build.modelLabel }}</span>
-                        <span>{{ build.autonomyLabel }}</span>
-                      </div>
                     </q-card-section>
                     <q-card-actions align="right" class="avatar-build-card__actions">
                       <B10Button
                         variant="subtle"
                         icon-start="download"
                         label="Load"
-                        @click="applyBuildPreset(build)"
+                        @click.stop="applyBuildPreset(build)"
                       />
                     </q-card-actions>
                   </q-card>
@@ -1109,6 +1106,16 @@ onMounted(() => {
   border-radius: 22px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
   box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.avatar-build-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.24);
+  box-shadow: 0 20px 38px rgba(15, 23, 42, 0.1);
 }
 
 .avatar-build-card__header {
@@ -1164,22 +1171,6 @@ onMounted(() => {
   color: #475569;
   font-size: 0.92rem;
   line-height: 1.6;
-}
-
-.avatar-build-card__stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.avatar-build-card__stats span {
-  padding: 6px 9px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #334155;
-  font-size: 0.75rem;
-  font-weight: 700;
 }
 
 .avatar-build-card__actions {
