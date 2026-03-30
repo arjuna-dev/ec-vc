@@ -198,29 +198,29 @@
                     @update:model-value="toggleRowSelection(group.primaryArtifact, $event)"
                   />
                 </div>
+              </div>
+            </div>
 
-                <div class="artifact-card__inline-summary">
-                  <div class="artifact-card__summary-label">Artifact summary</div>
-                  <div class="artifact-card__details artifact-card__details--compact">
-                    <div
-                      v-for="detail in getArtifactCardDetails(group)"
-                      :key="detail.label"
-                      class="artifact-card__detail"
-                    >
-                      <q-icon :name="detail.icon" size="16px" class="artifact-card__detail-icon" />
-                      <div class="artifact-card__detail-copy">
-                        <div class="artifact-card__detail-label">{{ detail.label }}</div>
-                        <div class="artifact-card__detail-value">{{ detail.value }}</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    v-if="group.primaryArtifact.description"
-                    class="artifact-card__description artifact-card__description--inline"
-                  >
-                    {{ group.primaryArtifact.description }}
+            <div class="artifact-card__inline-summary">
+              <div class="artifact-card__summary-label">Artifact summary</div>
+              <div class="artifact-card__details artifact-card__details--compact">
+                <div
+                  v-for="detail in getArtifactCardDetails(group)"
+                  :key="detail.label"
+                  class="artifact-card__detail"
+                >
+                  <q-icon :name="detail.icon" size="16px" class="artifact-card__detail-icon" />
+                  <div class="artifact-card__detail-copy">
+                    <div class="artifact-card__detail-label">{{ detail.label }}</div>
+                    <div class="artifact-card__detail-value">{{ detail.value }}</div>
                   </div>
                 </div>
+              </div>
+              <div
+                v-if="group.primaryArtifact.description"
+                class="artifact-card__description artifact-card__description--inline"
+              >
+                {{ group.primaryArtifact.description }}
               </div>
             </div>
           </q-card-section>
@@ -3409,19 +3409,25 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   padding-bottom: 10px;
 }
 
 .artifact-card__hero-main {
   display: grid;
-  grid-template-columns: minmax(88px, 104px) minmax(0, 1fr);
-  align-items: stretch;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: start;
   gap: 14px;
 }
 
 .artifact-card__portrait {
   margin: 0;
+  width: 104px;
+  height: 140px;
   min-height: 140px;
+  flex: 0 0 auto;
   position: relative;
 }
 
@@ -3438,6 +3444,7 @@ watch(displayArtifactRows, () => {
   position: relative;
   z-index: 1;
   display: flex;
+  width: 100%;
   height: 100%;
   min-height: 140px;
   align-items: center;
@@ -3468,9 +3475,8 @@ watch(displayArtifactRows, () => {
 .artifact-card__hero-side {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   min-width: 0;
-  gap: 10px;
+  gap: 8px;
 }
 
 .artifact-card__hero-top {
@@ -3497,7 +3503,6 @@ watch(displayArtifactRows, () => {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: auto;
   padding: 12px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 18px;
