@@ -130,6 +130,27 @@ async function runTests() {
     ).run()
     console.log('✅ Artifact insertion by opportunity: SUCCESS')
 
+    db.prepare(`INSERT INTO Contacts (id, Name) VALUES ('contact_1', 'Jane Founder')`).run()
+    db.prepare(`INSERT INTO Projects (id, Project_Name) VALUES ('project_1', 'Pipeline project')`).run()
+    db.prepare(`INSERT INTO Tasks (id, Task_Name) VALUES ('task_1', 'Review docs')`).run()
+    db.prepare(
+      `INSERT INTO Notes (id, Note_Name, Note_Content) VALUES ('note_1', 'Diligence note', 'Looks good')`,
+    ).run()
+
+    db.prepare(`INSERT INTO Artifacts_Contacts_links (from_id, to_id) VALUES ('art_1', 'contact_1')`).run()
+    db.prepare(`INSERT INTO Contacts_Companies_links (from_id, to_id) VALUES ('contact_1', ?)`).run(
+      companyId,
+    )
+    db.prepare(`INSERT INTO Companies_Funds_links (from_id, to_id) VALUES (?, ?)`).run(companyId, fundId)
+    db.prepare(`INSERT INTO Funds_Rounds_links (from_id, to_id) VALUES (?, ?)`).run(fundId, roundId)
+    db.prepare(`INSERT INTO Rounds_Projects_links (from_id, to_id) VALUES (?, 'project_1')`).run(
+      roundId,
+    )
+    db.prepare(`INSERT INTO Projects_Tasks_links (from_id, to_id) VALUES ('project_1', 'task_1')`).run()
+    db.prepare(`INSERT INTO Tasks_Notes_links (from_id, to_id) VALUES ('task_1', 'note_1')`).run()
+    db.prepare(`INSERT INTO Notes_Artifacts_links (from_id, to_id) VALUES ('note_1', 'art_2')`).run()
+    console.log('✅ Core entity M2M links: SUCCESS')
+
     console.log('\n🎉 ALL TESTS PASSED: Schema is ready for production development.')
   } catch (error) {
     console.error('\n❌ TEST FAILED:')

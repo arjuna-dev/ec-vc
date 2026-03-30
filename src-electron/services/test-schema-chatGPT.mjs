@@ -193,6 +193,15 @@ await runTest('Core tables exist', async () => {
     'Artifact_Raw',
     'Artifact_Llm_Ready',
     'Artifact_Llm_Generated',
+    'Artifacts_Contacts_links',
+    'Artifacts_Companies_links',
+    'Contacts_Notes_links',
+    'Companies_Notes_links',
+    'Funds_Artifacts_links',
+    'Rounds_Projects_links',
+    'Projects_Tasks_links',
+    'Tasks_Notes_links',
+    'Notes_Artifacts_links',
     'Artifacts_Industries',
     'Artifacts_Regions',
     'Artifact_Links',
@@ -528,6 +537,57 @@ await runTest('Join table CASCADE behavior sanity check', async () => {
     ['rg_test', '101'],
   )
   assert.equal(after.length, 0)
+})
+
+await runTest('Core entity join tables enforce FK + cascade deletes', async () => {
+  db.prepare(`INSERT INTO Notes (id, Note_Name, Note_Content) VALUES (?,?,?)`).run(
+    'note_core_link',
+    'Core note',
+    'hello',
+  )
+  db.prepare(`INSERT INTO Tasks (id, Task_Name) VALUES (?,?)`).run('task_core_link', 'Core task')
+  db.prepare(`INSERT INTO Contacts (id, Name) VALUES (?,?)`).run('contact_core_link', 'Core Contact')
+  db.prepare(`INSERT INTO Artifacts (artifact_id, title) VALUES (?,?)`).run(
+    'artifact_core_link',
+    'Core Artifact',
+  )
+
+  db.prepare(`INSERT INTO Notes_Artifacts_links (from_id, to_id) VALUES (?,?)`).run(
+    'note_core_link',
+    'artifact_core_link',
+  )
+  db.prepare(`INSERT INTO Contacts_Notes_links (from_id, to_id) VALUES (?,?)`).run(
+    'contact_core_link',
+    'note_core_link',
+  )
+  db.prepare(`INSERT INTO Tasks_Notes_links (from_id, to_id) VALUES (?,?)`).run(
+    'task_core_link',
+    'note_core_link',
+  )
+
+  mustThrow(
+    () =>
+      db.prepare(`INSERT INTO Notes_Artifacts_links (from_id, to_id) VALUES (?,?)`).run(
+        'note_core_link',
+        'missing_artifact',
+      ),
+    'FOREIGN KEY',
+  )
+
+  db.prepare(`DELETE FROM Notes WHERE id=?`).run('note_core_link')
+
+  assert.equal(
+    queryAll(db, `SELECT * FROM Notes_Artifacts_links WHERE from_id=?`, ['note_core_link']).length,
+    0,
+  )
+  assert.equal(
+    queryAll(db, `SELECT * FROM Contacts_Notes_links WHERE to_id=?`, ['note_core_link']).length,
+    0,
+  )
+  assert.equal(
+    queryAll(db, `SELECT * FROM Tasks_Notes_links WHERE to_id=?`, ['note_core_link']).length,
+    0,
+  )
 })
 
 await runTest('Pipeline stage must belong to pipeline (Round_Pipeline trigger)', async () => {

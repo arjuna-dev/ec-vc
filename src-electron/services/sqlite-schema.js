@@ -1,3 +1,71 @@
+const MAIN_ENTITY_RELATION_TABLES = [
+  {
+    table: 'Artifacts',
+    idColumn: 'artifact_id',
+    idType: 'TEXT',
+  },
+  {
+    table: 'Contacts',
+    idColumn: 'id',
+    idType: 'TEXT',
+  },
+  {
+    table: 'Companies',
+    idColumn: 'id',
+    idType: 'INTEGER',
+  },
+  {
+    table: 'Funds',
+    idColumn: 'id',
+    idType: 'TEXT',
+  },
+  {
+    table: 'Rounds',
+    idColumn: 'id',
+    idType: 'TEXT',
+  },
+  {
+    table: 'Projects',
+    idColumn: 'id',
+    idType: 'TEXT',
+  },
+  {
+    table: 'Tasks',
+    idColumn: 'id',
+    idType: 'TEXT',
+  },
+  {
+    table: 'Notes',
+    idColumn: 'id',
+    idType: 'TEXT',
+  },
+]
+
+function buildCoreEntityJoinTablesSql() {
+  return MAIN_ENTITY_RELATION_TABLES.flatMap((fromEntity) =>
+    MAIN_ENTITY_RELATION_TABLES.filter((toEntity) => toEntity.table !== fromEntity.table).map(
+      (toEntity) => {
+        const joinTable = `${fromEntity.table}_${toEntity.table}_links`
+
+        return `
+CREATE TABLE IF NOT EXISTS ${joinTable} (
+  from_id ${fromEntity.idType} NOT NULL,
+  to_id ${toEntity.idType} NOT NULL,
+  PRIMARY KEY (from_id, to_id),
+  FOREIGN KEY (from_id) REFERENCES ${fromEntity.table}(${fromEntity.idColumn}) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (to_id) REFERENCES ${toEntity.table}(${toEntity.idColumn}) ON UPDATE CASCADE ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_${joinTable}_to ON ${joinTable}(to_id);`
+      },
+    ),
+  ).join('\n\n')
+}
+
+const CORE_ENTITY_JOIN_TABLES_SQL = `
+-- Core entity M2M link tables for Artifact, Contact, Company, Fund, Round, Project, Task, and Note.
+${buildCoreEntityJoinTablesSql()}
+`
+
 const BASE_TABLES_SQL = `
 
 CREATE TABLE IF NOT EXISTS app_settings (
@@ -655,6 +723,8 @@ CREATE INDEX IF NOT EXISTS idx_notes_created_at ON Notes(created_at);
 `
 
 const RELATION_JOIN_TABLES_SQL = `
+
+${CORE_ENTITY_JOIN_TABLES_SQL}
 
 CREATE TABLE IF NOT EXISTS Regions_Companies_hq_region (
   from_id TEXT NOT NULL,
