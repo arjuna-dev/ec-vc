@@ -244,6 +244,22 @@ const documentTypeOptions = [
   'Text Document',
 ]
 
+const shouldResumeProcessingWindow = computed(() => {
+  if (!activeDraft.value || isResumeLinkMode.value) return false
+
+  return Boolean(
+    activeDraft.value.opportunityForm ||
+    activeDraft.value.companyForm ||
+    activeDraft.value.contactForm ||
+    Object.keys(activeDraft.value.ingestStatusByFile || {}).length > 0 ||
+    Object.keys(activeDraft.value.releasedMarkdownChunks || {}).length > 0 ||
+    (Array.isArray(activeDraft.value.draftArtifactIds) && activeDraft.value.draftArtifactIds.length > 0) ||
+    (Array.isArray(activeDraft.value.generatedNotes) && activeDraft.value.generatedNotes.length > 0) ||
+    (Array.isArray(activeDraft.value.generatedTasks) && activeDraft.value.generatedTasks.length > 0) ||
+    Object.keys(activeDraft.value.assistantProposal || {}).length > 0
+  )
+})
+
 let intakeGuideTimer = null
 
 async function loadAll() {
@@ -426,6 +442,12 @@ watch(
     if (!v) {
       intakeGuideDialogOpen.value = false
       clearIntakeGuideTimer()
+      return
+    }
+    if (shouldResumeProcessingWindow.value) {
+      await loadAll()
+      open.value = false
+      opportunityDialogOpen.value = true
       return
     }
     step.value = droppedFiles.value.length > 0 ? 2 : 1
