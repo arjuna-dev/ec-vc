@@ -98,6 +98,21 @@
   - Refine hierarchy browsing so levels, parents, and domains are easy to inspect
   - Make sure the hierarchy remains usable as the number of agents grows
 
+- [ ] **TASK-021:** Build visible intake tracker surface
+  - Show each active intake draft with stage, files, released chunks, verification state, and next action
+  - Make the tracker a first-class UI surface instead of hidden draft state only
+  - Keep the tracker aligned with staged markdown release and early extraction lanes
+
+- [ ] **TASK-022:** Finish dependable resume flow for artifact intake
+  - Ensure unfinished artifacts reopen the real processing draft before any fallback flow
+  - Add resume affordances consistently across cards, tables, and draft trays
+  - Prevent users from losing the processing window after an interrupted extraction
+
+- [ ] **TASK-023:** Harden staged verification behavior
+  - Do not re-ask for inputs that are already verified unless the suggested value changed
+  - Allow skip-and-continue behavior without breaking the tracker state
+  - Keep verified information expandable and inspectable during review
+
 ### 2.1 Week 1: Foundation and FS Operations
 
 **Goal:** Get basic file system mirroring and structure creation working

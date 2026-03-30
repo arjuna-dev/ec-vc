@@ -12,16 +12,19 @@ This is meant to reduce context loss while we move between product, schema, and 
 
 ## Front-Loaded
 
-- Align `Company` structure with the workbook-driven level-2 model
-- Redesign `DataBook` so it feels like an orderly workbook, not a reloading page
-- Align `EyeView` section groups with the same schema-level-2 structure as `DataBook`
-- Define hierarchical item addressing similar to workbook `Id_#`
+- Resume `Artifact Intake` as an active guided workflow
+- Keep the intake tracker visible so drafts can always be resumed
+- Stabilize the review loop so verified inputs stay verified and review can be skipped when needed
+- Keep document preview, artifact preview, and artifact share paths aligned with the numbered workspace files
+- Preserve workbook/schema alignment work without letting intake lose momentum
 
 ## Active
 
-- Review how current app structure deviates from workbook structure
-- Use `Company` as the reference implementation before propagating the pattern
-- Separate structural sections from relationship sections in `Company`
+- Artifact processing recovery and continuity
+- Intake draft resume flow from `Artifacts` cards and `Draft Files`
+- Verification dialog behavior and staged review UX
+- Visible document preview during staged markdown intake
+- Tracker-driven restart point for `Company`, `Opportunity`, and `Contacts` first-pass extraction
 
 ## Pending
 
@@ -30,22 +33,27 @@ This is meant to reduce context loss while we move between product, schema, and 
 - Align company `DataBook` tabs with workbook structural nodes
 - Decide which workbook labels stay technical and which get friendlier UI labels
 - Extend the same model to `Contacts`
+- Build a clearer intake tracker surface that shows stage, blockers, and next action per draft
+- Add a consistent resume affordance in both card and table views for unfinished artifacts
+- Define role ownership for intake stages under the new `Roles` / `Avatar` direction
 
 ## Parked For Later
 
-- Return to Artifact processing and Artifact review flow
 - Improve page-mapped markdown and Artifact audit trail
 - Standardize selected-state actions across all landing pages
 - Finish conforming grid cards and table views across all sections
 
 ## Notes
 
-- `Artifact processing` is intentionally parked, not dropped
-- current momentum is strongest around:
-  - schema alignment
-  - `EyeView`
-  - `DataBook`
-  - section structure
+- As of March 30, 2026, `Artifact processing` is active again
+- recent intake recovery work already completed:
+  - legacy workspace path normalization for preview/share/autofill
+  - document preview cards restored in the intake flow
+  - verification dialog can skip and expand verified info
+  - unfinished artifacts now expose direct resume affordances
+- current shared goal:
+  - get the intake tracker and processing window reliable enough that a user never loses their place
+- schema alignment work is still important, but intake continuity is the active operational thread
 
 ## Update Rule
 
@@ -53,4 +61,4 @@ When we make a meaningful change, do one of:
 
 - move an item from `Active` to `Pending`
 - move an item from `Pending` to `Front-Loaded`
-- add a short note if a workstream is intentionally parked
+- add a short note if a workstream is intentionally parked or intentionally reactivated

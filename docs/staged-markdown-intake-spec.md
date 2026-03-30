@@ -221,6 +221,82 @@ At the frontend level, the system should behave as if:
 4. defer `Notes`, `Tasks`, and `Assistant Proposal` until after early confirmation
 5. expose chunk and ownership status in the intake UI
 
+## Current Restart Point
+
+The workstream is no longer at the "invent the whole system" stage.
+It now has a partial frontend intake tracker and should restart from the current moving pieces.
+
+Already working in the frontend:
+
+- intake drafts persist in memory during the session
+- released markdown chunks can be previewed during intake
+- used metadata claims can be shown in review surfaces
+- verification can skip and continue instead of blocking the whole flow
+- unfinished artifacts can be resumed from the artifacts landing page
+
+The next restart point should be:
+
+1. keep the processing window reliably resumable
+2. keep `Company`, `Opportunity`, and `Contacts` extraction visible as the first-value lanes
+3. show clearer stage ownership and blocker state in the intake tracker
+4. avoid re-asking for values that are already verified unless the suggested value actually changed
+5. make the tracker itself a visible operating surface, not just hidden draft state
+
+## Intake Tracker Surface
+
+The intake tracker should become a simple visible control surface for each active draft.
+
+Recommended visible fields:
+
+- `draft_id`
+- `stage`
+- `current_message`
+- `files_count`
+- `released_chunks_count`
+- `company_status`
+- `opportunity_status`
+- `contacts_status`
+- `verification_status`
+- `next_action`
+- `resume_available`
+
+Recommended stage values:
+
+- `Dropped`
+- `Extracting`
+- `Matching`
+- `Quick Review Needed`
+- `Ready for Review`
+- `Waiting on Link`
+- `Ready to Create`
+- `Completed`
+- `Failed`
+
+## Resume Rule
+
+Every artifact or draft that is not `Completed` should have an easy visible way back into the processing window.
+
+That means:
+
+- `Draft Files` should keep a resume action
+- artifact cards should keep a resume action when intake is unfinished
+- table rows should get the same resume affordance
+- the system should reopen the real matching draft before it creates any new fallback draft
+
+## Short-Term Goal
+
+The short-term goal is not advanced automation.
+It is dependable continuity.
+
+The user should be able to say:
+
+- "I dropped the files"
+- "the process paused"
+- "I can see what was extracted"
+- "I can resume exactly where I left off"
+
+without losing confidence or context
+
 ## Out of Scope For This Pass
 
 This spec does not require changing the database schema.
