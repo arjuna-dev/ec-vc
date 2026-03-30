@@ -346,7 +346,7 @@ const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'accessibility_new' },
   { label: 'Settings', to: '/user-settings', exact: true, icon: 'settings' },
   { label: 'Avatar', to: '/avatar', exact: true, icon: 'smart_toy' },
-  { label: 'Agents', to: '/assistants', exact: true, icon: 'theater_comedy' },
+  { label: 'SRRs', to: '/assistants', exact: true, icon: 'theater_comedy' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--primary',
@@ -421,7 +421,7 @@ const routeLabelByName = {
   artifacts: 'Artifacts',
   notes: 'Notes',
   tasks: 'Tasks',
-  assistants: 'Agents',
+  assistants: 'SRRs',
   avatar: 'Avatar',
   'user-settings': 'Settings',
   'dealz-world-home': 'Home',

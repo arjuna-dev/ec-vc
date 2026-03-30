@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Agents requires Electron. Run <code>quasar dev -m electron</code> or
+        SRRs requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -24,7 +24,7 @@
         >
           <div class="assistants-shell__copy">
             <div class="assistants-shell__eyebrow">Dashboard</div>
-            <h2 class="assistants-shell__hero-title">Review the agents powering your workflows.</h2>
+            <h2 class="assistants-shell__hero-title">Review the SRR cards powering your workflows.</h2>
             <p class="assistants-shell__hero-text">{{ assistantsHeroText }}</p>
 
           </div>
@@ -109,7 +109,7 @@
               outlined
               borderless
               class="assistants-toolbar__search"
-              placeholder="Search agents..."
+              placeholder="Search SRRs..."
               :disable="loading"
             >
               <template #prepend>
@@ -130,7 +130,7 @@
             rounded
           >
             <div class="row items-center justify-between">
-              <div>No agents found.</div>
+              <div>No SRRs found.</div>
             </div>
           </q-banner>
 
@@ -197,10 +197,10 @@
                       <div class="assistant-card__hero-top">
                         <div class="assistant-card__hero-copy">
                           <div class="assistant-card__title">
-                            {{ assistant.name || 'Unnamed agent' }}
+                            {{ assistant.name || 'Unnamed SRR' }}
                           </div>
                           <div class="assistant-card__role">
-                            {{ assistant.domain || 'Agent domain' }} • {{ assistant.roleLabel || 'Unassigned role' }}
+                            {{ assistant.domain || 'SRR domain' }} • {{ assistant.roleLabel || 'Unassigned role' }}
                           </div>
                         </div>
                         <q-badge class="assistant-card__level-badge">
@@ -336,7 +336,7 @@ const assistantRoleOptions = [
   { label: 'File Stewards', value: 'file-steward' },
   { label: 'Pipeline Managers', value: 'pipeline-manager' },
   { label: 'Team Managers', value: 'team-manager' },
-  { label: 'Agents Managers', value: 'agents-manager' },
+  { label: 'SRR Managers', value: 'agents-manager' },
 ]
 
 const AGENT_HIERARCHY_BLUEPRINTS = [
@@ -427,11 +427,11 @@ const AGENT_HIERARCHY_BLUEPRINTS = [
         nextAction: 'Design the artifact intake process end to end.',
       },
       {
-        name: 'Agents Steward',
-        domain: 'Agents',
+        name: 'SRRs Steward',
+        domain: 'SRRs',
         parent: 'Avatar',
-        mission: 'Keep the agent operating system itself coherent and well documented.',
-        scope: 'Agent hierarchy, card model, and role definitions.',
+        mission: 'Keep the skills, roles, and responsibilities system coherent and well documented.',
+        scope: 'SRR hierarchy, card model, and role definitions.',
         responsibilities: ['Define roles', 'Track coverage', 'Maintain hierarchy'],
         keywords: ['agents', 'assistant', 'prompt'],
         nextAction: 'Attach live configs to hierarchy cards.',
@@ -537,7 +537,7 @@ const AGENT_HIERARCHY_BLUEPRINTS = [
 ]
 
 const columns = [
-  { name: 'name', label: 'Agent', field: 'name', align: 'left', sortable: true },
+  { name: 'name', label: 'SRR', field: 'name', align: 'left', sortable: true },
   { name: 'role', label: 'Role', field: 'roleLabel', align: 'left', sortable: true },
   { name: 'parent', label: 'Parent', field: 'parent', align: 'left', sortable: true },
   { name: 'version', label: 'Version', field: 'version', align: 'left', sortable: true },
@@ -572,16 +572,16 @@ const assistantsDashboard = computed(() => {
 const assistantsHeroText = computed(() => {
   const { total, promptedCount, versionedCount, contractCount } = assistantsDashboard.value
   if (!total) {
-    return 'Start building the agent roster. This page tracks active agent roles and their live configs.'
+    return 'Start building the SRR roster. This page tracks active skills, roles, responsibilities, and their live configs.'
   }
-  return `${total} agents tracked across active roles, ${promptedCount} with prompts, ${versionedCount} versioned, and ${contractCount} carrying input contract context.`
+  return `${total} SRR cards tracked across active roles, ${promptedCount} with prompts, ${versionedCount} versioned, and ${contractCount} carrying input contract context.`
 })
 
 const assistantsDashboardStats = computed(() => [
   {
-    label: 'Total agents',
+    label: 'Total SRRs',
     value: assistantsDashboard.value.total,
-    caption: 'Active agent roster',
+    caption: 'Active SRR roster',
     tone: 'neutral',
   },
   {
@@ -641,7 +641,7 @@ function deriveAgentRole(agent) {
   }
 
   if (haystack.includes('agent') || haystack.includes('prompt')) {
-    return { key: 'agents-manager', label: 'Agents Manager' }
+    return { key: 'agents-manager', label: 'SRR Manager' }
   }
 
   return { key: 'file-steward', label: 'File Steward' }
