@@ -477,12 +477,12 @@ const drawerNavigationSections = computed(() => [
     ],
   },
   {
-    label: 'Dealz World',
+    label: 'Dealz',
     key: 'preferences',
     items: ownerWorldNavigationItems,
   },
   {
-    label: 'Tokenz Market',
+    label: 'Tokenz',
     key: 'tokenzMarket',
     items: tokenzMarketNavigationItems,
   },
