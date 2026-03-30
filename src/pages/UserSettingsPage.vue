@@ -37,42 +37,6 @@
             </div>
 
             <p class="settings-shell__hero-text">{{ settingsHeroText }}</p>
-
-            <div class="settings-dashboard">
-              <div class="settings-dashboard__stats">
-                <article
-                  v-for="stat in settingsDashboardStats"
-                  :key="stat.label"
-                  class="settings-dashboard__stat"
-                  :class="`settings-dashboard__stat--${stat.tone}`"
-                >
-                  <div class="settings-dashboard__stat-label">{{ stat.label }}</div>
-                  <div class="settings-dashboard__stat-value">{{ stat.value }}</div>
-                  <div class="settings-dashboard__stat-caption">{{ stat.caption }}</div>
-                </article>
-              </div>
-
-              <div class="settings-dashboard__health">
-                <div class="settings-dashboard__health-copy">
-                  <div class="settings-dashboard__health-label">Profile health</div>
-                  <div class="settings-dashboard__health-text">
-                    {{ profileCompleteness.completeCount }} fields complete,
-                    {{ profileCompleteness.missingCount }} still open
-                  </div>
-                </div>
-
-                <div class="settings-dashboard__health-bar" aria-hidden="true">
-                  <span
-                    class="settings-dashboard__health-segment settings-dashboard__health-segment--missing"
-                    :style="{ width: `${profileCompleteness.missingShare}%` }"
-                  />
-                  <span
-                    class="settings-dashboard__health-segment settings-dashboard__health-segment--complete"
-                    :style="{ width: `${profileCompleteness.completeShare}%` }"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
 
           <div class="settings-hero-controls">
@@ -87,6 +51,10 @@
                   from the same base profile.
                 </div>
               </q-card-section>
+
+              <q-banner v-if="error" class="settings-form-card__error bg-red-2 text-black" rounded>
+                {{ error }}
+              </q-banner>
 
               <q-separator />
 
@@ -148,90 +116,27 @@
                   </div>
                 </div>
               </q-card-section>
-            </q-card>
 
-            <q-card bordered flat class="settings-sidecar settings-sidecar--hero">
-              <q-card-section class="settings-sidecar__header">
-                <div class="settings-form-card__eyebrow">Profile Signals</div>
-                <div class="settings-sidecar__title">Current setup</div>
-              </q-card-section>
               <q-separator />
-              <q-card-section class="settings-sidecar__body">
-                <div class="settings-sidecar__item">
-                  <span>Name</span><strong>{{ form.Name || '--' }}</strong>
-                </div>
-                <div class="settings-sidecar__item">
-                  <span>Email</span><strong>{{ form.User_PEmail || '--' }}</strong>
-                </div>
-                <div class="settings-sidecar__item">
-                  <span>Phone</span><strong>{{ form.Phone || '--' }}</strong>
-                </div>
-                <div class="settings-sidecar__item">
-                  <span>Region</span><strong>{{ form.Country_based || '--' }}</strong>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
 
-        </div>
-
-        <div class="settings-toolbar">
-          <div class="settings-toolbar__block settings-toolbar__block--status">
-            <q-icon name="tune" size="18px" class="settings-toolbar__filters-icon" />
-            <div class="settings-toolbar__status-copy">
-              <div class="settings-toolbar__status-label">Node profile</div>
-              <div class="settings-toolbar__status-value">{{ settingsStatusText }}</div>
-            </div>
-          </div>
-
-          <div class="settings-toolbar__block settings-toolbar__block--actions">
-            <B10Button
-              variant="subtle"
-              icon-start="refresh"
-              label="Reload"
-              :disable="saving"
-              :loading="loading"
-              @click="loadUserSettings"
-            />
-            <B10Button
-              variant="primary"
-              icon-start="save"
-              label="Save Settings"
-              :loading="saving"
-              :disable="loading"
-              @click="saveUserSettings"
-            />
-          </div>
-        </div>
-
-        <q-banner v-if="error" class="bg-red-2 text-black" rounded>
-          {{ error }}
-        </q-banner>
-
-        <div class="settings-loadout">
-          <div class="settings-loadout__header">
-            <div>
-              <div class="settings-form-card__eyebrow">Identity Deck</div>
-              <div class="settings-loadout__title">Profile focus cards</div>
-            </div>
-            <div class="settings-form-card__caption">
-              A quick read on what is ready, what is missing, and what the node will lean on next.
-            </div>
-          </div>
-
-          <div class="settings-loadout__grid">
-            <q-card
-              v-for="card in settingsFocusCards"
-              :key="card.label"
-              flat
-              bordered
-              class="settings-focus-card"
-            >
-              <q-card-section class="settings-focus-card__body">
-                <div class="settings-focus-card__label">{{ card.label }}</div>
-                <div class="settings-focus-card__value">{{ card.value }}</div>
-                <div class="settings-focus-card__caption">{{ card.caption }}</div>
-              </q-card-section>
+              <q-card-actions align="right" class="settings-form-card__actions">
+                <B10Button
+                  variant="subtle"
+                  icon-start="refresh"
+                  label="Reload"
+                  :disable="saving || loading"
+                  :loading="loading"
+                  @click="loadUserSettings"
+                />
+                <B10Button
+                  variant="primary"
+                  icon-start="save"
+                  label="Save Settings"
+                  :loading="saving"
+                  :disable="loading || !hasUnsavedChanges"
+                  @click="saveUserSettings"
+                />
+              </q-card-actions>
             </q-card>
           </div>
         </div>
@@ -267,30 +172,13 @@ const form = ref({
   LinkedIn: '',
   Country_based: '',
 })
-
-const profileFieldKeys = [
-  'Name',
-  'User_PEmail',
-  'Professional_Email',
-  'Phone',
-  'LinkedIn',
-  'Country_based',
-]
-
-const profileCompleteness = computed(() => {
-  const completeCount = profileFieldKeys.reduce((count, key) => {
-    return count + (String(form.value[key] || '').trim() ? 1 : 0)
-  }, 0)
-  const total = profileFieldKeys.length || 1
-  const missingCount = total - completeCount
-
-  return {
-    total,
-    completeCount,
-    missingCount,
-    completeShare: (completeCount / total) * 100,
-    missingShare: (missingCount / total) * 100,
-  }
+const savedForm = ref({
+  Name: '',
+  User_PEmail: '',
+  Professional_Email: '',
+  Phone: '',
+  LinkedIn: '',
+  Country_based: '',
 })
 
 const settingsHeroText = computed(() => {
@@ -301,60 +189,6 @@ const settingsHeroText = computed(() => {
 
   return `${form.value.Name || 'Owner'} is the local node profile. Keep the core contact details current so the rest of the workspace stays grounded in one shared identity.`
 })
-
-const settingsStatusText = computed(() => {
-  if (saving.value) return 'Saving changes...'
-  if (loading.value) return 'Loading profile...'
-  if (profileCompleteness.value.missingCount === 0) return 'Profile complete'
-  return `${profileCompleteness.value.missingCount} fields still need setup`
-})
-
-const settingsDashboardStats = computed(() => [
-  {
-    label: 'Owner name',
-    value: form.value.Name || '--',
-    caption: form.value.Name ? 'Local owner profile loaded' : 'Set the local owner name',
-    tone: form.value.Name ? 'rich' : 'sparse',
-  },
-  {
-    label: 'Primary email',
-    value: form.value.User_PEmail || '--',
-    caption: form.value.User_PEmail ? 'Main node email is set' : 'Add the main node email',
-    tone: form.value.User_PEmail ? 'rich' : 'sparse',
-  },
-  {
-    label: 'Profile fields',
-    value: `${profileCompleteness.value.completeCount}/${profileCompleteness.value.total}`,
-    caption: `${profileCompleteness.value.missingCount} fields remaining`,
-    tone: profileCompleteness.value.missingCount === 0 ? 'rich' : 'neutral',
-  },
-])
-
-const settingsFocusCards = computed(() => [
-  {
-    label: 'Profile readiness',
-    value: `${profileCompleteness.value.completeCount}/${profileCompleteness.value.total}`,
-    caption:
-      profileCompleteness.value.missingCount === 0
-        ? 'Everything needed is in place.'
-        : `${profileCompleteness.value.missingCount} details still need to be filled in.`,
-  },
-  {
-    label: 'Primary identity',
-    value: form.value.Name || 'Name pending',
-    caption: form.value.User_PEmail || 'Add the main email so the node has a stable owner identity.',
-  },
-  {
-    label: 'Professional layer',
-    value: form.value.Professional_Email || 'Professional email pending',
-    caption: form.value.LinkedIn || 'LinkedIn not set yet.',
-  },
-  {
-    label: 'Regional anchor',
-    value: form.value.Country_based || 'Country pending',
-    caption: form.value.Phone || 'Phone not set yet.',
-  },
-])
 
 function onHeroDashboardPointerEnter(event) {
   updateHeroDashboardGradientPosition(event)
@@ -396,6 +230,21 @@ function normalizeInput(value) {
   return String(value || '').trim()
 }
 
+function normalizedFormSignature(value) {
+  return JSON.stringify({
+    Name: normalizeInput(value?.Name),
+    User_PEmail: normalizeInput(value?.User_PEmail),
+    Professional_Email: normalizeInput(value?.Professional_Email),
+    Phone: normalizeInput(value?.Phone),
+    LinkedIn: normalizeInput(value?.LinkedIn),
+    Country_based: normalizeInput(value?.Country_based),
+  })
+}
+
+const hasUnsavedChanges = computed(
+  () => normalizedFormSignature(form.value) !== normalizedFormSignature(savedForm.value)
+)
+
 function mapContactToForm(contact = null) {
   return {
     Name: contact?.Name || '',
@@ -423,6 +272,7 @@ async function loadUserSettings() {
   try {
     const result = await bridge.value.userSettings.get()
     form.value = mapUserSettingsToForm(result)
+    savedForm.value = { ...form.value }
   } catch (e) {
     error.value = normalizeIpcErrorMessage(e)
   } finally {
@@ -469,6 +319,7 @@ async function saveUserSettings() {
     }
     const result = await bridge.value.userSettings.set(payload)
     form.value = mapUserSettingsToForm(result)
+    savedForm.value = { ...form.value }
     globalThis?.dispatchEvent?.(new Event('ecvc:user-label-changed'))
     $q.notify({ type: 'positive', message: 'User settings saved' })
   } catch (e) {
@@ -490,7 +341,7 @@ onMounted(() => {
 .settings-shell {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 18px;
 }
 
 .settings-shell__hero {
@@ -544,17 +395,7 @@ onMounted(() => {
   gap: 16px;
 }
 
-.settings-hero-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.settings-dashboard__stat-label,
-.settings-dashboard__health-label,
-.settings-form-card__eyebrow,
-.settings-toolbar__status-label,
-.settings-focus-card__label {
+.settings-form-card__eyebrow {
   color: #64748b;
   font-size: 0.75rem;
   font-weight: 700;
@@ -571,11 +412,11 @@ onMounted(() => {
   line-height: 0.94;
 }
 
-.settings-shell__hero-text {
-  max-width: 58ch;
+.settings-shell__hero-text,
+.settings-form-card__caption {
   color: #475569;
   font-family: var(--font-body);
-  font-size: 0.98rem;
+  font-size: 0.94rem;
   line-height: 1.65;
 }
 
@@ -621,142 +462,17 @@ onMounted(() => {
   text-align: center;
 }
 
-.settings-dashboard {
+.settings-hero-controls {
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 
-.settings-dashboard__stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.settings-dashboard__stat {
-  display: flex;
-  min-height: 112px;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 14px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(255, 255, 255, 0.82);
-}
-
-.settings-dashboard__stat--rich {
-  background: linear-gradient(180deg, rgba(239, 246, 255, 0.96), rgba(219, 234, 254, 0.92));
-}
-
-.settings-dashboard__stat--neutral {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
-}
-
-.settings-dashboard__stat--sparse {
-  background: linear-gradient(180deg, rgba(255, 247, 237, 0.96), rgba(255, 237, 213, 0.92));
-}
-
-.settings-dashboard__stat-value {
-  color: #0f172a;
-  font-family: var(--font-title);
-  font-size: 1.2rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1;
-}
-
-.settings-dashboard__stat-caption,
-.settings-dashboard__health-text,
-.settings-toolbar__status-value,
-.settings-form-card__caption,
-.settings-focus-card__caption {
-  color: #475569;
-  font-family: var(--font-body);
-  font-size: 0.88rem;
-  line-height: 1.55;
-}
-
-.settings-dashboard__health {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px 18px;
-  border-radius: 22px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(255, 255, 255, 0.78);
-}
-
-.settings-dashboard__health-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.settings-dashboard__health-bar {
-  display: flex;
-  overflow: hidden;
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(148, 163, 184, 0.18);
-}
-
-.settings-dashboard__health-segment {
-  height: 100%;
-}
-
-.settings-dashboard__health-segment--missing {
-  background: linear-gradient(90deg, #f97316, #fb923c);
-}
-
-.settings-dashboard__health-segment--complete {
-  background: linear-gradient(90deg, #2563eb, #60a5fa);
-}
-
-.settings-toolbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
-  padding: 16px 18px;
-  border-radius: 24px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
-}
-
-.settings-toolbar__block {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.settings-toolbar__block--actions {
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-.settings-toolbar__filters-icon {
-  color: #475569;
-}
-
-.settings-toolbar__status-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.settings-form-card,
-.settings-sidecar {
+.settings-form-card {
   border-radius: 24px;
   border-color: rgba(15, 23, 42, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
-}
-
-.settings-form-card--hero,
-.settings-sidecar--hero {
   background: rgba(255, 255, 255, 0.86);
   backdrop-filter: blur(14px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
 }
 
 .settings-form-card__header {
@@ -767,105 +483,24 @@ onMounted(() => {
   padding: 22px 24px 18px;
 }
 
-.settings-form-card__title,
-.settings-sidecar__title,
-.settings-loadout__title {
+.settings-form-card__title {
   color: #0f172a;
   font-family: var(--font-title);
+  font-size: 1.1rem;
   font-weight: var(--font-weight-black);
   line-height: 1;
 }
 
-.settings-form-card__title,
-.settings-sidecar__title {
-  font-size: 1.1rem;
+.settings-form-card__error {
+  margin: 0 24px 16px;
 }
 
-.settings-form-card__body,
-.settings-sidecar__body {
+.settings-form-card__body {
   padding: 24px;
 }
 
-.settings-sidecar__header {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 22px 24px 18px;
-}
-
-.settings-sidecar__body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.settings-sidecar__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.78);
-}
-
-.settings-sidecar__item span {
-  color: #64748b;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.settings-sidecar__item strong {
-  color: #0f172a;
-  font-size: 0.95rem;
-}
-
-.settings-loadout {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.settings-loadout__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.settings-loadout__title {
-  font-size: 1.35rem;
-}
-
-.settings-loadout__grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.settings-focus-card {
-  border-color: rgba(15, 23, 42, 0.08);
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
-  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
-}
-
-.settings-focus-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 18px;
-}
-
-.settings-focus-card__value {
-  color: #0f172a;
-  font-family: var(--font-title);
-  font-size: 1.15rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1.1;
+.settings-form-card__actions {
+  padding: 16px 24px 22px;
 }
 
 @media (max-width: 1120px) {
@@ -873,41 +508,20 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
-  .settings-dashboard__stats {
-    grid-template-columns: 1fr;
-  }
-
-  .settings-toolbar {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-  }
-
-  .settings-toolbar__block--actions,
-  .settings-form-card__header,
-  .settings-loadout__header {
-    justify-content: flex-start;
-  }
-
-  .settings-form-card__header,
-  .settings-loadout__header {
+  .settings-form-card__header {
     flex-direction: column;
-  }
-
-  .settings-loadout__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
   .settings-shell__hero,
-  .settings-toolbar,
   .settings-form-card__body,
-  .settings-sidecar__body {
+  .settings-form-card__actions {
     padding: 20px;
   }
 
-  .settings-loadout__grid {
-    grid-template-columns: 1fr;
+  .settings-form-card__error {
+    margin: 0 20px 16px;
   }
 }
 </style>
