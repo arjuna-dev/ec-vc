@@ -303,6 +303,16 @@
                 title="Open artifact review"
                 @click="void openArtifactForReview(group.previewArtifact)"
               />
+              <q-btn
+                v-if="artifactNeedsAttention(group.primaryArtifact)"
+                flat
+                round
+                icon="play_circle"
+                class="artifact-card__icon-action artifact-card__icon-action--resume"
+                :disable="loading || savingProperties"
+                title="Resume artifact processing"
+                @click="continueArtifactIntake(group.primaryArtifact)"
+              />
             </div>
 
             <div class="artifact-card__footer-actions">
@@ -3395,6 +3405,10 @@ watch(displayArtifactRows, () => {
 
 .artifact-card__icon-action {
   color: #475569;
+}
+
+.artifact-card__icon-action--resume {
+  color: #2563eb;
 }
 
 .artifact-properties__versions {
