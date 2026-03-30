@@ -202,6 +202,10 @@
                       label="System Notes"
                     />
                   </div>
+                </div>
+              </q-card-section>
+              <q-card-section v-else-if="activeHeroControl === 'keys'" class="avatar-card__body">
+                <div class="row q-col-gutter-md">
                   <div class="col-12">
                     <q-input
                       v-model="openaiApiKey"
@@ -243,7 +247,7 @@
                 </div>
               </q-card-section>
               <q-card-actions
-                v-if="activeHeroControl === 'operator'"
+                v-if="activeHeroControl === 'keys'"
                 align="right"
                 class="avatar-card__actions"
               >
@@ -397,6 +401,7 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const activeHeroControl = ref('shell')
+const heroControlOrder = ['shell', 'operator', 'keys']
 const openaiApiKey = ref('')
 const geminiApiKey = ref('')
 const showOpenaiApiKey = ref(false)
@@ -453,16 +458,27 @@ const llmModelLabel = computed(
 const autonomyLabel = computed(
   () => autonomyOptions.find((option) => option.value === llmProfile.value.autonomy)?.label || 'Balanced'
 )
-const activeHeroControlEyebrow = computed(() =>
-  activeHeroControl.value === 'shell' ? 'Tune Shell' : 'LLM Control'
-)
+const activeHeroControlEyebrow = computed(() => {
+  if (activeHeroControl.value === 'shell') return 'Tune Shell'
+  if (activeHeroControl.value === 'operator') return 'LLM Control'
+  return 'API Keys'
+})
 const activeHeroControlTitle = computed(() => '')
-const activeHeroControlCaption = computed(() =>
-  activeHeroControl.value === 'shell'
-    ? 'Set how the avatar looks, sounds, and introduces itself in the workspace.'
-    : 'Keep the familiar model controls and API fields close to the avatar builder.'
-)
-const activeHeroControlStepLabel = computed(() => (activeHeroControl.value === 'shell' ? '1 / 2' : '2 / 2'))
+const activeHeroControlCaption = computed(() => {
+  if (activeHeroControl.value === 'shell') {
+    return 'Set how the avatar looks, sounds, and introduces itself in the workspace.'
+  }
+
+  if (activeHeroControl.value === 'operator') {
+    return 'Keep the familiar model controls close to the avatar builder.'
+  }
+
+  return 'Store the provider keys that let your avatar operator connect when needed.'
+})
+const activeHeroControlStepLabel = computed(() => {
+  const currentIndex = heroControlOrder.indexOf(activeHeroControl.value)
+  return `${currentIndex + 1} / ${heroControlOrder.length}`
+})
 
 const avatarSummaryText = computed(
   () => normalizeInput(avatarProfile.value.originStory) || defaultAvatarProfile.originStory
@@ -660,11 +676,15 @@ function normalizeInput(value) {
 }
 
 function showPreviousHeroControl() {
-  activeHeroControl.value = activeHeroControl.value === 'shell' ? 'operator' : 'shell'
+  const currentIndex = heroControlOrder.indexOf(activeHeroControl.value)
+  const nextIndex = (currentIndex - 1 + heroControlOrder.length) % heroControlOrder.length
+  activeHeroControl.value = heroControlOrder[nextIndex]
 }
 
 function showNextHeroControl() {
-  activeHeroControl.value = activeHeroControl.value === 'shell' ? 'operator' : 'shell'
+  const currentIndex = heroControlOrder.indexOf(activeHeroControl.value)
+  const nextIndex = (currentIndex + 1) % heroControlOrder.length
+  activeHeroControl.value = heroControlOrder[nextIndex]
 }
 
 function applyBuildPreset(build) {
