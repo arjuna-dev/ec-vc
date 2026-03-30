@@ -16,153 +16,118 @@
 
     <div v-else class="avatar-page">
       <section class="avatar-shell">
-        <div class="avatar-studio">
-          <div class="avatar-studio__main">
-            <div
-              class="avatar-shell__hero"
-              :style="avatarHeroStyle"
-              @pointerenter="onHeroDashboardPointerEnter"
-              @pointermove="onHeroDashboardPointerMove"
-              @pointerleave="onHeroDashboardPointerLeave"
-            >
-              <div class="avatar-shell__copy">
-                <h2 class="avatar-shell__hero-title">Tune your Avatar</h2>
+        <div
+          class="avatar-shell__hero"
+          :style="avatarHeroStyle"
+          @pointerenter="onHeroDashboardPointerEnter"
+          @pointermove="onHeroDashboardPointerMove"
+          @pointerleave="onHeroDashboardPointerLeave"
+        >
+          <div class="avatar-shell__copy">
+            <h2 class="avatar-shell__hero-title">Tune your Avatar</h2>
 
-                <div class="avatar-preview-inline">
-                  <div class="avatar-preview-inline__stage">
-                    <div class="avatar-preview-inline__bot" :style="avatarBotStyle">
-                      <q-icon name="smart_toy" class="avatar-preview-inline__icon" />
-                    </div>
-                  </div>
-                  <div class="avatar-preview-inline__name">{{ avatarProfile.name || 'Mini-Me' }}</div>
-                  <div class="avatar-preview-inline__meta">
-                    {{ avatarArchetypeLabel }} / {{ avatarColorLabel }} / {{ avatarTemperamentLabel }}
-                  </div>
+            <div class="avatar-preview-inline">
+              <div class="avatar-preview-inline__stage">
+                <div class="avatar-preview-inline__bot" :style="avatarBotStyle">
+                  <q-icon name="smart_toy" class="avatar-preview-inline__icon" />
                 </div>
-
-                <p class="avatar-shell__hero-text">{{ avatarSummaryText }}</p>
               </div>
-
-              <div class="avatar-hero-stats">
-                <div v-for="stat in avatarHeroStats" :key="stat.label" class="avatar-hero-stat">
-                  <div class="avatar-hero-stat__label">{{ stat.label }}</div>
-                  <div class="avatar-hero-stat__value">{{ stat.value }}</div>
-                  <div class="avatar-hero-stat__caption">{{ stat.caption }}</div>
-                </div>
+              <div class="avatar-preview-inline__name">{{ avatarProfile.name || 'Mini-Me' }}</div>
+              <div class="avatar-preview-inline__meta">
+                {{ avatarArchetypeLabel }} / {{ avatarColorLabel }} / {{ avatarTemperamentLabel }}
               </div>
             </div>
 
-            <div class="avatar-toolbar">
-              <div class="avatar-toolbar__status">
-                <q-icon name="construction" size="18px" class="avatar-toolbar__icon" />
-                <div>
-                  <div class="avatar-toolbar__eyebrow">Builder Status</div>
-                  <div class="avatar-toolbar__text">{{ avatarStatusText }}</div>
-                </div>
-              </div>
+            <p class="avatar-shell__hero-text">{{ avatarSummaryText }}</p>
 
-              <div class="avatar-toolbar__actions">
-                <B10Button
-                  variant="subtle"
-                  icon-start="refresh"
-                  label="Reload Keys"
-                  :disable="saving"
-                  :loading="loading"
-                  @click="loadSettings"
-                />
-                <B10Button
-                  variant="primary"
-                  icon-start="save"
-                  label="Save Keys"
-                  :loading="saving"
-                  :disable="loading"
-                  @click="saveSettings"
-                />
+            <div class="avatar-hero-stats">
+              <div v-for="stat in avatarHeroStats" :key="stat.label" class="avatar-hero-stat">
+                <div class="avatar-hero-stat__label">{{ stat.label }}</div>
+                <div class="avatar-hero-stat__value">{{ stat.value }}</div>
+                <div class="avatar-hero-stat__caption">{{ stat.caption }}</div>
               </div>
             </div>
           </div>
 
-          <div class="avatar-studio__side">
-            <q-card flat bordered class="avatar-card">
-            <q-card-section class="avatar-card__header">
-              <div>
-                <div class="avatar-card__eyebrow">Avatar Tuning</div>
-                <div class="avatar-card__title">Tune the shell</div>
-              </div>
-              <div class="avatar-card__caption">
-                Set how the avatar looks, sounds, and introduces itself in the workspace.
-              </div>
-            </q-card-section>
-            <q-separator />
-            <q-card-section class="avatar-card__body">
-              <div class="row q-col-gutter-md">
-                <div class="col-12">
-                  <q-input v-model="avatarProfile.name" outlined dense label="Avatar Name" />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-select
-                    v-model="avatarProfile.archetype"
-                    outlined
-                    dense
-                    emit-value
-                    map-options
-                    label="Archetype"
-                    :options="avatarArchetypeOptions"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-select
-                    v-model="avatarProfile.colorway"
-                    outlined
-                    dense
-                    emit-value
-                    map-options
-                    label="Colorway"
-                    :options="avatarColorOptions"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-select
-                    v-model="avatarProfile.temperament"
-                    outlined
-                    dense
-                    emit-value
-                    map-options
-                    label="Temperament"
-                    :options="avatarTemperamentOptions"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-select
-                    v-model="avatarProfile.voice"
-                    outlined
-                    dense
-                    emit-value
-                    map-options
-                    label="Voice"
-                    :options="avatarVoiceOptions"
-                  />
-                </div>
-                <div class="col-12">
-                  <q-input
-                    v-model="avatarProfile.originStory"
-                    outlined
-                    autogrow
-                    type="textarea"
-                    label="Origin Story"
-                  />
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-
-            <q-card flat bordered class="avatar-card">
+          <div class="avatar-hero-controls">
+            <q-card flat bordered class="avatar-card avatar-card--hero">
               <q-card-section class="avatar-card__header">
-                <div class="col-12 col-md-6">
-                  <div>
-                    <div class="avatar-card__eyebrow">LLM Control</div>
-                    <div class="avatar-card__title">Tune the operator</div>
+                <div>
+                  <div class="avatar-card__eyebrow">Avatar Tuning</div>
+                  <div class="avatar-card__title">Tune the shell</div>
+                </div>
+                <div class="avatar-card__caption">
+                  Set how the avatar looks, sounds, and introduces itself in the workspace.
+                </div>
+              </q-card-section>
+              <q-separator />
+              <q-card-section class="avatar-card__body">
+                <div class="row q-col-gutter-md">
+                  <div class="col-12">
+                    <q-input v-model="avatarProfile.name" outlined dense label="Avatar Name" />
                   </div>
+                  <div class="col-12 col-md-6">
+                    <q-select
+                      v-model="avatarProfile.archetype"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      label="Archetype"
+                      :options="avatarArchetypeOptions"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-select
+                      v-model="avatarProfile.colorway"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      label="Colorway"
+                      :options="avatarColorOptions"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-select
+                      v-model="avatarProfile.temperament"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      label="Temperament"
+                      :options="avatarTemperamentOptions"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-select
+                      v-model="avatarProfile.voice"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      label="Voice"
+                      :options="avatarVoiceOptions"
+                    />
+                  </div>
+                  <div class="col-12">
+                    <q-input
+                      v-model="avatarProfile.originStory"
+                      outlined
+                      autogrow
+                      type="textarea"
+                      label="Origin Story"
+                    />
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <q-card flat bordered class="avatar-card avatar-card--hero">
+              <q-card-section class="avatar-card__header">
+                <div>
+                  <div class="avatar-card__eyebrow">LLM Control</div>
+                  <div class="avatar-card__title">Tune the operator</div>
                 </div>
                 <div class="avatar-card__caption">
                   Keep the familiar model controls and API fields close to the avatar builder.
@@ -280,6 +245,35 @@
                 </div>
               </q-card-section>
             </q-card>
+          </div>
+        </div>
+
+        <div class="avatar-toolbar">
+          <div class="avatar-toolbar__status">
+            <q-icon name="construction" size="18px" class="avatar-toolbar__icon" />
+            <div>
+              <div class="avatar-toolbar__eyebrow">Builder Status</div>
+              <div class="avatar-toolbar__text">{{ avatarStatusText }}</div>
+            </div>
+          </div>
+
+          <div class="avatar-toolbar__actions">
+            <B10Button
+              variant="subtle"
+              icon-start="refresh"
+              label="Reload Keys"
+              :disable="saving"
+              :loading="loading"
+              @click="loadSettings"
+            />
+            <B10Button
+              variant="primary"
+              icon-start="save"
+              label="Save Keys"
+              :loading="saving"
+              :disable="loading"
+              @click="saveSettings"
+            />
           </div>
         </div>
 
@@ -781,24 +775,10 @@ onMounted(() => {
   gap: 24px;
 }
 
-.avatar-studio {
-  display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
-  gap: 18px;
-  align-items: start;
-}
-
-.avatar-studio__main,
-.avatar-studio__side {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
 .avatar-shell__hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);
   gap: 24px;
   padding: 28px;
   overflow: hidden;
@@ -844,6 +824,12 @@ onMounted(() => {
   justify-content: space-between;
   gap: 18px;
   min-height: 100%;
+}
+
+.avatar-hero-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .avatar-card__eyebrow,
@@ -999,6 +985,11 @@ onMounted(() => {
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
 }
 
+.avatar-card--hero {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(14px);
+}
+
 .avatar-card__header,
 .avatar-sidecar__header {
   display: flex;
@@ -1140,7 +1131,6 @@ onMounted(() => {
 }
 
 @media (max-width: 1200px) {
-  .avatar-studio,
   .avatar-shell__hero,
   .avatar-loadout__grid {
     grid-template-columns: 1fr;
