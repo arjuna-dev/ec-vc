@@ -199,96 +199,29 @@
                   />
                 </div>
 
-                <div v-if="getArtifactCardPills(group).length" class="artifact-card__pill-row">
-                  <q-badge
-                    v-for="pill in getArtifactCardPills(group)"
-                    :key="pill"
-                    class="artifact-card__pill"
+                <div class="artifact-card__inline-summary">
+                  <div class="artifact-card__summary-label">Artifact summary</div>
+                  <div class="artifact-card__details artifact-card__details--compact">
+                    <div
+                      v-for="detail in getArtifactCardDetails(group)"
+                      :key="detail.label"
+                      class="artifact-card__detail"
+                    >
+                      <q-icon :name="detail.icon" size="16px" class="artifact-card__detail-icon" />
+                      <div class="artifact-card__detail-copy">
+                        <div class="artifact-card__detail-label">{{ detail.label }}</div>
+                        <div class="artifact-card__detail-value">{{ detail.value }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    v-if="group.primaryArtifact.description"
+                    class="artifact-card__description artifact-card__description--inline"
                   >
-                    {{ pill }}
-                  </q-badge>
-                </div>
-
-                <div class="artifact-card__quick-actions">
-                  <q-btn
-                    outline
-                    no-caps
-                    unelevated
-                    size="sm"
-                    class="artifact-card__quick-action"
-                    icon="visibility"
-                    label="Preview"
-                    :disable="loading"
-                    @click="void openArtifactForReview(group.previewArtifact)"
-                  />
-                  <q-btn-dropdown
-                    outline
-                    no-caps
-                    unelevated
-                    size="sm"
-                    class="artifact-card__quick-action artifact-card__quick-action--dropdown"
-                    icon="share"
-                    label="Share"
-                    :disable="loading"
-                    dropdown-icon="keyboard_arrow_down"
-                  >
-                    <q-list dense style="min-width: 180px">
-                      <q-item clickable v-close-popup @click="void shareArtifact(group.previewArtifact)">
-                        <q-item-section avatar>
-                          <q-icon name="folder_open" />
-                        </q-item-section>
-                        <q-item-section>
-                          <q-item-label>Reveal in Folder</q-item-label>
-                        </q-item-section>
-                      </q-item>
-                      <q-item clickable v-close-popup @click="void downloadArtifact(group.previewArtifact)">
-                        <q-item-section avatar>
-                          <q-icon name="download" />
-                        </q-item-section>
-                        <q-item-section>
-                          <q-item-label>Download</q-item-label>
-                        </q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-btn-dropdown>
-                  <q-btn
-                    outline
-                    no-caps
-                    unelevated
-                    size="sm"
-                    class="artifact-card__quick-action"
-                    :icon="artifactActionConfig(group.primaryArtifact).icon"
-                    :label="artifactActionConfig(group.primaryArtifact).label"
-                    :disable="loading || savingProperties"
-                    @click="continueArtifactIntake(group.primaryArtifact)"
-                  />
+                    {{ group.primaryArtifact.description }}
+                  </div>
                 </div>
               </div>
-            </div>
-          </q-card-section>
-
-          <q-card-section class="artifact-card__summary">
-            <div class="artifact-card__summary-label">Highlights</div>
-
-            <div class="artifact-card__details">
-              <div
-                v-for="detail in getArtifactCardDetails(group)"
-                :key="detail.label"
-                class="artifact-card__detail"
-              >
-                <q-icon :name="detail.icon" size="16px" class="artifact-card__detail-icon" />
-                <div class="artifact-card__detail-copy">
-                  <div class="artifact-card__detail-label">{{ detail.label }}</div>
-                  <div class="artifact-card__detail-value">{{ detail.value }}</div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              v-if="group.primaryArtifact.description"
-              class="artifact-card__description"
-            >
-              {{ group.primaryArtifact.description }}
             </div>
           </q-card-section>
 
@@ -1958,14 +1891,6 @@ function getArtifactCardSubtitle(group = {}) {
   return format ? `${group?.versionSummary || 'Single version'} • ${format}` : group?.versionSummary || 'Document'
 }
 
-function getArtifactCardPills(group = {}) {
-  return [
-    artifactStatusLabel(group?.primaryArtifact),
-    String(group?.primaryArtifact?.artifact_format || '').trim(),
-    group?.artifacts?.length > 1 ? group.versionSummary : '',
-  ].filter(Boolean)
-}
-
 function getArtifactCardDetails(group = {}) {
   return [
     {
@@ -2076,20 +2001,6 @@ function artifactNextAction(row = {}) {
   if (!title || !description) return 'artifact-properties'
   if (!opportunityId) return 'link-opportunity'
   return 'ready'
-}
-
-function artifactStatusLabel(row = {}) {
-  const nextAction = artifactNextAction(row)
-  if (nextAction === 'artifact-properties') return 'Needs properties'
-  if (nextAction === 'link-opportunity') return 'Needs opportunity link'
-  return 'Ready'
-}
-
-function artifactActionConfig(row = {}) {
-  const nextAction = artifactNextAction(row)
-  if (nextAction === 'artifact-properties') return { icon: 'tune', label: 'Fix Properties', iconOnly: true }
-  if (nextAction === 'link-opportunity') return { icon: 'link', label: 'Link Opportunity', iconOnly: false }
-  return { icon: 'tune', label: 'Open Properties', iconOnly: true }
 }
 
 function filterOpportunityOptions(value, update) {
@@ -2833,16 +2744,6 @@ function createEmptyPreviewState() {
   }
 }
 
-async function downloadArtifact(row) {
-  const artifactId = String(row?.artifact_id || '').trim()
-  if (!artifactId || !bridge.value?.artifacts?.download) return
-  try {
-    await bridge.value.artifacts.download({ artifactId })
-  } catch (e) {
-    $q.notify({ type: 'negative', message: e?.message || String(e) })
-  }
-}
-
 async function shareArtifact(row, options = {}) {
   const artifactId = String(row?.artifact_id || '').trim()
   if (!artifactId || !bridge.value?.artifacts?.share) return
@@ -3427,19 +3328,19 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card__hero {
-  padding-bottom: 12px;
+  padding-bottom: 10px;
 }
 
 .artifact-card__hero-main {
   display: grid;
   grid-template-columns: minmax(88px, 104px) minmax(0, 1fr);
   align-items: stretch;
-  gap: 16px;
+  gap: 14px;
 }
 
 .artifact-card__portrait {
   margin: 0;
-  min-height: 168px;
+  min-height: 140px;
   position: relative;
 }
 
@@ -3457,7 +3358,7 @@ watch(displayArtifactRows, () => {
   z-index: 1;
   display: flex;
   height: 100%;
-  min-height: 168px;
+  min-height: 140px;
   align-items: center;
   justify-content: center;
   border-radius: 28px;
@@ -3488,7 +3389,7 @@ watch(displayArtifactRows, () => {
   flex-direction: column;
   justify-content: space-between;
   min-width: 0;
-  gap: 12px;
+  gap: 10px;
 }
 
 .artifact-card__hero-top {
@@ -3511,44 +3412,15 @@ watch(displayArtifactRows, () => {
   line-height: 1.4;
 }
 
-.artifact-card__pill-row {
+.artifact-card__inline-summary {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.artifact-card__pill {
-  border-radius: 999px;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.78);
-  color: #334155;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-}
-
-.artifact-card__quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.artifact-card__quick-action {
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(148, 163, 184, 0.22);
-  color: #334155;
-}
-
-.artifact-card__quick-action--dropdown :deep(.q-btn-dropdown__arrow) {
-  margin-left: 2px;
-}
-
-.artifact-card__summary {
-  display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  gap: 10px;
+  margin-top: auto;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
 }
 
 .artifact-card__summary-label {
@@ -3562,6 +3434,10 @@ watch(displayArtifactRows, () => {
 .artifact-card__details {
   display: grid;
   gap: 10px;
+}
+
+.artifact-card__details--compact {
+  gap: 8px;
 }
 
 .artifact-card__detail {
@@ -3602,6 +3478,10 @@ watch(displayArtifactRows, () => {
   overflow: hidden;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+.artifact-card__description--inline {
+  margin-top: 0;
 }
 
 .artifact-card__footer {
@@ -4006,16 +3886,11 @@ watch(displayArtifactRows, () => {
   }
 
   .artifact-card__portrait {
-    min-height: 132px;
+    min-height: 112px;
   }
 
   .artifact-card__portrait-shell {
-    min-height: 132px;
-  }
-
-  .artifact-card__quick-actions {
-    flex-direction: column;
-    align-items: stretch;
+    min-height: 112px;
   }
 
   .artifact-preview-dialog {
