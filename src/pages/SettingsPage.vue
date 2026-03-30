@@ -250,6 +250,20 @@
                   </div>
                 </div>
               </q-card-section>
+              <q-card-actions
+                v-if="activeHeroControl === 'operator'"
+                align="right"
+                class="avatar-card__actions"
+              >
+                <B10Button
+                  variant="primary"
+                  icon-start="save"
+                  label="Save Keys"
+                  :loading="saving"
+                  :disable="loading"
+                  @click="saveSettings"
+                />
+              </q-card-actions>
               <q-card-section v-else class="avatar-card__body avatar-card__body--builds">
                 <div class="avatar-builds-inline">
                   <q-card
@@ -307,14 +321,6 @@
               :disable="saving"
               :loading="loading"
               @click="loadSettings"
-            />
-            <B10Button
-              variant="primary"
-              icon-start="save"
-              label="Save Keys"
-              :loading="saving"
-              :disable="loading"
-              @click="saveSettings"
             />
           </div>
         </div>
@@ -1076,6 +1082,10 @@ onMounted(() => {
 
 .avatar-card__body--builds {
   padding-top: 18px;
+}
+
+.avatar-card__actions {
+  padding: 0 24px 22px;
 }
 
 .avatar-builds-inline {
