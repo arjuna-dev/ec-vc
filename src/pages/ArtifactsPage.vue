@@ -636,13 +636,13 @@
         </q-card>
       </q-dialog>
 
-      <q-dialog v-model="previewDialogOpen" maximized @hide="closePreviewDialog">
+      <q-dialog v-model="previewDialogOpen" @hide="closePreviewDialog">
         <q-card class="artifact-preview-dialog">
           <q-card-section class="row items-center justify-between q-col-gutter-md">
             <div class="col">
-              <div class="text-h6">{{ previewState.fileName || 'Artifact preview' }}</div>
+              <div class="text-h6">{{ previewState.fileName || 'Artifact review' }}</div>
               <div class="text-caption text-grey-7">
-                {{ previewLoading ? 'Loading preview...' : previewKindLabel }}
+                {{ previewLoading ? 'Loading review...' : previewKindLabel }}
               </div>
             </div>
             <div class="col-auto">
@@ -651,7 +651,7 @@
                 dense
                 no-caps
                 icon="right_panel_open"
-                :label="previewSidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'"
+                :label="previewSidebarOpen ? 'Hide Markdown' : 'Show Markdown'"
                 @click="togglePreviewSidebar"
               />
               <q-btn flat round dense icon="close" @click="closePreviewDialog" />
@@ -660,11 +660,13 @@
 
           <q-separator />
 
-          <q-card-section class="artifact-preview-dialog__body artifact-preview-dialog__body--split">
+          <q-card-section class="artifact-preview-dialog__body">
+            <div class="artifact-preview-dialog__workspace">
+              <div class="artifact-preview-dialog__top">
             <div class="artifact-preview-dialog__main">
               <div v-if="previewLoading" class="artifact-preview-dialog__state">
                 <q-spinner color="primary" size="40px" />
-                <div class="text-subtitle2 q-mt-md">Loading artifact preview</div>
+                <div class="text-subtitle2 q-mt-md">Loading artifact review</div>
               </div>
 
               <iframe
@@ -929,6 +931,84 @@
                 </div>
               </div>
             </aside>
+              </div>
+
+              <div class="artifact-preview-dialog__bottom">
+                <q-tabs
+                  v-model="previewReviewTab"
+                  dense
+                  no-caps
+                  active-color="primary"
+                  indicator-color="primary"
+                  align="left"
+                  class="artifact-preview-dialog__tabs"
+                >
+                  <q-tab
+                    v-for="tab in previewReviewTabs"
+                    :key="tab.key"
+                    :name="tab.key"
+                    :label="tab.label"
+                  />
+                </q-tabs>
+
+                <q-separator />
+
+                <q-tab-panels
+                  v-model="previewReviewTab"
+                  animated
+                  class="artifact-preview-dialog__tab-panels"
+                >
+                  <q-tab-panel
+                    v-for="tab in previewReviewTabs"
+                    :key="tab.key"
+                    :name="tab.key"
+                    class="artifact-preview-dialog__tab-panel"
+                  >
+                    <div class="artifact-preview-dialog__panel-head">
+                      <div>
+                        <div class="text-subtitle2">{{ tab.label }}</div>
+                        <div class="text-caption text-grey-7">{{ tab.caption }}</div>
+                      </div>
+                    </div>
+
+                    <div v-if="tab.rows.length" class="artifact-preview-dialog__claim-grid">
+                      <article
+                        v-for="claim in tab.rows"
+                        :key="claim.claim_id"
+                        class="artifact-preview-dialog__claim-card"
+                      >
+                        <div class="artifact-preview-dialog__claim-card-top">
+                          <div>
+                            <div class="artifact-preview-dialog__claim-card-label">{{ claim.field_label }}</div>
+                            <div class="artifact-preview-dialog__claim-card-value">{{ claim.field_value || 'No value' }}</div>
+                          </div>
+                          <q-chip
+                            dense
+                            square
+                            :color="claim.verification_state === 'verified' ? 'green-1' : 'amber-2'"
+                            :text-color="claim.verification_state === 'verified' ? 'green-9' : 'amber-10'"
+                          >
+                            {{ claim.verification_state === 'verified' ? 'Verified' : 'Proposed' }}
+                          </q-chip>
+                        </div>
+                        <div class="text-caption text-grey-7">
+                          {{ claim.owner_table || 'Draft Intake' }} • {{ claim.consumer_lane || 'Review' }}
+                        </div>
+                        <div class="text-caption text-blue-9 q-mt-xs">
+                          Golden item: {{ claim.item_box }}
+                        </div>
+                        <div v-if="claim.source_chunk_id" class="text-caption text-grey-6 q-mt-xs">
+                          Source chunk: {{ claim.source_chunk_id }}
+                        </div>
+                      </article>
+                    </div>
+                    <div v-else class="artifact-preview-dialog__tab-empty text-caption text-grey-6">
+                      No linked review items are available for this file system area yet.
+                    </div>
+                  </q-tab-panel>
+                </q-tab-panels>
+              </div>
+            </div>
           </q-card-section>
         </q-card>
       </q-dialog>
@@ -1029,6 +1109,7 @@ const previewMarkdownArtifactId = ref('')
 const previewSelectedSectionKey = ref('')
 const previewSelectedFocusClaimId = ref('')
 const previewCurrentPage = ref(1)
+const previewReviewTab = ref('golden-items')
 const propertiesDialogOpen = ref(false)
 const savingProperties = ref(false)
 const propertiesError = ref('')
@@ -1604,6 +1685,47 @@ const previewSelectedFocusClaim = computed(() => {
   )
 })
 
+function previewTabKeyForClaim(claim = {}) {
+  const ownerTable = String(claim?.owner_table || '').trim()
+  if (ownerTable) return ownerTable.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  const itemBox = String(claim?.item_box || '').trim()
+  return itemBox ? itemBox.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'draft-intake'
+}
+
+function previewTabLabelForClaim(claim = {}) {
+  const ownerTable = String(claim?.owner_table || '').trim()
+  if (ownerTable) return ownerTable
+  const itemBox = String(claim?.item_box || '').trim()
+  return itemBox || 'Draft Intake'
+}
+
+const previewReviewTabs = computed(() => {
+  const tabs = [
+    {
+      key: 'golden-items',
+      label: 'Golden Items',
+      caption: 'Priority claims and linked review items across the current document.',
+      rows: previewUsedClaimRows.value,
+    },
+  ]
+
+  const grouped = new Map()
+  for (const claim of previewConnectedClaimRows.value) {
+    const key = previewTabKeyForClaim(claim)
+    if (!grouped.has(key)) {
+      grouped.set(key, {
+        key,
+        label: previewTabLabelForClaim(claim),
+        caption: `Items that map into ${previewTabLabelForClaim(claim)} in the file system.`,
+        rows: [],
+      })
+    }
+    grouped.get(key).rows.push(claim)
+  }
+
+  return [...tabs, ...grouped.values()]
+})
+
 const previewPrimaryArtifact = computed(() => previewArtifactGroup.value?.primaryArtifact || null)
 
 const showContinueDocumentReview = computed(
@@ -1611,6 +1733,17 @@ const showContinueDocumentReview = computed(
     Boolean(previewPrimaryArtifact.value?.artifact_id) &&
     !previewMarkdownLoading.value &&
     (!previewSelectedMarkdownSection.value || !previewUsedClaimRows.value.length),
+)
+
+watch(
+  previewReviewTabs,
+  (tabs) => {
+    const current = String(previewReviewTab.value || '').trim()
+    if (!tabs.some((tab) => tab.key === current)) {
+      previewReviewTab.value = tabs[0]?.key || 'golden-items'
+    }
+  },
+  { immediate: true },
 )
 
 async function loadArtifacts() {
@@ -2768,6 +2901,7 @@ function closePreviewDialog() {
   previewSelectedSectionKey.value = ''
   previewSelectedFocusClaimId.value = ''
   previewCurrentPage.value = 1
+  previewReviewTab.value = 'golden-items'
   resetPreviewPdfObjectUrl()
   previewState.value = createEmptyPreviewState()
 }
@@ -3508,30 +3642,47 @@ watch(displayArtifactRows, () => {
 .artifact-preview-dialog {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  width: min(1360px, 94vw);
+  height: min(88vh, 920px);
+  border-radius: 28px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
+    #fff;
+  box-shadow:
+    0 26px 80px rgba(15, 23, 42, 0.24),
+    0 10px 28px rgba(15, 23, 42, 0.16);
 }
 
 .artifact-preview-dialog__body {
   flex: 1;
   min-height: 0;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
+  padding: 0;
   background: #f8fafc;
 }
 
-.artifact-preview-dialog__body--split {
-  gap: 0;
-  padding: 0;
+.artifact-preview-dialog__workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.artifact-preview-dialog__top {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 56%;
 }
 
 .artifact-preview-dialog__main {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   position: relative;
   align-items: stretch;
   justify-content: center;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(241, 245, 249, 0.92), rgba(226, 232, 240, 0.72));
 }
 
 .artifact-preview-dialog__focus-chips {
@@ -3592,15 +3743,18 @@ watch(displayArtifactRows, () => {
 .artifact-preview-dialog__frame {
   width: 100%;
   height: 100%;
-  min-height: 70vh;
+  min-height: 0;
   border: 0;
   background: white;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
 }
 
 .artifact-preview-dialog__image {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  border-radius: 18px;
 }
 
 .artifact-preview-dialog__text {
@@ -3616,7 +3770,7 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-preview-sidebar {
-  width: min(420px, 38vw);
+  width: min(420px, 32vw);
   min-width: 320px;
   max-width: 460px;
   display: flex;
@@ -3628,6 +3782,77 @@ watch(displayArtifactRows, () => {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
     #fff;
+}
+
+.artifact-preview-dialog__bottom {
+  display: flex;
+  min-height: 0;
+  flex: 0 0 42%;
+  flex-direction: column;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.artifact-preview-dialog__tabs {
+  padding: 0 14px;
+  min-height: 48px;
+}
+
+.artifact-preview-dialog__tab-panels {
+  flex: 1;
+  min-height: 0;
+  background: transparent;
+}
+
+.artifact-preview-dialog__tab-panel {
+  height: 100%;
+  overflow: auto;
+}
+
+.artifact-preview-dialog__panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.artifact-preview-dialog__claim-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.artifact-preview-dialog__claim-card {
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.82);
+}
+
+.artifact-preview-dialog__claim-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.artifact-preview-dialog__claim-card-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.artifact-preview-dialog__claim-card-value {
+  margin-top: 4px;
+  color: #0f172a;
+  line-height: 1.45;
+}
+
+.artifact-preview-dialog__tab-empty {
+  padding: 16px 0;
 }
 
 .artifact-preview-sidebar__section {
@@ -3724,8 +3949,21 @@ watch(displayArtifactRows, () => {
 }
 
 @media (max-width: 900px) {
+  .artifact-preview-dialog {
+    width: 96vw;
+    height: 92vh;
+  }
+
+  .artifact-preview-dialog__top {
+    flex-direction: column;
+  }
+
   .artifact-preview-sidebar {
-    width: min(360px, 44vw);
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    border-left: 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
   }
 }
 
@@ -3780,17 +4018,26 @@ watch(displayArtifactRows, () => {
     align-items: stretch;
   }
 
-  .artifact-preview-dialog__body--split {
-    flex-direction: column;
+  .artifact-preview-dialog {
+    width: 98vw;
+    height: 94vh;
   }
 
-  .artifact-preview-sidebar {
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-    min-height: 240px;
-    border-left: 0;
-    border-top: 1px solid rgba(148, 163, 184, 0.25);
+  .artifact-preview-dialog__top {
+    flex: 1 1 auto;
+  }
+
+  .artifact-preview-dialog__main {
+    min-height: 260px;
+    padding: 12px;
+  }
+
+  .artifact-preview-dialog__bottom {
+    flex: 0 0 48%;
+  }
+
+  .artifact-preview-dialog__claim-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
