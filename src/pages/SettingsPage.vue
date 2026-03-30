@@ -24,18 +24,8 @@
           @pointerleave="onHeroDashboardPointerLeave"
         >
           <div class="avatar-shell__copy">
-            <div class="avatar-shell__eyebrow">Avatar Builder</div>
             <h2 class="avatar-shell__hero-title">Build the node avatar, then tune how it thinks.</h2>
-            <p class="avatar-shell__hero-text">
-              Shape the Level 0 presence with a live preview, game-like identity controls, and the
-              usual LLM configuration inputs on the same page.
-            </p>
-
-            <div class="avatar-shell__pill-row">
-              <q-badge v-for="pill in avatarHeroPills" :key="pill" class="avatar-shell__pill">
-                {{ pill }}
-              </q-badge>
-            </div>
+            <p class="avatar-shell__hero-text">Tune your Avatar's Parameters.</p>
           </div>
 
           <div class="avatar-preview-card">
@@ -304,7 +294,6 @@ const llmProviderLabel = computed(() => providerOptions.find((o) => o.value === 
 const llmModelLabel = computed(() => modelOptions.find((o) => o.value === llmProfile.value.model)?.label || 'Balanced default')
 const autonomyLabel = computed(() => autonomyOptions.find((o) => o.value === llmProfile.value.autonomy)?.label || 'Balanced')
 
-const avatarHeroPills = computed(() => [avatarArchetypeLabel.value, avatarColorLabel.value, llmProviderLabel.value])
 const avatarStatusText = computed(() => saving.value ? 'Saving provider keys...' : loading.value ? 'Loading avatar control surface...' : `${avatarProfile.value.name || 'Avatar'} is set to ${avatarArchetypeLabel.value.toLowerCase()} mode with ${llmProviderLabel.value}.`)
 const avatarHeroStyle = computed(() => {
   const theme = avatarThemeMap[avatarProfile.value.colorway] || avatarThemeMap['aurora-blue']
@@ -411,12 +400,10 @@ onMounted(() => {
 .avatar-shell__hero::before{position:absolute;inset:0;content:'';background:radial-gradient(circle at var(--hero-dashboard-blob-x,50%) var(--hero-dashboard-blob-y,28%),var(--avatar-hero-shadow) 0%,var(--avatar-hero-soft) 34%,transparent 64%);opacity:var(--hero-dashboard-blob-opacity,0);pointer-events:none;transition:opacity 180ms ease}
 .avatar-shell__hero:hover{transform:translateY(-2px);box-shadow:0 28px 56px rgba(15,23,42,.1)}
 .avatar-shell__hero>*{position:relative;z-index:1}
-.avatar-shell__copy{display:flex;flex-direction:column;gap:16px}
+.avatar-shell__copy{display:flex;flex-direction:column;justify-content:flex-end;gap:16px}
 .avatar-shell__eyebrow,.avatar-card__eyebrow,.avatar-toolbar__eyebrow,.avatar-preview-card__label{color:#64748b;font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
 .avatar-shell__hero-title{margin:0;color:#0f172a;font-family:var(--font-title);font-size:clamp(2rem,3vw,2.9rem);font-weight:var(--font-weight-black);line-height:.94;max-width:12ch}
 .avatar-shell__hero-text,.avatar-card__caption,.avatar-toolbar__text,.avatar-preview-card__meta{color:#475569;font-family:var(--font-body);line-height:1.6}
-.avatar-shell__pill-row{display:flex;flex-wrap:wrap;gap:8px}
-.avatar-shell__pill{padding:6px 10px;color:#111827;background:rgba(255,255,255,.82);border:1px solid rgba(17,17,17,.08);border-radius:999px;font-size:11px;font-weight:600}
 .avatar-preview-card{display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:24px;border:1px solid rgba(15,23,42,.08);background:rgba(255,255,255,.74);backdrop-filter:blur(18px)}
 .avatar-preview-card__stage{display:flex;align-items:center;justify-content:center;min-height:280px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(226,232,240,.45))}
 .avatar-preview-card__bot{display:flex;width:164px;height:198px;align-items:center;justify-content:center;border-radius:44px 44px 36px 36px;background:var(--avatar-bot-main);box-shadow:0 24px 44px var(--avatar-bot-glow),inset 0 1px 0 rgba(255,255,255,.38)}
