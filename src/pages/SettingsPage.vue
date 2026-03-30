@@ -39,14 +39,6 @@
             </div>
 
             <p class="avatar-shell__hero-text">{{ avatarSummaryText }}</p>
-
-            <div class="avatar-hero-stats">
-              <div v-for="stat in avatarHeroStats" :key="stat.label" class="avatar-hero-stat">
-                <div class="avatar-hero-stat__label">{{ stat.label }}</div>
-                <div class="avatar-hero-stat__value">{{ stat.value }}</div>
-                <div class="avatar-hero-stat__caption">{{ stat.caption }}</div>
-              </div>
-            </div>
           </div>
 
           <div class="avatar-hero-controls">
@@ -485,28 +477,6 @@ const createPreviewStyle = (colorway) => {
     '--avatar-build-glow': theme.botGlow,
   }
 }
-const avatarHeroStats = computed(() => [
-  {
-    label: 'Name',
-    value: avatarProfile.value.name || 'Mini-Me',
-    caption: 'Current identity shell',
-  },
-  {
-    label: 'Mode',
-    value: avatarArchetypeLabel.value,
-    caption: `${avatarTemperamentLabel.value} temperament`,
-  },
-  {
-    label: 'Model',
-    value: llmModelLabel.value,
-    caption: llmProviderLabel.value,
-  },
-  {
-    label: 'Autonomy',
-    value: autonomyLabel.value,
-    caption: `${llmProfile.value.temperature.toFixed(1)} temp`,
-  },
-])
 const avatarHeroStyle = computed(() => {
   const theme = avatarThemeMap[avatarProfile.value.colorway] || avatarThemeMap['aurora-blue']
   return { '--avatar-hero-soft': theme.soft, '--avatar-hero-shadow': theme.shadow }
@@ -842,14 +812,6 @@ onMounted(() => {
 
 .avatar-card__eyebrow,
 .avatar-toolbar__eyebrow,
-.avatar-hero-stat__label {
-  color: #64748b;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .avatar-shell__hero-title {
   margin: 0;
   color: #0f172a;
@@ -923,38 +885,6 @@ onMounted(() => {
   font-size: 0.9rem;
   font-weight: 600;
   text-align: center;
-}
-
-.avatar-hero-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  align-content: start;
-}
-
-.avatar-hero-stat {
-  padding: 18px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
-}
-
-.avatar-hero-stat__value {
-  margin-top: 10px;
-  color: #0f172a;
-  font-family: var(--font-title);
-  font-size: 1.2rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1.05;
-}
-
-.avatar-hero-stat__caption {
-  margin-top: 8px;
-  color: #475569;
-  font-size: 0.88rem;
-  line-height: 1.5;
 }
 
 .avatar-card,
@@ -1155,10 +1085,6 @@ onMounted(() => {
 
   .avatar-preview-inline__icon {
     font-size: 50px;
-  }
-
-  .avatar-hero-stats {
-    grid-template-columns: 1fr;
   }
 }
 </style>
