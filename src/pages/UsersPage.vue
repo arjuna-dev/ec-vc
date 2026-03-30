@@ -159,7 +159,7 @@
                         :color="isGoldenUser(user) ? 'blue-1' : 'grey-2'"
                         :text-color="isGoldenUser(user) ? 'blue-10' : 'grey-8'"
                       >
-                        {{ isGoldenUser(user) ? 'Golden user' : 'Team member' }}
+                        {{ isGoldenUser(user) ? 'Owner' : 'Team member' }}
                       </q-chip>
                     </div>
                   </div>
@@ -212,8 +212,8 @@ const viewOptions = [
 
 const userKindOptions = [
   { label: 'All', value: 'all' },
-  { label: 'Golden', value: 'golden' },
-  { label: 'Needs setup', value: 'needs-setup' },
+  { label: 'Team', value: 'golden' },
+  { label: 'Guests', value: 'needs-setup' },
 ]
 
 const columns = [
