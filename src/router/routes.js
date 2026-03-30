@@ -4,7 +4,8 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: 'user-settings', name: 'user-settings', component: () => import('pages/UserSettingsPage.vue') },
-      { path: 'settings', name: 'settings', component: () => import('pages/SettingsPage.vue') },
+      { path: 'avatar', name: 'avatar', component: () => import('pages/SettingsPage.vue') },
+      { path: 'settings', redirect: { name: 'avatar' } },
       { path: 'dealz-world-home', name: 'dealz-world-home', component: () => import('pages/DealzWorldHomePage.vue') },
       { path: 'workspaces', name: 'workspaces', component: () => import('pages/TeamSpacesPage.vue') },
       { path: 'world-pipelines', name: 'world-pipelines', component: () => import('pages/WorldPipelinesPage.vue') },
