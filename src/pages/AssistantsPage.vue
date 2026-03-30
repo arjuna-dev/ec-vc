@@ -88,7 +88,7 @@
 
           <div class="assistants-toolbar__block assistants-toolbar__block--kind">
             <q-btn-toggle
-              v-model="assistantLevelFilter"
+              v-model="assistantRoleFilter"
               dense
               no-caps
               unelevated
@@ -97,7 +97,7 @@
               text-color="grey-8"
               class="assistants-toolbar__toggle assistants-toolbar__kind-toggle"
               :disable="loading"
-              :options="assistantLevelOptions"
+              :options="assistantRoleOptions"
             />
           </div>
 
@@ -125,7 +125,7 @@
 
         <div class="assistants-surface">
           <q-banner
-            v-if="!loading && (viewMode === 'org' ? filteredOrgSections.length === 0 : displayRows.length === 0)"
+            v-if="!loading && displayRows.length === 0"
             class="assistants-empty-state bg-grey-1 text-black"
             rounded
           >
@@ -145,9 +145,9 @@
             :loading="loading"
             :pagination="{ rowsPerPage: 15 }"
           >
-            <template #body-cell-level="props">
+            <template #body-cell-role="props">
               <q-td :props="props">
-                {{ props.row.levelLabel || '--' }}
+                {{ props.row.roleLabel || '--' }}
               </q-td>
             </template>
             <template #body-cell-parent="props">
@@ -161,82 +161,6 @@
               </q-td>
             </template>
           </q-table>
-
-          <section v-else-if="viewMode === 'org'" class="assistants-hierarchy">
-            <div class="assistants-hierarchy__header">
-              <div>
-                <div class="assistants-hierarchy__eyebrow">Agent Structure</div>
-                <h3 class="assistants-hierarchy__title">Agent roles by scope and responsibility.</h3>
-              </div>
-              <div class="assistants-hierarchy__caption">
-                Avatar-level design lives in the Avatar section. This view is just the agent org structure.
-              </div>
-            </div>
-
-            <div
-              v-for="section in filteredOrgSections"
-              :key="section.level"
-              class="assistants-hierarchy__level"
-            >
-              <div class="assistants-hierarchy__level-header">
-                <div>
-                  <div class="assistants-hierarchy__level-eyebrow">{{ section.levelLabel }}</div>
-                  <div class="assistants-hierarchy__level-title">{{ section.levelName }}</div>
-                </div>
-                <div class="assistants-hierarchy__level-copy">{{ section.description }}</div>
-              </div>
-
-              <div class="row q-col-gutter-md assistants-hierarchy__grid">
-                <div
-                  v-for="agent in section.items"
-                  :key="agent.name"
-                  class="col-12 col-md-6 col-xl-4"
-                >
-                  <q-card flat bordered class="agent-hierarchy-card full-height">
-                    <q-card-section class="agent-hierarchy-card__header">
-                      <div class="row items-start justify-between q-col-gutter-sm no-wrap">
-                        <div class="col">
-                          <div class="agent-hierarchy-card__title">{{ agent.name }}</div>
-                          <div class="agent-hierarchy-card__meta">
-                            {{ agent.domain }} - Parent {{ agent.parent }}
-                          </div>
-                        </div>
-                      </div>
-                    </q-card-section>
-
-                    <q-separator />
-
-                    <q-card-section class="agent-hierarchy-card__body">
-                      <div class="agent-hierarchy-card__section">
-                        <div class="agent-hierarchy-card__section-label">Mission</div>
-                        <div class="agent-hierarchy-card__block">{{ agent.mission }}</div>
-                      </div>
-
-                      <div class="agent-hierarchy-card__section">
-                        <div class="agent-hierarchy-card__section-label">Managed Scope</div>
-                        <div class="agent-hierarchy-card__block">{{ agent.scope }}</div>
-                      </div>
-
-                      <div class="agent-hierarchy-card__section">
-                        <div class="agent-hierarchy-card__section-label">Primary Responsibilities</div>
-                        <div class="agent-hierarchy-card__pills">
-                          <q-chip
-                            v-for="responsibility in agent.responsibilities"
-                            :key="responsibility"
-                            dense
-                            square
-                            class="agent-hierarchy-card__pill"
-                          >
-                            {{ responsibility }}
-                          </q-chip>
-                        </div>
-                      </div>
-                    </q-card-section>
-                  </q-card>
-                </div>
-              </div>
-            </div>
-          </section>
 
           <div v-else class="row q-col-gutter-md assistants-cards-grid">
             <div v-for="assistant in displayRows" :key="assistant.assistant_system_prompt_id" class="col-12 col-md-6 col-lg-4">
@@ -257,7 +181,13 @@
                           class="assistant-card__portrait-badge"
                           :style="{ background: getAgentPortraitGradient(assistant) }"
                         >
-                          <div class="assistant-card__portrait-mark">{{ getAgentPortraitMark(assistant) }}</div>
+                          <div class="assistant-card__portrait-mark">
+                            <q-icon name="smart_toy" class="assistant-card__portrait-avatar" />
+                            <q-icon
+                              :name="getAgentMaskIcon(assistant)"
+                              class="assistant-card__portrait-mask"
+                            />
+                          </div>
                           <div class="assistant-card__portrait-frame">{{ getAgentFrameLabel(assistant) }}</div>
                         </div>
                       </div>
@@ -270,7 +200,7 @@
                             {{ assistant.name || 'Unnamed agent' }}
                           </div>
                           <div class="assistant-card__role">
-                            {{ assistant.domain || 'Agent domain' }} • {{ assistant.levelLabel || 'Unassigned level' }}
+                            {{ assistant.domain || 'Agent domain' }} • {{ assistant.roleLabel || 'Unassigned role' }}
                           </div>
                         </div>
                         <q-badge class="assistant-card__level-badge">
@@ -393,20 +323,20 @@ const rows = ref([])
 const loading = ref(false)
 const error = ref('')
 const viewMode = ref('card')
-const assistantLevelFilter = ref('all')
+const assistantRoleFilter = ref('all')
 const searchQuery = ref('')
 
 const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-  { value: 'org', icon: 'account_tree' },
 ]
 
-const assistantLevelOptions = [
+const assistantRoleOptions = [
   { label: 'All', value: 'all' },
-  { label: 'L1', value: 'level-1' },
-  { label: 'L2', value: 'level-2' },
-  { label: 'L3', value: 'level-3' },
+  { label: 'File Stewards', value: 'file-steward' },
+  { label: 'Pipeline Managers', value: 'pipeline-manager' },
+  { label: 'Team Managers', value: 'team-manager' },
+  { label: 'Agents Managers', value: 'agents-manager' },
 ]
 
 const AGENT_HIERARCHY_BLUEPRINTS = [
@@ -608,7 +538,7 @@ const AGENT_HIERARCHY_BLUEPRINTS = [
 
 const columns = [
   { name: 'name', label: 'Agent', field: 'name', align: 'left', sortable: true },
-  { name: 'level', label: 'Level', field: 'levelLabel', align: 'left', sortable: true },
+  { name: 'role', label: 'Role', field: 'roleLabel', align: 'left', sortable: true },
   { name: 'parent', label: 'Parent', field: 'parent', align: 'left', sortable: true },
   { name: 'version', label: 'Version', field: 'version', align: 'left', sortable: true },
   { name: 'config_status', label: 'Config', field: 'linkedConfigName', align: 'left', sortable: true },
@@ -642,9 +572,9 @@ const assistantsDashboard = computed(() => {
 const assistantsHeroText = computed(() => {
   const { total, promptedCount, versionedCount, contractCount } = assistantsDashboard.value
   if (!total) {
-    return 'Start building the agent roster. This page tracks active agent layers and their live configs.'
+    return 'Start building the agent roster. This page tracks active agent roles and their live configs.'
   }
-  return `${total} agents tracked across Levels 1 to 3, ${promptedCount} with prompts, ${versionedCount} versioned, and ${contractCount} carrying input contract context.`
+  return `${total} agents tracked across active roles, ${promptedCount} with prompts, ${versionedCount} versioned, and ${contractCount} carrying input contract context.`
 })
 
 const assistantsDashboardStats = computed(() => [
@@ -686,8 +616,46 @@ function hashString(value) {
   }, 0)
 }
 
-function getAgentPortraitMark(agent) {
-  return `A${agent.level || ''}`
+function deriveAgentRole(agent) {
+  const haystack = [
+    agent?.name,
+    agent?.domain,
+    agent?.mission,
+    agent?.scope,
+    ...(Array.isArray(agent?.responsibilities) ? agent.responsibilities : []),
+  ]
+    .map((value) => String(value || '').toLowerCase())
+    .join(' ')
+
+  if (haystack.includes('pipeline') || haystack.includes('stage')) {
+    return { key: 'pipeline-manager', label: 'Pipeline Manager' }
+  }
+
+  if (
+    haystack.includes('user')
+    || haystack.includes('team')
+    || haystack.includes('permission')
+    || haystack.includes('owner')
+  ) {
+    return { key: 'team-manager', label: 'Team Manager' }
+  }
+
+  if (haystack.includes('agent') || haystack.includes('prompt')) {
+    return { key: 'agents-manager', label: 'Agents Manager' }
+  }
+
+  return { key: 'file-steward', label: 'File Steward' }
+}
+
+function getAgentMaskIcon(agent) {
+  const icons = {
+    'file-steward': 'inventory_2',
+    'pipeline-manager': 'filter_alt',
+    'team-manager': 'badge',
+    'agents-manager': 'theater_comedy',
+  }
+
+  return icons[agent?.role] || 'masks'
 }
 
 function getAgentFrameLabel(agent) {
@@ -706,7 +674,7 @@ function getAgentPortraitGradient(agent) {
 }
 
 function getAgentCardStyle(agent) {
-  const toneIndex = Math.abs(hashString(`${agent.domain}:${agent.level}`)) % 4
+  const toneIndex = Math.abs(hashString(`${agent.domain}:${agent.role}`)) % 4
   const tones = [
     {
       strong: 'rgba(38, 71, 255, 0.2)',
@@ -773,7 +741,7 @@ function updateAgentCardGradientPosition(event) {
 
 function getAgentCardPills(agent) {
   return [
-    agent.levelLabel,
+    agent.roleLabel,
     agent.domain,
     agent.version ? `v${agent.version}`.replace('vv', 'v') : 'Customizable',
   ]
@@ -806,12 +774,15 @@ const agentHierarchySections = computed(() =>
     ...section,
     items: section.items.map((item) => {
       const matchingConfig = findConfigForBlueprint(item)
+      const role = deriveAgentRole(item)
       return {
         ...item,
         assistant_system_prompt_id: matchingConfig?.assistant_system_prompt_id || `blueprint:${section.level}:${item.name}`,
         level: section.level,
         levelLabel: section.levelLabel,
         levelName: section.levelName,
+        role: role.key,
+        roleLabel: role.label,
         version: matchingConfig?.version || null,
         system_prompt: matchingConfig?.system_prompt || null,
         input_contract: matchingConfig?.input_contract || null,
@@ -831,30 +802,19 @@ const displayRows = computed(() => {
   const query = normalizeAssistantValue(searchQuery.value).toLowerCase()
   let items = [...allAgentRows.value]
 
-  if (assistantLevelFilter.value !== 'all') {
-    const levelNumber = Number(assistantLevelFilter.value.replace('level-', ''))
-    items = items.filter((row) => row.level === levelNumber)
+  if (assistantRoleFilter.value !== 'all') {
+    items = items.filter((row) => row.role === assistantRoleFilter.value)
   }
 
   if (query) {
     items = items.filter((row) =>
-      [row?.name, row?.version, row?.mission, row?.scope, row?.domain, row?.parent]
+      [row?.name, row?.version, row?.mission, row?.scope, row?.domain, row?.parent, row?.roleLabel]
         .map((value) => String(value || '').toLowerCase())
         .some((value) => value.includes(query)),
     )
   }
 
   return items
-})
-
-const filteredOrgSections = computed(() => {
-  const ids = new Set(displayRows.value.map((item) => item.assistant_system_prompt_id))
-  return agentHierarchySections.value
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => ids.has(item.assistant_system_prompt_id)),
-    }))
-    .filter((section) => section.items.length > 0)
 })
 
 async function loadAssistants() {
@@ -1501,11 +1461,41 @@ onMounted(loadAssistants)
 }
 
 .assistant-card__portrait-mark {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 78px;
+  height: 78px;
   font-family: var(--font-title);
   font-size: clamp(2.2rem, 4.8vw, 3rem);
   font-weight: var(--ds-font-weight-black);
   line-height: 1;
   letter-spacing: 0.02em;
+}
+
+.assistant-card__portrait-avatar {
+  font-size: 54px;
+  color: rgba(255, 255, 255, 0.94);
+  filter: drop-shadow(0 10px 16px rgba(17, 17, 17, 0.18));
+}
+
+.assistant-card__portrait-mask {
+  position: absolute;
+  right: 2px;
+  bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 5px;
+  font-size: 16px;
+  color: rgba(38, 71, 255, 0.94);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  box-shadow: 0 10px 20px rgba(17, 17, 17, 0.18);
 }
 
 .assistant-card__portrait-frame {
