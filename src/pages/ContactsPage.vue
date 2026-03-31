@@ -1914,7 +1914,7 @@ watch(displayRows, () => {
   gap: 14px;
   min-height: 208px;
   max-height: 208px;
-  margin: 20px 20px 0;
+  margin: 20px 20px 20px;
   padding: 16px 18px 18px;
   background: rgba(255, 255, 255, 0.74);
   border: 1px solid rgba(17, 17, 17, 0.08);
