@@ -176,23 +176,6 @@ const dialogCaption = computed(() =>
     : 'Drop files first, then select the opportunity.',
 )
 
-const intakeGuideVisibleFields = computed(() => {
-  const visible = []
-  if (String(intakeGuideForm.value.companyName || '').trim()) visible.push('companyName')
-  if (String(intakeGuideForm.value.documentType || '').trim()) visible.push('documentType')
-  if (!visible.length) visible.push('documentType')
-  return visible
-})
-
-const documentTypeOptions = [
-  'Pitch Deck',
-  'Term Sheet',
-  'Financial Model',
-  'Investment Memo',
-  'PDF Document',
-  'Text Document',
-]
-
 const shouldResumeProcessingWindow = computed(() => {
   if (!activeDraft.value || isResumeLinkMode.value) return false
 
@@ -208,8 +191,6 @@ const shouldResumeProcessingWindow = computed(() => {
     Object.keys(activeDraft.value.assistantProposal || {}).length > 0
   )
 })
-
-let intakeGuideTimer = null
 async function loadAll() {
   if (!bridge.value?.opportunities?.list) return
   loading.value = true

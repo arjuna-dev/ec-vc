@@ -2350,13 +2350,6 @@ function verifyIntakeReviewField(fieldKey) {
   syncActiveDraft()
 }
 
-async function waitForIntakeReviewConfirmation() {
-  maybeOpenIntakeReviewDialog()
-  if (!intakeReviewPending.value) return
-  await new Promise((resolve) => {
-    intakeReviewResolver = resolve
-  })
-}
 function releaseIntakeExtractionLocks() {
   intakeLockedFields.value = createDefaultIntakeReviewVerified()
   syncActiveDraft()
