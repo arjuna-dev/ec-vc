@@ -231,6 +231,24 @@ function isDuplicateFilenameConflict(error) {
   return message.includes('duplicate filename') || message.includes('already exists')
 }
 
+async function findExistingDroppedFiles(files = []) {
+  if (!bridge.value?.artifacts?.list) return { existingNames: [] }
+  const result = await bridge.value.artifacts.list()
+  const artifacts = Array.isArray(result?.artifacts) ? result.artifacts : []
+  const rawNames = new Set(
+    artifacts
+      .filter((artifact) => String(artifact?.artifact_type || '').toLowerCase() === 'raw')
+      .map((artifact) => String(artifact?.fs_path || '').split('/').pop()?.toLowerCase())
+      .filter(Boolean),
+  )
+
+  const existingNames = (Array.isArray(files) ? files : [])
+    .map((file) => String(file?.name || '').trim())
+    .filter((name) => rawNames.has(name.toLowerCase()))
+
+  return { existingNames }
+}
+
 function askDuplicateRenameConfirmation() {
   return new Promise((resolve) => {
     $q.dialog({
@@ -247,7 +265,15 @@ function askDuplicateRenameConfirmation() {
   })
 }
 
-async function ingestArtifactsWithDuplicateHandling(payload) {
+async function ingestArtifactsWithDuplicateHandling(payload, { hasExistingConflict = false } = {}) {
+  if (hasExistingConflict) {
+    const confirmed = await askDuplicateRenameConfirmation()
+    if (!confirmed) throw new Error('Upload cancelled.')
+    return bridge.value.artifacts.ingest({
+      ...payload,
+      duplicateStrategy: 'rename',
+    })
+  }
   try {
     return await bridge.value.artifacts.ingest(payload)
   } catch (error) {
@@ -280,10 +306,13 @@ async function finish() {
       })
     } else {
       if (!bridge.value?.artifacts?.ingest) return
+      const existingCheck = await findExistingDroppedFiles(droppedFiles.value)
       await ingestArtifactsWithDuplicateHandling({
         filePaths: droppedFiles.value.map((f) => f.path),
         pipelineId: DEFAULT_PIPELINE_ID,
         opportunityId: opportunityId.value,
+      }, {
+        hasExistingConflict: existingCheck.existingNames.length > 0,
       })
     }
     if (activeDraftId) {
