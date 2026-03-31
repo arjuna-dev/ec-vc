@@ -3,9 +3,7 @@
     <q-card style="width: 1080px; max-width: 96vw">
       <q-card-section class="q-px-xl q-pt-lg q-pb-md">
         <div class="text-h6">Create {{ entityLabel }}</div>
-        <div class="text-caption text-grey-7">
-          Drop files to start processing automatically.
-        </div>
+        <div class="text-caption text-grey-7">Drop files to start processing automatically.</div>
       </q-card-section>
 
       <q-separator />
@@ -53,17 +51,10 @@
             </template>
           </q-table>
 
-          <div
-            v-if="showIntakeProgressBar"
-            class="intake-progress-strip"
-          >
+          <div v-if="showIntakeProgressBar" class="intake-progress-strip">
             <div class="row items-center q-col-gutter-sm q-mb-xs">
               <div class="col row items-center q-col-gutter-xs text-caption text-grey-7">
-                <q-spinner
-                  v-if="processingDrop"
-                  color="primary"
-                  size="16px"
-                />
+                <q-spinner v-if="processingDrop" color="primary" size="16px" />
                 <span>{{ intakeProgressLabel }}</span>
               </div>
               <div v-if="showReviewNowButton" class="col-auto">
@@ -136,8 +127,8 @@
             <section class="opportunity-dialog-section">
               <div class="text-subtitle1">Company</div>
               <div class="text-caption text-grey-7 q-mb-sm">
-                These are first-order company fields. When a company is linked, edits here save back to that
-                company record.
+                These are first-order company fields. When a company is linked, edits here save back
+                to that company record.
               </div>
 
               <div class="opportunity-dialog-section__grid">
@@ -174,6 +165,10 @@
                     v-if="showFieldSourceToggle('company', 'Company_Name')"
                     class="field-source-toggle field-source-toggle--labeled"
                   >
+                    <div class="field-source-toggle__labels">
+                      <span>AI generated</span>
+                      <span>User edit</span>
+                    </div>
                     <q-btn-toggle
                       :model-value="getFieldSourceMode('company', 'Company_Name')"
                       dense
@@ -187,7 +182,6 @@
                       @update:model-value="setFieldSourceMode('company', 'Company_Name', $event)"
                     />
                   </div>
-
                 </div>
 
                 <q-option-group
@@ -229,7 +223,9 @@
                       <button
                         type="button"
                         class="company-source-choice"
-                        :class="{ 'company-source-choice--selected': companySourceChoice === 'input' }"
+                        :class="{
+                          'company-source-choice--selected': companySourceChoice === 'input',
+                        }"
                         @click="companySourceChoice = 'input'"
                       >
                         <div class="company-source-choice__top">
@@ -258,7 +254,9 @@
                       <button
                         type="button"
                         class="company-source-choice"
-                        :class="{ 'company-source-choice--selected': companySourceChoice === 'legacy' }"
+                        :class="{
+                          'company-source-choice--selected': companySourceChoice === 'legacy',
+                        }"
                         @click="companySourceChoice = 'legacy'"
                       >
                         <div class="company-source-choice__top">
@@ -289,7 +287,9 @@
                   <div
                     class="opportunity-dialog-section__field"
                     :class="{
-                      'opportunity-dialog-section__field--full': companyFullWidthFieldKeys.has(field.key),
+                      'opportunity-dialog-section__field--full': companyFullWidthFieldKeys.has(
+                        field.key,
+                      ),
                     }"
                     :style="{ order: companyLayoutOrder[field.key] ?? 50 }"
                   >
@@ -328,6 +328,10 @@
                       v-if="showFieldSourceToggle('company', field.key)"
                       class="field-source-toggle field-source-toggle--labeled"
                     >
+                      <div class="field-source-toggle__labels">
+                        <span>AI generated</span>
+                        <span>User edit</span>
+                      </div>
                       <q-btn-toggle
                         :model-value="getFieldSourceMode('company', field.key)"
                         dense
@@ -341,7 +345,6 @@
                         @update:model-value="setFieldSourceMode('company', field.key, $event)"
                       />
                     </div>
-
                   </div>
                 </template>
               </div>
@@ -355,7 +358,9 @@
               </div>
 
               <div class="opportunity-dialog-section__grid">
-                <div class="opportunity-dialog-section__field opportunity-dialog-section__field--full">
+                <div
+                  class="opportunity-dialog-section__field opportunity-dialog-section__field--full"
+                >
                   <q-input
                     v-model="form.Venture_Oppty_Name"
                     outlined
@@ -370,6 +375,10 @@
                     v-if="showFieldSourceToggle('opportunity', 'Venture_Oppty_Name')"
                     class="field-source-toggle field-source-toggle--labeled"
                   >
+                    <div class="field-source-toggle__labels">
+                      <span>AI generated</span>
+                      <span>User edit</span>
+                    </div>
                     <q-btn-toggle
                       :model-value="getFieldSourceMode('opportunity', 'Venture_Oppty_Name')"
                       dense
@@ -380,10 +389,11 @@
                       color="grey-2"
                       text-color="grey-7"
                       :options="fieldSourceOptions"
-                      @update:model-value="setFieldSourceMode('opportunity', 'Venture_Oppty_Name', $event)"
+                      @update:model-value="
+                        setFieldSourceMode('opportunity', 'Venture_Oppty_Name', $event)
+                      "
                     />
                   </div>
-
                 </div>
 
                 <q-select
@@ -392,7 +402,9 @@
                   label="Opportunity Kind *"
                   :options="kindOptions"
                   class="opportunity-dialog-section__field"
-                  :disable="loading || selectedCompanyIsAssetManager || processingDrop || props.lockKind"
+                  :disable="
+                    loading || selectedCompanyIsAssetManager || processingDrop || props.lockKind
+                  "
                   emit-value
                   map-options
                 />
@@ -420,6 +432,10 @@
                     v-if="showFieldSourceToggle('opportunity', field.key)"
                     class="field-source-toggle field-source-toggle--labeled"
                   >
+                    <div class="field-source-toggle__labels">
+                      <span>AI generated</span>
+                      <span>User edit</span>
+                    </div>
                     <q-btn-toggle
                       :model-value="getFieldSourceMode('opportunity', field.key)"
                       dense
@@ -433,7 +449,6 @@
                       @update:model-value="setFieldSourceMode('opportunity', field.key, $event)"
                     />
                   </div>
-
                 </div>
               </div>
 
@@ -480,8 +495,8 @@
           <div class="q-gutter-md">
             <div class="text-subtitle1">Primary Contact</div>
             <div class="text-caption text-grey-7 q-mb-sm">
-              These are first-order contact fields. When a contact is linked, edits here save back to that
-              contact record.
+              These are first-order contact fields. When a contact is linked, edits here save back
+              to that contact record.
             </div>
             <div v-if="contactLinkMode === 'existing'">
               <q-select
@@ -503,6 +518,10 @@
                 v-if="showFieldSourceToggle('contact', 'id')"
                 class="field-source-toggle field-source-toggle--labeled"
               >
+                <div class="field-source-toggle__labels">
+                  <span>AI generated</span>
+                  <span>User edit</span>
+                </div>
                 <q-btn-toggle
                   :model-value="getFieldSourceMode('contact', 'id')"
                   dense
@@ -537,6 +556,10 @@
                 v-if="showFieldSourceToggle('contact', field.key)"
                 class="field-source-toggle field-source-toggle--labeled"
               >
+                <div class="field-source-toggle__labels">
+                  <span>AI generated</span>
+                  <span>User edit</span>
+                </div>
                 <q-btn-toggle
                   :model-value="getFieldSourceMode('contact', field.key)"
                   dense
@@ -560,10 +583,18 @@
               <div class="text-subtitle1">Assistant Proposal</div>
               <div class="text-body2"><b>Name:</b> {{ assistantProposal.name || 'Assistant' }}</div>
               <div class="text-body2 q-mt-xs"><b>System prompt:</b></div>
-              <div class="text-caption" style="white-space: pre-wrap">{{ assistantProposal.system_prompt }}</div>
-              <div class="text-body2 q-mt-sm"><b>Tools:</b> {{ (assistantProposal.tools || []).join(', ') || 'None' }}</div>
-              <div class="text-body2"><b>Functions:</b> {{ (assistantProposal.functions || []).join(', ') || 'None' }}</div>
-              <div class="text-body2"><b>Context:</b> {{ (assistantProposal.context_sources || []).join(', ') || 'None' }}</div>
+              <div class="text-caption" style="white-space: pre-wrap">
+                {{ assistantProposal.system_prompt }}
+              </div>
+              <div class="text-body2 q-mt-sm">
+                <b>Tools:</b> {{ (assistantProposal.tools || []).join(', ') || 'None' }}
+              </div>
+              <div class="text-body2">
+                <b>Functions:</b> {{ (assistantProposal.functions || []).join(', ') || 'None' }}
+              </div>
+              <div class="text-body2">
+                <b>Context:</b> {{ (assistantProposal.context_sources || []).join(', ') || 'None' }}
+              </div>
             </q-card-section>
           </q-card>
         </q-form>
@@ -592,11 +623,7 @@
 
       <q-card-section class="q-px-lg q-pb-md">
         <div class="column q-gutter-sm">
-          <div
-            v-for="item in companyPreviewRows"
-            :key="item.label"
-            class="company-preview-row"
-          >
+          <div v-for="item in companyPreviewRows" :key="item.label" class="company-preview-row">
             <div class="company-preview-row__label">{{ item.label }}</div>
             <div class="company-preview-row__value">{{ item.value }}</div>
           </div>
@@ -972,12 +999,10 @@
             <q-separator v-if="intakeUsedInfoExpanded" />
             <q-card-section v-if="intakeUsedInfoExpanded" class="q-py-sm">
               <div class="column q-gutter-sm">
-                <div
-                  v-for="row in intakeUsedInfoRows"
-                  :key="row.key"
-                  class="intake-used-row"
-                >
-                  <div class="text-body2"><b>{{ row.label }}:</b> {{ row.value }}</div>
+                <div v-for="row in intakeUsedInfoRows" :key="row.key" class="intake-used-row">
+                  <div class="text-body2">
+                    <b>{{ row.label }}:</b> {{ row.value }}
+                  </div>
                 </div>
               </div>
             </q-card-section>
@@ -1036,7 +1061,9 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const $q = useQuasar()
 const intakeDraftState = useIntakeDraftState()
 const entityType = computed(() => {
-  const normalized = String(props.initialKind || '').trim().toLowerCase()
+  const normalized = String(props.initialKind || '')
+    .trim()
+    .toLowerCase()
   return normalized === 'fund' ? 'fund' : 'round'
 })
 const entityLabel = computed(() => (entityType.value === 'fund' ? 'Fund' : 'Round'))
@@ -1092,9 +1119,11 @@ const deferredSuggestionPayload = ref(null)
 
 const autofilledFlags = ref({})
 const fieldSourceModes = ref({})
+const aiGeneratedFieldSnapshots = ref({})
+const humanEditedFieldSnapshots = ref({})
 const fieldSourceOptions = [
-  { icon: 'auto_awesome', label: 'AI generated', value: 'ai' },
-  { icon: 'edit', label: 'User edit', value: 'human' },
+  { icon: 'auto_awesome', value: 'ai' },
+  { icon: 'edit', value: 'human' },
 ]
 
 const ingestStatusColumns = [
@@ -1192,10 +1221,14 @@ const activeDraft = computed(() => {
   return draftId ? intakeDraftState.drafts[draftId] || null : null
 })
 
-const editableCompanyFields = computed(() => companyFields.filter((field) => field.key !== 'Company_Name'))
+const editableCompanyFields = computed(() =>
+  companyFields.filter((field) => field.key !== 'Company_Name'),
+)
 
 const rankedCompanies = computed(() => {
-  const searchBase = normalizeComparisonText(companyOptionFilter.value || companyForm.value.Company_Name)
+  const searchBase = normalizeComparisonText(
+    companyOptionFilter.value || companyForm.value.Company_Name,
+  )
 
   return (companies.value || [])
     .filter((company) => company?.Company_Name)
@@ -1218,7 +1251,9 @@ const companyOptions = computed(() => [
   })),
 ])
 
-const topSuggestedCompanies = computed(() => companyOptions.value.filter((option) => option.value).slice(0, 2))
+const topSuggestedCompanies = computed(() =>
+  companyOptions.value.filter((option) => option.value).slice(0, 2),
+)
 
 const rankedContacts = computed(() => {
   const searchBase = normalizeComparisonText(
@@ -1255,7 +1290,9 @@ const intakeVisibleFieldKeys = computed(() => {
 })
 
 const intakeReviewVisiblePendingKeys = computed(() =>
-  intakeVisibleFieldKeys.value.filter((key) => String(intakeReviewFields.value[key] || '').trim().length > 0),
+  intakeVisibleFieldKeys.value.filter(
+    (key) => String(intakeReviewFields.value[key] || '').trim().length > 0,
+  ),
 )
 
 const showReviewNowButton = computed(() => {
@@ -1266,7 +1303,9 @@ const showReviewNowButton = computed(() => {
 
 const intakeReviewReadyToContinue = computed(() => {
   if (!intakeReviewVisiblePendingKeys.value.length) return true
-  return intakeReviewVisiblePendingKeys.value.every((key) => Boolean(intakeReviewVerified.value[key]))
+  return intakeReviewVisiblePendingKeys.value.every((key) =>
+    Boolean(intakeReviewVerified.value[key]),
+  )
 })
 
 const intakeUsedInfoRows = computed(() =>
@@ -1284,7 +1323,9 @@ const intakeUsedInfoRows = computed(() =>
 
 const releasedMarkdownChunkRows = computed(() =>
   Object.values(activeDraft.value?.releasedMarkdownChunks || {})
-    .sort((left, right) => String(left?.created_at || '').localeCompare(String(right?.created_at || '')))
+    .sort((left, right) =>
+      String(left?.created_at || '').localeCompare(String(right?.created_at || '')),
+    )
     .map((chunk) => ({
       ...chunk,
       title:
@@ -1318,7 +1359,8 @@ const intakeProgressMetrics = computed(() => {
   }
 
   const rawValue = totalSteps ? completedSteps / totalSteps : 0
-  const readyForReview = !processingDrop.value && String(activeDraft.value?.stage || '').trim() === 'Ready for Review'
+  const readyForReview =
+    !processingDrop.value && String(activeDraft.value?.stage || '').trim() === 'Ready for Review'
   const value = readyForReview ? 1 : Math.min(1, rawValue)
 
   let label = 'Queued'
@@ -1346,13 +1388,17 @@ const intakeProgressFlags = computed(() => [
     key: 'markdown',
     label: 'LLM-ready',
     percent: 38,
-    active: ingestStatusRows.value.some((row) => ['completed', 'existing'].includes(String(row?.markdownStatus || ''))),
+    active: ingestStatusRows.value.some((row) =>
+      terminalIngestStatuses.has(String(row?.markdownStatus || '')),
+    ),
   },
   {
     key: 'extract',
     label: 'Early Extract',
     percent: 64,
-    active: ingestStatusRows.value.some((row) => ['completed', 'existing'].includes(String(row?.extractionStatus || ''))),
+    active: ingestStatusRows.value.some((row) =>
+      terminalIngestStatuses.has(String(row?.extractionStatus || '')),
+    ),
   },
   {
     key: 'review',
@@ -1437,7 +1483,9 @@ const companyComparisonFields = computed(() =>
   companyFields.filter((field) => {
     if (field.key === 'Company_Name') return true
     const inputValue = normalizeComparisonText(companyForm.value?.[field.key])
-    const legacyValue = normalizeComparisonText(getCompanyFieldValue(selectedCompany.value, field.key))
+    const legacyValue = normalizeComparisonText(
+      getCompanyFieldValue(selectedCompany.value, field.key),
+    )
     return inputValue || legacyValue
   }),
 )
@@ -1447,14 +1495,19 @@ const companyMismatches = computed(() => {
 
   return companyComparisonFields.value.filter((field) => {
     const inputValue = normalizeComparisonText(companyForm.value?.[field.key])
-    const legacyValue = normalizeComparisonText(getCompanyFieldValue(selectedCompany.value, field.key))
+    const legacyValue = normalizeComparisonText(
+      getCompanyFieldValue(selectedCompany.value, field.key),
+    )
     return inputValue && legacyValue && inputValue !== legacyValue
   })
 })
 
 const showCompanyMismatchBanner = computed(() => companyMismatches.value.length > 0)
 const showCompanySourceChoices = computed(
-  () => companyLinkMode.value === 'existing' && Boolean(selectedCompany.value) && companyMismatches.value.length > 0,
+  () =>
+    companyLinkMode.value === 'existing' &&
+    Boolean(selectedCompany.value) &&
+    companyMismatches.value.length > 0,
 )
 
 const companyInputSummary = computed(() => summarizeCompanySource(companyForm.value))
@@ -1478,8 +1531,10 @@ const ingestStatusRows = computed(() => Object.values(ingestStatusByFile.value |
 
 const createDisabled = computed(() => {
   if (loading.value || processingDrop.value) return true
-  const hasCompany = String(companyForm.value.Company_Name || '').trim().length > 0 || !!form.value.company_id
-  const hasContact = String(contactForm.value.Name || '').trim().length > 0 || !!contactForm.value.id
+  const hasCompany =
+    String(companyForm.value.Company_Name || '').trim().length > 0 || !!form.value.company_id
+  const hasContact =
+    String(contactForm.value.Name || '').trim().length > 0 || !!contactForm.value.id
   return !hasCompany && !hasContact
 })
 
@@ -1495,7 +1550,9 @@ const suggestedOpportunityName = computed(() => {
   return `${base.replace(/\s+/g, '_')}_${series.replace(/\s+/g, '_')}`
 })
 
-const normalizedOpportunityName = computed(() => normalizeOpportunityName(form.value.Venture_Oppty_Name))
+const normalizedOpportunityName = computed(() =>
+  normalizeOpportunityName(form.value.Venture_Oppty_Name),
+)
 const opportunityNameError = computed(() => {
   const name = normalizedOpportunityName.value
   if (!name) return `${entityLabel.value} name is required.`
@@ -1503,8 +1560,11 @@ const opportunityNameError = computed(() => {
 })
 
 function resetForms() {
-  const normalizedKind = String(props.initialKind || '').trim().toLowerCase()
-  const defaultKind = normalizedKind === 'fund' || normalizedKind === 'round' ? normalizedKind : 'round'
+  const normalizedKind = String(props.initialKind || '')
+    .trim()
+    .toLowerCase()
+  const defaultKind =
+    normalizedKind === 'fund' || normalizedKind === 'round' ? normalizedKind : 'round'
   form.value = {
     company_id: null,
     kind: defaultKind,
@@ -1556,6 +1616,8 @@ function resetTransientState() {
   existingDocumentNameMatches.value = []
   autofilledFlags.value = {}
   fieldSourceModes.value = {}
+  aiGeneratedFieldSnapshots.value = {}
+  humanEditedFieldSnapshots.value = {}
   intakeReviewDialogOpen.value = false
   intakeReviewDelayElapsed.value = false
   intakeReviewPromptShown.value = false
@@ -1586,6 +1648,8 @@ function buildDraftSnapshot() {
     contactLinkMode: contactLinkMode.value,
     companySourceChoice: companySourceChoice.value,
     fieldSourceModes: { ...fieldSourceModes.value },
+    aiGeneratedFieldSnapshots: JSON.parse(JSON.stringify(aiGeneratedFieldSnapshots.value || {})),
+    humanEditedFieldSnapshots: JSON.parse(JSON.stringify(humanEditedFieldSnapshots.value || {})),
     existingDocumentNameMatches: [...existingDocumentNameMatches.value],
     intakeReviewFields: { ...intakeReviewFields.value },
     intakeReviewVerified: { ...intakeReviewVerified.value },
@@ -1620,9 +1684,12 @@ function hydrateFromActiveDraft() {
     Boolean(activeDraft.value.companyForm) ||
     Boolean(activeDraft.value.contactForm) ||
     Object.keys(activeDraft.value.ingestStatusByFile || {}).length > 0 ||
-    (Array.isArray(activeDraft.value.draftArtifactIds) && activeDraft.value.draftArtifactIds.length > 0) ||
-    (Array.isArray(activeDraft.value.generatedNotes) && activeDraft.value.generatedNotes.length > 0) ||
-    (Array.isArray(activeDraft.value.generatedTasks) && activeDraft.value.generatedTasks.length > 0) ||
+    (Array.isArray(activeDraft.value.draftArtifactIds) &&
+      activeDraft.value.draftArtifactIds.length > 0) ||
+    (Array.isArray(activeDraft.value.generatedNotes) &&
+      activeDraft.value.generatedNotes.length > 0) ||
+    (Array.isArray(activeDraft.value.generatedTasks) &&
+      activeDraft.value.generatedTasks.length > 0) ||
     Object.keys(activeDraft.value.assistantProposal || {}).length > 0
 
   if (activeDraft.value.opportunityForm) {
@@ -1651,6 +1718,8 @@ function hydrateFromActiveDraft() {
   contactLinkMode.value = activeDraft.value.contactLinkMode || contactLinkMode.value
   companySourceChoice.value = activeDraft.value.companySourceChoice || companySourceChoice.value
   fieldSourceModes.value = { ...(activeDraft.value.fieldSourceModes || {}) }
+  aiGeneratedFieldSnapshots.value = { ...(activeDraft.value.aiGeneratedFieldSnapshots || {}) }
+  humanEditedFieldSnapshots.value = { ...(activeDraft.value.humanEditedFieldSnapshots || {}) }
   intakeReviewFields.value = {
     ...createDefaultIntakeReviewFields(),
     ...(activeDraft.value.intakeReviewFields || {}),
@@ -1676,10 +1745,16 @@ function hydrateFromActiveDraft() {
     ...(activeDraft.value.intakeFieldSources || {}),
   }
   ingestStatusByFile.value = { ...(activeDraft.value.ingestStatusByFile || {}) }
-  generatedNotes.value = Array.isArray(activeDraft.value.generatedNotes) ? [...activeDraft.value.generatedNotes] : []
-  generatedTasks.value = Array.isArray(activeDraft.value.generatedTasks) ? [...activeDraft.value.generatedTasks] : []
+  generatedNotes.value = Array.isArray(activeDraft.value.generatedNotes)
+    ? [...activeDraft.value.generatedNotes]
+    : []
+  generatedTasks.value = Array.isArray(activeDraft.value.generatedTasks)
+    ? [...activeDraft.value.generatedTasks]
+    : []
   assistantProposal.value = { ...(activeDraft.value.assistantProposal || {}) }
-  draftArtifactIds.value = Array.isArray(activeDraft.value.draftArtifactIds) ? [...activeDraft.value.draftArtifactIds] : []
+  draftArtifactIds.value = Array.isArray(activeDraft.value.draftArtifactIds)
+    ? [...activeDraft.value.draftArtifactIds]
+    : []
   return hasMeaningfulDraftState
 }
 
@@ -1690,9 +1765,11 @@ function inferDocumentTypeFromDraft() {
   const fileNames = (sourceFiles || []).map((file) => String(file?.name || '').toLowerCase())
   if (!fileNames.length) return ''
   const joined = fileNames.join(' ')
-  if (joined.includes('pitch') || joined.includes('deck') || joined.includes('presentation')) return 'Pitch Deck'
+  if (joined.includes('pitch') || joined.includes('deck') || joined.includes('presentation'))
+    return 'Pitch Deck'
   if (joined.includes('term sheet') || joined.includes('termsheet')) return 'Term Sheet'
-  if (joined.includes('model') || joined.includes('.xlsx') || joined.includes('.xls')) return 'Financial Model'
+  if (joined.includes('model') || joined.includes('.xlsx') || joined.includes('.xls'))
+    return 'Financial Model'
   if (joined.includes('memo')) return 'Investment Memo'
   if (joined.includes('.pdf')) return 'PDF Document'
   if (joined.includes('.doc') || joined.includes('.docx')) return 'Text Document'
@@ -1765,8 +1842,10 @@ const INTAKE_REVIEW_PRIORITY = Object.freeze([
 
 function buildVisibleIntakeFieldKeys(fields = {}) {
   const prioritized = INTAKE_REVIEW_PRIORITY.filter((key) => {
-    if (key === 'relatedFund') return entityType.value === 'fund' && String(fields[key] || '').trim()
-    if (key === 'relatedRound') return entityType.value === 'round' && String(fields[key] || '').trim()
+    if (key === 'relatedFund')
+      return entityType.value === 'fund' && String(fields[key] || '').trim()
+    if (key === 'relatedRound')
+      return entityType.value === 'round' && String(fields[key] || '').trim()
     return String(fields[key] || '').trim()
   })
   return prioritized.length ? prioritized : ['documentType']
@@ -1803,45 +1882,51 @@ function createDefaultIntakeReviewSources(overrides = {}) {
 }
 
 function intakeFieldLabel(fieldKey) {
-  return {
-    sponsorCompany: 'Sponsor Company',
-    existingOpportunityMatch: 'Existing Opportunity Match',
-    matchingDocumentName: 'Matching Document Name',
-    documentType: 'Document Type',
-    artifactTitle: 'Artifact Title',
-    relatedFund: 'Related Fund',
-    relatedRound: 'Related Round',
-    relatedContact: 'Related Contact',
-    website: 'Website',
-  }[fieldKey] || fieldKey
+  return (
+    {
+      sponsorCompany: 'Sponsor Company',
+      existingOpportunityMatch: 'Existing Opportunity Match',
+      matchingDocumentName: 'Matching Document Name',
+      documentType: 'Document Type',
+      artifactTitle: 'Artifact Title',
+      relatedFund: 'Related Fund',
+      relatedRound: 'Related Round',
+      relatedContact: 'Related Contact',
+      website: 'Website',
+    }[fieldKey] || fieldKey
+  )
 }
 
 function intakeFieldOwner(fieldKey) {
-  return {
-    sponsorCompany: 'Companies',
-    existingOpportunityMatch: entityType.value === 'fund' ? 'Funds' : 'Rounds',
-    matchingDocumentName: 'Artifacts',
-    documentType: 'Artifacts',
-    artifactTitle: 'Artifacts',
-    relatedFund: 'Funds',
-    relatedRound: 'Rounds',
-    relatedContact: 'Contacts',
-    website: 'Companies',
-  }[fieldKey] || 'Draft Intake'
+  return (
+    {
+      sponsorCompany: 'Companies',
+      existingOpportunityMatch: entityType.value === 'fund' ? 'Funds' : 'Rounds',
+      matchingDocumentName: 'Artifacts',
+      documentType: 'Artifacts',
+      artifactTitle: 'Artifacts',
+      relatedFund: 'Funds',
+      relatedRound: 'Rounds',
+      relatedContact: 'Contacts',
+      website: 'Companies',
+    }[fieldKey] || 'Draft Intake'
+  )
 }
 
 function intakeFieldTarget(fieldKey) {
-  return {
-    sponsorCompany: 'Company section',
-    existingOpportunityMatch: 'Opportunity section',
-    matchingDocumentName: 'Artifact file intake',
-    documentType: 'Draft intake metadata',
-    artifactTitle: 'Artifact title metadata',
-    relatedFund: 'Opportunity section',
-    relatedRound: 'Opportunity section',
-    relatedContact: 'Primary Contact section',
-    website: 'Company section',
-  }[fieldKey] || 'Draft intake'
+  return (
+    {
+      sponsorCompany: 'Company section',
+      existingOpportunityMatch: 'Opportunity section',
+      matchingDocumentName: 'Artifact file intake',
+      documentType: 'Draft intake metadata',
+      artifactTitle: 'Artifact title metadata',
+      relatedFund: 'Opportunity section',
+      relatedRound: 'Opportunity section',
+      relatedContact: 'Primary Contact section',
+      website: 'Company section',
+    }[fieldKey] || 'Draft intake'
+  )
 }
 
 function buildIntakeReviewFieldsFromForms() {
@@ -1853,12 +1938,14 @@ function buildIntakeReviewFieldsFromForms() {
     .join(' - ')
 
   return createDefaultIntakeReviewFields({
-    sponsorCompany: String(companyForm.value.Company_Name || '').trim() || inferCompanyNameFromDraft(),
+    sponsorCompany:
+      String(companyForm.value.Company_Name || '').trim() || inferCompanyNameFromDraft(),
     existingOpportunityMatch: findLikelyExistingOpportunityMatchLabel(),
     matchingDocumentName: existingDocumentNameMatches.value[0] || '',
     documentType: inferDocumentTypeFromDraft(),
     artifactTitle: inferArtifactTitleFromDraft(),
-    relatedFund: entityType.value === 'fund' ? String(form.value.Venture_Oppty_Name || '').trim() : '',
+    relatedFund:
+      entityType.value === 'fund' ? String(form.value.Venture_Oppty_Name || '').trim() : '',
     relatedRound:
       entityType.value === 'round'
         ? String(form.value.Round_Stage || form.value.Venture_Oppty_Name || '').trim()
@@ -1894,7 +1981,9 @@ function buildPromptStringOptions(values = []) {
 }
 
 function normalizeOpportunityKind(row = {}) {
-  const explicitKind = String(row?.kind || row?.opportunity_kind || '').trim().toLowerCase()
+  const explicitKind = String(row?.kind || row?.opportunity_kind || '')
+    .trim()
+    .toLowerCase()
   if (explicitKind === 'fund' || explicitKind === 'round') return explicitKind
   return String(row?.Round_Stage || row?.round_stage || '').trim() ? 'round' : 'fund'
 }
@@ -1918,8 +2007,12 @@ function findOpportunityByPromptLabel(label) {
   const candidate = normalizeComparisonText(label)
   if (!candidate) return null
   return (
-    opportunities.value.find((row) => normalizeComparisonText(buildFullOpportunityPromptLabel(row)) === candidate) ||
-    opportunities.value.find((row) => normalizeComparisonText(buildOpportunityPromptLabel(row)) === candidate) ||
+    opportunities.value.find(
+      (row) => normalizeComparisonText(buildFullOpportunityPromptLabel(row)) === candidate,
+    ) ||
+    opportunities.value.find(
+      (row) => normalizeComparisonText(buildOpportunityPromptLabel(row)) === candidate,
+    ) ||
     null
   )
 }
@@ -1939,7 +2032,13 @@ function scoreOpportunityPromptMatch(row = {}) {
   if (rowKind === entityType.value) score += 2
   if (companyCandidate && rowCompany === companyCandidate) score += 4
   if (nameCandidate && rowName === nameCandidate) score += 5
-  if (companyCandidate && nameCandidate && rowCompany === companyCandidate && rowName === nameCandidate) score += 3
+  if (
+    companyCandidate &&
+    nameCandidate &&
+    rowCompany === companyCandidate &&
+    rowName === nameCandidate
+  )
+    score += 3
   return score
 }
 
@@ -1954,13 +2053,21 @@ function findLikelyExistingOpportunityMatchLabel() {
 function findCompanyByName(name) {
   const candidate = normalizeComparisonText(name)
   if (!candidate) return null
-  return companies.value.find((company) => normalizeComparisonText(company?.Company_Name) === candidate) || null
+  return (
+    companies.value.find(
+      (company) => normalizeComparisonText(company?.Company_Name) === candidate,
+    ) || null
+  )
 }
 
 function findContactByPromptLabel(label) {
   const candidate = normalizeComparisonText(label)
   if (!candidate) return null
-  return contacts.value.find((contact) => normalizeComparisonText(buildContactOptionLabel(contact)) === candidate) || null
+  return (
+    contacts.value.find(
+      (contact) => normalizeComparisonText(buildContactOptionLabel(contact)) === candidate,
+    ) || null
+  )
 }
 
 let intakeReviewTimer = null
@@ -1974,7 +2081,12 @@ function clearIntakeReviewTimer() {
 }
 
 function maybeOpenIntakeReviewDialog() {
-  if (!intakeReviewPending.value || !intakeReviewDelayElapsed.value || intakeReviewPromptShown.value) return
+  if (
+    !intakeReviewPending.value ||
+    !intakeReviewDelayElapsed.value ||
+    intakeReviewPromptShown.value
+  )
+    return
   const nextFields = buildIntakeReviewFieldsFromForms()
   const pendingKeys = getPendingIntakeReviewFieldKeys(nextFields)
   if (!pendingKeys.length) {
@@ -2052,12 +2164,16 @@ function applyConfirmedIntakeReviewFields(fieldKeys = []) {
 
 function confirmIntakeReviewDialog() {
   if (!intakeReviewReadyToContinue.value) return
-  const populatedEntries = Object.entries(intakeReviewFields.value).filter(([, value]) => String(value || '').trim().length > 0)
+  const populatedEntries = Object.entries(intakeReviewFields.value).filter(
+    ([, value]) => String(value || '').trim().length > 0,
+  )
   const populatedKeys = populatedEntries.map(([key]) => key)
   applyConfirmedIntakeReviewFields(populatedKeys)
   intakeConfirmedFieldValues.value = {
     ...intakeConfirmedFieldValues.value,
-    ...Object.fromEntries(populatedEntries.map(([key, value]) => [key, String(value || '').trim()])),
+    ...Object.fromEntries(
+      populatedEntries.map(([key, value]) => [key, String(value || '').trim()]),
+    ),
   }
   intakeReviewDialogOpen.value = false
   processingMessage.value = 'Continuing extraction...'
@@ -2143,12 +2259,18 @@ function verifyIntakeReviewField(fieldKey) {
     const existingOpportunity = findOpportunityByPromptLabel(normalized)
     if (existingOpportunity) {
       form.value.Venture_Oppty_Name = stripHumanVerify(
-        existingOpportunity?.Venture_Oppty_Name || existingOpportunity?.opportunity_name || existingOpportunity?.name,
+        existingOpportunity?.Venture_Oppty_Name ||
+          existingOpportunity?.opportunity_name ||
+          existingOpportunity?.name,
       )
-      form.value.Round_Stage = stripHumanVerify(existingOpportunity?.Round_Stage || existingOpportunity?.round_stage)
+      form.value.Round_Stage = stripHumanVerify(
+        existingOpportunity?.Round_Stage || existingOpportunity?.round_stage,
+      )
       form.value.kind = normalizeOpportunityKind(existingOpportunity)
       if (!String(companyForm.value.Company_Name || '').trim()) {
-        companyForm.value.Company_Name = stripHumanVerify(existingOpportunity?.Company_Name || existingOpportunity?.company_name)
+        companyForm.value.Company_Name = stripHumanVerify(
+          existingOpportunity?.Company_Name || existingOpportunity?.company_name,
+        )
       }
       sourceLabel = 'Selected existing opportunity match'
       markAutofilled('opportunity', 'Venture_Oppty_Name')
@@ -2210,13 +2332,15 @@ function verifyIntakeReviewField(fieldKey) {
       consumerLane:
         fieldKey === 'sponsorCompany'
           ? 'Company'
-          : fieldKey === 'existingOpportunityMatch' || fieldKey === 'relatedFund' || fieldKey === 'relatedRound'
+          : fieldKey === 'existingOpportunityMatch' ||
+              fieldKey === 'relatedFund' ||
+              fieldKey === 'relatedRound'
             ? 'Opportunity'
             : fieldKey === 'matchingDocumentName'
               ? 'Artifact Intake'
-            : fieldKey === 'relatedContact'
-              ? 'Contacts'
-              : 'Artifact Intake',
+              : fieldKey === 'relatedContact'
+                ? 'Contacts'
+                : 'Artifact Intake',
       sourceChunkId: releasedMarkdownChunkRows.value[0]?.chunk_id || '',
       sourceType: 'user_verified_prompt',
       verificationState: 'verified',
@@ -2290,10 +2414,127 @@ function stripHumanVerify(value) {
     .trim()
 }
 
+function buildFieldStateKey(section, key) {
+  return `${section}.${key}`
+}
+
+function captureFieldSnapshot(section, key) {
+  if (section === 'company') {
+    return {
+      value: companyForm.value?.[key] ?? '',
+      companyForm: JSON.parse(JSON.stringify(companyForm.value || {})),
+      companyId: form.value.company_id || null,
+      companyLinkMode: companyLinkMode.value,
+      companySourceChoice: companySourceChoice.value,
+    }
+  }
+  if (section === 'contact') {
+    return {
+      value: contactForm.value?.[key] ?? '',
+      contactForm: JSON.parse(JSON.stringify(contactForm.value || {})),
+      contactLinkMode: contactLinkMode.value,
+    }
+  }
+  return {
+    value: form.value?.[key] ?? '',
+    kind: form.value.kind,
+  }
+}
+
+function buildEmptyFieldSnapshot(section, key) {
+  if (section === 'company') {
+    return {
+      value: '',
+      companyForm: {
+        ...JSON.parse(JSON.stringify(companyForm.value || {})),
+        [key]: '',
+      },
+      companyId: key === 'Company_Name' ? null : form.value.company_id || null,
+      companyLinkMode: key === 'Company_Name' ? 'new' : companyLinkMode.value,
+      companySourceChoice: key === 'Company_Name' ? 'input' : companySourceChoice.value,
+    }
+  }
+  if (section === 'contact') {
+    return {
+      value: '',
+      contactForm: {
+        ...JSON.parse(JSON.stringify(contactForm.value || {})),
+        [key]: '',
+      },
+      contactLinkMode: key === 'id' ? 'new' : contactLinkMode.value,
+    }
+  }
+  return {
+    value: '',
+    kind: form.value.kind,
+  }
+}
+
+function applyFieldSnapshot(section, key, snapshot = {}) {
+  if (section === 'company') {
+    if (snapshot.companyForm) {
+      companyForm.value = {
+        ...companyForm.value,
+        ...snapshot.companyForm,
+      }
+    } else {
+      companyForm.value = {
+        ...companyForm.value,
+        [key]: snapshot.value ?? '',
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(snapshot, 'companyId')) {
+      form.value.company_id = snapshot.companyId || null
+    }
+    if (snapshot.companyLinkMode) companyLinkMode.value = snapshot.companyLinkMode
+    if (snapshot.companySourceChoice) companySourceChoice.value = snapshot.companySourceChoice
+    return
+  }
+  if (section === 'contact') {
+    if (snapshot.contactForm) {
+      contactForm.value = {
+        ...contactForm.value,
+        ...snapshot.contactForm,
+      }
+    } else {
+      contactForm.value = {
+        ...contactForm.value,
+        [key]: snapshot.value ?? '',
+      }
+    }
+    if (snapshot.contactLinkMode) contactLinkMode.value = snapshot.contactLinkMode
+    return
+  }
+  form.value = {
+    ...form.value,
+    [key]: snapshot.value ?? '',
+    kind: snapshot.kind || form.value.kind,
+  }
+}
+
+function syncHumanEditedSnapshotsForSection(section) {
+  const keys = Object.keys(fieldSourceModes.value || {})
+    .filter((fieldKey) => fieldKey.startsWith(`${section}.`))
+    .filter((fieldKey) => fieldSourceModes.value[fieldKey] === 'human')
+  if (!keys.length) return
+
+  const next = { ...humanEditedFieldSnapshots.value }
+  for (const fieldKey of keys) {
+    const key = fieldKey.slice(section.length + 1)
+    next[fieldKey] = captureFieldSnapshot(section, key)
+  }
+  humanEditedFieldSnapshots.value = next
+}
+
 function markAutofilled(section, key) {
-  autofilledFlags.value[`${section}.${key}`] = true
-  if (!fieldSourceModes.value[`${section}.${key}`]) {
-    fieldSourceModes.value[`${section}.${key}`] = 'ai'
+  const fieldKey = buildFieldStateKey(section, key)
+  autofilledFlags.value[fieldKey] = true
+  aiGeneratedFieldSnapshots.value = {
+    ...aiGeneratedFieldSnapshots.value,
+    [fieldKey]: captureFieldSnapshot(section, key),
+  }
+  if (!fieldSourceModes.value[fieldKey]) {
+    fieldSourceModes.value[fieldKey] = 'ai'
   }
 }
 
@@ -2304,20 +2545,45 @@ function fieldInputClass(section, key) {
 }
 
 function getFieldSourceMode(section, key) {
-  const fieldKey = `${section}.${key}`
+  const fieldKey = buildFieldStateKey(section, key)
   if (fieldSourceModes.value[fieldKey]) return fieldSourceModes.value[fieldKey]
   return autofilledFlags.value[fieldKey] ? 'ai' : 'human'
 }
 
 function showFieldSourceToggle(section, key) {
-  return Boolean(autofilledFlags.value[`${section}.${key}`])
+  return Boolean(autofilledFlags.value[buildFieldStateKey(section, key)])
 }
 
 function setFieldSourceMode(section, key, value) {
+  const fieldKey = buildFieldStateKey(section, key)
+  const nextMode = value === 'human' ? 'human' : 'ai'
+  const previousMode = getFieldSourceMode(section, key)
+  if (previousMode === nextMode) return
+
+  if (previousMode === 'human') {
+    humanEditedFieldSnapshots.value = {
+      ...humanEditedFieldSnapshots.value,
+      [fieldKey]: captureFieldSnapshot(section, key),
+    }
+  }
+
   fieldSourceModes.value = {
     ...fieldSourceModes.value,
-    [`${section}.${key}`]: value === 'human' ? 'human' : 'ai',
+    [fieldKey]: nextMode,
   }
+
+  if (nextMode === 'ai') {
+    applyFieldSnapshot(section, key, aiGeneratedFieldSnapshots.value[fieldKey] || {})
+  } else {
+    const nextHumanSnapshot =
+      humanEditedFieldSnapshots.value[fieldKey] || buildEmptyFieldSnapshot(section, key)
+    humanEditedFieldSnapshots.value = {
+      ...humanEditedFieldSnapshots.value,
+      [fieldKey]: nextHumanSnapshot,
+    }
+    applyFieldSnapshot(section, key, nextHumanSnapshot)
+  }
+
   syncActiveDraft()
 }
 
@@ -2348,7 +2614,9 @@ function truncateMarkdownPreview(value, maxLength = 420) {
 function isOpportunityNameDuplicate(value) {
   const candidate = normalizeOpportunityName(value).toLowerCase()
   if (!candidate) return false
-  return existingOpportunityNames.value.some((existingName) => existingName.toLowerCase() === candidate)
+  return existingOpportunityNames.value.some(
+    (existingName) => existingName.toLowerCase() === candidate,
+  )
 }
 
 function markOpportunityNameEdited() {
@@ -2459,9 +2727,9 @@ function askDuplicateRenameConfirmation() {
     $q.dialog({
       title: 'Existing File Found',
       message:
-        'A file with the same name already exists. Continue and save this upload with a sequential suffix like "_1" or "_2"?',
+        'A file with the same name already exists. Continue to duplicate the file and save this upload?',
       cancel: { flat: true, label: 'Cancel' },
-      ok: { color: 'warning', label: 'Continue' },
+      ok: { color: 'orange-8', textColor: 'white', label: 'Continue' },
       persistent: true,
     })
       .onOk(() => resolve(true))
@@ -2511,7 +2779,9 @@ async function handleAutofillPreviewFallback(error) {
 }
 
 function lowerBaseName(fileName) {
-  const name = String(fileName || '').trim().toLowerCase()
+  const name = String(fileName || '')
+    .trim()
+    .toLowerCase()
   if (!name) return ''
   const dot = name.lastIndexOf('.')
   return dot > 0 ? name.slice(0, dot) : name
@@ -2525,20 +2795,32 @@ async function findExistingDroppedFiles(files = []) {
   const rawNames = new Set(
     artifacts
       .filter((a) => String(a?.artifact_type || '').toLowerCase() === 'raw')
-      .map((a) => String(a?.fs_path || '').split('/').pop()?.toLowerCase())
+      .map((a) =>
+        String(a?.fs_path || '')
+          .split('/')
+          .pop()
+          ?.toLowerCase(),
+      )
       .filter(Boolean),
   )
   const llmNames = new Set(
     artifacts
       .filter((a) => String(a?.artifact_type || '').toLowerCase() === 'llm-ready')
-      .map((a) => String(a?.fs_path || '').split('/').pop()?.toLowerCase())
+      .map((a) =>
+        String(a?.fs_path || '')
+          .split('/')
+          .pop()
+          ?.toLowerCase(),
+      )
       .filter(Boolean),
   )
 
   const existingNames = []
   let bothExist = false
   for (const file of files) {
-    const rawName = String(file?.name || '').trim().toLowerCase()
+    const rawName = String(file?.name || '')
+      .trim()
+      .toLowerCase()
     if (!rawName) continue
     const expectedMd = `${lowerBaseName(rawName)}.md`
     const hasRaw = rawNames.has(rawName)
@@ -2555,6 +2837,7 @@ function applyPrimarySuggestedValues(suggested = {}) {
     if (!Object.prototype.hasOwnProperty.call(form.value, key)) continue
     if (key === 'Venture_Oppty_Name' && intakeLockedFields.value.relatedFund) continue
     if (key === 'Round_Stage' && intakeLockedFields.value.relatedRound) continue
+    if (getFieldSourceMode('opportunity', key) === 'human') continue
     form.value[key] = value == null ? '' : stripHumanVerify(value)
     markAutofilled('opportunity', key)
   }
@@ -2562,19 +2845,21 @@ function applyPrimarySuggestedValues(suggested = {}) {
     if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
     if (key === 'Company_Name' && intakeLockedFields.value.sponsorCompany) continue
     if (key === 'Website' && intakeLockedFields.value.website) continue
+    if (getFieldSourceMode('company', key) === 'human') continue
     companyForm.value[key] =
       key === 'Status'
         ? normalizeCompanyStatusValue(value)
         : key === 'Company_Type'
           ? normalizeCompanyTypeValue(value)
-        : value == null
-          ? ''
-          : stripHumanVerify(value)
+          : value == null
+            ? ''
+            : stripHumanVerify(value)
     markAutofilled('company', key)
   }
   for (const [key, value] of Object.entries(suggested?.contact || {})) {
     if (!Object.prototype.hasOwnProperty.call(contactForm.value, key)) continue
     if (key === 'Name' && intakeLockedFields.value.relatedContact) continue
+    if (getFieldSourceMode('contact', key) === 'human') continue
     contactForm.value[key] = value == null ? '' : stripHumanVerify(value)
     markAutofilled('contact', key)
   }
@@ -2771,7 +3056,9 @@ function trimPayloadValues(input = {}) {
 function normalizeCompanyStatusValue(value) {
   const candidate = stripHumanVerify(value).trim().toLowerCase()
   if (!candidate) return 'ongoing'
-  if (['ongoing', 'on-going', 'active', 'open', 'operating', 'live', 'current'].includes(candidate)) {
+  if (
+    ['ongoing', 'on-going', 'active', 'open', 'operating', 'live', 'current'].includes(candidate)
+  ) {
     return 'ongoing'
   }
   if (['closed', 'inactive', 'shutdown', 'shut down', 'terminated', 'ended'].includes(candidate)) {
@@ -2789,7 +3076,9 @@ function normalizeCompanyTypeValue(value) {
 }
 
 function buildProjectLabel(project = {}) {
-  return String(project?.name || project?.Project_Name || project?.pipeline_id || project?.id || '').trim()
+  return String(
+    project?.name || project?.Project_Name || project?.pipeline_id || project?.id || '',
+  ).trim()
 }
 
 function buildTaskLabel(task = {}) {
@@ -2814,7 +3103,9 @@ const taskOptions = computed(() =>
 
 function filterRelationshipOptions(value, update, type) {
   update(() => {
-    const search = String(value || '').trim().toLowerCase()
+    const search = String(value || '')
+      .trim()
+      .toLowerCase()
     const configs = {
       project: {
         source: projects.value,
@@ -2870,7 +3161,10 @@ async function ensureCompanySelectionForSubmit() {
       id: existingCompanyId,
       ...companyPayload,
       Company_Name: companyName || selectedCompany.value?.Company_Name || '',
-      Company_Type: String(companyPayload.Company_Type || '').trim() || selectedCompany.value?.Company_Type || 'Other',
+      Company_Type:
+        String(companyPayload.Company_Type || '').trim() ||
+        selectedCompany.value?.Company_Type ||
+        'Other',
     })
     await loadCompanies()
     return existingCompanyId
@@ -2895,10 +3189,14 @@ async function syncOpportunityRelationships(opportunityId) {
   if (!bridge.value?.db?.execute || !opportunityId) return
 
   const relatedProjectIds = [
-    ...new Set((form.value.related_project_ids || []).map((id) => String(id || '').trim()).filter(Boolean)),
+    ...new Set(
+      (form.value.related_project_ids || []).map((id) => String(id || '').trim()).filter(Boolean),
+    ),
   ]
   const relatedTaskIds = [
-    ...new Set((form.value.related_task_ids || []).map((id) => String(id || '').trim()).filter(Boolean)),
+    ...new Set(
+      (form.value.related_task_ids || []).map((id) => String(id || '').trim()).filter(Boolean),
+    ),
   ]
   const projectTable =
     entityType.value === 'fund' ? 'Projects_Funds_related_fund' : 'Projects_Rounds_related_round'
@@ -2924,9 +3222,7 @@ async function syncOpportunityRelationships(opportunityId) {
 
 async function submit() {
   if (
-    !(
-      (entityType.value === 'fund' ? bridge.value?.funds?.create : bridge.value?.rounds?.create)
-    ) ||
+    !(entityType.value === 'fund' ? bridge.value?.funds?.create : bridge.value?.rounds?.create) ||
     !bridge.value?.artifacts?.linkToOpportunity
   ) {
     return
@@ -2997,7 +3293,9 @@ async function submit() {
 async function onCancel() {
   const artifactIds = [...draftArtifactIds.value]
   if (bridge.value?.artifacts?.delete && artifactIds.length) {
-    await Promise.allSettled(artifactIds.map((artifactId) => bridge.value.artifacts.delete(artifactId)))
+    await Promise.allSettled(
+      artifactIds.map((artifactId) => bridge.value.artifacts.delete(artifactId)),
+    )
   }
   resetForms()
   resetTransientState()
@@ -3038,7 +3336,9 @@ function scoreCompanyMatch(company, inputValue) {
     (count, token) => count + (companyTokens.has(token) ? 1 : 0),
     0,
   )
-  const overlapScore = inputTokens.length ? Math.round((tokenMatches / inputTokens.length) * 300) : 0
+  const overlapScore = inputTokens.length
+    ? Math.round((tokenMatches / inputTokens.length) * 300)
+    : 0
   const lengthDelta = Math.abs(companyName.length - inputValue.length)
   return overlapScore + Math.max(0, 120 - lengthDelta)
 }
@@ -3063,8 +3363,13 @@ function scoreContactMatch(contact, inputValue) {
 
   const labelTokens = new Set(tokenizeComparisonText(label))
   const inputTokens = tokenizeComparisonText(inputValue)
-  const tokenMatches = inputTokens.reduce((count, token) => count + (labelTokens.has(token) ? 1 : 0), 0)
-  const overlapScore = inputTokens.length ? Math.round((tokenMatches / inputTokens.length) * 300) : 0
+  const tokenMatches = inputTokens.reduce(
+    (count, token) => count + (labelTokens.has(token) ? 1 : 0),
+    0,
+  )
+  const overlapScore = inputTokens.length
+    ? Math.round((tokenMatches / inputTokens.length) * 300)
+    : 0
   const lengthDelta = Math.abs(label.length - inputValue.length)
   return overlapScore + Math.max(0, 120 - lengthDelta)
 }
@@ -3101,7 +3406,8 @@ watch(
     const droppedFiles = activeDraft.value?.droppedFiles || []
     const alreadyProcessed =
       Object.keys(activeDraft.value?.ingestStatusByFile || {}).length > 0 ||
-      (Array.isArray(activeDraft.value?.draftArtifactIds) && activeDraft.value.draftArtifactIds.length > 0)
+      (Array.isArray(activeDraft.value?.draftArtifactIds) &&
+        activeDraft.value.draftArtifactIds.length > 0)
     if (!hydrated && droppedFiles.length > 0 && !alreadyProcessed) {
       initStatusForFiles(droppedFiles)
       await processDroppedFiles(droppedFiles)
@@ -3216,9 +3522,45 @@ watch(contactLinkMode, (value) => {
 })
 
 watch(
+  () =>
+    JSON.stringify({
+      companyForm: companyForm.value,
+      companyId: form.value.company_id,
+      companyLinkMode: companyLinkMode.value,
+      companySourceChoice: companySourceChoice.value,
+    }),
+  () => {
+    syncHumanEditedSnapshotsForSection('company')
+  },
+)
+
+watch(
+  () =>
+    JSON.stringify({
+      contactForm: contactForm.value,
+      contactLinkMode: contactLinkMode.value,
+    }),
+  () => {
+    syncHumanEditedSnapshotsForSection('contact')
+  },
+)
+
+watch(
+  () => JSON.stringify(form.value),
+  () => {
+    syncHumanEditedSnapshotsForSection('opportunity')
+  },
+)
+
+watch(
   () => suggestedOpportunityName.value,
   (v) => {
-    if (opportunityNameManuallyEdited.value && normalizeOpportunityName(form.value.Venture_Oppty_Name)) return
+    if (
+      opportunityNameManuallyEdited.value &&
+      normalizeOpportunityName(form.value.Venture_Oppty_Name)
+    )
+      return
+    if (getFieldSourceMode('opportunity', 'Venture_Oppty_Name') === 'human') return
     form.value.Venture_Oppty_Name = v
     markAutofilled('opportunity', 'Venture_Oppty_Name')
   },
@@ -3229,7 +3571,9 @@ watch(
   () => props.initialKind,
   (value) => {
     if (!props.lockKind) return
-    const normalized = String(value || '').trim().toLowerCase()
+    const normalized = String(value || '')
+      .trim()
+      .toLowerCase()
     if (normalized === 'fund' || normalized === 'round') {
       form.value.kind = normalized
     }
@@ -3320,9 +3664,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 12px;
   border-radius: 999px;
-  background:
-    linear-gradient(90deg, rgba(219, 234, 254, 0.9), rgba(239, 246, 255, 0.95)),
-    #eff6ff;
+  background: linear-gradient(90deg, rgba(219, 234, 254, 0.9), rgba(239, 246, 255, 0.95)), #eff6ff;
   border: 1px solid rgba(59, 130, 246, 0.16);
   overflow: visible;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
@@ -3418,7 +3760,9 @@ onBeforeUnmount(() => {
 
 .field-source-toggle {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
   margin-top: 6px;
 }
 
@@ -3429,26 +3773,37 @@ onBeforeUnmount(() => {
 }
 
 .field-source-toggle :deep(.q-btn) {
-  min-height: 28px;
-  min-width: 28px;
-  padding: 0 8px;
+  min-height: 22px;
+  min-width: 22px;
+  padding: 0 5px;
 }
 
 .field-source-toggle--labeled :deep(.q-btn-toggle) {
-  width: 100%;
+  width: auto;
   justify-content: flex-end;
 }
 
 .field-source-toggle--labeled :deep(.q-btn) {
-  flex: 1 1 0;
-  min-height: 32px;
-  padding: 0 12px;
+  flex: 0 0 auto;
+  min-height: 22px;
+  min-width: 26px;
+  padding: 0 6px;
 }
 
 .field-source-toggle--labeled :deep(.q-btn__content) {
-  gap: 6px;
-  font-size: 12px;
+  gap: 0;
+  font-size: 11px;
   white-space: nowrap;
+}
+
+.field-source-toggle__labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 170px;
+  color: #2563eb;
+  font-size: 11px;
+  font-style: italic;
 }
 
 .company-mismatch-banner {

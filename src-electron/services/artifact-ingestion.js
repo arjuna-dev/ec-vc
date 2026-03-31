@@ -322,10 +322,10 @@ export async function ingestArtifactsFromPaths({
     const normalized = fileName.toLowerCase()
     if (seenInputNames.has(normalized) && duplicateStrategy !== 'rename') {
       emitStatus?.({
-        type: 'error',
-        message: `Duplicate filename "${fileName}" in this upload. Rename the file and try again.`,
+        type: 'warning',
+        message: `A file named "${fileName}" appears more than once in this upload.`,
       })
-      throw new Error(`Duplicate filename in upload: "${fileName}". Rename the file and try again.`)
+      throw new Error(`Duplicate filename in upload: "${fileName}".`)
     }
     seenInputNames.add(normalized)
 
@@ -338,12 +338,10 @@ export async function ingestArtifactsFromPaths({
       )
       if (refs > 0) {
         emitStatus?.({
-          type: 'error',
-          message: `A file named "${fileName}" already exists. Rename the file and try again.`,
+          type: 'warning',
+          message: `A file named "${fileName}" already exists.`,
         })
-        throw new Error(
-          `Duplicate filename: "${fileName}" already exists. Rename the file and try again.`,
-        )
+        throw new Error(`Duplicate filename: "${fileName}" already exists.`)
       }
 
       try {
