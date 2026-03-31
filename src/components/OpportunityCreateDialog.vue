@@ -128,23 +128,6 @@
                     @filter="onCompanyOptionFilter"
                   />
 
-                  <div
-                    v-if="showFieldSourceToggle('company', 'Company_Name')"
-                    class="field-source-toggle"
-                  >
-                    <q-btn-toggle
-                      :model-value="getFieldSourceMode('company', 'Company_Name')"
-                      dense
-                      flat
-                      rounded
-                      no-caps
-                      toggle-color="primary"
-                      color="grey-2"
-                      text-color="grey-7"
-                      :options="fieldSourceOptions"
-                      @update:model-value="setFieldSourceMode('company', 'Company_Name', $event)"
-                    />
-                  </div>
                 </div>
 
                 <q-option-group
@@ -282,23 +265,6 @@
                       :input-class="fieldInputClass('company', field.key)"
                     />
 
-                    <div
-                      v-if="showFieldSourceToggle('company', field.key)"
-                      class="field-source-toggle"
-                    >
-                      <q-btn-toggle
-                        :model-value="getFieldSourceMode('company', field.key)"
-                        dense
-                        flat
-                        rounded
-                        no-caps
-                        toggle-color="primary"
-                        color="grey-2"
-                        text-color="grey-7"
-                        :options="fieldSourceOptions"
-                        @update:model-value="setFieldSourceMode('company', field.key, $event)"
-                      />
-                    </div>
                   </div>
                 </template>
               </div>
@@ -324,23 +290,6 @@
                     @update:model-value="markOpportunityNameEdited"
                   />
 
-                  <div
-                    v-if="showFieldSourceToggle('opportunity', 'Venture_Oppty_Name')"
-                    class="field-source-toggle"
-                  >
-                    <q-btn-toggle
-                      :model-value="getFieldSourceMode('opportunity', 'Venture_Oppty_Name')"
-                      dense
-                      flat
-                      rounded
-                      no-caps
-                      toggle-color="primary"
-                      color="grey-2"
-                      text-color="grey-7"
-                      :options="fieldSourceOptions"
-                      @update:model-value="setFieldSourceMode('opportunity', 'Venture_Oppty_Name', $event)"
-                    />
-                  </div>
                 </div>
 
                 <q-select
@@ -374,23 +323,6 @@
                     :input-class="fieldInputClass('opportunity', field.key)"
                   />
 
-                  <div
-                    v-if="showFieldSourceToggle('opportunity', field.key)"
-                    class="field-source-toggle"
-                  >
-                    <q-btn-toggle
-                      :model-value="getFieldSourceMode('opportunity', field.key)"
-                      dense
-                      flat
-                      rounded
-                      no-caps
-                      toggle-color="primary"
-                      color="grey-2"
-                      text-color="grey-7"
-                      :options="fieldSourceOptions"
-                      @update:model-value="setFieldSourceMode('opportunity', field.key, $event)"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -456,23 +388,6 @@
                 input-debounce="0"
                 @filter="onContactOptionFilter"
               />
-              <div
-                v-if="showFieldSourceToggle('contact', 'id')"
-                class="field-source-toggle"
-              >
-                <q-btn-toggle
-                  :model-value="getFieldSourceMode('contact', 'id')"
-                  dense
-                  flat
-                  rounded
-                  no-caps
-                  toggle-color="primary"
-                  color="grey-2"
-                  text-color="grey-7"
-                  :options="fieldSourceOptions"
-                  @update:model-value="setFieldSourceMode('contact', 'id', $event)"
-                />
-              </div>
             </div>
             <q-option-group
               v-model="contactLinkMode"
@@ -490,23 +405,6 @@
                 :disable="loading || processingDrop"
                 :input-class="fieldInputClass('contact', field.key)"
               />
-              <div
-                v-if="showFieldSourceToggle('contact', field.key)"
-                class="field-source-toggle"
-              >
-                <q-btn-toggle
-                  :model-value="getFieldSourceMode('contact', field.key)"
-                  dense
-                  flat
-                  rounded
-                  no-caps
-                  toggle-color="primary"
-                  color="grey-2"
-                  text-color="grey-7"
-                  :options="fieldSourceOptions"
-                  @update:model-value="setFieldSourceMode('contact', field.key, $event)"
-                />
-              </div>
             </div>
           </div>
 
@@ -531,7 +429,7 @@
       <q-card-actions align="right" class="q-px-xl q-py-md">
         <q-btn flat label="Cancel" :disable="loading || processingDrop" @click="onCancel" />
         <q-btn
-          color="primary"
+          :color="createDisabled ? 'grey-5' : 'primary'"
           label="Create"
           :loading="loading"
           :disable="createDisabled"
@@ -1029,11 +927,6 @@ const deferredSuggestionPayload = ref(null)
 const autofilledFlags = ref({})
 const fieldSourceModes = ref({})
 
-const fieldSourceOptions = [
-  { icon: 'auto_awesome', value: 'ai' },
-  { icon: 'edit', value: 'human' },
-]
-
 const ingestStatusColumns = [
   { name: 'fileName', label: 'File', field: 'fileName', align: 'left' },
   { name: 'uploadStatus', label: 'Copy File', field: 'uploadStatus', align: 'left' },
@@ -1227,6 +1120,8 @@ const releasedMarkdownChunkRows = computed(() =>
     })),
 )
 
+const terminalIngestStatuses = new Set(['completed', 'existing', 'manual review'])
+
 const intakeProgressMetrics = computed(() => {
   const rows = ingestStatusRows.value
   const totalFiles = rows.length
@@ -1241,13 +1136,14 @@ const intakeProgressMetrics = computed(() => {
   const totalSteps = totalFiles * 3
   let completedSteps = 0
   for (const row of rows) {
-    if (['completed', 'existing'].includes(String(row?.uploadStatus || ''))) completedSteps += 1
-    if (['completed', 'existing'].includes(String(row?.markdownStatus || ''))) completedSteps += 1
-    if (['completed', 'existing'].includes(String(row?.extractionStatus || ''))) completedSteps += 1
+    if (terminalIngestStatuses.has(String(row?.uploadStatus || ''))) completedSteps += 1
+    if (terminalIngestStatuses.has(String(row?.markdownStatus || ''))) completedSteps += 1
+    if (terminalIngestStatuses.has(String(row?.extractionStatus || ''))) completedSteps += 1
   }
 
   const rawValue = totalSteps ? completedSteps / totalSteps : 0
-  const value = Math.min(1, rawValue)
+  const readyForReview = !processingDrop.value && String(activeDraft.value?.stage || '').trim() === 'Ready for Review'
+  const value = readyForReview ? 1 : Math.min(1, rawValue)
 
   let label = 'Queued'
   if (processingDrop.value) label = processingMessage.value || 'Processing dropped files'
@@ -2169,18 +2065,6 @@ function getFieldSourceMode(section, key) {
   return autofilledFlags.value[fieldKey] ? 'ai' : 'human'
 }
 
-function showFieldSourceToggle(section, key) {
-  return Boolean(autofilledFlags.value[`${section}.${key}`])
-}
-
-function setFieldSourceMode(section, key, value) {
-  fieldSourceModes.value = {
-    ...fieldSourceModes.value,
-    [`${section}.${key}`]: value === 'human' ? 'human' : 'ai',
-  }
-  syncActiveDraft()
-}
-
 function promptFieldClass(fieldKey) {
   const hasValue = String(intakeReviewFields.value[fieldKey] || '').trim().length > 0
   return hasValue && !intakeReviewVerified.value[fieldKey] ? 'intake-proposed-field' : ''
@@ -2485,12 +2369,14 @@ async function processDroppedFiles(files = []) {
       })
     }
 
+    // First API call: persist the dropped files and generate the LLM-ready artifacts.
     processingMessage.value = 'Creating LLM-ready files...'
     const ingestResult = await bridge.value.artifacts.ingest({
       filePaths,
     })
     collectDraftArtifactIds(ingestResult)
 
+    // Second API call: extract structured JSON from the generated LLM-ready files.
     processingMessage.value = 'Extracting structured data from LLM-ready files...'
     updateStatusForAllFiles({ extractionStatus: 'pending' })
     const markdownPaths = await resolveGeneratedMarkdownPaths(ingestResult)
