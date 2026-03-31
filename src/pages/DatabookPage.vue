@@ -4634,14 +4634,15 @@ onBeforeUnmount(() => {
 }
 
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn--active) {
-  color: #111111;
-  background: rgba(255, 255, 255, 0.96);
-  border-color: rgba(255, 255, 255, 0.96);
+  color: #ffffff;
+  background: #2563eb;
+  border-color: #2563eb;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
 }
 
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn--active .q-btn__content),
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn--active .block) {
-  color: #111111;
+  color: #ffffff;
 }
 
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn + .q-btn) {
