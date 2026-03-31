@@ -255,51 +255,55 @@
                     </div>
                   </div>
 
-                  <div v-if="contactCardPanel === 'contact-info'" class="contact-card__action-list">
-                    <div
-                      v-for="item in getContactInfoItems(row)"
-                      :key="item.label"
-                      class="contact-card__action-row"
-                    >
-                      <button
-                        type="button"
-                        class="contact-card__info-chip"
-                        @click="openContactCardAction(item, $event)"
-                      >
-                        <q-icon :name="item.icon" size="16px" />
-                        <span>{{ item.label }}</span>
-                      </button>
-                      <div v-if="item.value" class="contact-card__action-value">{{ item.value }}</div>
-                    </div>
-                    <div v-if="!getContactInfoItems(row).length" class="contact-card__summary-empty">
-                      Add LinkedIn, email, or phone details to build this contact card.
-                    </div>
-                  </div>
-
-                  <div v-else-if="contactCardPanel === 'relationship-highlights'" class="contact-card__details">
-                    <div class="contact-card__detail">
-                      <q-icon name="badge" size="16px" class="contact-card__detail-icon" />
-                      <div class="contact-card__detail-copy">
-                        <div class="contact-card__detail-label">Current role & company</div>
-                        <div class="contact-card__detail-value">
-                          {{ getContactCurrentRoleCompany(row) || 'No current role or company linked yet.' }}
+                  <div class="contact-card__summary-body">
+                    <div class="contact-card__summary-body-content">
+                      <div v-if="contactCardPanel === 'contact-info'" class="contact-card__action-list">
+                        <div
+                          v-for="item in getContactInfoItems(row)"
+                          :key="item.label"
+                          class="contact-card__action-row"
+                        >
+                          <button
+                            type="button"
+                            class="contact-card__info-chip"
+                            @click="openContactCardAction(item, $event)"
+                          >
+                            <q-icon :name="item.icon" size="16px" />
+                            <span>{{ item.label }}</span>
+                          </button>
+                          <div v-if="item.value" class="contact-card__action-value">{{ item.value }}</div>
+                        </div>
+                        <div v-if="!getContactInfoItems(row).length" class="contact-card__summary-empty">
+                          Add LinkedIn, email, or phone details to build this contact card.
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <div v-else-if="getContactLinkedNotes(row).length" class="contact-card__notes-list">
-                    <div
-                      v-for="note in getContactLinkedNotes(row)"
-                      :key="note"
-                      class="contact-card__note-pill"
-                    >
-                      {{ note }}
-                    </div>
-                  </div>
+                      <div v-else-if="contactCardPanel === 'relationship-highlights'" class="contact-card__details">
+                        <div class="contact-card__detail">
+                          <q-icon name="badge" size="16px" class="contact-card__detail-icon" />
+                          <div class="contact-card__detail-copy">
+                            <div class="contact-card__detail-label">Current role & company</div>
+                            <div class="contact-card__detail-value">
+                              {{ getContactCurrentRoleCompany(row) || 'No current role or company linked yet.' }}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-                  <div v-else class="contact-card__summary-empty">
-                    No linked notes yet for this contact.
+                      <div v-else-if="getContactLinkedNotes(row).length" class="contact-card__notes-list">
+                        <div
+                          v-for="note in getContactLinkedNotes(row)"
+                          :key="note"
+                          class="contact-card__note-pill"
+                        >
+                          {{ note }}
+                        </div>
+                      </div>
+
+                      <div v-else class="contact-card__summary-empty">
+                        No linked notes yet for this contact.
+                      </div>
+                    </div>
                   </div>
                 </q-card-section>
 
@@ -1757,6 +1761,8 @@ watch(displayRows, () => {
   flex: 1 1 auto;
   flex-direction: column;
   gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
   margin: 20px 20px 0;
   padding: 16px 18px 18px;
   background: rgba(255, 255, 255, 0.74);
@@ -1792,6 +1798,37 @@ watch(displayRows, () => {
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: var(--font-weight-medium);
+}
+
+.contact-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  direction: rtl;
+  padding-left: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(17, 17, 17, 0.18) transparent;
+}
+
+.contact-card__summary-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.contact-card__summary-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.contact-card__summary-body::-webkit-scrollbar-thumb {
+  background: rgba(17, 17, 17, 0.16);
+  border-radius: 999px;
+}
+
+.contact-card__summary-body-content {
+  direction: ltr;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 .contact-card__action-list {
@@ -1920,7 +1957,7 @@ watch(displayRows, () => {
 .contact-card__footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   padding: 16px 20px 20px;
 }
