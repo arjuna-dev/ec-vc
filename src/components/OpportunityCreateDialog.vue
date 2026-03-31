@@ -1901,17 +1901,6 @@ function clearIntakeReviewTimer() {
   }
 }
 
-function scheduleIntakeReviewDialog() {
-  clearIntakeReviewTimer()
-  intakeReviewDelayElapsed.value = false
-  intakeReviewPromptShown.value = false
-  intakeReviewPending.value = true
-  intakeReviewTimer = setTimeout(() => {
-    intakeReviewDelayElapsed.value = true
-    maybeOpenIntakeReviewDialog()
-  }, 10000)
-}
-
 function maybeOpenIntakeReviewDialog() {
   if (!intakeReviewPending.value || !intakeReviewDelayElapsed.value || intakeReviewPromptShown.value) return
   const nextFields = buildIntakeReviewFieldsFromForms()
@@ -2102,16 +2091,6 @@ function verifyIntakeReviewField(fieldKey) {
     })
   }
   syncActiveDraft()
-}
-
-async function waitForIntakeReviewConfirmation() {
-  const nextFields = buildIntakeReviewFieldsFromForms()
-  intakeReviewFields.value = nextFields
-  maybeOpenIntakeReviewDialog()
-  if (!intakeReviewPending.value) return
-  await new Promise((resolve) => {
-    intakeReviewResolver = resolve
-  })
 }
 
 function releaseIntakeExtractionLocks() {
@@ -2341,9 +2320,6 @@ async function handleAutofillPreviewFallback(error) {
     extractionFallbackReason: String(error?.message || error || '').trim(),
   })
   processingMessage.value = 'AI extraction quota reached. Continue with manual review.'
-  intakeReviewDelayElapsed.value = true
-  intakeReviewPending.value = true
-  maybeOpenIntakeReviewDialog()
   $q.notify({
     type: 'warning',
     message: 'AI quota reached. The files were staged and markdown is ready for manual review.',
@@ -2498,7 +2474,6 @@ async function processDroppedFiles(files = []) {
   processingDrop.value = true
   droppedFilesForPrompt.value = [...files]
   existingDocumentNameMatches.value = []
-  scheduleIntakeReviewDialog()
   try {
     processingMessage.value = 'Checking if files already exist...'
     const existingCheck = await findExistingDroppedFiles(files)
@@ -2510,17 +2485,17 @@ async function processDroppedFiles(files = []) {
       })
     }
 
-    processingMessage.value = 'Saving artifacts and generating markdown...'
+    processingMessage.value = 'Creating LLM-ready files...'
     const ingestResult = await bridge.value.artifacts.ingest({
       filePaths,
     })
     collectDraftArtifactIds(ingestResult)
 
-    processingMessage.value = 'Extracting structured data from generated markdown files...'
+    processingMessage.value = 'Extracting structured data from LLM-ready files...'
     updateStatusForAllFiles({ extractionStatus: 'pending' })
     const markdownPaths = await resolveGeneratedMarkdownPaths(ingestResult)
     if (!markdownPaths.length) {
-      throw new Error('No generated markdown files found for extraction.')
+      throw new Error('No LLM-ready files found for structured extraction.')
     }
     let preview = null
     try {
@@ -2535,7 +2510,6 @@ async function processDroppedFiles(files = []) {
     deferredSuggestionPayload.value = preview?.suggested || {}
     applyPrimarySuggestedValues(deferredSuggestionPayload.value)
     applyMatchedExistingCompany(preview?.companyMatch || null)
-    await waitForIntakeReviewConfirmation()
     applySecondarySuggestedValues(deferredSuggestionPayload.value)
     releaseIntakeExtractionLocks()
     deferredSuggestionPayload.value = null
