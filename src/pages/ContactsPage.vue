@@ -247,26 +247,17 @@
 
                 <q-card-section class="contact-card__summary">
                   <div class="contact-card__summary-head">
-                    <div class="contact-card__summary-label">{{ contactCardPanelLabel }}</div>
-                    <div class="contact-card__panel-pager">
-                      <q-btn
-                        flat
-                        round
-                        dense
-                        icon="chevron_left"
-                        class="contact-card__panel-arrow"
-                        @click="cycleContactCardPanel(-1)"
-                      />
-                      <div class="contact-card__panel-count">{{ contactCardPanelIndex + 1 }}/{{ contactCardPanelOrder.length }}</div>
-                      <q-btn
-                        flat
-                        round
-                        dense
-                        icon="chevron_right"
-                        class="contact-card__panel-arrow"
-                        @click="cycleContactCardPanel(1)"
-                      />
-                    </div>
+                    <q-btn-toggle
+                      v-model="contactCardPanel"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="contact-card__summary-toggle"
+                      :options="contactCardPanelOptions"
+                    />
                   </div>
 
                   <div class="contact-card__summary-body">
@@ -292,7 +283,7 @@
                       </div>
 
                       <div v-else class="contact-card__summary-empty">
-                        {{ contactCardPanel === 'notes' ? 'No linked notes yet for this contact.' : 'No linked docs yet for this contact.' }}
+                        {{ contactCardPanel === 'notes' ? 'No linked notes yet for this contact.' : 'No linked documents yet for this contact.' }}
                       </div>
                     </div>
                   </div>
@@ -367,21 +358,10 @@ const hasBridge = computed(
     !!bridge.value?.contacts?.delete,
 )
 const contactCardPanel = ref('notes')
-const contactCardPanelOrder = ['notes', 'docs']
-const contactCardPanelIndex = computed(() =>
-  Math.max(0, contactCardPanelOrder.indexOf(contactCardPanel.value)),
-)
-const contactCardPanelLabel = computed(() => ({
-  notes: 'Notes',
-  docs: 'Docs',
-}[contactCardPanel.value] || 'Notes'))
-
-function cycleContactCardPanel(direction = 1) {
-  const total = contactCardPanelOrder.length
-  const currentIndex = Math.max(0, contactCardPanelOrder.indexOf(contactCardPanel.value))
-  const nextIndex = (currentIndex + direction + total) % total
-  contactCardPanel.value = contactCardPanelOrder[nextIndex]
-}
+const contactCardPanelOptions = [
+  { label: 'Notes', value: 'notes' },
+  { label: 'Documents', value: 'docs' },
+]
 
 function onHeroDashboardPointerEnter(event) {
   updateHeroDashboardGradientPosition(event)
@@ -849,6 +829,45 @@ const countryDialCodeByName = {
   uruguay: '598',
 }
 
+const countryCityCodeLengthByName = {
+  argentina: 2,
+  australia: 2,
+  austria: 2,
+  belgium: 2,
+  brazil: 2,
+  canada: 3,
+  chile: 2,
+  china: 2,
+  colombia: 3,
+  denmark: 2,
+  finland: 2,
+  france: 1,
+  germany: 2,
+  'hong kong': 0,
+  india: 2,
+  ireland: 2,
+  israel: 2,
+  italy: 2,
+  japan: 2,
+  luxembourg: 2,
+  mexico: 2,
+  netherlands: 2,
+  'new zealand': 2,
+  norway: 2,
+  portugal: 2,
+  singapore: 0,
+  'south korea': 2,
+  spain: 2,
+  sweden: 2,
+  switzerland: 2,
+  'united arab emirates': 2,
+  'united kingdom': 2,
+  uk: 2,
+  'united states': 3,
+  usa: 3,
+  uruguay: 2,
+}
+
 function getContactLinkedNotes(row) {
   return [
     ...String(row?.Contact_Note || '')
@@ -968,7 +987,7 @@ function formatContactPhone(row) {
     localDigits = digits.slice(-10)
   }
 
-  const cityCodeLength = getContactCityCodeLength(localDigits.length)
+  const cityCodeLength = getContactCityCodeLength(country, localDigits.length)
   const cityCode = localDigits.slice(0, cityCodeLength)
   const lastFour = localDigits.slice(-4)
   const middleDigits = localDigits.slice(cityCode.length, Math.max(cityCode.length, localDigits.length - 4))
@@ -982,11 +1001,11 @@ function formatContactPhone(row) {
   return parts.join('-') || rawPhone
 }
 
-function getContactCityCodeLength(length) {
+function getContactCityCodeLength(country, length) {
+  const mappedLength = countryCityCodeLengthByName[country]
+  if (typeof mappedLength === 'number') return Math.min(mappedLength, Math.max(0, length - 4))
   if (length <= 7) return Math.max(0, length - 4)
-  if (length <= 9) return 2
-  if (length <= 11) return 3
-  return 4
+  return 0
 }
 
 function normalizeExternalUrl(value) {
@@ -1907,29 +1926,26 @@ watch(displayRows, () => {
 .contact-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
 }
 
-.contact-card__panel-pager {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.contact-card__summary-toggle {
+  border-radius: 999px;
 }
 
-.contact-card__panel-arrow {
-  color: #4b4b4b;
-  background: rgba(255, 255, 255, 0.82);
+.contact-card__summary-toggle :deep(.q-btn) {
+  min-height: 32px;
+  padding: 0 14px;
   border: 1px solid rgba(17, 17, 17, 0.08);
-}
-
-.contact-card__panel-count {
-  min-width: 34px;
-  text-align: center;
-  color: #6f6f6f;
+  border-radius: 999px;
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: var(--font-weight-medium);
+}
+
+.contact-card__summary-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
 }
 
 .contact-card__summary-body {
