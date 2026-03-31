@@ -370,50 +370,25 @@
 
             <div class="contact-databook__summary">
               <div class="contact-databook__summary-header">
-                <div class="contact-databook__summary-label">Relationship snapshot</div>
-                <q-btn
-                  round
-                  flat
-                  dense
-                  icon="add"
-                  aria-label="Customize relationship snapshot"
-                  class="contact-databook__summary-add"
-                >
-                  <q-menu
-                    anchor="bottom right"
-                    self="top right"
-                    class="contact-databook__summary-menu"
-                  >
-                    <q-list dense style="min-width: 220px">
-                      <q-item-label header>Snapshot fields</q-item-label>
-                      <q-item
-                        v-for="option in availableContactSummaryOptions"
-                        :key="option.id"
-                        clickable
-                        @click="toggleContactSummaryStat(option.id)"
-                      >
-                        <q-item-section>{{ option.label }}</q-item-section>
-                        <q-item-section side>
-                          <q-icon :name="isContactSummaryStatSelected(option.id) ? 'check' : 'add'" />
-                        </q-item-section>
-                      </q-item>
-                    </q-list>
-                  </q-menu>
-                </q-btn>
+                <div class="contact-databook__summary-label">Contact Feed</div>
               </div>
 
-              <div v-if="contactSummaryStats.length" class="contact-databook__summary-grid">
-                <div
-                  v-for="stat in contactSummaryStats"
-                  :key="stat.id"
-                  class="contact-databook__summary-item"
-                >
-                  <div class="contact-databook__summary-item-label">{{ stat.label }}</div>
-                  <div class="contact-databook__summary-item-value">{{ stat.displayValue }}</div>
-                </div>
+              <div class="contact-databook__summary-feed-toggle">
+                <q-btn-toggle
+                  v-model="contactFeedChannel"
+                  dense
+                  no-caps
+                  unelevated
+                  toggle-color="white"
+                  color="grey-9"
+                  text-color="grey-4"
+                  class="contact-databook__summary-feed-chip-toggle"
+                  :options="contactFeedChannelOptions"
+                />
               </div>
-              <div v-else class="contact-databook__summary-empty">
-                Use the + button to add the contact details you want to keep in view here.
+
+              <div class="contact-databook__summary-feed-state">
+                Feed view is inactive for now.
               </div>
             </div>
           </section>
@@ -1730,6 +1705,11 @@ const companyLinkedRounds = ref([])
 const companyLinkedFunds = ref([])
 const contactHeroPanelTab = ref('documents')
 const companyHeroPanelTab = ref('documents')
+const contactFeedChannel = ref('linkedin')
+const contactFeedChannelOptions = [
+  { label: 'LinkedIn', value: 'linkedin' },
+  { label: 'X', value: 'x' },
+]
 const contactDocumentsDragOver = ref(false)
 const uploadingContactDocuments = ref(false)
 const workspaceRoot = ref('')
@@ -1895,15 +1875,6 @@ const availableCompanySummaryOptions = computed(() =>
     value: resolveCompanySummaryValue(option),
   })),
 )
-const contactSummaryStats = computed(() => {
-  const selectedIds = new Set(selectedContactSummaryStatIds.value)
-  return availableContactSummaryOptions.value
-    .filter((option) => selectedIds.has(option.id))
-    .map((option) => ({
-      ...option,
-      displayValue: option.value || 'Not added yet',
-    }))
-})
 const companyName = computed(() => getFieldDisplayValue('Company_Name'))
 const companyType = computed(() => getFieldDisplayValue('Company_Type'))
 const companyOneLiner = computed(() => getFieldDisplayValue('One_Liner'))
@@ -1956,16 +1927,7 @@ const companyActionLinks = computed(() => {
 const contactActionLinks = computed(() => {
   const email = getFieldDisplayValue('Email')
   const phone = getFieldDisplayValue('Phone')
-  const linkedIn = getFieldDisplayValue('LinkedIn')
   return [
-    linkedIn
-      ? {
-          label: 'LinkedIn',
-          icon: 'north_east',
-          href: normalizeExternalUrl(linkedIn),
-          external: true,
-        }
-      : null,
     email ? { label: 'Email', icon: 'mail', href: `mailto:${email}`, external: false } : null,
     phone ? { label: 'Phone', icon: 'call', href: `tel:${phone}`, external: false } : null,
   ].filter(Boolean)
@@ -2248,20 +2210,6 @@ function syncContactSummarySelection() {
   const fallback = defaults.length ? defaults : validIds.slice(0, 4)
   selectedContactSummaryStatIds.value = fallback
   saveContactSummarySelection(contactSummaryStorageKey.value, fallback)
-}
-
-function isContactSummaryStatSelected(id) {
-  return selectedContactSummaryStatIds.value.includes(id)
-}
-
-function toggleContactSummaryStat(id) {
-  if (!id) return
-  const next = selectedContactSummaryStatIds.value.includes(id)
-    ? selectedContactSummaryStatIds.value.filter((candidate) => candidate !== id)
-    : [...selectedContactSummaryStatIds.value, id]
-
-  selectedContactSummaryStatIds.value = next
-  saveContactSummarySelection(contactSummaryStorageKey.value, next)
 }
 
 function syncCompanySummarySelection() {
@@ -4654,54 +4602,37 @@ onBeforeUnmount(() => {
 .contact-databook__summary-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--ds-space-12);
 }
 
-.contact-databook__summary-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--ds-space-14);
+.contact-databook__summary-feed-toggle {
+  margin-top: 16px;
+}
+
+.contact-databook__summary-feed-chip-toggle {
+  border-radius: 999px;
+}
+
+.contact-databook__summary-feed-chip-toggle :deep(.q-btn) {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.contact-databook__summary-feed-chip-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 8px;
+}
+
+.contact-databook__summary-feed-state {
   margin-top: 18px;
-}
-
-.contact-databook__summary-add {
-  color: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.contact-databook__summary-add:hover,
-.contact-databook__summary-add:focus-visible {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.contact-databook__summary-menu {
-  border-radius: var(--ds-radius-panel);
-}
-
-.contact-databook__summary-item {
-  padding: var(--ds-panel-padding-sm);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--ds-radius-panel);
-}
-
-.contact-databook__summary-item-label {
   color: rgba(255, 255, 255, 0.62);
   font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
-}
-
-.contact-databook__summary-item-value {
-  margin-top: 8px;
-  word-break: break-word;
-  color: #fff;
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-medium);
-  font-weight: var(--ds-font-weight-medium);
+  font-size: var(--ds-font-size-sm-regular);
   line-height: var(--ds-line-height-sm);
 }
 
