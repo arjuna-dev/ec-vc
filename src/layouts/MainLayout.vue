@@ -302,7 +302,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import lottie from 'lottie-web'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
@@ -659,7 +659,26 @@ function draftSecondaryLabel(draft = {}) {
 
 function resumeDraft(draftId) {
   setActiveIntakeDraft(draftId)
-  openArtifactDialog()
+  const draft = intakeDraftState.drafts[String(draftId || '').trim()] || null
+  if (String(draft?.resumeMode || '').trim() === 'existing-artifact-link') {
+    openArtifactDialog()
+    return
+  }
+
+  const kind = String(draft?.opportunityForm?.kind || '').trim().toLowerCase() === 'fund' ? 'fund' : 'round'
+  const eventName = kind === 'fund' ? 'ecvc:open-fund-dialog' : 'ecvc:open-round-dialog'
+  const routeName = kind === 'fund' ? 'funds' : 'rounds'
+  const flagName = kind === 'fund' ? '__ecvcOpenFundDialog' : '__ecvcOpenRoundDialog'
+
+  draftTrayDismissed.value = false
+  globalThis[flagName] = true
+  router.push({ name: routeName, query: { create: kind } }).finally(async () => {
+    await nextTick()
+    globalThis?.dispatchEvent?.(new Event(eventName))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event(eventName))
+    }, 80)
+  })
 }
 
 function discardDraft(draftId) {

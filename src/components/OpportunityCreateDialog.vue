@@ -2550,6 +2550,10 @@ function getFieldSourceMode(section, key) {
   return autofilledFlags.value[fieldKey] ? 'ai' : 'human'
 }
 
+function isExplicitHumanMode(section, key) {
+  return fieldSourceModes.value[buildFieldStateKey(section, key)] === 'human'
+}
+
 function showFieldSourceToggle(section, key) {
   return Boolean(autofilledFlags.value[buildFieldStateKey(section, key)])
 }
@@ -2738,7 +2742,15 @@ function askDuplicateRenameConfirmation() {
   })
 }
 
-async function ingestArtifactsWithDuplicateHandling(filePaths = []) {
+async function ingestArtifactsWithDuplicateHandling(filePaths = [], { hasExistingConflict = false } = {}) {
+  if (hasExistingConflict) {
+    const confirmed = await askDuplicateRenameConfirmation()
+    if (!confirmed) throw new Error('Upload cancelled.')
+    return bridge.value.artifacts.ingest({
+      filePaths,
+      duplicateStrategy: 'rename',
+    })
+  }
   try {
     return await bridge.value.artifacts.ingest({ filePaths })
   } catch (error) {
@@ -2837,7 +2849,7 @@ function applyPrimarySuggestedValues(suggested = {}) {
     if (!Object.prototype.hasOwnProperty.call(form.value, key)) continue
     if (key === 'Venture_Oppty_Name' && intakeLockedFields.value.relatedFund) continue
     if (key === 'Round_Stage' && intakeLockedFields.value.relatedRound) continue
-    if (getFieldSourceMode('opportunity', key) === 'human') continue
+    if (isExplicitHumanMode('opportunity', key)) continue
     form.value[key] = value == null ? '' : stripHumanVerify(value)
     markAutofilled('opportunity', key)
   }
@@ -2845,7 +2857,7 @@ function applyPrimarySuggestedValues(suggested = {}) {
     if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
     if (key === 'Company_Name' && intakeLockedFields.value.sponsorCompany) continue
     if (key === 'Website' && intakeLockedFields.value.website) continue
-    if (getFieldSourceMode('company', key) === 'human') continue
+    if (isExplicitHumanMode('company', key)) continue
     companyForm.value[key] =
       key === 'Status'
         ? normalizeCompanyStatusValue(value)
@@ -2859,7 +2871,7 @@ function applyPrimarySuggestedValues(suggested = {}) {
   for (const [key, value] of Object.entries(suggested?.contact || {})) {
     if (!Object.prototype.hasOwnProperty.call(contactForm.value, key)) continue
     if (key === 'Name' && intakeLockedFields.value.relatedContact) continue
-    if (getFieldSourceMode('contact', key) === 'human') continue
+    if (isExplicitHumanMode('contact', key)) continue
     contactForm.value[key] = value == null ? '' : stripHumanVerify(value)
     markAutofilled('contact', key)
   }
@@ -2977,7 +2989,9 @@ async function processDroppedFiles(files = []) {
 
     // First API call: persist the dropped files and generate the LLM-ready artifacts.
     processingMessage.value = 'Creating LLM-ready files...'
-    const ingestResult = await ingestArtifactsWithDuplicateHandling(filePaths)
+    const ingestResult = await ingestArtifactsWithDuplicateHandling(filePaths, {
+      hasExistingConflict: existingCheck.existingNames.length > 0,
+    })
     collectDraftArtifactIds(ingestResult)
 
     // Second API call: extract structured JSON from the generated LLM-ready files.
@@ -3291,15 +3305,17 @@ async function submit() {
 }
 
 async function onCancel() {
+  const activeDraftId = activeDraft.value?.id || null
   const artifactIds = [...draftArtifactIds.value]
+  if (activeDraftId) removeIntakeDraft(activeDraftId)
+  resetForms()
+  resetTransientState()
+  open.value = false
   if (bridge.value?.artifacts?.delete && artifactIds.length) {
     await Promise.allSettled(
       artifactIds.map((artifactId) => bridge.value.artifacts.delete(artifactId)),
     )
   }
-  resetForms()
-  resetTransientState()
-  open.value = false
 }
 
 function statusColor(value) {
@@ -3560,7 +3576,7 @@ watch(
       normalizeOpportunityName(form.value.Venture_Oppty_Name)
     )
       return
-    if (getFieldSourceMode('opportunity', 'Venture_Oppty_Name') === 'human') return
+    if (isExplicitHumanMode('opportunity', 'Venture_Oppty_Name')) return
     form.value.Venture_Oppty_Name = v
     markAutofilled('opportunity', 'Venture_Oppty_Name')
   },
