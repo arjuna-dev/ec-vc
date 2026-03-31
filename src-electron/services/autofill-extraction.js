@@ -1,9 +1,8 @@
 import path from 'node:path'
+import fs from 'node:fs/promises'
 
 import { generateText } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
-
-import { buildLlmReadyMarkdownFromFile } from './artifact-ingestion.js'
 
 function normalizeApiKey(value) {
   return String(value || '').trim()
@@ -175,6 +174,18 @@ function buildPrompt({ markdownDocs = [] } = {}) {
   ].join('\n')
 }
 
+async function loadMarkdownDocs(filePaths = []) {
+  const docs = []
+  for (const filePath of filePaths) {
+    const resolvedPath = String(filePath || '').trim()
+    if (!resolvedPath) continue
+    const markdown = String(await fs.readFile(resolvedPath, 'utf8') || '').trim()
+    if (!markdown) continue
+    docs.push({ filePath: resolvedPath, markdown })
+  }
+  return docs
+}
+
 function stripHumanVerifyDelimiters(value) {
   if (value === null || value === undefined) return value
   return String(value)
@@ -329,13 +340,8 @@ export async function previewAutofillFromFiles({ filePaths = [], apiKeys = {}, e
   const paths = Array.isArray(filePaths) ? filePaths.map((p) => String(p || '').trim()).filter(Boolean) : []
   if (!paths.length) throw new Error('No files provided for autofill')
 
-  const markdownDocs = []
-  for (const filePath of paths) {
-    const markdown = await buildLlmReadyMarkdownFromFile(filePath, {
-      geminiApiKey: normalizeApiKey(apiKeys?.gemini),
-    })
-    markdownDocs.push({ filePath, markdown })
-  }
+  const markdownDocs = await loadMarkdownDocs(paths)
+  if (!markdownDocs.length) throw new Error('No LLM-ready markdown files found for autofill')
 
   const gemini = getGeminiClient(apiKeys?.gemini)
   const prompt = buildPrompt({ markdownDocs })
