@@ -1075,8 +1075,8 @@ const viewModeOptions = [
 ]
 const artifactKindOptions = [
   { label: 'All', value: 'all' },
-  { label: 'Pending', value: 'needs-review' },
-  { label: 'Ready', value: 'ready' },
+  { label: 'Reviewed', value: 'ready' },
+  { label: 'Pending Review', value: 'needs-review' },
 ]
 
 function continueArtifactIntake(row = {}) {
