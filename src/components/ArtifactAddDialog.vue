@@ -113,6 +113,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import OpportunityCreateDialog from './OpportunityCreateDialog.vue'
 import {
   createIntakeDraft,
@@ -133,6 +134,7 @@ const open = computed({
 })
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
+const $q = useQuasar()
 const intakeDraftState = useIntakeDraftState()
 
 const loading = ref(false)
@@ -258,6 +260,41 @@ function stageDroppedFiles(files = []) {
   })
 }
 
+function isDuplicateFilenameConflict(error) {
+  const message = String(error?.message || error || '').toLowerCase()
+  return message.includes('duplicate filename') || message.includes('already exists')
+}
+
+function askDuplicateRenameConfirmation() {
+  return new Promise((resolve) => {
+    $q.dialog({
+      title: 'Existing File Found',
+      message:
+        'A file with the same name already exists. Continue and save this upload with a sequential suffix like "_1" or "_2"?',
+      cancel: { flat: true, label: 'Cancel' },
+      ok: { color: 'warning', label: 'Continue' },
+      persistent: true,
+    })
+      .onOk(() => resolve(true))
+      .onCancel(() => resolve(false))
+      .onDismiss(() => resolve(false))
+  })
+}
+
+async function ingestArtifactsWithDuplicateHandling(payload) {
+  try {
+    return await bridge.value.artifacts.ingest(payload)
+  } catch (error) {
+    if (!isDuplicateFilenameConflict(error)) throw error
+    const confirmed = await askDuplicateRenameConfirmation()
+    if (!confirmed) throw error
+    return bridge.value.artifacts.ingest({
+      ...payload,
+      duplicateStrategy: 'rename',
+    })
+  }
+}
+
 async function finish() {
   if (!opportunityId.value) return
   if (droppedFiles.value.length === 0) return
@@ -277,7 +314,7 @@ async function finish() {
       })
     } else {
       if (!bridge.value?.artifacts?.ingest) return
-      await bridge.value.artifacts.ingest({
+      await ingestArtifactsWithDuplicateHandling({
         filePaths: droppedFiles.value.map((f) => f.path),
         pipelineId: DEFAULT_PIPELINE_ID,
         opportunityId: opportunityId.value,

@@ -62,6 +62,18 @@ async function ensureUniqueDestPath(destPath) {
   throw new Error(`Could not find an available filename for: ${destPath}`)
 }
 
+async function ensureSequentialSuffixDestPath(destPath) {
+  if (!(await fse.pathExists(destPath))) return destPath
+
+  const parsed = path.parse(destPath)
+  for (let i = 1; i < 1000; i += 1) {
+    const candidate = path.join(parsed.dir, `${parsed.name}_${i}${parsed.ext}`)
+    if (!(await fse.pathExists(candidate))) return candidate
+  }
+
+  throw new Error(`Could not find an available filename for: ${destPath}`)
+}
+
 function artifactLinkColumns(entityId) {
   const normalized = String(entityId || '').trim()
   if (!normalized) return { round_id: null, fund_id: null }
@@ -282,6 +294,7 @@ export async function ingestArtifactsFromPaths({
   opportunityId,
   emitStatus,
   apiKeys = {},
+  duplicateStrategy = 'reject',
 } = {}) {
   initDb()
 
@@ -307,7 +320,7 @@ export async function ingestArtifactsFromPaths({
   for (const srcPath of files) {
     const fileName = safeBasename(srcPath)
     const normalized = fileName.toLowerCase()
-    if (seenInputNames.has(normalized)) {
+    if (seenInputNames.has(normalized) && duplicateStrategy !== 'rename') {
       emitStatus?.({
         type: 'error',
         message: `Duplicate filename "${fileName}" in this upload. Rename the file and try again.`,
@@ -317,7 +330,7 @@ export async function ingestArtifactsFromPaths({
     seenInputNames.add(normalized)
 
     const rawCandidatePath = path.join(rawDir, fileName)
-    if (await fse.pathExists(rawCandidatePath)) {
+    if (duplicateStrategy !== 'rename' && (await fse.pathExists(rawCandidatePath))) {
       const rawRelPath = toWorkspaceRelativePath(workspaceRoot, rawCandidatePath)
       const refs = Number(
         dbAll('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?', [rawRelPath])?.[0]
@@ -380,7 +393,10 @@ export async function ingestArtifactsFromPaths({
     // --- Save raw file
     let rawAbsPath
     try {
-      rawAbsPath = path.join(rawDir, originalFileName)
+      rawAbsPath =
+        duplicateStrategy === 'rename'
+          ? await ensureSequentialSuffixDestPath(path.join(rawDir, originalFileName))
+          : path.join(rawDir, originalFileName)
       await fs.copyFile(sourceFilePath, rawAbsPath)
     } catch (e) {
       emitStatus?.({
@@ -443,6 +459,7 @@ export async function ingestArtifactsFromPaths({
       sourceFilePath,
       originalFileName,
       originalExt,
+      storedRawFileName: path.basename(rawAbsPath),
       rawAbsPath,
       rawRelPath,
       rawArtifactId,
@@ -455,7 +472,15 @@ export async function ingestArtifactsFromPaths({
   })
 
   for (const item of stagedFiles) {
-    const { sourceFilePath, originalFileName, originalExt, rawAbsPath, rawRelPath, rawArtifactId } =
+    const {
+      sourceFilePath,
+      originalFileName,
+      originalExt,
+      storedRawFileName,
+      rawAbsPath,
+      rawRelPath,
+      rawArtifactId,
+    } =
       item
     emitFileStageStatus(emitStatus, originalFileName, {
       markdownStatus: 'pending',
@@ -529,13 +554,13 @@ export async function ingestArtifactsFromPaths({
       })
       emitFileStageStatus(emitStatus, originalFileName, {
         markdownStatus: 'completed',
-        message: `"${originalFileName}" markdown generated`,
+          message: `"${path.basename(llmAbsPath)}" markdown generated`,
       })
       continue
     }
 
     // --- Create LLM-ready Markdown
-    const llmMdFileName = `${baseName(originalFileName)}.md`
+    const llmMdFileName = `${baseName(storedRawFileName || originalFileName)}.md`
     let markdown = ''
 
     try {

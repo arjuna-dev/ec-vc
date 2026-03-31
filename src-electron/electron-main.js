@@ -5221,6 +5221,7 @@ function registerIpc() {
       opportunityId: payload?.opportunityId,
       pipelineId: payload?.pipelineId,
       createdBy: payload?.createdBy,
+      duplicateStrategy: payload?.duplicateStrategy,
       emitStatus,
       apiKeys: {
         openai: apiSettings.openaiApiKey,
