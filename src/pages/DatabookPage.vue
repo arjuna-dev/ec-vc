@@ -1550,7 +1550,7 @@ const TABLE_LABELS = {
   Opportunities: 'Opportunity',
   Funds: 'Fund',
   Rounds: 'Round',
-  Pipelines: 'Pipeline',
+  Pipelines: 'Project',
 }
 
 const TABLE_LIST_ROUTES = {
@@ -1559,7 +1559,7 @@ const TABLE_LIST_ROUTES = {
   Opportunities: { routeName: 'opportunities', label: 'Back to Opportunities' },
   Funds: { routeName: 'funds', label: 'Back to Funds' },
   Rounds: { routeName: 'rounds', label: 'Back to Rounds' },
-  Pipelines: { routeName: 'pipelines', label: 'Back to Pipelines' },
+  Pipelines: { routeName: 'pipelines', label: 'Back to Projects' },
 }
 
 const DEFAULT_CONTACT_SUMMARY_STAT_IDS = ['role', 'stakeholder', 'country', 'phone']

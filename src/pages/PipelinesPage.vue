@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Pipelines requires Electron. Run <code>quasar dev -m electron</code> or
+        Projects requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -108,7 +108,7 @@
               outlined
               borderless
               class="pipelines-toolbar__search"
-              placeholder="Search pipelines..."
+              placeholder="Search projects..."
               :disable="loading"
             >
               <template #prepend>

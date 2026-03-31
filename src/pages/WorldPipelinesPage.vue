@@ -4,9 +4,9 @@
       <div class="world-shell__hero">
         <div class="world-shell__copy">
           <div class="world-shell__eyebrow">Dealz World</div>
-          <h2 class="world-shell__title">Pipelines</h2>
+          <h2 class="world-shell__title">Projects</h2>
           <p class="world-shell__text">
-            Define the world-level pipeline logic that governs how signals and opportunities move
+            Define the world-level project logic that governs how signals and opportunities move
             through your broader operating system.
           </p>
         </div>
@@ -25,8 +25,8 @@
               <div class="world-card__eyebrow">Purpose</div>
               <div class="world-card__title">Movement logic</div>
               <div class="world-card__copy">
-                Use this area to define the meta-level pipeline concepts that later inform the
-                workspace-facing pipeline views.
+                Use this area to define the meta-level project concepts that later inform the
+                workspace-facing project views.
               </div>
             </q-card-section>
           </q-card>
@@ -38,8 +38,8 @@
               <div class="world-card__eyebrow">Next Step</div>
               <div class="world-card__title">Connect to stages</div>
               <div class="world-card__copy">
-                Once the world pipeline logic is defined here, we can align the stage taxonomy and
-                workspace pipelines around it.
+                Once the world project logic is defined here, we can align the stage taxonomy and
+                workspace projects around it.
               </div>
             </q-card-section>
           </q-card>
