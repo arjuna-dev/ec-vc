@@ -226,6 +226,7 @@
                           :model-value="isSelected(row)"
                           :disable="loading"
                           color="dark"
+                          class="contact-card__select-box"
                           @update:model-value="toggleRowSelection(row, $event)"
                         />
                       </div>
@@ -2121,6 +2122,13 @@ watch(displayRows, () => {
   color: #111;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(17, 17, 17, 0.1);
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.contact-card__select-box {
+  transform: scale(0.75);
+  transform-origin: center;
 }
 
 @media (max-width: 1200px) {
