@@ -810,6 +810,45 @@ function getContactCountryDisplay(row) {
   return flag ? `${flag} ${country}` : country
 }
 
+const countryDialCodeByName = {
+  argentina: '54',
+  australia: '61',
+  austria: '43',
+  belgium: '32',
+  brazil: '55',
+  canada: '1',
+  chile: '56',
+  china: '86',
+  colombia: '57',
+  denmark: '45',
+  finland: '358',
+  france: '33',
+  germany: '49',
+  'hong kong': '852',
+  india: '91',
+  ireland: '353',
+  israel: '972',
+  italy: '39',
+  japan: '81',
+  luxembourg: '352',
+  mexico: '52',
+  netherlands: '31',
+  'new zealand': '64',
+  norway: '47',
+  portugal: '351',
+  singapore: '65',
+  'south korea': '82',
+  spain: '34',
+  sweden: '46',
+  switzerland: '41',
+  'united arab emirates': '971',
+  'united kingdom': '44',
+  uk: '44',
+  'united states': '1',
+  usa: '1',
+  uruguay: '598',
+}
+
 function getContactLinkedNotes(row) {
   return [
     ...String(row?.Contact_Note || '')
@@ -840,7 +879,7 @@ function getContactPrimaryDetails(row) {
     phone
       ? {
           label: 'Phone',
-          value: phone,
+          value: formatContactPhone(row),
           icon: 'call',
           href: `tel:${phone}`,
         }
@@ -898,6 +937,39 @@ function normalizeInputValue(value) {
 
 function primaryEmail(row) {
   return normalizeInputValue(row?.Professional_Email) || normalizeInputValue(row?.Personal_Email)
+}
+
+function formatContactPhone(row) {
+  const rawPhone = normalizeInputValue(row?.Phone)
+  if (!rawPhone) return ''
+
+  const digits = rawPhone.replace(/\D/g, '')
+  if (!digits) return rawPhone
+
+  const country = normalizeInputValue(row?.Country_based).toLowerCase()
+  const fallbackCountryCode = countryDialCodeByName[country] || ''
+
+  let countryCode = ''
+  let localDigits = digits
+
+  if (digits.length > 10) {
+    countryCode = digits.slice(0, digits.length - 10)
+    localDigits = digits.slice(-10)
+  } else {
+    countryCode = fallbackCountryCode
+  }
+
+  const cityCode = localDigits.slice(0, Math.min(3, localDigits.length))
+  const lastFour = localDigits.slice(-4)
+  const middleDigits = localDigits.slice(cityCode.length, Math.max(cityCode.length, localDigits.length - 4))
+
+  const parts = []
+  if (countryCode) parts.push(`+${countryCode}`)
+  if (cityCode) parts.push(cityCode)
+  if (middleDigits) parts.push(middleDigits)
+  if (lastFour && lastFour !== middleDigits) parts.push(lastFour)
+
+  return parts.join('-') || rawPhone
 }
 
 function normalizeExternalUrl(value) {
