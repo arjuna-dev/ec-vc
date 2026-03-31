@@ -374,14 +374,20 @@
               </div>
 
               <div class="contact-databook__summary-feed-toggle">
-                <q-btn-toggle
-                  v-model="contactFeedChannel"
-                  dense
-                  no-caps
-                  unelevated
-                  class="contact-databook__summary-feed-chip-toggle"
-                  :options="contactFeedChannelOptions"
-                />
+                <div class="contact-databook__summary-feed-toolbar">
+                  <q-btn-toggle
+                    v-model="contactFeedChannel"
+                    dense
+                    no-caps
+                    unelevated
+                    spread
+                    toggle-color="transparent"
+                    color="transparent"
+                    text-color="white"
+                    class="contact-databook__summary-feed-toolbar-toggle"
+                    :options="contactFeedChannelOptions"
+                  />
+                </div>
               </div>
 
               <div class="contact-databook__summary-feed-state">
@@ -4609,42 +4615,50 @@ onBeforeUnmount(() => {
   margin-top: 16px;
 }
 
-.contact-databook__summary-feed-chip-toggle {
-  border-radius: 999px;
+.contact-databook__summary-feed-toolbar {
+  display: flex;
+  width: 100%;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
 }
 
-.contact-databook__summary-feed-chip-toggle :deep(.q-btn) {
+.contact-databook__summary-feed-toolbar-toggle {
+  width: 100%;
+}
+
+.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn) {
   min-height: 34px;
-  padding: 0 14px;
+  padding: 0 10px;
   color: rgba(255, 255, 255, 0.72) !important;
-  background: rgba(255, 255, 255, 0.06) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 999px;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 12px;
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: var(--font-weight-medium);
   box-shadow: none !important;
 }
 
-.contact-databook__summary-feed-chip-toggle :deep(.q-btn .q-btn__content),
-.contact-databook__summary-feed-chip-toggle :deep(.q-btn .block) {
+.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn .q-btn__content),
+.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn .block) {
   color: inherit !important;
 }
 
-.contact-databook__summary-feed-chip-toggle :deep(.q-btn--active) {
+.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn--active) {
   color: #111111 !important;
   background: rgba(255, 255, 255, 0.94) !important;
-  border-color: rgba(255, 255, 255, 0.94) !important;
   box-shadow: none !important;
 }
 
-.contact-databook__summary-feed-chip-toggle :deep(.q-btn--active .q-btn__content),
-.contact-databook__summary-feed-chip-toggle :deep(.q-btn--active .block) {
+.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn--active .q-btn__content),
+.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn--active .block) {
   color: #111111 !important;
 }
 
-.contact-databook__summary-feed-chip-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 8px;
+.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 4px;
 }
 
 .contact-databook__summary-feed-state {
