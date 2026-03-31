@@ -196,14 +196,6 @@
                       class="contact-card__portrait"
                       :class="{ 'contact-card__portrait--placeholder': !hasContactProfileImage(row) }"
                     >
-                      <button
-                        type="button"
-                        class="contact-card__portrait-eye"
-                        :disabled="loading"
-                        @click="openDatabook(row)"
-                      >
-                        <q-icon name="visibility" size="18px" />
-                      </button>
                       <img
                         v-if="hasContactProfileImage(row)"
                         class="contact-card__portrait-image"
@@ -222,12 +214,6 @@
 
                     <div class="contact-card__hero-side">
                       <div class="contact-card__hero-select-row">
-                        <q-checkbox
-                          :model-value="isSelected(row)"
-                          :disable="loading"
-                          color="dark"
-                          @update:model-value="toggleRowSelection(row, $event)"
-                        />
                       </div>
 
                       <div class="contact-card__hero-copy">
@@ -319,6 +305,20 @@
 
                 <q-card-actions class="contact-card__footer">
                   <div class="contact-card__footer-actions">
+                    <q-btn
+                      flat
+                      round
+                      icon="visibility"
+                      class="contact-card__icon-action"
+                      :disable="loading"
+                      @click="openDatabook(row)"
+                    />
+                    <q-checkbox
+                      :model-value="isSelected(row)"
+                      :disable="loading"
+                      color="dark"
+                      @update:model-value="toggleRowSelection(row, $event)"
+                    />
                   </div>
                 </q-card-actions>
               </q-card>
@@ -1701,9 +1701,7 @@ watch(displayRows, () => {
 }
 
 .contact-card__hero-select-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  min-height: 18px;
 }
 
 .contact-card__pill-row,
@@ -1846,24 +1844,7 @@ watch(displayRows, () => {
 }
 
 .contact-card__portrait-eye {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  color: #111;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-}
-
-.contact-card__portrait-eye:hover {
-  color: #1d4ed8;
+  display: none;
 }
 
 .contact-card__details {
