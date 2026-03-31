@@ -220,11 +220,11 @@
                         <div class="contact-card__title">
                           {{ row.Name || 'Unnamed contact' }}
                         </div>
-                        <div class="contact-card__role">
-                          {{ getContactCountryDisplay(row) || 'Add country base' }}
-                        </div>
                         <div class="contact-card__role contact-card__role--secondary">
                           {{ getContactCurrentRoleCompany(row) || 'Add current role and company' }}
+                        </div>
+                        <div class="contact-card__role">
+                          {{ getContactCountryDisplay(row) || 'Add country base' }}
                         </div>
                         <div
                           v-for="detail in getContactPrimaryDetails(row)"
@@ -891,6 +891,15 @@ function getContactPrimaryDetails(row) {
   const linkedIn = normalizeInputValue(row?.LinkedIn)
 
   return [
+    linkedIn
+      ? {
+          label: 'LinkedIn',
+          value: 'LinkedIn',
+          icon: 'north_east',
+          href: normalizeExternalUrl(linkedIn),
+          external: true,
+        }
+      : null,
     email
       ? {
           label: 'Email',
@@ -905,15 +914,6 @@ function getContactPrimaryDetails(row) {
           value: formatContactPhone(row),
           icon: 'call',
           href: `tel:${phone}`,
-        }
-      : null,
-    linkedIn
-      ? {
-          label: 'LinkedIn',
-          value: 'LinkedIn',
-          icon: 'north_east',
-          href: normalizeExternalUrl(linkedIn),
-          external: true,
         }
       : null,
   ].filter(Boolean)

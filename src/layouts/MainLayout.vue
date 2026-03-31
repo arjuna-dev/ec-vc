@@ -496,6 +496,9 @@ const currentHeaderTitle = computed(() => {
   }
 
   if (currentRouteName === 'databook-view') {
+    if (String(route.params.tableName || '').toLowerCase() === 'contacts') {
+      return 'Contact File'
+    }
     return 'Databook'
   }
 

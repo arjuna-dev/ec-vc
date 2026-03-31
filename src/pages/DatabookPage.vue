@@ -15,7 +15,11 @@
     </div>
 
     <div v-else class="databook-page">
-      <div class="databook-heading" :class="{ 'databook-heading--compact': isStructuredDatabookView }">
+      <div
+        v-if="!isContactView"
+        class="databook-heading"
+        :class="{ 'databook-heading--compact': isStructuredDatabookView }"
+      >
         <div class="databook-heading__main">
           <div>
             <div class="databook-heading__eyebrow">{{ entityLabel }} databook</div>
@@ -163,7 +167,10 @@
                   {{ contactName || 'Unnamed contact' }}
                 </h1>
                 <div class="contact-databook__role">
-                  {{ contactRole || 'Role not added yet' }}
+                  {{ contactRoleCompany || 'Role and company not added yet' }}
+                </div>
+                <div class="contact-databook__role contact-databook__role--location">
+                  {{ contactLocation || 'Add country base' }}
                 </div>
 
                 <div v-if="contactHeroPills.length" class="contact-databook__pill-row">
@@ -1774,6 +1781,17 @@ const contactImageField = computed(() => fieldByName.value.Profile_Image || null
 const companyLogoField = computed(() => fieldByName.value.Company_Logo || null)
 const contactName = computed(() => getFieldDisplayValue('Name'))
 const contactRole = computed(() => getFieldDisplayValue('Role'))
+const contactCompany = computed(() =>
+  getFieldDisplayValue('Current_Company_Name') ||
+  getFieldDisplayValue('Company_Name') ||
+  getFieldDisplayValue('company_name') ||
+  getFieldDisplayValue('Organization_Name'),
+)
+const contactRoleCompany = computed(() => {
+  if (contactRole.value && contactCompany.value) return `${contactRole.value} • ${contactCompany.value}`
+  return contactRole.value || contactCompany.value || ''
+})
+const contactLocation = computed(() => getFieldDisplayValue('Country_based'))
 const contactAvatarImage = computed(() => getFieldDisplayValue('Profile_Image'))
 const hasContactCustomImage = computed(() => String(getFieldDisplayValue('Profile_Image') || '').trim().length > 0)
 const contactInitials = computed(() => {
@@ -1855,7 +1873,6 @@ const contactHeroPills = computed(() =>
   [
     getContactPill('Stakeholder_type', 'Stakeholder'),
     getContactPill('Closeness_Level', 'Closeness'),
-    getContactPill('Country_based', 'Based in'),
   ].filter(Boolean),
 )
 const contactSummaryStorageKey = computed(() => {
@@ -1941,8 +1958,6 @@ const contactActionLinks = computed(() => {
   const phone = getFieldDisplayValue('Phone')
   const linkedIn = getFieldDisplayValue('LinkedIn')
   return [
-    email ? { label: 'Email', icon: 'mail', href: `mailto:${email}`, external: false } : null,
-    phone ? { label: 'Call', icon: 'call', href: `tel:${phone}`, external: false } : null,
     linkedIn
       ? {
           label: 'LinkedIn',
@@ -1951,6 +1966,8 @@ const contactActionLinks = computed(() => {
           external: true,
         }
       : null,
+    email ? { label: 'Email', icon: 'mail', href: `mailto:${email}`, external: false } : null,
+    phone ? { label: 'Phone', icon: 'call', href: `tel:${phone}`, external: false } : null,
   ].filter(Boolean)
 })
 const companySections = computed(() => [
@@ -4220,6 +4237,12 @@ onBeforeUnmount(() => {
   font-size: var(--text-lg---regular);
   font-weight: var(--font-weight-regular);
   line-height: 24px;
+}
+
+.contact-databook__role--location {
+  color: #6b6b6b;
+  font-size: var(--text-sm---regular);
+  line-height: 20px;
 }
 
 .contact-databook__pill-row {
