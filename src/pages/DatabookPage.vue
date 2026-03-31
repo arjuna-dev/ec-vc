@@ -379,9 +379,9 @@
                   dense
                   no-caps
                   unelevated
-                  toggle-color="white"
-                  color="grey-9"
-                  text-color="grey-4"
+                  toggle-color="transparent"
+                  color="transparent"
+                  text-color="white"
                   class="contact-databook__summary-feed-chip-toggle"
                   :options="contactFeedChannelOptions"
                 />
@@ -4620,6 +4620,7 @@ onBeforeUnmount(() => {
   min-height: 34px;
   padding: 0 14px;
   color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 999px;
   font-family: var(--font-body);
@@ -4627,10 +4628,20 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-medium);
 }
 
+.contact-databook__summary-feed-chip-toggle :deep(.q-btn .q-btn__content),
+.contact-databook__summary-feed-chip-toggle :deep(.q-btn .block) {
+  color: inherit;
+}
+
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn--active) {
   color: #111111;
   background: rgba(255, 255, 255, 0.96);
   border-color: rgba(255, 255, 255, 0.96);
+}
+
+.contact-databook__summary-feed-chip-toggle :deep(.q-btn--active .q-btn__content),
+.contact-databook__summary-feed-chip-toggle :deep(.q-btn--active .block) {
+  color: #111111;
 }
 
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn + .q-btn) {
