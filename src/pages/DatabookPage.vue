@@ -162,7 +162,6 @@
               </figure>
 
               <div class="contact-databook__hero-copy">
-                <div class="contact-databook__eyebrow">Contact profile</div>
                 <h1 class="contact-databook__name">
                   {{ contactName || 'Unnamed contact' }}
                 </h1>
@@ -375,18 +374,16 @@
 
               <div class="contact-databook__summary-feed-toggle">
                 <div class="contact-databook__summary-feed-toolbar">
-                  <q-btn-toggle
-                    v-model="contactFeedChannel"
-                    dense
-                    no-caps
-                    unelevated
-                    spread
-                    toggle-color="transparent"
-                    color="transparent"
-                    text-color="white"
-                    class="contact-databook__summary-feed-toolbar-toggle"
-                    :options="contactFeedChannelOptions"
-                  />
+                  <button
+                    v-for="option in contactFeedChannelOptions"
+                    :key="option.value"
+                    type="button"
+                    class="contact-databook__summary-feed-button"
+                    :class="{ 'contact-databook__summary-feed-button--active': contactFeedChannel === option.value }"
+                    @click="contactFeedChannel = option.value"
+                  >
+                    {{ option.label }}
+                  </button>
                 </div>
               </div>
 
@@ -1934,6 +1931,7 @@ const contactActionLinks = computed(() => {
   const phone = getFieldDisplayValue('Phone')
   return [
     email ? { label: 'Email', icon: 'mail', href: `mailto:${email}`, external: false } : null,
+    phone ? { label: 'Message', icon: 'chat_bubble', href: `sms:${phone}`, external: false } : null,
     phone ? { label: 'Phone', icon: 'call', href: `tel:${phone}`, external: false } : null,
   ].filter(Boolean)
 })
@@ -4618,47 +4616,44 @@ onBeforeUnmount(() => {
 .contact-databook__summary-feed-toolbar {
   display: flex;
   width: 100%;
-  padding: 4px;
+  padding: 3px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  border-radius: 14px;
 }
 
-.contact-databook__summary-feed-toolbar-toggle {
-  width: 100%;
-}
-
-.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn) {
-  min-height: 34px;
-  padding: 0 10px;
-  color: rgba(255, 255, 255, 0.72) !important;
-  background: transparent !important;
-  border: 0 !important;
-  border-radius: 12px;
+.contact-databook__summary-feed-button {
+  flex: 1 1 0;
+  min-height: 30px;
+  padding: 0 8px;
+  color: rgba(255, 255, 255, 0.72);
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
   font-family: var(--font-body);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: var(--font-weight-medium);
-  box-shadow: none !important;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
-.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn .q-btn__content),
-.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn .block) {
-  color: inherit !important;
+.contact-databook__summary-feed-button:hover,
+.contact-databook__summary-feed-button:focus-visible {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
 }
 
-.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn--active) {
-  color: #111111 !important;
-  background: rgba(255, 255, 255, 0.94) !important;
-  box-shadow: none !important;
+.contact-databook__summary-feed-button--active {
+  color: #111111;
+  background: rgba(255, 255, 255, 0.94);
 }
 
-.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn--active .q-btn__content),
-.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn--active .block) {
-  color: #111111 !important;
-}
-
-.contact-databook__summary-feed-toolbar-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 4px;
+.contact-databook__summary-feed-button + .contact-databook__summary-feed-button {
+  margin-left: 3px;
 }
 
 .contact-databook__summary-feed-state {
