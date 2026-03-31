@@ -236,9 +236,9 @@ function askDuplicateRenameConfirmation() {
     $q.dialog({
       title: 'Existing File Found',
       message:
-        'A file with the same name already exists. Continue and save this upload with a sequential suffix like "_1" or "_2"?',
+        'A file with the same name already exists. Continue to duplicate the file and save this upload?',
       cancel: { flat: true, label: 'Cancel' },
-      ok: { color: 'warning', label: 'Continue' },
+      ok: { color: 'orange-8', textColor: 'white', label: 'Continue' },
       persistent: true,
     })
       .onOk(() => resolve(true))
