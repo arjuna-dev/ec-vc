@@ -214,6 +214,14 @@
 
                     <div class="contact-card__hero-side">
                       <div class="contact-card__hero-select-row">
+                        <q-btn
+                          flat
+                          round
+                          icon="visibility"
+                          class="contact-card__icon-action"
+                          :disable="loading"
+                          @click="openDatabook(row)"
+                        />
                         <q-checkbox
                           :model-value="isSelected(row)"
                           :disable="loading"
@@ -227,7 +235,7 @@
                           {{ row.Name || 'Unnamed contact' }}
                         </div>
                         <div class="contact-card__role">
-                          {{ getContactCountryLabel(row) || 'Add country base' }}
+                          {{ getContactCountryDisplay(row) || 'Add country base' }}
                         </div>
                         <div class="contact-card__role contact-card__role--secondary">
                           {{ getContactCurrentRoleCompany(row) || 'Add current role and company' }}
@@ -240,31 +248,44 @@
                 <q-card-section class="contact-card__summary">
                   <div class="contact-card__summary-head">
                     <div class="contact-card__summary-label">{{ contactCardPanelLabel }}</div>
-                    <q-btn-toggle
-                      v-model="contactCardPanel"
-                      dense
-                      no-caps
-                      unelevated
-                      toggle-color="primary"
-                      color="white"
-                      text-color="grey-7"
-                      class="contact-card__panel-toggle"
-                      :options="contactCardPanelOptions"
-                    />
+                    <div class="contact-card__panel-pager">
+                      <q-btn
+                        flat
+                        round
+                        dense
+                        icon="chevron_left"
+                        class="contact-card__panel-arrow"
+                        @click="cycleContactCardPanel(-1)"
+                      />
+                      <div class="contact-card__panel-count">{{ contactCardPanelIndex + 1 }}/{{ contactCardPanelOrder.length }}</div>
+                      <q-btn
+                        flat
+                        round
+                        dense
+                        icon="chevron_right"
+                        class="contact-card__panel-arrow"
+                        @click="cycleContactCardPanel(1)"
+                      />
+                    </div>
                   </div>
 
-                  <div v-if="contactCardPanel === 'contact-info'" class="contact-card__chip-grid">
-                    <button
-                      v-for="chip in getContactInfoChips(row)"
-                      :key="chip.label"
-                      type="button"
-                      class="contact-card__info-chip"
-                      @click="openContactCardAction(chip, $event)"
+                  <div v-if="contactCardPanel === 'contact-info'" class="contact-card__action-list">
+                    <div
+                      v-for="item in getContactInfoItems(row)"
+                      :key="item.label"
+                      class="contact-card__action-row"
                     >
-                      <q-icon :name="chip.icon" size="16px" />
-                      <span>{{ chip.label }}</span>
-                    </button>
-                    <div v-if="!getContactInfoChips(row).length" class="contact-card__summary-empty">
+                      <button
+                        type="button"
+                        class="contact-card__info-chip"
+                        @click="openContactCardAction(item, $event)"
+                      >
+                        <q-icon :name="item.icon" size="16px" />
+                        <span>{{ item.label }}</span>
+                      </button>
+                      <div class="contact-card__action-value">{{ item.value }}</div>
+                    </div>
+                    <div v-if="!getContactInfoItems(row).length" class="contact-card__summary-empty">
                       Add LinkedIn, email, or phone details to build this contact card.
                     </div>
                   </div>
@@ -298,25 +319,6 @@
 
                 <q-card-actions class="contact-card__footer">
                   <div class="contact-card__footer-actions">
-                    <q-btn
-                      flat
-                      round
-                      icon="visibility"
-                      class="contact-card__icon-action"
-                      :disable="loading"
-                      @click="openDatabook(row)"
-                    />
-                  </div>
-
-                  <div class="contact-card__footer-actions">
-                    <q-btn
-                      flat
-                      round
-                      icon="delete"
-                      class="contact-card__icon-action"
-                      :disable="loading"
-                      @click="confirmDelete(row)"
-                    />
                   </div>
                 </q-card-actions>
               </q-card>
@@ -370,16 +372,22 @@ const hasBridge = computed(
     !!bridge.value?.contacts?.delete,
 )
 const contactCardPanel = ref('contact-info')
-const contactCardPanelOptions = [
-  { label: 'Info', value: 'contact-info' },
-  { label: 'Highlights', value: 'relationship-highlights' },
-  { label: 'Notes', value: 'notes' },
-]
+const contactCardPanelOrder = ['contact-info', 'relationship-highlights', 'notes']
+const contactCardPanelIndex = computed(() =>
+  Math.max(0, contactCardPanelOrder.indexOf(contactCardPanel.value)),
+)
 const contactCardPanelLabel = computed(() => ({
   'contact-info': 'Contact Info',
   'relationship-highlights': 'Relationship Highlights',
   notes: 'Notes',
 }[contactCardPanel.value] || 'Contact Info'))
+
+function cycleContactCardPanel(direction = 1) {
+  const total = contactCardPanelOrder.length
+  const currentIndex = Math.max(0, contactCardPanelOrder.indexOf(contactCardPanel.value))
+  const nextIndex = (currentIndex + direction + total) % total
+  contactCardPanel.value = contactCardPanelOrder[nextIndex]
+}
 
 function onHeroDashboardPointerEnter(event) {
   updateHeroDashboardGradientPosition(event)
@@ -750,10 +758,6 @@ function updateContactCardGradientPosition(event) {
   element.style.setProperty('--contact-card-blob-y', `${clamp(y, 10, 90)}%`)
 }
 
-function getContactCountryLabel(row) {
-  const country = normalizeInputValue(row?.Country_based)
-  return country ? `Flag • ${country}` : ''
-}
 
 function getContactCurrentRoleCompany(row) {
   const role = normalizeInputValue(
@@ -766,17 +770,64 @@ function getContactCurrentRoleCompany(row) {
   return role || company || ''
 }
 
-function getContactInfoChips(row) {
+const countryFlagByName = {
+  argentina: '🇦🇷',
+  australia: '🇦🇺',
+  austria: '🇦🇹',
+  belgium: '🇧🇪',
+  brazil: '🇧🇷',
+  canada: '🇨🇦',
+  chile: '🇨🇱',
+  china: '🇨🇳',
+  colombia: '🇨🇴',
+  denmark: '🇩🇰',
+  finland: '🇫🇮',
+  france: '🇫🇷',
+  germany: '🇩🇪',
+  'hong kong': '🇭🇰',
+  india: '🇮🇳',
+  ireland: '🇮🇪',
+  israel: '🇮🇱',
+  italy: '🇮🇹',
+  japan: '🇯🇵',
+  luxembourg: '🇱🇺',
+  mexico: '🇲🇽',
+  netherlands: '🇳🇱',
+  'new zealand': '🇳🇿',
+  norway: '🇳🇴',
+  portugal: '🇵🇹',
+  singapore: '🇸🇬',
+  'south korea': '🇰🇷',
+  spain: '🇪🇸',
+  sweden: '🇸🇪',
+  switzerland: '🇨🇭',
+  'united arab emirates': '🇦🇪',
+  'united kingdom': '🇬🇧',
+  uk: '🇬🇧',
+  'united states': '🇺🇸',
+  usa: '🇺🇸',
+  uruguay: '🇺🇾',
+}
+
+function getContactCountryDisplay(row) {
+  const country = normalizeInputValue(row?.Country_based)
+  if (!country) return ''
+  const flag = countryFlagByName[country.toLowerCase()] || ''
+  return flag ? `${flag} ${country}` : country
+}
+
+function getContactInfoItems(row) {
   const email = primaryEmail(row)
   const phone = normalizeInputValue(row?.Phone)
   const linkedIn = normalizeInputValue(row?.LinkedIn)
 
   return [
-    email ? { label: 'Email', icon: 'mail', href: `mailto:${email}`, external: false } : null,
-    phone ? { label: 'Call', icon: 'call', href: `tel:${phone}`, external: false } : null,
+    email ? { label: 'Email', value: email, icon: 'mail', href: `mailto:${email}`, external: false } : null,
+    phone ? { label: 'Call', value: phone, icon: 'call', href: `tel:${phone}`, external: false } : null,
     linkedIn
       ? {
           label: 'LinkedIn',
+          value: linkedIn,
           icon: 'north_east',
           href: normalizeExternalUrl(linkedIn),
           external: true,
@@ -1651,7 +1702,8 @@ watch(displayRows, () => {
 
 .contact-card__hero-select-row {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .contact-card__pill-row,
@@ -1723,15 +1775,38 @@ watch(displayRows, () => {
   gap: 12px;
 }
 
-.contact-card__panel-toggle {
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+.contact-card__panel-pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.contact-card__chip-grid {
+.contact-card__panel-arrow {
+  color: #4b4b4b;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.contact-card__panel-count {
+  min-width: 34px;
+  text-align: center;
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.contact-card__action-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-card__action-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
 }
 
 .contact-card__info-chip {
@@ -1758,6 +1833,16 @@ watch(displayRows, () => {
   transform: translateY(-1px);
   border-color: rgba(37, 99, 235, 0.26);
   color: #1d4ed8;
+}
+
+.contact-card__action-value {
+  min-width: 0;
+  color: #111;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+  word-break: break-word;
 }
 
 .contact-card__details {
