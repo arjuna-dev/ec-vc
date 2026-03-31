@@ -1696,7 +1696,7 @@ watch(displayRows, () => {
 
 .contact-card__hero-main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 224px;
+  grid-template-columns: minmax(0, 1fr) 244px;
   height: 248px;
 }
 
@@ -1706,7 +1706,7 @@ watch(displayRows, () => {
   align-content: start;
   gap: 6px;
   min-width: 0;
-  padding: 12px 16px 12px 12px;
+  padding: 12px 18px 12px 12px;
   background: rgba(255, 255, 255, 0.22);
   overflow: hidden;
 }
