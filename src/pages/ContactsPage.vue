@@ -213,16 +213,7 @@
                     </figure>
 
                     <div class="contact-card__hero-side">
-                      <div class="contact-card__hero-top">
-                        <div class="contact-card__hero-copy">
-                          <div class="contact-card__title">
-                            {{ row.Name || 'Unnamed contact' }}
-                          </div>
-                          <div class="contact-card__role">
-                            {{ primaryEmail(row) || row.Country_based || 'Add more contact details' }}
-                          </div>
-                        </div>
-
+                      <div class="contact-card__hero-select-row">
                         <q-checkbox
                           :model-value="isSelected(row)"
                           :disable="loading"
@@ -231,55 +222,77 @@
                         />
                       </div>
 
-                      <div v-if="getContactCardPills(row).length" class="contact-card__pill-row">
-                        <q-badge
-                          v-for="pill in getContactCardPills(row)"
-                          :key="pill"
-                          class="contact-card__pill"
-                        >
-                          {{ pill }}
-                        </q-badge>
-                      </div>
-
-                      <div v-if="getContactCardActionLinks(row).length" class="contact-card__quick-actions">
-                        <q-btn
-                          v-for="link in getContactCardActionLinks(row)"
-                          :key="link.label"
-                          outline
-                          no-caps
-                          unelevated
-                          size="sm"
-                          class="contact-card__quick-action"
-                          type="button"
-                          @click="openContactCardAction(link, $event)"
-                        >
-                          <q-icon :name="link.icon" size="16px" class="q-mr-sm" />
-                          <span>{{ link.label }}</span>
-                        </q-btn>
+                      <div class="contact-card__hero-copy">
+                        <div class="contact-card__title">
+                          {{ row.Name || 'Unnamed contact' }}
+                        </div>
+                        <div class="contact-card__role">
+                          {{ getContactCountryLabel(row) || 'Add country base' }}
+                        </div>
+                        <div class="contact-card__role contact-card__role--secondary">
+                          {{ getContactCurrentRoleCompany(row) || 'Add current role and company' }}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </q-card-section>
 
                 <q-card-section class="contact-card__summary">
-                  <div class="contact-card__summary-label">Highlights</div>
+                  <div class="contact-card__summary-head">
+                    <div class="contact-card__summary-label">{{ contactCardPanelLabel }}</div>
+                    <q-btn-toggle
+                      v-model="contactCardPanel"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="primary"
+                      color="white"
+                      text-color="grey-7"
+                      class="contact-card__panel-toggle"
+                      :options="contactCardPanelOptions"
+                    />
+                  </div>
 
-                  <div v-if="getContactCardDetails(row).length" class="contact-card__details">
-                    <div
-                      v-for="detail in getContactCardDetails(row)"
-                      :key="detail.label"
-                      class="contact-card__detail"
+                  <div v-if="contactCardPanel === 'contact-info'" class="contact-card__chip-grid">
+                    <button
+                      v-for="chip in getContactInfoChips(row)"
+                      :key="chip.label"
+                      type="button"
+                      class="contact-card__info-chip"
+                      @click="openContactCardAction(chip, $event)"
                     >
-                      <q-icon :name="detail.icon" size="16px" class="contact-card__detail-icon" />
+                      <q-icon :name="chip.icon" size="16px" />
+                      <span>{{ chip.label }}</span>
+                    </button>
+                    <div v-if="!getContactInfoChips(row).length" class="contact-card__summary-empty">
+                      Add LinkedIn, email, or phone details to build this contact card.
+                    </div>
+                  </div>
+
+                  <div v-else-if="contactCardPanel === 'relationship-highlights'" class="contact-card__details">
+                    <div class="contact-card__detail">
+                      <q-icon name="badge" size="16px" class="contact-card__detail-icon" />
                       <div class="contact-card__detail-copy">
-                        <div class="contact-card__detail-label">{{ detail.label }}</div>
-                        <div class="contact-card__detail-value">{{ detail.value }}</div>
+                        <div class="contact-card__detail-label">Current role & company</div>
+                        <div class="contact-card__detail-value">
+                          {{ getContactCurrentRoleCompany(row) || 'No current role or company linked yet.' }}
+                        </div>
                       </div>
                     </div>
                   </div>
 
+                  <div v-else-if="getContactLinkedNotes(row).length" class="contact-card__notes-list">
+                    <div
+                      v-for="note in getContactLinkedNotes(row)"
+                      :key="note"
+                      class="contact-card__note-pill"
+                    >
+                      {{ note }}
+                    </div>
+                  </div>
+
                   <div v-else class="contact-card__summary-empty">
-                    Add more contact details to make this card richer.
+                    No linked notes yet for this contact.
                   </div>
                 </q-card-section>
 
@@ -356,6 +369,17 @@ const hasBridge = computed(
     !!bridge.value?.contacts?.create &&
     !!bridge.value?.contacts?.delete,
 )
+const contactCardPanel = ref('contact-info')
+const contactCardPanelOptions = [
+  { label: 'Info', value: 'contact-info' },
+  { label: 'Highlights', value: 'relationship-highlights' },
+  { label: 'Notes', value: 'notes' },
+]
+const contactCardPanelLabel = computed(() => ({
+  'contact-info': 'Contact Info',
+  'relationship-highlights': 'Relationship Highlights',
+  notes: 'Notes',
+}[contactCardPanel.value] || 'Contact Info'))
 
 function onHeroDashboardPointerEnter(event) {
   updateHeroDashboardGradientPosition(event)
@@ -402,11 +426,6 @@ const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const selectedCount = computed(() => selectedRows.value.length)
 const rowsPerPageOptions = [10, 15, 25, 50]
-const contactCardDateFormatter = new Intl.DateTimeFormat(undefined, {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-})
 
 const $q = useQuasar()
 const route = useRoute()
@@ -731,17 +750,23 @@ function updateContactCardGradientPosition(event) {
   element.style.setProperty('--contact-card-blob-y', `${clamp(y, 10, 90)}%`)
 }
 
-function getContactCardPills(row) {
-  return [
-    primaryEmail(row) ? 'Reachable' : '',
-    row?.Country_based ? `Based in ${normalizeInputValue(row.Country_based)}` : '',
-    row?.LinkedIn ? 'LinkedIn' : '',
-  ]
-    .filter(Boolean)
-    .slice(0, 3)
+function getContactCountryLabel(row) {
+  const country = normalizeInputValue(row?.Country_based)
+  return country ? `Flag • ${country}` : ''
 }
 
-function getContactCardActionLinks(row) {
+function getContactCurrentRoleCompany(row) {
+  const role = normalizeInputValue(
+    row?.Current_Role || row?.Role || row?.Title || row?.Position || row?.Current_Position,
+  )
+  const company = normalizeInputValue(
+    row?.Current_Company_Name || row?.Company_Name || row?.company_name || row?.Organization_Name,
+  )
+  if (role && company) return `${role} • ${company}`
+  return role || company || ''
+}
+
+function getContactInfoChips(row) {
   const email = primaryEmail(row)
   const phone = normalizeInputValue(row?.Phone)
   const linkedIn = normalizeInputValue(row?.LinkedIn)
@@ -760,47 +785,17 @@ function getContactCardActionLinks(row) {
   ].filter(Boolean)
 }
 
-function getContactCardDetails(row) {
+function getContactLinkedNotes(row) {
   return [
-    row?.Professional_Email
-      ? {
-          label: 'Professional email',
-          value: normalizeInputValue(row.Professional_Email),
-          icon: 'work',
-        }
-      : null,
-    row?.Personal_Email
-      ? {
-          label: 'Personal email',
-          value: normalizeInputValue(row.Personal_Email),
-          icon: 'mail',
-        }
-      : null,
-    row?.Phone ? { label: 'Phone', value: normalizeInputValue(row.Phone), icon: 'call' } : null,
-    row?.LinkedIn
-      ? {
-          label: 'LinkedIn',
-          value: formatLinkedInValue(row.LinkedIn),
-          icon: 'link',
-        }
-      : null,
-    row?.created_at
-      ? {
-          label: 'Created',
-          value: formatCardDate(row.created_at),
-          icon: 'schedule',
-        }
-      : null,
-    row?.Country_based
-      ? {
-          label: 'Country',
-          value: normalizeInputValue(row.Country_based),
-          icon: 'public',
-        }
-      : null,
-  ]
-    .filter(Boolean)
-    .slice(0, 4)
+    ...String(row?.Contact_Note || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_note_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
 }
 
 async function openContactCardAction(link, event) {
@@ -838,28 +833,6 @@ function normalizeExternalUrl(value) {
   if (!normalized) return ''
   if (/^[a-z][a-z\d+.-]*:/i.test(normalized)) return normalized
   return `https://${normalized}`
-}
-
-function formatLinkedInValue(value) {
-  const normalized = normalizeExternalUrl(value)
-
-  try {
-    const url = new URL(normalized)
-    const path = url.pathname.replace(/\/$/, '')
-    return `${url.hostname.replace(/^www\./, '')}${path && path !== '/' ? path : ''}`
-  } catch {
-    return normalizeInputValue(value)
-  }
-}
-
-function formatCardDate(value) {
-  const normalized = normalizeInputValue(value)
-  if (!normalized) return ''
-
-  const parsed = new Date(normalized)
-  if (Number.isNaN(parsed.getTime())) return normalized
-
-  return contactCardDateFormatter.format(parsed)
 }
 
 const columns = [
@@ -1671,6 +1644,16 @@ watch(displayRows, () => {
   text-wrap: balance;
 }
 
+.contact-card__role--secondary {
+  color: #111;
+  font-weight: var(--font-weight-medium);
+}
+
+.contact-card__hero-select-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .contact-card__pill-row,
 .contact-card__footer-actions {
   display: flex;
@@ -1733,6 +1716,50 @@ watch(displayRows, () => {
   backdrop-filter: blur(18px);
 }
 
+.contact-card__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contact-card__panel-toggle {
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+}
+
+.contact-card__chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contact-card__info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 12px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.contact-card__info-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.26);
+  color: #1d4ed8;
+}
+
 .contact-card__details {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1783,6 +1810,24 @@ watch(displayRows, () => {
   font-size: var(--text-sm---light);
   font-weight: var(--font-weight-light);
   line-height: 20px;
+}
+
+.contact-card__notes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contact-card__note-pill {
+  padding: 8px 12px;
+  color: #4b4b4b;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 14px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.45;
 }
 
 .contact-card__footer {
