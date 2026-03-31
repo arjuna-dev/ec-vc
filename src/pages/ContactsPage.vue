@@ -232,15 +232,13 @@
                           class="contact-card__role contact-card__role--detail"
                         >
                           <button
-                            v-if="detail.href"
                             type="button"
                             class="contact-card__inline-chip"
                             @click="openContactCardAction(detail, $event)"
                           >
                             <q-icon :name="detail.icon" size="14px" />
-                            <span>{{ detail.label }}</span>
+                            <span>{{ detail.value }}</span>
                           </button>
-                          <span v-else>{{ detail.value }}</span>
                         </div>
                       </div>
                     </div>
@@ -831,17 +829,31 @@ function getContactPrimaryDetails(row) {
   const linkedIn = normalizeInputValue(row?.LinkedIn)
 
   return [
-    email ? { label: 'Email', value: email, icon: 'mail' } : null,
+    email
+      ? {
+          label: 'Email',
+          value: email,
+          icon: 'mail',
+          href: `mailto:${email}`,
+        }
+      : null,
+    phone
+      ? {
+          label: 'Phone',
+          value: phone,
+          icon: 'call',
+          href: `tel:${phone}`,
+        }
+      : null,
     linkedIn
       ? {
           label: 'LinkedIn',
-          value: '',
+          value: 'LinkedIn',
           icon: 'north_east',
           href: normalizeExternalUrl(linkedIn),
           external: true,
         }
       : null,
-    phone ? { label: 'Phone', value: phone } : null,
   ].filter(Boolean)
 }
 
