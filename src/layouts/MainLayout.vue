@@ -343,8 +343,8 @@ const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const mainNavigationItems = [
-  { label: 'Home', to: '/', exact: true, icon: 'accessibility_new' },
-  { label: 'Settings', to: '/user-settings', exact: true, icon: 'settings' },
+  { label: 'Home', to: '/', exact: true, icon: 'home' },
+  { label: 'Owner', to: '/user-settings', exact: true, icon: 'accessibility_new' },
   { label: 'Avatar', to: '/avatar', exact: true, icon: 'smart_toy' },
   { label: 'Roles', to: '/assistants', exact: true, icon: 'theater_comedy' },
 ].map((item) => ({
@@ -423,7 +423,7 @@ const routeLabelByName = {
   tasks: 'Tasks',
   assistants: 'Roles',
   avatar: 'Avatar',
-  'user-settings': 'Settings',
+  'user-settings': 'Owner',
   'dealz-world-home': 'Home',
   workspaces: 'Workspaces',
   'world-pipelines': 'Pipelines',
