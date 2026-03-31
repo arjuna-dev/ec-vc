@@ -12,8 +12,6 @@ import { dbAll, dbRun, initDb } from './sqlite-db.js'
 import {
   getArtifactLlmReadyPath,
   getArtifactRawPath,
-  NETWORK_DATABASES_DIR,
-  USER_WORKSPACE_DIR,
 } from './workspace-structure.js'
 
 function safeBasename(filePath) {
@@ -22,6 +20,10 @@ function safeBasename(filePath) {
 
 function toPosixPath(p) {
   return String(p || '').replaceAll('\\', '/')
+}
+
+function toWorkspaceRelativePath(workspaceRoot, absolutePath) {
+  return toPosixPath(path.relative(String(workspaceRoot || ''), String(absolutePath || '')))
 }
 
 function extLower(fileName) {
@@ -58,93 +60,6 @@ async function ensureUniqueDestPath(destPath) {
   }
 
   throw new Error(`Could not find an available filename for: ${destPath}`)
-}
-
-function withSequentialSuffix(fileName, index) {
-  if (!index) return String(fileName || '')
-  const parsed = path.parse(String(fileName || ''))
-  return `${parsed.name} (${index})${parsed.ext}`
-}
-
-function rawArtifactWorkspaceRelPath(fileName) {
-  return toPosixPath(path.join(USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Artifacts', '0_raw', fileName))
-}
-
-function findExistingArtifactByHash(hash) {
-  const normalizedHash = String(hash || '').trim()
-  if (!normalizedHash) return null
-  return (
-    dbAll(
-      `
-      SELECT artifact_id, fs_path, title
-      FROM Artifact_Details
-      WHERE fs_hash = ?
-      LIMIT 1
-    `,
-      [normalizedHash],
-    )?.[0] || null
-  )
-}
-
-async function resolveRawDestination({
-  rawDir,
-  originalFileName,
-  sourceHash,
-  plannedNames = new Set(),
-}) {
-  for (let index = 0; index < 1000; index += 1) {
-    const candidateName = withSequentialSuffix(originalFileName, index)
-    const candidateAbsPath = path.join(rawDir, candidateName)
-    const candidateRelPath = rawArtifactWorkspaceRelPath(candidateName)
-    const normalizedCandidate = candidateName.toLowerCase()
-
-    if (plannedNames.has(normalizedCandidate)) continue
-
-    const refs = Number(
-      dbAll('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?', [candidateRelPath])?.[0]?.c || 0,
-    )
-    const existsOnDisk = await fse.pathExists(candidateAbsPath)
-
-    if (existsOnDisk) {
-      const existingHash = await sha256FileHex(candidateAbsPath).catch(() => '')
-      if (existingHash && existingHash === sourceHash) {
-        return {
-          duplicate: true,
-          fileName: candidateName,
-          existingPath: candidateRelPath,
-        }
-      }
-
-      if (refs === 0) {
-        try {
-          await fse.remove(candidateAbsPath)
-          return {
-            duplicate: false,
-            fileName: candidateName,
-            absPath: candidateAbsPath,
-            relPath: candidateRelPath,
-            renamed: index > 0,
-          }
-        } catch {
-          continue
-        }
-      }
-
-      continue
-    }
-
-    if (refs > 0) continue
-
-    return {
-      duplicate: false,
-      fileName: candidateName,
-      absPath: candidateAbsPath,
-      relPath: candidateRelPath,
-      renamed: index > 0,
-    }
-  }
-
-  throw new Error(`Could not find an available filename for: ${originalFileName}`)
 }
 
 function artifactLinkColumns(entityId) {
@@ -330,23 +245,6 @@ function emitFileStageStatus(emitStatus, fileName, updates = {}) {
   emitStatus?.(payload)
 }
 
-function emitDuplicateSkipStatus({
-  emitStatus,
-  fileName,
-  message,
-}) {
-  emitStatus?.({
-    type: 'warning',
-    message,
-  })
-  emitFileStageStatus(emitStatus, fileName, {
-    uploadStatus: 'existing',
-    markdownStatus: 'existing',
-    extractionStatus: 'existing',
-    message,
-  })
-}
-
 export async function buildLlmReadyMarkdownFromFile(sourceFilePath, { geminiApiKey } = {}) {
   const resolvedPath = String(sourceFilePath || '')
   if (!resolvedPath) throw new Error('sourceFilePath is required')
@@ -405,11 +303,55 @@ export async function ingestArtifactsFromPaths({
   await fse.ensureDir(rawDir)
   await fse.ensureDir(llmDir)
 
-  const seenUploadHashes = new Set()
-  const duplicateHashesNotified = new Set()
-  const plannedRawNames = new Set()
-  const plannedFiles = []
-  const skippedDuplicates = []
+  const seenInputNames = new Set()
+  for (const srcPath of files) {
+    const fileName = safeBasename(srcPath)
+    const normalized = fileName.toLowerCase()
+    if (seenInputNames.has(normalized)) {
+      emitStatus?.({
+        type: 'error',
+        message: `Duplicate filename "${fileName}" in this upload. Rename the file and try again.`,
+      })
+      throw new Error(`Duplicate filename in upload: "${fileName}". Rename the file and try again.`)
+    }
+    seenInputNames.add(normalized)
+
+    const rawCandidatePath = path.join(rawDir, fileName)
+    if (await fse.pathExists(rawCandidatePath)) {
+      const rawRelPath = toWorkspaceRelativePath(workspaceRoot, rawCandidatePath)
+      const refs = Number(
+        dbAll('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?', [rawRelPath])?.[0]
+          ?.c || 0,
+      )
+      if (refs > 0) {
+        emitStatus?.({
+          type: 'error',
+          message: `A file named "${fileName}" already exists. Rename the file and try again.`,
+        })
+        throw new Error(
+          `Duplicate filename: "${fileName}" already exists. Rename the file and try again.`,
+        )
+      }
+
+      try {
+        await fse.remove(rawCandidatePath)
+      } catch (e) {
+        emitStatus?.({
+          type: 'error',
+          message: `Found a stale file named "${fileName}" but could not clean it up automatically.`,
+        })
+        throw e
+      }
+    }
+  }
+
+  const results = []
+  const stagedFiles = []
+
+  emitStatus?.({
+    type: 'info',
+    message: 'Copying all files into workspace before markdown generation.',
+  })
 
   for (const srcPath of files) {
     const sourceFilePath = String(srcPath || '')
@@ -429,115 +371,16 @@ export async function ingestArtifactsFromPaths({
     }
 
     const originalFileName = safeBasename(sourceFilePath)
-    const sourceHash = await sha256FileHex(sourceFilePath)
-
-    if (seenUploadHashes.has(sourceHash)) {
-      const duplicateMessage = `Skipped exact duplicate "${originalFileName}" already present in this upload batch. Merge or delete the duplicate file to keep the file system clean.`
-      if (!duplicateHashesNotified.has(sourceHash)) {
-        emitDuplicateSkipStatus({
-          emitStatus,
-          fileName: originalFileName,
-          message: duplicateMessage,
-        })
-        duplicateHashesNotified.add(sourceHash)
-      }
-      skippedDuplicates.push({
-        source: sourceFilePath,
-        fileName: originalFileName,
-        reason: 'duplicate-in-upload',
-        message: duplicateMessage,
-      })
-      continue
-    }
-    seenUploadHashes.add(sourceHash)
-
-    const existingExactMatch = findExistingArtifactByHash(sourceHash)
-    if (existingExactMatch) {
-      const existingPath = String(existingExactMatch?.fs_path || '').trim() || 'the workspace'
-      const duplicateMessage = `Skipped exact duplicate "${originalFileName}" because an identical file already exists in ${existingPath}. Merge or delete the duplicate file to keep the file system clean.`
-      if (!duplicateHashesNotified.has(sourceHash)) {
-        emitDuplicateSkipStatus({
-          emitStatus,
-          fileName: originalFileName,
-          message: duplicateMessage,
-        })
-        duplicateHashesNotified.add(sourceHash)
-      }
-      skippedDuplicates.push({
-        source: sourceFilePath,
-        fileName: originalFileName,
-        reason: 'duplicate-existing',
-        existingPath,
-        message: duplicateMessage,
-      })
-      continue
-    }
-
-    const rawDestination = await resolveRawDestination({
-      rawDir,
-      originalFileName,
-      sourceHash,
-      plannedNames: plannedRawNames,
-    })
-
-    if (rawDestination.duplicate) {
-      const duplicatePath = String(rawDestination.existingPath || '').trim() || 'the workspace'
-      const duplicateMessage = `Skipped exact duplicate "${originalFileName}" because an identical file already exists in ${duplicatePath}. Merge or delete the duplicate file to keep the file system clean.`
-      if (!duplicateHashesNotified.has(sourceHash)) {
-        emitDuplicateSkipStatus({
-          emitStatus,
-          fileName: originalFileName,
-          message: duplicateMessage,
-        })
-        duplicateHashesNotified.add(sourceHash)
-      }
-      skippedDuplicates.push({
-        source: sourceFilePath,
-        fileName: originalFileName,
-        reason: 'duplicate-raw-destination',
-        existingPath: duplicatePath,
-        message: duplicateMessage,
-      })
-      continue
-    }
-
-    plannedRawNames.add(String(rawDestination.fileName || '').trim().toLowerCase())
-    plannedFiles.push({
-      sourceFilePath,
-      sourceHash,
-      originalFileName,
-      workspaceFileName: rawDestination.fileName,
-      rawAbsPath: rawDestination.absPath,
-      rawRelPath: rawDestination.relPath,
-      wasRenamed: Boolean(rawDestination.renamed),
-    })
-  }
-
-  const results = []
-  const stagedFiles = []
-
-  emitStatus?.({
-    type: 'info',
-    message: 'Copying all files into workspace before markdown generation.',
-  })
-
-  for (const plannedFile of plannedFiles) {
-    const {
-      sourceFilePath,
-      sourceHash,
-      originalFileName,
-      workspaceFileName,
-      rawAbsPath,
-      rawRelPath,
-      wasRenamed,
-    } = plannedFile
-    const originalExt = extLower(workspaceFileName)
+    const originalExt = extLower(originalFileName)
     emitFileStageStatus(emitStatus, originalFileName, {
       uploadStatus: 'pending',
       message: `Copying "${originalFileName}" into workspace...`,
     })
 
+    // --- Save raw file
+    let rawAbsPath
     try {
+      rawAbsPath = path.join(rawDir, originalFileName)
       await fs.copyFile(sourceFilePath, rawAbsPath)
     } catch (e) {
       emitStatus?.({
@@ -549,15 +392,15 @@ export async function ingestArtifactsFromPaths({
     emitFileStageStatus(emitStatus, originalFileName, {
       uploadStatus: 'uploaded',
       markdownStatus: 'pending',
-      message: wasRenamed
-        ? `"${originalFileName}" copied as "${workspaceFileName}".`
-        : `"${originalFileName}" copied.`,
+      message: `"${originalFileName}" copied.`,
     })
 
+    const rawRelPath = toWorkspaceRelativePath(workspaceRoot, rawAbsPath)
     const rawArtifactId = `artifact:${crypto.randomUUID()}`
 
     try {
       const stat = await fs.stat(rawAbsPath)
+      const hash = await sha256FileHex(rawAbsPath)
       const links = artifactLinkColumns(oppty)
       dbRun(
         `
@@ -573,7 +416,7 @@ export async function ingestArtifactsFromPaths({
           rawArtifactId,
           links.round_id,
           links.fund_id,
-          baseName(workspaceFileName),
+          baseName(originalFileName),
           originalExt.replace('.', '') || null,
         ],
       )
@@ -586,12 +429,12 @@ export async function ingestArtifactsFromPaths({
           fs_size_bytes
         ) VALUES (?, ?, ?, ?)
       `,
-        [rawArtifactId, rawRelPath, sourceHash, stat.size],
+        [rawArtifactId, rawRelPath, hash, stat.size],
       )
     } catch (e) {
       emitStatus?.({
         type: 'error',
-        message: `Could not create raw artifact DB record for "${workspaceFileName}": ${e?.message || String(e)}`,
+        message: `Could not create raw artifact DB record for "${originalFileName}": ${e?.message || String(e)}`,
       })
       throw e
     }
@@ -599,12 +442,10 @@ export async function ingestArtifactsFromPaths({
     stagedFiles.push({
       sourceFilePath,
       originalFileName,
-      workspaceFileName,
       originalExt,
       rawAbsPath,
       rawRelPath,
       rawArtifactId,
-      wasRenamed,
     })
   }
 
@@ -614,15 +455,8 @@ export async function ingestArtifactsFromPaths({
   })
 
   for (const item of stagedFiles) {
-    const {
-      sourceFilePath,
-      originalFileName,
-      workspaceFileName,
-      originalExt,
-      rawAbsPath,
-      rawRelPath,
-      rawArtifactId,
-    } = item
+    const { sourceFilePath, originalFileName, originalExt, rawAbsPath, rawRelPath, rawArtifactId } =
+      item
     emitFileStageStatus(emitStatus, originalFileName, {
       markdownStatus: 'pending',
       message: `Generating markdown for "${originalFileName}"...`,
@@ -632,7 +466,7 @@ export async function ingestArtifactsFromPaths({
     if (originalExt === '.md') {
       let llmAbsPath
       try {
-        llmAbsPath = await ensureUniqueDestPath(path.join(llmDir, workspaceFileName))
+        llmAbsPath = await ensureUniqueDestPath(path.join(llmDir, originalFileName))
         await fs.copyFile(rawAbsPath, llmAbsPath)
       } catch (e) {
         emitStatus?.({
@@ -642,15 +476,7 @@ export async function ingestArtifactsFromPaths({
         throw e
       }
 
-      const llmRelPath = toPosixPath(
-        path.join(
-          USER_WORKSPACE_DIR,
-          NETWORK_DATABASES_DIR,
-          'Artifacts',
-          '1_llm-ready',
-          path.basename(llmAbsPath),
-        ),
-      )
+      const llmRelPath = toWorkspaceRelativePath(workspaceRoot, llmAbsPath)
       const llmArtifactId = `artifact:${crypto.randomUUID()}`
 
       try {
@@ -671,7 +497,7 @@ export async function ingestArtifactsFromPaths({
             llmArtifactId,
             links.round_id,
             links.fund_id,
-            baseName(workspaceFileName),
+            baseName(originalFileName),
             'md',
           ],
         )
@@ -709,7 +535,7 @@ export async function ingestArtifactsFromPaths({
     }
 
     // --- Create LLM-ready Markdown
-    const llmMdFileName = `${baseName(workspaceFileName)}.md`
+    const llmMdFileName = `${baseName(originalFileName)}.md`
     let markdown = ''
 
     try {
@@ -794,15 +620,7 @@ export async function ingestArtifactsFromPaths({
       throw e
     }
 
-    const llmRelPath = toPosixPath(
-      path.join(
-        USER_WORKSPACE_DIR,
-        NETWORK_DATABASES_DIR,
-        'Artifacts',
-        '1_llm-ready',
-        path.basename(llmAbsPath),
-      ),
-    )
+    const llmRelPath = toWorkspaceRelativePath(workspaceRoot, llmAbsPath)
     const llmArtifactId = `artifact:${crypto.randomUUID()}`
 
     try {
@@ -823,7 +641,7 @@ export async function ingestArtifactsFromPaths({
           llmArtifactId,
           links.round_id,
           links.fund_id,
-          baseName(workspaceFileName),
+          baseName(originalFileName),
           'md',
         ],
       )
@@ -860,12 +678,9 @@ export async function ingestArtifactsFromPaths({
   }
 
   emitStatus?.({
-    type: results.length > 0 ? 'success' : 'warning',
-    message:
-      results.length > 0
-        ? `Successfully created and saved ${results.length} artifact${results.length === 1 ? '' : 's'} with database records.${skippedDuplicates.length ? ` Skipped ${skippedDuplicates.length} exact duplicate${skippedDuplicates.length === 1 ? '' : 's'}.` : ''}`
-        : `No new artifacts were saved.${skippedDuplicates.length ? ` Skipped ${skippedDuplicates.length} exact duplicate${skippedDuplicates.length === 1 ? '' : 's'}.` : ''}`,
+    type: 'success',
+    message: `Successfully created and saved ${files.length} artifact${files.length === 1 ? '' : 's'} with database records.`,
   })
 
-  return { results, skippedDuplicates }
+  return { results }
 }
