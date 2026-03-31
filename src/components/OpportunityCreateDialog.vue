@@ -2441,6 +2441,36 @@ function captureFieldSnapshot(section, key) {
   }
 }
 
+function createSnapshotWithValue(section, key, value) {
+  const normalizedValue = value ?? ''
+  if (section === 'company') {
+    return {
+      value: normalizedValue,
+      companyForm: {
+        ...JSON.parse(JSON.stringify(companyForm.value || {})),
+        [key]: normalizedValue,
+      },
+      companyId: key === 'Company_Name' ? null : form.value.company_id || null,
+      companyLinkMode: key === 'Company_Name' ? 'new' : companyLinkMode.value,
+      companySourceChoice: key === 'Company_Name' ? 'input' : companySourceChoice.value,
+    }
+  }
+  if (section === 'contact') {
+    return {
+      value: normalizedValue,
+      contactForm: {
+        ...JSON.parse(JSON.stringify(contactForm.value || {})),
+        [key]: normalizedValue,
+      },
+      contactLinkMode: key === 'id' ? 'new' : contactLinkMode.value,
+    }
+  }
+  return {
+    value: normalizedValue,
+    kind: form.value.kind,
+  }
+}
+
 function buildEmptyFieldSnapshot(section, key) {
   if (section === 'company') {
     return {
@@ -2532,6 +2562,19 @@ function markAutofilled(section, key) {
   aiGeneratedFieldSnapshots.value = {
     ...aiGeneratedFieldSnapshots.value,
     [fieldKey]: captureFieldSnapshot(section, key),
+  }
+  if (!fieldSourceModes.value[fieldKey]) {
+    fieldSourceModes.value[fieldKey] = 'ai'
+  }
+}
+
+function recordAiSuggestion(section, key, value) {
+  const fieldKey = buildFieldStateKey(section, key)
+  const snapshot = createSnapshotWithValue(section, key, value)
+  autofilledFlags.value[fieldKey] = true
+  aiGeneratedFieldSnapshots.value = {
+    ...aiGeneratedFieldSnapshots.value,
+    [fieldKey]: snapshot,
   }
   if (!fieldSourceModes.value[fieldKey]) {
     fieldSourceModes.value[fieldKey] = 'ai'
@@ -2849,16 +2892,18 @@ function applyPrimarySuggestedValues(suggested = {}) {
     if (!Object.prototype.hasOwnProperty.call(form.value, key)) continue
     if (key === 'Venture_Oppty_Name' && intakeLockedFields.value.relatedFund) continue
     if (key === 'Round_Stage' && intakeLockedFields.value.relatedRound) continue
-    if (isExplicitHumanMode('opportunity', key)) continue
-    form.value[key] = value == null ? '' : stripHumanVerify(value)
-    markAutofilled('opportunity', key)
+    const normalizedValue = value == null ? '' : stripHumanVerify(value)
+    recordAiSuggestion('opportunity', key, normalizedValue)
+    if (!isExplicitHumanMode('opportunity', key)) {
+      form.value[key] = normalizedValue
+      markAutofilled('opportunity', key)
+    }
   }
   for (const [key, value] of Object.entries(suggested?.company || {})) {
     if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
     if (key === 'Company_Name' && intakeLockedFields.value.sponsorCompany) continue
     if (key === 'Website' && intakeLockedFields.value.website) continue
-    if (isExplicitHumanMode('company', key)) continue
-    companyForm.value[key] =
+    const normalizedValue =
       key === 'Status'
         ? normalizeCompanyStatusValue(value)
         : key === 'Company_Type'
@@ -2866,14 +2911,21 @@ function applyPrimarySuggestedValues(suggested = {}) {
           : value == null
             ? ''
             : stripHumanVerify(value)
-    markAutofilled('company', key)
+    recordAiSuggestion('company', key, normalizedValue)
+    if (!isExplicitHumanMode('company', key)) {
+      companyForm.value[key] = normalizedValue
+      markAutofilled('company', key)
+    }
   }
   for (const [key, value] of Object.entries(suggested?.contact || {})) {
     if (!Object.prototype.hasOwnProperty.call(contactForm.value, key)) continue
     if (key === 'Name' && intakeLockedFields.value.relatedContact) continue
-    if (isExplicitHumanMode('contact', key)) continue
-    contactForm.value[key] = value == null ? '' : stripHumanVerify(value)
-    markAutofilled('contact', key)
+    const normalizedValue = value == null ? '' : stripHumanVerify(value)
+    recordAiSuggestion('contact', key, normalizedValue)
+    if (!isExplicitHumanMode('contact', key)) {
+      contactForm.value[key] = normalizedValue
+      markAutofilled('contact', key)
+    }
   }
   syncActiveDraft({ stage: 'Matching' })
   queueAdditionalIntakeReviewIfNeeded()
@@ -2987,30 +3039,33 @@ async function processDroppedFiles(files = []) {
       })
     }
 
-    // First API call: persist the dropped files and generate the LLM-ready artifacts.
-    processingMessage.value = 'Creating LLM-ready files...'
-    const ingestResult = await ingestArtifactsWithDuplicateHandling(filePaths, {
+    processingMessage.value = 'Creating LLM-ready files and extracting structured data...'
+    updateStatusForAllFiles({ extractionStatus: 'pending' })
+
+    // Run both Gemini workflows in parallel from the original source files.
+    const ingestPromise = ingestArtifactsWithDuplicateHandling(filePaths, {
       hasExistingConflict: existingCheck.existingNames.length > 0,
     })
-    collectDraftArtifactIds(ingestResult)
+    const previewPromise = bridge.value.autofill
+      .previewFromFiles({ filePaths })
+      .then((preview) => ({ type: 'success', preview }))
+      .catch((error) => {
+        if (isAutofillQuotaError(error)) {
+          return { type: 'quota', error }
+        }
+        throw error
+      })
 
-    // Second API call: extract structured JSON from the generated LLM-ready files.
-    processingMessage.value = 'Extracting structured data from LLM-ready files...'
-    updateStatusForAllFiles({ extractionStatus: 'pending' })
-    const markdownPaths = await resolveGeneratedMarkdownPaths(ingestResult)
-    if (!markdownPaths.length) {
-      throw new Error('No LLM-ready files found for structured extraction.')
+    const [ingestResult, previewOutcome] = await Promise.all([ingestPromise, previewPromise])
+    collectDraftArtifactIds(ingestResult)
+    await resolveGeneratedMarkdownPaths(ingestResult)
+
+    if (previewOutcome.type === 'quota') {
+      await handleAutofillPreviewFallback(previewOutcome.error)
+      return
     }
-    let preview = null
-    try {
-      preview = await bridge.value.autofill.previewFromFiles({ filePaths: markdownPaths })
-    } catch (error) {
-      if (isAutofillQuotaError(error)) {
-        await handleAutofillPreviewFallback(error)
-        return
-      }
-      throw error
-    }
+
+    const preview = previewOutcome.preview || null
     deferredSuggestionPayload.value = preview?.suggested || {}
     applyPrimarySuggestedValues(deferredSuggestionPayload.value)
     applyMatchedExistingCompany(preview?.companyMatch || null)
