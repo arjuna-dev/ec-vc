@@ -127,6 +127,23 @@
                     input-debounce="0"
                     @filter="onCompanyOptionFilter"
                   />
+                  <div
+                    v-if="showFieldSourceToggle('company', 'Company_Name')"
+                    class="field-source-toggle field-source-toggle--labeled"
+                  >
+                    <q-btn-toggle
+                      :model-value="getFieldSourceMode('company', 'Company_Name')"
+                      dense
+                      no-caps
+                      unelevated
+                      rounded
+                      toggle-color="primary"
+                      color="grey-2"
+                      text-color="grey-7"
+                      :options="fieldSourceOptions"
+                      @update:model-value="setFieldSourceMode('company', 'Company_Name', $event)"
+                    />
+                  </div>
 
                 </div>
 
@@ -264,6 +281,23 @@
                       :disable="loading || processingDrop"
                       :input-class="fieldInputClass('company', field.key)"
                     />
+                    <div
+                      v-if="showFieldSourceToggle('company', field.key)"
+                      class="field-source-toggle field-source-toggle--labeled"
+                    >
+                      <q-btn-toggle
+                        :model-value="getFieldSourceMode('company', field.key)"
+                        dense
+                        no-caps
+                        unelevated
+                        rounded
+                        toggle-color="primary"
+                        color="grey-2"
+                        text-color="grey-7"
+                        :options="fieldSourceOptions"
+                        @update:model-value="setFieldSourceMode('company', field.key, $event)"
+                      />
+                    </div>
 
                   </div>
                 </template>
@@ -289,6 +323,23 @@
                     :input-class="fieldInputClass('opportunity', 'Venture_Oppty_Name')"
                     @update:model-value="markOpportunityNameEdited"
                   />
+                  <div
+                    v-if="showFieldSourceToggle('opportunity', 'Venture_Oppty_Name')"
+                    class="field-source-toggle field-source-toggle--labeled"
+                  >
+                    <q-btn-toggle
+                      :model-value="getFieldSourceMode('opportunity', 'Venture_Oppty_Name')"
+                      dense
+                      no-caps
+                      unelevated
+                      rounded
+                      toggle-color="primary"
+                      color="grey-2"
+                      text-color="grey-7"
+                      :options="fieldSourceOptions"
+                      @update:model-value="setFieldSourceMode('opportunity', 'Venture_Oppty_Name', $event)"
+                    />
+                  </div>
 
                 </div>
 
@@ -322,6 +373,23 @@
                     :disable="loading || processingDrop"
                     :input-class="fieldInputClass('opportunity', field.key)"
                   />
+                  <div
+                    v-if="showFieldSourceToggle('opportunity', field.key)"
+                    class="field-source-toggle field-source-toggle--labeled"
+                  >
+                    <q-btn-toggle
+                      :model-value="getFieldSourceMode('opportunity', field.key)"
+                      dense
+                      no-caps
+                      unelevated
+                      rounded
+                      toggle-color="primary"
+                      color="grey-2"
+                      text-color="grey-7"
+                      :options="fieldSourceOptions"
+                      @update:model-value="setFieldSourceMode('opportunity', field.key, $event)"
+                    />
+                  </div>
 
                 </div>
               </div>
@@ -388,6 +456,23 @@
                 input-debounce="0"
                 @filter="onContactOptionFilter"
               />
+              <div
+                v-if="showFieldSourceToggle('contact', 'id')"
+                class="field-source-toggle field-source-toggle--labeled"
+              >
+                <q-btn-toggle
+                  :model-value="getFieldSourceMode('contact', 'id')"
+                  dense
+                  no-caps
+                  unelevated
+                  rounded
+                  toggle-color="primary"
+                  color="grey-2"
+                  text-color="grey-7"
+                  :options="fieldSourceOptions"
+                  @update:model-value="setFieldSourceMode('contact', 'id', $event)"
+                />
+              </div>
             </div>
             <q-option-group
               v-model="contactLinkMode"
@@ -405,6 +490,23 @@
                 :disable="loading || processingDrop"
                 :input-class="fieldInputClass('contact', field.key)"
               />
+              <div
+                v-if="showFieldSourceToggle('contact', field.key)"
+                class="field-source-toggle field-source-toggle--labeled"
+              >
+                <q-btn-toggle
+                  :model-value="getFieldSourceMode('contact', field.key)"
+                  dense
+                  no-caps
+                  unelevated
+                  rounded
+                  toggle-color="primary"
+                  color="grey-2"
+                  text-color="grey-7"
+                  :options="fieldSourceOptions"
+                  @update:model-value="setFieldSourceMode('contact', field.key, $event)"
+                />
+              </div>
             </div>
           </div>
 
@@ -926,6 +1028,10 @@ const deferredSuggestionPayload = ref(null)
 
 const autofilledFlags = ref({})
 const fieldSourceModes = ref({})
+const fieldSourceOptions = [
+  { icon: 'auto_awesome', label: 'AI generated', value: 'ai' },
+  { icon: 'edit', label: 'User edit', value: 'human' },
+]
 
 const ingestStatusColumns = [
   { name: 'fileName', label: 'File', field: 'fileName', align: 'left' },
@@ -1120,7 +1226,7 @@ const releasedMarkdownChunkRows = computed(() =>
     })),
 )
 
-const terminalIngestStatuses = new Set(['completed', 'existing', 'manual review'])
+const terminalIngestStatuses = new Set(['uploaded', 'completed', 'existing', 'manual review'])
 
 const intakeProgressMetrics = computed(() => {
   const rows = ingestStatusRows.value
@@ -2063,6 +2169,18 @@ function getFieldSourceMode(section, key) {
   const fieldKey = `${section}.${key}`
   if (fieldSourceModes.value[fieldKey]) return fieldSourceModes.value[fieldKey]
   return autofilledFlags.value[fieldKey] ? 'ai' : 'human'
+}
+
+function showFieldSourceToggle(section, key) {
+  return Boolean(autofilledFlags.value[`${section}.${key}`])
+}
+
+function setFieldSourceMode(section, key, value) {
+  fieldSourceModes.value = {
+    ...fieldSourceModes.value,
+    [`${section}.${key}`]: value === 'human' ? 'human' : 'ai',
+  }
+  syncActiveDraft()
 }
 
 function promptFieldClass(fieldKey) {
@@ -3146,6 +3264,23 @@ onBeforeUnmount(() => {
   min-height: 28px;
   min-width: 28px;
   padding: 0 8px;
+}
+
+.field-source-toggle--labeled :deep(.q-btn-toggle) {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.field-source-toggle--labeled :deep(.q-btn) {
+  flex: 1 1 0;
+  min-height: 32px;
+  padding: 0 12px;
+}
+
+.field-source-toggle--labeled :deep(.q-btn__content) {
+  gap: 6px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .company-mismatch-banner {
