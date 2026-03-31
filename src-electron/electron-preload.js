@@ -127,8 +127,15 @@ contextBridge.exposeInMainWorld('ecvc', {
     share: ({ artifactId } = {}) => ipcRenderer.invoke('artifacts:share', { artifactId }),
     linkToOpportunity: ({ artifactIds, opportunityId, pipelineId } = {}) =>
       ipcRenderer.invoke('artifacts:linkToOpportunity', { artifactIds, opportunityId, pipelineId }),
-    ingest: ({ filePaths, files, opportunityId, pipelineId, createdBy } = {}) =>
-      ipcRenderer.invoke('artifacts:ingest', { filePaths, files, opportunityId, pipelineId, createdBy }),
+    ingest: ({ filePaths, files, opportunityId, pipelineId, createdBy, duplicateStrategy } = {}) =>
+      ipcRenderer.invoke('artifacts:ingest', {
+        filePaths,
+        files,
+        opportunityId,
+        pipelineId,
+        createdBy,
+        duplicateStrategy,
+      }),
     onIngestStatus: (cb) => {
       const handler = (_event, payload) => cb?.(payload)
       ipcRenderer.on('artifacts:ingest:status', handler)

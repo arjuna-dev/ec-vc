@@ -2185,6 +2185,41 @@ function updateStatusForAllFiles(partial = {}) {
   syncActiveDraft()
 }
 
+function isDuplicateFilenameConflict(error) {
+  const message = String(error?.message || error || '').toLowerCase()
+  return message.includes('duplicate filename') || message.includes('already exists')
+}
+
+function askDuplicateRenameConfirmation() {
+  return new Promise((resolve) => {
+    $q.dialog({
+      title: 'Existing File Found',
+      message:
+        'A file with the same name already exists. Continue and save this upload with a sequential suffix like "_1" or "_2"?',
+      cancel: { flat: true, label: 'Cancel' },
+      ok: { color: 'warning', label: 'Continue' },
+      persistent: true,
+    })
+      .onOk(() => resolve(true))
+      .onCancel(() => resolve(false))
+      .onDismiss(() => resolve(false))
+  })
+}
+
+async function ingestArtifactsWithDuplicateHandling(filePaths = []) {
+  try {
+    return await bridge.value.artifacts.ingest({ filePaths })
+  } catch (error) {
+    if (!isDuplicateFilenameConflict(error)) throw error
+    const confirmed = await askDuplicateRenameConfirmation()
+    if (!confirmed) throw error
+    return bridge.value.artifacts.ingest({
+      filePaths,
+      duplicateStrategy: 'rename',
+    })
+  }
+}
+
 function isAutofillQuotaError(error) {
   const message = String(error?.message || error || '').toLowerCase()
   return (
@@ -2371,9 +2406,7 @@ async function processDroppedFiles(files = []) {
 
     // First API call: persist the dropped files and generate the LLM-ready artifacts.
     processingMessage.value = 'Creating LLM-ready files...'
-    const ingestResult = await bridge.value.artifacts.ingest({
-      filePaths,
-    })
+    const ingestResult = await ingestArtifactsWithDuplicateHandling(filePaths)
     collectDraftArtifactIds(ingestResult)
 
     // Second API call: extract structured JSON from the generated LLM-ready files.
