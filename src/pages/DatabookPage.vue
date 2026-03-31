@@ -1707,9 +1707,8 @@ const contactHeroPanelTab = ref('documents')
 const companyHeroPanelTab = ref('documents')
 const contactFeedChannel = ref('linkedin')
 const contactFeedChannelOptions = [
-  { label: 'Add', value: 'add' },
-  { label: 'Mail', value: 'mail' },
   { label: 'WhatsApp', value: 'whatsapp' },
+  { label: 'Mail', value: 'mail' },
   { label: 'LinkedIn', value: 'linkedin' },
   { label: 'X', value: 'x' },
 ]
@@ -4620,11 +4619,18 @@ onBeforeUnmount(() => {
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn) {
   min-height: 34px;
   padding: 0 14px;
+  color: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 999px;
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: var(--font-weight-medium);
+}
+
+.contact-databook__summary-feed-chip-toggle :deep(.q-btn--active) {
+  color: #111111;
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(255, 255, 255, 0.96);
 }
 
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn + .q-btn) {
