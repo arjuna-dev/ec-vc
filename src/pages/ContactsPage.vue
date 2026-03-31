@@ -226,6 +226,22 @@
                         <div class="contact-card__role contact-card__role--secondary">
                           {{ getContactCurrentRoleCompany(row) || 'Add current role and company' }}
                         </div>
+                        <div
+                          v-for="detail in getContactPrimaryDetails(row)"
+                          :key="detail.label"
+                          class="contact-card__role contact-card__role--detail"
+                        >
+                          <button
+                            v-if="detail.href"
+                            type="button"
+                            class="contact-card__inline-chip"
+                            @click="openContactCardAction(detail, $event)"
+                          >
+                            <q-icon :name="detail.icon" size="14px" />
+                            <span>{{ detail.label }}</span>
+                          </button>
+                          <span v-else>{{ detail.value }}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -257,45 +273,7 @@
 
                   <div class="contact-card__summary-body">
                     <div class="contact-card__summary-body-content">
-                      <div v-if="contactCardPanel === 'contact-info'" class="contact-card__action-list">
-                        <div
-                          v-for="item in getContactInfoItems(row)"
-                          :key="item.label"
-                          class="contact-card__action-row"
-                        >
-                          <button
-                            type="button"
-                            class="contact-card__info-chip"
-                            @click="openContactCardAction(item, $event)"
-                          >
-                            <q-icon :name="item.icon" size="16px" />
-                            <span>{{ item.label }}</span>
-                          </button>
-                          <div v-if="item.value" class="contact-card__action-value">{{ item.value }}</div>
-                        </div>
-                        <div v-if="!getContactInfoItems(row).length" class="contact-card__summary-empty">
-                          Add LinkedIn, email, or phone details to build this contact card.
-                        </div>
-                      </div>
-
-                      <div v-else-if="contactCardPanel === 'relationship-highlights'" class="contact-card__details">
-                        <div
-                          v-for="item in getContactRelationshipItems(row)"
-                          :key="item.label"
-                          class="contact-card__detail"
-                        >
-                          <q-icon :name="item.icon" size="16px" class="contact-card__detail-icon" />
-                          <div class="contact-card__detail-copy">
-                            <div class="contact-card__detail-label">{{ item.label }}</div>
-                            <div class="contact-card__detail-value">{{ item.value }}</div>
-                          </div>
-                        </div>
-                        <div v-if="!getContactRelationshipItems(row).length" class="contact-card__summary-empty">
-                          No shared pipelines, friends, projects, or related links yet.
-                        </div>
-                      </div>
-
-                      <div v-else-if="getContactLinkedNotes(row).length" class="contact-card__notes-list">
+                      <div v-if="contactCardPanel === 'notes' && getContactLinkedNotes(row).length" class="contact-card__notes-list">
                         <div
                           v-for="note in getContactLinkedNotes(row)"
                           :key="note"
@@ -305,8 +283,18 @@
                         </div>
                       </div>
 
+                      <div v-else-if="contactCardPanel === 'docs' && getContactLinkedDocuments(row).length" class="contact-card__notes-list">
+                        <div
+                          v-for="doc in getContactLinkedDocuments(row)"
+                          :key="doc"
+                          class="contact-card__note-pill"
+                        >
+                          {{ doc }}
+                        </div>
+                      </div>
+
                       <div v-else class="contact-card__summary-empty">
-                        No linked notes yet for this contact.
+                        {{ contactCardPanel === 'notes' ? 'No linked notes yet for this contact.' : 'No linked docs yet for this contact.' }}
                       </div>
                     </div>
                   </div>
@@ -380,16 +368,15 @@ const hasBridge = computed(
     !!bridge.value?.contacts?.create &&
     !!bridge.value?.contacts?.delete,
 )
-const contactCardPanel = ref('contact-info')
-const contactCardPanelOrder = ['contact-info', 'relationship-highlights', 'notes']
+const contactCardPanel = ref('notes')
+const contactCardPanelOrder = ['notes', 'docs']
 const contactCardPanelIndex = computed(() =>
   Math.max(0, contactCardPanelOrder.indexOf(contactCardPanel.value)),
 )
 const contactCardPanelLabel = computed(() => ({
-  'contact-info': 'Contact Info',
-  'relationship-highlights': 'Relationship',
   notes: 'Notes',
-}[contactCardPanel.value] || 'Contact Info'))
+  docs: 'Docs',
+}[contactCardPanel.value] || 'Notes'))
 
 function cycleContactCardPanel(direction = 1) {
   const total = contactCardPanelOrder.length
@@ -825,26 +812,6 @@ function getContactCountryDisplay(row) {
   return flag ? `${flag} ${country}` : country
 }
 
-function getContactInfoItems(row) {
-  const email = primaryEmail(row)
-  const phone = normalizeInputValue(row?.Phone)
-  const linkedIn = normalizeInputValue(row?.LinkedIn)
-
-  return [
-    email ? { label: 'Email', value: email, icon: 'mail', href: `mailto:${email}`, external: false } : null,
-    phone ? { label: 'Call', value: phone, icon: 'call', href: `tel:${phone}`, external: false } : null,
-    linkedIn
-      ? {
-          label: 'LinkedIn',
-          value: '',
-          icon: 'north_east',
-          href: normalizeExternalUrl(linkedIn),
-          external: true,
-        }
-      : null,
-  ].filter(Boolean)
-}
-
 function getContactLinkedNotes(row) {
   return [
     ...String(row?.Contact_Note || '')
@@ -858,20 +825,37 @@ function getContactLinkedNotes(row) {
   ].slice(0, 4)
 }
 
-function getContactRelationshipItems(row) {
-  const company = normalizeInputValue(
-    row?.company_name || row?.Company_Name || row?.Current_Company_Name || row?.Organization_Name,
-  )
-  const pipeline = normalizeInputValue(row?.pipeline_name || row?.Pipeline_Name || row?.current_pipeline_name)
-  const project = normalizeInputValue(row?.project_name || row?.Project_Name || row?.current_project_name)
-  const friends = normalizeInputValue(row?.related_friend_ids || row?.friend_names || row?.Friends)
+function getContactPrimaryDetails(row) {
+  const email = primaryEmail(row)
+  const phone = normalizeInputValue(row?.Phone)
+  const linkedIn = normalizeInputValue(row?.LinkedIn)
 
   return [
-    company ? { label: 'Shared company', value: company, icon: 'apartment' } : null,
-    pipeline ? { label: 'Shared pipeline', value: pipeline, icon: 'schema' } : null,
-    project ? { label: 'Shared project', value: project, icon: 'workspaces' } : null,
-    friends ? { label: 'Shared friends', value: friends, icon: 'group' } : null,
+    email ? { label: 'Email', value: email, icon: 'mail' } : null,
+    linkedIn
+      ? {
+          label: 'LinkedIn',
+          value: '',
+          icon: 'north_east',
+          href: normalizeExternalUrl(linkedIn),
+          external: true,
+        }
+      : null,
+    phone ? { label: 'Phone', value: phone } : null,
   ].filter(Boolean)
+}
+
+function getContactLinkedDocuments(row) {
+  return [
+    ...String(row?.Contact_Artifact || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_artifact_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
 }
 
 async function openContactCardAction(link, event) {
@@ -1723,6 +1707,32 @@ watch(displayRows, () => {
 .contact-card__role--secondary {
   color: #111;
   font-weight: var(--font-weight-medium);
+}
+
+.contact-card__role--detail {
+  display: flex;
+  align-items: center;
+}
+
+.contact-card__inline-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 0 10px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.contact-card__inline-chip:hover {
+  color: #1d4ed8;
+  border-color: rgba(37, 99, 235, 0.22);
 }
 
 .contact-card__hero-select-row {
