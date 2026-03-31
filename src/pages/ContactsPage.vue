@@ -279,14 +279,19 @@
                       </div>
 
                       <div v-else-if="contactCardPanel === 'relationship-highlights'" class="contact-card__details">
-                        <div class="contact-card__detail">
-                          <q-icon name="badge" size="16px" class="contact-card__detail-icon" />
+                        <div
+                          v-for="item in getContactRelationshipItems(row)"
+                          :key="item.label"
+                          class="contact-card__detail"
+                        >
+                          <q-icon :name="item.icon" size="16px" class="contact-card__detail-icon" />
                           <div class="contact-card__detail-copy">
-                            <div class="contact-card__detail-label">Current role & company</div>
-                            <div class="contact-card__detail-value">
-                              {{ getContactCurrentRoleCompany(row) || 'No current role or company linked yet.' }}
-                            </div>
+                            <div class="contact-card__detail-label">{{ item.label }}</div>
+                            <div class="contact-card__detail-value">{{ item.value }}</div>
                           </div>
+                        </div>
+                        <div v-if="!getContactRelationshipItems(row).length" class="contact-card__summary-empty">
+                          No shared pipelines, friends, projects, or related links yet.
                         </div>
                       </div>
 
@@ -382,7 +387,7 @@ const contactCardPanelIndex = computed(() =>
 )
 const contactCardPanelLabel = computed(() => ({
   'contact-info': 'Contact Info',
-  'relationship-highlights': 'Relationship Highlights',
+  'relationship-highlights': 'Relationship',
   notes: 'Notes',
 }[contactCardPanel.value] || 'Contact Info'))
 
@@ -851,6 +856,22 @@ function getContactLinkedNotes(row) {
       .map((value) => value.trim())
       .filter(Boolean),
   ].slice(0, 4)
+}
+
+function getContactRelationshipItems(row) {
+  const company = normalizeInputValue(
+    row?.company_name || row?.Company_Name || row?.Current_Company_Name || row?.Organization_Name,
+  )
+  const pipeline = normalizeInputValue(row?.pipeline_name || row?.Pipeline_Name || row?.current_pipeline_name)
+  const project = normalizeInputValue(row?.project_name || row?.Project_Name || row?.current_project_name)
+  const friends = normalizeInputValue(row?.related_friend_ids || row?.friend_names || row?.Friends)
+
+  return [
+    company ? { label: 'Shared company', value: company, icon: 'apartment' } : null,
+    pipeline ? { label: 'Shared pipeline', value: pipeline, icon: 'schema' } : null,
+    project ? { label: 'Shared project', value: project, icon: 'workspaces' } : null,
+    friends ? { label: 'Shared friends', value: friends, icon: 'group' } : null,
+  ].filter(Boolean)
 }
 
 async function openContactCardAction(link, event) {
