@@ -1,7 +1,7 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
 
-import { generateText } from 'ai'
+import { streamText } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 
 function normalizeApiKey(value) {
@@ -151,14 +151,7 @@ function schemaDefinition() {
   }
 }
 
-function buildPrompt({ markdownDocs = [] } = {}) {
-  const docsBody = markdownDocs
-    .map((doc, i) => {
-      const name = path.basename(String(doc?.filePath || `document_${i + 1}`))
-      return `## DOCUMENT ${i + 1}: ${name}\n\n${String(doc?.markdown || '').trim()}`
-    })
-    .join('\n\n')
-
+function buildPrompt() {
   return [
     'You are extracting structured venture opportunity data from documents.',
     'Return ONLY valid JSON.',
@@ -166,24 +159,112 @@ function buildPrompt({ markdownDocs = [] } = {}) {
     'If confidence is not high, still provide your best candidate value and set verificationFlag=true.',
     'Prefer returning Opportunity.Round_Stage for the funding series.',
     'Also propose 1-3 Notes, 1-5 Tasks, and one Assistant configuration.',
+    'Read the attached source files directly. Do not wait for or rely on any intermediary markdown artifact.',
     'Use this JSON schema:',
     JSON.stringify(schemaDefinition(), null, 2),
-    '',
-    'Documents:',
-    docsBody,
   ].join('\n')
 }
 
-async function loadMarkdownDocs(filePaths = []) {
-  const docs = []
-  for (const filePath of filePaths) {
+function extLower(fileName) {
+  return path.extname(String(fileName || '')).toLowerCase()
+}
+
+function isImageExt(ext) {
+  return ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.tif', '.tiff'].includes(String(ext || ''))
+}
+
+async function extractWithOfficeParser(sourceFilePath) {
+  const mod = await import('officeparser')
+  const officeparser = mod?.default ?? mod
+
+  if (typeof officeparser?.parseOfficeAsync === 'function') {
+    return officeparser.parseOfficeAsync(sourceFilePath)
+  }
+
+  if (typeof officeparser?.parseOffice === 'function') {
+    if (officeparser.parseOffice.length <= 1) {
+      return officeparser.parseOffice(sourceFilePath)
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        officeparser.parseOffice(sourceFilePath, (data, err) => {
+          if (err) reject(err)
+          else resolve(data)
+        })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  throw new Error('officeparser export missing parseOfficeAsync/parseOffice')
+}
+
+async function buildSourceFileParts(filePaths = []) {
+  const content = [{ type: 'text', text: buildPrompt() }]
+
+  for (const [index, filePath] of filePaths.entries()) {
     const resolvedPath = String(filePath || '').trim()
     if (!resolvedPath) continue
-    const markdown = String(await fs.readFile(resolvedPath, 'utf8') || '').trim()
-    if (!markdown) continue
-    docs.push({ filePath: resolvedPath, markdown })
+
+    const fileName = path.basename(resolvedPath)
+    const ext = extLower(fileName)
+    const bytes = await fs.readFile(resolvedPath)
+
+    if (ext === '.pdf') {
+      content.push({
+        type: 'text',
+        text: `\nSOURCE FILE ${index + 1}: ${fileName}\nExtract structured data directly from this PDF.`,
+      })
+      content.push({
+        type: 'file',
+        data: bytes,
+        mediaType: 'application/pdf',
+        filename: fileName,
+      })
+      continue
+    }
+
+    if (isImageExt(ext)) {
+      content.push({
+        type: 'text',
+        text: `\nSOURCE FILE ${index + 1}: ${fileName}\nExtract structured data directly from this image.`,
+      })
+      content.push({ type: 'image', image: bytes })
+      continue
+    }
+
+    let extractedText = ''
+    if (ext === '.md' || ext === '.txt') {
+      extractedText = String(bytes.toString('utf8') || '').trim()
+    } else {
+      try {
+        extractedText = String(await extractWithOfficeParser(resolvedPath) || '').trim()
+      } catch {
+        extractedText = ''
+      }
+    }
+
+    if (!extractedText) {
+      throw new Error(`Could not extract text from source file: ${fileName}`)
+    }
+
+    content.push({
+      type: 'text',
+      text: `\nSOURCE FILE ${index + 1}: ${fileName}\n\n${extractedText}`,
+    })
   }
-  return docs
+
+  return content
+}
+
+async function collectStreamText(result) {
+  let output = ''
+  for await (const chunk of result.textStream) {
+    output += chunk
+  }
+  return String(output || '')
 }
 
 function stripHumanVerifyDelimiters(value) {
@@ -292,8 +373,8 @@ async function confirmCompanyMatchWithLlm(gemini, extractedName, candidateName) 
     `Candidate: ${candidateName}`,
     'Consider spelling variants and abbreviations.',
   ].join('\n')
-  const result = await generateText({ model: gemini('gemini-2.5-flash'), prompt })
-  const parsed = parseJsonFromModel(result?.text)
+  const result = streamText({ model: gemini('gemini-2.5-flash'), prompt })
+  const parsed = parseJsonFromModel(await collectStreamText(result))
   return {
     match: Boolean(parsed?.match),
     confidence: Number.isFinite(Number(parsed?.confidence)) ? Number(parsed.confidence) : 0,
@@ -340,17 +421,15 @@ export async function previewAutofillFromFiles({ filePaths = [], apiKeys = {}, e
   const paths = Array.isArray(filePaths) ? filePaths.map((p) => String(p || '').trim()).filter(Boolean) : []
   if (!paths.length) throw new Error('No files provided for autofill')
 
-  const markdownDocs = await loadMarkdownDocs(paths)
-  if (!markdownDocs.length) throw new Error('No LLM-ready markdown files found for autofill')
-
   const gemini = getGeminiClient(apiKeys?.gemini)
-  const prompt = buildPrompt({ markdownDocs })
-  const result = await generateText({
+  const content = await buildSourceFileParts(paths)
+  const result = streamText({
     model: gemini('gemini-2.5-flash'),
-    prompt,
+    messages: [{ role: 'user', content }],
   })
 
-  const parsed = parseJsonFromModel(result?.text)
+  const rawModel = await collectStreamText(result)
+  const parsed = parseJsonFromModel(rawModel)
   const suggested = normalizeSuggested(parsed)
   const verification = buildVerificationMap(suggested, parsed?.verification)
   const companyMatch = await resolveCompanyMatch({
@@ -363,10 +442,10 @@ export async function previewAutofillFromFiles({ filePaths = [], apiKeys = {}, e
     suggested,
     verification,
     companyMatch,
-    rawModel: String(result?.text || ''),
+    rawModel,
     diagnostics: {
-      files: markdownDocs.map((d) => path.basename(d.filePath)),
-      markdownCount: markdownDocs.length,
+      files: paths.map((filePath) => path.basename(filePath)),
+      sourceFileCount: paths.length,
     },
   }
 }

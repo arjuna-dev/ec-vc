@@ -4,7 +4,7 @@ import path from 'node:path'
 import crypto from 'node:crypto'
 
 import fse from 'fs-extra'
-import { generateText } from 'ai'
+import { generateText, streamText } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 
@@ -178,12 +178,17 @@ async function ocrToMarkdown({ filePath: sourceFilePath, fileName, geminiApiKey 
     throw new Error(`OCR path only supports images and PDFs (got: ${ext || 'unknown'})`)
   }
 
-  const result = await generateText({
+  const result = streamText({
     model: gemini('gemini-2.5-flash'),
     messages: [{ role: 'user', content: contentParts }],
   })
 
-  return String(result?.text || '').trim()
+  let output = ''
+  for await (const chunk of result.textStream) {
+    output += chunk
+  }
+
+  return String(output || '').trim()
 }
 
 function stripJsonFences(text) {
