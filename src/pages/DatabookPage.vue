@@ -399,7 +399,10 @@
               :key="section.anchor"
               type="button"
               class="contact-databook__nav-item"
-              :class="{ 'contact-databook__nav-item--active': activeContactSection === section.anchor }"
+              :class="{
+                'contact-databook__nav-item--active': activeContactSection === section.anchor,
+                'contact-databook__nav-item--kdb': section.anchor === 'other',
+              }"
               @click="activeContactSection = section.anchor"
             >
               {{ section.title }}
@@ -408,7 +411,7 @@
 
           <section class="contact-databook__details">
             <article v-if="activeContentSection" class="contact-section-card contact-section-card--active">
-              <div class="contact-section-card__header">
+              <div v-if="activeContentSection.anchor !== 'other'" class="contact-section-card__header">
                 <div class="contact-section-card__intro">
                   <h2 class="contact-section-card__title">{{ activeContentSection.title }}</h2>
                   <div v-if="activeContentSection.caption" class="contact-section-card__caption">
@@ -446,135 +449,105 @@
                 </svg>
               </div>
 
-              <div v-if="activeContentSection.anchor === 'other'" class="contact-context-grid">
-                <article class="contact-side-card">
-                  <div class="contact-side-card__header">
-                    <div class="contact-side-card__intro">
-                      <h3 class="contact-side-card__title">Notes</h3>
-                      <div class="contact-side-card__eyebrow">Contact history</div>
-                    </div>
+              <div v-if="activeContentSection.anchor === 'other'" class="contact-kdb">
+                <div class="contact-kdb-toolbar">
+                  <div class="contact-kdb-toolbar__block">
+                    <q-btn-toggle
+                      v-model="activeContactKdbSection"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="contact-kdb-toolbar__toggle contact-kdb-toolbar__section-toggle"
+                      :options="contactKdbSectionOptions"
+                    />
+                  </div>
+                </div>
+
+                <div class="contact-kdb-artifacts-toolbar">
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
+                    <q-btn-toggle
+                      v-model="contactKdbViewMode"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
+                      :options="contactKdbViewOptions"
+                    />
                   </div>
 
-                  <ul v-if="contactNotes.length" class="contact-databook__hero-notes">
-                    <li
-                      v-for="note in contactNotes"
-                      :key="note.id"
-                      class="contact-databook__hero-note"
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                    <q-btn-toggle
+                      v-model="contactKdbKindFilter"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                      :options="contactKdbKindOptions"
+                    />
+                  </div>
+
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
+                    <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                    <q-input
+                      v-model="contactKdbSearchQuery"
+                      dense
+                      outlined
+                      borderless
+                      class="contact-kdb-artifacts-toolbar__search"
+                      :placeholder="contactKdbSearchPlaceholder"
                     >
-                      <div class="contact-databook__notes-row">
-                        <div class="contact-databook__notes-title">{{ note.title }}</div>
-                        <div class="contact-databook__notes-meta">{{ note.created_at }}</div>
-                      </div>
-                      <div v-if="note.content" class="contact-databook__notes-content">
-                        {{ note.content }}
-                      </div>
-                    </li>
-                  </ul>
-                  <div v-else class="contact-section-card__empty contact-context-card__empty">
-                    No notes yet for this contact.
+                      <template #prepend>
+                        <q-icon name="search" />
+                      </template>
+                    </q-input>
                   </div>
-                </article>
+                </div>
 
-                <article class="contact-side-card">
-                  <div class="contact-side-card__header">
-                    <div class="contact-side-card__intro">
-                      <h3 class="contact-side-card__title">Documents</h3>
-                      <div class="contact-side-card__eyebrow">Contact files</div>
+                <q-banner
+                  v-if="!displayContactKdbItems.length"
+                  class="contact-section-card__empty bg-grey-1 text-black"
+                  rounded
+                >
+                  No records in this subsection yet.
+                </q-banner>
+
+                <div v-else-if="contactKdbViewMode === 'table'" class="contact-kdb-rows">
+                  <article
+                    v-for="item in displayContactKdbItems"
+                    :key="`${activeContactKdbSection}-${item.id}`"
+                    class="contact-kdb-row"
+                  >
+                    <div class="contact-kdb-row__main">
+                      <div class="contact-field-card__label">{{ item.title }}</div>
+                      <div v-if="item.content" class="contact-field-card__value">{{ item.content }}</div>
                     </div>
-                  </div>
+                    <div v-if="item.meta" class="contact-kdb-row__meta">{{ item.meta }}</div>
+                  </article>
+                </div>
 
-                  <div class="contact-databook__hero-documents-state">
-                    <div
-                      class="contact-databook__hero-dropzone"
-                      :class="{
-                        'contact-databook__hero-dropzone--active': contactDocumentsDragOver,
-                        'contact-databook__hero-dropzone--loading': uploadingContactDocuments,
-                      }"
-                      @dragover.prevent="contactDocumentsDragOver = true"
-                      @dragleave.prevent="contactDocumentsDragOver = false"
-                      @drop.prevent="onContactDocumentsDrop"
-                    >
-                      <q-icon
-                        :name="uploadingContactDocuments ? 'sync' : 'upload_file'"
-                        class="contact-databook__hero-dropzone-icon"
-                      />
-                      <div class="contact-databook__hero-dropzone-copy">
-                        {{ uploadingContactDocuments ? 'Uploading documents...' : 'Drop files here to attach them' }}
+                <div v-else class="row q-col-gutter-md">
+                  <div
+                    v-for="item in displayContactKdbItems"
+                    :key="`${activeContactKdbSection}-${item.id}`"
+                    class="col-12 col-md-6"
+                  >
+                    <article class="contact-field-card contact-kdb-card">
+                      <div class="contact-field-card__label">{{ item.title }}</div>
+                      <div v-if="item.meta" class="contact-section-card__modified">{{ item.meta }}</div>
+                      <div class="contact-field-card__value">
+                        {{ item.content || '-' }}
                       </div>
-                    </div>
-
-                    <ul v-if="contactDocuments.length" class="contact-databook__hero-documents">
-                      <li
-                        v-for="document in contactDocuments"
-                        :key="document.id"
-                        class="contact-databook__hero-document"
-                        :class="{
-                          'contact-databook__hero-document--loading':
-                            activeDocumentActionKey === `${document.artifactId}:preview`,
-                        }"
-                        tabindex="0"
-                        @click="previewContactDocument(document)"
-                        @keyup.enter.prevent="previewContactDocument(document)"
-                      >
-                        <div class="contact-databook__hero-document-thumb">
-                          <img
-                            v-if="document.thumbnailSrc"
-                            :src="document.thumbnailSrc"
-                            :alt="document.fileName"
-                            class="contact-databook__hero-document-thumb-image"
-                          />
-                          <template v-else>
-                            <q-icon
-                              :name="document.thumbnailIcon"
-                              class="contact-databook__hero-document-thumb-icon"
-                            />
-                            <div class="contact-databook__hero-document-thumb-ext">
-                              {{ document.thumbnailLabel }}
-                            </div>
-                          </template>
-                        </div>
-
-                        <div class="contact-databook__hero-document-copy">
-                          <div class="contact-databook__hero-document-meta">
-                            <div class="contact-databook__hero-document-name">{{ document.fileName }}</div>
-                            <div class="contact-databook__hero-document-date">{{ document.created_at }}</div>
-                            <div v-if="document.fileTypeLabel" class="contact-databook__hero-document-type">
-                              {{ document.fileTypeLabel }}
-                            </div>
-                          </div>
-
-                          <div class="contact-databook__hero-document-actions">
-                            <q-btn
-                              dense
-                              flat
-                              no-caps
-                              size="sm"
-                              icon="download"
-                              label="Download"
-                              class="contact-databook__hero-document-action"
-                              :loading="activeDocumentActionKey === `${document.artifactId}:download`"
-                              @click.stop="downloadContactDocument(document)"
-                            />
-                            <q-btn
-                              dense
-                              flat
-                              no-caps
-                              size="sm"
-                              icon="share"
-                              label="Share"
-                              class="contact-databook__hero-document-action"
-                              :loading="activeDocumentActionKey === `${document.artifactId}:share`"
-                              @click.stop="shareContactDocument(document)"
-                            />
-                          </div>
-                        </div>
-                      </li>
-                    </ul>
-                    <div v-else class="contact-section-card__empty contact-context-card__empty">
-                      No documents yet for this contact.
-                    </div>
+                    </article>
                   </div>
-                </article>
+                </div>
               </div>
 
               <q-banner
@@ -1568,6 +1541,20 @@ const DEFAULT_CONTACT_SUMMARY_STAT_IDS = ['role', 'stakeholder', 'country', 'pho
 const DEFAULT_COMPANY_SUMMARY_STAT_IDS = ['type', 'status', 'website', 'raised']
 const CONTACT_HERO_NOTES_LIMIT = 10
 const CONTACT_HERO_DOCUMENTS_LIMIT = 6
+const CONTACT_KDB_VIEW_OPTIONS = [
+  { value: 'grid', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
+]
+const CONTACT_KDB_SECTION_OPTIONS = [
+  { label: 'Artifacts', value: 'artifacts', icon: 'attach_file' },
+  { label: 'Users', value: 'users', icon: 'badge' },
+  { label: 'Companies', value: 'companies', icon: 'apartment' },
+  { label: 'Funds', value: 'funds', icon: 'work' },
+  { label: 'Rounds', value: 'rounds', icon: 'work' },
+  { label: 'Projects', value: 'projects', icon: 'schema' },
+  { label: 'Tasks', value: 'tasks', icon: 'check_circle' },
+  { label: 'Notes', value: 'notes', icon: 'note' },
+]
 const CONTACT_IMAGE_CROP_CONTACT_FRAME_WIDTH = 280
 const CONTACT_IMAGE_CROP_CONTACT_FRAME_HEIGHT = 420
 const CONTACT_IMAGE_CROP_COMPANY_FRAME_SIZE = 280
@@ -1687,6 +1674,10 @@ const selectedVersionId = ref(null)
 const modifiedByMap = ref({})
 const activeContactSection = ref('general-info')
 const activeCompanySection = ref('metadata')
+const activeContactKdbSection = ref('artifacts')
+const contactKdbViewMode = ref('grid')
+const contactKdbKindFilter = ref('all')
+const contactKdbSearchQuery = ref('')
 const contactHeroRef = ref(null)
 const contactImageInput = ref(null)
 const currentImageUploadTarget = ref('contact')
@@ -2047,25 +2038,34 @@ const contactSections = computed(() => {
     }),
     createContactSection({
       anchor: 'other',
-      category: 'Other',
-      title: 'Other',
+      category: 'KDB Relationships',
+      title: 'KDB Relationships',
       icon: CONTACT_SECTION_ICONS.note,
-      caption: 'All notes and related documents connected to this contact.',
+      caption: 'Related records linked to this contact.',
       fieldConfigs: [{ label: 'Comments', aliases: ['Comments', 'Comment'] }],
     }),
   ]
 
   return sections
 })
-const companyNavItems = computed(() =>
-  companySections.value.map((section) => ({ anchor: section.anchor, title: section.title })),
-)
+const companyNavItems = computed(() => [
+  { anchor: 'metadata', title: 'Metadata' },
+  { anchor: 'contacts', title: 'KDB Relationships' },
+  { anchor: 'rounds', title: 'Incorporation' },
+  { anchor: 'funds', title: 'Documents' },
+  { anchor: 'artifacts', title: 'Operations' },
+  { anchor: 'notes', title: 'Business' },
+  { anchor: 'system', title: 'System' },
+])
 const activeCompanyContentSection = computed(
   () => companySections.value.find((section) => section.anchor === activeCompanySection.value) || null,
 )
 const contactNavItems = computed(() => [
-  ...contactSections.value.map((section) => ({ anchor: section.anchor, title: section.title })),
+  { anchor: 'general-info', title: 'Metadata' },
+  { anchor: 'employment', title: 'Employment' },
+  { anchor: 'studies', title: 'Studies' },
   { anchor: 'system', title: 'System' },
+  { anchor: 'other', title: 'KDB Relationships' },
 ])
 const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
@@ -2084,6 +2084,94 @@ const companyHeroNotes = computed(() =>
 )
 const contactHeroDocuments = computed(() => contactDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
 const companyHeroDocuments = computed(() => companyDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
+const contactKdbViewOptions = CONTACT_KDB_VIEW_OPTIONS
+const contactKdbSectionOptions = CONTACT_KDB_SECTION_OPTIONS
+const contactKdbItemsBySection = computed(() => ({
+  artifacts: contactDocuments.value.map((document) => ({
+    id: String(document.artifactId || document.id || document.fileName || '').trim(),
+    title: document.fileName || 'Untitled artifact',
+    meta: [document.fileTypeLabel, document.created_at].filter(Boolean).join(' • '),
+    content: [document.domainLabel, document.artifactTypeLabel].filter(Boolean).join(' • '),
+  })),
+  users: buildContactKdbItemsFromValues('Contact_User', ['created_by_label', 'created_by']),
+  companies: buildContactKdbItemsFromValues('Contact_Company', ['Current_Companies', 'Current_Company']),
+  funds: buildContactKdbItemsFromValues('Contact_Fund', ['Related_Funds']),
+  rounds: buildContactKdbItemsFromValues('Contact_Round', ['Related_Rounds']),
+  projects: buildContactKdbItemsFromValues('Contact_Project', ['Related_Projects']),
+  tasks: buildContactKdbItemsFromValues('Contact_Task', ['Related_Tasks']),
+  notes: contactNotes.value.map((note) => ({
+    id: String(note.id || note.title || '').trim(),
+    title: note.title || 'Untitled note',
+    meta: note.created_at,
+    content: note.content,
+  })),
+}))
+const activeContactKdbItems = computed(() => contactKdbItemsBySection.value[activeContactKdbSection.value] || [])
+const contactKdbKindOptions = computed(() => {
+  if (activeContactKdbSection.value === 'artifacts') {
+    return [
+      { label: 'All', value: 'all' },
+      { label: 'Reviewed', value: 'ready' },
+      { label: 'Pending Review', value: 'needs-review' },
+    ]
+  }
+  if (activeContactKdbSection.value === 'users') {
+    return [
+      { label: 'All', value: 'all' },
+      { label: 'Team', value: 'golden' },
+      { label: 'Guests', value: 'needs-setup' },
+    ]
+  }
+  if (activeContactKdbSection.value === 'projects') {
+    return [
+      { label: 'All', value: 'all' },
+      { label: 'Own', value: 'own' },
+      { label: 'Others', value: 'others' },
+    ]
+  }
+  if (activeContactKdbSection.value === 'notes') {
+    return [
+      { label: 'All', value: 'all' },
+      { label: 'Favorites', value: 'favorites' },
+      { label: 'Recent', value: 'recent' },
+    ]
+  }
+  if (activeContactKdbSection.value === 'tasks') {
+    return [
+      { label: 'All', value: 'all' },
+      { label: 'Open', value: 'open' },
+      { label: 'Done', value: 'done' },
+    ]
+  }
+  return [{ label: 'All', value: 'all' }]
+})
+const contactKdbSearchPlaceholder = computed(() => `Search ${activeContactKdbSection.value}...`)
+const displayContactKdbItems = computed(() => {
+  let items = [...activeContactKdbItems.value]
+
+  if (activeContactKdbSection.value === 'artifacts') {
+    if (contactKdbKindFilter.value === 'ready') {
+      items = items.filter((item) => /llm-ready|reviewed/i.test(String(item.content || item.meta || '')))
+    } else if (contactKdbKindFilter.value === 'needs-review') {
+      items = items.filter((item) => !/llm-ready|reviewed/i.test(String(item.content || item.meta || '')))
+    }
+  } else if (activeContactKdbSection.value === 'tasks') {
+    if (contactKdbKindFilter.value === 'open') {
+      items = items.filter((item) => !/completed|closed|done/i.test(String(item.meta || item.content || '')))
+    } else if (contactKdbKindFilter.value === 'done') {
+      items = items.filter((item) => /completed|closed|done/i.test(String(item.meta || item.content || '')))
+    }
+  }
+
+  const query = String(contactKdbSearchQuery.value || '').trim().toLowerCase()
+  if (query) {
+    items = items.filter((item) =>
+      [item.title, item.meta, item.content].some((value) => String(value || '').toLowerCase().includes(query)),
+    )
+  }
+
+  return items
+})
 const companyRelationItemsBySection = computed(() => ({
   contacts: companyLinkedContacts.value.map((row) => ({
     id: String(row?.id || '').trim(),
@@ -2168,6 +2256,21 @@ function handleBackNavigation() {
   if (backLink.value) {
     router.push({ name: backLink.value.routeName })
   }
+}
+
+function buildContactKdbItemsFromValues(prefix, aliases = []) {
+  const raw = aliases.map((alias) => getFieldDisplayValue(alias)).find((value) => String(value || '').trim())
+  if (!raw) return []
+
+  return String(raw)
+    .split(/[,;\n|]/)
+    .map((value, index) => ({
+      id: `${prefix}-${index}`,
+      title: value.trim(),
+      meta: '',
+      content: '',
+    }))
+    .filter((item) => item.title)
 }
 
 function getContactPill(fieldName, prefix) {
@@ -3578,6 +3681,12 @@ watch(contactImageCropZoom, () => {
   contactImageCropOffset.value = clampContactImageCropOffset(contactImageCropOffset.value)
 })
 
+watch(activeContactKdbSection, () => {
+  contactKdbViewMode.value = 'grid'
+  contactKdbKindFilter.value = 'all'
+  contactKdbSearchQuery.value = ''
+})
+
 watch(
   contactSummaryStorageKey,
   (storageKey) => {
@@ -3782,9 +3891,166 @@ onBeforeUnmount(() => {
   border-color: #111;
 }
 
+.contact-databook__nav-item--kdb {
+  margin-left: auto;
+}
+
 .contact-databook__details {
   display: flex;
   flex-direction: column;
+}
+
+.contact-kdb {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contact-kdb-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.contact-kdb-toolbar__block {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.contact-kdb-toolbar__toggle {
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.contact-kdb-toolbar__view-toggle :deep(.q-btn) {
+  min-width: 56px;
+  padding-inline: 12px;
+}
+
+.contact-kdb-toolbar__section-toggle {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.contact-kdb-toolbar__section-toggle :deep(.q-btn) {
+  flex: 1 1 0;
+  min-width: 112px;
+  padding-inline: 14px;
+}
+
+.contact-kdb-toolbar__view-toggle :deep(.q-btn + .q-btn),
+.contact-kdb-toolbar__section-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 12px;
+}
+
+.contact-kdb-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-kdb-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.contact-kdb-row__main {
+  min-width: 0;
+}
+
+.contact-kdb-row__meta {
+  color: rgba(15, 23, 42, 0.56);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.contact-kdb-artifacts-toolbar {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 24px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid var(--ds-color-border-soft);
+  border-radius: var(--ds-radius-lg);
+}
+
+.contact-kdb-artifacts-toolbar__block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.contact-kdb-artifacts-toolbar__block--search {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.contact-kdb-artifacts-toolbar__filters-icon {
+  color: var(--ds-color-text-muted);
+  flex: 0 0 auto;
+}
+
+.contact-kdb-artifacts-toolbar__toggle {
+  flex: 0 0 auto;
+  border: 1px solid var(--ds-control-border);
+  border-radius: 999px;
+  box-shadow: var(--ds-control-shadow);
+  overflow: hidden;
+}
+
+.contact-kdb-artifacts-toolbar__view-toggle :deep(.q-btn) {
+  min-width: 48px;
+  padding-inline: 12px;
+}
+
+.contact-kdb-artifacts-toolbar__view-toggle :deep(.q-btn + .q-btn),
+.contact-kdb-artifacts-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.contact-kdb-artifacts-toolbar__kind-toggle :deep(.q-btn) {
+  min-width: 84px;
+  padding-inline: 18px;
+}
+
+.contact-kdb-artifacts-toolbar__search {
+  width: 100%;
+  min-width: 0;
+  background: var(--ds-control-surface);
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: var(--ds-control-shadow);
+}
+
+.contact-kdb-artifacts-toolbar__search :deep(.q-field__control),
+.contact-kdb-artifacts-toolbar__search :deep(.q-field__native),
+.contact-kdb-artifacts-toolbar__search :deep(.q-field__input) {
+  min-height: var(--ds-control-height-md);
+  height: var(--ds-control-height-md);
+}
+
+.contact-kdb-artifacts-toolbar__search :deep(.q-field__control) {
+  padding: 0 var(--ds-control-inline-padding);
 }
 
 .contact-databook__hero {
