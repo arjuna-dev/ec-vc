@@ -196,6 +196,14 @@
                       class="contact-card__portrait"
                       :class="{ 'contact-card__portrait--placeholder': !hasContactProfileImage(row) }"
                     >
+                      <button
+                        type="button"
+                        class="contact-card__portrait-eye"
+                        :disabled="loading"
+                        @click="openDatabook(row)"
+                      >
+                        <q-icon name="visibility" size="18px" />
+                      </button>
                       <img
                         v-if="hasContactProfileImage(row)"
                         class="contact-card__portrait-image"
@@ -214,14 +222,6 @@
 
                     <div class="contact-card__hero-side">
                       <div class="contact-card__hero-select-row">
-                        <q-btn
-                          flat
-                          round
-                          icon="visibility"
-                          class="contact-card__icon-action"
-                          :disable="loading"
-                          @click="openDatabook(row)"
-                        />
                         <q-checkbox
                           :model-value="isSelected(row)"
                           :disable="loading"
@@ -827,7 +827,7 @@ function getContactInfoItems(row) {
     linkedIn
       ? {
           label: 'LinkedIn',
-          value: linkedIn,
+          value: 'Open profile',
           icon: 'north_east',
           href: normalizeExternalUrl(linkedIn),
           external: true,
@@ -1703,7 +1703,7 @@ watch(displayRows, () => {
 .contact-card__hero-select-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 .contact-card__pill-row,
@@ -1804,7 +1804,7 @@ watch(displayRows, () => {
 
 .contact-card__action-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: 102px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
 }
@@ -1843,6 +1843,27 @@ watch(displayRows, () => {
   font-weight: var(--font-weight-regular);
   line-height: 18px;
   word-break: break-word;
+}
+
+.contact-card__portrait-eye {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: #111;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.contact-card__portrait-eye:hover {
+  color: #1d4ed8;
 }
 
 .contact-card__details {
