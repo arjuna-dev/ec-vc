@@ -290,6 +290,10 @@
                 </q-card-section>
 
                 <q-card-actions class="contact-card__footer">
+                  <div class="contact-card__footer-meta">
+                    <span>{{ getContactCreatedLabel(row) }}</span>
+                    <span>{{ getContactUpdatedLabel(row) }}</span>
+                  </div>
                   <div class="contact-card__footer-actions">
                     <q-btn
                       flat
@@ -926,6 +930,27 @@ function getContactLinkedDocuments(row) {
       .map((value) => value.trim())
       .filter(Boolean),
   ].slice(0, 4)
+}
+
+function getContactCreatedLabel(row) {
+  return `Created ${formatContactMetaDate(row?.created_at)}`
+}
+
+function getContactUpdatedLabel(row) {
+  return `Edited ${formatContactMetaDate(row?.updated_at || row?.created_at)}`
+}
+
+function formatContactMetaDate(value) {
+  if (!value) return 'not set'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'not set'
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date)
 }
 
 async function openContactCardAction(link, event) {
@@ -2105,9 +2130,20 @@ watch(displayRows, () => {
 .contact-card__footer {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 12px;
   padding: 16px 20px 20px;
+}
+
+.contact-card__footer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.45;
 }
 
 .contact-card__footer-action {
