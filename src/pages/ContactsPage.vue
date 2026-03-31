@@ -85,21 +85,6 @@
             />
           </div>
 
-          <div class="contacts-toolbar__block contacts-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="contactKindFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="contacts-toolbar__toggle contacts-toolbar__kind-toggle"
-              :disable="loading"
-              :options="contactKindOptions"
-            />
-          </div>
-
           <div class="contacts-toolbar__block contacts-toolbar__block--search">
             <q-icon name="tune" size="18px" class="contacts-toolbar__filters-icon" />
             <q-input
@@ -129,6 +114,25 @@
         </q-banner>
 
         <div class="contacts-surface">
+          <div v-if="viewMode === 'table'" class="contacts-table-tabs">
+            <q-tabs
+              v-model="contactTableTab"
+              dense
+              no-caps
+              align="left"
+              active-color="dark"
+              indicator-color="dark"
+              class="contacts-table-tabs__nav"
+            >
+              <q-tab
+                v-for="tab in contactTableTabs"
+                :key="tab.value"
+                :name="tab.value"
+                :label="tab.label"
+              />
+            </q-tabs>
+          </div>
+
           <q-banner
             v-if="!loading && displayRows.length === 0"
             class="contacts-empty-state bg-grey-1 text-black"
@@ -139,47 +143,7 @@
             </div>
           </q-banner>
 
-          <q-table
-            v-else-if="viewMode === 'table'"
-            class="contacts-table"
-            flat
-            bordered
-            row-key="id"
-            v-model:selected="selectedRows"
-            v-model:pagination="pagination"
-            selection="multiple"
-            :rows="displayRows"
-            :columns="columns"
-            :loading="loading"
-            :rows-per-page-options="rowsPerPageOptions"
-          >
-            <template #body-cell-actions="props">
-              <q-td :props="props">
-                <div class="contacts-table__actions">
-                  <q-btn
-                    dense
-                    flat
-                    round
-                    icon="visibility"
-                    color="grey-8"
-                    :disable="loading"
-                    @click="openDatabook(props.row)"
-                  />
-                  <q-btn
-                    dense
-                    flat
-                    round
-                    icon="delete"
-                    color="grey-8"
-                    :disable="loading"
-                    @click="confirmDelete(props.row)"
-                  />
-                </div>
-              </q-td>
-            </template>
-          </q-table>
-
-          <div v-else class="row q-col-gutter-md contacts-cards-grid">
+          <div v-else-if="showContactCards" class="row q-col-gutter-md contacts-cards-grid">
             <div v-for="row in displayRows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
               <q-card
                 flat
@@ -307,6 +271,81 @@
               </q-card>
             </div>
           </div>
+
+          <q-table
+            v-else-if="showContactMainTable"
+            class="contacts-table"
+            flat
+            bordered
+            row-key="id"
+            v-model:selected="selectedRows"
+            v-model:pagination="pagination"
+            selection="multiple"
+            :rows="activeContactTableRows"
+            :columns="activeContactColumns"
+            :loading="loading"
+            :rows-per-page-options="rowsPerPageOptions"
+          >
+            <template #body-cell-actions="props">
+              <q-td :props="props">
+                <div class="contacts-table__actions">
+                  <q-btn
+                    dense
+                    flat
+                    round
+                    icon="visibility"
+                    color="grey-8"
+                    :disable="loading"
+                    @click="openDatabook(props.row)"
+                  />
+                  <q-btn
+                    dense
+                    flat
+                    round
+                    icon="delete"
+                    color="grey-8"
+                    :disable="loading"
+                    @click="confirmDelete(props.row)"
+                  />
+                </div>
+              </q-td>
+            </template>
+          </q-table>
+
+          <div v-else-if="showContactSectionTable" class="contacts-section-table">
+            <div class="contacts-section-table__header">
+              <div>
+                <div class="contacts-section-table__eyebrow">{{ activeContactSectionLabel }}</div>
+                <div class="contacts-section-table__title">
+                  {{ activeContactSectionTitle }}
+                </div>
+              </div>
+              <q-badge v-if="activeContactRow" outline color="grey-8" class="contacts-section-table__badge">
+                {{ activeContactRow.Name || 'Selected contact' }}
+              </q-badge>
+            </div>
+
+            <q-banner
+              v-if="!activeContactRow"
+              class="contacts-empty-state bg-grey-1 text-black"
+              rounded
+            >
+              Select a contact to inspect related {{ activeContactSectionLabel.toLowerCase() }}.
+            </q-banner>
+
+            <q-table
+              v-else
+              class="contacts-table"
+              flat
+              bordered
+              :row-key="activeContactSectionRowKey"
+              :rows="activeContactSectionRows"
+              :columns="activeContactSectionColumns"
+              :loading="contactSectionLoading"
+              :pagination="{ rowsPerPage: 10 }"
+              hide-pagination
+            />
+          </div>
         </div>
       </section>
 
@@ -412,10 +451,6 @@ const router = useRouter()
 const CONTACT_VIEW_MODES = new Set(['card', 'table'])
 const CONTACTS_BREADCRUMB_ACTION_OWNER = 'contacts-page'
 const viewMode = ref(getRouteViewMode(route.query.view))
-const contactKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Connected', value: 'connected' },
-]
 const contactsDashboard = computed(() => {
   const total = rows.value.length
   const counts = rows.value.reduce(
