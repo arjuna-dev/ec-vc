@@ -214,6 +214,20 @@
 
                     <div class="contact-card__hero-side">
                       <div class="contact-card__hero-select-row">
+                        <q-btn
+                          flat
+                          round
+                          icon="visibility"
+                          class="contact-card__icon-action"
+                          :disable="loading"
+                          @click="openDatabook(row)"
+                        />
+                        <q-checkbox
+                          :model-value="isSelected(row)"
+                          :disable="loading"
+                          color="dark"
+                          @update:model-value="toggleRowSelection(row, $event)"
+                        />
                       </div>
 
                       <div class="contact-card__hero-copy">
@@ -289,28 +303,6 @@
                   </div>
                 </q-card-section>
 
-                <q-card-actions class="contact-card__footer">
-                  <div class="contact-card__footer-meta">
-                    <span>{{ getContactCreatedLabel(row) }}</span>
-                    <span>{{ getContactUpdatedLabel(row) }}</span>
-                  </div>
-                  <div class="contact-card__footer-actions">
-                    <q-btn
-                      flat
-                      round
-                      icon="visibility"
-                      class="contact-card__icon-action"
-                      :disable="loading"
-                      @click="openDatabook(row)"
-                    />
-                    <q-checkbox
-                      :model-value="isSelected(row)"
-                      :disable="loading"
-                      color="dark"
-                      @update:model-value="toggleRowSelection(row, $event)"
-                    />
-                  </div>
-                </q-card-actions>
               </q-card>
             </div>
           </div>
@@ -930,27 +922,6 @@ function getContactLinkedDocuments(row) {
       .map((value) => value.trim())
       .filter(Boolean),
   ].slice(0, 4)
-}
-
-function getContactCreatedLabel(row) {
-  return `Created ${formatContactMetaDate(row?.created_at)}`
-}
-
-function getContactUpdatedLabel(row) {
-  return `Edited ${formatContactMetaDate(row?.updated_at || row?.created_at)}`
-}
-
-function formatContactMetaDate(value) {
-  if (!value) return 'not set'
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return 'not set'
-
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date)
 }
 
 async function openContactCardAction(link, event) {
@@ -1881,7 +1852,11 @@ watch(displayRows, () => {
 }
 
 .contact-card__hero-select-row {
-  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-height: 32px;
 }
 
 .contact-card__pill-row,
@@ -2121,25 +2096,6 @@ watch(displayRows, () => {
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 14px;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
-  line-height: 1.45;
-}
-
-.contact-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 20px 20px;
-}
-
-.contact-card__footer-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  color: #6f6f6f;
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: var(--font-weight-medium);
