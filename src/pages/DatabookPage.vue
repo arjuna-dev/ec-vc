@@ -1707,6 +1707,9 @@ const contactHeroPanelTab = ref('documents')
 const companyHeroPanelTab = ref('documents')
 const contactFeedChannel = ref('linkedin')
 const contactFeedChannelOptions = [
+  { label: 'Add', value: 'add' },
+  { label: 'Mail', value: 'mail' },
+  { label: 'WhatsApp', value: 'whatsapp' },
   { label: 'LinkedIn', value: 'linkedin' },
   { label: 'X', value: 'x' },
 ]
