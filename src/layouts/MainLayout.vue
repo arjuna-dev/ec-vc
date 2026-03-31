@@ -355,7 +355,7 @@ const mainNavigationItems = [
 const ownerWorldNavigationItems = [
   { label: 'Home', to: '/dealz-world-home', exact: true, icon: 'public' },
   { label: 'Workspaces', to: '/workspaces', exact: true, icon: 'dns' },
-  { label: 'Projects', to: '/world-pipelines', exact: true, icon: 'filter_alt' },
+  { label: 'Projects', to: '/world-projects', exact: true, icon: 'filter_alt' },
   {
     kind: 'toggle',
     label: 'Radars',
@@ -416,7 +416,6 @@ const routeLabelByName = {
   opportunities: 'Opportunities',
   funds: 'Funds',
   rounds: 'Rounds',
-  pipelines: 'Projects',
   projects: 'Projects',
   artifacts: 'Artifacts',
   notes: 'Notes',
@@ -426,7 +425,8 @@ const routeLabelByName = {
   'user-settings': 'Owner',
   'dealz-world-home': 'Home',
   workspaces: 'Workspaces',
-  'world-pipelines': 'Projects',
+  pipelines: 'Projects',
+  'world-projects': 'Projects',
   radars: 'Radars',
   regions: 'Regions',
   'asset-classes': 'Asset Classes',

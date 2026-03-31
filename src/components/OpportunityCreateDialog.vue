@@ -2281,11 +2281,11 @@ async function loadExistingOpportunityNames() {
 
 async function loadRelationshipOptions() {
   const [projectResult, taskResult] = await Promise.all([
-    bridge.value?.pipelines?.list ? bridge.value.pipelines.list() : Promise.resolve({ pipelines: [] }),
+    bridge.value?.projects?.list ? bridge.value.projects.list() : Promise.resolve({ projects: [] }),
     bridge.value?.tasks?.list ? bridge.value.tasks.list() : Promise.resolve({ tasks: [] }),
   ])
 
-  projects.value = Array.isArray(projectResult?.pipelines) ? projectResult.pipelines : []
+  projects.value = Array.isArray(projectResult?.projects) ? projectResult.projects : []
   tasks.value = taskResult?.tasks || []
   filteredProjects.value = [...projects.value]
   filteredTasks.value = [...tasks.value]

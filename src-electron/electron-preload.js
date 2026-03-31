@@ -46,13 +46,21 @@ contextBridge.exposeInMainWorld('ecvc', {
     previewFromFiles: ({ filePaths, context } = {}) =>
       ipcRenderer.invoke('autofill:previewFromFiles', { filePaths, context }),
   },
+  projects: {
+    list: () => ipcRenderer.invoke('projects:list'),
+    install: (projectId) => ipcRenderer.invoke('projects:install', { projectId }),
+    uninstall: (projectId) => ipcRenderer.invoke('projects:uninstall', { projectId }),
+    upsertMany: (rows) => ipcRenderer.invoke('projects:upsertMany', { rows }),
+    create: (payload) => ipcRenderer.invoke('projects:create', payload),
+    delete: (projectId) => ipcRenderer.invoke('projects:delete', { projectId }),
+  },
   pipelines: {
-    list: () => ipcRenderer.invoke('pipelines:list'),
-    install: (pipelineId) => ipcRenderer.invoke('pipelines:install', { pipelineId }),
-    uninstall: (pipelineId) => ipcRenderer.invoke('pipelines:uninstall', { pipelineId }),
-    upsertMany: (rows) => ipcRenderer.invoke('pipelines:upsertMany', { rows }),
-    create: (payload) => ipcRenderer.invoke('pipelines:create', payload),
-    delete: (pipelineId) => ipcRenderer.invoke('pipelines:delete', { pipelineId }),
+    list: () => ipcRenderer.invoke('projects:list'),
+    install: (pipelineId) => ipcRenderer.invoke('projects:install', { projectId: pipelineId }),
+    uninstall: (pipelineId) => ipcRenderer.invoke('projects:uninstall', { projectId: pipelineId }),
+    upsertMany: (rows) => ipcRenderer.invoke('projects:upsertMany', { rows }),
+    create: (payload) => ipcRenderer.invoke('projects:create', payload),
+    delete: (pipelineId) => ipcRenderer.invoke('projects:delete', { projectId: pipelineId }),
   },
   companies: {
     list: () => ipcRenderer.invoke('companies:list'),

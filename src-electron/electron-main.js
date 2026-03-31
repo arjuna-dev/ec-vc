@@ -2077,9 +2077,9 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['Round_Name', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
-  Pipelines: {
+  Projects: {
     tableName: 'Projects',
-    entityLabel: 'Pipeline',
+    entityLabel: 'Project',
     displayColumns: ['Project_Name', 'id'],
     readonlyColumns: new Set([
       'id',
@@ -2103,10 +2103,10 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   fund: 'Funds',
   rounds: 'Rounds',
   round: 'Rounds',
-  pipelines: 'Pipelines',
-  pipeline: 'Pipelines',
-  projects: 'Pipelines',
-  project: 'Pipelines',
+  pipelines: 'Projects',
+  pipeline: 'Projects',
+  projects: 'Projects',
+  project: 'Projects',
 })
 
 function getDatabookTableConfig(tableName) {
@@ -4806,6 +4806,45 @@ function registerIpc() {
       apiKeys: { gemini: apiSettings.geminiApiKey },
       existingCompanies,
     })
+  })
+
+  ipcMain.handle('projects:list', async () => {
+    initDb()
+    return { projects: listPipelines() }
+  })
+
+  ipcMain.handle('projects:install', async (_event, { projectId, pipelineId } = {}) => {
+    initDb()
+    return installPipeline(String(projectId || pipelineId || ''))
+  })
+
+  ipcMain.handle('projects:uninstall', async (_event, { projectId, pipelineId } = {}) => {
+    initDb()
+    return uninstallPipeline(String(projectId || pipelineId || ''))
+  })
+
+  ipcMain.handle('projects:upsertMany', async (_event, { rows } = {}) => {
+    initDb()
+    const result = upsertPipelines(rows)
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('projects:create', async (_event, payload) => {
+    initDb()
+    const result = createPipeline(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('projects:delete', async (_event, { projectId, pipelineId } = {}) => {
+    initDb()
+    const pid = String(projectId || pipelineId || '')
+    if (!pid) throw new Error('pipelineId is required')
+    if (pid === 'pipeline_default') throw new Error('Cannot delete the default pipeline')
+    const result = deleteRow('Projects', 'id', pid)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('pipelines:list', async () => {

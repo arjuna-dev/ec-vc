@@ -380,7 +380,7 @@ const hasBridge = computed(
     !!bridge.value?.companies?.list &&
     !!bridge.value?.contacts?.list &&
     !!bridge.value?.opportunities?.list &&
-    !!bridge.value?.pipelines?.list &&
+    !!bridge.value?.projects?.list &&
     !!bridge.value?.artifacts?.list &&
     !!bridge.value?.notes?.list &&
     !!bridge.value?.tasks?.list &&
@@ -437,7 +437,7 @@ const collectionConfigs = [
     to: '/projects',
     accent: '#0f766e',
     actionLabel: 'Open projects',
-    load: async () => (await bridge.value.pipelines.list())?.pipelines || [],
+    load: async () => (await bridge.value.projects.list())?.projects || [],
   },
   {
     key: 'artifacts',

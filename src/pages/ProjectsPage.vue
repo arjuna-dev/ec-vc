@@ -315,7 +315,7 @@
     @change="onImportFileSelected"
   />
 
-  <PipelineCreateDialog v-model="pipelineDialogOpen" @created="onPipelineCreated" />
+  <ProjectCreateDialog v-model="pipelineDialogOpen" @created="onPipelineCreated" />
 </template>
 
 <script setup>
@@ -323,7 +323,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { exportFile, useQuasar } from 'quasar'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
-import PipelineCreateDialog from 'components/PipelineCreateDialog.vue'
+import ProjectCreateDialog from 'components/ProjectCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
@@ -336,10 +336,10 @@ const isElectronRuntime = computed(() => {
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(
   () =>
-    !!bridge.value?.pipelines?.list &&
-    !!bridge.value?.pipelines?.upsertMany &&
-    !!bridge.value?.pipelines?.create &&
-    !!bridge.value?.pipelines?.delete,
+    !!bridge.value?.projects?.list &&
+    !!bridge.value?.projects?.upsertMany &&
+    !!bridge.value?.projects?.create &&
+    !!bridge.value?.projects?.delete,
 )
 
 function onHeroDashboardPointerEnter(event) {
@@ -390,7 +390,7 @@ const rowsPerPageOptions = [10, 15, 25, 50]
 const selectedCount = computed(() => selectedRows.value.length)
 const canDeleteSelectedPipelines = computed(
   () =>
-    !!bridge.value?.pipelines?.delete &&
+    !!bridge.value?.projects?.delete &&
     selectedRows.value.some((row) => String(row?.pipeline_id || '').trim() !== 'pipeline_default'),
 )
 
@@ -640,8 +640,8 @@ async function loadPipelines() {
   loading.value = true
   error.value = ''
   try {
-    const result = await bridge.value.pipelines.list()
-    pipelines.value = result?.pipelines || []
+    const result = await bridge.value.projects.list()
+    pipelines.value = result?.projects || []
     await loadPipelineTeamMetadata()
     normalizeSelectedRows()
   } catch (e) {
@@ -711,9 +711,9 @@ async function togglePipeline(row) {
   loading.value = true
   try {
     if (row.install_status === 'installed') {
-      await bridge.value.pipelines.uninstall(row.pipeline_id)
+      await bridge.value.projects.uninstall(row.pipeline_id)
     } else {
-      await bridge.value.pipelines.install(row.pipeline_id)
+      await bridge.value.projects.install(row.pipeline_id)
     }
     await loadPipelines()
   } catch (e) {
@@ -724,7 +724,7 @@ async function togglePipeline(row) {
 }
 
 async function confirmDelete(row) {
-  if (!bridge.value?.pipelines?.delete) return
+  if (!bridge.value?.projects?.delete) return
   if (row?.pipeline_id === 'pipeline_default') return
 
   $q.dialog({
@@ -772,13 +772,13 @@ function toggleRowSelection(row, shouldSelect) {
 
 async function deletePipeline(row) {
   if (row.install_status === 'installed') {
-    await bridge.value.pipelines.uninstall(row.pipeline_id)
+    await bridge.value.projects.uninstall(row.pipeline_id)
   }
-  await bridge.value.pipelines.delete(row.pipeline_id)
+  await bridge.value.projects.delete(row.pipeline_id)
 }
 
 async function confirmDeleteSelected() {
-  if (!bridge.value?.pipelines?.delete || selectedCount.value === 0) return
+  if (!bridge.value?.projects?.delete || selectedCount.value === 0) return
   const deletableRows = selectedRows.value.filter((row) => row.pipeline_id !== 'pipeline_default')
   if (deletableRows.length === 0) {
     $q.notify({ type: 'warning', message: 'The user pipeline cannot be deleted.' })
@@ -812,11 +812,11 @@ async function shareSelected() {
     await copySelectionSummary({
       rows: selectedRows.value,
       getLabel: (row) => getPipelineCardTitle(row),
-      entityLabel: 'pipelines',
+      entityLabel: 'projects',
     })
     $q.notify({
       type: 'positive',
-      message: `Copied ${selectedCount.value} selected pipeline${selectedCount.value === 1 ? '' : 's'}.`,
+      message: `Copied ${selectedCount.value} selected project${selectedCount.value === 1 ? '' : 's'}.`,
     })
   } catch (e) {
     $q.notify({ type: 'negative', message: e?.message || String(e) })
@@ -824,7 +824,7 @@ async function shareSelected() {
 }
 
 async function importRows(importedRows) {
-  const result = await bridge.value.pipelines.upsertMany(importedRows)
+  const result = await bridge.value.projects.upsertMany(importedRows)
   await loadPipelines()
   return result
 }

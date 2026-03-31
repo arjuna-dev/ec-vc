@@ -360,14 +360,14 @@ async function loadReferences() {
     bridge.value?.companies?.list ? bridge.value.companies.list() : Promise.resolve({ companies: [] }),
     bridge.value?.opportunities?.list ? bridge.value.opportunities.list() : Promise.resolve({ opportunities: [] }),
     bridge.value?.tasks?.list ? bridge.value.tasks.list() : Promise.resolve({ tasks: [] }),
-    bridge.value?.pipelines?.list ? bridge.value.pipelines.list() : Promise.resolve({ pipelines: [] }),
+    bridge.value?.projects?.list ? bridge.value.projects.list() : Promise.resolve({ projects: [] }),
   ])
 
   contacts.value = contactResult?.contacts || []
   companies.value = companyResult?.companies || []
   opportunities.value = opportunityResult?.opportunities || []
   tasks.value = taskResult?.tasks || []
-  projects.value = projectResult?.pipelines || []
+  projects.value = projectResult?.projects || []
 
   filteredContacts.value = [...contacts.value]
   filteredCompanies.value = [...companies.value]
@@ -473,7 +473,7 @@ watch(
 )
 
 async function submit() {
-  if (!bridge.value?.pipelines?.create) return
+  if (!bridge.value?.projects?.create) return
   const n = String(form.value.name || '').trim()
   if (!n) return
   ensureDirName()
@@ -493,7 +493,7 @@ async function submit() {
       stages: stageNames,
     }
 
-    const result = await bridge.value.pipelines.create(payload)
+    const result = await bridge.value.projects.create(payload)
     if (result?.pipeline_id) {
       await syncProjectRelationships(result.pipeline_id)
     }

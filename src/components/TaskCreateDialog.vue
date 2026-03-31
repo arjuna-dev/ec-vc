@@ -304,14 +304,14 @@ async function loadReferences() {
     bridge.value?.contacts?.list ? bridge.value.contacts.list() : Promise.resolve({ contacts: [] }),
     bridge.value?.companies?.list ? bridge.value.companies.list() : Promise.resolve({ companies: [] }),
     bridge.value?.opportunities?.list ? bridge.value.opportunities.list() : Promise.resolve({ opportunities: [] }),
-    bridge.value?.pipelines?.list ? bridge.value.pipelines.list() : Promise.resolve([]),
+    bridge.value?.projects?.list ? bridge.value.projects.list() : Promise.resolve([]),
     bridge.value?.tasks?.list ? bridge.value.tasks.list() : Promise.resolve({ tasks: [] }),
   ])
 
   contacts.value = contactResult?.contacts || []
   companies.value = companyResult?.companies || []
   opportunities.value = opportunityResult?.opportunities || []
-  projects.value = Array.isArray(projectResult?.pipelines) ? projectResult.pipelines : []
+  projects.value = Array.isArray(projectResult?.projects) ? projectResult.projects : []
   tasks.value = taskResult?.tasks || []
 
   filteredCompanies.value = [...companies.value]
