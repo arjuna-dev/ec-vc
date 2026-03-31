@@ -948,18 +948,28 @@ function formatContactPhone(row) {
 
   const country = normalizeInputValue(row?.Country_based).toLowerCase()
   const fallbackCountryCode = countryDialCodeByName[country] || ''
+  const hasExplicitCountryPrefix = rawPhone.startsWith('+')
 
   let countryCode = ''
   let localDigits = digits
 
-  if (digits.length > 10) {
+  if (
+    fallbackCountryCode &&
+    digits.startsWith(fallbackCountryCode) &&
+    digits.length > fallbackCountryCode.length + 4 &&
+    (hasExplicitCountryPrefix || digits.length > 10)
+  ) {
+    countryCode = fallbackCountryCode
+    localDigits = digits.slice(fallbackCountryCode.length)
+  } else if (fallbackCountryCode) {
+    countryCode = fallbackCountryCode
+  } else if (digits.length > 10) {
     countryCode = digits.slice(0, digits.length - 10)
     localDigits = digits.slice(-10)
-  } else {
-    countryCode = fallbackCountryCode
   }
 
-  const cityCode = localDigits.slice(0, Math.min(3, localDigits.length))
+  const cityCodeLength = getContactCityCodeLength(localDigits.length)
+  const cityCode = localDigits.slice(0, cityCodeLength)
   const lastFour = localDigits.slice(-4)
   const middleDigits = localDigits.slice(cityCode.length, Math.max(cityCode.length, localDigits.length - 4))
 
@@ -970,6 +980,13 @@ function formatContactPhone(row) {
   if (lastFour && lastFour !== middleDigits) parts.push(lastFour)
 
   return parts.join('-') || rawPhone
+}
+
+function getContactCityCodeLength(length) {
+  if (length <= 7) return Math.max(0, length - 4)
+  if (length <= 9) return 2
+  if (length <= 11) return 3
+  return 4
 }
 
 function normalizeExternalUrl(value) {
