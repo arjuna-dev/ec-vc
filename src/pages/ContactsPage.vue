@@ -269,7 +269,7 @@
                         <q-icon :name="item.icon" size="16px" />
                         <span>{{ item.label }}</span>
                       </button>
-                      <div class="contact-card__action-value">{{ item.value }}</div>
+                      <div v-if="item.value" class="contact-card__action-value">{{ item.value }}</div>
                     </div>
                     <div v-if="!getContactInfoItems(row).length" class="contact-card__summary-empty">
                       Add LinkedIn, email, or phone details to build this contact card.
@@ -827,7 +827,7 @@ function getContactInfoItems(row) {
     linkedIn
       ? {
           label: 'LinkedIn',
-          value: 'Open profile',
+          value: '',
           icon: 'north_east',
           href: normalizeExternalUrl(linkedIn),
           external: true,
