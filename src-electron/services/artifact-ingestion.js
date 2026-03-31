@@ -12,8 +12,6 @@ import { dbAll, dbRun, initDb } from './sqlite-db.js'
 import {
   getArtifactLlmReadyPath,
   getArtifactRawPath,
-  NETWORK_DATABASES_DIR,
-  USER_WORKSPACE_DIR,
 } from './workspace-structure.js'
 
 function safeBasename(filePath) {
@@ -22,6 +20,10 @@ function safeBasename(filePath) {
 
 function toPosixPath(p) {
   return String(p || '').replaceAll('\\', '/')
+}
+
+function toWorkspaceRelativePath(workspaceRoot, absolutePath) {
+  return toPosixPath(path.relative(String(workspaceRoot || ''), String(absolutePath || '')))
 }
 
 function extLower(fileName) {
@@ -316,9 +318,7 @@ export async function ingestArtifactsFromPaths({
 
     const rawCandidatePath = path.join(rawDir, fileName)
     if (await fse.pathExists(rawCandidatePath)) {
-      const rawRelPath = toPosixPath(
-        path.join(USER_WORKSPACE_DIR, NETWORK_DATABASES_DIR, 'Artifacts', '0_raw', fileName),
-      )
+      const rawRelPath = toWorkspaceRelativePath(workspaceRoot, rawCandidatePath)
       const refs = Number(
         dbAll('SELECT COUNT(*) AS c FROM Artifact_Details WHERE fs_path = ?', [rawRelPath])?.[0]
           ?.c || 0,
@@ -395,15 +395,7 @@ export async function ingestArtifactsFromPaths({
       message: `"${originalFileName}" copied.`,
     })
 
-    const rawRelPath = toPosixPath(
-      path.join(
-        USER_WORKSPACE_DIR,
-        NETWORK_DATABASES_DIR,
-        'Artifacts',
-        '0_raw',
-        path.basename(rawAbsPath),
-      ),
-    )
+    const rawRelPath = toWorkspaceRelativePath(workspaceRoot, rawAbsPath)
     const rawArtifactId = `artifact:${crypto.randomUUID()}`
 
     try {
@@ -484,15 +476,7 @@ export async function ingestArtifactsFromPaths({
         throw e
       }
 
-      const llmRelPath = toPosixPath(
-        path.join(
-          USER_WORKSPACE_DIR,
-          NETWORK_DATABASES_DIR,
-          'Artifacts',
-          '1_llm-ready',
-          path.basename(llmAbsPath),
-        ),
-      )
+      const llmRelPath = toWorkspaceRelativePath(workspaceRoot, llmAbsPath)
       const llmArtifactId = `artifact:${crypto.randomUUID()}`
 
       try {
@@ -636,15 +620,7 @@ export async function ingestArtifactsFromPaths({
       throw e
     }
 
-    const llmRelPath = toPosixPath(
-      path.join(
-        USER_WORKSPACE_DIR,
-        NETWORK_DATABASES_DIR,
-        'Artifacts',
-        '1_llm-ready',
-        path.basename(llmAbsPath),
-      ),
-    )
+    const llmRelPath = toWorkspaceRelativePath(workspaceRoot, llmAbsPath)
     const llmArtifactId = `artifact:${crypto.randomUUID()}`
 
     try {

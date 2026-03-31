@@ -1037,7 +1037,7 @@ const fieldSourceOptions = [
 const ingestStatusColumns = [
   { name: 'fileName', label: 'File', field: 'fileName', align: 'left' },
   { name: 'uploadStatus', label: 'Copy File', field: 'uploadStatus', align: 'left' },
-  { name: 'markdownStatus', label: 'Markdown Generated', field: 'markdownStatus', align: 'left' },
+  { name: 'markdownStatus', label: 'LLM-ready File', field: 'markdownStatus', align: 'left' },
   { name: 'extractionStatus', label: 'Data Extracted', field: 'extractionStatus', align: 'left' },
 ]
 const opportunityFields = computed(() =>
@@ -1272,7 +1272,7 @@ const intakeProgressFlags = computed(() => [
   },
   {
     key: 'markdown',
-    label: 'Markdown',
+    label: 'LLM-ready',
     percent: 38,
     active: ingestStatusRows.value.some((row) => ['completed', 'existing'].includes(String(row?.markdownStatus || ''))),
   },
