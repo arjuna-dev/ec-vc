@@ -379,9 +379,6 @@
                   dense
                   no-caps
                   unelevated
-                  toggle-color="transparent"
-                  color="transparent"
-                  text-color="white"
                   class="contact-databook__summary-feed-chip-toggle"
                   :options="contactFeedChannelOptions"
                 />
@@ -4619,30 +4616,31 @@ onBeforeUnmount(() => {
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn) {
   min-height: 34px;
   padding: 0 14px;
-  color: rgba(255, 255, 255, 0.72);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.72) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   border-radius: 999px;
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: var(--font-weight-medium);
+  box-shadow: none !important;
 }
 
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn .q-btn__content),
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn .block) {
-  color: inherit;
+  color: inherit !important;
 }
 
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn--active) {
-  color: #ffffff;
-  background: #2563eb;
-  border-color: #2563eb;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
+  color: #111111 !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.94) !important;
+  box-shadow: none !important;
 }
 
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn--active .q-btn__content),
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn--active .block) {
-  color: #ffffff;
+  color: #111111 !important;
 }
 
 .contact-databook__summary-feed-chip-toggle :deep(.q-btn + .q-btn) {
