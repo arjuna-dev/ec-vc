@@ -113,10 +113,10 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="csvActionsRef?.pickFile?.()">
+            <q-btn dense flat round icon="download" color="grey-6" class="notes-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
+            <q-btn dense flat round icon="upload" color="grey-6" class="notes-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
               <q-tooltip>Export CSV</q-tooltip>
             </q-btn>
           </div>
@@ -243,6 +243,13 @@
                     />
 
                     <div class="note-card__summary-actions">
+                      <q-checkbox
+                        :model-value="isSelected(row)"
+                        :disable="loading"
+                        color="dark"
+                        class="note-card__select-box"
+                        @update:model-value="toggleRowSelection(row, $event)"
+                      />
                       <q-btn
                         flat
                         round
@@ -250,13 +257,6 @@
                         class="note-card__icon-action"
                         :disable="loading"
                         @click="openDatabook(row)"
-                      />
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="note-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
                       />
                     </div>
                   </div>
@@ -1087,6 +1087,10 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
+.notes-toolbar__block--view {
+  margin-right: 18px;
+}
+
 .notes-toolbar__block--filters {
   flex-wrap: nowrap;
 }
@@ -1143,6 +1147,19 @@ watch(displayRows, () => {
   font-size: 18px;
 }
 
+.notes-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.notes-toolbar__icon-button :deep(.q-icon) {
+  font-size: 18px;
+}
+
 .notes-toolbar__kind-toggle :deep(.q-btn) {
   min-width: 84px;
   padding-inline: 18px;
@@ -1153,8 +1170,9 @@ watch(displayRows, () => {
 }
 
 .notes-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);

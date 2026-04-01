@@ -107,6 +107,30 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              dense
+              flat
+              round
+              icon="download"
+              color="grey-6"
+              class="users-toolbar__icon-button"
+              :disable="loading"
+              @click="csvActionsRef?.pickFile?.()"
+            >
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn
+              dense
+              flat
+              round
+              icon="upload"
+              color="grey-6"
+              class="users-toolbar__icon-button"
+              :disable="loading || displayRows.length === 0"
+              @click="csvActionsRef?.exportCsv?.()"
+            >
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -216,6 +240,13 @@
                     />
 
                     <div class="user-card__summary-actions">
+                      <q-checkbox
+                        :model-value="isUserSelected(user)"
+                        :disable="loading"
+                        color="dark"
+                        class="user-card__select-box"
+                        @update:model-value="toggleUserSelection(user, $event)"
+                      />
                       <q-btn
                         flat
                         round
@@ -223,13 +254,6 @@
                         class="user-card__icon-action"
                         :disable="loading"
                         @click="openDatabook(user)"
-                      />
-                      <q-checkbox
-                        :model-value="isUserSelected(user)"
-                        :disable="loading"
-                        color="dark"
-                        class="user-card__select-box"
-                        @update:model-value="toggleUserSelection(user, $event)"
                       />
                     </div>
                   </div>
@@ -280,6 +304,16 @@
             </div>
           </div>
         </div>
+
+        <div style="display: none">
+          <TableCsvActions
+            ref="csvActionsRef"
+            filename-base="users"
+            :headers="csvHeaders"
+            :rows="displayRows"
+            :on-import-rows="importRows"
+          />
+        </div>
       </section>
     </div>
   </q-page>
@@ -288,6 +322,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import TableCsvActions from 'src/components/TableCsvActions.vue'
 
 const rows = ref([])
 const loading = ref(false)
@@ -297,6 +332,7 @@ const searchQuery = ref('')
 const selectedUsers = ref([])
 const userCardContentViews = ref({})
 const userCardPanels = ref({})
+const csvActionsRef = ref(null)
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(() => !!bridge.value?.users?.list)
 const route = useRoute()
@@ -330,6 +366,8 @@ const columns = [
   { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
   { name: 'updated_at', label: 'Updated', field: 'updated_at', align: 'left', sortable: true },
 ]
+
+const csvHeaders = ['id', 'User_Name', 'User_PEmail', 'created_at', 'updated_at']
 
 const goldenUserLabel = computed(() => {
   const firstRow = rows.value[0]
@@ -623,6 +661,22 @@ function openDatabook(user) {
   })
 }
 
+async function importRows(importedRows = []) {
+  const normalizedRows = importedRows
+    .map((row, index) => ({
+      id: String(row?.id || row?.ID || `imported-user-${index + 1}`).trim(),
+      User_Name: String(row?.User_Name || row?.user_name || row?.name || '').trim(),
+      User_PEmail: String(row?.User_PEmail || row?.user_pemail || row?.email || '').trim(),
+      created_at: String(row?.created_at || '').trim(),
+      updated_at: String(row?.updated_at || '').trim(),
+    }))
+    .filter((row) => row.id || row.User_Name || row.User_PEmail)
+
+  rows.value = normalizedRows
+  selectedUsers.value = []
+  return { inserted: normalizedRows.length, updated: 0, skipped: 0 }
+}
+
 async function loadUsers() {
   if (!bridge.value?.users?.list) return
   loading.value = true
@@ -648,7 +702,7 @@ onMounted(loadUsers)
 .users-shell {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 40px;
 }
 
 .users-shell__hero {
@@ -870,13 +924,20 @@ onMounted(loadUsers)
   min-width: 0;
 }
 
+.users-toolbar__block--view {
+  padding-top: 2px;
+  margin-right: 18px;
+}
+
 .users-toolbar__block--search {
   grid-column: -2 / -1;
+  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
 
 .users-toolbar__filters-icon {
+  align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
 }
@@ -922,8 +983,21 @@ onMounted(loadUsers)
   font-size: 18px;
 }
 
+.users-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.users-toolbar__icon-button :deep(.q-icon) {
+  font-size: 18px;
+}
+
 .users-toolbar__kind-toggle :deep(.q-btn) {
-  min-width: 96px;
+  min-width: 84px;
   padding-inline: 18px;
 }
 
@@ -932,8 +1006,9 @@ onMounted(loadUsers)
 }
 
 .users-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);

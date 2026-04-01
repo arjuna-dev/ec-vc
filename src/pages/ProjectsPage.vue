@@ -115,10 +115,10 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="pickImportFile">
+            <q-btn dense flat round icon="download" color="grey-6" class="pipelines-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="exportPipelinesCsv">
+            <q-btn dense flat round icon="upload" color="grey-6" class="pipelines-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="exportPipelinesCsv">
               <q-tooltip>Export CSV</q-tooltip>
             </q-btn>
           </div>
@@ -290,6 +290,13 @@
                     />
 
                     <div class="pipeline-card__summary-actions">
+                      <q-checkbox
+                        :model-value="isSelected(row)"
+                        :disable="loading"
+                        color="dark"
+                        class="pipeline-card__select-box"
+                        @update:model-value="toggleRowSelection(row, $event)"
+                      />
                       <q-btn
                         flat
                         round
@@ -297,13 +304,6 @@
                         class="pipeline-card__icon-action"
                         :disable="loading"
                         @click="openDatabook(row)"
-                      />
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="pipeline-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
                       />
                     </div>
                   </div>
@@ -1373,32 +1373,32 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
+.pipelines-toolbar__block--view {
+  padding-top: 2px;
+  margin-right: 18px;
+}
+
 .pipelines-toolbar__block--filters {
   flex-wrap: nowrap;
 }
 
 .pipelines-toolbar__block--search {
   grid-column: -2 / -1;
+  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
 
 .pipelines-toolbar__filters-icon {
+  align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
 }
 
-.pipelines-toolbar__toggle {
-  flex: 0 0 auto;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  overflow: visible;
-}
-
 .pipelines-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -1459,13 +1459,10 @@ watch(displayRows, () => {
 }
 
 .pipelines-toolbar__view-toggle :deep(.q-btn) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: var(--ds-control-height-md);
-  min-height: var(--ds-control-height-md);
-  height: var(--ds-control-height-md);
-  padding-inline: 0;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .pipelines-toolbar__view-toggle :deep(.q-btn + .q-btn) {
@@ -1473,6 +1470,19 @@ watch(displayRows, () => {
 }
 
 .pipelines-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+
+.pipelines-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.pipelines-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
 }
 

@@ -115,10 +115,10 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="pickImportFile">
+            <q-btn dense flat round icon="download" color="grey-6" class="companies-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="exportCompaniesCsv">
+            <q-btn dense flat round icon="upload" color="grey-6" class="companies-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="exportCompaniesCsv">
               <q-tooltip>Export CSV</q-tooltip>
             </q-btn>
           </div>
@@ -248,6 +248,13 @@
                     />
 
                     <div class="company-card__summary-actions">
+                      <q-checkbox
+                        :model-value="isSelected(row)"
+                        :disable="loading"
+                        color="dark"
+                        class="company-card__select-box"
+                        @update:model-value="toggleRowSelection(row, $event)"
+                      />
                       <q-btn
                         flat
                         round
@@ -255,13 +262,6 @@
                         class="company-card__icon-action"
                         :disable="loading"
                         @click="openEyeView(row)"
-                      />
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="company-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
                       />
                     </div>
                   </div>
@@ -2077,24 +2077,32 @@ watch(
   min-width: 0;
 }
 
+.companies-toolbar__block--view {
+  padding-top: 2px;
+  margin-right: 18px;
+}
+
 .companies-toolbar__block--filters {
   flex-wrap: nowrap;
 }
 
 .companies-toolbar__block--search {
   grid-column: -2 / -1;
+  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
 
 .companies-toolbar__filters-icon {
+  align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
 }
 
 .companies-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -2133,6 +2141,19 @@ watch(
 }
 
 .companies-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+
+.companies-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.companies-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
 }
 

@@ -282,6 +282,13 @@
                     />
 
                     <div class="contact-card__summary-actions">
+                      <q-checkbox
+                        :model-value="isSelected(row)"
+                        :disable="loading"
+                        color="dark"
+                        class="contact-card__select-box"
+                        @update:model-value="toggleRowSelection(row, $event)"
+                      />
                       <q-btn
                         flat
                         round
@@ -289,13 +296,6 @@
                         class="contact-card__icon-action"
                         :disable="loading"
                         @click="openDatabook(row)"
-                      />
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="contact-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
                       />
                     </div>
                   </div>
@@ -1727,8 +1727,9 @@ watch(displayRows, () => {
 
 .contacts-toolbar__search {
   align-self: center;
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
