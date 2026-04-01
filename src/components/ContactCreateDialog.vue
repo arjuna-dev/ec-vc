@@ -40,6 +40,7 @@ import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
+  initialData: { type: Object, default: null },
 })
 
 const emit = defineEmits(['update:modelValue', 'created'])
@@ -71,6 +72,18 @@ function resetForm() {
     Phone: '',
     LinkedIn: '',
     Country_based: '',
+  }
+
+  const initial = props.initialData?.entity || props.initialData || {}
+  form.value = {
+    ...form.value,
+    id: initial.id || form.value.id,
+    Name: initial.Name || form.value.Name,
+    Personal_Email: initial.Personal_Email || form.value.Personal_Email,
+    Professional_Email: initial.Professional_Email || form.value.Professional_Email,
+    Phone: initial.Phone || form.value.Phone,
+    LinkedIn: initial.LinkedIn || form.value.LinkedIn,
+    Country_based: initial.Country_based || form.value.Country_based,
   }
 }
 

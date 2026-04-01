@@ -347,6 +347,44 @@
                     </div>
                   </div>
                 </template>
+
+                <template v-for="field in injectedCompanyFields" :key="`injected-${field.key}`">
+                  <div
+                    class="opportunity-dialog-section__field opportunity-dialog-section__field--full"
+                    :style="{ order: (companyLayoutOrder[field.key] ?? 90) + 20 }"
+                  >
+                    <q-input
+                      v-model="companyForm[field.key]"
+                      outlined
+                      autogrow
+                      :label="field.label"
+                      :type="field.inputType"
+                      :disable="loading || processingDrop"
+                      :input-class="fieldInputClass('company', field.key)"
+                    />
+                    <div
+                      v-if="showFieldSourceToggle('company', field.key)"
+                      class="field-source-toggle field-source-toggle--labeled"
+                    >
+                      <div class="field-source-toggle__labels">
+                        <span>AI generated</span>
+                        <span>User edit</span>
+                      </div>
+                      <q-btn-toggle
+                        :model-value="getFieldSourceMode('company', field.key)"
+                        dense
+                        no-caps
+                        unelevated
+                        rounded
+                        toggle-color="primary"
+                        color="grey-2"
+                        text-color="grey-7"
+                        :options="fieldSourceOptions"
+                        @update:model-value="setFieldSourceMode('company', field.key, $event)"
+                      />
+                    </div>
+                  </div>
+                </template>
               </div>
             </section>
 
@@ -1043,11 +1081,13 @@ import {
   upsertDraftMarkdownChunk,
   useIntakeDraftState,
 } from 'src/utils/intakeDraftState'
+import { enqueueIntakeReviewItem } from 'src/utils/intakeReviewQueueState'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   initialKind: { type: String, default: '' },
   lockKind: { type: Boolean, default: false },
+  initialData: { type: Object, default: null },
 })
 
 const emit = defineEmits(['update:modelValue', 'created'])
@@ -1231,6 +1271,48 @@ const activeDraft = computed(() => {
 const editableCompanyFields = computed(() =>
   companyFields.filter((field) => field.key !== 'Company_Name'),
 )
+
+const knownCompanyFieldKeys = new Set([
+  'ref',
+  'Company_Name',
+  'Company_Type',
+  'Status',
+  'headquarters_city',
+  'Date_of_Incorporation',
+  'Website',
+  'PAX_Count',
+  'One_Liner',
+  'Updates',
+  'source_refs',
+  'field_sources',
+])
+
+const injectedCompanyFields = computed(() => {
+  const primaryCompany =
+    extractedStructuredAutofill.value?.companies?.find(
+      (entry) =>
+        String(entry?.ref || '').trim() &&
+        String(entry?.ref || '').trim() ===
+          String(extractedStructuredAutofill.value?.primary_company_ref || '').trim(),
+    ) ||
+    extractedStructuredAutofill.value?.companies?.[0] ||
+    null
+
+  if (!primaryCompany || typeof primaryCompany !== 'object') return []
+
+  return Object.entries(primaryCompany)
+    .filter(([key, value]) => {
+      if (knownCompanyFieldKeys.has(key)) return false
+      if (Array.isArray(value)) return value.length > 0
+      if (value && typeof value === 'object') return false
+      return value != null && String(value).trim().length > 0
+    })
+    .map(([key]) => ({
+      key,
+      label: key.replaceAll('_', ' '),
+      inputType: 'textarea',
+    }))
+})
 
 const rankedCompanies = computed(() => {
   const searchBase = normalizeComparisonText(
@@ -1646,6 +1728,74 @@ function resetTransientState() {
   clearIntakeReviewTimer()
 }
 
+function applyInitialEntityData(initialData = {}) {
+  const entity = initialData?.entity || initialData || {}
+  const entityTypeName = String(initialData?.entityType || entity?.entityType || '')
+    .trim()
+    .toLowerCase()
+
+  if (entityTypeName === 'company') {
+    companyForm.value = {
+      ...companyForm.value,
+      Company_Name: entity.Company_Name || companyForm.value.Company_Name,
+      Company_Type: entity.Company_Type || companyForm.value.Company_Type,
+      Status: entity.Status || companyForm.value.Status,
+      Headquarters_City: entity.headquarters_city || companyForm.value.Headquarters_City,
+      Date_of_Incorporation: entity.Date_of_Incorporation || companyForm.value.Date_of_Incorporation,
+      Website: entity.Website || companyForm.value.Website,
+      Pax: entity.PAX_Count ?? companyForm.value.Pax,
+      One_Liner: entity.One_Liner || companyForm.value.One_Liner,
+      Updates: entity.Updates || companyForm.value.Updates,
+    }
+    return
+  }
+
+  if (entityTypeName === 'contact') {
+    contactForm.value = {
+      ...contactForm.value,
+      Name: entity.Name || contactForm.value.Name,
+      Personal_Email: entity.Personal_Email || contactForm.value.Personal_Email,
+      Professional_Email: entity.Professional_Email || contactForm.value.Professional_Email,
+      Phone: entity.Phone || contactForm.value.Phone,
+      LinkedIn: entity.LinkedIn || contactForm.value.LinkedIn,
+      Country_based: entity.Country_based || contactForm.value.Country_based,
+    }
+    return
+  }
+
+  if (entityTypeName === 'round') {
+    form.value = {
+      ...form.value,
+      kind: 'round',
+      Venture_Oppty_Name: entity.Round_Name || form.value.Venture_Oppty_Name,
+      Type_of_Security: entity.Round_Security_Type || form.value.Type_of_Security,
+      Investment_Ask: entity.Round_Target_Size ?? form.value.Investment_Ask,
+      Round_Amount: entity.Round_Target_Size ?? form.value.Round_Amount,
+      Hard_Commits: entity.Round_Commited_Amounts ?? form.value.Hard_Commits,
+      Final_Close_Date: entity.Round_Close_Date || form.value.Final_Close_Date,
+      Raising_Status: entity.Round_Raising_Status || form.value.Raising_Status,
+      Pre_Valuation: entity.Round_Pre_Valuation ?? form.value.Pre_Valuation,
+      Post_Valuation: entity.Round_Post_Valuation ?? form.value.Post_Valuation,
+      Previous_Post: entity.Round_Previous_Post_Valuation ?? form.value.Previous_Post,
+    }
+    return
+  }
+
+  if (entityTypeName === 'fund') {
+    form.value = {
+      ...form.value,
+      kind: 'fund',
+      Venture_Oppty_Name: entity.Fund_Name || form.value.Venture_Oppty_Name,
+      Investment_Ask: entity.Fund_Target_Size ?? form.value.Investment_Ask,
+      Round_Amount: entity.Fund_Target_Size ?? form.value.Round_Amount,
+      Hard_Commits: entity.Fund_Commited_Amounts ?? form.value.Hard_Commits,
+      Final_Close_Date: entity.Fund_Close_Date || form.value.Final_Close_Date,
+      Raising_Status: entity.Fund_Raising_Status || form.value.Raising_Status,
+      Pipeline_Status: entity.Fund_Period || form.value.Pipeline_Status,
+    }
+  }
+}
+
 function buildDraftSnapshot() {
   return {
     stage: processingDrop.value ? 'Extracting' : activeDraft.value?.stage || 'Quick Review Needed',
@@ -1663,6 +1813,7 @@ function buildDraftSnapshot() {
     companyLinkMode: companyLinkMode.value,
     contactLinkMode: contactLinkMode.value,
     companySourceChoice: companySourceChoice.value,
+    autofilledFlags: { ...autofilledFlags.value },
     fieldSourceModes: { ...fieldSourceModes.value },
     aiGeneratedFieldSnapshots: JSON.parse(JSON.stringify(aiGeneratedFieldSnapshots.value || {})),
     humanEditedFieldSnapshots: JSON.parse(JSON.stringify(humanEditedFieldSnapshots.value || {})),
@@ -1673,6 +1824,105 @@ function buildDraftSnapshot() {
     intakeRejectedFieldValues: { ...intakeRejectedFieldValues.value },
     intakeLockedFields: { ...intakeLockedFields.value },
     intakeFieldSources: { ...intakeFieldSources.value },
+  }
+}
+
+function buildQueueFieldBundleId(draftId, fields = []) {
+  const normalizedDraftId = String(draftId || 'draftless').trim() || 'draftless'
+  const fingerprint = fields.map((field) => String(field.key || '').trim()).join('|')
+  return `field-review:${normalizedDraftId}:${fingerprint}`
+}
+
+function buildEntityQueueId(draftId, entityTypeName, entity = {}) {
+  const normalizedDraftId = String(draftId || 'draftless').trim() || 'draftless'
+  const normalizedType = String(entityTypeName || '').trim().toLowerCase() || 'entity'
+  const normalizedRef =
+    String(entity?.ref || '').trim() ||
+    String(
+      entity?.Company_Name ||
+        entity?.Name ||
+        entity?.Round_Name ||
+        entity?.Fund_Name ||
+        `anon:${normalizedType}`,
+    ).trim()
+  return `entity-create:${normalizedDraftId}:${normalizedType}:${normalizedRef}`
+}
+
+function enqueueFieldReviewBundle(force = false) {
+  const nextFields = buildIntakeReviewFieldsFromForms()
+  const pendingKeys = getPendingIntakeReviewFieldKeys(nextFields)
+  if (!pendingKeys.length) return
+
+  const queueKeys = (force ? buildVisibleIntakeFieldKeys(nextFields) : pendingKeys).slice(0, 3)
+  const fields = queueKeys
+    .map((key) => ({
+      key,
+      label: intakeFieldLabel(key),
+      owner: intakeFieldOwner(key),
+      target: intakeFieldTarget(key),
+      value: String(nextFields[key] || '').trim(),
+    }))
+    .filter((field) => field.value)
+  if (!fields.length) return
+
+  intakeReviewFields.value = nextFields
+  intakeReviewVerified.value = buildNextIntakeReviewVerified(nextFields)
+  intakeReviewPending.value = true
+  intakeReviewPromptShown.value = true
+  enqueueIntakeReviewItem({
+    id: buildQueueFieldBundleId(activeDraft.value?.id, fields),
+    kind: 'field-review',
+    draftId: activeDraft.value?.id || null,
+    payload: {
+      title: 'Verify extracted fields',
+      fields,
+      entityType: entityType.value,
+    },
+  })
+}
+
+function enqueueStructuredEntityReviewItems(structured = {}) {
+  const draftId = activeDraft.value?.id || null
+  const primaryCompanyRef = String(structured?.primary_company_ref || '').trim()
+  const primaryContactRef = String(structured?.primary_contact_ref || '').trim()
+  const primaryRoundRef = String(structured?.primary_round_ref || '').trim()
+  const primaryFundRef = String(structured?.primary_fund_ref || '').trim()
+
+  const queueEntity = (entityTypeName, entity, isPrimary = false) => {
+    if (!entity || typeof entity !== 'object' || isPrimary) return
+    const title =
+      entityTypeName === 'company'
+        ? entity.Company_Name
+        : entityTypeName === 'contact'
+          ? entity.Name
+          : entityTypeName === 'round'
+            ? entity.Round_Name
+            : entity.Fund_Name
+    if (!String(title || '').trim()) return
+
+    enqueueIntakeReviewItem({
+      id: buildEntityQueueId(draftId, entityTypeName, entity),
+      kind: 'entity-create',
+      draftId,
+      payload: {
+        entityType: entityTypeName,
+        title: `Review ${entityTypeName}`,
+        entity: JSON.parse(JSON.stringify(entity)),
+      },
+    })
+  }
+
+  for (const company of Array.isArray(structured?.companies) ? structured.companies : []) {
+    queueEntity('company', company, String(company?.ref || '').trim() === primaryCompanyRef)
+  }
+  for (const contact of Array.isArray(structured?.contacts) ? structured.contacts : []) {
+    queueEntity('contact', contact, String(contact?.ref || '').trim() === primaryContactRef)
+  }
+  for (const round of Array.isArray(structured?.rounds) ? structured.rounds : []) {
+    queueEntity('round', round, String(round?.ref || '').trim() === primaryRoundRef)
+  }
+  for (const fund of Array.isArray(structured?.funds) ? structured.funds : []) {
+    queueEntity('fund', fund, String(fund?.ref || '').trim() === primaryFundRef)
   }
 }
 
@@ -1733,6 +1983,7 @@ function hydrateFromActiveDraft() {
   companyLinkMode.value = activeDraft.value.companyLinkMode || companyLinkMode.value
   contactLinkMode.value = activeDraft.value.contactLinkMode || contactLinkMode.value
   companySourceChoice.value = activeDraft.value.companySourceChoice || companySourceChoice.value
+  autofilledFlags.value = { ...(activeDraft.value.autofilledFlags || {}) }
   fieldSourceModes.value = { ...(activeDraft.value.fieldSourceModes || {}) }
   aiGeneratedFieldSnapshots.value = { ...(activeDraft.value.aiGeneratedFieldSnapshots || {}) }
   humanEditedFieldSnapshots.value = { ...(activeDraft.value.humanEditedFieldSnapshots || {}) }
@@ -1772,6 +2023,13 @@ function hydrateFromActiveDraft() {
     ? [...activeDraft.value.draftArtifactIds]
     : []
   return hasMeaningfulDraftState
+}
+
+function onExternalDraftReviewApplied(event) {
+  const draftId = String(event?.detail?.draftId || '').trim()
+  if (!props.modelValue || !draftId) return
+  if (draftId !== String(activeDraft.value?.id || '').trim()) return
+  hydrateFromActiveDraft()
 }
 
 function inferDocumentTypeFromDraft() {
@@ -1985,11 +2243,8 @@ function getPendingIntakeReviewFieldKeys(fields = intakeReviewFields.value) {
 }
 
 function queueAdditionalIntakeReviewIfNeeded() {
-  if (!intakeReviewDelayElapsed.value || intakeReviewDialogOpen.value) return
   if (!getPendingIntakeReviewFieldKeys(buildIntakeReviewFieldsFromForms()).length) return
-  intakeReviewPending.value = true
-  intakeReviewPromptShown.value = false
-  maybeOpenIntakeReviewDialog()
+  enqueueFieldReviewBundle(false)
 }
 
 function buildPromptStringOptions(values = []) {
@@ -2096,26 +2351,6 @@ function clearIntakeReviewTimer() {
   }
 }
 
-function maybeOpenIntakeReviewDialog() {
-  if (
-    !intakeReviewPending.value ||
-    !intakeReviewDelayElapsed.value ||
-    intakeReviewPromptShown.value
-  )
-    return
-  const nextFields = buildIntakeReviewFieldsFromForms()
-  const pendingKeys = getPendingIntakeReviewFieldKeys(nextFields)
-  if (!pendingKeys.length) {
-    resolveIntakeReviewGate()
-    return
-  }
-  intakeReviewFields.value = nextFields
-  intakeReviewVerified.value = buildNextIntakeReviewVerified(nextFields)
-  intakeReviewDialogOpen.value = true
-  intakeReviewPromptShown.value = true
-  processingMessage.value = 'Waiting for your confirmation on key metadata...'
-}
-
 function openIntakeReviewNow() {
   const nextFields = buildIntakeReviewFieldsFromForms()
   const pendingKeys = getPendingIntakeReviewFieldKeys(nextFields)
@@ -2131,8 +2366,8 @@ function openIntakeReviewNow() {
 
   intakeReviewDelayElapsed.value = true
   intakeReviewPending.value = true
-  intakeReviewPromptShown.value = false
-  maybeOpenIntakeReviewDialog()
+  intakeReviewPromptShown.value = true
+  enqueueFieldReviewBundle(true)
 }
 
 function buildNextIntakeReviewVerified(nextFields = {}) {
@@ -2567,6 +2802,14 @@ function syncHumanEditedSnapshotsForSection(section) {
 
 function markAutofilled(section, key) {
   const fieldKey = buildFieldStateKey(section, key)
+  const value = captureFieldSnapshot(section, key)?.value
+  if (value == null || String(value).trim().length === 0) {
+    delete autofilledFlags.value[fieldKey]
+    const nextModes = { ...fieldSourceModes.value }
+    delete nextModes[fieldKey]
+    fieldSourceModes.value = nextModes
+    return
+  }
   autofilledFlags.value[fieldKey] = true
   aiGeneratedFieldSnapshots.value = {
     ...aiGeneratedFieldSnapshots.value,
@@ -2579,6 +2822,17 @@ function markAutofilled(section, key) {
 
 function recordAiSuggestion(section, key, value) {
   const fieldKey = buildFieldStateKey(section, key)
+  const normalizedText = value == null ? '' : String(value).trim()
+  if (!normalizedText) {
+    delete autofilledFlags.value[fieldKey]
+    const nextAiSnapshots = { ...aiGeneratedFieldSnapshots.value }
+    delete nextAiSnapshots[fieldKey]
+    aiGeneratedFieldSnapshots.value = nextAiSnapshots
+    const nextModes = { ...fieldSourceModes.value }
+    delete nextModes[fieldKey]
+    fieldSourceModes.value = nextModes
+    return
+  }
   const snapshot = createSnapshotWithValue(section, key, value)
   autofilledFlags.value[fieldKey] = true
   aiGeneratedFieldSnapshots.value = {
@@ -2607,7 +2861,10 @@ function isExplicitHumanMode(section, key) {
 }
 
 function showFieldSourceToggle(section, key) {
-  return Boolean(autofilledFlags.value[buildFieldStateKey(section, key)])
+  const fieldKey = buildFieldStateKey(section, key)
+  const snapshot = aiGeneratedFieldSnapshots.value[fieldKey]
+  const value = snapshot?.value ?? captureFieldSnapshot(section, key)?.value ?? ''
+  return Boolean(autofilledFlags.value[fieldKey]) && String(value).trim().length > 0
 }
 
 function setFieldSourceMode(section, key, value) {
@@ -3005,6 +3262,32 @@ function applyPrimaryStructuredValues(structured = {}) {
       markAutofilled('contact', key)
     }
   }
+  const primaryCompanyRef = String(structured?.primary_company_ref || '').trim()
+  const primaryCompanyEntity =
+    (Array.isArray(structured?.companies) ? structured.companies : []).find(
+      (company) => String(company?.ref || '').trim() === primaryCompanyRef,
+    ) ||
+    null
+  if (primaryCompanyEntity) {
+    const extraFields = Object.entries(primaryCompanyEntity)
+      .filter(([key, value]) => {
+        if (knownCompanyFieldKeys.has(key)) return false
+        if (Array.isArray(value)) return value.length > 0
+        if (value && typeof value === 'object') return false
+        return value != null && String(value).trim().length > 0
+      })
+      .map(([key]) => ({ key }))
+    for (const field of extraFields) {
+      const normalizedValue =
+        primaryCompanyEntity[field.key] == null ? '' : stripHumanVerify(primaryCompanyEntity[field.key])
+      if (!normalizedValue) continue
+      recordAiSuggestion('company', field.key, normalizedValue)
+      if (!isExplicitHumanMode('company', field.key)) {
+        companyForm.value[field.key] = normalizedValue
+        markAutofilled('company', field.key)
+      }
+    }
+  }
   if (primaryOpportunity?.source_refs?.length) {
     console.log('[autofill primary opportunity source refs]', primaryOpportunity.source_refs)
   }
@@ -3016,6 +3299,7 @@ function applyPrimaryStructuredValues(structured = {}) {
   }
   syncActiveDraft({ stage: 'Matching' })
   queueAdditionalIntakeReviewIfNeeded()
+  enqueueStructuredEntityReviewItems(structured)
 }
 
 function applyDuplicateMatches(matches = {}) {
@@ -3139,7 +3423,7 @@ async function processDroppedFiles(files = []) {
       hasExistingConflict: existingCheck.existingNames.length > 0,
     })
     const previewPromise = bridge.value.autofill
-      .previewFromFiles({ filePaths })
+      .previewFromFiles({ filePaths, context: { kind: entityType.value } })
       .then((preview) => ({ type: 'success', preview }))
       .catch((error) => {
         if (isAutofillQuotaError(error)) {
@@ -3572,6 +3856,9 @@ watch(
     await loadRelationshipOptions()
 
     const hydrated = hydrateFromActiveDraft()
+    if (!hydrated && props.initialData) {
+      applyInitialEntityData(props.initialData)
+    }
     const droppedFiles = activeDraft.value?.droppedFiles || []
     const alreadyProcessed =
       Object.keys(activeDraft.value?.ingestStatusByFile || {}).length > 0 ||
@@ -3582,6 +3869,15 @@ watch(
       await processDroppedFiles(droppedFiles)
     }
   },
+)
+
+watch(
+  () => props.initialData,
+  (value) => {
+    if (!props.modelValue || !value) return
+    applyInitialEntityData(value)
+  },
+  { deep: true },
 )
 
 watch(
@@ -3762,9 +4058,12 @@ onMounted(() => {
       if (!processingDrop.value || status?.type !== 'partial') return
       if (status?.partial && typeof status.partial === 'object') {
         applyPrimaryStructuredValues(status.partial)
+        enqueueFieldReviewBundle(false)
       }
     })
   }
+
+  globalThis?.addEventListener?.('ecvc:intake-draft-review-applied', onExternalDraftReviewApplied)
 
   if (!bridge.value?.artifacts?.onIngestStatus) return
   offIngestStatus = bridge.value.artifacts.onIngestStatus((status) => {
@@ -3806,6 +4105,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   offIngestStatus?.()
   offIngestStatus = null
+  globalThis?.removeEventListener?.('ecvc:intake-draft-review-applied', onExternalDraftReviewApplied)
   offAutofillPreviewStatus?.()
   offAutofillPreviewStatus = null
   clearIntakeReviewTimer()

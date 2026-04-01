@@ -4855,6 +4855,7 @@ function registerIpc() {
       existingRounds,
       existingFunds,
       emitStatus,
+      context: payload?.context || {},
     })
   })
 

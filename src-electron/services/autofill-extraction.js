@@ -4,7 +4,7 @@ import fs from 'node:fs/promises'
 import { NoOutputGeneratedError, Output, generateText, streamText } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import {
-  autofillExtractionOutputSchema,
+  buildAutofillExtractionOutputSchema,
   getPrimaryEntities,
   normalizeStructuredAutofillOutput,
 } from './autofill-output-schema.js'
@@ -20,17 +20,23 @@ function getGeminiClient(apiKeyFromSettings) {
   return createGoogleGenerativeAI({ apiKey })
 }
 
-function buildPrompt() {
+function buildPrompt({ kind } = {}) {
+  const normalizedKind = String(kind || '').trim().toLowerCase()
+  const targetKind = normalizedKind === 'fund' ? 'fund' : 'round'
   return [
     'You are extracting structured venture, company, fund, round, and contact data from documents.',
     'Return data using the provided structured output schema.',
     'Use exact SQLite column names wherever possible.',
-    'Support multiple companies, contacts, rounds, and funds when the document mentions them.',
-    'Set primary_company_ref, primary_contact_ref, primary_round_ref, and primary_fund_ref when possible.',
+    `The current creation context is ${targetKind}.`,
+    `Support multiple companies and contacts when the document mentions them.`,
+    `Only extract ${targetKind === 'fund' ? 'funds' : 'rounds'} for the primary opportunity entities in this run.`,
+    `Do not emit ${targetKind === 'fund' ? 'rounds' : 'funds'} in this run.`,
+    `Set primary_${targetKind}_ref when possible.`,
     'Use company base fields plus direct-data company subtables only: incorporation info, operations overview, and fund raising.',
     'Skip artifact/file-pointer-only sections for companies, funds, and rounds.',
-    'For rounds, focus on direct data from Round_Overview and Round_Economics.',
-    'For funds, focus on direct data from Fund_Overview and Fund_Strategy.',
+    targetKind === 'fund'
+      ? 'For funds, focus on direct data from Fund_Overview and Fund_Strategy.'
+      : 'For rounds, focus on direct data from Round_Overview and Round_Economics.',
     'Keep empty or unknown values as null instead of guessing.',
     'Each extracted entity should include source_refs and field_sources when you can identify the source file and page.',
     'For field_sources, use exact field paths like Company_Name, Fund_Target_Size, or Round_Pre_Valuation.',
@@ -74,8 +80,8 @@ async function extractWithOfficeParser(sourceFilePath) {
   throw new Error('officeparser export missing parseOfficeAsync/parseOffice')
 }
 
-async function buildSourceFileParts(filePaths = []) {
-  const content = [{ type: 'text', text: buildPrompt() }]
+async function buildSourceFileParts(filePaths = [], context = {}) {
+  const content = [{ type: 'text', text: buildPrompt(context) }]
 
   for (const [index, filePath] of filePaths.entries()) {
     const resolvedPath = String(filePath || '').trim()
@@ -113,7 +119,7 @@ async function buildSourceFileParts(filePaths = []) {
       extractedText = String(bytes.toString('utf8') || '').trim()
     } else {
       try {
-        extractedText = String(await extractWithOfficeParser(resolvedPath) || '').trim()
+        extractedText = String((await extractWithOfficeParser(resolvedPath)) || '').trim()
       } catch {
         extractedText = ''
       }
@@ -162,18 +168,14 @@ function describeError(error) {
   }
 }
 
-async function runStructuredExtraction({
-  gemini,
-  content,
-  emitStatus,
-} = {}) {
+async function runStructuredExtraction({ gemini, content, emitStatus, schema } = {}) {
   let streamError = null
   let streamPartialCount = 0
 
   try {
     const result = streamText({
-      model: gemini('gemini-2.5-flash'),
-      output: Output.object({ schema: autofillExtractionOutputSchema }),
+      model: gemini('gemini-3.1-flash-lite-preview'),
+      output: Output.object({ schema }),
       messages: [{ role: 'user', content }],
       onError({ error }) {
         streamError = error
@@ -208,8 +210,8 @@ async function runStructuredExtraction({
     }
 
     const fallback = await generateText({
-      model: gemini('gemini-2.5-flash'),
-      output: Output.object({ schema: autofillExtractionOutputSchema }),
+      model: gemini('gemini-3.1-flash-lite-preview'),
+      output: Output.object({ schema }),
       messages: [{ role: 'user', content }],
     })
 
@@ -229,7 +231,9 @@ async function runStructuredExtraction({
 }
 
 function bigrams(value) {
-  const s = String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '')
+  const s = String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
   const out = new Set()
   for (let i = 0; i < s.length - 1; i += 1) out.add(s.slice(i, i + 2))
   return out
@@ -355,16 +359,21 @@ export async function previewAutofillFromFiles({
   existingRounds = [],
   existingFunds = [],
   emitStatus,
+  context = {},
 } = {}) {
-  const paths = Array.isArray(filePaths) ? filePaths.map((p) => String(p || '').trim()).filter(Boolean) : []
+  const paths = Array.isArray(filePaths)
+    ? filePaths.map((p) => String(p || '').trim()).filter(Boolean)
+    : []
   if (!paths.length) throw new Error('No files provided for autofill')
 
   const gemini = getGeminiClient(apiKeys?.gemini)
-  const content = await buildSourceFileParts(paths)
+  const schema = buildAutofillExtractionOutputSchema({ kind: context?.kind })
+  const content = await buildSourceFileParts(paths, { kind: context?.kind })
   const { output, partialCount, mode, streamError } = await runStructuredExtraction({
     gemini,
     content,
     emitStatus,
+    schema,
   })
   const structured = normalizeStructuredAutofillOutput(output)
   const primaryEntities = getPrimaryEntities(structured)
