@@ -1390,10 +1390,10 @@ watch(displayRows, () => {
 
 .pipelines-toolbar__toggle {
   flex: 0 0 auto;
-  border: 1px solid var(--ds-control-border);
-  border-radius: 999px;
-  box-shadow: var(--ds-control-shadow);
-  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
 }
 
 .pipelines-toolbar__search {
@@ -1459,10 +1459,13 @@ watch(displayRows, () => {
 }
 
 .pipelines-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 26px;
-  min-height: 26px;
-  height: 26px;
-  padding-inline: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ds-control-height-md);
+  min-height: var(--ds-control-height-md);
+  height: var(--ds-control-height-md);
+  padding-inline: 0;
 }
 
 .pipelines-toolbar__view-toggle :deep(.q-btn + .q-btn) {
