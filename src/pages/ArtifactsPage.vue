@@ -164,13 +164,13 @@
         <q-card
           flat
           bordered
-          class="artifact-card full-height"
+          class="artifact-card record-grid-card full-height"
         >
-          <q-card-section class="artifact-card__hero">
+          <q-card-section class="artifact-card__hero record-grid-card__hero">
             <div class="artifact-card__hero-main">
               <figure class="artifact-card__portrait">
                 <div class="artifact-card__portrait-shell" aria-hidden="true">
-                  <div class="artifact-card__portrait-badge">
+                  <div class="artifact-card__portrait-badge record-grid-card__badge record-grid-card__badge--icon">
                     <q-icon name="description" size="24px" />
                   </div>
                 </div>
@@ -181,12 +181,12 @@
                   <div class="artifact-card__hero-copy">
                     <button
                       type="button"
-                      class="artifact-card__title-button"
+                      class="artifact-card__title-button record-grid-card__title-button"
                       @click="void openArtifactForReview(group.previewArtifact)"
                     >
                       {{ group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Untitled artifact' }}
                     </button>
-                    <div class="artifact-card__subtitle">
+                    <div class="artifact-card__subtitle record-grid-card__subtitle">
                       {{ getArtifactCardSubtitle(group) }}
                     </div>
                   </div>
@@ -202,12 +202,12 @@
             </div>
 
             <div class="artifact-card__inline-summary">
-              <div class="artifact-card__summary-label">Artifact summary</div>
+              <div class="artifact-card__summary-label record-grid-card__eyebrow">Artifact summary</div>
               <div class="artifact-card__details artifact-card__details--compact">
                 <div
                   v-for="detail in getArtifactCardDetails(group)"
                   :key="detail.label"
-                  class="artifact-card__detail"
+                  class="artifact-card__detail record-grid-card__detail"
                 >
                   <q-icon :name="detail.icon" size="16px" class="artifact-card__detail-icon" />
                   <div class="artifact-card__detail-copy">
@@ -218,20 +218,20 @@
               </div>
               <div
                 v-if="group.primaryArtifact.description"
-                class="artifact-card__description artifact-card__description--inline"
+                class="artifact-card__description artifact-card__description--inline record-grid-card__summary-text"
               >
                 {{ group.primaryArtifact.description }}
               </div>
             </div>
           </q-card-section>
 
-          <q-card-actions class="artifact-card__footer">
+          <q-card-actions class="artifact-card__footer record-grid-card__footer">
             <div class="artifact-card__footer-actions">
               <q-btn
                 flat
                 round
                 icon="visibility"
-                class="artifact-card__icon-action"
+                class="artifact-card__icon-action record-grid-card__icon-action"
                 :disable="loading"
                 title="Open artifact review"
                 @click="void openArtifactForReview(group.previewArtifact)"
@@ -243,7 +243,7 @@
                 dense
                 dropdown-icon="arrow_drop_down"
                 icon="play_circle"
-                class="artifact-card__icon-action artifact-card__icon-action--resume"
+                class="artifact-card__icon-action artifact-card__icon-action--resume record-grid-card__icon-action"
                 :disable="loading || savingProperties"
               >
                 <q-list dense style="min-width: 220px">
@@ -355,6 +355,7 @@
         :count="selectedCount"
         :loading="loading"
         @share="shareSelected"
+        @edit="editSelected"
         @delete="confirmDeleteSelected"
       />
 
@@ -2935,6 +2936,12 @@ async function confirmDeleteSelected() {
       loading.value = false
     }
   })
+}
+
+async function editSelected() {
+  const row = selectedRows.value[0]
+  if (!row) return
+  await openPropertiesDialog(row)
 }
 
 async function shareSelected() {

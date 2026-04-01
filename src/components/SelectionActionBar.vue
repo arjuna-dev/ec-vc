@@ -18,6 +18,20 @@
       </q-btn>
 
       <q-btn
+        v-if="canEdit"
+        dense
+        flat
+        round
+        icon="edit"
+        class="selection-action-bar__edit-btn"
+        :disable="loading"
+        aria-label="Edit selected"
+        @click="$emit('edit')"
+      >
+        <q-tooltip>Edit selected</q-tooltip>
+      </q-btn>
+
+      <q-btn
         v-if="canDelete"
         dense
         flat
@@ -48,13 +62,17 @@ defineProps({
     type: Boolean,
     default: true,
   },
+  canEdit: {
+    type: Boolean,
+    default: true,
+  },
   canDelete: {
     type: Boolean,
     default: true,
   },
 })
 
-defineEmits(['share', 'delete'])
+defineEmits(['share', 'edit', 'delete'])
 </script>
 
 <style scoped>
@@ -81,5 +99,9 @@ defineEmits(['share', 'delete'])
 
 .selection-action-bar__share-btn {
   color: var(--ds-color-brand-blue);
+}
+
+.selection-action-bar__edit-btn {
+  color: #475569;
 }
 </style>

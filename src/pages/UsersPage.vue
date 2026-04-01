@@ -141,14 +141,19 @@
 
           <div v-else class="row q-col-gutter-md users-cards-grid">
             <div v-for="user in displayRows" :key="user.id" class="col-12 col-md-6 col-lg-4">
-              <q-card flat bordered class="user-card full-height">
-                <q-card-section class="user-card__header">
+              <q-card flat bordered class="user-card record-grid-card full-height">
+                <q-card-section class="user-card__header record-grid-card__hero">
                   <div class="row items-start justify-between q-col-gutter-sm no-wrap">
+                    <div class="col-auto">
+                      <div class="record-grid-card__badge record-grid-card__badge--icon" aria-hidden="true">
+                        <q-icon name="badge" size="24px" />
+                      </div>
+                    </div>
                     <div class="col">
-                      <div class="user-card__title">
+                      <div class="user-card__title record-grid-card__title">
                         {{ user.User_Name || 'Unnamed user' }}
                       </div>
-                      <div class="user-card__meta">
+                      <div class="user-card__meta record-grid-card__subtitle">
                         {{ user.User_PEmail || 'No email yet' }}
                       </div>
                     </div>
@@ -167,22 +172,22 @@
 
                 <q-separator />
 
-                <q-card-section class="user-card__body">
-                  <div class="user-card__section">
-                    <div class="user-card__section-label">User ID</div>
-                    <div class="user-card__block">{{ user.id || '--' }}</div>
+                <q-card-section class="user-card__body record-grid-card__body">
+                  <div class="user-card__section record-grid-card__detail">
+                    <div class="user-card__section-label record-grid-card__detail-label">User ID</div>
+                    <div class="user-card__block record-grid-card__detail-value">{{ user.id || '--' }}</div>
                   </div>
 
-                  <div class="user-card__section">
-                    <div class="user-card__section-label">Profile status</div>
-                    <div class="user-card__block">
+                  <div class="user-card__section record-grid-card__detail">
+                    <div class="user-card__section-label record-grid-card__detail-label">Profile status</div>
+                    <div class="user-card__block record-grid-card__detail-value">
                       {{ hasUserCoreDetails(user) ? 'Ready' : 'Needs core setup' }}
                     </div>
                   </div>
 
-                  <div class="user-card__section">
-                    <div class="user-card__section-label">Updated</div>
-                    <div class="user-card__block">{{ formatDate(user.updated_at) }}</div>
+                  <div class="user-card__section record-grid-card__detail">
+                    <div class="user-card__section-label record-grid-card__detail-label">Updated</div>
+                    <div class="user-card__block record-grid-card__detail-value">{{ formatDate(user.updated_at) }}</div>
                   </div>
                 </q-card-section>
               </q-card>

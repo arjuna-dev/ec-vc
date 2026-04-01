@@ -213,10 +213,10 @@
               :key="row.pipeline_id"
               class="col-12 col-sm-6 col-lg-4"
             >
-              <q-card flat bordered class="pipeline-card full-height">
-                <q-card-section class="pipeline-card__shell">
-                  <aside class="pipeline-card__stage-panel">
-                    <div class="pipeline-card__summary-label">Stages</div>
+              <q-card flat bordered class="pipeline-card record-grid-card full-height">
+                <q-card-section class="pipeline-card__shell record-grid-card__hero">
+                  <aside class="pipeline-card__stage-panel record-grid-card__body">
+                    <div class="pipeline-card__summary-label record-grid-card__eyebrow">Stages</div>
 
                     <div v-if="getPipelineCardStages(row).length" class="pipeline-card__stage-map">
                       <div
@@ -246,7 +246,7 @@
                   <div class="pipeline-card__main">
                     <div class="pipeline-card__hero-top">
                       <div class="pipeline-card__hero-copy">
-                        <div class="pipeline-card__title">{{ getPipelineCardTitle(row) }}</div>
+                        <div class="pipeline-card__title record-grid-card__title">{{ getPipelineCardTitle(row) }}</div>
                         <div class="pipeline-card__meta-stack">
                           <div class="pipeline-card__meta-row">
                             <span class="pipeline-card__meta-label">Owner</span>
@@ -267,13 +267,13 @@
                       />
                     </div>
 
-                    <q-card-actions align="between" class="pipeline-card__footer">
+                    <q-card-actions align="between" class="pipeline-card__footer record-grid-card__footer">
                       <div class="pipeline-card__footer-actions">
                         <q-btn
                           flat
                           round
                           icon="visibility"
-                          class="pipeline-card__icon-action"
+                          class="pipeline-card__icon-action record-grid-card__icon-action"
                           :disable="loading"
                           @click="openDatabook(row)"
                         />
@@ -283,7 +283,7 @@
                           flat
                           round
                           icon="delete"
-                          class="pipeline-card__icon-action"
+                          class="pipeline-card__icon-action record-grid-card__icon-action"
                           :disable="loading || row.pipeline_id === 'pipeline_default'"
                           @click="confirmDelete(row)"
                         />
@@ -302,6 +302,7 @@
         :loading="loading"
         :can-delete="canDeleteSelectedPipelines"
         @share="shareSelected"
+        @edit="editSelected"
         @delete="confirmDeleteSelected"
       />
     </div>
@@ -804,6 +805,12 @@ async function confirmDeleteSelected() {
       loading.value = false
     }
   })
+}
+
+function editSelected() {
+  const row = selectedRows.value[0]
+  if (!row) return
+  openDatabook(row)
 }
 
 async function shareSelected() {

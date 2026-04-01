@@ -170,12 +170,17 @@
 
           <div v-else class="row q-col-gutter-md tasks-cards-grid">
             <div v-for="row in displayRows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
-              <q-card flat bordered class="task-card full-height">
-                <q-card-section class="q-pb-sm">
-                  <div class="row items-start justify-between q-col-gutter-sm">
+              <q-card flat bordered class="task-card record-grid-card full-height">
+                <q-card-section class="q-pb-sm record-grid-card__hero">
+                  <div class="row items-start justify-between q-col-gutter-sm no-wrap">
+                    <div class="col-auto">
+                      <div class="record-grid-card__badge record-grid-card__badge--icon" aria-hidden="true">
+                        <q-icon name="check_circle" size="24px" />
+                      </div>
+                    </div>
                     <div class="col">
-                      <div class="task-card__title">{{ row.Task_Name || 'Untitled task' }}</div>
-                      <div v-if="row.Task_Description" class="task-card__summary">
+                      <div class="task-card__title record-grid-card__title">{{ row.Task_Name || 'Untitled task' }}</div>
+                      <div v-if="row.Task_Description" class="task-card__summary record-grid-card__summary-text">
                         {{ row.Task_Description }}
                       </div>
                     </div>
@@ -192,24 +197,24 @@
 
                 <q-separator />
 
-                <q-card-section class="q-gutter-sm">
-                  <div v-if="row.Status" class="task-card__field">
+                <q-card-section class="q-gutter-sm record-grid-card__body">
+                  <div v-if="row.Status" class="task-card__field record-grid-card__detail">
                     <q-icon name="flag" size="16px" class="q-mr-sm text-grey-7" />
                     <span>{{ row.Status }}</span>
                   </div>
-                  <div v-if="row.Priority" class="task-card__field">
+                  <div v-if="row.Priority" class="task-card__field record-grid-card__detail">
                     <q-icon name="priority_high" size="16px" class="q-mr-sm text-grey-7" />
                     <span>{{ row.Priority }}</span>
                   </div>
-                  <div v-if="row.Due_Date" class="task-card__field">
+                  <div v-if="row.Due_Date" class="task-card__field record-grid-card__detail">
                     <q-icon name="event" size="16px" class="q-mr-sm text-grey-7" />
                     <span>{{ row.Due_Date }}</span>
                   </div>
-                  <div v-if="row.contact_name" class="task-card__field">
+                  <div v-if="row.contact_name" class="task-card__field record-grid-card__detail">
                     <q-icon name="person" size="16px" class="q-mr-sm text-grey-7" />
                     <span>{{ row.contact_name }}</span>
                   </div>
-                  <div v-if="row.company_name" class="task-card__field">
+                  <div v-if="row.company_name" class="task-card__field record-grid-card__detail">
                     <q-icon name="apartment" size="16px" class="q-mr-sm text-grey-7" />
                     <span>{{ row.company_name }}</span>
                   </div>
@@ -217,13 +222,14 @@
 
                 <q-space />
 
-                <q-card-actions align="right">
+                <q-card-actions align="right" class="record-grid-card__footer">
                   <q-btn
                     dense
                     flat
                     round
                     icon="delete"
                     color="grey-8"
+                    class="record-grid-card__icon-action"
                     :disable="loading"
                     @click="confirmDelete(row)"
                   />
@@ -238,6 +244,7 @@
         :count="selectedCount"
         :loading="loading"
         @share="shareSelected"
+        @edit="editSelected"
         @delete="confirmDeleteSelected"
       />
     </div>
@@ -499,6 +506,16 @@ function consumeQueuedOpen() {
   return true
 }
 
+function openDatabook(row) {
+  const recordId = String(row?.id || '').trim()
+  if (!recordId) return
+  router.push({
+    name: 'databook-view',
+    params: { tableName: 'Tasks', recordId },
+    query: { returnTo: route.fullPath },
+  })
+}
+
 async function loadTasks() {
   if (!bridge.value?.tasks?.list) return
   loading.value = true
@@ -587,6 +604,12 @@ async function confirmDeleteSelected() {
       loading.value = false
     }
   })
+}
+
+function editSelected() {
+  const row = selectedRows.value[0]
+  if (!row) return
+  openDatabook(row)
 }
 
 async function shareSelected() {

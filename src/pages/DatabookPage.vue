@@ -974,7 +974,10 @@
               :key="section.anchor"
               type="button"
               class="contact-databook__nav-item"
-              :class="{ 'contact-databook__nav-item--active': activeCompanySection === section.anchor }"
+              :class="{
+                'contact-databook__nav-item--active': activeCompanySection === section.anchor,
+                'contact-databook__nav-item--kdb': section.anchor === 'contacts',
+              }"
               @click="activeCompanySection = section.anchor"
             >
               {{ section.title }}
@@ -983,7 +986,7 @@
 
           <section class="contact-databook__details">
             <article v-if="activeCompanyContentSection" class="contact-section-card contact-section-card--active">
-              <div class="contact-section-card__header">
+              <div v-if="activeCompanyContentSection.anchor !== 'contacts'" class="contact-section-card__header">
                 <div class="contact-section-card__intro">
                   <h2 class="contact-section-card__title">{{ activeCompanyContentSection.title }}</h2>
                   <div v-if="activeCompanyContentSection.caption" class="contact-section-card__caption">
@@ -1084,50 +1087,105 @@
                 </article>
               </div>
 
-              <div
-                v-else-if="isCompanyRelationSection(activeCompanyContentSection.anchor)"
-                class="contact-context-grid"
-              >
-                <article class="contact-side-card">
-                  <div class="contact-side-card__header">
-                    <div class="contact-side-card__intro">
-                      <h3 class="contact-side-card__title">{{ activeCompanyContentSection.title }}</h3>
-                      <div class="contact-side-card__eyebrow">Level 2 relationship</div>
-                    </div>
+              <div v-else-if="activeCompanyContentSection.anchor === 'contacts'" class="contact-kdb">
+                <div class="contact-kdb-toolbar">
+                  <div class="contact-kdb-toolbar__block">
+                    <q-btn-toggle
+                      v-model="activeCompanyKdbSection"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="contact-kdb-toolbar__toggle contact-kdb-toolbar__section-toggle"
+                      :options="companyKdbSectionOptions"
+                    />
+                  </div>
+                </div>
+
+                <div class="contact-kdb-artifacts-toolbar">
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
+                    <q-btn-toggle
+                      v-model="companyKdbViewMode"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
+                      :options="companyKdbViewOptions"
+                    />
                   </div>
 
-                  <ul v-if="activeCompanyRelationItems.length" class="contact-databook__hero-notes">
-                    <li
-                      v-for="item in activeCompanyRelationItems"
-                      :key="item.id"
-                      class="contact-databook__hero-note"
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                    <q-btn-toggle
+                      v-model="companyKdbKindFilter"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                      :options="companyKdbKindOptions"
+                    />
+                  </div>
+
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
+                    <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                    <q-input
+                      v-model="companyKdbSearchQuery"
+                      dense
+                      outlined
+                      borderless
+                      class="contact-kdb-artifacts-toolbar__search"
+                      :placeholder="companyKdbSearchPlaceholder"
                     >
-                      <div class="contact-databook__notes-row">
-                        <div class="contact-databook__notes-title">{{ item.title }}</div>
-                        <div v-if="item.meta" class="contact-databook__notes-meta">{{ item.meta }}</div>
-                      </div>
-                      <div v-if="item.content" class="contact-databook__notes-content">
-                        {{ item.content }}
-                      </div>
-                    </li>
-                  </ul>
-                  <div v-else class="contact-section-card__empty contact-context-card__empty">
-                    No {{ activeCompanyContentSection.title.toLowerCase() }} linked yet for this company.
+                      <template #prepend>
+                        <q-icon name="search" />
+                      </template>
+                    </q-input>
                   </div>
-                </article>
+                </div>
 
-                <article class="contact-side-card">
-                  <div class="contact-side-card__header">
-                    <div class="contact-side-card__intro">
-                      <h3 class="contact-side-card__title">What this section means</h3>
-                      <div class="contact-side-card__eyebrow">Schema guide</div>
+                <q-banner
+                  v-if="!displayCompanyKdbItems.length"
+                  class="contact-section-card__empty bg-grey-1 text-black"
+                  rounded
+                >
+                  No records in this subsection yet.
+                </q-banner>
+
+                <div v-else-if="companyKdbViewMode === 'table'" class="contact-kdb-rows">
+                  <article
+                    v-for="item in displayCompanyKdbItems"
+                    :key="`${activeCompanyKdbSection}-${item.id}`"
+                    class="contact-kdb-row"
+                  >
+                    <div class="contact-kdb-row__main">
+                      <div class="contact-field-card__label">{{ item.title }}</div>
+                      <div v-if="item.content" class="contact-field-card__value">{{ item.content }}</div>
                     </div>
-                  </div>
+                    <div v-if="item.meta" class="contact-kdb-row__meta">{{ item.meta }}</div>
+                  </article>
+                </div>
 
-                  <div class="contact-note-card__text">
-                    {{ activeCompanyContentSection.caption }}
+                <div v-else class="row q-col-gutter-md">
+                  <div
+                    v-for="item in displayCompanyKdbItems"
+                    :key="`${activeCompanyKdbSection}-${item.id}`"
+                    class="col-12 col-md-6"
+                  >
+                    <article class="contact-field-card contact-kdb-card">
+                      <div class="contact-field-card__label">{{ item.title }}</div>
+                      <div v-if="item.meta" class="contact-section-card__modified">{{ item.meta }}</div>
+                      <div class="contact-field-card__value">
+                        {{ item.content || '-' }}
+                      </div>
+                    </article>
                   </div>
-                </article>
+                </div>
               </div>
 
               <q-banner
@@ -1276,34 +1334,159 @@
           </section>
         </div>
 
-        <q-list v-else bordered separator>
-          <q-item v-for="field in fields" :key="field.key">
-            <q-item-section>
-              <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
-              <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
-              <q-item-label
-                v-if="isHistoricalMode && modifiedByMap[field.key]"
-                class="text-caption text-negative text-italic"
+        <template v-else>
+          <section v-if="genericRecordNavItems.length" class="contact-databook__nav" aria-label="Record sections">
+            <button
+              v-for="section in genericRecordNavItems"
+              :key="section"
+              type="button"
+              class="contact-databook__nav-item"
+              :class="{
+                'contact-databook__nav-item--active': activeGenericSection === section,
+                'contact-databook__nav-item--kdb': /kdb/i.test(section),
+              }"
+              @click="activeGenericSection = section"
+            >
+              {{ section }}
+            </button>
+          </section>
+
+          <template v-if="/kdb/i.test(activeGenericSection)">
+            <div class="contact-kdb">
+              <div class="contact-kdb-toolbar">
+                <div class="contact-kdb-toolbar__block">
+                  <q-btn-toggle
+                    v-model="activeGenericKdbSection"
+                    dense
+                    no-caps
+                    unelevated
+                    toggle-color="dark"
+                    color="white"
+                    text-color="grey-8"
+                    class="contact-kdb-toolbar__toggle contact-kdb-toolbar__section-toggle"
+                    :options="genericKdbSectionOptions"
+                  />
+                </div>
+              </div>
+
+              <div class="contact-kdb-artifacts-toolbar">
+                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
+                  <q-btn-toggle
+                    v-model="genericKdbViewMode"
+                    dense
+                    unelevated
+                    toggle-color="primary"
+                    color="grey-3"
+                    text-color="grey-8"
+                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
+                    :options="CONTACT_KDB_VIEW_OPTIONS"
+                  />
+                </div>
+
+                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                  <q-btn-toggle
+                    v-model="genericKdbKindFilter"
+                    dense
+                    no-caps
+                    unelevated
+                    toggle-color="dark"
+                    color="white"
+                    text-color="grey-8"
+                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                    :options="genericKdbKindOptions"
+                  />
+                </div>
+
+                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
+                  <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                  <q-input
+                    v-model="genericKdbSearchQuery"
+                    dense
+                    outlined
+                    borderless
+                    class="contact-kdb-artifacts-toolbar__search"
+                    :placeholder="genericKdbSearchPlaceholder"
+                  >
+                    <template #prepend>
+                      <q-icon name="search" />
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+
+              <q-banner
+                v-if="!displayGenericKdbItems.length"
+                class="contact-section-card__empty bg-grey-1 text-black"
+                rounded
               >
-                modified by {{ modifiedByMap[field.key] }}
-              </q-item-label>
-            </q-item-section>
-            <q-item-section side class="databook-value-section">
-              <template v-if="editMode">
-                <q-input
-                  v-model="draftValues[field.key]"
-                  dense
-                  outlined
-                  :disable="saving || !field.editable"
-                  :placeholder="field.editable ? 'Enter value' : ''"
-                />
-              </template>
-              <template v-else>
-                <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
-              </template>
-            </q-item-section>
-          </q-item>
-        </q-list>
+                No records in this subsection yet.
+              </q-banner>
+
+              <div v-else-if="genericKdbViewMode === 'table'" class="contact-kdb-rows">
+                <article
+                  v-for="item in displayGenericKdbItems"
+                  :key="item.id"
+                  class="contact-kdb-row"
+                >
+                  <div class="contact-kdb-row__main">
+                    <div class="contact-field-card__label">{{ item.title }}</div>
+                    <div class="contact-field-card__value">{{ displayValue(item.content || item.meta) }}</div>
+                  </div>
+                  <div v-if="item.meta" class="contact-kdb-row__meta">
+                    {{ item.meta }}
+                  </div>
+                </article>
+              </div>
+
+              <div v-else class="row q-col-gutter-md">
+                <div
+                  v-for="item in displayGenericKdbItems"
+                  :key="item.id"
+                  class="col-12 col-md-6"
+                >
+                  <article class="contact-field-card contact-kdb-card">
+                    <div class="contact-field-card__label">{{ item.title }}</div>
+                    <div v-if="item.meta" class="contact-section-card__modified">
+                      {{ item.meta }}
+                    </div>
+                    <div class="contact-field-card__value">
+                      {{ displayValue(item.content || item.meta) }}
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <q-list v-else bordered separator>
+            <q-item v-for="field in visibleGenericFields" :key="field.key">
+              <q-item-section>
+                <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
+                <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                <q-item-label
+                  v-if="isHistoricalMode && modifiedByMap[field.key]"
+                  class="text-caption text-negative text-italic"
+                >
+                  modified by {{ modifiedByMap[field.key] }}
+                </q-item-label>
+              </q-item-section>
+              <q-item-section side class="databook-value-section">
+                <template v-if="editMode">
+                  <q-input
+                    v-model="draftValues[field.key]"
+                    dense
+                    outlined
+                    :disable="saving || !field.editable"
+                    :placeholder="field.editable ? 'Enter value' : ''"
+                  />
+                </template>
+                <template v-else>
+                  <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                </template>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </template>
       </template>
 
       <q-banner v-else-if="!loading" class="bg-grey-2 text-black" rounded>
@@ -1548,6 +1731,7 @@ const CONTACT_KDB_VIEW_OPTIONS = [
 const CONTACT_KDB_SECTION_OPTIONS = [
   { label: 'Artifacts', value: 'artifacts', icon: 'attach_file' },
   { label: 'Users', value: 'users', icon: 'badge' },
+  { label: 'Contacts', value: 'contacts', icon: 'people' },
   { label: 'Companies', value: 'companies', icon: 'apartment' },
   { label: 'Funds', value: 'funds', icon: 'work' },
   { label: 'Rounds', value: 'rounds', icon: 'work' },
@@ -1674,10 +1858,19 @@ const selectedVersionId = ref(null)
 const modifiedByMap = ref({})
 const activeContactSection = ref('general-info')
 const activeCompanySection = ref('metadata')
+const activeGenericSection = ref('')
 const activeContactKdbSection = ref('artifacts')
 const contactKdbViewMode = ref('grid')
 const contactKdbKindFilter = ref('all')
 const contactKdbSearchQuery = ref('')
+const activeCompanyKdbSection = ref('contacts')
+const companyKdbViewMode = ref('grid')
+const companyKdbKindFilter = ref('all')
+const companyKdbSearchQuery = ref('')
+const activeGenericKdbSection = ref('')
+const genericKdbViewMode = ref('grid')
+const genericKdbKindFilter = ref('all')
+const genericKdbSearchQuery = ref('')
 const contactHeroRef = ref(null)
 const contactImageInput = ref(null)
 const currentImageUploadTarget = ref('contact')
@@ -1747,6 +1940,9 @@ const isContactView = computed(
 )
 const isCompanyView = computed(
   () => (currentView.value?.table_name || tableNameParam.value) === 'Companies',
+)
+const isOpportunityRecordView = computed(() =>
+  ['Opportunities', 'Funds', 'Rounds'].includes(currentView.value?.table_name || tableNameParam.value),
 )
 const isStructuredDatabookView = computed(() => isContactView.value || isCompanyView.value)
 const fieldByName = computed(() =>
@@ -2050,12 +2246,12 @@ const contactSections = computed(() => {
 })
 const companyNavItems = computed(() => [
   { anchor: 'metadata', title: 'Metadata' },
-  { anchor: 'contacts', title: 'KDB Relationships' },
   { anchor: 'rounds', title: 'Incorporation' },
   { anchor: 'funds', title: 'Documents' },
   { anchor: 'artifacts', title: 'Operations' },
   { anchor: 'notes', title: 'Business' },
   { anchor: 'system', title: 'System' },
+  { anchor: 'contacts', title: 'KDB Relationships' },
 ])
 const activeCompanyContentSection = computed(
   () => companySections.value.find((section) => section.anchor === activeCompanySection.value) || null,
@@ -2070,6 +2266,64 @@ const contactNavItems = computed(() => [
 const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
 )
+const genericRecordNavItems = computed(() => {
+  if (isOpportunityRecordView.value) {
+    return ['Metadata', 'Overview', 'Economics', 'Controls', 'KDB Relationships']
+  }
+
+  const seen = new Set()
+  return (fields.value || [])
+    .map((field) => String(field?.section || '').trim())
+    .filter((section) => {
+      if (!section || seen.has(section)) return false
+      seen.add(section)
+      return true
+    })
+})
+const visibleGenericFields = computed(() => {
+  if (!activeGenericSection.value) return fields.value || []
+  return (fields.value || []).filter((field) => String(field?.section || '').trim() === activeGenericSection.value)
+})
+const genericKdbFields = computed(() =>
+  (fields.value || []).filter((field) => /kdb/i.test(String(field?.section || '').trim())),
+)
+const genericKdbFieldMap = computed(() =>
+  Object.fromEntries(
+    genericKdbFields.value
+      .map((field) => {
+        const option = createGenericKdbSectionOption(field)
+        return option ? [option.value, field] : null
+      })
+      .filter(Boolean),
+  ),
+)
+const genericKdbSectionOptions = CONTACT_KDB_SECTION_OPTIONS
+const genericKdbItemsBySection = computed(() =>
+  Object.fromEntries(
+    CONTACT_KDB_SECTION_OPTIONS.map((option) => [
+      option.value,
+      buildGenericKdbItemsFromField(genericKdbFieldMap.value[option.value], option.label),
+    ]),
+  ),
+)
+const activeGenericKdbItems = computed(() => genericKdbItemsBySection.value[activeGenericKdbSection.value] || [])
+const genericKdbKindOptions = computed(() => [{ label: 'All', value: 'all' }])
+const genericKdbSearchPlaceholder = computed(() => {
+  const active = genericKdbSectionOptions.find((option) => option.value === activeGenericKdbSection.value)
+  return `Search ${String(active?.label || 'records').toLowerCase()}...`
+})
+const displayGenericKdbItems = computed(() => {
+  let items = [...activeGenericKdbItems.value]
+
+  const query = String(genericKdbSearchQuery.value || '').trim().toLowerCase()
+  if (query) {
+    items = items.filter((item) =>
+      [item.title, item.meta, item.content].some((value) => String(value || '').toLowerCase().includes(query)),
+    )
+  }
+
+  return items
+})
 const contactHeroNotes = computed(() =>
   contactNotes.value.slice(0, CONTACT_HERO_NOTES_LIMIT).map((note) => ({
     ...note,
@@ -2086,6 +2340,8 @@ const contactHeroDocuments = computed(() => contactDocuments.value.slice(0, CONT
 const companyHeroDocuments = computed(() => companyDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
 const contactKdbViewOptions = CONTACT_KDB_VIEW_OPTIONS
 const contactKdbSectionOptions = CONTACT_KDB_SECTION_OPTIONS
+const companyKdbViewOptions = CONTACT_KDB_VIEW_OPTIONS
+const companyKdbSectionOptions = CONTACT_KDB_SECTION_OPTIONS
 const contactKdbItemsBySection = computed(() => ({
   artifacts: contactDocuments.value.map((document) => ({
     id: String(document.artifactId || document.id || document.fileName || '').trim(),
@@ -2094,6 +2350,7 @@ const contactKdbItemsBySection = computed(() => ({
     content: [document.domainLabel, document.artifactTypeLabel].filter(Boolean).join(' • '),
   })),
   users: buildContactKdbItemsFromValues('Contact_User', ['created_by_label', 'created_by']),
+  contacts: buildContactKdbItemsFromValues('Contact_Contact', ['Contact_Contact']),
   companies: buildContactKdbItemsFromValues('Contact_Company', ['Current_Companies', 'Current_Company']),
   funds: buildContactKdbItemsFromValues('Contact_Fund', ['Related_Funds']),
   rounds: buildContactKdbItemsFromValues('Contact_Round', ['Related_Rounds']),
@@ -2192,9 +2449,66 @@ const companyRelationItemsBySection = computed(() => ({
     content: [row?.Fund_Target_Size, row?.Fund_Close_Date].filter(Boolean).join(' • '),
   })),
 }))
-const activeCompanyRelationItems = computed(
-  () => companyRelationItemsBySection.value[activeCompanySection.value] || [],
-)
+const companyKdbItemsBySection = computed(() => ({
+  contacts: companyRelationItemsBySection.value.contacts || [],
+  users: buildContactKdbItemsFromValues('Company_User', ['Company_User']),
+  companies: buildContactKdbItemsFromValues('Company_Company', ['Company_Company']),
+  rounds: companyRelationItemsBySection.value.rounds || [],
+  funds: companyRelationItemsBySection.value.funds || [],
+  projects: buildContactKdbItemsFromValues('Company_Project', ['Company_Project']),
+  tasks: buildContactKdbItemsFromValues('Company_Task', ['Company_Task']),
+  artifacts: companyDocuments.value.map((document) => ({
+    id: String(document?.id || document?.artifactId || document?.name || '').trim(),
+    title: String(document?.name || document?.fileName || 'Untitled artifact').trim(),
+    meta: String(document?.fileTypeLabel || '').trim(),
+    content: String(document?.summary || '').trim(),
+  })),
+  notes: companyNotes.value.map((note) => ({
+    id: String(note?.id || note?.title || '').trim(),
+    title: String(note?.title || 'Untitled note').trim(),
+    meta: String(note?.created_at || '').trim(),
+    content: String(note?.content || '').trim(),
+  })),
+}))
+const activeCompanyKdbItems = computed(() => companyKdbItemsBySection.value[activeCompanyKdbSection.value] || [])
+const companyKdbKindOptions = computed(() => {
+  if (activeCompanyKdbSection.value === 'artifacts') {
+    return [
+      { label: 'All', value: 'all' },
+      { label: 'Reviewed', value: 'ready' },
+      { label: 'Pending Review', value: 'needs-review' },
+    ]
+  }
+  if (activeCompanyKdbSection.value === 'notes') {
+    return [
+      { label: 'All', value: 'all' },
+      { label: 'Favorites', value: 'favorites' },
+      { label: 'Recent', value: 'recent' },
+    ]
+  }
+  return [{ label: 'All', value: 'all' }]
+})
+const companyKdbSearchPlaceholder = computed(() => `Search ${activeCompanyKdbSection.value}...`)
+const displayCompanyKdbItems = computed(() => {
+  let items = [...activeCompanyKdbItems.value]
+
+  if (activeCompanyKdbSection.value === 'artifacts') {
+    if (companyKdbKindFilter.value === 'ready') {
+      items = items.filter((item) => /llm-ready|reviewed/i.test(String(item.content || item.meta || '')))
+    } else if (companyKdbKindFilter.value === 'needs-review') {
+      items = items.filter((item) => !/llm-ready|reviewed/i.test(String(item.content || item.meta || '')))
+    }
+  }
+
+  const query = String(companyKdbSearchQuery.value || '').trim().toLowerCase()
+  if (query) {
+    items = items.filter((item) =>
+      [item.title, item.meta, item.content].some((value) => String(value || '').toLowerCase().includes(query)),
+    )
+  }
+
+  return items
+})
 const contactMetaItems = computed(() => [
   { label: 'Record ID', value: getFieldDisplayValue('id') || recordIdParam.value || '-' },
   { label: 'Created', value: getFieldDisplayValue('created_at') || 'Unknown' },
@@ -2269,6 +2583,51 @@ function buildContactKdbItemsFromValues(prefix, aliases = []) {
       title: value.trim(),
       meta: '',
       content: '',
+    }))
+    .filter((item) => item.title)
+}
+
+function createGenericKdbSectionOption(field) {
+  const relationName = String(field?.field_name || '')
+    .split('_')
+    .slice(1)
+    .join('_')
+    .trim()
+  if (!relationName) return null
+
+  const normalized = relationName.toLowerCase()
+  const configMap = {
+    artifact: { label: 'Artifacts', value: 'artifacts', icon: 'attach_file' },
+    user: { label: 'Users', value: 'users', icon: 'badge' },
+    company: { label: 'Companies', value: 'companies', icon: 'apartment' },
+    contact: { label: 'Contacts', value: 'contacts', icon: 'people' },
+    fund: { label: 'Funds', value: 'funds', icon: 'work' },
+    round: { label: 'Rounds', value: 'rounds', icon: 'work' },
+    project: { label: 'Projects', value: 'projects', icon: 'schema' },
+    task: { label: 'Tasks', value: 'tasks', icon: 'check_circle' },
+    note: { label: 'Notes', value: 'notes', icon: 'note' },
+  }
+
+  return configMap[normalized] || {
+    label: String(field?.label || relationName).trim(),
+    value: normalized.replace(/[^a-z0-9]+/g, '-'),
+    icon: 'share',
+  }
+}
+
+function buildGenericKdbItemsFromField(field, label) {
+  if (!field) return []
+
+  const raw = String(field?.value || '').trim()
+  if (!raw) return []
+
+  return raw
+    .split(/[,;\n|]/)
+    .map((value, index) => ({
+      id: `${field.key}-${index}`,
+      title: value.trim(),
+      meta: label,
+      content: value.trim(),
     }))
     .filter((item) => item.title)
 }
@@ -2405,10 +2764,6 @@ async function loadCompanyNotes() {
     companyNotes.value = []
     syncCompanyHeroPanelTab()
   }
-}
-
-function isCompanyRelationSection(anchor = '') {
-  return ['contacts', 'rounds', 'funds'].includes(String(anchor || '').trim())
 }
 
 async function loadCompanyRelationships() {
@@ -3677,6 +4032,23 @@ watch(companySections, (sections) => {
   }
 })
 
+watch(genericRecordNavItems, (sections) => {
+  if (!sections.length) {
+    activeGenericSection.value = ''
+    return
+  }
+  if (!sections.includes(activeGenericSection.value)) {
+    activeGenericSection.value = sections[0]
+  }
+})
+
+watch(genericKdbSectionOptions, (sections) => {
+  const values = sections.map((section) => section.value)
+  if (!values.includes(activeGenericKdbSection.value)) {
+    activeGenericKdbSection.value = values[0]
+  }
+})
+
 watch(contactImageCropZoom, () => {
   contactImageCropOffset.value = clampContactImageCropOffset(contactImageCropOffset.value)
 })
@@ -3685,6 +4057,18 @@ watch(activeContactKdbSection, () => {
   contactKdbViewMode.value = 'grid'
   contactKdbKindFilter.value = 'all'
   contactKdbSearchQuery.value = ''
+})
+
+watch(activeCompanyKdbSection, () => {
+  companyKdbViewMode.value = 'grid'
+  companyKdbKindFilter.value = 'all'
+  companyKdbSearchQuery.value = ''
+})
+
+watch(activeGenericKdbSection, () => {
+  genericKdbViewMode.value = 'grid'
+  genericKdbKindFilter.value = 'all'
+  genericKdbSearchQuery.value = ''
 })
 
 watch(

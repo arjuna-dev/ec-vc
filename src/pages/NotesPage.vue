@@ -170,12 +170,17 @@
 
           <div v-else class="row q-col-gutter-md notes-cards-grid">
             <div v-for="row in displayRows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
-              <q-card flat bordered class="note-card full-height">
-                <q-card-section class="q-pb-sm">
-                  <div class="row items-start justify-between q-col-gutter-sm">
+              <q-card flat bordered class="note-card record-grid-card full-height">
+                <q-card-section class="q-pb-sm record-grid-card__hero">
+                  <div class="row items-start justify-between q-col-gutter-sm no-wrap">
+                    <div class="col-auto">
+                      <div class="record-grid-card__badge record-grid-card__badge--icon" aria-hidden="true">
+                        <q-icon name="note" size="24px" />
+                      </div>
+                    </div>
                     <div class="col">
-                      <div class="note-card__title">{{ row.Note_Name || 'Untitled note' }}</div>
-                      <div v-if="row.created_at" class="note-card__meta">{{ row.created_at }}</div>
+                      <div class="note-card__title record-grid-card__title">{{ row.Note_Name || 'Untitled note' }}</div>
+                      <div v-if="row.created_at" class="note-card__meta record-grid-card__subtitle">{{ row.created_at }}</div>
                     </div>
                     <div class="col-auto">
                       <q-checkbox
@@ -190,15 +195,15 @@
 
                 <q-separator />
 
-                <q-card-section class="q-gutter-sm">
-                  <div v-if="row.Note_Content" class="note-card__content">
+                <q-card-section class="q-gutter-sm record-grid-card__body">
+                  <div v-if="row.Note_Content" class="note-card__content record-grid-card__summary-text">
                     {{ row.Note_Content }}
                   </div>
-                  <div v-if="row.created_by_name" class="note-card__field">
+                  <div v-if="row.created_by_name" class="note-card__field record-grid-card__detail">
                     <q-icon name="person" size="16px" class="q-mr-sm text-grey-7" />
                     <span>{{ row.created_by_name }}</span>
                   </div>
-                  <div v-if="row.created_by_email" class="note-card__field">
+                  <div v-if="row.created_by_email" class="note-card__field record-grid-card__detail">
                     <q-icon name="mail" size="16px" class="q-mr-sm text-grey-7" />
                     <span>{{ row.created_by_email }}</span>
                   </div>
@@ -206,13 +211,14 @@
 
                 <q-space />
 
-                <q-card-actions align="right">
+                <q-card-actions align="right" class="record-grid-card__footer">
                   <q-btn
                     dense
                     flat
                     round
                     icon="delete"
                     color="grey-8"
+                    class="record-grid-card__icon-action"
                     :disable="loading"
                     @click="confirmDelete(row)"
                   />
@@ -227,6 +233,7 @@
         :count="selectedCount"
         :loading="loading"
         @share="shareSelected"
+        @edit="editSelected"
         @delete="confirmDeleteSelected"
       />
     </div>
@@ -466,6 +473,16 @@ function consumeQueuedOpen() {
   return true
 }
 
+function openDatabook(row) {
+  const recordId = String(row?.id || '').trim()
+  if (!recordId) return
+  router.push({
+    name: 'databook-view',
+    params: { tableName: 'Notes', recordId },
+    query: { returnTo: route.fullPath },
+  })
+}
+
 async function loadNotes() {
   if (!bridge.value?.notes?.list) return
   loading.value = true
@@ -554,6 +571,12 @@ async function confirmDeleteSelected() {
       loading.value = false
     }
   })
+}
+
+function editSelected() {
+  const row = selectedRows.value[0]
+  if (!row) return
+  openDatabook(row)
 }
 
 async function shareSelected() {

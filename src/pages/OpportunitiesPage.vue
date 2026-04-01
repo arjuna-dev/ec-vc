@@ -182,85 +182,136 @@
           <div v-else class="row q-col-gutter-md opportunities-cards-grid">
             <div v-for="row in displayRows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
               <q-card flat bordered class="opportunity-card full-height">
-                <q-card-section class="q-pb-sm">
-                  <div class="row items-start no-wrap">
-                    <div class="col-auto q-pr-md">
-                      <q-avatar size="56px" class="opportunity-card__avatar">
-                        <img
-                          :src="buildAvatarImage(row.opportunity_name || row.Company_Name || row.kind)"
-                          :alt="row.opportunity_name || 'Opportunity avatar'"
-                        />
-                      </q-avatar>
-                    </div>
-                    <div class="col opportunity-card__copy">
-                      <div class="opportunity-card__title">
-                        {{ row.opportunity_name || row.Venture_Oppty_Name || 'Unnamed opportunity' }}
+                <q-card-section class="opportunity-card__hero">
+                  <div class="opportunity-card__hero-main">
+                    <figure class="opportunity-card__portrait">
+                      <div class="opportunity-card__portrait-shell" aria-hidden="true">
+                        <q-avatar size="72px" class="opportunity-card__avatar">
+                          <img
+                            :src="buildAvatarImage(row.opportunity_name || row.Company_Name || row.kind)"
+                            :alt="row.opportunity_name || 'Opportunity avatar'"
+                          />
+                        </q-avatar>
                       </div>
-                      <div v-if="row.Company_Name" class="opportunity-card__subtitle">
-                        {{ row.Company_Name }}
+                    </figure>
+
+                    <div class="opportunity-card__hero-side">
+                      <div class="opportunity-card__hero-copy">
+                        <div class="opportunity-card__title">
+                          {{ row.opportunity_name || row.Venture_Oppty_Name || 'Unnamed opportunity' }}
+                        </div>
+
+                        <div class="opportunity-card__bottom-stack">
+                          <div v-if="getOpportunityMetadataRows(row).length" class="opportunity-card__detail-stack">
+                            <div
+                              v-for="detail in getOpportunityMetadataRows(row)"
+                              :key="detail.label"
+                              class="opportunity-card__detail-row"
+                            >
+                              <button
+                                type="button"
+                                class="opportunity-card__inline-chip"
+                                @click="openOpportunityMetadataAction(detail, $event)"
+                              >
+                                <q-icon :name="detail.icon" size="14px" />
+                                <span>{{ detail.value }}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div class="col-auto">
+                  </div>
+                </q-card-section>
+
+                <q-card-section class="opportunity-card__summary">
+                  <div class="opportunity-card__summary-head">
+                    <q-btn-toggle
+                      :model-value="getOpportunityCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="opportunity-card__summary-view-toggle"
+                      :options="opportunityCardContentViewOptions"
+                      @update:model-value="setOpportunityCardContentView(row, $event)"
+                    />
+
+                    <q-btn-toggle
+                      :model-value="getOpportunityCardPanel(row)"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="opportunity-card__summary-toggle"
+                      :options="opportunityCardPanelOptions"
+                      @update:model-value="setOpportunityCardPanel(row, $event)"
+                    />
+
+                    <div class="opportunity-card__summary-actions">
+                      <q-btn
+                        flat
+                        round
+                        icon="visibility"
+                        class="opportunity-card__icon-action"
+                        :disable="loading"
+                        @click="openDatabook(row)"
+                      />
                       <q-checkbox
                         :model-value="isSelected(row)"
                         :disable="loading"
                         color="dark"
+                        class="opportunity-card__select-box"
                         @update:model-value="toggleRowSelection(row, $event)"
                       />
                     </div>
                   </div>
-                </q-card-section>
 
-                <q-separator />
+                  <div class="opportunity-card__summary-panel">
+                    <div class="opportunity-card__summary-body">
+                      <div class="opportunity-card__summary-body-content">
+                        <div
+                          v-if="getOpportunityCardPanel(row) === 'notes' && getOpportunityLinkedNotes(row).length"
+                          :class="[
+                            'opportunity-card__notes-list',
+                            { 'opportunity-card__notes-list--rows': getOpportunityCardContentView(row) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="note in getOpportunityLinkedNotes(row)"
+                            :key="note"
+                            class="opportunity-card__note-pill"
+                          >
+                            {{ note }}
+                          </div>
+                        </div>
 
-                <q-card-section class="q-gutter-sm">
-                  <div v-if="row.Round_Stage" class="opportunity-card__field">
-                    <q-icon name="layers" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.Round_Stage }}</span>
-                  </div>
-                  <div v-if="row.Fund_Type" class="opportunity-card__field">
-                    <q-icon name="account_balance" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.Fund_Type }}</span>
-                  </div>
-                  <div v-if="displaySize(row)" class="opportunity-card__field">
-                    <q-icon name="payments" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ displaySize(row) }}</span>
-                  </div>
-                  <div class="row q-col-gutter-sm q-pt-xs">
-                    <div v-if="row.created_at" class="col-auto">
-                      <q-badge outline color="grey-6" text-color="grey-8">
-                        {{ row.created_at }}
-                      </q-badge>
+                        <div
+                          v-else-if="getOpportunityCardPanel(row) === 'docs' && getOpportunityLinkedDocuments(row).length"
+                          :class="[
+                            'opportunity-card__notes-list',
+                            { 'opportunity-card__notes-list--rows': getOpportunityCardContentView(row) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="doc in getOpportunityLinkedDocuments(row)"
+                            :key="doc"
+                            class="opportunity-card__note-pill"
+                          >
+                            {{ doc }}
+                          </div>
+                        </div>
+
+                        <div v-else class="opportunity-card__summary-empty">
+                          {{ getOpportunityCardPanel(row) === 'notes' ? 'No linked notes yet for this opportunity.' : 'No linked artifacts yet for this opportunity.' }}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </q-card-section>
-
-                <q-space />
-
-                <q-card-actions align="between" class="opportunity-card__footer">
-                  <div class="opportunity-card__footer-actions">
-                    <q-btn
-                      dense
-                      flat
-                      round
-                      icon="visibility"
-                      color="grey-8"
-                      :disable="loading"
-                      @click="openDatabook(row)"
-                    />
-                  </div>
-                  <div class="opportunity-card__footer-actions">
-                    <q-btn
-                      dense
-                      flat
-                      round
-                      icon="delete"
-                      color="grey-8"
-                      :disable="loading || !canDeleteOpportunities"
-                      @click="confirmDelete(row)"
-                    />
-                  </div>
-                </q-card-actions>
               </q-card>
             </div>
           </div>
@@ -272,6 +323,7 @@
         :loading="loading"
         :can-delete="canDeleteOpportunities"
         @share="shareSelected"
+        @edit="editSelected"
         @delete="confirmDeleteSelected"
       />
     </div>
@@ -370,6 +422,16 @@ const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const rowsPerPageOptions = [10, 15, 25, 50]
 const selectedCount = computed(() => selectedRows.value.length)
+const opportunityCardContentViews = ref({})
+const opportunityCardContentViewOptions = [
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
+]
+const opportunityCardPanels = ref({})
+const opportunityCardPanelOptions = [
+  { label: 'Notes', value: 'notes', icon: 'note' },
+  { label: 'Artifacts', value: 'docs', icon: 'attach_file' },
+]
 
 const $q = useQuasar()
 const route = useRoute()
@@ -686,6 +748,108 @@ function normalizeOpportunityValue(value) {
   return String(value || '').trim()
 }
 
+function getOpportunityCardContentView(row) {
+  const rowId = String(row?.id || '').trim()
+  return opportunityCardContentViews.value[rowId] || 'card'
+}
+
+function setOpportunityCardContentView(row, value) {
+  const rowId = String(row?.id || '').trim()
+  if (!rowId) return
+  opportunityCardContentViews.value = {
+    ...opportunityCardContentViews.value,
+    [rowId]: value || 'card',
+  }
+}
+
+function getOpportunityCardPanel(row) {
+  const rowId = String(row?.id || '').trim()
+  return opportunityCardPanels.value[rowId] || 'notes'
+}
+
+function setOpportunityCardPanel(row, value) {
+  const rowId = String(row?.id || '').trim()
+  if (!rowId) return
+  opportunityCardPanels.value = {
+    ...opportunityCardPanels.value,
+    [rowId]: value || 'notes',
+  }
+}
+
+function getOpportunityStatusValue(row) {
+  return (
+    normalizeOpportunityValue(row?.Raising_Status) ||
+    normalizeOpportunityValue(row?.Pipeline_Status) ||
+    normalizeOpportunityValue(row?.Status)
+  )
+}
+
+function getOpportunityClosingDateValue(row) {
+  return (
+    normalizeOpportunityValue(row?.Closing_Date) ||
+    normalizeOpportunityValue(row?.Close_Date) ||
+    normalizeOpportunityValue(row?.Round_Close_Date) ||
+    normalizeOpportunityValue(row?.Fund_Close_Date)
+  )
+}
+
+function getOpportunityMetadataRows(row) {
+  const company = normalizeOpportunityValue(row?.Company_Name)
+  const kind = normalizeOpportunityValue(row?.kind)
+  const size = displaySize(row)
+  const closingDate = getOpportunityClosingDateValue(row)
+  const status = getOpportunityStatusValue(row)
+
+  return [
+    company
+      ? { label: 'Company', value: company, icon: 'apartment' }
+      : null,
+    kind
+      ? { label: 'Kind', value: kind, icon: 'category' }
+      : null,
+    size
+      ? { label: 'Size', value: size, icon: 'payments' }
+      : null,
+    closingDate
+      ? { label: 'Closing date', value: closingDate, icon: 'event' }
+      : null,
+    status
+      ? { label: 'Status', value: status, icon: 'flag' }
+      : null,
+  ].filter(Boolean)
+}
+
+function getOpportunityLinkedNotes(row) {
+  return [
+    ...String(row?.Opportunity_Note || row?.Fund_Note || row?.Round_Note || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_note_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function getOpportunityLinkedDocuments(row) {
+  return [
+    ...String(row?.Opportunity_Artifact || row?.Fund_Artifact || row?.Round_Artifact || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_artifact_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function openOpportunityMetadataAction(link, event) {
+  event?.preventDefault?.()
+  event?.stopPropagation?.()
+}
+
 function buildAvatarImage(label) {
   const text = String(label || 'Opportunity').trim()
   const initials = text
@@ -850,6 +1014,12 @@ async function confirmDeleteSelected() {
       loading.value = false
     }
   })
+}
+
+function editSelected() {
+  const row = selectedRows.value[0]
+  if (!row) return
+  openDatabook(row)
 }
 
 async function shareSelected() {
@@ -1362,34 +1532,65 @@ watch(
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  border-radius: 8px;
+  border-radius: 20px;
   border-color: #e5e5e5;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.opportunity-card__copy {
+.opportunity-card__hero {
+  padding: 0;
+}
+
+.opportunity-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
+}
+
+.opportunity-card__portrait {
+  position: relative;
+  width: 100%;
   min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.opportunity-card__portrait-shell {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.opportunity-card__hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px 18px 14px 14px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.opportunity-card__hero-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .opportunity-card__title {
   min-width: 0;
   color: #0a0a0a;
-  font-family: var(--font-body);
-  font-size: var(--text-base---black);
+  font-family: var(--font-title);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
   font-weight: var(--font-weight-black);
-  line-height: 24px;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.opportunity-card__subtitle {
-  min-width: 0;
-  color: #737373;
-  font-family: var(--font-body);
-  font-size: var(--text-sm---light);
-  font-weight: var(--font-weight-light);
-  line-height: 20px;
+  line-height: 0.96;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -1397,6 +1598,214 @@ watch(
 
 .opportunity-card__avatar {
   box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+}
+
+.opportunity-card__bottom-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.opportunity-card__detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.opportunity-card__detail-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.opportunity-card__inline-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 26px;
+  padding: 0 10px;
+  color: #111;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  cursor: default;
+}
+
+.opportunity-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
+  margin: 20px 20px 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.opportunity-card__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.opportunity-card__summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-left: auto;
+}
+
+.opportunity-card__summary-view-toggle {
+  margin-left: 0;
+  border-radius: var(--ds-control-radius);
+}
+
+.opportunity-card__summary-view-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.opportunity-card__summary-view-toggle :deep(.q-btn) {
+  min-height: 21px;
+  min-width: 21px;
+  height: 21px;
+  width: 21px;
+  padding: 0 2px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--ds-control-radius);
+}
+
+.opportunity-card__summary-view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.opportunity-card__summary-view-toggle :deep(.q-icon) {
+  font-size: 13px;
+}
+
+.opportunity-card__summary-toggle {
+  border-radius: var(--ds-control-radius);
+}
+
+.opportunity-card__summary-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.opportunity-card__summary-toggle :deep(.q-btn) {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--ds-control-radius);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.opportunity-card__summary-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 4px;
+}
+
+.opportunity-card__summary-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.opportunity-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  direction: rtl;
+  padding-left: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(17, 17, 17, 0.18) transparent;
+}
+
+.opportunity-card__summary-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.opportunity-card__summary-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.opportunity-card__summary-body::-webkit-scrollbar-thumb {
+  background: rgba(17, 17, 17, 0.16);
+  border-radius: 999px;
+}
+
+.opportunity-card__summary-body-content {
+  direction: ltr;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.opportunity-card__summary-empty {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---light);
+  font-weight: var(--font-weight-light);
+  line-height: 20px;
+}
+
+.opportunity-card__notes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.opportunity-card__notes-list--rows {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.opportunity-card__note-pill {
+  padding: 8px 12px;
+  color: #4b4b4b;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 14px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.45;
+}
+
+.opportunity-card__notes-list--rows .opportunity-card__note-pill {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.opportunity-card__icon-action {
+  color: #111;
+  background: transparent;
+  border: 0;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.opportunity-card__select-box {
+  transform: scale(0.75);
+  transform-origin: center;
 }
 
 .opportunity-card__field {
@@ -1458,6 +1867,11 @@ watch(
 
   .opportunities-dashboard__stat {
     min-height: 98px;
+  }
+
+  .opportunity-card__hero-main {
+    grid-template-columns: 1fr;
+    height: auto;
   }
 }
 </style>
