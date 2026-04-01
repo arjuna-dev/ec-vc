@@ -339,203 +339,6 @@ const assistantRoleOptions = [
   { label: 'SRR Managers', value: 'agents-manager' },
 ]
 
-const AGENT_HIERARCHY_BLUEPRINTS = [
-  {
-    level: 1,
-    levelLabel: 'Level 1',
-    levelName: 'Domain Stewards',
-    description: 'Section stewards responsible for order, coverage, and process quality in each major workspace area.',
-    items: [
-      {
-        name: 'Users Steward',
-        domain: 'Users',
-        parent: 'Avatar',
-        mission: 'Keep internal team records, permissions, and node roles organized.',
-        scope: 'Users section and related ownership links.',
-        responsibilities: ['Maintain users', 'Watch permissions', 'Track owner links'],
-        keywords: ['users'],
-        nextAction: 'Define permission and team-role conventions.',
-      },
-      {
-        name: 'Contacts Steward',
-        domain: 'Contacts',
-        parent: 'Avatar',
-        mission: 'Keep relationship records complete, reachable, and well linked.',
-        scope: 'Contacts section and network quality.',
-        responsibilities: ['Maintain reachability', 'Enrich profiles', 'Link records'],
-        keywords: ['contacts'],
-        nextAction: 'Define profile health thresholds.',
-      },
-      {
-        name: 'Companies Steward',
-        domain: 'Companies',
-        parent: 'Avatar',
-        mission: 'Keep company records schema-aligned and databook-ready.',
-        scope: 'Companies section and workbook alignment.',
-        responsibilities: ['Align schema', 'Watch databooks', 'Protect structure'],
-        keywords: ['companies', 'company'],
-        nextAction: 'Finish schema-aligned company views.',
-      },
-      {
-        name: 'Opportunities Steward',
-        domain: 'Opportunities',
-        parent: 'Avatar',
-        mission: 'Keep funds and rounds structured for pipeline movement and review.',
-        scope: 'Opportunities, funds, and rounds.',
-        responsibilities: ['Track raises', 'Link sponsors', 'Maintain rounds'],
-        keywords: ['opportunities', 'fund', 'round'],
-        nextAction: 'Clarify fund versus round workflows.',
-      },
-      {
-        name: 'Pipelines Steward',
-        domain: 'Pipelines',
-        parent: 'Avatar',
-        mission: 'Keep pipeline stages, status, and execution flow organized.',
-        scope: 'Pipelines and project-stage orchestration.',
-        responsibilities: ['Manage stages', 'Track status', 'Surface blockages'],
-        keywords: ['pipeline', 'project'],
-        nextAction: 'Align default pipeline structure with workbook behavior.',
-      },
-      {
-        name: 'Notes Steward',
-        domain: 'Notes',
-        parent: 'Avatar',
-        mission: 'Keep notes structured, retrievable, and tied to the right records.',
-        scope: 'Notes and knowledge capture.',
-        responsibilities: ['Structure notes', 'Link records', 'Maintain clarity'],
-        keywords: ['notes', 'note'],
-        nextAction: 'Define note templates and note-link rules.',
-      },
-      {
-        name: 'Tasks Steward',
-        domain: 'Tasks',
-        parent: 'Avatar',
-        mission: 'Keep tasks clear, assigned, and tied to the right operating layer.',
-        scope: 'Tasks and execution ownership.',
-        responsibilities: ['Assign work', 'Track status', 'Escalate blockers'],
-        keywords: ['tasks', 'task'],
-        nextAction: 'Clarify task ownership model across levels.',
-      },
-      {
-        name: 'Artifacts Steward',
-        domain: 'Artifacts',
-        parent: 'Avatar',
-        mission: 'Guide intake, filing, conversion, and archive hygiene for source materials.',
-        scope: 'Artifacts and file intake.',
-        responsibilities: ['Manage intake', 'File records', 'Watch conversion'],
-        keywords: ['artifacts', 'artifact', 'intake'],
-        nextAction: 'Design the artifact intake process end to end.',
-      },
-      {
-        name: 'SRRs Steward',
-        domain: 'SRRs',
-        parent: 'Avatar',
-        mission: 'Keep the skills, roles, and responsibilities system coherent and well documented.',
-        scope: 'SRR hierarchy, card model, and role definitions.',
-        responsibilities: ['Define roles', 'Track coverage', 'Maintain hierarchy'],
-        keywords: ['agents', 'assistant', 'prompt'],
-        nextAction: 'Attach live configs to hierarchy cards.',
-      },
-    ],
-  },
-  {
-    level: 2,
-    levelLabel: 'Level 2',
-    levelName: 'Process Stewards',
-    description: 'Workflow-specific agents that maintain recurring processes inside a domain.',
-    items: [
-      {
-        name: 'Intake Steward',
-        domain: 'Artifacts',
-        parent: 'Artifacts Steward',
-        mission: 'Control the path from incoming file to structured workspace record.',
-        scope: 'Artifact landing, triage, and routing.',
-        responsibilities: ['Receive files', 'Classify intake', 'Route to sections'],
-        keywords: ['intake', 'artifact'],
-        nextAction: 'Define landing, confirmation, and redirect rules.',
-      },
-      {
-        name: 'Workbook Steward',
-        domain: 'Workspace Files',
-        parent: 'Avatar',
-        mission: 'Keep workbook mirrors coherent, numbered, and easy to audit.',
-        scope: 'Excel mirrors and change logs.',
-        responsibilities: ['Mirror records', 'Protect numbering', 'Track changes'],
-        keywords: ['workbook', 'excel', 'mirror'],
-        nextAction: 'Clarify source-of-truth rules between app and files.',
-      },
-      {
-        name: 'Databook Steward',
-        domain: 'Companies',
-        parent: 'Companies Steward',
-        mission: 'Keep databooks structured like a workbook and aligned to schema tabs.',
-        scope: 'Databook UX, tabs, and layout logic.',
-        responsibilities: ['Align tabs', 'Protect workbook feel', 'Surface gaps'],
-        keywords: ['databook'],
-        nextAction: 'Complete the workbook-like databook pass.',
-      },
-      {
-        name: 'Permissions Steward',
-        domain: 'Users',
-        parent: 'Users Steward',
-        mission: 'Maintain a clean separation between Owner, Avatar, Users, and Agent permissions.',
-        scope: 'Roles and access semantics.',
-        responsibilities: ['Define roles', 'Protect ownership', 'Clarify permissions'],
-        keywords: ['user', 'owner', 'permission'],
-        nextAction: 'Map permission language into the glossary.',
-      },
-    ],
-  },
-  {
-    level: 3,
-    levelLabel: 'Level 3',
-    levelName: 'Leaf Stewards',
-    description: 'Narrow execution agents responsible for record-level and file-level upkeep.',
-    items: [
-      {
-        name: 'Company Record Steward',
-        domain: 'Companies',
-        parent: 'Companies Steward',
-        mission: 'Maintain one company record and its related databook completeness.',
-        scope: 'Single company record and linked sections.',
-        responsibilities: ['Maintain record', 'Watch completeness', 'Link related data'],
-        keywords: ['company'],
-        nextAction: 'Define leaf ownership lifecycle for company records.',
-      },
-      {
-        name: 'Pipeline Stage Steward',
-        domain: 'Pipelines',
-        parent: 'Pipelines Steward',
-        mission: 'Watch one pipeline path or stage for drift, blockers, and stale work.',
-        scope: 'Single pipeline stage or lane.',
-        responsibilities: ['Watch stage', 'Track movement', 'Flag blockers'],
-        keywords: ['pipeline', 'stage'],
-        nextAction: 'Define stage-level alerting rules.',
-      },
-      {
-        name: 'Artifact Filing Steward',
-        domain: 'Artifacts',
-        parent: 'Intake Steward',
-        mission: 'Make sure each file lands in the right archive family and linked records.',
-        scope: 'Single artifact or artifact batch.',
-        responsibilities: ['File correctly', 'Preserve links', 'Maintain archive order'],
-        keywords: ['artifact', 'file'],
-        nextAction: 'Define final filing destinations per artifact type.',
-      },
-      {
-        name: 'Task Follow-Up Steward',
-        domain: 'Tasks',
-        parent: 'Tasks Steward',
-        mission: 'Keep leaf execution moving and unresolved work visible.',
-        scope: 'Single task thread or action cluster.',
-        responsibilities: ['Track progress', 'Push follow-up', 'Close loops'],
-        keywords: ['task'],
-        nextAction: 'Define follow-up cadence and stale-task thresholds.',
-      },
-    ],
-  },
-]
-
 const columns = [
   { name: 'name', label: 'SRR', field: 'name', align: 'left', sortable: true },
   { name: 'role', label: 'Role', field: 'roleLabel', align: 'left', sortable: true },
@@ -759,44 +562,56 @@ function getAgentCardDetails(agent) {
     { label: 'Mission', value: agent.mission, icon: 'flag' },
     { label: 'Scope', value: agent.scope, icon: 'hub' },
     { label: 'Next action', value: agent.nextAction, icon: 'play_arrow' },
-  ]
+  ].filter((detail) => normalizeAssistantValue(detail.value))
 }
 
-function findConfigForBlueprint(blueprint) {
-  return rows.value.find((row) => {
-    const haystack = buildAssistantSearchText(row)
-    return blueprint.keywords.some((keyword) => haystack.includes(keyword))
-  }) || null
+function startCase(value) {
+  return String(value || '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
-const agentHierarchySections = computed(() =>
-  AGENT_HIERARCHY_BLUEPRINTS.map((section) => ({
-    ...section,
-    items: section.items.map((item) => {
-      const matchingConfig = findConfigForBlueprint(item)
-      const role = deriveAgentRole(item)
-      return {
-        ...item,
-        assistant_system_prompt_id: matchingConfig?.assistant_system_prompt_id || `blueprint:${section.level}:${item.name}`,
-        level: section.level,
-        levelLabel: section.levelLabel,
-        levelName: section.levelName,
-        role: role.key,
-        roleLabel: role.label,
-        version: matchingConfig?.version || null,
-        system_prompt: matchingConfig?.system_prompt || null,
-        input_contract: matchingConfig?.input_contract || null,
-        output_contract: matchingConfig?.output_contract || null,
-        schema_name: matchingConfig?.schema_name || null,
-        linkedConfigName: matchingConfig?.name || null,
-      }
-    }),
-  })),
-)
+function inferAssistantDomain(row) {
+  const schemaLabel = startCase(row?.schema_name)
+  if (schemaLabel) return schemaLabel
 
-const allAgentRows = computed(() =>
-  agentHierarchySections.value.flatMap((section) => section.items),
-)
+  const haystack = buildAssistantSearchText(row)
+  if (haystack.includes('company')) return 'Companies'
+  if (haystack.includes('contact')) return 'Contacts'
+  if (haystack.includes('artifact') || haystack.includes('file')) return 'Artifacts'
+  if (haystack.includes('task')) return 'Tasks'
+  if (haystack.includes('pipeline') || haystack.includes('stage')) return 'Pipelines'
+  if (haystack.includes('user') || haystack.includes('team')) return 'Users'
+  if (haystack.includes('note')) return 'Notes'
+  if (haystack.includes('round') || haystack.includes('fund') || haystack.includes('opportunit')) return 'Opportunities'
+  return 'General'
+}
+
+function summarizePrompt(text) {
+  const normalized = normalizeAssistantValue(text).replace(/\s+/g, ' ')
+  if (!normalized) return ''
+  if (normalized.length <= 140) return normalized
+  return `${normalized.slice(0, 137).trimEnd()}...`
+}
+
+function mapAssistantRow(row) {
+  const role = deriveAgentRole(row)
+  return {
+    ...row,
+    domain: inferAssistantDomain(row),
+    mission: normalizeAssistantValue(row?.description) || summarizePrompt(row?.system_prompt) || null,
+    scope: startCase(row?.schema_name) || normalizeAssistantValue(row?.input_contract) || null,
+    nextAction: normalizeAssistantValue(row?.output_contract) || null,
+    parent: 'Live config',
+    role: role.key,
+    roleLabel: role.label,
+    linkedConfigName: normalizeAssistantValue(row?.name) || null,
+  }
+}
+
+const allAgentRows = computed(() => rows.value.map(mapAssistantRow))
 
 const displayRows = computed(() => {
   const query = normalizeAssistantValue(searchQuery.value).toLowerCase()
