@@ -261,24 +261,32 @@
                 </q-card-section>
 
                 <q-card-section class="assistant-card__summary">
-                  <div class="assistant-card__summary-label">Highlights</div>
-
-                  <div v-if="getAgentCardDetails(assistant).length" class="assistant-card__details">
-                    <div
-                      v-for="detail in getAgentCardDetails(assistant)"
-                      :key="detail.label"
-                      class="assistant-card__detail"
-                    >
-                      <q-icon :name="detail.icon" size="16px" class="assistant-card__detail-icon" />
-                      <div class="assistant-card__detail-copy">
-                        <div class="assistant-card__detail-label">{{ detail.label }}</div>
-                        <div class="assistant-card__detail-value">{{ detail.value }}</div>
-                      </div>
-                    </div>
+                  <div class="assistant-card__summary-head">
+                    <div class="assistant-card__summary-label">Highlights</div>
                   </div>
 
-                  <div v-else class="assistant-card__summary-empty">
-                    Add more linked agent detail to make this card richer.
+                  <div class="assistant-card__summary-panel">
+                    <div class="assistant-card__summary-body">
+                      <div class="assistant-card__summary-body-content">
+                        <div v-if="getAgentCardDetails(assistant).length" class="assistant-card__details">
+                          <div
+                            v-for="detail in getAgentCardDetails(assistant)"
+                            :key="detail.label"
+                            class="assistant-card__detail"
+                          >
+                            <q-icon :name="detail.icon" size="16px" class="assistant-card__detail-icon" />
+                            <div class="assistant-card__detail-copy">
+                              <div class="assistant-card__detail-label">{{ detail.label }}</div>
+                              <div class="assistant-card__detail-value">{{ detail.value }}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div v-else class="assistant-card__summary-empty">
+                          Add more linked agent detail to make this card richer.
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </q-card-section>
 
@@ -1497,13 +1505,44 @@ onMounted(loadAssistants)
   flex: 1 1 auto;
   flex-direction: column;
   gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
   margin: 20px 20px 0;
-  padding: 16px 18px 18px;
-  background: rgba(255, 255, 255, 0.74);
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 18px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
-  backdrop-filter: blur(18px);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.assistant-card__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.assistant-card__summary-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.assistant-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.assistant-card__summary-body-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 .assistant-card__summary-label,
