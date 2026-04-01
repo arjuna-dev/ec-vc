@@ -2059,6 +2059,12 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['Name', 'Professional_Email', 'Personal_Email', 'id'],
     readonlyColumns: new Set(['id']),
   },
+  Users: {
+    tableName: 'Users',
+    entityLabel: 'User',
+    displayColumns: ['User_Name', 'User_PEmail', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
   Opportunities: {
     tableName: 'Opportunities',
     entityLabel: 'Opportunity',
@@ -2097,6 +2103,8 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   company: 'Companies',
   contacts: 'Contacts',
   contact: 'Contacts',
+  users: 'Users',
+  user: 'Users',
   opportunities: 'Opportunities',
   opportunity: 'Opportunities',
   funds: 'Funds',
