@@ -398,6 +398,8 @@ function onHeroDashboardPointerLeave(event) {
   element.style.setProperty('--hero-dashboard-blob-opacity', '0')
 }
 
+const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+
 function updateHeroDashboardGradientPosition(event) {
   const element = event?.currentTarget
   if (!element) return
@@ -405,7 +407,6 @@ function updateHeroDashboardGradientPosition(event) {
   const rect = element.getBoundingClientRect()
   if (!rect.width || !rect.height) return
 
-  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
   const x = ((event.clientX - rect.left) / rect.width) * 100
   const y = ((event.clientY - rect.top) / rect.height) * 100
 
