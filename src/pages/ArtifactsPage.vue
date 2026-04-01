@@ -1093,8 +1093,7 @@ const viewModeOptions = [
 ]
 const artifactKindOptions = [
   { label: 'All', value: 'all' },
-  { label: 'Reviewed', value: 'ready' },
-  { label: 'Pending Review', value: 'needs-review' },
+  { label: 'Pending', value: 'needs-review' },
 ]
 const artifactCardContentViewOptions = [
   { value: 'card', icon: 'grid_view' },
