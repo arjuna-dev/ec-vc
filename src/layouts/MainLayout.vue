@@ -495,8 +495,21 @@ const currentHeaderTitle = computed(() => {
   }
 
   if (currentRouteName === 'databook-view') {
-    if (String(route.params.tableName || '').toLowerCase() === 'contacts') {
-      return 'Contact Record'
+    const recordLabelByTableName = {
+      contacts: 'Contact Records',
+      companies: 'Company Records',
+      users: 'User Records',
+      artifacts: 'Artifact Records',
+      notes: 'Note Records',
+      tasks: 'Task Records',
+      projects: 'Project Records',
+      funds: 'Fund Records',
+      rounds: 'Round Records',
+      opportunities: 'Opportunity Records',
+    }
+    const tableName = String(route.params.tableName || '').toLowerCase()
+    if (recordLabelByTableName[tableName]) {
+      return recordLabelByTableName[tableName]
     }
     return 'Databook'
   }
