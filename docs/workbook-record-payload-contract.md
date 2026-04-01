@@ -6,7 +6,22 @@ Define the canonical payload contract for `Record View` so the app follows the s
 
 The governing direction is:
 
-`DB tables -> workbook structure -> record payload -> Record View UI`
+`Workbook -> DB Tables -> Record Payload -> Record View UI`
+
+Why this is better:
+
+- the `Workbook` defines the intended structure
+- the `DB Tables` should be aligned to that structure
+- the payload is built from the DB
+- the UI renders the payload
+
+Because the workbook is also mirrored from the DB, this should not be treated as a purely one-way system.
+
+The clearer model is:
+
+`Workbook` is the canonical structure reference. `DB Tables` should stay aligned with that structure, the `Workbook` should mirror the DB, the `Record Payload` should be built from the DB, and the `Record View UI` should render that payload.
+
+The workbook acts as the canonical structure reference, while the workbook files themselves continue to mirror the DB tables.
 
 This means:
 
@@ -33,6 +48,11 @@ The practical rule is:
 `Use the workbook as the canonical setup and validation layer, but allow the current RecordPage execution model to remain if it can render the correct structure cleanly.`
 
 This keeps the workbook as the structural source of truth, while still letting the current `RecordPage.vue` rendering model and placeholders do their job where they are already working well.
+
+So the practical split is:
+
+- for structural authority: `Workbook` first
+- for runtime execution: `DB` feeds payload and UI
 
 ## Core Rule
 
