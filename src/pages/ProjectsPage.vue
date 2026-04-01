@@ -1633,7 +1633,7 @@ watch(displayRows, () => {
   flex-direction: column;
   gap: 8px;
   padding: 16px 18px 14px 14px;
-  background: rgba(255, 255, 255, 0.22);
+  background: transparent;
   overflow: hidden;
 }
 
