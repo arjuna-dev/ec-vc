@@ -2092,14 +2092,6 @@ watch(
   flex: 0 0 auto;
 }
 
-.companies-toolbar__toggle {
-  flex: 0 0 auto;
-  border: 1px solid var(--ds-control-border);
-  border-radius: 999px;
-  box-shadow: var(--ds-control-shadow);
-  overflow: hidden;
-}
-
 .companies-toolbar__search {
   width: 100%;
   min-width: 0;
@@ -2130,26 +2122,44 @@ watch(
 }
 
 .companies-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .companies-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
 }
 
+.companies-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+
 .companies-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border-color: var(--ds-control-border);
   border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
+}
+
+.companies-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.companies-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .companies-toolbar__filter-control {

@@ -226,12 +226,12 @@
                   <div class="pipeline-card__hero-main">
                     <figure class="pipeline-card__portrait">
                       <div class="pipeline-card__portrait-shell" aria-hidden="true">
-                        <q-avatar size="72px" class="pipeline-card__avatar">
-                          <img
-                            :src="buildPipelineAvatar(getPipelineCardTitle(row))"
-                            :alt="getPipelineCardTitle(row)"
-                          />
-                        </q-avatar>
+                        <div
+                          class="pipeline-card__portrait-badge"
+                          :style="{ backgroundColor: getProjectAvatarColor(getPipelineCardTitle(row)) }"
+                        >
+                          {{ getProjectAvatarInitial(getPipelineCardTitle(row)) }}
+                        </div>
                       </div>
                     </figure>
 
@@ -656,30 +656,20 @@ function getPipelineOwnerLabel(row) {
   return pipelineOwnerById.value[pipelineId] || 'Unassigned'
 }
 
-function buildPipelineAvatar(label) {
+function getProjectAvatarColor() {
+  return '#111111'
+}
+
+function getProjectAvatarInitial(label) {
   const text = String(label || 'Project').trim()
-  const initials = text
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase?.() || '')
-    .join('') || 'PR'
-
-  const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
-  let hash = 0
-  for (const char of text) {
-    hash = (hash << 5) - hash + char.charCodeAt(0)
-    hash |= 0
-  }
-  const bg = palette[Math.abs(hash) % palette.length]
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
-      <rect width="112" height="112" rx="24" fill="${bg}" />
-      <text x="56" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff">${initials}</text>
-    </svg>
-  `.trim()
-
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+  return (
+    text
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'PR'
+  )
 }
 
 function getProjectCardContentView(row) {
@@ -1427,17 +1417,29 @@ watch(displayRows, () => {
 }
 
 .pipelines-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border-color: var(--ds-control-border);
   border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
+}
+
+.pipelines-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.pipelines-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .pipelines-toolbar__filter-control {
@@ -1457,12 +1459,18 @@ watch(displayRows, () => {
 }
 
 .pipelines-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .pipelines-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
+}
+
+.pipelines-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
 }
 
 .pipelines-surface {
@@ -1600,8 +1608,22 @@ watch(displayRows, () => {
   padding: 24px;
 }
 
-.pipeline-card__avatar {
-  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+.pipeline-card__portrait-badge {
+  display: flex;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
 }
 
 .pipeline-card__hero-side {

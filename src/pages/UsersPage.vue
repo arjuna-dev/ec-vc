@@ -154,9 +154,12 @@
                   <div class="user-card__hero-main">
                     <figure class="user-card__portrait">
                       <div class="user-card__portrait-shell" aria-hidden="true">
-                        <q-avatar size="72px" class="user-card__avatar">
-                          <img :src="buildUserAvatar(user.User_Name || 'User')" :alt="user.User_Name || 'User avatar'" />
-                        </q-avatar>
+                        <div
+                          class="user-card__portrait-badge"
+                          :style="{ backgroundColor: getUserAvatarColor(user.User_Name || 'User') }"
+                        >
+                          {{ getUserAvatarInitial(user.User_Name || 'User') }}
+                        </div>
                       </div>
                     </figure>
 
@@ -481,18 +484,20 @@ function formatDate(value) {
   return text.replace('T', ' ')
 }
 
-function buildUserAvatar(label) {
-  const seed = String(label || 'User')
-  const color = `hsl(${Array.from(seed).reduce((total, char) => total + char.charCodeAt(0), 0) % 360} 68% 54%)`
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-      <rect width="96" height="96" rx="24" fill="${color}" />
-      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
-        fill="#ffffff" font-family="Avenir Next, Arial, sans-serif" font-size="36" font-weight="800" letter-spacing="0.02em">
-        ${seed.trim().charAt(0).toUpperCase() || 'U'}
-      </text>
-    </svg>`
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+function getUserAvatarColor() {
+  return '#111111'
+}
+
+function getUserAvatarInitial(label) {
+  const text = String(label || 'User').trim()
+  return (
+    text
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'US'
+  )
 }
 
 function getUserCardStyle() {
@@ -844,10 +849,6 @@ onMounted(loadUsers)
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 24px;
-  background: var(--ds-color-surface-base);
-  border: 1px solid var(--ds-color-border-soft);
-  border-radius: var(--ds-radius-lg);
 }
 
 .users-toolbar {
@@ -881,27 +882,44 @@ onMounted(loadUsers)
 }
 
 .users-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
-  overflow: hidden;
+}
+
+.users-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.users-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .users-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .users-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
+}
+
+.users-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
 }
 
 .users-toolbar__kind-toggle :deep(.q-btn) {
@@ -994,7 +1012,7 @@ onMounted(loadUsers)
 
 .user-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+  box-shadow: none;
 }
 
 .user-card__hero-main {
@@ -1004,14 +1022,23 @@ onMounted(loadUsers)
 }
 
 .user-card__portrait {
+  position: relative;
   width: 100%;
+  min-width: 0;
   height: 100%;
   margin: 0;
   overflow: hidden;
   background: transparent;
+  border-right: 0;
+}
+
+.user-card__portrait::after {
+  display: none;
 }
 
 .user-card__portrait-shell {
+  position: relative;
+  z-index: 1;
   display: flex;
   width: 100%;
   height: 100%;
@@ -1020,15 +1047,34 @@ onMounted(loadUsers)
   padding: 24px;
 }
 
-.user-card__avatar {
-  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+.user-card__portrait-badge {
+  display: flex;
+  position: relative;
+  z-index: 1;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
+  overflow: hidden;
 }
 
 .user-card__hero-side {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
   min-width: 0;
   padding: 16px 18px 14px 14px;
-  background: rgba(255, 255, 255, 0.22);
+  background: transparent;
   overflow: hidden;
 }
 
@@ -1099,6 +1145,7 @@ onMounted(loadUsers)
   border: 1px solid transparent;
   border-radius: 18px;
   box-shadow: none;
+  backdrop-filter: none;
 }
 
 .user-card__summary-head {
@@ -1215,14 +1262,14 @@ onMounted(loadUsers)
   flex-direction: column;
   min-height: 100%;
   overflow: hidden;
-  border-radius: 24px;
-  border-color: rgba(148, 163, 184, 0.22);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
-    #fff;
-  box-shadow:
-    0 18px 40px rgba(15, 23, 42, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 240, 0.98) 100%);
+  border-radius: 28px;
+  border-color: #e5e5e5;
+  box-shadow: none;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .user-card::before {
@@ -1230,9 +1277,15 @@ onMounted(loadUsers)
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 14% 16%, rgba(38, 71, 255, 0.08), transparent 34%),
-    radial-gradient(circle at 88% 0%, rgba(235, 255, 90, 0.1), transparent 28%);
+  background: radial-gradient(
+    circle at var(--user-card-blob-x) var(--user-card-blob-y),
+    var(--user-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--user-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--user-card-blob-size) * 0.46),
+    var(--user-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--user-card-blob-size) * 0.7),
+    transparent var(--user-card-blob-size)
+  );
+  opacity: var(--user-card-blob-opacity, 0);
+  transition: opacity 180ms ease;
 }
 
 .user-card > * {

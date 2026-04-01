@@ -174,12 +174,12 @@
             <div class="artifact-card__hero-main">
               <figure class="artifact-card__portrait">
                 <div class="artifact-card__portrait-shell" aria-hidden="true">
-                  <q-avatar size="72px" class="artifact-card__avatar">
-                    <img
-                      :src="buildArtifactCardAvatar(group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Artifact')"
-                      :alt="group.primaryArtifact.title || 'Artifact avatar'"
-                    />
-                  </q-avatar>
+                  <div
+                    class="artifact-card__portrait-badge"
+                    :style="{ backgroundColor: getArtifactAvatarColor(group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Artifact') }"
+                  >
+                    {{ getArtifactAvatarInitial(group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Artifact') }}
+                  </div>
                 </div>
               </figure>
 
@@ -1949,18 +1949,20 @@ function getArtifactCardDetails(group = {}) {
   ]
 }
 
-function buildArtifactCardAvatar(label) {
-  const seed = String(label || 'Artifact')
-  const color = `hsl(${Array.from(seed).reduce((total, char) => total + char.charCodeAt(0), 0) % 360} 68% 54%)`
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-      <rect width="96" height="96" rx="24" fill="${color}" />
-      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
-        fill="#ffffff" font-family="Avenir Next, Arial, sans-serif" font-size="36" font-weight="800" letter-spacing="0.02em">
-        ${seed.trim().charAt(0).toUpperCase() || 'A'}
-      </text>
-    </svg>`
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+function getArtifactAvatarColor() {
+  return '#111111'
+}
+
+function getArtifactAvatarInitial(label) {
+  const text = String(label || 'Artifact').trim()
+  return (
+    text
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'AR'
+  )
 }
 
 function getArtifactCardStyle() {
@@ -3322,20 +3324,44 @@ watch(displayArtifactRows, () => {
 }
 
 .artifacts-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  border-radius: var(--ds-control-radius);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
+}
+
+.artifacts-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.artifacts-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
   border: 1px solid var(--ds-control-border);
-  border-radius: 999px;
-  box-shadow: var(--ds-control-shadow);
-  overflow: hidden;
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .artifacts-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .artifacts-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
+}
+
+.artifacts-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
 }
 
 .artifacts-toolbar__kind-toggle :deep(.q-btn) {
@@ -3374,20 +3400,6 @@ watch(displayArtifactRows, () => {
   padding: 0 var(--ds-control-inline-padding);
 }
 
-.artifacts-toolbar__toggle {
-  flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border-color: var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
-}
-
 .artifacts-empty-state {
   padding: 24px;
 }
@@ -3407,13 +3419,10 @@ watch(displayArtifactRows, () => {
   position: relative;
   overflow: hidden;
   border-radius: 28px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-color: #e5e5e5;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.96)),
-    #fff;
-  box-shadow:
-    0 20px 45px rgba(15, 23, 42, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 240, 0.98) 100%);
+  box-shadow: none;
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
@@ -3421,14 +3430,19 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
+  background: radial-gradient(
+    circle at var(--artifact-card-blob-x) var(--artifact-card-blob-y),
+    var(--artifact-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--artifact-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--artifact-card-blob-size) * 0.46),
+    var(--artifact-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--artifact-card-blob-size) * 0.7),
+    transparent var(--artifact-card-blob-size)
+  );
+  opacity: var(--artifact-card-blob-opacity, 0);
   pointer-events: none;
-  background:
-    radial-gradient(circle at 18% 16%, rgba(14, 165, 233, 0.14), transparent 38%),
-    radial-gradient(circle at 82% 0%, rgba(59, 130, 246, 0.12), transparent 34%),
-    radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.1), transparent 34%);
+  transition: opacity 180ms ease;
 }
 
 .artifact-card > * {
@@ -3439,9 +3453,7 @@ watch(displayArtifactRows, () => {
 .artifact-card:hover {
   transform: translateY(-2px);
   border-color: rgba(59, 130, 246, 0.28);
-  box-shadow:
-    0 24px 52px rgba(15, 23, 42, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  box-shadow: none;
 }
 
 .artifact-card__title-button {
@@ -3477,21 +3489,18 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card__portrait {
-  margin: 0;
-  width: 104px;
-  height: 140px;
-  min-height: 140px;
-  flex: 0 0 auto;
   position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  border-right: 0;
 }
 
 .artifact-card__portrait::after {
-  content: "";
-  position: absolute;
-  inset: 12px 8px -10px 8px;
-  border-radius: 26px;
-  background: rgba(14, 165, 233, 0.12);
-  filter: blur(14px);
+  display: none;
 }
 
 .artifact-card__portrait-shell {
@@ -3500,30 +3509,30 @@ watch(displayArtifactRows, () => {
   display: flex;
   width: 100%;
   height: 100%;
-  min-height: 140px;
   align-items: center;
   justify-content: center;
-  border-radius: 28px;
-  background:
-    linear-gradient(180deg, rgba(14, 165, 233, 0.2), rgba(37, 99, 235, 0.16)),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.4));
-  border: 1px solid rgba(148, 163, 184, 0.24);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.88),
-    0 16px 28px rgba(14, 165, 233, 0.14);
+  padding: 24px;
 }
 
 .artifact-card__portrait-badge {
-  display: grid;
-  width: 64px;
-  height: 64px;
-  place-items: center;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.88);
-  color: #0f172a;
+  display: flex;
+  position: relative;
+  z-index: 1;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
   box-shadow:
-    0 14px 24px rgba(15, 23, 42, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.84);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
+  overflow: hidden;
 }
 
 .artifact-card__hero-side {
@@ -4087,14 +4096,23 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card__portrait {
+  position: relative;
   width: 100%;
+  min-width: 0;
   height: 100%;
   margin: 0;
   overflow: hidden;
   background: transparent;
+  border-right: 0;
+}
+
+.artifact-card__portrait::after {
+  display: none;
 }
 
 .artifact-card__portrait-shell {
+  position: relative;
+  z-index: 1;
   display: flex;
   width: 100%;
   height: 100%;
@@ -4103,15 +4121,34 @@ watch(displayArtifactRows, () => {
   padding: 24px;
 }
 
-.artifact-card__avatar {
-  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+.artifact-card__portrait-badge {
+  display: flex;
+  position: relative;
+  z-index: 1;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
+  overflow: hidden;
 }
 
 .artifact-card__hero-side {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
   min-width: 0;
   padding: 16px 18px 14px 14px;
-  background: rgba(255, 255, 255, 0.22);
+  background: transparent;
   overflow: hidden;
 }
 
@@ -4124,12 +4161,16 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card__title {
-  min-width: 0;
   color: #0a0a0a;
   font-family: var(--font-title);
   font-size: clamp(1.3rem, 2vw, 1.6rem);
   font-weight: var(--font-weight-black);
   line-height: 0.96;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -4150,6 +4191,7 @@ watch(displayArtifactRows, () => {
   display: flex;
   align-items: center;
   width: 100%;
+  min-width: 0;
 }
 
 .artifact-card__inline-chip {
@@ -4167,6 +4209,15 @@ watch(displayArtifactRows, () => {
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: var(--font-weight-medium);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.artifact-card__inline-chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .artifact-card__summary {
@@ -4182,6 +4233,7 @@ watch(displayArtifactRows, () => {
   border: 1px solid transparent;
   border-radius: 18px;
   box-shadow: none;
+  backdrop-filter: none;
 }
 
 .artifact-card__summary-head {

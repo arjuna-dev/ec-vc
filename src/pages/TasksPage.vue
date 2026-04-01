@@ -183,9 +183,12 @@
                   <div class="task-card__hero-main">
                     <figure class="task-card__portrait">
                       <div class="task-card__portrait-shell" aria-hidden="true">
-                        <q-avatar size="72px" class="task-card__avatar">
-                          <img :src="buildTaskAvatar(row.Task_Name || 'Task')" :alt="row.Task_Name || 'Task avatar'" />
-                        </q-avatar>
+                        <div
+                          class="task-card__portrait-badge"
+                          :style="{ backgroundColor: getTaskAvatarColor(row.Task_Name || 'Task') }"
+                        >
+                          {{ getTaskAvatarInitial(row.Task_Name || 'Task') }}
+                        </div>
                       </div>
                     </figure>
 
@@ -594,18 +597,20 @@ function openDatabook(row) {
   })
 }
 
-function buildTaskAvatar(label) {
-  const seed = String(label || 'Task')
-  const color = `hsl(${Array.from(seed).reduce((total, char) => total + char.charCodeAt(0), 0) % 360} 68% 54%)`
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-      <rect width="96" height="96" rx="24" fill="${color}" />
-      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
-        fill="#ffffff" font-family="Avenir Next, Arial, sans-serif" font-size="36" font-weight="800" letter-spacing="0.02em">
-        ${seed.trim().charAt(0).toUpperCase() || 'T'}
-      </text>
-    </svg>`
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+function getTaskAvatarColor() {
+  return '#111111'
+}
+
+function getTaskAvatarInitial(label) {
+  const text = String(label || 'Task').trim()
+  return (
+    text
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'TA'
+  )
 }
 
 function getTaskCardStyle() {
@@ -1121,20 +1126,44 @@ watch(displayRows, () => {
 }
 
 .tasks-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  border-radius: var(--ds-control-radius);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
+}
+
+.tasks-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.tasks-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
   border: 1px solid var(--ds-control-border);
-  border-radius: 999px;
-  box-shadow: var(--ds-control-shadow);
-  overflow: hidden;
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .tasks-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .tasks-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
+}
+
+.tasks-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
 }
 
 .tasks-toolbar__kind-toggle :deep(.q-btn) {
@@ -1171,20 +1200,6 @@ watch(displayRows, () => {
   min-width: 110px;
   background: var(--ds-control-surface);
   border-radius: var(--ds-control-radius);
-}
-
-.tasks-toolbar__toggle {
-  flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border-color: var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
 }
 
 .tasks-surface {
@@ -1284,8 +1299,22 @@ watch(displayRows, () => {
   padding: 24px;
 }
 
-.task-card__avatar {
-  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+.task-card__portrait-badge {
+  display: flex;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
 }
 
 .task-card__hero-side {
