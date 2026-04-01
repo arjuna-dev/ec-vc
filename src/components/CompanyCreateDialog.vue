@@ -56,6 +56,7 @@ import { useQuasar } from 'quasar'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
+  initialData: { type: Object, default: null },
 })
 
 const emit = defineEmits(['update:modelValue', 'created'])
@@ -102,6 +103,19 @@ function resetForm() {
     Rounds_Funds_Count: '',
     Pax: '',
     Website: '',
+  }
+
+  const initial = props.initialData?.entity || props.initialData || {}
+  form.value = {
+    ...form.value,
+    Company_Name: initial.Company_Name || form.value.Company_Name,
+    Company_Type: initial.Company_Type || form.value.Company_Type,
+    One_Liner: initial.One_Liner || form.value.One_Liner,
+    Status: initial.Status || form.value.Status,
+    Date_of_Incorporation: initial.Date_of_Incorporation || form.value.Date_of_Incorporation,
+    Rounds_Funds_Count: initial.Rounds_Funds_Count ?? form.value.Rounds_Funds_Count,
+    Pax: initial.PAX_Count ?? initial.Pax ?? form.value.Pax,
+    Website: initial.Website || form.value.Website,
   }
 }
 

@@ -122,16 +122,29 @@ const fundSchema = z.object({
   field_sources: z.array(fieldSourceSchema).default([]),
 })
 
-export const autofillExtractionOutputSchema = z.object({
-  primary_company_ref: nullableString,
-  primary_contact_ref: nullableString,
-  primary_round_ref: nullableString,
-  primary_fund_ref: nullableString,
-  companies: z.array(companySchema).default([]),
-  contacts: z.array(contactSchema).default([]),
-  rounds: z.array(roundSchema).default([]),
-  funds: z.array(fundSchema).default([]),
-})
+export function buildAutofillExtractionOutputSchema({ kind } = {}) {
+  const normalizedKind = String(kind || '').trim().toLowerCase()
+  const base = {
+    primary_company_ref: nullableString,
+    primary_contact_ref: nullableString,
+    companies: z.array(companySchema).default([]),
+    contacts: z.array(contactSchema).default([]),
+  }
+
+  if (normalizedKind === 'fund') {
+    return z.object({
+      ...base,
+      primary_fund_ref: nullableString,
+      funds: z.array(fundSchema).default([]),
+    })
+  }
+
+  return z.object({
+    ...base,
+    primary_round_ref: nullableString,
+    rounds: z.array(roundSchema).default([]),
+  })
+}
 
 function normalizeString(value) {
   if (typeof value === 'string') {

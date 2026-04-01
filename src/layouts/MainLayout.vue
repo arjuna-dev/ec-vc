@@ -297,6 +297,82 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="intakeQueueDialogOpen" persistent>
+      <q-card style="width: 560px; max-width: 94vw">
+        <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
+          <div class="text-h6">{{ intakeQueueDialogTitle }}</div>
+          <div class="text-caption text-grey-7">{{ intakeQueueDialogCaption }}</div>
+        </q-card-section>
+
+        <q-card-section v-if="activeIntakeQueueItem?.kind === 'field-review'" class="q-px-lg q-pb-md">
+          <div class="column q-gutter-md">
+            <div
+              v-for="field in intakeQueueEditableFields"
+              :key="field.key"
+              class="ec-intake-queue-field"
+            >
+              <div class="ec-intake-queue-field__meta">
+                <div class="ec-intake-queue-field__label">{{ field.label }}</div>
+                <div class="ec-intake-queue-field__caption">{{ field.owner }} to {{ field.target }}</div>
+              </div>
+              <q-input
+                v-model="intakeQueueFieldEdits[field.key]"
+                outlined
+                autogrow
+                :label="field.label"
+              />
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-section v-else-if="activeIntakeQueueItem?.kind === 'entity-create'" class="q-px-lg q-pb-md">
+          <div class="text-body2 q-mb-sm">
+            {{ intakeQueueEntitySummary }}
+          </div>
+          <div class="text-caption text-grey-7">
+            This was extracted as an additional {{ intakeQueueEntityTypeLabel.toLowerCase() }} and is ready to review in the existing create dialog.
+          </div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right" class="q-px-lg q-py-md">
+          <q-btn
+            v-if="activeIntakeQueueItem?.kind === 'field-review'"
+            flat
+            no-caps
+            label="Skip"
+            @click="skipActiveIntakeQueueItem"
+          />
+          <q-btn
+            v-if="activeIntakeQueueItem?.kind === 'field-review'"
+            color="primary"
+            no-caps
+            label="Verify and apply"
+            @click="confirmActiveIntakeFieldReview"
+          />
+          <q-btn
+            v-if="activeIntakeQueueItem?.kind === 'entity-create'"
+            flat
+            no-caps
+            label="Skip"
+            @click="skipActiveIntakeQueueItem"
+          />
+          <q-btn
+            v-if="activeIntakeQueueItem?.kind === 'entity-create'"
+            color="primary"
+            no-caps
+            :label="`Open ${intakeQueueEntityTypeLabel}`"
+            @click="openActiveEntityCreateDialog"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <CompanyCreateDialog v-model="globalCompanyDialogOpen" :initial-data="globalCreateInitialData" />
+    <ContactCreateDialog v-model="globalContactDialogOpen" :initial-data="globalCreateInitialData" />
+    <FundCreateDialog v-model="globalFundDialogOpen" :initial-data="globalCreateInitialData" />
+    <RoundCreateDialog v-model="globalRoundDialogOpen" :initial-data="globalCreateInitialData" />
     <ArtifactAddDialog v-model="artifactDialogOpen" />
   </q-layout>
 </template>
@@ -311,8 +387,23 @@ import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
-import { removeIntakeDraft, setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
+import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
+import ContactCreateDialog from 'components/ContactCreateDialog.vue'
+import FundCreateDialog from 'components/FundCreateDialog.vue'
+import RoundCreateDialog from 'components/RoundCreateDialog.vue'
+import {
+  removeIntakeDraft,
+  setActiveIntakeDraft,
+  updateIntakeDraft,
+  useIntakeDraftState,
+} from 'src/utils/intakeDraftState'
 import { useBreadcrumbActionsState } from 'src/utils/breadcrumbActionsState'
+import {
+  activateNextIntakeReviewItem,
+  dismissIntakeReviewItem,
+  resolveIntakeReviewItem,
+  useIntakeReviewQueueState,
+} from 'src/utils/intakeReviewQueueState'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -327,6 +418,13 @@ const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
 const draftTrayDismissed = ref(false)
+const intakeQueueDialogOpen = ref(false)
+const intakeQueueFieldEdits = ref({})
+const globalCompanyDialogOpen = ref(false)
+const globalContactDialogOpen = ref(false)
+const globalFundDialogOpen = ref(false)
+const globalRoundDialogOpen = ref(false)
+const globalCreateInitialData = ref(null)
 const drawerSectionOpen = ref({
   preferences: true,
   main: true,
@@ -446,6 +544,7 @@ const router = useRouter()
 const route = useRoute()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const intakeDraftState = useIntakeDraftState()
+const intakeReviewQueueState = useIntakeReviewQueueState()
 const breadcrumbActionsState = useBreadcrumbActionsState()
 let logoAnimation = null
 let quickWidgetIconAnimation = null
@@ -454,6 +553,41 @@ const intakeDraftCount = computed(() => intakeDraftState.draftOrder.length)
 const intakeDrafts = computed(() =>
   intakeDraftState.draftOrder.map((draftId) => intakeDraftState.drafts[draftId]).filter(Boolean),
 )
+const activeIntakeQueueItem = computed(() => {
+  const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
+  return intakeReviewQueueState.items.find((item) => String(item?.id || '').trim() === activeId) || null
+})
+const intakeQueueDialogTitle = computed(
+  () => activeIntakeQueueItem.value?.payload?.title || 'Review extracted data',
+)
+const intakeQueueDialogCaption = computed(() => {
+  if (activeIntakeQueueItem.value?.kind === 'entity-create') {
+    return 'Additional entities found in the uploaded documents appear here as they are extracted.'
+  }
+  return 'The intake flow surfaced new values. Verify them as they arrive.'
+})
+const intakeQueueEditableFields = computed(() =>
+  Array.isArray(activeIntakeQueueItem.value?.payload?.fields)
+    ? activeIntakeQueueItem.value.payload.fields
+    : [],
+)
+const intakeQueueEntityTypeLabel = computed(() => {
+  const value = String(activeIntakeQueueItem.value?.payload?.entityType || '').trim().toLowerCase()
+  if (!value) return 'Entity'
+  return value.charAt(0).toUpperCase() + value.slice(1)
+})
+const intakeQueueEntitySummary = computed(() => {
+  const entity = activeIntakeQueueItem.value?.payload?.entity || {}
+  return (
+    entity?.Company_Name ||
+    entity?.Name ||
+    entity?.Round_Name ||
+    entity?.Fund_Name ||
+    'Unnamed extracted entity'
+  )
+})
+
+let intakeQueueNextTimer = null
 
 const drawerNavigationSections = computed(() => [
   {
@@ -618,6 +752,172 @@ async function syncUserNavState() {
 function openArtifactDialog() {
   draftTrayDismissed.value = false
   artifactDialogOpen.value = true
+}
+
+function clearIntakeQueueNextTimer() {
+  if (!intakeQueueNextTimer) return
+  clearTimeout(intakeQueueNextTimer)
+  intakeQueueNextTimer = null
+}
+
+function scheduleNextIntakeQueueItem() {
+  clearIntakeQueueNextTimer()
+  intakeQueueNextTimer = setTimeout(() => {
+    activateNextIntakeReviewItem()
+  }, 2000)
+}
+
+function normalizeValue(value) {
+  return value == null ? '' : String(value).trim()
+}
+
+function createFieldSourceSnapshot(value = '', kind = '') {
+  return {
+    value,
+    kind,
+  }
+}
+
+function draftWithFieldReviewApplied(draft = {}, fields = []) {
+  const nextOpportunityForm = { ...(draft?.opportunityForm || {}) }
+  const nextCompanyForm = { ...(draft?.companyForm || {}) }
+  const nextContactForm = { ...(draft?.contactForm || {}) }
+  const nextFieldSourceModes = { ...(draft?.fieldSourceModes || {}) }
+  const nextAutofilledFlags = { ...(draft?.autofilledFlags || {}) }
+  const nextAiSnapshots = { ...(draft?.aiGeneratedFieldSnapshots || {}) }
+  const nextReviewFields = { ...(draft?.intakeReviewFields || {}) }
+  const nextReviewVerified = { ...(draft?.intakeReviewVerified || {}) }
+  const nextConfirmedValues = { ...(draft?.intakeConfirmedFieldValues || {}) }
+  const nextLockedFields = { ...(draft?.intakeLockedFields || {}) }
+  const nextFieldSources = { ...(draft?.intakeFieldSources || {}) }
+
+  const assignAiField = (section, key, value) => {
+    const fieldKey = `${section}.${key}`
+    if (section === 'company') nextCompanyForm[key] = value
+    else if (section === 'contact') nextContactForm[key] = value
+    else nextOpportunityForm[key] = value
+    nextFieldSourceModes[fieldKey] = 'ai'
+    nextAutofilledFlags[fieldKey] = true
+    nextAiSnapshots[fieldKey] =
+      section === 'company'
+        ? {
+            value,
+            companyForm: {
+              ...nextCompanyForm,
+              [key]: value,
+            },
+            companyId: nextOpportunityForm.company_id || null,
+            companyLinkMode: draft?.companyLinkMode || 'new',
+            companySourceChoice: draft?.companySourceChoice || 'input',
+          }
+        : section === 'contact'
+          ? {
+              value,
+              contactForm: {
+                ...nextContactForm,
+                [key]: value,
+              },
+              contactLinkMode: draft?.contactLinkMode || 'new',
+            }
+          : createFieldSourceSnapshot(value, nextOpportunityForm.kind || draft?.opportunityForm?.kind || '')
+  }
+
+  for (const field of fields) {
+    const key = String(field?.key || '').trim()
+    const value = normalizeValue(field?.value)
+    if (!key || !value) continue
+    nextReviewFields[key] = value
+    nextReviewVerified[key] = true
+    nextConfirmedValues[key] = value
+    nextLockedFields[key] = true
+    nextFieldSources[key] = 'User verified prompt suggestion'
+
+    if (key === 'sponsorCompany') assignAiField('company', 'Company_Name', value)
+    else if (key === 'relatedContact') assignAiField('contact', 'Name', value)
+    else if (key === 'relatedFund') {
+      nextOpportunityForm.kind = 'fund'
+      assignAiField('opportunity', 'Venture_Oppty_Name', value)
+    } else if (key === 'relatedRound') {
+      nextOpportunityForm.kind = 'round'
+      assignAiField('opportunity', 'Round_Stage', value)
+      if (!normalizeValue(nextOpportunityForm.Venture_Oppty_Name)) {
+        assignAiField('opportunity', 'Venture_Oppty_Name', value)
+      }
+    } else if (key === 'website') assignAiField('company', 'Website', value)
+  }
+
+  return {
+    opportunityForm: nextOpportunityForm,
+    companyForm: nextCompanyForm,
+    contactForm: nextContactForm,
+    fieldSourceModes: nextFieldSourceModes,
+    autofilledFlags: nextAutofilledFlags,
+    aiGeneratedFieldSnapshots: nextAiSnapshots,
+    intakeReviewFields: nextReviewFields,
+    intakeReviewVerified: nextReviewVerified,
+    intakeConfirmedFieldValues: nextConfirmedValues,
+    intakeLockedFields: nextLockedFields,
+    intakeFieldSources: nextFieldSources,
+    stage: 'Ready for Review',
+  }
+}
+
+function closeActiveIntakeQueueItem(action = 'resolved') {
+  const itemId = String(activeIntakeQueueItem.value?.id || '').trim()
+  if (!itemId) return
+  intakeQueueDialogOpen.value = false
+  if (action === 'dismissed') dismissIntakeReviewItem(itemId)
+  else resolveIntakeReviewItem(itemId)
+  scheduleNextIntakeQueueItem()
+}
+
+function confirmActiveIntakeFieldReview() {
+  const activeItem = activeIntakeQueueItem.value
+  if (!activeItem || activeItem.kind !== 'field-review') return
+  const draftId = String(activeItem.draftId || '').trim()
+  const draft = draftId ? intakeDraftState.drafts[draftId] || null : null
+  const fields = intakeQueueEditableFields.value
+    .map((field) => ({
+      ...field,
+      value: normalizeValue(intakeQueueFieldEdits.value[field.key]),
+    }))
+    .filter((field) => field.value)
+
+  if (draft && fields.length) {
+    updateIntakeDraft(draftId, draftWithFieldReviewApplied(draft, fields))
+    globalThis?.dispatchEvent?.(
+      new CustomEvent('ecvc:intake-draft-review-applied', { detail: { draftId } }),
+    )
+  }
+
+  closeActiveIntakeQueueItem('resolved')
+}
+
+function skipActiveIntakeQueueItem() {
+  closeActiveIntakeQueueItem('dismissed')
+}
+
+function closeGlobalCreateDialogs() {
+  globalCompanyDialogOpen.value = false
+  globalContactDialogOpen.value = false
+  globalFundDialogOpen.value = false
+  globalRoundDialogOpen.value = false
+}
+
+function openActiveEntityCreateDialog() {
+  const activeItem = activeIntakeQueueItem.value
+  if (!activeItem || activeItem.kind !== 'entity-create') return
+  const entityTypeName = String(activeItem.payload?.entityType || '').trim().toLowerCase()
+  globalCreateInitialData.value = {
+    entityType: entityTypeName,
+    entity: JSON.parse(JSON.stringify(activeItem.payload?.entity || {})),
+  }
+  closeGlobalCreateDialogs()
+  if (entityTypeName === 'company') globalCompanyDialogOpen.value = true
+  else if (entityTypeName === 'contact') globalContactDialogOpen.value = true
+  else if (entityTypeName === 'fund') globalFundDialogOpen.value = true
+  else globalRoundDialogOpen.value = true
+  closeActiveIntakeQueueItem('resolved')
 }
 
 function draftPrimaryLabel(draft = {}) {
@@ -1076,6 +1376,7 @@ onMounted(() => {
   loadQuickWidgetPosition()
   initLogoAnimation()
   playQuickWidgetIdle()
+  activateNextIntakeReviewItem()
 })
 
 onBeforeUnmount(() => {
@@ -1090,6 +1391,7 @@ onBeforeUnmount(() => {
   logoAnimation = null
   quickWidgetIconAnimation = null
   quickWidgetDragState = null
+  clearIntakeQueueNextTimer()
 })
 
 watch(
@@ -1104,6 +1406,27 @@ watch(
   (count) => {
     if (count > 0) draftTrayDismissed.value = false
   },
+)
+
+watch(
+  () => [activeIntakeQueueItem.value?.id || null, activeIntakeQueueItem.value?.updatedAt || null],
+  () => {
+    const item = activeIntakeQueueItem.value
+    if (!item) {
+      intakeQueueDialogOpen.value = false
+      intakeQueueFieldEdits.value = {}
+      return
+    }
+    if (item.kind === 'field-review') {
+      intakeQueueFieldEdits.value = Object.fromEntries(
+        intakeQueueEditableFields.value.map((field) => [field.key, field.value]),
+      )
+    } else {
+      intakeQueueFieldEdits.value = {}
+    }
+    intakeQueueDialogOpen.value = true
+  },
+  { immediate: true },
 )
 
 function resolveBreadcrumbActionDisabled(action) {
@@ -1129,6 +1452,25 @@ function goBack() {
   gap: var(--ds-space-12);
   padding-top: calc(var(--ds-space-12) + 70px);
   padding-bottom: 12px;
+}
+
+.ec-intake-queue-field {
+  display: grid;
+  gap: 8px;
+}
+
+.ec-intake-queue-field__meta {
+  display: grid;
+  gap: 2px;
+}
+
+.ec-intake-queue-field__label {
+  font-weight: 700;
+}
+
+.ec-intake-queue-field__caption {
+  color: var(--ds-color-text-navigation);
+  font-size: var(--ds-font-size-sm);
 }
 
 .ec-shell-toolbar-heading {
