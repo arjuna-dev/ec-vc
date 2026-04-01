@@ -249,7 +249,7 @@
                   icon="visibility"
                   class="artifact-card__icon-action"
                   :disable="loading"
-                  @click="void openArtifactForReview(group.previewArtifact)"
+                  @click="openDatabook(group.primaryArtifact)"
                 />
               </div>
             </div>
@@ -331,7 +331,7 @@
               icon="visibility"
               color="primary"
               :disable="loading"
-              @click="void openArtifactForReview(props.row)"
+              @click="openDatabook(props.row)"
             />
             <q-btn
               dense
@@ -984,6 +984,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { useQuasar } from 'quasar'
+import { useRoute, useRouter } from 'vue-router'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import { setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
@@ -1002,6 +1003,8 @@ const isElectronRuntime = computed(() => {
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const intakeDraftState = useIntakeDraftState()
+const route = useRoute()
+const router = useRouter()
 const hasBridge = computed(
   () =>
     !!bridge.value?.artifacts?.list &&
@@ -2901,6 +2904,22 @@ async function openArtifactForReview(row) {
   } catch (e) {
     $q.notify({ type: 'negative', message: e?.message || String(e) })
   }
+}
+
+function openDatabook(row) {
+  const recordId = String(row?.artifact_id || '').trim()
+  if (!recordId) return
+  router.push({
+    name: 'databook-view',
+    params: { tableName: 'Artifacts', recordId },
+    query: { returnTo: getArtifactsReturnToPath() },
+  })
+}
+
+function getArtifactsReturnToPath() {
+  const queryView = String(route.query.view || '').trim().toLowerCase()
+  const nextView = queryView === 'table' ? 'table' : viewMode.value
+  return nextView === 'table' ? '/artifacts?view=table' : '/artifacts'
 }
 
 async function reviewArtifactMarkdown(row) {
