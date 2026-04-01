@@ -5,10 +5,8 @@ import { Output, streamText } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import {
   autofillExtractionOutputSchema,
-  companyMatchOutputSchema,
+  getPrimaryEntities,
   normalizeStructuredAutofillOutput,
-  projectStructuredAutofillToLegacy,
-  verificationEntriesToMap,
 } from './autofill-output-schema.js'
 
 function normalizeApiKey(value) {
@@ -34,9 +32,8 @@ function buildPrompt() {
     'For rounds, focus on direct data from Round_Overview and Round_Economics.',
     'For funds, focus on direct data from Fund_Overview and Fund_Strategy.',
     'Keep empty or unknown values as null instead of guessing.',
-    'Include 1-3 notes, 1-5 tasks, and one assistant proposal when the document supports them.',
-    'If a primary field is uncertain but still useful for the UI, include a verification entry with field_path, confidence, verification_flag, and evidence.',
-    'Use verification field_path values that match the legacy UI keys such as company.Company_Name, contact.Name, or opportunity.Venture_Oppty_Name.',
+    'Each extracted entity should include source_refs and field_sources when you can identify the source file and page.',
+    'For field_sources, use exact field paths like Company_Name, Fund_Target_Size, or Round_Pre_Valuation.',
     'Read the attached source files directly. Do not wait for or rely on any intermediary markdown artifact.',
   ].join('\n')
 }
@@ -135,13 +132,18 @@ async function buildSourceFileParts(filePaths = []) {
   return content
 }
 
-async function collectStructuredStream(result) {
+async function collectStructuredStream(result, { emitStatus } = {}) {
   let latestPartial = null
   let partialCount = 0
 
   for await (const partial of result.partialOutputStream) {
     latestPartial = partial
     partialCount += 1
+    emitStatus?.({
+      type: 'partial',
+      partialCount,
+      partial,
+    })
   }
 
   return {
@@ -149,26 +151,6 @@ async function collectStructuredStream(result) {
     latestPartial,
     partialCount,
   }
-}
-
-function buildVerificationMap(suggested, modelVerification = {}) {
-  const verification = {}
-  for (const sectionName of ['opportunity', 'company', 'contact']) {
-    const sectionValue = suggested?.[sectionName] || {}
-    for (const [fieldName, value] of Object.entries(sectionValue || {})) {
-      if (value === null || value === undefined || String(value).trim() === '') continue
-      const key = `${sectionName}.${fieldName}`
-      const modelMeta = modelVerification?.[key] || {}
-      const confidenceRaw = Number(modelMeta?.confidence)
-      const confidence = Number.isFinite(confidenceRaw) ? confidenceRaw : 0.9
-      verification[key] = {
-        confidence,
-        verificationFlag: Boolean(modelMeta?.verificationFlag),
-        evidence: String(modelMeta?.evidence || '').trim() || null,
-      }
-    }
-  }
-  return verification
 }
 
 function bigrams(value) {
@@ -188,27 +170,17 @@ function jaccardSimilarity(a, b) {
   return union > 0 ? intersection / union : 0
 }
 
-async function confirmCompanyMatchWithLlm(gemini, extractedName, candidateName) {
-  const prompt = [
-    'Do these company names likely refer to the same company?',
-    `Extracted: ${extractedName}`,
-    `Candidate: ${candidateName}`,
-    'Consider spelling variants and abbreviations.',
-  ].join('\n')
-  const result = streamText({
-    model: gemini('gemini-2.5-flash'),
-    output: Output.object({ schema: companyMatchOutputSchema }),
-    prompt,
-  })
-  const { output } = await collectStructuredStream(result)
+function buildEntityMatchResult(entityType, candidate, similarity) {
+  if (!candidate) return null
   return {
-    match: Boolean(output?.match),
-    confidence: Number.isFinite(Number(output?.confidence)) ? Number(output.confidence) : 0,
-    reason: String(output?.reason || '').trim() || null,
+    entityType,
+    matched_id: String(candidate?.id || '').trim() || null,
+    similarity,
+    candidate,
   }
 }
 
-async function resolveCompanyMatch({ gemini, suggestedCompany, existingCompanies }) {
+function resolveCompanyMatch({ suggestedCompany, existingCompanies }) {
   const extractedName = String(suggestedCompany?.Company_Name || '').trim()
   if (!extractedName) return null
   const candidates = (Array.isArray(existingCompanies) ? existingCompanies : [])
@@ -225,25 +197,90 @@ async function resolveCompanyMatch({ gemini, suggestedCompany, existingCompanies
     .slice(0, 5)
 
   if (!candidates.length || candidates[0].similarity < 0.45) return null
-
   const top = candidates[0]
-  const llm = await confirmCompanyMatchWithLlm(gemini, extractedName, top.Company_Name)
-  if (!llm.match || llm.confidence < 0.65) return null
-  return {
-    company_id: top.id,
-    confidence: llm.confidence,
-    reason: llm.reason || 'Fuzzy and LLM match confirmed.',
-    company: {
-      id: top.id,
-      Company_Name: top.Company_Name,
-      Company_Type: top.Company_Type,
-      One_Liner: top.One_Liner,
-      Website: top.Website,
-    },
-  }
+  // Intentionally disconnected from the old LLM verification step.
+  // Fuzzy matching is enough for now; leave the previous idea out of the hot path.
+  return buildEntityMatchResult('company', top, top.similarity)
 }
 
-export async function previewAutofillFromFiles({ filePaths = [], apiKeys = {}, existingCompanies = [] } = {}) {
+function resolveContactMatch({ suggestedContact, existingContacts }) {
+  const extractedLabel = [
+    suggestedContact?.Name,
+    suggestedContact?.Professional_Email,
+    suggestedContact?.Personal_Email,
+    suggestedContact?.Phone,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
+  if (!extractedLabel) return null
+
+  const candidates = (Array.isArray(existingContacts) ? existingContacts : [])
+    .map((contact) => {
+      const candidateLabel = [
+        contact?.Name,
+        contact?.Professional_Email,
+        contact?.Personal_Email,
+        contact?.Phone,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .trim()
+      return {
+        id: String(contact?.id || '').trim(),
+        Name: String(contact?.Name || '').trim(),
+        Personal_Email: String(contact?.Personal_Email || '').trim() || null,
+        Professional_Email: String(contact?.Professional_Email || '').trim() || null,
+        Phone: String(contact?.Phone || '').trim() || null,
+        similarity: jaccardSimilarity(extractedLabel, candidateLabel),
+      }
+    })
+    .filter((contact) => contact.id && contact.similarity >= 0.55)
+    .sort((a, b) => b.similarity - a.similarity)
+
+  return buildEntityMatchResult('contact', candidates[0] || null, candidates[0]?.similarity || 0)
+}
+
+function resolveRoundMatch({ suggestedRound, existingRounds }) {
+  const extractedName = String(suggestedRound?.Round_Name || '').trim()
+  if (!extractedName) return null
+  const candidates = (Array.isArray(existingRounds) ? existingRounds : [])
+    .map((round) => ({
+      id: String(round?.id || '').trim(),
+      Round_Name: String(round?.Round_Name || '').trim(),
+      sponsor_company_id: round?.sponsor_company_id ?? null,
+      similarity: jaccardSimilarity(extractedName, round?.Round_Name),
+    }))
+    .filter((round) => round.id && round.Round_Name && round.similarity >= 0.55)
+    .sort((a, b) => b.similarity - a.similarity)
+
+  return buildEntityMatchResult('round', candidates[0] || null, candidates[0]?.similarity || 0)
+}
+
+function resolveFundMatch({ suggestedFund, existingFunds }) {
+  const extractedName = String(suggestedFund?.Fund_Name || '').trim()
+  if (!extractedName) return null
+  const candidates = (Array.isArray(existingFunds) ? existingFunds : [])
+    .map((fund) => ({
+      id: String(fund?.id || '').trim(),
+      Fund_Name: String(fund?.Fund_Name || '').trim(),
+      similarity: jaccardSimilarity(extractedName, fund?.Fund_Name),
+    }))
+    .filter((fund) => fund.id && fund.Fund_Name && fund.similarity >= 0.55)
+    .sort((a, b) => b.similarity - a.similarity)
+
+  return buildEntityMatchResult('fund', candidates[0] || null, candidates[0]?.similarity || 0)
+}
+
+export async function previewAutofillFromFiles({
+  filePaths = [],
+  apiKeys = {},
+  existingCompanies = [],
+  existingContacts = [],
+  existingRounds = [],
+  existingFunds = [],
+  emitStatus,
+} = {}) {
   const paths = Array.isArray(filePaths) ? filePaths.map((p) => String(p || '').trim()).filter(Boolean) : []
   if (!paths.length) throw new Error('No files provided for autofill')
 
@@ -255,25 +292,32 @@ export async function previewAutofillFromFiles({ filePaths = [], apiKeys = {}, e
     messages: [{ role: 'user', content }],
   })
 
-  const { output, partialCount } = await collectStructuredStream(result)
+  const { output, partialCount } = await collectStructuredStream(result, { emitStatus })
   const structured = normalizeStructuredAutofillOutput(output)
-  const suggested = projectStructuredAutofillToLegacy(structured)
-  const verification = buildVerificationMap(
-    suggested,
-    verificationEntriesToMap(structured.verification),
-  )
-  const companyMatch = await resolveCompanyMatch({
-    gemini,
-    suggestedCompany: suggested?.company,
-    existingCompanies,
-  })
+  const primaryEntities = getPrimaryEntities(structured)
+  const duplicateMatches = {
+    company: resolveCompanyMatch({
+      suggestedCompany: primaryEntities.company,
+      existingCompanies,
+    }),
+    contact: resolveContactMatch({
+      suggestedContact: primaryEntities.contact,
+      existingContacts,
+    }),
+    round: resolveRoundMatch({
+      suggestedRound: primaryEntities.round,
+      existingRounds,
+    }),
+    fund: resolveFundMatch({
+      suggestedFund: primaryEntities.fund,
+      existingFunds,
+    }),
+  }
 
   return {
-    suggested,
     structured,
-    verification,
-    companyMatch,
     rawModel: JSON.stringify(structured, null, 2),
+    duplicateMatches,
     diagnostics: {
       files: paths.map((filePath) => path.basename(filePath)),
       sourceFileCount: paths.length,
