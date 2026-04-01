@@ -891,57 +891,78 @@ onMounted(loadAssistants)
   min-width: 0;
 }
 
-.assistants-toolbar__block--filters {
-  flex-wrap: nowrap;
+.assistants-toolbar__block--view {
+  padding-top: 2px;
+  margin-right: 18px;
 }
 
 .assistants-toolbar__block--search {
   grid-column: -2 / -1;
+  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
 
 .assistants-toolbar__filters-icon {
+  align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
 }
 
 .assistants-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  border-radius: var(--ds-control-radius);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
+}
+
+.assistants-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.assistants-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
   border: 1px solid var(--ds-control-border);
-  border-radius: 999px;
-  box-shadow: var(--ds-control-shadow);
-  overflow: hidden;
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .assistants-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .assistants-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
 }
 
+.assistants-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+
 .assistants-toolbar__kind-toggle :deep(.q-btn) {
-  min-width: 62px;
-  padding-inline: 14px;
+  min-width: 84px;
+  padding-inline: 18px;
 }
 
 .assistants-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
 }
 
-.assistants-toolbar__filter-control {
-  flex: 0 1 clamp(110px, 16vw, 160px);
-  min-width: 110px;
-  background: var(--ds-control-surface);
-  border-radius: var(--ds-control-radius);
-}
-
 .assistants-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -957,20 +978,6 @@ onMounted(loadAssistants)
 
 .assistants-toolbar__search :deep(.q-field__control) {
   padding: 0 var(--ds-control-inline-padding);
-}
-
-.assistants-toolbar__toggle {
-  flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border-color: var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
 }
 
 .assistants-surface {
@@ -1552,7 +1559,6 @@ onMounted(loadAssistants)
     align-items: stretch;
   }
 
-  .assistants-toolbar__filter-control,
   .assistants-toolbar__search,
   .assistants-toolbar__toggle {
     width: 100%;
