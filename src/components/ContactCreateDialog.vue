@@ -4,6 +4,9 @@
       <q-card-section>
         <div class="text-h6">Create Contact</div>
         <div class="text-caption text-grey-7">Only name is required.</div>
+        <div v-if="props.initialData" class="text-caption text-primary q-mt-xs">
+          Reviewing extracted contact details in the existing create flow.
+        </div>
       </q-card-section>
 
       <q-separator />

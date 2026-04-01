@@ -321,16 +321,21 @@
                 autogrow
                 :label="field.label"
               />
+              <div class="row justify-end q-gutter-sm">
+                <q-btn
+                  flat
+                  no-caps
+                  label="Skip Field"
+                  @click="dismissActiveIntakeField(field.key)"
+                />
+                <q-btn
+                  color="primary"
+                  no-caps
+                  label="Verify Field"
+                  @click="confirmActiveIntakeField(field.key)"
+                />
+              </div>
             </div>
-          </div>
-        </q-card-section>
-
-        <q-card-section v-else-if="activeIntakeQueueItem?.kind === 'entity-create'" class="q-px-lg q-pb-md">
-          <div class="text-body2 q-mb-sm">
-            {{ intakeQueueEntitySummary }}
-          </div>
-          <div class="text-caption text-grey-7">
-            This was extracted as an additional {{ intakeQueueEntityTypeLabel.toLowerCase() }} and is ready to review in the existing create dialog.
           </div>
         </q-card-section>
 
@@ -341,29 +346,8 @@
             v-if="activeIntakeQueueItem?.kind === 'field-review'"
             flat
             no-caps
-            label="Skip"
-            @click="skipActiveIntakeQueueItem"
-          />
-          <q-btn
-            v-if="activeIntakeQueueItem?.kind === 'field-review'"
-            color="primary"
-            no-caps
-            label="Verify and apply"
-            @click="confirmActiveIntakeFieldReview"
-          />
-          <q-btn
-            v-if="activeIntakeQueueItem?.kind === 'entity-create'"
-            flat
-            no-caps
-            label="Skip"
-            @click="skipActiveIntakeQueueItem"
-          />
-          <q-btn
-            v-if="activeIntakeQueueItem?.kind === 'entity-create'"
-            color="primary"
-            no-caps
-            :label="`Open ${intakeQueueEntityTypeLabel}`"
-            @click="openActiveEntityCreateDialog"
+            label="Skip Bundle"
+            @click="dismissActiveIntakeFieldBundle"
           />
         </q-card-actions>
       </q-card>
@@ -561,9 +545,6 @@ const intakeQueueDialogTitle = computed(
   () => activeIntakeQueueItem.value?.payload?.title || 'Review extracted data',
 )
 const intakeQueueDialogCaption = computed(() => {
-  if (activeIntakeQueueItem.value?.kind === 'entity-create') {
-    return 'Additional entities found in the uploaded documents appear here as they are extracted.'
-  }
   return 'The intake flow surfaced new values. Verify them as they arrive.'
 })
 const intakeQueueEditableFields = computed(() =>
@@ -571,23 +552,8 @@ const intakeQueueEditableFields = computed(() =>
     ? activeIntakeQueueItem.value.payload.fields
     : [],
 )
-const intakeQueueEntityTypeLabel = computed(() => {
-  const value = String(activeIntakeQueueItem.value?.payload?.entityType || '').trim().toLowerCase()
-  if (!value) return 'Entity'
-  return value.charAt(0).toUpperCase() + value.slice(1)
-})
-const intakeQueueEntitySummary = computed(() => {
-  const entity = activeIntakeQueueItem.value?.payload?.entity || {}
-  return (
-    entity?.Company_Name ||
-    entity?.Name ||
-    entity?.Round_Name ||
-    entity?.Fund_Name ||
-    'Unnamed extracted entity'
-  )
-})
-
 let intakeQueueNextTimer = null
+let pendingEntityDialogAdvance = false
 
 const drawerNavigationSections = computed(() => [
   {
@@ -832,7 +798,7 @@ function draftWithFieldReviewApplied(draft = {}, fields = []) {
     nextLockedFields[key] = true
     nextFieldSources[key] = 'User verified prompt suggestion'
 
-    if (key === 'sponsorCompany') assignAiField('company', 'Company_Name', value)
+    if (key === 'primaryCompanyName') assignAiField('company', 'Company_Name', value)
     else if (key === 'relatedContact') assignAiField('contact', 'Name', value)
     else if (key === 'relatedFund') {
       nextOpportunityForm.kind = 'fund'
@@ -871,17 +837,11 @@ function closeActiveIntakeQueueItem(action = 'resolved') {
   scheduleNextIntakeQueueItem()
 }
 
-function confirmActiveIntakeFieldReview() {
+function consumeActiveFieldBundle(fields = [], nextAction = 'resolved') {
   const activeItem = activeIntakeQueueItem.value
   if (!activeItem || activeItem.kind !== 'field-review') return
   const draftId = String(activeItem.draftId || '').trim()
   const draft = draftId ? intakeDraftState.drafts[draftId] || null : null
-  const fields = intakeQueueEditableFields.value
-    .map((field) => ({
-      ...field,
-      value: normalizeValue(intakeQueueFieldEdits.value[field.key]),
-    }))
-    .filter((field) => field.value)
 
   if (draft && fields.length) {
     updateIntakeDraft(draftId, draftWithFieldReviewApplied(draft, fields))
@@ -890,11 +850,30 @@ function confirmActiveIntakeFieldReview() {
     )
   }
 
-  closeActiveIntakeQueueItem('resolved')
+  const remainingFields = intakeQueueEditableFields.value.filter(
+    (field) => !fields.some((consumedField) => consumedField.key === field.key),
+  )
+  if (remainingFields.length) {
+    activeItem.payload = {
+      ...activeItem.payload,
+      fields: remainingFields,
+    }
+    activeItem.updatedAt = Date.now()
+    return
+  }
+
+  closeActiveIntakeQueueItem(nextAction)
 }
 
-function skipActiveIntakeQueueItem() {
-  closeActiveIntakeQueueItem('dismissed')
+function confirmActiveIntakeField(fieldKey) {
+  const value = normalizeValue(intakeQueueFieldEdits.value[fieldKey])
+  if (!value) {
+    dismissActiveIntakeField(fieldKey)
+    return
+  }
+  const field = intakeQueueEditableFields.value.find((entry) => entry.key === fieldKey)
+  if (!field) return
+  consumeActiveFieldBundle([{ ...field, value }], 'resolved')
 }
 
 function closeGlobalCreateDialogs() {
@@ -917,7 +896,28 @@ function openActiveEntityCreateDialog() {
   else if (entityTypeName === 'contact') globalContactDialogOpen.value = true
   else if (entityTypeName === 'fund') globalFundDialogOpen.value = true
   else globalRoundDialogOpen.value = true
-  closeActiveIntakeQueueItem('resolved')
+  const itemId = String(activeItem.id || '').trim()
+  if (itemId) resolveIntakeReviewItem(itemId)
+  pendingEntityDialogAdvance = true
+}
+
+function dismissActiveIntakeField(fieldKey) {
+  const activeItem = activeIntakeQueueItem.value
+  if (!activeItem || activeItem.kind !== 'field-review') return
+  const remainingFields = intakeQueueEditableFields.value.filter((entry) => entry.key !== fieldKey)
+  if (remainingFields.length) {
+    activeItem.payload = {
+      ...activeItem.payload,
+      fields: remainingFields,
+    }
+    activeItem.updatedAt = Date.now()
+    return
+  }
+  closeActiveIntakeQueueItem('dismissed')
+}
+
+function dismissActiveIntakeFieldBundle() {
+  closeActiveIntakeQueueItem('dismissed')
 }
 
 function draftPrimaryLabel(draft = {}) {
@@ -1417,6 +1417,12 @@ watch(
       intakeQueueFieldEdits.value = {}
       return
     }
+    if (item.kind === 'entity-create') {
+      intakeQueueDialogOpen.value = false
+      intakeQueueFieldEdits.value = {}
+      openActiveEntityCreateDialog()
+      return
+    }
     if (item.kind === 'field-review') {
       intakeQueueFieldEdits.value = Object.fromEntries(
         intakeQueueEditableFields.value.map((field) => [field.key, field.value]),
@@ -1427,6 +1433,19 @@ watch(
     intakeQueueDialogOpen.value = true
   },
   { immediate: true },
+)
+
+watch(
+  () =>
+    globalCompanyDialogOpen.value ||
+    globalContactDialogOpen.value ||
+    globalFundDialogOpen.value ||
+    globalRoundDialogOpen.value,
+  (isAnyOpen) => {
+    if (isAnyOpen || !pendingEntityDialogAdvance) return
+    pendingEntityDialogAdvance = false
+    scheduleNextIntakeQueueItem()
+  },
 )
 
 function resolveBreadcrumbActionDisabled(action) {
