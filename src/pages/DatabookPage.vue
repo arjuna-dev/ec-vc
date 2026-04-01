@@ -1334,7 +1334,7 @@
           </section>
         </div>
 
-        <div v-else-if="isArtifactView" class="contact-databook">
+        <div v-else-if="isUserView || isArtifactView" class="contact-databook">
           <section
             ref="contactHeroRef"
             class="contact-databook__hero"
@@ -1492,7 +1492,7 @@
             </div>
           </section>
 
-          <section v-if="genericRecordNavItems.length" class="contact-databook__nav" aria-label="Artifact sections">
+          <section v-if="genericRecordNavItems.length" class="contact-databook__nav" :aria-label="`${entityLabel} sections`">
             <button
               v-for="section in genericRecordNavItems"
               :key="section"
@@ -1514,7 +1514,7 @@
                 <div class="contact-section-card__intro">
                   <h2 class="contact-section-card__title">{{ activeGenericSection || 'Metadata' }}</h2>
                   <div class="contact-section-card__caption">
-                    Review the structured fields and relationships tied to this artifact record.
+                    Review the structured fields and relationships tied to this {{ entityLabel.toLowerCase() }} record.
                   </div>
                 </div>
               </div>
@@ -1629,7 +1629,7 @@
                 class="contact-section-card__empty bg-grey-1 text-black"
                 rounded
               >
-                No fields are mapped to this section in the current artifact schema yet.
+                No fields are mapped to this section in the current {{ entityLabel.toLowerCase() }} schema yet.
               </q-banner>
 
               <div v-else class="contact-field-grid">
