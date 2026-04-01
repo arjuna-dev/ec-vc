@@ -1,7 +1,7 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
 
-import { Output, streamText } from 'ai'
+import { NoOutputGeneratedError, Output, generateText, streamText } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import {
   autofillExtractionOutputSchema,
@@ -153,6 +153,81 @@ async function collectStructuredStream(result, { emitStatus } = {}) {
   }
 }
 
+function describeError(error) {
+  const message = String(error?.message || error || '').trim()
+  const causeMessage = String(error?.cause?.message || error?.cause || '').trim()
+  return {
+    message,
+    cause: causeMessage || null,
+  }
+}
+
+async function runStructuredExtraction({
+  gemini,
+  content,
+  emitStatus,
+} = {}) {
+  let streamError = null
+  let streamPartialCount = 0
+
+  try {
+    const result = streamText({
+      model: gemini('gemini-2.5-flash'),
+      output: Output.object({ schema: autofillExtractionOutputSchema }),
+      messages: [{ role: 'user', content }],
+      onError({ error }) {
+        streamError = error
+        emitStatus?.({
+          type: 'warning',
+          stage: 'structured-stream',
+          ...describeError(error),
+        })
+      },
+    })
+
+    const collected = await collectStructuredStream(result, { emitStatus })
+    streamPartialCount = collected.partialCount
+
+    return {
+      output: collected.output,
+      mode: 'stream',
+      partialCount: collected.partialCount,
+      streamError,
+    }
+  } catch (error) {
+    const details = describeError(error)
+    emitStatus?.({
+      type: 'warning',
+      stage: 'structured-stream-failed',
+      partialCount: streamPartialCount,
+      ...details,
+    })
+
+    if (!NoOutputGeneratedError.isInstance(error)) {
+      throw error
+    }
+
+    const fallback = await generateText({
+      model: gemini('gemini-2.5-flash'),
+      output: Output.object({ schema: autofillExtractionOutputSchema }),
+      messages: [{ role: 'user', content }],
+    })
+
+    emitStatus?.({
+      type: 'info',
+      stage: 'structured-fallback',
+      message: 'Structured stream produced no final output. Fallback generateText succeeded.',
+    })
+
+    return {
+      output: fallback.output,
+      mode: 'generateText-fallback',
+      partialCount: streamPartialCount,
+      streamError: error,
+    }
+  }
+}
+
 function bigrams(value) {
   const s = String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '')
   const out = new Set()
@@ -286,13 +361,11 @@ export async function previewAutofillFromFiles({
 
   const gemini = getGeminiClient(apiKeys?.gemini)
   const content = await buildSourceFileParts(paths)
-  const result = streamText({
-    model: gemini('gemini-2.5-flash'),
-    output: Output.object({ schema: autofillExtractionOutputSchema }),
-    messages: [{ role: 'user', content }],
+  const { output, partialCount, mode, streamError } = await runStructuredExtraction({
+    gemini,
+    content,
+    emitStatus,
   })
-
-  const { output, partialCount } = await collectStructuredStream(result, { emitStatus })
   const structured = normalizeStructuredAutofillOutput(output)
   const primaryEntities = getPrimaryEntities(structured)
   const duplicateMatches = {
@@ -322,6 +395,8 @@ export async function previewAutofillFromFiles({
       files: paths.map((filePath) => path.basename(filePath)),
       sourceFileCount: paths.length,
       structuredPartialCount: partialCount,
+      structuredOutputMode: mode,
+      structuredStreamError: streamError ? describeError(streamError) : null,
     },
   }
 }
