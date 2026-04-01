@@ -38,10 +38,10 @@ For every first-level canonical table, we want the same rule:
 
 | Canonical Table | Metadata Owner | Example Metadata Items | Expected First-Level Relationships | Main UI Owner(s) | Current Status | Next Action |
 | --- | --- | --- | --- | --- | --- | --- |
-| `Companies` | `Companies`, `Company_Incorporation_Info`, `Company_Operations_Overview`, other company subtables | `Company_Name`, `Company_Type`, `Website`, `One_Liner`, `Status`, `Date_of_Incorporation`, `Pax`, `Updates` | `Rounds`, `Funds`, `Contacts`, `Projects`, `Tasks`, `Artifacts` | `CompanyCreateDialog.vue`, `DatabookPage.vue`, `OpportunityCreateDialog.vue` company section | Partial | keep canonical owner logic in company editors, then add/verify multiselect relationships |
-| `Rounds` | `Rounds`, `Round_Overview`, `Round_Economics`, `Round_Controls` | `Round_Name`, `Round_Target_Size`, `Round_Raising_Status`, `Round_Security_Type`, `Round_Pre_Valuation`, `Round_Post_Valuation` | `Companies`, `Contacts`, `Projects`, `Tasks`, `Funds`, `Intros`, `Artifacts` | `OpportunityCreateDialog.vue` round mode, `DatabookPage.vue` | Partial | make round metadata explicitly first-order in opportunity editor, then add relationship editor coverage |
-| `Funds` | `Funds`, `Fund_Overview`, `Fund_Strategy`, `Fund_Economics`, `Fund_Controls` | `Fund_Name`, `Fund_Target_Size`, `Fund_Raising_Status`, `Fund_Type`, `Investment_Stages`, `Company_Stages` | `Companies`, `Contacts`, `Projects`, `Tasks`, `Rounds`, `Intros`, `Artifacts` | `OpportunityCreateDialog.vue` fund mode, `DatabookPage.vue` | Partial | make fund metadata explicitly first-order in opportunity editor, then add relationship editor coverage |
-| `Contacts` | `Contacts` | `Name`, `Personal_Email`, `Professional_Email`, `Phone`, `LinkedIn`, `Country_based` | `Companies`, `Rounds`, `Funds`, `Projects`, `Intros`, possibly `Tasks` via assignment | `ContactCreateDialog.vue`, `DatabookPage.vue`, `OpportunityCreateDialog.vue` contact section | Partial | canonical contact path now exists in opportunity dialog; next add broader linked-contact editors where needed |
+| `Companies` | `Companies`, `Company_Incorporation_Info`, `Company_Operations_Overview`, other company subtables | `Company_Name`, `Company_Type`, `Website`, `One_Liner`, `Status`, `Date_of_Incorporation`, `Pax`, `Updates` | `Rounds`, `Funds`, `Contacts`, `Projects`, `Tasks`, `Artifacts` | `CompanyCreateDialog.vue`, `RecordPage.vue`, `OpportunityCreateDialog.vue` company section | Partial | keep canonical owner logic in company editors, then add/verify multiselect relationships |
+| `Rounds` | `Rounds`, `Round_Overview`, `Round_Economics`, `Round_Controls` | `Round_Name`, `Round_Target_Size`, `Round_Raising_Status`, `Round_Security_Type`, `Round_Pre_Valuation`, `Round_Post_Valuation` | `Companies`, `Contacts`, `Projects`, `Tasks`, `Funds`, `Intros`, `Artifacts` | `OpportunityCreateDialog.vue` round mode, `RecordPage.vue` | Partial | make round metadata explicitly first-order in opportunity editor, then add relationship editor coverage |
+| `Funds` | `Funds`, `Fund_Overview`, `Fund_Strategy`, `Fund_Economics`, `Fund_Controls` | `Fund_Name`, `Fund_Target_Size`, `Fund_Raising_Status`, `Fund_Type`, `Investment_Stages`, `Company_Stages` | `Companies`, `Contacts`, `Projects`, `Tasks`, `Rounds`, `Intros`, `Artifacts` | `OpportunityCreateDialog.vue` fund mode, `RecordPage.vue` | Partial | make fund metadata explicitly first-order in opportunity editor, then add relationship editor coverage |
+| `Contacts` | `Contacts` | `Name`, `Personal_Email`, `Professional_Email`, `Phone`, `LinkedIn`, `Country_based` | `Companies`, `Rounds`, `Funds`, `Projects`, `Intros`, possibly `Tasks` via assignment | `ContactCreateDialog.vue`, `RecordPage.vue`, `OpportunityCreateDialog.vue` contact section | Partial | canonical contact path now exists in opportunity dialog; next add broader linked-contact editors where needed |
 | `Tasks` | `Tasks`, `Task_Overview`, `Task_Team` and assignment/support subtables | `Task_Name`, `Task_Summary`, `Task_Status`, `Task_Priority_Rank`, `Task_Start_Date`, `Task_Due_Date`, `Task_End_Date` | `Companies`, `Rounds`, `Funds`, `Projects`, `Contacts`, parent `Tasks` | `TaskCreateDialog.vue`, `TasksPage.vue` | Missing / Partial | add relationship multiselects and canonical ownership rules to task editor |
 | `Projects` | `Projects`, `Project_Overview`, `Project_Stages`, `Project_Team*` | `Project_Name`, stage metadata, install state, team metadata | `Companies`, `Rounds`, `Funds`, `Tasks`, `Contacts`, related `Projects` | `PipelineCreateDialog.vue`, `PipelinesPage.vue` | Partial | audit project relationship editing and add canonical relationship editor coverage |
 | `Notes` | `Notes` | `Note_Name`, `Note_Content`, `created_by` | no persisted first-level note relationship joins in current schema | `NoteCreateDialog.vue`, `NotesPage.vue` | Metadata-only by schema | keep note editor canonical for note-owned fields and do not fake unsaved relationship selectors |
@@ -80,9 +80,9 @@ Examples:
 | `ContactCreateDialog.vue` | Contact | `Contacts` | Canonical create form for a contact | Add linked-contact reuse in places that embed contact cards | Working |
 | `TaskCreateDialog.vue` | Task | `Tasks` plus task subtables | Canonical create form for task record itself | Good base, but related company/round/fund/project links are not exposed here | Partial |
 | `PipelineCreateDialog.vue` | Project / Pipeline | `Projects`, `Project_Overview`, `Project_Stages` | Canonical create form for project pipeline | Good base | Working |
-| `DatabookPage.vue` company view | Related Documents | Company-linked artifact relationships | Lookup improved for company-related rounds, but broader canonical artifact relationship display still needs validation | Verify all expected related artifact joins | Partial |
-| `DatabookPage.vue` company view | Company sections | `Companies` plus company subtables | Uses canonical company databook data | Keep as source of truth | Working |
-| `DatabookPage.vue` contact view | Contact sections | `Contacts` | Uses canonical contact databook data | Keep as source of truth | Working |
+| `RecordPage.vue` company view | Related Documents | Company-linked artifact relationships | Lookup improved for company-related rounds, but broader canonical artifact relationship display still needs validation | Verify all expected related artifact joins | Partial |
+| `RecordPage.vue` company view | Company sections | `Companies` plus company subtables | Uses canonical company databook data | Keep as source of truth | Working |
+| `RecordPage.vue` contact view | Contact sections | `Contacts` | Uses canonical contact databook data | Keep as source of truth | Working |
 
 ## Highest-Impact Gaps
 
@@ -124,7 +124,7 @@ Any card that shows a first-level related record should be checked for:
 
 ### Phase 2
 
-- Audit company and contact related cards in `DatabookPage.vue`
+- Audit company and contact related cards in `RecordPage.vue`
 - Audit task-related cards and dialogs for first-level relationship ownership
 - Audit project-related cards and dialogs for first-level relationship ownership
 
@@ -155,4 +155,4 @@ If a field belongs to a different canonical table, the UI should either:
 
 1. Audit `TaskCreateDialog.vue` for missing first-level relationship ownership
 2. Make `Opportunity` metadata itself more explicitly first-order in `OpportunityCreateDialog.vue`
-3. Audit `DatabookPage.vue` company/contact relationship cards against the canonical contract
+3. Audit `RecordPage.vue` company/contact relationship cards against the canonical contract

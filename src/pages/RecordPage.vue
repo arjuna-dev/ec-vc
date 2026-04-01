@@ -2933,19 +2933,37 @@ const contactNavItems = computed(() => [
 const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
 )
+const GENERIC_METADATA_SECTION_LABEL = 'Metadata'
+const GENERIC_KDB_SECTION_LABEL = 'KDB Relationships'
+
+function normalizeGenericSectionLabel(sectionName) {
+  const raw = String(sectionName || '').trim()
+  if (!raw) return ''
+  if (/kdb/i.test(raw)) return GENERIC_KDB_SECTION_LABEL
+  if (raw === entityLabel.value) return GENERIC_METADATA_SECTION_LABEL
+  return raw
+}
+
 const genericRecordNavItems = computed(() => {
   if (isOpportunityRecordView.value) {
-    return ['Metadata', 'Overview', 'Economics', 'Controls', 'KDB Relationships']
+    return [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Economics', 'Controls', GENERIC_KDB_SECTION_LABEL]
   }
 
   const seen = new Set()
-  return (fields.value || [])
-    .map((field) => String(field?.section || '').trim())
+  const ordered = (fields.value || [])
+    .map((field) => normalizeGenericSectionLabel(field?.section))
     .filter((section) => {
-      if (!section || seen.has(section)) return false
+      if (!section || section === GENERIC_KDB_SECTION_LABEL || seen.has(section)) return false
       seen.add(section)
       return true
     })
+
+  if (!ordered.length || ordered[0] !== GENERIC_METADATA_SECTION_LABEL) {
+    ordered.unshift(GENERIC_METADATA_SECTION_LABEL)
+  }
+
+  ordered.push(GENERIC_KDB_SECTION_LABEL)
+  return ordered
 })
 const structuredRecordThemeMap = {
   Users: {
@@ -3131,11 +3149,12 @@ const genericHeroDocuments = computed(() => {
   }))
 })
 const visibleGenericFields = computed(() => {
-  if (!activeGenericSection.value) return fields.value || []
-  return (fields.value || []).filter((field) => String(field?.section || '').trim() === activeGenericSection.value)
+  const activeSection = String(activeGenericSection.value || '').trim()
+  if (!activeSection || activeSection === GENERIC_KDB_SECTION_LABEL) return fields.value || []
+  return (fields.value || []).filter((field) => normalizeGenericSectionLabel(field?.section) === activeSection)
 })
 const genericKdbFields = computed(() =>
-  (fields.value || []).filter((field) => /kdb/i.test(String(field?.section || '').trim())),
+  (fields.value || []).filter((field) => normalizeGenericSectionLabel(field?.section) === GENERIC_KDB_SECTION_LABEL),
 )
 const genericKdbFieldMap = computed(() =>
   Object.fromEntries(
