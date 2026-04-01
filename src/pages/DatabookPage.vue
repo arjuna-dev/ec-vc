@@ -1334,6 +1334,337 @@
           </section>
         </div>
 
+        <div v-else-if="isArtifactView" class="contact-databook">
+          <section
+            ref="contactHeroRef"
+            class="contact-databook__hero"
+            :style="structuredRecordHeroStyle"
+            @pointerenter="startContactHeroPointerTracking"
+            @pointermove="onContactHeroPointerMove"
+          >
+            <div class="contact-databook__hero-main">
+              <figure class="contact-databook__portrait contact-databook__portrait--initials-only">
+                <div class="contact-databook__portrait-placeholder" aria-hidden="true">
+                  <div
+                    class="contact-databook__portrait-placeholder-initials"
+                    :style="{ backgroundColor: genericRecordAvatarColor }"
+                  >
+                    {{ genericRecordInitials }}
+                  </div>
+                </div>
+              </figure>
+
+              <div class="contact-databook__hero-copy">
+                <h1 class="contact-databook__name">
+                  {{ genericRecordName }}
+                </h1>
+                <div class="contact-databook__role">
+                  {{ genericRecordSubtitle }}
+                </div>
+                <div class="contact-databook__role contact-databook__role--location">
+                  {{ genericRecordSecondaryLine }}
+                </div>
+
+                <div v-if="genericRecordPills.length" class="contact-databook__pill-row">
+                  <q-badge
+                    v-for="pill in genericRecordPills"
+                    :key="pill"
+                    class="contact-databook__pill"
+                  >
+                    {{ pill }}
+                  </q-badge>
+                </div>
+
+                <div v-if="genericRecordActionLinks.length" class="contact-databook__actions">
+                  <q-btn
+                    v-for="link in genericRecordActionLinks"
+                    :key="link.label"
+                    outline
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="contact-databook__action"
+                    :href="link.href"
+                    :target="link.external ? '_blank' : undefined"
+                    :rel="link.external ? 'noopener noreferrer' : undefined"
+                  >
+                    <q-icon :name="link.icon" size="16px" class="q-mr-sm" />
+                    <span>{{ link.label }}</span>
+                  </q-btn>
+                </div>
+
+                <div class="contact-databook__hero-notes-panel">
+                  <div class="contact-databook__hero-tabs" role="tablist" :aria-label="`${entityLabel} context`">
+                    <button
+                      type="button"
+                      class="contact-databook__hero-tab"
+                      :class="{ 'contact-databook__hero-tab--active': genericHeroPanelTab === 'notes' }"
+                      @click="genericHeroPanelTab = 'notes'"
+                    >
+                      Latest notes
+                    </button>
+                    <button
+                      type="button"
+                      class="contact-databook__hero-tab"
+                      :class="{ 'contact-databook__hero-tab--active': genericHeroPanelTab === 'documents' }"
+                      @click="genericHeroPanelTab = 'documents'"
+                    >
+                      Related artifacts
+                    </button>
+                  </div>
+
+                  <ul
+                    v-if="genericHeroPanelTab === 'notes' && genericHeroNotes.length"
+                    class="contact-databook__hero-notes"
+                  >
+                    <li
+                      v-for="note in genericHeroNotes"
+                      :key="note.id"
+                      class="contact-databook__hero-note"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ note.title }}</div>
+                        <div class="contact-databook__notes-meta">{{ note.created_at }}</div>
+                      </div>
+                      <div v-if="note.content" class="contact-databook__notes-content">
+                        {{ note.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div
+                    v-else-if="genericHeroPanelTab === 'notes'"
+                    class="contact-databook__hero-panel-empty"
+                  >
+                    No notes yet for this {{ entityLabel.toLowerCase() }}.
+                  </div>
+
+                  <ul
+                    v-if="genericHeroPanelTab === 'documents' && genericHeroDocuments.length"
+                    class="contact-databook__hero-documents"
+                  >
+                    <li
+                      v-for="document in genericHeroDocuments"
+                      :key="document.id"
+                      class="contact-databook__hero-document"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ document.title }}</div>
+                        <div class="contact-databook__notes-meta">{{ document.meta }}</div>
+                      </div>
+                      <div v-if="document.content" class="contact-databook__notes-content">
+                        {{ document.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div
+                    v-else-if="genericHeroPanelTab === 'documents'"
+                    class="contact-databook__hero-panel-empty"
+                  >
+                    No related artifacts yet for this {{ entityLabel.toLowerCase() }}.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="contact-databook__summary">
+              <div class="contact-databook__summary-header">
+                <div class="contact-databook__summary-label">{{ entityLabel }} Feed</div>
+              </div>
+
+              <div class="contact-databook__summary-feed-toggle">
+                <div class="contact-databook__summary-feed-toolbar">
+                  <button
+                    v-for="option in contactFeedChannelOptions"
+                    :key="option.value"
+                    type="button"
+                    class="contact-databook__summary-feed-button"
+                    :class="{ 'contact-databook__summary-feed-button--active': genericRecordFeedChannel === option.value }"
+                    @click="genericRecordFeedChannel = option.value"
+                  >
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="contact-databook__summary-feed-state">
+                Feed view is inactive for now.
+              </div>
+            </div>
+          </section>
+
+          <section v-if="genericRecordNavItems.length" class="contact-databook__nav" aria-label="Artifact sections">
+            <button
+              v-for="section in genericRecordNavItems"
+              :key="section"
+              type="button"
+              class="contact-databook__nav-item"
+              :class="{
+                'contact-databook__nav-item--active': activeGenericSection === section,
+                'contact-databook__nav-item--kdb': /kdb/i.test(section),
+              }"
+              @click="activeGenericSection = section"
+            >
+              {{ section }}
+            </button>
+          </section>
+
+          <section class="contact-databook__details">
+            <article class="contact-section-card contact-section-card--active">
+              <div class="contact-section-card__header">
+                <div class="contact-section-card__intro">
+                  <h2 class="contact-section-card__title">{{ activeGenericSection || 'Metadata' }}</h2>
+                  <div class="contact-section-card__caption">
+                    Review the structured fields and relationships tied to this artifact record.
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="/kdb/i.test(activeGenericSection)" class="contact-kdb">
+                <div class="contact-kdb-toolbar">
+                  <div class="contact-kdb-toolbar__block">
+                    <q-btn-toggle
+                      v-model="activeGenericKdbSection"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="contact-kdb-toolbar__toggle contact-kdb-toolbar__section-toggle"
+                      :options="genericKdbSectionOptions"
+                    />
+                  </div>
+                </div>
+
+                <div class="contact-kdb-artifacts-toolbar">
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
+                    <q-btn-toggle
+                      v-model="genericKdbViewMode"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
+                      :options="CONTACT_KDB_VIEW_OPTIONS"
+                    />
+                  </div>
+
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                    <q-btn-toggle
+                      v-model="genericKdbKindFilter"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                      :options="genericKdbKindOptions"
+                    />
+                  </div>
+
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
+                    <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                    <q-input
+                      v-model="genericKdbSearchQuery"
+                      dense
+                      outlined
+                      borderless
+                      class="contact-kdb-artifacts-toolbar__search"
+                      :placeholder="genericKdbSearchPlaceholder"
+                    >
+                      <template #prepend>
+                        <q-icon name="search" />
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
+
+                <q-banner
+                  v-if="!displayGenericKdbItems.length"
+                  class="contact-section-card__empty bg-grey-1 text-black"
+                  rounded
+                >
+                  No records in this subsection yet.
+                </q-banner>
+
+                <div v-else-if="genericKdbViewMode === 'table'" class="contact-kdb-rows">
+                  <article
+                    v-for="item in displayGenericKdbItems"
+                    :key="item.id"
+                    class="contact-kdb-row"
+                  >
+                    <div class="contact-kdb-row__main">
+                      <div class="contact-field-card__label">{{ item.title }}</div>
+                      <div class="contact-field-card__value">{{ displayValue(item.content || item.meta) }}</div>
+                    </div>
+                    <div v-if="item.meta" class="contact-kdb-row__meta">
+                      {{ item.meta }}
+                    </div>
+                  </article>
+                </div>
+
+                <div v-else class="row q-col-gutter-md">
+                  <div
+                    v-for="item in displayGenericKdbItems"
+                    :key="item.id"
+                    class="col-12 col-md-6"
+                  >
+                    <article class="contact-field-card contact-kdb-card">
+                      <div class="contact-field-card__label">{{ item.title }}</div>
+                      <div v-if="item.meta" class="contact-section-card__modified">
+                        {{ item.meta }}
+                      </div>
+                      <div class="contact-field-card__value">
+                        {{ displayValue(item.content || item.meta) }}
+                      </div>
+                    </article>
+                  </div>
+                </div>
+              </div>
+
+              <q-banner
+                v-else-if="!visibleGenericFields.length"
+                class="contact-section-card__empty bg-grey-1 text-black"
+                rounded
+              >
+                No fields are mapped to this section in the current artifact schema yet.
+              </q-banner>
+
+              <div v-else class="contact-field-grid">
+                <article
+                  v-for="field in visibleGenericFields"
+                  :key="field.key"
+                  class="contact-field-card"
+                >
+                  <div class="contact-field-card__label">{{ field.label }}</div>
+                  <div
+                    v-if="isHistoricalMode && modifiedByMap[field.key]"
+                    class="contact-section-card__modified"
+                  >
+                    modified by {{ modifiedByMap[field.key] }}
+                  </div>
+                  <template v-if="editMode">
+                    <q-input
+                      v-model="draftValues[field.key]"
+                      dense
+                      outlined
+                      :disable="saving || !field.editable"
+                      :placeholder="field.editable ? 'Enter value' : ''"
+                    />
+                  </template>
+                  <template v-else>
+                    <div class="contact-field-card__value">
+                      {{ displayValue(field.value) }}
+                    </div>
+                  </template>
+                </article>
+              </div>
+            </article>
+          </section>
+        </div>
+
         <div v-else-if="isStructuredGenericRecordView" class="contact-databook">
           <section
             ref="contactHeroRef"
