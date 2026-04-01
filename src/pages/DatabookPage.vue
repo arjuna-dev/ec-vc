@@ -2352,6 +2352,8 @@ const TABLE_LABELS = {
   Rounds: 'Round',
   Projects: 'Project',
   Pipelines: 'Project',
+  Tasks: 'Task',
+  Notes: 'Note',
 }
 
 const TABLE_LIST_ROUTES = {
@@ -2364,6 +2366,8 @@ const TABLE_LIST_ROUTES = {
   Rounds: { routeName: 'rounds', label: 'Back to Rounds' },
   Projects: { routeName: 'projects', label: 'Back to Projects' },
   Pipelines: { routeName: 'projects', label: 'Back to Projects' },
+  Tasks: { routeName: 'tasks', label: 'Back to Tasks' },
+  Notes: { routeName: 'notes', label: 'Back to Notes' },
 }
 
 const DEFAULT_CONTACT_SUMMARY_STAT_IDS = ['role', 'stakeholder', 'country', 'phone']

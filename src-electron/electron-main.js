@@ -2065,6 +2065,12 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['User_Name', 'User_PEmail', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
+  Artifacts: {
+    tableName: 'Artifacts',
+    entityLabel: 'Artifact',
+    displayColumns: ['title', 'artifact_id'],
+    readonlyColumns: new Set(['artifact_id', 'created_at', 'updated_at']),
+  },
   Opportunities: {
     tableName: 'Opportunities',
     entityLabel: 'Opportunity',
@@ -2096,6 +2102,18 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
       'updated_at',
     ]),
   },
+  Tasks: {
+    tableName: 'Tasks',
+    entityLabel: 'Task',
+    displayColumns: ['Task_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Notes: {
+    tableName: 'Notes',
+    entityLabel: 'Note',
+    displayColumns: ['title', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
 })
 
 const DATABOOK_TABLE_ALIASES = Object.freeze({
@@ -2105,6 +2123,8 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   contact: 'Contacts',
   users: 'Users',
   user: 'Users',
+  artifacts: 'Artifacts',
+  artifact: 'Artifacts',
   opportunities: 'Opportunities',
   opportunity: 'Opportunities',
   funds: 'Funds',
@@ -2115,6 +2135,10 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   pipeline: 'Projects',
   projects: 'Projects',
   project: 'Projects',
+  tasks: 'Tasks',
+  task: 'Tasks',
+  notes: 'Notes',
+  note: 'Notes',
 })
 
 function getDatabookTableConfig(tableName) {
