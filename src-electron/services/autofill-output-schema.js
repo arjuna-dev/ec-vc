@@ -2,38 +2,21 @@ import { z } from 'zod'
 
 const nullableString = z.string().nullable().optional()
 const nullableNumber = z.number().nullable().optional()
-const nullableBoolean = z.boolean().nullable().optional()
-
 const stringList = z.array(z.string()).optional().default([])
 
-const noteSchema = z.object({
-  title: nullableString,
-  content: nullableString,
+const sourceRefSchema = z.object({
+  file_name: nullableString,
+  page_number: nullableNumber,
+  section_hint: nullableString,
+  quote: nullableString,
 })
 
-const taskSchema = z.object({
-  Task_Name: nullableString,
-  Task_Description: nullableString,
-  Status: nullableString,
-  Priority: nullableString,
-  Due_Date: nullableString,
-})
-
-const assistantSchema = z.object({
-  name: nullableString,
-  version: nullableString,
-  description: nullableString,
-  system_prompt: nullableString,
-  tools: stringList,
-  functions: stringList,
-  context_sources: stringList,
-})
-
-const verificationEntrySchema = z.object({
+const fieldSourceSchema = z.object({
   field_path: z.string(),
-  confidence: nullableNumber,
-  verification_flag: nullableBoolean,
-  evidence: nullableString,
+  file_name: nullableString,
+  page_number: nullableNumber,
+  section_hint: nullableString,
+  quote: nullableString,
 })
 
 const contactSchema = z.object({
@@ -44,6 +27,8 @@ const contactSchema = z.object({
   Phone: nullableString,
   Country_based: nullableString,
   LinkedIn: nullableString,
+  source_refs: z.array(sourceRefSchema).default([]),
+  field_sources: z.array(fieldSourceSchema).default([]),
 })
 
 const companySchema = z.object({
@@ -65,6 +50,14 @@ const companySchema = z.object({
   headquarters_city: nullableString,
   PAX_Count: nullableNumber,
   PAX_Known: nullableNumber,
+  Mission_Vision: nullableString,
+  Products_Services: nullableString,
+  Key_Features: nullableString,
+  Development_Stage: nullableString,
+  ICP: nullableString,
+  Business_Model: nullableString,
+  Pricing: nullableString,
+  Placement_Distribution: nullableString,
   Rounds_Funds_Count: nullableNumber,
   Amount_Raised: nullableNumber,
   founder_contact_refs: stringList,
@@ -78,6 +71,8 @@ const companySchema = z.object({
   institutional_investor_company_refs: stringList,
   round_refs: stringList,
   fund_refs: stringList,
+  source_refs: z.array(sourceRefSchema).default([]),
+  field_sources: z.array(fieldSourceSchema).default([]),
 })
 
 const roundSchema = z.object({
@@ -98,6 +93,8 @@ const roundSchema = z.object({
   target_region_names: stringList,
   target_industry_names: stringList,
   captable_individual_contact_refs: stringList,
+  source_refs: z.array(sourceRefSchema).default([]),
+  field_sources: z.array(fieldSourceSchema).default([]),
 })
 
 const fundSchema = z.object({
@@ -121,6 +118,8 @@ const fundSchema = z.object({
   target_stage_names: stringList,
   target_asset_types: stringList,
   captable_individual_contact_refs: stringList,
+  source_refs: z.array(sourceRefSchema).default([]),
+  field_sources: z.array(fieldSourceSchema).default([]),
 })
 
 export const autofillExtractionOutputSchema = z.object({
@@ -132,28 +131,73 @@ export const autofillExtractionOutputSchema = z.object({
   contacts: z.array(contactSchema).default([]),
   rounds: z.array(roundSchema).default([]),
   funds: z.array(fundSchema).default([]),
-  notes: z.array(noteSchema).default([]),
-  tasks: z.array(taskSchema).default([]),
-  assistant: assistantSchema,
-  verification: z.array(verificationEntrySchema).default([]),
-})
-
-export const companyMatchOutputSchema = z.object({
-  match: z.boolean(),
-  confidence: nullableNumber,
-  reason: nullableString,
 })
 
 function normalizeString(value) {
-  return typeof value === 'string' ? value.trim() || null : value == null ? null : String(value).trim() || null
+  if (typeof value === 'string') {
+    const normalized = value.trim()
+    return normalized || null
+  }
+  if (value === null || value === undefined) return null
+  const normalized = String(value).trim()
+  return normalized || null
+}
+
+function normalizeNumber(value) {
+  return Number.isFinite(Number(value)) ? Number(value) : null
 }
 
 function normalizeStringArray(values = []) {
   return (Array.isArray(values) ? values : []).map((value) => normalizeString(value)).filter(Boolean)
 }
 
-function normalizeEntityList(list = [], normalizer) {
-  return (Array.isArray(list) ? list : []).map((item) => normalizer(item || {})).filter(Boolean)
+function normalizeSourceRefs(values = []) {
+  return (Array.isArray(values) ? values : [])
+    .map((value) => {
+      const normalized = {
+        file_name: normalizeString(value?.file_name),
+        page_number: normalizeNumber(value?.page_number),
+        section_hint: normalizeString(value?.section_hint),
+        quote: normalizeString(value?.quote),
+      }
+      return normalized.file_name || normalized.page_number != null || normalized.quote ? normalized : null
+    })
+    .filter(Boolean)
+}
+
+function normalizeFieldSources(values = []) {
+  return (Array.isArray(values) ? values : [])
+    .map((value) => {
+      const normalized = {
+        field_path: normalizeString(value?.field_path),
+        file_name: normalizeString(value?.file_name),
+        page_number: normalizeNumber(value?.page_number),
+        section_hint: normalizeString(value?.section_hint),
+        quote: normalizeString(value?.quote),
+      }
+      return normalized.field_path ? normalized : null
+    })
+    .filter(Boolean)
+}
+
+function normalizeEntityList(values = [], normalizeEntity) {
+  return (Array.isArray(values) ? values : []).map((value) => normalizeEntity(value || {})).filter(Boolean)
+}
+
+function normalizeContact(contact = {}) {
+  const normalized = {
+    ref: normalizeString(contact.ref),
+    Name: normalizeString(contact.Name),
+    Personal_Email: normalizeString(contact.Personal_Email),
+    Professional_Email: normalizeString(contact.Professional_Email),
+    Phone: normalizeString(contact.Phone),
+    Country_based: normalizeString(contact.Country_based),
+    LinkedIn: normalizeString(contact.LinkedIn),
+    source_refs: normalizeSourceRefs(contact.source_refs),
+    field_sources: normalizeFieldSources(contact.field_sources),
+  }
+
+  return normalized.ref || normalized.Name ? normalized : null
 }
 
 function normalizeCompany(company = {}) {
@@ -174,12 +218,18 @@ function normalizeCompany(company = {}) {
     Company_Stage: normalizeString(company.Company_Stage),
     Status: normalizeString(company.Status),
     headquarters_city: normalizeString(company.headquarters_city),
-    PAX_Count: Number.isFinite(Number(company.PAX_Count)) ? Number(company.PAX_Count) : null,
-    PAX_Known: Number.isFinite(Number(company.PAX_Known)) ? Number(company.PAX_Known) : null,
-    Rounds_Funds_Count: Number.isFinite(Number(company.Rounds_Funds_Count))
-      ? Number(company.Rounds_Funds_Count)
-      : null,
-    Amount_Raised: Number.isFinite(Number(company.Amount_Raised)) ? Number(company.Amount_Raised) : null,
+    PAX_Count: normalizeNumber(company.PAX_Count),
+    PAX_Known: normalizeNumber(company.PAX_Known),
+    Mission_Vision: normalizeString(company.Mission_Vision),
+    Products_Services: normalizeString(company.Products_Services),
+    Key_Features: normalizeString(company.Key_Features),
+    Development_Stage: normalizeString(company.Development_Stage),
+    ICP: normalizeString(company.ICP),
+    Business_Model: normalizeString(company.Business_Model),
+    Pricing: normalizeString(company.Pricing),
+    Placement_Distribution: normalizeString(company.Placement_Distribution),
+    Rounds_Funds_Count: normalizeNumber(company.Rounds_Funds_Count),
+    Amount_Raised: normalizeNumber(company.Amount_Raised),
     founder_contact_refs: normalizeStringArray(company.founder_contact_refs),
     related_contact_refs: normalizeStringArray(company.related_contact_refs),
     leadership_contact_refs: normalizeStringArray(company.leadership_contact_refs),
@@ -188,28 +238,14 @@ function normalizeCompany(company = {}) {
     hq_region_names: normalizeStringArray(company.hq_region_names),
     industry_names: normalizeStringArray(company.industry_names),
     invested_company_refs: normalizeStringArray(company.invested_company_refs),
-    institutional_investor_company_refs: normalizeStringArray(
-      company.institutional_investor_company_refs,
-    ),
+    institutional_investor_company_refs: normalizeStringArray(company.institutional_investor_company_refs),
     round_refs: normalizeStringArray(company.round_refs),
     fund_refs: normalizeStringArray(company.fund_refs),
+    source_refs: normalizeSourceRefs(company.source_refs),
+    field_sources: normalizeFieldSources(company.field_sources),
   }
 
   return normalized.ref || normalized.Company_Name ? normalized : null
-}
-
-function normalizeContact(contact = {}) {
-  const normalized = {
-    ref: normalizeString(contact.ref),
-    Name: normalizeString(contact.Name),
-    Personal_Email: normalizeString(contact.Personal_Email),
-    Professional_Email: normalizeString(contact.Professional_Email),
-    Phone: normalizeString(contact.Phone),
-    Country_based: normalizeString(contact.Country_based),
-    LinkedIn: normalizeString(contact.LinkedIn),
-  }
-
-  return normalized.ref || normalized.Name ? normalized : null
 }
 
 function normalizeRound(round = {}) {
@@ -220,29 +256,19 @@ function normalizeRound(round = {}) {
     company_refs: normalizeStringArray(round.company_refs),
     Round_Raising_Status: normalizeString(round.Round_Raising_Status),
     Round_Security_Type: normalizeString(round.Round_Security_Type),
-    Round_Target_Size: Number.isFinite(Number(round.Round_Target_Size))
-      ? Number(round.Round_Target_Size)
-      : null,
-    Round_Commited_Amounts: Number.isFinite(Number(round.Round_Commited_Amounts))
-      ? Number(round.Round_Commited_Amounts)
-      : null,
-    Round_Min_Ticket_Size: Number.isFinite(Number(round.Round_Min_Ticket_Size))
-      ? Number(round.Round_Min_Ticket_Size)
-      : null,
+    Round_Target_Size: normalizeNumber(round.Round_Target_Size),
+    Round_Commited_Amounts: normalizeNumber(round.Round_Commited_Amounts),
+    Round_Min_Ticket_Size: normalizeNumber(round.Round_Min_Ticket_Size),
     Round_Close_Date: normalizeString(round.Round_Close_Date),
     Round_Summary: normalizeString(round.Round_Summary),
-    Round_Pre_Valuation: Number.isFinite(Number(round.Round_Pre_Valuation))
-      ? Number(round.Round_Pre_Valuation)
-      : null,
-    Round_Post_Valuation: Number.isFinite(Number(round.Round_Post_Valuation))
-      ? Number(round.Round_Post_Valuation)
-      : null,
-    Round_Previous_Post_Valuation: Number.isFinite(Number(round.Round_Previous_Post_Valuation))
-      ? Number(round.Round_Previous_Post_Valuation)
-      : null,
+    Round_Pre_Valuation: normalizeNumber(round.Round_Pre_Valuation),
+    Round_Post_Valuation: normalizeNumber(round.Round_Post_Valuation),
+    Round_Previous_Post_Valuation: normalizeNumber(round.Round_Previous_Post_Valuation),
     target_region_names: normalizeStringArray(round.target_region_names),
     target_industry_names: normalizeStringArray(round.target_industry_names),
     captable_individual_contact_refs: normalizeStringArray(round.captable_individual_contact_refs),
+    source_refs: normalizeSourceRefs(round.source_refs),
+    field_sources: normalizeFieldSources(round.field_sources),
   }
 
   return normalized.ref || normalized.Round_Name ? normalized : null
@@ -256,30 +282,22 @@ function normalizeFund(fund = {}) {
     company_refs: normalizeStringArray(fund.company_refs),
     Fund_Raising_Status: normalizeString(fund.Fund_Raising_Status),
     Fund_Period: normalizeString(fund.Fund_Period),
-    Fund_Target_Size: Number.isFinite(Number(fund.Fund_Target_Size))
-      ? Number(fund.Fund_Target_Size)
-      : null,
-    Fund_Commited_Amounts: Number.isFinite(Number(fund.Fund_Commited_Amounts))
-      ? Number(fund.Fund_Commited_Amounts)
-      : null,
-    Fund_Min_Ticket_Size: Number.isFinite(Number(fund.Fund_Min_Ticket_Size))
-      ? Number(fund.Fund_Min_Ticket_Size)
-      : null,
+    Fund_Target_Size: normalizeNumber(fund.Fund_Target_Size),
+    Fund_Commited_Amounts: normalizeNumber(fund.Fund_Commited_Amounts),
+    Fund_Min_Ticket_Size: normalizeNumber(fund.Fund_Min_Ticket_Size),
     Fund_Close_Date: normalizeString(fund.Fund_Close_Date),
     Fund_Summary: normalizeString(fund.Fund_Summary),
-    Fund_Reserve: Number.isFinite(Number(fund.Fund_Reserve)) ? Number(fund.Fund_Reserve) : null,
-    Fund_Initial_Ticket_Size: Number.isFinite(Number(fund.Fund_Initial_Ticket_Size))
-      ? Number(fund.Fund_Initial_Ticket_Size)
-      : null,
-    Fund_Target_Positions: Number.isFinite(Number(fund.Fund_Target_Positions))
-      ? Number(fund.Fund_Target_Positions)
-      : null,
+    Fund_Reserve: normalizeNumber(fund.Fund_Reserve),
+    Fund_Initial_Ticket_Size: normalizeNumber(fund.Fund_Initial_Ticket_Size),
+    Fund_Target_Positions: normalizeNumber(fund.Fund_Target_Positions),
     manager_contact_refs: normalizeStringArray(fund.manager_contact_refs),
     target_region_names: normalizeStringArray(fund.target_region_names),
     target_industry_names: normalizeStringArray(fund.target_industry_names),
     target_stage_names: normalizeStringArray(fund.target_stage_names),
     target_asset_types: normalizeStringArray(fund.target_asset_types),
     captable_individual_contact_refs: normalizeStringArray(fund.captable_individual_contact_refs),
+    source_refs: normalizeSourceRefs(fund.source_refs),
+    field_sources: normalizeFieldSources(fund.field_sources),
   }
 
   return normalized.ref || normalized.Fund_Name ? normalized : null
@@ -295,145 +313,23 @@ export function normalizeStructuredAutofillOutput(input = {}) {
     contacts: normalizeEntityList(input.contacts, normalizeContact),
     rounds: normalizeEntityList(input.rounds, normalizeRound),
     funds: normalizeEntityList(input.funds, normalizeFund),
-    notes: normalizeEntityList(input.notes, (row) => {
-      const content = normalizeString(row.content)
-      if (!content) return null
-      return { title: normalizeString(row.title), content }
-    }),
-    tasks: normalizeEntityList(input.tasks, (row) => {
-      const Task_Name = normalizeString(row.Task_Name)
-      if (!Task_Name) return null
-      return {
-        Task_Name,
-        Task_Description: normalizeString(row.Task_Description),
-        Status: normalizeString(row.Status),
-        Priority: normalizeString(row.Priority),
-        Due_Date: normalizeString(row.Due_Date),
-      }
-    }),
-    assistant: {
-      name: normalizeString(input.assistant?.name),
-      version: normalizeString(input.assistant?.version) || 'v1',
-      description: normalizeString(input.assistant?.description),
-      system_prompt: normalizeString(input.assistant?.system_prompt),
-      tools: normalizeStringArray(input.assistant?.tools),
-      functions: normalizeStringArray(input.assistant?.functions),
-      context_sources: normalizeStringArray(input.assistant?.context_sources),
-    },
-    verification: normalizeEntityList(input.verification, (row) => {
-      const field_path = normalizeString(row.field_path)
-      if (!field_path) return null
-      const confidence = Number.isFinite(Number(row.confidence)) ? Number(row.confidence) : null
-      return {
-        field_path,
-        confidence,
-        verification_flag: Boolean(row.verification_flag),
-        evidence: normalizeString(row.evidence),
-      }
-    }),
   }
 }
 
-function pickPrimaryByRef(list = [], refKey, explicitRef) {
+function choosePrimaryEntity(list = [], explicitRef = null) {
   const normalizedRef = normalizeString(explicitRef)
   if (normalizedRef) {
-    const found = (Array.isArray(list) ? list : []).find((item) => normalizeString(item?.[refKey]) === normalizedRef)
-    if (found) return found
+    const exact = (Array.isArray(list) ? list : []).find((item) => item?.ref === normalizedRef)
+    if (exact) return exact
   }
   return Array.isArray(list) && list.length ? list[0] : null
 }
 
-export function projectStructuredAutofillToLegacy(structured = {}) {
-  const primaryCompany = pickPrimaryByRef(structured.companies, 'ref', structured.primary_company_ref)
-  const primaryContact = pickPrimaryByRef(structured.contacts, 'ref', structured.primary_contact_ref)
-  const primaryRound = pickPrimaryByRef(structured.rounds, 'ref', structured.primary_round_ref)
-  const primaryFund = pickPrimaryByRef(structured.funds, 'ref', structured.primary_fund_ref)
-
-  const company = primaryCompany
-    ? {
-        Company_Name: primaryCompany.Company_Name || '',
-        Company_Type: primaryCompany.Company_Type || '',
-        One_Liner: primaryCompany.One_Liner || '',
-        Status: primaryCompany.Status || '',
-        Date_of_Incorporation: primaryCompany.Date_of_Incorporation || '',
-        Pax: primaryCompany.PAX_Count ?? '',
-        Updates: primaryCompany.Updates || '',
-        Website: primaryCompany.Website || '',
-      }
-    : {}
-
-  const contact = primaryContact
-    ? {
-        Name: primaryContact.Name || '',
-        Personal_Email: primaryContact.Personal_Email || '',
-        Professional_Email: primaryContact.Professional_Email || '',
-        Phone: primaryContact.Phone || '',
-        LinkedIn: primaryContact.LinkedIn || '',
-        Country_based: primaryContact.Country_based || '',
-      }
-    : {}
-
-  let opportunity = {}
-  if (primaryRound) {
-    opportunity = {
-      Venture_Oppty_Name: primaryRound.Round_Name || '',
-      kind: 'round',
-      Type_of_Security: primaryRound.Round_Security_Type || '',
-      Round_Amount: primaryRound.Round_Target_Size ?? null,
-      Hard_Commits: primaryRound.Round_Commited_Amounts ?? null,
-      Investment_Ask: primaryRound.Round_Target_Size ?? null,
-      Final_Close_Date: primaryRound.Round_Close_Date || '',
-      Raising_Status: primaryRound.Round_Raising_Status || '',
-      Pre_Valuation: primaryRound.Round_Pre_Valuation ?? null,
-      Post_Valuation: primaryRound.Round_Post_Valuation ?? null,
-      Previous_Post: primaryRound.Round_Previous_Post_Valuation ?? null,
-    }
-  } else if (primaryFund) {
-    opportunity = {
-      Venture_Oppty_Name: primaryFund.Fund_Name || '',
-      kind: 'fund',
-      Round_Amount: primaryFund.Fund_Target_Size ?? null,
-      Hard_Commits: primaryFund.Fund_Commited_Amounts ?? null,
-      Investment_Ask: primaryFund.Fund_Target_Size ?? null,
-      Final_Close_Date: primaryFund.Fund_Close_Date || '',
-      Raising_Status: primaryFund.Fund_Raising_Status || '',
-      Pipeline_Status: primaryFund.Fund_Period || '',
-    }
-  }
-
+export function getPrimaryEntities(structured = {}) {
   return {
-    opportunity,
-    company,
-    contact,
-    notes: structured.notes || [],
-    tasks: structured.tasks || [],
-    assistant: structured.assistant || {
-      name: null,
-      version: 'v1',
-      description: null,
-      system_prompt: null,
-      tools: [],
-      functions: [],
-      context_sources: [],
-    },
+    company: choosePrimaryEntity(structured.companies, structured.primary_company_ref),
+    contact: choosePrimaryEntity(structured.contacts, structured.primary_contact_ref),
+    round: choosePrimaryEntity(structured.rounds, structured.primary_round_ref),
+    fund: choosePrimaryEntity(structured.funds, structured.primary_fund_ref),
   }
-}
-
-export function verificationEntriesToMap(entries = []) {
-  return Object.fromEntries(
-    (Array.isArray(entries) ? entries : [])
-      .map((entry) => {
-        const key = normalizeString(entry?.field_path)
-        if (!key) return null
-        return [
-          key,
-          {
-            confidence: Number.isFinite(Number(entry?.confidence)) ? Number(entry.confidence) : 0.9,
-            verificationFlag: Boolean(entry?.verification_flag),
-            evidence: normalizeString(entry?.evidence),
-          },
-        ]
-      })
-      .filter(Boolean),
-  )
 }

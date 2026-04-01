@@ -1032,6 +1032,42 @@ function listContacts() {
   )
 }
 
+function listRounds() {
+  return dbAll(
+    `
+    SELECT
+      r.id,
+      r.Round_Name,
+      ro.sponsor_company_id,
+      ro.Round_Raising_Status,
+      ro.Round_Security_Type,
+      ro.Round_Target_Size,
+      ro.Round_Commited_Amounts,
+      ro.Round_Close_Date
+    FROM Rounds r
+    LEFT JOIN Round_Overview ro ON ro.round_id = r.id
+    ORDER BY COALESCE(r.Round_Name, '') ASC, r.id DESC
+  `,
+  )
+}
+
+function listFunds() {
+  return dbAll(
+    `
+    SELECT
+      f.id,
+      f.Fund_Name,
+      fo.Fund_Raising_Status,
+      fo.Fund_Target_Size,
+      fo.Fund_Commited_Amounts,
+      fo.Fund_Close_Date
+    FROM Funds f
+    LEFT JOIN Fund_Overview fo ON fo.fund_id = f.id
+    ORDER BY COALESCE(f.Fund_Name, '') ASC, f.id DESC
+  `,
+  )
+}
+
 function listUsers() {
   return dbAll(
     `
@@ -4801,10 +4837,24 @@ function registerIpc() {
     const database = initDb()
     const apiSettings = getApiSettings(database)
     const existingCompanies = listCompanies()
+    const existingContacts = listContacts()
+    const existingRounds = listRounds()
+    const existingFunds = listFunds()
+    const emitStatus = (status) => {
+      try {
+        _event?.sender?.send?.('autofill:preview:status', status)
+      } catch {
+        // ignore
+      }
+    }
     return previewAutofillFromFiles({
       filePaths: payload?.filePaths || [],
       apiKeys: { gemini: apiSettings.geminiApiKey },
       existingCompanies,
+      existingContacts,
+      existingRounds,
+      existingFunds,
+      emitStatus,
     })
   })
 

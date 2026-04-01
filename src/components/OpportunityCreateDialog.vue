@@ -1115,7 +1115,14 @@ const intakeReviewFields = ref(createDefaultIntakeReviewFields())
 const intakeReviewVerified = ref(createDefaultIntakeReviewVerified())
 const intakeLockedFields = ref(createDefaultIntakeReviewVerified())
 const intakeFieldSources = ref(createDefaultIntakeReviewSources())
-const deferredSuggestionPayload = ref(null)
+const deferredStructuredPayload = ref(null)
+const extractedStructuredAutofill = ref(null)
+const duplicateMatchState = ref({
+  company: null,
+  contact: null,
+  round: null,
+  fund: null,
+})
 
 const autofilledFlags = ref({})
 const fieldSourceModes = ref({})
@@ -1628,7 +1635,14 @@ function resetTransientState() {
   intakeRejectedFieldValues.value = createDefaultIntakeReviewFields()
   intakeLockedFields.value = createDefaultIntakeReviewVerified()
   intakeFieldSources.value = createDefaultIntakeReviewSources()
-  deferredSuggestionPayload.value = null
+  deferredStructuredPayload.value = null
+  extractedStructuredAutofill.value = null
+  duplicateMatchState.value = {
+    company: null,
+    contact: null,
+    round: null,
+    fund: null,
+  }
   clearIntakeReviewTimer()
 }
 
@@ -1640,6 +1654,8 @@ function buildDraftSnapshot() {
     generatedNotes: [...generatedNotes.value],
     generatedTasks: [...generatedTasks.value],
     assistantProposal: { ...assistantProposal.value },
+    structuredAutofill: JSON.parse(JSON.stringify(extractedStructuredAutofill.value || null)),
+    duplicateMatches: JSON.parse(JSON.stringify(duplicateMatchState.value || {})),
     draftArtifactIds: [...draftArtifactIds.value],
     opportunityForm: JSON.parse(JSON.stringify(form.value || {})),
     companyForm: JSON.parse(JSON.stringify(companyForm.value || {})),
@@ -2812,7 +2828,8 @@ function isAutofillQuotaError(error) {
 
 async function handleAutofillPreviewFallback(error) {
   releaseIntakeExtractionLocks()
-  deferredSuggestionPayload.value = null
+  deferredStructuredPayload.value = null
+  extractedStructuredAutofill.value = null
   updateStatusForAllFiles({ extractionStatus: 'manual review' })
   syncActiveDraft({
     stage: 'Ready for Review',
@@ -2880,8 +2897,51 @@ async function findExistingDroppedFiles(files = []) {
   return { existingNames, bothExist }
 }
 
-function applyPrimarySuggestedValues(suggested = {}) {
-  for (const [key, value] of Object.entries(suggested?.opportunity || {})) {
+function pickPrimaryStructuredEntity(list = [], explicitRef = null) {
+  const normalizedRef = String(explicitRef || '').trim()
+  if (normalizedRef) {
+    const exact = (Array.isArray(list) ? list : []).find((item) => String(item?.ref || '').trim() === normalizedRef)
+    if (exact) return exact
+  }
+  return Array.isArray(list) && list.length ? list[0] : null
+}
+
+function applyPrimaryStructuredValues(structured = {}) {
+  const primaryCompany = pickPrimaryStructuredEntity(structured?.companies, structured?.primary_company_ref)
+  const primaryContact = pickPrimaryStructuredEntity(structured?.contacts, structured?.primary_contact_ref)
+  const primaryRound = pickPrimaryStructuredEntity(structured?.rounds, structured?.primary_round_ref)
+  const primaryFund = pickPrimaryStructuredEntity(structured?.funds, structured?.primary_fund_ref)
+
+  const primaryOpportunity = primaryRound || primaryFund || null
+
+  for (const [key, value] of Object.entries(
+    primaryRound
+      ? {
+          Venture_Oppty_Name: primaryRound.Round_Name,
+          kind: 'round',
+          Type_of_Security: primaryRound.Round_Security_Type,
+          Investment_Ask: primaryRound.Round_Target_Size,
+          Round_Amount: primaryRound.Round_Target_Size,
+          Hard_Commits: primaryRound.Round_Commited_Amounts,
+          Final_Close_Date: primaryRound.Round_Close_Date,
+          Raising_Status: primaryRound.Round_Raising_Status,
+          Pre_Valuation: primaryRound.Round_Pre_Valuation,
+          Post_Valuation: primaryRound.Round_Post_Valuation,
+          Previous_Post: primaryRound.Round_Previous_Post_Valuation,
+        }
+      : primaryFund
+        ? {
+            Venture_Oppty_Name: primaryFund.Fund_Name,
+            kind: 'fund',
+            Investment_Ask: primaryFund.Fund_Target_Size,
+            Round_Amount: primaryFund.Fund_Target_Size,
+            Hard_Commits: primaryFund.Fund_Commited_Amounts,
+            Final_Close_Date: primaryFund.Fund_Close_Date,
+            Raising_Status: primaryFund.Fund_Raising_Status,
+            Pipeline_Status: primaryFund.Fund_Period,
+          }
+        : {},
+  )) {
     if (!Object.prototype.hasOwnProperty.call(form.value, key)) continue
     if (key === 'Venture_Oppty_Name' && intakeLockedFields.value.relatedFund) continue
     if (key === 'Round_Stage' && intakeLockedFields.value.relatedRound) continue
@@ -2892,7 +2952,21 @@ function applyPrimarySuggestedValues(suggested = {}) {
       markAutofilled('opportunity', key)
     }
   }
-  for (const [key, value] of Object.entries(suggested?.company || {})) {
+  for (const [key, value] of Object.entries(
+    primaryCompany
+      ? {
+          Company_Name: primaryCompany.Company_Name,
+          Company_Type: primaryCompany.Company_Type,
+          Status: primaryCompany.Status,
+          Headquarters_City: primaryCompany.headquarters_city,
+          Date_of_Incorporation: primaryCompany.Date_of_Incorporation,
+          Website: primaryCompany.Website,
+          Pax: primaryCompany.PAX_Count,
+          One_Liner: primaryCompany.One_Liner,
+          Updates: primaryCompany.Updates,
+        }
+      : {},
+  )) {
     if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
     if (key === 'Company_Name' && intakeLockedFields.value.sponsorCompany) continue
     if (key === 'Website' && intakeLockedFields.value.website) continue
@@ -2910,7 +2984,18 @@ function applyPrimarySuggestedValues(suggested = {}) {
       markAutofilled('company', key)
     }
   }
-  for (const [key, value] of Object.entries(suggested?.contact || {})) {
+  for (const [key, value] of Object.entries(
+    primaryContact
+      ? {
+          Name: primaryContact.Name,
+          Personal_Email: primaryContact.Personal_Email,
+          Professional_Email: primaryContact.Professional_Email,
+          Phone: primaryContact.Phone,
+          LinkedIn: primaryContact.LinkedIn,
+          Country_based: primaryContact.Country_based,
+        }
+      : {},
+  )) {
     if (!Object.prototype.hasOwnProperty.call(contactForm.value, key)) continue
     if (key === 'Name' && intakeLockedFields.value.relatedContact) continue
     const normalizedValue = value == null ? '' : stripHumanVerify(value)
@@ -2920,23 +3005,37 @@ function applyPrimarySuggestedValues(suggested = {}) {
       markAutofilled('contact', key)
     }
   }
+  if (primaryOpportunity?.source_refs?.length) {
+    console.log('[autofill primary opportunity source refs]', primaryOpportunity.source_refs)
+  }
+  if (primaryCompany?.source_refs?.length) {
+    console.log('[autofill primary company source refs]', primaryCompany.source_refs)
+  }
+  if (primaryContact?.source_refs?.length) {
+    console.log('[autofill primary contact source refs]', primaryContact.source_refs)
+  }
   syncActiveDraft({ stage: 'Matching' })
   queueAdditionalIntakeReviewIfNeeded()
 }
 
-function applySecondarySuggestedValues(suggested = {}) {
-  generatedNotes.value = Array.isArray(suggested?.notes) ? suggested.notes : []
-  generatedTasks.value = Array.isArray(suggested?.tasks) ? suggested.tasks : []
-  assistantProposal.value = suggested?.assistant || {}
-  syncActiveDraft({ stage: 'Ready for Review' })
-}
+function applyDuplicateMatches(matches = {}) {
+  duplicateMatchState.value = {
+    company: matches?.company || null,
+    contact: matches?.contact || null,
+    round: matches?.round || null,
+    fund: matches?.fund || null,
+  }
 
-function applyMatchedExistingCompany(match = null) {
-  if (!match?.company_id || !match?.company) return
+  const companyMatch = matches?.company || null
+  if (companyMatch?.matched_id && companyMatch?.candidate) {
+    extractedCompanyForm.value = { ...companyForm.value }
+    companyLinkMode.value = 'existing'
+    companySourceChoice.value = 'legacy'
+    form.value.company_id = companyMatch.matched_id
+  }
+
+  console.log('[autofill duplicate matches]', duplicateMatchState.value)
   extractedCompanyForm.value = { ...companyForm.value }
-  companyLinkMode.value = 'existing'
-  companySourceChoice.value = 'legacy'
-  form.value.company_id = match.company_id
   syncActiveDraft()
 }
 
@@ -3059,12 +3158,18 @@ async function processDroppedFiles(files = []) {
     }
 
     const preview = previewOutcome.preview || null
-    deferredSuggestionPayload.value = preview?.suggested || {}
-    applyPrimarySuggestedValues(deferredSuggestionPayload.value)
-    applyMatchedExistingCompany(preview?.companyMatch || null)
-    applySecondarySuggestedValues(deferredSuggestionPayload.value)
+    deferredStructuredPayload.value = preview?.structured || null
+    extractedStructuredAutofill.value = preview?.structured || null
+    console.log('[autofill structured final]', preview?.structured || null)
+    applyPrimaryStructuredValues(preview?.structured || {})
+    applyDuplicateMatches(preview?.duplicateMatches || {})
     releaseIntakeExtractionLocks()
-    deferredSuggestionPayload.value = null
+    deferredStructuredPayload.value = null
+    syncActiveDraft({
+      stage: 'Ready for Review',
+      structuredAutofill: JSON.parse(JSON.stringify(preview?.structured || null)),
+      duplicateMatches: JSON.parse(JSON.stringify(preview?.duplicateMatches || {})),
+    })
     updateStatusForAllFiles({ extractionStatus: 'completed' })
 
     processingMessage.value = 'Files processed successfully.'
@@ -3645,10 +3750,21 @@ watch(
 )
 
 let offIngestStatus = null
+let offAutofillPreviewStatus = null
 onMounted(() => {
   resetForms()
   resetTransientState()
   didSubmit.value = false
+
+  if (bridge.value?.autofill?.onPreviewStatus) {
+    offAutofillPreviewStatus = bridge.value.autofill.onPreviewStatus((status) => {
+      console.log('[autofill stream]', status)
+      if (!processingDrop.value || status?.type !== 'partial') return
+      if (status?.partial && typeof status.partial === 'object') {
+        applyPrimaryStructuredValues(status.partial)
+      }
+    })
+  }
 
   if (!bridge.value?.artifacts?.onIngestStatus) return
   offIngestStatus = bridge.value.artifacts.onIngestStatus((status) => {
@@ -3690,6 +3806,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   offIngestStatus?.()
   offIngestStatus = null
+  offAutofillPreviewStatus?.()
+  offAutofillPreviewStatus = null
   clearIntakeReviewTimer()
 })
 </script>
