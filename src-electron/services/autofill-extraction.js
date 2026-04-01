@@ -27,6 +27,8 @@ function buildPrompt({ kind } = {}) {
     'You are extracting structured venture, company, fund, round, and contact data from documents.',
     'Return data using the provided structured output schema.',
     'Use exact SQLite column names wherever possible.',
+    'Be exhaustive. Read the full document set before finalizing the structured output.',
+    'Do not stop after the first detected entity. Keep scanning for additional companies, contacts, rounds, and funds mentioned anywhere in the files.',
     `The current creation context is ${targetKind}.`,
     `Support multiple companies and contacts when the document mentions them.`,
     `Only extract ${targetKind === 'fund' ? 'funds' : 'rounds'} for the primary opportunity entities in this run.`,
@@ -366,9 +368,15 @@ export async function previewAutofillFromFiles({
     : []
   if (!paths.length) throw new Error('No files provided for autofill')
 
+  const startedAt = Date.now()
   const gemini = getGeminiClient(apiKeys?.gemini)
   const schema = buildAutofillExtractionOutputSchema({ kind: context?.kind })
   const content = await buildSourceFileParts(paths, { kind: context?.kind })
+  emitStatus?.({
+    type: 'info',
+    stage: 'structured-request-started',
+    message: `Starting structured extraction for ${paths.length} source file${paths.length === 1 ? '' : 's'}.`,
+  })
   const { output, partialCount, mode, streamError } = await runStructuredExtraction({
     gemini,
     content,
@@ -376,6 +384,17 @@ export async function previewAutofillFromFiles({
     schema,
   })
   const structured = normalizeStructuredAutofillOutput(output)
+  emitStatus?.({
+    type: 'info',
+    stage: 'structured-request-finished',
+    message: `Structured extraction finished in ${Date.now() - startedAt}ms.`,
+    counts: {
+      companies: structured.companies.length,
+      contacts: structured.contacts.length,
+      rounds: structured.rounds.length,
+      funds: structured.funds.length,
+    },
+  })
   const primaryEntities = getPrimaryEntities(structured)
   const duplicateMatches = {
     company: resolveCompanyMatch({
