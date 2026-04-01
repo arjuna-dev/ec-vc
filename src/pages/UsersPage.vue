@@ -1331,6 +1331,19 @@ onMounted(loadUsers)
   line-height: 20px;
 }
 
+.user-card__icon-action {
+  color: #111;
+  background: transparent;
+  border: 0;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.user-card__select-box {
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
 .user-card {
   position: relative;
   display: flex;

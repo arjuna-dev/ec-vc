@@ -3654,6 +3654,19 @@ watch(displayArtifactRows, () => {
   margin-top: 0;
 }
 
+.artifact-card__icon-action {
+  color: #111;
+  background: transparent;
+  border: 0;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.artifact-card__select-box {
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
 .artifact-card__footer {
   display: flex;
   align-items: center;
