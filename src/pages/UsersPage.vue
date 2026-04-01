@@ -141,53 +141,136 @@
 
           <div v-else class="row q-col-gutter-md users-cards-grid">
             <div v-for="user in displayRows" :key="user.id" class="col-12 col-md-6 col-lg-4">
-              <q-card flat bordered class="user-card record-grid-card full-height">
-                <q-card-section class="user-card__header record-grid-card__hero">
-                  <div class="row items-start justify-between q-col-gutter-sm no-wrap">
-                    <div class="col-auto">
-                      <div class="record-grid-card__badge record-grid-card__badge--icon" aria-hidden="true">
-                        <q-icon name="badge" size="24px" />
+              <q-card
+                flat
+                bordered
+                class="user-card full-height"
+                :style="getUserCardStyle()"
+                @pointerenter="onUserCardPointerEnter"
+                @pointermove="onUserCardPointerMove"
+                @pointerleave="onUserCardPointerLeave"
+              >
+                <q-card-section class="user-card__hero">
+                  <div class="user-card__hero-main">
+                    <figure class="user-card__portrait">
+                      <div class="user-card__portrait-shell" aria-hidden="true">
+                        <q-avatar size="72px" class="user-card__avatar">
+                          <img :src="buildUserAvatar(user.User_Name || 'User')" :alt="user.User_Name || 'User avatar'" />
+                        </q-avatar>
                       </div>
-                    </div>
-                    <div class="col">
-                      <div class="user-card__title record-grid-card__title">
-                        {{ user.User_Name || 'Unnamed user' }}
+                    </figure>
+
+                    <div class="user-card__hero-side">
+                      <div class="user-card__hero-copy">
+                        <div class="user-card__title">
+                          {{ user.User_Name || 'Unnamed user' }}
+                        </div>
+
+                        <div class="user-card__bottom-stack">
+                          <div v-if="getUserMetadataRows(user).length" class="user-card__detail-stack">
+                            <div
+                              v-for="detail in getUserMetadataRows(user)"
+                              :key="detail.label"
+                              class="user-card__detail-row"
+                            >
+                              <button type="button" class="user-card__inline-chip">
+                                <q-icon :name="detail.icon" size="14px" />
+                                <span>{{ detail.value }}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div class="user-card__meta record-grid-card__subtitle">
-                        {{ user.User_PEmail || 'No email yet' }}
-                      </div>
-                    </div>
-                    <div class="col-auto">
-                      <q-chip
-                        dense
-                        square
-                        :color="isGoldenUser(user) ? 'blue-1' : 'grey-2'"
-                        :text-color="isGoldenUser(user) ? 'blue-10' : 'grey-8'"
-                      >
-                        {{ isGoldenUser(user) ? 'Owner' : 'Team member' }}
-                      </q-chip>
                     </div>
                   </div>
                 </q-card-section>
 
-                <q-separator />
+                <q-card-section class="user-card__summary">
+                  <div class="user-card__summary-head">
+                    <q-btn-toggle
+                      :model-value="getUserCardContentView(user)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="user-card__summary-view-toggle"
+                      :options="userCardContentViewOptions"
+                      @update:model-value="setUserCardContentView(user, $event)"
+                    />
 
-                <q-card-section class="user-card__body record-grid-card__body">
-                  <div class="user-card__section record-grid-card__detail">
-                    <div class="user-card__section-label record-grid-card__detail-label">User ID</div>
-                    <div class="user-card__block record-grid-card__detail-value">{{ user.id || '--' }}</div>
-                  </div>
+                    <q-btn-toggle
+                      :model-value="getUserCardPanel(user)"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="user-card__summary-toggle"
+                      :options="userCardPanelOptions"
+                      @update:model-value="setUserCardPanel(user, $event)"
+                    />
 
-                  <div class="user-card__section record-grid-card__detail">
-                    <div class="user-card__section-label record-grid-card__detail-label">Profile status</div>
-                    <div class="user-card__block record-grid-card__detail-value">
-                      {{ hasUserCoreDetails(user) ? 'Ready' : 'Needs core setup' }}
+                    <div class="user-card__summary-actions">
+                      <q-btn
+                        flat
+                        round
+                        icon="visibility"
+                        class="user-card__icon-action"
+                        :disable="loading"
+                        @click="openDatabook(user)"
+                      />
+                      <q-checkbox
+                        :model-value="isUserSelected(user)"
+                        :disable="loading"
+                        color="dark"
+                        class="user-card__select-box"
+                        @update:model-value="toggleUserSelection(user, $event)"
+                      />
                     </div>
                   </div>
 
-                  <div class="user-card__section record-grid-card__detail">
-                    <div class="user-card__section-label record-grid-card__detail-label">Updated</div>
-                    <div class="user-card__block record-grid-card__detail-value">{{ formatDate(user.updated_at) }}</div>
+                  <div class="user-card__summary-panel">
+                    <div class="user-card__summary-body">
+                      <div class="user-card__summary-body-content">
+                        <div
+                          v-if="getUserCardPanel(user) === 'notes' && getUserLinkedNotes(user).length"
+                          :class="[
+                            'user-card__notes-list',
+                            { 'user-card__notes-list--rows': getUserCardContentView(user) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="note in getUserLinkedNotes(user)"
+                            :key="note"
+                            class="user-card__note-pill"
+                          >
+                            {{ note }}
+                          </div>
+                        </div>
+
+                        <div
+                          v-else-if="getUserCardPanel(user) === 'artifacts' && getUserLinkedArtifacts(user).length"
+                          :class="[
+                            'user-card__notes-list',
+                            { 'user-card__notes-list--rows': getUserCardContentView(user) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="artifact in getUserLinkedArtifacts(user)"
+                            :key="artifact"
+                            class="user-card__note-pill"
+                          >
+                            {{ artifact }}
+                          </div>
+                        </div>
+
+                        <div v-else class="user-card__summary-empty">
+                          {{ getUserCardPanel(user) === 'notes' ? 'No linked notes yet.' : 'No linked artifacts yet.' }}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </q-card-section>
               </q-card>
@@ -201,14 +284,20 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const rows = ref([])
 const loading = ref(false)
 const viewMode = ref('card')
 const userKindFilter = ref('all')
 const searchQuery = ref('')
+const selectedUsers = ref([])
+const userCardContentViews = ref({})
+const userCardPanels = ref({})
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(() => !!bridge.value?.users?.list)
+const route = useRoute()
+const router = useRouter()
 
 const viewOptions = [
   { value: 'card', icon: 'grid_view' },
@@ -219,6 +308,16 @@ const userKindOptions = [
   { label: 'All', value: 'all' },
   { label: 'Team', value: 'golden' },
   { label: 'Guests', value: 'needs-setup' },
+]
+
+const userCardContentViewOptions = [
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
+]
+
+const userCardPanelOptions = [
+  { label: 'Notes', value: 'notes' },
+  { label: 'Artifacts', value: 'artifacts' },
 ]
 
 const columns = [
@@ -380,6 +479,143 @@ function formatDate(value) {
   const text = String(value || '').trim()
   if (!text) return '--'
   return text.replace('T', ' ')
+}
+
+function buildUserAvatar(label) {
+  const seed = String(label || 'User')
+  const color = `hsl(${Array.from(seed).reduce((total, char) => total + char.charCodeAt(0), 0) % 360} 68% 54%)`
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+      <rect width="96" height="96" rx="24" fill="${color}" />
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        fill="#ffffff" font-family="Avenir Next, Arial, sans-serif" font-size="36" font-weight="800" letter-spacing="0.02em">
+        ${seed.trim().charAt(0).toUpperCase() || 'U'}
+      </text>
+    </svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+function getUserCardStyle() {
+  return {
+    '--user-card-blob-x': '50%',
+    '--user-card-blob-y': '30%',
+    '--user-card-blob-size': '60%',
+    '--user-card-blob-opacity': '0',
+    '--user-card-blob-strong': 'rgba(38, 71, 255, 0.2)',
+    '--user-card-blob-soft': 'rgba(38, 71, 255, 0.1)',
+    '--user-card-blob-fade': 'rgba(38, 71, 255, 0.05)',
+  }
+}
+
+function onUserCardPointerEnter(event) {
+  updateUserCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--user-card-blob-opacity', '1')
+}
+
+function onUserCardPointerMove(event) {
+  updateUserCardGradientPosition(event)
+}
+
+function onUserCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--user-card-blob-opacity', '0')
+}
+
+function updateUserCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  element.style.setProperty('--user-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--user-card-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
+function getUserMetadataRows(user) {
+  return [
+    String(user?.User_PEmail || '').trim()
+      ? { label: 'Email', value: String(user.User_PEmail).trim(), icon: 'mail' }
+      : null,
+    { label: 'Role', value: isGoldenUser(user) ? 'Owner' : 'Team member', icon: 'badge' },
+    user?.id ? { label: 'User ID', value: String(user.id), icon: 'fingerprint' } : null,
+    user?.updated_at ? { label: 'Updated', value: formatDate(user.updated_at), icon: 'schedule' } : null,
+  ].filter(Boolean)
+}
+
+function getUserCardContentView(user) {
+  const rowId = String(user?.id || '').trim()
+  return userCardContentViews.value[rowId] || 'card'
+}
+
+function setUserCardContentView(user, value) {
+  const rowId = String(user?.id || '').trim()
+  if (!rowId) return
+  userCardContentViews.value = { ...userCardContentViews.value, [rowId]: value || 'card' }
+}
+
+function getUserCardPanel(user) {
+  const rowId = String(user?.id || '').trim()
+  return userCardPanels.value[rowId] || 'notes'
+}
+
+function setUserCardPanel(user, value) {
+  const rowId = String(user?.id || '').trim()
+  if (!rowId) return
+  userCardPanels.value = { ...userCardPanels.value, [rowId]: value || 'notes' }
+}
+
+function getUserLinkedNotes(user) {
+  return [
+    ...String(user?.User_Note || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(user?.related_note_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function getUserLinkedArtifacts(user) {
+  return [
+    ...String(user?.User_Artifact || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(user?.related_artifact_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function isUserSelected(user) {
+  return selectedUsers.value.some((selectedUser) => selectedUser?.id === user?.id)
+}
+
+function toggleUserSelection(user, shouldSelect) {
+  const rowId = String(user?.id || '').trim()
+  if (!rowId) return
+  if (shouldSelect) {
+    if (isUserSelected(user)) return
+    selectedUsers.value = [...selectedUsers.value, user]
+    return
+  }
+  selectedUsers.value = selectedUsers.value.filter((selectedUser) => String(selectedUser?.id || '').trim() !== rowId)
+}
+
+function openDatabook(user) {
+  const recordId = String(user?.id || '').trim()
+  if (!recordId) return
+  router.push({
+    name: 'databook-view',
+    params: { tableName: 'Users', recordId },
+    query: { returnTo: route.fullPath },
+  })
 }
 
 async function loadUsers() {
@@ -729,6 +965,248 @@ onMounted(loadUsers)
 
 .users-cards-grid {
   align-items: stretch;
+}
+
+.user-card__hero {
+  padding: 0;
+}
+
+.user-card::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--user-card-blob-x) var(--user-card-blob-y),
+    var(--user-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--user-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--user-card-blob-size) * 0.46),
+    var(--user-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--user-card-blob-size) * 0.7),
+    transparent var(--user-card-blob-size)
+  );
+  opacity: var(--user-card-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.user-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.user-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+}
+
+.user-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
+}
+
+.user-card__portrait {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.user-card__portrait-shell {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.user-card__avatar {
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+}
+
+.user-card__hero-side {
+  display: flex;
+  min-width: 0;
+  padding: 16px 18px 14px 14px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.user-card__hero-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-card__title {
+  min-width: 0;
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.user-card__bottom-stack,
+.user-card__detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-card__detail-stack {
+  gap: 4px;
+}
+
+.user-card__detail-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.user-card__inline-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 26px;
+  padding: 0 10px;
+  color: #111;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.user-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
+  margin: 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.user-card__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.user-card__summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-left: auto;
+}
+
+.user-card__summary-view-toggle,
+.user-card__summary-toggle {
+  border-radius: var(--ds-control-radius);
+}
+
+.user-card__summary-view-toggle :deep(.q-btn-group),
+.user-card__summary-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.user-card__summary-view-toggle :deep(.q-btn) {
+  min-height: 21px;
+  min-width: 21px;
+  height: 21px;
+  width: 21px;
+  padding: 0 2px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--ds-control-radius);
+}
+
+.user-card__summary-view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.user-card__summary-view-toggle :deep(.q-icon) {
+  font-size: 13px;
+}
+
+.user-card__summary-toggle :deep(.q-btn) {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--ds-control-radius);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.user-card__summary-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 4px;
+}
+
+.user-card__summary-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.user-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.user-card__summary-body-content,
+.user-card__notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-card__notes-list--rows {
+  gap: 6px;
+}
+
+.user-card__note-pill {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 10px;
+  color: #111;
+  background: #fff;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.user-card__summary-empty {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---light);
+  font-weight: var(--font-weight-light);
+  line-height: 20px;
 }
 
 .user-card {

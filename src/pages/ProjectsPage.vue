@@ -213,82 +213,141 @@
               :key="row.pipeline_id"
               class="col-12 col-sm-6 col-lg-4"
             >
-              <q-card flat bordered class="pipeline-card record-grid-card full-height">
-                <q-card-section class="pipeline-card__shell record-grid-card__hero">
-                  <aside class="pipeline-card__stage-panel record-grid-card__body">
-                    <div class="pipeline-card__summary-label record-grid-card__eyebrow">Stages</div>
-
-                    <div v-if="getPipelineCardStages(row).length" class="pipeline-card__stage-map">
-                      <div
-                        v-for="(stage, stageIndex) in getPipelineCardStages(row)"
-                        :key="`${row.pipeline_id}-${stageIndex}-${stage?.name || 'stage'}`"
-                        class="pipeline-card__stage-stop"
-                      >
-                        <div class="pipeline-card__stage-chip">
-                          <div class="pipeline-card__stage-number">{{ stageIndex + 1 }}</div>
-                          <div class="pipeline-card__stage-name">
-                            {{ formatPipelineStageName(stage?.name) || `Stage ${stageIndex + 1}` }}
-                          </div>
-                        </div>
-                        <div
-                          v-if="stageIndex < getPipelineCardStages(row).length - 1"
-                          class="pipeline-card__stage-connector"
-                          aria-hidden="true"
-                        />
+              <q-card
+                flat
+                bordered
+                class="pipeline-card full-height"
+                :style="getProjectCardStyle()"
+                @pointerenter="onProjectCardPointerEnter"
+                @pointermove="onProjectCardPointerMove"
+                @pointerleave="onProjectCardPointerLeave"
+              >
+                <q-card-section class="pipeline-card__hero">
+                  <div class="pipeline-card__hero-main">
+                    <figure class="pipeline-card__portrait">
+                      <div class="pipeline-card__portrait-shell" aria-hidden="true">
+                        <q-avatar size="72px" class="pipeline-card__avatar">
+                          <img
+                            :src="buildPipelineAvatar(getPipelineCardTitle(row))"
+                            :alt="getPipelineCardTitle(row)"
+                          />
+                        </q-avatar>
                       </div>
-                    </div>
+                    </figure>
 
-                    <div v-if="!getPipelineCardStages(row).length" class="pipeline-card__summary-empty">
-                      No stages mapped yet.
-                    </div>
-                  </aside>
-
-                  <div class="pipeline-card__main">
-                    <div class="pipeline-card__hero-top">
+                    <div class="pipeline-card__hero-side">
                       <div class="pipeline-card__hero-copy">
-                        <div class="pipeline-card__title record-grid-card__title">{{ getPipelineCardTitle(row) }}</div>
-                        <div class="pipeline-card__meta-stack">
-                          <div class="pipeline-card__meta-row">
-                            <span class="pipeline-card__meta-label">Owner</span>
-                            <span class="pipeline-card__meta-value">{{ getPipelineOwnerLabel(row) }}</span>
-                          </div>
-                          <div class="pipeline-card__meta-row">
-                            <span class="pipeline-card__meta-label">Assigned Team</span>
-                            <span class="pipeline-card__meta-value">{{ getPipelineTeamLabel(row) }}</span>
+                        <div class="pipeline-card__title">{{ getPipelineCardTitle(row) }}</div>
+
+                        <div class="pipeline-card__bottom-stack">
+                          <div v-if="getProjectMetadataRows(row).length" class="pipeline-card__detail-stack">
+                            <div
+                              v-for="detail in getProjectMetadataRows(row)"
+                              :key="detail.label"
+                              class="pipeline-card__detail-row"
+                            >
+                              <button
+                                type="button"
+                                class="pipeline-card__inline-chip"
+                                @click="openProjectMetadataAction(detail, $event)"
+                              >
+                                <q-icon :name="detail.icon" size="14px" />
+                                <span>{{ detail.value }}</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </q-card-section>
 
+                <q-card-section class="pipeline-card__summary">
+                  <div class="pipeline-card__summary-head">
+                    <q-btn-toggle
+                      :model-value="getProjectCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="pipeline-card__summary-view-toggle"
+                      :options="projectCardContentViewOptions"
+                      @update:model-value="setProjectCardContentView(row, $event)"
+                    />
+
+                    <q-btn-toggle
+                      :model-value="getProjectCardPanel(row)"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="pipeline-card__summary-toggle"
+                      :options="projectCardPanelOptions"
+                      @update:model-value="setProjectCardPanel(row, $event)"
+                    />
+
+                    <div class="pipeline-card__summary-actions">
+                      <q-btn
+                        flat
+                        round
+                        icon="visibility"
+                        class="pipeline-card__icon-action"
+                        :disable="loading"
+                        @click="openDatabook(row)"
+                      />
                       <q-checkbox
                         :model-value="isSelected(row)"
                         :disable="loading"
                         color="dark"
+                        class="pipeline-card__select-box"
                         @update:model-value="toggleRowSelection(row, $event)"
                       />
                     </div>
+                  </div>
 
-                    <q-card-actions align="between" class="pipeline-card__footer record-grid-card__footer">
-                      <div class="pipeline-card__footer-actions">
-                        <q-btn
-                          flat
-                          round
-                          icon="visibility"
-                          class="pipeline-card__icon-action record-grid-card__icon-action"
-                          :disable="loading"
-                          @click="openDatabook(row)"
-                        />
+                  <div class="pipeline-card__summary-panel">
+                    <div class="pipeline-card__summary-body">
+                      <div class="pipeline-card__summary-body-content">
+                        <div
+                          v-if="getProjectCardPanel(row) === 'notes' && getProjectLinkedNotes(row).length"
+                          :class="[
+                            'pipeline-card__notes-list',
+                            { 'pipeline-card__notes-list--rows': getProjectCardContentView(row) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="note in getProjectLinkedNotes(row)"
+                            :key="note"
+                            class="pipeline-card__note-pill"
+                          >
+                            {{ note }}
+                          </div>
+                        </div>
+
+                        <div
+                          v-else-if="getProjectCardPanel(row) === 'docs' && getProjectLinkedDocuments(row).length"
+                          :class="[
+                            'pipeline-card__notes-list',
+                            { 'pipeline-card__notes-list--rows': getProjectCardContentView(row) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="doc in getProjectLinkedDocuments(row)"
+                            :key="doc"
+                            class="pipeline-card__note-pill"
+                          >
+                            {{ doc }}
+                          </div>
+                        </div>
+
+                        <div v-else class="pipeline-card__summary-empty">
+                          {{ getProjectCardPanel(row) === 'notes' ? 'No linked notes yet for this project.' : 'No linked artifacts yet for this project.' }}
+                        </div>
                       </div>
-                      <div class="pipeline-card__footer-actions">
-                        <q-btn
-                          flat
-                          round
-                          icon="delete"
-                          class="pipeline-card__icon-action record-grid-card__icon-action"
-                          :disable="loading || row.pipeline_id === 'pipeline_default'"
-                          @click="confirmDelete(row)"
-                        />
-                      </div>
-                    </q-card-actions>
+                    </div>
                   </div>
                 </q-card-section>
               </q-card>
@@ -389,6 +448,16 @@ const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const rowsPerPageOptions = [10, 15, 25, 50]
 const selectedCount = computed(() => selectedRows.value.length)
+const projectCardContentViews = ref({})
+const projectCardContentViewOptions = [
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
+]
+const projectCardPanels = ref({})
+const projectCardPanelOptions = [
+  { label: 'Notes', value: 'notes', icon: 'note' },
+  { label: 'Artifacts', value: 'docs', icon: 'attach_file' },
+]
 const canDeleteSelectedPipelines = computed(
   () =>
     !!bridge.value?.projects?.delete &&
@@ -582,29 +651,175 @@ function getPipelineCardTitle(row) {
   return normalizePipelineValue(row?.name) || 'Unnamed project'
 }
 
-function getPipelineCardStages(row) {
-  return parsedStages(row).filter((stage) => normalizePipelineValue(stage?.name))
-}
-
 function getPipelineOwnerLabel(row) {
   const pipelineId = String(row?.pipeline_id || '').trim()
   return pipelineOwnerById.value[pipelineId] || 'Unassigned'
 }
 
-function getPipelineTeamLabel(row) {
-  const pipelineId = String(row?.pipeline_id || '').trim()
-  const names = Array.isArray(pipelineTeamById.value[pipelineId]) ? pipelineTeamById.value[pipelineId] : []
-  return names.length ? names.join(', ') : 'No team assigned'
+function buildPipelineAvatar(label) {
+  const text = String(label || 'Project').trim()
+  const initials = text
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase?.() || '')
+    .join('') || 'PR'
+
+  const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
+  let hash = 0
+  for (const char of text) {
+    hash = (hash << 5) - hash + char.charCodeAt(0)
+    hash |= 0
+  }
+  const bg = palette[Math.abs(hash) % palette.length]
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
+      <rect width="112" height="112" rx="24" fill="${bg}" />
+      <text x="56" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#ffffff">${initials}</text>
+    </svg>
+  `.trim()
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
 
-function formatPipelineStageName(name) {
-  const cleaned = String(name || '')
-    .replace(/^\s*\d+[\s._-]*/g, '')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+function getProjectCardContentView(row) {
+  const rowId = String(row?.pipeline_id || '').trim()
+  return projectCardContentViews.value[rowId] || 'card'
+}
 
-  return cleaned
+function setProjectCardContentView(row, value) {
+  const rowId = String(row?.pipeline_id || '').trim()
+  if (!rowId) return
+  projectCardContentViews.value = {
+    ...projectCardContentViews.value,
+    [rowId]: value || 'card',
+  }
+}
+
+function getProjectCardPanel(row) {
+  const rowId = String(row?.pipeline_id || '').trim()
+  return projectCardPanels.value[rowId] || 'notes'
+}
+
+function setProjectCardPanel(row, value) {
+  const rowId = String(row?.pipeline_id || '').trim()
+  if (!rowId) return
+  projectCardPanels.value = {
+    ...projectCardPanels.value,
+    [rowId]: value || 'notes',
+  }
+}
+
+function getProjectSummaryValue(row) {
+  return (
+    normalizePipelineValue(row?.summary) ||
+    normalizePipelineValue(row?.description)
+  )
+}
+
+function getProjectCompanyValue(row) {
+  return normalizePipelineValue(row?.company_name || row?.Company_Name)
+}
+
+function getProjectDueDateValue(row) {
+  return (
+    normalizePipelineValue(row?.due_date) ||
+    normalizePipelineValue(row?.Due_Date) ||
+    normalizePipelineValue(row?.updated_at) ||
+    normalizePipelineValue(row?.updated_on)
+  )
+}
+
+function getProjectMetadataRows(row) {
+  const summary = getProjectSummaryValue(row)
+  const company = getProjectCompanyValue(row)
+  const owner = getPipelineOwnerLabel(row)
+  const dueDate = getProjectDueDateValue(row)
+
+  return [
+    summary
+      ? { label: 'Summary', value: summary, icon: 'notes' }
+      : null,
+    company
+      ? { label: 'Company', value: company, icon: 'apartment' }
+      : null,
+    owner && owner !== 'Unassigned'
+      ? { label: 'Owner', value: owner, icon: 'person' }
+      : null,
+    dueDate
+      ? { label: 'Due date', value: dueDate, icon: 'event' }
+      : null,
+  ].filter(Boolean)
+}
+
+function getProjectCardStyle() {
+  return {
+    '--project-card-blob-x': '50%',
+    '--project-card-blob-y': '30%',
+    '--project-card-blob-size': '60%',
+    '--project-card-blob-opacity': '0',
+    '--project-card-blob-strong': 'rgba(38, 71, 255, 0.2)',
+    '--project-card-blob-soft': 'rgba(38, 71, 255, 0.1)',
+    '--project-card-blob-fade': 'rgba(38, 71, 255, 0.05)',
+  }
+}
+
+function onProjectCardPointerEnter(event) {
+  updateProjectCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--project-card-blob-opacity', '1')
+}
+
+function onProjectCardPointerMove(event) {
+  updateProjectCardGradientPosition(event)
+}
+
+function onProjectCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--project-card-blob-opacity', '0')
+}
+
+function updateProjectCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  element.style.setProperty('--project-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--project-card-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
+function getProjectLinkedNotes(row) {
+  return [
+    ...String(row?.Project_Note || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_note_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function getProjectLinkedDocuments(row) {
+  return [
+    ...String(row?.Project_Artifact || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_artifact_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function openProjectMetadataAction(link, event) {
+  event?.preventDefault?.()
+  event?.stopPropagation?.()
 }
 
 function exportPipelinesCsv() {
@@ -1330,171 +1545,136 @@ watch(displayRows, () => {
   overflow: hidden;
 }
 
-.pipeline-card__shell {
-  display: grid;
-  grid-template-columns: 184px minmax(0, 1fr);
-  flex: 1 1 auto;
-  gap: 0;
+.pipeline-card__hero {
   padding: 0;
 }
 
-.pipeline-card__stage-panel {
-  display: flex;
-  min-height: 100%;
-  flex-direction: column;
-  gap: 16px;
-  padding: 18px 16px;
-  background:
-    radial-gradient(circle at 26% 24%, rgba(235, 255, 90, 0.16), transparent 28%),
-    radial-gradient(circle at 74% 76%, rgba(38, 71, 255, 0.12), transparent 32%),
-    linear-gradient(180deg, #fdfcf8 0%, #f5f2ea 100%);
-  border-right: 1px solid rgba(17, 17, 17, 0.08);
+.pipeline-card::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--project-card-blob-x) var(--project-card-blob-y),
+    var(--project-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--project-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--project-card-blob-size) * 0.46),
+    var(--project-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--project-card-blob-size) * 0.7),
+    transparent var(--project-card-blob-size)
+  );
+  opacity: var(--project-card-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
 }
 
-.pipeline-card__main {
+.pipeline-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.pipeline-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+}
+
+.pipeline-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
+}
+
+.pipeline-card__portrait {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.pipeline-card__portrait-shell {
   display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.pipeline-card__avatar {
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+}
+
+.pipeline-card__hero-side {
+  display: flex;
+  height: 100%;
   min-width: 0;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 18px 16px;
-}
-
-.pipeline-card__hero-top {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: start;
+  gap: 8px;
+  padding: 16px 18px 14px 14px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
 }
 
 .pipeline-card__hero-copy {
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
   flex-direction: column;
   gap: 10px;
 }
 
-.pipeline-card__summary-label {
-  color: #737373;
-  font-family: var(--font-body);
-  font-size: var(--text-xs---medium);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.14em;
-  line-height: 16px;
-  text-transform: uppercase;
-}
-
 .pipeline-card__title {
+  min-width: 0;
   color: #0a0a0a;
   font-family: var(--font-title);
   font-size: clamp(1.3rem, 2vw, 1.6rem);
   font-weight: var(--font-weight-black);
   line-height: 0.96;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pipeline-card__bottom-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .pipeline-card__meta-stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.pipeline-card__meta-row {
+.pipeline-card__detail-stack {
   display: flex;
-  min-width: 0;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
-.pipeline-card__meta-label {
-  color: #737373;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
-  line-height: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.pipeline-card__meta-value {
-  color: #4b4b4b;
-  font-family: var(--font-body);
-  font-size: var(--text-xs---regular);
-  font-weight: var(--font-weight-regular);
-  line-height: 18px;
-  text-wrap: balance;
-}
-
-.pipeline-card__footer-actions {
+.pipeline-card__detail-row {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+}
+
+.pipeline-card__inline-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
   gap: 6px;
-}
-
-.pipeline-card__stage-map {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-  overflow-y: auto;
-  padding: 2px 2px 0;
-  scrollbar-width: thin;
-}
-
-.pipeline-card__stage-stop {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.pipeline-card__stage-chip {
-  display: inline-flex;
-  width: fit-content;
-  max-width: 100%;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(17, 17, 17, 0.1);
-  border-radius: 14px;
-  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.06);
-}
-
-.pipeline-card__stage-number {
-  display: inline-flex;
-  width: 24px;
-  height: 24px;
-  flex: 0 0 24px;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  background: #111;
+  width: 100%;
+  min-height: 26px;
+  padding: 0 10px;
+  color: #111;
+  background: transparent;
+  border: 0;
   border-radius: 999px;
   font-family: var(--font-body);
   font-size: 11px;
-  font-weight: var(--font-weight-semibold);
-  line-height: 1;
-}
-
-.pipeline-card__stage-name {
-  max-width: 124px;
-  color: #111;
-  font-family: var(--font-body);
-  font-size: var(--text-sm---regular);
   font-weight: var(--font-weight-medium);
-  line-height: 18px;
-  word-break: break-word;
-}
-
-.pipeline-card__stage-connector {
-  width: 2px;
-  height: 18px;
-  margin-left: 11px;
-  background: rgba(17, 17, 17, 0.18);
-  border-radius: 999px;
+  cursor: default;
 }
 
 .pipeline-card__summary-empty {
@@ -1505,18 +1685,168 @@ watch(displayRows, () => {
   line-height: 20px;
 }
 
-.pipeline-card__footer {
+.pipeline-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
+  margin: 20px 20px 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.pipeline-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.pipeline-card__summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-left: auto;
+}
+
+.pipeline-card__summary-view-toggle {
+  margin-left: 0;
+  border-radius: var(--ds-control-radius);
+}
+
+.pipeline-card__summary-view-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.pipeline-card__summary-view-toggle :deep(.q-btn) {
+  min-height: 21px;
+  min-width: 21px;
+  height: 21px;
+  width: 21px;
+  padding: 0 2px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--ds-control-radius);
+}
+
+.pipeline-card__summary-view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.pipeline-card__summary-view-toggle :deep(.q-icon) {
+  font-size: 13px;
+}
+
+.pipeline-card__summary-toggle {
+  border-radius: var(--ds-control-radius);
+}
+
+.pipeline-card__summary-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.pipeline-card__summary-toggle :deep(.q-btn) {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--ds-control-radius);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.pipeline-card__summary-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 4px;
+}
+
+.pipeline-card__summary-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.pipeline-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  direction: rtl;
+  padding-left: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(17, 17, 17, 0.18) transparent;
+}
+
+.pipeline-card__summary-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pipeline-card__summary-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pipeline-card__summary-body::-webkit-scrollbar-thumb {
+  background: rgba(17, 17, 17, 0.16);
+  border-radius: 999px;
+}
+
+.pipeline-card__summary-body-content {
+  direction: ltr;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.pipeline-card__notes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pipeline-card__notes-list--rows {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.pipeline-card__note-pill {
+  padding: 8px 12px;
+  color: #4b4b4b;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 14px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.45;
+}
+
+.pipeline-card__notes-list--rows .pipeline-card__note-pill {
+  width: 100%;
+  border-radius: 12px;
 }
 
 .pipeline-card__icon-action {
   color: #111;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  background: transparent;
+  border: 0;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.pipeline-card__select-box {
+  transform: scale(0.75);
+  transform-origin: center;
 }
 
 @media (max-width: 1200px) {
@@ -1564,13 +1894,17 @@ watch(displayRows, () => {
     grid-template-columns: 1fr;
   }
 
-  .pipeline-card__stage-panel {
-    border-right: 0;
-    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+  .pipeline-card__portrait {
+    min-height: 148px;
   }
 
-  .pipeline-card__main {
-    padding: 16px;
+  .pipeline-card__hero-main {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .pipeline-card__hero-side {
+    padding: 14px;
   }
 }
 </style>

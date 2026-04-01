@@ -170,70 +170,136 @@
 
           <div v-else class="row q-col-gutter-md tasks-cards-grid">
             <div v-for="row in displayRows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
-              <q-card flat bordered class="task-card record-grid-card full-height">
-                <q-card-section class="q-pb-sm record-grid-card__hero">
-                  <div class="row items-start justify-between q-col-gutter-sm no-wrap">
-                    <div class="col-auto">
-                      <div class="record-grid-card__badge record-grid-card__badge--icon" aria-hidden="true">
-                        <q-icon name="check_circle" size="24px" />
+              <q-card
+                flat
+                bordered
+                class="task-card full-height"
+                :style="getTaskCardStyle()"
+                @pointerenter="onTaskCardPointerEnter"
+                @pointermove="onTaskCardPointerMove"
+                @pointerleave="onTaskCardPointerLeave"
+              >
+                <q-card-section class="task-card__hero">
+                  <div class="task-card__hero-main">
+                    <figure class="task-card__portrait">
+                      <div class="task-card__portrait-shell" aria-hidden="true">
+                        <q-avatar size="72px" class="task-card__avatar">
+                          <img :src="buildTaskAvatar(row.Task_Name || 'Task')" :alt="row.Task_Name || 'Task avatar'" />
+                        </q-avatar>
+                      </div>
+                    </figure>
+
+                    <div class="task-card__hero-side">
+                      <div class="task-card__hero-copy">
+                        <div class="task-card__title">{{ row.Task_Name || 'Untitled task' }}</div>
+
+                        <div class="task-card__bottom-stack">
+                          <div v-if="getTaskMetadataRows(row).length" class="task-card__detail-stack">
+                            <div
+                              v-for="detail in getTaskMetadataRows(row)"
+                              :key="detail.label"
+                              class="task-card__detail-row"
+                            >
+                              <button type="button" class="task-card__inline-chip">
+                                <q-icon :name="detail.icon" size="14px" />
+                                <span>{{ detail.value }}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div class="col">
-                      <div class="task-card__title record-grid-card__title">{{ row.Task_Name || 'Untitled task' }}</div>
-                      <div v-if="row.Task_Description" class="task-card__summary record-grid-card__summary-text">
-                        {{ row.Task_Description }}
-                      </div>
-                    </div>
-                    <div class="col-auto">
+                  </div>
+                </q-card-section>
+
+                <q-card-section class="task-card__summary">
+                  <div class="task-card__summary-head">
+                    <q-btn-toggle
+                      :model-value="getTaskCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="task-card__summary-view-toggle"
+                      :options="taskCardContentViewOptions"
+                      @update:model-value="setTaskCardContentView(row, $event)"
+                    />
+
+                    <q-btn-toggle
+                      :model-value="getTaskCardPanel(row)"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="task-card__summary-toggle"
+                      :options="taskCardPanelOptions"
+                      @update:model-value="setTaskCardPanel(row, $event)"
+                    />
+
+                    <div class="task-card__summary-actions">
+                      <q-btn
+                        flat
+                        round
+                        icon="visibility"
+                        class="task-card__icon-action"
+                        :disable="loading"
+                        @click="openDatabook(row)"
+                      />
                       <q-checkbox
                         :model-value="isSelected(row)"
                         :disable="loading"
                         color="dark"
+                        class="task-card__select-box"
                         @update:model-value="toggleRowSelection(row, $event)"
                       />
                     </div>
                   </div>
+
+                  <div class="task-card__summary-panel">
+                    <div class="task-card__summary-body">
+                      <div class="task-card__summary-body-content">
+                        <div
+                          v-if="getTaskCardPanel(row) === 'notes' && getTaskLinkedNotes(row).length"
+                          :class="[
+                            'task-card__notes-list',
+                            { 'task-card__notes-list--rows': getTaskCardContentView(row) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="note in getTaskLinkedNotes(row)"
+                            :key="note"
+                            class="task-card__note-pill"
+                          >
+                            {{ note }}
+                          </div>
+                        </div>
+
+                        <div
+                          v-else-if="getTaskCardPanel(row) === 'artifacts' && getTaskLinkedArtifacts(row).length"
+                          :class="[
+                            'task-card__notes-list',
+                            { 'task-card__notes-list--rows': getTaskCardContentView(row) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="artifact in getTaskLinkedArtifacts(row)"
+                            :key="artifact"
+                            class="task-card__note-pill"
+                          >
+                            {{ artifact }}
+                          </div>
+                        </div>
+
+                        <div v-else class="task-card__summary-empty">
+                          {{ getTaskCardPanel(row) === 'notes' ? 'No linked notes yet.' : 'No linked artifacts yet.' }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </q-card-section>
-
-                <q-separator />
-
-                <q-card-section class="q-gutter-sm record-grid-card__body">
-                  <div v-if="row.Status" class="task-card__field record-grid-card__detail">
-                    <q-icon name="flag" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.Status }}</span>
-                  </div>
-                  <div v-if="row.Priority" class="task-card__field record-grid-card__detail">
-                    <q-icon name="priority_high" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.Priority }}</span>
-                  </div>
-                  <div v-if="row.Due_Date" class="task-card__field record-grid-card__detail">
-                    <q-icon name="event" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.Due_Date }}</span>
-                  </div>
-                  <div v-if="row.contact_name" class="task-card__field record-grid-card__detail">
-                    <q-icon name="person" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.contact_name }}</span>
-                  </div>
-                  <div v-if="row.company_name" class="task-card__field record-grid-card__detail">
-                    <q-icon name="apartment" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.company_name }}</span>
-                  </div>
-                </q-card-section>
-
-                <q-space />
-
-                <q-card-actions align="right" class="record-grid-card__footer">
-                  <q-btn
-                    dense
-                    flat
-                    round
-                    icon="delete"
-                    color="grey-8"
-                    class="record-grid-card__icon-action"
-                    :disable="loading"
-                    @click="confirmDelete(row)"
-                  />
-                </q-card-actions>
               </q-card>
             </div>
           </div>
@@ -332,6 +398,18 @@ const selectedCount = computed(() => selectedRows.value.length)
 const csvActionsRef = ref(null)
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const rowsPerPageOptions = [10, 15, 25, 50]
+const taskCardContentViews = ref({})
+const taskCardPanels = ref({})
+
+const taskCardContentViewOptions = [
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
+]
+
+const taskCardPanelOptions = [
+  { label: 'Notes', value: 'notes' },
+  { label: 'Artifacts', value: 'artifacts' },
+]
 
 const route = useRoute()
 const router = useRouter()
@@ -514,6 +592,124 @@ function openDatabook(row) {
     params: { tableName: 'Tasks', recordId },
     query: { returnTo: route.fullPath },
   })
+}
+
+function buildTaskAvatar(label) {
+  const seed = String(label || 'Task')
+  const color = `hsl(${Array.from(seed).reduce((total, char) => total + char.charCodeAt(0), 0) % 360} 68% 54%)`
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+      <rect width="96" height="96" rx="24" fill="${color}" />
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        fill="#ffffff" font-family="Avenir Next, Arial, sans-serif" font-size="36" font-weight="800" letter-spacing="0.02em">
+        ${seed.trim().charAt(0).toUpperCase() || 'T'}
+      </text>
+    </svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+function getTaskCardStyle() {
+  return {
+    '--task-card-blob-x': '50%',
+    '--task-card-blob-y': '30%',
+    '--task-card-blob-size': '60%',
+    '--task-card-blob-opacity': '0',
+    '--task-card-blob-strong': 'rgba(38, 71, 255, 0.2)',
+    '--task-card-blob-soft': 'rgba(38, 71, 255, 0.1)',
+    '--task-card-blob-fade': 'rgba(38, 71, 255, 0.05)',
+  }
+}
+
+function onTaskCardPointerEnter(event) {
+  updateTaskCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--task-card-blob-opacity', '1')
+}
+
+function onTaskCardPointerMove(event) {
+  updateTaskCardGradientPosition(event)
+}
+
+function onTaskCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--task-card-blob-opacity', '0')
+}
+
+function updateTaskCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  element.style.setProperty('--task-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--task-card-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
+function getTaskCardContentView(row) {
+  const rowId = String(row?.id || '').trim()
+  return taskCardContentViews.value[rowId] || 'card'
+}
+
+function setTaskCardContentView(row, value) {
+  const rowId = String(row?.id || '').trim()
+  if (!rowId) return
+  taskCardContentViews.value = { ...taskCardContentViews.value, [rowId]: value || 'card' }
+}
+
+function getTaskCardPanel(row) {
+  const rowId = String(row?.id || '').trim()
+  return taskCardPanels.value[rowId] || 'notes'
+}
+
+function setTaskCardPanel(row, value) {
+  const rowId = String(row?.id || '').trim()
+  if (!rowId) return
+  taskCardPanels.value = { ...taskCardPanels.value, [rowId]: value || 'notes' }
+}
+
+function getTaskMetadataRows(row) {
+  return [
+    normalizeTaskValue(row?.Task_Description)
+      ? { label: 'Summary', value: normalizeTaskValue(row?.Task_Description), icon: 'notes' }
+      : null,
+    normalizeTaskValue(row?.company_name)
+      ? { label: 'Company', value: normalizeTaskValue(row?.company_name), icon: 'apartment' }
+      : null,
+    normalizeTaskValue(row?.contact_name)
+      ? { label: 'Owner', value: normalizeTaskValue(row?.contact_name), icon: 'person' }
+      : null,
+    normalizeTaskValue(row?.Due_Date)
+      ? { label: 'Due date', value: normalizeTaskValue(row?.Due_Date), icon: 'event' }
+      : null,
+  ].filter(Boolean)
+}
+
+function getTaskLinkedNotes(row) {
+  return [
+    ...String(row?.Task_Note || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_note_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function getTaskLinkedArtifacts(row) {
+  return [
+    ...String(row?.Task_Artifact || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_artifact_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
 }
 
 async function loadTasks() {
@@ -1033,6 +1229,248 @@ watch(displayRows, () => {
 
 .tasks-cards-grid {
   align-items: stretch;
+}
+
+.task-card__hero {
+  padding: 0;
+}
+
+.task-card::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--task-card-blob-x) var(--task-card-blob-y),
+    var(--task-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--task-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--task-card-blob-size) * 0.46),
+    var(--task-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--task-card-blob-size) * 0.7),
+    transparent var(--task-card-blob-size)
+  );
+  opacity: var(--task-card-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.task-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+}
+
+.task-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
+}
+
+.task-card__portrait {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.task-card__portrait-shell {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.task-card__avatar {
+  box-shadow: inset 0 0 0 1px rgba(17, 17, 17, 0.08);
+}
+
+.task-card__hero-side {
+  display: flex;
+  min-width: 0;
+  padding: 16px 18px 14px 14px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.task-card__hero-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-card__title {
+  min-width: 0;
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.task-card__bottom-stack,
+.task-card__detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-card__detail-stack {
+  gap: 4px;
+}
+
+.task-card__detail-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.task-card__inline-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 26px;
+  padding: 0 10px;
+  color: #111;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.task-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
+  margin: 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.task-card__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.task-card__summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-left: auto;
+}
+
+.task-card__summary-view-toggle,
+.task-card__summary-toggle {
+  border-radius: var(--ds-control-radius);
+}
+
+.task-card__summary-view-toggle :deep(.q-btn-group),
+.task-card__summary-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.task-card__summary-view-toggle :deep(.q-btn) {
+  min-height: 21px;
+  min-width: 21px;
+  height: 21px;
+  width: 21px;
+  padding: 0 2px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--ds-control-radius);
+}
+
+.task-card__summary-view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.task-card__summary-view-toggle :deep(.q-icon) {
+  font-size: 13px;
+}
+
+.task-card__summary-toggle :deep(.q-btn) {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--ds-control-radius);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.task-card__summary-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 4px;
+}
+
+.task-card__summary-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.task-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.task-card__summary-body-content,
+.task-card__notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-card__notes-list--rows {
+  gap: 6px;
+}
+
+.task-card__note-pill {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 10px;
+  color: #111;
+  background: #fff;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.task-card__summary-empty {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---light);
+  font-weight: var(--font-weight-light);
+  line-height: 20px;
 }
 
 .task-card {
