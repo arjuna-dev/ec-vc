@@ -4,6 +4,9 @@
       <q-card-section class="q-px-xl q-pt-lg q-pb-md">
         <div class="text-h6">Create {{ entityLabel }}</div>
         <div class="text-caption text-grey-7">Drop files to start processing automatically.</div>
+        <div v-if="showExtractedEntityNotice" class="text-caption text-primary q-mt-xs">
+          Reviewing extracted {{ extractedEntityNoticeLabel }} in the existing create flow.
+        </div>
       </q-card-section>
 
       <q-separator />
@@ -1314,6 +1317,17 @@ const injectedCompanyFields = computed(() => {
     }))
 })
 
+const showExtractedEntityNotice = computed(() => Boolean(props.initialData))
+const extractedEntityNoticeLabel = computed(() => {
+  const entityTypeName = String(
+    props.initialData?.entityType || props.initialData?.entity?.entityType || entityType.value,
+  )
+    .trim()
+    .toLowerCase()
+  if (!entityTypeName) return 'entry'
+  return entityTypeName
+})
+
 const rankedCompanies = computed(() => {
   const searchBase = normalizeComparisonText(
     companyOptionFilter.value || companyForm.value.Company_Name,
@@ -2032,68 +2046,9 @@ function onExternalDraftReviewApplied(event) {
   hydrateFromActiveDraft()
 }
 
-function inferDocumentTypeFromDraft() {
-  const sourceFiles = activeDraft.value?.droppedFiles?.length
-    ? activeDraft.value.droppedFiles
-    : droppedFilesForPrompt.value
-  const fileNames = (sourceFiles || []).map((file) => String(file?.name || '').toLowerCase())
-  if (!fileNames.length) return ''
-  const joined = fileNames.join(' ')
-  if (joined.includes('pitch') || joined.includes('deck') || joined.includes('presentation'))
-    return 'Pitch Deck'
-  if (joined.includes('term sheet') || joined.includes('termsheet')) return 'Term Sheet'
-  if (joined.includes('model') || joined.includes('.xlsx') || joined.includes('.xls'))
-    return 'Financial Model'
-  if (joined.includes('memo')) return 'Investment Memo'
-  if (joined.includes('.pdf')) return 'PDF Document'
-  if (joined.includes('.doc') || joined.includes('.docx')) return 'Text Document'
-  return ''
-}
-
-function inferCompanyNameFromDraft() {
-  const sourceFiles = activeDraft.value?.droppedFiles?.length
-    ? activeDraft.value.droppedFiles
-    : droppedFilesForPrompt.value
-  const rawName = String(sourceFiles?.[0]?.name || '').trim()
-  if (!rawName) return ''
-  const baseName = rawName.replace(/\.[^.]+$/, '')
-  const hasDelimiter = /[_-]/.test(baseName)
-  const firstSegment = baseName
-    .split(/[_-]+/)
-    .map((part) => String(part || '').trim())
-    .find((part) => part.length > 2)
-  if (!firstSegment) return ''
-  const normalized = firstSegment
-    .replace(/\b(deck|pitch|memo|model|term|sheet|presentation|fund|round|series|seed)\b/gi, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-  if (!normalized) return ''
-  const tokenCount = normalized.split(/\s+/).filter(Boolean).length
-  const looksLikeTitle = /[:()]/.test(baseName) || tokenCount > 4 || normalized.length > 36
-  if (!hasDelimiter && looksLikeTitle) return ''
-  return normalized
-}
-
-function inferArtifactTitleFromDraft() {
-  const sourceFiles = activeDraft.value?.droppedFiles?.length
-    ? activeDraft.value.droppedFiles
-    : droppedFilesForPrompt.value
-  const rawName = String(sourceFiles?.[0]?.name || '').trim()
-  if (!rawName) return ''
-  return rawName
-    .replace(/\.[^.]+$/, '')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-}
-
 function createDefaultIntakeReviewFields(overrides = {}) {
   return {
-    sponsorCompany: '',
-    existingOpportunityMatch: '',
-    matchingDocumentName: '',
-    documentType: '',
-    artifactTitle: '',
+    primaryCompanyName: '',
     relatedFund: '',
     relatedRound: '',
     relatedContact: '',
@@ -2103,15 +2058,11 @@ function createDefaultIntakeReviewFields(overrides = {}) {
 }
 
 const INTAKE_REVIEW_PRIORITY = Object.freeze([
-  'sponsorCompany',
-  'existingOpportunityMatch',
-  'matchingDocumentName',
+  'primaryCompanyName',
   'relatedContact',
   'website',
   'relatedFund',
   'relatedRound',
-  'documentType',
-  'artifactTitle',
 ])
 
 function buildVisibleIntakeFieldKeys(fields = {}) {
@@ -2122,16 +2073,12 @@ function buildVisibleIntakeFieldKeys(fields = {}) {
       return entityType.value === 'round' && String(fields[key] || '').trim()
     return String(fields[key] || '').trim()
   })
-  return prioritized.length ? prioritized : ['documentType']
+  return prioritized
 }
 
 function createDefaultIntakeReviewVerified(overrides = {}) {
   return {
-    sponsorCompany: false,
-    existingOpportunityMatch: false,
-    matchingDocumentName: false,
-    documentType: false,
-    artifactTitle: false,
+    primaryCompanyName: false,
     relatedFund: false,
     relatedRound: false,
     relatedContact: false,
@@ -2142,11 +2089,7 @@ function createDefaultIntakeReviewVerified(overrides = {}) {
 
 function createDefaultIntakeReviewSources(overrides = {}) {
   return {
-    sponsorCompany: '',
-    existingOpportunityMatch: '',
-    matchingDocumentName: '',
-    documentType: '',
-    artifactTitle: '',
+    primaryCompanyName: '',
     relatedFund: '',
     relatedRound: '',
     relatedContact: '',
@@ -2158,11 +2101,7 @@ function createDefaultIntakeReviewSources(overrides = {}) {
 function intakeFieldLabel(fieldKey) {
   return (
     {
-      sponsorCompany: 'Sponsor Company',
-      existingOpportunityMatch: 'Existing Opportunity Match',
-      matchingDocumentName: 'Matching Document Name',
-      documentType: 'Document Type',
-      artifactTitle: 'Artifact Title',
+      primaryCompanyName: 'Primary Company',
       relatedFund: 'Related Fund',
       relatedRound: 'Related Round',
       relatedContact: 'Related Contact',
@@ -2174,11 +2113,7 @@ function intakeFieldLabel(fieldKey) {
 function intakeFieldOwner(fieldKey) {
   return (
     {
-      sponsorCompany: 'Companies',
-      existingOpportunityMatch: entityType.value === 'fund' ? 'Funds' : 'Rounds',
-      matchingDocumentName: 'Artifacts',
-      documentType: 'Artifacts',
-      artifactTitle: 'Artifacts',
+      primaryCompanyName: 'Companies',
       relatedFund: 'Funds',
       relatedRound: 'Rounds',
       relatedContact: 'Contacts',
@@ -2190,17 +2125,20 @@ function intakeFieldOwner(fieldKey) {
 function intakeFieldTarget(fieldKey) {
   return (
     {
-      sponsorCompany: 'Company section',
-      existingOpportunityMatch: 'Opportunity section',
-      matchingDocumentName: 'Artifact file intake',
-      documentType: 'Draft intake metadata',
-      artifactTitle: 'Artifact title metadata',
+      primaryCompanyName: 'Company section',
       relatedFund: 'Opportunity section',
       relatedRound: 'Opportunity section',
       relatedContact: 'Primary Contact section',
       website: 'Company section',
     }[fieldKey] || 'Draft intake'
   )
+}
+
+function hasAiSuggestedValue(section, key) {
+  const fieldKey = buildFieldStateKey(section, key)
+  const snapshot = aiGeneratedFieldSnapshots.value[fieldKey]
+  const value = snapshot?.value ?? captureFieldSnapshot(section, key)?.value ?? ''
+  return Boolean(autofilledFlags.value[fieldKey]) && String(value).trim().length > 0
 }
 
 function buildIntakeReviewFieldsFromForms() {
@@ -2212,27 +2150,28 @@ function buildIntakeReviewFieldsFromForms() {
     .join(' - ')
 
   return createDefaultIntakeReviewFields({
-    sponsorCompany:
-      String(companyForm.value.Company_Name || '').trim() || inferCompanyNameFromDraft(),
-    existingOpportunityMatch: findLikelyExistingOpportunityMatchLabel(),
-    matchingDocumentName: existingDocumentNameMatches.value[0] || '',
-    documentType: inferDocumentTypeFromDraft(),
-    artifactTitle: inferArtifactTitleFromDraft(),
+    primaryCompanyName: hasAiSuggestedValue('company', 'Company_Name')
+      ? String(companyForm.value.Company_Name || '').trim()
+      : '',
     relatedFund:
-      entityType.value === 'fund' ? String(form.value.Venture_Oppty_Name || '').trim() : '',
+      entityType.value === 'fund' && hasAiSuggestedValue('opportunity', 'Venture_Oppty_Name')
+        ? String(form.value.Venture_Oppty_Name || '').trim()
+        : '',
     relatedRound:
-      entityType.value === 'round'
+      entityType.value === 'round' &&
+        (hasAiSuggestedValue('opportunity', 'Round_Stage') ||
+          hasAiSuggestedValue('opportunity', 'Venture_Oppty_Name'))
         ? String(form.value.Round_Stage || form.value.Venture_Oppty_Name || '').trim()
-        : String(form.value.Round_Stage || '').trim(),
-    relatedContact,
-    website: String(companyForm.value.Website || '').trim(),
+        : '',
+    relatedContact: hasAiSuggestedValue('contact', 'Name') ? relatedContact : '',
+    website: hasAiSuggestedValue('company', 'Website')
+      ? String(companyForm.value.Website || '').trim()
+      : '',
   })
 }
 
 function getPendingIntakeReviewFieldKeys(fields = intakeReviewFields.value) {
   return INTAKE_REVIEW_PRIORITY.filter((key) => {
-    if (key === 'relatedFund' && entityType.value !== 'fund') return false
-    if (key === 'relatedRound' && entityType.value !== 'round') return false
     const value = String(fields[key] || '').trim()
     if (!value) return false
     const currentlyVerifiedValue = String(intakeReviewFields.value[key] || '').trim()
@@ -2272,53 +2211,6 @@ function buildFullOpportunityPromptLabel(row = {}) {
   const opportunityLabel = buildOpportunityPromptLabel(row)
   if (companyName && opportunityLabel) return `${companyName} - ${opportunityLabel}`
   return companyName || opportunityLabel || ''
-}
-
-function findOpportunityByPromptLabel(label) {
-  const candidate = normalizeComparisonText(label)
-  if (!candidate) return null
-  return (
-    opportunities.value.find(
-      (row) => normalizeComparisonText(buildFullOpportunityPromptLabel(row)) === candidate,
-    ) ||
-    opportunities.value.find(
-      (row) => normalizeComparisonText(buildOpportunityPromptLabel(row)) === candidate,
-    ) ||
-    null
-  )
-}
-
-function scoreOpportunityPromptMatch(row = {}) {
-  const companyCandidate = normalizeComparisonText(companyForm.value.Company_Name)
-  const nameCandidate = normalizeComparisonText(
-    entityType.value === 'fund'
-      ? form.value.Venture_Oppty_Name
-      : form.value.Venture_Oppty_Name || form.value.Round_Stage,
-  )
-  const rowCompany = normalizeComparisonText(row?.Company_Name || row?.company_name)
-  const rowName = normalizeComparisonText(buildOpportunityPromptLabel(row))
-  const rowKind = normalizeOpportunityKind(row)
-
-  let score = 0
-  if (rowKind === entityType.value) score += 2
-  if (companyCandidate && rowCompany === companyCandidate) score += 4
-  if (nameCandidate && rowName === nameCandidate) score += 5
-  if (
-    companyCandidate &&
-    nameCandidate &&
-    rowCompany === companyCandidate &&
-    rowName === nameCandidate
-  )
-    score += 3
-  return score
-}
-
-function findLikelyExistingOpportunityMatchLabel() {
-  const ranked = [...opportunities.value]
-    .map((row) => ({ row, score: scoreOpportunityPromptMatch(row) }))
-    .filter((entry) => entry.score > 0)
-    .sort((left, right) => right.score - left.score)
-  return ranked.length ? buildFullOpportunityPromptLabel(ranked[0].row) : ''
 }
 
 function findCompanyByName(name) {
@@ -2496,7 +2388,7 @@ function verifyIntakeReviewField(fieldKey) {
     ...intakeLockedFields.value,
     [fieldKey]: true,
   }
-  if (fieldKey === 'sponsorCompany') {
+  if (fieldKey === 'primaryCompanyName') {
     companyForm.value.Company_Name = normalized
     const existingCompany = findCompanyByName(normalized)
     if (existingCompany?.id) {
@@ -2506,32 +2398,6 @@ function verifyIntakeReviewField(fieldKey) {
       sourceLabel = 'Selected existing company match'
     }
     markAutofilled('company', 'Company_Name')
-  } else if (fieldKey === 'existingOpportunityMatch') {
-    const existingOpportunity = findOpportunityByPromptLabel(normalized)
-    if (existingOpportunity) {
-      form.value.Venture_Oppty_Name = stripHumanVerify(
-        existingOpportunity?.Venture_Oppty_Name ||
-          existingOpportunity?.opportunity_name ||
-          existingOpportunity?.name,
-      )
-      form.value.Round_Stage = stripHumanVerify(
-        existingOpportunity?.Round_Stage || existingOpportunity?.round_stage,
-      )
-      form.value.kind = normalizeOpportunityKind(existingOpportunity)
-      if (!String(companyForm.value.Company_Name || '').trim()) {
-        companyForm.value.Company_Name = stripHumanVerify(
-          existingOpportunity?.Company_Name || existingOpportunity?.company_name,
-        )
-      }
-      sourceLabel = 'Selected existing opportunity match'
-      markAutofilled('opportunity', 'Venture_Oppty_Name')
-      if (String(form.value.Round_Stage || '').trim()) markAutofilled('opportunity', 'Round_Stage')
-    }
-  } else if (fieldKey === 'matchingDocumentName') {
-    sourceLabel = 'Acknowledged existing document name match'
-    syncActiveDraft({
-      acknowledgedExistingDocumentName: normalized,
-    })
   } else if (fieldKey === 'relatedFund') {
     form.value.Venture_Oppty_Name = normalized
     form.value.kind = 'fund'
@@ -2581,17 +2447,14 @@ function verifyIntakeReviewField(fieldKey) {
       fieldValue: normalized,
       ownerTable: intakeFieldOwner(fieldKey),
       consumerLane:
-        fieldKey === 'sponsorCompany'
+        fieldKey === 'primaryCompanyName'
           ? 'Company'
-          : fieldKey === 'existingOpportunityMatch' ||
-              fieldKey === 'relatedFund' ||
+          : fieldKey === 'relatedFund' ||
               fieldKey === 'relatedRound'
             ? 'Opportunity'
-            : fieldKey === 'matchingDocumentName'
-              ? 'Artifact Intake'
-              : fieldKey === 'relatedContact'
-                ? 'Contacts'
-                : 'Artifact Intake',
+            : fieldKey === 'relatedContact'
+              ? 'Contacts'
+              : 'Company',
       sourceChunkId: releasedMarkdownChunkRows.value[0]?.chunk_id || '',
       sourceType: 'user_verified_prompt',
       verificationState: 'verified',
@@ -3225,7 +3088,7 @@ function applyPrimaryStructuredValues(structured = {}) {
       : {},
   )) {
     if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
-    if (key === 'Company_Name' && intakeLockedFields.value.sponsorCompany) continue
+    if (key === 'Company_Name' && intakeLockedFields.value.primaryCompanyName) continue
     if (key === 'Website' && intakeLockedFields.value.website) continue
     const normalizedValue =
       key === 'Status'

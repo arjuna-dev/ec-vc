@@ -4,6 +4,9 @@
       <q-card-section>
         <div class="text-h6">Create Company</div>
         <div class="text-caption text-grey-7">Company name and type are required.</div>
+        <div v-if="props.initialData" class="text-caption text-primary q-mt-xs">
+          Reviewing extracted company details in the existing create flow.
+        </div>
       </q-card-section>
 
       <q-separator />
