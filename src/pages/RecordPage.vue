@@ -2936,6 +2936,179 @@ const activeContentSection = computed(
 const GENERIC_METADATA_SECTION_LABEL = 'Metadata'
 const GENERIC_KDB_SECTION_LABEL = 'KDB Relationships'
 
+const GENERIC_SECTION_RULES = Object.freeze({
+  Users: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, GENERIC_KDB_SECTION_LABEL],
+    resolve() {
+      return GENERIC_METADATA_SECTION_LABEL
+    },
+  },
+  Artifacts: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, GENERIC_KDB_SECTION_LABEL],
+    resolve(fieldName) {
+      const name = String(fieldName || '').trim()
+      if (['round_id', 'fund_id'].includes(name)) return GENERIC_KDB_SECTION_LABEL
+      return GENERIC_METADATA_SECTION_LABEL
+    },
+  },
+  Notes: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, GENERIC_KDB_SECTION_LABEL],
+    resolve() {
+      return GENERIC_METADATA_SECTION_LABEL
+    },
+  },
+  Projects: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Team', GENERIC_KDB_SECTION_LABEL],
+    resolve(fieldName, fieldSection) {
+      const name = String(fieldName || '').trim()
+      const section = String(fieldSection || '').trim()
+      if (/^Project_Team_/i.test(name) || /team/i.test(section)) return 'Team'
+      if (
+        [
+          'Project_Status',
+          'Project_Priority_Rank',
+          'Project_Start_Date',
+          'Project_Due_Date',
+          'Project_End_Date',
+          'Project_Target_Amount',
+          'Project_Summary',
+          'install_status',
+          'install_error',
+          'installed_at',
+        ].includes(name)
+      ) {
+        return 'Overview'
+      }
+      if (/^Project_(Artifact|User|Contact|Company|Fund|Round|Project|Task|Note)$/i.test(name)) {
+        return GENERIC_KDB_SECTION_LABEL
+      }
+      return GENERIC_METADATA_SECTION_LABEL
+    },
+  },
+  Pipelines: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Team', GENERIC_KDB_SECTION_LABEL],
+    resolve(fieldName, fieldSection) {
+      return GENERIC_SECTION_RULES.Projects.resolve(fieldName, fieldSection)
+    },
+  },
+  Tasks: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Team', GENERIC_KDB_SECTION_LABEL],
+    resolve(fieldName, fieldSection) {
+      const name = String(fieldName || '').trim()
+      const section = String(fieldSection || '').trim()
+      if (/^Task_Team_/i.test(name) || /team/i.test(section)) return 'Team'
+      if (
+        ['Task_Summary', 'Task_Status', 'Task_Priority_Rank', 'Task_Start_Date', 'Task_Due_Date', 'Task_End_Date'].includes(
+          name,
+        )
+      ) {
+        return 'Overview'
+      }
+      if (/^Task_(Artifact|User|Contact|Company|Fund|Round|Project|Task|Note)$/i.test(name)) {
+        return GENERIC_KDB_SECTION_LABEL
+      }
+      return GENERIC_METADATA_SECTION_LABEL
+    },
+  },
+  Funds: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Economics', 'Controls', GENERIC_KDB_SECTION_LABEL],
+    resolve(fieldName, fieldSection, fieldLabel) {
+      const name = String(fieldName || '').trim()
+      const section = String(fieldSection || '').trim()
+      const label = String(fieldLabel || '').trim()
+      if (/^Fund_(Artifact|User|Contact|Company|Fund|Round|Project|Task|Note)$/i.test(name)) {
+        return GENERIC_KDB_SECTION_LABEL
+      }
+      if (
+        [
+          'Fund_Economic_Provisions_Artifact_Id',
+          'Fund_Fees_Artifact_Id',
+          'Fund_Promote_Artifact_Id',
+          'Fund_Target_Hurdles_Artifact_Id',
+          'Fund_Target_MOIC_Artifact_Id',
+          'Fund_Strategy',
+          'Fund_Economics',
+        ].includes(name)
+      ) {
+        return 'Economics'
+      }
+      if (
+        [
+          'Fund_Control_Provisions_Artifact_Id',
+          'Fund_Information_Rights_Artifact_Id',
+          'Fund_Board_Representation_Artifact_Id',
+          'Fund_Item_Voting_Artifact_Id',
+          'Fund_Controls',
+        ].includes(name)
+      ) {
+        return 'Controls'
+      }
+      if (/company|contact|project|task|artifact/i.test(section) || /^Project \d+$/i.test(section) || /^Task \d+$/i.test(section) || /^Artifact \d+$/i.test(section) || /^Primary Contact$/i.test(section) || /^Company$/i.test(section)) {
+        return GENERIC_KDB_SECTION_LABEL
+      }
+      if (/valuation|economic|control/i.test(label)) return /control/i.test(label) ? 'Controls' : 'Economics'
+      return GENERIC_METADATA_SECTION_LABEL
+    },
+  },
+  Rounds: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Economics', 'Controls', GENERIC_KDB_SECTION_LABEL],
+    resolve(fieldName, fieldSection, fieldLabel) {
+      const name = String(fieldName || '').trim()
+      const section = String(fieldSection || '').trim()
+      const label = String(fieldLabel || '').trim()
+      if (/^Round_(Artifact|User|Contact|Company|Fund|Project|Task|Note)$/i.test(name)) {
+        return GENERIC_KDB_SECTION_LABEL
+      }
+      if (
+        [
+          'Round_Pre_Valuation',
+          'Round_Post_Valuation',
+          'Round_Previous_Post_Valuation',
+          'Round_Economic_Provisions_Artifact_Id',
+          'Round_Liquidation_Preference_Artifact_Id',
+          'Round_Drag_Tag_Artifact_Id',
+          'Round_Put_Call_Artifact_Id',
+          'Round_Conversion_Artifact_Id',
+        ].includes(name)
+      ) {
+        return 'Economics'
+      }
+      if (
+        [
+          'Round_Control_Provisions_Artifact_Id',
+          'Round_Information_Rights_Artifact_Id',
+          'Round_Board_Representation_Artifact_Id',
+          'Round_Item_Voting_Artifact_Id',
+          'Round_Controls',
+        ].includes(name)
+      ) {
+        return 'Controls'
+      }
+      if (/company|contact|project|task|artifact/i.test(section) || /^Project \d+$/i.test(section) || /^Task \d+$/i.test(section) || /^Artifact \d+$/i.test(section) || /^Primary Contact$/i.test(section) || /^Company$/i.test(section)) {
+        return GENERIC_KDB_SECTION_LABEL
+      }
+      if (/valuation|economic|control/i.test(label)) return /control/i.test(label) ? 'Controls' : 'Economics'
+      return GENERIC_METADATA_SECTION_LABEL
+    },
+  },
+  Opportunities: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Economics', 'Controls', GENERIC_KDB_SECTION_LABEL],
+    resolve(fieldName, fieldSection, fieldLabel) {
+      const section = String(fieldSection || '').trim()
+      const label = String(fieldLabel || '').trim()
+      if (/company|contact|project|task|artifact/i.test(section) || /^Project \d+$/i.test(section) || /^Task \d+$/i.test(section) || /^Artifact \d+$/i.test(section) || /^Primary Contact$/i.test(section) || /^Company$/i.test(section)) {
+        return GENERIC_KDB_SECTION_LABEL
+      }
+      if (/fund|round/i.test(section)) {
+        if (/valuation|economic|liquidation|drag|put|conversion/i.test(label)) return 'Economics'
+        if (/control|board|voting|rights/i.test(label)) return 'Controls'
+        return 'Overview'
+      }
+      return GENERIC_METADATA_SECTION_LABEL
+    },
+  },
+})
+
 function normalizeGenericSectionLabel(sectionName) {
   const raw = String(sectionName || '').trim()
   if (!raw) return ''
@@ -2944,14 +3117,25 @@ function normalizeGenericSectionLabel(sectionName) {
   return raw
 }
 
+function resolveGenericFieldSection(field) {
+  const tableName = structuredRecordTableName.value
+  const sectionRules = GENERIC_SECTION_RULES[tableName]
+  if (sectionRules?.resolve) {
+    return sectionRules.resolve(field?.field_name, field?.section, field?.label)
+  }
+  return normalizeGenericSectionLabel(field?.section)
+}
+
 const genericRecordNavItems = computed(() => {
-  if (isOpportunityRecordView.value) {
-    return [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Economics', 'Controls', GENERIC_KDB_SECTION_LABEL]
+  const tableName = structuredRecordTableName.value
+  const sectionRules = GENERIC_SECTION_RULES[tableName]
+  if (sectionRules?.sections?.length) {
+    return sectionRules.sections
   }
 
   const seen = new Set()
   const ordered = (fields.value || [])
-    .map((field) => normalizeGenericSectionLabel(field?.section))
+    .map((field) => resolveGenericFieldSection(field))
     .filter((section) => {
       if (!section || section === GENERIC_KDB_SECTION_LABEL || seen.has(section)) return false
       seen.add(section)
@@ -3151,10 +3335,10 @@ const genericHeroDocuments = computed(() => {
 const visibleGenericFields = computed(() => {
   const activeSection = String(activeGenericSection.value || '').trim()
   if (!activeSection || activeSection === GENERIC_KDB_SECTION_LABEL) return fields.value || []
-  return (fields.value || []).filter((field) => normalizeGenericSectionLabel(field?.section) === activeSection)
+  return (fields.value || []).filter((field) => resolveGenericFieldSection(field) === activeSection)
 })
 const genericKdbFields = computed(() =>
-  (fields.value || []).filter((field) => normalizeGenericSectionLabel(field?.section) === GENERIC_KDB_SECTION_LABEL),
+  (fields.value || []).filter((field) => resolveGenericFieldSection(field) === GENERIC_KDB_SECTION_LABEL),
 )
 const genericKdbFieldMap = computed(() =>
   Object.fromEntries(
