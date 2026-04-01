@@ -15,6 +15,25 @@ This means:
 - record payloads should be emitted in workbook section order
 - `RecordPage.vue` should render from that payload instead of inventing section structure on the fly
 
+## Working Approach
+
+For the first pass, the workbook should be used as the canonical setup and validation layer.
+
+That means we use the workbook to verify:
+
+- section order
+- section membership
+- leaf-token ownership
+- relationship coverage
+
+After that alignment is in place, the app does not have to force every record type into a perfectly workbook-shaped runtime implementation.
+
+The practical rule is:
+
+`Use the workbook as the canonical setup and validation layer, but allow the current RecordPage execution model to remain if it can render the correct structure cleanly.`
+
+This keeps the workbook as the structural source of truth, while still letting the current `RecordPage.vue` rendering model and placeholders do their job where they are already working well.
+
 ## Core Rule
 
 Every workbook-backed record should expose:
@@ -135,14 +154,18 @@ This is simple, but it is weaker than the workbook model because it does not exp
 
 ## Migration Rule
 
-As we upgrade each record type, we should stop asking the UI to infer section structure from raw fields.
+As we upgrade each record type, we should use the workbook to align and validate the structure first.
 
-Instead, each record builder should emit:
+Then we decide case by case whether the backend needs a richer custom payload or whether the current `RecordPage.vue` execution model can already render that structure cleanly.
+
+The target is not to force every record type into one rigid backend shape too early.
+
+The target is to make sure every record view correctly reflects:
 
 - workbook section order
 - workbook leaf-token membership
 - a dedicated `KDB Relationships` section
-- relationship items already grouped for the KDB browser
+- relationship items grouped correctly for the KDB browser
 
 ## Canonical Section Order By File
 
