@@ -116,6 +116,29 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              dense
+              flat
+              round
+              icon="download"
+              color="grey-6"
+              class="assistants-toolbar__icon-button"
+              disable
+            >
+              <q-tooltip>Import CSV is not available for roles yet</q-tooltip>
+            </q-btn>
+            <q-btn
+              dense
+              flat
+              round
+              icon="upload"
+              color="grey-6"
+              class="assistants-toolbar__icon-button"
+              :disable="loading || displayRows.length === 0"
+              @click="exportAssistantsCsv"
+            >
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -280,6 +303,10 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { exportFile, useQuasar } from 'quasar'
+import { rowsToCsv } from 'src/utils/csv'
+
+const $q = useQuasar()
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -346,6 +373,23 @@ const columns = [
   { name: 'version', label: 'Version', field: 'version', align: 'left', sortable: true },
   { name: 'config_status', label: 'Config', field: 'linkedConfigName', align: 'left', sortable: true },
   { name: 'mission', label: 'Mission', field: 'mission', align: 'left' },
+]
+
+const csvHeaders = [
+  'assistant_system_prompt_id',
+  'name',
+  'version',
+  'description',
+  'system_prompt',
+  'input_contract',
+  'output_contract',
+  'schema_name',
+  'domain',
+  'roleLabel',
+  'parent',
+  'mission',
+  'scope',
+  'nextAction',
 ]
 
 function normalizeAssistantValue(value) {
@@ -631,6 +675,14 @@ const displayRows = computed(() => {
 
   return items
 })
+
+function exportAssistantsCsv() {
+  const csv = rowsToCsv(csvHeaders, displayRows.value)
+  const ok = exportFile('roles.csv', csv, 'text/csv')
+  if (ok !== true) {
+    $q.notify({ type: 'negative', message: 'Browser denied file download.' })
+  }
+}
 
 async function loadAssistants() {
   if (!bridge.value?.assistants?.list) return
@@ -947,6 +999,19 @@ onMounted(loadAssistants)
 }
 
 .assistants-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+
+.assistants-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.assistants-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
 }
 
