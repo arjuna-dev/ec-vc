@@ -1215,14 +1215,14 @@ onMounted(loadUsers)
 }
 
 .user-card__hero {
-  padding: 0;
+  padding: 0 0 4px;
 }
 
 .user-card__control-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px 4px;
+  padding: 8px 16px 0;
   background: transparent;
 }
 
