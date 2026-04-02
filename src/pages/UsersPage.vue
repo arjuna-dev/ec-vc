@@ -86,6 +86,18 @@
                 <span class="users-toolbar__add-button-label">Add Record</span>
               </span>
             </q-btn>
+            <q-btn
+              dense
+              flat
+              round
+              icon="download"
+              color="grey-6"
+              class="users-toolbar__icon-button"
+              :disable="loading"
+              @click="csvActionsRef?.pickFile?.()"
+            >
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
             <q-input
               v-model="searchQuery"
               dense
@@ -114,18 +126,6 @@
               :disable="loading"
               :options="viewOptions"
             />
-            <q-btn
-              dense
-              flat
-              round
-              icon="download"
-              color="grey-6"
-              class="users-toolbar__icon-button"
-              :disable="loading"
-              @click="csvActionsRef?.pickFile?.()"
-            >
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
             <q-btn
               dense
               flat
