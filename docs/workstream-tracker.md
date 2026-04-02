@@ -14,7 +14,6 @@ This tracker should stay aligned with:
 
 - `docs/record-architecture-master-plan.md`
 - `docs/intake-architecture-master-plan.md`
-- `docs/file-card-structure-reference.md`
 
 ## Front-Loaded
 
@@ -29,7 +28,6 @@ This tracker should stay aligned with:
 
 - `RAMP` is now the single architecture source of truth for `File -> Card -> Record View`
 - `Intake Architecture Master Plan` is now the single intake planning source of truth
-- `File Card Structure Reference` now captures the normalized shared card shell for the 8 main file pages
 - Artifact processing recovery and continuity
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`
 - Verification dialog behavior and staged review UX

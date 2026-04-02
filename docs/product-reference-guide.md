@@ -8,7 +8,6 @@ It should be treated as the single reference source for:
 
 - core product vocabulary
 - file and record naming
-- file-card shell behavior
 - record-view behavior
 - canonical relationship ownership
 - first-order field logic
@@ -35,22 +34,6 @@ Pattern:
 `File -> record list -> eye icon -> Record View`
 
 When the user clicks the eye icon from a file, they open the detailed view for that specific record.
-
-## File Card Reference
-
-The normalized `File` card shell is also part of the product language.
-
-Use:
-
-- [file-card-structure-reference.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/file-card-structure-reference.md)
-
-That document defines the shared card shell used across the 8 main file pages, including:
-
-- control row
-- hero block
-- KDB summary head
-- lower summary panel
-- `Add Relation` placement
 
 ## File To Record Mapping
 
