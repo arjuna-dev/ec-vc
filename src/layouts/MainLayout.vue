@@ -234,6 +234,7 @@
       <q-menu
         v-model="quickWidgetSettingsOpen"
         :target="quickWidgetSettingsTarget"
+        :offset="[40, 0]"
         no-parent-event
         anchor="top right"
         self="top left"
