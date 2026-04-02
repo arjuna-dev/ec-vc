@@ -1697,7 +1697,10 @@ function goBack() {
   width: 320px;
   max-width: min(320px, calc(100vw - 24px));
   padding: 14px;
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(17, 17, 17, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(18px);
 }
 
 .ec-quick-widget-settings-panel__header {
@@ -1714,7 +1717,7 @@ function goBack() {
 }
 
 .ec-quick-widget-settings-panel__eyebrow {
-  color: var(--ds-color-text-muted);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -1722,7 +1725,7 @@ function goBack() {
 }
 
 .ec-quick-widget-settings-panel__title {
-  color: var(--ds-color-text-primary-deep);
+  color: #ffffff;
   font-family: var(--font-title);
   font-size: 1rem;
   font-weight: var(--font-weight-black);
@@ -1730,7 +1733,7 @@ function goBack() {
 }
 
 .ec-quick-widget-settings-panel__caption {
-  color: var(--ds-color-text-secondary);
+  color: rgba(255, 255, 255, 0.68);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -1748,11 +1751,12 @@ function goBack() {
   gap: 10px;
   padding: 8px 10px;
   border-radius: 14px;
-  background: rgba(248, 246, 240, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .ec-quick-widget-settings-row__label {
-  color: var(--ds-color-text-primary-deep);
+  color: #ffffff;
   font-family: var(--font-title);
   font-size: 0.9rem;
   font-weight: var(--font-weight-black);
@@ -1769,6 +1773,14 @@ function goBack() {
   display: flex;
   align-items: center;
   gap: 2px;
+}
+
+.ec-quick-widget-settings-row__actions :deep(.q-btn) {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.ec-quick-widget-settings-row__actions :deep(.q-btn:disabled) {
+  color: rgba(255, 255, 255, 0.24) !important;
 }
 
 .ec-intake-drafts {
