@@ -1503,6 +1503,7 @@ watch(
 
 .user-card__summary-view-toggle {
   margin-left: auto;
+  margin-right: 14px;
 }
 
 .user-card__summary-view-toggle :deep(.q-btn-group),

@@ -1499,6 +1499,7 @@ watch(displayRows, () => {
 
 .note-card__summary-view-toggle {
   margin-left: auto;
+  margin-right: 14px;
 }
 
 .note-card__summary-view-toggle :deep(.q-btn-group),

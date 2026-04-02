@@ -1848,6 +1848,7 @@ watch(displayRows, () => {
 
 .pipeline-card__summary-view-toggle {
   margin-left: auto;
+  margin-right: 14px;
   border-radius: var(--ds-control-radius);
 }
 

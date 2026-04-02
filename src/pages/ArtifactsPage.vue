@@ -4440,6 +4440,7 @@ watch(displayArtifactRows, () => {
 
 .artifact-card__summary-view-toggle {
   margin-left: auto;
+  margin-right: 14px;
 }
 
 .artifact-card__summary-view-toggle :deep(.q-btn-group),
