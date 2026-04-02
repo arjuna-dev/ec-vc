@@ -2828,11 +2828,13 @@ function formatCanonicalLabel(value, entityPrefix = '') {
   const raw = String(value || '').trim()
   if (!raw) return ''
   const withoutPrefix = entityPrefix && raw.startsWith(`${entityPrefix}_`) ? raw.slice(entityPrefix.length + 1) : raw
-  return withoutPrefix
+  const label = withoutPrefix
     .split('_')
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ')
+  if (/^general information$/i.test(label)) return 'General'
+  return label
 }
 
 function getCanonicalSectionIcon(subsection) {
@@ -2894,8 +2896,8 @@ function createCanonicalGeneralInformationFallback(entityName) {
 
   return {
     anchor: 'general-information',
-    category: 'General Information',
-    title: 'General Information',
+    category: 'General',
+    title: 'General',
     icon: CONTACT_SECTION_ICONS.person,
     caption: '',
     layout: 'grid',
@@ -2907,7 +2909,7 @@ function createCanonicalGeneralInformationFallback(entityName) {
 
 function orderCanonicalSectionsForNav(entityName, sections = []) {
   const normalizedSections = [...sections]
-  const generalIndex = normalizedSections.findIndex((section) => /^general information$/i.test(section.title))
+  const generalIndex = normalizedSections.findIndex((section) => /^general( information)?$/i.test(section.title))
   const kdbIndex = normalizedSections.findIndex((section) => section.isKdb)
   const systemIndex = normalizedSections.findIndex((section) => section.isSystem)
 
