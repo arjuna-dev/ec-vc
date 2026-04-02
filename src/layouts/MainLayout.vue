@@ -209,6 +209,73 @@
     </div>
 
     <div class="ec-quick-widget" :style="quickWidgetStyle">
+      <q-btn
+        round
+        dense
+        flat
+        class="ec-quick-widget-settings"
+        icon="tune"
+        aria-label="Widget settings"
+        @click.stop="quickWidgetSettingsOpen = true"
+      >
+        <q-menu
+          v-model="quickWidgetSettingsOpen"
+          anchor="top right"
+          self="bottom right"
+          class="ec-quick-widget-settings-menu"
+        >
+          <div class="ec-quick-widget-settings-panel">
+            <div class="ec-quick-widget-settings-panel__header">
+              <div>
+                <div class="ec-quick-widget-settings-panel__eyebrow">Widget Settings</div>
+                <div class="ec-quick-widget-settings-panel__title">Quick Files</div>
+              </div>
+              <div class="ec-quick-widget-settings-panel__caption">
+                Show, hide, and reorder the files in your quick widget.
+              </div>
+            </div>
+
+            <div class="ec-quick-widget-settings-panel__list">
+              <div
+                v-for="(action, index) in quickWidgetActionCatalog"
+                :key="action.id"
+                class="ec-quick-widget-settings-row"
+              >
+                <q-toggle
+                  :model-value="isQuickWidgetActionEnabled(action.id)"
+                  color="primary"
+                  dense
+                  @update:model-value="setQuickWidgetActionEnabled(action.id, $event)"
+                />
+
+                <div class="ec-quick-widget-settings-row__copy">
+                  <div class="ec-quick-widget-settings-row__label">{{ action.label }}</div>
+                </div>
+
+                <div class="ec-quick-widget-settings-row__actions">
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="keyboard_arrow_up"
+                    :disable="index === 0"
+                    @click.stop="moveQuickWidgetAction(action.id, -1)"
+                  />
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="keyboard_arrow_down"
+                    :disable="index === quickWidgetActionCatalog.length - 1"
+                    @click.stop="moveQuickWidgetAction(action.id, 1)"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </q-menu>
+      </q-btn>
+
       <div
         v-for="(action, index) in quickWidgetActions"
         :key="action.id"
@@ -326,6 +393,7 @@ const quickWidgetIconContainer = ref(null)
 const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
+const quickWidgetSettingsOpen = ref(false)
 const draftTrayDismissed = ref(false)
 const drawerSectionOpen = ref({
   preferences: true,
@@ -342,6 +410,8 @@ const QUICK_WIDGET_ACTION_SIZE = 40
 const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
+const QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY = 'ecvc.quickWidgetActionSettings'
+const DEFAULT_QUICK_WIDGET_ACTION_ORDER = ['opportunity', 'contact', 'company', 'note', 'task', 'artifact']
 const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
   { label: 'Owner', to: '/user-settings', exact: true, icon: 'accessibility_new' },
@@ -530,44 +600,65 @@ const quickWidgetStyle = computed(() => ({
   top: `${quickWidgetPosition.value.y}px`,
 }))
 
-const quickWidgetActions = computed(() => [
-  {
-    id: 'opportunity',
-    label: 'Opportunity',
-    icon: 'work',
-    onClick: openOpportunityKindDialog,
-  },
-  {
-    id: 'contact',
-    label: 'Contact',
-    icon: 'people',
-    onClick: openContactFromQuickAction,
-  },
-  {
-    id: 'company',
-    label: 'Company',
-    icon: 'apartment',
-    onClick: openCompanyFromQuickAction,
-  },
-  {
-    id: 'note',
-    label: 'Note',
-    icon: 'note',
-    onClick: openNoteFromQuickAction,
-  },
-  {
-    id: 'task',
-    label: 'Task',
-    icon: 'check_circle',
-    onClick: openTaskFromQuickAction,
-  },
-  {
-    id: 'artifact',
-    label: intakeDraftCount.value > 0 ? `Artifact (${intakeDraftCount.value})` : 'Artifact',
-    icon: 'attach_file',
-    onClick: openArtifactFromQuickAction,
-  },
-])
+const quickWidgetActionSettings = ref({
+  order: [...DEFAULT_QUICK_WIDGET_ACTION_ORDER],
+  enabled: Object.fromEntries(DEFAULT_QUICK_WIDGET_ACTION_ORDER.map((id) => [id, true])),
+})
+
+const quickWidgetActionCatalog = computed(() => {
+  const actionById = {
+    opportunity: {
+      id: 'opportunity',
+      label: 'Opportunity',
+      icon: 'work',
+      onClick: openOpportunityKindDialog,
+    },
+    contact: {
+      id: 'contact',
+      label: 'Contact',
+      icon: 'people',
+      onClick: openContactFromQuickAction,
+    },
+    company: {
+      id: 'company',
+      label: 'Company',
+      icon: 'apartment',
+      onClick: openCompanyFromQuickAction,
+    },
+    note: {
+      id: 'note',
+      label: 'Note',
+      icon: 'note',
+      onClick: openNoteFromQuickAction,
+    },
+    task: {
+      id: 'task',
+      label: 'Task',
+      icon: 'check_circle',
+      onClick: openTaskFromQuickAction,
+    },
+    artifact: {
+      id: 'artifact',
+      label: intakeDraftCount.value > 0 ? `Artifact (${intakeDraftCount.value})` : 'Artifact',
+      icon: 'attach_file',
+      onClick: openArtifactFromQuickAction,
+    },
+  }
+
+  const configuredOrder = Array.isArray(quickWidgetActionSettings.value?.order)
+    ? quickWidgetActionSettings.value.order
+    : []
+  const order = [
+    ...configuredOrder.filter((id) => actionById[id]),
+    ...DEFAULT_QUICK_WIDGET_ACTION_ORDER.filter((id) => !configuredOrder.includes(id)),
+  ]
+
+  return order.map((id) => actionById[id]).filter(Boolean)
+})
+
+const quickWidgetActions = computed(() =>
+  quickWidgetActionCatalog.value.filter((action) => isQuickWidgetActionEnabled(action.id)),
+)
 
 const quickOpportunityBranchActions = computed(() => [
   {
@@ -708,6 +799,73 @@ function persistQuickWidgetPosition() {
   )
 }
 
+function normalizeQuickWidgetActionSettings(rawSettings = {}) {
+  const enabledInput = rawSettings?.enabled && typeof rawSettings.enabled === 'object' ? rawSettings.enabled : {}
+  const orderInput = Array.isArray(rawSettings?.order) ? rawSettings.order : []
+  const order = [
+    ...orderInput.filter((id) => DEFAULT_QUICK_WIDGET_ACTION_ORDER.includes(id)),
+    ...DEFAULT_QUICK_WIDGET_ACTION_ORDER.filter((id) => !orderInput.includes(id)),
+  ]
+
+  return {
+    order,
+    enabled: Object.fromEntries(
+      DEFAULT_QUICK_WIDGET_ACTION_ORDER.map((id) => [id, enabledInput[id] !== false]),
+    ),
+  }
+}
+
+function persistQuickWidgetActionSettings() {
+  if (typeof window === 'undefined') return
+  window.localStorage?.setItem(
+    QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY,
+    JSON.stringify(quickWidgetActionSettings.value),
+  )
+}
+
+function loadQuickWidgetActionSettings() {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = window.localStorage?.getItem(QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY)
+    if (!raw) {
+      quickWidgetActionSettings.value = normalizeQuickWidgetActionSettings()
+      return
+    }
+    quickWidgetActionSettings.value = normalizeQuickWidgetActionSettings(JSON.parse(raw))
+  } catch {
+    quickWidgetActionSettings.value = normalizeQuickWidgetActionSettings()
+  }
+}
+
+function isQuickWidgetActionEnabled(actionId) {
+  return quickWidgetActionSettings.value?.enabled?.[actionId] !== false
+}
+
+function setQuickWidgetActionEnabled(actionId, enabled) {
+  quickWidgetActionSettings.value = {
+    ...quickWidgetActionSettings.value,
+    enabled: {
+      ...quickWidgetActionSettings.value.enabled,
+      [actionId]: enabled !== false,
+    },
+  }
+  persistQuickWidgetActionSettings()
+}
+
+function moveQuickWidgetAction(actionId, direction) {
+  const currentOrder = [...(quickWidgetActionSettings.value?.order || [])]
+  const fromIndex = currentOrder.indexOf(actionId)
+  const toIndex = fromIndex + direction
+  if (fromIndex < 0 || toIndex < 0 || toIndex >= currentOrder.length) return
+  const [moved] = currentOrder.splice(fromIndex, 1)
+  currentOrder.splice(toIndex, 0, moved)
+  quickWidgetActionSettings.value = {
+    ...quickWidgetActionSettings.value,
+    order: currentOrder,
+  }
+  persistQuickWidgetActionSettings()
+}
+
 function loadQuickWidgetPosition() {
   if (typeof window === 'undefined') return
   try {
@@ -736,13 +894,13 @@ function onQuickWidgetResize() {
 
 function quickWidgetActionAngle(index) {
   const total = quickWidgetActions.value.length
+  if (total <= 0) return -90
   return -90 - (360 / total) * index
 }
 
 function quickWidgetActionOffsetById(actionId, radius = QUICK_WIDGET_ACTION_RADIUS) {
-  const circleOrder = ['opportunity', 'task', 'contact', 'artifact', 'company', 'note']
   const resolvedId = String(actionId || '').trim()
-  const orderIndex = circleOrder.indexOf(resolvedId)
+  const orderIndex = quickWidgetActions.value.findIndex((action) => action.id === resolvedId)
   const angleIndex = orderIndex >= 0 ? orderIndex : 0
   const angleRad = (quickWidgetActionAngle(angleIndex) * Math.PI) / 180
 
@@ -1086,6 +1244,7 @@ onMounted(() => {
   window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
   syncUserNavState()
+  loadQuickWidgetActionSettings()
   loadQuickWidgetPosition()
   initLogoAnimation()
   playQuickWidgetIdle()
@@ -1410,6 +1569,91 @@ function goBack() {
   width: 112px;
   height: 112px;
   overflow: visible;
+}
+
+.ec-quick-widget-settings {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 4;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  color: var(--ds-color-text-primary-deep);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.ec-quick-widget-settings-menu {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.ec-quick-widget-settings-panel {
+  width: 320px;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.ec-quick-widget-settings-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+}
+
+.ec-quick-widget-settings-panel__eyebrow {
+  color: var(--ds-color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ec-quick-widget-settings-panel__title {
+  color: var(--ds-color-text-primary-deep);
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.ec-quick-widget-settings-panel__caption {
+  color: var(--ds-color-text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ec-quick-widget-settings-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ec-quick-widget-settings-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: rgba(248, 246, 240, 0.9);
+}
+
+.ec-quick-widget-settings-row__label {
+  color: var(--ds-color-text-primary-deep);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ec-quick-widget-settings-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .ec-intake-drafts {
