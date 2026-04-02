@@ -315,6 +315,14 @@
           />
         </div>
       </section>
+
+      <SelectionActionBar
+        :count="selectedCount"
+        :loading="loading"
+        :can-delete="false"
+        @share="shareSelected"
+        @edit="editSelected"
+      />
     </div>
   </q-page>
 </template>
@@ -322,6 +330,8 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import SelectionActionBar from 'src/components/SelectionActionBar.vue'
 import TableCsvActions from 'src/components/TableCsvActions.vue'
 
 const rows = ref([])
@@ -337,6 +347,7 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const hasBridge = computed(() => !!bridge.value?.users?.list)
 const route = useRoute()
 const router = useRouter()
+const $q = useQuasar()
 
 const viewOptions = [
   { value: 'card', icon: 'grid_view' },
@@ -476,6 +487,8 @@ const displayRows = computed(() => {
     ].some((value) => String(value || '').toLowerCase().includes(normalizedSearch))
   })
 })
+
+const selectedCount = computed(() => selectedUsers.value.length)
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
@@ -659,6 +672,43 @@ function openDatabook(user) {
     params: { tableName: 'Users', recordId },
     query: { returnTo: route.fullPath },
   })
+}
+
+function editSelected() {
+  const user = selectedUsers.value[0]
+  if (!user) return
+  openDatabook(user)
+}
+
+async function shareSelected() {
+  if (selectedCount.value === 0) return
+  const text = selectedUsers.value
+    .map((user) =>
+      [String(user?.User_Name || '').trim(), String(user?.User_PEmail || '').trim(), String(user?.id || '').trim()]
+        .filter(Boolean)
+        .join(' | '),
+    )
+    .filter(Boolean)
+    .join('\n')
+
+  if (!text) return
+
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      $q.notify({
+        type: 'positive',
+        message: `Copied ${selectedCount.value} selected user${selectedCount.value === 1 ? '' : 's'}.`,
+      })
+      return
+    }
+    throw new Error('Clipboard unavailable')
+  } catch {
+    $q.notify({
+      type: 'warning',
+      message: 'Unable to copy selected users from this environment.',
+    })
+  }
 }
 
 async function importRows(importedRows = []) {
