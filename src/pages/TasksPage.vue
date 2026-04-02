@@ -1548,7 +1548,7 @@ watch(displayRows, () => {
 }
 
 .task-card__summary-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 2px;
+  margin-left: 4px;
 }
 
 .task-card__summary-toggle :deep(.q-icon) {

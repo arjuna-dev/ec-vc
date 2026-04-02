@@ -4479,7 +4479,7 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card__summary-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 2px;
+  margin-left: 4px;
 }
 
 .artifact-card__summary-toggle :deep(.q-icon) {
