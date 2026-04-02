@@ -1303,7 +1303,7 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 14px;
   border-radius: 18px 18px 0 0;
   overflow: hidden;
   background: transparent;
@@ -1669,10 +1669,10 @@ watch(
 }
 
 .user-card__control-eye {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
   padding: 0;
   color: #111;
   background: transparent;
@@ -1681,12 +1681,12 @@ watch(
 }
 
 .user-card__control-eye :deep(.q-icon) {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .user-card__select-box {
   margin-left: -3.5px;
-  transform: scale(0.75);
+  transform: scale(0.72);
   transform-origin: center;
 }
 
