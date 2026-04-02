@@ -1,0 +1,625 @@
+# Intake Architecture Master Plan
+
+## Status
+
+This document is now the primary working reference for intake architecture.
+
+It should be treated as the single planning source of truth for:
+
+- intake objectives
+- staged extraction behavior
+- draft ownership
+- review guidance
+- execution plan
+- progress tracking
+
+When intake decisions change:
+
+- update this file
+- avoid creating parallel intake planning docs unless there is a strong reason
+- use the tracker here to show what is approved, in progress, and complete
+
+## Objective
+
+Make data entry into the system work as a dependable AI-guided intake workflow rather than a single opaque extraction pass.
+
+That means:
+
+- files should enter the system through a draft-first flow
+- high-value information should appear early
+- extraction should continue while the user reviews important items
+- the system should compare AI suggestions against existing records before creation
+- unfinished work should always be resumable
+- the user should be able to understand where information came from and why it was used
+
+The goal is not just automation.
+
+The goal is trustworthy intake:
+
+- fast enough to feel responsive
+- staged enough to be understandable
+- cautious enough to avoid bad links and duplicates
+- visible enough that the operator can recover and continue
+
+## Task / Goal Framing
+
+This first intake architecture pass is meant to define the first stable operating model for AI-assisted data entry into the app.
+
+For this phase:
+
+- intake behavior should be frontend-first
+- the flow should remain draft-based until the user confirms creation
+- orchestration should be controlled and explainable
+- review surfaces should expose why suggestions appeared
+
+This does **not** mean the first intake implementation must be the final one.
+
+The intended long-term understanding is:
+
+- `controlled staged orchestration` first
+- `smarter adaptive intake behavior` later
+
+In other words:
+
+- right now, we want dependable continuity and visible staged progress
+- later, we can make the AI behavior richer and more adaptive once the system is trustworthy
+
+So the current goal is not maximum autonomy.
+
+The current goal is a clear and resilient intake operating system.
+
+## Governing Model
+
+The intake flow should follow this structure:
+
+`File Drop -> Draft Intake -> Early Prompts -> Deep Extraction + Matching -> Review -> Create`
+
+More clearly:
+
+- files enter as draft intake items
+- the system extracts high-value metadata quickly
+- the user confirms or redirects valuable early items while extraction continues
+- deeper extraction and relationship matching inform each other
+- nothing becomes canonical until the user reviews and confirms creation
+
+## Core Principles
+
+### 1. Draft-First Rule
+
+Dropped files should become drafts before they become canonical records.
+
+Drafts should remain visible until the user:
+
+- completes creation
+- discards the draft
+- or explicitly leaves it for later
+
+### 2. Early-Value Rule
+
+The system should not wait for full extraction before becoming useful.
+
+High-value metadata should appear first.
+
+Priority fields:
+
+- `Document Type`
+- `Sponsor Company`
+- `Related Fund`
+- `Related Round`
+- `Related Contacts`
+- `Website`
+
+These matter early because they improve:
+
+- matching
+- duplicate avoidance
+- relationship narrowing
+- downstream extraction quality
+
+### 3. Staged Markdown Rule
+
+Markdown should not be treated as one monolithic final artifact.
+
+It should be released in stages:
+
+- first useful chunks appear early
+- early extraction lanes use those chunks immediately
+- later chunks continue in the background
+- later lanes should respect what earlier lanes already claimed
+
+### 4. Lane Interaction Rule
+
+Deep extraction and relationship matching should overlap and inform each other.
+
+Examples:
+
+- if `Company` becomes likely, opportunity matching should narrow immediately
+- if a `Contact` becomes certain, company and opportunity matches should re-rank
+- if `Document Type` becomes certain, extraction should prioritize type-relevant fields
+
+The lanes should not work blindly in isolation.
+
+### 5. Ownership And Stand-Down Rule
+
+If a field is already claimed or verified during intake, later extraction lanes should not keep re-reviewing or overwriting it during extraction.
+
+This stand-down rule applies only during extraction.
+
+The user still keeps final edit control before creation.
+
+### 6. Resume Rule
+
+Every unfinished draft should be easy to resume.
+
+That means:
+
+- draft files need a resume action
+- unfinished artifact intake needs a resume action
+- rows and cards should reopen the real draft instead of inventing a new fallback flow
+
+### 7. Audit Rule
+
+The user should be able to see:
+
+- where information came from
+- why it was suggested
+- whether it was used
+- whether it was verified
+
+The intake system should never feel like a black box.
+
+## Surface Model
+
+The intake experience should use three main surfaces.
+
+### 1. Draft Files Surface
+
+Purpose:
+
+- show all incomplete or in-progress intake items
+- make drafts resumable
+- expose current stage and blockers
+
+### 2. High-Value Prompt Surface
+
+Purpose:
+
+- confirm one valuable decision at a time
+- keep processing moving while the user gives direction
+
+Prompt actions:
+
+- `Confirm`
+- `Edit`
+- `Skip for now`
+- `Open Draft Review`
+
+### 3. Full Review Surface
+
+Purpose:
+
+- review richer extracted data
+- compare AI, human, and existing-record sources
+- confirm canonical creation
+
+## Input Source Model
+
+Each major review card should eventually support three sources:
+
+- `AI Input`
+- `Human Input`
+- `Existing Record`
+
+Behavior:
+
+- `AI Input` shows extracted suggestions
+- `Human Input` stores operator edits for the current draft
+- `Existing Record` shows the best canonical match when one exists
+
+The operator should be able to compare these before clicking `Create`.
+
+## Chunk And Stage Model
+
+Large documents should be handled as staged markdown chunks.
+
+Suggested chunk statuses:
+
+- `raw`
+- `normalized`
+- `ready_for_early_extraction`
+- `owned`
+- `ready_for_secondary_extraction`
+- `reviewed`
+
+Suggested chunk metadata:
+
+- `chunk_id`
+- `artifact_id`
+- `source_page_range`
+- `markdown_text`
+- `stage_status`
+- `released_at`
+- `used_by`
+- `owned_fields`
+- `confidence`
+
+## Recommended Extraction Lanes
+
+Early-value lanes:
+
+1. `Company`
+2. `Opportunity`
+3. `Contacts`
+
+Later-value lanes:
+
+- deeper `Artifacts`
+- `Notes`
+- `Tasks`
+- `Assistant Proposal`
+- lower-priority relationship hints
+- long-tail metadata
+
+Working rule:
+
+`Company`, `Opportunity`, and `Contacts` should get first access to the best early chunks.
+
+## Review Hint Model
+
+Artifact review should provide cautious hints, not fake certainty.
+
+This is especially true for PDF slide or page review.
+
+The system should be able to show:
+
+- `Slide Number`
+- `Slide Title`
+- `Markdown Source`
+- `Likely Slide Intent`
+- `Candidate Metadata Fields`
+- `Confidence`
+- `Used / Not Used`
+- `Target Item Box`
+
+Important rule:
+
+Slide intent is heuristic, not absolute.
+
+Do **not** hard-code universal deck assumptions such as:
+
+- slide 1 always means company
+- slide 2 always means legal entity
+- slide 3 always means overview
+
+Instead:
+
+- use page numbers, headings, repeated phrases, visible slide titles, and context as hints
+- show confidence
+- distinguish `exact`, `provisional`, and `unmapped`
+
+## State Ownership Model
+
+The intake state should be shared above individual dialogs.
+
+### Shared Owner
+
+Recommended owner:
+
+- `MainLayout.vue`
+
+Why:
+
+- it persists while the user navigates
+- it already owns the widget
+- it already mounts the main artifact entry flow
+
+### Shared State Module
+
+Recommended path:
+
+- `src/utils/intakeDraftState.js`
+
+Why:
+
+- this codebase does not need a heavier store framework yet
+- a lightweight shared reactive module fits the current structure
+
+### Draft State Should Own
+
+- `activeDraftId`
+- `drafts`
+- `draftOrder`
+- `draftFilesById`
+- `highValuePrompts`
+- `matchingStatus`
+- `deepExtractionStatus`
+- `selectedSourceBySection`
+- `draftUiState`
+
+Each draft should hold:
+
+- dropped files
+- ingest status
+- draft artifact ids
+- AI extracted values
+- human edited values
+- matched existing records
+- confidence values
+- unresolved questions
+- current intake stage
+
+## Component Ownership Model
+
+### MainLayout
+
+Should own:
+
+- shared draft state lifetime
+- widget entry routing
+- future draft tray or draft shell
+
+Should not own:
+
+- field-level editing
+- extraction details
+- section save logic
+
+### ArtifactAddDialog
+
+Should own:
+
+- file drop interaction
+- draft creation
+- quick staging UI
+- opening prompt and review flows
+
+Should stop being the sole source of truth for dropped file state.
+
+### OpportunityCreateDialog
+
+Should own:
+
+- company/opportunity/contact review UI
+- source switching
+- final create behavior
+
+Should stop privately owning the only draft intelligence.
+
+It should consume and update shared draft state instead.
+
+### Future Consumers
+
+These should eventually be able to consume the same shared draft packet:
+
+- `CompanyCreateDialog`
+- `ContactCreateDialog`
+- `NoteCreateDialog`
+- `ProjectCreateDialog`
+- `TaskCreateDialog`
+
+## Golden Metadata Sets
+
+The first extraction pass should focus on the smallest metadata set that most improves matching.
+
+### Companies
+
+- `Company_Name`
+- `Website`
+- `LinkedIn`
+- `One_Liner`
+- `Company_Type`
+- `Headquarters_City`
+
+### Contacts
+
+- `Name`
+- `Professional_Email`
+- `Personal_Email`
+- `Phone`
+- `LinkedIn`
+
+### Rounds
+
+- `Round_Name`
+- `Round_Stage`
+- `Sponsor Company`
+- `Type_of_Security`
+- `Investment_Ask`
+- `Final_Close_Date`
+
+### Funds
+
+- `Fund_Name`
+- `Sponsor Company` / manager
+- `Investment_Ask`
+- `Final_Close_Date`
+- `Raising_Status`
+
+### Artifacts
+
+- `title`
+- `document_type`
+- `artifact_format`
+- `sponsor company`
+- `related opportunity`
+
+### Projects
+
+- `Project_Name`
+- `Project Owner`
+- related opportunity links
+- related company links
+
+### Tasks
+
+- `Task_Name`
+- `Task Owner`
+- related company links
+- related opportunity links
+- related project links
+
+### Notes
+
+- `Note_Name`
+- `Note_Content`
+
+Important note:
+
+Notes are currently metadata-only and should not pretend to persist first-level relationships until that is real in the product and storage layer.
+
+## Matching Model
+
+Matching should happen in passes.
+
+### Pass 1. Exact / Strong Identifiers
+
+- exact company name
+- normalized website domain
+- exact email
+- exact LinkedIn URL
+- exact opportunity name
+
+### Pass 2. Strong Contextual Combinations
+
+- company name + tagline
+- company name + round stage
+- contact name + email domain
+- company name + website + location
+
+### Pass 3. Soft Comparison
+
+- approximate name similarity
+- signature block clues
+- title plus document type plus known linked entities
+
+## Confidence Model
+
+Use three buckets:
+
+- `High confidence`
+- `Medium confidence`
+- `Low confidence`
+
+Rules:
+
+- `High confidence` can trigger early prompts or preselection
+- `Medium confidence` should remain a suggestion
+- `Low confidence` should stay in draft details
+
+High confidence should never silently create canonical records without user review.
+
+## Suggested Intake Stages
+
+Recommended stage values:
+
+- `Dropped`
+- `Extracting`
+- `Matching`
+- `Quick Review Needed`
+- `Ready for Review`
+- `Waiting on Link`
+- `Ready to Create`
+- `Completed`
+- `Failed`
+
+## Execution Plan
+
+### Phase 1. Stabilize Shared Draft Ownership
+
+1. Create `src/utils/intakeDraftState.js`
+2. Mount draft ownership in `MainLayout`
+3. Make artifact entry create and resume shared drafts
+
+### Phase 2. Surface The Draft Operating Layer
+
+1. Add `Draft Files` surface
+2. Show active draft status and resume state
+3. Make the tracker a visible operating surface
+
+### Phase 3. Implement Early Prompt Flow
+
+1. Surface the high-value prompt set
+2. Allow confirm, edit, skip, and defer
+3. Keep extraction moving in the background
+
+### Phase 4. Implement Staged Markdown Release
+
+1. Model released markdown chunks
+2. Track used metadata ownership
+3. Route early chunks first to `Company`, `Opportunity`, and `Contacts`
+
+### Phase 5. Connect Deep Extraction And Matching
+
+1. Feed confirmed values back into matching while intake is still active
+2. Re-rank downstream suggestions as certainty improves
+3. Prevent unnecessary repeated review for claimed fields
+
+### Phase 6. Standardize Review Surfaces
+
+1. Add `AI Input` / `Human Input` / `Existing Record` switching
+2. Add slide-intent and source audit hints
+3. Show used / not used decisions more clearly
+
+### Phase 7. Harden Continuity
+
+1. Make every unfinished draft resumable
+2. Prevent draft loss across dialog boundaries
+3. Make post-verification continuation dependable
+
+## Short-Term Build Goal
+
+The short-term goal is not advanced automation.
+
+The short-term goal is dependable continuity.
+
+The operator should be able to say:
+
+- "I dropped the files"
+- "I can see what is happening"
+- "I can confirm important items early"
+- "I can resume exactly where I left off"
+
+without losing confidence or context.
+
+## Progress Tracker
+
+### Overall
+
+- [ ] Shared intake draft module exists
+- [ ] MainLayout owns shared draft lifetime
+- [ ] Artifact entry flow is draft-aware
+- [ ] Draft Files surface exists
+- [ ] High-value prompt flow exists
+- [ ] Staged markdown chunk model exists
+- [ ] Used metadata ownership is visible
+- [ ] Deep extraction and matching inform each other
+- [ ] Review surfaces support AI / Human / Existing Record comparison
+- [ ] Slide-intent hints are visible in artifact review
+- [ ] Resume behavior is dependable across unfinished intake
+
+### Current Good Foundations
+
+- [x] intake drafts already persist during the session
+- [x] released markdown chunks can already be previewed
+- [x] used metadata claims can already be shown in review surfaces
+- [x] verification can skip and continue instead of blocking everything
+- [x] unfinished artifacts can already be resumed from the artifacts area
+
+### Immediate Build Sequence
+
+- [ ] create `intakeDraftState.js`
+- [ ] move artifact staging to shared draft ownership
+- [ ] move reusable ingest state out of opportunity-private ownership
+- [ ] make `OpportunityCreateDialog` consume shared draft state
+- [ ] add visible Draft Files surface
+- [ ] add early confirmation prompts
+
+## Working Principle
+
+We are not trying to make the intake system feel magical by hiding everything.
+
+We are trying to make it feel dependable by staging the work clearly.
+
+So the practical principle is:
+
+`Use draft-first intake, surface high-value information early, keep extraction and matching interacting, and make unfinished work always resumable.`
