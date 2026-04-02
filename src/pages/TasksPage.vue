@@ -1443,18 +1443,6 @@ watch(displayRows, () => {
   gap: 10px;
 }
 
-.task-card__title {
-  min-width: 0;
-  color: #0a0a0a;
-  font-family: var(--font-title);
-  font-size: clamp(1.3rem, 2vw, 1.6rem);
-  font-weight: var(--font-weight-black);
-  line-height: 0.96;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
 .task-card__bottom-stack,
 .task-card__detail-stack {
   display: flex;
