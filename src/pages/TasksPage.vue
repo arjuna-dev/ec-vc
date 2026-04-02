@@ -1622,7 +1622,7 @@ watch(displayRows, () => {
 .task-card__title {
   color: #0f172a;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-black);
   line-height: 1.3;
 }
 
