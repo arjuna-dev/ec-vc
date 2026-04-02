@@ -1463,6 +1463,17 @@
                     Review the structured fields and relationships tied to this {{ entityLabel.toLowerCase() }} record.
                   </div>
                 </div>
+                <q-btn-toggle
+                  v-if="!/kdb/i.test(activeGenericSection)"
+                  v-model="genericSectionViewMode"
+                  dense
+                  unelevated
+                  toggle-color="primary"
+                  color="grey-3"
+                  text-color="grey-8"
+                  class="contact-section-card__view-toggle"
+                  :options="CONTACT_KDB_VIEW_OPTIONS"
+                />
               </div>
 
               <div v-if="/kdb/i.test(activeGenericSection)" class="contact-kdb">
@@ -1578,7 +1589,7 @@
                 No fields are mapped to this section in the current {{ entityLabel.toLowerCase() }} schema yet.
               </q-banner>
 
-              <div v-else class="contact-field-grid">
+              <div v-else-if="genericSectionViewMode === 'grid'" class="contact-field-grid">
                 <article
                   v-for="field in visibleGenericFields"
                   :key="field.key"
@@ -1607,6 +1618,35 @@
                   </template>
                 </article>
               </div>
+
+              <q-list v-else bordered separator>
+                <q-item v-for="field in visibleGenericFields" :key="field.key">
+                  <q-item-section>
+                    <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
+                    <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                    <q-item-label
+                      v-if="isHistoricalMode && modifiedByMap[field.key]"
+                      class="text-caption text-negative text-italic"
+                    >
+                      modified by {{ modifiedByMap[field.key] }}
+                    </q-item-label>
+                  </q-item-section>
+                  <q-item-section side class="databook-value-section">
+                    <template v-if="editMode">
+                      <q-input
+                        v-model="draftValues[field.key]"
+                        dense
+                        outlined
+                        :disable="saving || !field.editable"
+                        :placeholder="field.editable ? 'Enter value' : ''"
+                      />
+                    </template>
+                    <template v-else>
+                      <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                    </template>
+                  </q-item-section>
+                </q-item>
+              </q-list>
             </article>
           </section>
         </div>
@@ -1895,19 +1935,41 @@
             </div>
           </template>
 
-          <q-list v-else bordered separator>
-            <q-item v-for="field in visibleGenericFields" :key="field.key">
-              <q-item-section>
-                <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
-                <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
-                <q-item-label
+          <template v-else>
+            <div class="contact-section-card__view-toolbar">
+              <q-btn-toggle
+                v-model="genericSectionViewMode"
+                dense
+                unelevated
+                toggle-color="primary"
+                color="grey-3"
+                text-color="grey-8"
+                class="contact-section-card__view-toggle"
+                :options="CONTACT_KDB_VIEW_OPTIONS"
+              />
+            </div>
+
+            <q-banner
+              v-if="!visibleGenericFields.length"
+              class="contact-section-card__empty bg-grey-1 text-black"
+              rounded
+            >
+              No fields are mapped to this section in the current {{ entityLabel.toLowerCase() }} schema yet.
+            </q-banner>
+
+            <div v-else-if="genericSectionViewMode === 'grid'" class="contact-field-grid">
+              <article
+                v-for="field in visibleGenericFields"
+                :key="field.key"
+                class="contact-field-card"
+              >
+                <div class="contact-field-card__label">{{ field.label }}</div>
+                <div
                   v-if="isHistoricalMode && modifiedByMap[field.key]"
-                  class="text-caption text-negative text-italic"
+                  class="contact-section-card__modified"
                 >
                   modified by {{ modifiedByMap[field.key] }}
-                </q-item-label>
-              </q-item-section>
-              <q-item-section side class="databook-value-section">
+                </div>
                 <template v-if="editMode">
                   <q-input
                     v-model="draftValues[field.key]"
@@ -1918,11 +1980,42 @@
                   />
                 </template>
                 <template v-else>
-                  <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                  <div class="contact-field-card__value">
+                    {{ displayValue(field.value) }}
+                  </div>
                 </template>
-              </q-item-section>
-            </q-item>
-          </q-list>
+              </article>
+            </div>
+
+            <q-list v-else bordered separator>
+              <q-item v-for="field in visibleGenericFields" :key="field.key">
+                <q-item-section>
+                  <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
+                  <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                  <q-item-label
+                    v-if="isHistoricalMode && modifiedByMap[field.key]"
+                    class="text-caption text-negative text-italic"
+                  >
+                    modified by {{ modifiedByMap[field.key] }}
+                  </q-item-label>
+                </q-item-section>
+                <q-item-section side class="databook-value-section">
+                  <template v-if="editMode">
+                    <q-input
+                      v-model="draftValues[field.key]"
+                      dense
+                      outlined
+                      :disable="saving || !field.editable"
+                      :placeholder="field.editable ? 'Enter value' : ''"
+                    />
+                  </template>
+                  <template v-else>
+                    <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                  </template>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </template>
         </div>
 
         <template v-else>
@@ -2052,19 +2145,41 @@
             </div>
           </template>
 
-          <q-list v-else bordered separator>
-            <q-item v-for="field in visibleGenericFields" :key="field.key">
-              <q-item-section>
-                <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
-                <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
-                <q-item-label
+          <template v-else>
+            <div class="contact-section-card__view-toolbar">
+              <q-btn-toggle
+                v-model="genericSectionViewMode"
+                dense
+                unelevated
+                toggle-color="primary"
+                color="grey-3"
+                text-color="grey-8"
+                class="contact-section-card__view-toggle"
+                :options="CONTACT_KDB_VIEW_OPTIONS"
+              />
+            </div>
+
+            <q-banner
+              v-if="!visibleGenericFields.length"
+              class="contact-section-card__empty bg-grey-1 text-black"
+              rounded
+            >
+              No fields are mapped to this section in the current {{ entityLabel.toLowerCase() }} schema yet.
+            </q-banner>
+
+            <div v-else-if="genericSectionViewMode === 'grid'" class="contact-field-grid">
+              <article
+                v-for="field in visibleGenericFields"
+                :key="field.key"
+                class="contact-field-card"
+              >
+                <div class="contact-field-card__label">{{ field.label }}</div>
+                <div
                   v-if="isHistoricalMode && modifiedByMap[field.key]"
-                  class="text-caption text-negative text-italic"
+                  class="contact-section-card__modified"
                 >
                   modified by {{ modifiedByMap[field.key] }}
-                </q-item-label>
-              </q-item-section>
-              <q-item-section side class="databook-value-section">
+                </div>
                 <template v-if="editMode">
                   <q-input
                     v-model="draftValues[field.key]"
@@ -2075,11 +2190,42 @@
                   />
                 </template>
                 <template v-else>
-                  <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                  <div class="contact-field-card__value">
+                    {{ displayValue(field.value) }}
+                  </div>
                 </template>
-              </q-item-section>
-            </q-item>
-          </q-list>
+              </article>
+            </div>
+
+            <q-list v-else bordered separator>
+              <q-item v-for="field in visibleGenericFields" :key="field.key">
+                <q-item-section>
+                  <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
+                  <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                  <q-item-label
+                    v-if="isHistoricalMode && modifiedByMap[field.key]"
+                    class="text-caption text-negative text-italic"
+                  >
+                    modified by {{ modifiedByMap[field.key] }}
+                  </q-item-label>
+                </q-item-section>
+                <q-item-section side class="databook-value-section">
+                  <template v-if="editMode">
+                    <q-input
+                      v-model="draftValues[field.key]"
+                      dense
+                      outlined
+                      :disable="saving || !field.editable"
+                      :placeholder="field.editable ? 'Enter value' : ''"
+                    />
+                  </template>
+                  <template v-else>
+                    <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                  </template>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </template>
         </template>
       </template>
 
@@ -2555,6 +2701,7 @@ const companyKdbKindFilter = ref('all')
 const companyKdbSearchQuery = ref('')
 const activeGenericKdbSection = ref('')
 const genericKdbViewMode = ref('grid')
+const genericSectionViewMode = ref('table')
 const genericKdbKindFilter = ref('all')
 const genericKdbSearchQuery = ref('')
 const contactHeroRef = ref(null)
@@ -6756,6 +6903,20 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 18px;
+}
+
+.contact-section-card__view-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.contact-section-card__view-toggle {
+  flex: 0 0 auto;
+}
+
+.contact-section-card__view-toggle :deep(.q-btn) {
+  min-width: 36px;
 }
 
 .contact-section-card__intro {
