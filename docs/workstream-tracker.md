@@ -17,7 +17,9 @@ This tracker should stay aligned with:
 
 ## Front-Loaded
 
-- Build the first reference `Company` structure contract from the active workbook
+- Build the first reference `Company` structure contract from the active workbook and canonical JSON shape
+- Normalize token names toward their final approved form during the same structure pass
+- Define the canonical JSON structure shape the app will eventually edit directly
 - Split `File/Card` light payloads from `Record View` rich payloads in a deliberate way
 - Resume `Artifact Intake` as an active guided workflow
 - Keep the intake tracker visible so drafts can always be resumed
@@ -28,6 +30,10 @@ This tracker should stay aligned with:
 
 - `RAMP` is now the single architecture source of truth for `File -> Card -> Record View`
 - `Intake Architecture Master Plan` is now the single intake planning source of truth
+- Excel workbook + JSON companion workflow is now in place for schema indexing
+- `JSON + app editing` is now the chosen canonical structure direction
+- `docs/canonical-structure.json` is now the first app-owned canonical structure draft
+- Exporters are now being treated as migration / ingestion utilities, not the permanent architecture backbone
 - Artifact processing recovery and continuity
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`
 - Verification dialog behavior and staged review UX
@@ -35,9 +41,13 @@ This tracker should stay aligned with:
 - Tracker-driven restart point for `Company`, `Opportunity`, and `Contacts` first-pass extraction
 - Include `Avatar` and `Roles` parameters in the intake control surface so operator behavior can be tuned with the workstream
 - Unify KDB relationship behavior so cards stay lightweight and record views can get richer grouped relationship payloads
+- Rename section labels and token names together so `System_Data` does not coexist indefinitely with stale `*_Metadata` naming
 
 ## Pending
 
+- Fix workbook wrapper-token drift so the JSON companion validates cleanly for `Company`, `Funds`, `Markets`, and `Terms`
+- Define the first app-owned canonical JSON contract for `Company`
+- Decide where canonical JSON should live in the repo/app layer before wiring app editing
 - Rework `Record View` table behavior so tabs switch locally and instantly
 - Change `Cards` inside `Table` so it shows card-visible fields in workbook/table form, not literal cards
 - Align company `Record View` tabs with workbook structural nodes
@@ -68,13 +78,21 @@ This tracker should stay aligned with:
   - document preview cards restored in the intake flow
   - verification dialog can skip and expand verified info
   - unfinished artifacts now expose direct resume affordances
+- recent file-card normalization work already completed:
+  - summary panel structure normalized
+  - `Add Relation` moved into the lower dynamic box
+  - card loop alias drift reduced by standardizing toward `row`
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
   - start the first true structure-contract pass with `Company` as the reference entity
+  - normalize token names to their final approved form while the structure pass is still active
+  - move from `Workbook-first validation` toward `JSON as source of truth with app editing`
 - current architecture rule:
+  - workbook helps define and validate the first structure
+  - canonical structure should move into JSON
   - keep `File/Card` views lightweight
   - make `Record View` richer and workbook-aligned
-- schema alignment work is still important, but intake continuity and the first reference entity contract are the active operational threads
+- schema alignment work is still important, but intake continuity, JSON structure ownership, and the first reference entity contract are the active operational threads
 
 ## Update Rule
 

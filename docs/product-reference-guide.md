@@ -27,6 +27,18 @@ The product should use `File` and `Record` as the main information architecture 
 
 This is the default language for navigation, structure, and page meaning.
 
+## Precision Language
+
+To stay precise while the codebase is still finishing its naming cleanup, use the following language:
+
+- `Workbook` when talking about the Excel file or schema reference
+- `DB` or `DB Tables` when talking about the database
+- `File page` when talking about landing pages such as `Users`, `Contacts`, `Companies`, `Artifacts`, `Projects`, `Notes`, `Tasks`, and `Opportunities`
+- `Record page` or `Record View` when talking about the eye-opened detail page
+- `databook-view` only when talking about the literal current route or code name
+
+This distinction matters because the product language is cleaner than some of the older route and implementation language still present in the app.
+
 ## System Model
 
 Pattern:
@@ -34,6 +46,25 @@ Pattern:
 `File -> record list -> eye icon -> Record View`
 
 When the user clicks the eye icon from a file, they open the detailed view for that specific record.
+
+## Structure Ownership
+
+For the current first architecture pass:
+
+- the workbook is being used to define and validate the structure
+- the JSON companion is the machine-readable representation of that structure
+
+The intended longer-term product direction is:
+
+- canonical structure should live in a machine-readable app-native layer
+- the app should eventually edit that canonical structure directly
+- exporters and importers should support migration and outside data sources such as Excel
+
+So the working mental model is:
+
+- `Workbook` = design and validation surface
+- `JSON` = target canonical structure surface
+- `Exporters/Importers` = adapters
 
 ## File To Record Mapping
 
@@ -76,7 +107,7 @@ The section bar below the hero/dashboard is part of the `Record View` pattern.
 
 It should follow these rules:
 
-- `Metadata` is always first on the left
+- `System Data` is always first on the left
 - file-specific sections go in the middle
 - `KDB Relationships` is always last on the right
 

@@ -9,6 +9,7 @@ This document is now the primary working reference for:
 - architecture direction
 - execution plan
 - progress tracking
+- the current normalized `File -> Card -> Record View` system framing
 
 This document should be treated as the single planning source of truth for the `File -> Card -> Record View` architecture.
 
@@ -21,8 +22,19 @@ When decisions change:
 For the current first-pass architecture work, the active workbook schema reference is:
 
 - `docs/B10_DOS v260400 vrev.xlsx`
+- `docs/workbook-schema-companion.json`
+- `docs/canonical-structure.json`
 
 That workbook should be treated as the live structural document being used to define the first approved architecture pass.
+
+The JSON companion should be treated as the machine-readable export of that same structure.
+
+During this phase, the intended direction is:
+
+- `Workbook` helps define and validate the first structure
+- `JSON` becomes the canonical machine-readable structure layer
+- the app should eventually edit that canonical JSON structure directly
+- exporters and importers should remain available as adapters for migration and outside data sources
 
 ## Objective
 
@@ -50,9 +62,15 @@ This initial architecture pass is meant to define the first clean, stable struct
 
 For this phase:
 
-- the `Workbook` is the structural authority
+- the `Workbook` is the first-pass structural authority
 - the app uses the workbook to establish order, ownership, and consistency
 - the UI should align to that structure while we standardize the system
+
+But the intended product architecture after this first pass is:
+
+- `JSON` as the app-readable structure source of truth
+- app editing against that `JSON` structure
+- exporter/importer tools for migration, intake, and outside sources such as Excel
 
 This does **not** mean the workbook must permanently lead every future design decision.
 
@@ -73,7 +91,7 @@ The current goal is to use the workbook as the best available structural guide f
 
 ## Governing Model
 
-The structural authority is:
+The first-pass structural authority is:
 
 `Workbook -> DB Tables -> Payload -> UI`
 
@@ -93,6 +111,35 @@ So the practical meaning is:
 - `DB` is the runtime source
 - `Payloads` must reflect workbook structure
 - `UI` should not invent structure on the fly
+
+## Canonical Structure Direction
+
+The long-term canonical structure direction is:
+
+`JSON/App Structure -> Payload -> UI`
+
+With supporting adapters:
+
+- `Workbook exporter/importer`
+- future migration exporters/importers
+- external intake or migration formats
+
+This means:
+
+- the workbook is helping us design and validate the first structure
+- the app should not depend forever on Excel as the primary bridge
+- canonical structure should live in a machine-readable form that the app can edit directly
+- exporters remain valuable, but they should act as adapters rather than the permanent backbone
+
+Working interpretation:
+
+- `Workbook` is the current design and validation surface
+- `JSON` is the target canonical structure surface
+- `app editing` should eventually operate against that canonical JSON structure
+
+Current draft file:
+
+- `docs/canonical-structure.json`
 
 ## Surface Split
 
@@ -134,11 +181,157 @@ Working rule:
 
 `File/Card View stays light. Record View gets rich.`
 
+## Current File Card Shell
+
+The current normalized shared `File` card shell applies to:
+
+- `Users`
+- `Contacts`
+- `Companies`
+- `Artifacts`
+- `Opportunities`
+- `Projects`
+- `Notes`
+- `Tasks`
+
+Each file card should follow the same top-level section order:
+
+1. `control row`
+2. `hero`
+3. `summary`
+
+In template terms, the normalized structure is:
+
+```vue
+<q-card>
+  <q-card-section class="*-card__control-row" />
+  <q-card-section class="*-card__hero" />
+  <q-card-section class="*-card__summary">
+    <div class="*-card__summary-head" />
+    <div class="*-card__summary-panel">
+      <div class="*-card__summary-panel-head" />
+      <div class="*-card__summary-body">
+        <div class="*-card__summary-body-content" />
+      </div>
+    </div>
+  </q-card-section>
+</q-card>
+```
+
+### Control Row
+
+The control row is the thin top strip of the card.
+
+It should contain:
+
+- the select checkbox on the left
+- the eye icon on the right
+
+Rules:
+
+- spacing should feel visually balanced from both borders
+- the row should hug the top edge of the card cleanly
+- corners should clip with the card shell so hover states do not poke out
+
+### Hero
+
+The hero section is the top content block below the control row.
+
+It contains:
+
+- the visual identity area on the left
+- the metadata box on the right
+
+Rules:
+
+- the right box is the main metadata box for the card
+- title typography should stay consistent across file families unless intentionally specialized
+- `Notes` and `Tasks` should not drift into smaller typography unless that is explicitly approved
+
+### Summary
+
+The summary section is the lower relationship area of the card.
+
+It is split into two parts:
+
+#### 1. Summary Head
+
+This row should contain:
+
+- the KDB relationship icon strip on the left
+- the mini grid/row toggle on the right
+
+Rules:
+
+- the icon strip stays lightweight
+- all icons are clickable
+- empty relationship states are allowed and should show empty text in the panel body
+
+#### 2. Summary Panel
+
+This is the off-white dynamic box below the summary head.
+
+It should contain:
+
+- `summary-panel-head`
+- `summary-body`
+
+The `summary-panel-head` currently contains:
+
+- `Add Relation`
+
+Rules:
+
+- `Add Relation` lives inside the box, not beside the icon strip
+- it sits at the top-left of the panel
+- it uses the title font treatment
+- the panel body below it renders the active relationship content or the empty state
+
+### File Card Naming Convention
+
+For long-term maintainability, file card grid templates should use the same loop alias:
+
+- preferred loop alias: `row`
+
+This matters because shared patching becomes fragile when templates mix:
+
+- `row`
+- `user`
+- `group`
+- other entity-specific aliases
+
+Current normalization target:
+
+- use `row` in the main card loop wherever practical
+
+### File Card Maintenance Rule
+
+When editing one file card page:
+
+- check whether the same change belongs in all 8 file pages
+- prefer keeping section order identical
+- prefer keeping wrapper names identical
+- prefer keeping loop alias naming identical
+- avoid one-off template shape changes unless they are truly entity-specific
+
+Before making a bulk card change:
+
+- confirm the same wrapper structure exists on all 8 pages
+- confirm the same loop alias is being used
+- confirm the same CSS block names exist
+- confirm the change belongs to the shared shell, not entity-specific content
+
+After making a bulk card change:
+
+- lint
+- compare at least `Users`, `Contacts`, `Artifacts`, and `Projects`
+- if one page drifts, update this section
+
 ## Core Rules
 
 ### Workbook Rule
 
-The workbook is the canonical setup and validation layer.
+The workbook is the first-pass setup and validation layer.
 
 Use it to verify:
 
@@ -147,11 +340,23 @@ Use it to verify:
 - leaf-token ownership
 - relationship coverage
 
+The workbook is not intended to remain the permanent runtime bridge once the canonical JSON structure is in place.
+
+### Canonical Structure Rule
+
+The long-term structure source of truth should be a machine-readable app-native layer.
+
+For this project, that means:
+
+- `JSON` should become the canonical structure source of truth
+- the app should be able to edit that structure directly
+- workbook export/import should support migration and outside editing, not define the runtime forever
+
 ### Record Section Rule
 
 Every workbook-backed record should expose:
 
-- `Metadata` first on the left
+- `System Data` first on the left
 - file-specific middle sections next
 - `KDB Relationships` last on the right
 
@@ -169,6 +374,22 @@ The long-term contract must come from:
 - workbook section order
 - workbook leaf-token membership
 - explicit KDB grouping
+
+### Token Naming Rule
+
+During this first architecture pass, token names should also be normalized toward their final form.
+
+That means:
+
+- section-label changes should not stop at the section label layer
+- token names should be reviewed and renamed where appropriate so the workbook, JSON companion, and app vocabulary move together
+- the goal is to reduce mixed states such as `System_Data` sections still containing `*_Metadata` token names unless that mismatch is intentionally preserved
+
+Working principle:
+
+- user-facing labels may evolve
+- structural addresses should remain stable
+- token names should move toward their final approved naming during this pass, not be deferred indefinitely
 
 ### Addressing Rule
 
@@ -253,6 +474,16 @@ That means:
 - cards may show lightweight relationship previews
 - record views still need fuller grouped relationship payloads
 
+### 5. Shared Card Maintenance Drift
+
+The 8 main file pages now have a much more normalized card shell, but that normalization must be maintained deliberately.
+
+The main maintenance risks are:
+
+- wrapper drift in card summary templates
+- loop alias drift in file card grids
+- one-off shell edits that belong in the shared card pattern
+
 ## Target Architecture
 
 Each entity should eventually have three explicit contracts.
@@ -307,7 +538,7 @@ Defines:
   "sections": [
     {
       "id": "metadata",
-      "label": "Metadata",
+      "label": "System Data",
       "kind": "fields",
       "items": []
     },
@@ -329,16 +560,16 @@ Working guidance:
 
 ## Canonical Section Order By File
 
-- `Users`: `Metadata`, `KDB Relationships`
-- `Artifacts`: `Metadata`, `KDB Relationships`
-- `Contacts`: `Metadata`, `Employment`, `Studies`, `KDB Relationships`
-- `Companies`: `Metadata`, `Incorporation`, `Documents`, `Operations`, `Business`, `Market`, `Results`, `Business Plan`, `Fund Raising`, `KDB Relationships`
-- `Funds`: `Metadata`, `Overview`, `Economics`, `Controls`, `KDB Relationships`
-- `Rounds`: `Metadata`, `Overview`, `Economics`, `Controls`, `KDB Relationships`
-- `Projects`: `Metadata`, `Overview`, `Team`, `KDB Relationships`
-- `Tasks`: `Metadata`, `Overview`, `Team`, `KDB Relationships`
-- `Notes`: `Metadata`, `KDB Relationships`
-- `Roles`: `Metadata`, `KDB Relationships`
+- `Users`: `System Data`, `KDB Relationships`
+- `Artifacts`: `System Data`, `KDB Relationships`
+- `Contacts`: `System Data`, `Employment`, `Studies`, `KDB Relationships`
+- `Companies`: `System Data`, `Incorporation`, `Documents`, `Operations`, `Business`, `Market`, `Results`, `Business Plan`, `Fund Raising`, `KDB Relationships`
+- `Funds`: `System Data`, `Overview`, `Economics`, `Controls`, `KDB Relationships`
+- `Rounds`: `System Data`, `Overview`, `Economics`, `Controls`, `KDB Relationships`
+- `Projects`: `System Data`, `Overview`, `Team`, `KDB Relationships`
+- `Tasks`: `System Data`, `Overview`, `Team`, `KDB Relationships`
+- `Notes`: `System Data`, `KDB Relationships`
+- `Roles`: `System Data`, `KDB Relationships`
 
 ## Execution Plan
 
@@ -351,6 +582,12 @@ For each entity define:
 - schema-group ownership
 - KDB relationship categories
 - item-address ranges
+- final token naming
+
+At the same time:
+
+- confirm the JSON structure shape that the app will eventually own directly
+- use the workbook to validate that JSON shape rather than making Excel the permanent dependency
 
 Start with:
 
@@ -396,6 +633,7 @@ Deliver:
 
 - approved section structure
 - approved addressing
+- canonical JSON subsection structure
 - light payload for file/cards
 - rich payload for record view
 - KDB relationship groups
@@ -443,17 +681,24 @@ Recommended order:
 - [x] File/card shell consistency improved across core pages
 - [x] KDB icon strip unified across file cards
 - [x] Card relationship icon affordance added
+- [x] Excel + JSON companion workflow introduced
+- [x] Canonical direction decided: `JSON + app editing`
 - [ ] Route and shared naming fully cleaned of `Databook`
 - [ ] Heuristic section mapping fully replaced
 - [ ] Light vs rich payload split documented per entity
 - [ ] Item addressing adopted per entity
 - [ ] Rich record payloads standardized per entity
+- [ ] Token names normalized to final approved form
+- [ ] Canonical JSON structure contract defined per entity
+- [ ] App editing model for canonical JSON structure defined
+- [ ] Exporters repositioned as migration/intake adapters
 
 ### Reference Entity: Company
 
 - [ ] section order approved
 - [ ] level-2 schema groups approved
 - [ ] item-address numbering approved
+- [ ] final token naming approved
 - [ ] light file/card payload defined
 - [ ] rich record payload defined
 - [ ] KDB relationship contract defined
@@ -482,4 +727,4 @@ We are trying to make every surface structurally coherent.
 
 So the practical principle is:
 
-`Use the workbook as the canonical structure reference, keep file views lightweight, make record views rich, and let stable addresses tie the system together.`
+`Use the workbook to define and validate the first structure, move canonical ownership into JSON with app editing, keep file views lightweight, make record views rich, and let stable addresses tie the system together.`
