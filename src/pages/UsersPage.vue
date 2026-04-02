@@ -86,7 +86,6 @@
                 <span class="users-toolbar__add-button-label">Add Record</span>
               </span>
             </q-btn>
-            <q-icon name="tune" size="18px" class="users-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -100,6 +99,7 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-icon name="tune" size="18px" class="users-toolbar__filters-icon" />
           </div>
 
           <div class="users-toolbar__block users-toolbar__block--view">
