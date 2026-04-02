@@ -77,6 +77,10 @@ export function buildCardRelationshipOptions() {
   return CARD_KDB_RELATIONSHIP_DEFS.map((definition) => ({
     value: definition.value,
     icon: definition.icon,
+    attrs: {
+      title: definition.label,
+      'aria-label': definition.label,
+    },
   }))
 }
 
