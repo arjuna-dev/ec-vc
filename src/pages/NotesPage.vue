@@ -1607,9 +1607,10 @@ watch(displayRows, () => {
 
 .note-card__title {
   color: #0f172a;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.3;
+  font-family: var(--font-title);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
 }
 
 .note-card__meta {
