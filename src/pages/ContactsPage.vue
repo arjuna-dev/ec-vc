@@ -1949,7 +1949,7 @@ watch(displayRows, () => {
   overflow: hidden;
   background: linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
   border-color: rgba(17, 17, 17, 0.08);
-  border-radius: 24px;
+  border-radius: 28px;
   box-shadow: 0 18px 42px rgba(17, 17, 17, 0.06);
   transition:
     transform 180ms ease,
@@ -2569,7 +2569,7 @@ watch(displayRows, () => {
   min-width: 22px;
   min-height: 22px;
   padding: 0;
-  margin-right: 2px;
+  margin-right: 20px;
   color: #111;
   background: transparent;
   border: 0;

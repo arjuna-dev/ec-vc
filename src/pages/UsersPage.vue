@@ -1608,7 +1608,7 @@ watch(
   min-width: 22px;
   min-height: 22px;
   padding: 0;
-  margin-right: 2px;
+  margin-right: 20px;
   color: #111;
   background: transparent;
   border: 0;

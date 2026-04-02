@@ -1605,7 +1605,7 @@ watch(displayRows, () => {
   min-width: 22px;
   min-height: 22px;
   padding: 0;
-  margin-right: 2px;
+  margin-right: 20px;
   color: #111111;
   background: transparent;
   border: 0;
