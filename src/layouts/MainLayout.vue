@@ -248,17 +248,19 @@
           </div>
 
           <div class="ec-quick-widget-settings-panel__list">
-            <div
-              v-for="(settingsAction, settingsIndex) in quickWidgetActionCatalog"
-              :key="settingsAction.id"
-              class="ec-quick-widget-settings-row"
-            >
-              <q-toggle
-                :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
-                color="primary"
-                dense
-                @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
-              />
+              <div
+                v-for="(settingsAction, settingsIndex) in quickWidgetActionCatalog"
+                :key="settingsAction.id"
+                class="ec-quick-widget-settings-row"
+              >
+                <q-toggle
+                  v-if="settingsAction.id !== 'settings'"
+                  :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
+                  color="primary"
+                  dense
+                  @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
+                />
+                <div v-else class="ec-quick-widget-settings-row__toggle-spacer" />
 
               <div class="ec-quick-widget-settings-row__copy">
                 <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
@@ -1704,6 +1706,11 @@ function goBack() {
   font-weight: var(--font-weight-black);
   line-height: 0.96;
   letter-spacing: 0.01em;
+}
+
+.ec-quick-widget-settings-row__toggle-spacer {
+  width: 36px;
+  height: 20px;
 }
 
 .ec-quick-widget-settings-row__actions {
