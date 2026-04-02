@@ -113,10 +113,10 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="csvActionsRef?.pickFile?.()">
+            <q-btn dense flat round icon="download" color="grey-6" class="notes-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
+            <q-btn dense flat round icon="upload" color="grey-6" class="notes-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
               <q-tooltip>Export CSV</q-tooltip>
             </q-btn>
           </div>
@@ -170,53 +170,139 @@
 
           <div v-else class="row q-col-gutter-md notes-cards-grid">
             <div v-for="row in displayRows" :key="row.id" class="col-12 col-sm-6 col-lg-4">
-              <q-card flat bordered class="note-card full-height">
-                <q-card-section class="q-pb-sm">
-                  <div class="row items-start justify-between q-col-gutter-sm">
-                    <div class="col">
-                      <div class="note-card__title">{{ row.Note_Name || 'Untitled note' }}</div>
-                      <div v-if="row.created_at" class="note-card__meta">{{ row.created_at }}</div>
+              <q-card
+                flat
+                bordered
+                class="note-card full-height"
+                :style="getNoteCardStyle()"
+                @pointerenter="onNoteCardPointerEnter"
+                @pointermove="onNoteCardPointerMove"
+                @pointerleave="onNoteCardPointerLeave"
+              >
+                <q-card-section class="note-card__hero">
+                  <div class="note-card__hero-main">
+                    <figure class="note-card__portrait">
+                      <div class="note-card__portrait-shell" aria-hidden="true">
+                        <div
+                          class="note-card__portrait-badge"
+                          :style="{ backgroundColor: getNoteAvatarColor(row.Note_Name || 'Note') }"
+                        >
+                          {{ getNoteAvatarInitial(row.Note_Name || 'Note') }}
+                        </div>
+                      </div>
+                    </figure>
+
+                    <div class="note-card__hero-side">
+                      <div class="note-card__hero-copy">
+                        <div class="note-card__title">{{ row.Note_Name || 'Untitled note' }}</div>
+
+                        <div class="note-card__bottom-stack">
+                          <div v-if="getNoteMetadataRows(row).length" class="note-card__detail-stack">
+                            <div
+                              v-for="detail in getNoteMetadataRows(row)"
+                              :key="detail.label"
+                              class="note-card__detail-row"
+                            >
+                              <button type="button" class="note-card__inline-chip">
+                                <q-icon :name="detail.icon" size="14px" />
+                                <span>{{ detail.value }}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div class="col-auto">
+                  </div>
+                </q-card-section>
+
+                <q-card-section class="note-card__summary">
+                  <div class="note-card__summary-head">
+                    <q-btn-toggle
+                      :model-value="getNoteCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="note-card__summary-view-toggle"
+                      :options="noteCardContentViewOptions"
+                      @update:model-value="setNoteCardContentView(row, $event)"
+                    />
+
+                    <q-btn-toggle
+                      :model-value="getNoteCardPanel(row)"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="note-card__summary-toggle"
+                      :options="noteCardPanelOptions"
+                      @update:model-value="setNoteCardPanel(row, $event)"
+                    />
+
+                    <div class="note-card__summary-actions">
                       <q-checkbox
                         :model-value="isSelected(row)"
                         :disable="loading"
                         color="dark"
+                        class="note-card__select-box"
                         @update:model-value="toggleRowSelection(row, $event)"
+                      />
+                      <q-btn
+                        flat
+                        round
+                        icon="visibility"
+                        class="note-card__icon-action"
+                        :disable="loading"
+                        @click="openDatabook(row)"
                       />
                     </div>
                   </div>
+
+                  <div class="note-card__summary-panel">
+                    <div class="note-card__summary-body">
+                      <div class="note-card__summary-body-content">
+                        <div
+                          v-if="getNoteCardPanel(row) === 'notes' && getNoteLinkedNotes(row).length"
+                          :class="[
+                            'note-card__notes-list',
+                            { 'note-card__notes-list--rows': getNoteCardContentView(row) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="note in getNoteLinkedNotes(row)"
+                            :key="note"
+                            class="note-card__note-pill"
+                          >
+                            {{ note }}
+                          </div>
+                        </div>
+
+                        <div
+                          v-else-if="getNoteCardPanel(row) === 'artifacts' && getNoteLinkedArtifacts(row).length"
+                          :class="[
+                            'note-card__notes-list',
+                            { 'note-card__notes-list--rows': getNoteCardContentView(row) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="artifact in getNoteLinkedArtifacts(row)"
+                            :key="artifact"
+                            class="note-card__note-pill"
+                          >
+                            {{ artifact }}
+                          </div>
+                        </div>
+
+                        <div v-else class="note-card__summary-empty">
+                          {{ getNoteCardPanel(row) === 'notes' ? 'No linked notes yet.' : 'No linked artifacts yet.' }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </q-card-section>
-
-                <q-separator />
-
-                <q-card-section class="q-gutter-sm">
-                  <div v-if="row.Note_Content" class="note-card__content">
-                    {{ row.Note_Content }}
-                  </div>
-                  <div v-if="row.created_by_name" class="note-card__field">
-                    <q-icon name="person" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.created_by_name }}</span>
-                  </div>
-                  <div v-if="row.created_by_email" class="note-card__field">
-                    <q-icon name="mail" size="16px" class="q-mr-sm text-grey-7" />
-                    <span>{{ row.created_by_email }}</span>
-                  </div>
-                </q-card-section>
-
-                <q-space />
-
-                <q-card-actions align="right">
-                  <q-btn
-                    dense
-                    flat
-                    round
-                    icon="delete"
-                    color="grey-8"
-                    :disable="loading"
-                    @click="confirmDelete(row)"
-                  />
-                </q-card-actions>
               </q-card>
             </div>
           </div>
@@ -227,6 +313,7 @@
         :count="selectedCount"
         :loading="loading"
         @share="shareSelected"
+        @edit="editSelected"
         @delete="confirmDeleteSelected"
       />
     </div>
@@ -311,6 +398,18 @@ const selectedCount = computed(() => selectedRows.value.length)
 const csvActionsRef = ref(null)
 const pagination = ref({ page: 1, rowsPerPage: 10 })
 const rowsPerPageOptions = [10, 15, 25, 50]
+const noteCardContentViews = ref({})
+const noteCardPanels = ref({})
+
+const noteCardContentViewOptions = [
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
+]
+
+const noteCardPanelOptions = [
+  { label: 'Notes', value: 'notes' },
+  { label: 'Artifacts', value: 'artifacts' },
+]
 
 const route = useRoute()
 const router = useRouter()
@@ -466,6 +565,135 @@ function consumeQueuedOpen() {
   return true
 }
 
+function openDatabook(row) {
+  const recordId = String(row?.id || '').trim()
+  if (!recordId) return
+  router.push({
+    name: 'databook-view',
+    params: { tableName: 'Notes', recordId },
+    query: { returnTo: route.fullPath },
+  })
+}
+
+function getNoteAvatarColor() {
+  return '#111111'
+}
+
+function getNoteAvatarInitial(label) {
+  const text = String(label || 'Note').trim()
+  return (
+    text
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'NO'
+  )
+}
+
+function getNoteCardStyle() {
+  return {
+    '--note-card-blob-x': '50%',
+    '--note-card-blob-y': '30%',
+    '--note-card-blob-size': '60%',
+    '--note-card-blob-opacity': '0',
+    '--note-card-blob-strong': 'rgba(38, 71, 255, 0.2)',
+    '--note-card-blob-soft': 'rgba(38, 71, 255, 0.1)',
+    '--note-card-blob-fade': 'rgba(38, 71, 255, 0.05)',
+  }
+}
+
+function onNoteCardPointerEnter(event) {
+  updateNoteCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--note-card-blob-opacity', '1')
+}
+
+function onNoteCardPointerMove(event) {
+  updateNoteCardGradientPosition(event)
+}
+
+function onNoteCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--note-card-blob-opacity', '0')
+}
+
+function updateNoteCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  element.style.setProperty('--note-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--note-card-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
+function getNoteCardContentView(row) {
+  const rowId = String(row?.id || '').trim()
+  return noteCardContentViews.value[rowId] || 'card'
+}
+
+function setNoteCardContentView(row, value) {
+  const rowId = String(row?.id || '').trim()
+  if (!rowId) return
+  noteCardContentViews.value = { ...noteCardContentViews.value, [rowId]: value || 'card' }
+}
+
+function getNoteCardPanel(row) {
+  const rowId = String(row?.id || '').trim()
+  return noteCardPanels.value[rowId] || 'notes'
+}
+
+function setNoteCardPanel(row, value) {
+  const rowId = String(row?.id || '').trim()
+  if (!rowId) return
+  noteCardPanels.value = { ...noteCardPanels.value, [rowId]: value || 'notes' }
+}
+
+function getNoteMetadataRows(row) {
+  const preview = normalizeNoteValue(row?.Note_Content).slice(0, 80)
+  return [
+    preview ? { label: 'Preview', value: preview, icon: 'notes' } : null,
+    normalizeNoteValue(row?.created_by_name)
+      ? { label: 'Author', value: normalizeNoteValue(row?.created_by_name), icon: 'person' }
+      : null,
+    normalizeNoteValue(row?.created_by_email)
+      ? { label: 'Email', value: normalizeNoteValue(row?.created_by_email), icon: 'mail' }
+      : null,
+    normalizeNoteValue(row?.created_at)
+      ? { label: 'Created', value: normalizeNoteValue(row?.created_at), icon: 'schedule' }
+      : null,
+  ].filter(Boolean)
+}
+
+function getNoteLinkedNotes(row) {
+  return [
+    ...String(row?.Note_Note || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_note_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function getNoteLinkedArtifacts(row) {
+  return [
+    ...String(row?.Note_Artifact || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_artifact_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
 async function loadNotes() {
   if (!bridge.value?.notes?.list) return
   loading.value = true
@@ -554,6 +782,12 @@ async function confirmDeleteSelected() {
       loading.value = false
     }
   })
+}
+
+function editSelected() {
+  const row = selectedRows.value[0]
+  if (!row) return
+  openDatabook(row)
 }
 
 async function shareSelected() {
@@ -853,6 +1087,10 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
+.notes-toolbar__block--view {
+  margin-right: 18px;
+}
+
 .notes-toolbar__block--filters {
   flex-wrap: nowrap;
 }
@@ -869,20 +1107,57 @@ watch(displayRows, () => {
 }
 
 .notes-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  border-radius: var(--ds-control-radius);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
+}
+
+.notes-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.notes-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
   border: 1px solid var(--ds-control-border);
-  border-radius: 999px;
-  box-shadow: var(--ds-control-shadow);
-  overflow: hidden;
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .notes-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .notes-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
+}
+
+.notes-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+
+.notes-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.notes-toolbar__icon-button :deep(.q-icon) {
+  font-size: 18px;
 }
 
 .notes-toolbar__kind-toggle :deep(.q-btn) {
@@ -895,8 +1170,9 @@ watch(displayRows, () => {
 }
 
 .notes-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -919,20 +1195,6 @@ watch(displayRows, () => {
   min-width: 110px;
   background: var(--ds-control-surface);
   border-radius: var(--ds-control-radius);
-}
-
-.notes-toolbar__toggle {
-  flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border-color: var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
 }
 
 .notes-surface {
@@ -977,6 +1239,262 @@ watch(displayRows, () => {
 
 .notes-cards-grid {
   align-items: stretch;
+}
+
+.note-card__hero {
+  padding: 0;
+}
+
+.note-card::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--note-card-blob-x) var(--note-card-blob-y),
+    var(--note-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--note-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--note-card-blob-size) * 0.46),
+    var(--note-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--note-card-blob-size) * 0.7),
+    transparent var(--note-card-blob-size)
+  );
+  opacity: var(--note-card-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.note-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.note-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+}
+
+.note-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
+}
+
+.note-card__portrait {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.note-card__portrait-shell {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.note-card__portrait-badge {
+  display: flex;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
+}
+
+.note-card__hero-side {
+  display: flex;
+  min-width: 0;
+  padding: 16px 18px 14px 14px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.note-card__hero-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.note-card__title {
+  min-width: 0;
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.note-card__bottom-stack,
+.note-card__detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.note-card__detail-stack {
+  gap: 4px;
+}
+
+.note-card__detail-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.note-card__inline-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 26px;
+  padding: 0 10px;
+  color: #111;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.note-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
+  margin: 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.note-card__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.note-card__summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-left: auto;
+}
+
+.note-card__summary-view-toggle,
+.note-card__summary-toggle {
+  border-radius: var(--ds-control-radius);
+}
+
+.note-card__summary-view-toggle :deep(.q-btn-group),
+.note-card__summary-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.note-card__summary-view-toggle :deep(.q-btn) {
+  min-height: 21px;
+  min-width: 21px;
+  height: 21px;
+  width: 21px;
+  padding: 0 2px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--ds-control-radius);
+}
+
+.note-card__summary-view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.note-card__summary-view-toggle :deep(.q-icon) {
+  font-size: 13px;
+}
+
+.note-card__summary-toggle :deep(.q-btn) {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--ds-control-radius);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.note-card__summary-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 4px;
+}
+
+.note-card__summary-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.note-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.note-card__summary-body-content,
+.note-card__notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.note-card__notes-list--rows {
+  gap: 6px;
+}
+
+.note-card__note-pill {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 10px;
+  color: #111;
+  background: #fff;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.note-card__summary-empty {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---light);
+  font-weight: var(--font-weight-light);
+  line-height: 20px;
 }
 
 .note-card {

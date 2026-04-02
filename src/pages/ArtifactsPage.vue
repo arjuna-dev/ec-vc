@@ -113,10 +113,10 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="csvActionsRef?.pickFile?.()">
+            <q-btn dense flat round icon="download" color="grey-6" class="artifacts-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayArtifactRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
+            <q-btn dense flat round icon="upload" color="grey-6" class="artifacts-toolbar__icon-button" :disable="loading || displayArtifactRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
               <q-tooltip>Export CSV</q-tooltip>
             </q-btn>
           </div>
@@ -165,122 +165,137 @@
           flat
           bordered
           class="artifact-card full-height"
+          :style="getArtifactCardStyle()"
+          @pointerenter="onArtifactCardPointerEnter"
+          @pointermove="onArtifactCardPointerMove"
+          @pointerleave="onArtifactCardPointerLeave"
         >
           <q-card-section class="artifact-card__hero">
             <div class="artifact-card__hero-main">
               <figure class="artifact-card__portrait">
                 <div class="artifact-card__portrait-shell" aria-hidden="true">
-                  <div class="artifact-card__portrait-badge">
-                    <q-icon name="description" size="24px" />
+                  <div
+                    class="artifact-card__portrait-badge"
+                    :style="{ backgroundColor: getArtifactAvatarColor(group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Artifact') }"
+                  >
+                    {{ getArtifactAvatarInitial(group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Artifact') }}
                   </div>
                 </div>
               </figure>
 
               <div class="artifact-card__hero-side">
-                <div class="artifact-card__hero-top">
-                  <div class="artifact-card__hero-copy">
-                    <button
-                      type="button"
-                      class="artifact-card__title-button"
-                      @click="void openArtifactForReview(group.previewArtifact)"
-                    >
-                      {{ group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Untitled artifact' }}
-                    </button>
-                    <div class="artifact-card__subtitle">
-                      {{ getArtifactCardSubtitle(group) }}
+                <div class="artifact-card__hero-copy">
+                  <div class="artifact-card__title">
+                    {{ group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Untitled artifact' }}
+                  </div>
+
+                  <div class="artifact-card__bottom-stack">
+                    <div v-if="getArtifactCardDetails(group).length" class="artifact-card__detail-stack">
+                      <div
+                        v-for="detail in getArtifactCardDetails(group)"
+                        :key="detail.label"
+                        class="artifact-card__detail-row"
+                      >
+                        <button type="button" class="artifact-card__inline-chip">
+                          <q-icon :name="detail.icon" size="14px" />
+                          <span>{{ detail.value }}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-
-                  <q-checkbox
-                    :model-value="isSelected(group.primaryArtifact)"
-                    :disable="loading || savingProperties"
-                    color="dark"
-                    @update:model-value="toggleRowSelection(group.primaryArtifact, $event)"
-                  />
                 </div>
-              </div>
-            </div>
-
-            <div class="artifact-card__inline-summary">
-              <div class="artifact-card__summary-label">Artifact summary</div>
-              <div class="artifact-card__details artifact-card__details--compact">
-                <div
-                  v-for="detail in getArtifactCardDetails(group)"
-                  :key="detail.label"
-                  class="artifact-card__detail"
-                >
-                  <q-icon :name="detail.icon" size="16px" class="artifact-card__detail-icon" />
-                  <div class="artifact-card__detail-copy">
-                    <div class="artifact-card__detail-label">{{ detail.label }}</div>
-                    <div class="artifact-card__detail-value">{{ detail.value }}</div>
-                  </div>
-                </div>
-              </div>
-              <div
-                v-if="group.primaryArtifact.description"
-                class="artifact-card__description artifact-card__description--inline"
-              >
-                {{ group.primaryArtifact.description }}
               </div>
             </div>
           </q-card-section>
 
-          <q-card-actions class="artifact-card__footer">
-            <div class="artifact-card__footer-actions">
-              <q-btn
-                flat
-                round
-                icon="visibility"
-                class="artifact-card__icon-action"
-                :disable="loading"
-                title="Open artifact review"
-                @click="void openArtifactForReview(group.previewArtifact)"
-              />
-              <q-btn-dropdown
-                v-if="artifactNeedsAttention(group.primaryArtifact)"
-                flat
-                round
+          <q-card-section class="artifact-card__summary">
+            <div class="artifact-card__summary-head">
+              <q-btn-toggle
+                :model-value="getArtifactCardContentView(group)"
                 dense
-                dropdown-icon="arrow_drop_down"
-                icon="play_circle"
-                class="artifact-card__icon-action artifact-card__icon-action--resume"
-                :disable="loading || savingProperties"
-              >
-                <q-list dense style="min-width: 220px">
-                  <q-item clickable v-close-popup @click="continueArtifactIntake(group.primaryArtifact)">
-                    <q-item-section avatar>
-                      <q-icon name="play_circle" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Resume intake</q-item-label>
-                      <q-item-label caption>Jump back into the current processing flow.</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable v-close-popup @click="void reviewArtifactMarkdown(group.primaryArtifact)">
-                    <q-item-section avatar>
-                      <q-icon name="rule" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Review markdown fields</q-item-label>
-                      <q-item-label caption>Work through the markdown and select fields and inputs.</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-              </q-btn-dropdown>
+                unelevated
+                toggle-color="primary"
+                color="grey-3"
+                text-color="grey-8"
+                class="artifact-card__summary-view-toggle"
+                :options="artifactCardContentViewOptions"
+                @update:model-value="setArtifactCardContentView(group, $event)"
+              />
+
+              <q-btn-toggle
+                :model-value="getArtifactCardPanel(group)"
+                dense
+                no-caps
+                unelevated
+                toggle-color="dark"
+                color="white"
+                text-color="grey-8"
+                class="artifact-card__summary-toggle"
+                :options="artifactCardPanelOptions"
+                @update:model-value="setArtifactCardPanel(group, $event)"
+              />
+
+              <div class="artifact-card__summary-actions">
+                <q-checkbox
+                  :model-value="isSelected(group.primaryArtifact)"
+                  :disable="loading || savingProperties"
+                  color="dark"
+                  class="artifact-card__select-box"
+                  @update:model-value="toggleRowSelection(group.primaryArtifact, $event)"
+                />
+                <q-btn
+                  flat
+                  round
+                  icon="visibility"
+                  class="artifact-card__icon-action"
+                  :disable="loading"
+                  @click="void openArtifactForReview(group.previewArtifact)"
+                />
+              </div>
             </div>
 
-            <div class="artifact-card__footer-actions">
-              <q-btn
-                flat
-                round
-                icon="delete"
-                class="artifact-card__icon-action"
-                :disable="loading"
-                title="Delete artifact"
-                @click="confirmDelete(group.primaryArtifact)"
-              />
+            <div class="artifact-card__summary-panel">
+              <div class="artifact-card__summary-body">
+                <div class="artifact-card__summary-body-content">
+                  <div
+                    v-if="getArtifactCardPanel(group) === 'notes' && getArtifactLinkedNotes(group).length"
+                    :class="[
+                      'artifact-card__notes-list',
+                      { 'artifact-card__notes-list--rows': getArtifactCardContentView(group) === 'table' },
+                    ]"
+                  >
+                    <div
+                      v-for="note in getArtifactLinkedNotes(group)"
+                      :key="note"
+                      class="artifact-card__note-pill"
+                    >
+                      {{ note }}
+                    </div>
+                  </div>
+
+                  <div
+                    v-else-if="getArtifactCardPanel(group) === 'artifacts' && getArtifactGroupedItems(group).length"
+                    :class="[
+                      'artifact-card__notes-list',
+                      { 'artifact-card__notes-list--rows': getArtifactCardContentView(group) === 'table' },
+                    ]"
+                  >
+                    <div
+                      v-for="item in getArtifactGroupedItems(group)"
+                      :key="item"
+                      class="artifact-card__note-pill"
+                    >
+                      {{ item }}
+                    </div>
+                  </div>
+
+                  <div v-else class="artifact-card__summary-empty">
+                    {{ getArtifactCardPanel(group) === 'notes' ? 'No linked notes yet.' : 'No grouped artifacts yet.' }}
+                  </div>
+                </div>
+              </div>
             </div>
-          </q-card-actions>
+          </q-card-section>
         </q-card>
         </div>
         </div>
@@ -355,6 +370,7 @@
         :count="selectedCount"
         :loading="loading"
         @share="shareSelected"
+        @edit="editSelected"
         @delete="confirmDeleteSelected"
       />
 
@@ -970,7 +986,7 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { useQuasar } from 'quasar'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
-import { createIntakeDraft, setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
+import { setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 
@@ -1065,6 +1081,8 @@ const propertiesForm = ref(createEmptyPropertiesForm())
 const selectedCount = computed(() => selectedRows.value.length)
 const previewState = ref(createEmptyPreviewState())
 const csvActionsRef = ref(null)
+const artifactCardContentViews = ref({})
+const artifactCardPanels = ref({})
 
 const $q = useQuasar()
 const ARTIFACTS_BREADCRUMB_ACTION_OWNER = 'artifacts-page'
@@ -1075,42 +1093,17 @@ const viewModeOptions = [
 ]
 const artifactKindOptions = [
   { label: 'All', value: 'all' },
+  { label: 'Reviewed', value: 'ready' },
   { label: 'Pending', value: 'needs-review' },
-  { label: 'Ready', value: 'ready' },
 ]
-
-function continueArtifactIntake(row = {}) {
-  const nextAction = artifactNextAction(row)
-  if (nextAction === 'artifact-properties' || nextAction === 'ready') {
-    void openPropertiesDialog(row)
-    return
-  }
-
-  const artifactId = String(row?.artifact_id || '').trim()
-  if (!artifactId) {
-    void openPropertiesDialog(row)
-    return
-  }
-
-  if (resumeArtifactDraftForRow(row)) return
-
-  createIntakeDraft({
-    droppedFiles: [
-      {
-        name: artifactFileName(row) || String(row?.title || artifactId).trim(),
-        path: String(row?.fs_path || '').trim() || null,
-        size: 0,
-      },
-    ],
-    opportunityId: String(row?.opportunity_id || '').trim() || null,
-    stage: 'Quick Review Needed',
-    resumeArtifactIds: [artifactId],
-    resumeMode: 'existing-artifact-link',
-    nextAction,
-  })
-
-  globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
-}
+const artifactCardContentViewOptions = [
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
+]
+const artifactCardPanelOptions = [
+  { label: 'Notes', value: 'notes' },
+  { label: 'Artifacts', value: 'artifacts' },
+]
 
 const columns = [
   { name: 'title', label: 'Title', field: 'title', align: 'left', sortable: true },
@@ -1338,52 +1331,6 @@ function resumeArtifactProcessing() {
   if (!draftId) return
   setActiveIntakeDraft(draftId)
   globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
-}
-
-function findDraftForArtifact(row = {}) {
-  const artifactIds = new Set(
-    findArtifactGroup(row)
-      ?.artifacts?.map((artifact) => String(artifact?.artifact_id || '').trim())
-      .filter(Boolean) || [String(row?.artifact_id || '').trim()].filter(Boolean),
-  )
-  if (!artifactIds.size) return null
-
-  const activeDraftId = String(intakeDraftState.activeDraftId || '').trim()
-  const orderedDrafts = [
-    ...(activeDraftId && intakeDraftState.drafts?.[activeDraftId]
-      ? [intakeDraftState.drafts[activeDraftId]]
-      : []),
-    ...Object.values(intakeDraftState.drafts || {})
-      .filter((draft) => String(draft?.id || '').trim() !== activeDraftId)
-      .sort(
-        (left, right) =>
-          parseDateValue(String(right?.updatedAt || right?.updated_at || right?.createdAt || '')) -
-          parseDateValue(String(left?.updatedAt || left?.updated_at || left?.createdAt || '')),
-      ),
-  ]
-
-  return (
-    orderedDrafts.find((draft) => {
-      if (!draftHasResumeState(draft)) return false
-      const draftArtifactIds = [
-        ...(Array.isArray(draft?.draftArtifactIds) ? draft.draftArtifactIds : []),
-        ...(Array.isArray(draft?.resumeArtifactIds) ? draft.resumeArtifactIds : []),
-        ...Object.values(draft?.releasedMarkdownChunks || {}).map((chunk) => chunk?.artifact_id),
-      ]
-        .map((value) => String(value || '').trim())
-        .filter(Boolean)
-
-      return draftArtifactIds.some((artifactId) => artifactIds.has(artifactId))
-    }) || null
-  )
-}
-
-function resumeArtifactDraftForRow(row = {}) {
-  const draftId = String(findDraftForArtifact(row)?.id || '').trim()
-  if (!draftId) return false
-  setActiveIntakeDraft(draftId)
-  globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
-  return true
 }
 
 const artifactsDashboardStats = computed(() => [
@@ -1975,6 +1922,11 @@ function getArtifactCardSubtitle(group = {}) {
 function getArtifactCardDetails(group = {}) {
   return [
     {
+      label: 'Summary',
+      value: getArtifactCardSubtitle(group),
+      icon: 'notes',
+    },
+    {
       label: 'Opportunity',
       value: resolveOpportunityLabel(group?.primaryArtifact),
       icon: 'schema',
@@ -1995,6 +1947,104 @@ function getArtifactCardDetails(group = {}) {
       icon: 'layers',
     },
   ]
+}
+
+function getArtifactAvatarColor() {
+  return '#111111'
+}
+
+function getArtifactAvatarInitial(label) {
+  const text = String(label || 'Artifact').trim()
+  return (
+    text
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'AR'
+  )
+}
+
+function getArtifactCardStyle() {
+  return {
+    '--artifact-card-blob-x': '50%',
+    '--artifact-card-blob-y': '30%',
+    '--artifact-card-blob-size': '60%',
+    '--artifact-card-blob-opacity': '0',
+    '--artifact-card-blob-strong': 'rgba(38, 71, 255, 0.2)',
+    '--artifact-card-blob-soft': 'rgba(38, 71, 255, 0.1)',
+    '--artifact-card-blob-fade': 'rgba(38, 71, 255, 0.05)',
+  }
+}
+
+function onArtifactCardPointerEnter(event) {
+  updateArtifactCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--artifact-card-blob-opacity', '1')
+}
+
+function onArtifactCardPointerMove(event) {
+  updateArtifactCardGradientPosition(event)
+}
+
+function onArtifactCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--artifact-card-blob-opacity', '0')
+}
+
+function updateArtifactCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  element.style.setProperty('--artifact-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--artifact-card-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
+function getArtifactCardContentView(group = {}) {
+  const rowId = String(group?.groupId || '').trim()
+  return artifactCardContentViews.value[rowId] || 'card'
+}
+
+function setArtifactCardContentView(group = {}, value) {
+  const rowId = String(group?.groupId || '').trim()
+  if (!rowId) return
+  artifactCardContentViews.value = { ...artifactCardContentViews.value, [rowId]: value || 'card' }
+}
+
+function getArtifactCardPanel(group = {}) {
+  const rowId = String(group?.groupId || '').trim()
+  return artifactCardPanels.value[rowId] || 'notes'
+}
+
+function setArtifactCardPanel(group = {}, value) {
+  const rowId = String(group?.groupId || '').trim()
+  if (!rowId) return
+  artifactCardPanels.value = { ...artifactCardPanels.value, [rowId]: value || 'notes' }
+}
+
+function getArtifactLinkedNotes(group = {}) {
+  const source = group?.primaryArtifact || {}
+  return [
+    ...String(source?.Artifact_Note || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(source?.related_note_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function getArtifactGroupedItems(group = {}) {
+  return (Array.isArray(group?.artifacts) ? group.artifacts : [])
+    .map((artifact) => String(artifact?.title || artifactFileName(artifact) || artifact?.artifact_id || '').trim())
+    .filter(Boolean)
+    .slice(0, 4)
 }
 
 function createEmptyPropertiesForm() {
@@ -2937,6 +2987,12 @@ async function confirmDeleteSelected() {
   })
 }
 
+async function editSelected() {
+  const row = selectedRows.value[0]
+  if (!row) return
+  await openPropertiesDialog(row)
+}
+
 async function shareSelected() {
   if (selectedCount.value === 0) return
   try {
@@ -3252,36 +3308,80 @@ watch(displayArtifactRows, () => {
   min-width: 0;
 }
 
+.artifacts-toolbar__block--view {
+  padding-top: 2px;
+  margin-right: 18px;
+}
+
 .artifacts-toolbar__block--filters {
   flex-wrap: nowrap;
 }
 
 .artifacts-toolbar__block--search {
   grid-column: -2 / -1;
+  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
 
 .artifacts-toolbar__filters-icon {
+  align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
 }
 
 .artifacts-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  border-radius: var(--ds-control-radius);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
+}
+
+.artifacts-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.artifacts-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
   border: 1px solid var(--ds-control-border);
-  border-radius: 999px;
-  box-shadow: var(--ds-control-shadow);
-  overflow: hidden;
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .artifacts-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .artifacts-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
+}
+
+.artifacts-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+
+.artifacts-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.artifacts-toolbar__icon-button :deep(.q-icon) {
+  font-size: 18px;
 }
 
 .artifacts-toolbar__kind-toggle :deep(.q-btn) {
@@ -3301,8 +3401,9 @@ watch(displayArtifactRows, () => {
 }
 
 .artifacts-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -3318,20 +3419,6 @@ watch(displayArtifactRows, () => {
 
 .artifacts-toolbar__search :deep(.q-field__control) {
   padding: 0 var(--ds-control-inline-padding);
-}
-
-.artifacts-toolbar__toggle {
-  flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border-color: var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
 }
 
 .artifacts-empty-state {
@@ -3353,13 +3440,10 @@ watch(displayArtifactRows, () => {
   position: relative;
   overflow: hidden;
   border-radius: 28px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-color: #e5e5e5;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.96)),
-    #fff;
-  box-shadow:
-    0 20px 45px rgba(15, 23, 42, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 240, 0.98) 100%);
+  box-shadow: none;
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
@@ -3367,14 +3451,19 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
+  background: radial-gradient(
+    circle at var(--artifact-card-blob-x) var(--artifact-card-blob-y),
+    var(--artifact-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--artifact-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--artifact-card-blob-size) * 0.46),
+    var(--artifact-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--artifact-card-blob-size) * 0.7),
+    transparent var(--artifact-card-blob-size)
+  );
+  opacity: var(--artifact-card-blob-opacity, 0);
   pointer-events: none;
-  background:
-    radial-gradient(circle at 18% 16%, rgba(14, 165, 233, 0.14), transparent 38%),
-    radial-gradient(circle at 82% 0%, rgba(59, 130, 246, 0.12), transparent 34%),
-    radial-gradient(circle at 100% 100%, rgba(251, 191, 36, 0.1), transparent 34%);
+  transition: opacity 180ms ease;
 }
 
 .artifact-card > * {
@@ -3385,9 +3474,7 @@ watch(displayArtifactRows, () => {
 .artifact-card:hover {
   transform: translateY(-2px);
   border-color: rgba(59, 130, 246, 0.28);
-  box-shadow:
-    0 24px 52px rgba(15, 23, 42, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  box-shadow: none;
 }
 
 .artifact-card__title-button {
@@ -3423,21 +3510,18 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card__portrait {
-  margin: 0;
-  width: 104px;
-  height: 140px;
-  min-height: 140px;
-  flex: 0 0 auto;
   position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  border-right: 0;
 }
 
 .artifact-card__portrait::after {
-  content: "";
-  position: absolute;
-  inset: 12px 8px -10px 8px;
-  border-radius: 26px;
-  background: rgba(14, 165, 233, 0.12);
-  filter: blur(14px);
+  display: none;
 }
 
 .artifact-card__portrait-shell {
@@ -3446,30 +3530,30 @@ watch(displayArtifactRows, () => {
   display: flex;
   width: 100%;
   height: 100%;
-  min-height: 140px;
   align-items: center;
   justify-content: center;
-  border-radius: 28px;
-  background:
-    linear-gradient(180deg, rgba(14, 165, 233, 0.2), rgba(37, 99, 235, 0.16)),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.4));
-  border: 1px solid rgba(148, 163, 184, 0.24);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.88),
-    0 16px 28px rgba(14, 165, 233, 0.14);
+  padding: 24px;
 }
 
 .artifact-card__portrait-badge {
-  display: grid;
-  width: 64px;
-  height: 64px;
-  place-items: center;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.88);
-  color: #0f172a;
+  display: flex;
+  position: relative;
+  z-index: 1;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
   box-shadow:
-    0 14px 24px rgba(15, 23, 42, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.84);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
+  overflow: hidden;
 }
 
 .artifact-card__hero-side {
@@ -4020,5 +4104,264 @@ watch(displayArtifactRows, () => {
   .artifact-preview-dialog__claim-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.artifact-card__hero {
+  padding: 0;
+}
+
+.artifact-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
+}
+
+.artifact-card__portrait {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  border-right: 0;
+}
+
+.artifact-card__portrait::after {
+  display: none;
+}
+
+.artifact-card__portrait-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.artifact-card__portrait-badge {
+  display: flex;
+  position: relative;
+  z-index: 1;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
+  overflow: hidden;
+}
+
+.artifact-card__hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px 18px 14px 14px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.artifact-card__hero-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.artifact-card__title {
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.artifact-card__bottom-stack,
+.artifact-card__detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.artifact-card__detail-stack {
+  gap: 4px;
+}
+
+.artifact-card__detail-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.artifact-card__inline-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 26px;
+  padding: 0 10px;
+  color: #111;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.artifact-card__inline-chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifact-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
+  margin: 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.artifact-card__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.artifact-card__summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-left: auto;
+}
+
+.artifact-card__summary-view-toggle,
+.artifact-card__summary-toggle {
+  border-radius: var(--ds-control-radius);
+}
+
+.artifact-card__summary-view-toggle :deep(.q-btn-group),
+.artifact-card__summary-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.artifact-card__summary-view-toggle :deep(.q-btn) {
+  min-height: 21px;
+  min-width: 21px;
+  height: 21px;
+  width: 21px;
+  padding: 0 2px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--ds-control-radius);
+}
+
+.artifact-card__summary-view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.artifact-card__summary-view-toggle :deep(.q-icon) {
+  font-size: 13px;
+}
+
+.artifact-card__summary-toggle :deep(.q-btn) {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--ds-control-radius);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.artifact-card__summary-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 4px;
+}
+
+.artifact-card__summary-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.artifact-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.artifact-card__summary-body-content,
+.artifact-card__notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.artifact-card__notes-list--rows {
+  gap: 6px;
+}
+
+.artifact-card__note-pill {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 10px;
+  color: #111;
+  background: #fff;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.artifact-card__summary-empty {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---light);
+  font-weight: var(--font-weight-light);
+  line-height: 20px;
 }
 </style>
