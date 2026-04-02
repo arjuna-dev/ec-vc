@@ -236,8 +236,12 @@
         self="top left"
         class="ec-quick-widget-settings-menu"
       >
-        <div class="ec-quick-widget-settings-panel">
-          <div class="ec-quick-widget-settings-panel__header">
+        <div class="ec-quick-widget-settings-panel" :style="quickWidgetSettingsPanelStyle">
+          <div
+            class="ec-quick-widget-settings-panel__header"
+            :class="{ 'ec-quick-widget-settings-panel__header--dragging': quickWidgetSettingsIsDragging }"
+            @pointerdown.stop="onQuickWidgetSettingsPointerDown"
+          >
             <div class="ec-quick-widget-settings-panel__title">Widget Settings</div>
             <div class="ec-quick-widget-settings-panel__caption">
               Show, hide, and reorder the files in your widget.
@@ -386,6 +390,8 @@ const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
 const quickWidgetSettingsOpen = ref(false)
+const quickWidgetSettingsOffset = ref({ x: 0, y: 0 })
+const quickWidgetSettingsIsDragging = ref(false)
 const quickWidgetSettingsTarget = ref(null)
 const draftTrayDismissed = ref(false)
 const drawerSectionOpen = ref({
@@ -523,6 +529,7 @@ const breadcrumbActionsState = useBreadcrumbActionsState()
 let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
+let quickWidgetSettingsDragState = null
 const intakeDraftCount = computed(() => intakeDraftState.draftOrder.length)
 const intakeDrafts = computed(() =>
   intakeDraftState.draftOrder.map((draftId) => intakeDraftState.drafts[draftId]).filter(Boolean),
@@ -601,6 +608,10 @@ const toolbarActions = computed(() => {
 const quickWidgetStyle = computed(() => ({
   left: `${quickWidgetPosition.value.x}px`,
   top: `${quickWidgetPosition.value.y}px`,
+}))
+
+const quickWidgetSettingsPanelStyle = computed(() => ({
+  transform: `translate(${quickWidgetSettingsOffset.value.x}px, ${quickWidgetSettingsOffset.value.y}px)`,
 }))
 
 const quickWidgetActionSettings = ref({
@@ -905,6 +916,40 @@ function moveQuickWidgetAction(actionId, direction) {
 
 function setQuickWidgetSettingsTarget(element) {
   quickWidgetSettingsTarget.value = element || null
+}
+
+function onQuickWidgetSettingsPointerDown(evt) {
+  if (evt.pointerType === 'mouse' && evt.button !== 0) return
+  quickWidgetSettingsDragState = {
+    pointerId: evt.pointerId,
+    startX: evt.clientX,
+    startY: evt.clientY,
+    startOffsetX: quickWidgetSettingsOffset.value.x,
+    startOffsetY: quickWidgetSettingsOffset.value.y,
+  }
+  quickWidgetSettingsIsDragging.value = true
+  window.addEventListener('pointermove', onQuickWidgetSettingsPointerMove)
+  window.addEventListener('pointerup', onQuickWidgetSettingsPointerUp)
+  window.addEventListener('pointercancel', onQuickWidgetSettingsPointerUp)
+}
+
+function onQuickWidgetSettingsPointerMove(evt) {
+  if (!quickWidgetSettingsDragState || evt.pointerId !== quickWidgetSettingsDragState.pointerId) return
+  const dx = evt.clientX - quickWidgetSettingsDragState.startX
+  const dy = evt.clientY - quickWidgetSettingsDragState.startY
+  quickWidgetSettingsOffset.value = {
+    x: quickWidgetSettingsDragState.startOffsetX + dx,
+    y: quickWidgetSettingsDragState.startOffsetY + dy,
+  }
+}
+
+function onQuickWidgetSettingsPointerUp(evt) {
+  if (!quickWidgetSettingsDragState || evt.pointerId !== quickWidgetSettingsDragState.pointerId) return
+  quickWidgetSettingsIsDragging.value = false
+  quickWidgetSettingsDragState = null
+  window.removeEventListener('pointermove', onQuickWidgetSettingsPointerMove)
+  window.removeEventListener('pointerup', onQuickWidgetSettingsPointerUp)
+  window.removeEventListener('pointercancel', onQuickWidgetSettingsPointerUp)
 }
 
 function loadQuickWidgetPosition() {
@@ -1325,11 +1370,15 @@ onBeforeUnmount(() => {
   window.removeEventListener('pointermove', onQuickWidgetPointerMove)
   window.removeEventListener('pointerup', onQuickWidgetPointerUp)
   window.removeEventListener('pointercancel', onQuickWidgetPointerUp)
+  window.removeEventListener('pointermove', onQuickWidgetSettingsPointerMove)
+  window.removeEventListener('pointerup', onQuickWidgetSettingsPointerUp)
+  window.removeEventListener('pointercancel', onQuickWidgetSettingsPointerUp)
   logoAnimation?.destroy()
   quickWidgetIconAnimation?.destroy()
   logoAnimation = null
   quickWidgetIconAnimation = null
   quickWidgetDragState = null
+  quickWidgetSettingsDragState = null
 })
 
 watch(
@@ -1656,6 +1705,12 @@ function goBack() {
   flex-direction: column;
   gap: 4px;
   padding-bottom: 10px;
+  cursor: grab;
+  user-select: none;
+}
+
+.ec-quick-widget-settings-panel__header--dragging {
+  cursor: grabbing;
 }
 
 .ec-quick-widget-settings-panel__eyebrow {
