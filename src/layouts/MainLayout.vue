@@ -233,7 +233,7 @@
         :target="quickWidgetSettingsTarget"
         no-parent-event
         anchor="top right"
-        self="bottom right"
+        self="top left"
         class="ec-quick-widget-settings-menu"
       >
         <div class="ec-quick-widget-settings-panel">
@@ -1641,8 +1641,11 @@ function goBack() {
 
 .ec-quick-widget-settings-row__label {
   color: var(--ds-color-text-primary-deep);
-  font-size: 13px;
-  font-weight: 600;
+  font-family: var(--font-title);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  letter-spacing: 0.01em;
 }
 
 .ec-quick-widget-settings-row__actions {
