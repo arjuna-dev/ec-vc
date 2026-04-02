@@ -2844,6 +2844,7 @@ function formatCanonicalLabel(value, entityPrefix = '') {
   if (/^business overview$/i.test(label)) return 'Business'
   if (/^market overview$/i.test(label)) return 'Market'
   if (/^results overview$/i.test(label)) return 'Results'
+  if (/^business plan$/i.test(label)) return 'Planning'
   return label
 }
 
@@ -2930,10 +2931,35 @@ function orderCanonicalSectionsForNav(entityName, sections = []) {
     ordered.push(createCanonicalGeneralInformationFallback(entityName))
   }
 
-  normalizedSections.forEach((section, index) => {
-    if (index === generalIndex || index === kdbIndex || index === systemIndex) return
-    ordered.push(section)
-  })
+  const middleSections = normalizedSections.filter(
+    (_, index) => index !== generalIndex && index !== kdbIndex && index !== systemIndex,
+  )
+  if (entityName === 'Companies') {
+    const preferredOrder = [
+      'Business',
+      'Market',
+      'Operations',
+      'Results',
+      'Planning',
+      'Fund Raising',
+      'Documents',
+      'Incorporation',
+    ]
+    const rank = Object.fromEntries(preferredOrder.map((label, index) => [label.toLowerCase(), index]))
+    middleSections
+      .map((section, index) => ({ section, index }))
+      .sort((a, b) => {
+        const aRank = rank[String(a.section.title || '').toLowerCase()]
+        const bRank = rank[String(b.section.title || '').toLowerCase()]
+        const aScore = Number.isInteger(aRank) ? aRank : Number.MAX_SAFE_INTEGER
+        const bScore = Number.isInteger(bRank) ? bRank : Number.MAX_SAFE_INTEGER
+        if (aScore !== bScore) return aScore - bScore
+        return a.index - b.index
+      })
+      .forEach(({ section }) => ordered.push(section))
+  } else {
+    middleSections.forEach((section) => ordered.push(section))
+  }
 
   if (kdbIndex > -1) {
     ordered.push({ ...normalizedSections[kdbIndex], isKdb: true })
