@@ -243,6 +243,7 @@
                 <q-card-section class="user-card__summary">
                   <div class="user-card__summary-head">
                     <q-btn-toggle
+                      v-if="getUserRelationshipTabs(user).length"
                       :model-value="getUserCardPanel(user)"
                       dense
                       no-caps
@@ -251,9 +252,10 @@
                       color="white"
                       text-color="grey-8"
                       class="user-card__summary-toggle"
-                      :options="userCardPanelOptions"
+                      :options="getUserRelationshipTabs(user)"
                       @update:model-value="setUserCardPanel(user, $event)"
                     />
+                    <div v-else class="user-card__summary-label">KDB Relationships</div>
 
                     <q-btn-toggle
                       :model-value="getUserCardContentView(user)"
@@ -304,7 +306,7 @@
                         </div>
 
                         <div v-else class="user-card__summary-empty">
-                          {{ getUserCardPanel(user) === 'notes' ? 'No linked notes yet.' : 'No linked artifacts yet.' }}
+                          No linked KDB relationships yet.
                         </div>
                       </div>
                     </div>
@@ -372,11 +374,6 @@ const viewOptions = [
 const userCardContentViewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-
-const userCardPanelOptions = [
-  { label: 'Notes', value: 'notes' },
-  { label: 'Artifacts', value: 'artifacts' },
 ]
 
 const columns = [
@@ -640,9 +637,26 @@ function setUserCardContentView(user, value) {
   userCardContentViews.value = { ...userCardContentViews.value, [rowId]: value || 'card' }
 }
 
+function getUserRelationshipTabs(user) {
+  const tabs = []
+
+  if (getUserLinkedNotes(user).length) {
+    tabs.push({ label: 'Notes', value: 'notes' })
+  }
+
+  if (getUserLinkedArtifacts(user).length) {
+    tabs.push({ label: 'Artifacts', value: 'artifacts' })
+  }
+
+  return tabs
+}
+
 function getUserCardPanel(user) {
   const rowId = String(user?.id || '').trim()
-  return userCardPanels.value[rowId] || 'notes'
+  const availableTabs = getUserRelationshipTabs(user)
+  const fallbackValue = availableTabs[0]?.value || ''
+  const storedValue = userCardPanels.value[rowId]
+  return availableTabs.some((tab) => tab.value === storedValue) ? storedValue : fallbackValue
 }
 
 function setUserCardPanel(user, value) {
@@ -1449,6 +1463,14 @@ onMounted(loadUsers)
 .user-card__summary-view-toggle,
 .user-card__summary-toggle {
   border-radius: var(--ds-control-radius);
+}
+
+.user-card__summary-label {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.02em;
 }
 
 .user-card__summary-view-toggle {
