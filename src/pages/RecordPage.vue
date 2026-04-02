@@ -3178,7 +3178,26 @@ function normalizeGenericSectionLabel(sectionName) {
   return raw
 }
 
+function getPayloadSectionContract() {
+  const sections = Array.isArray(currentView.value?.sections) ? currentView.value.sections : []
+  if (!sections.length) return null
+
+  return {
+    sections: sections.map((section) => String(section?.label || '').trim()).filter(Boolean),
+    fieldsBySection: Object.fromEntries(
+      sections.map((section) => [
+        String(section?.label || '').trim(),
+        (Array.isArray(section?.items) ? section.items : [])
+          .map((item) => String(item?.field_name || '').trim())
+          .filter(Boolean),
+      ]),
+    ),
+  }
+}
+
 function getGenericSectionContract(tableName) {
+  const payloadContract = getPayloadSectionContract()
+  if (payloadContract?.sections?.length) return payloadContract
   return GENERIC_SECTION_CONTRACTS[tableName] || null
 }
 

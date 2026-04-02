@@ -2477,6 +2477,88 @@ function buildCompanyDatabookView(database, recordId) {
   }
 }
 
+function createDatabookField({
+  tableName,
+  recordId,
+  fieldName,
+  value,
+  editable,
+  idColumn,
+  keyPrefix = null,
+}) {
+  const prefix = keyPrefix || tableName
+  return {
+    key: `${prefix}|${recordId}|${fieldName}`,
+    section: '',
+    label: formatDatabookFieldLabel(fieldName),
+    value: value == null ? '' : String(value),
+    editable: Boolean(editable),
+    table_name: tableName,
+    record_id: recordId,
+    field_name: fieldName,
+    id_column: idColumn,
+  }
+}
+
+function buildUserDatabookView(database, recordId) {
+  const rid = normalizeNullableString(recordId)
+  if (!rid) throw new Error('recordId is required')
+
+  const row =
+    database
+      .prepare(
+        `
+        SELECT id, User_Name, User_PEmail, created_at, updated_at
+        FROM Users
+        WHERE id = ?
+        LIMIT 1
+      `,
+      )
+      .get(rid) || null
+
+  if (!row) throw new Error(`User not found: ${rid}`)
+
+  const metadataFieldNames = ['id', 'User_Name', 'User_PEmail', 'created_at', 'updated_at']
+  const metadataFields = metadataFieldNames.map((fieldName) =>
+    createDatabookField({
+      tableName: 'Users',
+      recordId: rid,
+      fieldName,
+      value: row?.[fieldName],
+      editable: !new Set(['id', 'created_at', 'updated_at']).has(fieldName),
+      idColumn: 'id',
+    }),
+  )
+
+  const fields = metadataFields.map((field) => ({
+    ...field,
+    section: 'Metadata',
+  }))
+
+  return {
+    table_name: 'Users',
+    record_id: rid,
+    entity_label: 'User',
+    entity_name: normalizeNullableString(row.User_Name) || normalizeNullableString(row.User_PEmail) || rid,
+    record: row,
+    sections: [
+      {
+        id: 'metadata',
+        label: 'Metadata',
+        kind: 'fields',
+        items: metadataFields,
+      },
+      {
+        id: 'kdb-relationships',
+        label: 'KDB Relationships',
+        kind: 'relationships',
+        items: [],
+      },
+    ],
+    fields,
+  }
+}
+
 function getDatabookView(tableName, recordId) {
   const database = initDb()
   const config = getDatabookTableConfig(tableName)
@@ -2485,6 +2567,9 @@ function getDatabookView(tableName, recordId) {
 
   if (config.tableName === 'Companies') {
     return buildCompanyDatabookView(database, rid)
+  }
+  if (config.tableName === 'Users') {
+    return buildUserDatabookView(database, rid)
   }
 
   const tableMeta = getTableMeta(database, config.tableName)
