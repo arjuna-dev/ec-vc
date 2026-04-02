@@ -1,0 +1,4 @@
+interface:
+  display_name: "Save Bug Report"
+  short_description: "Turn bug reports into markdown files"
+  default_prompt: "Use $save-bug-report to turn this bug report into a markdown file in the repo."
