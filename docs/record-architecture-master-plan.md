@@ -9,6 +9,7 @@ This document is now the primary working reference for:
 - architecture direction
 - execution plan
 - progress tracking
+- the current normalized `File -> Card -> Record View` system framing
 
 This document should be treated as the single planning source of truth for the `File -> Card -> Record View` architecture.
 
@@ -134,6 +135,14 @@ Working rule:
 
 `File/Card View stays light. Record View gets rich.`
 
+## Current File Card Shell
+
+The current normalized shared file-card shell is documented in:
+
+- [file-card-structure-reference.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/file-card-structure-reference.md)
+
+That maintenance reference should be used to keep the 8 main file pages aligned while we continue the broader architecture pass.
+
 ## Core Rules
 
 ### Workbook Rule
@@ -252,6 +261,18 @@ That means:
 
 - cards may show lightweight relationship previews
 - record views still need fuller grouped relationship payloads
+
+### 5. Shared Card Maintenance Drift
+
+The 8 main file pages now have a much more normalized card shell, but that normalization must be maintained deliberately.
+
+The main maintenance risks are:
+
+- wrapper drift in card summary templates
+- loop alias drift in file card grids
+- one-off shell edits that belong in the shared card pattern
+
+The current approved shell is documented in `file-card-structure-reference.md`.
 
 ## Target Architecture
 

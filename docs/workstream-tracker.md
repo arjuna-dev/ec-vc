@@ -14,6 +14,7 @@ This tracker should stay aligned with:
 
 - `docs/record-architecture-master-plan.md`
 - `docs/intake-architecture-master-plan.md`
+- `docs/file-card-structure-reference.md`
 
 ## Front-Loaded
 
@@ -28,6 +29,7 @@ This tracker should stay aligned with:
 
 - `RAMP` is now the single architecture source of truth for `File -> Card -> Record View`
 - `Intake Architecture Master Plan` is now the single intake planning source of truth
+- `File Card Structure Reference` now captures the normalized shared card shell for the 8 main file pages
 - Artifact processing recovery and continuity
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`
 - Verification dialog behavior and staged review UX
@@ -68,6 +70,10 @@ This tracker should stay aligned with:
   - document preview cards restored in the intake flow
   - verification dialog can skip and expand verified info
   - unfinished artifacts now expose direct resume affordances
+- recent file-card normalization work already completed:
+  - summary panel structure normalized
+  - `Add Relation` moved into the lower dynamic box
+  - card loop alias drift reduced by standardizing toward `row`
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
   - start the first true structure-contract pass with `Company` as the reference entity
