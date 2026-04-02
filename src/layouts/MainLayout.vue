@@ -214,6 +214,7 @@
         :key="action.id"
         class="ec-quick-widget-action"
         :style="quickWidgetActionStyle(index)"
+        :ref="action.id === 'settings' ? setQuickWidgetSettingsTarget : undefined"
       >
         <q-btn
           round
@@ -223,67 +224,68 @@
           :icon="action.icon"
           :aria-label="action.label"
           @click.stop="action.onClick"
-        >
-          <q-menu
-            v-if="action.id === 'settings'"
-            v-model="quickWidgetSettingsOpen"
-            anchor="top right"
-            self="bottom right"
-            class="ec-quick-widget-settings-menu"
-          >
-            <div class="ec-quick-widget-settings-panel">
-              <div class="ec-quick-widget-settings-panel__header">
-                <div>
-                  <div class="ec-quick-widget-settings-panel__eyebrow">Widget Settings</div>
-                  <div class="ec-quick-widget-settings-panel__title">Quick Files</div>
-                </div>
-                <div class="ec-quick-widget-settings-panel__caption">
-                  Show, hide, and reorder the files in your quick widget.
-                </div>
-              </div>
-
-              <div class="ec-quick-widget-settings-panel__list">
-                <div
-                  v-for="(settingsAction, settingsIndex) in quickWidgetActionCatalog"
-                  :key="settingsAction.id"
-                  class="ec-quick-widget-settings-row"
-                >
-                  <q-toggle
-                    :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
-                    color="primary"
-                    dense
-                    @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
-                  />
-
-                  <div class="ec-quick-widget-settings-row__copy">
-                    <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
-                  </div>
-
-                  <div class="ec-quick-widget-settings-row__actions">
-                    <q-btn
-                      flat
-                      dense
-                      round
-                      icon="keyboard_arrow_up"
-                      :disable="settingsIndex === 0"
-                      @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
-                    />
-                    <q-btn
-                      flat
-                      dense
-                      round
-                      icon="keyboard_arrow_down"
-                      :disable="settingsIndex === quickWidgetActionCatalog.length - 1"
-                      @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </q-menu>
-        </q-btn>
+        />
         <div class="ec-quick-widget-action-label">{{ action.label }}</div>
       </div>
+
+      <q-menu
+        v-model="quickWidgetSettingsOpen"
+        :target="quickWidgetSettingsTarget"
+        no-parent-event
+        anchor="top right"
+        self="bottom right"
+        class="ec-quick-widget-settings-menu"
+      >
+        <div class="ec-quick-widget-settings-panel">
+          <div class="ec-quick-widget-settings-panel__header">
+            <div>
+              <div class="ec-quick-widget-settings-panel__eyebrow">Widget Settings</div>
+              <div class="ec-quick-widget-settings-panel__title">Quick Files</div>
+            </div>
+            <div class="ec-quick-widget-settings-panel__caption">
+              Show, hide, and reorder the files in your quick widget.
+            </div>
+          </div>
+
+          <div class="ec-quick-widget-settings-panel__list">
+            <div
+              v-for="(settingsAction, settingsIndex) in quickWidgetActionCatalog"
+              :key="settingsAction.id"
+              class="ec-quick-widget-settings-row"
+            >
+              <q-toggle
+                :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
+                color="primary"
+                dense
+                @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
+              />
+
+              <div class="ec-quick-widget-settings-row__copy">
+                <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
+              </div>
+
+              <div class="ec-quick-widget-settings-row__actions">
+                <q-btn
+                  flat
+                  dense
+                  round
+                  icon="keyboard_arrow_up"
+                  :disable="settingsIndex === 0"
+                  @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
+                />
+                <q-btn
+                  flat
+                  dense
+                  round
+                  icon="keyboard_arrow_down"
+                  :disable="settingsIndex === quickWidgetActionCatalog.length - 1"
+                  @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </q-menu>
 
       <div
         v-for="(action, index) in quickOpportunityBranchActions"
@@ -385,6 +387,7 @@ const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
 const quickWidgetSettingsOpen = ref(false)
+const quickWidgetSettingsTarget = ref(null)
 const draftTrayDismissed = ref(false)
 const drawerSectionOpen = ref({
   preferences: true,
@@ -658,7 +661,7 @@ const quickWidgetRingActions = computed(() => [
     label: 'Settings',
     icon: 'tune',
     onClick: () => {
-      quickWidgetSettingsOpen.value = true
+      quickWidgetSettingsOpen.value = !quickWidgetSettingsOpen.value
     },
   },
 ])
@@ -867,6 +870,10 @@ function moveQuickWidgetAction(actionId, direction) {
     order: currentOrder,
   }
   persistQuickWidgetActionSettings()
+}
+
+function setQuickWidgetSettingsTarget(element) {
+  quickWidgetSettingsTarget.value = element || null
 }
 
 function loadQuickWidgetPosition() {
