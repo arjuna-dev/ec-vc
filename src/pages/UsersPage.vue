@@ -63,33 +63,41 @@
         </div>
 
         <div class="users-toolbar">
-          <div class="users-toolbar__block users-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="users-toolbar__toggle users-toolbar__view-toggle"
-              :disable="loading"
-              :options="viewOptions"
+          <div class="users-toolbar__block users-toolbar__block--select">
+            <q-checkbox
+              :model-value="allVisibleUsersSelected"
+              :indeterminate="someVisibleUsersSelected && !allVisibleUsersSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="users-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleUsers"
             />
-          </div>
-
-          <div class="users-toolbar__block users-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="userKindFilter"
-              dense
+            <q-btn
               no-caps
               unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="users-toolbar__toggle users-toolbar__kind-toggle"
+              class="users-toolbar__add-button"
               :disable="loading"
-              :options="userKindOptions"
-            />
+              @click="openCreateUser"
+            >
+              <span class="users-toolbar__add-button-inner">
+                <span class="users-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="users-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-btn
+              dense
+              flat
+              round
+              icon="download"
+              color="grey-6"
+              class="users-toolbar__icon-button"
+              :disable="loading"
+              @click="csvActionsRef?.pickFile?.()"
+            >
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
           </div>
 
           <div class="users-toolbar__block users-toolbar__block--search">
@@ -107,30 +115,17 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              flat
-              round
-              icon="download"
-              color="grey-6"
-              class="users-toolbar__icon-button"
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="users-toolbar__toggle users-toolbar__view-toggle"
               :disable="loading"
-              @click="csvActionsRef?.pickFile?.()"
-            >
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn
-              dense
-              flat
-              round
-              icon="upload"
-              color="grey-6"
-              class="users-toolbar__icon-button"
-              :disable="loading || displayRows.length === 0"
-              @click="csvActionsRef?.exportCsv?.()"
-            >
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
+              :options="viewOptions"
+            />
           </div>
         </div>
 
@@ -148,10 +143,12 @@
             v-else-if="viewMode === 'table'"
             flat
             bordered
+            v-model:selected="selectedUsers"
             :rows="displayRows"
             :columns="columns"
             row-key="id"
             :loading="loading"
+            selection="multiple"
             class="users-table"
             :pagination="{ rowsPerPage: 15 }"
           >
@@ -174,6 +171,25 @@
                 @pointermove="onUserCardPointerMove"
                 @pointerleave="onUserCardPointerLeave"
               >
+                <q-card-section class="user-card__control-row">
+                  <q-checkbox
+                    :model-value="isUserSelected(user)"
+                    :disable="loading"
+                    color="dark"
+                    class="user-card__select-box"
+                    @update:model-value="toggleUserSelection(user, $event)"
+                  />
+
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="user-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(user)"
+                  />
+                </q-card-section>
+
                 <q-card-section class="user-card__hero">
                   <div class="user-card__hero-main">
                     <figure class="user-card__portrait">
@@ -215,6 +231,24 @@
                 <q-card-section class="user-card__summary">
                   <div class="user-card__summary-head">
                     <q-btn-toggle
+                      :model-value="getUserCardPanel(user)"
+                      dense
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="user-card__summary-toggle"
+                      :options="getUserRelationshipOptions(user)"
+                      @update:model-value="setUserCardPanel(user, $event)"
+                    />
+                    <q-btn flat round class="user-card__summary-add-relation" aria-label="Add Relation">
+                      <span class="user-card__summary-add-relation-plus">
+                        <q-icon name="add" />
+                      </span>
+                      <q-tooltip>Add Relation</q-tooltip>
+                    </q-btn>
+
+                    <q-btn-toggle
                       :model-value="getUserCardContentView(user)"
                       dense
                       unelevated
@@ -225,76 +259,29 @@
                       :options="userCardContentViewOptions"
                       @update:model-value="setUserCardContentView(user, $event)"
                     />
-
-                    <q-btn-toggle
-                      :model-value="getUserCardPanel(user)"
-                      dense
-                      no-caps
-                      unelevated
-                      toggle-color="dark"
-                      color="white"
-                      text-color="grey-8"
-                      class="user-card__summary-toggle"
-                      :options="userCardPanelOptions"
-                      @update:model-value="setUserCardPanel(user, $event)"
-                    />
-
-                    <div class="user-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isUserSelected(user)"
-                        :disable="loading"
-                        color="dark"
-                        class="user-card__select-box"
-                        @update:model-value="toggleUserSelection(user, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="user-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(user)"
-                      />
-                    </div>
                   </div>
 
                   <div class="user-card__summary-panel">
                     <div class="user-card__summary-body">
                       <div class="user-card__summary-body-content">
                         <div
-                          v-if="getUserCardPanel(user) === 'notes' && getUserLinkedNotes(user).length"
+                          v-if="getUserActiveRelationshipItems(user).length"
                           :class="[
                             'user-card__notes-list',
                             { 'user-card__notes-list--rows': getUserCardContentView(user) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getUserLinkedNotes(user)"
-                            :key="note"
+                            v-for="item in getUserActiveRelationshipItems(user)"
+                            :key="item"
                             class="user-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getUserCardPanel(user) === 'artifacts' && getUserLinkedArtifacts(user).length"
-                          :class="[
-                            'user-card__notes-list',
-                            { 'user-card__notes-list--rows': getUserCardContentView(user) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="artifact in getUserLinkedArtifacts(user)"
-                            :key="artifact"
-                            class="user-card__note-pill"
-                          >
-                            {{ artifact }}
+                            {{ item }}
                           </div>
                         </div>
 
                         <div v-else class="user-card__summary-empty">
-                          {{ getUserCardPanel(user) === 'notes' ? 'No linked notes yet.' : 'No linked artifacts yet.' }}
+                          No linked KDB relationships yet.
                         </div>
                       </div>
                     </div>
@@ -314,15 +301,34 @@
             :on-import-rows="importRows"
           />
         </div>
+
+        <UserCreateDialog v-model="userDialogOpen" @created="onUserCreated" />
       </section>
+
+      <SelectionActionBar
+        :count="selectedCount"
+        :loading="loading"
+        :can-delete="true"
+        @share="shareSelected"
+        @edit="editSelected"
+        @delete="deleteSelected"
+      />
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import SelectionActionBar from 'src/components/SelectionActionBar.vue'
 import TableCsvActions from 'src/components/TableCsvActions.vue'
+import UserCreateDialog from 'src/components/UserCreateDialog.vue'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const rows = ref([])
 const loading = ref(false)
@@ -333,30 +339,21 @@ const selectedUsers = ref([])
 const userCardContentViews = ref({})
 const userCardPanels = ref({})
 const csvActionsRef = ref(null)
+const userDialogOpen = ref(false)
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(() => !!bridge.value?.users?.list)
 const route = useRoute()
 const router = useRouter()
+const $q = useQuasar()
 
 const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
 ]
 
-const userKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Team', value: 'golden' },
-  { label: 'Guests', value: 'needs-setup' },
-]
-
 const userCardContentViewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-
-const userCardPanelOptions = [
-  { label: 'Notes', value: 'notes' },
-  { label: 'Artifacts', value: 'artifacts' },
 ]
 
 const columns = [
@@ -475,6 +472,27 @@ const displayRows = computed(() => {
       row?.id,
     ].some((value) => String(value || '').toLowerCase().includes(normalizedSearch))
   })
+})
+
+const selectedCount = computed(() => selectedUsers.value.length)
+const visibleUserIds = computed(() =>
+  displayRows.value
+    .map((row) => String(row?.id || '').trim())
+    .filter(Boolean),
+)
+const allVisibleUsersSelected = computed(() => {
+  if (visibleUserIds.value.length === 0) return false
+  const selectedIdSet = new Set(
+    selectedUsers.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  return visibleUserIds.value.every((id) => selectedIdSet.has(id))
+})
+const someVisibleUsersSelected = computed(() => {
+  if (visibleUserIds.value.length === 0) return false
+  const selectedIdSet = new Set(
+    selectedUsers.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  return visibleUserIds.value.some((id) => selectedIdSet.has(id))
 })
 
 function clamp(value, min, max) {
@@ -599,15 +617,31 @@ function setUserCardContentView(user, value) {
   userCardContentViews.value = { ...userCardContentViews.value, [rowId]: value || 'card' }
 }
 
+function getUserRelationshipItems(user) {
+  return buildCardRelationshipItems(user, ['User'], {
+    notes: getUserLinkedNotes,
+    artifacts: getUserLinkedArtifacts,
+  })
+}
+
+function getUserRelationshipOptions(user) {
+  return buildCardRelationshipOptions(getUserRelationshipItems(user))
+}
+
 function getUserCardPanel(user) {
   const rowId = String(user?.id || '').trim()
-  return userCardPanels.value[rowId] || 'notes'
+  const storedValue = userCardPanels.value[rowId]
+  return resolveCardRelationshipPanel(storedValue, getUserRelationshipItems(user))
 }
 
 function setUserCardPanel(user, value) {
   const rowId = String(user?.id || '').trim()
   if (!rowId) return
   userCardPanels.value = { ...userCardPanels.value, [rowId]: value || 'notes' }
+}
+
+function getUserActiveRelationshipItems(user) {
+  return getUserRelationshipItems(user)[getUserCardPanel(user)] || []
 }
 
 function getUserLinkedNotes(user) {
@@ -651,6 +685,24 @@ function toggleUserSelection(user, shouldSelect) {
   selectedUsers.value = selectedUsers.value.filter((selectedUser) => String(selectedUser?.id || '').trim() !== rowId)
 }
 
+function toggleSelectAllVisibleUsers(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIdSet = new Set(visibleUserIds.value)
+    selectedUsers.value = selectedUsers.value.filter(
+      (selectedUser) => !visibleIdSet.has(String(selectedUser?.id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIdSet = new Set(
+    selectedUsers.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter(
+    (row) => !selectedIdSet.has(String(row?.id || '').trim()),
+  )
+  selectedUsers.value = [...selectedUsers.value, ...additions]
+}
+
 function openDatabook(user) {
   const recordId = String(user?.id || '').trim()
   if (!recordId) return
@@ -658,6 +710,51 @@ function openDatabook(user) {
     name: 'databook-view',
     params: { tableName: 'Users', recordId },
     query: { returnTo: route.fullPath },
+  })
+}
+
+function editSelected() {
+  const user = selectedUsers.value[0]
+  if (!user) return
+  openDatabook(user)
+}
+
+async function shareSelected() {
+  if (selectedCount.value === 0) return
+  const text = selectedUsers.value
+    .map((user) =>
+      [String(user?.User_Name || '').trim(), String(user?.User_PEmail || '').trim(), String(user?.id || '').trim()]
+        .filter(Boolean)
+        .join(' | '),
+    )
+    .filter(Boolean)
+    .join('\n')
+
+  if (!text) return
+
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      $q.notify({
+        type: 'positive',
+        message: `Copied ${selectedCount.value} selected user${selectedCount.value === 1 ? '' : 's'}.`,
+      })
+      return
+    }
+    throw new Error('Clipboard unavailable')
+  } catch {
+    $q.notify({
+      type: 'warning',
+      message: 'Unable to copy selected users from this environment.',
+    })
+  }
+}
+
+function deleteSelected() {
+  if (selectedCount.value === 0) return
+  $q.notify({
+    type: 'info',
+    message: 'Delete is visible in the Users prototype now, but the actual delete action is not wired yet.',
   })
 }
 
@@ -677,6 +774,36 @@ async function importRows(importedRows = []) {
   return { inserted: normalizedRows.length, updated: 0, skipped: 0 }
 }
 
+function openCreateUser() {
+  userDialogOpen.value = true
+}
+
+function onOpenUserDialog() {
+  globalThis.__ecvcOpenUserDialog = false
+  openCreateUser()
+}
+
+function openCreateUserFromQuery() {
+  if (String(route.query.create || '') !== '1') return
+  openCreateUser()
+  globalThis.__ecvcOpenUserDialog = false
+
+  const nextQuery = { ...route.query }
+  delete nextQuery.create
+  router.replace({ query: nextQuery })
+}
+
+function consumeQueuedUserDialogOpen() {
+  if (globalThis.__ecvcOpenUserDialog !== true) return false
+  globalThis.__ecvcOpenUserDialog = false
+  openCreateUser()
+  return true
+}
+
+async function onUserCreated() {
+  await loadUsers()
+}
+
 async function loadUsers() {
   if (!bridge.value?.users?.list) return
   loading.value = true
@@ -688,7 +815,23 @@ async function loadUsers() {
   }
 }
 
-onMounted(loadUsers)
+onMounted(async () => {
+  window.addEventListener('ecvc:open-user-dialog', onOpenUserDialog)
+  await loadUsers()
+  consumeQueuedUserDialogOpen()
+  openCreateUserFromQuery()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('ecvc:open-user-dialog', onOpenUserDialog)
+})
+
+watch(
+  () => route.query.create,
+  () => {
+    openCreateUserFromQuery()
+  },
+)
 </script>
 
 <style scoped>
@@ -907,7 +1050,7 @@ onMounted(loadUsers)
 
 .users-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: auto auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -922,6 +1065,10 @@ onMounted(loadUsers)
   align-items: center;
   gap: 12px;
   min-width: 0;
+}
+
+.users-toolbar__block--select {
+  margin-right: 4px;
 }
 
 .users-toolbar__block--view {
@@ -940,6 +1087,16 @@ onMounted(loadUsers)
   align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.users-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
+}
+
+.users-toolbar__select-all :deep(.q-checkbox__label) {
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-medium);
 }
 
 .users-toolbar__toggle {
@@ -994,6 +1151,83 @@ onMounted(loadUsers)
 
 .users-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.users-toolbar__add-button {
+  align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.users-toolbar__add-button:hover,
+.users-toolbar__add-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.users-toolbar__add-button:active,
+.users-toolbar__add-button.q-btn--active,
+.users-toolbar__add-button.q-btn--standard.q-btn--active {
+  color: #ffffff;
+  background: #111111;
+}
+
+.users-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.users-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.users-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+  border: 0;
+  box-shadow: none;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.users-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.users-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+}
+
+.users-toolbar__add-button:active .users-toolbar__add-button-plus,
+.users-toolbar__add-button.q-btn--active .users-toolbar__add-button-plus,
+.users-toolbar__add-button.q-btn--standard.q-btn--active .users-toolbar__add-button-plus {
+  color: #ffffff;
+  background: #2647ff;
 }
 
 .users-toolbar__kind-toggle :deep(.q-btn) {
@@ -1061,7 +1295,22 @@ onMounted(loadUsers)
 }
 
 .user-card__hero {
-  padding: 0;
+  padding: 0 0 4px;
+}
+
+.user-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.user-card__control-row :deep(.q-checkbox__inner),
+.user-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
 .user-card::before {
@@ -1226,20 +1475,26 @@ onMounted(loadUsers)
 .user-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
-}
-
-.user-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .user-card__summary-view-toggle,
 .user-card__summary-toggle {
   border-radius: var(--ds-control-radius);
+}
+
+.user-card__summary-label {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.02em;
+}
+
+.user-card__summary-view-toggle {
+  margin-left: auto;
+  margin-right: 14px;
 }
 
 .user-card__summary-view-toggle :deep(.q-btn-group),
@@ -1268,18 +1523,77 @@ onMounted(loadUsers)
 }
 
 .user-card__summary-toggle :deep(.q-btn) {
-  min-height: 32px;
-  padding: 0 10px;
+  position: relative;
+  min-height: 24px;
+  min-width: 24px;
+  width: 24px;
+  padding: 0 3px;
   border: 1px solid transparent;
   border-radius: var(--ds-control-radius);
   background: transparent;
+  font-size: 12px;
+}
+
+.user-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
+.user-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  transform: none;
+  padding: 4px 7px;
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(239, 239, 239, 0.5);
+  border-radius: 5px;
   font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .user-card__summary-toggle :deep(.q-btn + .q-btn) {
   margin-left: 4px;
+}
+
+.user-card__summary-toggle :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.user-card__summary-toggle {
+  margin-right: auto;
+}
+
+.user-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.user-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.user-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
 }
 
 .user-card__summary-panel {
@@ -1330,6 +1644,37 @@ onMounted(loadUsers)
   font-weight: var(--font-weight-light);
   line-height: 20px;
 }
+
+.user-card__icon-action {
+  color: #111;
+  background: transparent;
+  border: 0;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.user-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: #111;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.user-card__control-eye :deep(.q-icon) {
+  font-size: 14px;
+}
+
+.user-card__select-box {
+  margin-left: -3.5px;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
 
 .user-card {
   position: relative;

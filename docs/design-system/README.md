@@ -177,18 +177,18 @@ all share the same general structure:
 
 This is one of the strongest existing system patterns in the product.
 
-### Databook
+### Record View
 
-The Databook page has more personality and more custom detail than the entity pages, but it still has reusable structure:
+The `Record View` has more personality and more custom detail than the file pages, but it still has reusable structure:
 
-- databook heading
+- record heading
 - white content cards
 - inner field cards
 - summary panels
 - metadata labels
 - body copy blocks
 
-The more expressive parts of the Databook hero were intentionally left more custom.
+The more expressive parts of the `Record View` hero were intentionally left more custom.
 
 That is good.
 
@@ -272,7 +272,7 @@ When you are ready, a sensible Figma organization would be:
 - Components / Inputs
 - Components / Cards
 - Patterns / Entity Page Shell
-- Patterns / Databook
+- Patterns / Record View
 
 That structure would map well to the work we have already done in code.
 

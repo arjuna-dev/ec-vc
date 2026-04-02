@@ -71,34 +71,35 @@
         </div>
 
         <div class="notes-toolbar">
-          <div class="notes-toolbar__block notes-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="notes-toolbar__toggle notes-toolbar__view-toggle"
-              :options="viewOptions"
+          <div class="notes-toolbar__block notes-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleNotesSelected"
+              :indeterminate="someVisibleNotesSelected && !allVisibleNotesSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="notes-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleNotes"
             />
-          </div>
-
-          <div class="notes-toolbar__block notes-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="noteKindFilter"
-              dense
+            <q-btn
               no-caps
               unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="notes-toolbar__toggle notes-toolbar__kind-toggle"
-              :options="noteKindOptions"
-            />
+              class="notes-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateNote"
+            >
+              <span class="notes-toolbar__add-button-inner">
+                <span class="notes-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="notes-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-btn dense flat round icon="download" color="grey-6" class="notes-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
           </div>
 
-          <div class="notes-toolbar__block notes-toolbar__block--search">
+          <div class="notes-toolbar__block notes-toolbar__block--actions">
             <q-icon name="tune" size="18px" class="notes-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
@@ -113,12 +114,16 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" class="notes-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" class="notes-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
+            <q-btn-toggle
+              v-model="viewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="notes-toolbar__toggle notes-toolbar__view-toggle"
+              :options="viewOptions"
+            />
           </div>
         </div>
 
@@ -158,6 +163,15 @@
                     dense
                     flat
                     round
+                    icon="visibility"
+                    color="grey-8"
+                    :disable="loading"
+                    @click="openDatabook(props.row)"
+                  />
+                  <q-btn
+                    dense
+                    flat
+                    round
                     icon="delete"
                     color="grey-8"
                     :disable="loading"
@@ -179,6 +193,23 @@
                 @pointermove="onNoteCardPointerMove"
                 @pointerleave="onNoteCardPointerLeave"
               >
+                <q-card-section class="note-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="note-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="note-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="note-card__hero">
                   <div class="note-card__hero-main">
                     <figure class="note-card__portrait">
@@ -218,6 +249,23 @@
                 <q-card-section class="note-card__summary">
                   <div class="note-card__summary-head">
                     <q-btn-toggle
+                      :model-value="getNoteCardPanel(row)"
+                      dense
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="note-card__summary-toggle"
+                      :options="getNoteRelationshipOptions(row)"
+                      @update:model-value="setNoteCardPanel(row, $event)"
+                    />
+                    <q-btn flat round class="note-card__summary-add-relation" aria-label="Add Relation">
+                      <span class="note-card__summary-add-relation-plus">
+                        <q-icon name="add" />
+                      </span>
+                      <q-tooltip>Add Relation</q-tooltip>
+                    </q-btn>
+                    <q-btn-toggle
                       :model-value="getNoteCardContentView(row)"
                       dense
                       unelevated
@@ -228,76 +276,29 @@
                       :options="noteCardContentViewOptions"
                       @update:model-value="setNoteCardContentView(row, $event)"
                     />
-
-                    <q-btn-toggle
-                      :model-value="getNoteCardPanel(row)"
-                      dense
-                      no-caps
-                      unelevated
-                      toggle-color="dark"
-                      color="white"
-                      text-color="grey-8"
-                      class="note-card__summary-toggle"
-                      :options="noteCardPanelOptions"
-                      @update:model-value="setNoteCardPanel(row, $event)"
-                    />
-
-                    <div class="note-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="note-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="note-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(row)"
-                      />
-                    </div>
                   </div>
 
                   <div class="note-card__summary-panel">
                     <div class="note-card__summary-body">
                       <div class="note-card__summary-body-content">
                         <div
-                          v-if="getNoteCardPanel(row) === 'notes' && getNoteLinkedNotes(row).length"
+                          v-if="getNoteActiveRelationshipItems(row).length"
                           :class="[
                             'note-card__notes-list',
                             { 'note-card__notes-list--rows': getNoteCardContentView(row) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getNoteLinkedNotes(row)"
-                            :key="note"
+                            v-for="item in getNoteActiveRelationshipItems(row)"
+                            :key="item"
                             class="note-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getNoteCardPanel(row) === 'artifacts' && getNoteLinkedArtifacts(row).length"
-                          :class="[
-                            'note-card__notes-list',
-                            { 'note-card__notes-list--rows': getNoteCardContentView(row) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="artifact in getNoteLinkedArtifacts(row)"
-                            :key="artifact"
-                            class="note-card__note-pill"
-                          >
-                            {{ artifact }}
+                            {{ item }}
                           </div>
                         </div>
 
                         <div v-else class="note-card__summary-empty">
-                          {{ getNoteCardPanel(row) === 'notes' ? 'No linked notes yet.' : 'No linked artifacts yet.' }}
+                          No linked KDB relationships yet.
                         </div>
                       </div>
                     </div>
@@ -341,6 +342,11 @@ import TableCsvActions from 'components/TableCsvActions.vue'
 import NoteCreateDialog from 'components/NoteCreateDialog.vue'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -406,11 +412,6 @@ const noteCardContentViewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 
-const noteCardPanelOptions = [
-  { label: 'Notes', value: 'notes' },
-  { label: 'Artifacts', value: 'artifacts' },
-]
-
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
@@ -432,11 +433,6 @@ const viewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 
-const noteKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Favorites', value: 'favorites' },
-  { label: 'Recent', value: 'recent' },
-]
 
 function normalizeNoteValue(value) {
   return String(value || '').trim()
@@ -539,6 +535,33 @@ const displayRows = computed(() => {
 
   return items
 })
+
+const allVisibleNotesSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleNotesSelected = computed(
+  () => displayRows.value.some((row) => isSelected(row)) && !allVisibleNotesSelected.value,
+)
+
+function toggleSelectAllVisibleNotes(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(displayRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean))
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter((row) => {
+    const rowId = String(row?.id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
 
 function openCreateNote() {
   dialogOpen.value = true
@@ -643,13 +666,28 @@ function setNoteCardContentView(row, value) {
 
 function getNoteCardPanel(row) {
   const rowId = String(row?.id || '').trim()
-  return noteCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(noteCardPanels.value[rowId], getNoteRelationshipItems(row))
 }
 
 function setNoteCardPanel(row, value) {
   const rowId = String(row?.id || '').trim()
   if (!rowId) return
   noteCardPanels.value = { ...noteCardPanels.value, [rowId]: value || 'notes' }
+}
+
+function getNoteRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Note'], {
+    notes: getNoteLinkedNotes,
+    artifacts: getNoteLinkedArtifacts,
+  })
+}
+
+function getNoteRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getNoteRelationshipItems(row))
+}
+
+function getNoteActiveRelationshipItems(row) {
+  return getNoteRelationshipItems(row)[getNoteCardPanel(row)] || []
 }
 
 function getNoteMetadataRows(row) {
@@ -1070,7 +1108,7 @@ watch(displayRows, () => {
 
 .notes-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1087,15 +1125,11 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
-.notes-toolbar__block--view {
-  margin-right: 18px;
+.notes-toolbar__block--primary {
+  margin-right: 4px;
 }
 
-.notes-toolbar__block--filters {
-  flex-wrap: nowrap;
-}
-
-.notes-toolbar__block--search {
+.notes-toolbar__block--actions {
   grid-column: -2 / -1;
   justify-content: flex-end;
   margin-left: auto;
@@ -1104,6 +1138,11 @@ watch(displayRows, () => {
 .notes-toolbar__filters-icon {
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.notes-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .notes-toolbar__toggle {
@@ -1158,6 +1197,53 @@ watch(displayRows, () => {
 
 .notes-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.notes-toolbar__add-button {
+  align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.notes-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.notes-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notes-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.notes-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.notes-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
 }
 
 .notes-toolbar__kind-toggle :deep(.q-btn) {
@@ -1243,6 +1329,21 @@ watch(displayRows, () => {
 
 .note-card__hero {
   padding: 0;
+}
+
+.note-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.note-card__control-row :deep(.q-checkbox__inner),
+.note-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
 .note-card::before {
@@ -1392,20 +1493,17 @@ watch(displayRows, () => {
 .note-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
-}
-
-.note-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
+  gap: 12px;
 }
 
 .note-card__summary-view-toggle,
 .note-card__summary-toggle {
   border-radius: var(--ds-control-radius);
+}
+
+.note-card__summary-view-toggle {
+  margin-left: auto;
+  margin-right: 14px;
 }
 
 .note-card__summary-view-toggle :deep(.q-btn-group),
@@ -1434,18 +1532,77 @@ watch(displayRows, () => {
 }
 
 .note-card__summary-toggle :deep(.q-btn) {
-  min-height: 32px;
-  padding: 0 10px;
+  position: relative;
+  min-height: 24px;
+  min-width: 24px;
+  width: 24px;
+  padding: 0 3px;
   border: 1px solid transparent;
   border-radius: var(--ds-control-radius);
   background: transparent;
+  font-size: 12px;
+}
+
+.note-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
+.note-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  transform: none;
+  padding: 4px 7px;
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(239, 239, 239, 0.5);
+  border-radius: 5px;
   font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .note-card__summary-toggle :deep(.q-btn + .q-btn) {
   margin-left: 4px;
+}
+
+.note-card__summary-toggle :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.note-card__summary-toggle {
+  margin-right: auto;
+}
+
+.note-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.note-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.note-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
 }
 
 .note-card__summary-panel {
@@ -1501,16 +1658,40 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  border-radius: 18px;
+  border-radius: 28px;
   border-color: rgba(148, 163, 184, 0.28);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
+.note-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: #111111;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.note-card__control-eye :deep(.q-icon) {
+  font-size: 14px;
+}
+
+.note-card__select-box {
+  margin-left: -3.5px;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+
 .note-card__title {
   color: #0f172a;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.3;
+  font-family: var(--font-title);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
 }
 
 .note-card__meta {

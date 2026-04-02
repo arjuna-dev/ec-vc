@@ -16,7 +16,7 @@
 
     <div v-else class="databook-page">
       <div
-        v-if="!isContactView"
+        v-if="!isStructuredDatabookView"
         class="databook-heading"
         :class="{ 'databook-heading--compact': isStructuredDatabookView }"
       >
@@ -92,7 +92,7 @@
         {{ error }}
       </q-banner>
 
-      <template v-if="fields.length">
+        <template v-if="fields.length">
         <div v-if="isContactView" class="contact-databook">
           <section
             ref="contactHeroRef"
@@ -1334,6 +1334,648 @@
           </section>
         </div>
 
+        <div v-else-if="isUserView || isArtifactView" class="contact-databook">
+          <section
+            ref="contactHeroRef"
+            class="contact-databook__hero"
+            :style="structuredRecordHeroStyle"
+            @pointerenter="startContactHeroPointerTracking"
+            @pointermove="onContactHeroPointerMove"
+          >
+            <div class="contact-databook__hero-main">
+              <figure class="contact-databook__portrait contact-databook__portrait--initials-only">
+                <div class="contact-databook__portrait-placeholder" aria-hidden="true">
+                  <div
+                    class="contact-databook__portrait-placeholder-initials"
+                    :style="{ backgroundColor: genericRecordAvatarColor }"
+                  >
+                    {{ genericRecordInitials }}
+                  </div>
+                </div>
+              </figure>
+
+              <div class="contact-databook__hero-copy">
+                <h1 class="contact-databook__name">
+                  {{ genericRecordName }}
+                </h1>
+                <div class="contact-databook__role">
+                  {{ genericRecordSubtitle }}
+                </div>
+                <div class="contact-databook__role contact-databook__role--location">
+                  {{ genericRecordSecondaryLine }}
+                </div>
+
+                <div v-if="genericRecordPills.length" class="contact-databook__pill-row">
+                  <q-badge
+                    v-for="pill in genericRecordPills"
+                    :key="pill"
+                    class="contact-databook__pill"
+                  >
+                    {{ pill }}
+                  </q-badge>
+                </div>
+
+                <div v-if="genericRecordActionLinks.length" class="contact-databook__actions">
+                  <q-btn
+                    v-for="link in genericRecordActionLinks"
+                    :key="link.label"
+                    outline
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="contact-databook__action"
+                    :href="link.href"
+                    :target="link.external ? '_blank' : undefined"
+                    :rel="link.external ? 'noopener noreferrer' : undefined"
+                  >
+                    <q-icon :name="link.icon" size="16px" class="q-mr-sm" />
+                    <span>{{ link.label }}</span>
+                  </q-btn>
+                </div>
+
+                <div class="contact-databook__hero-notes-panel">
+                  <div class="contact-databook__hero-tabs" role="tablist" :aria-label="`${entityLabel} context`">
+                    <button
+                      type="button"
+                      class="contact-databook__hero-tab"
+                      :class="{ 'contact-databook__hero-tab--active': genericHeroPanelTab === 'notes' }"
+                      @click="genericHeroPanelTab = 'notes'"
+                    >
+                      Latest notes
+                    </button>
+                    <button
+                      type="button"
+                      class="contact-databook__hero-tab"
+                      :class="{ 'contact-databook__hero-tab--active': genericHeroPanelTab === 'documents' }"
+                      @click="genericHeroPanelTab = 'documents'"
+                    >
+                      Related artifacts
+                    </button>
+                  </div>
+
+                  <ul
+                    v-if="genericHeroPanelTab === 'notes' && genericHeroNotes.length"
+                    class="contact-databook__hero-notes"
+                  >
+                    <li
+                      v-for="note in genericHeroNotes"
+                      :key="note.id"
+                      class="contact-databook__hero-note"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ note.title }}</div>
+                        <div class="contact-databook__notes-meta">{{ note.created_at }}</div>
+                      </div>
+                      <div v-if="note.content" class="contact-databook__notes-content">
+                        {{ note.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div
+                    v-else-if="genericHeroPanelTab === 'notes'"
+                    class="contact-databook__hero-panel-empty"
+                  >
+                    No notes yet for this {{ entityLabel.toLowerCase() }}.
+                  </div>
+
+                  <ul
+                    v-if="genericHeroPanelTab === 'documents' && genericHeroDocuments.length"
+                    class="contact-databook__hero-documents"
+                  >
+                    <li
+                      v-for="document in genericHeroDocuments"
+                      :key="document.id"
+                      class="contact-databook__hero-document"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ document.title }}</div>
+                        <div class="contact-databook__notes-meta">{{ document.meta }}</div>
+                      </div>
+                      <div v-if="document.content" class="contact-databook__notes-content">
+                        {{ document.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div
+                    v-else-if="genericHeroPanelTab === 'documents'"
+                    class="contact-databook__hero-panel-empty"
+                  >
+                    No related artifacts yet for this {{ entityLabel.toLowerCase() }}.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="contact-databook__summary">
+              <div class="contact-databook__summary-header">
+                <div class="contact-databook__summary-label">{{ entityLabel }} Feed</div>
+              </div>
+
+              <div class="contact-databook__summary-feed-toggle">
+                <div class="contact-databook__summary-feed-toolbar">
+                  <button
+                    v-for="option in contactFeedChannelOptions"
+                    :key="option.value"
+                    type="button"
+                    class="contact-databook__summary-feed-button"
+                    :class="{ 'contact-databook__summary-feed-button--active': genericRecordFeedChannel === option.value }"
+                    @click="genericRecordFeedChannel = option.value"
+                  >
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="contact-databook__summary-feed-state">
+                Feed view is inactive for now.
+              </div>
+            </div>
+          </section>
+
+          <section v-if="genericRecordNavItems.length" class="contact-databook__nav" :aria-label="`${entityLabel} sections`">
+            <button
+              v-for="section in genericRecordNavItems"
+              :key="section"
+              type="button"
+              class="contact-databook__nav-item"
+              :class="{
+                'contact-databook__nav-item--active': activeGenericSection === section,
+                'contact-databook__nav-item--kdb': /kdb/i.test(section),
+              }"
+              @click="activeGenericSection = section"
+            >
+              {{ section }}
+            </button>
+          </section>
+
+          <section class="contact-databook__details">
+            <article class="contact-section-card contact-section-card--active">
+              <div class="contact-section-card__header">
+                <div class="contact-section-card__intro">
+                  <h2 class="contact-section-card__title">{{ activeGenericSection || 'Metadata' }}</h2>
+                  <div class="contact-section-card__caption">
+                    Review the structured fields and relationships tied to this {{ entityLabel.toLowerCase() }} record.
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="/kdb/i.test(activeGenericSection)" class="contact-kdb">
+                <div class="contact-kdb-toolbar">
+                  <div class="contact-kdb-toolbar__block">
+                    <q-btn-toggle
+                      v-model="activeGenericKdbSection"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="contact-kdb-toolbar__toggle contact-kdb-toolbar__section-toggle"
+                      :options="genericKdbSectionOptions"
+                    />
+                  </div>
+                </div>
+
+                <div class="contact-kdb-artifacts-toolbar">
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
+                    <q-btn-toggle
+                      v-model="genericKdbViewMode"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
+                      :options="CONTACT_KDB_VIEW_OPTIONS"
+                    />
+                  </div>
+
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                    <q-btn-toggle
+                      v-model="genericKdbKindFilter"
+                      dense
+                      no-caps
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                      :options="genericKdbKindOptions"
+                    />
+                  </div>
+
+                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
+                    <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                    <q-input
+                      v-model="genericKdbSearchQuery"
+                      dense
+                      outlined
+                      borderless
+                      class="contact-kdb-artifacts-toolbar__search"
+                      :placeholder="genericKdbSearchPlaceholder"
+                    >
+                      <template #prepend>
+                        <q-icon name="search" />
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
+
+                <q-banner
+                  v-if="!displayGenericKdbItems.length"
+                  class="contact-section-card__empty bg-grey-1 text-black"
+                  rounded
+                >
+                  No records in this subsection yet.
+                </q-banner>
+
+                <div v-else-if="genericKdbViewMode === 'table'" class="contact-kdb-rows">
+                  <article
+                    v-for="item in displayGenericKdbItems"
+                    :key="item.id"
+                    class="contact-kdb-row"
+                  >
+                    <div class="contact-kdb-row__main">
+                      <div class="contact-field-card__label">{{ item.title }}</div>
+                      <div class="contact-field-card__value">{{ displayValue(item.content || item.meta) }}</div>
+                    </div>
+                    <div v-if="item.meta" class="contact-kdb-row__meta">
+                      {{ item.meta }}
+                    </div>
+                  </article>
+                </div>
+
+                <div v-else class="row q-col-gutter-md">
+                  <div
+                    v-for="item in displayGenericKdbItems"
+                    :key="item.id"
+                    class="col-12 col-md-6"
+                  >
+                    <article class="contact-field-card contact-kdb-card">
+                      <div class="contact-field-card__label">{{ item.title }}</div>
+                      <div v-if="item.meta" class="contact-section-card__modified">
+                        {{ item.meta }}
+                      </div>
+                      <div class="contact-field-card__value">
+                        {{ displayValue(item.content || item.meta) }}
+                      </div>
+                    </article>
+                  </div>
+                </div>
+              </div>
+
+              <q-banner
+                v-else-if="!visibleGenericFields.length"
+                class="contact-section-card__empty bg-grey-1 text-black"
+                rounded
+              >
+                No fields are mapped to this section in the current {{ entityLabel.toLowerCase() }} schema yet.
+              </q-banner>
+
+              <div v-else class="contact-field-grid">
+                <article
+                  v-for="field in visibleGenericFields"
+                  :key="field.key"
+                  class="contact-field-card"
+                >
+                  <div class="contact-field-card__label">{{ field.label }}</div>
+                  <div
+                    v-if="isHistoricalMode && modifiedByMap[field.key]"
+                    class="contact-section-card__modified"
+                  >
+                    modified by {{ modifiedByMap[field.key] }}
+                  </div>
+                  <template v-if="editMode">
+                    <q-input
+                      v-model="draftValues[field.key]"
+                      dense
+                      outlined
+                      :disable="saving || !field.editable"
+                      :placeholder="field.editable ? 'Enter value' : ''"
+                    />
+                  </template>
+                  <template v-else>
+                    <div class="contact-field-card__value">
+                      {{ displayValue(field.value) }}
+                    </div>
+                  </template>
+                </article>
+              </div>
+            </article>
+          </section>
+        </div>
+
+        <div v-else-if="isStructuredGenericRecordView" class="contact-databook">
+          <section
+            ref="contactHeroRef"
+            class="contact-databook__hero"
+            :style="structuredRecordHeroStyle"
+            @pointerenter="startContactHeroPointerTracking"
+            @pointermove="onContactHeroPointerMove"
+          >
+            <div class="contact-databook__hero-main">
+              <figure class="contact-databook__portrait contact-databook__portrait--initials-only">
+                <div class="contact-databook__portrait-placeholder" aria-hidden="true">
+                  <div
+                    class="contact-databook__portrait-placeholder-initials"
+                    :style="{ backgroundColor: genericRecordAvatarColor }"
+                  >
+                    {{ genericRecordInitials }}
+                  </div>
+                </div>
+              </figure>
+
+              <div class="contact-databook__hero-copy">
+                <h1 class="contact-databook__name">
+                  {{ genericRecordName }}
+                </h1>
+                <div class="contact-databook__role">
+                  {{ genericRecordSubtitle }}
+                </div>
+                <div class="contact-databook__role contact-databook__role--location">
+                  {{ genericRecordSecondaryLine }}
+                </div>
+
+                <div v-if="genericRecordPills.length" class="contact-databook__pill-row">
+                  <q-badge
+                    v-for="pill in genericRecordPills"
+                    :key="pill"
+                    class="contact-databook__pill"
+                  >
+                    {{ pill }}
+                  </q-badge>
+                </div>
+
+                <div v-if="genericRecordActionLinks.length" class="contact-databook__actions">
+                  <q-btn
+                    v-for="link in genericRecordActionLinks"
+                    :key="link.label"
+                    outline
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="contact-databook__action"
+                    :href="link.href"
+                    :target="link.external ? '_blank' : undefined"
+                    :rel="link.external ? 'noopener noreferrer' : undefined"
+                  >
+                    <q-icon :name="link.icon" size="16px" class="q-mr-sm" />
+                    <span>{{ link.label }}</span>
+                  </q-btn>
+                </div>
+
+                <div class="contact-databook__hero-notes-panel">
+                  <div class="contact-databook__hero-tabs" role="tablist" :aria-label="`${entityLabel} context`">
+                    <button
+                      type="button"
+                      class="contact-databook__hero-tab"
+                      :class="{ 'contact-databook__hero-tab--active': genericHeroPanelTab === 'notes' }"
+                      @click="genericHeroPanelTab = 'notes'"
+                    >
+                      Latest notes
+                    </button>
+                    <button
+                      type="button"
+                      class="contact-databook__hero-tab"
+                      :class="{ 'contact-databook__hero-tab--active': genericHeroPanelTab === 'documents' }"
+                      @click="genericHeroPanelTab = 'documents'"
+                    >
+                      Related artifacts
+                    </button>
+                  </div>
+
+                  <ul
+                    v-if="genericHeroPanelTab === 'notes' && genericHeroNotes.length"
+                    class="contact-databook__hero-notes"
+                  >
+                    <li
+                      v-for="note in genericHeroNotes"
+                      :key="note.id"
+                      class="contact-databook__hero-note"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ note.title }}</div>
+                        <div class="contact-databook__notes-meta">{{ note.created_at }}</div>
+                      </div>
+                      <div v-if="note.content" class="contact-databook__notes-content">
+                        {{ note.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div
+                    v-else-if="genericHeroPanelTab === 'notes'"
+                    class="contact-databook__hero-panel-empty"
+                  >
+                    No notes yet for this {{ entityLabel.toLowerCase() }}.
+                  </div>
+
+                  <ul
+                    v-if="genericHeroPanelTab === 'documents' && genericHeroDocuments.length"
+                    class="contact-databook__hero-documents"
+                  >
+                    <li
+                      v-for="document in genericHeroDocuments"
+                      :key="document.id"
+                      class="contact-databook__hero-document"
+                    >
+                      <div class="contact-databook__notes-row">
+                        <div class="contact-databook__notes-title">{{ document.title }}</div>
+                        <div class="contact-databook__notes-meta">{{ document.meta }}</div>
+                      </div>
+                      <div v-if="document.content" class="contact-databook__notes-content">
+                        {{ document.content }}
+                      </div>
+                    </li>
+                  </ul>
+                  <div
+                    v-else-if="genericHeroPanelTab === 'documents'"
+                    class="contact-databook__hero-panel-empty"
+                  >
+                    No related artifacts yet for this {{ entityLabel.toLowerCase() }}.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="contact-databook__summary">
+              <div class="contact-databook__summary-header">
+                <div class="contact-databook__summary-label">{{ entityLabel }} Feed</div>
+              </div>
+
+              <div class="contact-databook__summary-feed-toggle">
+                <div class="contact-databook__summary-feed-toolbar">
+                  <button
+                    v-for="option in contactFeedChannelOptions"
+                    :key="option.value"
+                    type="button"
+                    class="contact-databook__summary-feed-button"
+                    :class="{ 'contact-databook__summary-feed-button--active': genericRecordFeedChannel === option.value }"
+                    @click="genericRecordFeedChannel = option.value"
+                  >
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="contact-databook__summary-feed-state">
+                Feed view is inactive for now.
+              </div>
+            </div>
+          </section>
+
+          <section v-if="genericRecordNavItems.length" class="contact-databook__nav" aria-label="Record sections">
+            <button
+              v-for="section in genericRecordNavItems"
+              :key="section"
+              type="button"
+              class="contact-databook__nav-item"
+              :class="{
+                'contact-databook__nav-item--active': activeGenericSection === section,
+                'contact-databook__nav-item--kdb': /kdb/i.test(section),
+              }"
+              @click="activeGenericSection = section"
+            >
+              {{ section }}
+            </button>
+          </section>
+
+          <template v-if="/kdb/i.test(activeGenericSection)">
+            <div class="contact-kdb">
+              <div class="contact-kdb-toolbar">
+                <div class="contact-kdb-toolbar__block">
+                  <q-btn-toggle
+                    v-model="activeGenericKdbSection"
+                    dense
+                    no-caps
+                    unelevated
+                    toggle-color="dark"
+                    color="white"
+                    text-color="grey-8"
+                    class="contact-kdb-toolbar__toggle contact-kdb-toolbar__section-toggle"
+                    :options="genericKdbSectionOptions"
+                  />
+                </div>
+              </div>
+
+              <div class="contact-kdb-artifacts-toolbar">
+                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
+                  <q-btn-toggle
+                    v-model="genericKdbViewMode"
+                    dense
+                    unelevated
+                    toggle-color="primary"
+                    color="grey-3"
+                    text-color="grey-8"
+                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
+                    :options="CONTACT_KDB_VIEW_OPTIONS"
+                  />
+                </div>
+
+                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                  <q-btn-toggle
+                    v-model="genericKdbKindFilter"
+                    dense
+                    no-caps
+                    unelevated
+                    toggle-color="dark"
+                    color="white"
+                    text-color="grey-8"
+                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                    :options="genericKdbKindOptions"
+                  />
+                </div>
+
+                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
+                  <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                  <q-input
+                    v-model="genericKdbSearchQuery"
+                    dense
+                    outlined
+                    borderless
+                    class="contact-kdb-artifacts-toolbar__search"
+                    :placeholder="genericKdbSearchPlaceholder"
+                  >
+                    <template #prepend>
+                      <q-icon name="search" />
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+
+              <q-banner
+                v-if="!displayGenericKdbItems.length"
+                class="contact-section-card__empty bg-grey-1 text-black"
+                rounded
+              >
+                No records in this subsection yet.
+              </q-banner>
+
+              <div v-else-if="genericKdbViewMode === 'table'" class="contact-kdb-rows">
+                <article
+                  v-for="item in displayGenericKdbItems"
+                  :key="item.id"
+                  class="contact-kdb-row"
+                >
+                  <div class="contact-kdb-row__main">
+                    <div class="contact-field-card__label">{{ item.title }}</div>
+                    <div class="contact-field-card__value">{{ displayValue(item.content || item.meta) }}</div>
+                  </div>
+                  <div v-if="item.meta" class="contact-kdb-row__meta">
+                    {{ item.meta }}
+                  </div>
+                </article>
+              </div>
+
+              <div v-else class="row q-col-gutter-md">
+                <div
+                  v-for="item in displayGenericKdbItems"
+                  :key="item.id"
+                  class="col-12 col-md-6"
+                >
+                  <article class="contact-field-card contact-kdb-card">
+                    <div class="contact-field-card__label">{{ item.title }}</div>
+                    <div v-if="item.meta" class="contact-section-card__modified">
+                      {{ item.meta }}
+                    </div>
+                    <div class="contact-field-card__value">
+                      {{ displayValue(item.content || item.meta) }}
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <q-list v-else bordered separator>
+            <q-item v-for="field in visibleGenericFields" :key="field.key">
+              <q-item-section>
+                <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
+                <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                <q-item-label
+                  v-if="isHistoricalMode && modifiedByMap[field.key]"
+                  class="text-caption text-negative text-italic"
+                >
+                  modified by {{ modifiedByMap[field.key] }}
+                </q-item-label>
+              </q-item-section>
+              <q-item-section side class="databook-value-section">
+                <template v-if="editMode">
+                  <q-input
+                    v-model="draftValues[field.key]"
+                    dense
+                    outlined
+                    :disable="saving || !field.editable"
+                    :placeholder="field.editable ? 'Enter value' : ''"
+                  />
+                </template>
+                <template v-else>
+                  <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                </template>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </div>
+
         <template v-else>
           <section v-if="genericRecordNavItems.length" class="contact-databook__nav" aria-label="Record sections">
             <button
@@ -1703,21 +2345,29 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 const TABLE_LABELS = {
   Companies: 'Company',
   Contacts: 'Contact',
+  Users: 'User',
+  Artifacts: 'Artifact',
   Opportunities: 'Opportunity',
   Funds: 'Fund',
   Rounds: 'Round',
   Projects: 'Project',
   Pipelines: 'Project',
+  Tasks: 'Task',
+  Notes: 'Note',
 }
 
 const TABLE_LIST_ROUTES = {
   Companies: { routeName: 'companies', label: 'Back to Companies' },
   Contacts: { routeName: 'contacts', label: 'Back to Contacts' },
+  Users: { routeName: 'users', label: 'Back to Users' },
+  Artifacts: { routeName: 'artifacts', label: 'Back to Artifacts' },
   Opportunities: { routeName: 'opportunities', label: 'Back to Opportunities' },
   Funds: { routeName: 'funds', label: 'Back to Funds' },
   Rounds: { routeName: 'rounds', label: 'Back to Rounds' },
   Projects: { routeName: 'projects', label: 'Back to Projects' },
   Pipelines: { routeName: 'projects', label: 'Back to Projects' },
+  Tasks: { routeName: 'tasks', label: 'Back to Tasks' },
+  Notes: { routeName: 'notes', label: 'Back to Notes' },
 }
 
 const DEFAULT_CONTACT_SUMMARY_STAT_IDS = ['role', 'stakeholder', 'country', 'phone']
@@ -1904,6 +2554,9 @@ const workspaceRoot = ref('')
 const activeDocumentActionKey = ref('')
 const showDocumentPreviewDialog = ref(false)
 const documentPreviewLoading = ref(false)
+const genericRecordNotes = ref([])
+const genericHeroPanelTab = ref('notes')
+const genericRecordFeedChannel = ref('linkedin')
 const documentPreview = ref({
   artifactId: '',
   fileName: '',
@@ -1941,10 +2594,24 @@ const isContactView = computed(
 const isCompanyView = computed(
   () => (currentView.value?.table_name || tableNameParam.value) === 'Companies',
 )
+const isUserView = computed(
+  () => (currentView.value?.table_name || tableNameParam.value) === 'Users',
+)
+const isArtifactView = computed(
+  () => (currentView.value?.table_name || tableNameParam.value) === 'Artifacts',
+)
+const isProjectView = computed(
+  () => ['Projects', 'Pipelines'].includes(currentView.value?.table_name || tableNameParam.value),
+)
 const isOpportunityRecordView = computed(() =>
   ['Opportunities', 'Funds', 'Rounds'].includes(currentView.value?.table_name || tableNameParam.value),
 )
-const isStructuredDatabookView = computed(() => isContactView.value || isCompanyView.value)
+const isStructuredGenericRecordView = computed(
+  () => isUserView.value || isArtifactView.value || isProjectView.value || isOpportunityRecordView.value,
+)
+const isStructuredDatabookView = computed(
+  () => isContactView.value || isCompanyView.value || isStructuredGenericRecordView.value,
+)
 const fieldByName = computed(() =>
   Object.fromEntries((fields.value || []).map((field) => [field.field_name, field])),
 )
@@ -2266,26 +2933,511 @@ const contactNavItems = computed(() => [
 const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
 )
+const GENERIC_METADATA_SECTION_LABEL = 'Metadata'
+const GENERIC_KDB_SECTION_LABEL = 'KDB Relationships'
+const GENERIC_SECTION_CONTRACTS = Object.freeze({
+  Users: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, GENERIC_KDB_SECTION_LABEL],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: ['id', 'User_Name', 'User_PEmail', 'created_at', 'updated_at'],
+      [GENERIC_KDB_SECTION_LABEL]: [],
+    },
+  },
+  Artifacts: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, GENERIC_KDB_SECTION_LABEL],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: [
+        'artifact_id',
+        'created_by',
+        'artifact_format',
+        'type',
+        'title',
+        'description',
+        'created_at',
+        'updated_at',
+      ],
+      [GENERIC_KDB_SECTION_LABEL]: ['round_id', 'fund_id'],
+    },
+  },
+  Notes: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, GENERIC_KDB_SECTION_LABEL],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: ['id', 'created_by', 'Note_Name', 'Note_Content', 'created_at', 'updated_at'],
+      [GENERIC_KDB_SECTION_LABEL]: [],
+    },
+  },
+  Projects: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Team', GENERIC_KDB_SECTION_LABEL],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: ['id', 'created_by', 'Project_Name', 'created_at', 'updated_at'],
+      Overview: [
+        'Project_Status',
+        'Project_Priority_Rank',
+        'Project_Start_Date',
+        'Project_Due_Date',
+        'Project_End_Date',
+        'Project_Target_Amount',
+        'Project_Summary',
+        'install_status',
+        'install_error',
+        'installed_at',
+      ],
+      Team: [
+        'Project_Team_Owner',
+        'Project_Team_Lead',
+        'Project_Team_Senior',
+        'Project_Team_Mid',
+        'Project_Team_Junior',
+        'Project_Team_Agents',
+        'Project_Team_Other',
+        'Project_Team',
+      ],
+      [GENERIC_KDB_SECTION_LABEL]: [
+        'Project_Artifact',
+        'Project_User',
+        'Project_Contact',
+        'Project_Company',
+        'Project_Fund',
+        'Project_Round',
+        'Project_Project',
+        'Project_Task',
+        'Project_Note',
+      ],
+    },
+  },
+  Pipelines: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Team', GENERIC_KDB_SECTION_LABEL],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: ['id', 'created_by', 'Project_Name', 'created_at', 'updated_at'],
+      Overview: [
+        'Project_Status',
+        'Project_Priority_Rank',
+        'Project_Start_Date',
+        'Project_Due_Date',
+        'Project_End_Date',
+        'Project_Target_Amount',
+        'Project_Summary',
+        'install_status',
+        'install_error',
+        'installed_at',
+      ],
+      Team: [
+        'Project_Team_Owner',
+        'Project_Team_Lead',
+        'Project_Team_Senior',
+        'Project_Team_Mid',
+        'Project_Team_Junior',
+        'Project_Team_Agents',
+        'Project_Team_Other',
+        'Project_Team',
+      ],
+      [GENERIC_KDB_SECTION_LABEL]: [
+        'Project_Artifact',
+        'Project_User',
+        'Project_Contact',
+        'Project_Company',
+        'Project_Fund',
+        'Project_Round',
+        'Project_Project',
+        'Project_Task',
+        'Project_Note',
+      ],
+    },
+  },
+  Tasks: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Team', GENERIC_KDB_SECTION_LABEL],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: ['id', 'created_by', 'Task_Name', 'created_at', 'updated_at'],
+      Overview: ['Task_Summary', 'Task_Status', 'Task_Priority_Rank', 'Task_Start_Date', 'Task_Due_Date', 'Task_End_Date'],
+      Team: ['Task_Team_Owner', 'Task_Team_Assigned', 'Task_Team_Support', 'Task_Team'],
+      [GENERIC_KDB_SECTION_LABEL]: [
+        'Task_Artifact',
+        'Task_User',
+        'Task_Contact',
+        'Task_Company',
+        'Task_Fund',
+        'Task_Round',
+        'Task_Project',
+        'Task_Task',
+        'Task_Note',
+      ],
+    },
+  },
+  Funds: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Economics', 'Controls', GENERIC_KDB_SECTION_LABEL],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: ['id', 'Fund_Name', 'created_by', 'created_at', 'updated_at'],
+      Overview: [
+        'Fund_Raising_Status',
+        'Fund_Period',
+        'Fund_Target_Size',
+        'Fund_Commited_Amounts',
+        'Fund_Min_Ticket_Size',
+        'Fund_Close_Date',
+        'Fund_Summary',
+        'Fund_Reserve',
+        'Fund_Initial_Ticket_Size',
+        'Fund_Target_Positions',
+        'Fund_Target_Regions',
+        'Fund_Target_Asset_Types',
+        'Fund_Target_Industries',
+        'Fund_Target_Stages',
+        'Fund_Other',
+        'Fund_Manager',
+      ],
+      Economics: [
+        'Fund_Economic_Provisions',
+        'Fund_Fees',
+        'Fund_Promote',
+        'Fund_Target_Hurdles',
+        'Fund_Target_MOIC',
+        'Fund_Strategy',
+        'Fund_Economics',
+      ],
+      Controls: [
+        'Fund_Control_Provisions',
+        'Fund_Information_Rights',
+        'Fund_Board_Representation',
+        'Fund_Item_Voting',
+        'Fund_Controls',
+      ],
+      [GENERIC_KDB_SECTION_LABEL]: [
+        'Fund_Artifact',
+        'Fund_User',
+        'Fund_Contact',
+        'Fund_Company',
+        'Fund_Fund',
+        'Fund_Round',
+        'Fund_Project',
+        'Fund_Task',
+        'Fund_Note',
+      ],
+    },
+  },
+  Rounds: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Economics', 'Controls', GENERIC_KDB_SECTION_LABEL],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: ['id', 'Round_Name', 'created_by', 'created_at', 'updated_at'],
+      Overview: [
+        'Round_Raising_Status',
+        'Round_Security_Type',
+        'Round_Target_Size',
+        'Round_Commited_Amounts',
+        'Round_Min_Ticket_Size',
+        'Round_Close_Date',
+        'Round_Summary',
+        'Round_Sponsor',
+      ],
+      Economics: [
+        'Round_Pre_Valuation',
+        'Round_Post_Valuation',
+        'Round_Previous_Post_Valuation',
+        'Round_Economic_Provisions',
+        'Round_Liquidation_Preference',
+        'Round_Drag_Tag',
+        'Round_Put_Call',
+        'Round_Conversion',
+        'Round_Economics',
+      ],
+      Controls: [
+        'Round_Control_Provisions',
+        'Round_Information_Rights',
+        'Round_Board_Representation',
+        'Round_Item_Voting',
+        'Round_Controls',
+      ],
+      [GENERIC_KDB_SECTION_LABEL]: [
+        'Round_Artifact',
+        'Round_User',
+        'Round_Contact',
+        'Round_Company',
+        'Round_Fund',
+        'Round_Project',
+        'Round_Task',
+        'Round_Note',
+      ],
+    },
+  },
+  Opportunities: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Overview', 'Economics', 'Controls', GENERIC_KDB_SECTION_LABEL],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: [],
+      Overview: [],
+      Economics: [],
+      Controls: [],
+      [GENERIC_KDB_SECTION_LABEL]: [],
+    },
+  },
+})
+
+function normalizeGenericSectionLabel(sectionName) {
+  const raw = String(sectionName || '').trim()
+  if (!raw) return ''
+  if (/kdb/i.test(raw)) return GENERIC_KDB_SECTION_LABEL
+  if (raw === entityLabel.value) return GENERIC_METADATA_SECTION_LABEL
+  return raw
+}
+
+function getPayloadSectionContract() {
+  const sections = Array.isArray(currentView.value?.sections) ? currentView.value.sections : []
+  if (!sections.length) return null
+
+  return {
+    sections: sections.map((section) => String(section?.label || '').trim()).filter(Boolean),
+    fieldsBySection: Object.fromEntries(
+      sections.map((section) => [
+        String(section?.label || '').trim(),
+        (Array.isArray(section?.items) ? section.items : [])
+          .map((item) => String(item?.field_name || '').trim())
+          .filter(Boolean),
+      ]),
+    ),
+  }
+}
+
+function getGenericSectionContract(tableName) {
+  const payloadContract = getPayloadSectionContract()
+  if (payloadContract?.sections?.length) return payloadContract
+  return GENERIC_SECTION_CONTRACTS[tableName] || null
+}
+
+function getGenericSectionFieldLookup(tableName) {
+  const contract = getGenericSectionContract(tableName)
+  if (!contract) return null
+
+  return Object.fromEntries(
+    Object.entries(contract.fieldsBySection || {}).flatMap(([sectionLabel, fieldNames]) =>
+      (fieldNames || []).map((fieldName) => [String(fieldName), sectionLabel]),
+    ),
+  )
+}
+
+function resolveGenericFieldSection(field) {
+  const tableName = structuredRecordTableName.value
+  const fieldName = String(field?.field_name || '').trim()
+  const fieldLookup = getGenericSectionFieldLookup(tableName)
+  if (fieldLookup?.[fieldName]) {
+    return fieldLookup[fieldName]
+  }
+
+  const contract = getGenericSectionContract(tableName)
+  if (contract) return GENERIC_METADATA_SECTION_LABEL
+  return normalizeGenericSectionLabel(field?.section)
+}
+
 const genericRecordNavItems = computed(() => {
-  if (isOpportunityRecordView.value) {
-    return ['Metadata', 'Overview', 'Economics', 'Controls', 'KDB Relationships']
+  const tableName = structuredRecordTableName.value
+  const contract = getGenericSectionContract(tableName)
+  if (contract?.sections?.length) {
+    return contract.sections
   }
 
   const seen = new Set()
-  return (fields.value || [])
-    .map((field) => String(field?.section || '').trim())
+  const ordered = (fields.value || [])
+    .map((field) => resolveGenericFieldSection(field))
     .filter((section) => {
-      if (!section || seen.has(section)) return false
+      if (!section || section === GENERIC_KDB_SECTION_LABEL || seen.has(section)) return false
       seen.add(section)
       return true
     })
+
+  if (!ordered.length || ordered[0] !== GENERIC_METADATA_SECTION_LABEL) {
+    ordered.unshift(GENERIC_METADATA_SECTION_LABEL)
+  }
+
+  ordered.push(GENERIC_KDB_SECTION_LABEL)
+  return ordered
+})
+const structuredRecordThemeMap = {
+  Users: {
+    strong: 'rgba(31, 111, 235, 0.2)',
+    soft: 'rgba(31, 111, 235, 0.14)',
+    fade: 'rgba(31, 111, 235, 0.06)',
+  },
+  Artifacts: {
+    strong: 'rgba(147, 51, 234, 0.2)',
+    soft: 'rgba(147, 51, 234, 0.14)',
+    fade: 'rgba(147, 51, 234, 0.06)',
+  },
+  Opportunities: {
+    strong: 'rgba(249, 115, 22, 0.2)',
+    soft: 'rgba(249, 115, 22, 0.14)',
+    fade: 'rgba(249, 115, 22, 0.06)',
+  },
+  Funds: {
+    strong: 'rgba(16, 185, 129, 0.2)',
+    soft: 'rgba(16, 185, 129, 0.14)',
+    fade: 'rgba(16, 185, 129, 0.06)',
+  },
+  Rounds: {
+    strong: 'rgba(245, 158, 11, 0.2)',
+    soft: 'rgba(245, 158, 11, 0.14)',
+    fade: 'rgba(245, 158, 11, 0.06)',
+  },
+  Projects: {
+    strong: 'rgba(37, 99, 235, 0.2)',
+    soft: 'rgba(37, 99, 235, 0.14)',
+    fade: 'rgba(37, 99, 235, 0.06)',
+  },
+  Pipelines: {
+    strong: 'rgba(37, 99, 235, 0.2)',
+    soft: 'rgba(37, 99, 235, 0.14)',
+    fade: 'rgba(37, 99, 235, 0.06)',
+  },
+}
+const structuredRecordTableName = computed(() => currentView.value?.table_name || tableNameParam.value)
+const structuredRecordHeroStyle = computed(() => {
+  if (isContactView.value || isCompanyView.value) return contactHeroStyle.value
+  const theme = structuredRecordThemeMap[structuredRecordTableName.value] || structuredRecordThemeMap.Users
+  return {
+    '--contact-hero-blob-x': `${contactHeroGradient.value.x}%`,
+    '--contact-hero-blob-y': `${contactHeroGradient.value.y}%`,
+    '--contact-hero-blob-size': `${contactHeroGradient.value.size}%`,
+    '--contact-hero-blob-strong': theme.strong,
+    '--contact-hero-blob-soft': theme.soft,
+    '--contact-hero-blob-fade': theme.fade,
+  }
+})
+
+function getFirstFieldValue(aliases = []) {
+  return aliases.map((alias) => getFieldDisplayValue(alias)).find((value) => String(value || '').trim()) || ''
+}
+
+const genericRecordConfig = computed(() => {
+  const tableName = structuredRecordTableName.value
+  const base = {
+    primaryAliases: ['Name', 'title', 'Title', 'artifact_id', 'id'],
+    subtitleAliases: ['Role', 'Status', 'One_Liner', 'description', 'artifact_type'],
+    secondaryAliases: ['Country_based', 'Website', 'updated_at', 'created_at'],
+    pillAliases: ['Type', 'Status', 'artifact_format', 'stage'],
+  }
+
+  const byTable = {
+    Users: {
+      primaryAliases: ['User_Name', 'Name', 'id'],
+      subtitleAliases: ['User_PEmail', 'Professional_Email', 'Email'],
+      secondaryAliases: ['Country_based', 'Phone', 'LinkedIn'],
+      pillAliases: ['Country_based', 'LinkedIn'],
+    },
+    Artifacts: {
+      primaryAliases: ['title', 'Title', 'artifact_id', 'id'],
+      subtitleAliases: ['artifact_type', 'artifact_format', 'description'],
+      secondaryAliases: ['created_at', 'updated_at', 'opportunity_id'],
+      pillAliases: ['artifact_type', 'artifact_format', 'source_type'],
+    },
+    Opportunities: {
+      primaryAliases: ['Venture_Oppty_Name', 'Opportunity_Name', 'name', 'id'],
+      subtitleAliases: ['Status', 'Stage', 'Round_Type'],
+      secondaryAliases: ['Amount_Target', 'company_id', 'updated_at'],
+      pillAliases: ['Status', 'Stage', 'Round_Type'],
+    },
+    Funds: {
+      primaryAliases: ['Fund_Name', 'name', 'id'],
+      subtitleAliases: ['Fund_Raising_Status', 'Fund_Strategy'],
+      secondaryAliases: ['Fund_Target_Size', 'Fund_Close_Date', 'updated_at'],
+      pillAliases: ['Fund_Raising_Status', 'Fund_Strategy'],
+    },
+    Rounds: {
+      primaryAliases: ['Round_Name', 'name', 'id'],
+      subtitleAliases: ['Round_Raising_Status', 'Round_Type'],
+      secondaryAliases: ['Round_Target_Size', 'Round_Close_Date', 'updated_at'],
+      pillAliases: ['Round_Raising_Status', 'Round_Type'],
+    },
+    Projects: {
+      primaryAliases: ['Project_Name', 'name', 'id'],
+      subtitleAliases: ['Status', 'Stage'],
+      secondaryAliases: ['Owner', 'updated_at', 'created_at'],
+      pillAliases: ['Status', 'Stage'],
+    },
+    Pipelines: {
+      primaryAliases: ['Project_Name', 'name', 'id'],
+      subtitleAliases: ['Status', 'Stage'],
+      secondaryAliases: ['Owner', 'updated_at', 'created_at'],
+      pillAliases: ['Status', 'Stage'],
+    },
+  }
+
+  return { ...base, ...(byTable[tableName] || {}) }
+})
+const genericRecordName = computed(
+  () =>
+    getFirstFieldValue(genericRecordConfig.value.primaryAliases) ||
+    String(currentView.value?.entity_name || '').trim() ||
+    `${entityLabel.value} ${recordIdParam.value || 'Record'}`,
+)
+const genericRecordSubtitle = computed(
+  () => getFirstFieldValue(genericRecordConfig.value.subtitleAliases) || `${entityLabel.value} record`,
+)
+const genericRecordSecondaryLine = computed(
+  () => getFirstFieldValue(genericRecordConfig.value.secondaryAliases) || `Record ID ${recordIdParam.value || '-'}`,
+)
+const genericRecordInitials = computed(() => {
+  const label = genericRecordName.value || entityLabel.value || 'Record'
+  return (
+    label
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'RE'
+  )
+})
+const genericRecordAvatarColor = computed(() => {
+  const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
+  return palette[Math.abs(hashString(`${structuredRecordTableName.value}:${genericRecordName.value}`)) % palette.length]
+})
+const genericRecordPills = computed(() =>
+  genericRecordConfig.value.pillAliases
+    .map((alias) => getFieldDisplayValue(alias))
+    .filter((value, index, values) => String(value || '').trim() && values.indexOf(value) === index)
+    .slice(0, 3),
+)
+const genericRecordActionLinks = computed(() => {
+  const email = getFirstFieldValue(['User_PEmail', 'Professional_Email', 'Email'])
+  const phone = getFirstFieldValue(['Phone'])
+  const website = getFirstFieldValue(['Website', 'LinkedIn'])
+  return [
+    email ? { label: 'Email', icon: 'mail', href: `mailto:${email}`, external: false } : null,
+    phone ? { label: 'Phone', icon: 'call', href: `tel:${phone}`, external: false } : null,
+    website ? { label: 'Open', icon: 'public', href: normalizeExternalUrl(website), external: true } : null,
+  ].filter(Boolean)
+})
+const genericHeroNotes = computed(() =>
+  genericRecordNotes.value.slice(0, CONTACT_HERO_NOTES_LIMIT).map((note) => ({
+    ...note,
+    content: summarizeContactNoteContent(note.content),
+  })),
+)
+const genericHeroDocuments = computed(() => {
+  if (isArtifactView.value) {
+    return [
+      {
+        id: recordIdParam.value,
+        title: genericRecordName.value,
+        meta: [getFieldDisplayValue('artifact_format'), formatDisplayDate(getFieldDisplayValue('created_at'))]
+          .filter(Boolean)
+          .join(' â€¢ '),
+        content: [formatArtifactTypeLabel(getFieldDisplayValue('artifact_type')), getFieldDisplayValue('description')]
+          .filter(Boolean)
+          .join(' â€¢ '),
+      },
+    ].filter((item) => item.title)
+  }
+
+  return (genericKdbItemsBySection.value.artifacts || []).slice(0, CONTACT_HERO_DOCUMENTS_LIMIT).map((item) => ({
+    id: item.id,
+    title: item.title,
+    meta: item.meta,
+    content: item.content,
+  }))
 })
 const visibleGenericFields = computed(() => {
-  if (!activeGenericSection.value) return fields.value || []
-  return (fields.value || []).filter((field) => String(field?.section || '').trim() === activeGenericSection.value)
+  const activeSection = String(activeGenericSection.value || '').trim()
+  if (!activeSection || activeSection === GENERIC_KDB_SECTION_LABEL) return fields.value || []
+  return (fields.value || []).filter((field) => resolveGenericFieldSection(field) === activeSection)
 })
 const genericKdbFields = computed(() =>
-  (fields.value || []).filter((field) => /kdb/i.test(String(field?.section || '').trim())),
+  (fields.value || []).filter((field) => resolveGenericFieldSection(field) === GENERIC_KDB_SECTION_LABEL),
 )
 const genericKdbFieldMap = computed(() =>
   Object.fromEntries(
@@ -2763,6 +3915,43 @@ async function loadCompanyNotes() {
   } catch {
     companyNotes.value = []
     syncCompanyHeroPanelTab()
+  }
+}
+
+async function loadGenericRecordNotes() {
+  if (!bridge.value?.notes?.list || !isStructuredGenericRecordView.value || !recordIdParam.value) {
+    genericRecordNotes.value = []
+    return
+  }
+
+  const referenceTypesByTable = {
+    Users: ['user'],
+    Artifacts: ['artifact'],
+    Opportunities: ['opportunity'],
+    Funds: ['fund'],
+    Rounds: ['round'],
+    Projects: ['project'],
+    Pipelines: ['project', 'pipeline'],
+  }
+
+  try {
+    const result = await bridge.value.notes.list()
+    const notes = Array.isArray(result?.notes) ? result.notes : []
+    const allowedTypes = referenceTypesByTable[structuredRecordTableName.value] || []
+    genericRecordNotes.value = notes
+      .filter((note) => {
+        const referenceType = String(note?.reference_type || '').trim().toLowerCase()
+        const referenceId = String(note?.reference_id || '').trim()
+        return allowedTypes.includes(referenceType) && referenceId === recordIdParam.value
+      })
+      .map((note) => ({
+        id: note.id,
+        title: String(note.title || 'Untitled note').trim() || 'Untitled note',
+        content: String(note.content || '').trim(),
+        created_at: formatDisplayDate(note.created_at),
+      }))
+  } catch {
+    genericRecordNotes.value = []
   }
 }
 
@@ -3623,6 +4812,7 @@ async function loadDatabook() {
     await loadContactNotes()
     await loadContactDocuments()
     await loadCompanyNotes()
+    await loadGenericRecordNotes()
     await loadCompanyRelationships()
     await loadCompanyDocuments()
   } catch (e) {
@@ -3633,6 +4823,7 @@ async function loadDatabook() {
     contactNotes.value = []
     contactDocuments.value = []
     companyNotes.value = []
+    genericRecordNotes.value = []
     companyDocuments.value = []
     companyLinkedContacts.value = []
     companyLinkedRounds.value = []

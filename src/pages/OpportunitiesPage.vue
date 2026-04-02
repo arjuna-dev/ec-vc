@@ -71,36 +71,35 @@
         </div>
 
         <div class="opportunities-toolbar">
-          <div class="opportunities-toolbar__block opportunities-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="opportunities-toolbar__toggle opportunities-toolbar__view-toggle"
-              :disable="loading"
-              :options="viewOptions"
+          <div class="opportunities-toolbar__block opportunities-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleOpportunitiesSelected"
+              :indeterminate="someVisibleOpportunitiesSelected && !allVisibleOpportunitiesSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="opportunities-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleOpportunities"
             />
-          </div>
-
-          <div class="opportunities-toolbar__block opportunities-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="kindFilter"
-              dense
+            <q-btn
               no-caps
               unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="opportunities-toolbar__toggle opportunities-toolbar__kind-toggle"
-              :options="kindFilterOptions"
+              class="opportunities-toolbar__add-button"
               :disable="loading"
-            />
+              @click="openCreateOpportunityRecord"
+            >
+              <span class="opportunities-toolbar__add-button-inner">
+                <span class="opportunities-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="opportunities-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-btn dense flat round icon="download" color="grey-6" class="opportunities-toolbar__icon-button" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
           </div>
 
-          <div class="opportunities-toolbar__block opportunities-toolbar__block--search">
+          <div class="opportunities-toolbar__block opportunities-toolbar__block--actions">
             <q-icon name="tune" size="18px" class="opportunities-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
@@ -115,12 +114,17 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" class="opportunities-toolbar__icon-button" :disable="loading" @click="pickImportFile">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" class="opportunities-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="exportOpportunitiesCsv">
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
+            <q-btn-toggle
+              v-model="viewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="opportunities-toolbar__toggle opportunities-toolbar__view-toggle"
+              :disable="loading"
+              :options="viewOptions"
+            />
           </div>
         </div>
 
@@ -190,6 +194,23 @@
                 @pointermove="onOpportunityCardPointerMove"
                 @pointerleave="onOpportunityCardPointerLeave"
               >
+                <q-card-section class="opportunity-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="opportunity-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="opportunity-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="opportunity-card__hero">
                   <div class="opportunity-card__hero-main">
                     <figure class="opportunity-card__portrait">
@@ -235,6 +256,23 @@
                 <q-card-section class="opportunity-card__summary">
                   <div class="opportunity-card__summary-head">
                     <q-btn-toggle
+                      :model-value="getOpportunityCardPanel(row)"
+                      dense
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="opportunity-card__summary-toggle"
+                      :options="getOpportunityRelationshipOptions(row)"
+                      @update:model-value="setOpportunityCardPanel(row, $event)"
+                    />
+                    <q-btn flat round class="opportunity-card__summary-add-relation" aria-label="Add Relation">
+                      <span class="opportunity-card__summary-add-relation-plus">
+                        <q-icon name="add" />
+                      </span>
+                      <q-tooltip>Add Relation</q-tooltip>
+                    </q-btn>
+                    <q-btn-toggle
                       :model-value="getOpportunityCardContentView(row)"
                       dense
                       unelevated
@@ -245,76 +283,29 @@
                       :options="opportunityCardContentViewOptions"
                       @update:model-value="setOpportunityCardContentView(row, $event)"
                     />
-
-                    <q-btn-toggle
-                      :model-value="getOpportunityCardPanel(row)"
-                      dense
-                      no-caps
-                      unelevated
-                      toggle-color="dark"
-                      color="white"
-                      text-color="grey-8"
-                      class="opportunity-card__summary-toggle"
-                      :options="opportunityCardPanelOptions"
-                      @update:model-value="setOpportunityCardPanel(row, $event)"
-                    />
-
-                    <div class="opportunity-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="opportunity-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="opportunity-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(row)"
-                      />
-                    </div>
                   </div>
 
                   <div class="opportunity-card__summary-panel">
                     <div class="opportunity-card__summary-body">
                       <div class="opportunity-card__summary-body-content">
                         <div
-                          v-if="getOpportunityCardPanel(row) === 'notes' && getOpportunityLinkedNotes(row).length"
+                          v-if="getOpportunityActiveRelationshipItems(row).length"
                           :class="[
                             'opportunity-card__notes-list',
                             { 'opportunity-card__notes-list--rows': getOpportunityCardContentView(row) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getOpportunityLinkedNotes(row)"
-                            :key="note"
+                            v-for="item in getOpportunityActiveRelationshipItems(row)"
+                            :key="item"
                             class="opportunity-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getOpportunityCardPanel(row) === 'docs' && getOpportunityLinkedDocuments(row).length"
-                          :class="[
-                            'opportunity-card__notes-list',
-                            { 'opportunity-card__notes-list--rows': getOpportunityCardContentView(row) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="doc in getOpportunityLinkedDocuments(row)"
-                            :key="doc"
-                            class="opportunity-card__note-pill"
-                          >
-                            {{ doc }}
+                            {{ item }}
                           </div>
                         </div>
 
                         <div v-else class="opportunity-card__summary-empty">
-                          {{ getOpportunityCardPanel(row) === 'notes' ? 'No linked notes yet for this opportunity.' : 'No linked artifacts yet for this opportunity.' }}
+                          No linked KDB relationships yet for this opportunity.
                         </div>
                       </div>
                     </div>
@@ -350,6 +341,11 @@
     v-model="dialogOpen"
     @created="onOpportunityCreated"
   />
+  <OpportunityCreateDialog
+    v-else-if="dialogKind === 'opportunity'"
+    v-model="dialogOpen"
+    @created="onOpportunityCreated"
+  />
   <RoundCreateDialog
     v-else
     v-model="dialogOpen"
@@ -363,10 +359,16 @@ import { exportFile, useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import FundCreateDialog from 'src/components/FundCreateDialog.vue'
+import OpportunityCreateDialog from 'src/components/OpportunityCreateDialog.vue'
 import RoundCreateDialog from 'src/components/RoundCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const ALL_OPPORTUNITIES_FILTER = 'all'
 
@@ -437,19 +439,10 @@ const opportunityCardContentViewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 const opportunityCardPanels = ref({})
-const opportunityCardPanelOptions = [
-  { label: 'Notes', value: 'notes', icon: 'note' },
-  { label: 'Artifacts', value: 'docs', icon: 'attach_file' },
-]
 
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
-const kindFilterOptions = [
-  { label: 'All', value: ALL_OPPORTUNITIES_FILTER },
-  { label: 'Funds', value: 'fund' },
-  { label: 'Rounds', value: 'round' },
-]
 const currentOpportunityMode = computed(() => {
   if (kindFilter.value === 'fund') {
     return {
@@ -499,7 +492,8 @@ function onOpenRoundDialog() {
 function openCreateFromQuery() {
   const createValue = String(route.query.create || '').trim().toLowerCase()
   if (!createValue) return
-  dialogKind.value = createValue === 'fund' ? 'fund' : 'round'
+  dialogKind.value =
+    createValue === 'fund' ? 'fund' : createValue === 'opportunity' ? 'opportunity' : 'round'
   dialogOpen.value = true
   globalThis.__ecvcOpenFundDialog = false
   globalThis.__ecvcOpenRoundDialog = false
@@ -518,6 +512,19 @@ function consumeQueuedOpen() {
     return true
   }
   return false
+}
+
+function openCreateOpportunityRecord() {
+  if (currentOpportunityMode.value.kind === 'fund') {
+    onOpenFundDialog()
+    return
+  }
+  if (currentOpportunityMode.value.kind === 'round') {
+    onOpenRoundDialog()
+    return
+  }
+  dialogKind.value = 'opportunity'
+  dialogOpen.value = true
 }
 
 async function onOpportunityCreated() {
@@ -743,6 +750,34 @@ const displayRows = computed(() => {
   return items
 })
 
+const allVisibleOpportunitiesSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleOpportunitiesSelected = computed(
+  () =>
+    displayRows.value.some((row) => isSelected(row)) && !allVisibleOpportunitiesSelected.value,
+)
+
+function toggleSelectAllVisibleOpportunities(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(displayRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean))
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter((row) => {
+    const rowId = String(row?.id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
+
 function opportunityNumericSize(row) {
   const value = row?.kind === 'fund' ? row?.Fund_Size_Target : row?.Round_Amount
   return Number(value || 0)
@@ -811,7 +846,7 @@ function setOpportunityCardContentView(row, value) {
 
 function getOpportunityCardPanel(row) {
   const rowId = String(row?.id || '').trim()
-  return opportunityCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(opportunityCardPanels.value[rowId], getOpportunityRelationshipItems(row))
 }
 
 function setOpportunityCardPanel(row, value) {
@@ -821,6 +856,21 @@ function setOpportunityCardPanel(row, value) {
     ...opportunityCardPanels.value,
     [rowId]: value || 'notes',
   }
+}
+
+function getOpportunityRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Opportunity', 'Fund', 'Round'], {
+    notes: getOpportunityLinkedNotes,
+    artifacts: getOpportunityLinkedDocuments,
+  })
+}
+
+function getOpportunityRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getOpportunityRelationshipItems(row))
+}
+
+function getOpportunityActiveRelationshipItems(row) {
+  return getOpportunityRelationshipItems(row)[getOpportunityCardPanel(row)] || []
 }
 
 function getOpportunityStatusValue(row) {
@@ -1410,16 +1460,11 @@ watch(
   min-width: 0;
 }
 
-.opportunities-toolbar__block--view {
-  padding-top: 2px;
-  margin-right: 18px;
+.opportunities-toolbar__block--primary {
+  margin-right: 4px;
 }
 
-.opportunities-toolbar__block--filters {
-  flex-wrap: nowrap;
-}
-
-.opportunities-toolbar__block--search {
+.opportunities-toolbar__block--actions {
   grid-column: -2 / -1;
   align-items: center;
   justify-content: flex-end;
@@ -1430,6 +1475,11 @@ watch(
   align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.opportunities-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .opportunities-toolbar__toggle {
@@ -1529,6 +1579,70 @@ watch(
 
 .opportunities-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.opportunities-toolbar__add-button {
+  align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.opportunities-toolbar__add-button:hover,
+.opportunities-toolbar__add-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.opportunities-toolbar__add-button:active,
+.opportunities-toolbar__add-button.q-btn--active,
+.opportunities-toolbar__add-button.q-btn--standard.q-btn--active {
+  color: #ffffff;
+  background: #111111;
+}
+
+.opportunities-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.opportunities-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.opportunities-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.opportunities-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.opportunities-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
 }
 
 .opportunities-surface {
@@ -1639,6 +1753,21 @@ watch(
 
 .opportunity-card__hero {
   padding: 0;
+}
+
+.opportunity-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.opportunity-card__control-row :deep(.q-checkbox__inner),
+.opportunity-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
 .opportunity-card__hero-main {
@@ -1794,19 +1923,12 @@ watch(
 .opportunity-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
-}
-
-.opportunity-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
+  gap: 12px;
 }
 
 .opportunity-card__summary-view-toggle {
-  margin-left: 0;
+  margin-left: auto;
+  margin-right: 14px;
   border-radius: var(--ds-control-radius);
 }
 
@@ -1845,18 +1967,77 @@ watch(
 }
 
 .opportunity-card__summary-toggle :deep(.q-btn) {
-  min-height: 32px;
-  padding: 0 10px;
+  position: relative;
+  min-height: 24px;
+  min-width: 24px;
+  width: 24px;
+  padding: 0 3px;
   border: 1px solid transparent;
   border-radius: var(--ds-control-radius);
   background: transparent;
+  font-size: 12px;
+}
+
+.opportunity-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
+.opportunity-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  transform: none;
+  padding: 4px 7px;
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(239, 239, 239, 0.5);
+  border-radius: 5px;
   font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .opportunity-card__summary-toggle :deep(.q-btn + .q-btn) {
   margin-left: 4px;
+}
+
+.opportunity-card__summary-toggle :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.opportunity-card__summary-toggle {
+  margin-right: auto;
+}
+
+.opportunity-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.opportunity-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.opportunity-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
 }
 
 .opportunity-card__summary-panel {
@@ -1944,8 +2125,26 @@ watch(
 }
 
 .opportunity-card__select-box {
+  margin-left: -3.5px;
   transform: scale(0.75);
   transform-origin: center;
+}
+
+
+.opportunity-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: #111;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.opportunity-card__control-eye :deep(.q-icon) {
+  font-size: 14px;
 }
 
 .opportunity-card__field {

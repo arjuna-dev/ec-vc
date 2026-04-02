@@ -267,6 +267,19 @@
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
 
         <div class="avatar-toolbar">
+          <div class="avatar-toolbar__block avatar-toolbar__block--view">
+            <q-btn-toggle
+              v-model="avatarBuildView"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="avatar-toolbar__toggle avatar-toolbar__view-toggle"
+              :options="viewOptions"
+            />
+          </div>
+
           <div class="avatar-toolbar__block avatar-toolbar__block--kind">
             <q-btn-toggle
               v-model="buildFilter"
@@ -295,6 +308,29 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              dense
+              flat
+              round
+              icon="download"
+              color="grey-6"
+              class="avatar-toolbar__icon-button"
+              @click="pickAvatarBuildImportFile"
+            >
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+            <q-btn
+              dense
+              flat
+              round
+              icon="upload"
+              color="grey-6"
+              class="avatar-toolbar__icon-button"
+              :disable="filteredAvatarBuildDeck.length === 0"
+              @click="exportAvatarBuildsCsv"
+            >
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -309,13 +345,18 @@
             </div>
           </q-banner>
 
-          <div v-else class="avatar-builds-inline">
+          <div
+            v-else
+            class="avatar-builds-inline"
+            :class="{ 'avatar-builds-inline--row': avatarBuildView === 'row' }"
+          >
             <q-card
               v-for="build in filteredAvatarBuildDeck"
               :key="build.id"
               flat
               bordered
               class="avatar-build-card"
+              :class="{ 'avatar-build-card--row': avatarBuildView === 'row' }"
               clickable
               @click="applyBuildPreset(build)"
             >
@@ -343,6 +384,14 @@
               </q-card-actions>
             </q-card>
           </div>
+
+          <input
+            ref="avatarBuildImportInput"
+            type="file"
+            accept=".csv,text/csv"
+            style="display: none"
+            @change="importAvatarBuilds"
+          />
         </div>
       </section>
     </div>
@@ -351,13 +400,15 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useQuasar } from 'quasar'
+import { exportFile, useQuasar } from 'quasar'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
+import { csvToRows, rowsToCsv } from 'src/utils/csv'
 
 const $q = useQuasar()
 const AVATAR_STORAGE_KEY = 'ecvc.avatarBuilderProfile'
 const LLM_STORAGE_KEY = 'ecvc.avatarLlmProfile'
+const CUSTOM_AVATAR_BUILDS_STORAGE_KEY = 'ecvc.avatarCustomBuilds'
 
 const avatarArchetypeOptions = [
   { label: 'Guide', value: 'guide' },
@@ -434,14 +485,22 @@ const saving = ref(false)
 const error = ref('')
 const activeHeroControl = ref('shell')
 const heroControlOrder = ['shell', 'operator', 'keys']
+const avatarBuildView = ref('grid')
 const buildFilter = ref('all')
 const buildSearchQuery = ref('')
+const avatarBuildImportInput = ref(null)
 const openaiApiKey = ref('')
 const geminiApiKey = ref('')
 const showOpenaiApiKey = ref(false)
 const showGeminiApiKey = ref(false)
 const avatarProfile = ref({ ...defaultAvatarProfile })
 const llmProfile = ref({ ...defaultLlmProfile })
+const customAvatarBuilds = ref([])
+
+const viewOptions = [
+  { value: 'grid', icon: 'grid_view' },
+  { value: 'row', icon: 'view_list' },
+]
 
 const avatarThemeMap = {
   'aurora-blue': {
@@ -630,11 +689,27 @@ const avatarBuildDeck = computed(() => [
     summary: 'A brighter coaching build for brainstorming, motivation, and narrative work.',
     previewStyle: createPreviewStyle('solar-gold'),
   },
+  ...customAvatarBuilds.value,
 ])
 const buildFilterOptions = [
   { label: 'All', value: 'all' },
   { label: 'Live Build', value: 'live' },
   { label: 'Alternates', value: 'alternate' },
+]
+const avatarBuildCsvHeaders = [
+  'id',
+  'name',
+  'archetype',
+  'colorway',
+  'temperament',
+  'voice',
+  'originStory',
+  'provider',
+  'model',
+  'responseStyle',
+  'autonomy',
+  'temperature',
+  'systemNotes',
 ]
 const filteredAvatarBuildDeck = computed(() => {
   const query = normalizeInput(buildSearchQuery.value).toLowerCase()
@@ -665,6 +740,59 @@ const filteredAvatarBuildDeck = computed(() => {
   return items
 })
 
+function getOptionLabel(options, value, fallback) {
+  return options.find((option) => option.value === value)?.label || fallback
+}
+
+function slugifyBuildId(value, fallback = 'avatar-build') {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return normalized || fallback
+}
+
+function createAvatarBuildRecord(raw = {}, fallbackId = 'avatar-build') {
+  const name = normalizeInput(raw.name) || 'Imported Build'
+  const archetype = normalizeInput(raw.archetype) || defaultAvatarProfile.archetype
+  const colorway = normalizeInput(raw.colorway) || defaultAvatarProfile.colorway
+  const temperament = normalizeInput(raw.temperament) || defaultAvatarProfile.temperament
+  const voice = normalizeInput(raw.voice) || defaultAvatarProfile.voice
+  const originStory = normalizeInput(raw.originStory) || defaultAvatarProfile.originStory
+  const provider = normalizeInput(raw.provider) || defaultLlmProfile.provider
+  const model = normalizeInput(raw.model) || defaultLlmProfile.model
+  const responseStyle = normalizeInput(raw.responseStyle) || defaultLlmProfile.responseStyle
+  const autonomy = normalizeInput(raw.autonomy) || defaultLlmProfile.autonomy
+  const parsedTemperature = Number.parseFloat(raw.temperature)
+  const temperature = Number.isFinite(parsedTemperature) ? parsedTemperature : defaultLlmProfile.temperature
+  const systemNotes = normalizeInput(raw.systemNotes) || defaultLlmProfile.systemNotes
+
+  return {
+    id: slugifyBuildId(raw.id || name, fallbackId),
+    name,
+    archetype,
+    colorway,
+    temperament,
+    voice,
+    originStory,
+    provider,
+    model,
+    responseStyle,
+    autonomy,
+    temperature,
+    systemNotes,
+    archetypeLabel: getOptionLabel(avatarArchetypeOptions, archetype, 'Strategist'),
+    colorLabel: getOptionLabel(avatarColorOptions, colorway, 'Aurora Blue'),
+    temperamentLabel: getOptionLabel(avatarTemperamentOptions, temperament, 'Calm'),
+    providerLabel: getOptionLabel(providerOptions, provider, 'Hybrid'),
+    modelLabel: getOptionLabel(modelOptions, model, 'Balanced default'),
+    autonomyLabel: getOptionLabel(autonomyOptions, autonomy, 'Balanced'),
+    summary: originStory,
+    previewStyle: createPreviewStyle(colorway),
+  }
+}
+
 watch(
   avatarProfile,
   (value) => {
@@ -679,6 +807,15 @@ watch(
   (value) => {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(LLM_STORAGE_KEY, JSON.stringify(value))
+    }
+  },
+  { deep: true }
+)
+watch(
+  customAvatarBuilds,
+  (value) => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(CUSTOM_AVATAR_BUILDS_STORAGE_KEY, JSON.stringify(value))
     }
   },
   { deep: true }
@@ -703,6 +840,18 @@ function loadLocalBuilderState() {
     }
   } catch {
     llmProfile.value = { ...defaultLlmProfile }
+  }
+
+  try {
+    const storedBuilds = window.localStorage.getItem(CUSTOM_AVATAR_BUILDS_STORAGE_KEY)
+    if (storedBuilds) {
+      const parsedBuilds = JSON.parse(storedBuilds)
+      customAvatarBuilds.value = Array.isArray(parsedBuilds)
+        ? parsedBuilds.map((build, index) => createAvatarBuildRecord(build, `imported-build-${index + 1}`))
+        : []
+    }
+  } catch {
+    customAvatarBuilds.value = []
   }
 }
 
@@ -769,6 +918,61 @@ function applyBuildPreset(build) {
     systemNotes: build.systemNotes,
   }
   $q.notify({ type: 'positive', message: `${build.name} loaded` })
+}
+
+function exportAvatarBuildsCsv() {
+  const rows = filteredAvatarBuildDeck.value.map((build) => ({
+    id: build.id,
+    name: build.name,
+    archetype: build.archetype,
+    colorway: build.colorway,
+    temperament: build.temperament,
+    voice: build.voice,
+    originStory: build.originStory,
+    provider: build.provider,
+    model: build.model,
+    responseStyle: build.responseStyle,
+    autonomy: build.autonomy,
+    temperature: build.temperature,
+    systemNotes: build.systemNotes,
+  }))
+  const csv = rowsToCsv(avatarBuildCsvHeaders, rows)
+  const ok = exportFile('avatar-builds.csv', csv, 'text/csv')
+  if (ok !== true) {
+    $q.notify({ type: 'negative', message: 'Browser denied file download.' })
+  }
+}
+
+function pickAvatarBuildImportFile() {
+  avatarBuildImportInput.value?.click?.()
+}
+
+async function importAvatarBuilds(event) {
+  const file = event?.target?.files?.[0]
+  if (!file) return
+
+  try {
+    const text = await file.text()
+    const parsed = csvToRows(text)
+    const importedBuilds = parsed.rows
+      .map((row, index) => createAvatarBuildRecord(row, `imported-build-${index + 1}`))
+      .filter((build) => build.id !== 'current-build')
+
+    if (!importedBuilds.length) {
+      throw new Error('No avatar builds found in that CSV.')
+    }
+
+    const mergedBuilds = new Map(customAvatarBuilds.value.map((build) => [build.id, build]))
+    for (const build of importedBuilds) {
+      mergedBuilds.set(build.id, build)
+    }
+    customAvatarBuilds.value = Array.from(mergedBuilds.values())
+    $q.notify({ type: 'positive', message: `Imported ${importedBuilds.length} avatar build(s).` })
+  } catch (errorValue) {
+    $q.notify({ type: 'negative', message: errorValue?.message || String(errorValue) })
+  } finally {
+    if (avatarBuildImportInput.value) avatarBuildImportInput.value.value = ''
+  }
 }
 
 function normalizeIpcErrorMessage(errorValue) {
@@ -1055,6 +1259,10 @@ onMounted(() => {
   gap: 14px;
 }
 
+.avatar-builds-inline--row {
+  grid-template-columns: 1fr;
+}
+
 .avatar-slider {
   display: flex;
   flex-direction: column;
@@ -1097,11 +1305,21 @@ onMounted(() => {
   box-shadow: 0 20px 38px rgba(15, 23, 42, 0.1);
 }
 
+.avatar-build-card--row {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1fr) auto;
+  align-items: center;
+}
+
 .avatar-build-card__header {
   display: flex;
   align-items: center;
   gap: 14px;
   padding: 18px 18px 12px;
+}
+
+.avatar-build-card--row .avatar-build-card__header {
+  padding: 18px;
 }
 
 .avatar-build-card__badge {
@@ -1146,6 +1364,10 @@ onMounted(() => {
   padding: 0 18px 16px;
 }
 
+.avatar-build-card--row .avatar-build-card__body {
+  padding: 18px 18px 18px 0;
+}
+
 .avatar-build-card__summary {
   color: #475569;
   font-size: 0.92rem;
@@ -1156,9 +1378,13 @@ onMounted(() => {
   padding: 0 12px 12px;
 }
 
+.avatar-build-card--row .avatar-build-card__actions {
+  padding: 18px;
+}
+
 .avatar-toolbar {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1175,43 +1401,95 @@ onMounted(() => {
   min-width: 0;
 }
 
+.avatar-toolbar__block--view {
+  padding-top: 2px;
+  margin-right: 18px;
+}
+
+.avatar-toolbar__block--kind {
+  padding-top: 2px;
+}
+
 .avatar-toolbar__block--search {
+  grid-column: -2 / -1;
+  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
 
 .avatar-toolbar__filters-icon {
+  align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
 }
 
 .avatar-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
-  overflow: hidden;
+}
+
+.avatar-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.avatar-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
+}
+
+.avatar-toolbar__view-toggle :deep(.q-btn) {
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
+}
+
+.avatar-toolbar__view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.avatar-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
 }
 
 .avatar-toolbar__kind-toggle :deep(.q-btn) {
-  min-width: 90px;
-  padding-inline: 16px;
+  min-width: 84px;
+  padding-inline: 18px;
 }
 
 .avatar-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
 }
 
+.avatar-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.avatar-toolbar__icon-button :deep(.q-icon) {
+  font-size: 18px;
+}
+
 .avatar-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -1270,6 +1548,15 @@ onMounted(() => {
   .avatar-toolbar__toggle {
     width: 100%;
     min-width: 0;
+  }
+
+  .avatar-build-card--row {
+    grid-template-columns: 1fr;
+  }
+
+  .avatar-build-card--row .avatar-build-card__body,
+  .avatar-build-card--row .avatar-build-card__actions {
+    padding: 0 18px 18px;
   }
 }
 

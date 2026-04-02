@@ -116,6 +116,29 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              dense
+              flat
+              round
+              icon="download"
+              color="grey-6"
+              class="assistants-toolbar__icon-button"
+              disable
+            >
+              <q-tooltip>Import CSV is not available for roles yet</q-tooltip>
+            </q-btn>
+            <q-btn
+              dense
+              flat
+              round
+              icon="upload"
+              color="grey-6"
+              class="assistants-toolbar__icon-button"
+              :disable="loading || displayRows.length === 0"
+              @click="exportAssistantsCsv"
+            >
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
@@ -238,24 +261,32 @@
                 </q-card-section>
 
                 <q-card-section class="assistant-card__summary">
-                  <div class="assistant-card__summary-label">Highlights</div>
-
-                  <div v-if="getAgentCardDetails(assistant).length" class="assistant-card__details">
-                    <div
-                      v-for="detail in getAgentCardDetails(assistant)"
-                      :key="detail.label"
-                      class="assistant-card__detail"
-                    >
-                      <q-icon :name="detail.icon" size="16px" class="assistant-card__detail-icon" />
-                      <div class="assistant-card__detail-copy">
-                        <div class="assistant-card__detail-label">{{ detail.label }}</div>
-                        <div class="assistant-card__detail-value">{{ detail.value }}</div>
-                      </div>
-                    </div>
+                  <div class="assistant-card__summary-head">
+                    <div class="assistant-card__summary-label">Highlights</div>
                   </div>
 
-                  <div v-else class="assistant-card__summary-empty">
-                    Add more linked agent detail to make this card richer.
+                  <div class="assistant-card__summary-panel">
+                    <div class="assistant-card__summary-body">
+                      <div class="assistant-card__summary-body-content">
+                        <div v-if="getAgentCardDetails(assistant).length" class="assistant-card__details">
+                          <div
+                            v-for="detail in getAgentCardDetails(assistant)"
+                            :key="detail.label"
+                            class="assistant-card__detail"
+                          >
+                            <q-icon :name="detail.icon" size="16px" class="assistant-card__detail-icon" />
+                            <div class="assistant-card__detail-copy">
+                              <div class="assistant-card__detail-label">{{ detail.label }}</div>
+                              <div class="assistant-card__detail-value">{{ detail.value }}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div v-else class="assistant-card__summary-empty">
+                          Add more linked agent detail to make this card richer.
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </q-card-section>
 
@@ -280,6 +311,10 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { exportFile, useQuasar } from 'quasar'
+import { rowsToCsv } from 'src/utils/csv'
+
+const $q = useQuasar()
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -339,203 +374,6 @@ const assistantRoleOptions = [
   { label: 'SRR Managers', value: 'agents-manager' },
 ]
 
-const AGENT_HIERARCHY_BLUEPRINTS = [
-  {
-    level: 1,
-    levelLabel: 'Level 1',
-    levelName: 'Domain Stewards',
-    description: 'Section stewards responsible for order, coverage, and process quality in each major workspace area.',
-    items: [
-      {
-        name: 'Users Steward',
-        domain: 'Users',
-        parent: 'Avatar',
-        mission: 'Keep internal team records, permissions, and node roles organized.',
-        scope: 'Users section and related ownership links.',
-        responsibilities: ['Maintain users', 'Watch permissions', 'Track owner links'],
-        keywords: ['users'],
-        nextAction: 'Define permission and team-role conventions.',
-      },
-      {
-        name: 'Contacts Steward',
-        domain: 'Contacts',
-        parent: 'Avatar',
-        mission: 'Keep relationship records complete, reachable, and well linked.',
-        scope: 'Contacts section and network quality.',
-        responsibilities: ['Maintain reachability', 'Enrich profiles', 'Link records'],
-        keywords: ['contacts'],
-        nextAction: 'Define profile health thresholds.',
-      },
-      {
-        name: 'Companies Steward',
-        domain: 'Companies',
-        parent: 'Avatar',
-        mission: 'Keep company records schema-aligned and databook-ready.',
-        scope: 'Companies section and workbook alignment.',
-        responsibilities: ['Align schema', 'Watch databooks', 'Protect structure'],
-        keywords: ['companies', 'company'],
-        nextAction: 'Finish schema-aligned company views.',
-      },
-      {
-        name: 'Opportunities Steward',
-        domain: 'Opportunities',
-        parent: 'Avatar',
-        mission: 'Keep funds and rounds structured for pipeline movement and review.',
-        scope: 'Opportunities, funds, and rounds.',
-        responsibilities: ['Track raises', 'Link sponsors', 'Maintain rounds'],
-        keywords: ['opportunities', 'fund', 'round'],
-        nextAction: 'Clarify fund versus round workflows.',
-      },
-      {
-        name: 'Pipelines Steward',
-        domain: 'Pipelines',
-        parent: 'Avatar',
-        mission: 'Keep pipeline stages, status, and execution flow organized.',
-        scope: 'Pipelines and project-stage orchestration.',
-        responsibilities: ['Manage stages', 'Track status', 'Surface blockages'],
-        keywords: ['pipeline', 'project'],
-        nextAction: 'Align default pipeline structure with workbook behavior.',
-      },
-      {
-        name: 'Notes Steward',
-        domain: 'Notes',
-        parent: 'Avatar',
-        mission: 'Keep notes structured, retrievable, and tied to the right records.',
-        scope: 'Notes and knowledge capture.',
-        responsibilities: ['Structure notes', 'Link records', 'Maintain clarity'],
-        keywords: ['notes', 'note'],
-        nextAction: 'Define note templates and note-link rules.',
-      },
-      {
-        name: 'Tasks Steward',
-        domain: 'Tasks',
-        parent: 'Avatar',
-        mission: 'Keep tasks clear, assigned, and tied to the right operating layer.',
-        scope: 'Tasks and execution ownership.',
-        responsibilities: ['Assign work', 'Track status', 'Escalate blockers'],
-        keywords: ['tasks', 'task'],
-        nextAction: 'Clarify task ownership model across levels.',
-      },
-      {
-        name: 'Artifacts Steward',
-        domain: 'Artifacts',
-        parent: 'Avatar',
-        mission: 'Guide intake, filing, conversion, and archive hygiene for source materials.',
-        scope: 'Artifacts and file intake.',
-        responsibilities: ['Manage intake', 'File records', 'Watch conversion'],
-        keywords: ['artifacts', 'artifact', 'intake'],
-        nextAction: 'Design the artifact intake process end to end.',
-      },
-      {
-        name: 'SRRs Steward',
-        domain: 'SRRs',
-        parent: 'Avatar',
-        mission: 'Keep the skills, roles, and responsibilities system coherent and well documented.',
-        scope: 'SRR hierarchy, card model, and role definitions.',
-        responsibilities: ['Define roles', 'Track coverage', 'Maintain hierarchy'],
-        keywords: ['agents', 'assistant', 'prompt'],
-        nextAction: 'Attach live configs to hierarchy cards.',
-      },
-    ],
-  },
-  {
-    level: 2,
-    levelLabel: 'Level 2',
-    levelName: 'Process Stewards',
-    description: 'Workflow-specific agents that maintain recurring processes inside a domain.',
-    items: [
-      {
-        name: 'Intake Steward',
-        domain: 'Artifacts',
-        parent: 'Artifacts Steward',
-        mission: 'Control the path from incoming file to structured workspace record.',
-        scope: 'Artifact landing, triage, and routing.',
-        responsibilities: ['Receive files', 'Classify intake', 'Route to sections'],
-        keywords: ['intake', 'artifact'],
-        nextAction: 'Define landing, confirmation, and redirect rules.',
-      },
-      {
-        name: 'Workbook Steward',
-        domain: 'Workspace Files',
-        parent: 'Avatar',
-        mission: 'Keep workbook mirrors coherent, numbered, and easy to audit.',
-        scope: 'Excel mirrors and change logs.',
-        responsibilities: ['Mirror records', 'Protect numbering', 'Track changes'],
-        keywords: ['workbook', 'excel', 'mirror'],
-        nextAction: 'Clarify source-of-truth rules between app and files.',
-      },
-      {
-        name: 'Databook Steward',
-        domain: 'Companies',
-        parent: 'Companies Steward',
-        mission: 'Keep databooks structured like a workbook and aligned to schema tabs.',
-        scope: 'Databook UX, tabs, and layout logic.',
-        responsibilities: ['Align tabs', 'Protect workbook feel', 'Surface gaps'],
-        keywords: ['databook'],
-        nextAction: 'Complete the workbook-like databook pass.',
-      },
-      {
-        name: 'Permissions Steward',
-        domain: 'Users',
-        parent: 'Users Steward',
-        mission: 'Maintain a clean separation between Owner, Avatar, Users, and Agent permissions.',
-        scope: 'Roles and access semantics.',
-        responsibilities: ['Define roles', 'Protect ownership', 'Clarify permissions'],
-        keywords: ['user', 'owner', 'permission'],
-        nextAction: 'Map permission language into the glossary.',
-      },
-    ],
-  },
-  {
-    level: 3,
-    levelLabel: 'Level 3',
-    levelName: 'Leaf Stewards',
-    description: 'Narrow execution agents responsible for record-level and file-level upkeep.',
-    items: [
-      {
-        name: 'Company Record Steward',
-        domain: 'Companies',
-        parent: 'Companies Steward',
-        mission: 'Maintain one company record and its related databook completeness.',
-        scope: 'Single company record and linked sections.',
-        responsibilities: ['Maintain record', 'Watch completeness', 'Link related data'],
-        keywords: ['company'],
-        nextAction: 'Define leaf ownership lifecycle for company records.',
-      },
-      {
-        name: 'Pipeline Stage Steward',
-        domain: 'Pipelines',
-        parent: 'Pipelines Steward',
-        mission: 'Watch one pipeline path or stage for drift, blockers, and stale work.',
-        scope: 'Single pipeline stage or lane.',
-        responsibilities: ['Watch stage', 'Track movement', 'Flag blockers'],
-        keywords: ['pipeline', 'stage'],
-        nextAction: 'Define stage-level alerting rules.',
-      },
-      {
-        name: 'Artifact Filing Steward',
-        domain: 'Artifacts',
-        parent: 'Intake Steward',
-        mission: 'Make sure each file lands in the right archive family and linked records.',
-        scope: 'Single artifact or artifact batch.',
-        responsibilities: ['File correctly', 'Preserve links', 'Maintain archive order'],
-        keywords: ['artifact', 'file'],
-        nextAction: 'Define final filing destinations per artifact type.',
-      },
-      {
-        name: 'Task Follow-Up Steward',
-        domain: 'Tasks',
-        parent: 'Tasks Steward',
-        mission: 'Keep leaf execution moving and unresolved work visible.',
-        scope: 'Single task thread or action cluster.',
-        responsibilities: ['Track progress', 'Push follow-up', 'Close loops'],
-        keywords: ['task'],
-        nextAction: 'Define follow-up cadence and stale-task thresholds.',
-      },
-    ],
-  },
-]
-
 const columns = [
   { name: 'name', label: 'SRR', field: 'name', align: 'left', sortable: true },
   { name: 'role', label: 'Role', field: 'roleLabel', align: 'left', sortable: true },
@@ -543,6 +381,23 @@ const columns = [
   { name: 'version', label: 'Version', field: 'version', align: 'left', sortable: true },
   { name: 'config_status', label: 'Config', field: 'linkedConfigName', align: 'left', sortable: true },
   { name: 'mission', label: 'Mission', field: 'mission', align: 'left' },
+]
+
+const csvHeaders = [
+  'assistant_system_prompt_id',
+  'name',
+  'version',
+  'description',
+  'system_prompt',
+  'input_contract',
+  'output_contract',
+  'schema_name',
+  'domain',
+  'roleLabel',
+  'parent',
+  'mission',
+  'scope',
+  'nextAction',
 ]
 
 function normalizeAssistantValue(value) {
@@ -759,44 +614,56 @@ function getAgentCardDetails(agent) {
     { label: 'Mission', value: agent.mission, icon: 'flag' },
     { label: 'Scope', value: agent.scope, icon: 'hub' },
     { label: 'Next action', value: agent.nextAction, icon: 'play_arrow' },
-  ]
+  ].filter((detail) => normalizeAssistantValue(detail.value))
 }
 
-function findConfigForBlueprint(blueprint) {
-  return rows.value.find((row) => {
-    const haystack = buildAssistantSearchText(row)
-    return blueprint.keywords.some((keyword) => haystack.includes(keyword))
-  }) || null
+function startCase(value) {
+  return String(value || '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
-const agentHierarchySections = computed(() =>
-  AGENT_HIERARCHY_BLUEPRINTS.map((section) => ({
-    ...section,
-    items: section.items.map((item) => {
-      const matchingConfig = findConfigForBlueprint(item)
-      const role = deriveAgentRole(item)
-      return {
-        ...item,
-        assistant_system_prompt_id: matchingConfig?.assistant_system_prompt_id || `blueprint:${section.level}:${item.name}`,
-        level: section.level,
-        levelLabel: section.levelLabel,
-        levelName: section.levelName,
-        role: role.key,
-        roleLabel: role.label,
-        version: matchingConfig?.version || null,
-        system_prompt: matchingConfig?.system_prompt || null,
-        input_contract: matchingConfig?.input_contract || null,
-        output_contract: matchingConfig?.output_contract || null,
-        schema_name: matchingConfig?.schema_name || null,
-        linkedConfigName: matchingConfig?.name || null,
-      }
-    }),
-  })),
-)
+function inferAssistantDomain(row) {
+  const schemaLabel = startCase(row?.schema_name)
+  if (schemaLabel) return schemaLabel
 
-const allAgentRows = computed(() =>
-  agentHierarchySections.value.flatMap((section) => section.items),
-)
+  const haystack = buildAssistantSearchText(row)
+  if (haystack.includes('company')) return 'Companies'
+  if (haystack.includes('contact')) return 'Contacts'
+  if (haystack.includes('artifact') || haystack.includes('file')) return 'Artifacts'
+  if (haystack.includes('task')) return 'Tasks'
+  if (haystack.includes('pipeline') || haystack.includes('stage')) return 'Pipelines'
+  if (haystack.includes('user') || haystack.includes('team')) return 'Users'
+  if (haystack.includes('note')) return 'Notes'
+  if (haystack.includes('round') || haystack.includes('fund') || haystack.includes('opportunit')) return 'Opportunities'
+  return 'General'
+}
+
+function summarizePrompt(text) {
+  const normalized = normalizeAssistantValue(text).replace(/\s+/g, ' ')
+  if (!normalized) return ''
+  if (normalized.length <= 140) return normalized
+  return `${normalized.slice(0, 137).trimEnd()}...`
+}
+
+function mapAssistantRow(row) {
+  const role = deriveAgentRole(row)
+  return {
+    ...row,
+    domain: inferAssistantDomain(row),
+    mission: normalizeAssistantValue(row?.description) || summarizePrompt(row?.system_prompt) || null,
+    scope: startCase(row?.schema_name) || normalizeAssistantValue(row?.input_contract) || null,
+    nextAction: normalizeAssistantValue(row?.output_contract) || null,
+    parent: 'Live config',
+    role: role.key,
+    roleLabel: role.label,
+    linkedConfigName: normalizeAssistantValue(row?.name) || null,
+  }
+}
+
+const allAgentRows = computed(() => rows.value.map(mapAssistantRow))
 
 const displayRows = computed(() => {
   const query = normalizeAssistantValue(searchQuery.value).toLowerCase()
@@ -816,6 +683,14 @@ const displayRows = computed(() => {
 
   return items
 })
+
+function exportAssistantsCsv() {
+  const csv = rowsToCsv(csvHeaders, displayRows.value)
+  const ok = exportFile('roles.csv', csv, 'text/csv')
+  if (ok !== true) {
+    $q.notify({ type: 'negative', message: 'Browser denied file download.' })
+  }
+}
 
 async function loadAssistants() {
   if (!bridge.value?.assistants?.list) return
@@ -1076,57 +951,91 @@ onMounted(loadAssistants)
   min-width: 0;
 }
 
-.assistants-toolbar__block--filters {
-  flex-wrap: nowrap;
+.assistants-toolbar__block--view {
+  padding-top: 2px;
+  margin-right: 18px;
 }
 
 .assistants-toolbar__block--search {
   grid-column: -2 / -1;
+  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
 
 .assistants-toolbar__filters-icon {
+  align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
 }
 
 .assistants-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  border-radius: var(--ds-control-radius);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
+}
+
+.assistants-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.assistants-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
   border: 1px solid var(--ds-control-border);
-  border-radius: 999px;
-  box-shadow: var(--ds-control-shadow);
-  overflow: hidden;
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .assistants-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .assistants-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
 }
 
+.assistants-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+
+.assistants-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.assistants-toolbar__icon-button :deep(.q-icon) {
+  font-size: 18px;
+}
+
 .assistants-toolbar__kind-toggle :deep(.q-btn) {
-  min-width: 62px;
-  padding-inline: 14px;
+  min-width: 84px;
+  padding-inline: 18px;
 }
 
 .assistants-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
 }
 
-.assistants-toolbar__filter-control {
-  flex: 0 1 clamp(110px, 16vw, 160px);
-  min-width: 110px;
-  background: var(--ds-control-surface);
-  border-radius: var(--ds-control-radius);
-}
-
 .assistants-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -1142,20 +1051,6 @@ onMounted(loadAssistants)
 
 .assistants-toolbar__search :deep(.q-field__control) {
   padding: 0 var(--ds-control-inline-padding);
-}
-
-.assistants-toolbar__toggle {
-  flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border-color: var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
 }
 
 .assistants-surface {
@@ -1610,13 +1505,44 @@ onMounted(loadAssistants)
   flex: 1 1 auto;
   flex-direction: column;
   gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
   margin: 20px 20px 0;
-  padding: 16px 18px 18px;
-  background: rgba(255, 255, 255, 0.74);
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 18px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
-  backdrop-filter: blur(18px);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.assistant-card__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.assistant-card__summary-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.assistant-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.assistant-card__summary-body-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 .assistant-card__summary-label,
@@ -1737,7 +1663,6 @@ onMounted(loadAssistants)
     align-items: stretch;
   }
 
-  .assistants-toolbar__filter-control,
   .assistants-toolbar__search,
   .assistants-toolbar__toggle {
     width: 100%;

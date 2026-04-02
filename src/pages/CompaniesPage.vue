@@ -71,36 +71,35 @@
         </div>
 
         <div class="companies-toolbar">
-          <div class="companies-toolbar__block companies-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="companies-toolbar__toggle companies-toolbar__view-toggle"
-              :disable="loading"
-              :options="viewOptions"
+          <div class="companies-toolbar__block companies-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleCompaniesSelected"
+              :indeterminate="someVisibleCompaniesSelected && !allVisibleCompaniesSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="companies-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleCompanies"
             />
-          </div>
-
-          <div class="companies-toolbar__block companies-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="companyKindFilter"
-              dense
+            <q-btn
               no-caps
               unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="companies-toolbar__toggle companies-toolbar__kind-toggle"
+              class="companies-toolbar__add-button"
               :disable="loading"
-              :options="companyKindOptions"
-            />
+              @click="openCreateCompany"
+            >
+              <span class="companies-toolbar__add-button-inner">
+                <span class="companies-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="companies-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-btn dense flat round icon="download" color="grey-6" class="companies-toolbar__icon-button" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
           </div>
 
-          <div class="companies-toolbar__block companies-toolbar__block--search">
+          <div class="companies-toolbar__block companies-toolbar__block--actions">
             <q-icon name="tune" size="18px" class="companies-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
@@ -115,12 +114,17 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" class="companies-toolbar__icon-button" :disable="loading" @click="pickImportFile">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" class="companies-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="exportCompaniesCsv">
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
+            <q-btn-toggle
+              v-model="viewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="companies-toolbar__toggle companies-toolbar__view-toggle"
+              :disable="loading"
+              :options="viewOptions"
+            />
           </div>
         </div>
 
@@ -169,6 +173,23 @@
                 @pointermove="onCompanyCardPointerMove"
                 @pointerleave="onCompanyCardPointerLeave"
               >
+                <q-card-section class="company-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="company-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="company-card__control-eye"
+                    :disable="loading"
+                    @click="openEyeView(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="company-card__hero">
                   <div class="company-card__hero-main">
                     <figure class="company-card__portrait">
@@ -223,6 +244,23 @@
                 <q-card-section class="company-card__summary">
                   <div class="company-card__summary-head">
                     <q-btn-toggle
+                      :model-value="getCompanyCardPanel(row)"
+                      dense
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="company-card__summary-toggle"
+                      :options="getCompanyRelationshipOptions(row)"
+                      @update:model-value="setCompanyCardPanel(row, $event)"
+                    />
+                    <q-btn flat round class="company-card__summary-add-relation" aria-label="Add Relation">
+                      <span class="company-card__summary-add-relation-plus">
+                        <q-icon name="add" />
+                      </span>
+                      <q-tooltip>Add Relation</q-tooltip>
+                    </q-btn>
+                    <q-btn-toggle
                       :model-value="getCompanyCardContentView(row)"
                       dense
                       unelevated
@@ -233,76 +271,29 @@
                       :options="companyCardContentViewOptions"
                       @update:model-value="setCompanyCardContentView(row, $event)"
                     />
-
-                    <q-btn-toggle
-                      :model-value="getCompanyCardPanel(row)"
-                      dense
-                      no-caps
-                      unelevated
-                      toggle-color="dark"
-                      color="white"
-                      text-color="grey-8"
-                      class="company-card__summary-toggle"
-                      :options="companyCardPanelOptions"
-                      @update:model-value="setCompanyCardPanel(row, $event)"
-                    />
-
-                    <div class="company-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="company-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="company-card__icon-action"
-                        :disable="loading"
-                        @click="openEyeView(row)"
-                      />
-                    </div>
                   </div>
 
                   <div class="company-card__summary-panel">
                     <div class="company-card__summary-body">
                       <div class="company-card__summary-body-content">
                         <div
-                          v-if="getCompanyCardPanel(row) === 'notes' && getCompanyLinkedNotes(row).length"
+                          v-if="getCompanyActiveRelationshipItems(row).length"
                           :class="[
                             'company-card__notes-list',
                             { 'company-card__notes-list--rows': getCompanyCardContentView(row) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getCompanyLinkedNotes(row)"
-                            :key="note"
+                            v-for="item in getCompanyActiveRelationshipItems(row)"
+                            :key="item"
                             class="company-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getCompanyCardPanel(row) === 'docs' && getCompanyLinkedDocuments(row).length"
-                          :class="[
-                            'company-card__notes-list',
-                            { 'company-card__notes-list--rows': getCompanyCardContentView(row) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="doc in getCompanyLinkedDocuments(row)"
-                            :key="doc"
-                            class="company-card__note-pill"
-                          >
-                            {{ doc }}
+                            {{ item }}
                           </div>
                         </div>
 
                         <div v-else class="company-card__summary-empty">
-                          {{ getCompanyCardPanel(row) === 'notes' ? 'No linked notes yet for this company.' : 'No linked artifacts yet for this company.' }}
+                          No linked KDB relationships yet for this company.
                         </div>
                       </div>
                     </div>
@@ -430,6 +421,11 @@ import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -519,10 +515,6 @@ const companyCardContentViewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 const companyCardPanels = ref({})
-const companyCardPanelOptions = [
-  { label: 'Notes', value: 'notes', icon: 'note' },
-  { label: 'Artifacts', value: 'docs', icon: 'attach_file' },
-]
 const COMPANY_COMPLETENESS_IGNORED_FIELDS = new Set(['id', 'created_at', 'updated_at'])
 
 function openCreateCompany() {
@@ -660,11 +652,6 @@ const companyTableTabs = [
   { label: 'Results', value: 'results' },
   { label: 'Business Plan', value: 'business-plan' },
   { label: 'Fund Raising', value: 'fund-raising' },
-]
-const companyKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Managers', value: 'asset_managers' },
-  { label: 'Corps', value: 'corps' },
 ]
 
 const metadataColumns = [
@@ -985,6 +972,33 @@ const displayRows = computed(() => {
   return items
 })
 
+const allVisibleCompaniesSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleCompaniesSelected = computed(
+  () => displayRows.value.some((row) => isSelected(row)) && !allVisibleCompaniesSelected.value,
+)
+
+function toggleSelectAllVisibleCompanies(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(displayRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean))
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter((row) => {
+    const rowId = String(row?.id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
+
 function normalizeCompanyValue(value) {
   return String(value || '').trim()
 }
@@ -1146,7 +1160,7 @@ function setCompanyCardContentView(row, value) {
 
 function getCompanyCardPanel(row) {
   const rowId = String(row?.id || '').trim()
-  return companyCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(companyCardPanels.value[rowId], getCompanyRelationshipItems(row))
 }
 
 function setCompanyCardPanel(row, value) {
@@ -1156,6 +1170,21 @@ function setCompanyCardPanel(row, value) {
     ...companyCardPanels.value,
     [rowId]: value || 'notes',
   }
+}
+
+function getCompanyRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Company'], {
+    notes: getCompanyLinkedNotes,
+    artifacts: getCompanyLinkedDocuments,
+  })
+}
+
+function getCompanyRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getCompanyRelationshipItems(row))
+}
+
+function getCompanyActiveRelationshipItems(row) {
+  return getCompanyRelationshipItems(row)[getCompanyCardPanel(row)] || []
 }
 
 function getCompanyMetadataRows(row) {
@@ -2060,7 +2089,7 @@ watch(
 
 .companies-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -2077,16 +2106,11 @@ watch(
   min-width: 0;
 }
 
-.companies-toolbar__block--view {
-  padding-top: 2px;
-  margin-right: 18px;
+.companies-toolbar__block--primary {
+  margin-right: 4px;
 }
 
-.companies-toolbar__block--filters {
-  flex-wrap: nowrap;
-}
-
-.companies-toolbar__block--search {
+.companies-toolbar__block--actions {
   grid-column: -2 / -1;
   align-items: center;
   justify-content: flex-end;
@@ -2097,6 +2121,11 @@ watch(
   align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.companies-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .companies-toolbar__search {
@@ -2155,6 +2184,53 @@ watch(
 
 .companies-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.companies-toolbar__add-button {
+  align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.companies-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.companies-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.companies-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.companies-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.companies-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
 }
 
 .companies-toolbar__toggle {
@@ -2294,6 +2370,16 @@ watch(
 
 .company-card__hero {
   padding: 0;
+}
+
+.company-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background: transparent;
 }
 
 .company-card__hero-main {
@@ -2457,19 +2543,12 @@ watch(
 .company-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
-}
-
-.company-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
+  gap: 12px;
 }
 
 .company-card__summary-view-toggle {
-  margin-left: 0;
+  margin-left: auto;
+  margin-right: 14px;
   border-radius: var(--ds-control-radius);
 }
 
@@ -2508,18 +2587,77 @@ watch(
 }
 
 .company-card__summary-toggle :deep(.q-btn) {
-  min-height: 32px;
-  padding: 0 10px;
+  position: relative;
+  min-height: 24px;
+  min-width: 24px;
+  width: 24px;
+  padding: 0 3px;
   border: 1px solid transparent;
   border-radius: var(--ds-control-radius);
   background: transparent;
+  font-size: 12px;
+}
+
+.company-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
+.company-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  transform: none;
+  padding: 4px 7px;
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(239, 239, 239, 0.5);
+  border-radius: 5px;
   font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .company-card__summary-toggle :deep(.q-btn + .q-btn) {
   margin-left: 4px;
+}
+
+.company-card__summary-toggle :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.company-card__summary-toggle {
+  margin-right: auto;
+}
+
+.company-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.company-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.company-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
 }
 
 .company-card__summary-panel {
@@ -2607,8 +2745,26 @@ watch(
 }
 
 .company-card__select-box {
+  margin-left: -3.5px;
   transform: scale(0.75);
   transform-origin: center;
+}
+
+
+.company-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: #111;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.company-card__control-eye :deep(.q-icon) {
+  font-size: 14px;
 }
 
 .companies-section-table {

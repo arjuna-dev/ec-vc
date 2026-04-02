@@ -71,33 +71,32 @@
         </div>
 
         <div class="contacts-toolbar">
-          <div class="contacts-toolbar__block contacts-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="contacts-toolbar__toggle contacts-toolbar__view-toggle"
-              :disable="loading"
-              :options="viewOptions"
+          <div class="contacts-toolbar__block contacts-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleContactsSelected"
+              :indeterminate="someVisibleContactsSelected && !allVisibleContactsSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="contacts-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleContacts"
             />
-          </div>
-
-          <div class="contacts-toolbar__block contacts-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="contactKindFilter"
-              dense
+            <q-btn
               no-caps
               unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="contacts-toolbar__toggle contacts-toolbar__kind-toggle"
+              class="contacts-toolbar__add-button"
               :disable="loading"
-              :options="contactKindOptions"
-            />
+              @click="openCreateContact"
+            >
+              <span class="contacts-toolbar__add-button-inner">
+                <span class="contacts-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="contacts-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-btn dense flat round icon="download" color="grey-6" class="contacts-toolbar__icon-button" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
           </div>
 
           <div class="contacts-toolbar__block contacts-toolbar__block--search">
@@ -115,12 +114,17 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" class="contacts-toolbar__icon-button" :disable="loading" @click="pickImportFile">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" class="contacts-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="exportContactsCsv">
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
+            <q-btn-toggle
+              v-model="viewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contacts-toolbar__toggle contacts-toolbar__view-toggle"
+              :disable="loading"
+              :options="viewOptions"
+            />
           </div>
         </div>
 
@@ -190,6 +194,23 @@
                 @pointermove="onContactCardPointerMove"
                 @pointerleave="onContactCardPointerLeave"
               >
+                <q-card-section class="contact-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="contact-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="contact-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="contact-card__hero">
                   <div class="contact-card__hero-main">
                     <figure
@@ -257,6 +278,23 @@
                 <q-card-section class="contact-card__summary">
                   <div class="contact-card__summary-head">
                     <q-btn-toggle
+                      :model-value="getContactCardPanel(row)"
+                      dense
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="contact-card__summary-toggle"
+                      :options="getContactRelationshipOptions(row)"
+                      @update:model-value="setContactCardPanel(row, $event)"
+                    />
+                    <q-btn flat round class="contact-card__summary-add-relation" aria-label="Add Relation">
+                      <span class="contact-card__summary-add-relation-plus">
+                        <q-icon name="add" />
+                      </span>
+                      <q-tooltip>Add Relation</q-tooltip>
+                    </q-btn>
+                    <q-btn-toggle
                       :model-value="getContactCardContentView(row)"
                       dense
                       unelevated
@@ -267,76 +305,29 @@
                       :options="contactCardContentViewOptions"
                       @update:model-value="setContactCardContentView(row, $event)"
                     />
-
-                    <q-btn-toggle
-                      :model-value="getContactCardPanel(row)"
-                      dense
-                      no-caps
-                      unelevated
-                      toggle-color="dark"
-                      color="white"
-                      text-color="grey-8"
-                      class="contact-card__summary-toggle"
-                      :options="contactCardPanelOptions"
-                      @update:model-value="setContactCardPanel(row, $event)"
-                    />
-
-                    <div class="contact-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="contact-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="contact-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(row)"
-                      />
-                    </div>
                   </div>
 
                   <div class="contact-card__summary-panel">
                     <div class="contact-card__summary-body">
                     <div class="contact-card__summary-body-content">
                       <div
-                        v-if="getContactCardPanel(row) === 'notes' && getContactLinkedNotes(row).length"
+                        v-if="getContactActiveRelationshipItems(row).length"
                         :class="[
                           'contact-card__notes-list',
                           { 'contact-card__notes-list--rows': getContactCardContentView(row) === 'table' },
                         ]"
                       >
                         <div
-                          v-for="note in getContactLinkedNotes(row)"
-                          :key="note"
+                          v-for="item in getContactActiveRelationshipItems(row)"
+                          :key="item"
                           class="contact-card__note-pill"
                         >
-                          {{ note }}
-                        </div>
-                      </div>
-
-                      <div
-                        v-else-if="getContactCardPanel(row) === 'docs' && getContactLinkedDocuments(row).length"
-                        :class="[
-                          'contact-card__notes-list',
-                          { 'contact-card__notes-list--rows': getContactCardContentView(row) === 'table' },
-                        ]"
-                      >
-                        <div
-                          v-for="doc in getContactLinkedDocuments(row)"
-                          :key="doc"
-                          class="contact-card__note-pill"
-                        >
-                          {{ doc }}
+                          {{ item }}
                         </div>
                       </div>
 
                       <div v-else class="contact-card__summary-empty">
-                        {{ getContactCardPanel(row) === 'notes' ? 'No linked notes yet for this contact.' : 'No linked documents yet for this contact.' }}
+                        No linked KDB relationships yet for this contact.
                       </div>
                     </div>
                   </div>
@@ -380,6 +371,11 @@ import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -400,10 +396,6 @@ const contactCardContentViewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 const contactCardPanels = ref({})
-const contactCardPanelOptions = [
-  { label: 'Notes', value: 'notes', icon: 'note' },
-  { label: 'Artifacts', value: 'docs', icon: 'attach_file' },
-]
 
 function getContactCardContentView(row) {
   const rowId = getRowId(row)
@@ -421,7 +413,7 @@ function setContactCardContentView(row, value) {
 
 function getContactCardPanel(row) {
   const rowId = getRowId(row)
-  return contactCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(contactCardPanels.value[rowId], getContactRelationshipItems(row))
 }
 
 function setContactCardPanel(row, value) {
@@ -431,6 +423,21 @@ function setContactCardPanel(row, value) {
     ...contactCardPanels.value,
     [rowId]: value || 'notes',
   }
+}
+
+function getContactRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Contact'], {
+    notes: getContactLinkedNotes,
+    artifacts: getContactLinkedDocuments,
+  })
+}
+
+function getContactRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getContactRelationshipItems(row))
+}
+
+function getContactActiveRelationshipItems(row) {
+  return getContactRelationshipItems(row)[getContactCardPanel(row)] || []
 }
 
 function onHeroDashboardPointerEnter(event) {
@@ -485,10 +492,6 @@ const router = useRouter()
 const CONTACT_VIEW_MODES = new Set(['card', 'table'])
 const CONTACTS_BREADCRUMB_ACTION_OWNER = 'contacts-page'
 const viewMode = ref(getRouteViewMode(route.query.view))
-const contactKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Connected', value: 'connected' },
-]
 const contactsDashboard = computed(() => {
   const total = rows.value.length
   const counts = rows.value.reduce(
@@ -696,6 +699,29 @@ const displayRows = computed(() => {
 
   return items
 })
+
+const allVisibleContactsSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleContactsSelected = computed(
+  () => displayRows.value.some((row) => isSelected(row)) && !allVisibleContactsSelected.value,
+)
+
+function toggleSelectAllVisibleContacts(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(displayRows.value.map((row) => getRowId(row)).filter(Boolean))
+    selectedRows.value = selectedRows.value.filter((row) => !visibleIds.has(getRowId(row)))
+    return
+  }
+
+  const selectedIds = new Set(selectedRows.value.map((row) => getRowId(row)).filter(Boolean))
+  const additions = displayRows.value.filter((row) => {
+    const rowId = getRowId(row)
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
 
 function hasConnectedSignal(row) {
   return (
@@ -1660,7 +1686,7 @@ watch(displayRows, () => {
 
 .contacts-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: auto auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1677,17 +1703,13 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
-.contacts-toolbar__block--filters {
-  flex-wrap: nowrap;
-}
-
-.contacts-toolbar__block--view {
-  padding-top: 2px;
-  margin-right: 18px;
+.contacts-toolbar__block--primary {
+  margin-right: 4px;
 }
 
 .contacts-toolbar__block--search {
   grid-column: -2 / -1;
+  padding-top: 2px;
   align-items: center;
   justify-content: flex-end;
   margin-left: auto;
@@ -1697,6 +1719,11 @@ watch(displayRows, () => {
   align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.contacts-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .contacts-toolbar__toggle {
@@ -1784,6 +1811,72 @@ watch(displayRows, () => {
   font-size: 18px;
 }
 
+.contacts-toolbar__add-button {
+  align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.contacts-toolbar__add-button:hover,
+.contacts-toolbar__add-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.contacts-toolbar__add-button:active,
+.contacts-toolbar__add-button.q-btn--active,
+.contacts-toolbar__add-button.q-btn--standard.q-btn--active {
+  color: #ffffff;
+  background: #111111;
+}
+
+.contacts-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.contacts-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.contacts-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+  border: 0;
+  box-shadow: none;
+}
+
+.contacts-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.contacts-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+}
+
 .contacts-toolbar__filter-control {
   flex: 0 1 clamp(110px, 16vw, 160px);
   min-width: 110px;
@@ -1861,7 +1954,7 @@ watch(displayRows, () => {
   overflow: hidden;
   background: linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
   border-color: rgba(17, 17, 17, 0.08);
-  border-radius: 24px;
+  border-radius: 28px;
   box-shadow: 0 18px 42px rgba(17, 17, 17, 0.06);
   transition:
     transform 180ms ease,
@@ -1896,6 +1989,21 @@ watch(displayRows, () => {
 
 .contact-card__hero {
   padding: 0;
+}
+
+.contact-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.contact-card__control-row :deep(.q-checkbox__inner),
+.contact-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
 .contact-card__hero-main {
@@ -2207,19 +2315,12 @@ watch(displayRows, () => {
 .contact-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
-}
-
-.contact-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
+  gap: 12px;
 }
 
 .contact-card__summary-view-toggle {
-  margin-left: 0;
+  margin-left: auto;
+  margin-right: 14px;
   border-radius: var(--ds-control-radius);
 }
 
@@ -2258,18 +2359,77 @@ watch(displayRows, () => {
 }
 
 .contact-card__summary-toggle :deep(.q-btn) {
-  min-height: 32px;
-  padding: 0 10px;
+  position: relative;
+  min-height: 24px;
+  min-width: 24px;
+  width: 24px;
+  padding: 0 3px;
   border: 1px solid transparent;
   border-radius: var(--ds-control-radius);
   background: transparent;
+  font-size: 12px;
+}
+
+.contact-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
+.contact-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  transform: none;
+  padding: 4px 7px;
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(239, 239, 239, 0.5);
+  border-radius: 5px;
   font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .contact-card__summary-toggle :deep(.q-btn + .q-btn) {
   margin-left: 4px;
+}
+
+.contact-card__summary-toggle :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.contact-card__summary-toggle {
+  margin-right: auto;
+}
+
+.contact-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.contact-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.contact-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
 }
 
 .contact-card__summary-body {
@@ -2468,10 +2628,28 @@ watch(displayRows, () => {
   transform-origin: center;
 }
 
+.contact-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: #111;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.contact-card__control-eye :deep(.q-icon) {
+  font-size: 14px;
+}
+
 .contact-card__select-box {
+  margin-left: -3.5px;
   transform: scale(0.75);
   transform-origin: center;
 }
+
 
 @media (max-width: 1200px) {
   .contacts-shell {
@@ -2492,6 +2670,10 @@ watch(displayRows, () => {
   .contacts-toolbar__block {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .contacts-toolbar__block--search {
+    grid-column: auto;
   }
 
   .contacts-toolbar__search {

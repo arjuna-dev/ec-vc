@@ -1083,6 +1083,53 @@ function listUsers() {
   )
 }
 
+function createUser(payload = {}) {
+  const database = initDb()
+  const userName =
+    normalizeNullableString(payload?.User_Name) || normalizeNullableString(payload?.Name)
+  const userEmail =
+    normalizeNullableString(payload?.User_PEmail) ||
+    normalizeNullableString(payload?.Professional_Email) ||
+    normalizeNullableString(payload?.Personal_Email) ||
+    normalizeNullableString(payload?.Email)
+
+  if (!userName) throw new Error('User name is required')
+  if (!userEmail) throw new Error('Primary email is required')
+  if (!isEmail(userEmail)) throw new Error('Primary email must be a valid email address')
+
+  const explicitId = normalizeNullableString(payload?.id)
+  const existing = database
+    .prepare('SELECT id FROM Users WHERE User_PEmail = ? LIMIT 1')
+    .get(userEmail)
+  const userId = explicitId || existing?.id || `user:${crypto.randomUUID()}`
+
+  database
+    .prepare(
+      `
+      INSERT INTO Users (
+        id, User_Name, User_PEmail, created_at, updated_at
+      ) VALUES (
+        @id, @User_Name, @User_PEmail, datetime('now'), datetime('now')
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        User_Name = excluded.User_Name,
+        User_PEmail = excluded.User_PEmail,
+        updated_at = datetime('now')
+    `,
+    )
+    .run({
+      id: userId,
+      User_Name: userName,
+      User_PEmail: userEmail,
+    })
+
+  return {
+    id: userId,
+    User_Name: userName,
+    User_PEmail: userEmail,
+  }
+}
+
 function listNotes() {
   return dbAll(
     `
@@ -2095,6 +2142,18 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['Name', 'Professional_Email', 'Personal_Email', 'id'],
     readonlyColumns: new Set(['id']),
   },
+  Users: {
+    tableName: 'Users',
+    entityLabel: 'User',
+    displayColumns: ['User_Name', 'User_PEmail', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Artifacts: {
+    tableName: 'Artifacts',
+    entityLabel: 'Artifact',
+    displayColumns: ['title', 'artifact_id'],
+    readonlyColumns: new Set(['artifact_id', 'created_at', 'updated_at']),
+  },
   Opportunities: {
     tableName: 'Opportunities',
     entityLabel: 'Opportunity',
@@ -2126,6 +2185,18 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
       'updated_at',
     ]),
   },
+  Tasks: {
+    tableName: 'Tasks',
+    entityLabel: 'Task',
+    displayColumns: ['Task_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Notes: {
+    tableName: 'Notes',
+    entityLabel: 'Note',
+    displayColumns: ['title', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
 })
 
 const DATABOOK_TABLE_ALIASES = Object.freeze({
@@ -2133,6 +2204,10 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   company: 'Companies',
   contacts: 'Contacts',
   contact: 'Contacts',
+  users: 'Users',
+  user: 'Users',
+  artifacts: 'Artifacts',
+  artifact: 'Artifacts',
   opportunities: 'Opportunities',
   opportunity: 'Opportunities',
   funds: 'Funds',
@@ -2143,6 +2218,10 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   pipeline: 'Projects',
   projects: 'Projects',
   project: 'Projects',
+  tasks: 'Tasks',
+  task: 'Tasks',
+  notes: 'Notes',
+  note: 'Notes',
 })
 
 function getDatabookTableConfig(tableName) {
@@ -2481,6 +2560,88 @@ function buildCompanyDatabookView(database, recordId) {
   }
 }
 
+function createDatabookField({
+  tableName,
+  recordId,
+  fieldName,
+  value,
+  editable,
+  idColumn,
+  keyPrefix = null,
+}) {
+  const prefix = keyPrefix || tableName
+  return {
+    key: `${prefix}|${recordId}|${fieldName}`,
+    section: '',
+    label: formatDatabookFieldLabel(fieldName),
+    value: value == null ? '' : String(value),
+    editable: Boolean(editable),
+    table_name: tableName,
+    record_id: recordId,
+    field_name: fieldName,
+    id_column: idColumn,
+  }
+}
+
+function buildUserDatabookView(database, recordId) {
+  const rid = normalizeNullableString(recordId)
+  if (!rid) throw new Error('recordId is required')
+
+  const row =
+    database
+      .prepare(
+        `
+        SELECT id, User_Name, User_PEmail, created_at, updated_at
+        FROM Users
+        WHERE id = ?
+        LIMIT 1
+      `,
+      )
+      .get(rid) || null
+
+  if (!row) throw new Error(`User not found: ${rid}`)
+
+  const metadataFieldNames = ['id', 'User_Name', 'User_PEmail', 'created_at', 'updated_at']
+  const metadataFields = metadataFieldNames.map((fieldName) =>
+    createDatabookField({
+      tableName: 'Users',
+      recordId: rid,
+      fieldName,
+      value: row?.[fieldName],
+      editable: !new Set(['id', 'created_at', 'updated_at']).has(fieldName),
+      idColumn: 'id',
+    }),
+  )
+
+  const fields = metadataFields.map((field) => ({
+    ...field,
+    section: 'Metadata',
+  }))
+
+  return {
+    table_name: 'Users',
+    record_id: rid,
+    entity_label: 'User',
+    entity_name: normalizeNullableString(row.User_Name) || normalizeNullableString(row.User_PEmail) || rid,
+    record: row,
+    sections: [
+      {
+        id: 'metadata',
+        label: 'Metadata',
+        kind: 'fields',
+        items: metadataFields,
+      },
+      {
+        id: 'kdb-relationships',
+        label: 'KDB Relationships',
+        kind: 'relationships',
+        items: [],
+      },
+    ],
+    fields,
+  }
+}
+
 function getDatabookView(tableName, recordId) {
   const database = initDb()
   const config = getDatabookTableConfig(tableName)
@@ -2489,6 +2650,9 @@ function getDatabookView(tableName, recordId) {
 
   if (config.tableName === 'Companies') {
     return buildCompanyDatabookView(database, rid)
+  }
+  if (config.tableName === 'Users') {
+    return buildUserDatabookView(database, rid)
   }
 
   const tableMeta = getTableMeta(database, config.tableName)
@@ -5074,6 +5238,17 @@ function registerIpc() {
   ipcMain.handle('users:list', async () => {
     initDb()
     return { users: listUsers() }
+  })
+
+  ipcMain.handle('users:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createUser(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'users'))
+    }
   })
 
   ipcMain.handle('contacts:create', async (_event, payload) => {

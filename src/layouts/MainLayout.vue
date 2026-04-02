@@ -1,5 +1,5 @@
 <template>
-    <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHh Lpr lFf">
     <q-header :height-hint="108" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <div class="ec-shell-toolbar-heading">
@@ -70,11 +70,9 @@
               @click="toggleDrawerSection(section.key)"
             >
               <q-item-section>
-                <q-item-label
-                  header
-                  class="ec-nav-label"
-                  :class="section.labelClass"
-                >{{ section.label }}</q-item-label>
+                <q-item-label header class="ec-nav-label" :class="section.labelClass">{{
+                  section.label
+                }}</q-item-label>
               </q-item-section>
               <q-item-section side>
                 <q-icon
@@ -86,62 +84,64 @@
 
             <template v-if="isDrawerSectionOpen(section.key)">
               <template v-for="item in section.items" :key="item.label">
-              <template v-if="!item.parentKey || isDrawerSectionOpen(item.parentKey)">
-              <q-item
-                v-if="item.kind === 'toggle'"
-                clickable
-                dense
-                class="ec-nav-item"
-                :class="item.itemClass"
-                @click="toggleDrawerSection(item.toggleKey)"
-              >
-                <q-item-section avatar>
-                  <q-icon
-                    :name="item.icon"
-                    :size="item.iconSize || '24px'"
-                    :class="item.iconClass"
-                  />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ item.label }}</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-icon
-                    :name="isDrawerSectionOpen(item.toggleKey) ? 'expand_less' : 'expand_more'"
-                    size="18px"
-                  />
-                </q-item-section>
-              </q-item>
-              <q-item
-                v-else-if="item.kind === 'subheader'"
-                dense
-                class="ec-nav-subheader"
-                :class="item.itemClass"
-              >
-                <q-item-section>
-                  <q-item-label class="ec-nav-label" :class="item.labelClass">{{ item.label }}</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item
-                v-else
-                clickable
-                :to="item.to"
-                :exact="item.exact"
-                class="ec-nav-item"
-                :class="item.itemClass"
-              >
-                <q-item-section avatar>
-                  <q-icon
-                    :name="item.icon"
-                    :size="item.iconSize || '24px'"
-                    :class="item.iconClass"
-                  />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ item.label }}</q-item-label>
-                </q-item-section>
-              </q-item>
-              </template>
+                <template v-if="!item.parentKey || isDrawerSectionOpen(item.parentKey)">
+                  <q-item
+                    v-if="item.kind === 'toggle'"
+                    clickable
+                    dense
+                    class="ec-nav-item"
+                    :class="item.itemClass"
+                    @click="toggleDrawerSection(item.toggleKey)"
+                  >
+                    <q-item-section avatar>
+                      <q-icon
+                        :name="item.icon"
+                        :size="item.iconSize || '24px'"
+                        :class="item.iconClass"
+                      />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>{{ item.label }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <q-icon
+                        :name="isDrawerSectionOpen(item.toggleKey) ? 'expand_less' : 'expand_more'"
+                        size="18px"
+                      />
+                    </q-item-section>
+                  </q-item>
+                  <q-item
+                    v-else-if="item.kind === 'subheader'"
+                    dense
+                    class="ec-nav-subheader"
+                    :class="item.itemClass"
+                  >
+                    <q-item-section>
+                      <q-item-label class="ec-nav-label" :class="item.labelClass">{{
+                        item.label
+                      }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item
+                    v-else
+                    clickable
+                    :to="item.to"
+                    :exact="item.exact"
+                    class="ec-nav-item"
+                    :class="item.itemClass"
+                  >
+                    <q-item-section avatar>
+                      <q-icon
+                        :name="item.icon"
+                        :size="item.iconSize || '24px'"
+                        :class="item.iconClass"
+                      />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>{{ item.label }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </template>
               </template>
             </template>
           </q-list>
@@ -157,10 +157,7 @@
       <router-view />
     </q-page-container>
 
-    <div
-      v-if="intakeDraftCount > 0 && !draftTrayDismissed"
-      class="ec-intake-drafts"
-    >
+    <div v-if="intakeDraftCount > 0 && !draftTrayDismissed" class="ec-intake-drafts">
       <div class="ec-intake-drafts__header">
         <div>
           <div class="ec-intake-drafts__eyebrow">Draft Files</div>
@@ -177,11 +174,7 @@
       </div>
 
       <div class="ec-intake-drafts__list">
-        <div
-          v-for="draft in intakeDrafts"
-          :key="draft.id"
-          class="ec-intake-drafts__item"
-        >
+        <div v-for="draft in intakeDrafts" :key="draft.id" class="ec-intake-drafts__item">
           <div class="ec-intake-drafts__item-copy">
             <div class="ec-intake-drafts__item-title">{{ draftPrimaryLabel(draft) }}</div>
             <div class="ec-intake-drafts__item-meta">
@@ -210,7 +203,7 @@
 
     <div class="ec-quick-widget" :style="quickWidgetStyle">
       <div
-        v-for="(action, index) in quickWidgetActions"
+        v-for="(action, index) in quickWidgetRingActions"
         :key="action.id"
         class="ec-quick-widget-action"
         :style="quickWidgetActionStyle(index)"
@@ -219,13 +212,87 @@
           round
           dense
           unelevated
-          class="ec-quick-widget-action-button"
+          :ref="action.id === 'settings' ? setQuickWidgetSettingsTarget : undefined"
+          :class="[
+            'ec-quick-widget-action-button',
+            { 'ec-quick-widget-action-button--settings': action.id === 'settings' },
+          ]"
           :icon="action.icon"
           :aria-label="action.label"
           @click.stop="action.onClick"
         />
         <div class="ec-quick-widget-action-label">{{ action.label }}</div>
       </div>
+
+      <q-menu
+        v-model="quickWidgetSettingsOpen"
+        :target="quickWidgetSettingsTarget"
+        :offset="[quickWidgetSettingsOffset.x, quickWidgetSettingsOffset.y]"
+        no-parent-event
+        anchor="top right"
+        self="top left"
+        class="ec-quick-widget-settings-menu"
+      >
+        <div class="ec-quick-widget-settings-window">
+          <div class="ec-quick-widget-settings-panel">
+            <div
+              class="ec-quick-widget-settings-panel__header"
+              :class="{
+                'ec-quick-widget-settings-panel__header--dragging': quickWidgetSettingsIsDragging,
+              }"
+              @pointerdown.stop="onQuickWidgetSettingsPointerDown"
+            >
+              <div class="ec-quick-widget-settings-panel__title">Widget Settings</div>
+              <div class="ec-quick-widget-settings-panel__caption">
+                Show, hide, and reorder the files in your widget.
+              </div>
+            </div>
+
+            <div class="ec-quick-widget-settings-panel__list">
+              <div
+                v-for="(settingsAction, settingsIndex) in quickWidgetActionCatalog"
+                :key="settingsAction.id"
+                class="ec-quick-widget-settings-row"
+              >
+                <q-checkbox
+                  v-if="settingsAction.id !== 'settings'"
+                  :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
+                  dense
+                  size="xs"
+                  checked-icon="check_box"
+                  unchecked-icon="check_box_outline_blank"
+                  class="ec-quick-widget-settings-row__checkbox"
+                  @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
+                />
+                <div v-else class="ec-quick-widget-settings-row__toggle-spacer" />
+
+                <div class="ec-quick-widget-settings-row__copy">
+                  <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
+                </div>
+
+                <div class="ec-quick-widget-settings-row__actions">
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="keyboard_arrow_up"
+                    :disable="settingsIndex === 0"
+                    @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
+                  />
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="keyboard_arrow_down"
+                    :disable="settingsIndex === quickWidgetActionCatalog.length - 1"
+                    @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </q-menu>
 
       <div
         v-for="(action, index) in quickOpportunityBranchActions"
@@ -304,7 +371,10 @@
           <div class="text-caption text-grey-7">{{ intakeQueueDialogCaption }}</div>
         </q-card-section>
 
-        <q-card-section v-if="activeIntakeQueueItem?.kind === 'field-review'" class="q-px-lg q-pb-md">
+        <q-card-section
+          v-if="activeIntakeQueueItem?.kind === 'field-review'"
+          class="q-px-lg q-pb-md"
+        >
           <div class="column q-gutter-md">
             <div
               v-for="field in intakeQueueEditableFields"
@@ -313,7 +383,9 @@
             >
               <div class="ec-intake-queue-field__meta">
                 <div class="ec-intake-queue-field__label">{{ field.label }}</div>
-                <div class="ec-intake-queue-field__caption">{{ field.owner }} to {{ field.target }}</div>
+                <div class="ec-intake-queue-field__caption">
+                  {{ field.owner }} to {{ field.target }}
+                </div>
               </div>
               <q-input
                 v-model="intakeQueueFieldEdits[field.key]"
@@ -353,8 +425,14 @@
       </q-card>
     </q-dialog>
 
-    <CompanyCreateDialog v-model="globalCompanyDialogOpen" :initial-data="globalCreateInitialData" />
-    <ContactCreateDialog v-model="globalContactDialogOpen" :initial-data="globalCreateInitialData" />
+    <CompanyCreateDialog
+      v-model="globalCompanyDialogOpen"
+      :initial-data="globalCreateInitialData"
+    />
+    <ContactCreateDialog
+      v-model="globalContactDialogOpen"
+      :initial-data="globalCreateInitialData"
+    />
     <FundCreateDialog v-model="globalFundDialogOpen" :initial-data="globalCreateInitialData" />
     <RoundCreateDialog v-model="globalRoundDialogOpen" :initial-data="globalCreateInitialData" />
     <ArtifactAddDialog v-model="artifactDialogOpen" />
@@ -401,6 +479,10 @@ const quickWidgetIconContainer = ref(null)
 const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
+const quickWidgetSettingsOpen = ref(false)
+const quickWidgetSettingsOffset = ref({ x: 40, y: 0 })
+const quickWidgetSettingsIsDragging = ref(false)
+const quickWidgetSettingsTarget = ref(null)
 const draftTrayDismissed = ref(false)
 const intakeQueueDialogOpen = ref(false)
 const intakeQueueFieldEdits = ref({})
@@ -424,6 +506,18 @@ const QUICK_WIDGET_ACTION_SIZE = 40
 const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
+const QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY = 'ecvc.quickWidgetActionSettings'
+const DEFAULT_QUICK_WIDGET_ACTION_ORDER = [
+  'users',
+  'artifact',
+  'contact',
+  'company',
+  'opportunity',
+  'project',
+  'note',
+  'task',
+  'settings',
+]
 const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
   { label: 'Owner', to: '/user-settings', exact: true, icon: 'accessibility_new' },
@@ -446,13 +540,19 @@ const ownerWorldNavigationItems = [
     toggleKey: 'radars',
   },
   { label: 'Regions', to: '/regions', exact: true, icon: 'public', parentKey: 'radars' },
-  { label: 'Asset Classes', to: '/asset-classes', exact: true, icon: 'category', parentKey: 'radars' },
+  {
+    label: 'Asset Classes',
+    to: '/asset-classes',
+    exact: true,
+    icon: 'category',
+    parentKey: 'radars',
+  },
   { label: 'Industries', to: '/industries', exact: true, icon: 'domain', parentKey: 'radars' },
   { label: 'Stages', to: '/stages', exact: true, icon: 'stairs', parentKey: 'radars' },
   { label: 'Shared Knowledge', to: '/shared-knowledge', exact: true, icon: 'auto_stories' },
   { label: 'Marketplace', to: '/marketplace', exact: true, icon: 'storefront' },
   { label: 'Events', to: '/merch-events', exact: true, icon: 'calendar_month' },
-].map((item) => (
+].map((item) =>
   item.parentKey
     ? {
         ...item,
@@ -461,10 +561,12 @@ const ownerWorldNavigationItems = [
       }
     : {
         ...item,
-        itemClass: item.itemClass ? `ec-nav-item--primary ${item.itemClass}` : 'ec-nav-item--primary',
+        itemClass: item.itemClass
+          ? `ec-nav-item--primary ${item.itemClass}`
+          : 'ec-nav-item--primary',
         iconSize: '22px',
-      }
-))
+      },
+)
 const workspaceNavigationItems = [
   { label: 'Users', to: '/users', exact: true, icon: 'badge' },
   { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
@@ -533,13 +635,16 @@ const breadcrumbActionsState = useBreadcrumbActionsState()
 let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
+let quickWidgetSettingsDragState = null
 const intakeDraftCount = computed(() => intakeDraftState.draftOrder.length)
 const intakeDrafts = computed(() =>
   intakeDraftState.draftOrder.map((draftId) => intakeDraftState.drafts[draftId]).filter(Boolean),
 )
 const activeIntakeQueueItem = computed(() => {
   const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
-  return intakeReviewQueueState.items.find((item) => String(item?.id || '').trim() === activeId) || null
+  return (
+    intakeReviewQueueState.items.find((item) => String(item?.id || '').trim() === activeId) || null
+  )
 })
 const intakeQueueDialogTitle = computed(
   () => activeIntakeQueueItem.value?.payload?.title || 'Review extracted data',
@@ -595,8 +700,21 @@ const currentHeaderTitle = computed(() => {
   }
 
   if (currentRouteName === 'databook-view') {
-    if (String(route.params.tableName || '').toLowerCase() === 'contacts') {
-      return 'Contact File'
+    const recordLabelByTableName = {
+      contacts: 'Contact Records',
+      companies: 'Company Records',
+      users: 'User Records',
+      artifacts: 'Artifact Records',
+      notes: 'Note Records',
+      tasks: 'Task Records',
+      projects: 'Project Records',
+      funds: 'Fund Records',
+      rounds: 'Round Records',
+      opportunities: 'Opportunity Records',
+    }
+    const tableName = String(route.params.tableName || '').toLowerCase()
+    if (recordLabelByTableName[tableName]) {
+      return recordLabelByTableName[tableName]
     }
     return 'Databook'
   }
@@ -617,44 +735,98 @@ const quickWidgetStyle = computed(() => ({
   top: `${quickWidgetPosition.value.y}px`,
 }))
 
-const quickWidgetActions = computed(() => [
-  {
-    id: 'opportunity',
-    label: 'Opportunity',
-    icon: 'work',
-    onClick: openOpportunityKindDialog,
-  },
-  {
-    id: 'contact',
-    label: 'Contact',
-    icon: 'people',
-    onClick: openContactFromQuickAction,
-  },
-  {
-    id: 'company',
-    label: 'Company',
-    icon: 'apartment',
-    onClick: openCompanyFromQuickAction,
-  },
-  {
-    id: 'note',
-    label: 'Note',
-    icon: 'note',
-    onClick: openNoteFromQuickAction,
-  },
-  {
-    id: 'task',
-    label: 'Task',
-    icon: 'check_circle',
-    onClick: openTaskFromQuickAction,
-  },
-  {
-    id: 'artifact',
-    label: intakeDraftCount.value > 0 ? `Artifact (${intakeDraftCount.value})` : 'Artifact',
-    icon: 'attach_file',
-    onClick: openArtifactFromQuickAction,
-  },
-])
+const quickWidgetActionSettings = ref({
+  order: [...DEFAULT_QUICK_WIDGET_ACTION_ORDER],
+  enabled: Object.fromEntries(DEFAULT_QUICK_WIDGET_ACTION_ORDER.map((id) => [id, true])),
+})
+
+const quickWidgetActionCatalog = computed(() => {
+  const actionById = {
+    users: {
+      id: 'users',
+      label: 'Users',
+      icon: 'badge',
+      onClick: openUserFromQuickAction,
+    },
+    opportunity: {
+      id: 'opportunity',
+      label: 'Opportunity',
+      icon: 'work',
+      onClick: openOpportunityKindDialog,
+    },
+    contact: {
+      id: 'contact',
+      label: 'Contact',
+      icon: 'people',
+      onClick: openContactFromQuickAction,
+    },
+    company: {
+      id: 'company',
+      label: 'Company',
+      icon: 'apartment',
+      onClick: openCompanyFromQuickAction,
+    },
+    project: {
+      id: 'project',
+      label: 'Project',
+      icon: 'schema',
+      onClick: openProjectFromQuickAction,
+    },
+    note: {
+      id: 'note',
+      label: 'Note',
+      icon: 'note',
+      onClick: openNoteFromQuickAction,
+    },
+    task: {
+      id: 'task',
+      label: 'Task',
+      icon: 'check_circle',
+      onClick: openTaskFromQuickAction,
+    },
+    artifact: {
+      id: 'artifact',
+      label: intakeDraftCount.value > 0 ? `Artifact (${intakeDraftCount.value})` : 'Artifact',
+      icon: 'attach_file',
+      onClick: openArtifactFromQuickAction,
+    },
+    settings: {
+      id: 'settings',
+      label: 'Settings',
+      icon: 'tune',
+      onClick: () => {
+        quickWidgetSettingsOpen.value = true
+      },
+    },
+  }
+
+  const configuredOrder = Array.isArray(quickWidgetActionSettings.value?.order)
+    ? quickWidgetActionSettings.value.order
+    : []
+  const order = [
+    ...configuredOrder.filter((id) => actionById[id]),
+    ...DEFAULT_QUICK_WIDGET_ACTION_ORDER.filter((id) => !configuredOrder.includes(id)),
+  ]
+
+  return order.map((id) => actionById[id]).filter(Boolean)
+})
+
+const quickWidgetActions = computed(() =>
+  quickWidgetActionCatalog.value.filter((action) => isQuickWidgetActionEnabled(action.id)),
+)
+
+const quickWidgetRingActions = computed(() =>
+  quickWidgetActions.value.map((action) =>
+    action.id === 'settings'
+      ? {
+          ...action,
+          onClick: () => {
+            quickWidgetSettingsOpen.value = !quickWidgetSettingsOpen.value
+          },
+        }
+      : action,
+  ),
+)
 
 const quickOpportunityBranchActions = computed(() => [
   {
@@ -785,7 +957,10 @@ function draftWithFieldReviewApplied(draft = {}, fields = []) {
               },
               contactLinkMode: draft?.contactLinkMode || 'new',
             }
-          : createFieldSourceSnapshot(value, nextOpportunityForm.kind || draft?.opportunityForm?.kind || '')
+          : createFieldSourceSnapshot(
+              value,
+              nextOpportunityForm.kind || draft?.opportunityForm?.kind || '',
+            )
   }
 
   for (const field of fields) {
@@ -886,7 +1061,9 @@ function closeGlobalCreateDialogs() {
 function openActiveEntityCreateDialog() {
   const activeItem = activeIntakeQueueItem.value
   if (!activeItem || activeItem.kind !== 'entity-create') return
-  const entityTypeName = String(activeItem.payload?.entityType || '').trim().toLowerCase()
+  const entityTypeName = String(activeItem.payload?.entityType || '')
+    .trim()
+    .toLowerCase()
   globalCreateInitialData.value = {
     entityType: entityTypeName,
     entity: JSON.parse(JSON.stringify(activeItem.payload?.entity || {})),
@@ -937,7 +1114,12 @@ function resumeDraft(draftId) {
     return
   }
 
-  const kind = String(draft?.opportunityForm?.kind || '').trim().toLowerCase() === 'fund' ? 'fund' : 'round'
+  const kind =
+    String(draft?.opportunityForm?.kind || '')
+      .trim()
+      .toLowerCase() === 'fund'
+      ? 'fund'
+      : 'round'
   const eventName = kind === 'fund' ? 'ecvc:open-fund-dialog' : 'ecvc:open-round-dialog'
   const routeName = kind === 'fund' ? 'funds' : 'rounds'
   const flagName = kind === 'fund' ? '__ecvcOpenFundDialog' : '__ecvcOpenRoundDialog'
@@ -995,6 +1177,115 @@ function persistQuickWidgetPosition() {
   )
 }
 
+function normalizeQuickWidgetActionSettings(rawSettings = {}) {
+  const enabledInput =
+    rawSettings?.enabled && typeof rawSettings.enabled === 'object' ? rawSettings.enabled : {}
+  const orderInput = Array.isArray(rawSettings?.order) ? rawSettings.order : []
+  const order = [
+    ...orderInput.filter((id) => DEFAULT_QUICK_WIDGET_ACTION_ORDER.includes(id)),
+    ...DEFAULT_QUICK_WIDGET_ACTION_ORDER.filter((id) => !orderInput.includes(id)),
+  ]
+
+  return {
+    order,
+    enabled: Object.fromEntries(
+      DEFAULT_QUICK_WIDGET_ACTION_ORDER.map((id) => [id, enabledInput[id] !== false]),
+    ),
+  }
+}
+
+function persistQuickWidgetActionSettings() {
+  if (typeof window === 'undefined') return
+  window.localStorage?.setItem(
+    QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY,
+    JSON.stringify(quickWidgetActionSettings.value),
+  )
+}
+
+function loadQuickWidgetActionSettings() {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = window.localStorage?.getItem(QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY)
+    if (!raw) {
+      quickWidgetActionSettings.value = normalizeQuickWidgetActionSettings()
+      return
+    }
+    quickWidgetActionSettings.value = normalizeQuickWidgetActionSettings(JSON.parse(raw))
+  } catch {
+    quickWidgetActionSettings.value = normalizeQuickWidgetActionSettings()
+  }
+}
+
+function isQuickWidgetActionEnabled(actionId) {
+  if (String(actionId || '').trim() === 'settings') return true
+  return quickWidgetActionSettings.value?.enabled?.[actionId] !== false
+}
+
+function setQuickWidgetActionEnabled(actionId, enabled) {
+  quickWidgetActionSettings.value = {
+    ...quickWidgetActionSettings.value,
+    enabled: {
+      ...quickWidgetActionSettings.value.enabled,
+      [actionId]: enabled !== false,
+    },
+  }
+  persistQuickWidgetActionSettings()
+}
+
+function moveQuickWidgetAction(actionId, direction) {
+  const currentOrder = [...(quickWidgetActionSettings.value?.order || [])]
+  const fromIndex = currentOrder.indexOf(actionId)
+  const toIndex = fromIndex + direction
+  if (fromIndex < 0 || toIndex < 0 || toIndex >= currentOrder.length) return
+  const [moved] = currentOrder.splice(fromIndex, 1)
+  currentOrder.splice(toIndex, 0, moved)
+  quickWidgetActionSettings.value = {
+    ...quickWidgetActionSettings.value,
+    order: currentOrder,
+  }
+  persistQuickWidgetActionSettings()
+}
+
+function setQuickWidgetSettingsTarget(element) {
+  quickWidgetSettingsTarget.value = element?.$el ?? element ?? null
+}
+
+function onQuickWidgetSettingsPointerDown(evt) {
+  if (evt.pointerType === 'mouse' && evt.button !== 0) return
+  quickWidgetSettingsDragState = {
+    pointerId: evt.pointerId,
+    startX: evt.clientX,
+    startY: evt.clientY,
+    startOffsetX: quickWidgetSettingsOffset.value.x,
+    startOffsetY: quickWidgetSettingsOffset.value.y,
+  }
+  quickWidgetSettingsIsDragging.value = true
+  window.addEventListener('pointermove', onQuickWidgetSettingsPointerMove)
+  window.addEventListener('pointerup', onQuickWidgetSettingsPointerUp)
+  window.addEventListener('pointercancel', onQuickWidgetSettingsPointerUp)
+}
+
+function onQuickWidgetSettingsPointerMove(evt) {
+  if (!quickWidgetSettingsDragState || evt.pointerId !== quickWidgetSettingsDragState.pointerId)
+    return
+  const dx = evt.clientX - quickWidgetSettingsDragState.startX
+  const dy = evt.clientY - quickWidgetSettingsDragState.startY
+  quickWidgetSettingsOffset.value = {
+    x: quickWidgetSettingsDragState.startOffsetX + dx,
+    y: quickWidgetSettingsDragState.startOffsetY + dy,
+  }
+}
+
+function onQuickWidgetSettingsPointerUp(evt) {
+  if (!quickWidgetSettingsDragState || evt.pointerId !== quickWidgetSettingsDragState.pointerId)
+    return
+  quickWidgetSettingsIsDragging.value = false
+  quickWidgetSettingsDragState = null
+  window.removeEventListener('pointermove', onQuickWidgetSettingsPointerMove)
+  window.removeEventListener('pointerup', onQuickWidgetSettingsPointerUp)
+  window.removeEventListener('pointercancel', onQuickWidgetSettingsPointerUp)
+}
+
 function loadQuickWidgetPosition() {
   if (typeof window === 'undefined') return
   try {
@@ -1022,14 +1313,14 @@ function onQuickWidgetResize() {
 }
 
 function quickWidgetActionAngle(index) {
-  const total = quickWidgetActions.value.length
+  const total = quickWidgetRingActions.value.length
+  if (total <= 0) return -90
   return -90 - (360 / total) * index
 }
 
 function quickWidgetActionOffsetById(actionId, radius = QUICK_WIDGET_ACTION_RADIUS) {
-  const circleOrder = ['opportunity', 'task', 'contact', 'artifact', 'company', 'note']
   const resolvedId = String(actionId || '').trim()
-  const orderIndex = circleOrder.indexOf(resolvedId)
+  const orderIndex = quickWidgetRingActions.value.findIndex((action) => action.id === resolvedId)
   const angleIndex = orderIndex >= 0 ? orderIndex : 0
   const angleRad = (quickWidgetActionAngle(angleIndex) * Math.PI) / 180
 
@@ -1040,7 +1331,7 @@ function quickWidgetActionOffsetById(actionId, radius = QUICK_WIDGET_ACTION_RADI
 }
 
 function quickWidgetActionOffset(index, radius = QUICK_WIDGET_ACTION_RADIUS) {
-  const action = quickWidgetActions.value[index]
+  const action = quickWidgetRingActions.value[index]
   return quickWidgetActionOffsetById(action?.id, radius)
 }
 
@@ -1111,9 +1402,13 @@ function quickWidgetActionStyle(index) {
 }
 
 function quickOpportunityBranchActionStyle(index) {
-  const opportunityIndex = quickWidgetActions.value.findIndex((action) => action.id === 'opportunity')
+  const opportunityIndex = quickWidgetRingActions.value.findIndex(
+    (action) => action.id === 'opportunity',
+  )
   const parentOffset =
-    opportunityIndex >= 0 ? quickWidgetActionOffset(opportunityIndex) : { x: 0, y: -QUICK_WIDGET_ACTION_RADIUS }
+    opportunityIndex >= 0
+      ? quickWidgetActionOffset(opportunityIndex)
+      : { x: 0, y: -QUICK_WIDGET_ACTION_RADIUS }
   const parentAngle = quickWidgetActionAngle(opportunityIndex >= 0 ? opportunityIndex : 0)
   const branchAngle = parentAngle + (index === 0 ? -30 : 30)
   const branchAngleRad = (branchAngle * Math.PI) / 180
@@ -1157,6 +1452,7 @@ function toggleQuickActions() {
 
 function closeQuickActions() {
   if (!quickActionsOpen.value) return
+  quickWidgetSettingsOpen.value = false
   quickOpportunityBranchOpen.value = false
   quickActionsOpen.value = false
   playQuickWidgetBack()
@@ -1215,6 +1511,19 @@ async function openContactFromQuickAction() {
   }
 }
 
+async function openUserFromQuickAction() {
+  closeQuickActions()
+  globalThis.__ecvcOpenUserDialog = true
+  try {
+    await router.push({ name: 'users', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-user-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-user-dialog'))
+    }, 80)
+  }
+}
+
 async function openTaskFromQuickAction() {
   closeQuickActions()
   globalThis.__ecvcOpenTaskDialog = true
@@ -1224,6 +1533,19 @@ async function openTaskFromQuickAction() {
     globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
     setTimeout(() => {
       globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
+    }, 80)
+  }
+}
+
+async function openProjectFromQuickAction() {
+  closeQuickActions()
+  globalThis.__ecvcOpenPipelineDialog = true
+  try {
+    await router.push({ name: 'projects', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
     }, 80)
   }
 }
@@ -1373,6 +1695,7 @@ onMounted(() => {
   window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
   syncUserNavState()
+  loadQuickWidgetActionSettings()
   loadQuickWidgetPosition()
   initLogoAnimation()
   playQuickWidgetIdle()
@@ -1386,12 +1709,16 @@ onBeforeUnmount(() => {
   window.removeEventListener('pointermove', onQuickWidgetPointerMove)
   window.removeEventListener('pointerup', onQuickWidgetPointerUp)
   window.removeEventListener('pointercancel', onQuickWidgetPointerUp)
+  window.removeEventListener('pointermove', onQuickWidgetSettingsPointerMove)
+  window.removeEventListener('pointerup', onQuickWidgetSettingsPointerUp)
+  window.removeEventListener('pointercancel', onQuickWidgetSettingsPointerUp)
   logoAnimation?.destroy()
   quickWidgetIconAnimation?.destroy()
   logoAnimation = null
   quickWidgetIconAnimation = null
   quickWidgetDragState = null
   clearIntakeQueueNextTimer()
+  quickWidgetSettingsDragState = null
 })
 
 watch(
@@ -1461,7 +1788,6 @@ function goBack() {
 
   router.push({ name: 'home' })
 }
-
 </script>
 
 <style scoped>
@@ -1760,6 +2086,126 @@ function goBack() {
   overflow: visible;
 }
 
+.ec-quick-widget-settings-menu {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.ec-quick-widget-settings-window {
+  will-change: transform;
+}
+
+.ec-quick-widget-settings-panel {
+  width: 320px;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 8px;
+  background: rgba(17, 17, 17, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.ec-quick-widget-settings-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 6px;
+  cursor: grab;
+  user-select: none;
+}
+
+.ec-quick-widget-settings-panel__header--dragging {
+  cursor: grabbing;
+}
+
+.ec-quick-widget-settings-panel__eyebrow {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ec-quick-widget-settings-panel__title {
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.ec-quick-widget-settings-panel__caption {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.ec-quick-widget-settings-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ec-quick-widget-settings-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ec-quick-widget-settings-row__label {
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  letter-spacing: 0.01em;
+}
+
+.ec-quick-widget-settings-row__toggle-spacer {
+  width: 18px;
+  height: 18px;
+}
+
+.ec-quick-widget-settings-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.ec-quick-widget-settings-row__actions :deep(.q-btn) {
+  color: rgba(255, 255, 255, 0.78);
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+}
+
+.ec-quick-widget-settings-row__actions :deep(.q-btn:disabled) {
+  color: rgba(255, 255, 255, 0.24) !important;
+}
+
+.ec-quick-widget-settings-row__checkbox {
+  min-height: 18px;
+}
+
+.ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__inner) {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.34) !important;
+}
+
+.ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__inner--truthy) {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__bg) {
+  background: transparent !important;
+}
+
 .ec-intake-drafts {
   position: fixed;
   right: 20px;
@@ -1934,6 +2380,12 @@ function goBack() {
 
 .ec-quick-widget-action-button--branch {
   background: color-mix(in srgb, var(--ds-color-text-primary-deep) 88%, white 12%) !important;
+}
+
+.ec-quick-widget-action-button--settings {
+  background: var(--ds-color-surface-inverse) !important;
+  color: var(--ds-color-text-primary-deep) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12);
 }
 
 .ec-quick-widget-action-label {

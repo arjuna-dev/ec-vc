@@ -71,36 +71,35 @@
         </div>
 
         <div class="pipelines-toolbar">
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="pipelines-toolbar__toggle pipelines-toolbar__view-toggle"
-              :disable="loading"
-              :options="viewOptions"
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleProjectsSelected"
+              :indeterminate="someVisibleProjectsSelected && !allVisibleProjectsSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="pipelines-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleProjects"
             />
-          </div>
-
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="pipelineKindFilter"
-              dense
+            <q-btn
               no-caps
               unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="pipelines-toolbar__toggle pipelines-toolbar__kind-toggle"
+              class="pipelines-toolbar__add-button"
               :disable="loading"
-              :options="pipelineKindOptions"
-            />
+              @click="openCreatePipeline"
+            >
+              <span class="pipelines-toolbar__add-button-inner">
+                <span class="pipelines-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="pipelines-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-btn dense flat round icon="download" color="grey-6" class="pipelines-toolbar__icon-button" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
           </div>
 
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--search">
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--actions">
             <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
@@ -115,12 +114,17 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" class="pipelines-toolbar__icon-button" :disable="loading" @click="pickImportFile">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" class="pipelines-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="exportPipelinesCsv">
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
+            <q-btn-toggle
+              v-model="viewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="pipelines-toolbar__toggle pipelines-toolbar__view-toggle"
+              :disable="loading"
+              :options="viewOptions"
+            />
           </div>
         </div>
 
@@ -222,6 +226,23 @@
                 @pointermove="onProjectCardPointerMove"
                 @pointerleave="onProjectCardPointerLeave"
               >
+                <q-card-section class="pipeline-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="pipeline-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="pipeline-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="pipeline-card__hero">
                   <div class="pipeline-card__hero-main">
                     <figure class="pipeline-card__portrait">
@@ -265,6 +286,23 @@
                 <q-card-section class="pipeline-card__summary">
                   <div class="pipeline-card__summary-head">
                     <q-btn-toggle
+                      :model-value="getProjectCardPanel(row)"
+                      dense
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="pipeline-card__summary-toggle"
+                      :options="getProjectRelationshipOptions(row)"
+                      @update:model-value="setProjectCardPanel(row, $event)"
+                    />
+                    <q-btn flat round class="pipeline-card__summary-add-relation" aria-label="Add Relation">
+                      <span class="pipeline-card__summary-add-relation-plus">
+                        <q-icon name="add" />
+                      </span>
+                      <q-tooltip>Add Relation</q-tooltip>
+                    </q-btn>
+                    <q-btn-toggle
                       :model-value="getProjectCardContentView(row)"
                       dense
                       unelevated
@@ -275,76 +313,29 @@
                       :options="projectCardContentViewOptions"
                       @update:model-value="setProjectCardContentView(row, $event)"
                     />
-
-                    <q-btn-toggle
-                      :model-value="getProjectCardPanel(row)"
-                      dense
-                      no-caps
-                      unelevated
-                      toggle-color="dark"
-                      color="white"
-                      text-color="grey-8"
-                      class="pipeline-card__summary-toggle"
-                      :options="projectCardPanelOptions"
-                      @update:model-value="setProjectCardPanel(row, $event)"
-                    />
-
-                    <div class="pipeline-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="pipeline-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="pipeline-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(row)"
-                      />
-                    </div>
                   </div>
 
                   <div class="pipeline-card__summary-panel">
                     <div class="pipeline-card__summary-body">
                       <div class="pipeline-card__summary-body-content">
                         <div
-                          v-if="getProjectCardPanel(row) === 'notes' && getProjectLinkedNotes(row).length"
+                          v-if="getProjectActiveRelationshipItems(row).length"
                           :class="[
                             'pipeline-card__notes-list',
                             { 'pipeline-card__notes-list--rows': getProjectCardContentView(row) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getProjectLinkedNotes(row)"
-                            :key="note"
+                            v-for="item in getProjectActiveRelationshipItems(row)"
+                            :key="item"
                             class="pipeline-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getProjectCardPanel(row) === 'docs' && getProjectLinkedDocuments(row).length"
-                          :class="[
-                            'pipeline-card__notes-list',
-                            { 'pipeline-card__notes-list--rows': getProjectCardContentView(row) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="doc in getProjectLinkedDocuments(row)"
-                            :key="doc"
-                            class="pipeline-card__note-pill"
-                          >
-                            {{ doc }}
+                            {{ item }}
                           </div>
                         </div>
 
                         <div v-else class="pipeline-card__summary-empty">
-                          {{ getProjectCardPanel(row) === 'notes' ? 'No linked notes yet for this project.' : 'No linked artifacts yet for this project.' }}
+                          No linked KDB relationships yet for this project.
                         </div>
                       </div>
                     </div>
@@ -387,6 +378,11 @@ import ProjectCreateDialog from 'components/ProjectCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -454,10 +450,6 @@ const projectCardContentViewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 const projectCardPanels = ref({})
-const projectCardPanelOptions = [
-  { label: 'Notes', value: 'notes', icon: 'note' },
-  { label: 'Artifacts', value: 'docs', icon: 'attach_file' },
-]
 const canDeleteSelectedPipelines = computed(
   () =>
     !!bridge.value?.projects?.delete &&
@@ -487,11 +479,6 @@ const csvHeaders = ['pipeline_id', 'name', 'dir_name', 'is_default']
 const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-const pipelineKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Own', value: 'own' },
-  { label: 'Others', value: 'others' },
 ]
 const pipelinesDashboard = computed(() => {
   const total = pipelines.value.length
@@ -620,6 +607,35 @@ const displayRows = computed(() => {
   return items
 })
 
+const allVisibleProjectsSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleProjectsSelected = computed(
+  () => displayRows.value.some((row) => isSelected(row)) && !allVisibleProjectsSelected.value,
+)
+
+function toggleSelectAllVisibleProjects(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(
+      displayRows.value.map((row) => String(row?.pipeline_id || '').trim()).filter(Boolean),
+    )
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.pipeline_id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.pipeline_id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter((row) => {
+    const rowId = String(row?.pipeline_id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
+
 function parsedStages(row) {
   try {
     return JSON.parse(row?.stages || '[]')
@@ -688,7 +704,7 @@ function setProjectCardContentView(row, value) {
 
 function getProjectCardPanel(row) {
   const rowId = String(row?.pipeline_id || '').trim()
-  return projectCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(projectCardPanels.value[rowId], getProjectRelationshipItems(row))
 }
 
 function setProjectCardPanel(row, value) {
@@ -698,6 +714,21 @@ function setProjectCardPanel(row, value) {
     ...projectCardPanels.value,
     [rowId]: value || 'notes',
   }
+}
+
+function getProjectRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Project'], {
+    notes: getProjectLinkedNotes,
+    artifacts: getProjectLinkedDocuments,
+  })
+}
+
+function getProjectRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getProjectRelationshipItems(row))
+}
+
+function getProjectActiveRelationshipItems(row) {
+  return getProjectRelationshipItems(row)[getProjectCardPanel(row)] || []
 }
 
 function getProjectSummaryValue(row) {
@@ -1373,16 +1404,11 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
-.pipelines-toolbar__block--view {
-  padding-top: 2px;
-  margin-right: 18px;
+.pipelines-toolbar__block--primary {
+  margin-right: 4px;
 }
 
-.pipelines-toolbar__block--filters {
-  flex-wrap: nowrap;
-}
-
-.pipelines-toolbar__block--search {
+.pipelines-toolbar__block--actions {
   grid-column: -2 / -1;
   align-items: center;
   justify-content: flex-end;
@@ -1393,6 +1419,11 @@ watch(displayRows, () => {
   align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.pipelines-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .pipelines-toolbar__search {
@@ -1486,6 +1517,70 @@ watch(displayRows, () => {
   font-size: 18px;
 }
 
+.pipelines-toolbar__add-button {
+  align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.pipelines-toolbar__add-button:hover,
+.pipelines-toolbar__add-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.pipelines-toolbar__add-button:active,
+.pipelines-toolbar__add-button.q-btn--active,
+.pipelines-toolbar__add-button.q-btn--standard.q-btn--active {
+  color: #ffffff;
+  background: #111111;
+}
+
+.pipelines-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.pipelines-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pipelines-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.pipelines-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.pipelines-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+}
+
 .pipelines-surface {
   display: flex;
   flex-direction: column;
@@ -1560,7 +1655,7 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  border-radius: 20px;
+  border-radius: 28px;
   border-color: rgba(17, 17, 17, 0.1);
   box-shadow: 0 12px 30px rgba(17, 17, 17, 0.06);
   overflow: hidden;
@@ -1568,6 +1663,21 @@ watch(displayRows, () => {
 
 .pipeline-card__hero {
   padding: 0;
+}
+
+.pipeline-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.pipeline-card__control-row :deep(.q-checkbox__inner),
+.pipeline-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
 .pipeline-card::before {
@@ -1738,19 +1848,12 @@ watch(displayRows, () => {
 .pipeline-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
-}
-
-.pipeline-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
+  gap: 12px;
 }
 
 .pipeline-card__summary-view-toggle {
-  margin-left: 0;
+  margin-left: auto;
+  margin-right: 14px;
   border-radius: var(--ds-control-radius);
 }
 
@@ -1789,27 +1892,86 @@ watch(displayRows, () => {
 }
 
 .pipeline-card__summary-toggle :deep(.q-btn) {
-  min-height: 32px;
-  padding: 0 10px;
+  position: relative;
+  min-height: 24px;
+  min-width: 24px;
+  width: 24px;
+  padding: 0 3px;
   border: 1px solid transparent;
   border-radius: var(--ds-control-radius);
   background: transparent;
+  font-size: 12px;
+}
+
+.pipeline-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
+.pipeline-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  transform: none;
+  padding: 4px 7px;
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(239, 239, 239, 0.5);
+  border-radius: 5px;
   font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .pipeline-card__summary-toggle :deep(.q-btn + .q-btn) {
   margin-left: 4px;
 }
 
+.pipeline-card__summary-toggle :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.pipeline-card__summary-toggle {
+  margin-right: auto;
+}
+
+.pipeline-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.pipeline-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.pipeline-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
+}
+
 .pipeline-card__summary-panel {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 4px 2px 0;
-  border-radius: 0;
-  background: transparent;
-  border: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
 }
 
 .pipeline-card__summary-body {
@@ -1880,8 +2042,26 @@ watch(displayRows, () => {
 }
 
 .pipeline-card__select-box {
+  margin-left: -3.5px;
   transform: scale(0.75);
   transform-origin: center;
+}
+
+
+.pipeline-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: #111;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.pipeline-card__control-eye :deep(.q-icon) {
+  font-size: 14px;
 }
 
 @media (max-width: 1200px) {

@@ -1,4 +1,4 @@
-# Company Schema Gap Map
+# Company Reference Gap Map
 
 ## Purpose
 
@@ -12,6 +12,11 @@ This is meant to show:
 - what the app currently shows
 - what is only partially covered
 - what is missing or grouped differently
+
+This document should be read as the `Company`-specific companion to:
+
+- `record-architecture-master-plan.md`
+- `product-reference-guide.md`
 
 ## Current App Company Sections
 
@@ -342,7 +347,7 @@ So the current app is too relationship-first and not structural enough.
 
 ### Recommended correction
 
-For `Company`, both `EyeView` and `DataBook` should eventually move toward workbook-aligned top-level groups such as:
+For `Company`, the `Record View` should eventually move toward workbook-aligned top-level groups such as:
 
 - `Metadata`
 - `KDB Relations`
@@ -369,6 +374,6 @@ should likely live inside `KDB Relations`, or inside clearly related structural 
 
 Before more `Company` UI work, the next design pass should decide:
 
-1. whether `EyeView` and `DataBook` both use the workbook section set directly
+1. whether the `Company Record View` should use the workbook section set directly
 2. which workbook section labels should be translated into friendlier UI labels
 3. how `KDB_Relations` should expose linked entities without taking over the whole page structure
