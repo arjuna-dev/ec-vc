@@ -261,10 +261,10 @@
                 <q-checkbox
                   v-if="settingsAction.id !== 'settings'"
                   :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
-                  color="grey-5"
                   dense
-                  keep-color
                   size="xs"
+                  checked-icon="check_box"
+                  unchecked-icon="check_box_outline_blank"
                   class="ec-quick-widget-settings-row__checkbox"
                   @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
                 />
@@ -1777,8 +1777,8 @@ function goBack() {
 }
 
 .ec-quick-widget-settings-row__toggle-spacer {
-  width: 22px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 
 .ec-quick-widget-settings-row__actions {
@@ -1800,21 +1800,19 @@ function goBack() {
 }
 
 .ec-quick-widget-settings-row__checkbox {
-  min-height: 16px;
+  min-height: 18px;
 }
 
 .ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__inner) {
-  font-size: 24px;
-  color: rgba(255, 255, 255, 0.42) !important;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.34) !important;
 }
 
 .ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__inner--truthy) {
-  color: rgba(255, 255, 255, 0.72) !important;
+  color: rgba(255, 255, 255, 0.62) !important;
 }
 
 .ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__bg) {
-  border-width: 1px;
-  border-color: currentColor !important;
   background: transparent !important;
 }
 
