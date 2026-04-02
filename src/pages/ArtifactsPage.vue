@@ -3390,11 +3390,11 @@ watch(displayArtifactRows, () => {
   margin-right: 18px;
 }
 
-.artifacts-toolbar__block--filters {
-  flex-wrap: nowrap;
+.artifacts-toolbar__block--primary {
+  margin-right: 4px;
 }
 
-.artifacts-toolbar__block--search {
+.artifacts-toolbar__block--actions {
   grid-column: -2 / -1;
   align-items: center;
   justify-content: flex-end;
@@ -3405,6 +3405,11 @@ watch(displayArtifactRows, () => {
   align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.artifacts-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .artifacts-toolbar__toggle {
@@ -3463,7 +3468,66 @@ watch(displayArtifactRows, () => {
 
 .artifacts-toolbar__add-button {
   align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
   white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.artifacts-toolbar__add-button:hover,
+.artifacts-toolbar__add-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.artifacts-toolbar__add-button:active,
+.artifacts-toolbar__add-button.q-btn--active,
+.artifacts-toolbar__add-button.q-btn--standard.q-btn--active {
+  color: #ffffff;
+  background: #111111;
+}
+
+.artifacts-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.artifacts-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.artifacts-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.artifacts-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.artifacts-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
 }
 
 .artifacts-toolbar__kind-toggle :deep(.q-btn) {
@@ -3557,6 +3621,19 @@ watch(displayArtifactRows, () => {
   transform: translateY(-2px);
   border-color: rgba(59, 130, 246, 0.28);
   box-shadow: none;
+}
+
+.artifact-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 0;
+  background: transparent;
+}
+
+.artifact-card__control-row :deep(.q-checkbox__inner),
+.artifact-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
 .artifact-card__title-button {
@@ -3745,6 +3822,14 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card__select-box {
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.artifact-card__control-eye {
+  color: #111;
+  background: transparent;
+  border: 0;
   transform: scale(0.75);
   transform-origin: center;
 }
@@ -4355,13 +4440,16 @@ watch(displayArtifactRows, () => {
 .artifact-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
+  gap: 12px;
 }
 
 .artifact-card__summary-view-toggle,
 .artifact-card__summary-toggle {
   border-radius: var(--ds-control-radius);
+}
+
+.artifact-card__summary-view-toggle {
+  margin-left: auto;
 }
 
 .artifact-card__summary-view-toggle :deep(.q-btn-group),

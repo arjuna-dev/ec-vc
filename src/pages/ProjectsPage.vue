@@ -1422,16 +1422,11 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
-.pipelines-toolbar__block--view {
-  padding-top: 2px;
-  margin-right: 18px;
+.pipelines-toolbar__block--primary {
+  margin-right: 4px;
 }
 
-.pipelines-toolbar__block--filters {
-  flex-wrap: nowrap;
-}
-
-.pipelines-toolbar__block--search {
+.pipelines-toolbar__block--actions {
   grid-column: -2 / -1;
   align-items: center;
   justify-content: flex-end;
@@ -1442,6 +1437,11 @@ watch(displayRows, () => {
   align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.pipelines-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .pipelines-toolbar__search {
@@ -1537,7 +1537,66 @@ watch(displayRows, () => {
 
 .pipelines-toolbar__add-button {
   align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
   white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.pipelines-toolbar__add-button:hover,
+.pipelines-toolbar__add-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.pipelines-toolbar__add-button:active,
+.pipelines-toolbar__add-button.q-btn--active,
+.pipelines-toolbar__add-button.q-btn--standard.q-btn--active {
+  color: #ffffff;
+  background: #111111;
+}
+
+.pipelines-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.pipelines-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pipelines-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.pipelines-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.pipelines-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
 }
 
 .pipelines-surface {
@@ -1622,6 +1681,19 @@ watch(displayRows, () => {
 
 .pipeline-card__hero {
   padding: 0;
+}
+
+.pipeline-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 0;
+  background: transparent;
+}
+
+.pipeline-card__control-row :deep(.q-checkbox__inner),
+.pipeline-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
 .pipeline-card::before {
@@ -1792,12 +1864,11 @@ watch(displayRows, () => {
 .pipeline-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
+  gap: 12px;
 }
 
 .pipeline-card__summary-view-toggle {
-  margin-left: 0;
+  margin-left: auto;
   border-radius: var(--ds-control-radius);
 }
 
@@ -1927,6 +1998,14 @@ watch(displayRows, () => {
 }
 
 .pipeline-card__select-box {
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.pipeline-card__control-eye {
+  color: #111;
+  background: transparent;
+  border: 0;
   transform: scale(0.75);
   transform-origin: center;
 }
