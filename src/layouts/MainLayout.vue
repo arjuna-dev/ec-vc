@@ -238,10 +238,7 @@
       >
         <div class="ec-quick-widget-settings-panel">
           <div class="ec-quick-widget-settings-panel__header">
-            <div>
-              <div class="ec-quick-widget-settings-panel__eyebrow">Widget Settings</div>
-              <div class="ec-quick-widget-settings-panel__title">Quick Files</div>
-            </div>
+            <div class="ec-quick-widget-settings-panel__title">Widget Settings</div>
             <div class="ec-quick-widget-settings-panel__caption">
               Show, hide, and reorder the files in your quick widget.
             </div>
