@@ -2060,6 +2060,7 @@ watch(
 }
 
 .opportunity-card__select-box {
+  margin-left: 2px;
   transform: scale(0.75);
   transform-origin: center;
 }
@@ -2070,6 +2071,7 @@ watch(
   min-width: 22px;
   min-height: 22px;
   padding: 0;
+  margin-right: 2px;
   color: #111;
   background: transparent;
   border: 0;

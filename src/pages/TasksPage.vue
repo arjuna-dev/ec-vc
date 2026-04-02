@@ -1606,7 +1606,7 @@ watch(displayRows, () => {
   flex-direction: column;
   min-height: 100%;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 28px;
   border-color: rgba(148, 163, 184, 0.28);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
@@ -1617,6 +1617,7 @@ watch(displayRows, () => {
   min-width: 22px;
   min-height: 22px;
   padding: 0;
+  margin-right: 2px;
   color: #111111;
   background: transparent;
   border: 0;
@@ -1628,6 +1629,7 @@ watch(displayRows, () => {
 }
 
 .task-card__select-box {
+  margin-left: 2px;
   transform: scale(0.75);
   transform-origin: center;
 }

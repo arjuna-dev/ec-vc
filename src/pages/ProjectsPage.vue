@@ -1650,7 +1650,7 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  border-radius: 20px;
+  border-radius: 28px;
   border-color: rgba(17, 17, 17, 0.1);
   box-shadow: 0 12px 30px rgba(17, 17, 17, 0.06);
   overflow: hidden;
@@ -1977,6 +1977,7 @@ watch(displayRows, () => {
 }
 
 .pipeline-card__select-box {
+  margin-left: 2px;
   transform: scale(0.75);
   transform-origin: center;
 }
@@ -1987,6 +1988,7 @@ watch(displayRows, () => {
   min-width: 22px;
   min-height: 22px;
   padding: 0;
+  margin-right: 2px;
   color: #111;
   background: transparent;
   border: 0;
