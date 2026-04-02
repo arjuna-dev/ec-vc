@@ -1,6 +1,7 @@
 <template>
   <OpportunityCreateDialog
     :model-value="modelValue"
+    :initial-data="initialData"
     initial-kind="fund"
     lock-kind
     @update:model-value="emit('update:modelValue', $event)"
@@ -13,6 +14,7 @@ import OpportunityCreateDialog from './OpportunityCreateDialog.vue'
 
 defineProps({
   modelValue: { type: Boolean, default: false },
+  initialData: { type: Object, default: null },
 })
 
 const emit = defineEmits(['update:modelValue', 'created'])

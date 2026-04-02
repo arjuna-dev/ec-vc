@@ -45,6 +45,11 @@ contextBridge.exposeInMainWorld('ecvc', {
   autofill: {
     previewFromFiles: ({ filePaths, context } = {}) =>
       ipcRenderer.invoke('autofill:previewFromFiles', { filePaths, context }),
+    onPreviewStatus: (cb) => {
+      const handler = (_event, payload) => cb?.(payload)
+      ipcRenderer.on('autofill:preview:status', handler)
+      return () => ipcRenderer.removeListener('autofill:preview:status', handler)
+    },
   },
   projects: {
     list: () => ipcRenderer.invoke('projects:list'),

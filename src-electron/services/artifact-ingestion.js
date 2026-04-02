@@ -9,10 +9,7 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 
 import { dbAll, dbRun, initDb } from './sqlite-db.js'
-import {
-  getArtifactLlmReadyPath,
-  getArtifactRawPath,
-} from './workspace-structure.js'
+import { getArtifactLlmReadyPath, getArtifactRawPath } from './workspace-structure.js'
 
 function safeBasename(filePath) {
   return path.basename(String(filePath || ''))
@@ -179,7 +176,7 @@ async function ocrToMarkdown({ filePath: sourceFilePath, fileName, geminiApiKey 
   }
 
   const result = streamText({
-    model: gemini('gemini-2.5-flash'),
+    model: gemini('gemini-3.1-flash-lite-preview'),
     messages: [{ role: 'user', content: contentParts }],
   })
 
@@ -483,8 +480,7 @@ export async function ingestArtifactsFromPaths({
       rawAbsPath,
       rawRelPath,
       rawArtifactId,
-    } =
-      item
+    } = item
     emitFileStageStatus(emitStatus, originalFileName, {
       markdownStatus: 'pending',
       message: `Generating markdown for "${originalFileName}"...`,
@@ -521,13 +517,7 @@ export async function ingestArtifactsFromPaths({
             artifact_format
           ) VALUES (?, ?, ?, ?, ?)
         `,
-          [
-            llmArtifactId,
-            links.round_id,
-            links.fund_id,
-            baseName(originalFileName),
-            'md',
-          ],
+          [llmArtifactId, links.round_id, links.fund_id, baseName(originalFileName), 'md'],
         )
         dbRun(
           `
@@ -557,7 +547,7 @@ export async function ingestArtifactsFromPaths({
       })
       emitFileStageStatus(emitStatus, originalFileName, {
         markdownStatus: 'completed',
-          message: `"${path.basename(llmAbsPath)}" markdown generated`,
+        message: `"${path.basename(llmAbsPath)}" markdown generated`,
       })
       continue
     }
@@ -665,13 +655,7 @@ export async function ingestArtifactsFromPaths({
           artifact_format
         ) VALUES (?, ?, ?, ?, ?)
       `,
-        [
-          llmArtifactId,
-          links.round_id,
-          links.fund_id,
-          baseName(originalFileName),
-          'md',
-        ],
+        [llmArtifactId, links.round_id, links.fund_id, baseName(originalFileName), 'md'],
       )
       dbRun(
         `
@@ -686,7 +670,16 @@ export async function ingestArtifactsFromPaths({
           llm_model
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `,
-        [llmArtifactId, rawArtifactId, 'llm', llmRelPath, hash, stat.size, 'google', 'gemini-2.5-flash'],
+        [
+          llmArtifactId,
+          rawArtifactId,
+          'llm',
+          llmRelPath,
+          hash,
+          stat.size,
+          'google',
+          'gemini-3.1-flash-lite-preview',
+        ],
       )
     } catch (e) {
       emitStatus?.({
