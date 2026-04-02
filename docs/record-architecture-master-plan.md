@@ -28,6 +28,13 @@ That workbook should be treated as the live structural document being used to de
 
 The JSON companion should be treated as the machine-readable export of that same structure.
 
+During this phase, the intended direction is:
+
+- `Workbook` helps define and validate the first structure
+- `JSON` becomes the canonical machine-readable structure layer
+- the app should eventually edit that canonical JSON structure directly
+- exporters and importers should remain available as adapters for migration and outside data sources
+
 ## Objective
 
 Make the app function cohesively from `File` to `Card` to `Record View`.
@@ -54,9 +61,15 @@ This initial architecture pass is meant to define the first clean, stable struct
 
 For this phase:
 
-- the `Workbook` is the structural authority
+- the `Workbook` is the first-pass structural authority
 - the app uses the workbook to establish order, ownership, and consistency
 - the UI should align to that structure while we standardize the system
+
+But the intended product architecture after this first pass is:
+
+- `JSON` as the app-readable structure source of truth
+- app editing against that `JSON` structure
+- exporter/importer tools for migration, intake, and outside sources such as Excel
 
 This does **not** mean the workbook must permanently lead every future design decision.
 
@@ -77,7 +90,7 @@ The current goal is to use the workbook as the best available structural guide f
 
 ## Governing Model
 
-The structural authority is:
+The first-pass structural authority is:
 
 `Workbook -> DB Tables -> Payload -> UI`
 
@@ -97,6 +110,31 @@ So the practical meaning is:
 - `DB` is the runtime source
 - `Payloads` must reflect workbook structure
 - `UI` should not invent structure on the fly
+
+## Canonical Structure Direction
+
+The long-term canonical structure direction is:
+
+`JSON/App Structure -> Payload -> UI`
+
+With supporting adapters:
+
+- `Workbook exporter/importer`
+- future migration exporters/importers
+- external intake or migration formats
+
+This means:
+
+- the workbook is helping us design and validate the first structure
+- the app should not depend forever on Excel as the primary bridge
+- canonical structure should live in a machine-readable form that the app can edit directly
+- exporters remain valuable, but they should act as adapters rather than the permanent backbone
+
+Working interpretation:
+
+- `Workbook` is the current design and validation surface
+- `JSON` is the target canonical structure surface
+- `app editing` should eventually operate against that canonical JSON structure
 
 ## Surface Split
 
@@ -288,7 +326,7 @@ After making a bulk card change:
 
 ### Workbook Rule
 
-The workbook is the canonical setup and validation layer.
+The workbook is the first-pass setup and validation layer.
 
 Use it to verify:
 
@@ -296,6 +334,18 @@ Use it to verify:
 - section membership
 - leaf-token ownership
 - relationship coverage
+
+The workbook is not intended to remain the permanent runtime bridge once the canonical JSON structure is in place.
+
+### Canonical Structure Rule
+
+The long-term structure source of truth should be a machine-readable app-native layer.
+
+For this project, that means:
+
+- `JSON` should become the canonical structure source of truth
+- the app should be able to edit that structure directly
+- workbook export/import should support migration and outside editing, not define the runtime forever
 
 ### Record Section Rule
 
@@ -529,6 +579,11 @@ For each entity define:
 - item-address ranges
 - final token naming
 
+At the same time:
+
+- confirm the JSON structure shape that the app will eventually own directly
+- use the workbook to validate that JSON shape rather than making Excel the permanent dependency
+
 Start with:
 
 - `Company`
@@ -573,6 +628,7 @@ Deliver:
 
 - approved section structure
 - approved addressing
+- canonical JSON subsection structure
 - light payload for file/cards
 - rich payload for record view
 - KDB relationship groups
@@ -621,12 +677,16 @@ Recommended order:
 - [x] KDB icon strip unified across file cards
 - [x] Card relationship icon affordance added
 - [x] Excel + JSON companion workflow introduced
+- [x] Canonical direction decided: `JSON + app editing`
 - [ ] Route and shared naming fully cleaned of `Databook`
 - [ ] Heuristic section mapping fully replaced
 - [ ] Light vs rich payload split documented per entity
 - [ ] Item addressing adopted per entity
 - [ ] Rich record payloads standardized per entity
 - [ ] Token names normalized to final approved form
+- [ ] Canonical JSON structure contract defined per entity
+- [ ] App editing model for canonical JSON structure defined
+- [ ] Exporters repositioned as migration/intake adapters
 
 ### Reference Entity: Company
 
@@ -662,4 +722,4 @@ We are trying to make every surface structurally coherent.
 
 So the practical principle is:
 
-`Use the workbook as the canonical structure reference, keep file views lightweight, make record views rich, and let stable addresses tie the system together.`
+`Use the workbook to define and validate the first structure, move canonical ownership into JSON with app editing, keep file views lightweight, make record views rich, and let stable addresses tie the system together.`
