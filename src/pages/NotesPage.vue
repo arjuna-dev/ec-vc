@@ -97,6 +97,10 @@
             <q-btn dense flat round icon="download" color="grey-6" class="notes-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
+          </div>
+
+          <div class="notes-toolbar__block notes-toolbar__block--actions">
+            <q-icon name="tune" size="18px" class="notes-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -110,24 +114,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-icon name="tune" size="18px" class="notes-toolbar__filters-icon" />
-          </div>
-
-          <div class="notes-toolbar__block notes-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="noteKindFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="notes-toolbar__toggle notes-toolbar__kind-toggle"
-              :options="noteKindOptions"
-            />
-          </div>
-
-          <div class="notes-toolbar__block notes-toolbar__block--actions">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -458,11 +444,6 @@ const viewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 
-const noteKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Favorites', value: 'favorites' },
-  { label: 'Recent', value: 'recent' },
-]
 
 function normalizeNoteValue(value) {
   return String(value || '').trim()

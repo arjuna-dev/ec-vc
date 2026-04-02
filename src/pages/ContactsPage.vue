@@ -97,6 +97,10 @@
             <q-btn dense flat round icon="download" color="grey-6" class="contacts-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
+          </div>
+
+          <div class="contacts-toolbar__block contacts-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="contacts-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -110,25 +114,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-icon name="tune" size="18px" class="contacts-toolbar__filters-icon" />
-          </div>
-
-          <div class="contacts-toolbar__block contacts-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="contactKindFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="contacts-toolbar__toggle contacts-toolbar__kind-toggle"
-              :disable="loading"
-              :options="contactKindOptions"
-            />
-          </div>
-
-          <div class="contacts-toolbar__block contacts-toolbar__block--actions">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -502,10 +487,6 @@ const router = useRouter()
 const CONTACT_VIEW_MODES = new Set(['card', 'table'])
 const CONTACTS_BREADCRUMB_ACTION_OWNER = 'contacts-page'
 const viewMode = ref(getRouteViewMode(route.query.view))
-const contactKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Connected', value: 'connected' },
-]
 const contactsDashboard = computed(() => {
   const total = rows.value.length
   const counts = rows.value.reduce(
@@ -1700,7 +1681,7 @@ watch(displayRows, () => {
 
 .contacts-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: auto auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1721,7 +1702,8 @@ watch(displayRows, () => {
   margin-right: 4px;
 }
 
-.contacts-toolbar__block--actions {
+.contacts-toolbar__block--search {
+  grid-column: -2 / -1;
   padding-top: 2px;
   align-items: center;
   justify-content: flex-end;
@@ -2611,6 +2593,10 @@ watch(displayRows, () => {
   .contacts-toolbar__block {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .contacts-toolbar__block--search {
+    grid-column: auto;
   }
 
   .contacts-toolbar__search {

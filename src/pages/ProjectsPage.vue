@@ -97,6 +97,10 @@
             <q-btn dense flat round icon="download" color="grey-6" class="pipelines-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
+          </div>
+
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--actions">
+            <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -110,25 +114,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
-          </div>
-
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="pipelineKindFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="pipelines-toolbar__toggle pipelines-toolbar__kind-toggle"
-              :disable="loading"
-              :options="pipelineKindOptions"
-            />
-          </div>
-
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--actions">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -504,11 +489,6 @@ const csvHeaders = ['pipeline_id', 'name', 'dir_name', 'is_default']
 const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-const pipelineKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Own', value: 'own' },
-  { label: 'Others', value: 'others' },
 ]
 const pipelinesDashboard = computed(() => {
   const total = pipelines.value.length

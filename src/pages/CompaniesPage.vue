@@ -97,6 +97,10 @@
             <q-btn dense flat round icon="download" color="grey-6" class="companies-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
+          </div>
+
+          <div class="companies-toolbar__block companies-toolbar__block--actions">
+            <q-icon name="tune" size="18px" class="companies-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -110,25 +114,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-icon name="tune" size="18px" class="companies-toolbar__filters-icon" />
-          </div>
-
-          <div class="companies-toolbar__block companies-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="companyKindFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="companies-toolbar__toggle companies-toolbar__kind-toggle"
-              :disable="loading"
-              :options="companyKindOptions"
-            />
-          </div>
-
-          <div class="companies-toolbar__block companies-toolbar__block--actions">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -677,11 +662,6 @@ const companyTableTabs = [
   { label: 'Results', value: 'results' },
   { label: 'Business Plan', value: 'business-plan' },
   { label: 'Fund Raising', value: 'fund-raising' },
-]
-const companyKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Managers', value: 'asset_managers' },
-  { label: 'Corps', value: 'corps' },
 ]
 
 const metadataColumns = [

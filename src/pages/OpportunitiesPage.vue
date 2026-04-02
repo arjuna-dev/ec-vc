@@ -97,6 +97,10 @@
             <q-btn dense flat round icon="download" color="grey-6" class="opportunities-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
+          </div>
+
+          <div class="opportunities-toolbar__block opportunities-toolbar__block--actions">
+            <q-icon name="tune" size="18px" class="opportunities-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -110,25 +114,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-icon name="tune" size="18px" class="opportunities-toolbar__filters-icon" />
-          </div>
-
-          <div class="opportunities-toolbar__block opportunities-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="kindFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="opportunities-toolbar__toggle opportunities-toolbar__kind-toggle"
-              :disable="loading"
-              :options="kindFilterOptions"
-            />
-          </div>
-
-          <div class="opportunities-toolbar__block opportunities-toolbar__block--actions">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -468,11 +453,6 @@ const opportunityCardPanelOptions = [
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
-const kindFilterOptions = [
-  { label: 'All', value: ALL_OPPORTUNITIES_FILTER },
-  { label: 'Funds', value: 'fund' },
-  { label: 'Rounds', value: 'round' },
-]
 const currentOpportunityMode = computed(() => {
   if (kindFilter.value === 'fund') {
     return {

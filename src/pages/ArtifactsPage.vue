@@ -97,6 +97,10 @@
             <q-btn dense flat round icon="download" color="grey-6" class="artifacts-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
+          </div>
+
+          <div class="artifacts-toolbar__block artifacts-toolbar__block--actions">
+            <q-icon name="tune" size="18px" class="artifacts-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -110,24 +114,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-icon name="tune" size="18px" class="artifacts-toolbar__filters-icon" />
-          </div>
-
-          <div class="artifacts-toolbar__block artifacts-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="artifactKindFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="artifacts-toolbar__toggle artifacts-toolbar__kind-toggle"
-              :options="artifactKindOptions"
-            />
-          </div>
-
-          <div class="artifacts-toolbar__block artifacts-toolbar__block--actions">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -1110,11 +1096,6 @@ const ARTIFACTS_BREADCRUMB_ACTION_OWNER = 'artifacts-page'
 const viewModeOptions = [
   { value: 'grid', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-const artifactKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Reviewed', value: 'ready' },
-  { label: 'Pending', value: 'needs-review' },
 ]
 const artifactCardContentViewOptions = [
   { value: 'card', icon: 'grid_view' },

@@ -97,6 +97,10 @@
             <q-btn dense flat round icon="download" color="grey-6" class="tasks-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
+          </div>
+
+          <div class="tasks-toolbar__block tasks-toolbar__block--actions">
+            <q-icon name="tune" size="18px" class="tasks-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -110,24 +114,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-icon name="tune" size="18px" class="tasks-toolbar__filters-icon" />
-          </div>
-
-          <div class="tasks-toolbar__block tasks-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="taskKindFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="tasks-toolbar__toggle tasks-toolbar__kind-toggle"
-              :options="taskKindOptions"
-            />
-          </div>
-
-          <div class="tasks-toolbar__block tasks-toolbar__block--actions">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -475,11 +461,6 @@ const viewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 
-const taskKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Open', value: 'open' },
-  { label: 'Done', value: 'done' },
-]
 
 function normalizeTaskValue(value) {
   return String(value || '').trim()
