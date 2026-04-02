@@ -161,7 +161,7 @@
           </q-table>
 
           <div v-else class="row q-col-gutter-md users-cards-grid">
-            <div v-for="user in displayRows" :key="user.id" class="col-12 col-md-6 col-lg-4">
+            <div v-for="row in displayRows" :key="row.id" class="col-12 col-md-6 col-lg-4">
               <q-card
                 flat
                 bordered
@@ -173,11 +173,11 @@
               >
                 <q-card-section class="user-card__control-row">
                   <q-checkbox
-                    :model-value="isUserSelected(user)"
+                    :model-value="isUserSelected(row)"
                     :disable="loading"
                     color="dark"
                     class="user-card__select-box"
-                    @update:model-value="toggleUserSelection(user, $event)"
+                    @update:model-value="toggleUserSelection(row, $event)"
                   />
 
                   <q-btn
@@ -186,7 +186,7 @@
                     icon="visibility"
                     class="user-card__control-eye"
                     :disable="loading"
-                    @click="openDatabook(user)"
+                    @click="openDatabook(row)"
                   />
                 </q-card-section>
 
@@ -196,9 +196,9 @@
                       <div class="user-card__portrait-shell" aria-hidden="true">
                         <div
                           class="user-card__portrait-badge"
-                          :style="{ backgroundColor: getUserAvatarColor(user.User_Name || 'User') }"
+                          :style="{ backgroundColor: getUserAvatarColor(row.User_Name || 'User') }"
                         >
-                          {{ getUserAvatarInitial(user.User_Name || 'User') }}
+                          {{ getUserAvatarInitial(row.User_Name || 'User') }}
                         </div>
                       </div>
                     </figure>
@@ -206,13 +206,13 @@
                     <div class="user-card__hero-side">
                       <div class="user-card__hero-copy">
                         <div class="user-card__title">
-                          {{ user.User_Name || 'Unnamed user' }}
+                          {{ row.User_Name || 'Unnamed user' }}
                         </div>
 
                         <div class="user-card__bottom-stack">
-                          <div v-if="getUserMetadataRows(user).length" class="user-card__detail-stack">
+                          <div v-if="getUserMetadataRows(row).length" class="user-card__detail-stack">
                             <div
-                              v-for="detail in getUserMetadataRows(user)"
+                              v-for="detail in getUserMetadataRows(row)"
                               :key="detail.label"
                               class="user-card__detail-row"
                             >
@@ -231,18 +231,18 @@
                 <q-card-section class="user-card__summary">
                   <div class="user-card__summary-head">
                     <q-btn-toggle
-                      :model-value="getUserCardPanel(user)"
+                      :model-value="getUserCardPanel(row)"
                       dense
                       unelevated
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
                       class="user-card__summary-toggle"
-                      :options="getUserRelationshipOptions(user)"
-                      @update:model-value="setUserCardPanel(user, $event)"
+                      :options="getUserRelationshipOptions(row)"
+                      @update:model-value="setUserCardPanel(row, $event)"
                     />
                     <q-btn-toggle
-                      :model-value="getUserCardContentView(user)"
+                      :model-value="getUserCardContentView(row)"
                       dense
                       unelevated
                       toggle-color="primary"
@@ -250,7 +250,7 @@
                       text-color="grey-8"
                       class="user-card__summary-view-toggle"
                       :options="userCardContentViewOptions"
-                      @update:model-value="setUserCardContentView(user, $event)"
+                      @update:model-value="setUserCardContentView(row, $event)"
                     />
                   </div>
 
@@ -266,14 +266,14 @@
                     <div class="user-card__summary-body">
                       <div class="user-card__summary-body-content">
                         <div
-                          v-if="getUserActiveRelationshipItems(user).length"
+                          v-if="getUserActiveRelationshipItems(row).length"
                           :class="[
                             'user-card__notes-list',
-                            { 'user-card__notes-list--rows': getUserCardContentView(user) === 'table' },
+                            { 'user-card__notes-list--rows': getUserCardContentView(row) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="item in getUserActiveRelationshipItems(user)"
+                            v-for="item in getUserActiveRelationshipItems(row)"
                             :key="item"
                             class="user-card__note-pill"
                           >

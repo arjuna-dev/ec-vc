@@ -162,8 +162,8 @@
 
         <div v-else-if="viewMode === 'grid'" class="row q-col-gutter-md artifacts-grid">
         <div
-          v-for="group in displayArtifactGroups"
-          :key="group.groupId"
+          v-for="row in displayArtifactGroups"
+          :key="row.groupId"
           class="col-12 col-sm-6 col-lg-4"
         >
         <q-card
@@ -177,11 +177,11 @@
         >
           <q-card-section class="artifact-card__control-row">
             <q-checkbox
-              :model-value="isSelected(group.primaryArtifact)"
+              :model-value="isSelected(row.primaryArtifact)"
               :disable="loading || savingProperties"
               color="dark"
               class="artifact-card__select-box"
-              @update:model-value="toggleRowSelection(group.primaryArtifact, $event)"
+              @update:model-value="toggleRowSelection(row.primaryArtifact, $event)"
             />
             <q-btn
               flat
@@ -189,7 +189,7 @@
               icon="visibility"
               class="artifact-card__control-eye"
               :disable="loading"
-              @click="openDatabook(group.primaryArtifact)"
+              @click="openDatabook(row.primaryArtifact)"
             />
           </q-card-section>
           <q-card-section class="artifact-card__hero">
@@ -198,9 +198,9 @@
                 <div class="artifact-card__portrait-shell" aria-hidden="true">
                   <div
                     class="artifact-card__portrait-badge"
-                    :style="{ backgroundColor: getArtifactAvatarColor(group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Artifact') }"
+                    :style="{ backgroundColor: getArtifactAvatarColor(row.primaryArtifact.title || artifactFileName(row.primaryArtifact) || 'Artifact') }"
                   >
-                    {{ getArtifactAvatarInitial(group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Artifact') }}
+                    {{ getArtifactAvatarInitial(row.primaryArtifact.title || artifactFileName(row.primaryArtifact) || 'Artifact') }}
                   </div>
                 </div>
               </figure>
@@ -208,13 +208,13 @@
               <div class="artifact-card__hero-side">
                 <div class="artifact-card__hero-copy">
                   <div class="artifact-card__title">
-                    {{ group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Untitled artifact' }}
+                    {{ row.primaryArtifact.title || artifactFileName(row.primaryArtifact) || 'Untitled artifact' }}
                   </div>
 
                   <div class="artifact-card__bottom-stack">
-                    <div v-if="getArtifactCardDetails(group).length" class="artifact-card__detail-stack">
+                    <div v-if="getArtifactCardDetails(row).length" class="artifact-card__detail-stack">
                       <div
-                        v-for="detail in getArtifactCardDetails(group)"
+                        v-for="detail in getArtifactCardDetails(row)"
                         :key="detail.label"
                         class="artifact-card__detail-row"
                       >
@@ -233,18 +233,18 @@
           <q-card-section class="artifact-card__summary">
             <div class="artifact-card__summary-head">
               <q-btn-toggle
-                :model-value="getArtifactCardPanel(group)"
+                :model-value="getArtifactCardPanel(row)"
                 dense
                 unelevated
                 toggle-color="dark"
                 color="white"
                 text-color="grey-8"
                 class="artifact-card__summary-toggle"
-                :options="getArtifactRelationshipOptions(group)"
-                @update:model-value="setArtifactCardPanel(group, $event)"
+                :options="getArtifactRelationshipOptions(row)"
+                @update:model-value="setArtifactCardPanel(row, $event)"
               />
               <q-btn-toggle
-                :model-value="getArtifactCardContentView(group)"
+                :model-value="getArtifactCardContentView(row)"
                 dense
                 unelevated
                 toggle-color="primary"
@@ -252,7 +252,7 @@
                 text-color="grey-8"
                 class="artifact-card__summary-view-toggle"
                 :options="artifactCardContentViewOptions"
-                @update:model-value="setArtifactCardContentView(group, $event)"
+                @update:model-value="setArtifactCardContentView(row, $event)"
               />
             </div>
 
@@ -268,14 +268,14 @@
               <div class="artifact-card__summary-body">
                 <div class="artifact-card__summary-body-content">
                   <div
-                    v-if="getArtifactActiveRelationshipItems(group).length"
+                    v-if="getArtifactActiveRelationshipItems(row).length"
                     :class="[
                       'artifact-card__notes-list',
-                      { 'artifact-card__notes-list--rows': getArtifactCardContentView(group) === 'table' },
+                      { 'artifact-card__notes-list--rows': getArtifactCardContentView(row) === 'table' },
                     ]"
                   >
                     <div
-                      v-for="item in getArtifactActiveRelationshipItems(group)"
+                      v-for="item in getArtifactActiveRelationshipItems(row)"
                       :key="item"
                       class="artifact-card__note-pill"
                     >
