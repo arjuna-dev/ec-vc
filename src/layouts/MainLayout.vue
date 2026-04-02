@@ -234,7 +234,6 @@
       <q-menu
         v-model="quickWidgetSettingsOpen"
         :target="quickWidgetSettingsTarget"
-        :offset="[40, 0]"
         no-parent-event
         anchor="top right"
         self="top left"
@@ -399,7 +398,7 @@ const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
 const quickWidgetSettingsOpen = ref(false)
-const quickWidgetSettingsOffset = ref({ x: 0, y: 0 })
+const quickWidgetSettingsOffset = ref({ x: 40, y: 0 })
 const quickWidgetSettingsIsDragging = ref(false)
 const quickWidgetSettingsTarget = ref(null)
 const draftTrayDismissed = ref(false)
