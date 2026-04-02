@@ -2838,6 +2838,7 @@ function formatCanonicalLabel(value, entityPrefix = '') {
   if (/^docs$/i.test(label)) return 'Documents'
   if (/^ops overview$/i.test(label)) return 'Operations'
   if (/^business overview$/i.test(label)) return 'Business'
+  if (/^market overview$/i.test(label)) return 'Market'
   return label
 }
 
