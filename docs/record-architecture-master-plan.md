@@ -23,6 +23,7 @@ For the current first-pass architecture work, the active workbook schema referen
 
 - `docs/B10_DOS v260400 vrev.xlsx`
 - `docs/workbook-schema-companion.json`
+- `docs/canonical-structure.json`
 
 That workbook should be treated as the live structural document being used to define the first approved architecture pass.
 
@@ -135,6 +136,10 @@ Working interpretation:
 - `Workbook` is the current design and validation surface
 - `JSON` is the target canonical structure surface
 - `app editing` should eventually operate against that canonical JSON structure
+
+Current draft file:
+
+- `docs/canonical-structure.json`
 
 ## Surface Split
 

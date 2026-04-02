@@ -32,6 +32,7 @@ This tracker should stay aligned with:
 - `Intake Architecture Master Plan` is now the single intake planning source of truth
 - Excel workbook + JSON companion workflow is now in place for schema indexing
 - `JSON + app editing` is now the chosen canonical structure direction
+- `docs/canonical-structure.json` is now the first app-owned canonical structure draft
 - Exporters are now being treated as migration / ingestion utilities, not the permanent architecture backbone
 - Artifact processing recovery and continuity
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`
