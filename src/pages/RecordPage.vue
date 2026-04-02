@@ -401,7 +401,7 @@
               class="contact-databook__nav-item"
               :class="{
                 'contact-databook__nav-item--active': activeContactSection === section.anchor,
-                'contact-databook__nav-item--kdb': section.anchor === 'other',
+                'contact-databook__nav-item--kdb': section.isKdb,
               }"
               @click="activeContactSection = section.anchor"
             >
@@ -411,7 +411,7 @@
 
           <section class="contact-databook__details">
             <article v-if="activeContentSection" class="contact-section-card contact-section-card--active">
-              <div v-if="activeContentSection.anchor !== 'other'" class="contact-section-card__header">
+              <div v-if="!activeContentSection.isKdb" class="contact-section-card__header">
                 <div class="contact-section-card__intro">
                   <h2 class="contact-section-card__title">{{ activeContentSection.title }}</h2>
                   <div v-if="activeContentSection.caption" class="contact-section-card__caption">
@@ -449,7 +449,7 @@
                 </svg>
               </div>
 
-              <div v-if="activeContentSection.anchor === 'other'" class="contact-kdb">
+              <div v-if="activeContentSection.isKdb" class="contact-kdb">
                 <div class="contact-kdb-toolbar">
                   <div class="contact-kdb-toolbar__block">
                     <q-btn-toggle
@@ -976,7 +976,7 @@
               class="contact-databook__nav-item"
               :class="{
                 'contact-databook__nav-item--active': activeCompanySection === section.anchor,
-                'contact-databook__nav-item--kdb': section.anchor === 'contacts',
+                'contact-databook__nav-item--kdb': section.isKdb,
               }"
               @click="activeCompanySection = section.anchor"
             >
@@ -986,7 +986,7 @@
 
           <section class="contact-databook__details">
             <article v-if="activeCompanyContentSection" class="contact-section-card contact-section-card--active">
-              <div v-if="activeCompanyContentSection.anchor !== 'contacts'" class="contact-section-card__header">
+              <div v-if="!activeCompanyContentSection.isKdb" class="contact-section-card__header">
                 <div class="contact-section-card__intro">
                   <h2 class="contact-section-card__title">{{ activeCompanyContentSection.title }}</h2>
                   <div v-if="activeCompanyContentSection.caption" class="contact-section-card__caption">
@@ -1024,70 +1024,7 @@
                 </svg>
               </div>
 
-              <div v-if="activeCompanyContentSection.anchor === 'notes'" class="contact-context-grid">
-                <article class="contact-side-card">
-                  <div class="contact-side-card__header">
-                    <div class="contact-side-card__intro">
-                      <h3 class="contact-side-card__title">Notes</h3>
-                      <div class="contact-side-card__eyebrow">Company history</div>
-                    </div>
-                  </div>
-
-                  <ul v-if="companyNotes.length" class="contact-databook__hero-notes">
-                    <li
-                      v-for="note in companyNotes"
-                      :key="note.id"
-                      class="contact-databook__hero-note"
-                    >
-                      <div class="contact-databook__notes-row">
-                        <div class="contact-databook__notes-title">{{ note.title }}</div>
-                        <div class="contact-databook__notes-meta">{{ note.created_at }}</div>
-                      </div>
-                      <div v-if="note.content" class="contact-databook__notes-content">
-                        {{ note.content }}
-                      </div>
-                    </li>
-                  </ul>
-                  <div v-else class="contact-section-card__empty contact-context-card__empty">
-                    No notes yet for this company.
-                  </div>
-                </article>
-              </div>
-
-              <div
-                v-else-if="activeCompanyContentSection.anchor === 'artifacts'"
-                class="contact-context-grid"
-              >
-                <article class="contact-side-card">
-                  <div class="contact-side-card__header">
-                    <div class="contact-side-card__intro">
-                      <h3 class="contact-side-card__title">Related documents</h3>
-                      <div class="contact-side-card__eyebrow">Artifacts</div>
-                    </div>
-                  </div>
-
-                  <ul v-if="companyDocuments.length" class="contact-databook__hero-documents">
-                    <li
-                      v-for="document in companyDocuments"
-                      :key="document.id"
-                      class="contact-databook__hero-document"
-                    >
-                      <div class="contact-databook__notes-row">
-                        <div class="contact-databook__notes-title">{{ document.name }}</div>
-                        <div class="contact-databook__notes-meta">{{ document.fileTypeLabel }}</div>
-                      </div>
-                      <div class="contact-databook__notes-content">
-                        {{ document.summary || 'Open the document preview for more detail.' }}
-                      </div>
-                    </li>
-                  </ul>
-                  <div v-else class="contact-section-card__empty contact-context-card__empty">
-                    No related documents yet for this company.
-                  </div>
-                </article>
-              </div>
-
-              <div v-else-if="activeCompanyContentSection.anchor === 'contacts'" class="contact-kdb">
+              <div v-if="activeCompanyContentSection.isKdb" class="contact-kdb">
                 <div class="contact-kdb-toolbar">
                   <div class="contact-kdb-toolbar__block">
                     <q-btn-toggle
@@ -2332,6 +2269,7 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
+import canonicalStructure from '../../docs/canonical-structure.json'
 
 const route = useRoute()
 const router = useRouter()
@@ -2473,6 +2411,89 @@ const CONTACT_SECTION_ICONS = {
   },
 }
 
+const CANONICAL_STRUCTURE_BY_ENTITY = Object.freeze(
+  Object.fromEntries((canonicalStructure?.entities || []).map((entity) => [entity.entity, entity])),
+)
+
+const CANONICAL_TOKEN_ALIAS_OVERRIDES = Object.freeze({
+  Contacts: {
+    Contact_ID: ['id'],
+    Contact_DateTime_Stamp: ['updated_at', 'created_at'],
+    Contact_Creator: ['created_by_label', 'created_by'],
+    Contact_Name: ['Name'],
+    Contact_PEmail: ['Personal_Email'],
+    Contact_BEmail: ['Business_Email', 'Email'],
+    Contact_Phone: ['Phone'],
+    Contact_HQ: ['Country_based'],
+    Contact_LinkedIn: ['LinkedIn'],
+    Contact_Employment: [
+      'Current_Companies',
+      'Previous_Companies',
+      'Current_Roles',
+      'Role',
+      'Expertise',
+      'Tenure_at_Firm',
+      'Tenure_at_Firm_yrs',
+    ],
+    Contact_Studies: ['Degrees_Program', 'University', 'Credentials'],
+  },
+  Companies: {
+    Company_ID: ['id'],
+    Company_Creator: ['created_by_label', 'created_by'],
+    Company_DateTime_Stamp: ['updated_at', 'created_at'],
+    Company_Status: ['Status'],
+    Company_Short_Name: ['Short_Name'],
+    Company_Website: ['Website'],
+    Company_Tagline: ['One_Liner', 'Tagline'],
+    Company_Legal_Name: ['Legal_Name', 'Company_Name'],
+    Company_Inc_Date: ['Date_of_Incorporation'],
+    Company_Inc_Country: ['Country_of_Incorporation', 'country_id'],
+    Company_Entity_Type: ['Company_Type'],
+    Company_Founders: ['Founders'],
+    Company_HQ_Locations: ['HQ_Locations', 'country_id', 'city_id', 'region_id'],
+    Company_Ops_Locations: ['Ops_Locations'],
+    Company_Pax_Count: ['Pax'],
+    Company_Pax_Known: ['Pax_Known'],
+    Company_Description: ['Description'],
+    Company_News: ['News'],
+    Company_Updates: ['Updates'],
+    Company_Objectives: ['Objectives'],
+    Company_Products: ['Products'],
+    Company_Key_Features: ['Key_Features'],
+    Company_Backlog_Features: ['Backlog_Features'],
+    Company_ICP: ['ICP'],
+    Company_Business_Model: ['Business_Model'],
+    Company_Pricing: ['Pricing'],
+    Company_Placement: ['Placement'],
+    Company_Promotion: ['Promotion'],
+    Company_Market: ['Market'],
+    Company_Demand_Analysis: ['Demand_Analysis'],
+    Company_Supply_Analysis: ['Supply_Analysis'],
+    Company_Traction: ['Traction'],
+    Company_Sales: ['Sales'],
+    Company_Revenue: ['Revenue'],
+    Company_Clients_Analysis: ['Clients_Analysis'],
+    Company_Cohorts_Analysis: ['Cohorts_Analysis'],
+    Company_Costs_Direct: ['Costs_Direct'],
+    Company_Costs_Indirect: ['Costs_Indirect'],
+    Company_Costs_Marketing: ['Costs_Marketing'],
+    Company_Unit_Economics: ['Unit_Economics'],
+    Company_CAC: ['CAC'],
+    Company_LTV: ['LTV'],
+    Company_Costs_Admin: ['Costs_Admin'],
+    Company_Costs_Tech_RD: ['Costs_Tech_RD'],
+    Company_BP_Overview: ['BP_Overview'],
+    Company_BP_Fcst: ['BP_Fcst'],
+    Company_BP_ST_Obj: ['BP_ST_Obj'],
+    Company_BP_LT_Obj: ['BP_LT_Obj'],
+    Company_BP_Resources_Uses: ['BP_Resources_Uses'],
+    Company_BP_Runway: ['BP_Runway'],
+    Company_BP_Capital_Need: ['BP_Capital_Need'],
+    Company_BP_Funding_Strategy: ['BP_Funding_Strategy'],
+    Company_Amount_Raised: ['Amount_Raised_AUMs', 'Amount_Raised'],
+  },
+})
+
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
   return /Electron/i.test(navigator.userAgent || '')
@@ -2506,8 +2527,8 @@ const savingUserLabel = ref(false)
 const versions = ref([])
 const selectedVersionId = ref(null)
 const modifiedByMap = ref({})
-const activeContactSection = ref('general-info')
-const activeCompanySection = ref('metadata')
+const activeContactSection = ref('system-data')
+const activeCompanySection = ref('system-data')
 const activeGenericSection = ref('')
 const activeContactKdbSection = ref('artifacts')
 const contactKdbViewMode = ref('grid')
@@ -2791,145 +2812,84 @@ const contactActionLinks = computed(() => {
     phone ? { label: 'Phone', icon: 'call', href: `tel:${phone}`, external: false } : null,
   ].filter(Boolean)
 })
-const companySections = computed(() => [
-  createDatabookSection({
-    anchor: 'metadata',
-    category: 'System Data',
-    title: 'System Data',
-    icon: CONTACT_SECTION_ICONS.building,
-    caption: 'Core company identity and first-order company fields.',
-    fieldConfigs: [
-      { label: 'Company name', aliases: ['Company_Name'] },
-      { label: 'Short name', aliases: ['Short_Name'] },
-      { label: 'One liner', aliases: ['One_Liner'] },
-      { label: 'Website', aliases: ['Website'] },
-      { label: 'Status', aliases: ['Status'] },
-      { label: 'Company type', aliases: ['Company_Type'] },
-      { label: 'Company stage', aliases: ['Company_Stage'] },
-      { label: 'Date of incorporation', aliases: ['Date_of_Incorporation'] },
-      { label: 'Amount raised / AUMs', aliases: ['Amount_Raised_AUMs'] },
-      { label: 'Pax', aliases: ['Pax'] },
-      { label: 'City', aliases: ['city_id'] },
-      { label: 'Country', aliases: ['country_id'] },
-      { label: 'Region', aliases: ['region_id'] },
-      { label: 'Updates', aliases: ['Updates'] },
-    ],
-  }),
-  createDatabookSection({
-    anchor: 'contacts',
-    category: 'Contacts',
-    title: 'Contacts',
-    icon: CONTACT_SECTION_ICONS.person,
-    caption: 'People linked to this company through the current schema relationships.',
-    fieldConfigs: [],
-  }),
-  createDatabookSection({
-    anchor: 'rounds',
-    category: 'Rounds',
-    title: 'Rounds',
-    icon: CONTACT_SECTION_ICONS.briefcase,
-    caption: 'Rounds connected to this company through direct or sponsor relationships.',
-    fieldConfigs: [],
-  }),
-  createDatabookSection({
-    anchor: 'funds',
-    category: 'Funds',
-    title: 'Funds',
-    icon: CONTACT_SECTION_ICONS.book,
-    caption: 'Funds directly linked to this company in the relationship tables.',
-    fieldConfigs: [],
-  }),
-  createDatabookSection({
-    anchor: 'artifacts',
-    category: 'Artifacts',
-    title: 'Artifacts',
-    icon: CONTACT_SECTION_ICONS.note,
-    caption: 'Related documents and files connected to this company.',
-    fieldConfigs: [],
-  }),
-  createDatabookSection({
-    anchor: 'notes',
-    category: 'Notes',
-    title: 'Notes',
-    icon: CONTACT_SECTION_ICONS.note,
-    caption: 'Narrative context and notes connected to this company.',
-    fieldConfigs: [],
-  }),
-])
-const contactSections = computed(() => {
-  const sections = [
-    createContactSection({
-      anchor: 'general-info',
-      category: 'General info',
-      title: 'General info',
-      icon: CONTACT_SECTION_ICONS.person,
-      caption: 'Core contact details and the main ways to reach this person.',
-      fieldConfigs: [
-        { label: 'Name', aliases: ['Name'] },
-        { label: 'Personal email', aliases: ['Personal_Email'] },
-        { label: 'Business email', aliases: ['Business_Email', 'Email'] },
-        { label: 'Phone', aliases: ['Phone'] },
-        { label: 'Country based', aliases: ['Country_based'] },
-        { label: 'LinkedIn', aliases: ['LinkedIn'] },
-      ],
-    }),
-    createContactSection({
-      anchor: 'employment',
-      category: 'Employment',
-      title: 'Employment',
-      icon: CONTACT_SECTION_ICONS.briefcase,
-      caption: 'Current role, tenure, expertise, and company context.',
-      fieldConfigs: [
-        { label: 'Previous companies', aliases: ['Previous_Companies'] },
-        { label: 'Current companies', aliases: ['Current_Companies'] },
-        { label: 'Tenure at firm', aliases: ['Tenure_at_Firm', 'Tenure_at_Firm_yrs'] },
-        { label: 'Current roles', aliases: ['Current_Roles', 'Role'] },
-        { label: 'Expertise', aliases: ['Expertise'] },
-      ],
-    }),
-    createContactSection({
-      anchor: 'studies',
-      category: 'Studies',
-      title: 'Studies',
-      icon: CONTACT_SECTION_ICONS.book,
-      caption: 'Education background, program history, and professional credentials.',
-      fieldConfigs: [
-        { label: 'Degrees / Program', aliases: ['Degrees_Program'] },
-        { label: 'University', aliases: ['University'] },
-        { label: 'Credentials', aliases: ['Credentials'] },
-      ],
-    }),
-    createContactSection({
-      anchor: 'other',
-      category: 'KDB Relationships',
-      title: 'KDB Relationships',
-      icon: CONTACT_SECTION_ICONS.note,
-      caption: 'Related records linked to this contact.',
-      fieldConfigs: [{ label: 'Comments', aliases: ['Comments', 'Comment'] }],
-    }),
-  ]
+function slugifyCanonicalSection(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
 
-  return sections
-})
-const companyNavItems = computed(() => [
-  { anchor: 'metadata', title: 'System Data' },
-  { anchor: 'rounds', title: 'Incorporation' },
-  { anchor: 'funds', title: 'Documents' },
-  { anchor: 'artifacts', title: 'Operations' },
-  { anchor: 'notes', title: 'Business' },
-  { anchor: 'system', title: 'System' },
-  { anchor: 'contacts', title: 'KDB Relationships' },
-])
+function formatCanonicalLabel(value, entityPrefix = '') {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  const withoutPrefix = entityPrefix && raw.startsWith(`${entityPrefix}_`) ? raw.slice(entityPrefix.length + 1) : raw
+  return withoutPrefix
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function getCanonicalSectionIcon(subsection) {
+  const normalized = String(subsection || '').trim()
+  if (/general|contact/i.test(normalized)) return CONTACT_SECTION_ICONS.person
+  if (/employment|ops|plan|fund/i.test(normalized)) return CONTACT_SECTION_ICONS.briefcase
+  if (/studies|docs|business|market|results/i.test(normalized)) return CONTACT_SECTION_ICONS.book
+  if (/kdb/i.test(normalized)) return CONTACT_SECTION_ICONS.note
+  return CONTACT_SECTION_ICONS.building
+}
+
+function getCanonicalTokenAliases(entityName, tokenName) {
+  const overrides = CANONICAL_TOKEN_ALIAS_OVERRIDES[entityName]?.[tokenName]
+  if (overrides?.length) return overrides
+
+  const entityPrefix = entityName === 'Contacts' ? 'Contact' : entityName === 'Companies' ? 'Company' : ''
+  const stripped = entityPrefix && tokenName.startsWith(`${entityPrefix}_`) ? tokenName.slice(entityPrefix.length + 1) : ''
+  return [tokenName, stripped].filter(Boolean)
+}
+
+function createCanonicalSection(entityName, subsectionConfig = {}) {
+  const entityPrefix = entityName === 'Contacts' ? 'Contact' : entityName === 'Companies' ? 'Company' : ''
+  const subsectionName = String(subsectionConfig.subsection || '').trim()
+  const sectionFields = (subsectionConfig.tokens || [])
+    .map((token) =>
+      resolveDatabookField({
+        label: formatCanonicalLabel(token?.token_name, entityPrefix),
+        aliases: getCanonicalTokenAliases(entityName, String(token?.token_name || '').trim()),
+      }),
+    )
+    .filter(Boolean)
+
+  return {
+    anchor: slugifyCanonicalSection(subsectionName),
+    category: formatCanonicalLabel(subsectionName),
+    title: formatCanonicalLabel(subsectionName),
+    icon: getCanonicalSectionIcon(subsectionName),
+    caption: '',
+    layout: 'grid',
+    fields: sectionFields,
+    isKdb: /kdb/i.test(subsectionName),
+  }
+}
+
+function getCanonicalEntitySections(entityName) {
+  return (CANONICAL_STRUCTURE_BY_ENTITY[entityName]?.subsections || []).map((subsection) =>
+    createCanonicalSection(entityName, subsection),
+  )
+}
+
+const companySections = computed(() => getCanonicalEntitySections('Companies'))
+const contactSections = computed(() => getCanonicalEntitySections('Contacts'))
+const companyNavItems = computed(() =>
+  companySections.value.map((section) => ({ anchor: section.anchor, title: section.title, isKdb: section.isKdb })),
+)
 const activeCompanyContentSection = computed(
   () => companySections.value.find((section) => section.anchor === activeCompanySection.value) || null,
 )
-const contactNavItems = computed(() => [
-  { anchor: 'general-info', title: 'System Data' },
-  { anchor: 'employment', title: 'Employment' },
-  { anchor: 'studies', title: 'Studies' },
-  { anchor: 'system', title: 'System' },
-  { anchor: 'other', title: 'KDB Relationships' },
-])
+const contactNavItems = computed(() =>
+  contactSections.value.map((section) => ({ anchor: section.anchor, title: section.title, isKdb: section.isKdb })),
+)
 const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
 )
@@ -4637,34 +4597,6 @@ function resolveDatabookField(config = {}) {
   }
 }
 
-function createContactSection({ anchor, category, title, icon, caption, fieldConfigs, layout = 'grid' }) {
-  const sectionFields = (fieldConfigs || []).map(resolveDatabookField).filter(Boolean)
-
-  return {
-    anchor,
-    category,
-    title,
-    icon,
-    caption,
-    layout,
-    fields: sectionFields,
-  }
-}
-
-function createDatabookSection({ anchor, category, title, icon, caption, fieldConfigs, layout = 'grid' }) {
-  const sectionFields = (fieldConfigs || []).map(resolveDatabookField).filter(Boolean)
-
-  return {
-    anchor,
-    category,
-    title,
-    icon,
-    caption,
-    layout,
-    fields: sectionFields,
-  }
-}
-
 function normalizeExternalUrl(value) {
   const raw = String(value || '').trim()
   if (!raw) return ''
@@ -5210,11 +5142,18 @@ function readFileAsDataUrl(file) {
 watch(
   () => `${route.params.tableName || ''}:${route.params.recordId || ''}`,
   () => {
-    activeContactSection.value = 'general-info'
-    activeCompanySection.value = 'metadata'
+    activeContactSection.value = 'system-data'
+    activeCompanySection.value = 'system-data'
     loadDatabook()
   },
 )
+
+watch(contactSections, (sections) => {
+  const anchors = new Set((sections || []).map((section) => section.anchor))
+  if (!anchors.has(activeContactSection.value) && sections?.length) {
+    activeContactSection.value = sections[0].anchor
+  }
+})
 
 watch(companySections, (sections) => {
   const anchors = new Set((sections || []).map((section) => section.anchor))
