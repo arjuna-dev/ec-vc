@@ -1,5 +1,51 @@
 # Ingestion Ticket
 
+## Ticket Writing Reference
+
+Use this section as the reference for how tickets in this repo should be written.
+
+A good ticket should include:
+
+- a clear title
+- one concrete objective
+- why the work matters
+- the source documents or references
+- what is in scope
+- what is out of scope
+- the intended behavior
+- the required implementation pieces
+- a suggested execution order
+- acceptance criteria
+- risks or known failure modes
+
+Good ticket-writing rules:
+
+- keep the objective singular and clear
+- describe the behavior, not just the component names
+- separate requirements from implementation suggestions
+- make acceptance criteria observable
+- say what should not be included so the ticket does not sprawl
+- use the current product language:
+  - `File`
+  - `Record`
+  - `Record View`
+  - `Workbook`
+- point to the relevant master docs instead of re-explaining the whole architecture every time
+
+Simple ticket template:
+
+1. `Title`
+2. `Objective`
+3. `Why This Matters`
+4. `Source Docs`
+5. `Scope`
+6. `Target Behavior`
+7. `Requirements`
+8. `Suggested Implementation Order`
+9. `Acceptance Criteria`
+10. `Risks`
+11. `Notes`
+
 ## Title
 
 Build the first dependable draft-first ingestion flow for AI-assisted data entry.
