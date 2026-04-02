@@ -486,10 +486,8 @@ const globalFundDialogOpen = ref(false)
 const globalRoundDialogOpen = ref(false)
 const globalCreateInitialData = ref(null)
 const drawerSectionOpen = ref({
-  preferences: true,
   main: true,
   radars: true,
-  tokenzMarket: true,
   workspace: true,
 })
 
@@ -522,37 +520,6 @@ const mainNavigationItems = [
   itemClass: 'ec-nav-item--primary',
   iconSize: '22px',
 }))
-const ownerWorldNavigationItems = [
-  { label: 'Home', to: '/dealz-world-home', exact: true, icon: 'public' },
-  { label: 'Workspaces', to: '/workspaces', exact: true, icon: 'dns' },
-  { label: 'Projects', to: '/world-projects', exact: true, icon: 'filter_alt' },
-  {
-    kind: 'toggle',
-    label: 'Radars',
-    itemClass: 'ec-nav-item--workspace-toggle',
-    icon: 'satellite_alt',
-    toggleKey: 'radars',
-  },
-  { label: 'Regions', to: '/regions', exact: true, icon: 'public', parentKey: 'radars' },
-  { label: 'Asset Classes', to: '/asset-classes', exact: true, icon: 'category', parentKey: 'radars' },
-  { label: 'Industries', to: '/industries', exact: true, icon: 'domain', parentKey: 'radars' },
-  { label: 'Stages', to: '/stages', exact: true, icon: 'stairs', parentKey: 'radars' },
-  { label: 'Shared Knowledge', to: '/shared-knowledge', exact: true, icon: 'auto_stories' },
-  { label: 'Marketplace', to: '/marketplace', exact: true, icon: 'storefront' },
-  { label: 'Events', to: '/merch-events', exact: true, icon: 'calendar_month' },
-].map((item) => (
-  item.parentKey
-    ? {
-        ...item,
-        itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-        iconSize: '18px',
-      }
-    : {
-        ...item,
-        itemClass: item.itemClass ? `ec-nav-item--primary ${item.itemClass}` : 'ec-nav-item--primary',
-        iconSize: '22px',
-      }
-))
 const workspaceNavigationItems = [
   { label: 'Users', to: '/users', exact: true, icon: 'badge' },
   { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
@@ -567,16 +534,6 @@ const workspaceNavigationItems = [
   ...item,
   itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   iconSize: '18px',
-}))
-const tokenzMarketNavigationItems = [
-  { label: 'Home', to: '/tokenz-market-home', exact: true, icon: 'toll' },
-  { label: 'Wallet', to: '/tokenz-wallet', exact: true, icon: 'account_balance_wallet' },
-  { label: 'Markets', to: '/tokenz-markets', exact: true, icon: 'newspaper' },
-  { label: 'Vehicles', to: '/tokenz-vehicles', exact: true, icon: 'layers' },
-].map((item) => ({
-  ...item,
-  itemClass: 'ec-nav-item--primary',
-  iconSize: '22px',
 }))
 const routeLabelByName = {
   home: 'Home',
@@ -593,22 +550,7 @@ const routeLabelByName = {
   assistants: 'Roles',
   avatar: 'Avatar',
   'user-settings': 'Owner',
-  'dealz-world-home': 'Home',
-  workspaces: 'Workspaces',
   pipelines: 'Projects',
-  'world-projects': 'Projects',
-  radars: 'Radars',
-  regions: 'Regions',
-  'asset-classes': 'Asset Classes',
-  industries: 'Industries',
-  stages: 'Stages',
-  'shared-knowledge': 'Shared Knowledge',
-  marketplace: 'Marketplace',
-  'merch-events': 'Events',
-  'tokenz-market-home': 'Home',
-  'tokenz-wallet': 'Wallet',
-  'tokenz-markets': 'Markets',
-  'tokenz-vehicles': 'Vehicles',
   'file-system': 'File System',
   'databook-view': 'Databook',
 }
@@ -663,16 +605,6 @@ const drawerNavigationSections = computed(() => [
         parentKey: 'workspace',
       })),
     ],
-  },
-  {
-    label: 'Dealz',
-    key: 'preferences',
-    items: ownerWorldNavigationItems,
-  },
-  {
-    label: 'Tokenz',
-    key: 'tokenzMarket',
-    items: tokenzMarketNavigationItems,
   },
 ])
 
