@@ -320,6 +320,22 @@ The long-term contract must come from:
 - workbook leaf-token membership
 - explicit KDB grouping
 
+### Token Naming Rule
+
+During this first architecture pass, token names should also be normalized toward their final form.
+
+That means:
+
+- section-label changes should not stop at the section label layer
+- token names should be reviewed and renamed where appropriate so the workbook, JSON companion, and app vocabulary move together
+- the goal is to reduce mixed states such as `System_Data` sections still containing `*_Metadata` token names unless that mismatch is intentionally preserved
+
+Working principle:
+
+- user-facing labels may evolve
+- structural addresses should remain stable
+- token names should move toward their final approved naming during this pass, not be deferred indefinitely
+
 ### Addressing Rule
 
 Every approved entity structure should eventually support stable structural addressing.
@@ -511,6 +527,7 @@ For each entity define:
 - schema-group ownership
 - KDB relationship categories
 - item-address ranges
+- final token naming
 
 Start with:
 
@@ -603,17 +620,20 @@ Recommended order:
 - [x] File/card shell consistency improved across core pages
 - [x] KDB icon strip unified across file cards
 - [x] Card relationship icon affordance added
+- [x] Excel + JSON companion workflow introduced
 - [ ] Route and shared naming fully cleaned of `Databook`
 - [ ] Heuristic section mapping fully replaced
 - [ ] Light vs rich payload split documented per entity
 - [ ] Item addressing adopted per entity
 - [ ] Rich record payloads standardized per entity
+- [ ] Token names normalized to final approved form
 
 ### Reference Entity: Company
 
 - [ ] section order approved
 - [ ] level-2 schema groups approved
 - [ ] item-address numbering approved
+- [ ] final token naming approved
 - [ ] light file/card payload defined
 - [ ] rich record payload defined
 - [ ] KDB relationship contract defined

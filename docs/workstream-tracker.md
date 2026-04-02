@@ -18,6 +18,7 @@ This tracker should stay aligned with:
 ## Front-Loaded
 
 - Build the first reference `Company` structure contract from the active workbook
+- Normalize token names toward their final approved form during the same structure pass
 - Split `File/Card` light payloads from `Record View` rich payloads in a deliberate way
 - Resume `Artifact Intake` as an active guided workflow
 - Keep the intake tracker visible so drafts can always be resumed
@@ -28,6 +29,7 @@ This tracker should stay aligned with:
 
 - `RAMP` is now the single architecture source of truth for `File -> Card -> Record View`
 - `Intake Architecture Master Plan` is now the single intake planning source of truth
+- Excel workbook + JSON companion workflow is now in place for schema indexing
 - Artifact processing recovery and continuity
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`
 - Verification dialog behavior and staged review UX
@@ -35,6 +37,7 @@ This tracker should stay aligned with:
 - Tracker-driven restart point for `Company`, `Opportunity`, and `Contacts` first-pass extraction
 - Include `Avatar` and `Roles` parameters in the intake control surface so operator behavior can be tuned with the workstream
 - Unify KDB relationship behavior so cards stay lightweight and record views can get richer grouped relationship payloads
+- Rename section labels and token names together so `System_Data` does not coexist indefinitely with stale `*_Metadata` naming
 
 ## Pending
 
@@ -75,6 +78,7 @@ This tracker should stay aligned with:
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
   - start the first true structure-contract pass with `Company` as the reference entity
+  - normalize token names to their final approved form while the structure pass is still active
 - current architecture rule:
   - keep `File/Card` views lightweight
   - make `Record View` richer and workbook-aligned
