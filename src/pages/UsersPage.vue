@@ -1532,17 +1532,16 @@ watch(
 .user-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
   content: attr(data-tooltip);
   position: absolute;
-  left: 50%;
+  left: 0;
   bottom: calc(100% + 8px);
-  transform: translateX(-50%);
+  transform: none;
   padding: 4px 7px;
-  color: #ffffff;
-  background: rgba(17, 17, 17, 0.92);
-  border-radius: 999px;
-  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.12);
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(239, 239, 239, 0.5);
+  border-radius: 5px;
   font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: var(--font-weight-medium);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
   line-height: 1;
   letter-spacing: 0.01em;
   white-space: nowrap;
