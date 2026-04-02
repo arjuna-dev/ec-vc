@@ -102,21 +102,6 @@
             <q-icon name="tune" size="18px" class="users-toolbar__filters-icon" />
           </div>
 
-          <div class="users-toolbar__block users-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="userKindFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="users-toolbar__toggle users-toolbar__kind-toggle"
-              :disable="loading"
-              :options="userKindOptions"
-            />
-          </div>
-
           <div class="users-toolbar__block users-toolbar__block--search">
             <q-btn-toggle
               v-model="viewMode"
@@ -385,12 +370,6 @@ const $q = useQuasar()
 const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-
-const userKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Team', value: 'golden' },
-  { label: 'Guests', value: 'needs-setup' },
 ]
 
 const userCardContentViewOptions = [
