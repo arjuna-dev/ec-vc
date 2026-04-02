@@ -197,16 +197,6 @@
                 @pointermove="onUserCardPointerMove"
                 @pointerleave="onUserCardPointerLeave"
               >
-                <div class="user-card__floating-eye-wrap">
-                  <q-btn
-                    flat
-                    round
-                    icon="visibility"
-                    class="user-card__floating-eye"
-                    :disable="loading"
-                    @click="openDatabook(user)"
-                  />
-                </div>
                 <q-card-section class="user-card__hero">
                   <div class="user-card__hero-main">
                     <figure class="user-card__portrait">
@@ -1489,31 +1479,6 @@ onMounted(loadUsers)
   border: 0;
   transform: scale(0.75);
   transform-origin: center;
-}
-
-.user-card__floating-eye-wrap {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  left: auto;
-  z-index: 3;
-}
-
-.user-card__floating-eye {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
-  padding: 0;
-  color: #111;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  backdrop-filter: none;
-}
-
-.user-card__floating-eye :deep(.q-icon) {
-  font-size: 14px;
 }
 
 .user-card__select-box {
