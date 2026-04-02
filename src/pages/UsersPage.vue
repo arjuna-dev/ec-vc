@@ -1196,8 +1196,8 @@ onMounted(loadUsers)
   min-width: 22px;
   min-height: 22px;
   border-radius: 999px;
-  color: #2647ff;
-  background: transparent;
+  color: #ffffff;
+  background: #2647ff;
   border: 0;
   box-shadow: none;
   transition:
@@ -1222,8 +1222,8 @@ onMounted(loadUsers)
 .users-toolbar__add-button:active .users-toolbar__add-button-plus,
 .users-toolbar__add-button.q-btn--active .users-toolbar__add-button-plus,
 .users-toolbar__add-button.q-btn--standard.q-btn--active .users-toolbar__add-button-plus {
-  color: #2647ff;
-  background: transparent;
+  color: #ffffff;
+  background: #2647ff;
 }
 
 .users-toolbar__kind-toggle :deep(.q-btn) {
