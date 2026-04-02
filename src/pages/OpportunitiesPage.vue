@@ -266,6 +266,12 @@
                       :options="getOpportunityRelationshipOptions(row)"
                       @update:model-value="setOpportunityCardPanel(row, $event)"
                     />
+                    <q-btn flat round class="opportunity-card__summary-add-relation" aria-label="Add Relation">
+                      <span class="opportunity-card__summary-add-relation-plus">
+                        <q-icon name="add" />
+                      </span>
+                      <q-tooltip>Add Relation</q-tooltip>
+                    </q-btn>
                     <q-btn-toggle
                       :model-value="getOpportunityCardContentView(row)"
                       dense
@@ -2003,6 +2009,35 @@ watch(
 
 .opportunity-card__summary-toggle {
   margin-right: auto;
+}
+
+.opportunity-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.opportunity-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.opportunity-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
 }
 
 .opportunity-card__summary-panel {

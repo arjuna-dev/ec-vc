@@ -254,6 +254,12 @@
                       :options="getCompanyRelationshipOptions(row)"
                       @update:model-value="setCompanyCardPanel(row, $event)"
                     />
+                    <q-btn flat round class="company-card__summary-add-relation" aria-label="Add Relation">
+                      <span class="company-card__summary-add-relation-plus">
+                        <q-icon name="add" />
+                      </span>
+                      <q-tooltip>Add Relation</q-tooltip>
+                    </q-btn>
                     <q-btn-toggle
                       :model-value="getCompanyCardContentView(row)"
                       dense
@@ -2623,6 +2629,35 @@ watch(
 
 .company-card__summary-toggle {
   margin-right: auto;
+}
+
+.company-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.company-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.company-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
 }
 
 .company-card__summary-panel {

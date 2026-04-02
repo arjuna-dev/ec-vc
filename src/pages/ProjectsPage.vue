@@ -296,6 +296,12 @@
                       :options="getProjectRelationshipOptions(row)"
                       @update:model-value="setProjectCardPanel(row, $event)"
                     />
+                    <q-btn flat round class="pipeline-card__summary-add-relation" aria-label="Add Relation">
+                      <span class="pipeline-card__summary-add-relation-plus">
+                        <q-icon name="add" />
+                      </span>
+                      <q-tooltip>Add Relation</q-tooltip>
+                    </q-btn>
                     <q-btn-toggle
                       :model-value="getProjectCardContentView(row)"
                       dense
@@ -1928,6 +1934,35 @@ watch(displayRows, () => {
 
 .pipeline-card__summary-toggle {
   margin-right: auto;
+}
+
+.pipeline-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.pipeline-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.pipeline-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
 }
 
 .pipeline-card__summary-panel {

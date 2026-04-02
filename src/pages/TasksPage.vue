@@ -259,6 +259,12 @@
                       :options="getTaskRelationshipOptions(row)"
                       @update:model-value="setTaskCardPanel(row, $event)"
                     />
+                    <q-btn flat round class="task-card__summary-add-relation" aria-label="Add Relation">
+                      <span class="task-card__summary-add-relation-plus">
+                        <q-icon name="add" />
+                      </span>
+                      <q-tooltip>Add Relation</q-tooltip>
+                    </q-btn>
                     <q-btn-toggle
                       :model-value="getTaskCardContentView(row)"
                       dense
@@ -1579,6 +1585,35 @@ watch(displayRows, () => {
 
 .task-card__summary-toggle {
   margin-right: auto;
+}
+
+.task-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.task-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.task-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
 }
 
 .task-card__summary-panel {

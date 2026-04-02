@@ -243,6 +243,12 @@
                 :options="getArtifactRelationshipOptions(group)"
                 @update:model-value="setArtifactCardPanel(group, $event)"
               />
+              <q-btn flat round class="artifact-card__summary-add-relation" aria-label="Add Relation">
+                <span class="artifact-card__summary-add-relation-plus">
+                  <q-icon name="add" />
+                </span>
+                <q-tooltip>Add Relation</q-tooltip>
+              </q-btn>
               <q-btn-toggle
                 :model-value="getArtifactCardContentView(group)"
                 dense
@@ -4510,6 +4516,35 @@ watch(displayArtifactRows, () => {
 
 .artifact-card__summary-toggle {
   margin-right: auto;
+}
+
+.artifact-card__summary-add-relation {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.artifact-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.artifact-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
 }
 
 .artifact-card__summary-panel {
