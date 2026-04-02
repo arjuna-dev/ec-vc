@@ -75,13 +75,17 @@
             <q-btn
               no-caps
               unelevated
-              color="primary"
-              icon="add"
-              label="Add Record"
               class="users-toolbar__add-button"
               :disable="loading"
               @click="openCreateUser"
-            />
+            >
+              <span class="users-toolbar__add-button-inner">
+                <span class="users-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="users-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
           </div>
 
           <div class="users-toolbar__block users-toolbar__block--view">
@@ -1147,7 +1151,85 @@ onMounted(loadUsers)
 
 .users-toolbar__add-button {
   align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
   white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.users-toolbar__add-button:hover,
+.users-toolbar__add-button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+}
+
+.users-toolbar__add-button:active,
+.users-toolbar__add-button.q-btn--active,
+.users-toolbar__add-button.q-btn--standard.q-btn--active {
+  color: #ffffff;
+  background: #111111;
+  border-color: #111111;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+}
+
+.users-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.users-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.users-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: var(--ds-color-surface-inverse, #ffffff);
+  background: var(--ds-color-text-primary-deep, #111111);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  box-shadow: var(--ds-shadow-fab);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.users-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.users-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
+}
+
+.users-toolbar__add-button:active .users-toolbar__add-button-plus,
+.users-toolbar__add-button.q-btn--active .users-toolbar__add-button-plus,
+.users-toolbar__add-button.q-btn--standard.q-btn--active .users-toolbar__add-button-plus {
+  color: #111111;
+  background: #ffffff;
+  border-color: rgba(17, 17, 17, 0.12);
 }
 
 .users-toolbar__kind-toggle :deep(.q-btn) {
