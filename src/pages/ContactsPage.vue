@@ -311,28 +311,28 @@
                       </q-btn>
                     </div>
                     <div class="contact-card__summary-body">
-                    <div class="contact-card__summary-body-content">
-                      <div
-                        v-if="getContactActiveRelationshipItems(row).length"
-                        :class="[
-                          'contact-card__notes-list',
-                          { 'contact-card__notes-list--rows': getContactCardContentView(row) === 'table' },
-                        ]"
-                      >
+                      <div class="contact-card__summary-body-content">
                         <div
-                          v-for="item in getContactActiveRelationshipItems(row)"
-                          :key="item"
-                          class="contact-card__note-pill"
+                          v-if="getContactActiveRelationshipItems(row).length"
+                          :class="[
+                            'contact-card__notes-list',
+                            { 'contact-card__notes-list--rows': getContactCardContentView(row) === 'table' },
+                          ]"
                         >
-                          {{ item }}
+                          <div
+                            v-for="item in getContactActiveRelationshipItems(row)"
+                            :key="item"
+                            class="contact-card__note-pill"
+                          >
+                            {{ item }}
+                          </div>
+                        </div>
+
+                        <div v-else class="contact-card__summary-empty">
+                          No linked KDB relationships yet for this contact.
                         </div>
                       </div>
-
-                      <div v-else class="contact-card__summary-empty">
-                        No linked KDB relationships yet for this contact.
-                      </div>
                     </div>
-                  </div>
                   </div>
                 </q-card-section>
 
