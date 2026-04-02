@@ -22,8 +22,11 @@ When decisions change:
 For the current first-pass architecture work, the active workbook schema reference is:
 
 - `docs/B10_DOS v260400 vrev.xlsx`
+- `docs/workbook-schema-companion.json`
 
 That workbook should be treated as the live structural document being used to define the first approved architecture pass.
+
+The JSON companion should be treated as the machine-readable export of that same structure.
 
 ## Objective
 
@@ -298,7 +301,7 @@ Use it to verify:
 
 Every workbook-backed record should expose:
 
-- `Metadata` first on the left
+- `System Data` first on the left
 - file-specific middle sections next
 - `KDB Relationships` last on the right
 
@@ -464,7 +467,7 @@ Defines:
   "sections": [
     {
       "id": "metadata",
-      "label": "Metadata",
+      "label": "System Data",
       "kind": "fields",
       "items": []
     },
@@ -486,16 +489,16 @@ Working guidance:
 
 ## Canonical Section Order By File
 
-- `Users`: `Metadata`, `KDB Relationships`
-- `Artifacts`: `Metadata`, `KDB Relationships`
-- `Contacts`: `Metadata`, `Employment`, `Studies`, `KDB Relationships`
-- `Companies`: `Metadata`, `Incorporation`, `Documents`, `Operations`, `Business`, `Market`, `Results`, `Business Plan`, `Fund Raising`, `KDB Relationships`
-- `Funds`: `Metadata`, `Overview`, `Economics`, `Controls`, `KDB Relationships`
-- `Rounds`: `Metadata`, `Overview`, `Economics`, `Controls`, `KDB Relationships`
-- `Projects`: `Metadata`, `Overview`, `Team`, `KDB Relationships`
-- `Tasks`: `Metadata`, `Overview`, `Team`, `KDB Relationships`
-- `Notes`: `Metadata`, `KDB Relationships`
-- `Roles`: `Metadata`, `KDB Relationships`
+- `Users`: `System Data`, `KDB Relationships`
+- `Artifacts`: `System Data`, `KDB Relationships`
+- `Contacts`: `System Data`, `Employment`, `Studies`, `KDB Relationships`
+- `Companies`: `System Data`, `Incorporation`, `Documents`, `Operations`, `Business`, `Market`, `Results`, `Business Plan`, `Fund Raising`, `KDB Relationships`
+- `Funds`: `System Data`, `Overview`, `Economics`, `Controls`, `KDB Relationships`
+- `Rounds`: `System Data`, `Overview`, `Economics`, `Controls`, `KDB Relationships`
+- `Projects`: `System Data`, `Overview`, `Team`, `KDB Relationships`
+- `Tasks`: `System Data`, `Overview`, `Team`, `KDB Relationships`
+- `Notes`: `System Data`, `KDB Relationships`
+- `Roles`: `System Data`, `KDB Relationships`
 
 ## Execution Plan
 

@@ -88,7 +88,7 @@ The section bar below the hero/dashboard is part of the `Record View` pattern.
 
 It should follow these rules:
 
-- `Metadata` is always first on the left
+- `System Data` is always first on the left
 - file-specific sections go in the middle
 - `KDB Relationships` is always last on the right
 

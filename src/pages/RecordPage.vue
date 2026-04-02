@@ -1512,7 +1512,7 @@
             <article class="contact-section-card contact-section-card--active">
               <div class="contact-section-card__header">
                 <div class="contact-section-card__intro">
-                  <h2 class="contact-section-card__title">{{ activeGenericSection || 'Metadata' }}</h2>
+                  <h2 class="contact-section-card__title">{{ activeGenericSection || 'System Data' }}</h2>
                   <div class="contact-section-card__caption">
                     Review the structured fields and relationships tied to this {{ entityLabel.toLowerCase() }} record.
                   </div>
@@ -2794,8 +2794,8 @@ const contactActionLinks = computed(() => {
 const companySections = computed(() => [
   createDatabookSection({
     anchor: 'metadata',
-    category: 'Metadata',
-    title: 'Metadata',
+    category: 'System Data',
+    title: 'System Data',
     icon: CONTACT_SECTION_ICONS.building,
     caption: 'Core company identity and first-order company fields.',
     fieldConfigs: [
@@ -2912,7 +2912,7 @@ const contactSections = computed(() => {
   return sections
 })
 const companyNavItems = computed(() => [
-  { anchor: 'metadata', title: 'Metadata' },
+  { anchor: 'metadata', title: 'System Data' },
   { anchor: 'rounds', title: 'Incorporation' },
   { anchor: 'funds', title: 'Documents' },
   { anchor: 'artifacts', title: 'Operations' },
@@ -2924,7 +2924,7 @@ const activeCompanyContentSection = computed(
   () => companySections.value.find((section) => section.anchor === activeCompanySection.value) || null,
 )
 const contactNavItems = computed(() => [
-  { anchor: 'general-info', title: 'Metadata' },
+  { anchor: 'general-info', title: 'System Data' },
   { anchor: 'employment', title: 'Employment' },
   { anchor: 'studies', title: 'Studies' },
   { anchor: 'system', title: 'System' },
@@ -2933,7 +2933,7 @@ const contactNavItems = computed(() => [
 const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
 )
-const GENERIC_METADATA_SECTION_LABEL = 'Metadata'
+const GENERIC_METADATA_SECTION_LABEL = 'System Data'
 const GENERIC_KDB_SECTION_LABEL = 'KDB Relationships'
 const GENERIC_SECTION_CONTRACTS = Object.freeze({
   Users: {

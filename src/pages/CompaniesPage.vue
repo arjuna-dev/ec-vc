@@ -644,7 +644,7 @@ const viewOptions = [
 const companyTableTabs = [
   { label: 'Cards', value: 'cards' },
   { label: 'All', value: 'all' },
-  { label: 'Metadata', value: 'metadata' },
+  { label: 'System Data', value: 'metadata' },
   { label: 'KDB Relations', value: 'kdb-relations' },
   { label: 'Incorporation', value: 'incorporation' },
   { label: 'Documents', value: 'documents' },
