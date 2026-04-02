@@ -277,27 +277,13 @@
 
                 <q-card-section class="contact-card__summary">
                   <div class="contact-card__summary-head">
-                    <q-btn-toggle
-                      :model-value="getContactCardPanel(row)"
-                      dense
-                      unelevated
-                      toggle-color="dark"
-                      color="white"
-                      text-color="grey-8"
-                      class="contact-card__summary-toggle"
-                      :options="getContactRelationshipOptions(row)"
-                      @update:model-value="setContactCardPanel(row, $event)"
-                    />
-                    <q-btn-toggle
-                      :model-value="getContactCardContentView(row)"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="contact-card__summary-view-toggle"
-                      :options="contactCardContentViewOptions"
-                      @update:model-value="setContactCardContentView(row, $event)"
+                    <CardSubsectionToolbar
+                      :subsection-model-value="getContactCardSubsection(row)"
+                      :subsection-options="contactCanonicalSubsectionOptions"
+                      :content-view-model-value="getContactCardContentView(row)"
+                      :content-view-options="contactCardContentViewOptions"
+                      @update:subsection-model-value="setContactCardSubsection(row, $event)"
+                      @update:content-view-model-value="setContactCardContentView(row, $event)"
                     />
                   </div>
 
@@ -312,24 +298,39 @@
                     </div>
                     <div class="contact-card__summary-body">
                       <div class="contact-card__summary-body-content">
-                        <div
-                          v-if="getContactActiveRelationshipItems(row).length"
-                          :class="[
-                            'contact-card__notes-list',
-                            { 'contact-card__notes-list--rows': getContactCardContentView(row) === 'table' },
-                          ]"
-                        >
+                        <div v-if="getContactCanonicalRows(row).length" class="contact-card__canonical-list">
                           <div
-                            v-for="item in getContactActiveRelationshipItems(row)"
-                            :key="item"
-                            class="contact-card__note-pill"
+                            v-for="item in getContactCanonicalRows(row)"
+                            :key="item.key"
+                            class="contact-card__canonical-item"
                           >
-                            {{ item }}
+                            <div class="contact-card__canonical-label">{{ item.label }}</div>
+                            <div
+                              v-if="item.values.length"
+                              :class="[
+                                'contact-card__notes-list',
+                                {
+                                  'contact-card__notes-list--rows':
+                                    getContactCardContentView(row) === 'table',
+                                },
+                              ]"
+                            >
+                              <div
+                                v-for="value in item.values"
+                                :key="`${item.key}-${value}`"
+                                class="contact-card__note-pill"
+                              >
+                                {{ value }}
+                              </div>
+                            </div>
+                            <div v-else class="contact-card__canonical-empty">
+                              No {{ item.label.toLowerCase() }} yet.
+                            </div>
                           </div>
                         </div>
 
                         <div v-else class="contact-card__summary-empty">
-                          No linked KDB relationships yet for this contact.
+                          No subsection fields available for this contact yet.
                         </div>
                       </div>
                     </div>
@@ -369,15 +370,17 @@ import { useRoute, useRouter } from 'vue-router'
 import { exportFile, useQuasar } from 'quasar'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import ContactCreateDialog from 'components/ContactCreateDialog.vue'
+import CardSubsectionToolbar from 'components/CardSubsectionToolbar.vue'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
-  buildCardRelationshipItems,
-  buildCardRelationshipOptions,
-  resolveCardRelationshipPanel,
-} from 'src/utils/card-kdb-relationships'
+  formatCanonicalTokenLabel,
+  getCanonicalDefaultSubsection,
+  getCanonicalSubsection,
+  getCanonicalSubsectionOptions,
+} from 'src/utils/canonicalStructure'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -397,7 +400,8 @@ const contactCardContentViewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
 ]
-const contactCardPanels = ref({})
+const contactCardSubsections = ref({})
+const contactCanonicalSubsectionOptions = getCanonicalSubsectionOptions('Contacts')
 
 function getContactCardContentView(row) {
   const rowId = getRowId(row)
@@ -413,33 +417,86 @@ function setContactCardContentView(row, value) {
   }
 }
 
-function getContactCardPanel(row) {
+function getContactCardSubsection(row) {
   const rowId = getRowId(row)
-  return resolveCardRelationshipPanel(contactCardPanels.value[rowId], getContactRelationshipItems(row))
+  return contactCardSubsections.value[rowId] || getCanonicalDefaultSubsection('Contacts')
 }
 
-function setContactCardPanel(row, value) {
+function setContactCardSubsection(row, value) {
   const rowId = getRowId(row)
   if (!rowId) return
-  contactCardPanels.value = {
-    ...contactCardPanels.value,
-    [rowId]: value || 'notes',
+  contactCardSubsections.value = {
+    ...contactCardSubsections.value,
+    [rowId]: value || getCanonicalDefaultSubsection('Contacts'),
   }
 }
 
-function getContactRelationshipItems(row) {
-  return buildCardRelationshipItems(row, ['Contact'], {
-    notes: getContactLinkedNotes,
-    artifacts: getContactLinkedDocuments,
+function getContactCanonicalRows(row) {
+  const subsection = getCanonicalSubsection('Contacts', getContactCardSubsection(row))
+  if (!subsection) return []
+
+  return subsection.tokens.map((token) => {
+    const values = getContactTokenValues(row, token.token_name)
+    return {
+      key: token.address,
+      tokenName: token.token_name,
+      label: formatCanonicalTokenLabel(token.token_name, 'Contact'),
+      values,
+    }
   })
 }
 
-function getContactRelationshipOptions(row) {
-  return buildCardRelationshipOptions(getContactRelationshipItems(row))
+function getContactTokenValues(row, tokenName) {
+  switch (tokenName) {
+    case 'Contact_ID':
+      return toDisplayValues(row?.id)
+    case 'Contact_DateTime_Stamp':
+      return toDisplayValues(row?.updated_at || row?.created_at)
+    case 'Contact_Creator':
+      return toDisplayValues(row?.Contact_Creator || row?.creator || row?.created_by)
+    case 'Contact_Name':
+      return toDisplayValues(row?.Name)
+    case 'Contact_PEmail':
+      return toDisplayValues(row?.Professional_Email)
+    case 'Contact_BEmail':
+      return toDisplayValues(row?.Personal_Email)
+    case 'Contact_Phone':
+      return toDisplayValues(formatContactPhone(row) || row?.Phone)
+    case 'Contact_HQ':
+      return toDisplayValues(row?.Country_based)
+    case 'Contact_LinkedIn':
+      return toDisplayValues(row?.LinkedIn)
+    case 'Contact_Employment':
+      return getContactEmploymentValues(row)
+    case 'Contact_Studies':
+      return getDelimitedValues(row?.Contact_Studies || row?.related_study_ids)
+    default:
+      return getContactRelationshipTokenValues(row, tokenName)
+  }
 }
 
-function getContactActiveRelationshipItems(row) {
-  return getContactRelationshipItems(row)[getContactCardPanel(row)] || []
+function getContactRelationshipTokenValues(row, tokenName) {
+  if (tokenName === 'Contact_Artifact') return getContactLinkedDocuments(row)
+  if (tokenName === 'Contact_Note') return getContactLinkedNotes(row)
+  return getDelimitedValues(row?.[tokenName])
+}
+
+function getContactEmploymentValues(row) {
+  const chipValues = getContactRoleCompanyChips(row).map((chip) => chip.value).filter(Boolean)
+  if (chipValues.length) return chipValues
+  return getDelimitedValues(row?.Contact_Employment || row?.employment_ids || row?.related_employment_ids)
+}
+
+function getDelimitedValues(value) {
+  return String(value || '')
+    .split('|')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function toDisplayValues(value) {
+  const normalized = normalizeInputValue(value)
+  return normalized ? [normalized] : []
 }
 
 function onHeroDashboardPointerEnter(event) {
@@ -2355,10 +2412,38 @@ watch(displayRows, () => {
   border-radius: var(--ds-control-radius);
 }
 
+.contact-card__summary-toggle--sections {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .contact-card__summary-toggle :deep(.q-btn-group) {
   background: transparent;
   box-shadow: none;
   border: 0;
+}
+
+.contact-card__summary-toggle--sections :deep(.q-btn-group) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.contact-card__summary-toggle--sections :deep(.q-btn) {
+  min-height: 24px;
+  min-width: 0;
+  width: auto;
+  padding: 0 8px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+}
+
+.contact-card__summary-toggle--sections :deep(.q-btn + .q-btn) {
+  margin-left: 0;
 }
 
 .contact-card__summary-toggle :deep(.q-btn) {
@@ -2494,6 +2579,36 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   min-height: 100%;
+}
+
+.contact-card__canonical-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-card__canonical-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contact-card__canonical-label {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.contact-card__canonical-empty {
+  color: #8b8b8b;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-light);
+  line-height: 1.4;
 }
 
 .contact-card__action-list {

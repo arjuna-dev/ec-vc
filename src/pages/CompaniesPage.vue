@@ -243,27 +243,13 @@
 
                 <q-card-section class="company-card__summary">
                   <div class="company-card__summary-head">
-                    <q-btn-toggle
-                      :model-value="getCompanyCardPanel(row)"
-                      dense
-                      unelevated
-                      toggle-color="dark"
-                      color="white"
-                      text-color="grey-8"
-                      class="company-card__summary-toggle"
-                      :options="getCompanyRelationshipOptions(row)"
-                      @update:model-value="setCompanyCardPanel(row, $event)"
-                    />
-                    <q-btn-toggle
-                      :model-value="getCompanyCardContentView(row)"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="company-card__summary-view-toggle"
-                      :options="companyCardContentViewOptions"
-                      @update:model-value="setCompanyCardContentView(row, $event)"
+                    <CardSubsectionToolbar
+                      :subsection-model-value="getCompanyCardSubsection(row)"
+                      :subsection-options="companyCanonicalSubsectionOptions"
+                      :content-view-model-value="getCompanyCardContentView(row)"
+                      :content-view-options="companyCardContentViewOptions"
+                      @update:subsection-model-value="setCompanyCardSubsection(row, $event)"
+                      @update:content-view-model-value="setCompanyCardContentView(row, $event)"
                     />
                   </div>
 
@@ -278,24 +264,39 @@
                     </div>
                     <div class="company-card__summary-body">
                       <div class="company-card__summary-body-content">
-                        <div
-                          v-if="getCompanyActiveRelationshipItems(row).length"
-                          :class="[
-                            'company-card__notes-list',
-                            { 'company-card__notes-list--rows': getCompanyCardContentView(row) === 'table' },
-                          ]"
-                        >
+                        <div v-if="getCompanyCanonicalRows(row).length" class="company-card__canonical-list">
                           <div
-                            v-for="item in getCompanyActiveRelationshipItems(row)"
-                            :key="item"
-                            class="company-card__note-pill"
+                            v-for="item in getCompanyCanonicalRows(row)"
+                            :key="item.key"
+                            class="company-card__canonical-item"
                           >
-                            {{ item }}
+                            <div class="company-card__canonical-label">{{ item.label }}</div>
+                            <div
+                              v-if="item.values.length"
+                              :class="[
+                                'company-card__notes-list',
+                                {
+                                  'company-card__notes-list--rows':
+                                    getCompanyCardContentView(row) === 'table',
+                                },
+                              ]"
+                            >
+                              <div
+                                v-for="value in item.values"
+                                :key="`${item.key}-${value}`"
+                                class="company-card__note-pill"
+                              >
+                                {{ value }}
+                              </div>
+                            </div>
+                            <div v-else class="company-card__canonical-empty">
+                              No {{ item.label.toLowerCase() }} yet.
+                            </div>
                           </div>
                         </div>
 
                         <div v-else class="company-card__summary-empty">
-                          No linked KDB relationships yet for this company.
+                          No subsection fields available for this company yet.
                         </div>
                       </div>
                     </div>
@@ -419,15 +420,17 @@ import { useRoute, useRouter } from 'vue-router'
 import { exportFile, useQuasar } from 'quasar'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
+import CardSubsectionToolbar from 'components/CardSubsectionToolbar.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
-  buildCardRelationshipItems,
-  buildCardRelationshipOptions,
-  resolveCardRelationshipPanel,
-} from 'src/utils/card-kdb-relationships'
+  formatCanonicalTokenLabel,
+  getCanonicalDefaultSubsection,
+  getCanonicalSubsection,
+  getCanonicalSubsectionOptions,
+} from 'src/utils/canonicalStructure'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -516,7 +519,8 @@ const companyCardContentViewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
 ]
-const companyCardPanels = ref({})
+const companyCardSubsections = ref({})
+const companyCanonicalSubsectionOptions = getCanonicalSubsectionOptions('Companies')
 const COMPANY_COMPLETENESS_IGNORED_FIELDS = new Set(['id', 'created_at', 'updated_at'])
 
 function openCreateCompany() {
@@ -1160,33 +1164,98 @@ function setCompanyCardContentView(row, value) {
   }
 }
 
-function getCompanyCardPanel(row) {
+function getCompanyCardSubsection(row) {
   const rowId = String(row?.id || '').trim()
-  return resolveCardRelationshipPanel(companyCardPanels.value[rowId], getCompanyRelationshipItems(row))
+  return companyCardSubsections.value[rowId] || getCanonicalDefaultSubsection('Companies')
 }
 
-function setCompanyCardPanel(row, value) {
+function setCompanyCardSubsection(row, value) {
   const rowId = String(row?.id || '').trim()
   if (!rowId) return
-  companyCardPanels.value = {
-    ...companyCardPanels.value,
-    [rowId]: value || 'notes',
+  companyCardSubsections.value = {
+    ...companyCardSubsections.value,
+    [rowId]: value || getCanonicalDefaultSubsection('Companies'),
   }
 }
 
-function getCompanyRelationshipItems(row) {
-  return buildCardRelationshipItems(row, ['Company'], {
-    notes: getCompanyLinkedNotes,
-    artifacts: getCompanyLinkedDocuments,
-  })
+function getCompanyCanonicalRows(row) {
+  const subsection = getCanonicalSubsection('Companies', getCompanyCardSubsection(row))
+  if (!subsection) return []
+
+  return subsection.tokens.map((token) => ({
+    key: token.address,
+    tokenName: token.token_name,
+    label: formatCanonicalTokenLabel(token.token_name, 'Company'),
+    values: getCompanyTokenValues(row, token.token_name),
+  }))
 }
 
-function getCompanyRelationshipOptions(row) {
-  return buildCardRelationshipOptions(getCompanyRelationshipItems(row))
+function getCompanyTokenValues(row, tokenName) {
+  switch (tokenName) {
+    case 'Company_ID':
+      return toCompanyDisplayValues(row?.id)
+    case 'Company_Creator':
+      return toCompanyDisplayValues(row?.Company_Creator || row?.creator || row?.created_by)
+    case 'Company_DateTime_Stamp':
+      return toCompanyDisplayValues(row?.updated_at || row?.created_at)
+    case 'Company_Status':
+      return toCompanyDisplayValues(row?.Status)
+    case 'Company_Short_Name':
+      return toCompanyDisplayValues(row?.Company_Name || row?.Company_Short_Name)
+    case 'Company_Website':
+      return toCompanyDisplayValues(formatCompanyWebsiteValue(row?.Website) || row?.Website)
+    case 'Company_Tagline':
+      return toCompanyDisplayValues(row?.Tagline || row?.One_Liner || row?.Description)
+    case 'Company_Legal_Name':
+      return toCompanyDisplayValues(row?.Legal_Name || row?.Company_Legal_Name || row?.Company_Name)
+    case 'Company_Inc_Date':
+      return toCompanyDisplayValues(row?.Incorporation_Date || row?.Company_Inc_Date)
+    case 'Company_Inc_Country':
+      return toCompanyDisplayValues(row?.Incorporation_Country_Name || row?.Company_Inc_Country)
+    case 'Company_Entity_Type':
+      return toCompanyDisplayValues(row?.Company_Entity_Type || row?.Company_Type)
+    case 'Company_Founders':
+      return getCompanyFounders(row)
+    case 'Company_Stage':
+      return toCompanyDisplayValues(row?.Company_Stage || row?.Stage)
+    case 'Company_HQ_Locations':
+      return toCompanyDisplayValues(getCompanyLocationValue(row))
+    case 'Company_Ops_Locations':
+      return getCompanyDelimitedValues(row?.operations_locations || row?.Company_Ops_Locations)
+    case 'Company_Pax_Count':
+      return toCompanyDisplayValues(row?.PAX_Count || row?.Company_Pax_Count)
+    case 'Company_Pax_Known':
+      return getCompanyDelimitedValues(row?.PAX_Known || row?.Company_Pax_Known)
+    default:
+      return getCompanyFallbackTokenValues(row, tokenName)
+  }
 }
 
-function getCompanyActiveRelationshipItems(row) {
-  return getCompanyRelationshipItems(row)[getCompanyCardPanel(row)] || []
+function getCompanyFallbackTokenValues(row, tokenName) {
+  if (tokenName === 'Company_Artifact') return getCompanyLinkedDocuments(row)
+  if (tokenName === 'Company_Note') return getCompanyLinkedNotes(row)
+
+  const directValue = row?.[tokenName]
+  if (directValue != null && directValue !== '') return getCompanyDelimitedValues(directValue)
+
+  const stripped = tokenName.replace(/^Company_/, '')
+  return getCompanyDelimitedValues(row?.[stripped])
+}
+
+function getCompanyFounders(row) {
+  return getCompanyDelimitedValues(row?.Company_Founders || row?.Founders)
+}
+
+function getCompanyDelimitedValues(value) {
+  return String(value || '')
+    .split('|')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function toCompanyDisplayValues(value) {
+  const normalized = normalizeCompanyValue(value)
+  return normalized ? [normalized] : []
 }
 
 function getCompanyMetadataRows(row) {
