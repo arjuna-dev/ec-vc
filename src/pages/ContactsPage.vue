@@ -2409,15 +2409,17 @@ watch(displayRows, () => {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .contact-card__summary-add-relation {
   padding: 0;
+  min-height: 0;
   color: inherit;
   background: transparent;
   border: 0;
   box-shadow: none;
+  line-height: 1;
 }
 
 .contact-card__summary-add-relation :deep(.q-btn__content) {
@@ -2425,6 +2427,8 @@ watch(displayRows, () => {
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
+  min-height: 0;
+  line-height: 1;
 }
 
 .contact-card__summary-add-relation-plus {
