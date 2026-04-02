@@ -343,7 +343,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import SelectionActionBar from 'src/components/SelectionActionBar.vue'
@@ -799,6 +799,28 @@ function openCreateUser() {
   userDialogOpen.value = true
 }
 
+function onOpenUserDialog() {
+  globalThis.__ecvcOpenUserDialog = false
+  openCreateUser()
+}
+
+function openCreateUserFromQuery() {
+  if (String(route.query.create || '') !== '1') return
+  openCreateUser()
+  globalThis.__ecvcOpenUserDialog = false
+
+  const nextQuery = { ...route.query }
+  delete nextQuery.create
+  router.replace({ query: nextQuery })
+}
+
+function consumeQueuedUserDialogOpen() {
+  if (globalThis.__ecvcOpenUserDialog !== true) return false
+  globalThis.__ecvcOpenUserDialog = false
+  openCreateUser()
+  return true
+}
+
 async function onUserCreated() {
   await loadUsers()
 }
@@ -814,7 +836,23 @@ async function loadUsers() {
   }
 }
 
-onMounted(loadUsers)
+onMounted(async () => {
+  window.addEventListener('ecvc:open-user-dialog', onOpenUserDialog)
+  await loadUsers()
+  consumeQueuedUserDialogOpen()
+  openCreateUserFromQuery()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('ecvc:open-user-dialog', onOpenUserDialog)
+})
+
+watch(
+  () => route.query.create,
+  () => {
+    openCreateUserFromQuery()
+  },
+)
 </script>
 
 <style scoped>

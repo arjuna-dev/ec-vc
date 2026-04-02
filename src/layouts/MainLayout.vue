@@ -405,7 +405,17 @@ const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
 const QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY = 'ecvc.quickWidgetActionSettings'
-const DEFAULT_QUICK_WIDGET_ACTION_ORDER = ['opportunity', 'contact', 'company', 'note', 'task', 'artifact']
+const DEFAULT_QUICK_WIDGET_ACTION_ORDER = [
+  'users',
+  'artifact',
+  'contact',
+  'company',
+  'opportunity',
+  'project',
+  'note',
+  'task',
+  'settings',
+]
 const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
   { label: 'Owner', to: '/user-settings', exact: true, icon: 'accessibility_new' },
@@ -601,6 +611,12 @@ const quickWidgetActionSettings = ref({
 
 const quickWidgetActionCatalog = computed(() => {
   const actionById = {
+    users: {
+      id: 'users',
+      label: 'Users',
+      icon: 'badge',
+      onClick: openUserFromQuickAction,
+    },
     opportunity: {
       id: 'opportunity',
       label: 'Opportunity',
@@ -618,6 +634,12 @@ const quickWidgetActionCatalog = computed(() => {
       label: 'Company',
       icon: 'apartment',
       onClick: openCompanyFromQuickAction,
+    },
+    project: {
+      id: 'project',
+      label: 'Project',
+      icon: 'schema',
+      onClick: openProjectFromQuickAction,
     },
     note: {
       id: 'note',
@@ -637,6 +659,14 @@ const quickWidgetActionCatalog = computed(() => {
       icon: 'attach_file',
       onClick: openArtifactFromQuickAction,
     },
+    settings: {
+      id: 'settings',
+      label: 'Settings',
+      icon: 'tune',
+      onClick: () => {
+        quickWidgetSettingsOpen.value = true
+      },
+    },
   }
 
   const configuredOrder = Array.isArray(quickWidgetActionSettings.value?.order)
@@ -654,17 +684,18 @@ const quickWidgetActions = computed(() =>
   quickWidgetActionCatalog.value.filter((action) => isQuickWidgetActionEnabled(action.id)),
 )
 
-const quickWidgetRingActions = computed(() => [
-  ...quickWidgetActions.value,
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: 'tune',
-    onClick: () => {
-      quickWidgetSettingsOpen.value = !quickWidgetSettingsOpen.value
-    },
-  },
-])
+const quickWidgetRingActions = computed(() =>
+  quickWidgetActions.value.map((action) =>
+    action.id === 'settings'
+      ? {
+          ...action,
+          onClick: () => {
+            quickWidgetSettingsOpen.value = !quickWidgetSettingsOpen.value
+          },
+        }
+      : action,
+  ),
+)
 
 const quickOpportunityBranchActions = computed(() => [
   {
@@ -844,6 +875,7 @@ function loadQuickWidgetActionSettings() {
 }
 
 function isQuickWidgetActionEnabled(actionId) {
+  if (String(actionId || '').trim() === 'settings') return true
   return quickWidgetActionSettings.value?.enabled?.[actionId] !== false
 }
 
@@ -1097,6 +1129,19 @@ async function openContactFromQuickAction() {
   }
 }
 
+async function openUserFromQuickAction() {
+  closeQuickActions()
+  globalThis.__ecvcOpenUserDialog = true
+  try {
+    await router.push({ name: 'users', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-user-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-user-dialog'))
+    }, 80)
+  }
+}
+
 async function openTaskFromQuickAction() {
   closeQuickActions()
   globalThis.__ecvcOpenTaskDialog = true
@@ -1106,6 +1151,19 @@ async function openTaskFromQuickAction() {
     globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
     setTimeout(() => {
       globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
+    }, 80)
+  }
+}
+
+async function openProjectFromQuickAction() {
+  closeQuickActions()
+  globalThis.__ecvcOpenPipelineDialog = true
+  try {
+    await router.push({ name: 'projects', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
     }, 80)
   }
 }
