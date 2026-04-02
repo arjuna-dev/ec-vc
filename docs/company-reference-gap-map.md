@@ -16,7 +16,7 @@ This is meant to show:
 This document should be read as the `Company`-specific companion to:
 
 - `record-architecture-master-plan.md`
-- `product-reference-guide.md`
+- `PRG.md`
 
 ## Current App Company Sections
 

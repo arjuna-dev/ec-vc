@@ -77,7 +77,7 @@ Use these as the planning references:
 
 - `docs/intake-architecture-master-plan.md`
 - `docs/record-architecture-master-plan.md`
-- `docs/product-reference-guide.md`
+- `docs/PRG.md`
 - `docs/workstream-tracker.md`
 
 Active workbook reference:
