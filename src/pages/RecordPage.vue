@@ -2642,8 +2642,20 @@ const isProjectView = computed(
 const isOpportunityRecordView = computed(() =>
   ['Opportunities', 'Funds', 'Rounds'].includes(currentView.value?.table_name || tableNameParam.value),
 )
+const isTaskView = computed(
+  () => (currentView.value?.table_name || tableNameParam.value) === 'Tasks',
+)
+const isNoteView = computed(
+  () => (currentView.value?.table_name || tableNameParam.value) === 'Notes',
+)
 const isStructuredGenericRecordView = computed(
-  () => isUserView.value || isArtifactView.value || isProjectView.value || isOpportunityRecordView.value,
+  () =>
+    isUserView.value ||
+    isArtifactView.value ||
+    isProjectView.value ||
+    isOpportunityRecordView.value ||
+    isTaskView.value ||
+    isNoteView.value,
 )
 const isStructuredDatabookView = computed(
   () => isContactView.value || isCompanyView.value || isStructuredGenericRecordView.value,
