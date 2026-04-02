@@ -1916,13 +1916,11 @@ watch(
 
 .opportunity-card__summary-head {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
 }
 
 .opportunity-card__summary-view-toggle {
-  order: -1;
   margin-left: auto;
   margin-right: 14px;
   border-radius: var(--ds-control-radius);
@@ -1979,6 +1977,10 @@ watch(
 
 .opportunity-card__summary-toggle :deep(.q-icon) {
   font-size: 12px;
+}
+
+.opportunity-card__summary-toggle {
+  margin-right: auto;
 }
 
 .opportunity-card__summary-panel {

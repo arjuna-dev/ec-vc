@@ -4428,9 +4428,8 @@ watch(displayArtifactRows, () => {
 
 .artifact-card__summary-head {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
 }
 
 .artifact-card__summary-view-toggle,
@@ -4439,7 +4438,6 @@ watch(displayArtifactRows, () => {
 }
 
 .artifact-card__summary-view-toggle {
-  order: -1;
   margin-left: auto;
   margin-right: 14px;
 }
@@ -4486,6 +4484,10 @@ watch(displayArtifactRows, () => {
 
 .artifact-card__summary-toggle :deep(.q-icon) {
   font-size: 12px;
+}
+
+.artifact-card__summary-toggle {
+  margin-right: auto;
 }
 
 .artifact-card__summary-panel {

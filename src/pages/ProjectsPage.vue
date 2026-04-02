@@ -1841,13 +1841,11 @@ watch(displayRows, () => {
 
 .pipeline-card__summary-head {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
 }
 
 .pipeline-card__summary-view-toggle {
-  order: -1;
   margin-left: auto;
   margin-right: 14px;
   border-radius: var(--ds-control-radius);
@@ -1904,6 +1902,10 @@ watch(displayRows, () => {
 
 .pipeline-card__summary-toggle :deep(.q-icon) {
   font-size: 12px;
+}
+
+.pipeline-card__summary-toggle {
+  margin-right: auto;
 }
 
 .pipeline-card__summary-panel {

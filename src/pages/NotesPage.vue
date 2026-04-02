@@ -1486,9 +1486,8 @@ watch(displayRows, () => {
 
 .note-card__summary-head {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
 }
 
 .note-card__summary-view-toggle,
@@ -1497,7 +1496,6 @@ watch(displayRows, () => {
 }
 
 .note-card__summary-view-toggle {
-  order: -1;
   margin-left: auto;
   margin-right: 14px;
 }
@@ -1544,6 +1542,10 @@ watch(displayRows, () => {
 
 .note-card__summary-toggle :deep(.q-icon) {
   font-size: 12px;
+}
+
+.note-card__summary-toggle {
+  margin-right: auto;
 }
 
 .note-card__summary-panel {
