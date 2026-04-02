@@ -1792,6 +1792,23 @@ function goBack() {
   color: rgba(255, 255, 255, 0.24) !important;
 }
 
+.ec-quick-widget-settings-row :deep(.q-toggle__track) {
+  background: rgba(255, 255, 255, 0.18) !important;
+  opacity: 1;
+}
+
+.ec-quick-widget-settings-row :deep(.q-toggle__thumb) {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.ec-quick-widget-settings-row :deep(.q-toggle__inner--truthy .q-toggle__track) {
+  background: rgba(255, 255, 255, 0.32) !important;
+}
+
+.ec-quick-widget-settings-row :deep(.q-toggle__inner--truthy .q-toggle__thumb) {
+  color: #f4f4f4 !important;
+}
+
 .ec-intake-drafts {
   position: fixed;
   right: 20px;
