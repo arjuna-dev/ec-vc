@@ -108,6 +108,16 @@
               </template>
             </q-input>
             <q-btn
+              no-caps
+              unelevated
+              color="primary"
+              icon="add"
+              label="Add Record"
+              class="users-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateUser"
+            />
+            <q-btn
               dense
               flat
               round
@@ -314,6 +324,8 @@
             :on-import-rows="importRows"
           />
         </div>
+
+        <UserCreateDialog v-model="userDialogOpen" @created="onUserCreated" />
       </section>
 
       <SelectionActionBar
@@ -333,6 +345,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import SelectionActionBar from 'src/components/SelectionActionBar.vue'
 import TableCsvActions from 'src/components/TableCsvActions.vue'
+import UserCreateDialog from 'src/components/UserCreateDialog.vue'
 
 const rows = ref([])
 const loading = ref(false)
@@ -343,6 +356,7 @@ const selectedUsers = ref([])
 const userCardContentViews = ref({})
 const userCardPanels = ref({})
 const csvActionsRef = ref(null)
+const userDialogOpen = ref(false)
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(() => !!bridge.value?.users?.list)
 const route = useRoute()
@@ -727,6 +741,14 @@ async function importRows(importedRows = []) {
   return { inserted: normalizedRows.length, updated: 0, skipped: 0 }
 }
 
+function openCreateUser() {
+  userDialogOpen.value = true
+}
+
+async function onUserCreated() {
+  await loadUsers()
+}
+
 async function loadUsers() {
   if (!bridge.value?.users?.list) return
   loading.value = true
@@ -1044,6 +1066,11 @@ onMounted(loadUsers)
 
 .users-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.users-toolbar__add-button {
+  align-self: center;
+  white-space: nowrap;
 }
 
 .users-toolbar__kind-toggle :deep(.q-btn) {

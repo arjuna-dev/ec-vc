@@ -1047,6 +1047,53 @@ function listUsers() {
   )
 }
 
+function createUser(payload = {}) {
+  const database = initDb()
+  const userName =
+    normalizeNullableString(payload?.User_Name) || normalizeNullableString(payload?.Name)
+  const userEmail =
+    normalizeNullableString(payload?.User_PEmail) ||
+    normalizeNullableString(payload?.Professional_Email) ||
+    normalizeNullableString(payload?.Personal_Email) ||
+    normalizeNullableString(payload?.Email)
+
+  if (!userName) throw new Error('User name is required')
+  if (!userEmail) throw new Error('Primary email is required')
+  if (!isEmail(userEmail)) throw new Error('Primary email must be a valid email address')
+
+  const explicitId = normalizeNullableString(payload?.id)
+  const existing = database
+    .prepare('SELECT id FROM Users WHERE User_PEmail = ? LIMIT 1')
+    .get(userEmail)
+  const userId = explicitId || existing?.id || `user:${crypto.randomUUID()}`
+
+  database
+    .prepare(
+      `
+      INSERT INTO Users (
+        id, User_Name, User_PEmail, created_at, updated_at
+      ) VALUES (
+        @id, @User_Name, @User_PEmail, datetime('now'), datetime('now')
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        User_Name = excluded.User_Name,
+        User_PEmail = excluded.User_PEmail,
+        updated_at = datetime('now')
+    `,
+    )
+    .run({
+      id: userId,
+      User_Name: userName,
+      User_PEmail: userEmail,
+    })
+
+  return {
+    id: userId,
+    User_Name: userName,
+    User_PEmail: userEmail,
+  }
+}
+
 function listNotes() {
   return dbAll(
     `
@@ -5140,6 +5187,17 @@ function registerIpc() {
   ipcMain.handle('users:list', async () => {
     initDb()
     return { users: listUsers() }
+  })
+
+  ipcMain.handle('users:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createUser(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'users'))
+    }
   })
 
   ipcMain.handle('contacts:create', async (_event, payload) => {

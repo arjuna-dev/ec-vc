@@ -43,8 +43,8 @@
             <q-card bordered flat class="settings-form-card settings-form-card--hero">
               <q-card-section class="settings-form-card__header">
                 <div>
-                  <div class="settings-form-card__eyebrow">Owner profile</div>
-                  <div class="settings-form-card__title">Local node settings</div>
+                  <div class="settings-form-card__eyebrow">Owner Settings</div>
+                  <div class="settings-form-card__title">Owner Settings</div>
                 </div>
                 <div class="settings-form-card__caption">
                   Keep the local owner identity complete so Avatar, Files, and future agents all read
@@ -123,7 +123,7 @@
                 <B10Button
                   variant="subtle"
                   icon-start="refresh"
-                  label="Reload"
+                  label="Reload Owner Settings"
                   :disable="saving || loading"
                   :loading="loading"
                   @click="loadUserSettings"
@@ -131,7 +131,7 @@
                 <B10Button
                   variant="primary"
                   icon-start="save"
-                  label="Save Settings"
+                  label="Save Owner Settings"
                   :loading="saving"
                   :disable="loading || !hasUnsavedChanges"
                   @click="saveUserSettings"

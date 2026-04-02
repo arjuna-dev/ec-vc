@@ -110,6 +110,7 @@ contextBridge.exposeInMainWorld('ecvc', {
   },
   users: {
     list: () => ipcRenderer.invoke('users:list'),
+    create: (payload) => ipcRenderer.invoke('users:create', payload),
   },
   notes: {
     list: () => ipcRenderer.invoke('notes:list'),
