@@ -126,18 +126,6 @@
               :disable="loading"
               :options="viewOptions"
             />
-            <q-btn
-              dense
-              flat
-              round
-              icon="upload"
-              color="grey-6"
-              class="users-toolbar__icon-button"
-              :disable="loading || displayRows.length === 0"
-              @click="csvActionsRef?.exportCsv?.()"
-            >
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
           </div>
         </div>
 

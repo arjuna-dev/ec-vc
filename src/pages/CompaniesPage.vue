@@ -140,9 +140,6 @@
               :disable="loading"
               :options="viewOptions"
             />
-            <q-btn dense flat round icon="upload" color="grey-6" class="companies-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="exportCompaniesCsv">
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
           </div>
         </div>
 
