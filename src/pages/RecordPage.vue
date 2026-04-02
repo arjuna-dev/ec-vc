@@ -2834,6 +2834,7 @@ function formatCanonicalLabel(value, entityPrefix = '') {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ')
   if (/^general information$/i.test(label)) return 'General'
+  if (/^system data$/i.test(label)) return 'System'
   if (/^inc info$/i.test(label)) return 'Incorporation'
   if (/^docs$/i.test(label)) return 'Documents'
   if (/^ops overview$/i.test(label)) return 'Operations'
