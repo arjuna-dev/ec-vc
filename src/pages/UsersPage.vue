@@ -72,6 +72,16 @@
               class="users-toolbar__select-all"
               @update:model-value="toggleSelectAllVisibleUsers"
             />
+            <q-btn
+              no-caps
+              unelevated
+              color="primary"
+              icon="add"
+              label="Add Record"
+              class="users-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateUser"
+            />
           </div>
 
           <div class="users-toolbar__block users-toolbar__block--view">
@@ -118,16 +128,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn
-              no-caps
-              unelevated
-              color="primary"
-              icon="add"
-              label="Add Record"
-              class="users-toolbar__add-button"
-              :disable="loading"
-              @click="openCreateUser"
-            />
             <q-btn
               dense
               flat
