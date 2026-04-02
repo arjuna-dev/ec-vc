@@ -209,75 +209,8 @@
     </div>
 
     <div class="ec-quick-widget" :style="quickWidgetStyle">
-      <q-btn
-        round
-        dense
-        flat
-        class="ec-quick-widget-settings"
-        icon="tune"
-        aria-label="Widget settings"
-        @click.stop="quickWidgetSettingsOpen = true"
-      >
-        <q-menu
-          v-model="quickWidgetSettingsOpen"
-          anchor="top right"
-          self="bottom right"
-          class="ec-quick-widget-settings-menu"
-        >
-          <div class="ec-quick-widget-settings-panel">
-            <div class="ec-quick-widget-settings-panel__header">
-              <div>
-                <div class="ec-quick-widget-settings-panel__eyebrow">Widget Settings</div>
-                <div class="ec-quick-widget-settings-panel__title">Quick Files</div>
-              </div>
-              <div class="ec-quick-widget-settings-panel__caption">
-                Show, hide, and reorder the files in your quick widget.
-              </div>
-            </div>
-
-            <div class="ec-quick-widget-settings-panel__list">
-              <div
-                v-for="(action, index) in quickWidgetActionCatalog"
-                :key="action.id"
-                class="ec-quick-widget-settings-row"
-              >
-                <q-toggle
-                  :model-value="isQuickWidgetActionEnabled(action.id)"
-                  color="primary"
-                  dense
-                  @update:model-value="setQuickWidgetActionEnabled(action.id, $event)"
-                />
-
-                <div class="ec-quick-widget-settings-row__copy">
-                  <div class="ec-quick-widget-settings-row__label">{{ action.label }}</div>
-                </div>
-
-                <div class="ec-quick-widget-settings-row__actions">
-                  <q-btn
-                    flat
-                    dense
-                    round
-                    icon="keyboard_arrow_up"
-                    :disable="index === 0"
-                    @click.stop="moveQuickWidgetAction(action.id, -1)"
-                  />
-                  <q-btn
-                    flat
-                    dense
-                    round
-                    icon="keyboard_arrow_down"
-                    :disable="index === quickWidgetActionCatalog.length - 1"
-                    @click.stop="moveQuickWidgetAction(action.id, 1)"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </q-menu>
-      </q-btn>
-
       <div
-        v-for="(action, index) in quickWidgetActions"
+        v-for="(action, index) in quickWidgetRingActions"
         :key="action.id"
         class="ec-quick-widget-action"
         :style="quickWidgetActionStyle(index)"
@@ -290,7 +223,65 @@
           :icon="action.icon"
           :aria-label="action.label"
           @click.stop="action.onClick"
-        />
+        >
+          <q-menu
+            v-if="action.id === 'settings'"
+            v-model="quickWidgetSettingsOpen"
+            anchor="top right"
+            self="bottom right"
+            class="ec-quick-widget-settings-menu"
+          >
+            <div class="ec-quick-widget-settings-panel">
+              <div class="ec-quick-widget-settings-panel__header">
+                <div>
+                  <div class="ec-quick-widget-settings-panel__eyebrow">Widget Settings</div>
+                  <div class="ec-quick-widget-settings-panel__title">Quick Files</div>
+                </div>
+                <div class="ec-quick-widget-settings-panel__caption">
+                  Show, hide, and reorder the files in your quick widget.
+                </div>
+              </div>
+
+              <div class="ec-quick-widget-settings-panel__list">
+                <div
+                  v-for="(settingsAction, settingsIndex) in quickWidgetActionCatalog"
+                  :key="settingsAction.id"
+                  class="ec-quick-widget-settings-row"
+                >
+                  <q-toggle
+                    :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
+                    color="primary"
+                    dense
+                    @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
+                  />
+
+                  <div class="ec-quick-widget-settings-row__copy">
+                    <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
+                  </div>
+
+                  <div class="ec-quick-widget-settings-row__actions">
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      icon="keyboard_arrow_up"
+                      :disable="settingsIndex === 0"
+                      @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
+                    />
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      icon="keyboard_arrow_down"
+                      :disable="settingsIndex === quickWidgetActionCatalog.length - 1"
+                      @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </q-menu>
+        </q-btn>
         <div class="ec-quick-widget-action-label">{{ action.label }}</div>
       </div>
 
@@ -660,6 +651,18 @@ const quickWidgetActions = computed(() =>
   quickWidgetActionCatalog.value.filter((action) => isQuickWidgetActionEnabled(action.id)),
 )
 
+const quickWidgetRingActions = computed(() => [
+  ...quickWidgetActions.value,
+  {
+    id: 'settings',
+    label: 'Settings',
+    icon: 'tune',
+    onClick: () => {
+      quickWidgetSettingsOpen.value = true
+    },
+  },
+])
+
 const quickOpportunityBranchActions = computed(() => [
   {
     id: 'fund',
@@ -893,14 +896,14 @@ function onQuickWidgetResize() {
 }
 
 function quickWidgetActionAngle(index) {
-  const total = quickWidgetActions.value.length
+  const total = quickWidgetRingActions.value.length
   if (total <= 0) return -90
   return -90 - (360 / total) * index
 }
 
 function quickWidgetActionOffsetById(actionId, radius = QUICK_WIDGET_ACTION_RADIUS) {
   const resolvedId = String(actionId || '').trim()
-  const orderIndex = quickWidgetActions.value.findIndex((action) => action.id === resolvedId)
+  const orderIndex = quickWidgetRingActions.value.findIndex((action) => action.id === resolvedId)
   const angleIndex = orderIndex >= 0 ? orderIndex : 0
   const angleRad = (quickWidgetActionAngle(angleIndex) * Math.PI) / 180
 
@@ -911,7 +914,7 @@ function quickWidgetActionOffsetById(actionId, radius = QUICK_WIDGET_ACTION_RADI
 }
 
 function quickWidgetActionOffset(index, radius = QUICK_WIDGET_ACTION_RADIUS) {
-  const action = quickWidgetActions.value[index]
+  const action = quickWidgetRingActions.value[index]
   return quickWidgetActionOffsetById(action?.id, radius)
 }
 
@@ -982,7 +985,7 @@ function quickWidgetActionStyle(index) {
 }
 
 function quickOpportunityBranchActionStyle(index) {
-  const opportunityIndex = quickWidgetActions.value.findIndex((action) => action.id === 'opportunity')
+  const opportunityIndex = quickWidgetRingActions.value.findIndex((action) => action.id === 'opportunity')
   const parentOffset =
     opportunityIndex >= 0 ? quickWidgetActionOffset(opportunityIndex) : { x: 0, y: -QUICK_WIDGET_ACTION_RADIUS }
   const parentAngle = quickWidgetActionAngle(opportunityIndex >= 0 ? opportunityIndex : 0)
@@ -1028,6 +1031,7 @@ function toggleQuickActions() {
 
 function closeQuickActions() {
   if (!quickActionsOpen.value) return
+  quickWidgetSettingsOpen.value = false
   quickOpportunityBranchOpen.value = false
   quickActionsOpen.value = false
   playQuickWidgetBack()
@@ -1569,22 +1573,6 @@ function goBack() {
   width: 112px;
   height: 112px;
   overflow: visible;
-}
-
-.ec-quick-widget-settings {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  z-index: 4;
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  min-height: 28px;
-  color: var(--ds-color-text-primary-deep);
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
-  backdrop-filter: blur(12px);
 }
 
 .ec-quick-widget-settings-menu {
