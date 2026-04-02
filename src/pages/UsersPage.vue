@@ -1517,6 +1517,7 @@ watch(
 }
 
 .user-card__summary-toggle :deep(.q-btn) {
+  position: relative;
   min-height: 24px;
   min-width: 24px;
   width: 24px;
@@ -1525,6 +1526,28 @@ watch(
   border-radius: var(--ds-control-radius);
   background: transparent;
   font-size: 12px;
+}
+
+.user-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
+.user-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  padding: 4px 7px;
+  color: #ffffff;
+  background: rgba(17, 17, 17, 0.92);
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.12);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .user-card__summary-toggle :deep(.q-btn + .q-btn) {

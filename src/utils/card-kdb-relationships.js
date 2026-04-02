@@ -78,8 +78,9 @@ export function buildCardRelationshipOptions() {
     value: definition.value,
     icon: definition.icon,
     attrs: {
-      title: definition.label,
+      class: 'ec-card-kdb-option',
       'aria-label': definition.label,
+      'data-tooltip': definition.label,
     },
   }))
 }
