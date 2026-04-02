@@ -94,6 +94,9 @@
                 <span class="opportunities-toolbar__add-button-label">Add Record</span>
               </span>
             </q-btn>
+            <q-btn dense flat round icon="download" color="grey-6" class="opportunities-toolbar__icon-button" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
             <q-input
               v-model="searchQuery"
               dense
@@ -137,9 +140,6 @@
               :disable="loading"
               :options="viewOptions"
             />
-            <q-btn dense flat round icon="download" color="grey-6" class="opportunities-toolbar__icon-button" :disable="loading" @click="pickImportFile">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
             <q-btn dense flat round icon="upload" color="grey-6" class="opportunities-toolbar__icon-button" :disable="loading || displayRows.length === 0" @click="exportOpportunitiesCsv">
               <q-tooltip>Export CSV</q-tooltip>
             </q-btn>

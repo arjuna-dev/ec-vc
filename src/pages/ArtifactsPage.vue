@@ -94,6 +94,9 @@
                 <span class="artifacts-toolbar__add-button-label">Add Record</span>
               </span>
             </q-btn>
+            <q-btn dense flat round icon="download" color="grey-6" class="artifacts-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
             <q-input
               v-model="searchQuery"
               dense
@@ -135,9 +138,6 @@
               class="artifacts-toolbar__toggle artifacts-toolbar__view-toggle"
               :options="viewModeOptions"
             />
-            <q-btn dense flat round icon="download" color="grey-6" class="artifacts-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
             <q-btn dense flat round icon="upload" color="grey-6" class="artifacts-toolbar__icon-button" :disable="loading || displayArtifactRows.length === 0" @click="csvActionsRef?.exportCsv?.()">
               <q-tooltip>Export CSV</q-tooltip>
             </q-btn>
