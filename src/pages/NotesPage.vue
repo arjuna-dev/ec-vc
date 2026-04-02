@@ -1486,8 +1486,9 @@ watch(displayRows, () => {
 
 .note-card__summary-head {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .note-card__summary-view-toggle,
@@ -1496,6 +1497,7 @@ watch(displayRows, () => {
 }
 
 .note-card__summary-view-toggle {
+  order: -1;
   margin-left: auto;
   margin-right: 14px;
 }
@@ -1526,18 +1528,22 @@ watch(displayRows, () => {
 }
 
 .note-card__summary-toggle :deep(.q-btn) {
-  min-height: 32px;
-  padding: 0 10px;
+  min-height: 24px;
+  min-width: 24px;
+  width: 24px;
+  padding: 0 3px;
   border: 1px solid transparent;
   border-radius: var(--ds-control-radius);
   background: transparent;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
+  font-size: 12px;
 }
 
 .note-card__summary-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 4px;
+  margin-left: 2px;
+}
+
+.note-card__summary-toggle :deep(.q-icon) {
+  font-size: 12px;
 }
 
 .note-card__summary-panel {
