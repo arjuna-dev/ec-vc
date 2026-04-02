@@ -115,6 +115,16 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              no-caps
+              unelevated
+              color="primary"
+              icon="add"
+              label="Add Record"
+              class="pipelines-toolbar__add-button"
+              :disable="loading"
+              @click="openCreatePipeline"
+            />
             <q-btn dense flat round icon="download" color="grey-6" class="pipelines-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
@@ -1484,6 +1494,11 @@ watch(displayRows, () => {
 
 .pipelines-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.pipelines-toolbar__add-button {
+  align-self: center;
+  white-space: nowrap;
 }
 
 .pipelines-surface {

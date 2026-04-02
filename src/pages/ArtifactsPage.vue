@@ -113,6 +113,16 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              no-caps
+              unelevated
+              color="primary"
+              icon="add"
+              label="Add Record"
+              class="artifacts-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateArtifact"
+            />
             <q-btn dense flat round icon="download" color="grey-6" class="artifacts-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
@@ -2916,6 +2926,11 @@ function openDatabook(row) {
   })
 }
 
+function openCreateArtifact() {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent('ecvc:open-artifact-dialog'))
+}
+
 function getArtifactsReturnToPath() {
   const queryView = String(route.query.view || '').trim().toLowerCase()
   const nextView = queryView === 'table' ? 'table' : viewMode.value
@@ -3401,6 +3416,11 @@ watch(displayArtifactRows, () => {
 
 .artifacts-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.artifacts-toolbar__add-button {
+  align-self: center;
+  white-space: nowrap;
 }
 
 .artifacts-toolbar__kind-toggle :deep(.q-btn) {

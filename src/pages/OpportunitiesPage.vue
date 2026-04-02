@@ -115,6 +115,16 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              no-caps
+              unelevated
+              color="primary"
+              icon="add"
+              label="Add Record"
+              class="opportunities-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateOpportunityRecord"
+            />
             <q-btn dense flat round icon="download" color="grey-6" class="opportunities-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
@@ -350,6 +360,11 @@
     v-model="dialogOpen"
     @created="onOpportunityCreated"
   />
+  <OpportunityCreateDialog
+    v-else-if="dialogKind === 'opportunity'"
+    v-model="dialogOpen"
+    @created="onOpportunityCreated"
+  />
   <RoundCreateDialog
     v-else
     v-model="dialogOpen"
@@ -363,6 +378,7 @@ import { exportFile, useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import FundCreateDialog from 'src/components/FundCreateDialog.vue'
+import OpportunityCreateDialog from 'src/components/OpportunityCreateDialog.vue'
 import RoundCreateDialog from 'src/components/RoundCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
@@ -499,7 +515,8 @@ function onOpenRoundDialog() {
 function openCreateFromQuery() {
   const createValue = String(route.query.create || '').trim().toLowerCase()
   if (!createValue) return
-  dialogKind.value = createValue === 'fund' ? 'fund' : 'round'
+  dialogKind.value =
+    createValue === 'fund' ? 'fund' : createValue === 'opportunity' ? 'opportunity' : 'round'
   dialogOpen.value = true
   globalThis.__ecvcOpenFundDialog = false
   globalThis.__ecvcOpenRoundDialog = false
@@ -518,6 +535,19 @@ function consumeQueuedOpen() {
     return true
   }
   return false
+}
+
+function openCreateOpportunityRecord() {
+  if (currentOpportunityMode.value.kind === 'fund') {
+    onOpenFundDialog()
+    return
+  }
+  if (currentOpportunityMode.value.kind === 'round') {
+    onOpenRoundDialog()
+    return
+  }
+  dialogKind.value = 'opportunity'
+  dialogOpen.value = true
 }
 
 async function onOpportunityCreated() {
@@ -1529,6 +1559,11 @@ watch(
 
 .opportunities-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.opportunities-toolbar__add-button {
+  align-self: center;
+  white-space: nowrap;
 }
 
 .opportunities-surface {

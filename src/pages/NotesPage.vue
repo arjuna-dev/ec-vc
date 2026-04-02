@@ -113,6 +113,16 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              no-caps
+              unelevated
+              color="primary"
+              icon="add"
+              label="Add Record"
+              class="notes-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateNote"
+            />
             <q-btn dense flat round icon="download" color="grey-6" class="notes-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
@@ -1158,6 +1168,11 @@ watch(displayRows, () => {
 
 .notes-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.notes-toolbar__add-button {
+  align-self: center;
+  white-space: nowrap;
 }
 
 .notes-toolbar__kind-toggle :deep(.q-btn) {

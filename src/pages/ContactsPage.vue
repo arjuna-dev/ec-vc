@@ -115,6 +115,16 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              no-caps
+              unelevated
+              color="primary"
+              icon="add"
+              label="Add Record"
+              class="contacts-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateContact"
+            />
             <q-btn dense flat round icon="download" color="grey-6" class="contacts-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
@@ -1782,6 +1792,11 @@ watch(displayRows, () => {
 
 .contacts-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.contacts-toolbar__add-button {
+  align-self: center;
+  white-space: nowrap;
 }
 
 .contacts-toolbar__filter-control {

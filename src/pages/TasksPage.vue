@@ -113,6 +113,16 @@
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              no-caps
+              unelevated
+              color="primary"
+              icon="add"
+              label="Add Record"
+              class="tasks-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateTask"
+            />
             <q-btn dense flat round icon="download" color="grey-6" class="tasks-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
@@ -1181,6 +1191,11 @@ watch(displayRows, () => {
 
 .tasks-toolbar__icon-button :deep(.q-icon) {
   font-size: 18px;
+}
+
+.tasks-toolbar__add-button {
+  align-self: center;
+  white-space: nowrap;
 }
 
 .tasks-toolbar__kind-toggle :deep(.q-btn) {
