@@ -2416,7 +2416,7 @@ watch(displayRows, () => {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 12px;
   padding: 0;
   color: inherit;
   background: transparent;
@@ -2428,22 +2428,22 @@ watch(displayRows, () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  min-height: 18px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
   border-radius: 999px;
   color: #ffffff;
   background: #2647ff;
 }
 
 .contact-card__summary-add-relation-plus :deep(.q-icon) {
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .contact-card__summary-add-relation-label {
   font-family: var(--font-title);
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.01em;
 }
