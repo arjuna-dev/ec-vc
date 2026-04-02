@@ -10,14 +10,13 @@ This document is now the primary working reference for:
 - execution plan
 - progress tracking
 
-It supersedes these earlier planning docs as the main source of truth:
+This document should be treated as the single planning source of truth for the `File -> Card -> Record View` architecture.
 
-- `workbook-record-payload-contract.md`
-- `record-view-consistency-audit.md`
-- `item-addressing-convention.md`
-- `pageview-schema-group-tabs.md`
+When decisions change:
 
-Those older docs can remain for historical reference, but new planning decisions should be reflected here.
+- update this file
+- do not create parallel architecture docs unless there is a strong reason
+- use the progress tracker here to reflect what is approved, in progress, and complete
 
 ## Objective
 
