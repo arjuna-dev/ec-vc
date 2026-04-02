@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Databooks requires Electron. Run <code>quasar dev -m electron</code> or
+        Record View requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -22,7 +22,7 @@
       >
         <div class="databook-heading__main">
           <div>
-            <div class="databook-heading__eyebrow">{{ entityLabel }} databook</div>
+            <div class="databook-heading__eyebrow">{{ entityLabel }} record view</div>
             <template v-if="isContactView">
               <div class="databook-heading__subtitle">
                 Version history and edit controls for this contact record.
@@ -64,7 +64,7 @@
               <q-item clickable v-close-popup @click="switchToLatestVersion">
                 <q-item-section>
                   <q-item-label>Latest</q-item-label>
-                  <q-item-label caption>Current editable databook</q-item-label>
+                  <q-item-label caption>Current editable record</q-item-label>
                 </q-item-section>
               </q-item>
               <q-item v-for="v in versions" :key="v.id" clickable v-close-popup @click="openVersion(v.id)">
@@ -631,7 +631,7 @@
               <article class="contact-side-card">
                 <div class="contact-side-card__header">
                   <div class="contact-side-card__intro">
-                    <h2 class="contact-side-card__title">Databook status</h2>
+                    <h2 class="contact-side-card__title">Record status</h2>
                     <div class="contact-side-card__eyebrow">System</div>
                   </div>
                 </div>
@@ -1214,7 +1214,7 @@
               <article class="contact-side-card">
                 <div class="contact-side-card__header">
                   <div class="contact-side-card__intro">
-                    <h2 class="contact-side-card__title">Databook status</h2>
+                    <h2 class="contact-side-card__title">Record status</h2>
                     <div class="contact-side-card__eyebrow">System</div>
                   </div>
                 </div>
@@ -2069,7 +2069,7 @@
       </template>
 
       <q-banner v-else-if="!loading" class="bg-grey-2 text-black" rounded>
-        No Databook fields available for this record.
+        No record fields available for this record.
       </q-banner>
 
       <q-page-sticky v-if="editMode" position="bottom" :offset="[0, 16]">
@@ -2602,8 +2602,8 @@ const entityLabel = computed(
 )
 const databookTitle = computed(() => {
   const name = String(currentView.value?.entity_name || '').trim()
-  if (name) return `${name} Databook`
-  return recordIdParam.value ? `${recordIdParam.value} Databook` : 'Databook'
+  if (name) return `${name} Record`
+  return recordIdParam.value ? `${recordIdParam.value} Record` : 'Record'
 })
 const returnToPath = computed(() => String(route.query.returnTo || '').trim())
 const backLink = computed(
@@ -3625,13 +3625,13 @@ const contactMetaItems = computed(() => [
   { label: 'Record ID', value: getFieldDisplayValue('id') || recordIdParam.value || '-' },
   { label: 'Created', value: getFieldDisplayValue('created_at') || 'Unknown' },
   { label: 'Last updated', value: getFieldDisplayValue('updated_at') || 'Unknown' },
-  { label: 'Mode', value: isHistoricalMode.value ? 'Historical snapshot' : 'Live databook' },
+  { label: 'Mode', value: isHistoricalMode.value ? 'Historical snapshot' : 'Live record' },
 ])
 const companyMetaItems = computed(() => [
   { label: 'Record ID', value: getFieldDisplayValue('id') || recordIdParam.value || '-' },
   { label: 'Created', value: getFieldDisplayValue('created_at') || 'Unknown' },
   { label: 'Last updated', value: getFieldDisplayValue('updated_at') || 'Unknown' },
-  { label: 'Mode', value: isHistoricalMode.value ? 'Historical snapshot' : 'Live databook' },
+  { label: 'Mode', value: isHistoricalMode.value ? 'Historical snapshot' : 'Live record' },
 ])
 const visibleSystemFields = computed(() => {
   const systemFields = ['id', 'created_at', 'updated_at']
