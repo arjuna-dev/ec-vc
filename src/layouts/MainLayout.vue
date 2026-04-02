@@ -220,7 +220,10 @@
           round
           dense
           unelevated
-          class="ec-quick-widget-action-button"
+          :class="[
+            'ec-quick-widget-action-button',
+            { 'ec-quick-widget-action-button--settings': action.id === 'settings' },
+          ]"
           :icon="action.icon"
           :aria-label="action.label"
           @click.stop="action.onClick"
@@ -1988,6 +1991,12 @@ function goBack() {
 
 .ec-quick-widget-action-button--branch {
   background: color-mix(in srgb, var(--ds-color-text-primary-deep) 88%, white 12%) !important;
+}
+
+.ec-quick-widget-action-button--settings {
+  background: var(--ds-color-surface-inverse) !important;
+  color: var(--ds-color-text-primary-deep) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12);
 }
 
 .ec-quick-widget-action-label {
