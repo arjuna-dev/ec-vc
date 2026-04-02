@@ -1355,6 +1355,8 @@ watch(displayRows, () => {
   align-items: center;
   justify-content: space-between;
   padding: 0;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
   background: transparent;
 }
 
@@ -1610,6 +1612,7 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  overflow: hidden;
   border-radius: 18px;
   border-color: rgba(148, 163, 184, 0.28);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
