@@ -1507,6 +1507,7 @@ watch(displayRows, () => {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding-left: 14px;
 }
 
 .task-card__summary-view-toggle,

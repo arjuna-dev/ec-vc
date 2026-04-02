@@ -1496,6 +1496,7 @@ watch(displayRows, () => {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding-left: 14px;
 }
 
 .note-card__summary-view-toggle,

@@ -2546,6 +2546,7 @@ watch(
   display: flex;
   align-items: center;
   gap: 12px;
+  padding-left: 14px;
 }
 
 .company-card__summary-view-toggle {

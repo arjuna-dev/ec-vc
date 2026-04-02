@@ -4438,6 +4438,7 @@ watch(displayArtifactRows, () => {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding-left: 14px;
 }
 
 .artifact-card__summary-view-toggle,

@@ -1478,6 +1478,7 @@ watch(
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding-left: 14px;
 }
 
 .user-card__summary-view-toggle,

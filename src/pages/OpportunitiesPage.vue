@@ -1926,6 +1926,7 @@ watch(
   display: flex;
   align-items: center;
   gap: 12px;
+  padding-left: 14px;
 }
 
 .opportunity-card__summary-view-toggle {
