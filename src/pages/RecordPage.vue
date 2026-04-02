@@ -2835,6 +2835,7 @@ function formatCanonicalLabel(value, entityPrefix = '') {
     .join(' ')
   if (/^general information$/i.test(label)) return 'General'
   if (/^inc info$/i.test(label)) return 'Incorporation'
+  if (/^docs$/i.test(label)) return 'Documents'
   return label
 }
 
