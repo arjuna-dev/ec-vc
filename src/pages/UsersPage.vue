@@ -197,6 +197,25 @@
                 @pointermove="onUserCardPointerMove"
                 @pointerleave="onUserCardPointerLeave"
               >
+                <q-card-section class="user-card__control-row">
+                  <q-checkbox
+                    :model-value="isUserSelected(user)"
+                    :disable="loading"
+                    color="dark"
+                    class="user-card__select-box"
+                    @update:model-value="toggleUserSelection(user, $event)"
+                  />
+
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="user-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(user)"
+                  />
+                </q-card-section>
+
                 <q-card-section class="user-card__hero">
                   <div class="user-card__hero-main">
                     <figure class="user-card__portrait">
@@ -263,13 +282,6 @@
                     />
 
                     <div class="user-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isUserSelected(user)"
-                        :disable="loading"
-                        color="dark"
-                        class="user-card__select-box"
-                        @update:model-value="toggleUserSelection(user, $event)"
-                      />
                     </div>
                   </div>
 
@@ -1206,6 +1218,19 @@ onMounted(loadUsers)
   padding: 0;
 }
 
+.user-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 4px;
+  background: transparent;
+}
+
+.user-card__control-row :deep(.q-checkbox__inner),
+.user-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
+}
+
 .user-card::before {
   position: absolute;
   inset: 0;
@@ -1479,6 +1504,22 @@ onMounted(loadUsers)
   border: 0;
   transform: scale(0.75);
   transform-origin: center;
+}
+
+.user-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: #111;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.user-card__control-eye :deep(.q-icon) {
+  font-size: 14px;
 }
 
 .user-card__select-box {
