@@ -4359,13 +4359,6 @@ watch(displayArtifactRows, () => {
   gap: 30px;
 }
 
-.artifact-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
-}
-
 .artifact-card__summary-view-toggle,
 .artifact-card__summary-toggle {
   border-radius: var(--ds-control-radius);

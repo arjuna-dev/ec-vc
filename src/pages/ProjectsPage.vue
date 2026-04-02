@@ -1796,13 +1796,6 @@ watch(displayRows, () => {
   gap: 30px;
 }
 
-.pipeline-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
-}
-
 .pipeline-card__summary-view-toggle {
   margin-left: 0;
   border-radius: var(--ds-control-radius);

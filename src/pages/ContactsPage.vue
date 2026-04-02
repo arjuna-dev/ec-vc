@@ -2332,13 +2332,6 @@ watch(displayRows, () => {
   gap: 12px;
 }
 
-.contact-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
-}
-
 .contact-card__summary-view-toggle {
   margin-left: auto;
   border-radius: var(--ds-control-radius);

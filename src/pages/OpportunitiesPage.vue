@@ -1871,13 +1871,6 @@ watch(
   gap: 30px;
 }
 
-.opportunity-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
-}
-
 .opportunity-card__summary-view-toggle {
   margin-left: 0;
   border-radius: var(--ds-control-radius);
