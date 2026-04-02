@@ -402,6 +402,8 @@
               :class="{
                 'contact-databook__nav-item--active': activeContactSection === section.anchor,
                 'contact-databook__nav-item--kdb': section.isKdb,
+                'contact-databook__nav-item--system': section.isSystem,
+                'contact-databook__nav-item--push-right': section.pushRight,
               }"
               @click="activeContactSection = section.anchor"
             >
@@ -977,6 +979,8 @@
               :class="{
                 'contact-databook__nav-item--active': activeCompanySection === section.anchor,
                 'contact-databook__nav-item--kdb': section.isKdb,
+                'contact-databook__nav-item--system': section.isSystem,
+                'contact-databook__nav-item--push-right': section.pushRight,
               }"
               @click="activeCompanySection = section.anchor"
             >
@@ -2527,8 +2531,8 @@ const savingUserLabel = ref(false)
 const versions = ref([])
 const selectedVersionId = ref(null)
 const modifiedByMap = ref({})
-const activeContactSection = ref('system-data')
-const activeCompanySection = ref('system-data')
+const activeContactSection = ref('general-information')
+const activeCompanySection = ref('general-information')
 const activeGenericSection = ref('')
 const activeContactKdbSection = ref('artifacts')
 const contactKdbViewMode = ref('grid')
@@ -2870,26 +2874,98 @@ function createCanonicalSection(entityName, subsectionConfig = {}) {
     layout: 'grid',
     fields: sectionFields,
     isKdb: /kdb/i.test(subsectionName),
+    isSystem: /system/i.test(subsectionName),
   }
 }
 
+function createCanonicalGeneralInformationFallback(entityName) {
+  const aliasesByEntity = {
+    Contacts: ['Name', 'Personal_Email', 'Business_Email', 'Phone', 'Country_based', 'LinkedIn'],
+    Companies: ['Company_Name', 'Short_Name', 'One_Liner', 'Website', 'Status'],
+  }
+  const fields = (aliasesByEntity[entityName] || [])
+    .map((alias) =>
+      resolveDatabookField({
+        label: formatCanonicalLabel(alias, entityName === 'Contacts' ? 'Contact' : 'Company'),
+        aliases: [alias],
+      }),
+    )
+    .filter(Boolean)
+
+  return {
+    anchor: 'general-information',
+    category: 'General Information',
+    title: 'General Information',
+    icon: CONTACT_SECTION_ICONS.person,
+    caption: '',
+    layout: 'grid',
+    fields,
+    isKdb: false,
+    isSystem: false,
+  }
+}
+
+function orderCanonicalSectionsForNav(entityName, sections = []) {
+  const normalizedSections = [...sections]
+  const generalIndex = normalizedSections.findIndex((section) => /^general information$/i.test(section.title))
+  const kdbIndex = normalizedSections.findIndex((section) => section.isKdb)
+  const systemIndex = normalizedSections.findIndex((section) => section.isSystem)
+
+  const ordered = []
+  if (generalIndex > -1) {
+    ordered.push(normalizedSections[generalIndex])
+  } else {
+    ordered.push(createCanonicalGeneralInformationFallback(entityName))
+  }
+
+  normalizedSections.forEach((section, index) => {
+    if (index === generalIndex || index === kdbIndex || index === systemIndex) return
+    ordered.push(section)
+  })
+
+  if (kdbIndex > -1) {
+    ordered.push({ ...normalizedSections[kdbIndex], isKdb: true })
+  }
+
+  if (systemIndex > -1) {
+    ordered.push({ ...normalizedSections[systemIndex], isSystem: true })
+  }
+
+  return ordered
+}
+
 function getCanonicalEntitySections(entityName) {
-  return (CANONICAL_STRUCTURE_BY_ENTITY[entityName]?.subsections || []).map((subsection) =>
+  const sections = (CANONICAL_STRUCTURE_BY_ENTITY[entityName]?.subsections || []).map((subsection) =>
     createCanonicalSection(entityName, subsection),
   )
+  return orderCanonicalSectionsForNav(entityName, sections)
 }
 
 const companySections = computed(() => getCanonicalEntitySections('Companies'))
 const contactSections = computed(() => getCanonicalEntitySections('Contacts'))
-const companyNavItems = computed(() =>
-  companySections.value.map((section) => ({ anchor: section.anchor, title: section.title, isKdb: section.isKdb })),
-)
+const companyNavItems = computed(() => {
+  const hasKdb = companySections.value.some((section) => section.isKdb)
+  return companySections.value.map((section) => ({
+    anchor: section.anchor,
+    title: section.title,
+    isKdb: section.isKdb,
+    isSystem: section.isSystem,
+    pushRight: section.isKdb || (section.isSystem && !hasKdb),
+  }))
+})
 const activeCompanyContentSection = computed(
   () => companySections.value.find((section) => section.anchor === activeCompanySection.value) || null,
 )
-const contactNavItems = computed(() =>
-  contactSections.value.map((section) => ({ anchor: section.anchor, title: section.title, isKdb: section.isKdb })),
-)
+const contactNavItems = computed(() => {
+  const hasKdb = contactSections.value.some((section) => section.isKdb)
+  return contactSections.value.map((section) => ({
+    anchor: section.anchor,
+    title: section.title,
+    isKdb: section.isKdb,
+    isSystem: section.isSystem,
+    pushRight: section.isKdb || (section.isSystem && !hasKdb),
+  }))
+})
 const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
 )
@@ -5142,8 +5218,8 @@ function readFileAsDataUrl(file) {
 watch(
   () => `${route.params.tableName || ''}:${route.params.recordId || ''}`,
   () => {
-    activeContactSection.value = 'system-data'
-    activeCompanySection.value = 'system-data'
+    activeContactSection.value = 'general-information'
+    activeCompanySection.value = 'general-information'
     loadDatabook()
   },
 )
@@ -5406,6 +5482,14 @@ onBeforeUnmount(() => {
 }
 
 .contact-databook__nav-item--kdb {
+  border-color: rgba(17, 17, 17, 0.16);
+}
+
+.contact-databook__nav-item--system {
+  border-color: rgba(17, 17, 17, 0.22);
+}
+
+.contact-databook__nav-item--push-right {
   margin-left: auto;
 }
 
