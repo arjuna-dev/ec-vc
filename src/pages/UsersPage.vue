@@ -231,19 +231,16 @@
                 <q-card-section class="user-card__summary">
                   <div class="user-card__summary-head">
                     <q-btn-toggle
-                      v-if="getUserRelationshipTabs(user).length"
                       :model-value="getUserCardPanel(user)"
                       dense
-                      no-caps
                       unelevated
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
                       class="user-card__summary-toggle"
-                      :options="getUserRelationshipTabs(user)"
+                      :options="getUserRelationshipOptions(user)"
                       @update:model-value="setUserCardPanel(user, $event)"
                     />
-                    <div v-else class="user-card__summary-label">KDB Relationships</div>
 
                     <q-btn-toggle
                       :model-value="getUserCardContentView(user)"
@@ -262,34 +259,18 @@
                     <div class="user-card__summary-body">
                       <div class="user-card__summary-body-content">
                         <div
-                          v-if="getUserCardPanel(user) === 'notes' && getUserLinkedNotes(user).length"
+                          v-if="getUserActiveRelationshipItems(user).length"
                           :class="[
                             'user-card__notes-list',
                             { 'user-card__notes-list--rows': getUserCardContentView(user) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getUserLinkedNotes(user)"
-                            :key="note"
+                            v-for="item in getUserActiveRelationshipItems(user)"
+                            :key="item"
                             class="user-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getUserCardPanel(user) === 'artifacts' && getUserLinkedArtifacts(user).length"
-                          :class="[
-                            'user-card__notes-list',
-                            { 'user-card__notes-list--rows': getUserCardContentView(user) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="artifact in getUserLinkedArtifacts(user)"
-                            :key="artifact"
-                            class="user-card__note-pill"
-                          >
-                            {{ artifact }}
+                            {{ item }}
                           </div>
                         </div>
 
@@ -337,6 +318,11 @@ import { useQuasar } from 'quasar'
 import SelectionActionBar from 'src/components/SelectionActionBar.vue'
 import TableCsvActions from 'src/components/TableCsvActions.vue'
 import UserCreateDialog from 'src/components/UserCreateDialog.vue'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const rows = ref([])
 const loading = ref(false)
@@ -625,32 +611,31 @@ function setUserCardContentView(user, value) {
   userCardContentViews.value = { ...userCardContentViews.value, [rowId]: value || 'card' }
 }
 
-function getUserRelationshipTabs(user) {
-  const tabs = []
+function getUserRelationshipItems(user) {
+  return buildCardRelationshipItems(user, ['User'], {
+    notes: getUserLinkedNotes,
+    artifacts: getUserLinkedArtifacts,
+  })
+}
 
-  if (getUserLinkedNotes(user).length) {
-    tabs.push({ label: 'Notes', value: 'notes' })
-  }
-
-  if (getUserLinkedArtifacts(user).length) {
-    tabs.push({ label: 'Artifacts', value: 'artifacts' })
-  }
-
-  return tabs
+function getUserRelationshipOptions(user) {
+  return buildCardRelationshipOptions(getUserRelationshipItems(user))
 }
 
 function getUserCardPanel(user) {
   const rowId = String(user?.id || '').trim()
-  const availableTabs = getUserRelationshipTabs(user)
-  const fallbackValue = availableTabs[0]?.value || ''
   const storedValue = userCardPanels.value[rowId]
-  return availableTabs.some((tab) => tab.value === storedValue) ? storedValue : fallbackValue
+  return resolveCardRelationshipPanel(storedValue, getUserRelationshipItems(user))
 }
 
 function setUserCardPanel(user, value) {
   const rowId = String(user?.id || '').trim()
   if (!rowId) return
   userCardPanels.value = { ...userCardPanels.value, [rowId]: value || 'notes' }
+}
+
+function getUserActiveRelationshipItems(user) {
+  return getUserRelationshipItems(user)[getUserCardPanel(user)] || []
 }
 
 function getUserLinkedNotes(user) {

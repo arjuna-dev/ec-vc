@@ -246,13 +246,12 @@
                     <q-btn-toggle
                       :model-value="getCompanyCardPanel(row)"
                       dense
-                      no-caps
                       unelevated
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
                       class="company-card__summary-toggle"
-                      :options="companyCardPanelOptions"
+                      :options="getCompanyRelationshipOptions(row)"
                       @update:model-value="setCompanyCardPanel(row, $event)"
                     />
                     <q-btn-toggle
@@ -272,39 +271,23 @@
                     <div class="company-card__summary-body">
                       <div class="company-card__summary-body-content">
                         <div
-                          v-if="getCompanyCardPanel(row) === 'notes' && getCompanyLinkedNotes(row).length"
+                          v-if="getCompanyActiveRelationshipItems(row).length"
                           :class="[
                             'company-card__notes-list',
                             { 'company-card__notes-list--rows': getCompanyCardContentView(row) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getCompanyLinkedNotes(row)"
-                            :key="note"
+                            v-for="item in getCompanyActiveRelationshipItems(row)"
+                            :key="item"
                             class="company-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getCompanyCardPanel(row) === 'docs' && getCompanyLinkedDocuments(row).length"
-                          :class="[
-                            'company-card__notes-list',
-                            { 'company-card__notes-list--rows': getCompanyCardContentView(row) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="doc in getCompanyLinkedDocuments(row)"
-                            :key="doc"
-                            class="company-card__note-pill"
-                          >
-                            {{ doc }}
+                            {{ item }}
                           </div>
                         </div>
 
                         <div v-else class="company-card__summary-empty">
-                          {{ getCompanyCardPanel(row) === 'notes' ? 'No linked notes yet for this company.' : 'No linked artifacts yet for this company.' }}
+                          No linked KDB relationships yet for this company.
                         </div>
                       </div>
                     </div>
@@ -432,6 +415,11 @@ import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -521,10 +509,6 @@ const companyCardContentViewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 const companyCardPanels = ref({})
-const companyCardPanelOptions = [
-  { label: 'Notes', value: 'notes', icon: 'note' },
-  { label: 'Artifacts', value: 'docs', icon: 'attach_file' },
-]
 const COMPANY_COMPLETENESS_IGNORED_FIELDS = new Set(['id', 'created_at', 'updated_at'])
 
 function openCreateCompany() {
@@ -1170,7 +1154,7 @@ function setCompanyCardContentView(row, value) {
 
 function getCompanyCardPanel(row) {
   const rowId = String(row?.id || '').trim()
-  return companyCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(companyCardPanels.value[rowId], getCompanyRelationshipItems(row))
 }
 
 function setCompanyCardPanel(row, value) {
@@ -1180,6 +1164,21 @@ function setCompanyCardPanel(row, value) {
     ...companyCardPanels.value,
     [rowId]: value || 'notes',
   }
+}
+
+function getCompanyRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Company'], {
+    notes: getCompanyLinkedNotes,
+    artifacts: getCompanyLinkedDocuments,
+  })
+}
+
+function getCompanyRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getCompanyRelationshipItems(row))
+}
+
+function getCompanyActiveRelationshipItems(row) {
+  return getCompanyRelationshipItems(row)[getCompanyCardPanel(row)] || []
 }
 
 function getCompanyMetadataRows(row) {

@@ -280,13 +280,12 @@
                     <q-btn-toggle
                       :model-value="getContactCardPanel(row)"
                       dense
-                      no-caps
                       unelevated
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
                       class="contact-card__summary-toggle"
-                      :options="contactCardPanelOptions"
+                      :options="getContactRelationshipOptions(row)"
                       @update:model-value="setContactCardPanel(row, $event)"
                     />
                     <q-btn-toggle
@@ -306,39 +305,23 @@
                     <div class="contact-card__summary-body">
                     <div class="contact-card__summary-body-content">
                       <div
-                        v-if="getContactCardPanel(row) === 'notes' && getContactLinkedNotes(row).length"
+                        v-if="getContactActiveRelationshipItems(row).length"
                         :class="[
                           'contact-card__notes-list',
                           { 'contact-card__notes-list--rows': getContactCardContentView(row) === 'table' },
                         ]"
                       >
                         <div
-                          v-for="note in getContactLinkedNotes(row)"
-                          :key="note"
+                          v-for="item in getContactActiveRelationshipItems(row)"
+                          :key="item"
                           class="contact-card__note-pill"
                         >
-                          {{ note }}
-                        </div>
-                      </div>
-
-                      <div
-                        v-else-if="getContactCardPanel(row) === 'docs' && getContactLinkedDocuments(row).length"
-                        :class="[
-                          'contact-card__notes-list',
-                          { 'contact-card__notes-list--rows': getContactCardContentView(row) === 'table' },
-                        ]"
-                      >
-                        <div
-                          v-for="doc in getContactLinkedDocuments(row)"
-                          :key="doc"
-                          class="contact-card__note-pill"
-                        >
-                          {{ doc }}
+                          {{ item }}
                         </div>
                       </div>
 
                       <div v-else class="contact-card__summary-empty">
-                        {{ getContactCardPanel(row) === 'notes' ? 'No linked notes yet for this contact.' : 'No linked documents yet for this contact.' }}
+                        No linked KDB relationships yet for this contact.
                       </div>
                     </div>
                   </div>
@@ -382,6 +365,11 @@ import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -402,10 +390,6 @@ const contactCardContentViewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 const contactCardPanels = ref({})
-const contactCardPanelOptions = [
-  { label: 'Notes', value: 'notes', icon: 'note' },
-  { label: 'Artifacts', value: 'docs', icon: 'attach_file' },
-]
 
 function getContactCardContentView(row) {
   const rowId = getRowId(row)
@@ -423,7 +407,7 @@ function setContactCardContentView(row, value) {
 
 function getContactCardPanel(row) {
   const rowId = getRowId(row)
-  return contactCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(contactCardPanels.value[rowId], getContactRelationshipItems(row))
 }
 
 function setContactCardPanel(row, value) {
@@ -433,6 +417,21 @@ function setContactCardPanel(row, value) {
     ...contactCardPanels.value,
     [rowId]: value || 'notes',
   }
+}
+
+function getContactRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Contact'], {
+    notes: getContactLinkedNotes,
+    artifacts: getContactLinkedDocuments,
+  })
+}
+
+function getContactRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getContactRelationshipItems(row))
+}
+
+function getContactActiveRelationshipItems(row) {
+  return getContactRelationshipItems(row)[getContactCardPanel(row)] || []
 }
 
 function onHeroDashboardPointerEnter(event) {

@@ -258,13 +258,12 @@
                     <q-btn-toggle
                       :model-value="getOpportunityCardPanel(row)"
                       dense
-                      no-caps
                       unelevated
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
                       class="opportunity-card__summary-toggle"
-                      :options="opportunityCardPanelOptions"
+                      :options="getOpportunityRelationshipOptions(row)"
                       @update:model-value="setOpportunityCardPanel(row, $event)"
                     />
                     <q-btn-toggle
@@ -284,39 +283,23 @@
                     <div class="opportunity-card__summary-body">
                       <div class="opportunity-card__summary-body-content">
                         <div
-                          v-if="getOpportunityCardPanel(row) === 'notes' && getOpportunityLinkedNotes(row).length"
+                          v-if="getOpportunityActiveRelationshipItems(row).length"
                           :class="[
                             'opportunity-card__notes-list',
                             { 'opportunity-card__notes-list--rows': getOpportunityCardContentView(row) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getOpportunityLinkedNotes(row)"
-                            :key="note"
+                            v-for="item in getOpportunityActiveRelationshipItems(row)"
+                            :key="item"
                             class="opportunity-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getOpportunityCardPanel(row) === 'docs' && getOpportunityLinkedDocuments(row).length"
-                          :class="[
-                            'opportunity-card__notes-list',
-                            { 'opportunity-card__notes-list--rows': getOpportunityCardContentView(row) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="doc in getOpportunityLinkedDocuments(row)"
-                            :key="doc"
-                            class="opportunity-card__note-pill"
-                          >
-                            {{ doc }}
+                            {{ item }}
                           </div>
                         </div>
 
                         <div v-else class="opportunity-card__summary-empty">
-                          {{ getOpportunityCardPanel(row) === 'notes' ? 'No linked notes yet for this opportunity.' : 'No linked artifacts yet for this opportunity.' }}
+                          No linked KDB relationships yet for this opportunity.
                         </div>
                       </div>
                     </div>
@@ -375,6 +358,11 @@ import RoundCreateDialog from 'src/components/RoundCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const ALL_OPPORTUNITIES_FILTER = 'all'
 
@@ -445,10 +433,6 @@ const opportunityCardContentViewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 const opportunityCardPanels = ref({})
-const opportunityCardPanelOptions = [
-  { label: 'Notes', value: 'notes', icon: 'note' },
-  { label: 'Artifacts', value: 'docs', icon: 'attach_file' },
-]
 
 const $q = useQuasar()
 const route = useRoute()
@@ -856,7 +840,7 @@ function setOpportunityCardContentView(row, value) {
 
 function getOpportunityCardPanel(row) {
   const rowId = String(row?.id || '').trim()
-  return opportunityCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(opportunityCardPanels.value[rowId], getOpportunityRelationshipItems(row))
 }
 
 function setOpportunityCardPanel(row, value) {
@@ -866,6 +850,21 @@ function setOpportunityCardPanel(row, value) {
     ...opportunityCardPanels.value,
     [rowId]: value || 'notes',
   }
+}
+
+function getOpportunityRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Opportunity', 'Fund', 'Round'], {
+    notes: getOpportunityLinkedNotes,
+    artifacts: getOpportunityLinkedDocuments,
+  })
+}
+
+function getOpportunityRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getOpportunityRelationshipItems(row))
+}
+
+function getOpportunityActiveRelationshipItems(row) {
+  return getOpportunityRelationshipItems(row)[getOpportunityCardPanel(row)] || []
 }
 
 function getOpportunityStatusValue(row) {

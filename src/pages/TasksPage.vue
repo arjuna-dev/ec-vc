@@ -251,13 +251,12 @@
                     <q-btn-toggle
                       :model-value="getTaskCardPanel(row)"
                       dense
-                      no-caps
                       unelevated
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
                       class="task-card__summary-toggle"
-                      :options="taskCardPanelOptions"
+                      :options="getTaskRelationshipOptions(row)"
                       @update:model-value="setTaskCardPanel(row, $event)"
                     />
                     <q-btn-toggle
@@ -277,39 +276,23 @@
                     <div class="task-card__summary-body">
                       <div class="task-card__summary-body-content">
                         <div
-                          v-if="getTaskCardPanel(row) === 'notes' && getTaskLinkedNotes(row).length"
+                          v-if="getTaskActiveRelationshipItems(row).length"
                           :class="[
                             'task-card__notes-list',
                             { 'task-card__notes-list--rows': getTaskCardContentView(row) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getTaskLinkedNotes(row)"
-                            :key="note"
+                            v-for="item in getTaskActiveRelationshipItems(row)"
+                            :key="item"
                             class="task-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getTaskCardPanel(row) === 'artifacts' && getTaskLinkedArtifacts(row).length"
-                          :class="[
-                            'task-card__notes-list',
-                            { 'task-card__notes-list--rows': getTaskCardContentView(row) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="artifact in getTaskLinkedArtifacts(row)"
-                            :key="artifact"
-                            class="task-card__note-pill"
-                          >
-                            {{ artifact }}
+                            {{ item }}
                           </div>
                         </div>
 
                         <div v-else class="task-card__summary-empty">
-                          {{ getTaskCardPanel(row) === 'notes' ? 'No linked notes yet.' : 'No linked artifacts yet.' }}
+                          No linked KDB relationships yet.
                         </div>
                       </div>
                     </div>
@@ -353,6 +336,11 @@ import TableCsvActions from 'components/TableCsvActions.vue'
 import TaskCreateDialog from 'components/TaskCreateDialog.vue'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -419,11 +407,6 @@ const taskCardPanels = ref({})
 const taskCardContentViewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-
-const taskCardPanelOptions = [
-  { label: 'Notes', value: 'notes' },
-  { label: 'Artifacts', value: 'artifacts' },
 ]
 
 const route = useRoute()
@@ -699,13 +682,28 @@ function setTaskCardContentView(row, value) {
 
 function getTaskCardPanel(row) {
   const rowId = String(row?.id || '').trim()
-  return taskCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(taskCardPanels.value[rowId], getTaskRelationshipItems(row))
 }
 
 function setTaskCardPanel(row, value) {
   const rowId = String(row?.id || '').trim()
   if (!rowId) return
   taskCardPanels.value = { ...taskCardPanels.value, [rowId]: value || 'notes' }
+}
+
+function getTaskRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Task'], {
+    notes: getTaskLinkedNotes,
+    artifacts: getTaskLinkedArtifacts,
+  })
+}
+
+function getTaskRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getTaskRelationshipItems(row))
+}
+
+function getTaskActiveRelationshipItems(row) {
+  return getTaskRelationshipItems(row)[getTaskCardPanel(row)] || []
 }
 
 function getTaskMetadataRows(row) {

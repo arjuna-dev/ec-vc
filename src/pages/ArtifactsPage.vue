@@ -235,13 +235,12 @@
               <q-btn-toggle
                 :model-value="getArtifactCardPanel(group)"
                 dense
-                no-caps
                 unelevated
                 toggle-color="dark"
                 color="white"
                 text-color="grey-8"
                 class="artifact-card__summary-toggle"
-                :options="artifactCardPanelOptions"
+                :options="getArtifactRelationshipOptions(group)"
                 @update:model-value="setArtifactCardPanel(group, $event)"
               />
               <q-btn-toggle
@@ -261,30 +260,14 @@
               <div class="artifact-card__summary-body">
                 <div class="artifact-card__summary-body-content">
                   <div
-                    v-if="getArtifactCardPanel(group) === 'notes' && getArtifactLinkedNotes(group).length"
+                    v-if="getArtifactActiveRelationshipItems(group).length"
                     :class="[
                       'artifact-card__notes-list',
                       { 'artifact-card__notes-list--rows': getArtifactCardContentView(group) === 'table' },
                     ]"
                   >
                     <div
-                      v-for="note in getArtifactLinkedNotes(group)"
-                      :key="note"
-                      class="artifact-card__note-pill"
-                    >
-                      {{ note }}
-                    </div>
-                  </div>
-
-                  <div
-                    v-else-if="getArtifactCardPanel(group) === 'artifacts' && getArtifactGroupedItems(group).length"
-                    :class="[
-                      'artifact-card__notes-list',
-                      { 'artifact-card__notes-list--rows': getArtifactCardContentView(group) === 'table' },
-                    ]"
-                  >
-                    <div
-                      v-for="item in getArtifactGroupedItems(group)"
+                      v-for="item in getArtifactActiveRelationshipItems(group)"
                       :key="item"
                       class="artifact-card__note-pill"
                     >
@@ -293,7 +276,7 @@
                   </div>
 
                   <div v-else class="artifact-card__summary-empty">
-                    {{ getArtifactCardPanel(group) === 'notes' ? 'No linked notes yet.' : 'No grouped artifacts yet.' }}
+                    No linked KDB relationships yet.
                   </div>
                 </div>
               </div>
@@ -993,6 +976,11 @@ import TableCsvActions from 'components/TableCsvActions.vue'
 import { setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
@@ -1100,10 +1088,6 @@ const viewModeOptions = [
 const artifactCardContentViewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-const artifactCardPanelOptions = [
-  { label: 'Notes', value: 'notes' },
-  { label: 'Artifacts', value: 'artifacts' },
 ]
 
 const columns = [
@@ -2051,13 +2035,28 @@ function setArtifactCardContentView(group = {}, value) {
 
 function getArtifactCardPanel(group = {}) {
   const rowId = String(group?.groupId || '').trim()
-  return artifactCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(artifactCardPanels.value[rowId], getArtifactRelationshipItems(group))
 }
 
 function setArtifactCardPanel(group = {}, value) {
   const rowId = String(group?.groupId || '').trim()
   if (!rowId) return
   artifactCardPanels.value = { ...artifactCardPanels.value, [rowId]: value || 'notes' }
+}
+
+function getArtifactRelationshipItems(group = {}) {
+  return buildCardRelationshipItems(group?.primaryArtifact || group?.previewArtifact || {}, [], {
+    notes: () => getArtifactLinkedNotes(group),
+    artifacts: () => getArtifactGroupedItems(group),
+  })
+}
+
+function getArtifactRelationshipOptions(group = {}) {
+  return buildCardRelationshipOptions(getArtifactRelationshipItems(group))
+}
+
+function getArtifactActiveRelationshipItems(group = {}) {
+  return getArtifactRelationshipItems(group)[getArtifactCardPanel(group)] || []
 }
 
 function getArtifactLinkedNotes(group = {}) {

@@ -288,13 +288,12 @@
                     <q-btn-toggle
                       :model-value="getProjectCardPanel(row)"
                       dense
-                      no-caps
                       unelevated
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
                       class="pipeline-card__summary-toggle"
-                      :options="projectCardPanelOptions"
+                      :options="getProjectRelationshipOptions(row)"
                       @update:model-value="setProjectCardPanel(row, $event)"
                     />
                     <q-btn-toggle
@@ -314,39 +313,23 @@
                     <div class="pipeline-card__summary-body">
                       <div class="pipeline-card__summary-body-content">
                         <div
-                          v-if="getProjectCardPanel(row) === 'notes' && getProjectLinkedNotes(row).length"
+                          v-if="getProjectActiveRelationshipItems(row).length"
                           :class="[
                             'pipeline-card__notes-list',
                             { 'pipeline-card__notes-list--rows': getProjectCardContentView(row) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getProjectLinkedNotes(row)"
-                            :key="note"
+                            v-for="item in getProjectActiveRelationshipItems(row)"
+                            :key="item"
                             class="pipeline-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getProjectCardPanel(row) === 'docs' && getProjectLinkedDocuments(row).length"
-                          :class="[
-                            'pipeline-card__notes-list',
-                            { 'pipeline-card__notes-list--rows': getProjectCardContentView(row) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="doc in getProjectLinkedDocuments(row)"
-                            :key="doc"
-                            class="pipeline-card__note-pill"
-                          >
-                            {{ doc }}
+                            {{ item }}
                           </div>
                         </div>
 
                         <div v-else class="pipeline-card__summary-empty">
-                          {{ getProjectCardPanel(row) === 'notes' ? 'No linked notes yet for this project.' : 'No linked artifacts yet for this project.' }}
+                          No linked KDB relationships yet for this project.
                         </div>
                       </div>
                     </div>
@@ -389,6 +372,11 @@ import ProjectCreateDialog from 'components/ProjectCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -456,10 +444,6 @@ const projectCardContentViewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 const projectCardPanels = ref({})
-const projectCardPanelOptions = [
-  { label: 'Notes', value: 'notes', icon: 'note' },
-  { label: 'Artifacts', value: 'docs', icon: 'attach_file' },
-]
 const canDeleteSelectedPipelines = computed(
   () =>
     !!bridge.value?.projects?.delete &&
@@ -714,7 +698,7 @@ function setProjectCardContentView(row, value) {
 
 function getProjectCardPanel(row) {
   const rowId = String(row?.pipeline_id || '').trim()
-  return projectCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(projectCardPanels.value[rowId], getProjectRelationshipItems(row))
 }
 
 function setProjectCardPanel(row, value) {
@@ -724,6 +708,21 @@ function setProjectCardPanel(row, value) {
     ...projectCardPanels.value,
     [rowId]: value || 'notes',
   }
+}
+
+function getProjectRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Project'], {
+    notes: getProjectLinkedNotes,
+    artifacts: getProjectLinkedDocuments,
+  })
+}
+
+function getProjectRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getProjectRelationshipItems(row))
+}
+
+function getProjectActiveRelationshipItems(row) {
+  return getProjectRelationshipItems(row)[getProjectCardPanel(row)] || []
 }
 
 function getProjectSummaryValue(row) {

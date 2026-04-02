@@ -251,13 +251,12 @@
                     <q-btn-toggle
                       :model-value="getNoteCardPanel(row)"
                       dense
-                      no-caps
                       unelevated
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
                       class="note-card__summary-toggle"
-                      :options="noteCardPanelOptions"
+                      :options="getNoteRelationshipOptions(row)"
                       @update:model-value="setNoteCardPanel(row, $event)"
                     />
                     <q-btn-toggle
@@ -277,39 +276,23 @@
                     <div class="note-card__summary-body">
                       <div class="note-card__summary-body-content">
                         <div
-                          v-if="getNoteCardPanel(row) === 'notes' && getNoteLinkedNotes(row).length"
+                          v-if="getNoteActiveRelationshipItems(row).length"
                           :class="[
                             'note-card__notes-list',
                             { 'note-card__notes-list--rows': getNoteCardContentView(row) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="note in getNoteLinkedNotes(row)"
-                            :key="note"
+                            v-for="item in getNoteActiveRelationshipItems(row)"
+                            :key="item"
                             class="note-card__note-pill"
                           >
-                            {{ note }}
-                          </div>
-                        </div>
-
-                        <div
-                          v-else-if="getNoteCardPanel(row) === 'artifacts' && getNoteLinkedArtifacts(row).length"
-                          :class="[
-                            'note-card__notes-list',
-                            { 'note-card__notes-list--rows': getNoteCardContentView(row) === 'table' },
-                          ]"
-                        >
-                          <div
-                            v-for="artifact in getNoteLinkedArtifacts(row)"
-                            :key="artifact"
-                            class="note-card__note-pill"
-                          >
-                            {{ artifact }}
+                            {{ item }}
                           </div>
                         </div>
 
                         <div v-else class="note-card__summary-empty">
-                          {{ getNoteCardPanel(row) === 'notes' ? 'No linked notes yet.' : 'No linked artifacts yet.' }}
+                          No linked KDB relationships yet.
                         </div>
                       </div>
                     </div>
@@ -353,6 +336,11 @@ import TableCsvActions from 'components/TableCsvActions.vue'
 import NoteCreateDialog from 'components/NoteCreateDialog.vue'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -416,11 +404,6 @@ const noteCardPanels = ref({})
 const noteCardContentViewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-
-const noteCardPanelOptions = [
-  { label: 'Notes', value: 'notes' },
-  { label: 'Artifacts', value: 'artifacts' },
 ]
 
 const route = useRoute()
@@ -677,13 +660,28 @@ function setNoteCardContentView(row, value) {
 
 function getNoteCardPanel(row) {
   const rowId = String(row?.id || '').trim()
-  return noteCardPanels.value[rowId] || 'notes'
+  return resolveCardRelationshipPanel(noteCardPanels.value[rowId], getNoteRelationshipItems(row))
 }
 
 function setNoteCardPanel(row, value) {
   const rowId = String(row?.id || '').trim()
   if (!rowId) return
   noteCardPanels.value = { ...noteCardPanels.value, [rowId]: value || 'notes' }
+}
+
+function getNoteRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Note'], {
+    notes: getNoteLinkedNotes,
+    artifacts: getNoteLinkedArtifacts,
+  })
+}
+
+function getNoteRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getNoteRelationshipItems(row))
+}
+
+function getNoteActiveRelationshipItems(row) {
+  return getNoteRelationshipItems(row)[getNoteCardPanel(row)] || []
 }
 
 function getNoteMetadataRows(row) {
