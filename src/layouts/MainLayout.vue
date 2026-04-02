@@ -240,7 +240,7 @@
           <div class="ec-quick-widget-settings-panel__header">
             <div class="ec-quick-widget-settings-panel__title">Widget Settings</div>
             <div class="ec-quick-widget-settings-panel__caption">
-              Show, hide, and reorder the files in your quick widget.
+              Show, hide, and reorder the files in your widget.
             </div>
           </div>
 
