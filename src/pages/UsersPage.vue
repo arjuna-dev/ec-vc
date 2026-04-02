@@ -102,20 +102,6 @@
             <q-icon name="tune" size="18px" class="users-toolbar__filters-icon" />
           </div>
 
-          <div class="users-toolbar__block users-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="users-toolbar__toggle users-toolbar__view-toggle"
-              :disable="loading"
-              :options="viewOptions"
-            />
-          </div>
-
           <div class="users-toolbar__block users-toolbar__block--kind">
             <q-btn-toggle
               v-model="userKindFilter"
@@ -132,6 +118,17 @@
           </div>
 
           <div class="users-toolbar__block users-toolbar__block--search">
+            <q-btn-toggle
+              v-model="viewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="users-toolbar__toggle users-toolbar__view-toggle"
+              :disable="loading"
+              :options="viewOptions"
+            />
             <q-btn
               dense
               flat
