@@ -255,11 +255,14 @@
                 :key="settingsAction.id"
                 class="ec-quick-widget-settings-row"
               >
-                <q-toggle
+                <q-checkbox
                   v-if="settingsAction.id !== 'settings'"
                   :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
-                  color="primary"
+                  color="grey-5"
                   dense
+                  keep-color
+                  size="xs"
+                  class="ec-quick-widget-settings-row__checkbox"
                   @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
                 />
                 <div v-else class="ec-quick-widget-settings-row__toggle-spacer" />
@@ -1701,7 +1704,7 @@ function goBack() {
 .ec-quick-widget-settings-panel {
   width: 320px;
   max-width: min(320px, calc(100vw - 24px));
-  padding: 10px;
+  padding: 8px;
   background: rgba(17, 17, 17, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.28);
@@ -1712,7 +1715,7 @@ function goBack() {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
   cursor: grab;
   user-select: none;
 }
@@ -1739,39 +1742,39 @@ function goBack() {
 
 .ec-quick-widget-settings-panel__caption {
   color: rgba(255, 255, 255, 0.68);
-  font-size: 11px;
-  line-height: 1.3;
+  font-size: 10px;
+  line-height: 1.25;
 }
 
 .ec-quick-widget-settings-panel__list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .ec-quick-widget-settings-row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
+  gap: 6px;
+  padding: 4px 7px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .ec-quick-widget-settings-row__label {
   color: #ffffff;
   font-family: var(--font-title);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: var(--font-weight-black);
   line-height: 0.96;
   letter-spacing: 0.01em;
 }
 
 .ec-quick-widget-settings-row__toggle-spacer {
-  width: 30px;
-  height: 16px;
+  width: 22px;
+  height: 14px;
 }
 
 .ec-quick-widget-settings-row__actions {
@@ -1782,31 +1785,33 @@ function goBack() {
 
 .ec-quick-widget-settings-row__actions :deep(.q-btn) {
   color: rgba(255, 255, 255, 0.78);
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
 }
 
 .ec-quick-widget-settings-row__actions :deep(.q-btn:disabled) {
   color: rgba(255, 255, 255, 0.24) !important;
 }
 
-.ec-quick-widget-settings-row :deep(.q-toggle__track) {
-  background: rgba(255, 255, 255, 0.18) !important;
-  opacity: 1;
+.ec-quick-widget-settings-row__checkbox {
+  min-height: 16px;
 }
 
-.ec-quick-widget-settings-row :deep(.q-toggle__thumb) {
+.ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__inner) {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.42) !important;
+}
+
+.ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__inner--truthy) {
   color: rgba(255, 255, 255, 0.72) !important;
 }
 
-.ec-quick-widget-settings-row :deep(.q-toggle__inner--truthy .q-toggle__track) {
-  background: rgba(255, 255, 255, 0.32) !important;
-}
-
-.ec-quick-widget-settings-row :deep(.q-toggle__inner--truthy .q-toggle__thumb) {
-  color: #f4f4f4 !important;
+.ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__bg) {
+  border-width: 1px;
+  border-color: currentColor !important;
+  background: transparent !important;
 }
 
 .ec-intake-drafts {
