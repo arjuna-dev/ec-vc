@@ -3028,9 +3028,9 @@ const contactNavItems = computed(() => {
 const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
 )
-const GENERIC_METADATA_SECTION_LABEL = 'System Data'
-const GENERIC_GENERAL_SECTION_LABEL = 'General Information'
-const GENERIC_KDB_SECTION_LABEL = 'KDB Relationships'
+const GENERIC_METADATA_SECTION_LABEL = 'System'
+const GENERIC_GENERAL_SECTION_LABEL = 'General'
+const GENERIC_KDB_SECTION_LABEL = 'KDB'
 const GENERIC_SECTION_CONTRACTS = Object.freeze({
   Users: {
     sections: [GENERIC_METADATA_SECTION_LABEL, GENERIC_KDB_SECTION_LABEL],
@@ -3341,7 +3341,7 @@ const genericRecordNavItems = computed(() => {
     })
 
     const general = unique.find((section) => /general/i.test(section))
-    const system = unique.find((section) => /system data/i.test(section))
+    const system = unique.find((section) => /system/i.test(section))
     const kdb = unique.find((section) => /kdb/i.test(section))
     const middle = unique.filter((section) => section !== general && section !== system && section !== kdb)
 
@@ -3371,7 +3371,7 @@ const genericRecordNavItems = computed(() => {
     return orderedSections.map((section) => {
       const value = String(section || '').trim()
       const isKdb = /kdb/i.test(value)
-      const isSystem = /system data/i.test(value)
+      const isSystem = /system/i.test(value)
       return {
         value,
         title: mapSectionTitle(value),
