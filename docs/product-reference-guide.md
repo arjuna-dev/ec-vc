@@ -27,6 +27,18 @@ The product should use `File` and `Record` as the main information architecture 
 
 This is the default language for navigation, structure, and page meaning.
 
+## Precision Language
+
+To stay precise while the codebase is still finishing its naming cleanup, use the following language:
+
+- `Workbook` when talking about the Excel file or schema reference
+- `DB` or `DB Tables` when talking about the database
+- `File page` when talking about landing pages such as `Users`, `Contacts`, `Companies`, `Artifacts`, `Projects`, `Notes`, `Tasks`, and `Opportunities`
+- `Record page` or `Record View` when talking about the eye-opened detail page
+- `databook-view` only when talking about the literal current route or code name
+
+This distinction matters because the product language is cleaner than some of the older route and implementation language still present in the app.
+
 ## System Model
 
 Pattern:
