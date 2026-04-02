@@ -1438,16 +1438,19 @@
           <section v-if="genericRecordNavItems.length" class="contact-databook__nav" :aria-label="`${entityLabel} sections`">
             <button
               v-for="section in genericRecordNavItems"
-              :key="section"
+              :key="section.value"
               type="button"
               class="contact-databook__nav-item"
               :class="{
-                'contact-databook__nav-item--active': activeGenericSection === section,
-                'contact-databook__nav-item--kdb': /kdb/i.test(section),
+                'contact-databook__nav-item--active': activeGenericSection === section.value,
+                'contact-databook__nav-item--kdb': section.isKdb,
+                'contact-databook__nav-item--system': section.isSystem,
+                'contact-databook__nav-item--push-right': section.pushRight,
               }"
-              @click="activeGenericSection = section"
+              @click="activeGenericSection = section.value"
             >
-              {{ section }}
+              <span class="contact-databook__nav-item-label">{{ section.title }}</span>
+              <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
           </section>
 
@@ -1455,7 +1458,7 @@
             <article class="contact-section-card contact-section-card--active">
               <div class="contact-section-card__header">
                 <div class="contact-section-card__intro">
-                  <h2 class="contact-section-card__title">{{ activeGenericSection || 'System Data' }}</h2>
+                  <h2 class="contact-section-card__title">{{ activeGenericNavTitle || 'System' }}</h2>
                   <div class="contact-section-card__caption">
                     Review the structured fields and relationships tied to this {{ entityLabel.toLowerCase() }} record.
                   </div>
@@ -1769,16 +1772,19 @@
           <section v-if="genericRecordNavItems.length" class="contact-databook__nav" aria-label="Record sections">
             <button
               v-for="section in genericRecordNavItems"
-              :key="section"
+              :key="section.value"
               type="button"
               class="contact-databook__nav-item"
               :class="{
-                'contact-databook__nav-item--active': activeGenericSection === section,
-                'contact-databook__nav-item--kdb': /kdb/i.test(section),
+                'contact-databook__nav-item--active': activeGenericSection === section.value,
+                'contact-databook__nav-item--kdb': section.isKdb,
+                'contact-databook__nav-item--system': section.isSystem,
+                'contact-databook__nav-item--push-right': section.pushRight,
               }"
-              @click="activeGenericSection = section"
+              @click="activeGenericSection = section.value"
             >
-              {{ section }}
+              <span class="contact-databook__nav-item-label">{{ section.title }}</span>
+              <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
           </section>
 
@@ -1923,16 +1929,19 @@
           <section v-if="genericRecordNavItems.length" class="contact-databook__nav" aria-label="Record sections">
             <button
               v-for="section in genericRecordNavItems"
-              :key="section"
+              :key="section.value"
               type="button"
               class="contact-databook__nav-item"
               :class="{
-                'contact-databook__nav-item--active': activeGenericSection === section,
-                'contact-databook__nav-item--kdb': /kdb/i.test(section),
+                'contact-databook__nav-item--active': activeGenericSection === section.value,
+                'contact-databook__nav-item--kdb': section.isKdb,
+                'contact-databook__nav-item--system': section.isSystem,
+                'contact-databook__nav-item--push-right': section.pushRight,
               }"
-              @click="activeGenericSection = section"
+              @click="activeGenericSection = section.value"
             >
-              {{ section }}
+              <span class="contact-databook__nav-item-label">{{ section.title }}</span>
+              <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
           </section>
 
@@ -3008,6 +3017,7 @@ const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
 )
 const GENERIC_METADATA_SECTION_LABEL = 'System Data'
+const GENERIC_GENERAL_SECTION_LABEL = 'General Information'
 const GENERIC_KDB_SECTION_LABEL = 'KDB Relationships'
 const GENERIC_SECTION_CONTRACTS = Object.freeze({
   Users: {
@@ -3248,6 +3258,7 @@ function normalizeGenericSectionLabel(sectionName) {
   const raw = String(sectionName || '').trim()
   if (!raw) return ''
   if (/kdb/i.test(raw)) return GENERIC_KDB_SECTION_LABEL
+  if (/general/i.test(raw)) return GENERIC_GENERAL_SECTION_LABEL
   if (raw === entityLabel.value) return GENERIC_METADATA_SECTION_LABEL
   return raw
 }
@@ -3302,26 +3313,80 @@ function resolveGenericFieldSection(field) {
 const genericRecordNavItems = computed(() => {
   const tableName = structuredRecordTableName.value
   const contract = getGenericSectionContract(tableName)
+  const preferredMiddleOrderByTable = {
+    Companies: ['Business', 'Market', 'Operations', 'Results', 'Planning', 'Fund Raising', 'Documents', 'Incorporation'],
+  }
+
+  const mapSectionTitle = (sectionLabel) =>
+    formatCanonicalLabel(String(sectionLabel || '').trim().replace(/\s+/g, '_'))
+
+  const buildOrderedSectionLabels = (sections = []) => {
+    const unique = []
+    sections.forEach((section) => {
+      const value = String(section || '').trim()
+      if (!value) return
+      if (!unique.includes(value)) unique.push(value)
+    })
+
+    const general = unique.find((section) => /general/i.test(section))
+    const system = unique.find((section) => /system data/i.test(section))
+    const kdb = unique.find((section) => /kdb/i.test(section))
+    const middle = unique.filter((section) => section !== general && section !== system && section !== kdb)
+
+    if (tableName === 'Companies') {
+      const preferred = preferredMiddleOrderByTable.Companies
+      const rank = Object.fromEntries(preferred.map((label, index) => [label.toLowerCase(), index]))
+      middle.sort((a, b) => {
+        const aTitle = mapSectionTitle(a).toLowerCase()
+        const bTitle = mapSectionTitle(b).toLowerCase()
+        const aRank = Number.isInteger(rank[aTitle]) ? rank[aTitle] : Number.MAX_SAFE_INTEGER
+        const bRank = Number.isInteger(rank[bTitle]) ? rank[bTitle] : Number.MAX_SAFE_INTEGER
+        if (aRank !== bRank) return aRank - bRank
+        return unique.indexOf(a) - unique.indexOf(b)
+      })
+    }
+
+    return [
+      general || GENERIC_GENERAL_SECTION_LABEL,
+      ...middle,
+      ...(kdb ? [kdb] : []),
+      ...(system ? [system] : []),
+    ]
+  }
+
+  const toNavObjects = (orderedSections = []) => {
+    const hasKdb = orderedSections.some((section) => /kdb/i.test(section))
+    return orderedSections.map((section) => {
+      const value = String(section || '').trim()
+      const isKdb = /kdb/i.test(value)
+      const isSystem = /system data/i.test(value)
+      return {
+        value,
+        title: mapSectionTitle(value),
+        isKdb,
+        isSystem,
+        pushRight: isKdb || (isSystem && !hasKdb),
+      }
+    })
+  }
+
   if (contract?.sections?.length) {
-    return contract.sections
+    return toNavObjects(buildOrderedSectionLabels(contract.sections))
   }
 
   const seen = new Set()
-  const ordered = (fields.value || [])
+  const discovered = (fields.value || [])
     .map((field) => resolveGenericFieldSection(field))
     .filter((section) => {
       if (!section || section === GENERIC_KDB_SECTION_LABEL || seen.has(section)) return false
       seen.add(section)
       return true
     })
-
-  if (!ordered.length || ordered[0] !== GENERIC_METADATA_SECTION_LABEL) {
-    ordered.unshift(GENERIC_METADATA_SECTION_LABEL)
-  }
-
-  ordered.push(GENERIC_KDB_SECTION_LABEL)
-  return ordered
+  return toNavObjects(buildOrderedSectionLabels(discovered))
 })
+const activeGenericNavTitle = computed(
+  () => genericRecordNavItems.value.find((section) => section.value === activeGenericSection.value)?.title || '',
+)
 const structuredRecordThemeMap = {
   Users: {
     strong: 'rgba(31, 111, 235, 0.2)',
@@ -5281,8 +5346,9 @@ watch(genericRecordNavItems, (sections) => {
     activeGenericSection.value = ''
     return
   }
-  if (!sections.includes(activeGenericSection.value)) {
-    activeGenericSection.value = sections[0]
+  const values = sections.map((section) => section.value)
+  if (!values.includes(activeGenericSection.value)) {
+    activeGenericSection.value = values[0]
   }
 })
 
