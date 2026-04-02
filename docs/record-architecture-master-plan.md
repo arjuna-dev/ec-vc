@@ -38,6 +38,33 @@ The goal is operational consistency:
 - the same entity should expose the same section logic in payloads
 - the same entity should render predictably in file view and record view
 
+## Task / Goal Framing
+
+This initial architecture pass is meant to define the first clean, stable structure for the system.
+
+For this phase:
+
+- the `Workbook` is the structural authority
+- the app uses the workbook to establish order, ownership, and consistency
+- the UI should align to that structure while we standardize the system
+
+This does **not** mean the workbook must permanently lead every future design decision.
+
+The intended long-term understanding is:
+
+- `workbook-first` for initial standardization
+- `UI-informed workbook evolution` later
+
+In other words:
+
+- right now, the workbook helps us create the first approved architecture
+- later, once the product model is mature, the UI may become the stronger design reference
+- at that point, workbook layouts can be refined to follow the approved UI model
+
+So the current goal is not to freeze the workbook forever.
+
+The current goal is to use the workbook as the best available structural guide for the first cohesive system pass.
+
 ## Governing Model
 
 The structural authority is:
