@@ -407,7 +407,8 @@
               }"
               @click="activeContactSection = section.anchor"
             >
-              {{ section.title }}
+              <span class="contact-databook__nav-item-label">{{ section.title }}</span>
+              <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
           </section>
 
@@ -984,7 +985,8 @@
               }"
               @click="activeCompanySection = section.anchor"
             >
-              {{ section.title }}
+              <span class="contact-databook__nav-item-label">{{ section.title }}</span>
+              <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
           </section>
 
@@ -2835,6 +2837,7 @@ function formatCanonicalLabel(value, entityPrefix = '') {
     .join(' ')
   if (/^general information$/i.test(label)) return 'General'
   if (/^system data$/i.test(label)) return 'System'
+  if (/^kdb relations$/i.test(label)) return 'KDB'
   if (/^inc info$/i.test(label)) return 'Incorporation'
   if (/^docs$/i.test(label)) return 'Documents'
   if (/^ops overview$/i.test(label)) return 'Operations'
@@ -5461,6 +5464,9 @@ onBeforeUnmount(() => {
 }
 
 .contact-databook__nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 10px 16px;
   color: #4f4f4f;
   cursor: pointer;
@@ -5475,6 +5481,10 @@ onBeforeUnmount(() => {
     background-color 0.2s ease,
     border-color 0.2s ease,
     transform 0.2s ease;
+}
+
+.contact-databook__nav-item-icon {
+  opacity: 0.8;
 }
 
 .contact-databook__nav-item:hover {
