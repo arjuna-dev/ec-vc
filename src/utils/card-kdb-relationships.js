@@ -73,17 +73,16 @@ export function buildCardRelationshipItems(row, sourcePrefixes, overrides = {}) 
   }, {})
 }
 
-export function buildCardRelationshipOptions(itemsByType) {
+export function buildCardRelationshipOptions() {
   return CARD_KDB_RELATIONSHIP_DEFS.map((definition) => ({
     value: definition.value,
     icon: definition.icon,
-    disable: !(itemsByType?.[definition.value] || []).length,
   }))
 }
 
 export function resolveCardRelationshipPanel(storedValue, itemsByType) {
-  if ((itemsByType?.[storedValue] || []).length) return storedValue
-  return CARD_KDB_RELATIONSHIP_DEFS.find((definition) => (itemsByType?.[definition.value] || []).length)?.value || ''
+  if (CARD_KDB_RELATIONSHIP_DEFS.some((definition) => definition.value === storedValue)) return storedValue
+  return CARD_KDB_RELATIONSHIP_DEFS.find((definition) => (itemsByType?.[definition.value] || []).length)?.value || CARD_KDB_RELATIONSHIP_DEFS[0]?.value || ''
 }
 
 export function getCardRelationshipLabel(relationshipKey) {
