@@ -270,27 +270,28 @@
                 />
                 <div v-else class="ec-quick-widget-settings-row__toggle-spacer" />
 
-              <div class="ec-quick-widget-settings-row__copy">
-                <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
-              </div>
+                <div class="ec-quick-widget-settings-row__copy">
+                  <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
+                </div>
 
-              <div class="ec-quick-widget-settings-row__actions">
-                <q-btn
-                  flat
-                  dense
-                  round
-                  icon="keyboard_arrow_up"
-                  :disable="settingsIndex === 0"
-                  @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
-                />
-                <q-btn
-                  flat
-                  dense
-                  round
-                  icon="keyboard_arrow_down"
-                  :disable="settingsIndex === quickWidgetActionCatalog.length - 1"
-                  @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
-                />
+                <div class="ec-quick-widget-settings-row__actions">
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="keyboard_arrow_up"
+                    :disable="settingsIndex === 0"
+                    @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
+                  />
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="keyboard_arrow_down"
+                    :disable="settingsIndex === quickWidgetActionCatalog.length - 1"
+                    @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
+                  />
+                </div>
               </div>
             </div>
           </div>
