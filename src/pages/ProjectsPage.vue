@@ -71,18 +71,43 @@
         </div>
 
         <div class="pipelines-toolbar">
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="pipelines-toolbar__toggle pipelines-toolbar__view-toggle"
-              :disable="loading"
-              :options="viewOptions"
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleProjectsSelected"
+              :indeterminate="someVisibleProjectsSelected && !allVisibleProjectsSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="pipelines-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleProjects"
             />
+            <q-btn
+              no-caps
+              unelevated
+              class="pipelines-toolbar__add-button"
+              :disable="loading"
+              @click="openCreatePipeline"
+            >
+              <span class="pipelines-toolbar__add-button-inner">
+                <span class="pipelines-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="pipelines-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="pipelines-toolbar__search"
+              placeholder="Search projects..."
+              :disable="loading"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
           </div>
 
           <div class="pipelines-toolbar__block pipelines-toolbar__block--kind">
@@ -100,30 +125,17 @@
             />
           </div>
 
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--search">
-            <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
-            <q-input
-              v-model="searchQuery"
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--actions">
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              outlined
-              borderless
-              class="pipelines-toolbar__search"
-              placeholder="Search projects..."
-              :disable="loading"
-            >
-              <template #prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn
-              no-caps
               unelevated
-              color="primary"
-              icon="add"
-              label="Add Record"
-              class="pipelines-toolbar__add-button"
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="pipelines-toolbar__toggle pipelines-toolbar__view-toggle"
               :disable="loading"
-              @click="openCreatePipeline"
+              :options="viewOptions"
             />
             <q-btn dense flat round icon="download" color="grey-6" class="pipelines-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
@@ -232,6 +244,23 @@
                 @pointermove="onProjectCardPointerMove"
                 @pointerleave="onProjectCardPointerLeave"
               >
+                <q-card-section class="pipeline-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="pipeline-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="pipeline-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="pipeline-card__hero">
                   <div class="pipeline-card__hero-main">
                     <figure class="pipeline-card__portrait">
@@ -275,18 +304,6 @@
                 <q-card-section class="pipeline-card__summary">
                   <div class="pipeline-card__summary-head">
                     <q-btn-toggle
-                      :model-value="getProjectCardContentView(row)"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="pipeline-card__summary-view-toggle"
-                      :options="projectCardContentViewOptions"
-                      @update:model-value="setProjectCardContentView(row, $event)"
-                    />
-
-                    <q-btn-toggle
                       :model-value="getProjectCardPanel(row)"
                       dense
                       no-caps
@@ -298,24 +315,17 @@
                       :options="projectCardPanelOptions"
                       @update:model-value="setProjectCardPanel(row, $event)"
                     />
-
-                    <div class="pipeline-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="pipeline-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="pipeline-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(row)"
-                      />
-                    </div>
+                    <q-btn-toggle
+                      :model-value="getProjectCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="pipeline-card__summary-view-toggle"
+                      :options="projectCardContentViewOptions"
+                      @update:model-value="setProjectCardContentView(row, $event)"
+                    />
                   </div>
 
                   <div class="pipeline-card__summary-panel">
@@ -629,6 +639,35 @@ const displayRows = computed(() => {
 
   return items
 })
+
+const allVisibleProjectsSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleProjectsSelected = computed(
+  () => displayRows.value.some((row) => isSelected(row)) && !allVisibleProjectsSelected.value,
+)
+
+function toggleSelectAllVisibleProjects(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(
+      displayRows.value.map((row) => String(row?.pipeline_id || '').trim()).filter(Boolean),
+    )
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.pipeline_id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.pipeline_id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter((row) => {
+    const rowId = String(row?.pipeline_id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
 
 function parsedStages(row) {
   try {

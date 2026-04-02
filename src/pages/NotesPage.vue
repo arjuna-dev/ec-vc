@@ -71,17 +71,43 @@
         </div>
 
         <div class="notes-toolbar">
-          <div class="notes-toolbar__block notes-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="notes-toolbar__toggle notes-toolbar__view-toggle"
-              :options="viewOptions"
+          <div class="notes-toolbar__block notes-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleNotesSelected"
+              :indeterminate="someVisibleNotesSelected && !allVisibleNotesSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="notes-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleNotes"
             />
+            <q-btn
+              no-caps
+              unelevated
+              class="notes-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateNote"
+            >
+              <span class="notes-toolbar__add-button-inner">
+                <span class="notes-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="notes-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="notes-toolbar__search"
+              placeholder="Search notes..."
+              :disable="loading"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-icon name="tune" size="18px" class="notes-toolbar__filters-icon" />
           </div>
 
           <div class="notes-toolbar__block notes-toolbar__block--kind">
@@ -98,30 +124,16 @@
             />
           </div>
 
-          <div class="notes-toolbar__block notes-toolbar__block--search">
-            <q-icon name="tune" size="18px" class="notes-toolbar__filters-icon" />
-            <q-input
-              v-model="searchQuery"
+          <div class="notes-toolbar__block notes-toolbar__block--actions">
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              outlined
-              borderless
-              class="notes-toolbar__search"
-              placeholder="Search notes..."
-              :disable="loading"
-            >
-              <template #prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn
-              no-caps
               unelevated
-              color="primary"
-              icon="add"
-              label="Add Record"
-              class="notes-toolbar__add-button"
-              :disable="loading"
-              @click="openCreateNote"
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="notes-toolbar__toggle notes-toolbar__view-toggle"
+              :options="viewOptions"
             />
             <q-btn dense flat round icon="download" color="grey-6" class="notes-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
@@ -168,6 +180,15 @@
                     dense
                     flat
                     round
+                    icon="visibility"
+                    color="grey-8"
+                    :disable="loading"
+                    @click="openDatabook(props.row)"
+                  />
+                  <q-btn
+                    dense
+                    flat
+                    round
                     icon="delete"
                     color="grey-8"
                     :disable="loading"
@@ -189,6 +210,23 @@
                 @pointermove="onNoteCardPointerMove"
                 @pointerleave="onNoteCardPointerLeave"
               >
+                <q-card-section class="note-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="note-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="note-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="note-card__hero">
                   <div class="note-card__hero-main">
                     <figure class="note-card__portrait">
@@ -228,18 +266,6 @@
                 <q-card-section class="note-card__summary">
                   <div class="note-card__summary-head">
                     <q-btn-toggle
-                      :model-value="getNoteCardContentView(row)"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="note-card__summary-view-toggle"
-                      :options="noteCardContentViewOptions"
-                      @update:model-value="setNoteCardContentView(row, $event)"
-                    />
-
-                    <q-btn-toggle
                       :model-value="getNoteCardPanel(row)"
                       dense
                       no-caps
@@ -251,24 +277,17 @@
                       :options="noteCardPanelOptions"
                       @update:model-value="setNoteCardPanel(row, $event)"
                     />
-
-                    <div class="note-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="note-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="note-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(row)"
-                      />
-                    </div>
+                    <q-btn-toggle
+                      :model-value="getNoteCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="note-card__summary-view-toggle"
+                      :options="noteCardContentViewOptions"
+                      @update:model-value="setNoteCardContentView(row, $event)"
+                    />
                   </div>
 
                   <div class="note-card__summary-panel">
@@ -549,6 +568,33 @@ const displayRows = computed(() => {
 
   return items
 })
+
+const allVisibleNotesSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleNotesSelected = computed(
+  () => displayRows.value.some((row) => isSelected(row)) && !allVisibleNotesSelected.value,
+)
+
+function toggleSelectAllVisibleNotes(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(displayRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean))
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter((row) => {
+    const rowId = String(row?.id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
 
 function openCreateNote() {
   dialogOpen.value = true
@@ -1080,7 +1126,7 @@ watch(displayRows, () => {
 
 .notes-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1097,15 +1143,11 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
-.notes-toolbar__block--view {
-  margin-right: 18px;
+.notes-toolbar__block--primary {
+  margin-right: 4px;
 }
 
-.notes-toolbar__block--filters {
-  flex-wrap: nowrap;
-}
-
-.notes-toolbar__block--search {
+.notes-toolbar__block--actions {
   grid-column: -2 / -1;
   justify-content: flex-end;
   margin-left: auto;
@@ -1114,6 +1156,11 @@ watch(displayRows, () => {
 .notes-toolbar__filters-icon {
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.notes-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .notes-toolbar__toggle {
@@ -1172,7 +1219,49 @@ watch(displayRows, () => {
 
 .notes-toolbar__add-button {
   align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
   white-space: nowrap;
+}
+
+.notes-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.notes-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notes-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.notes-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.notes-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
 }
 
 .notes-toolbar__kind-toggle :deep(.q-btn) {
@@ -1258,6 +1347,14 @@ watch(displayRows, () => {
 
 .note-card__hero {
   padding: 0;
+}
+
+.note-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 0;
+  background: transparent;
 }
 
 .note-card::before {
@@ -1407,20 +1504,16 @@ watch(displayRows, () => {
 .note-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
-}
-
-.note-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
+  gap: 12px;
 }
 
 .note-card__summary-view-toggle,
 .note-card__summary-toggle {
   border-radius: var(--ds-control-radius);
+}
+
+.note-card__summary-view-toggle {
+  margin-left: auto;
 }
 
 .note-card__summary-view-toggle :deep(.q-btn-group),
@@ -1519,6 +1612,19 @@ watch(displayRows, () => {
   border-radius: 18px;
   border-color: rgba(148, 163, 184, 0.28);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.note-card__control-eye {
+  color: #111111;
+  background: transparent;
+  border: 0;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.note-card__select-box {
+  transform: scale(0.75);
+  transform-origin: center;
 }
 
 .note-card__title {

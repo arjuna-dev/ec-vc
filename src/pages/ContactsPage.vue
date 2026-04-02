@@ -71,18 +71,43 @@
         </div>
 
         <div class="contacts-toolbar">
-          <div class="contacts-toolbar__block contacts-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="contacts-toolbar__toggle contacts-toolbar__view-toggle"
-              :disable="loading"
-              :options="viewOptions"
+          <div class="contacts-toolbar__block contacts-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleContactsSelected"
+              :indeterminate="someVisibleContactsSelected && !allVisibleContactsSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="contacts-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleContacts"
             />
+            <q-btn
+              no-caps
+              unelevated
+              class="contacts-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateContact"
+            >
+              <span class="contacts-toolbar__add-button-inner">
+                <span class="contacts-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="contacts-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="contacts-toolbar__search"
+              placeholder="Search contacts..."
+              :disable="loading"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-icon name="tune" size="18px" class="contacts-toolbar__filters-icon" />
           </div>
 
           <div class="contacts-toolbar__block contacts-toolbar__block--kind">
@@ -100,30 +125,17 @@
             />
           </div>
 
-          <div class="contacts-toolbar__block contacts-toolbar__block--search">
-            <q-icon name="tune" size="18px" class="contacts-toolbar__filters-icon" />
-            <q-input
-              v-model="searchQuery"
+          <div class="contacts-toolbar__block contacts-toolbar__block--actions">
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              outlined
-              borderless
-              class="contacts-toolbar__search"
-              placeholder="Search contacts..."
-              :disable="loading"
-            >
-              <template #prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn
-              no-caps
               unelevated
-              color="primary"
-              icon="add"
-              label="Add Record"
-              class="contacts-toolbar__add-button"
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contacts-toolbar__toggle contacts-toolbar__view-toggle"
               :disable="loading"
-              @click="openCreateContact"
+              :options="viewOptions"
             />
             <q-btn dense flat round icon="download" color="grey-6" class="contacts-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
@@ -200,6 +212,23 @@
                 @pointermove="onContactCardPointerMove"
                 @pointerleave="onContactCardPointerLeave"
               >
+                <q-card-section class="contact-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="contact-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="contact-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="contact-card__hero">
                   <div class="contact-card__hero-main">
                     <figure
@@ -267,18 +296,6 @@
                 <q-card-section class="contact-card__summary">
                   <div class="contact-card__summary-head">
                     <q-btn-toggle
-                      :model-value="getContactCardContentView(row)"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="contact-card__summary-view-toggle"
-                      :options="contactCardContentViewOptions"
-                      @update:model-value="setContactCardContentView(row, $event)"
-                    />
-
-                    <q-btn-toggle
                       :model-value="getContactCardPanel(row)"
                       dense
                       no-caps
@@ -290,24 +307,17 @@
                       :options="contactCardPanelOptions"
                       @update:model-value="setContactCardPanel(row, $event)"
                     />
-
-                    <div class="contact-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="contact-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="contact-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(row)"
-                      />
-                    </div>
+                    <q-btn-toggle
+                      :model-value="getContactCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="contact-card__summary-view-toggle"
+                      :options="contactCardContentViewOptions"
+                      @update:model-value="setContactCardContentView(row, $event)"
+                    />
                   </div>
 
                   <div class="contact-card__summary-panel">
@@ -706,6 +716,29 @@ const displayRows = computed(() => {
 
   return items
 })
+
+const allVisibleContactsSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleContactsSelected = computed(
+  () => displayRows.value.some((row) => isSelected(row)) && !allVisibleContactsSelected.value,
+)
+
+function toggleSelectAllVisibleContacts(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(displayRows.value.map((row) => getRowId(row)).filter(Boolean))
+    selectedRows.value = selectedRows.value.filter((row) => !visibleIds.has(getRowId(row)))
+    return
+  }
+
+  const selectedIds = new Set(selectedRows.value.map((row) => getRowId(row)).filter(Boolean))
+  const additions = displayRows.value.filter((row) => {
+    const rowId = getRowId(row)
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
 
 function hasConnectedSignal(row) {
   return (
@@ -1670,7 +1703,7 @@ watch(displayRows, () => {
 
 .contacts-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1687,17 +1720,12 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
-.contacts-toolbar__block--filters {
-  flex-wrap: nowrap;
+.contacts-toolbar__block--primary {
+  margin-right: 4px;
 }
 
-.contacts-toolbar__block--view {
+.contacts-toolbar__block--actions {
   padding-top: 2px;
-  margin-right: 18px;
-}
-
-.contacts-toolbar__block--search {
-  grid-column: -2 / -1;
   align-items: center;
   justify-content: flex-end;
   margin-left: auto;
@@ -1707,6 +1735,11 @@ watch(displayRows, () => {
   align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.contacts-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .contacts-toolbar__toggle {
@@ -1796,7 +1829,68 @@ watch(displayRows, () => {
 
 .contacts-toolbar__add-button {
   align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
   white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.contacts-toolbar__add-button:hover,
+.contacts-toolbar__add-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.contacts-toolbar__add-button:active,
+.contacts-toolbar__add-button.q-btn--active,
+.contacts-toolbar__add-button.q-btn--standard.q-btn--active {
+  color: #ffffff;
+  background: #111111;
+}
+
+.contacts-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.contacts-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.contacts-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+  border: 0;
+  box-shadow: none;
+}
+
+.contacts-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.contacts-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
 }
 
 .contacts-toolbar__filter-control {
@@ -1911,6 +2005,19 @@ watch(displayRows, () => {
 
 .contact-card__hero {
   padding: 0;
+}
+
+.contact-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 0;
+  background: transparent;
+}
+
+.contact-card__control-row :deep(.q-checkbox__inner),
+.contact-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
 .contact-card__hero-main {
@@ -2222,8 +2329,7 @@ watch(displayRows, () => {
 .contact-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
+  gap: 12px;
 }
 
 .contact-card__summary-actions {
@@ -2234,7 +2340,7 @@ watch(displayRows, () => {
 }
 
 .contact-card__summary-view-toggle {
-  margin-left: 0;
+  margin-left: auto;
   border-radius: var(--ds-control-radius);
 }
 
@@ -2476,6 +2582,14 @@ watch(displayRows, () => {
 }
 
 .contact-card__icon-action {
+  color: #111;
+  background: transparent;
+  border: 0;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.contact-card__control-eye {
   color: #111;
   background: transparent;
   border: 0;

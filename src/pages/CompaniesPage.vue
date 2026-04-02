@@ -71,18 +71,43 @@
         </div>
 
         <div class="companies-toolbar">
-          <div class="companies-toolbar__block companies-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="companies-toolbar__toggle companies-toolbar__view-toggle"
-              :disable="loading"
-              :options="viewOptions"
+          <div class="companies-toolbar__block companies-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleCompaniesSelected"
+              :indeterminate="someVisibleCompaniesSelected && !allVisibleCompaniesSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="companies-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleCompanies"
             />
+            <q-btn
+              no-caps
+              unelevated
+              class="companies-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateCompany"
+            >
+              <span class="companies-toolbar__add-button-inner">
+                <span class="companies-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="companies-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="companies-toolbar__search"
+              placeholder="Search companies..."
+              :disable="loading"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-icon name="tune" size="18px" class="companies-toolbar__filters-icon" />
           </div>
 
           <div class="companies-toolbar__block companies-toolbar__block--kind">
@@ -100,30 +125,17 @@
             />
           </div>
 
-          <div class="companies-toolbar__block companies-toolbar__block--search">
-            <q-icon name="tune" size="18px" class="companies-toolbar__filters-icon" />
-            <q-input
-              v-model="searchQuery"
+          <div class="companies-toolbar__block companies-toolbar__block--actions">
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              outlined
-              borderless
-              class="companies-toolbar__search"
-              placeholder="Search companies..."
-              :disable="loading"
-            >
-              <template #prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn
-              no-caps
               unelevated
-              color="primary"
-              icon="add"
-              label="Add Record"
-              class="companies-toolbar__add-button"
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="companies-toolbar__toggle companies-toolbar__view-toggle"
               :disable="loading"
-              @click="openCreateCompany"
+              :options="viewOptions"
             />
             <q-btn dense flat round icon="download" color="grey-6" class="companies-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
@@ -179,6 +191,23 @@
                 @pointermove="onCompanyCardPointerMove"
                 @pointerleave="onCompanyCardPointerLeave"
               >
+                <q-card-section class="company-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="company-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="company-card__control-eye"
+                    :disable="loading"
+                    @click="openEyeView(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="company-card__hero">
                   <div class="company-card__hero-main">
                     <figure class="company-card__portrait">
@@ -233,18 +262,6 @@
                 <q-card-section class="company-card__summary">
                   <div class="company-card__summary-head">
                     <q-btn-toggle
-                      :model-value="getCompanyCardContentView(row)"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="company-card__summary-view-toggle"
-                      :options="companyCardContentViewOptions"
-                      @update:model-value="setCompanyCardContentView(row, $event)"
-                    />
-
-                    <q-btn-toggle
                       :model-value="getCompanyCardPanel(row)"
                       dense
                       no-caps
@@ -256,24 +273,17 @@
                       :options="companyCardPanelOptions"
                       @update:model-value="setCompanyCardPanel(row, $event)"
                     />
-
-                    <div class="company-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="company-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="company-card__icon-action"
-                        :disable="loading"
-                        @click="openEyeView(row)"
-                      />
-                    </div>
+                    <q-btn-toggle
+                      :model-value="getCompanyCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="company-card__summary-view-toggle"
+                      :options="companyCardContentViewOptions"
+                      @update:model-value="setCompanyCardContentView(row, $event)"
+                    />
                   </div>
 
                   <div class="company-card__summary-panel">
@@ -994,6 +1004,33 @@ const displayRows = computed(() => {
 
   return items
 })
+
+const allVisibleCompaniesSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleCompaniesSelected = computed(
+  () => displayRows.value.some((row) => isSelected(row)) && !allVisibleCompaniesSelected.value,
+)
+
+function toggleSelectAllVisibleCompanies(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(displayRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean))
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter((row) => {
+    const rowId = String(row?.id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
 
 function normalizeCompanyValue(value) {
   return String(value || '').trim()
@@ -2070,7 +2107,7 @@ watch(
 
 .companies-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -2087,16 +2124,11 @@ watch(
   min-width: 0;
 }
 
-.companies-toolbar__block--view {
-  padding-top: 2px;
-  margin-right: 18px;
+.companies-toolbar__block--primary {
+  margin-right: 4px;
 }
 
-.companies-toolbar__block--filters {
-  flex-wrap: nowrap;
-}
-
-.companies-toolbar__block--search {
+.companies-toolbar__block--actions {
   grid-column: -2 / -1;
   align-items: center;
   justify-content: flex-end;
@@ -2107,6 +2139,11 @@ watch(
   align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.companies-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .companies-toolbar__search {
@@ -2169,7 +2206,49 @@ watch(
 
 .companies-toolbar__add-button {
   align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
   white-space: nowrap;
+}
+
+.companies-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.companies-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.companies-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.companies-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.companies-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
 }
 
 .companies-toolbar__toggle {
@@ -2309,6 +2388,14 @@ watch(
 
 .company-card__hero {
   padding: 0;
+}
+
+.company-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 0;
+  background: transparent;
 }
 
 .company-card__hero-main {
@@ -2472,19 +2559,11 @@ watch(
 .company-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
-}
-
-.company-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
+  gap: 12px;
 }
 
 .company-card__summary-view-toggle {
-  margin-left: 0;
+  margin-left: auto;
   border-radius: var(--ds-control-radius);
 }
 
@@ -2622,6 +2701,14 @@ watch(
 }
 
 .company-card__select-box {
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.company-card__control-eye {
+  color: #111;
+  background: transparent;
+  border: 0;
   transform: scale(0.75);
   transform-origin: center;
 }

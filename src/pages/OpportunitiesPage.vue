@@ -71,37 +71,29 @@
         </div>
 
         <div class="opportunities-toolbar">
-          <div class="opportunities-toolbar__block opportunities-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="opportunities-toolbar__toggle opportunities-toolbar__view-toggle"
-              :disable="loading"
-              :options="viewOptions"
+          <div class="opportunities-toolbar__block opportunities-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleOpportunitiesSelected"
+              :indeterminate="someVisibleOpportunitiesSelected && !allVisibleOpportunitiesSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="opportunities-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleOpportunities"
             />
-          </div>
-
-          <div class="opportunities-toolbar__block opportunities-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="kindFilter"
-              dense
+            <q-btn
               no-caps
               unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="opportunities-toolbar__toggle opportunities-toolbar__kind-toggle"
-              :options="kindFilterOptions"
+              class="opportunities-toolbar__add-button"
               :disable="loading"
-            />
-          </div>
-
-          <div class="opportunities-toolbar__block opportunities-toolbar__block--search">
-            <q-icon name="tune" size="18px" class="opportunities-toolbar__filters-icon" />
+              @click="openCreateOpportunityRecord"
+            >
+              <span class="opportunities-toolbar__add-button-inner">
+                <span class="opportunities-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="opportunities-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
             <q-input
               v-model="searchQuery"
               dense
@@ -115,15 +107,35 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn
+            <q-icon name="tune" size="18px" class="opportunities-toolbar__filters-icon" />
+          </div>
+
+          <div class="opportunities-toolbar__block opportunities-toolbar__block--kind">
+            <q-btn-toggle
+              v-model="kindFilter"
+              dense
               no-caps
               unelevated
-              color="primary"
-              icon="add"
-              label="Add Record"
-              class="opportunities-toolbar__add-button"
+              toggle-color="dark"
+              color="white"
+              text-color="grey-8"
+              class="opportunities-toolbar__toggle opportunities-toolbar__kind-toggle"
               :disable="loading"
-              @click="openCreateOpportunityRecord"
+              :options="kindFilterOptions"
+            />
+          </div>
+
+          <div class="opportunities-toolbar__block opportunities-toolbar__block--actions">
+            <q-btn-toggle
+              v-model="viewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="opportunities-toolbar__toggle opportunities-toolbar__view-toggle"
+              :disable="loading"
+              :options="viewOptions"
             />
             <q-btn dense flat round icon="download" color="grey-6" class="opportunities-toolbar__icon-button" :disable="loading" @click="pickImportFile">
               <q-tooltip>Import CSV</q-tooltip>
@@ -200,6 +212,23 @@
                 @pointermove="onOpportunityCardPointerMove"
                 @pointerleave="onOpportunityCardPointerLeave"
               >
+                <q-card-section class="opportunity-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="opportunity-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="opportunity-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="opportunity-card__hero">
                   <div class="opportunity-card__hero-main">
                     <figure class="opportunity-card__portrait">
@@ -245,18 +274,6 @@
                 <q-card-section class="opportunity-card__summary">
                   <div class="opportunity-card__summary-head">
                     <q-btn-toggle
-                      :model-value="getOpportunityCardContentView(row)"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="opportunity-card__summary-view-toggle"
-                      :options="opportunityCardContentViewOptions"
-                      @update:model-value="setOpportunityCardContentView(row, $event)"
-                    />
-
-                    <q-btn-toggle
                       :model-value="getOpportunityCardPanel(row)"
                       dense
                       no-caps
@@ -268,24 +285,17 @@
                       :options="opportunityCardPanelOptions"
                       @update:model-value="setOpportunityCardPanel(row, $event)"
                     />
-
-                    <div class="opportunity-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="opportunity-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="opportunity-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(row)"
-                      />
-                    </div>
+                    <q-btn-toggle
+                      :model-value="getOpportunityCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="opportunity-card__summary-view-toggle"
+                      :options="opportunityCardContentViewOptions"
+                      @update:model-value="setOpportunityCardContentView(row, $event)"
+                    />
                   </div>
 
                   <div class="opportunity-card__summary-panel">
@@ -772,6 +782,34 @@ const displayRows = computed(() => {
 
   return items
 })
+
+const allVisibleOpportunitiesSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleOpportunitiesSelected = computed(
+  () =>
+    displayRows.value.some((row) => isSelected(row)) && !allVisibleOpportunitiesSelected.value,
+)
+
+function toggleSelectAllVisibleOpportunities(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(displayRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean))
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter((row) => {
+    const rowId = String(row?.id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
 
 function opportunityNumericSize(row) {
   const value = row?.kind === 'fund' ? row?.Fund_Size_Target : row?.Round_Amount

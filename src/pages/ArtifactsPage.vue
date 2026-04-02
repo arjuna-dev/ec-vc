@@ -71,17 +71,43 @@
         </div>
 
         <div class="artifacts-toolbar">
-          <div class="artifacts-toolbar__block artifacts-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="artifacts-toolbar__toggle artifacts-toolbar__view-toggle"
-              :options="viewModeOptions"
+          <div class="artifacts-toolbar__block artifacts-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleArtifactsSelected"
+              :indeterminate="someVisibleArtifactsSelected && !allVisibleArtifactsSelected"
+              :disable="loading || displayArtifactRows.length === 0"
+              color="dark"
+              class="artifacts-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleArtifacts"
             />
+            <q-btn
+              no-caps
+              unelevated
+              class="artifacts-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateArtifact"
+            >
+              <span class="artifacts-toolbar__add-button-inner">
+                <span class="artifacts-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="artifacts-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="artifacts-toolbar__search"
+              placeholder="Search artifacts..."
+              :disable="loading"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-icon name="tune" size="18px" class="artifacts-toolbar__filters-icon" />
           </div>
 
           <div class="artifacts-toolbar__block artifacts-toolbar__block--kind">
@@ -98,30 +124,16 @@
             />
           </div>
 
-          <div class="artifacts-toolbar__block artifacts-toolbar__block--search">
-            <q-icon name="tune" size="18px" class="artifacts-toolbar__filters-icon" />
-            <q-input
-              v-model="searchQuery"
+          <div class="artifacts-toolbar__block artifacts-toolbar__block--actions">
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              outlined
-              borderless
-              class="artifacts-toolbar__search"
-              placeholder="Search artifacts..."
-              :disable="loading"
-            >
-              <template #prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn
-              no-caps
               unelevated
-              color="primary"
-              icon="add"
-              label="Add Record"
-              class="artifacts-toolbar__add-button"
-              :disable="loading"
-              @click="openCreateArtifact"
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="artifacts-toolbar__toggle artifacts-toolbar__view-toggle"
+              :options="viewModeOptions"
             />
             <q-btn dense flat round icon="download" color="grey-6" class="artifacts-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
@@ -180,6 +192,23 @@
           @pointermove="onArtifactCardPointerMove"
           @pointerleave="onArtifactCardPointerLeave"
         >
+          <q-card-section class="artifact-card__control-row">
+            <q-checkbox
+              :model-value="isSelected(group.primaryArtifact)"
+              :disable="loading || savingProperties"
+              color="dark"
+              class="artifact-card__select-box"
+              @update:model-value="toggleRowSelection(group.primaryArtifact, $event)"
+            />
+            <q-btn
+              flat
+              round
+              icon="visibility"
+              class="artifact-card__control-eye"
+              :disable="loading"
+              @click="openDatabook(group.primaryArtifact)"
+            />
+          </q-card-section>
           <q-card-section class="artifact-card__hero">
             <div class="artifact-card__hero-main">
               <figure class="artifact-card__portrait">
@@ -221,18 +250,6 @@
           <q-card-section class="artifact-card__summary">
             <div class="artifact-card__summary-head">
               <q-btn-toggle
-                :model-value="getArtifactCardContentView(group)"
-                dense
-                unelevated
-                toggle-color="primary"
-                color="grey-3"
-                text-color="grey-8"
-                class="artifact-card__summary-view-toggle"
-                :options="artifactCardContentViewOptions"
-                @update:model-value="setArtifactCardContentView(group, $event)"
-              />
-
-              <q-btn-toggle
                 :model-value="getArtifactCardPanel(group)"
                 dense
                 no-caps
@@ -244,24 +261,17 @@
                 :options="artifactCardPanelOptions"
                 @update:model-value="setArtifactCardPanel(group, $event)"
               />
-
-              <div class="artifact-card__summary-actions">
-                <q-checkbox
-                  :model-value="isSelected(group.primaryArtifact)"
-                  :disable="loading || savingProperties"
-                  color="dark"
-                  class="artifact-card__select-box"
-                  @update:model-value="toggleRowSelection(group.primaryArtifact, $event)"
-                />
-                <q-btn
-                  flat
-                  round
-                  icon="visibility"
-                  class="artifact-card__icon-action"
-                  :disable="loading"
-                  @click="openDatabook(group.primaryArtifact)"
-                />
-              </div>
+              <q-btn-toggle
+                :model-value="getArtifactCardContentView(group)"
+                dense
+                unelevated
+                toggle-color="primary"
+                color="grey-3"
+                text-color="grey-8"
+                class="artifact-card__summary-view-toggle"
+                :options="artifactCardContentViewOptions"
+                @update:model-value="setArtifactCardContentView(group, $event)"
+              />
             </div>
 
             <div class="artifact-card__summary-panel">
@@ -1255,6 +1265,39 @@ const displayArtifactRows = computed(() =>
 const displayArtifactGroups = computed(() =>
   latestArtifactGroups.value.filter((group) => matchesArtifactFilters(group.primaryArtifact, group)),
 )
+
+const allVisibleArtifactsSelected = computed(
+  () =>
+    displayArtifactRows.value.length > 0 &&
+    displayArtifactRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleArtifactsSelected = computed(
+  () =>
+    displayArtifactRows.value.some((row) => isSelected(row)) &&
+    !allVisibleArtifactsSelected.value,
+)
+
+function toggleSelectAllVisibleArtifacts(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(
+      displayArtifactRows.value.map((row) => String(row?.artifact_id || '').trim()).filter(Boolean),
+    )
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.artifact_id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.artifact_id || '').trim()).filter(Boolean),
+  )
+  const additions = displayArtifactRows.value.filter((row) => {
+    const rowId = String(row?.artifact_id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
 
 const artifactsDashboard = computed(() => {
   const total = rows.value.length

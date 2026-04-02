@@ -71,17 +71,43 @@
         </div>
 
         <div class="tasks-toolbar">
-          <div class="tasks-toolbar__block tasks-toolbar__block--view">
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="tasks-toolbar__toggle tasks-toolbar__view-toggle"
-              :options="viewOptions"
+          <div class="tasks-toolbar__block tasks-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleTasksSelected"
+              :indeterminate="someVisibleTasksSelected && !allVisibleTasksSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="tasks-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleTasks"
             />
+            <q-btn
+              no-caps
+              unelevated
+              class="tasks-toolbar__add-button"
+              :disable="loading"
+              @click="openCreateTask"
+            >
+              <span class="tasks-toolbar__add-button-inner">
+                <span class="tasks-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="tasks-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="tasks-toolbar__search"
+              placeholder="Search tasks..."
+              :disable="loading"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-icon name="tune" size="18px" class="tasks-toolbar__filters-icon" />
           </div>
 
           <div class="tasks-toolbar__block tasks-toolbar__block--kind">
@@ -98,30 +124,16 @@
             />
           </div>
 
-          <div class="tasks-toolbar__block tasks-toolbar__block--search">
-            <q-icon name="tune" size="18px" class="tasks-toolbar__filters-icon" />
-            <q-input
-              v-model="searchQuery"
+          <div class="tasks-toolbar__block tasks-toolbar__block--actions">
+            <q-btn-toggle
+              v-model="viewMode"
               dense
-              outlined
-              borderless
-              class="tasks-toolbar__search"
-              placeholder="Search tasks..."
-              :disable="loading"
-            >
-              <template #prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn
-              no-caps
               unelevated
-              color="primary"
-              icon="add"
-              label="Add Record"
-              class="tasks-toolbar__add-button"
-              :disable="loading"
-              @click="openCreateTask"
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="tasks-toolbar__toggle tasks-toolbar__view-toggle"
+              :options="viewOptions"
             />
             <q-btn dense flat round icon="download" color="grey-6" class="tasks-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
               <q-tooltip>Import CSV</q-tooltip>
@@ -168,6 +180,15 @@
                     dense
                     flat
                     round
+                    icon="visibility"
+                    color="grey-8"
+                    :disable="loading"
+                    @click="openDatabook(props.row)"
+                  />
+                  <q-btn
+                    dense
+                    flat
+                    round
                     icon="delete"
                     color="grey-8"
                     :disable="loading"
@@ -189,6 +210,23 @@
                 @pointermove="onTaskCardPointerMove"
                 @pointerleave="onTaskCardPointerLeave"
               >
+                <q-card-section class="task-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="task-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="task-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(row)"
+                  />
+                </q-card-section>
                 <q-card-section class="task-card__hero">
                   <div class="task-card__hero-main">
                     <figure class="task-card__portrait">
@@ -228,18 +266,6 @@
                 <q-card-section class="task-card__summary">
                   <div class="task-card__summary-head">
                     <q-btn-toggle
-                      :model-value="getTaskCardContentView(row)"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="task-card__summary-view-toggle"
-                      :options="taskCardContentViewOptions"
-                      @update:model-value="setTaskCardContentView(row, $event)"
-                    />
-
-                    <q-btn-toggle
                       :model-value="getTaskCardPanel(row)"
                       dense
                       no-caps
@@ -251,24 +277,17 @@
                       :options="taskCardPanelOptions"
                       @update:model-value="setTaskCardPanel(row, $event)"
                     />
-
-                    <div class="task-card__summary-actions">
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        class="task-card__select-box"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="task-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(row)"
-                      />
-                    </div>
+                    <q-btn-toggle
+                      :model-value="getTaskCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="task-card__summary-view-toggle"
+                      :options="taskCardContentViewOptions"
+                      @update:model-value="setTaskCardContentView(row, $event)"
+                    />
                   </div>
 
                   <div class="task-card__summary-panel">
@@ -571,6 +590,33 @@ const displayRows = computed(() => {
 
   return items
 })
+
+const allVisibleTasksSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleTasksSelected = computed(
+  () => displayRows.value.some((row) => isSelected(row)) && !allVisibleTasksSelected.value,
+)
+
+function toggleSelectAllVisibleTasks(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(displayRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean))
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter((row) => {
+    const rowId = String(row?.id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
 
 function openCreateTask() {
   dialogOpen.value = true
@@ -1103,7 +1149,7 @@ watch(displayRows, () => {
 
 .tasks-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1120,12 +1166,8 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
-.tasks-toolbar__block--view {
-  margin-right: 18px;
-}
-
-.tasks-toolbar__block--filters {
-  flex-wrap: nowrap;
+.tasks-toolbar__block--primary {
+  margin-right: 4px;
 }
 
 .tasks-toolbar__filters-icon {
@@ -1133,7 +1175,12 @@ watch(displayRows, () => {
   flex: 0 0 auto;
 }
 
-.tasks-toolbar__block--search {
+.tasks-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
+}
+
+.tasks-toolbar__block--actions {
   grid-column: -2 / -1;
   justify-content: flex-end;
   margin-left: auto;
@@ -1195,7 +1242,49 @@ watch(displayRows, () => {
 
 .tasks-toolbar__add-button {
   align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
   white-space: nowrap;
+}
+
+.tasks-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.tasks-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tasks-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.tasks-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.tasks-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
 }
 
 .tasks-toolbar__kind-toggle :deep(.q-btn) {
@@ -1281,6 +1370,14 @@ watch(displayRows, () => {
 
 .task-card__hero {
   padding: 0;
+}
+
+.task-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 0;
+  background: transparent;
 }
 
 .task-card::before {
@@ -1430,20 +1527,16 @@ watch(displayRows, () => {
 .task-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
-}
-
-.task-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
+  gap: 12px;
 }
 
 .task-card__summary-view-toggle,
 .task-card__summary-toggle {
   border-radius: var(--ds-control-radius);
+}
+
+.task-card__summary-view-toggle {
+  margin-left: auto;
 }
 
 .task-card__summary-view-toggle :deep(.q-btn-group),
@@ -1542,6 +1635,19 @@ watch(displayRows, () => {
   border-radius: 18px;
   border-color: rgba(148, 163, 184, 0.28);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.task-card__control-eye {
+  color: #111111;
+  background: transparent;
+  border: 0;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.task-card__select-box {
+  transform: scale(0.75);
+  transform-origin: center;
 }
 
 .task-card__title {
