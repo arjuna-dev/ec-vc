@@ -69,7 +69,6 @@
               :indeterminate="someVisibleUsersSelected && !allVisibleUsersSelected"
               :disable="loading || displayRows.length === 0"
               color="dark"
-              label="Select All"
               class="users-toolbar__select-all"
               @update:model-value="toggleSelectAllVisibleUsers"
             />
