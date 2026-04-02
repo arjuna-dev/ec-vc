@@ -198,6 +198,14 @@
                 @pointermove="onUserCardPointerMove"
                 @pointerleave="onUserCardPointerLeave"
               >
+                <q-btn
+                  flat
+                  round
+                  icon="visibility"
+                  class="user-card__floating-eye"
+                  :disable="loading"
+                  @click="openDatabook(user)"
+                />
                 <q-card-section class="user-card__hero">
                   <div class="user-card__hero-main">
                     <figure class="user-card__portrait">
@@ -270,14 +278,6 @@
                         color="dark"
                         class="user-card__select-box"
                         @update:model-value="toggleUserSelection(user, $event)"
-                      />
-                      <q-btn
-                        flat
-                        round
-                        icon="visibility"
-                        class="user-card__icon-action"
-                        :disable="loading"
-                        @click="openDatabook(user)"
                       />
                     </div>
                   </div>
@@ -1488,6 +1488,22 @@ onMounted(loadUsers)
   border: 0;
   transform: scale(0.75);
   transform-origin: center;
+}
+
+.user-card__floating-eye {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.12);
+  backdrop-filter: blur(10px);
 }
 
 .user-card__select-box {
