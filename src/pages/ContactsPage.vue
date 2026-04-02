@@ -2424,7 +2424,7 @@ watch(displayRows, () => {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 16px;
+  gap: 8px;
 }
 
 .contact-card__summary-add-relation-plus {
