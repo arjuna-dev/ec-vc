@@ -1156,6 +1156,8 @@ const droppedFilesForPrompt = ref([])
 const existingDocumentNameMatches = ref([])
 const intakeReviewFields = ref(createDefaultIntakeReviewFields())
 const intakeReviewVerified = ref(createDefaultIntakeReviewVerified())
+const streamedPrimaryValueFingerprints = ref({})
+const streamedEntityFingerprints = ref({})
 const intakeLockedFields = ref(createDefaultIntakeReviewVerified())
 const intakeFieldSources = ref(createDefaultIntakeReviewSources())
 const deferredStructuredPayload = ref(null)
@@ -1739,6 +1741,8 @@ function resetTransientState() {
     round: null,
     fund: null,
   }
+  streamedPrimaryValueFingerprints.value = {}
+  streamedEntityFingerprints.value = {}
   clearIntakeReviewTimer()
 }
 
@@ -1902,17 +1906,9 @@ function enqueueStructuredEntityReviewItems(structured = {}) {
   const primaryRoundRef = String(structured?.primary_round_ref || '').trim()
   const primaryFundRef = String(structured?.primary_fund_ref || '').trim()
 
-  const queueEntity = (entityTypeName, entity, isPrimary = false) => {
-    if (!entity || typeof entity !== 'object' || isPrimary) return
-    const title =
-      entityTypeName === 'company'
-        ? entity.Company_Name
-        : entityTypeName === 'contact'
-          ? entity.Name
-          : entityTypeName === 'round'
-            ? entity.Round_Name
-            : entity.Fund_Name
-    if (!String(title || '').trim()) return
+  const queueEntity = (entityTypeName, entity, primaryRef = '', index = -1) => {
+    if (!entity || typeof entity !== 'object') return
+    if (!shouldQueueStreamedEntity(entityTypeName, entity, primaryRef, index)) return
 
     enqueueIntakeReviewItem({
       id: buildEntityQueueId(draftId, entityTypeName, entity),
@@ -1926,17 +1922,17 @@ function enqueueStructuredEntityReviewItems(structured = {}) {
     })
   }
 
-  for (const company of Array.isArray(structured?.companies) ? structured.companies : []) {
-    queueEntity('company', company, String(company?.ref || '').trim() === primaryCompanyRef)
+  for (const [index, company] of (Array.isArray(structured?.companies) ? structured.companies : []).entries()) {
+    queueEntity('company', company, primaryCompanyRef, index)
   }
-  for (const contact of Array.isArray(structured?.contacts) ? structured.contacts : []) {
-    queueEntity('contact', contact, String(contact?.ref || '').trim() === primaryContactRef)
+  for (const [index, contact] of (Array.isArray(structured?.contacts) ? structured.contacts : []).entries()) {
+    queueEntity('contact', contact, primaryContactRef, index)
   }
-  for (const round of Array.isArray(structured?.rounds) ? structured.rounds : []) {
-    queueEntity('round', round, String(round?.ref || '').trim() === primaryRoundRef)
+  for (const [index, round] of (Array.isArray(structured?.rounds) ? structured.rounds : []).entries()) {
+    queueEntity('round', round, primaryRoundRef, index)
   }
-  for (const fund of Array.isArray(structured?.funds) ? structured.funds : []) {
-    queueEntity('fund', fund, String(fund?.ref || '').trim() === primaryFundRef)
+  for (const [index, fund] of (Array.isArray(structured?.funds) ? structured.funds : []).entries()) {
+    queueEntity('fund', fund, primaryFundRef, index)
   }
 }
 
@@ -2525,11 +2521,21 @@ function buildFieldStateKey(section, key) {
   return `${section}.${key}`
 }
 
+function shouldSnapshotWholeCompanyForm(key) {
+  return key === 'Company_Name'
+}
+
+function shouldSnapshotWholeContactForm(key) {
+  return key === 'id'
+}
+
 function captureFieldSnapshot(section, key) {
   if (section === 'company') {
     return {
       value: companyForm.value?.[key] ?? '',
-      companyForm: JSON.parse(JSON.stringify(companyForm.value || {})),
+      companyForm: shouldSnapshotWholeCompanyForm(key)
+        ? JSON.parse(JSON.stringify(companyForm.value || {}))
+        : null,
       companyId: form.value.company_id || null,
       companyLinkMode: companyLinkMode.value,
       companySourceChoice: companySourceChoice.value,
@@ -2538,7 +2544,9 @@ function captureFieldSnapshot(section, key) {
   if (section === 'contact') {
     return {
       value: contactForm.value?.[key] ?? '',
-      contactForm: JSON.parse(JSON.stringify(contactForm.value || {})),
+      contactForm: shouldSnapshotWholeContactForm(key)
+        ? JSON.parse(JSON.stringify(contactForm.value || {}))
+        : null,
       contactLinkMode: contactLinkMode.value,
     }
   }
@@ -2553,10 +2561,12 @@ function createSnapshotWithValue(section, key, value) {
   if (section === 'company') {
     return {
       value: normalizedValue,
-      companyForm: {
-        ...JSON.parse(JSON.stringify(companyForm.value || {})),
-        [key]: normalizedValue,
-      },
+      companyForm: shouldSnapshotWholeCompanyForm(key)
+        ? {
+            ...JSON.parse(JSON.stringify(companyForm.value || {})),
+            [key]: normalizedValue,
+          }
+        : null,
       companyId: key === 'Company_Name' ? null : form.value.company_id || null,
       companyLinkMode: key === 'Company_Name' ? 'new' : companyLinkMode.value,
       companySourceChoice: key === 'Company_Name' ? 'input' : companySourceChoice.value,
@@ -2565,10 +2575,12 @@ function createSnapshotWithValue(section, key, value) {
   if (section === 'contact') {
     return {
       value: normalizedValue,
-      contactForm: {
-        ...JSON.parse(JSON.stringify(contactForm.value || {})),
-        [key]: normalizedValue,
-      },
+      contactForm: shouldSnapshotWholeContactForm(key)
+        ? {
+            ...JSON.parse(JSON.stringify(contactForm.value || {})),
+            [key]: normalizedValue,
+          }
+        : null,
       contactLinkMode: key === 'id' ? 'new' : contactLinkMode.value,
     }
   }
@@ -2582,10 +2594,12 @@ function buildEmptyFieldSnapshot(section, key) {
   if (section === 'company') {
     return {
       value: '',
-      companyForm: {
-        ...JSON.parse(JSON.stringify(companyForm.value || {})),
-        [key]: '',
-      },
+      companyForm: shouldSnapshotWholeCompanyForm(key)
+        ? {
+            ...JSON.parse(JSON.stringify(companyForm.value || {})),
+            [key]: '',
+          }
+        : null,
       companyId: key === 'Company_Name' ? null : form.value.company_id || null,
       companyLinkMode: key === 'Company_Name' ? 'new' : companyLinkMode.value,
       companySourceChoice: key === 'Company_Name' ? 'input' : companySourceChoice.value,
@@ -2594,10 +2608,12 @@ function buildEmptyFieldSnapshot(section, key) {
   if (section === 'contact') {
     return {
       value: '',
-      contactForm: {
-        ...JSON.parse(JSON.stringify(contactForm.value || {})),
-        [key]: '',
-      },
+      contactForm: shouldSnapshotWholeContactForm(key)
+        ? {
+            ...JSON.parse(JSON.stringify(contactForm.value || {})),
+            [key]: '',
+          }
+        : null,
       contactLinkMode: key === 'id' ? 'new' : contactLinkMode.value,
     }
   }
@@ -3026,6 +3042,49 @@ function pickPrimaryStructuredEntity(list = [], explicitRef = null) {
   return Array.isArray(list) && list.length ? list[0] : null
 }
 
+function normalizeStructuredValueFingerprint(value) {
+  if (value == null) return ''
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  return String(value).trim()
+}
+
+function shouldApplyStreamedPrimaryValue(section, key, value) {
+  const fieldKey = buildFieldStateKey(section, key)
+  const fingerprint = normalizeStructuredValueFingerprint(value)
+  if (!fingerprint) return false
+  if (streamedPrimaryValueFingerprints.value[fieldKey] === fingerprint) return false
+  streamedPrimaryValueFingerprints.value = {
+    ...streamedPrimaryValueFingerprints.value,
+    [fieldKey]: fingerprint,
+  }
+  return true
+}
+
+function entityDisplayName(entityTypeName, entity = {}) {
+  if (entityTypeName === 'company') return entity.Company_Name
+  if (entityTypeName === 'contact') return entity.Name
+  if (entityTypeName === 'round') return entity.Round_Name
+  return entity.Fund_Name
+}
+
+function shouldQueueStreamedEntity(entityTypeName, entity = {}, primaryRef = '', index = -1) {
+  const entityRef = String(entity?.ref || '').trim()
+  const primaryEntityRef = String(primaryRef || '').trim()
+  if (entityRef && primaryEntityRef && entityRef === primaryEntityRef) return false
+  if (!primaryEntityRef && index === 0) return false
+
+  const displayName = String(entityDisplayName(entityTypeName, entity) || '').trim()
+  if (!displayName) return false
+
+  const fingerprint = `${entityTypeName}:${entityRef || displayName}`
+  if (streamedEntityFingerprints.value[fingerprint]) return false
+  streamedEntityFingerprints.value = {
+    ...streamedEntityFingerprints.value,
+    [fingerprint]: true,
+  }
+  return true
+}
+
 function applyPrimaryStructuredValues(structured = {}) {
   const primaryCompany = pickPrimaryStructuredEntity(structured?.companies, structured?.primary_company_ref)
   const primaryContact = pickPrimaryStructuredEntity(structured?.contacts, structured?.primary_contact_ref)
@@ -3066,6 +3125,7 @@ function applyPrimaryStructuredValues(structured = {}) {
     if (key === 'Venture_Oppty_Name' && intakeLockedFields.value.relatedFund) continue
     if (key === 'Round_Stage' && intakeLockedFields.value.relatedRound) continue
     const normalizedValue = value == null ? '' : stripHumanVerify(value)
+    if (!shouldApplyStreamedPrimaryValue('opportunity', key, normalizedValue)) continue
     recordAiSuggestion('opportunity', key, normalizedValue)
     if (!isExplicitHumanMode('opportunity', key)) {
       form.value[key] = normalizedValue
@@ -3098,6 +3158,7 @@ function applyPrimaryStructuredValues(structured = {}) {
           : value == null
             ? ''
             : stripHumanVerify(value)
+    if (!shouldApplyStreamedPrimaryValue('company', key, normalizedValue)) continue
     recordAiSuggestion('company', key, normalizedValue)
     if (!isExplicitHumanMode('company', key)) {
       companyForm.value[key] = normalizedValue
@@ -3119,6 +3180,7 @@ function applyPrimaryStructuredValues(structured = {}) {
     if (!Object.prototype.hasOwnProperty.call(contactForm.value, key)) continue
     if (key === 'Name' && intakeLockedFields.value.relatedContact) continue
     const normalizedValue = value == null ? '' : stripHumanVerify(value)
+    if (!shouldApplyStreamedPrimaryValue('contact', key, normalizedValue)) continue
     recordAiSuggestion('contact', key, normalizedValue)
     if (!isExplicitHumanMode('contact', key)) {
       contactForm.value[key] = normalizedValue
@@ -3144,6 +3206,7 @@ function applyPrimaryStructuredValues(structured = {}) {
       const normalizedValue =
         primaryCompanyEntity[field.key] == null ? '' : stripHumanVerify(primaryCompanyEntity[field.key])
       if (!normalizedValue) continue
+      if (!shouldApplyStreamedPrimaryValue('company', field.key, normalizedValue)) continue
       recordAiSuggestion('company', field.key, normalizedValue)
       if (!isExplicitHumanMode('company', field.key)) {
         companyForm.value[field.key] = normalizedValue
