@@ -243,18 +243,6 @@
                 <q-card-section class="user-card__summary">
                   <div class="user-card__summary-head">
                     <q-btn-toggle
-                      :model-value="getUserCardContentView(user)"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="user-card__summary-view-toggle"
-                      :options="userCardContentViewOptions"
-                      @update:model-value="setUserCardContentView(user, $event)"
-                    />
-
-                    <q-btn-toggle
                       :model-value="getUserCardPanel(user)"
                       dense
                       no-caps
@@ -267,8 +255,17 @@
                       @update:model-value="setUserCardPanel(user, $event)"
                     />
 
-                    <div class="user-card__summary-actions">
-                    </div>
+                    <q-btn-toggle
+                      :model-value="getUserCardContentView(user)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="user-card__summary-view-toggle"
+                      :options="userCardContentViewOptions"
+                      @update:model-value="setUserCardContentView(user, $event)"
+                    />
                   </div>
 
                   <div class="user-card__summary-panel">
@@ -1445,20 +1442,17 @@ onMounted(loadUsers)
 .user-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 30px;
-}
-
-.user-card__summary-actions {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-left: auto;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .user-card__summary-view-toggle,
 .user-card__summary-toggle {
   border-radius: var(--ds-control-radius);
+}
+
+.user-card__summary-view-toggle {
+  margin-left: auto;
 }
 
 .user-card__summary-view-toggle :deep(.q-btn-group),
