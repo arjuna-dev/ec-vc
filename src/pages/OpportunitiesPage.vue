@@ -1754,7 +1754,7 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 12px;
   border-radius: 18px 18px 0 0;
   overflow: hidden;
   background: transparent;
@@ -2060,9 +2060,11 @@ watch(
 }
 
 .opportunity-card__select-box {
+  margin-left: -2px;
   transform: scale(0.75);
   transform-origin: center;
 }
+
 
 .opportunity-card__control-eye {
   width: 22px;
