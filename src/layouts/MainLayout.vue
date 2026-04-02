@@ -236,19 +236,20 @@
         self="top left"
         class="ec-quick-widget-settings-menu"
       >
-        <div class="ec-quick-widget-settings-panel" :style="quickWidgetSettingsPanelStyle">
-          <div
-            class="ec-quick-widget-settings-panel__header"
-            :class="{ 'ec-quick-widget-settings-panel__header--dragging': quickWidgetSettingsIsDragging }"
-            @pointerdown.stop="onQuickWidgetSettingsPointerDown"
-          >
-            <div class="ec-quick-widget-settings-panel__title">Widget Settings</div>
-            <div class="ec-quick-widget-settings-panel__caption">
-              Show, hide, and reorder the files in your widget.
+        <div class="ec-quick-widget-settings-window" :style="quickWidgetSettingsWindowStyle">
+          <div class="ec-quick-widget-settings-panel">
+            <div
+              class="ec-quick-widget-settings-panel__header"
+              :class="{ 'ec-quick-widget-settings-panel__header--dragging': quickWidgetSettingsIsDragging }"
+              @pointerdown.stop="onQuickWidgetSettingsPointerDown"
+            >
+              <div class="ec-quick-widget-settings-panel__title">Widget Settings</div>
+              <div class="ec-quick-widget-settings-panel__caption">
+                Show, hide, and reorder the files in your widget.
+              </div>
             </div>
-          </div>
 
-          <div class="ec-quick-widget-settings-panel__list">
+            <div class="ec-quick-widget-settings-panel__list">
               <div
                 v-for="(settingsAction, settingsIndex) in quickWidgetActionCatalog"
                 :key="settingsAction.id"
@@ -610,7 +611,7 @@ const quickWidgetStyle = computed(() => ({
   top: `${quickWidgetPosition.value.y}px`,
 }))
 
-const quickWidgetSettingsPanelStyle = computed(() => ({
+const quickWidgetSettingsWindowStyle = computed(() => ({
   transform: `translate(${quickWidgetSettingsOffset.value.x}px, ${quickWidgetSettingsOffset.value.y}px)`,
 }))
 
@@ -1691,6 +1692,10 @@ function goBack() {
 .ec-quick-widget-settings-menu {
   border-radius: 18px;
   overflow: hidden;
+}
+
+.ec-quick-widget-settings-window {
+  will-change: transform;
 }
 
 .ec-quick-widget-settings-panel {
