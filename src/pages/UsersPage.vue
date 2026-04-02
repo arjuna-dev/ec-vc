@@ -63,6 +63,18 @@
         </div>
 
         <div class="users-toolbar">
+          <div class="users-toolbar__block users-toolbar__block--select">
+            <q-checkbox
+              :model-value="allVisibleUsersSelected"
+              :indeterminate="someVisibleUsersSelected && !allVisibleUsersSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              label="Select All"
+              class="users-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleUsers"
+            />
+          </div>
+
           <div class="users-toolbar__block users-toolbar__block--view">
             <q-btn-toggle
               v-model="viewMode"
@@ -158,10 +170,12 @@
             v-else-if="viewMode === 'table'"
             flat
             bordered
+            v-model:selected="selectedUsers"
             :rows="displayRows"
             :columns="columns"
             row-key="id"
             :loading="loading"
+            selection="multiple"
             class="users-table"
             :pagination="{ rowsPerPage: 15 }"
           >
@@ -331,9 +345,10 @@
       <SelectionActionBar
         :count="selectedCount"
         :loading="loading"
-        :can-delete="false"
+        :can-delete="true"
         @share="shareSelected"
         @edit="editSelected"
+        @delete="deleteSelected"
       />
     </div>
   </q-page>
@@ -503,6 +518,25 @@ const displayRows = computed(() => {
 })
 
 const selectedCount = computed(() => selectedUsers.value.length)
+const visibleUserIds = computed(() =>
+  displayRows.value
+    .map((row) => String(row?.id || '').trim())
+    .filter(Boolean),
+)
+const allVisibleUsersSelected = computed(() => {
+  if (visibleUserIds.value.length === 0) return false
+  const selectedIdSet = new Set(
+    selectedUsers.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  return visibleUserIds.value.every((id) => selectedIdSet.has(id))
+})
+const someVisibleUsersSelected = computed(() => {
+  if (visibleUserIds.value.length === 0) return false
+  const selectedIdSet = new Set(
+    selectedUsers.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  return visibleUserIds.value.some((id) => selectedIdSet.has(id))
+})
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
@@ -678,6 +712,24 @@ function toggleUserSelection(user, shouldSelect) {
   selectedUsers.value = selectedUsers.value.filter((selectedUser) => String(selectedUser?.id || '').trim() !== rowId)
 }
 
+function toggleSelectAllVisibleUsers(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIdSet = new Set(visibleUserIds.value)
+    selectedUsers.value = selectedUsers.value.filter(
+      (selectedUser) => !visibleIdSet.has(String(selectedUser?.id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIdSet = new Set(
+    selectedUsers.value.map((row) => String(row?.id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter(
+    (row) => !selectedIdSet.has(String(row?.id || '').trim()),
+  )
+  selectedUsers.value = [...selectedUsers.value, ...additions]
+}
+
 function openDatabook(user) {
   const recordId = String(user?.id || '').trim()
   if (!recordId) return
@@ -723,6 +775,14 @@ async function shareSelected() {
       message: 'Unable to copy selected users from this environment.',
     })
   }
+}
+
+function deleteSelected() {
+  if (selectedCount.value === 0) return
+  $q.notify({
+    type: 'info',
+    message: 'Delete is visible in the Users prototype now, but the actual delete action is not wired yet.',
+  })
 }
 
 async function importRows(importedRows = []) {
@@ -979,7 +1039,7 @@ onMounted(loadUsers)
 
 .users-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: auto auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -994,6 +1054,10 @@ onMounted(loadUsers)
   align-items: center;
   gap: 12px;
   min-width: 0;
+}
+
+.users-toolbar__block--select {
+  margin-right: 4px;
 }
 
 .users-toolbar__block--view {
@@ -1012,6 +1076,16 @@ onMounted(loadUsers)
   align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
+}
+
+.users-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
+}
+
+.users-toolbar__select-all :deep(.q-checkbox__label) {
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-medium);
 }
 
 .users-toolbar__toggle {
