@@ -18,6 +18,12 @@ When decisions change:
 - do not create parallel architecture docs unless there is a strong reason
 - use the progress tracker here to reflect what is approved, in progress, and complete
 
+For the current first-pass architecture work, the active workbook schema reference is:
+
+- `docs/B10_DOS v260400 vrev.xlsx`
+
+That workbook should be treated as the live structural document being used to define the first approved architecture pass.
+
 ## Objective
 
 Make the app function cohesively from `File` to `Card` to `Record View`.
