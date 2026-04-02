@@ -214,12 +214,12 @@
         :key="action.id"
         class="ec-quick-widget-action"
         :style="quickWidgetActionStyle(index)"
-        :ref="action.id === 'settings' ? setQuickWidgetSettingsTarget : undefined"
       >
         <q-btn
           round
           dense
           unelevated
+          :ref="action.id === 'settings' ? setQuickWidgetSettingsTarget : undefined"
           :class="[
             'ec-quick-widget-action-button',
             { 'ec-quick-widget-action-button--settings': action.id === 'settings' },
@@ -234,12 +234,13 @@
       <q-menu
         v-model="quickWidgetSettingsOpen"
         :target="quickWidgetSettingsTarget"
+        :offset="[quickWidgetSettingsOffset.x, quickWidgetSettingsOffset.y]"
         no-parent-event
         anchor="top right"
         self="top left"
         class="ec-quick-widget-settings-menu"
       >
-        <div class="ec-quick-widget-settings-window" :style="quickWidgetSettingsWindowStyle">
+        <div class="ec-quick-widget-settings-window">
           <div class="ec-quick-widget-settings-panel">
             <div
               class="ec-quick-widget-settings-panel__header"
@@ -618,10 +619,6 @@ const quickWidgetStyle = computed(() => ({
   top: `${quickWidgetPosition.value.y}px`,
 }))
 
-const quickWidgetSettingsWindowStyle = computed(() => ({
-  transform: `translate(${quickWidgetSettingsOffset.value.x}px, ${quickWidgetSettingsOffset.value.y}px)`,
-}))
-
 const quickWidgetActionSettings = ref({
   order: [...DEFAULT_QUICK_WIDGET_ACTION_ORDER],
   enabled: Object.fromEntries(DEFAULT_QUICK_WIDGET_ACTION_ORDER.map((id) => [id, true])),
@@ -923,7 +920,7 @@ function moveQuickWidgetAction(actionId, direction) {
 }
 
 function setQuickWidgetSettingsTarget(element) {
-  quickWidgetSettingsTarget.value = element || null
+  quickWidgetSettingsTarget.value = element?.$el ?? element ?? null
 }
 
 function onQuickWidgetSettingsPointerDown(evt) {
