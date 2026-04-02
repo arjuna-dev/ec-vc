@@ -288,12 +288,6 @@
                       :options="getContactRelationshipOptions(row)"
                       @update:model-value="setContactCardPanel(row, $event)"
                     />
-                    <q-btn flat round class="contact-card__summary-add-relation" aria-label="Add Relation">
-                      <span class="contact-card__summary-add-relation-plus">
-                        <q-icon name="add" />
-                      </span>
-                      <q-tooltip>Add Relation</q-tooltip>
-                    </q-btn>
                     <q-btn-toggle
                       :model-value="getContactCardContentView(row)"
                       dense
@@ -308,6 +302,14 @@
                   </div>
 
                   <div class="contact-card__summary-panel">
+                    <div class="contact-card__summary-panel-head">
+                      <q-btn flat no-caps class="contact-card__summary-add-relation" aria-label="Add Relation">
+                        <span class="contact-card__summary-add-relation-plus">
+                          <q-icon name="add" />
+                        </span>
+                        <span class="contact-card__summary-add-relation-label">Add Relation</span>
+                      </q-btn>
+                    </div>
                     <div class="contact-card__summary-body">
                     <div class="contact-card__summary-body-content">
                       <div
@@ -2403,11 +2405,18 @@ watch(displayRows, () => {
   margin-right: auto;
 }
 
+.contact-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
 .contact-card__summary-add-relation {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
   padding: 0;
   color: inherit;
   background: transparent;
@@ -2430,6 +2439,13 @@ watch(displayRows, () => {
 
 .contact-card__summary-add-relation-plus :deep(.q-icon) {
   font-size: 11px;
+}
+
+.contact-card__summary-add-relation-label {
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.01em;
 }
 
 .contact-card__summary-body {

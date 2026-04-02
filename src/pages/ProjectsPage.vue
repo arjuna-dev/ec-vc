@@ -296,12 +296,6 @@
                       :options="getProjectRelationshipOptions(row)"
                       @update:model-value="setProjectCardPanel(row, $event)"
                     />
-                    <q-btn flat round class="pipeline-card__summary-add-relation" aria-label="Add Relation">
-                      <span class="pipeline-card__summary-add-relation-plus">
-                        <q-icon name="add" />
-                      </span>
-                      <q-tooltip>Add Relation</q-tooltip>
-                    </q-btn>
                     <q-btn-toggle
                       :model-value="getProjectCardContentView(row)"
                       dense
@@ -316,6 +310,14 @@
                   </div>
 
                   <div class="pipeline-card__summary-panel">
+                    <div class="pipeline-card__summary-panel-head">
+                      <q-btn flat no-caps class="pipeline-card__summary-add-relation" aria-label="Add Relation">
+                        <span class="pipeline-card__summary-add-relation-plus">
+                          <q-icon name="add" />
+                        </span>
+                        <span class="pipeline-card__summary-add-relation-label">Add Relation</span>
+                      </q-btn>
+                    </div>
                     <div class="pipeline-card__summary-body">
                       <div class="pipeline-card__summary-body-content">
                         <div
@@ -1936,11 +1938,18 @@ watch(displayRows, () => {
   margin-right: auto;
 }
 
+.pipeline-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
 .pipeline-card__summary-add-relation {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
   padding: 0;
   color: inherit;
   background: transparent;
@@ -1963,6 +1972,13 @@ watch(displayRows, () => {
 
 .pipeline-card__summary-add-relation-plus :deep(.q-icon) {
   font-size: 11px;
+}
+
+.pipeline-card__summary-add-relation-label {
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.01em;
 }
 
 .pipeline-card__summary-panel {
