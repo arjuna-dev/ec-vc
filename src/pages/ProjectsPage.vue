@@ -1911,10 +1911,10 @@ watch(displayRows, () => {
 .pipeline-card__summary-panel {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 4px 2px 0;
-  border-radius: 0;
-  background: transparent;
-  border: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
 }
 
 .pipeline-card__summary-body {
