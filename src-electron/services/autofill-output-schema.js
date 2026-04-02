@@ -156,6 +156,15 @@ function normalizeString(value) {
   return normalized || null
 }
 
+function stripContactNameNoise(value) {
+  const normalized = normalizeString(value)
+  if (!normalized) return null
+  return normalized
+    .replace(/\s+-\s+[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '')
+    .replace(/\s+-\s+\+?[0-9()\-.\s]{7,}/g, '')
+    .trim() || null
+}
+
 function normalizeNumber(value) {
   return Number.isFinite(Number(value)) ? Number(value) : null
 }
@@ -200,7 +209,7 @@ function normalizeEntityList(values = [], normalizeEntity) {
 function normalizeContact(contact = {}) {
   const normalized = {
     ref: normalizeString(contact.ref),
-    Name: normalizeString(contact.Name),
+    Name: stripContactNameNoise(contact.Name),
     Personal_Email: normalizeString(contact.Personal_Email),
     Professional_Email: normalizeString(contact.Professional_Email),
     Phone: normalizeString(contact.Phone),
