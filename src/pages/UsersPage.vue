@@ -1491,18 +1491,23 @@ onMounted(loadUsers)
 
 .user-card__floating-eye {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 12px;
+  right: 12px;
   z-index: 3;
-  width: 30px;
-  height: 30px;
-  min-width: 30px;
-  min-height: 30px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
   color: #111;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.12);
-  backdrop-filter: blur(10px);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.user-card__floating-eye :deep(.q-icon) {
+  font-size: 14px;
 }
 
 .user-card__select-box {
