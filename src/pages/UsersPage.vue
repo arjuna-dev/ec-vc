@@ -1154,7 +1154,7 @@ onMounted(loadUsers)
   min-height: 36px;
   padding: 0 14px 0 8px;
   color: #111111;
-  background: #2647ff;
+  background: #ffffff;
   border: 0;
   border-radius: 999px;
   box-shadow: none;
@@ -1173,7 +1173,7 @@ onMounted(loadUsers)
 .users-toolbar__add-button:active,
 .users-toolbar__add-button.q-btn--active,
 .users-toolbar__add-button.q-btn--standard.q-btn--active {
-  color: #2647ff;
+  color: #ffffff;
   background: #111111;
 }
 
@@ -1196,8 +1196,8 @@ onMounted(loadUsers)
   min-width: 22px;
   min-height: 22px;
   border-radius: 999px;
-  color: var(--ds-color-surface-inverse, #ffffff);
-  background: #111111;
+  color: #2647ff;
+  background: transparent;
   border: 0;
   box-shadow: none;
   transition:
@@ -1222,8 +1222,8 @@ onMounted(loadUsers)
 .users-toolbar__add-button:active .users-toolbar__add-button-plus,
 .users-toolbar__add-button.q-btn--active .users-toolbar__add-button-plus,
 .users-toolbar__add-button.q-btn--standard.q-btn--active .users-toolbar__add-button-plus {
-  color: #111111;
-  background: #2647ff;
+  color: #2647ff;
+  background: transparent;
 }
 
 .users-toolbar__kind-toggle :deep(.q-btn) {
