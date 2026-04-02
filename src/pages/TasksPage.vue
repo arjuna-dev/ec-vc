@@ -1360,6 +1360,11 @@ watch(displayRows, () => {
   background: transparent;
 }
 
+.task-card__control-row :deep(.q-checkbox__inner),
+.task-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
+}
+
 .task-card::before {
   position: absolute;
   inset: 0;
@@ -1607,11 +1612,19 @@ watch(displayRows, () => {
 }
 
 .task-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
   color: #111111;
   background: transparent;
   border: 0;
-  transform: scale(0.75);
-  transform-origin: center;
+  box-shadow: none;
+}
+
+.task-card__control-eye :deep(.q-icon) {
+  font-size: 14px;
 }
 
 .task-card__select-box {

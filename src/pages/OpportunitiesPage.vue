@@ -1754,7 +1754,9 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px 0;
+  padding: 0;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
   background: transparent;
 }
 
@@ -2063,11 +2065,19 @@ watch(
 }
 
 .opportunity-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
   color: #111;
   background: transparent;
   border: 0;
-  transform: scale(0.75);
-  transform-origin: center;
+  box-shadow: none;
+}
+
+.opportunity-card__control-eye :deep(.q-icon) {
+  font-size: 14px;
 }
 
 .opportunity-card__field {

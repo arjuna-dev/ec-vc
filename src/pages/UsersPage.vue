@@ -98,6 +98,10 @@
             >
               <q-tooltip>Import CSV</q-tooltip>
             </q-btn>
+          </div>
+
+          <div class="users-toolbar__block users-toolbar__block--search">
+            <q-icon name="tune" size="18px" class="users-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
               dense
@@ -111,10 +115,6 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-icon name="tune" size="18px" class="users-toolbar__filters-icon" />
-          </div>
-
-          <div class="users-toolbar__block users-toolbar__block--search">
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -1311,7 +1311,9 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px 0;
+  padding: 0;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
   background: transparent;
 }
 
