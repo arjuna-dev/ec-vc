@@ -17,6 +17,17 @@
         </div>
 
         <q-toolbar-title class="ec-shell-toolbar-title">
+          <q-select
+            v-if="isTestShellRoute"
+            v-model="selectedTestShellSection"
+            dense
+            outlined
+            emit-value
+            map-options
+            :options="testShellSectionOptions"
+            label="Section"
+            class="ec-shell-test-select"
+          />
           <div v-if="toolbarActions.length" class="ec-shell-toolbar-actions">
             <template v-for="action in toolbarActions" :key="action.id">
               <div v-if="action.kind === 'text'" class="ec-shell-toolbar-status">
@@ -653,6 +664,29 @@ const toolbarActions = computed(() => {
   }
 
   return []
+})
+const isTestShellRoute = computed(() => String(route.name || '') === 'test-shell')
+const testShellSectionOptions = [
+  { label: 'Tasks', value: 'tasks' },
+  { label: 'Notes', value: 'notes' },
+  { label: 'Companies', value: 'companies' },
+  { label: 'Contacts', value: 'contacts' },
+]
+const selectedTestShellSection = computed({
+  get() {
+    const current = String(route.query.section || '').trim().toLowerCase()
+    return testShellSectionOptions.some((option) => option.value === current) ? current : 'tasks'
+  },
+  set(value) {
+    const nextValue = String(value || '').trim().toLowerCase()
+    const normalizedValue = testShellSectionOptions.some((option) => option.value === nextValue) ? nextValue : 'tasks'
+    router.replace({
+      query: {
+        ...route.query,
+        section: normalizedValue,
+      },
+    })
+  },
 })
 
 const quickWidgetStyle = computed(() => ({
@@ -1831,8 +1865,14 @@ function goBack() {
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
+  gap: 12px;
   margin-left: auto;
   min-width: 0;
+}
+
+.ec-shell-test-select {
+  width: min(220px, 100%);
+  min-width: 180px;
 }
 
 .ec-breadcrumb-bar {

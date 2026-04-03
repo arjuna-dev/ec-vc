@@ -12,16 +12,6 @@
         </div>
 
         <div class="test-shell-panel__controls">
-          <q-select
-            v-model="selectedShellKey"
-            dense
-            outlined
-            emit-value
-            map-options
-            :options="shellOptions"
-            label="Section"
-            class="test-shell-panel__select"
-          />
           <q-toggle
             v-model="showTableView"
             color="primary"
@@ -136,22 +126,18 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 
 const $q = useQuasar()
+const route = useRoute()
+const router = useRouter()
 
 const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-
-const shellOptions = [
-  { label: 'Tasks', value: 'tasks' },
-  { label: 'Notes', value: 'notes' },
-  { label: 'Companies', value: 'companies' },
-  { label: 'Contacts', value: 'contacts' },
 ]
 
 const shellPreviewConfigs = {
@@ -253,7 +239,21 @@ const shellPreviewConfigs = {
   },
 }
 
-const selectedShellKey = ref('tasks')
+const selectedShellKey = computed({
+  get() {
+    const current = String(route.query.section || '').trim().toLowerCase()
+    return Object.prototype.hasOwnProperty.call(shellPreviewConfigs, current) ? current : 'tasks'
+  },
+  set(value) {
+    const normalized = String(value || '').trim().toLowerCase()
+    router.replace({
+      query: {
+        ...route.query,
+        section: Object.prototype.hasOwnProperty.call(shellPreviewConfigs, normalized) ? normalized : 'tasks',
+      },
+    })
+  },
+})
 const showTableView = ref(false)
 const searchQuery = ref('')
 const selectedRows = ref([])
@@ -402,10 +402,6 @@ function notifyAction(label) {
   flex-wrap: wrap;
   gap: 12px;
   align-items: flex-start;
-}
-
-.test-shell-panel__select {
-  min-width: 220px;
 }
 
 .test-shell-surface__table-actions {
