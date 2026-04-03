@@ -172,6 +172,13 @@
                   {{ contactLocation || 'Add country base' }}
                 </div>
 
+                <div v-if="contactSummaryStats.length" class="contact-databook__mini-dashboard">
+                  <div v-for="stat in contactSummaryStats" :key="stat.id" class="contact-databook__mini-item">
+                    <div class="contact-databook__mini-label">{{ stat.label }}</div>
+                    <div class="contact-databook__mini-value">{{ stat.displayValue }}</div>
+                  </div>
+                </div>
+
                 <div v-if="contactHeroPills.length" class="contact-databook__pill-row">
                   <q-badge
                     v-for="pill in contactHeroPills"
@@ -368,27 +375,108 @@
             </div>
 
             <div class="contact-databook__summary">
-              <div class="contact-databook__summary-header">
-                <div class="contact-databook__summary-label">Contact Feed</div>
+              <div class="contact-databook__summary-header contact-databook__summary-header--feed">
+                <q-btn
+                  round
+                  flat
+                  dense
+                  icon="tune"
+                  aria-label="Record feed settings"
+                  class="contact-databook__summary-add contact-databook__summary-add--feed"
+                >
+                  <q-menu
+                    anchor="top right"
+                    self="top left"
+                    class="contact-databook__summary-menu"
+                    content-class="contact-databook__summary-menu-content"
+                    :content-style="summaryMenuContentStyle"
+                  >
+                    <div class="contact-databook__summary-menu-shell">
+                      <div class="contact-databook__summary-menu-header">
+                        <div class="contact-databook__summary-menu-title">Feed Settings</div>
+                        <div class="contact-databook__summary-menu-caption">Choose what you see</div>
+                      </div>
+                      <q-list dense style="min-width: 200px; background: transparent; padding: 0">
+                        <div class="contact-databook__summary-menu-rows">
+                          <div
+                            v-for="row in recordFeedMenuRows"
+                            :key="row.id"
+                            class="contact-databook__summary-menu-row"
+                          >
+                            <q-checkbox
+                              :model-value="row.enabled"
+                              dense
+                              size="xs"
+                              checked-icon="check_box"
+                              unchecked-icon="check_box_outline_blank"
+                              class="contact-databook__summary-menu-row-checkbox"
+                              @update:model-value="setRecordFeedSourceEnabled(row.id, $event)"
+                            />
+                            <div class="contact-databook__summary-menu-row-label">{{ row.label }}</div>
+                            <div class="contact-databook__summary-menu-row-actions">
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="!row.enabled || !row.canMoveUp"
+                                @click.stop="moveRecordFeedSource(row.id, -1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="contact-databook__summary-menu-chevron">
+                                  <path d="M7 14L12 9L17 14" />
+                                </svg>
+                              </q-btn>
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="!row.enabled || !row.canMoveDown"
+                                @click.stop="moveRecordFeedSource(row.id, 1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="contact-databook__summary-menu-chevron">
+                                  <path d="M7 10L12 15L17 10" />
+                                </svg>
+                              </q-btn>
+                            </div>
+                          </div>
+                        </div>
+                      </q-list>
+                    </div>
+                  </q-menu>
+                </q-btn>
+                <div class="contact-databook__summary-label">Record Feed</div>
               </div>
 
-              <div class="contact-databook__summary-feed-toggle">
-                <div class="contact-databook__summary-feed-toolbar">
-                  <button
-                    v-for="option in contactFeedChannelOptions"
-                    :key="option.value"
-                    type="button"
-                    class="contact-databook__summary-feed-button"
-                    :class="{ 'contact-databook__summary-feed-button--active': contactFeedChannel === option.value }"
-                    @click="contactFeedChannel = option.value"
-                  >
-                    {{ option.label }}
-                  </button>
+              <div v-if="recordFeedTabOptions.length" class="contact-databook__summary-feed-tabs">
+                <button
+                  v-for="tab in recordFeedTabOptions"
+                  :key="tab.id"
+                  type="button"
+                  class="contact-databook__summary-feed-tab"
+                  :class="{ 'contact-databook__summary-feed-tab--active': activeRecordFeedTab === tab.id }"
+                  @click="activeRecordFeedTab = tab.id"
+                >
+                  {{ tab.label }}
+                </button>
+              </div>
+
+              <div v-if="displayedRecordFeedItems.length" class="contact-databook__summary-feed-list">
+                <div
+                  v-for="item in displayedRecordFeedItems"
+                  :key="item.id"
+                  class="contact-databook__summary-feed-entry"
+                >
+                  <div class="contact-databook__summary-feed-entry-top">
+                    <div class="contact-databook__summary-feed-entry-source">{{ item.sourceLabel }}</div>
+                    <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
+                  </div>
+                  <div class="contact-databook__summary-feed-entry-title">{{ item.title }}</div>
+                  <div v-if="item.content" class="contact-databook__summary-feed-entry-content">
+                    {{ item.content }}
+                  </div>
                 </div>
               </div>
-
-              <div class="contact-databook__summary-feed-state">
-                Feed view is inactive for now.
+              <div v-else class="contact-databook__summary-feed-state">
+                No feed items yet for this record. Use + to choose what you want to view here.
               </div>
             </div>
           </section>
@@ -410,6 +498,16 @@
               <span class="contact-databook__nav-item-label">{{ section.title }}</span>
               <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
+            <q-btn-toggle
+              v-model="contactKdbViewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+              :options="CONTACT_KDB_VIEW_OPTIONS"
+            />
           </section>
 
           <section class="contact-databook__details">
@@ -470,19 +568,6 @@
                 </div>
 
                 <div class="contact-kdb-artifacts-toolbar">
-                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
-                    <q-btn-toggle
-                      v-model="contactKdbViewMode"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
-                      :options="contactKdbViewOptions"
-                    />
-                  </div>
-
                   <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
                     <q-btn-toggle
                       v-model="contactKdbKindFilter"
@@ -768,6 +853,13 @@
                   {{ companyOneLiner || companyType || 'Company story not added yet' }}
                 </div>
 
+                <div v-if="companySummaryStats.length" class="contact-databook__mini-dashboard">
+                  <div v-for="stat in companySummaryStats" :key="stat.id" class="contact-databook__mini-item">
+                    <div class="contact-databook__mini-label">{{ stat.label }}</div>
+                    <div class="contact-databook__mini-value">{{ stat.displayValue }}</div>
+                  </div>
+                </div>
+
                 <div v-if="companyHeroPills.length" class="contact-databook__pill-row">
                   <q-badge
                     v-for="pill in companyHeroPills"
@@ -936,21 +1028,25 @@
                     anchor="bottom right"
                     self="top right"
                     class="contact-databook__summary-menu"
+                    content-class="contact-databook__summary-menu-content"
+                    :content-style="summaryMenuContentStyle"
                   >
-                    <q-list dense style="min-width: 220px">
-                      <q-item-label header>Snapshot fields</q-item-label>
-                      <q-item
-                        v-for="option in availableCompanySummaryOptions"
-                        :key="option.id"
-                        clickable
-                        @click="toggleCompanySummaryStat(option.id)"
-                      >
-                        <q-item-section>{{ option.label }}</q-item-section>
-                        <q-item-section side>
-                          <q-icon :name="isCompanySummaryStatSelected(option.id) ? 'check' : 'add'" />
-                        </q-item-section>
-                      </q-item>
-                    </q-list>
+                    <div class="contact-databook__summary-menu-shell">
+                      <q-list dense style="min-width: 220px">
+                        <q-item-label header>Snapshot fields</q-item-label>
+                        <q-item
+                          v-for="option in availableCompanySummaryOptions"
+                          :key="option.id"
+                          clickable
+                          @click="toggleCompanySummaryStat(option.id)"
+                        >
+                          <q-item-section>{{ option.label }}</q-item-section>
+                          <q-item-section side>
+                            <q-icon :name="isCompanySummaryStatSelected(option.id) ? 'check' : 'add'" />
+                          </q-item-section>
+                        </q-item>
+                      </q-list>
+                    </div>
                   </q-menu>
                 </q-btn>
               </div>
@@ -988,6 +1084,16 @@
               <span class="contact-databook__nav-item-label">{{ section.title }}</span>
               <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
+            <q-btn-toggle
+              v-model="companyKdbViewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+              :options="CONTACT_KDB_VIEW_OPTIONS"
+            />
           </section>
 
           <section class="contact-databook__details">
@@ -1048,19 +1154,6 @@
                 </div>
 
                 <div class="contact-kdb-artifacts-toolbar">
-                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
-                    <q-btn-toggle
-                      v-model="companyKdbViewMode"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
-                      :options="companyKdbViewOptions"
-                    />
-                  </div>
-
                   <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
                     <q-btn-toggle
                       v-model="companyKdbKindFilter"
@@ -1308,6 +1401,13 @@
                   {{ genericRecordSecondaryLine }}
                 </div>
 
+                <div v-if="genericMiniDashboardStats.length" class="contact-databook__mini-dashboard">
+                  <div v-for="stat in genericMiniDashboardStats" :key="stat.id" class="contact-databook__mini-item">
+                    <div class="contact-databook__mini-label">{{ stat.label }}</div>
+                    <div class="contact-databook__mini-value">{{ stat.displayValue }}</div>
+                  </div>
+                </div>
+
                 <div v-if="genericRecordPills.length" class="contact-databook__pill-row">
                   <q-badge
                     v-for="pill in genericRecordPills"
@@ -1410,27 +1510,108 @@
             </div>
 
             <div class="contact-databook__summary">
-              <div class="contact-databook__summary-header">
-                <div class="contact-databook__summary-label">{{ entityLabel }} Feed</div>
+              <div class="contact-databook__summary-header contact-databook__summary-header--feed">
+                <q-btn
+                  round
+                  flat
+                  dense
+                  icon="tune"
+                  aria-label="Record feed settings"
+                  class="contact-databook__summary-add contact-databook__summary-add--feed"
+                >
+                  <q-menu
+                    anchor="top right"
+                    self="top left"
+                    class="contact-databook__summary-menu"
+                    content-class="contact-databook__summary-menu-content"
+                    :content-style="summaryMenuContentStyle"
+                  >
+                    <div class="contact-databook__summary-menu-shell">
+                      <div class="contact-databook__summary-menu-header">
+                        <div class="contact-databook__summary-menu-title">Feed Settings</div>
+                        <div class="contact-databook__summary-menu-caption">Choose what you see</div>
+                      </div>
+                      <q-list dense style="min-width: 200px; background: transparent; padding: 0">
+                        <div class="contact-databook__summary-menu-rows">
+                          <div
+                            v-for="row in recordFeedMenuRows"
+                            :key="row.id"
+                            class="contact-databook__summary-menu-row"
+                          >
+                            <q-checkbox
+                              :model-value="row.enabled"
+                              dense
+                              size="xs"
+                              checked-icon="check_box"
+                              unchecked-icon="check_box_outline_blank"
+                              class="contact-databook__summary-menu-row-checkbox"
+                              @update:model-value="setRecordFeedSourceEnabled(row.id, $event)"
+                            />
+                            <div class="contact-databook__summary-menu-row-label">{{ row.label }}</div>
+                            <div class="contact-databook__summary-menu-row-actions">
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="!row.enabled || !row.canMoveUp"
+                                @click.stop="moveRecordFeedSource(row.id, -1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="contact-databook__summary-menu-chevron">
+                                  <path d="M7 14L12 9L17 14" />
+                                </svg>
+                              </q-btn>
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="!row.enabled || !row.canMoveDown"
+                                @click.stop="moveRecordFeedSource(row.id, 1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="contact-databook__summary-menu-chevron">
+                                  <path d="M7 10L12 15L17 10" />
+                                </svg>
+                              </q-btn>
+                            </div>
+                          </div>
+                        </div>
+                      </q-list>
+                    </div>
+                  </q-menu>
+                </q-btn>
+                <div class="contact-databook__summary-label">Record Feed</div>
               </div>
 
-              <div class="contact-databook__summary-feed-toggle">
-                <div class="contact-databook__summary-feed-toolbar">
-                  <button
-                    v-for="option in contactFeedChannelOptions"
-                    :key="option.value"
-                    type="button"
-                    class="contact-databook__summary-feed-button"
-                    :class="{ 'contact-databook__summary-feed-button--active': genericRecordFeedChannel === option.value }"
-                    @click="genericRecordFeedChannel = option.value"
-                  >
-                    {{ option.label }}
-                  </button>
+              <div v-if="recordFeedTabOptions.length" class="contact-databook__summary-feed-tabs">
+                <button
+                  v-for="tab in recordFeedTabOptions"
+                  :key="tab.id"
+                  type="button"
+                  class="contact-databook__summary-feed-tab"
+                  :class="{ 'contact-databook__summary-feed-tab--active': activeRecordFeedTab === tab.id }"
+                  @click="activeRecordFeedTab = tab.id"
+                >
+                  {{ tab.label }}
+                </button>
+              </div>
+
+              <div v-if="displayedRecordFeedItems.length" class="contact-databook__summary-feed-list">
+                <div
+                  v-for="item in displayedRecordFeedItems"
+                  :key="item.id"
+                  class="contact-databook__summary-feed-entry"
+                >
+                  <div class="contact-databook__summary-feed-entry-top">
+                    <div class="contact-databook__summary-feed-entry-source">{{ item.sourceLabel }}</div>
+                    <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
+                  </div>
+                  <div class="contact-databook__summary-feed-entry-title">{{ item.title }}</div>
+                  <div v-if="item.content" class="contact-databook__summary-feed-entry-content">
+                    {{ item.content }}
+                  </div>
                 </div>
               </div>
-
-              <div class="contact-databook__summary-feed-state">
-                Feed view is inactive for now.
+              <div v-else class="contact-databook__summary-feed-state">
+                No feed items yet for this record. Use + to choose what you want to view here.
               </div>
             </div>
           </section>
@@ -1438,24 +1619,37 @@
           <section v-if="genericRecordNavItems.length" class="contact-databook__nav" :aria-label="`${entityLabel} sections`">
             <button
               v-for="section in genericRecordNavItems"
-              :key="section"
+              :key="section.value"
               type="button"
               class="contact-databook__nav-item"
               :class="{
-                'contact-databook__nav-item--active': activeGenericSection === section,
-                'contact-databook__nav-item--kdb': /kdb/i.test(section),
+                'contact-databook__nav-item--active': activeGenericSection === section.value,
+                'contact-databook__nav-item--kdb': section.isKdb,
+                'contact-databook__nav-item--system': section.isSystem,
+                'contact-databook__nav-item--push-right': section.pushRight,
               }"
-              @click="activeGenericSection = section"
+              @click="activeGenericSection = section.value"
             >
-              {{ section }}
+              <span class="contact-databook__nav-item-label">{{ section.title }}</span>
+              <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
+            <q-btn-toggle
+              v-model="genericRecordTopNavViewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+              :options="CONTACT_KDB_VIEW_OPTIONS"
+            />
           </section>
 
           <section class="contact-databook__details">
             <article class="contact-section-card contact-section-card--active">
               <div class="contact-section-card__header">
                 <div class="contact-section-card__intro">
-                  <h2 class="contact-section-card__title">{{ activeGenericSection || 'System Data' }}</h2>
+                  <h2 class="contact-section-card__title">{{ activeGenericNavTitle || 'System' }}</h2>
                   <div class="contact-section-card__caption">
                     Review the structured fields and relationships tied to this {{ entityLabel.toLowerCase() }} record.
                   </div>
@@ -1477,23 +1671,7 @@
                       :options="genericKdbSectionOptions"
                     />
                   </div>
-                </div>
-
-                <div class="contact-kdb-artifacts-toolbar">
-                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
-                    <q-btn-toggle
-                      v-model="genericKdbViewMode"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
-                      :options="CONTACT_KDB_VIEW_OPTIONS"
-                    />
-                  </div>
-
-                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                  <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--kind">
                     <q-btn-toggle
                       v-model="genericKdbKindFilter"
                       dense
@@ -1502,19 +1680,19 @@
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
-                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                      class="contact-kdb-toolbar__toggle contact-kdb-toolbar__kind-toggle"
                       :options="genericKdbKindOptions"
                     />
                   </div>
 
-                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
-                    <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                  <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--search">
+                    <q-icon name="tune" size="18px" class="contact-kdb-toolbar__filters-icon" />
                     <q-input
                       v-model="genericKdbSearchQuery"
                       dense
                       outlined
                       borderless
-                      class="contact-kdb-artifacts-toolbar__search"
+                      class="contact-kdb-toolbar__search"
                       :placeholder="genericKdbSearchPlaceholder"
                     >
                       <template #prepend>
@@ -1575,7 +1753,7 @@
                 No fields are mapped to this section in the current {{ entityLabel.toLowerCase() }} schema yet.
               </q-banner>
 
-              <div v-else class="contact-field-grid">
+              <div v-else-if="genericSectionViewMode === 'grid'" class="contact-field-grid">
                 <article
                   v-for="field in visibleGenericFields"
                   :key="field.key"
@@ -1604,6 +1782,35 @@
                   </template>
                 </article>
               </div>
+
+              <q-list v-else bordered separator>
+                <q-item v-for="field in visibleGenericFields" :key="field.key">
+                  <q-item-section>
+                    <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
+                    <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                    <q-item-label
+                      v-if="isHistoricalMode && modifiedByMap[field.key]"
+                      class="text-caption text-negative text-italic"
+                    >
+                      modified by {{ modifiedByMap[field.key] }}
+                    </q-item-label>
+                  </q-item-section>
+                  <q-item-section side class="databook-value-section">
+                    <template v-if="editMode">
+                      <q-input
+                        v-model="draftValues[field.key]"
+                        dense
+                        outlined
+                        :disable="saving || !field.editable"
+                        :placeholder="field.editable ? 'Enter value' : ''"
+                      />
+                    </template>
+                    <template v-else>
+                      <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                    </template>
+                  </q-item-section>
+                </q-item>
+              </q-list>
             </article>
           </section>
         </div>
@@ -1637,6 +1844,13 @@
                 </div>
                 <div class="contact-databook__role contact-databook__role--location">
                   {{ genericRecordSecondaryLine }}
+                </div>
+
+                <div v-if="genericMiniDashboardStats.length" class="contact-databook__mini-dashboard">
+                  <div v-for="stat in genericMiniDashboardStats" :key="stat.id" class="contact-databook__mini-item">
+                    <div class="contact-databook__mini-label">{{ stat.label }}</div>
+                    <div class="contact-databook__mini-value">{{ stat.displayValue }}</div>
+                  </div>
                 </div>
 
                 <div v-if="genericRecordPills.length" class="contact-databook__pill-row">
@@ -1741,27 +1955,108 @@
             </div>
 
             <div class="contact-databook__summary">
-              <div class="contact-databook__summary-header">
-                <div class="contact-databook__summary-label">{{ entityLabel }} Feed</div>
+              <div class="contact-databook__summary-header contact-databook__summary-header--feed">
+                <q-btn
+                  round
+                  flat
+                  dense
+                  icon="tune"
+                  aria-label="Record feed settings"
+                  class="contact-databook__summary-add contact-databook__summary-add--feed"
+                >
+                  <q-menu
+                    anchor="top right"
+                    self="top left"
+                    class="contact-databook__summary-menu"
+                    content-class="contact-databook__summary-menu-content"
+                    :content-style="summaryMenuContentStyle"
+                  >
+                    <div class="contact-databook__summary-menu-shell">
+                      <div class="contact-databook__summary-menu-header">
+                        <div class="contact-databook__summary-menu-title">Feed Settings</div>
+                        <div class="contact-databook__summary-menu-caption">Choose what you see</div>
+                      </div>
+                      <q-list dense style="min-width: 200px; background: transparent; padding: 0">
+                        <div class="contact-databook__summary-menu-rows">
+                          <div
+                            v-for="row in recordFeedMenuRows"
+                            :key="row.id"
+                            class="contact-databook__summary-menu-row"
+                          >
+                            <q-checkbox
+                              :model-value="row.enabled"
+                              dense
+                              size="xs"
+                              checked-icon="check_box"
+                              unchecked-icon="check_box_outline_blank"
+                              class="contact-databook__summary-menu-row-checkbox"
+                              @update:model-value="setRecordFeedSourceEnabled(row.id, $event)"
+                            />
+                            <div class="contact-databook__summary-menu-row-label">{{ row.label }}</div>
+                            <div class="contact-databook__summary-menu-row-actions">
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="!row.enabled || !row.canMoveUp"
+                                @click.stop="moveRecordFeedSource(row.id, -1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="contact-databook__summary-menu-chevron">
+                                  <path d="M7 14L12 9L17 14" />
+                                </svg>
+                              </q-btn>
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="!row.enabled || !row.canMoveDown"
+                                @click.stop="moveRecordFeedSource(row.id, 1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="contact-databook__summary-menu-chevron">
+                                  <path d="M7 10L12 15L17 10" />
+                                </svg>
+                              </q-btn>
+                            </div>
+                          </div>
+                        </div>
+                      </q-list>
+                    </div>
+                  </q-menu>
+                </q-btn>
+                <div class="contact-databook__summary-label">Record Feed</div>
               </div>
 
-              <div class="contact-databook__summary-feed-toggle">
-                <div class="contact-databook__summary-feed-toolbar">
-                  <button
-                    v-for="option in contactFeedChannelOptions"
-                    :key="option.value"
-                    type="button"
-                    class="contact-databook__summary-feed-button"
-                    :class="{ 'contact-databook__summary-feed-button--active': genericRecordFeedChannel === option.value }"
-                    @click="genericRecordFeedChannel = option.value"
-                  >
-                    {{ option.label }}
-                  </button>
+              <div v-if="recordFeedTabOptions.length" class="contact-databook__summary-feed-tabs">
+                <button
+                  v-for="tab in recordFeedTabOptions"
+                  :key="tab.id"
+                  type="button"
+                  class="contact-databook__summary-feed-tab"
+                  :class="{ 'contact-databook__summary-feed-tab--active': activeRecordFeedTab === tab.id }"
+                  @click="activeRecordFeedTab = tab.id"
+                >
+                  {{ tab.label }}
+                </button>
+              </div>
+
+              <div v-if="displayedRecordFeedItems.length" class="contact-databook__summary-feed-list">
+                <div
+                  v-for="item in displayedRecordFeedItems"
+                  :key="item.id"
+                  class="contact-databook__summary-feed-entry"
+                >
+                  <div class="contact-databook__summary-feed-entry-top">
+                    <div class="contact-databook__summary-feed-entry-source">{{ item.sourceLabel }}</div>
+                    <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
+                  </div>
+                  <div class="contact-databook__summary-feed-entry-title">{{ item.title }}</div>
+                  <div v-if="item.content" class="contact-databook__summary-feed-entry-content">
+                    {{ item.content }}
+                  </div>
                 </div>
               </div>
-
-              <div class="contact-databook__summary-feed-state">
-                Feed view is inactive for now.
+              <div v-else class="contact-databook__summary-feed-state">
+                No feed items yet for this record. Use + to choose what you want to view here.
               </div>
             </div>
           </section>
@@ -1769,17 +2064,30 @@
           <section v-if="genericRecordNavItems.length" class="contact-databook__nav" aria-label="Record sections">
             <button
               v-for="section in genericRecordNavItems"
-              :key="section"
+              :key="section.value"
               type="button"
               class="contact-databook__nav-item"
               :class="{
-                'contact-databook__nav-item--active': activeGenericSection === section,
-                'contact-databook__nav-item--kdb': /kdb/i.test(section),
+                'contact-databook__nav-item--active': activeGenericSection === section.value,
+                'contact-databook__nav-item--kdb': section.isKdb,
+                'contact-databook__nav-item--system': section.isSystem,
+                'contact-databook__nav-item--push-right': section.pushRight,
               }"
-              @click="activeGenericSection = section"
+              @click="activeGenericSection = section.value"
             >
-              {{ section }}
+              <span class="contact-databook__nav-item-label">{{ section.title }}</span>
+              <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
+            <q-btn-toggle
+              v-model="genericRecordTopNavViewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+              :options="CONTACT_KDB_VIEW_OPTIONS"
+            />
           </section>
 
           <template v-if="/kdb/i.test(activeGenericSection)">
@@ -1798,23 +2106,7 @@
                     :options="genericKdbSectionOptions"
                   />
                 </div>
-              </div>
-
-              <div class="contact-kdb-artifacts-toolbar">
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
-                  <q-btn-toggle
-                    v-model="genericKdbViewMode"
-                    dense
-                    unelevated
-                    toggle-color="primary"
-                    color="grey-3"
-                    text-color="grey-8"
-                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
-                    :options="CONTACT_KDB_VIEW_OPTIONS"
-                  />
-                </div>
-
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--kind">
                   <q-btn-toggle
                     v-model="genericKdbKindFilter"
                     dense
@@ -1823,19 +2115,19 @@
                     toggle-color="dark"
                     color="white"
                     text-color="grey-8"
-                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                    class="contact-kdb-toolbar__toggle contact-kdb-toolbar__kind-toggle"
                     :options="genericKdbKindOptions"
                   />
                 </div>
 
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
-                  <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--search">
+                  <q-icon name="tune" size="18px" class="contact-kdb-toolbar__filters-icon" />
                   <q-input
                     v-model="genericKdbSearchQuery"
                     dense
                     outlined
                     borderless
-                    class="contact-kdb-artifacts-toolbar__search"
+                    class="contact-kdb-toolbar__search"
                     :placeholder="genericKdbSearchPlaceholder"
                   >
                     <template #prepend>
@@ -1889,19 +2181,28 @@
             </div>
           </template>
 
-          <q-list v-else bordered separator>
-            <q-item v-for="field in visibleGenericFields" :key="field.key">
-              <q-item-section>
-                <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
-                <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
-                <q-item-label
+          <template v-else>
+            <q-banner
+              v-if="!visibleGenericFields.length"
+              class="contact-section-card__empty bg-grey-1 text-black"
+              rounded
+            >
+              No fields are mapped to this section in the current {{ entityLabel.toLowerCase() }} schema yet.
+            </q-banner>
+
+            <div v-else-if="genericSectionViewMode === 'grid'" class="contact-field-grid">
+              <article
+                v-for="field in visibleGenericFields"
+                :key="field.key"
+                class="contact-field-card"
+              >
+                <div class="contact-field-card__label">{{ field.label }}</div>
+                <div
                   v-if="isHistoricalMode && modifiedByMap[field.key]"
-                  class="text-caption text-negative text-italic"
+                  class="contact-section-card__modified"
                 >
                   modified by {{ modifiedByMap[field.key] }}
-                </q-item-label>
-              </q-item-section>
-              <q-item-section side class="databook-value-section">
+                </div>
                 <template v-if="editMode">
                   <q-input
                     v-model="draftValues[field.key]"
@@ -1912,28 +2213,72 @@
                   />
                 </template>
                 <template v-else>
-                  <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                  <div class="contact-field-card__value">
+                    {{ displayValue(field.value) }}
+                  </div>
                 </template>
-              </q-item-section>
-            </q-item>
-          </q-list>
+              </article>
+            </div>
+
+            <q-list v-else bordered separator>
+              <q-item v-for="field in visibleGenericFields" :key="field.key">
+                <q-item-section>
+                  <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
+                  <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                  <q-item-label
+                    v-if="isHistoricalMode && modifiedByMap[field.key]"
+                    class="text-caption text-negative text-italic"
+                  >
+                    modified by {{ modifiedByMap[field.key] }}
+                  </q-item-label>
+                </q-item-section>
+                <q-item-section side class="databook-value-section">
+                  <template v-if="editMode">
+                    <q-input
+                      v-model="draftValues[field.key]"
+                      dense
+                      outlined
+                      :disable="saving || !field.editable"
+                      :placeholder="field.editable ? 'Enter value' : ''"
+                    />
+                  </template>
+                  <template v-else>
+                    <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                  </template>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </template>
         </div>
 
         <template v-else>
           <section v-if="genericRecordNavItems.length" class="contact-databook__nav" aria-label="Record sections">
             <button
               v-for="section in genericRecordNavItems"
-              :key="section"
+              :key="section.value"
               type="button"
               class="contact-databook__nav-item"
               :class="{
-                'contact-databook__nav-item--active': activeGenericSection === section,
-                'contact-databook__nav-item--kdb': /kdb/i.test(section),
+                'contact-databook__nav-item--active': activeGenericSection === section.value,
+                'contact-databook__nav-item--kdb': section.isKdb,
+                'contact-databook__nav-item--system': section.isSystem,
+                'contact-databook__nav-item--push-right': section.pushRight,
               }"
-              @click="activeGenericSection = section"
+              @click="activeGenericSection = section.value"
             >
-              {{ section }}
+              <span class="contact-databook__nav-item-label">{{ section.title }}</span>
+              <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
+            <q-btn-toggle
+              v-model="genericRecordTopNavViewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+              :options="CONTACT_KDB_VIEW_OPTIONS"
+            />
           </section>
 
           <template v-if="/kdb/i.test(activeGenericSection)">
@@ -1952,23 +2297,7 @@
                     :options="genericKdbSectionOptions"
                   />
                 </div>
-              </div>
-
-              <div class="contact-kdb-artifacts-toolbar">
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
-                  <q-btn-toggle
-                    v-model="genericKdbViewMode"
-                    dense
-                    unelevated
-                    toggle-color="primary"
-                    color="grey-3"
-                    text-color="grey-8"
-                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
-                    :options="CONTACT_KDB_VIEW_OPTIONS"
-                  />
-                </div>
-
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--kind">
                   <q-btn-toggle
                     v-model="genericKdbKindFilter"
                     dense
@@ -1977,19 +2306,19 @@
                     toggle-color="dark"
                     color="white"
                     text-color="grey-8"
-                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                    class="contact-kdb-toolbar__toggle contact-kdb-toolbar__kind-toggle"
                     :options="genericKdbKindOptions"
                   />
                 </div>
 
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
-                  <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--search">
+                  <q-icon name="tune" size="18px" class="contact-kdb-toolbar__filters-icon" />
                   <q-input
                     v-model="genericKdbSearchQuery"
                     dense
                     outlined
                     borderless
-                    class="contact-kdb-artifacts-toolbar__search"
+                    class="contact-kdb-toolbar__search"
                     :placeholder="genericKdbSearchPlaceholder"
                   >
                     <template #prepend>
@@ -2043,19 +2372,28 @@
             </div>
           </template>
 
-          <q-list v-else bordered separator>
-            <q-item v-for="field in visibleGenericFields" :key="field.key">
-              <q-item-section>
-                <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
-                <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
-                <q-item-label
+          <template v-else>
+            <q-banner
+              v-if="!visibleGenericFields.length"
+              class="contact-section-card__empty bg-grey-1 text-black"
+              rounded
+            >
+              No fields are mapped to this section in the current {{ entityLabel.toLowerCase() }} schema yet.
+            </q-banner>
+
+            <div v-else-if="genericSectionViewMode === 'grid'" class="contact-field-grid">
+              <article
+                v-for="field in visibleGenericFields"
+                :key="field.key"
+                class="contact-field-card"
+              >
+                <div class="contact-field-card__label">{{ field.label }}</div>
+                <div
                   v-if="isHistoricalMode && modifiedByMap[field.key]"
-                  class="text-caption text-negative text-italic"
+                  class="contact-section-card__modified"
                 >
                   modified by {{ modifiedByMap[field.key] }}
-                </q-item-label>
-              </q-item-section>
-              <q-item-section side class="databook-value-section">
+                </div>
                 <template v-if="editMode">
                   <q-input
                     v-model="draftValues[field.key]"
@@ -2066,11 +2404,42 @@
                   />
                 </template>
                 <template v-else>
-                  <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                  <div class="contact-field-card__value">
+                    {{ displayValue(field.value) }}
+                  </div>
                 </template>
-              </q-item-section>
-            </q-item>
-          </q-list>
+              </article>
+            </div>
+
+            <q-list v-else bordered separator>
+              <q-item v-for="field in visibleGenericFields" :key="field.key">
+                <q-item-section>
+                  <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
+                  <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                  <q-item-label
+                    v-if="isHistoricalMode && modifiedByMap[field.key]"
+                    class="text-caption text-negative text-italic"
+                  >
+                    modified by {{ modifiedByMap[field.key] }}
+                  </q-item-label>
+                </q-item-section>
+                <q-item-section side class="databook-value-section">
+                  <template v-if="editMode">
+                    <q-input
+                      v-model="draftValues[field.key]"
+                      dense
+                      outlined
+                      :disable="saving || !field.editable"
+                      :placeholder="field.editable ? 'Enter value' : ''"
+                    />
+                  </template>
+                  <template v-else>
+                    <div class="text-body2 databook-value">{{ displayValue(field.value) }}</div>
+                  </template>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </template>
         </template>
       </template>
 
@@ -2333,6 +2702,14 @@ const CONTACT_KDB_SECTION_OPTIONS = [
   { label: 'Tasks', value: 'tasks', icon: 'check_circle' },
   { label: 'Notes', value: 'notes', icon: 'note' },
 ]
+const summaryMenuContentStyle = Object.freeze({
+  background: 'rgba(17, 17, 17, 0.96)',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
+  boxShadow: '0 20px 40px rgba(15, 23, 42, 0.28)',
+  backdropFilter: 'blur(18px)',
+  borderRadius: '12px',
+  overflow: 'hidden',
+})
 const CONTACT_IMAGE_CROP_CONTACT_FRAME_WIDTH = 280
 const CONTACT_IMAGE_CROP_CONTACT_FRAME_HEIGHT = 420
 const CONTACT_IMAGE_CROP_COMPANY_FRAME_SIZE = 280
@@ -2546,6 +2923,7 @@ const companyKdbKindFilter = ref('all')
 const companyKdbSearchQuery = ref('')
 const activeGenericKdbSection = ref('')
 const genericKdbViewMode = ref('grid')
+const genericSectionViewMode = ref('table')
 const genericKdbKindFilter = ref('all')
 const genericKdbSearchQuery = ref('')
 const contactHeroRef = ref(null)
@@ -2568,13 +2946,6 @@ const companyLinkedRounds = ref([])
 const companyLinkedFunds = ref([])
 const contactHeroPanelTab = ref('documents')
 const companyHeroPanelTab = ref('documents')
-const contactFeedChannel = ref('linkedin')
-const contactFeedChannelOptions = [
-  { label: 'WhatsApp', value: 'whatsapp' },
-  { label: 'Mail', value: 'mail' },
-  { label: 'LinkedIn', value: 'linkedin' },
-  { label: 'X', value: 'x' },
-]
 const contactDocumentsDragOver = ref(false)
 const uploadingContactDocuments = ref(false)
 const workspaceRoot = ref('')
@@ -2583,7 +2954,9 @@ const showDocumentPreviewDialog = ref(false)
 const documentPreviewLoading = ref(false)
 const genericRecordNotes = ref([])
 const genericHeroPanelTab = ref('notes')
-const genericRecordFeedChannel = ref('linkedin')
+const selectedRecordFeedSourceIds = ref([])
+const activeRecordFeedTab = ref('activity')
+const recordFeedEvents = ref([])
 const documentPreview = ref({
   artifactId: '',
   fileName: '',
@@ -2633,8 +3006,20 @@ const isProjectView = computed(
 const isOpportunityRecordView = computed(() =>
   ['Opportunities', 'Funds', 'Rounds'].includes(currentView.value?.table_name || tableNameParam.value),
 )
+const isTaskView = computed(
+  () => (currentView.value?.table_name || tableNameParam.value) === 'Tasks',
+)
+const isNoteView = computed(
+  () => (currentView.value?.table_name || tableNameParam.value) === 'Notes',
+)
 const isStructuredGenericRecordView = computed(
-  () => isUserView.value || isArtifactView.value || isProjectView.value || isOpportunityRecordView.value,
+  () =>
+    isUserView.value ||
+    isArtifactView.value ||
+    isProjectView.value ||
+    isOpportunityRecordView.value ||
+    isTaskView.value ||
+    isNoteView.value,
 )
 const isStructuredDatabookView = computed(
   () => isContactView.value || isCompanyView.value || isStructuredGenericRecordView.value,
@@ -2748,6 +3133,11 @@ const companySummaryStorageKey = computed(() => {
   const userKey = normalizeUserLabel(actor.value?.user_label || '') || 'guest'
   return `ecvc.companySummary.${userKey}`
 })
+const recordFeedStorageKey = computed(() => {
+  const userKey = normalizeUserLabel(actor.value?.user_label || '') || 'guest'
+  const tableName = String(currentView.value?.table_name || tableNameParam.value || 'Record').trim() || 'Record'
+  return `ecvc.recordFeed.${userKey}.${tableName}`
+})
 const availableContactSummaryOptions = computed(() =>
   CONTACT_SUMMARY_OPTIONS.map((option) => ({
     ...option,
@@ -2760,6 +3150,15 @@ const availableCompanySummaryOptions = computed(() =>
     value: resolveCompanySummaryValue(option),
   })),
 )
+const contactSummaryStats = computed(() => {
+  const selectedIds = new Set(selectedContactSummaryStatIds.value)
+  return availableContactSummaryOptions.value
+    .filter((option) => selectedIds.has(option.id))
+    .map((option) => ({
+      ...option,
+      displayValue: option.value || 'Not added yet',
+    }))
+})
 const companyName = computed(() => getFieldDisplayValue('Company_Name'))
 const companyType = computed(() => getFieldDisplayValue('Company_Type'))
 const companyOneLiner = computed(() => getFieldDisplayValue('One_Liner'))
@@ -2795,6 +3194,36 @@ const companySummaryStats = computed(() => {
       ...option,
       displayValue: option.value || 'Not added yet',
     }))
+})
+const genericMiniDashboardStats = computed(() => {
+  const configured = [
+    {
+      id: 'subtitle',
+      label: 'Status',
+      value: getFirstFieldValue(genericRecordConfig.value.subtitleAliases),
+    },
+    {
+      id: 'secondary',
+      label: 'Context',
+      value: getFirstFieldValue(genericRecordConfig.value.secondaryAliases),
+    },
+    {
+      id: 'created',
+      label: 'Created',
+      value: getFieldDisplayValue('created_at'),
+    },
+    {
+      id: 'updated',
+      label: 'Updated',
+      value: getFieldDisplayValue('updated_at'),
+    },
+  ]
+  return configured
+    .map((item) => ({
+      ...item,
+      displayValue: String(item.value || '').trim() || 'Not added yet',
+    }))
+    .slice(0, 4)
 })
 const companyActionLinks = computed(() => {
   const website = companyWebsite.value
@@ -2836,7 +3265,9 @@ function formatCanonicalLabel(value, entityPrefix = '') {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ')
   if (/^general information$/i.test(label)) return 'General'
+  if (/^metadata$/i.test(label)) return 'System'
   if (/^system data$/i.test(label)) return 'System'
+  if (/^kdb relationships?$/i.test(label)) return 'KDB'
   if (/^kdb relations$/i.test(label)) return 'KDB'
   if (/^inc info$/i.test(label)) return 'Incorporation'
   if (/^docs$/i.test(label)) return 'Documents'
@@ -3007,8 +3438,9 @@ const contactNavItems = computed(() => {
 const activeContentSection = computed(
   () => contactSections.value.find((section) => section.anchor === activeContactSection.value) || null,
 )
-const GENERIC_METADATA_SECTION_LABEL = 'System Data'
-const GENERIC_KDB_SECTION_LABEL = 'KDB Relationships'
+const GENERIC_METADATA_SECTION_LABEL = 'System'
+const GENERIC_GENERAL_SECTION_LABEL = 'General'
+const GENERIC_KDB_SECTION_LABEL = 'KDB'
 const GENERIC_SECTION_CONTRACTS = Object.freeze({
   Users: {
     sections: [GENERIC_METADATA_SECTION_LABEL, GENERIC_KDB_SECTION_LABEL],
@@ -3248,6 +3680,7 @@ function normalizeGenericSectionLabel(sectionName) {
   const raw = String(sectionName || '').trim()
   if (!raw) return ''
   if (/kdb/i.test(raw)) return GENERIC_KDB_SECTION_LABEL
+  if (/general/i.test(raw)) return GENERIC_GENERAL_SECTION_LABEL
   if (raw === entityLabel.value) return GENERIC_METADATA_SECTION_LABEL
   return raw
 }
@@ -3302,25 +3735,93 @@ function resolveGenericFieldSection(field) {
 const genericRecordNavItems = computed(() => {
   const tableName = structuredRecordTableName.value
   const contract = getGenericSectionContract(tableName)
+  const preferredMiddleOrderByTable = {
+    Companies: ['Business', 'Market', 'Operations', 'Results', 'Planning', 'Fund Raising', 'Documents', 'Incorporation'],
+  }
+
+  const mapSectionTitle = (sectionLabel) =>
+    formatCanonicalLabel(String(sectionLabel || '').trim().replace(/\s+/g, '_'))
+
+  const buildOrderedSectionLabels = (sections = []) => {
+    const unique = []
+    sections.forEach((section) => {
+      const value = String(section || '').trim()
+      if (!value) return
+      if (!unique.includes(value)) unique.push(value)
+    })
+
+    const general = unique.find((section) => /general/i.test(section))
+    const system = unique.find((section) => /system|metadata/i.test(section))
+    const kdb = unique.find((section) => /kdb/i.test(section))
+    const middle = unique.filter((section) => section !== general && section !== system && section !== kdb)
+
+    if (tableName === 'Companies') {
+      const preferred = preferredMiddleOrderByTable.Companies
+      const rank = Object.fromEntries(preferred.map((label, index) => [label.toLowerCase(), index]))
+      middle.sort((a, b) => {
+        const aTitle = mapSectionTitle(a).toLowerCase()
+        const bTitle = mapSectionTitle(b).toLowerCase()
+        const aRank = Number.isInteger(rank[aTitle]) ? rank[aTitle] : Number.MAX_SAFE_INTEGER
+        const bRank = Number.isInteger(rank[bTitle]) ? rank[bTitle] : Number.MAX_SAFE_INTEGER
+        if (aRank !== bRank) return aRank - bRank
+        return unique.indexOf(a) - unique.indexOf(b)
+      })
+    }
+
+    return [
+      general || GENERIC_GENERAL_SECTION_LABEL,
+      ...middle,
+      ...(kdb ? [kdb] : []),
+      ...(system ? [system] : []),
+    ]
+  }
+
+  const toNavObjects = (orderedSections = []) => {
+    const hasKdb = orderedSections.some((section) => /kdb/i.test(section))
+    return orderedSections.map((section) => {
+      const value = String(section || '').trim()
+      const isKdb = /kdb/i.test(value)
+      const isSystem = /system|metadata/i.test(value)
+      return {
+        value,
+        title: mapSectionTitle(value),
+        isKdb,
+        isSystem,
+        pushRight: isKdb || (isSystem && !hasKdb),
+      }
+    })
+  }
+
   if (contract?.sections?.length) {
-    return contract.sections
+    return toNavObjects(buildOrderedSectionLabels(contract.sections))
   }
 
   const seen = new Set()
-  const ordered = (fields.value || [])
+  const discovered = (fields.value || [])
     .map((field) => resolveGenericFieldSection(field))
     .filter((section) => {
       if (!section || section === GENERIC_KDB_SECTION_LABEL || seen.has(section)) return false
       seen.add(section)
       return true
     })
-
-  if (!ordered.length || ordered[0] !== GENERIC_METADATA_SECTION_LABEL) {
-    ordered.unshift(GENERIC_METADATA_SECTION_LABEL)
-  }
-
-  ordered.push(GENERIC_KDB_SECTION_LABEL)
-  return ordered
+  return toNavObjects(buildOrderedSectionLabels(discovered))
+})
+const activeGenericNavTitle = computed(
+  () => genericRecordNavItems.value.find((section) => section.value === activeGenericSection.value)?.title || '',
+)
+const genericRecordTopNavViewMode = computed({
+  get() {
+    return /kdb/i.test(String(activeGenericSection.value || ''))
+      ? genericKdbViewMode.value
+      : genericSectionViewMode.value
+  },
+  set(value) {
+    if (/kdb/i.test(String(activeGenericSection.value || ''))) {
+      genericKdbViewMode.value = value || 'grid'
+      return
+    }
+    genericSectionViewMode.value = value || 'table'
+  },
 })
 const structuredRecordThemeMap = {
   Users: {
@@ -3564,10 +4065,100 @@ const companyHeroNotes = computed(() =>
 )
 const contactHeroDocuments = computed(() => contactDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
 const companyHeroDocuments = computed(() => companyDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
-const contactKdbViewOptions = CONTACT_KDB_VIEW_OPTIONS
 const contactKdbSectionOptions = CONTACT_KDB_SECTION_OPTIONS
-const companyKdbViewOptions = CONTACT_KDB_VIEW_OPTIONS
 const companyKdbSectionOptions = CONTACT_KDB_SECTION_OPTIONS
+const availableRecordFeedSourceOptions = computed(() => [
+  { id: 'activity', label: 'Activity Logs' },
+  ...CONTACT_KDB_SECTION_OPTIONS.map((option) => ({
+    id: option.value,
+    label: option.label,
+  })),
+])
+const recordFeedSourceLabelById = computed(() =>
+  Object.fromEntries(availableRecordFeedSourceOptions.value.map((option) => [option.id, option.label])),
+)
+const recordFeedTabOptions = computed(() =>
+  selectedRecordFeedSourceIds.value
+    .filter((sourceId) => recordFeedSourceLabelById.value[sourceId])
+    .map((sourceId) => ({
+      id: sourceId,
+      label: recordFeedSourceLabelById.value[sourceId],
+    })),
+)
+const recordFeedMenuRows = computed(() => {
+  const selected = selectedRecordFeedSourceIds.value
+  return availableRecordFeedSourceOptions.value.map((option) => {
+    const selectedIndex = selected.indexOf(option.id)
+    const enabled = selectedIndex > -1
+    return {
+      ...option,
+      enabled,
+      canMoveUp: enabled && selectedIndex > 0,
+      canMoveDown: enabled && selectedIndex > -1 && selectedIndex < selected.length - 1,
+    }
+  })
+})
+const activeRecordKdbItemsBySection = computed(() => {
+  if (isContactView.value) return contactKdbItemsBySection.value
+  if (isCompanyView.value) return companyKdbItemsBySection.value
+  if (isStructuredGenericRecordView.value) return genericKdbItemsBySection.value
+  return {}
+})
+const recordFeedActivityItems = computed(() => {
+  if (recordFeedEvents.value.length) {
+    return recordFeedEvents.value.slice(0, 8).map((eventRow, index) => {
+      const rawTimestamp =
+        eventRow?.created_at || eventRow?.occurred_at || eventRow?.event_at || eventRow?.timestamp || ''
+      const fieldName = String(eventRow?.field_name || '').trim()
+      const fieldLabel = formatRecordFeedFieldLabel(fieldName)
+      const editor = String(eventRow?.edited_by_label || eventRow?.user_label || eventRow?.created_by_label || '')
+        .trim()
+      const valueLabel = resolveRecordFeedValue(eventRow)
+      const content = [editor ? `by ${editor}` : '', valueLabel].filter(Boolean).join(' - ')
+      return {
+        id: `activity-event-${index}-${fieldName || 'record'}`,
+        sourceLabel: 'Activity',
+        title: fieldLabel ? `${fieldLabel} updated` : 'Record updated',
+        content,
+        meta: formatDisplayDateTime(rawTimestamp) || 'Recent activity',
+      }
+    })
+  }
+  return buildRecordFeedFallbackActivity()
+})
+const recordFeedKdbHighlightItems = computed(() => {
+  const selectedSources = selectedRecordFeedSourceIds.value.filter((sourceId) => sourceId !== 'activity')
+  const itemsBySection = activeRecordKdbItemsBySection.value || {}
+  return selectedSources.flatMap((sourceId) => {
+    const sourceLabel = recordFeedSourceLabelById.value[sourceId] || sourceId
+    return (itemsBySection[sourceId] || []).slice(0, 2).map((item, index) => ({
+      id: `kdb-${sourceId}-${item.id || index}`,
+      sourceLabel,
+      title: String(item?.title || `Related ${sourceLabel}`).trim() || `Related ${sourceLabel}`,
+      content: String(item?.content || '').trim(),
+      meta: String(item?.meta || '').trim() || 'KDB relation',
+    }))
+  })
+})
+const recordFeedItems = computed(() => {
+  const includeActivity = selectedRecordFeedSourceIds.value.includes('activity')
+  const items = []
+  if (includeActivity) items.push(...recordFeedActivityItems.value)
+  items.push(...recordFeedKdbHighlightItems.value)
+  return items.slice(0, 10)
+})
+const displayedRecordFeedItems = computed(() => {
+  const activeTab = String(activeRecordFeedTab.value || '').trim()
+  if (!activeTab) return recordFeedItems.value
+  return recordFeedItems.value
+    .filter((item) =>
+      activeTab === 'activity'
+        ? item.sourceLabel === 'Activity'
+        : String(item.sourceLabel || '').toLowerCase() === String(recordFeedSourceLabelById.value[activeTab] || '')
+            .toLowerCase(),
+    )
+    .slice(0, 10)
+})
 const contactKdbItemsBySection = computed(() => ({
   artifacts: contactDocuments.value.map((document) => ({
     id: String(document.artifactId || document.id || document.fileName || '').trim(),
@@ -3932,6 +4523,150 @@ function toggleCompanySummaryStat(id) {
 
   selectedCompanySummaryStatIds.value = next
   saveContactSummarySelection(companySummaryStorageKey.value, next)
+}
+
+function syncRecordFeedSelection() {
+  const validIds = availableRecordFeedSourceOptions.value.map((option) => option.id)
+  const currentIds = selectedRecordFeedSourceIds.value.filter((id) => validIds.includes(id))
+  if (currentIds.length) {
+    selectedRecordFeedSourceIds.value = currentIds
+    saveContactSummarySelection(recordFeedStorageKey.value, currentIds)
+    return
+  }
+
+  const nonEmptyKdbSections = CONTACT_KDB_SECTION_OPTIONS.filter(
+    (option) => (activeRecordKdbItemsBySection.value?.[option.value] || []).length > 0,
+  )
+    .slice(0, 4)
+    .map((option) => option.value)
+  const fallback = ['activity', ...nonEmptyKdbSections].filter((id, index, ids) => ids.indexOf(id) === index)
+  const finalFallback = fallback.length ? fallback : ['activity']
+  selectedRecordFeedSourceIds.value = finalFallback
+  saveContactSummarySelection(recordFeedStorageKey.value, finalFallback)
+}
+
+function setRecordFeedSourceEnabled(id, enabled) {
+  if (!id) return
+  const has = selectedRecordFeedSourceIds.value.includes(id)
+  let next = [...selectedRecordFeedSourceIds.value]
+  if (enabled && !has) next.push(id)
+  if (!enabled && has) next = next.filter((candidate) => candidate !== id)
+  selectedRecordFeedSourceIds.value = next
+  saveContactSummarySelection(recordFeedStorageKey.value, next)
+}
+
+function moveRecordFeedSource(id, direction) {
+  if (!id || !Number.isInteger(direction) || direction === 0) return
+  const currentOrder = [...selectedRecordFeedSourceIds.value]
+  const currentIndex = currentOrder.indexOf(id)
+  if (currentIndex < 0) return
+  const nextIndex = currentIndex + direction
+  if (nextIndex < 0 || nextIndex >= currentOrder.length) return
+  const [moved] = currentOrder.splice(currentIndex, 1)
+  currentOrder.splice(nextIndex, 0, moved)
+  selectedRecordFeedSourceIds.value = currentOrder
+  saveContactSummarySelection(recordFeedStorageKey.value, currentOrder)
+}
+
+function resolveRecordFeedValue(eventRow = {}) {
+  const raw = String(eventRow?.new_value || eventRow?.next_value || eventRow?.value || '').trim()
+  if (!raw) return ''
+  if (raw.length <= 72) return raw
+  return `${raw.slice(0, 69)}...`
+}
+
+function formatRecordFeedFieldLabel(fieldName = '') {
+  const normalized = String(fieldName || '').trim()
+  if (!normalized) return ''
+  const knownField = fields.value.find((field) => String(field?.field_name || '').trim() === normalized)
+  if (knownField?.label) return String(knownField.label).trim()
+  return normalized.replace(/[_-]+/g, ' ').replace(/\b\w/g, (token) => token.toUpperCase())
+}
+
+function buildRecordFeedFallbackActivity() {
+  const entries = []
+  const pushEntry = ({ id, title, content = '', timestamp = '', meta = '' }) => {
+    entries.push({
+      id,
+      sourceLabel: 'Activity',
+      title,
+      content,
+      meta: meta || (timestamp ? formatDisplayDateTime(timestamp) : 'Recent activity'),
+      timestampScore: parseDateValue(timestamp),
+    })
+  }
+
+  const createdAt = getFieldDisplayValue('created_at')
+  const updatedAt = getFieldDisplayValue('updated_at')
+  if (createdAt) {
+    pushEntry({
+      id: 'fallback-created',
+      title: 'Record created',
+      content: `Created for ${entityLabel.value.toLowerCase()}`,
+      timestamp: createdAt,
+    })
+  }
+  if (updatedAt && updatedAt !== createdAt) {
+    pushEntry({
+      id: 'fallback-updated',
+      title: 'Record updated',
+      content: `Latest update for this ${entityLabel.value.toLowerCase()} record`,
+      timestamp: updatedAt,
+    })
+  }
+
+  const latestNote = [...contactNotes.value, ...companyNotes.value, ...genericRecordNotes.value]
+    .sort((left, right) => parseDateValue(right?.created_at) - parseDateValue(left?.created_at))
+    .find(Boolean)
+  if (latestNote) {
+    pushEntry({
+      id: `fallback-note-${latestNote.id || 'recent'}`,
+      title: 'Note added',
+      content: String(latestNote.title || latestNote.content || 'Recent note').trim(),
+      timestamp: latestNote.created_at,
+    })
+  }
+
+  const latestDocument = [...contactDocuments.value, ...companyDocuments.value]
+    .sort((left, right) => parseDateValue(right?.created_at) - parseDateValue(left?.created_at))
+    .find(Boolean)
+  if (latestDocument) {
+    pushEntry({
+      id: `fallback-document-${latestDocument.artifactId || latestDocument.id || 'recent'}`,
+      title: 'Document linked',
+      content: String(latestDocument.fileName || latestDocument.name || 'Recent document').trim(),
+      timestamp: latestDocument.created_at,
+    })
+  }
+
+  return entries.sort((left, right) => right.timestampScore - left.timestampScore).map((entry) => {
+    const cleanEntry = { ...entry }
+    delete cleanEntry.timestampScore
+    return cleanEntry
+  })
+}
+
+async function loadRecordFeedEvents() {
+  if (!bridge.value?.audit?.events || !tableNameParam.value || !recordIdParam.value) {
+    recordFeedEvents.value = []
+    return
+  }
+
+  try {
+    const result = await bridge.value.audit.events({
+      table_name: tableNameParam.value,
+      record_id: recordIdParam.value,
+      limit: 50,
+    })
+    const events = Array.isArray(result?.events) ? result.events : []
+    recordFeedEvents.value = [...events].sort((left, right) => {
+      const leftTime = parseDateValue(left?.created_at || left?.occurred_at || left?.event_at || left?.timestamp)
+      const rightTime = parseDateValue(right?.created_at || right?.occurred_at || right?.event_at || right?.timestamp)
+      return rightTime - leftTime
+    })
+  } catch {
+    recordFeedEvents.value = []
+  }
 }
 
 async function loadContactNotes() {
@@ -4548,6 +5283,20 @@ function formatDisplayDate(value) {
   }).format(date)
 }
 
+function formatDisplayDateTime(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  const date = new Date(raw.replace(' ', 'T'))
+  if (Number.isNaN(date.getTime())) return raw
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+}
+
 function summarizeContactNoteContent(value) {
   return String(value || '')
     .trim()
@@ -4861,6 +5610,7 @@ async function loadDatabook() {
     await loadGenericRecordNotes()
     await loadCompanyRelationships()
     await loadCompanyDocuments()
+    await loadRecordFeedEvents()
   } catch (e) {
     error.value = normalizeIpcErrorMessage(e)
     currentView.value = null
@@ -4874,6 +5624,7 @@ async function loadDatabook() {
     companyLinkedContacts.value = []
     companyLinkedRounds.value = []
     companyLinkedFunds.value = []
+    recordFeedEvents.value = []
   } finally {
     loading.value = false
   }
@@ -5281,8 +6032,9 @@ watch(genericRecordNavItems, (sections) => {
     activeGenericSection.value = ''
     return
   }
-  if (!sections.includes(activeGenericSection.value)) {
-    activeGenericSection.value = sections[0]
+  const values = sections.map((section) => section.value)
+  if (!values.includes(activeGenericSection.value)) {
+    activeGenericSection.value = values[0]
   }
 })
 
@@ -5334,6 +6086,30 @@ watch(
 )
 
 watch(availableCompanySummaryOptions, syncCompanySummarySelection, { immediate: true })
+
+watch(
+  recordFeedStorageKey,
+  (storageKey) => {
+    selectedRecordFeedSourceIds.value = loadContactSummarySelection(storageKey)
+  },
+  { immediate: true },
+)
+
+watch(availableRecordFeedSourceOptions, syncRecordFeedSelection, { immediate: true })
+watch(
+  recordFeedTabOptions,
+  (tabs) => {
+    const tabIds = tabs.map((tab) => tab.id)
+    if (!tabIds.length) {
+      activeRecordFeedTab.value = ''
+      return
+    }
+    if (!tabIds.includes(activeRecordFeedTab.value)) {
+      activeRecordFeedTab.value = tabIds[0]
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   if (!hasBridge.value) return
@@ -5480,6 +6256,7 @@ onBeforeUnmount(() => {
   top: 76px;
   z-index: 3;
   display: flex;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
   padding: 12px;
@@ -5493,12 +6270,12 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   color: #4f4f4f;
   cursor: pointer;
   background: transparent;
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 999px;
+  border-radius: 10px;
   font-family: var(--font-body);
   font-size: var(--text-sm---medium);
   font-weight: var(--font-weight-medium);
@@ -5534,7 +6311,35 @@ onBeforeUnmount(() => {
   border-color: rgba(17, 17, 17, 0.22);
 }
 
+.contact-databook__nav-item--kdb,
+.contact-databook__nav-item--system {
+  height: 26px;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.contact-databook__nav-item--kdb .contact-databook__nav-item-label,
+.contact-databook__nav-item--system .contact-databook__nav-item-label {
+  font-size: calc(var(--text-sm---medium) * 0.72);
+}
+
+.contact-databook__nav-item--kdb .contact-databook__nav-item-icon {
+  font-size: 12px !important;
+}
+
 .contact-databook__nav-item--push-right {
+  margin-left: 0;
+  align-self: center;
+}
+
+.contact-databook__nav-view-toggle {
+  align-self: center;
+  margin-left: 6px;
+  order: 999;
+}
+
+.contact-databook__nav-item:not(.contact-databook__nav-item--push-right) + .contact-databook__nav-item--push-right {
   margin-left: auto;
 }
 
@@ -5552,6 +6357,7 @@ onBeforeUnmount(() => {
 .contact-kdb-toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 0;
   background: transparent;
@@ -5567,11 +6373,27 @@ onBeforeUnmount(() => {
   flex: 1 1 auto;
 }
 
+.contact-kdb-toolbar__block--kind {
+  flex: 0 0 auto;
+}
+
+.contact-kdb-toolbar__block--search {
+  justify-content: flex-end;
+  margin-left: auto;
+  gap: 8px;
+  flex: 0 1 340px;
+}
+
 .contact-kdb-toolbar__toggle {
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
   box-shadow: none;
   overflow: hidden;
+}
+
+.contact-kdb-toolbar__filters-icon {
+  color: var(--ds-color-text-muted);
+  flex: 0 0 auto;
 }
 
 .contact-kdb-toolbar__view-toggle :deep(.q-btn) {
@@ -5595,6 +6417,35 @@ onBeforeUnmount(() => {
 .contact-kdb-toolbar__view-toggle :deep(.q-btn + .q-btn),
 .contact-kdb-toolbar__section-toggle :deep(.q-btn + .q-btn) {
   margin-left: 12px;
+}
+
+.contact-kdb-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.contact-kdb-toolbar__kind-toggle :deep(.q-btn) {
+  min-width: 84px;
+  padding-inline: 18px;
+}
+
+.contact-kdb-toolbar__search {
+  width: 100%;
+  min-width: 0;
+  background: var(--ds-control-surface);
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: var(--ds-control-shadow);
+}
+
+.contact-kdb-toolbar__search :deep(.q-field__control),
+.contact-kdb-toolbar__search :deep(.q-field__native),
+.contact-kdb-toolbar__search :deep(.q-field__input) {
+  min-height: var(--ds-control-height-md);
+  height: var(--ds-control-height-md);
+}
+
+.contact-kdb-toolbar__search :deep(.q-field__control) {
+  padding: 0 var(--ds-control-inline-padding);
 }
 
 .contact-kdb-rows {
@@ -5626,7 +6477,7 @@ onBeforeUnmount(() => {
 
 .contact-kdb-artifacts-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -5661,12 +6512,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.contact-kdb-artifacts-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
-}
-
-.contact-kdb-artifacts-toolbar__view-toggle :deep(.q-btn + .q-btn),
 .contact-kdb-artifacts-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
 }
@@ -6065,7 +6910,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--ds-space-12);
   min-width: 0;
   padding: 36px 36px 34px 16px;
@@ -6088,9 +6933,43 @@ onBeforeUnmount(() => {
   margin: 0;
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-title);
-  font-size: clamp(2rem, 4vw, 3.75rem);
+  font-size: clamp(1.6rem, 3.2vw, 3rem);
   font-weight: var(--ds-font-weight-black);
   line-height: 0.95;
+}
+
+.contact-databook__mini-dashboard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.contact-databook__mini-item {
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 9px;
+}
+
+.contact-databook__mini-label {
+  color: #6f6f6f;
+  font-family: var(--ds-font-family-body);
+  font-size: 10px;
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.contact-databook__mini-value {
+  margin-top: 3px;
+  color: #111;
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-sm-medium);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-sm);
+  word-break: break-word;
 }
 
 .contact-databook__role {
@@ -6142,13 +7021,7 @@ onBeforeUnmount(() => {
 }
 
 .contact-databook__hero-notes-panel {
-  margin-top: 6px;
-  padding: var(--ds-space-16) var(--ds-space-18);
-  background: rgba(255, 255, 255, 0.74);
-  border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-xl);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(18px);
+  display: none;
 }
 
 .contact-databook__hero-tabs {
@@ -6516,8 +7389,192 @@ onBeforeUnmount(() => {
 .contact-databook__summary-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: var(--ds-space-12);
+}
+
+.contact-databook__summary-header--feed {
+  justify-content: flex-start;
+  gap: 20px;
+}
+
+.contact-databook__summary-add {
+  color: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.contact-databook__summary-add--feed {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 7px;
+  background: var(--ds-color-surface-inverse) !important;
+  color: var(--ds-color-text-primary-deep) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.contact-databook__summary-menu {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+:deep(.contact-databook__summary-menu-content) {
+  background: rgba(17, 17, 17, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.28) !important;
+  backdrop-filter: blur(18px);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+:deep(.contact-databook__summary-menu-content .q-list) {
+  padding: 0;
+  background: transparent !important;
+}
+
+:deep(.contact-databook__summary-menu-content .q-item__label--header) {
+  padding: 3px 5px;
+  color: rgba(255, 255, 255, 0.64);
+  font-family: var(--font-title);
+  font-size: 0.58rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+:deep(.contact-databook__summary-menu-content .q-item__label--header + .contact-databook__summary-menu-rows) {
+  margin-top: 2px;
+}
+
+.contact-databook__summary-menu-shell {
+  padding: 3px;
+  background: rgba(17, 17, 17, 0.96) !important;
+}
+
+.contact-databook__summary-menu-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 5px 4px;
+}
+
+.contact-databook__summary-menu-title {
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.contact-databook__summary-menu-caption {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.contact-databook__summary-menu-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.contact-databook__summary-menu-row {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 3px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.contact-databook__summary-menu-row-label {
+  min-width: 0;
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 0.6rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contact-databook__summary-menu-row-actions {
+  display: grid;
+  grid-template-columns: 16px 16px;
+  align-items: center;
+  gap: 0;
+  justify-content: end;
+}
+
+.contact-databook__summary-menu-row-actions :deep(.q-btn) {
+  color: rgba(255, 255, 255, 0.68);
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  padding: 0;
+}
+
+.contact-databook__summary-menu-chevron {
+  display: block;
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 1.55;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+
+.contact-databook__summary-menu-row-actions :deep(.q-btn:disabled) {
+  color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.contact-databook__summary-menu-row-checkbox {
+  min-height: 12px;
+}
+
+.contact-databook__summary-menu-row-checkbox :deep(.q-checkbox__inner) {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.34) !important;
+}
+
+.contact-databook__summary-menu-row-checkbox :deep(.q-checkbox__inner--truthy) {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.contact-databook__summary-menu-row-checkbox :deep(.q-checkbox__bg) {
+  background: transparent !important;
+}
+
+:deep(.contact-databook__summary-menu-content .q-item) {
+  min-height: 24px;
+  margin-top: 2px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:deep(.contact-databook__summary-menu-content .q-item:hover),
+:deep(.contact-databook__summary-menu-content .q-item:focus-visible) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:deep(.contact-databook__summary-menu-content .q-item__section) {
+  font-size: 0.68rem;
+  line-height: 1.1;
+}
+
+:deep(.contact-databook__summary-menu-content .q-item__section--side .q-icon) {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 15px;
 }
 
 .contact-databook__summary-feed-toggle {
@@ -6573,6 +7630,100 @@ onBeforeUnmount(() => {
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-sm-regular);
   line-height: var(--ds-line-height-sm);
+}
+
+.contact-databook__summary-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.contact-databook__summary-feed-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.contact-databook__summary-feed-tab {
+  min-height: 24px;
+  padding: 0 9px;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  font-family: var(--ds-font-family-body);
+  font-size: 10px;
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.contact-databook__summary-feed-tab:hover,
+.contact-databook__summary-feed-tab:focus-visible {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.26);
+  outline: none;
+}
+
+.contact-databook__summary-feed-tab--active {
+  color: #111;
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(255, 255, 255, 0.94);
+}
+
+.contact-databook__summary-feed-entry {
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.contact-databook__summary-feed-entry-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.contact-databook__summary-feed-entry-source {
+  color: rgba(255, 255, 255, 0.78);
+  font-family: var(--ds-font-family-body);
+  font-size: 10px;
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.contact-databook__summary-feed-entry-time {
+  color: rgba(255, 255, 255, 0.54);
+  font-family: var(--ds-font-family-body);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.contact-databook__summary-feed-entry-title {
+  margin-top: 4px;
+  color: #ffffff;
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-sm-medium);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-sm);
+}
+
+.contact-databook__summary-feed-entry-content {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.74);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  line-height: var(--ds-line-height-xs);
 }
 
 .contact-databook__summary-notes-panel {
@@ -6678,6 +7829,45 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 18px;
+}
+
+.contact-section-card__view-toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  flex: 0 0 auto;
+  height: 22px;
+  border-radius: 7px;
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
+}
+
+.contact-section-card__view-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.contact-section-card__view-toggle :deep(.q-btn) {
+  background: transparent;
+  border: 1px solid var(--ds-control-border);
+  border-radius: 7px;
+  box-shadow: none;
+  min-width: 24px;
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0;
+}
+
+.contact-section-card__view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 4px;
+}
+
+.contact-section-card__view-toggle :deep(.q-icon) {
+  font-size: 14px;
 }
 
 .contact-section-card__intro {
@@ -6879,6 +8069,7 @@ onBeforeUnmount(() => {
   }
 
   .contact-databook__summary-grid,
+  .contact-databook__mini-dashboard,
   .contact-field-grid {
     grid-template-columns: 1fr;
   }

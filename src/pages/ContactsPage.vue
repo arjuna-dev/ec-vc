@@ -311,28 +311,28 @@
                       </q-btn>
                     </div>
                     <div class="contact-card__summary-body">
-                      <div class="contact-card__summary-body-content">
+                    <div class="contact-card__summary-body-content">
+                      <div
+                        v-if="getContactActiveRelationshipItems(row).length"
+                        :class="[
+                          'contact-card__notes-list',
+                          { 'contact-card__notes-list--rows': getContactCardContentView(row) === 'table' },
+                        ]"
+                      >
                         <div
-                          v-if="getContactActiveRelationshipItems(row).length"
-                          :class="[
-                            'contact-card__notes-list',
-                            { 'contact-card__notes-list--rows': getContactCardContentView(row) === 'table' },
-                          ]"
+                          v-for="item in getContactActiveRelationshipItems(row)"
+                          :key="item"
+                          class="contact-card__note-pill"
                         >
-                          <div
-                            v-for="item in getContactActiveRelationshipItems(row)"
-                            :key="item"
-                            class="contact-card__note-pill"
-                          >
-                            {{ item }}
-                          </div>
-                        </div>
-
-                        <div v-else class="contact-card__summary-empty">
-                          No linked KDB relationships yet for this contact.
+                          {{ item }}
                         </div>
                       </div>
+
+                      <div v-else class="contact-card__summary-empty">
+                        No linked KDB relationships yet for this contact.
+                      </div>
                     </div>
+                  </div>
                   </div>
                 </q-card-section>
 
@@ -1997,7 +1997,7 @@ watch(displayRows, () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
+  padding: 0 16px;
   border-radius: 18px 18px 0 0;
   overflow: hidden;
   background: transparent;
@@ -2318,7 +2318,6 @@ watch(displayRows, () => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-left: 14px;
 }
 
 .contact-card__summary-view-toggle {
@@ -2406,21 +2405,17 @@ watch(displayRows, () => {
   margin-right: auto;
 }
 
-.contact-card__summary-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 4px;
-}
-
 .contact-card__summary-add-relation {
-  padding: 0;
-  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 2px 0 0;
   color: inherit;
   background: transparent;
   border: 0;
   box-shadow: none;
-  line-height: 1;
 }
 
 .contact-card__summary-add-relation :deep(.q-btn__content) {
@@ -2428,32 +2423,39 @@ watch(displayRows, () => {
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  min-height: 0;
-  line-height: 1;
 }
 
 .contact-card__summary-add-relation-plus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 14px;
-  min-width: 14px;
-  min-height: 14px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
   border-radius: 999px;
   color: #ffffff;
   background: #2647ff;
 }
 
 .contact-card__summary-add-relation-plus :deep(.q-icon) {
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .contact-card__summary-add-relation-label {
+  color: rgba(17, 17, 17, 0.86);
   font-family: var(--font-title);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: var(--font-weight-black);
+  line-height: 0.95;
   letter-spacing: 0.01em;
+}
+
+.contact-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
 }
 
 .contact-card__summary-body {
@@ -2653,10 +2655,10 @@ watch(displayRows, () => {
 }
 
 .contact-card__control-eye {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
   padding: 0;
   color: #111;
   background: transparent;
@@ -2665,12 +2667,12 @@ watch(displayRows, () => {
 }
 
 .contact-card__control-eye :deep(.q-icon) {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .contact-card__select-box {
   margin-left: -3.5px;
-  transform: scale(0.72);
+  transform: scale(0.75);
   transform-origin: center;
 }
 

@@ -1671,7 +1671,7 @@ watch(displayRows, () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
+  padding: 0 16px;
   border-radius: 18px 18px 0 0;
   overflow: hidden;
   background: transparent;
@@ -1851,7 +1851,6 @@ watch(displayRows, () => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-left: 14px;
 }
 
 .pipeline-card__summary-view-toggle {
@@ -1939,23 +1938,24 @@ watch(displayRows, () => {
   margin-right: auto;
 }
 
-.pipeline-card__summary-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 8px;
-}
-
 .pipeline-card__summary-add-relation {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  padding: 0;
+  gap: 6px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 2px 0 0;
   color: inherit;
   background: transparent;
   border: 0;
   box-shadow: none;
+}
+
+.pipeline-card__summary-add-relation :deep(.q-btn__content) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
 }
 
 .pipeline-card__summary-add-relation-plus {
@@ -1976,10 +1976,19 @@ watch(displayRows, () => {
 }
 
 .pipeline-card__summary-add-relation-label {
+  color: rgba(17, 17, 17, 0.86);
   font-family: var(--font-title);
-  font-size: 0.82rem;
+  font-size: 0.68rem;
   font-weight: var(--font-weight-black);
+  line-height: 0.95;
   letter-spacing: 0.01em;
+}
+
+.pipeline-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
 }
 
 .pipeline-card__summary-panel {
@@ -2060,16 +2069,16 @@ watch(displayRows, () => {
 
 .pipeline-card__select-box {
   margin-left: -3.5px;
-  transform: scale(0.72);
+  transform: scale(0.75);
   transform-origin: center;
 }
 
 
 .pipeline-card__control-eye {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
   padding: 0;
   color: #111;
   background: transparent;
@@ -2078,7 +2087,7 @@ watch(displayRows, () => {
 }
 
 .pipeline-card__control-eye :deep(.q-icon) {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 @media (max-width: 1200px) {
