@@ -254,12 +254,6 @@
                       :options="getCompanyRelationshipOptions(row)"
                       @update:model-value="setCompanyCardPanel(row, $event)"
                     />
-                    <q-btn flat round class="company-card__summary-add-relation" aria-label="Add Relation">
-                      <span class="company-card__summary-add-relation-plus">
-                        <q-icon name="add" />
-                      </span>
-                      <q-tooltip>Add Relation</q-tooltip>
-                    </q-btn>
                     <q-btn-toggle
                       :model-value="getCompanyCardContentView(row)"
                       dense
@@ -274,6 +268,15 @@
                   </div>
 
                   <div class="company-card__summary-panel">
+                    <div class="company-card__summary-panel-head">
+                      <q-btn flat no-caps class="company-card__summary-add-relation" aria-label="Add Relation">
+                        <span class="company-card__summary-add-relation-plus">
+                          <q-icon name="add" />
+                        </span>
+                        <span class="company-card__summary-add-relation-label">Add Relation</span>
+                        <q-tooltip>Add Relation</q-tooltip>
+                      </q-btn>
+                    </div>
                     <div class="company-card__summary-body">
                       <div class="company-card__summary-body-content">
                         <div
@@ -2632,11 +2635,12 @@ watch(
 }
 
 .company-card__summary-add-relation {
-  width: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 22px;
-  min-width: 22px;
   min-height: 22px;
-  padding: 0;
+  padding: 0 2px 0 0;
   color: inherit;
   background: transparent;
   border: 0;
@@ -2658,6 +2662,22 @@ watch(
 
 .company-card__summary-add-relation-plus :deep(.q-icon) {
   font-size: 11px;
+}
+
+.company-card__summary-add-relation-label {
+  color: rgba(17, 17, 17, 0.86);
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+}
+
+.company-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
 }
 
 .company-card__summary-panel {

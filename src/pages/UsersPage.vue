@@ -241,12 +241,6 @@
                       :options="getUserRelationshipOptions(user)"
                       @update:model-value="setUserCardPanel(user, $event)"
                     />
-                    <q-btn flat round class="user-card__summary-add-relation" aria-label="Add Relation">
-                      <span class="user-card__summary-add-relation-plus">
-                        <q-icon name="add" />
-                      </span>
-                      <q-tooltip>Add Relation</q-tooltip>
-                    </q-btn>
 
                     <q-btn-toggle
                       :model-value="getUserCardContentView(user)"
@@ -262,6 +256,15 @@
                   </div>
 
                   <div class="user-card__summary-panel">
+                    <div class="user-card__summary-panel-head">
+                      <q-btn flat no-caps class="user-card__summary-add-relation" aria-label="Add Relation">
+                        <span class="user-card__summary-add-relation-plus">
+                          <q-icon name="add" />
+                        </span>
+                        <span class="user-card__summary-add-relation-label">Add Relation</span>
+                        <q-tooltip>Add Relation</q-tooltip>
+                      </q-btn>
+                    </div>
                     <div class="user-card__summary-body">
                       <div class="user-card__summary-body-content">
                         <div
@@ -1568,11 +1571,12 @@ watch(
 }
 
 .user-card__summary-add-relation {
-  width: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 22px;
-  min-width: 22px;
   min-height: 22px;
-  padding: 0;
+  padding: 0 2px 0 0;
   color: inherit;
   background: transparent;
   border: 0;
@@ -1594,6 +1598,22 @@ watch(
 
 .user-card__summary-add-relation-plus :deep(.q-icon) {
   font-size: 11px;
+}
+
+.user-card__summary-add-relation-label {
+  color: rgba(17, 17, 17, 0.86);
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+}
+
+.user-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
 }
 
 .user-card__summary-panel {

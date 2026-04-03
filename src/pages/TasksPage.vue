@@ -259,12 +259,6 @@
                       :options="getTaskRelationshipOptions(row)"
                       @update:model-value="setTaskCardPanel(row, $event)"
                     />
-                    <q-btn flat round class="task-card__summary-add-relation" aria-label="Add Relation">
-                      <span class="task-card__summary-add-relation-plus">
-                        <q-icon name="add" />
-                      </span>
-                      <q-tooltip>Add Relation</q-tooltip>
-                    </q-btn>
                     <q-btn-toggle
                       :model-value="getTaskCardContentView(row)"
                       dense
@@ -279,6 +273,15 @@
                   </div>
 
                   <div class="task-card__summary-panel">
+                    <div class="task-card__summary-panel-head">
+                      <q-btn flat no-caps class="task-card__summary-add-relation" aria-label="Add Relation">
+                        <span class="task-card__summary-add-relation-plus">
+                          <q-icon name="add" />
+                        </span>
+                        <span class="task-card__summary-add-relation-label">Add Relation</span>
+                        <q-tooltip>Add Relation</q-tooltip>
+                      </q-btn>
+                    </div>
                     <div class="task-card__summary-body">
                       <div class="task-card__summary-body-content">
                         <div
@@ -1588,11 +1591,12 @@ watch(displayRows, () => {
 }
 
 .task-card__summary-add-relation {
-  width: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 22px;
-  min-width: 22px;
   min-height: 22px;
-  padding: 0;
+  padding: 0 2px 0 0;
   color: inherit;
   background: transparent;
   border: 0;
@@ -1614,6 +1618,22 @@ watch(displayRows, () => {
 
 .task-card__summary-add-relation-plus :deep(.q-icon) {
   font-size: 11px;
+}
+
+.task-card__summary-add-relation-label {
+  color: rgba(17, 17, 17, 0.86);
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+}
+
+.task-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
 }
 
 .task-card__summary-panel {
