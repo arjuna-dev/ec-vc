@@ -99,7 +99,7 @@
             </q-btn>
           </div>
 
-          <div class="contacts-toolbar__block contacts-toolbar__block--search">
+          <div class="contacts-toolbar__block contacts-toolbar__block--actions">
             <q-icon name="tune" size="18px" class="contacts-toolbar__filters-icon" />
             <q-input
               v-model="searchQuery"
@@ -1676,7 +1676,7 @@ watch(displayRows, () => {
 
 .contacts-toolbar {
   display: grid;
-  grid-template-columns: auto auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -1697,10 +1697,8 @@ watch(displayRows, () => {
   margin-right: 4px;
 }
 
-.contacts-toolbar__block--search {
+.contacts-toolbar__block--actions {
   grid-column: -2 / -1;
-  padding-top: 2px;
-  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
@@ -2687,7 +2685,7 @@ watch(displayRows, () => {
     align-items: stretch;
   }
 
-  .contacts-toolbar__block--search {
+  .contacts-toolbar__block--actions {
     grid-column: auto;
   }
 
