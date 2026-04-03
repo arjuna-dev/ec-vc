@@ -1453,8 +1453,7 @@
               <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
             <q-btn-toggle
-              v-if="!/kdb/i.test(activeGenericSection)"
-              v-model="genericSectionViewMode"
+              v-model="genericRecordTopNavViewMode"
               dense
               unelevated
               toggle-color="primary"
@@ -1491,23 +1490,7 @@
                       :options="genericKdbSectionOptions"
                     />
                   </div>
-                </div>
-
-                <div class="contact-kdb-artifacts-toolbar">
-                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
-                    <q-btn-toggle
-                      v-model="genericKdbViewMode"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
-                      :options="CONTACT_KDB_VIEW_OPTIONS"
-                    />
-                  </div>
-
-                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                  <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--kind">
                     <q-btn-toggle
                       v-model="genericKdbKindFilter"
                       dense
@@ -1516,19 +1499,19 @@
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
-                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                      class="contact-kdb-toolbar__toggle contact-kdb-toolbar__kind-toggle"
                       :options="genericKdbKindOptions"
                     />
                   </div>
 
-                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
-                    <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                  <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--search">
+                    <q-icon name="tune" size="18px" class="contact-kdb-toolbar__filters-icon" />
                     <q-input
                       v-model="genericKdbSearchQuery"
                       dense
                       outlined
                       borderless
-                      class="contact-kdb-artifacts-toolbar__search"
+                      class="contact-kdb-toolbar__search"
                       :placeholder="genericKdbSearchPlaceholder"
                     >
                       <template #prepend>
@@ -1827,8 +1810,7 @@
               <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
             <q-btn-toggle
-              v-if="!/kdb/i.test(activeGenericSection)"
-              v-model="genericSectionViewMode"
+              v-model="genericRecordTopNavViewMode"
               dense
               unelevated
               toggle-color="primary"
@@ -1855,23 +1837,7 @@
                     :options="genericKdbSectionOptions"
                   />
                 </div>
-              </div>
-
-              <div class="contact-kdb-artifacts-toolbar">
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
-                  <q-btn-toggle
-                    v-model="genericKdbViewMode"
-                    dense
-                    unelevated
-                    toggle-color="primary"
-                    color="grey-3"
-                    text-color="grey-8"
-                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
-                    :options="CONTACT_KDB_VIEW_OPTIONS"
-                  />
-                </div>
-
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--kind">
                   <q-btn-toggle
                     v-model="genericKdbKindFilter"
                     dense
@@ -1880,19 +1846,19 @@
                     toggle-color="dark"
                     color="white"
                     text-color="grey-8"
-                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                    class="contact-kdb-toolbar__toggle contact-kdb-toolbar__kind-toggle"
                     :options="genericKdbKindOptions"
                   />
                 </div>
 
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
-                  <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--search">
+                  <q-icon name="tune" size="18px" class="contact-kdb-toolbar__filters-icon" />
                   <q-input
                     v-model="genericKdbSearchQuery"
                     dense
                     outlined
                     borderless
-                    class="contact-kdb-artifacts-toolbar__search"
+                    class="contact-kdb-toolbar__search"
                     :placeholder="genericKdbSearchPlaceholder"
                   >
                     <template #prepend>
@@ -2035,8 +2001,7 @@
               <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
             <q-btn-toggle
-              v-if="!/kdb/i.test(activeGenericSection)"
-              v-model="genericSectionViewMode"
+              v-model="genericRecordTopNavViewMode"
               dense
               unelevated
               toggle-color="primary"
@@ -2063,23 +2028,7 @@
                     :options="genericKdbSectionOptions"
                   />
                 </div>
-              </div>
-
-              <div class="contact-kdb-artifacts-toolbar">
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
-                  <q-btn-toggle
-                    v-model="genericKdbViewMode"
-                    dense
-                    unelevated
-                    toggle-color="primary"
-                    color="grey-3"
-                    text-color="grey-8"
-                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
-                    :options="CONTACT_KDB_VIEW_OPTIONS"
-                  />
-                </div>
-
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
+                <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--kind">
                   <q-btn-toggle
                     v-model="genericKdbKindFilter"
                     dense
@@ -2088,19 +2037,19 @@
                     toggle-color="dark"
                     color="white"
                     text-color="grey-8"
-                    class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__kind-toggle"
+                    class="contact-kdb-toolbar__toggle contact-kdb-toolbar__kind-toggle"
                     :options="genericKdbKindOptions"
                   />
                 </div>
 
-                <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--search">
-                  <q-icon name="tune" size="18px" class="contact-kdb-artifacts-toolbar__filters-icon" />
+                <div class="contact-kdb-toolbar__block contact-kdb-toolbar__block--search">
+                  <q-icon name="tune" size="18px" class="contact-kdb-toolbar__filters-icon" />
                   <q-input
                     v-model="genericKdbSearchQuery"
                     dense
                     outlined
                     borderless
-                    class="contact-kdb-artifacts-toolbar__search"
+                    class="contact-kdb-toolbar__search"
                     :placeholder="genericKdbSearchPlaceholder"
                   >
                     <template #prepend>
@@ -3544,6 +3493,20 @@ const genericRecordNavItems = computed(() => {
 const activeGenericNavTitle = computed(
   () => genericRecordNavItems.value.find((section) => section.value === activeGenericSection.value)?.title || '',
 )
+const genericRecordTopNavViewMode = computed({
+  get() {
+    return /kdb/i.test(String(activeGenericSection.value || ''))
+      ? genericKdbViewMode.value
+      : genericSectionViewMode.value
+  },
+  set(value) {
+    if (/kdb/i.test(String(activeGenericSection.value || ''))) {
+      genericKdbViewMode.value = value || 'grid'
+      return
+    }
+    genericSectionViewMode.value = value || 'table'
+  },
+})
 const structuredRecordThemeMap = {
   Users: {
     strong: 'rgba(31, 111, 235, 0.2)',
@@ -5799,6 +5762,7 @@ onBeforeUnmount(() => {
 .contact-kdb-toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 0;
   background: transparent;
@@ -5814,11 +5778,27 @@ onBeforeUnmount(() => {
   flex: 1 1 auto;
 }
 
+.contact-kdb-toolbar__block--kind {
+  flex: 0 0 auto;
+}
+
+.contact-kdb-toolbar__block--search {
+  justify-content: flex-end;
+  margin-left: auto;
+  gap: 8px;
+  flex: 0 1 340px;
+}
+
 .contact-kdb-toolbar__toggle {
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
   box-shadow: none;
   overflow: hidden;
+}
+
+.contact-kdb-toolbar__filters-icon {
+  color: var(--ds-color-text-muted);
+  flex: 0 0 auto;
 }
 
 .contact-kdb-toolbar__view-toggle :deep(.q-btn) {
@@ -5842,6 +5822,35 @@ onBeforeUnmount(() => {
 .contact-kdb-toolbar__view-toggle :deep(.q-btn + .q-btn),
 .contact-kdb-toolbar__section-toggle :deep(.q-btn + .q-btn) {
   margin-left: 12px;
+}
+
+.contact-kdb-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.contact-kdb-toolbar__kind-toggle :deep(.q-btn) {
+  min-width: 84px;
+  padding-inline: 18px;
+}
+
+.contact-kdb-toolbar__search {
+  width: 100%;
+  min-width: 0;
+  background: var(--ds-control-surface);
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: var(--ds-control-shadow);
+}
+
+.contact-kdb-toolbar__search :deep(.q-field__control),
+.contact-kdb-toolbar__search :deep(.q-field__native),
+.contact-kdb-toolbar__search :deep(.q-field__input) {
+  min-height: var(--ds-control-height-md);
+  height: var(--ds-control-height-md);
+}
+
+.contact-kdb-toolbar__search :deep(.q-field__control) {
+  padding: 0 var(--ds-control-inline-padding);
 }
 
 .contact-kdb-rows {
@@ -6925,13 +6934,6 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 18px;
-}
-
-.contact-section-card__view-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-bottom: 14px;
 }
 
 .contact-section-card__view-toggle {
