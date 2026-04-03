@@ -161,7 +161,7 @@
           </q-table>
 
           <div v-else class="row q-col-gutter-md users-cards-grid">
-            <div v-for="row in displayRows" :key="row.id" class="col-12 col-md-6 col-lg-4">
+            <div v-for="user in displayRows" :key="user.id" class="col-12 col-md-6 col-lg-4">
               <q-card
                 flat
                 bordered
@@ -173,11 +173,11 @@
               >
                 <q-card-section class="user-card__control-row">
                   <q-checkbox
-                    :model-value="isUserSelected(row)"
+                    :model-value="isUserSelected(user)"
                     :disable="loading"
                     color="dark"
                     class="user-card__select-box"
-                    @update:model-value="toggleUserSelection(row, $event)"
+                    @update:model-value="toggleUserSelection(user, $event)"
                   />
 
                   <q-btn
@@ -186,7 +186,7 @@
                     icon="visibility"
                     class="user-card__control-eye"
                     :disable="loading"
-                    @click="openDatabook(row)"
+                    @click="openDatabook(user)"
                   />
                 </q-card-section>
 
@@ -196,9 +196,9 @@
                       <div class="user-card__portrait-shell" aria-hidden="true">
                         <div
                           class="user-card__portrait-badge"
-                          :style="{ backgroundColor: getUserAvatarColor(row.User_Name || 'User') }"
+                          :style="{ backgroundColor: getUserAvatarColor(user.User_Name || 'User') }"
                         >
-                          {{ getUserAvatarInitial(row.User_Name || 'User') }}
+                          {{ getUserAvatarInitial(user.User_Name || 'User') }}
                         </div>
                       </div>
                     </figure>
@@ -206,13 +206,13 @@
                     <div class="user-card__hero-side">
                       <div class="user-card__hero-copy">
                         <div class="user-card__title">
-                          {{ row.User_Name || 'Unnamed user' }}
+                          {{ user.User_Name || 'Unnamed user' }}
                         </div>
 
                         <div class="user-card__bottom-stack">
-                          <div v-if="getUserMetadataRows(row).length" class="user-card__detail-stack">
+                          <div v-if="getUserMetadataRows(user).length" class="user-card__detail-stack">
                             <div
-                              v-for="detail in getUserMetadataRows(row)"
+                              v-for="detail in getUserMetadataRows(user)"
                               :key="detail.label"
                               class="user-card__detail-row"
                             >
@@ -231,18 +231,19 @@
                 <q-card-section class="user-card__summary">
                   <div class="user-card__summary-head">
                     <q-btn-toggle
-                      :model-value="getUserCardPanel(row)"
+                      :model-value="getUserCardPanel(user)"
                       dense
                       unelevated
                       toggle-color="dark"
                       color="white"
                       text-color="grey-8"
                       class="user-card__summary-toggle"
-                      :options="getUserRelationshipOptions(row)"
-                      @update:model-value="setUserCardPanel(row, $event)"
+                      :options="getUserRelationshipOptions(user)"
+                      @update:model-value="setUserCardPanel(user, $event)"
                     />
+
                     <q-btn-toggle
-                      :model-value="getUserCardContentView(row)"
+                      :model-value="getUserCardContentView(user)"
                       dense
                       unelevated
                       toggle-color="primary"
@@ -250,7 +251,7 @@
                       text-color="grey-8"
                       class="user-card__summary-view-toggle"
                       :options="userCardContentViewOptions"
-                      @update:model-value="setUserCardContentView(row, $event)"
+                      @update:model-value="setUserCardContentView(user, $event)"
                     />
                   </div>
 
@@ -266,14 +267,14 @@
                     <div class="user-card__summary-body">
                       <div class="user-card__summary-body-content">
                         <div
-                          v-if="getUserActiveRelationshipItems(row).length"
+                          v-if="getUserActiveRelationshipItems(user).length"
                           :class="[
                             'user-card__notes-list',
-                            { 'user-card__notes-list--rows': getUserCardContentView(row) === 'table' },
+                            { 'user-card__notes-list--rows': getUserCardContentView(user) === 'table' },
                           ]"
                         >
                           <div
-                            v-for="item in getUserActiveRelationshipItems(row)"
+                            v-for="item in getUserActiveRelationshipItems(user)"
                             :key="item"
                             class="user-card__note-pill"
                           >
@@ -1303,7 +1304,7 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
+  padding: 0 16px;
   border-radius: 18px 18px 0 0;
   overflow: hidden;
   background: transparent;
@@ -1478,7 +1479,6 @@ watch(
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-left: 14px;
 }
 
 .user-card__summary-view-toggle,
@@ -1569,23 +1569,24 @@ watch(
   margin-right: auto;
 }
 
-.user-card__summary-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 8px;
-}
-
 .user-card__summary-add-relation {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  padding: 0;
+  gap: 6px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 2px 0 0;
   color: inherit;
   background: transparent;
   border: 0;
   box-shadow: none;
+}
+
+.user-card__summary-add-relation :deep(.q-btn__content) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
 }
 
 .user-card__summary-add-relation-plus {
@@ -1606,10 +1607,19 @@ watch(
 }
 
 .user-card__summary-add-relation-label {
+  color: rgba(17, 17, 17, 0.86);
   font-family: var(--font-title);
-  font-size: 0.82rem;
+  font-size: 0.68rem;
   font-weight: var(--font-weight-black);
+  line-height: 0.95;
   letter-spacing: 0.01em;
+}
+
+.user-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
 }
 
 .user-card__summary-panel {
@@ -1670,10 +1680,10 @@ watch(
 }
 
 .user-card__control-eye {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
   padding: 0;
   color: #111;
   background: transparent;
@@ -1682,12 +1692,12 @@ watch(
 }
 
 .user-card__control-eye :deep(.q-icon) {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .user-card__select-box {
   margin-left: -3.5px;
-  transform: scale(0.72);
+  transform: scale(0.75);
   transform-origin: center;
 }
 

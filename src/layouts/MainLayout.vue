@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+    <q-layout view="lHh Lpr lFf">
     <q-header :height-hint="108" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <div class="ec-shell-toolbar-heading">
@@ -70,9 +70,11 @@
               @click="toggleDrawerSection(section.key)"
             >
               <q-item-section>
-                <q-item-label header class="ec-nav-label" :class="section.labelClass">{{
-                  section.label
-                }}</q-item-label>
+                <q-item-label
+                  header
+                  class="ec-nav-label"
+                  :class="section.labelClass"
+                >{{ section.label }}</q-item-label>
               </q-item-section>
               <q-item-section side>
                 <q-icon
@@ -84,64 +86,62 @@
 
             <template v-if="isDrawerSectionOpen(section.key)">
               <template v-for="item in section.items" :key="item.label">
-                <template v-if="!item.parentKey || isDrawerSectionOpen(item.parentKey)">
-                  <q-item
-                    v-if="item.kind === 'toggle'"
-                    clickable
-                    dense
-                    class="ec-nav-item"
-                    :class="item.itemClass"
-                    @click="toggleDrawerSection(item.toggleKey)"
-                  >
-                    <q-item-section avatar>
-                      <q-icon
-                        :name="item.icon"
-                        :size="item.iconSize || '24px'"
-                        :class="item.iconClass"
-                      />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>{{ item.label }}</q-item-label>
-                    </q-item-section>
-                    <q-item-section side>
-                      <q-icon
-                        :name="isDrawerSectionOpen(item.toggleKey) ? 'expand_less' : 'expand_more'"
-                        size="18px"
-                      />
-                    </q-item-section>
-                  </q-item>
-                  <q-item
-                    v-else-if="item.kind === 'subheader'"
-                    dense
-                    class="ec-nav-subheader"
-                    :class="item.itemClass"
-                  >
-                    <q-item-section>
-                      <q-item-label class="ec-nav-label" :class="item.labelClass">{{
-                        item.label
-                      }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item
-                    v-else
-                    clickable
-                    :to="item.to"
-                    :exact="item.exact"
-                    class="ec-nav-item"
-                    :class="item.itemClass"
-                  >
-                    <q-item-section avatar>
-                      <q-icon
-                        :name="item.icon"
-                        :size="item.iconSize || '24px'"
-                        :class="item.iconClass"
-                      />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>{{ item.label }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </template>
+              <template v-if="!item.parentKey || isDrawerSectionOpen(item.parentKey)">
+              <q-item
+                v-if="item.kind === 'toggle'"
+                clickable
+                dense
+                class="ec-nav-item"
+                :class="item.itemClass"
+                @click="toggleDrawerSection(item.toggleKey)"
+              >
+                <q-item-section avatar>
+                  <q-icon
+                    :name="item.icon"
+                    :size="item.iconSize || '24px'"
+                    :class="item.iconClass"
+                  />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ item.label }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-icon
+                    :name="isDrawerSectionOpen(item.toggleKey) ? 'expand_less' : 'expand_more'"
+                    size="18px"
+                  />
+                </q-item-section>
+              </q-item>
+              <q-item
+                v-else-if="item.kind === 'subheader'"
+                dense
+                class="ec-nav-subheader"
+                :class="item.itemClass"
+              >
+                <q-item-section>
+                  <q-item-label class="ec-nav-label" :class="item.labelClass">{{ item.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item
+                v-else
+                clickable
+                :to="item.to"
+                :exact="item.exact"
+                class="ec-nav-item"
+                :class="item.itemClass"
+              >
+                <q-item-section avatar>
+                  <q-icon
+                    :name="item.icon"
+                    :size="item.iconSize || '24px'"
+                    :class="item.iconClass"
+                  />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ item.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              </template>
               </template>
             </template>
           </q-list>
@@ -157,7 +157,10 @@
       <router-view />
     </q-page-container>
 
-    <div v-if="intakeDraftCount > 0 && !draftTrayDismissed" class="ec-intake-drafts">
+    <div
+      v-if="intakeDraftCount > 0 && !draftTrayDismissed"
+      class="ec-intake-drafts"
+    >
       <div class="ec-intake-drafts__header">
         <div>
           <div class="ec-intake-drafts__eyebrow">Draft Files</div>
@@ -174,7 +177,11 @@
       </div>
 
       <div class="ec-intake-drafts__list">
-        <div v-for="draft in intakeDrafts" :key="draft.id" class="ec-intake-drafts__item">
+        <div
+          v-for="draft in intakeDrafts"
+          :key="draft.id"
+          class="ec-intake-drafts__item"
+        >
           <div class="ec-intake-drafts__item-copy">
             <div class="ec-intake-drafts__item-title">{{ draftPrimaryLabel(draft) }}</div>
             <div class="ec-intake-drafts__item-meta">
@@ -237,14 +244,12 @@
           <div class="ec-quick-widget-settings-panel">
             <div
               class="ec-quick-widget-settings-panel__header"
-              :class="{
-                'ec-quick-widget-settings-panel__header--dragging': quickWidgetSettingsIsDragging,
-              }"
+              :class="{ 'ec-quick-widget-settings-panel__header--dragging': quickWidgetSettingsIsDragging }"
               @pointerdown.stop="onQuickWidgetSettingsPointerDown"
             >
               <div class="ec-quick-widget-settings-panel__title">Widget Settings</div>
               <div class="ec-quick-widget-settings-panel__caption">
-                Show, hide, and reorder the files in your widget.
+                Show, hide and reorder files
               </div>
             </div>
 
@@ -275,18 +280,24 @@
                     flat
                     dense
                     round
-                    icon="keyboard_arrow_up"
                     :disable="settingsIndex === 0"
                     @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
-                  />
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="ec-quick-widget-settings-row__chevron">
+                      <path d="M7 14L12 9L17 14" />
+                    </svg>
+                  </q-btn>
                   <q-btn
                     flat
                     dense
                     round
-                    icon="keyboard_arrow_down"
                     :disable="settingsIndex === quickWidgetActionCatalog.length - 1"
                     @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
-                  />
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="ec-quick-widget-settings-row__chevron">
+                      <path d="M7 10L12 15L17 10" />
+                    </svg>
+                  </q-btn>
                 </div>
               </div>
             </div>
@@ -371,10 +382,7 @@
           <div class="text-caption text-grey-7">{{ intakeQueueDialogCaption }}</div>
         </q-card-section>
 
-        <q-card-section
-          v-if="activeIntakeQueueItem?.kind === 'field-review'"
-          class="q-px-lg q-pb-md"
-        >
+        <q-card-section v-if="activeIntakeQueueItem?.kind === 'field-review'" class="q-px-lg q-pb-md">
           <div class="column q-gutter-md">
             <div
               v-for="field in intakeQueueEditableFields"
@@ -383,9 +391,7 @@
             >
               <div class="ec-intake-queue-field__meta">
                 <div class="ec-intake-queue-field__label">{{ field.label }}</div>
-                <div class="ec-intake-queue-field__caption">
-                  {{ field.owner }} to {{ field.target }}
-                </div>
+                <div class="ec-intake-queue-field__caption">{{ field.owner }} to {{ field.target }}</div>
               </div>
               <q-input
                 v-model="intakeQueueFieldEdits[field.key]"
@@ -425,14 +431,8 @@
       </q-card>
     </q-dialog>
 
-    <CompanyCreateDialog
-      v-model="globalCompanyDialogOpen"
-      :initial-data="globalCreateInitialData"
-    />
-    <ContactCreateDialog
-      v-model="globalContactDialogOpen"
-      :initial-data="globalCreateInitialData"
-    />
+    <CompanyCreateDialog v-model="globalCompanyDialogOpen" :initial-data="globalCreateInitialData" />
+    <ContactCreateDialog v-model="globalContactDialogOpen" :initial-data="globalCreateInitialData" />
     <FundCreateDialog v-model="globalFundDialogOpen" :initial-data="globalCreateInitialData" />
     <RoundCreateDialog v-model="globalRoundDialogOpen" :initial-data="globalCreateInitialData" />
     <ArtifactAddDialog v-model="artifactDialogOpen" />
@@ -492,7 +492,6 @@ const globalFundDialogOpen = ref(false)
 const globalRoundDialogOpen = ref(false)
 const globalCreateInitialData = ref(null)
 const drawerSectionOpen = ref({
-  preferences: true,
   main: true,
   radars: true,
   workspace: true,
@@ -577,9 +576,7 @@ const intakeDrafts = computed(() =>
 )
 const activeIntakeQueueItem = computed(() => {
   const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
-  return (
-    intakeReviewQueueState.items.find((item) => String(item?.id || '').trim() === activeId) || null
-  )
+  return intakeReviewQueueState.items.find((item) => String(item?.id || '').trim() === activeId) || null
 })
 const intakeQueueDialogTitle = computed(
   () => activeIntakeQueueItem.value?.payload?.title || 'Review extracted data',
@@ -882,10 +879,7 @@ function draftWithFieldReviewApplied(draft = {}, fields = []) {
               },
               contactLinkMode: draft?.contactLinkMode || 'new',
             }
-          : createFieldSourceSnapshot(
-              value,
-              nextOpportunityForm.kind || draft?.opportunityForm?.kind || '',
-            )
+          : createFieldSourceSnapshot(value, nextOpportunityForm.kind || draft?.opportunityForm?.kind || '')
   }
 
   for (const field of fields) {
@@ -1020,9 +1014,7 @@ function closeGlobalCreateDialogs() {
 function openActiveEntityCreateDialog() {
   const activeItem = activeIntakeQueueItem.value
   if (!activeItem || activeItem.kind !== 'entity-create') return
-  const entityTypeName = String(activeItem.payload?.entityType || '')
-    .trim()
-    .toLowerCase()
+  const entityTypeName = String(activeItem.payload?.entityType || '').trim().toLowerCase()
   globalCreateInitialData.value = {
     entityType: entityTypeName,
     entity: JSON.parse(JSON.stringify(activeItem.payload?.entity || {})),
@@ -1073,12 +1065,7 @@ function resumeDraft(draftId) {
     return
   }
 
-  const kind =
-    String(draft?.opportunityForm?.kind || '')
-      .trim()
-      .toLowerCase() === 'fund'
-      ? 'fund'
-      : 'round'
+  const kind = String(draft?.opportunityForm?.kind || '').trim().toLowerCase() === 'fund' ? 'fund' : 'round'
   const eventName = kind === 'fund' ? 'ecvc:open-fund-dialog' : 'ecvc:open-round-dialog'
   const routeName = kind === 'fund' ? 'funds' : 'rounds'
   const flagName = kind === 'fund' ? '__ecvcOpenFundDialog' : '__ecvcOpenRoundDialog'
@@ -1137,8 +1124,7 @@ function persistQuickWidgetPosition() {
 }
 
 function normalizeQuickWidgetActionSettings(rawSettings = {}) {
-  const enabledInput =
-    rawSettings?.enabled && typeof rawSettings.enabled === 'object' ? rawSettings.enabled : {}
+  const enabledInput = rawSettings?.enabled && typeof rawSettings.enabled === 'object' ? rawSettings.enabled : {}
   const orderInput = Array.isArray(rawSettings?.order) ? rawSettings.order : []
   const order = [
     ...orderInput.filter((id) => DEFAULT_QUICK_WIDGET_ACTION_ORDER.includes(id)),
@@ -1225,8 +1211,7 @@ function onQuickWidgetSettingsPointerDown(evt) {
 }
 
 function onQuickWidgetSettingsPointerMove(evt) {
-  if (!quickWidgetSettingsDragState || evt.pointerId !== quickWidgetSettingsDragState.pointerId)
-    return
+  if (!quickWidgetSettingsDragState || evt.pointerId !== quickWidgetSettingsDragState.pointerId) return
   const dx = evt.clientX - quickWidgetSettingsDragState.startX
   const dy = evt.clientY - quickWidgetSettingsDragState.startY
   quickWidgetSettingsOffset.value = {
@@ -1236,8 +1221,7 @@ function onQuickWidgetSettingsPointerMove(evt) {
 }
 
 function onQuickWidgetSettingsPointerUp(evt) {
-  if (!quickWidgetSettingsDragState || evt.pointerId !== quickWidgetSettingsDragState.pointerId)
-    return
+  if (!quickWidgetSettingsDragState || evt.pointerId !== quickWidgetSettingsDragState.pointerId) return
   quickWidgetSettingsIsDragging.value = false
   quickWidgetSettingsDragState = null
   window.removeEventListener('pointermove', onQuickWidgetSettingsPointerMove)
@@ -1361,13 +1345,9 @@ function quickWidgetActionStyle(index) {
 }
 
 function quickOpportunityBranchActionStyle(index) {
-  const opportunityIndex = quickWidgetRingActions.value.findIndex(
-    (action) => action.id === 'opportunity',
-  )
+  const opportunityIndex = quickWidgetRingActions.value.findIndex((action) => action.id === 'opportunity')
   const parentOffset =
-    opportunityIndex >= 0
-      ? quickWidgetActionOffset(opportunityIndex)
-      : { x: 0, y: -QUICK_WIDGET_ACTION_RADIUS }
+    opportunityIndex >= 0 ? quickWidgetActionOffset(opportunityIndex) : { x: 0, y: -QUICK_WIDGET_ACTION_RADIUS }
   const parentAngle = quickWidgetActionAngle(opportunityIndex >= 0 ? opportunityIndex : 0)
   const branchAngle = parentAngle + (index === 0 ? -30 : 30)
   const branchAngleRad = (branchAngle * Math.PI) / 180
@@ -1676,8 +1656,8 @@ onBeforeUnmount(() => {
   logoAnimation = null
   quickWidgetIconAnimation = null
   quickWidgetDragState = null
-  clearIntakeQueueNextTimer()
   quickWidgetSettingsDragState = null
+  clearIntakeQueueNextTimer()
 })
 
 watch(
@@ -1747,6 +1727,7 @@ function goBack() {
 
   router.push({ name: 'home' })
 }
+
 </script>
 
 <style scoped>
@@ -2055,9 +2036,9 @@ function goBack() {
 }
 
 .ec-quick-widget-settings-panel {
-  width: 320px;
-  max-width: min(320px, calc(100vw - 24px));
-  padding: 8px;
+  width: 200px;
+  max-width: min(200px, calc(100vw - 16px));
+  padding: 5px;
   background: rgba(17, 17, 17, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.28);
@@ -2067,8 +2048,8 @@ function goBack() {
 .ec-quick-widget-settings-panel__header {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding-bottom: 6px;
+  gap: 1px;
+  padding-bottom: 4px;
   cursor: grab;
   user-select: none;
 }
@@ -2095,65 +2076,85 @@ function goBack() {
 
 .ec-quick-widget-settings-panel__caption {
   color: rgba(255, 255, 255, 0.68);
-  font-size: 10px;
-  line-height: 1.25;
+  font-size: 9px;
+  line-height: 1.2;
 }
 
 .ec-quick-widget-settings-panel__list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .ec-quick-widget-settings-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 14px minmax(0, 1fr) 28px;
   align-items: center;
-  gap: 6px;
-  padding: 4px 7px;
-  border-radius: 8px;
+  gap: 3px;
+  padding: 4px 4px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.045);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ec-quick-widget-settings-row__copy {
+  min-width: 0;
 }
 
 .ec-quick-widget-settings-row__label {
   color: #ffffff;
   font-family: var(--font-title);
-  font-size: 0.72rem;
+  font-size: 0.64rem;
   font-weight: var(--font-weight-black);
   line-height: 0.96;
   letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ec-quick-widget-settings-row__toggle-spacer {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
 }
 
 .ec-quick-widget-settings-row__actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 14px 14px;
   align-items: center;
   gap: 0;
+  justify-content: end;
 }
 
 .ec-quick-widget-settings-row__actions :deep(.q-btn) {
-  color: rgba(255, 255, 255, 0.78);
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
+  color: rgba(255, 255, 255, 0.42);
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  min-height: 14px;
+  padding: 0;
+}
+
+.ec-quick-widget-settings-row__chevron {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 1.45;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .ec-quick-widget-settings-row__actions :deep(.q-btn:disabled) {
-  color: rgba(255, 255, 255, 0.24) !important;
+  color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .ec-quick-widget-settings-row__checkbox {
-  min-height: 18px;
+  min-height: 16px;
 }
 
 .ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__inner) {
-  font-size: 18px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.34) !important;
 }
 

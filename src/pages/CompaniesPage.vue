@@ -644,7 +644,7 @@ const viewOptions = [
 const companyTableTabs = [
   { label: 'Cards', value: 'cards' },
   { label: 'All', value: 'all' },
-  { label: 'System Data', value: 'metadata' },
+  { label: 'Metadata', value: 'metadata' },
   { label: 'KDB Relations', value: 'kdb-relations' },
   { label: 'Incorporation', value: 'incorporation' },
   { label: 'Documents', value: 'documents' },
@@ -2378,7 +2378,7 @@ watch(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
+  padding: 0 16px;
   border-radius: 18px 18px 0 0;
   overflow: hidden;
   background: transparent;
@@ -2546,7 +2546,6 @@ watch(
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-left: 14px;
 }
 
 .company-card__summary-view-toggle {
@@ -2634,23 +2633,24 @@ watch(
   margin-right: auto;
 }
 
-.company-card__summary-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 8px;
-}
-
 .company-card__summary-add-relation {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  padding: 0;
+  gap: 6px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 2px 0 0;
   color: inherit;
   background: transparent;
   border: 0;
   box-shadow: none;
+}
+
+.company-card__summary-add-relation :deep(.q-btn__content) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
 }
 
 .company-card__summary-add-relation-plus {
@@ -2671,10 +2671,19 @@ watch(
 }
 
 .company-card__summary-add-relation-label {
+  color: rgba(17, 17, 17, 0.86);
   font-family: var(--font-title);
-  font-size: 0.82rem;
+  font-size: 0.68rem;
   font-weight: var(--font-weight-black);
+  line-height: 0.95;
   letter-spacing: 0.01em;
+}
+
+.company-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
 }
 
 .company-card__summary-panel {
@@ -2763,16 +2772,16 @@ watch(
 
 .company-card__select-box {
   margin-left: -3.5px;
-  transform: scale(0.72);
+  transform: scale(0.75);
   transform-origin: center;
 }
 
 
 .company-card__control-eye {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
   padding: 0;
   color: #111;
   background: transparent;
@@ -2781,7 +2790,7 @@ watch(
 }
 
 .company-card__control-eye :deep(.q-icon) {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .companies-section-table {
