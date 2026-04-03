@@ -410,6 +410,16 @@
               <span class="contact-databook__nav-item-label">{{ section.title }}</span>
               <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
+            <q-btn-toggle
+              v-model="contactKdbViewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+              :options="CONTACT_KDB_VIEW_OPTIONS"
+            />
           </section>
 
           <section class="contact-databook__details">
@@ -470,19 +480,6 @@
                 </div>
 
                 <div class="contact-kdb-artifacts-toolbar">
-                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
-                    <q-btn-toggle
-                      v-model="contactKdbViewMode"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
-                      :options="contactKdbViewOptions"
-                    />
-                  </div>
-
                   <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
                     <q-btn-toggle
                       v-model="contactKdbKindFilter"
@@ -988,6 +985,16 @@
               <span class="contact-databook__nav-item-label">{{ section.title }}</span>
               <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
+            <q-btn-toggle
+              v-model="companyKdbViewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+              :options="CONTACT_KDB_VIEW_OPTIONS"
+            />
           </section>
 
           <section class="contact-databook__details">
@@ -1048,19 +1055,6 @@
                 </div>
 
                 <div class="contact-kdb-artifacts-toolbar">
-                  <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--view">
-                    <q-btn-toggle
-                      v-model="companyKdbViewMode"
-                      dense
-                      unelevated
-                      toggle-color="primary"
-                      color="grey-3"
-                      text-color="grey-8"
-                      class="contact-kdb-artifacts-toolbar__toggle contact-kdb-artifacts-toolbar__view-toggle"
-                      :options="companyKdbViewOptions"
-                    />
-                  </div>
-
                   <div class="contact-kdb-artifacts-toolbar__block contact-kdb-artifacts-toolbar__block--kind">
                     <q-btn-toggle
                       v-model="companyKdbKindFilter"
@@ -3749,9 +3743,7 @@ const companyHeroNotes = computed(() =>
 )
 const contactHeroDocuments = computed(() => contactDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
 const companyHeroDocuments = computed(() => companyDocuments.value.slice(0, CONTACT_HERO_DOCUMENTS_LIMIT))
-const contactKdbViewOptions = CONTACT_KDB_VIEW_OPTIONS
 const contactKdbSectionOptions = CONTACT_KDB_SECTION_OPTIONS
-const companyKdbViewOptions = CONTACT_KDB_VIEW_OPTIONS
 const companyKdbSectionOptions = CONTACT_KDB_SECTION_OPTIONS
 const contactKdbItemsBySection = computed(() => ({
   artifacts: contactDocuments.value.map((document) => ({
@@ -5882,7 +5874,7 @@ onBeforeUnmount(() => {
 
 .contact-kdb-artifacts-toolbar {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -5917,12 +5909,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.contact-kdb-artifacts-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
-}
-
-.contact-kdb-artifacts-toolbar__view-toggle :deep(.q-btn + .q-btn),
 .contact-kdb-artifacts-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
 }
