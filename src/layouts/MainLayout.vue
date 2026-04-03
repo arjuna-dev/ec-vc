@@ -472,6 +472,7 @@ import {
 } from 'src/utils/intakeDraftState'
 import { useBreadcrumbActionsState } from 'src/utils/breadcrumbActionsState'
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
+import { TEST_SHELL_SECTION_OPTIONS, WORKSPACE_FILE_NAV_ITEMS } from 'src/utils/structureRegistry'
 import {
   activateNextIntakeReviewItem,
   dismissIntakeReviewItem,
@@ -539,14 +540,8 @@ const mainNavigationItems = [
   iconSize: '22px',
 }))
 const workspaceNavigationItems = [
-  { label: 'Users', to: '/users', exact: true, icon: 'badge' },
-  { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
-  { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
-  { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
+  ...WORKSPACE_FILE_NAV_ITEMS,
   { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
-  { label: 'Projects', to: '/projects', exact: true, icon: 'schema' },
-  { label: 'Notes', to: '/notes', exact: true, icon: 'note' },
-  { label: 'Tasks', to: '/tasks', exact: true, icon: 'check_circle' },
   { label: 'Test Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
 ].map((item) => ({
@@ -666,12 +661,7 @@ const toolbarActions = computed(() => {
   return []
 })
 const isTestShellRoute = computed(() => String(route.name || '') === 'test-shell')
-const testShellSectionOptions = [
-  { label: 'Tasks', value: 'tasks' },
-  { label: 'Notes', value: 'notes' },
-  { label: 'Companies', value: 'companies' },
-  { label: 'Contacts', value: 'contacts' },
-]
+const testShellSectionOptions = TEST_SHELL_SECTION_OPTIONS
 const selectedTestShellSection = computed({
   get() {
     const current = String(route.query.section || '').trim().toLowerCase()

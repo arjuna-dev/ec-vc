@@ -117,6 +117,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
+import {
+  getFilePageRegistryEntry,
+  LEVEL_2_FILE_REGISTRY_BY_KEY,
+  LEVEL_3_FILE_REGISTRY_BY_KEY,
+  TEST_SHELL_SECTION_OPTIONS,
+} from 'src/utils/structureRegistry'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -127,7 +133,7 @@ const viewOptions = [
   { value: 'table', icon: 'view_list' },
 ]
 
-const shellPreviewConfigs = {
+const shellPreviewOverrides = {
   tasks: {
     heroTitle: 'Keep the next actions visible and moving.',
     heroText: 'Preview how the shared shell feels for a tasks-style page before the cards underneath take over.',
@@ -229,14 +235,14 @@ const shellPreviewConfigs = {
 const selectedShellKey = computed({
   get() {
     const current = String(route.query.section || '').trim().toLowerCase()
-    return Object.prototype.hasOwnProperty.call(shellPreviewConfigs, current) ? current : 'tasks'
+    return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current) ? current : 'tasks'
   },
   set(value) {
     const normalized = String(value || '').trim().toLowerCase()
     router.replace({
       query: {
         ...route.query,
-        section: Object.prototype.hasOwnProperty.call(shellPreviewConfigs, normalized) ? normalized : 'tasks',
+        section: TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : 'tasks',
       },
     })
   },
@@ -246,7 +252,7 @@ const searchQuery = ref('')
 const selectedRows = ref([])
 const pagination = ref({ page: 1, rowsPerPage: 6 })
 
-const activeShell = computed(() => shellPreviewConfigs[selectedShellKey.value] || shellPreviewConfigs.tasks)
+const activeShell = computed(() => buildShellPreviewConfig(selectedShellKey.value))
 const viewMode = computed({
   get: () => (showTableView.value ? 'table' : 'card'),
   set: (value) => {
@@ -329,6 +335,91 @@ function notifyAction(label) {
     type: 'info',
     message: `${label} is only wired as a shell preview here.`,
   })
+}
+
+function buildShellPreviewConfig(shellKey) {
+  const registryEntry = getFilePageRegistryEntry(shellKey) || getFilePageRegistryEntry('tasks')
+  const override = shellPreviewOverrides[shellKey] || {}
+  const level2 = LEVEL_2_FILE_REGISTRY_BY_KEY[registryEntry.key] || []
+  const level3 = LEVEL_3_FILE_REGISTRY_BY_KEY[registryEntry.key] || []
+  const rows = override.rows || buildRegistryRows(registryEntry.key)
+  const systemSections = level2.filter((section) => /system data/i.test(section.label))
+  const kdbSections = level2.filter((section) => /kdb relations/i.test(section.label))
+  const totalSections = level2.length || 1
+  const sparseWidth = Math.round((systemSections.length / totalSections) * 100)
+  const mediumWidth = Math.round((kdbSections.length / totalSections) * 100)
+
+  return {
+    heroTitle: override.heroTitle || `Preview ${registryEntry.label} in the shared shell.`,
+    heroText:
+      override.heroText ||
+      `${registryEntry.label} currently exposes ${level2.length} level-2 sections and ${level3.length} level-3 tokens in the merged registry.`,
+    healthLabel: override.healthLabel || 'Registry coverage',
+    healthText:
+      override.healthText ||
+      `${level2.length} level-2 sections, ${level3.length} level-3 tokens, ${rows.length} preview rows`,
+    copyJustify: override.copyJustify || 'space-between',
+    eyebrowLetterSpacing: override.eyebrowLetterSpacing || '0.12em',
+    searchPlaceholder: override.searchPlaceholder || `Search ${registryEntry.label.toLowerCase()} preview...`,
+    stats:
+      override.stats ||
+      [
+        { label: 'L1', value: registryEntry.level_1, caption: registryEntry.label, tone: 'neutral' },
+        { label: 'L2', value: level2.length, caption: 'Registered subsections', tone: 'rich' },
+        { label: 'L3', value: level3.length, caption: 'Registered tokens', tone: 'neutral' },
+        { label: 'Preview', value: rows.length, caption: 'Rows in this sandbox slice', tone: 'sparse' },
+      ],
+    healthSegments: override.healthSegments || [
+      { tone: 'sparse', width: sparseWidth },
+      { tone: 'medium', width: mediumWidth },
+      { tone: 'rich', width: Math.max(0, 100 - sparseWidth - mediumWidth) },
+    ],
+    rows,
+  }
+}
+
+function buildRegistryRows(shellKey) {
+  const registryEntry = getFilePageRegistryEntry(shellKey) || getFilePageRegistryEntry('tasks')
+  const level2 = LEVEL_2_FILE_REGISTRY_BY_KEY[registryEntry.key] || []
+  const level3 = LEVEL_3_FILE_REGISTRY_BY_KEY[registryEntry.key] || []
+  const tokensByParentKey = Object.fromEntries(
+    level2.map((section) => [
+      section.key,
+      level3.filter((token) => token.parentKey === section.key),
+    ]),
+  )
+
+  return level2.slice(0, 3).map((section, index) => {
+    const sectionTokens = tokensByParentKey[section.key] || []
+    const tokenLabels = sectionTokens.slice(0, 3).map((token) => token.label)
+    return buildRow(
+      `${registryEntry.key}-${section.key}-${index}`,
+      section.label,
+      `${sectionTokens.length} token${sectionTokens.length === 1 ? '' : 's'} in ${section.address || `L1.${section.level_2}.0`}`,
+      [`L2 ${section.level_2 || '-'}`, ...tokenLabels.slice(0, 2)],
+      tokenLabels.length
+        ? `First fields: ${tokenLabels.join(', ')}${sectionTokens.length > tokenLabels.length ? ', ...' : ''}.`
+        : 'This subsection does not yet expose token rows in the merged registry.',
+      getPreviewRowColor(registryEntry.key, index),
+    )
+  })
+}
+
+function getPreviewRowColor(shellKey, index) {
+  const paletteByKey = {
+    artifacts: ['#7c3aed', '#1d4ed8', '#0f766e'],
+    users: ['#2563eb', '#0f766e', '#7c3aed'],
+    contacts: ['#2647ff', '#7c3aed', '#be185d'],
+    companies: ['#2563eb', '#0f766e', '#b45309'],
+    funds: ['#0f766e', '#2563eb', '#1d4ed8'],
+    rounds: ['#1d4ed8', '#0f766e', '#7c3aed'],
+    projects: ['#2563eb', '#0f766e', '#be185d'],
+    tasks: ['#2647ff', '#0f766e', '#b45309'],
+    notes: ['#7c3aed', '#be185d', '#1d4ed8'],
+  }
+
+  const palette = paletteByKey[shellKey] || ['#2563eb', '#0f766e', '#7c3aed']
+  return palette[index % palette.length]
 }
 </script>
 
