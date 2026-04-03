@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Pipelines requires Electron. Run <code>quasar dev -m electron</code> or
+        Projects requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -71,7 +71,49 @@
         </div>
 
         <div class="pipelines-toolbar">
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--view">
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--primary">
+            <q-checkbox
+              :model-value="allVisibleProjectsSelected"
+              :indeterminate="someVisibleProjectsSelected && !allVisibleProjectsSelected"
+              :disable="loading || displayRows.length === 0"
+              color="dark"
+              class="pipelines-toolbar__select-all"
+              @update:model-value="toggleSelectAllVisibleProjects"
+            />
+            <q-btn
+              no-caps
+              unelevated
+              class="pipelines-toolbar__add-button"
+              :disable="loading"
+              @click="openCreatePipeline"
+            >
+              <span class="pipelines-toolbar__add-button-inner">
+                <span class="pipelines-toolbar__add-button-plus">
+                  <q-icon name="add" />
+                </span>
+                <span class="pipelines-toolbar__add-button-label">Add Record</span>
+              </span>
+            </q-btn>
+            <q-btn dense flat round icon="download" color="grey-6" class="pipelines-toolbar__icon-button" :disable="loading" @click="pickImportFile">
+              <q-tooltip>Import CSV</q-tooltip>
+            </q-btn>
+          </div>
+
+          <div class="pipelines-toolbar__block pipelines-toolbar__block--actions">
+            <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
+            <q-input
+              v-model="searchQuery"
+              dense
+              outlined
+              borderless
+              class="pipelines-toolbar__search"
+              placeholder="Search projects..."
+              :disable="loading"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
             <q-btn-toggle
               v-model="viewMode"
               dense
@@ -83,44 +125,6 @@
               :disable="loading"
               :options="viewOptions"
             />
-          </div>
-
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="pipelineKindFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="pipelines-toolbar__toggle pipelines-toolbar__kind-toggle"
-              :disable="loading"
-              :options="pipelineKindOptions"
-            />
-          </div>
-
-          <div class="pipelines-toolbar__block pipelines-toolbar__block--search">
-            <q-icon name="tune" size="18px" class="pipelines-toolbar__filters-icon" />
-            <q-input
-              v-model="searchQuery"
-              dense
-              outlined
-              borderless
-              class="pipelines-toolbar__search"
-              placeholder="Search pipelines..."
-              :disable="loading"
-            >
-              <template #prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn dense flat round icon="download" color="grey-6" :disable="loading" @click="pickImportFile">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn dense flat round icon="upload" color="grey-6" :disable="loading || displayRows.length === 0" @click="exportPipelinesCsv">
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
           </div>
         </div>
 
@@ -213,82 +217,130 @@
               :key="row.pipeline_id"
               class="col-12 col-sm-6 col-lg-4"
             >
-              <q-card flat bordered class="pipeline-card full-height">
-                <q-card-section class="pipeline-card__shell">
-                  <aside class="pipeline-card__stage-panel">
-                    <div class="pipeline-card__summary-label">Stages</div>
-
-                    <div v-if="getPipelineCardStages(row).length" class="pipeline-card__stage-map">
-                      <div
-                        v-for="(stage, stageIndex) in getPipelineCardStages(row)"
-                        :key="`${row.pipeline_id}-${stageIndex}-${stage?.name || 'stage'}`"
-                        class="pipeline-card__stage-stop"
-                      >
-                        <div class="pipeline-card__stage-chip">
-                          <div class="pipeline-card__stage-number">{{ stageIndex + 1 }}</div>
-                          <div class="pipeline-card__stage-name">
-                            {{ formatPipelineStageName(stage?.name) || `Stage ${stageIndex + 1}` }}
-                          </div>
-                        </div>
+              <q-card
+                flat
+                bordered
+                class="pipeline-card full-height"
+                :style="getProjectCardStyle()"
+                @pointerenter="onProjectCardPointerEnter"
+                @pointermove="onProjectCardPointerMove"
+                @pointerleave="onProjectCardPointerLeave"
+              >
+                <q-card-section class="pipeline-card__control-row">
+                  <q-checkbox
+                    :model-value="isSelected(row)"
+                    :disable="loading"
+                    color="dark"
+                    class="pipeline-card__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="visibility"
+                    class="pipeline-card__control-eye"
+                    :disable="loading"
+                    @click="openDatabook(row)"
+                  />
+                </q-card-section>
+                <q-card-section class="pipeline-card__hero">
+                  <div class="pipeline-card__hero-main">
+                    <figure class="pipeline-card__portrait">
+                      <div class="pipeline-card__portrait-shell" aria-hidden="true">
                         <div
-                          v-if="stageIndex < getPipelineCardStages(row).length - 1"
-                          class="pipeline-card__stage-connector"
-                          aria-hidden="true"
-                        />
+                          class="pipeline-card__portrait-badge"
+                          :style="{ backgroundColor: getProjectAvatarColor(getPipelineCardTitle(row)) }"
+                        >
+                          {{ getProjectAvatarInitial(getPipelineCardTitle(row)) }}
+                        </div>
                       </div>
-                    </div>
+                    </figure>
 
-                    <div v-if="!getPipelineCardStages(row).length" class="pipeline-card__summary-empty">
-                      No stages mapped yet.
-                    </div>
-                  </aside>
-
-                  <div class="pipeline-card__main">
-                    <div class="pipeline-card__hero-top">
+                    <div class="pipeline-card__hero-side">
                       <div class="pipeline-card__hero-copy">
                         <div class="pipeline-card__title">{{ getPipelineCardTitle(row) }}</div>
-                        <div class="pipeline-card__meta-stack">
-                          <div class="pipeline-card__meta-row">
-                            <span class="pipeline-card__meta-label">Owner</span>
-                            <span class="pipeline-card__meta-value">{{ getPipelineOwnerLabel(row) }}</span>
-                          </div>
-                          <div class="pipeline-card__meta-row">
-                            <span class="pipeline-card__meta-label">Assigned Team</span>
-                            <span class="pipeline-card__meta-value">{{ getPipelineTeamLabel(row) }}</span>
+
+                        <div class="pipeline-card__bottom-stack">
+                          <div v-if="getProjectMetadataRows(row).length" class="pipeline-card__detail-stack">
+                            <div
+                              v-for="detail in getProjectMetadataRows(row)"
+                              :key="detail.label"
+                              class="pipeline-card__detail-row"
+                            >
+                              <button
+                                type="button"
+                                class="pipeline-card__inline-chip"
+                                @click="openProjectMetadataAction(detail, $event)"
+                              >
+                                <q-icon :name="detail.icon" size="14px" />
+                                <span>{{ detail.value }}</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-
-                      <q-checkbox
-                        :model-value="isSelected(row)"
-                        :disable="loading"
-                        color="dark"
-                        @update:model-value="toggleRowSelection(row, $event)"
-                      />
                     </div>
+                  </div>
+                </q-card-section>
 
-                    <q-card-actions align="between" class="pipeline-card__footer">
-                      <div class="pipeline-card__footer-actions">
-                        <q-btn
-                          flat
-                          round
-                          icon="visibility"
-                          class="pipeline-card__icon-action"
-                          :disable="loading"
-                          @click="openDatabook(row)"
-                        />
+                <q-card-section class="pipeline-card__summary">
+                  <div class="pipeline-card__summary-head">
+                    <q-btn-toggle
+                      :model-value="getProjectCardPanel(row)"
+                      dense
+                      unelevated
+                      toggle-color="dark"
+                      color="white"
+                      text-color="grey-8"
+                      class="pipeline-card__summary-toggle"
+                      :options="getProjectRelationshipOptions(row)"
+                      @update:model-value="setProjectCardPanel(row, $event)"
+                    />
+                    <q-btn-toggle
+                      :model-value="getProjectCardContentView(row)"
+                      dense
+                      unelevated
+                      toggle-color="primary"
+                      color="grey-3"
+                      text-color="grey-8"
+                      class="pipeline-card__summary-view-toggle"
+                      :options="projectCardContentViewOptions"
+                      @update:model-value="setProjectCardContentView(row, $event)"
+                    />
+                  </div>
+
+                  <div class="pipeline-card__summary-panel">
+                    <div class="pipeline-card__summary-panel-head">
+                      <q-btn flat no-caps class="pipeline-card__summary-add-relation" aria-label="Add Relation">
+                        <span class="pipeline-card__summary-add-relation-plus">
+                          <q-icon name="add" />
+                        </span>
+                        <span class="pipeline-card__summary-add-relation-label">Add Relation</span>
+                      </q-btn>
+                    </div>
+                    <div class="pipeline-card__summary-body">
+                      <div class="pipeline-card__summary-body-content">
+                        <div
+                          v-if="getProjectActiveRelationshipItems(row).length"
+                          :class="[
+                            'pipeline-card__notes-list',
+                            { 'pipeline-card__notes-list--rows': getProjectCardContentView(row) === 'table' },
+                          ]"
+                        >
+                          <div
+                            v-for="item in getProjectActiveRelationshipItems(row)"
+                            :key="item"
+                            class="pipeline-card__note-pill"
+                          >
+                            {{ item }}
+                          </div>
+                        </div>
+
+                        <div v-else class="pipeline-card__summary-empty">
+                          No linked KDB relationships yet for this project.
+                        </div>
                       </div>
-                      <div class="pipeline-card__footer-actions">
-                        <q-btn
-                          flat
-                          round
-                          icon="delete"
-                          class="pipeline-card__icon-action"
-                          :disable="loading || row.pipeline_id === 'pipeline_default'"
-                          @click="confirmDelete(row)"
-                        />
-                      </div>
-                    </q-card-actions>
+                    </div>
                   </div>
                 </q-card-section>
               </q-card>
@@ -302,6 +354,7 @@
         :loading="loading"
         :can-delete="canDeleteSelectedPipelines"
         @share="shareSelected"
+        @edit="editSelected"
         @delete="confirmDeleteSelected"
       />
     </div>
@@ -315,7 +368,7 @@
     @change="onImportFileSelected"
   />
 
-  <PipelineCreateDialog v-model="pipelineDialogOpen" @created="onPipelineCreated" />
+  <ProjectCreateDialog v-model="pipelineDialogOpen" @created="onPipelineCreated" />
 </template>
 
 <script setup>
@@ -323,10 +376,15 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { exportFile, useQuasar } from 'quasar'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
-import PipelineCreateDialog from 'components/PipelineCreateDialog.vue'
+import ProjectCreateDialog from 'components/ProjectCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { copySelectionSummary } from 'src/utils/selectionShare'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -336,10 +394,10 @@ const isElectronRuntime = computed(() => {
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(
   () =>
-    !!bridge.value?.pipelines?.list &&
-    !!bridge.value?.pipelines?.upsertMany &&
-    !!bridge.value?.pipelines?.create &&
-    !!bridge.value?.pipelines?.delete,
+    !!bridge.value?.projects?.list &&
+    !!bridge.value?.projects?.upsertMany &&
+    !!bridge.value?.projects?.create &&
+    !!bridge.value?.projects?.delete,
 )
 
 function onHeroDashboardPointerEnter(event) {
@@ -388,9 +446,15 @@ const pagination = ref({ page: 1, rowsPerPage: 10 })
 const fileInput = ref(null)
 const rowsPerPageOptions = [10, 15, 25, 50]
 const selectedCount = computed(() => selectedRows.value.length)
+const projectCardContentViews = ref({})
+const projectCardContentViewOptions = [
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
+]
+const projectCardPanels = ref({})
 const canDeleteSelectedPipelines = computed(
   () =>
-    !!bridge.value?.pipelines?.delete &&
+    !!bridge.value?.projects?.delete &&
     selectedRows.value.some((row) => String(row?.pipeline_id || '').trim() !== 'pipeline_default'),
 )
 
@@ -417,11 +481,6 @@ const csvHeaders = ['pipeline_id', 'name', 'dir_name', 'is_default']
 const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-]
-const pipelineKindOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Own', value: 'own' },
-  { label: 'Others', value: 'others' },
 ]
 const pipelinesDashboard = computed(() => {
   const total = pipelines.value.length
@@ -550,6 +609,35 @@ const displayRows = computed(() => {
   return items
 })
 
+const allVisibleProjectsSelected = computed(
+  () => displayRows.value.length > 0 && displayRows.value.every((row) => isSelected(row)),
+)
+
+const someVisibleProjectsSelected = computed(
+  () => displayRows.value.some((row) => isSelected(row)) && !allVisibleProjectsSelected.value,
+)
+
+function toggleSelectAllVisibleProjects(shouldSelect) {
+  if (!shouldSelect) {
+    const visibleIds = new Set(
+      displayRows.value.map((row) => String(row?.pipeline_id || '').trim()).filter(Boolean),
+    )
+    selectedRows.value = selectedRows.value.filter(
+      (row) => !visibleIds.has(String(row?.pipeline_id || '').trim()),
+    )
+    return
+  }
+
+  const selectedIds = new Set(
+    selectedRows.value.map((row) => String(row?.pipeline_id || '').trim()).filter(Boolean),
+  )
+  const additions = displayRows.value.filter((row) => {
+    const rowId = String(row?.pipeline_id || '').trim()
+    return rowId && !selectedIds.has(rowId)
+  })
+  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+}
+
 function parsedStages(row) {
   try {
     return JSON.parse(row?.stages || '[]')
@@ -581,29 +669,180 @@ function getPipelineCardTitle(row) {
   return normalizePipelineValue(row?.name) || 'Unnamed project'
 }
 
-function getPipelineCardStages(row) {
-  return parsedStages(row).filter((stage) => normalizePipelineValue(stage?.name))
-}
-
 function getPipelineOwnerLabel(row) {
   const pipelineId = String(row?.pipeline_id || '').trim()
   return pipelineOwnerById.value[pipelineId] || 'Unassigned'
 }
 
-function getPipelineTeamLabel(row) {
-  const pipelineId = String(row?.pipeline_id || '').trim()
-  const names = Array.isArray(pipelineTeamById.value[pipelineId]) ? pipelineTeamById.value[pipelineId] : []
-  return names.length ? names.join(', ') : 'No team assigned'
+function getProjectAvatarColor() {
+  return '#111111'
 }
 
-function formatPipelineStageName(name) {
-  const cleaned = String(name || '')
-    .replace(/^\s*\d+[\s._-]*/g, '')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+function getProjectAvatarInitial(label) {
+  const text = String(label || 'Project').trim()
+  return (
+    text
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase?.() || '')
+      .join('') || 'PR'
+  )
+}
 
-  return cleaned
+function getProjectCardContentView(row) {
+  const rowId = String(row?.pipeline_id || '').trim()
+  return projectCardContentViews.value[rowId] || 'card'
+}
+
+function setProjectCardContentView(row, value) {
+  const rowId = String(row?.pipeline_id || '').trim()
+  if (!rowId) return
+  projectCardContentViews.value = {
+    ...projectCardContentViews.value,
+    [rowId]: value || 'card',
+  }
+}
+
+function getProjectCardPanel(row) {
+  const rowId = String(row?.pipeline_id || '').trim()
+  return resolveCardRelationshipPanel(projectCardPanels.value[rowId], getProjectRelationshipItems(row))
+}
+
+function setProjectCardPanel(row, value) {
+  const rowId = String(row?.pipeline_id || '').trim()
+  if (!rowId) return
+  projectCardPanels.value = {
+    ...projectCardPanels.value,
+    [rowId]: value || 'notes',
+  }
+}
+
+function getProjectRelationshipItems(row) {
+  return buildCardRelationshipItems(row, ['Project'], {
+    notes: getProjectLinkedNotes,
+    artifacts: getProjectLinkedDocuments,
+  })
+}
+
+function getProjectRelationshipOptions(row) {
+  return buildCardRelationshipOptions(getProjectRelationshipItems(row))
+}
+
+function getProjectActiveRelationshipItems(row) {
+  return getProjectRelationshipItems(row)[getProjectCardPanel(row)] || []
+}
+
+function getProjectSummaryValue(row) {
+  return (
+    normalizePipelineValue(row?.summary) ||
+    normalizePipelineValue(row?.description)
+  )
+}
+
+function getProjectCompanyValue(row) {
+  return normalizePipelineValue(row?.company_name || row?.Company_Name)
+}
+
+function getProjectDueDateValue(row) {
+  return (
+    normalizePipelineValue(row?.due_date) ||
+    normalizePipelineValue(row?.Due_Date) ||
+    normalizePipelineValue(row?.updated_at) ||
+    normalizePipelineValue(row?.updated_on)
+  )
+}
+
+function getProjectMetadataRows(row) {
+  const summary = getProjectSummaryValue(row)
+  const company = getProjectCompanyValue(row)
+  const owner = getPipelineOwnerLabel(row)
+  const dueDate = getProjectDueDateValue(row)
+
+  return [
+    summary
+      ? { label: 'Summary', value: summary, icon: 'notes' }
+      : null,
+    company
+      ? { label: 'Company', value: company, icon: 'apartment' }
+      : null,
+    owner && owner !== 'Unassigned'
+      ? { label: 'Owner', value: owner, icon: 'person' }
+      : null,
+    dueDate
+      ? { label: 'Due date', value: dueDate, icon: 'event' }
+      : null,
+  ].filter(Boolean)
+}
+
+function getProjectCardStyle() {
+  return {
+    '--project-card-blob-x': '50%',
+    '--project-card-blob-y': '30%',
+    '--project-card-blob-size': '60%',
+    '--project-card-blob-opacity': '0',
+    '--project-card-blob-strong': 'rgba(38, 71, 255, 0.2)',
+    '--project-card-blob-soft': 'rgba(38, 71, 255, 0.1)',
+    '--project-card-blob-fade': 'rgba(38, 71, 255, 0.05)',
+  }
+}
+
+function onProjectCardPointerEnter(event) {
+  updateProjectCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--project-card-blob-opacity', '1')
+}
+
+function onProjectCardPointerMove(event) {
+  updateProjectCardGradientPosition(event)
+}
+
+function onProjectCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--project-card-blob-opacity', '0')
+}
+
+function updateProjectCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  element.style.setProperty('--project-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--project-card-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
+function getProjectLinkedNotes(row) {
+  return [
+    ...String(row?.Project_Note || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_note_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function getProjectLinkedDocuments(row) {
+  return [
+    ...String(row?.Project_Artifact || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...String(row?.related_artifact_ids || '')
+      .split('|')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 4)
+}
+
+function openProjectMetadataAction(link, event) {
+  event?.preventDefault?.()
+  event?.stopPropagation?.()
 }
 
 function exportPipelinesCsv() {
@@ -640,8 +879,8 @@ async function loadPipelines() {
   loading.value = true
   error.value = ''
   try {
-    const result = await bridge.value.pipelines.list()
-    pipelines.value = result?.pipelines || []
+    const result = await bridge.value.projects.list()
+    pipelines.value = result?.projects || []
     await loadPipelineTeamMetadata()
     normalizeSelectedRows()
   } catch (e) {
@@ -711,9 +950,9 @@ async function togglePipeline(row) {
   loading.value = true
   try {
     if (row.install_status === 'installed') {
-      await bridge.value.pipelines.uninstall(row.pipeline_id)
+      await bridge.value.projects.uninstall(row.pipeline_id)
     } else {
-      await bridge.value.pipelines.install(row.pipeline_id)
+      await bridge.value.projects.install(row.pipeline_id)
     }
     await loadPipelines()
   } catch (e) {
@@ -724,7 +963,7 @@ async function togglePipeline(row) {
 }
 
 async function confirmDelete(row) {
-  if (!bridge.value?.pipelines?.delete) return
+  if (!bridge.value?.projects?.delete) return
   if (row?.pipeline_id === 'pipeline_default') return
 
   $q.dialog({
@@ -772,13 +1011,13 @@ function toggleRowSelection(row, shouldSelect) {
 
 async function deletePipeline(row) {
   if (row.install_status === 'installed') {
-    await bridge.value.pipelines.uninstall(row.pipeline_id)
+    await bridge.value.projects.uninstall(row.pipeline_id)
   }
-  await bridge.value.pipelines.delete(row.pipeline_id)
+  await bridge.value.projects.delete(row.pipeline_id)
 }
 
 async function confirmDeleteSelected() {
-  if (!bridge.value?.pipelines?.delete || selectedCount.value === 0) return
+  if (!bridge.value?.projects?.delete || selectedCount.value === 0) return
   const deletableRows = selectedRows.value.filter((row) => row.pipeline_id !== 'pipeline_default')
   if (deletableRows.length === 0) {
     $q.notify({ type: 'warning', message: 'The user pipeline cannot be deleted.' })
@@ -806,17 +1045,23 @@ async function confirmDeleteSelected() {
   })
 }
 
+function editSelected() {
+  const row = selectedRows.value[0]
+  if (!row) return
+  openDatabook(row)
+}
+
 async function shareSelected() {
   if (selectedCount.value === 0) return
   try {
     await copySelectionSummary({
       rows: selectedRows.value,
       getLabel: (row) => getPipelineCardTitle(row),
-      entityLabel: 'pipelines',
+      entityLabel: 'projects',
     })
     $q.notify({
       type: 'positive',
-      message: `Copied ${selectedCount.value} selected pipeline${selectedCount.value === 1 ? '' : 's'}.`,
+      message: `Copied ${selectedCount.value} selected project${selectedCount.value === 1 ? '' : 's'}.`,
     })
   } catch (e) {
     $q.notify({ type: 'negative', message: e?.message || String(e) })
@@ -824,7 +1069,7 @@ async function shareSelected() {
 }
 
 async function importRows(importedRows) {
-  const result = await bridge.value.pipelines.upsertMany(importedRows)
+  const result = await bridge.value.projects.upsertMany(importedRows)
   await loadPipelines()
   return result
 }
@@ -1161,32 +1406,32 @@ watch(displayRows, () => {
   min-width: 0;
 }
 
-.pipelines-toolbar__block--filters {
-  flex-wrap: nowrap;
+.pipelines-toolbar__block--primary {
+  margin-right: 4px;
 }
 
-.pipelines-toolbar__block--search {
+.pipelines-toolbar__block--actions {
   grid-column: -2 / -1;
+  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
 
 .pipelines-toolbar__filters-icon {
+  align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
 }
 
-.pipelines-toolbar__toggle {
-  flex: 0 0 auto;
-  border: 1px solid var(--ds-control-border);
-  border-radius: 999px;
-  box-shadow: var(--ds-control-shadow);
-  overflow: hidden;
+.pipelines-toolbar__select-all {
+  min-height: 26px;
+  color: var(--ds-color-text-default, #111111);
 }
 
 .pipelines-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -1205,17 +1450,29 @@ watch(displayRows, () => {
 }
 
 .pipelines-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border-color: var(--ds-control-border);
   border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
   line-height: var(--ds-line-height-xs);
+}
+
+.pipelines-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.pipelines-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
+  border: 1px solid var(--ds-control-border);
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .pipelines-toolbar__filter-control {
@@ -1235,12 +1492,95 @@ watch(displayRows, () => {
 }
 
 .pipelines-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .pipelines-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
+}
+
+.pipelines-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+
+.pipelines-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.pipelines-toolbar__icon-button :deep(.q-icon) {
+  font-size: 18px;
+}
+
+.pipelines-toolbar__add-button {
+  align-self: center;
+  min-height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.pipelines-toolbar__add-button:hover,
+.pipelines-toolbar__add-button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.pipelines-toolbar__add-button:active,
+.pipelines-toolbar__add-button.q-btn--active,
+.pipelines-toolbar__add-button.q-btn--standard.q-btn--active {
+  color: #ffffff;
+  background: #111111;
+}
+
+.pipelines-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
+.pipelines-toolbar__add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pipelines-toolbar__add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.pipelines-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.pipelines-toolbar__add-button-label {
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
 }
 
 .pipelines-surface {
@@ -1317,177 +1657,171 @@ watch(displayRows, () => {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  border-radius: 20px;
+  border-radius: 28px;
   border-color: rgba(17, 17, 17, 0.1);
   box-shadow: 0 12px 30px rgba(17, 17, 17, 0.06);
   overflow: hidden;
 }
 
-.pipeline-card__shell {
-  display: grid;
-  grid-template-columns: 184px minmax(0, 1fr);
-  flex: 1 1 auto;
-  gap: 0;
+.pipeline-card__hero {
   padding: 0;
 }
 
-.pipeline-card__stage-panel {
+.pipeline-card__control-row {
   display: flex;
-  min-height: 100%;
-  flex-direction: column;
-  gap: 16px;
-  padding: 18px 16px;
-  background:
-    radial-gradient(circle at 26% 24%, rgba(235, 255, 90, 0.16), transparent 28%),
-    radial-gradient(circle at 74% 76%, rgba(38, 71, 255, 0.12), transparent 32%),
-    linear-gradient(180deg, #fdfcf8 0%, #f5f2ea 100%);
-  border-right: 1px solid rgba(17, 17, 17, 0.08);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background: transparent;
 }
 
-.pipeline-card__main {
+.pipeline-card__control-row :deep(.q-checkbox__inner),
+.pipeline-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
+}
+
+.pipeline-card::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--project-card-blob-x) var(--project-card-blob-y),
+    var(--project-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--project-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--project-card-blob-size) * 0.46),
+    var(--project-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--project-card-blob-size) * 0.7),
+    transparent var(--project-card-blob-size)
+  );
+  opacity: var(--project-card-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.pipeline-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.pipeline-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+}
+
+.pipeline-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
+}
+
+.pipeline-card__portrait {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.pipeline-card__portrait-shell {
   display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.pipeline-card__portrait-badge {
+  display: flex;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
+}
+
+.pipeline-card__hero-side {
+  display: flex;
+  height: 100%;
   min-width: 0;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 18px 16px;
-}
-
-.pipeline-card__hero-top {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: start;
+  gap: 8px;
+  padding: 16px 18px 14px 14px;
+  background: transparent;
+  overflow: hidden;
 }
 
 .pipeline-card__hero-copy {
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
   flex-direction: column;
   gap: 10px;
 }
 
-.pipeline-card__summary-label {
-  color: #737373;
-  font-family: var(--font-body);
-  font-size: var(--text-xs---medium);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.14em;
-  line-height: 16px;
-  text-transform: uppercase;
-}
-
 .pipeline-card__title {
+  min-width: 0;
   color: #0a0a0a;
   font-family: var(--font-title);
   font-size: clamp(1.3rem, 2vw, 1.6rem);
   font-weight: var(--font-weight-black);
   line-height: 0.96;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pipeline-card__bottom-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .pipeline-card__meta-stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.pipeline-card__meta-row {
+.pipeline-card__detail-stack {
   display: flex;
-  min-width: 0;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
-.pipeline-card__meta-label {
-  color: #737373;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
-  line-height: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.pipeline-card__meta-value {
-  color: #4b4b4b;
-  font-family: var(--font-body);
-  font-size: var(--text-xs---regular);
-  font-weight: var(--font-weight-regular);
-  line-height: 18px;
-  text-wrap: balance;
-}
-
-.pipeline-card__footer-actions {
+.pipeline-card__detail-row {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+}
+
+.pipeline-card__inline-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
   gap: 6px;
-}
-
-.pipeline-card__stage-map {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-  overflow-y: auto;
-  padding: 2px 2px 0;
-  scrollbar-width: thin;
-}
-
-.pipeline-card__stage-stop {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.pipeline-card__stage-chip {
-  display: inline-flex;
-  width: fit-content;
-  max-width: 100%;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(17, 17, 17, 0.1);
-  border-radius: 14px;
-  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.06);
-}
-
-.pipeline-card__stage-number {
-  display: inline-flex;
-  width: 24px;
-  height: 24px;
-  flex: 0 0 24px;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  background: #111;
+  width: 100%;
+  min-height: 26px;
+  padding: 0 10px;
+  color: #111;
+  background: transparent;
+  border: 0;
   border-radius: 999px;
   font-family: var(--font-body);
   font-size: 11px;
-  font-weight: var(--font-weight-semibold);
-  line-height: 1;
-}
-
-.pipeline-card__stage-name {
-  max-width: 124px;
-  color: #111;
-  font-family: var(--font-body);
-  font-size: var(--text-sm---regular);
   font-weight: var(--font-weight-medium);
-  line-height: 18px;
-  word-break: break-word;
-}
-
-.pipeline-card__stage-connector {
-  width: 2px;
-  height: 18px;
-  margin-left: 11px;
-  background: rgba(17, 17, 17, 0.18);
-  border-radius: 999px;
+  cursor: default;
 }
 
 .pipeline-card__summary-empty {
@@ -1498,18 +1832,262 @@ watch(displayRows, () => {
   line-height: 20px;
 }
 
-.pipeline-card__footer {
+.pipeline-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
+  margin: 20px 20px 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.pipeline-card__summary-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  padding: 0;
+}
+
+.pipeline-card__summary-view-toggle {
+  margin-left: auto;
+  margin-right: 14px;
+  border-radius: var(--ds-control-radius);
+}
+
+.pipeline-card__summary-view-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.pipeline-card__summary-view-toggle :deep(.q-btn) {
+  min-height: 21px;
+  min-width: 21px;
+  height: 21px;
+  width: 21px;
+  padding: 0 2px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--ds-control-radius);
+}
+
+.pipeline-card__summary-view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.pipeline-card__summary-view-toggle :deep(.q-icon) {
+  font-size: 13px;
+}
+
+.pipeline-card__summary-toggle {
+  border-radius: var(--ds-control-radius);
+}
+
+.pipeline-card__summary-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.pipeline-card__summary-toggle :deep(.q-btn) {
+  position: relative;
+  min-height: 24px;
+  min-width: 24px;
+  width: 24px;
+  padding: 0 3px;
+  border: 1px solid transparent;
+  border-radius: var(--ds-control-radius);
+  background: transparent;
+  font-size: 12px;
+}
+
+.pipeline-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
+.pipeline-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  transform: none;
+  padding: 4px 7px;
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(239, 239, 239, 0.5);
+  border-radius: 5px;
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.pipeline-card__summary-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 4px;
+}
+
+.pipeline-card__summary-toggle :deep(.q-icon) {
+  font-size: 12px;
+}
+
+.pipeline-card__summary-toggle {
+  margin-right: auto;
+}
+
+.pipeline-card__summary-add-relation {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 2px 0 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.pipeline-card__summary-add-relation :deep(.q-btn__content) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.pipeline-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.pipeline-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
+}
+
+.pipeline-card__summary-add-relation-label {
+  color: rgba(17, 17, 17, 0.86);
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+}
+
+.pipeline-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.pipeline-card__summary-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.pipeline-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  direction: rtl;
+  padding-left: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(17, 17, 17, 0.18) transparent;
+}
+
+.pipeline-card__summary-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pipeline-card__summary-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pipeline-card__summary-body::-webkit-scrollbar-thumb {
+  background: rgba(17, 17, 17, 0.16);
+  border-radius: 999px;
+}
+
+.pipeline-card__summary-body-content {
+  direction: ltr;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.pipeline-card__notes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pipeline-card__notes-list--rows {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.pipeline-card__note-pill {
+  padding: 8px 12px;
+  color: #4b4b4b;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 14px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.45;
+}
+
+.pipeline-card__notes-list--rows .pipeline-card__note-pill {
+  width: 100%;
+  border-radius: 12px;
 }
 
 .pipeline-card__icon-action {
   color: #111;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  background: transparent;
+  border: 0;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.pipeline-card__select-box {
+  margin-left: -3.5px;
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+
+.pipeline-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  color: #111;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.pipeline-card__control-eye :deep(.q-icon) {
+  font-size: 14px;
 }
 
 @media (max-width: 1200px) {
@@ -1557,13 +2135,17 @@ watch(displayRows, () => {
     grid-template-columns: 1fr;
   }
 
-  .pipeline-card__stage-panel {
-    border-right: 0;
-    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+  .pipeline-card__portrait {
+    min-height: 148px;
   }
 
-  .pipeline-card__main {
-    padding: 16px;
+  .pipeline-card__hero-main {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .pipeline-card__hero-side {
+    padding: 14px;
   }
 }
 </style>

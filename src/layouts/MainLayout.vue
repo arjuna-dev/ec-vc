@@ -210,7 +210,7 @@
 
     <div class="ec-quick-widget" :style="quickWidgetStyle">
       <div
-        v-for="(action, index) in quickWidgetActions"
+        v-for="(action, index) in quickWidgetRingActions"
         :key="action.id"
         class="ec-quick-widget-action"
         :style="quickWidgetActionStyle(index)"
@@ -219,13 +219,91 @@
           round
           dense
           unelevated
-          class="ec-quick-widget-action-button"
+          :ref="action.id === 'settings' ? setQuickWidgetSettingsTarget : undefined"
+          :class="[
+            'ec-quick-widget-action-button',
+            { 'ec-quick-widget-action-button--settings': action.id === 'settings' },
+          ]"
           :icon="action.icon"
           :aria-label="action.label"
           @click.stop="action.onClick"
         />
         <div class="ec-quick-widget-action-label">{{ action.label }}</div>
       </div>
+
+      <q-menu
+        v-model="quickWidgetSettingsOpen"
+        :target="quickWidgetSettingsTarget"
+        :offset="[quickWidgetSettingsOffset.x, quickWidgetSettingsOffset.y]"
+        no-parent-event
+        anchor="top right"
+        self="top left"
+        class="ec-quick-widget-settings-menu"
+      >
+        <div class="ec-quick-widget-settings-window">
+          <div class="ec-quick-widget-settings-panel">
+            <div
+              class="ec-quick-widget-settings-panel__header"
+              :class="{ 'ec-quick-widget-settings-panel__header--dragging': quickWidgetSettingsIsDragging }"
+              @pointerdown.stop="onQuickWidgetSettingsPointerDown"
+            >
+              <div class="ec-quick-widget-settings-panel__title">Widget Settings</div>
+              <div class="ec-quick-widget-settings-panel__caption">
+                Show, hide and reorder files
+              </div>
+            </div>
+
+            <div class="ec-quick-widget-settings-panel__list">
+              <div
+                v-for="(settingsAction, settingsIndex) in quickWidgetActionCatalog"
+                :key="settingsAction.id"
+                class="ec-quick-widget-settings-row"
+              >
+                <q-checkbox
+                  v-if="settingsAction.id !== 'settings'"
+                  :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
+                  dense
+                  size="xs"
+                  checked-icon="check_box"
+                  unchecked-icon="check_box_outline_blank"
+                  class="ec-quick-widget-settings-row__checkbox"
+                  @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
+                />
+                <div v-else class="ec-quick-widget-settings-row__toggle-spacer" />
+
+                <div class="ec-quick-widget-settings-row__copy">
+                  <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
+                </div>
+
+                <div class="ec-quick-widget-settings-row__actions">
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    :disable="settingsIndex === 0"
+                    @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="ec-quick-widget-settings-row__chevron">
+                      <path d="M7 14L12 9L17 14" />
+                    </svg>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    :disable="settingsIndex === quickWidgetActionCatalog.length - 1"
+                    @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="ec-quick-widget-settings-row__chevron">
+                      <path d="M7 10L12 15L17 10" />
+                    </svg>
+                  </q-btn>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </q-menu>
 
       <div
         v-for="(action, index) in quickOpportunityBranchActions"
@@ -297,6 +375,66 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="intakeQueueDialogOpen" persistent>
+      <q-card style="width: 560px; max-width: 94vw">
+        <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
+          <div class="text-h6">{{ intakeQueueDialogTitle }}</div>
+          <div class="text-caption text-grey-7">{{ intakeQueueDialogCaption }}</div>
+        </q-card-section>
+
+        <q-card-section v-if="activeIntakeQueueItem?.kind === 'field-review'" class="q-px-lg q-pb-md">
+          <div class="column q-gutter-md">
+            <div
+              v-for="field in intakeQueueEditableFields"
+              :key="field.key"
+              class="ec-intake-queue-field"
+            >
+              <div class="ec-intake-queue-field__meta">
+                <div class="ec-intake-queue-field__label">{{ field.label }}</div>
+                <div class="ec-intake-queue-field__caption">{{ field.owner }} to {{ field.target }}</div>
+              </div>
+              <q-input
+                v-model="intakeQueueFieldEdits[field.key]"
+                outlined
+                autogrow
+                :label="field.label"
+              />
+              <div class="row justify-end q-gutter-sm">
+                <q-btn
+                  flat
+                  no-caps
+                  label="Skip Field"
+                  @click="dismissActiveIntakeField(field.key)"
+                />
+                <q-btn
+                  color="primary"
+                  no-caps
+                  label="Verify Field"
+                  @click="confirmActiveIntakeField(field.key)"
+                />
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right" class="q-px-lg q-py-md">
+          <q-btn
+            v-if="activeIntakeQueueItem?.kind === 'field-review'"
+            flat
+            no-caps
+            label="Skip Bundle"
+            @click="dismissActiveIntakeFieldBundle"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <CompanyCreateDialog v-model="globalCompanyDialogOpen" :initial-data="globalCreateInitialData" />
+    <ContactCreateDialog v-model="globalContactDialogOpen" :initial-data="globalCreateInitialData" />
+    <FundCreateDialog v-model="globalFundDialogOpen" :initial-data="globalCreateInitialData" />
+    <RoundCreateDialog v-model="globalRoundDialogOpen" :initial-data="globalCreateInitialData" />
     <ArtifactAddDialog v-model="artifactDialogOpen" />
   </q-layout>
 </template>
@@ -311,8 +449,23 @@ import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
-import { removeIntakeDraft, setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
+import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
+import ContactCreateDialog from 'components/ContactCreateDialog.vue'
+import FundCreateDialog from 'components/FundCreateDialog.vue'
+import RoundCreateDialog from 'components/RoundCreateDialog.vue'
+import {
+  removeIntakeDraft,
+  setActiveIntakeDraft,
+  updateIntakeDraft,
+  useIntakeDraftState,
+} from 'src/utils/intakeDraftState'
 import { useBreadcrumbActionsState } from 'src/utils/breadcrumbActionsState'
+import {
+  activateNextIntakeReviewItem,
+  dismissIntakeReviewItem,
+  resolveIntakeReviewItem,
+  useIntakeReviewQueueState,
+} from 'src/utils/intakeReviewQueueState'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -326,10 +479,21 @@ const quickWidgetIconContainer = ref(null)
 const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
 const quickWidgetIgnoreNextToggle = ref(false)
+const quickWidgetSettingsOpen = ref(false)
+const quickWidgetSettingsOffset = ref({ x: 40, y: 0 })
+const quickWidgetSettingsIsDragging = ref(false)
+const quickWidgetSettingsTarget = ref(null)
 const draftTrayDismissed = ref(false)
+const intakeQueueDialogOpen = ref(false)
+const intakeQueueFieldEdits = ref({})
+const globalCompanyDialogOpen = ref(false)
+const globalContactDialogOpen = ref(false)
+const globalFundDialogOpen = ref(false)
+const globalRoundDialogOpen = ref(false)
+const globalCreateInitialData = ref(null)
 const drawerSectionOpen = ref({
-  preferences: true,
   main: true,
+  radars: true,
   workspace: true,
 })
 
@@ -340,16 +504,35 @@ const QUICK_WIDGET_ACTION_SIZE = 40
 const QUICK_WIDGET_ACTION_HOVER_SCALE = 1.08
 const QUICK_WIDGET_MARGIN = 16
 const QUICK_WIDGET_POSITION_STORAGE_KEY = 'ecvc.quickWidgetPosition'
+const QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY = 'ecvc.quickWidgetActionSettings'
+const DEFAULT_QUICK_WIDGET_ACTION_ORDER = [
+  'users',
+  'artifact',
+  'contact',
+  'company',
+  'opportunity',
+  'project',
+  'note',
+  'task',
+  'settings',
+]
 const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
-]
+  { label: 'Owner', to: '/user-settings', exact: true, icon: 'accessibility_new' },
+  { label: 'Avatar', to: '/avatar', exact: true, icon: 'smart_toy' },
+  { label: 'Roles', to: '/assistants', exact: true, icon: 'theater_comedy' },
+].map((item) => ({
+  ...item,
+  itemClass: 'ec-nav-item--primary',
+  iconSize: '22px',
+}))
 const workspaceNavigationItems = [
   { label: 'Users', to: '/users', exact: true, icon: 'badge' },
   { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
   { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
-  { label: 'Pipelines', to: '/projects', exact: true, icon: 'schema' },
+  { label: 'Projects', to: '/projects', exact: true, icon: 'schema' },
   { label: 'Notes', to: '/notes', exact: true, icon: 'note' },
   { label: 'Tasks', to: '/tasks', exact: true, icon: 'check_circle' },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
@@ -366,14 +549,14 @@ const routeLabelByName = {
   opportunities: 'Opportunities',
   funds: 'Funds',
   rounds: 'Rounds',
-  pipelines: 'Pipelines',
-  projects: 'Pipelines',
+  projects: 'Projects',
   artifacts: 'Artifacts',
   notes: 'Notes',
   tasks: 'Tasks',
-  assistants: 'Agents',
-  settings: 'Avatar',
-  'user-settings': 'Settings',
+  assistants: 'Roles',
+  avatar: 'Avatar',
+  'user-settings': 'Owner',
+  pipelines: 'Projects',
   'file-system': 'File System',
   'databook-view': 'Databook',
 }
@@ -381,51 +564,46 @@ const router = useRouter()
 const route = useRoute()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const intakeDraftState = useIntakeDraftState()
+const intakeReviewQueueState = useIntakeReviewQueueState()
 const breadcrumbActionsState = useBreadcrumbActionsState()
-const fallbackToolbarUpdatedAt = ref(new Date())
 let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
+let quickWidgetSettingsDragState = null
 const intakeDraftCount = computed(() => intakeDraftState.draftOrder.length)
 const intakeDrafts = computed(() =>
   intakeDraftState.draftOrder.map((draftId) => intakeDraftState.drafts[draftId]).filter(Boolean),
 )
+const activeIntakeQueueItem = computed(() => {
+  const activeId = String(intakeReviewQueueState.activeItemId || '').trim()
+  return intakeReviewQueueState.items.find((item) => String(item?.id || '').trim() === activeId) || null
+})
+const intakeQueueDialogTitle = computed(
+  () => activeIntakeQueueItem.value?.payload?.title || 'Review extracted data',
+)
+const intakeQueueDialogCaption = computed(() => {
+  return 'The intake flow surfaced new values. Verify them as they arrive.'
+})
+const intakeQueueEditableFields = computed(() =>
+  Array.isArray(activeIntakeQueueItem.value?.payload?.fields)
+    ? activeIntakeQueueItem.value.payload.fields
+    : [],
+)
+let intakeQueueNextTimer = null
+let pendingEntityDialogAdvance = false
 
 const drawerNavigationSections = computed(() => [
   {
-    label: 'Owner',
-    key: 'preferences',
-    items: [
-      {
-        label: 'Settings',
-        to: '/user-settings',
-        exact: true,
-        icon: 'manage_accounts',
-      },
-      {
-        label: 'Avatar',
-        to: '/settings',
-        exact: true,
-        icon: 'smart_toy',
-      },
-      {
-        label: 'Agents',
-        to: '/assistants',
-        exact: true,
-        icon: 'theater_comedy',
-      },
-    ],
-  },
-  {
-    label: 'Workspace',
+    label: 'My Workspace',
     key: 'main',
     items: [
       ...mainNavigationItems,
       {
         kind: 'toggle',
         label: 'Files',
-        itemClass: 'ec-nav-item--workspace-toggle',
+        itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
         icon: 'folder',
+        iconSize: '22px',
         toggleKey: 'workspace',
       },
       ...workspaceNavigationItems.map((item) => ({
@@ -444,45 +622,34 @@ const currentHeaderTitle = computed(() => {
   }
 
   if (currentRouteName === 'databook-view') {
+    const recordLabelByTableName = {
+      contacts: 'Contact Records',
+      companies: 'Company Records',
+      users: 'User Records',
+      artifacts: 'Artifact Records',
+      notes: 'Note Records',
+      tasks: 'Task Records',
+      projects: 'Project Records',
+      funds: 'Fund Records',
+      rounds: 'Round Records',
+      opportunities: 'Opportunity Records',
+    }
+    const tableName = String(route.params.tableName || '').toLowerCase()
+    if (recordLabelByTableName[tableName]) {
+      return recordLabelByTableName[tableName]
+    }
     return 'Databook'
   }
 
   return routeLabelByName[currentRouteName] || toTitleCase(currentRouteName.replace(/[-_]/g, ' '))
 })
 const breadcrumbActions = computed(() => breadcrumbActionsState.actions || [])
-const fallbackToolbarUpdatedLabel = computed(() => {
-  const value = fallbackToolbarUpdatedAt.value
-  if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
-    return ''
-  }
-
-  const formatted = new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(value)
-
-  return `Updated ${formatted}`
-})
 const toolbarActions = computed(() => {
   if (String(route.name || '') === 'home') {
     return breadcrumbActions.value
   }
 
-  return [
-    {
-      id: 'global-updated',
-      kind: 'text',
-      label: fallbackToolbarUpdatedLabel.value,
-    },
-    {
-      id: 'global-refresh',
-      icon: 'refresh',
-      label: 'Refresh',
-      onClick: refreshCurrentPage,
-    },
-  ]
+  return []
 })
 
 const quickWidgetStyle = computed(() => ({
@@ -490,44 +657,98 @@ const quickWidgetStyle = computed(() => ({
   top: `${quickWidgetPosition.value.y}px`,
 }))
 
-const quickWidgetActions = computed(() => [
-  {
-    id: 'opportunity',
-    label: 'Opportunity',
-    icon: 'work',
-    onClick: openOpportunityKindDialog,
-  },
-  {
-    id: 'contact',
-    label: 'Contact',
-    icon: 'people',
-    onClick: openContactFromQuickAction,
-  },
-  {
-    id: 'company',
-    label: 'Company',
-    icon: 'apartment',
-    onClick: openCompanyFromQuickAction,
-  },
-  {
-    id: 'note',
-    label: 'Note',
-    icon: 'note',
-    onClick: openNoteFromQuickAction,
-  },
-  {
-    id: 'task',
-    label: 'Task',
-    icon: 'check_circle',
-    onClick: openTaskFromQuickAction,
-  },
-  {
-    id: 'artifact',
-    label: intakeDraftCount.value > 0 ? `Artifact (${intakeDraftCount.value})` : 'Artifact',
-    icon: 'attach_file',
-    onClick: openArtifactFromQuickAction,
-  },
-])
+const quickWidgetActionSettings = ref({
+  order: [...DEFAULT_QUICK_WIDGET_ACTION_ORDER],
+  enabled: Object.fromEntries(DEFAULT_QUICK_WIDGET_ACTION_ORDER.map((id) => [id, true])),
+})
+
+const quickWidgetActionCatalog = computed(() => {
+  const actionById = {
+    users: {
+      id: 'users',
+      label: 'Users',
+      icon: 'badge',
+      onClick: openUserFromQuickAction,
+    },
+    opportunity: {
+      id: 'opportunity',
+      label: 'Opportunity',
+      icon: 'work',
+      onClick: openOpportunityKindDialog,
+    },
+    contact: {
+      id: 'contact',
+      label: 'Contact',
+      icon: 'people',
+      onClick: openContactFromQuickAction,
+    },
+    company: {
+      id: 'company',
+      label: 'Company',
+      icon: 'apartment',
+      onClick: openCompanyFromQuickAction,
+    },
+    project: {
+      id: 'project',
+      label: 'Project',
+      icon: 'schema',
+      onClick: openProjectFromQuickAction,
+    },
+    note: {
+      id: 'note',
+      label: 'Note',
+      icon: 'note',
+      onClick: openNoteFromQuickAction,
+    },
+    task: {
+      id: 'task',
+      label: 'Task',
+      icon: 'check_circle',
+      onClick: openTaskFromQuickAction,
+    },
+    artifact: {
+      id: 'artifact',
+      label: intakeDraftCount.value > 0 ? `Artifact (${intakeDraftCount.value})` : 'Artifact',
+      icon: 'attach_file',
+      onClick: openArtifactFromQuickAction,
+    },
+    settings: {
+      id: 'settings',
+      label: 'Settings',
+      icon: 'tune',
+      onClick: () => {
+        quickWidgetSettingsOpen.value = true
+      },
+    },
+  }
+
+  const configuredOrder = Array.isArray(quickWidgetActionSettings.value?.order)
+    ? quickWidgetActionSettings.value.order
+    : []
+  const order = [
+    ...configuredOrder.filter((id) => actionById[id]),
+    ...DEFAULT_QUICK_WIDGET_ACTION_ORDER.filter((id) => !configuredOrder.includes(id)),
+  ]
+
+  return order.map((id) => actionById[id]).filter(Boolean)
+})
+
+const quickWidgetActions = computed(() =>
+  quickWidgetActionCatalog.value.filter((action) => isQuickWidgetActionEnabled(action.id)),
+)
+
+const quickWidgetRingActions = computed(() =>
+  quickWidgetActions.value.map((action) =>
+    action.id === 'settings'
+      ? {
+          ...action,
+          onClick: () => {
+            quickWidgetSettingsOpen.value = !quickWidgetSettingsOpen.value
+          },
+        }
+      : action,
+  ),
+)
 
 const quickOpportunityBranchActions = computed(() => [
   {
@@ -591,6 +812,240 @@ async function syncUserNavState() {
 function openArtifactDialog() {
   draftTrayDismissed.value = false
   artifactDialogOpen.value = true
+}
+
+function clearIntakeQueueNextTimer() {
+  if (!intakeQueueNextTimer) return
+  clearTimeout(intakeQueueNextTimer)
+  intakeQueueNextTimer = null
+}
+
+function scheduleNextIntakeQueueItem() {
+  clearIntakeQueueNextTimer()
+  intakeQueueNextTimer = setTimeout(() => {
+    activateNextIntakeReviewItem()
+  }, 2000)
+}
+
+function normalizeValue(value) {
+  return value == null ? '' : String(value).trim()
+}
+
+function createFieldSourceSnapshot(value = '', kind = '') {
+  return {
+    value,
+    kind,
+  }
+}
+
+function draftWithFieldReviewApplied(draft = {}, fields = []) {
+  const nextOpportunityForm = { ...(draft?.opportunityForm || {}) }
+  const nextCompanyForm = { ...(draft?.companyForm || {}) }
+  const nextContactForm = { ...(draft?.contactForm || {}) }
+  const nextFieldSourceModes = { ...(draft?.fieldSourceModes || {}) }
+  const nextAutofilledFlags = { ...(draft?.autofilledFlags || {}) }
+  const nextAiSnapshots = { ...(draft?.aiGeneratedFieldSnapshots || {}) }
+  const nextReviewFields = { ...(draft?.intakeReviewFields || {}) }
+  const nextReviewVerified = { ...(draft?.intakeReviewVerified || {}) }
+  const nextConfirmedValues = { ...(draft?.intakeConfirmedFieldValues || {}) }
+  const nextLockedFields = { ...(draft?.intakeLockedFields || {}) }
+  const nextFieldSources = { ...(draft?.intakeFieldSources || {}) }
+
+  const assignAiField = (section, key, value) => {
+    const fieldKey = `${section}.${key}`
+    if (section === 'company') nextCompanyForm[key] = value
+    else if (section === 'contact') nextContactForm[key] = value
+    else nextOpportunityForm[key] = value
+    nextFieldSourceModes[fieldKey] = 'ai'
+    nextAutofilledFlags[fieldKey] = true
+    nextAiSnapshots[fieldKey] =
+      section === 'company'
+        ? {
+            value,
+            companyForm: {
+              ...nextCompanyForm,
+              [key]: value,
+            },
+            companyId: nextOpportunityForm.company_id || null,
+            companyLinkMode: draft?.companyLinkMode || 'new',
+            companySourceChoice: draft?.companySourceChoice || 'input',
+          }
+        : section === 'contact'
+          ? {
+              value,
+              contactForm: {
+                ...nextContactForm,
+                [key]: value,
+              },
+              contactLinkMode: draft?.contactLinkMode || 'new',
+            }
+          : createFieldSourceSnapshot(value, nextOpportunityForm.kind || draft?.opportunityForm?.kind || '')
+  }
+
+  for (const field of fields) {
+    const key = String(field?.key || '').trim()
+    const value = normalizeValue(field?.value)
+    if (!key || !value) continue
+    nextReviewFields[key] = value
+    nextReviewVerified[key] = true
+    nextConfirmedValues[key] = value
+    nextLockedFields[key] = true
+    nextFieldSources[key] = 'User verified prompt suggestion'
+
+    if (key === 'companyName') assignAiField('company', 'Company_Name', value)
+    else if (key === 'companyLocation') assignAiField('company', 'Headquarters_City', value)
+    else if (key === 'companyOneLiner') assignAiField('company', 'One_Liner', value)
+    else if (key === 'companyDescription') assignAiField('company', 'Description', value)
+    else if (key === 'companyStatus') assignAiField('company', 'Status', value)
+    else if (key === 'companyWebsite') assignAiField('company', 'Website', value)
+    else if (key === 'contactName') assignAiField('contact', 'Name', value)
+    else if (key === 'contactEmail') assignAiField('contact', 'Professional_Email', value)
+    else if (key === 'opportunityName') assignAiField('opportunity', 'Venture_Oppty_Name', value)
+    else if (key === 'targetSize') assignAiField('opportunity', 'Investment_Ask', value)
+    else if (key === 'committedAmounts') assignAiField('opportunity', 'Hard_Commits', value)
+    else if (key === 'closeDate') assignAiField('opportunity', 'Final_Close_Date', value)
+    else if (key === 'raisingStatus') assignAiField('opportunity', 'Raising_Status', value)
+    else if (key === 'fundPeriod') assignAiField('opportunity', 'Pipeline_Status', value)
+    else if (key === 'roundStage') assignAiField('opportunity', 'Round_Stage', value)
+    else if (key === 'securityType') assignAiField('opportunity', 'Type_of_Security', value)
+    else if (key === 'preValuation') assignAiField('opportunity', 'Pre_Valuation', value)
+    else if (key === 'postValuation') assignAiField('opportunity', 'Post_Valuation', value)
+    else if (key === 'previousPost') assignAiField('opportunity', 'Previous_Post', value)
+  }
+
+  return {
+    opportunityForm: nextOpportunityForm,
+    companyForm: nextCompanyForm,
+    contactForm: nextContactForm,
+    fieldSourceModes: nextFieldSourceModes,
+    autofilledFlags: nextAutofilledFlags,
+    aiGeneratedFieldSnapshots: nextAiSnapshots,
+    intakeReviewFields: nextReviewFields,
+    intakeReviewVerified: nextReviewVerified,
+    intakeConfirmedFieldValues: nextConfirmedValues,
+    intakeLockedFields: nextLockedFields,
+    intakeFieldSources: nextFieldSources,
+    stage: 'Ready for Review',
+  }
+}
+
+function scrubFieldFromQueuedBundles(draftId, fieldKey) {
+  const normalizedDraftId = String(draftId || '').trim()
+  const normalizedFieldKey = String(fieldKey || '').trim()
+  if (!normalizedDraftId || !normalizedFieldKey) return
+
+  for (const item of intakeReviewQueueState.items) {
+    if (String(item?.draftId || '').trim() !== normalizedDraftId) continue
+    if (String(item?.kind || '').trim() !== 'field-review') continue
+    const existingFields = Array.isArray(item?.payload?.fields) ? item.payload.fields : []
+    const nextFields = existingFields.filter((field) => String(field?.key || '').trim() !== normalizedFieldKey)
+    if (nextFields.length === existingFields.length) continue
+    if (!nextFields.length) {
+      item.status = 'resolved'
+      if (String(intakeReviewQueueState.activeItemId || '').trim() === String(item.id || '').trim()) {
+        intakeReviewQueueState.activeItemId = null
+      }
+      continue
+    }
+    item.payload = {
+      ...item.payload,
+      fields: nextFields,
+    }
+    item.updatedAt = Date.now()
+  }
+}
+
+function closeActiveIntakeQueueItem(action = 'resolved') {
+  const itemId = String(activeIntakeQueueItem.value?.id || '').trim()
+  if (!itemId) return
+  intakeQueueDialogOpen.value = false
+  if (action === 'dismissed') dismissIntakeReviewItem(itemId)
+  else resolveIntakeReviewItem(itemId)
+  scheduleNextIntakeQueueItem()
+}
+
+function consumeActiveFieldBundle(fields = [], nextAction = 'resolved') {
+  const activeItem = activeIntakeQueueItem.value
+  if (!activeItem || activeItem.kind !== 'field-review') return
+  const draftId = String(activeItem.draftId || '').trim()
+  const draft = draftId ? intakeDraftState.drafts[draftId] || null : null
+
+  if (draft && fields.length) {
+    updateIntakeDraft(draftId, draftWithFieldReviewApplied(draft, fields))
+    fields.forEach((field) => scrubFieldFromQueuedBundles(draftId, field.key))
+    globalThis?.dispatchEvent?.(
+      new CustomEvent('ecvc:intake-draft-review-applied', { detail: { draftId } }),
+    )
+  }
+
+  const remainingFields = intakeQueueEditableFields.value.filter(
+    (field) => !fields.some((consumedField) => consumedField.key === field.key),
+  )
+  if (remainingFields.length) {
+    activeItem.payload = {
+      ...activeItem.payload,
+      fields: remainingFields,
+    }
+    activeItem.updatedAt = Date.now()
+    return
+  }
+
+  closeActiveIntakeQueueItem(nextAction)
+}
+
+function confirmActiveIntakeField(fieldKey) {
+  const value = normalizeValue(intakeQueueFieldEdits.value[fieldKey])
+  if (!value) {
+    dismissActiveIntakeField(fieldKey)
+    return
+  }
+  const field = intakeQueueEditableFields.value.find((entry) => entry.key === fieldKey)
+  if (!field) return
+  consumeActiveFieldBundle([{ ...field, value }], 'resolved')
+}
+
+function closeGlobalCreateDialogs() {
+  globalCompanyDialogOpen.value = false
+  globalContactDialogOpen.value = false
+  globalFundDialogOpen.value = false
+  globalRoundDialogOpen.value = false
+}
+
+function openActiveEntityCreateDialog() {
+  const activeItem = activeIntakeQueueItem.value
+  if (!activeItem || activeItem.kind !== 'entity-create') return
+  const entityTypeName = String(activeItem.payload?.entityType || '').trim().toLowerCase()
+  globalCreateInitialData.value = {
+    entityType: entityTypeName,
+    entity: JSON.parse(JSON.stringify(activeItem.payload?.entity || {})),
+  }
+  closeGlobalCreateDialogs()
+  if (entityTypeName === 'company') globalCompanyDialogOpen.value = true
+  else if (entityTypeName === 'contact') globalContactDialogOpen.value = true
+  else if (entityTypeName === 'fund') globalFundDialogOpen.value = true
+  else globalRoundDialogOpen.value = true
+  const itemId = String(activeItem.id || '').trim()
+  if (itemId) resolveIntakeReviewItem(itemId)
+  pendingEntityDialogAdvance = true
+}
+
+function dismissActiveIntakeField(fieldKey) {
+  const activeItem = activeIntakeQueueItem.value
+  if (!activeItem || activeItem.kind !== 'field-review') return
+  const remainingFields = intakeQueueEditableFields.value.filter((entry) => entry.key !== fieldKey)
+  if (remainingFields.length) {
+    activeItem.payload = {
+      ...activeItem.payload,
+      fields: remainingFields,
+    }
+    activeItem.updatedAt = Date.now()
+    return
+  }
+  closeActiveIntakeQueueItem('dismissed')
+}
+
+function dismissActiveIntakeFieldBundle() {
+  closeActiveIntakeQueueItem('dismissed')
 }
 
 function draftPrimaryLabel(draft = {}) {
@@ -668,6 +1123,112 @@ function persistQuickWidgetPosition() {
   )
 }
 
+function normalizeQuickWidgetActionSettings(rawSettings = {}) {
+  const enabledInput = rawSettings?.enabled && typeof rawSettings.enabled === 'object' ? rawSettings.enabled : {}
+  const orderInput = Array.isArray(rawSettings?.order) ? rawSettings.order : []
+  const order = [
+    ...orderInput.filter((id) => DEFAULT_QUICK_WIDGET_ACTION_ORDER.includes(id)),
+    ...DEFAULT_QUICK_WIDGET_ACTION_ORDER.filter((id) => !orderInput.includes(id)),
+  ]
+
+  return {
+    order,
+    enabled: Object.fromEntries(
+      DEFAULT_QUICK_WIDGET_ACTION_ORDER.map((id) => [id, enabledInput[id] !== false]),
+    ),
+  }
+}
+
+function persistQuickWidgetActionSettings() {
+  if (typeof window === 'undefined') return
+  window.localStorage?.setItem(
+    QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY,
+    JSON.stringify(quickWidgetActionSettings.value),
+  )
+}
+
+function loadQuickWidgetActionSettings() {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = window.localStorage?.getItem(QUICK_WIDGET_ACTION_SETTINGS_STORAGE_KEY)
+    if (!raw) {
+      quickWidgetActionSettings.value = normalizeQuickWidgetActionSettings()
+      return
+    }
+    quickWidgetActionSettings.value = normalizeQuickWidgetActionSettings(JSON.parse(raw))
+  } catch {
+    quickWidgetActionSettings.value = normalizeQuickWidgetActionSettings()
+  }
+}
+
+function isQuickWidgetActionEnabled(actionId) {
+  if (String(actionId || '').trim() === 'settings') return true
+  return quickWidgetActionSettings.value?.enabled?.[actionId] !== false
+}
+
+function setQuickWidgetActionEnabled(actionId, enabled) {
+  quickWidgetActionSettings.value = {
+    ...quickWidgetActionSettings.value,
+    enabled: {
+      ...quickWidgetActionSettings.value.enabled,
+      [actionId]: enabled !== false,
+    },
+  }
+  persistQuickWidgetActionSettings()
+}
+
+function moveQuickWidgetAction(actionId, direction) {
+  const currentOrder = [...(quickWidgetActionSettings.value?.order || [])]
+  const fromIndex = currentOrder.indexOf(actionId)
+  const toIndex = fromIndex + direction
+  if (fromIndex < 0 || toIndex < 0 || toIndex >= currentOrder.length) return
+  const [moved] = currentOrder.splice(fromIndex, 1)
+  currentOrder.splice(toIndex, 0, moved)
+  quickWidgetActionSettings.value = {
+    ...quickWidgetActionSettings.value,
+    order: currentOrder,
+  }
+  persistQuickWidgetActionSettings()
+}
+
+function setQuickWidgetSettingsTarget(element) {
+  quickWidgetSettingsTarget.value = element?.$el ?? element ?? null
+}
+
+function onQuickWidgetSettingsPointerDown(evt) {
+  if (evt.pointerType === 'mouse' && evt.button !== 0) return
+  quickWidgetSettingsDragState = {
+    pointerId: evt.pointerId,
+    startX: evt.clientX,
+    startY: evt.clientY,
+    startOffsetX: quickWidgetSettingsOffset.value.x,
+    startOffsetY: quickWidgetSettingsOffset.value.y,
+  }
+  quickWidgetSettingsIsDragging.value = true
+  window.addEventListener('pointermove', onQuickWidgetSettingsPointerMove)
+  window.addEventListener('pointerup', onQuickWidgetSettingsPointerUp)
+  window.addEventListener('pointercancel', onQuickWidgetSettingsPointerUp)
+}
+
+function onQuickWidgetSettingsPointerMove(evt) {
+  if (!quickWidgetSettingsDragState || evt.pointerId !== quickWidgetSettingsDragState.pointerId) return
+  const dx = evt.clientX - quickWidgetSettingsDragState.startX
+  const dy = evt.clientY - quickWidgetSettingsDragState.startY
+  quickWidgetSettingsOffset.value = {
+    x: quickWidgetSettingsDragState.startOffsetX + dx,
+    y: quickWidgetSettingsDragState.startOffsetY + dy,
+  }
+}
+
+function onQuickWidgetSettingsPointerUp(evt) {
+  if (!quickWidgetSettingsDragState || evt.pointerId !== quickWidgetSettingsDragState.pointerId) return
+  quickWidgetSettingsIsDragging.value = false
+  quickWidgetSettingsDragState = null
+  window.removeEventListener('pointermove', onQuickWidgetSettingsPointerMove)
+  window.removeEventListener('pointerup', onQuickWidgetSettingsPointerUp)
+  window.removeEventListener('pointercancel', onQuickWidgetSettingsPointerUp)
+}
+
 function loadQuickWidgetPosition() {
   if (typeof window === 'undefined') return
   try {
@@ -695,14 +1256,14 @@ function onQuickWidgetResize() {
 }
 
 function quickWidgetActionAngle(index) {
-  const total = quickWidgetActions.value.length
+  const total = quickWidgetRingActions.value.length
+  if (total <= 0) return -90
   return -90 - (360 / total) * index
 }
 
 function quickWidgetActionOffsetById(actionId, radius = QUICK_WIDGET_ACTION_RADIUS) {
-  const circleOrder = ['opportunity', 'task', 'contact', 'artifact', 'company', 'note']
   const resolvedId = String(actionId || '').trim()
-  const orderIndex = circleOrder.indexOf(resolvedId)
+  const orderIndex = quickWidgetRingActions.value.findIndex((action) => action.id === resolvedId)
   const angleIndex = orderIndex >= 0 ? orderIndex : 0
   const angleRad = (quickWidgetActionAngle(angleIndex) * Math.PI) / 180
 
@@ -713,7 +1274,7 @@ function quickWidgetActionOffsetById(actionId, radius = QUICK_WIDGET_ACTION_RADI
 }
 
 function quickWidgetActionOffset(index, radius = QUICK_WIDGET_ACTION_RADIUS) {
-  const action = quickWidgetActions.value[index]
+  const action = quickWidgetRingActions.value[index]
   return quickWidgetActionOffsetById(action?.id, radius)
 }
 
@@ -784,7 +1345,7 @@ function quickWidgetActionStyle(index) {
 }
 
 function quickOpportunityBranchActionStyle(index) {
-  const opportunityIndex = quickWidgetActions.value.findIndex((action) => action.id === 'opportunity')
+  const opportunityIndex = quickWidgetRingActions.value.findIndex((action) => action.id === 'opportunity')
   const parentOffset =
     opportunityIndex >= 0 ? quickWidgetActionOffset(opportunityIndex) : { x: 0, y: -QUICK_WIDGET_ACTION_RADIUS }
   const parentAngle = quickWidgetActionAngle(opportunityIndex >= 0 ? opportunityIndex : 0)
@@ -830,6 +1391,7 @@ function toggleQuickActions() {
 
 function closeQuickActions() {
   if (!quickActionsOpen.value) return
+  quickWidgetSettingsOpen.value = false
   quickOpportunityBranchOpen.value = false
   quickActionsOpen.value = false
   playQuickWidgetBack()
@@ -888,6 +1450,19 @@ async function openContactFromQuickAction() {
   }
 }
 
+async function openUserFromQuickAction() {
+  closeQuickActions()
+  globalThis.__ecvcOpenUserDialog = true
+  try {
+    await router.push({ name: 'users', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-user-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-user-dialog'))
+    }, 80)
+  }
+}
+
 async function openTaskFromQuickAction() {
   closeQuickActions()
   globalThis.__ecvcOpenTaskDialog = true
@@ -897,6 +1472,19 @@ async function openTaskFromQuickAction() {
     globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
     setTimeout(() => {
       globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
+    }, 80)
+  }
+}
+
+async function openProjectFromQuickAction() {
+  closeQuickActions()
+  globalThis.__ecvcOpenPipelineDialog = true
+  try {
+    await router.push({ name: 'projects', query: { create: '1' } })
+  } finally {
+    globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
+    setTimeout(() => {
+      globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
     }, 80)
   }
 }
@@ -1046,9 +1634,11 @@ onMounted(() => {
   window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
   syncUserNavState()
+  loadQuickWidgetActionSettings()
   loadQuickWidgetPosition()
   initLogoAnimation()
   playQuickWidgetIdle()
+  activateNextIntakeReviewItem()
 })
 
 onBeforeUnmount(() => {
@@ -1058,17 +1648,21 @@ onBeforeUnmount(() => {
   window.removeEventListener('pointermove', onQuickWidgetPointerMove)
   window.removeEventListener('pointerup', onQuickWidgetPointerUp)
   window.removeEventListener('pointercancel', onQuickWidgetPointerUp)
+  window.removeEventListener('pointermove', onQuickWidgetSettingsPointerMove)
+  window.removeEventListener('pointerup', onQuickWidgetSettingsPointerUp)
+  window.removeEventListener('pointercancel', onQuickWidgetSettingsPointerUp)
   logoAnimation?.destroy()
   quickWidgetIconAnimation?.destroy()
   logoAnimation = null
   quickWidgetIconAnimation = null
   quickWidgetDragState = null
+  quickWidgetSettingsDragState = null
+  clearIntakeQueueNextTimer()
 })
 
 watch(
   () => route.fullPath,
   () => {
-    fallbackToolbarUpdatedAt.value = new Date()
     syncUserNavState()
   },
 )
@@ -1080,14 +1674,49 @@ watch(
   },
 )
 
+watch(
+  () => [activeIntakeQueueItem.value?.id || null, activeIntakeQueueItem.value?.updatedAt || null],
+  () => {
+    const item = activeIntakeQueueItem.value
+    if (!item) {
+      intakeQueueDialogOpen.value = false
+      intakeQueueFieldEdits.value = {}
+      return
+    }
+    if (item.kind === 'entity-create') {
+      intakeQueueDialogOpen.value = false
+      intakeQueueFieldEdits.value = {}
+      openActiveEntityCreateDialog()
+      return
+    }
+    if (item.kind === 'field-review') {
+      intakeQueueFieldEdits.value = Object.fromEntries(
+        intakeQueueEditableFields.value.map((field) => [field.key, field.value]),
+      )
+    } else {
+      intakeQueueFieldEdits.value = {}
+    }
+    intakeQueueDialogOpen.value = true
+  },
+  { immediate: true },
+)
+
+watch(
+  () =>
+    globalCompanyDialogOpen.value ||
+    globalContactDialogOpen.value ||
+    globalFundDialogOpen.value ||
+    globalRoundDialogOpen.value,
+  (isAnyOpen) => {
+    if (isAnyOpen || !pendingEntityDialogAdvance) return
+    pendingEntityDialogAdvance = false
+    scheduleNextIntakeQueueItem()
+  },
+)
+
 function resolveBreadcrumbActionDisabled(action) {
   if (typeof action?.disabled === 'function') return !!action.disabled()
   return !!action?.disabled
-}
-
-function refreshCurrentPage() {
-  fallbackToolbarUpdatedAt.value = new Date()
-  router.go(0)
 }
 
 function goBack() {
@@ -1108,6 +1737,25 @@ function goBack() {
   gap: var(--ds-space-12);
   padding-top: calc(var(--ds-space-12) + 70px);
   padding-bottom: 12px;
+}
+
+.ec-intake-queue-field {
+  display: grid;
+  gap: 8px;
+}
+
+.ec-intake-queue-field__meta {
+  display: grid;
+  gap: 2px;
+}
+
+.ec-intake-queue-field__label {
+  font-weight: 700;
+}
+
+.ec-intake-queue-field__caption {
+  color: var(--ds-color-text-navigation);
+  font-size: var(--ds-font-size-sm);
 }
 
 .ec-shell-toolbar-heading {
@@ -1322,6 +1970,15 @@ function goBack() {
   justify-content: center;
 }
 
+.ec-nav-item--primary :deep(.q-item__label) {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.ec-nav-item--primary {
+  min-height: 34px;
+}
+
 .ec-nav-icon--widget-blue {
   color: var(--b10-brand-azul, #2647ff);
 }
@@ -1367,6 +2024,146 @@ function goBack() {
   width: 112px;
   height: 112px;
   overflow: visible;
+}
+
+.ec-quick-widget-settings-menu {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.ec-quick-widget-settings-window {
+  will-change: transform;
+}
+
+.ec-quick-widget-settings-panel {
+  width: 200px;
+  max-width: min(200px, calc(100vw - 16px));
+  padding: 5px;
+  background: rgba(17, 17, 17, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.ec-quick-widget-settings-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-bottom: 4px;
+  cursor: grab;
+  user-select: none;
+}
+
+.ec-quick-widget-settings-panel__header--dragging {
+  cursor: grabbing;
+}
+
+.ec-quick-widget-settings-panel__eyebrow {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ec-quick-widget-settings-panel__title {
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.ec-quick-widget-settings-panel__caption {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.ec-quick-widget-settings-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ec-quick-widget-settings-row {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ec-quick-widget-settings-row__copy {
+  min-width: 0;
+}
+
+.ec-quick-widget-settings-row__label {
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 0.64rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ec-quick-widget-settings-row__toggle-spacer {
+  width: 14px;
+  height: 14px;
+}
+
+.ec-quick-widget-settings-row__actions {
+  display: grid;
+  grid-template-columns: 14px 14px;
+  align-items: center;
+  gap: 0;
+  justify-content: end;
+}
+
+.ec-quick-widget-settings-row__actions :deep(.q-btn) {
+  color: rgba(255, 255, 255, 0.42);
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  min-height: 14px;
+  padding: 0;
+}
+
+.ec-quick-widget-settings-row__chevron {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 1.45;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ec-quick-widget-settings-row__actions :deep(.q-btn:disabled) {
+  color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.ec-quick-widget-settings-row__checkbox {
+  min-height: 16px;
+}
+
+.ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__inner) {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.34) !important;
+}
+
+.ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__inner--truthy) {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.ec-quick-widget-settings-row__checkbox :deep(.q-checkbox__bg) {
+  background: transparent !important;
 }
 
 .ec-intake-drafts {
@@ -1543,6 +2340,12 @@ function goBack() {
 
 .ec-quick-widget-action-button--branch {
   background: color-mix(in srgb, var(--ds-color-text-primary-deep) 88%, white 12%) !important;
+}
+
+.ec-quick-widget-action-button--settings {
+  background: var(--ds-color-surface-inverse) !important;
+  color: var(--ds-color-text-primary-deep) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12);
 }
 
 .ec-quick-widget-action-label {

@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Agents requires Electron. Run <code>quasar dev -m electron</code> or
+        SRRs requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -24,7 +24,7 @@
         >
           <div class="assistants-shell__copy">
             <div class="assistants-shell__eyebrow">Dashboard</div>
-            <h2 class="assistants-shell__hero-title">Review the agents powering your workflows.</h2>
+            <h2 class="assistants-shell__hero-title">Review your Avatar roles.</h2>
             <p class="assistants-shell__hero-text">{{ assistantsHeroText }}</p>
 
           </div>
@@ -88,7 +88,7 @@
 
           <div class="assistants-toolbar__block assistants-toolbar__block--kind">
             <q-btn-toggle
-              v-model="assistantLevelFilter"
+              v-model="assistantRoleFilter"
               dense
               no-caps
               unelevated
@@ -97,7 +97,7 @@
               text-color="grey-8"
               class="assistants-toolbar__toggle assistants-toolbar__kind-toggle"
               :disable="loading"
-              :options="assistantLevelOptions"
+              :options="assistantRoleOptions"
             />
           </div>
 
@@ -109,95 +109,42 @@
               outlined
               borderless
               class="assistants-toolbar__search"
-              placeholder="Search agents..."
+              placeholder="Search SRRs..."
               :disable="loading"
             >
               <template #prepend>
                 <q-icon name="search" />
               </template>
             </q-input>
+            <q-btn
+              dense
+              flat
+              round
+              icon="download"
+              color="grey-6"
+              class="assistants-toolbar__icon-button"
+              disable
+            >
+              <q-tooltip>Import CSV is not available for roles yet</q-tooltip>
+            </q-btn>
+            <q-btn
+              dense
+              flat
+              round
+              icon="upload"
+              color="grey-6"
+              class="assistants-toolbar__icon-button"
+              :disable="loading || displayRows.length === 0"
+              @click="exportAssistantsCsv"
+            >
+              <q-tooltip>Export CSV</q-tooltip>
+            </q-btn>
           </div>
         </div>
 
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>
           {{ error }}
         </q-banner>
-
-        <section class="assistants-hierarchy">
-          <div class="assistants-hierarchy__header">
-            <div>
-              <div class="assistants-hierarchy__eyebrow">Agent Roster</div>
-              <h3 class="assistants-hierarchy__title">Agent roles by scope and responsibility.</h3>
-            </div>
-            <div class="assistants-hierarchy__caption">
-              This page is for the agent roster and card view only. Avatar-level design lives in the Avatar section.
-            </div>
-          </div>
-
-          <div
-            v-for="section in agentHierarchySections"
-            :key="section.level"
-            class="assistants-hierarchy__level"
-          >
-            <div class="assistants-hierarchy__level-header">
-              <div>
-                <div class="assistants-hierarchy__level-eyebrow">{{ section.levelLabel }}</div>
-                <div class="assistants-hierarchy__level-title">{{ section.levelName }}</div>
-              </div>
-              <div class="assistants-hierarchy__level-copy">{{ section.description }}</div>
-            </div>
-
-            <div class="row q-col-gutter-md assistants-hierarchy__grid">
-              <div
-                v-for="agent in section.items"
-                :key="agent.name"
-                class="col-12 col-md-6 col-xl-4"
-              >
-                <q-card flat bordered class="agent-hierarchy-card full-height">
-                  <q-card-section class="agent-hierarchy-card__header">
-                    <div class="row items-start justify-between q-col-gutter-sm no-wrap">
-                      <div class="col">
-                        <div class="agent-hierarchy-card__title">{{ agent.name }}</div>
-                        <div class="agent-hierarchy-card__meta">
-                          {{ agent.domain }} - Parent {{ agent.parent }}
-                        </div>
-                      </div>
-                    </div>
-                  </q-card-section>
-
-                  <q-separator />
-
-                  <q-card-section class="agent-hierarchy-card__body">
-                    <div class="agent-hierarchy-card__section">
-                      <div class="agent-hierarchy-card__section-label">Mission</div>
-                      <div class="agent-hierarchy-card__block">{{ agent.mission }}</div>
-                    </div>
-
-                    <div class="agent-hierarchy-card__section">
-                      <div class="agent-hierarchy-card__section-label">Managed Scope</div>
-                      <div class="agent-hierarchy-card__block">{{ agent.scope }}</div>
-                    </div>
-
-                    <div class="agent-hierarchy-card__section">
-                      <div class="agent-hierarchy-card__section-label">Primary Responsibilities</div>
-                      <div class="agent-hierarchy-card__pills">
-                        <q-chip
-                          v-for="responsibility in agent.responsibilities"
-                          :key="responsibility"
-                          dense
-                          square
-                          class="agent-hierarchy-card__pill"
-                        >
-                          {{ responsibility }}
-                        </q-chip>
-                      </div>
-                    </div>
-                  </q-card-section>
-                </q-card>
-              </div>
-            </div>
-          </div>
-        </section>
 
         <div class="assistants-surface">
           <q-banner
@@ -206,7 +153,7 @@
             rounded
           >
             <div class="row items-center justify-between">
-              <div>No agents found.</div>
+              <div>No SRRs found.</div>
             </div>
           </q-banner>
 
@@ -221,9 +168,9 @@
             :loading="loading"
             :pagination="{ rowsPerPage: 15 }"
           >
-            <template #body-cell-level="props">
+            <template #body-cell-role="props">
               <q-td :props="props">
-                {{ props.row.levelLabel || '--' }}
+                {{ props.row.roleLabel || '--' }}
               </q-td>
             </template>
             <template #body-cell-parent="props">
@@ -238,50 +185,17 @@
             </template>
           </q-table>
 
-          <div v-else-if="viewMode === 'org'" class="assistants-org-view">
-            <div
-              v-for="section in filteredOrgSections"
-              :key="section.level"
-              class="assistants-org-view__section"
-            >
-              <div class="assistants-org-view__section-header">
-                <div>
-                  <div class="assistants-org-view__section-eyebrow">{{ section.levelLabel }}</div>
-                  <div class="assistants-org-view__section-title">{{ section.levelName }}</div>
-                </div>
-                <div class="assistants-org-view__section-copy">{{ section.description }}</div>
-              </div>
-
-              <div class="assistants-org-view__list">
-                <div
-                  v-for="agent in section.items"
-                  :key="agent.name"
-                  class="assistants-org-view__item"
-                >
-                  <div class="assistants-org-view__item-top">
-                    <div>
-                      <div class="assistants-org-view__item-title">{{ agent.name }}</div>
-                      <div class="assistants-org-view__item-meta">
-                        {{ agent.domain }} - Parent {{ agent.parent }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="assistants-org-view__item-body">
-                    <div class="assistants-org-view__item-mission">{{ agent.mission }}</div>
-                    <div class="assistants-org-view__item-footer">
-                      <span>{{ agent.scope }}</span>
-                      <span>{{ agent.nextAction }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div v-else class="row q-col-gutter-md assistants-cards-grid">
             <div v-for="assistant in displayRows" :key="assistant.assistant_system_prompt_id" class="col-12 col-md-6 col-lg-4">
-              <q-card flat bordered class="assistant-card full-height">
+              <q-card
+                flat
+                bordered
+                class="assistant-card full-height"
+                :style="getAgentCardStyle(assistant)"
+                @pointerenter="onAgentCardPointerEnter"
+                @pointermove="onAgentCardPointerMove"
+                @pointerleave="onAgentCardPointerLeave"
+              >
                 <q-card-section class="assistant-card__hero">
                   <div class="assistant-card__hero-main">
                     <figure class="assistant-card__portrait">
@@ -290,7 +204,13 @@
                           class="assistant-card__portrait-badge"
                           :style="{ background: getAgentPortraitGradient(assistant) }"
                         >
-                          <div class="assistant-card__portrait-mark">{{ getAgentPortraitMark(assistant) }}</div>
+                          <div class="assistant-card__portrait-mark">
+                            <q-icon name="smart_toy" class="assistant-card__portrait-avatar" />
+                            <q-icon
+                              :name="getAgentMaskIcon(assistant)"
+                              class="assistant-card__portrait-mask"
+                            />
+                          </div>
                           <div class="assistant-card__portrait-frame">{{ getAgentFrameLabel(assistant) }}</div>
                         </div>
                       </div>
@@ -300,12 +220,15 @@
                       <div class="assistant-card__hero-top">
                         <div class="assistant-card__hero-copy">
                           <div class="assistant-card__title">
-                            {{ assistant.name || 'Unnamed agent' }}
+                            {{ assistant.name || 'Unnamed SRR' }}
                           </div>
-                        <div class="assistant-card__subtitle">
-                          {{ assistant.domain }} - {{ assistant.levelLabel }} - Parent {{ assistant.parent || 'Unknown' }}
+                          <div class="assistant-card__role">
+                            {{ assistant.domain || 'SRR domain' }} • {{ assistant.roleLabel || 'Unassigned role' }}
+                          </div>
                         </div>
-                      </div>
+                        <q-badge class="assistant-card__level-badge">
+                          {{ assistant.parent || 'Avatar' }}
+                        </q-badge>
                       </div>
 
                       <div class="assistant-card__pill-row">
@@ -338,18 +261,30 @@
                 </q-card-section>
 
                 <q-card-section class="assistant-card__summary">
-                  <div class="assistant-card__summary-label">Highlights</div>
+                  <div class="assistant-card__summary-head">
+                    <div class="assistant-card__summary-label">Highlights</div>
+                  </div>
 
-                  <div class="assistant-card__details">
-                    <div
-                      v-for="detail in getAgentCardDetails(assistant)"
-                      :key="detail.label"
-                      class="assistant-card__detail"
-                    >
-                      <q-icon :name="detail.icon" size="16px" class="assistant-card__detail-icon" />
-                      <div class="assistant-card__detail-copy">
-                        <div class="assistant-card__detail-label">{{ detail.label }}</div>
-                        <div class="assistant-card__detail-value">{{ detail.value }}</div>
+                  <div class="assistant-card__summary-panel">
+                    <div class="assistant-card__summary-body">
+                      <div class="assistant-card__summary-body-content">
+                        <div v-if="getAgentCardDetails(assistant).length" class="assistant-card__details">
+                          <div
+                            v-for="detail in getAgentCardDetails(assistant)"
+                            :key="detail.label"
+                            class="assistant-card__detail"
+                          >
+                            <q-icon :name="detail.icon" size="16px" class="assistant-card__detail-icon" />
+                            <div class="assistant-card__detail-copy">
+                              <div class="assistant-card__detail-label">{{ detail.label }}</div>
+                              <div class="assistant-card__detail-value">{{ detail.value }}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div v-else class="assistant-card__summary-empty">
+                          Add more linked agent detail to make this card richer.
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -376,6 +311,10 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { exportFile, useQuasar } from 'quasar'
+import { rowsToCsv } from 'src/utils/csv'
+
+const $q = useQuasar()
 
 const isElectronRuntime = computed(() => {
   if (typeof navigator === 'undefined') return false
@@ -419,227 +358,46 @@ const rows = ref([])
 const loading = ref(false)
 const error = ref('')
 const viewMode = ref('card')
-const assistantLevelFilter = ref('all')
+const assistantRoleFilter = ref('all')
 const searchQuery = ref('')
 
 const viewOptions = [
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
-  { value: 'org', icon: 'account_tree' },
 ]
 
-const assistantLevelOptions = [
+const assistantRoleOptions = [
   { label: 'All', value: 'all' },
-  { label: 'L0', value: 'level-0' },
-  { label: 'L1', value: 'level-1' },
-  { label: 'L2', value: 'level-2' },
-  { label: 'L3', value: 'level-3' },
-]
-
-const AGENT_HIERARCHY_BLUEPRINTS = [
-  {
-    level: 1,
-    levelLabel: 'Level 1',
-    levelName: 'Domain Stewards',
-    description: 'Section stewards responsible for order, coverage, and process quality in each major workspace area.',
-    items: [
-      {
-        name: 'Users Steward',
-        domain: 'Users',
-        parent: 'Avatar',
-        mission: 'Keep internal team records, permissions, and node roles organized.',
-        scope: 'Users section and related ownership links.',
-        responsibilities: ['Maintain users', 'Watch permissions', 'Track owner links'],
-        keywords: ['users'],
-        nextAction: 'Define permission and team-role conventions.',
-      },
-      {
-        name: 'Contacts Steward',
-        domain: 'Contacts',
-        parent: 'Avatar',
-        mission: 'Keep relationship records complete, reachable, and well linked.',
-        scope: 'Contacts section and network quality.',
-        responsibilities: ['Maintain reachability', 'Enrich profiles', 'Link records'],
-        keywords: ['contacts'],
-        nextAction: 'Define profile health thresholds.',
-      },
-      {
-        name: 'Companies Steward',
-        domain: 'Companies',
-        parent: 'Avatar',
-        mission: 'Keep company records schema-aligned and databook-ready.',
-        scope: 'Companies section and workbook alignment.',
-        responsibilities: ['Align schema', 'Watch databooks', 'Protect structure'],
-        keywords: ['companies', 'company'],
-        nextAction: 'Finish schema-aligned company views.',
-      },
-      {
-        name: 'Opportunities Steward',
-        domain: 'Opportunities',
-        parent: 'Avatar',
-        mission: 'Keep funds and rounds structured for pipeline movement and review.',
-        scope: 'Opportunities, funds, and rounds.',
-        responsibilities: ['Track raises', 'Link sponsors', 'Maintain rounds'],
-        keywords: ['opportunities', 'fund', 'round'],
-        nextAction: 'Clarify fund versus round workflows.',
-      },
-      {
-        name: 'Pipelines Steward',
-        domain: 'Pipelines',
-        parent: 'Avatar',
-        mission: 'Keep pipeline stages, status, and execution flow organized.',
-        scope: 'Pipelines and project-stage orchestration.',
-        responsibilities: ['Manage stages', 'Track status', 'Surface blockages'],
-        keywords: ['pipeline', 'project'],
-        nextAction: 'Align default pipeline structure with workbook behavior.',
-      },
-      {
-        name: 'Notes Steward',
-        domain: 'Notes',
-        parent: 'Avatar',
-        mission: 'Keep notes structured, retrievable, and tied to the right records.',
-        scope: 'Notes and knowledge capture.',
-        responsibilities: ['Structure notes', 'Link records', 'Maintain clarity'],
-        keywords: ['notes', 'note'],
-        nextAction: 'Define note templates and note-link rules.',
-      },
-      {
-        name: 'Tasks Steward',
-        domain: 'Tasks',
-        parent: 'Avatar',
-        mission: 'Keep tasks clear, assigned, and tied to the right operating layer.',
-        scope: 'Tasks and execution ownership.',
-        responsibilities: ['Assign work', 'Track status', 'Escalate blockers'],
-        keywords: ['tasks', 'task'],
-        nextAction: 'Clarify task ownership model across levels.',
-      },
-      {
-        name: 'Artifacts Steward',
-        domain: 'Artifacts',
-        parent: 'Avatar',
-        mission: 'Guide intake, filing, conversion, and archive hygiene for source materials.',
-        scope: 'Artifacts and file intake.',
-        responsibilities: ['Manage intake', 'File records', 'Watch conversion'],
-        keywords: ['artifacts', 'artifact', 'intake'],
-        nextAction: 'Design the artifact intake process end to end.',
-      },
-      {
-        name: 'Agents Steward',
-        domain: 'Agents',
-        parent: 'Avatar',
-        mission: 'Keep the agent operating system itself coherent and well documented.',
-        scope: 'Agent hierarchy, card model, and role definitions.',
-        responsibilities: ['Define roles', 'Track coverage', 'Maintain hierarchy'],
-        keywords: ['agents', 'assistant', 'prompt'],
-        nextAction: 'Attach live configs to hierarchy cards.',
-      },
-    ],
-  },
-  {
-    level: 2,
-    levelLabel: 'Level 2',
-    levelName: 'Process Stewards',
-    description: 'Workflow-specific agents that maintain recurring processes inside a domain.',
-    items: [
-      {
-        name: 'Intake Steward',
-        domain: 'Artifacts',
-        parent: 'Artifacts Steward',
-        mission: 'Control the path from incoming file to structured workspace record.',
-        scope: 'Artifact landing, triage, and routing.',
-        responsibilities: ['Receive files', 'Classify intake', 'Route to sections'],
-        keywords: ['intake', 'artifact'],
-        nextAction: 'Define landing, confirmation, and redirect rules.',
-      },
-      {
-        name: 'Workbook Steward',
-        domain: 'Workspace Files',
-        parent: 'Avatar',
-        mission: 'Keep workbook mirrors coherent, numbered, and easy to audit.',
-        scope: 'Excel mirrors and change logs.',
-        responsibilities: ['Mirror records', 'Protect numbering', 'Track changes'],
-        keywords: ['workbook', 'excel', 'mirror'],
-        nextAction: 'Clarify source-of-truth rules between app and files.',
-      },
-      {
-        name: 'Databook Steward',
-        domain: 'Companies',
-        parent: 'Companies Steward',
-        mission: 'Keep databooks structured like a workbook and aligned to schema tabs.',
-        scope: 'Databook UX, tabs, and layout logic.',
-        responsibilities: ['Align tabs', 'Protect workbook feel', 'Surface gaps'],
-        keywords: ['databook'],
-        nextAction: 'Complete the workbook-like databook pass.',
-      },
-      {
-        name: 'Permissions Steward',
-        domain: 'Users',
-        parent: 'Users Steward',
-        mission: 'Maintain a clean separation between Owner, Avatar, Users, and Agent permissions.',
-        scope: 'Roles and access semantics.',
-        responsibilities: ['Define roles', 'Protect ownership', 'Clarify permissions'],
-        keywords: ['user', 'owner', 'permission'],
-        nextAction: 'Map permission language into the glossary.',
-      },
-    ],
-  },
-  {
-    level: 3,
-    levelLabel: 'Level 3',
-    levelName: 'Leaf Stewards',
-    description: 'Narrow execution agents responsible for record-level and file-level upkeep.',
-    items: [
-      {
-        name: 'Company Record Steward',
-        domain: 'Companies',
-        parent: 'Companies Steward',
-        mission: 'Maintain one company record and its related databook completeness.',
-        scope: 'Single company record and linked sections.',
-        responsibilities: ['Maintain record', 'Watch completeness', 'Link related data'],
-        keywords: ['company'],
-        nextAction: 'Define leaf ownership lifecycle for company records.',
-      },
-      {
-        name: 'Pipeline Stage Steward',
-        domain: 'Pipelines',
-        parent: 'Pipelines Steward',
-        mission: 'Watch one pipeline path or stage for drift, blockers, and stale work.',
-        scope: 'Single pipeline stage or lane.',
-        responsibilities: ['Watch stage', 'Track movement', 'Flag blockers'],
-        keywords: ['pipeline', 'stage'],
-        nextAction: 'Define stage-level alerting rules.',
-      },
-      {
-        name: 'Artifact Filing Steward',
-        domain: 'Artifacts',
-        parent: 'Intake Steward',
-        mission: 'Make sure each file lands in the right archive family and linked records.',
-        scope: 'Single artifact or artifact batch.',
-        responsibilities: ['File correctly', 'Preserve links', 'Maintain archive order'],
-        keywords: ['artifact', 'file'],
-        nextAction: 'Define final filing destinations per artifact type.',
-      },
-      {
-        name: 'Task Follow-Up Steward',
-        domain: 'Tasks',
-        parent: 'Tasks Steward',
-        mission: 'Keep leaf execution moving and unresolved work visible.',
-        scope: 'Single task thread or action cluster.',
-        responsibilities: ['Track progress', 'Push follow-up', 'Close loops'],
-        keywords: ['task'],
-        nextAction: 'Define follow-up cadence and stale-task thresholds.',
-      },
-    ],
-  },
+  { label: 'File Stewards', value: 'file-steward' },
+  { label: 'Pipeline Managers', value: 'pipeline-manager' },
+  { label: 'Team Managers', value: 'team-manager' },
+  { label: 'SRR Managers', value: 'agents-manager' },
 ]
 
 const columns = [
-  { name: 'name', label: 'Agent', field: 'name', align: 'left', sortable: true },
-  { name: 'level', label: 'Level', field: 'levelLabel', align: 'left', sortable: true },
+  { name: 'name', label: 'SRR', field: 'name', align: 'left', sortable: true },
+  { name: 'role', label: 'Role', field: 'roleLabel', align: 'left', sortable: true },
   { name: 'parent', label: 'Parent', field: 'parent', align: 'left', sortable: true },
   { name: 'version', label: 'Version', field: 'version', align: 'left', sortable: true },
   { name: 'config_status', label: 'Config', field: 'linkedConfigName', align: 'left', sortable: true },
   { name: 'mission', label: 'Mission', field: 'mission', align: 'left' },
+]
+
+const csvHeaders = [
+  'assistant_system_prompt_id',
+  'name',
+  'version',
+  'description',
+  'system_prompt',
+  'input_contract',
+  'output_contract',
+  'schema_name',
+  'domain',
+  'roleLabel',
+  'parent',
+  'mission',
+  'scope',
+  'nextAction',
 ]
 
 function normalizeAssistantValue(value) {
@@ -669,16 +427,16 @@ const assistantsDashboard = computed(() => {
 const assistantsHeroText = computed(() => {
   const { total, promptedCount, versionedCount, contractCount } = assistantsDashboard.value
   if (!total) {
-    return 'Start building the agent roster. This page tracks active agent layers and their live configs.'
+    return 'Start building the SRR roster. This page tracks active skills, roles, responsibilities, and their live configs.'
   }
-  return `${total} agents tracked across Levels 1 to 3, ${promptedCount} with prompts, ${versionedCount} versioned, and ${contractCount} carrying input contract context.`
+  return `${total} SRR cards tracked across active roles, ${promptedCount} with prompts, ${versionedCount} versioned, and ${contractCount} carrying input contract context.`
 })
 
 const assistantsDashboardStats = computed(() => [
   {
-    label: 'Total agents',
+    label: 'Total SRRs',
     value: assistantsDashboard.value.total,
-    caption: 'Active agent roster',
+    caption: 'Active SRR roster',
     tone: 'neutral',
   },
   {
@@ -713,8 +471,46 @@ function hashString(value) {
   }, 0)
 }
 
-function getAgentPortraitMark(agent) {
-  return `A${agent.level || ''}`
+function deriveAgentRole(agent) {
+  const haystack = [
+    agent?.name,
+    agent?.domain,
+    agent?.mission,
+    agent?.scope,
+    ...(Array.isArray(agent?.responsibilities) ? agent.responsibilities : []),
+  ]
+    .map((value) => String(value || '').toLowerCase())
+    .join(' ')
+
+  if (haystack.includes('pipeline') || haystack.includes('stage')) {
+    return { key: 'pipeline-manager', label: 'Pipeline Manager' }
+  }
+
+  if (
+    haystack.includes('user')
+    || haystack.includes('team')
+    || haystack.includes('permission')
+    || haystack.includes('owner')
+  ) {
+    return { key: 'team-manager', label: 'Team Manager' }
+  }
+
+  if (haystack.includes('agent') || haystack.includes('prompt')) {
+    return { key: 'agents-manager', label: 'SRR Manager' }
+  }
+
+  return { key: 'file-steward', label: 'File Steward' }
+}
+
+function getAgentMaskIcon(agent) {
+  const icons = {
+    'file-steward': 'inventory_2',
+    'pipeline-manager': 'filter_alt',
+    'team-manager': 'badge',
+    'agents-manager': 'theater_comedy',
+  }
+
+  return icons[agent?.role] || 'masks'
 }
 
 function getAgentFrameLabel(agent) {
@@ -732,9 +528,75 @@ function getAgentPortraitGradient(agent) {
   return gradients[Math.abs(hashString(agent.domain)) % gradients.length]
 }
 
+function getAgentCardStyle(agent) {
+  const toneIndex = Math.abs(hashString(`${agent.domain}:${agent.role}`)) % 4
+  const tones = [
+    {
+      strong: 'rgba(38, 71, 255, 0.2)',
+      soft: 'rgba(38, 71, 255, 0.1)',
+      fade: 'rgba(38, 71, 255, 0.05)',
+    },
+    {
+      strong: 'rgba(255, 122, 0, 0.18)',
+      soft: 'rgba(255, 169, 77, 0.1)',
+      fade: 'rgba(255, 169, 77, 0.05)',
+    },
+    {
+      strong: 'rgba(31, 160, 118, 0.18)',
+      soft: 'rgba(88, 214, 169, 0.1)',
+      fade: 'rgba(88, 214, 169, 0.05)',
+    },
+    {
+      strong: 'rgba(111, 76, 255, 0.18)',
+      soft: 'rgba(157, 129, 255, 0.1)',
+      fade: 'rgba(157, 129, 255, 0.05)',
+    },
+  ]
+  const tone = tones[toneIndex]
+  return {
+    '--assistant-card-blob-x': '50%',
+    '--assistant-card-blob-y': '28%',
+    '--assistant-card-blob-size': '62%',
+    '--assistant-card-blob-opacity': '0',
+    '--assistant-card-blob-strong': tone.strong,
+    '--assistant-card-blob-soft': tone.soft,
+    '--assistant-card-blob-fade': tone.fade,
+  }
+}
+
+function onAgentCardPointerEnter(event) {
+  updateAgentCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--assistant-card-blob-opacity', '1')
+}
+
+function onAgentCardPointerMove(event) {
+  updateAgentCardGradientPosition(event)
+}
+
+function onAgentCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--assistant-card-blob-opacity', '0')
+}
+
+function updateAgentCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element) return
+
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+
+  element.style.setProperty('--assistant-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--assistant-card-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
 function getAgentCardPills(agent) {
   return [
-    agent.levelLabel,
+    agent.roleLabel,
     agent.domain,
     agent.version ? `v${agent.version}`.replace('vv', 'v') : 'Customizable',
   ]
@@ -752,54 +614,68 @@ function getAgentCardDetails(agent) {
     { label: 'Mission', value: agent.mission, icon: 'flag' },
     { label: 'Scope', value: agent.scope, icon: 'hub' },
     { label: 'Next action', value: agent.nextAction, icon: 'play_arrow' },
-  ]
+  ].filter((detail) => normalizeAssistantValue(detail.value))
 }
 
-function findConfigForBlueprint(blueprint) {
-  return rows.value.find((row) => {
-    const haystack = buildAssistantSearchText(row)
-    return blueprint.keywords.some((keyword) => haystack.includes(keyword))
-  }) || null
+function startCase(value) {
+  return String(value || '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
-const agentHierarchySections = computed(() =>
-  AGENT_HIERARCHY_BLUEPRINTS.map((section) => ({
-    ...section,
-    items: section.items.map((item) => {
-      const matchingConfig = findConfigForBlueprint(item)
-      return {
-        ...item,
-        assistant_system_prompt_id: matchingConfig?.assistant_system_prompt_id || `blueprint:${section.level}:${item.name}`,
-        level: section.level,
-        levelLabel: section.levelLabel,
-        levelName: section.levelName,
-        version: matchingConfig?.version || null,
-        system_prompt: matchingConfig?.system_prompt || null,
-        input_contract: matchingConfig?.input_contract || null,
-        output_contract: matchingConfig?.output_contract || null,
-        schema_name: matchingConfig?.schema_name || null,
-        linkedConfigName: matchingConfig?.name || null,
-      }
-    }),
-  })),
-)
+function inferAssistantDomain(row) {
+  const schemaLabel = startCase(row?.schema_name)
+  if (schemaLabel) return schemaLabel
 
-const allAgentRows = computed(() =>
-  agentHierarchySections.value.flatMap((section) => section.items),
-)
+  const haystack = buildAssistantSearchText(row)
+  if (haystack.includes('company')) return 'Companies'
+  if (haystack.includes('contact')) return 'Contacts'
+  if (haystack.includes('artifact') || haystack.includes('file')) return 'Artifacts'
+  if (haystack.includes('task')) return 'Tasks'
+  if (haystack.includes('pipeline') || haystack.includes('stage')) return 'Pipelines'
+  if (haystack.includes('user') || haystack.includes('team')) return 'Users'
+  if (haystack.includes('note')) return 'Notes'
+  if (haystack.includes('round') || haystack.includes('fund') || haystack.includes('opportunit')) return 'Opportunities'
+  return 'General'
+}
+
+function summarizePrompt(text) {
+  const normalized = normalizeAssistantValue(text).replace(/\s+/g, ' ')
+  if (!normalized) return ''
+  if (normalized.length <= 140) return normalized
+  return `${normalized.slice(0, 137).trimEnd()}...`
+}
+
+function mapAssistantRow(row) {
+  const role = deriveAgentRole(row)
+  return {
+    ...row,
+    domain: inferAssistantDomain(row),
+    mission: normalizeAssistantValue(row?.description) || summarizePrompt(row?.system_prompt) || null,
+    scope: startCase(row?.schema_name) || normalizeAssistantValue(row?.input_contract) || null,
+    nextAction: normalizeAssistantValue(row?.output_contract) || null,
+    parent: 'Live config',
+    role: role.key,
+    roleLabel: role.label,
+    linkedConfigName: normalizeAssistantValue(row?.name) || null,
+  }
+}
+
+const allAgentRows = computed(() => rows.value.map(mapAssistantRow))
 
 const displayRows = computed(() => {
   const query = normalizeAssistantValue(searchQuery.value).toLowerCase()
   let items = [...allAgentRows.value]
 
-  if (assistantLevelFilter.value !== 'all') {
-    const levelNumber = Number(assistantLevelFilter.value.replace('level-', ''))
-    items = items.filter((row) => row.level === levelNumber)
+  if (assistantRoleFilter.value !== 'all') {
+    items = items.filter((row) => row.role === assistantRoleFilter.value)
   }
 
   if (query) {
     items = items.filter((row) =>
-      [row?.name, row?.version, row?.mission, row?.scope, row?.domain, row?.parent]
+      [row?.name, row?.version, row?.mission, row?.scope, row?.domain, row?.parent, row?.roleLabel]
         .map((value) => String(value || '').toLowerCase())
         .some((value) => value.includes(query)),
     )
@@ -808,15 +684,13 @@ const displayRows = computed(() => {
   return items
 })
 
-const filteredOrgSections = computed(() => {
-  const ids = new Set(displayRows.value.map((item) => item.assistant_system_prompt_id))
-  return agentHierarchySections.value
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => ids.has(item.assistant_system_prompt_id)),
-    }))
-    .filter((section) => section.items.length > 0)
-})
+function exportAssistantsCsv() {
+  const csv = rowsToCsv(csvHeaders, displayRows.value)
+  const ok = exportFile('roles.csv', csv, 'text/csv')
+  if (ok !== true) {
+    $q.notify({ type: 'negative', message: 'Browser denied file download.' })
+  }
+}
 
 async function loadAssistants() {
   if (!bridge.value?.assistants?.list) return
@@ -1077,57 +951,91 @@ onMounted(loadAssistants)
   min-width: 0;
 }
 
-.assistants-toolbar__block--filters {
-  flex-wrap: nowrap;
+.assistants-toolbar__block--view {
+  padding-top: 2px;
+  margin-right: 18px;
 }
 
 .assistants-toolbar__block--search {
   grid-column: -2 / -1;
+  align-items: center;
   justify-content: flex-end;
   margin-left: auto;
 }
 
 .assistants-toolbar__filters-icon {
+  align-self: center;
   color: var(--ds-color-text-muted);
   flex: 0 0 auto;
 }
 
 .assistants-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  align-self: center;
   flex: 0 0 auto;
+  height: var(--ds-control-height-md);
+  border-radius: var(--ds-control-radius);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: var(--ds-line-height-xs);
+}
+
+.assistants-toolbar__toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.assistants-toolbar__toggle :deep(.q-btn) {
+  background: transparent;
   border: 1px solid var(--ds-control-border);
-  border-radius: 999px;
-  box-shadow: var(--ds-control-shadow);
-  overflow: hidden;
+  border-radius: var(--ds-control-radius);
+  box-shadow: none;
 }
 
 .assistants-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 48px;
-  padding-inline: 12px;
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding-inline: 4px;
 }
 
 .assistants-toolbar__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
 }
 
+.assistants-toolbar__view-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+
+.assistants-toolbar__icon-button {
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+}
+
+.assistants-toolbar__icon-button :deep(.q-icon) {
+  font-size: 18px;
+}
+
 .assistants-toolbar__kind-toggle :deep(.q-btn) {
-  min-width: 62px;
-  padding-inline: 14px;
+  min-width: 84px;
+  padding-inline: 18px;
 }
 
 .assistants-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
   margin-left: 6px;
 }
 
-.assistants-toolbar__filter-control {
-  flex: 0 1 clamp(110px, 16vw, 160px);
-  min-width: 110px;
-  background: var(--ds-control-surface);
-  border-radius: var(--ds-control-radius);
-}
-
 .assistants-toolbar__search {
-  width: 100%;
-  min-width: 0;
+  width: min(100%, 300px);
+  min-width: min(100%, 300px);
+  flex: 0 0 min(100%, 300px);
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -1145,129 +1053,10 @@ onMounted(loadAssistants)
   padding: 0 var(--ds-control-inline-padding);
 }
 
-.assistants-toolbar__toggle {
-  flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  background: var(--ds-control-surface);
-  color: var(--ds-control-text);
-  border-color: var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
-}
-
 .assistants-surface {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.assistants-org-view {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.assistants-org-view__section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.82);
-}
-
-.assistants-org-view__section-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.assistants-org-view__section-eyebrow {
-  color: var(--ds-color-text-muted);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-medium);
-  font-weight: var(--ds-font-weight-medium);
-  letter-spacing: 0.08em;
-  line-height: var(--ds-line-height-xs);
-  text-transform: uppercase;
-}
-
-.assistants-org-view__section-title {
-  margin-top: 6px;
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: 1.05rem;
-  font-weight: var(--ds-font-weight-black);
-  line-height: 1;
-}
-
-.assistants-org-view__section-copy {
-  max-width: 42ch;
-  color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-regular);
-  line-height: var(--ds-line-height-sm);
-}
-
-.assistants-org-view__list {
-  display: grid;
-  gap: 12px;
-}
-
-.assistants-org-view__item {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px 16px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.assistants-org-view__item-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.assistants-org-view__item-title {
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: 1rem;
-  font-weight: var(--ds-font-weight-black);
-  line-height: 1.1;
-}
-
-.assistants-org-view__item-meta,
-.assistants-org-view__item-mission,
-.assistants-org-view__item-footer {
-  color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-regular);
-  line-height: var(--ds-line-height-sm);
-}
-
-.assistants-org-view__item-meta {
-  margin-top: 4px;
-}
-
-.assistants-org-view__item-body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.assistants-org-view__item-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
 }
 
 .assistants-hierarchy {
@@ -1476,24 +1265,29 @@ onMounted(loadAssistants)
   flex-direction: column;
   min-height: 100%;
   overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
+  border-color: rgba(17, 17, 17, 0.08);
   border-radius: 24px;
-  border-color: rgba(148, 163, 184, 0.22);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
-    #fff;
-  box-shadow:
-    0 18px 40px rgba(15, 23, 42, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 42px rgba(17, 17, 17, 0.06);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .assistant-card::before {
   content: '';
   position: absolute;
   inset: 0;
+  background: radial-gradient(
+    circle at var(--assistant-card-blob-x) var(--assistant-card-blob-y),
+    var(--assistant-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--assistant-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--assistant-card-blob-size) * 0.46),
+    var(--assistant-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--assistant-card-blob-size) * 0.7),
+    transparent var(--assistant-card-blob-size)
+  );
+  opacity: var(--assistant-card-blob-opacity, 0);
   pointer-events: none;
-  background:
-    radial-gradient(circle at 14% 16%, rgba(38, 71, 255, 0.08), transparent 34%),
-    radial-gradient(circle at 88% 0%, rgba(235, 255, 90, 0.1), transparent 28%);
+  transition: opacity 180ms ease;
 }
 
 .assistant-card > * {
@@ -1501,165 +1295,309 @@ onMounted(loadAssistants)
   z-index: 1;
 }
 
+.assistant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
+}
+
 .assistant-card__hero {
-  padding-bottom: 12px;
+  padding: 0;
 }
 
 .assistant-card__hero-main {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
 }
 
 .assistant-card__portrait {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
   margin: 0;
-  flex: 0 0 108px;
+  overflow: hidden;
+  background: #d8d4ca;
+  border-right: 1px solid rgba(17, 17, 17, 0.08);
 }
 
 .assistant-card__portrait-shell {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 108px;
-  height: 108px;
-  border-radius: 28px;
+  width: 100%;
+  height: 100%;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.8), transparent 55%),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.02));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.14), transparent 55%),
+    linear-gradient(180deg, rgba(17, 17, 17, 0.04), rgba(17, 17, 17, 0.16));
+}
+
+.assistant-card__portrait::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(17, 17, 17, 0.2) 100%);
+  pointer-events: none;
 }
 
 .assistant-card__portrait-badge {
   display: flex;
-  width: 82px;
-  height: 82px;
+  width: clamp(118px, 44%, 148px);
+  height: clamp(118px, 44%, 148px);
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 32px;
   color: #fff;
   box-shadow:
-    0 10px 22px rgba(15, 23, 42, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 36px rgba(17, 17, 17, 0.14);
 }
 
 .assistant-card__portrait-mark {
-  font-family: var(--ds-font-family-title);
-  font-size: 1.35rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 78px;
+  height: 78px;
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.8vw, 3rem);
   font-weight: var(--ds-font-weight-black);
   line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.assistant-card__portrait-avatar {
+  font-size: 54px;
+  color: rgba(255, 255, 255, 0.94);
+  filter: drop-shadow(0 10px 16px rgba(17, 17, 17, 0.18));
+}
+
+.assistant-card__portrait-mask {
+  position: absolute;
+  right: 2px;
+  bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 5px;
+  font-size: 16px;
+  color: rgba(38, 71, 255, 0.94);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  box-shadow: 0 10px 20px rgba(17, 17, 17, 0.18);
 }
 
 .assistant-card__portrait-frame {
-  margin-top: 6px;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
+  margin-top: 8px;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.1em;
 }
 
 .assistant-card__hero-side {
-  display: flex;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
   min-width: 0;
-  flex: 1;
-  flex-direction: column;
-  gap: 12px;
+  gap: 6px;
+  padding: 12px 16px 12px 12px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
 }
 
 .assistant-card__hero-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
 }
 
 .assistant-card__hero-copy {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .assistant-card__title {
-  color: #0f172a;
-  font-family: var(--ds-font-family-title);
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.2;
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
 }
 
-.assistant-card__subtitle,
+.assistant-card__role,
 .assistant-card__meta {
-  margin-top: 6px;
-  color: #64748b;
-  font-size: 0.8rem;
-  line-height: 1.4;
+  color: #4b4b4b;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+  text-wrap: balance;
+}
+
+.assistant-card__level-badge {
+  padding: 6px 9px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
 }
 
 .assistant-card__pill-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
+  align-content: flex-start;
 }
 
 .assistant-card__pill {
-  background: rgba(38, 71, 255, 0.08);
-  color: #2647ff;
-  border: 1px solid rgba(38, 71, 255, 0.12);
+  padding: 6px 9px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
 }
 
 .assistant-card__quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  align-content: start;
 }
 
 .assistant-card__quick-action {
+  min-height: 30px;
+  width: 100%;
+  padding: 0 10px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(17, 17, 17, 0.1);
   border-radius: 999px;
-  border-color: rgba(15, 23, 42, 0.12);
-  background: rgba(255, 255, 255, 0.9);
-  color: #334155;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.assistant-card__quick-action :deep(.q-btn__content) {
+  min-width: 0;
+  justify-content: flex-start;
 }
 
 .assistant-card__summary {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
+  margin: 20px 20px 0;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.assistant-card__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 30px;
+}
+
+.assistant-card__summary-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.assistant-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.assistant-card__summary-body-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 .assistant-card__summary-label,
 .assistant-card__detail-label {
-  color: #64748b;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  color: #737373;
+  font-family: var(--font-body);
+  font-size: var(--text-xs---medium);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.14em;
+  line-height: 16px;
   text-transform: uppercase;
 }
 
 .assistant-card__details {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
 }
 
 .assistant-card__detail {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 10px;
-  padding: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.82);
+  align-items: start;
 }
 
 .assistant-card__detail-icon {
-  color: #2647ff;
-  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #6f6f6f;
 }
 
 .assistant-card__detail-copy {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .assistant-card__detail-value {
-  margin-top: 4px;
-  color: #334155;
-  font-size: 0.86rem;
-  line-height: 1.5;
+  overflow: hidden;
+  color: #111;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---regular);
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assistant-card__summary-empty {
+  color: #6f6f6f;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---light);
+  font-weight: var(--font-weight-light);
+  line-height: 20px;
 }
 
 .assistant-card__footer {
@@ -1667,22 +1605,32 @@ onMounted(loadAssistants)
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-top: 0;
+  padding: 16px 20px 20px;
 }
 
 .assistant-card__footer-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .assistant-card__footer-chip {
-  background: rgba(15, 23, 42, 0.06);
-  color: #334155;
+  padding: 6px 9px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
 }
 
 .assistant-card__icon-action {
-  color: #2647ff;
+  color: #111;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 17, 17, 0.1);
 }
 
 @media (max-width: 1200px) {
@@ -1715,12 +1663,6 @@ onMounted(loadAssistants)
     align-items: stretch;
   }
 
-  .assistants-org-view__section-header,
-  .assistants-org-view__item-top {
-    flex-direction: column;
-  }
-
-  .assistants-toolbar__filter-control,
   .assistants-toolbar__search,
   .assistants-toolbar__toggle {
     width: 100%;
@@ -1728,17 +1670,62 @@ onMounted(loadAssistants)
   }
 
   .assistant-card__hero-main {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    height: 324px;
   }
 
   .assistant-card__portrait {
-    flex-basis: auto;
+    min-height: 156px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+  }
+
+  .assistant-card__hero-top {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .assistant-card__hero-side {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .assistant-card__portrait-badge {
+    width: 104px;
+    height: 104px;
+  }
+
+  .assistant-card__quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .assistant-card__title {
+    font-size: 1.3rem;
+  }
+
+  .assistant-card__summary,
+  .assistant-card__footer {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+
+  .assistant-card__details {
+    grid-template-columns: 1fr;
+  }
+
+  .assistant-card__footer {
+    padding-right: 0;
+    padding-left: 0;
   }
 }
 
 @media (max-width: 640px) {
   .assistants-dashboard__stats {
     grid-template-columns: 1fr;
+  }
+
+  .assistant-card {
+    border-radius: 20px;
   }
 }
 </style>

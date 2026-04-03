@@ -1,0 +1,687 @@
+{
+  "version": 1,
+  "status": "draft",
+  "notes": [
+    "This file is the canonical app-owned structure draft.",
+    "The workbook and workbook-schema-companion remain useful for validation, migration, and intake.",
+    "Addresses should remain stable whenever possible."
+  ],
+  "addressing": {
+    "entity_address_pattern": "L1.0.0",
+    "subsection_address_pattern": "L1.L2.0",
+    "token_address_pattern": "L1.L2.L3"
+  },
+  "entities": [
+    {
+      "level_1": "3",
+      "entity": "Contacts",
+      "entity_label": "Contact",
+      "entity_address": "3.0.0",
+      "structure_token": {
+        "address": "3.0.0",
+        "token_name": "Contact",
+        "token_type": "structure"
+      },
+      "subsections": [
+        {
+          "level_2": "1",
+          "subsection": "System_Data",
+          "subsection_address": "3.1.0",
+          "structure_token": "Contact_System_Data",
+          "tokens": [
+            {
+              "address": "3.1.1",
+              "token_name": "Contact_ID",
+              "token_type": "id"
+            },
+            {
+              "address": "3.1.2",
+              "token_name": "Contact_DateTime_Stamp",
+              "token_type": "datetime"
+            },
+            {
+              "address": "3.1.3",
+              "token_name": "Contact_Creator",
+              "token_type": "select_single"
+            }
+          ]
+        },
+        {
+          "level_2": "2",
+          "subsection": "General_Information",
+          "subsection_address": "3.2.0",
+          "structure_token": "Contact_General_Information",
+          "tokens": [
+            {
+              "address": "3.2.1",
+              "token_name": "Contact_Name",
+              "token_type": "text"
+            },
+            {
+              "address": "3.2.2",
+              "token_name": "Contact_PEmail",
+              "token_type": "email"
+            },
+            {
+              "address": "3.2.3",
+              "token_name": "Contact_BEmail",
+              "token_type": "email"
+            },
+            {
+              "address": "3.2.4",
+              "token_name": "Contact_Phone",
+              "token_type": "phone"
+            },
+            {
+              "address": "3.2.5",
+              "token_name": "Contact_HQ",
+              "token_type": "select_single"
+            },
+            {
+              "address": "3.2.6",
+              "token_name": "Contact_LinkedIn",
+              "token_type": "url"
+            }
+          ]
+        },
+        {
+          "level_2": "3",
+          "subsection": "KDB_Relations",
+          "subsection_address": "3.3.0",
+          "structure_token": "Contact_KDB_Relations",
+          "tokens": [
+            {
+              "address": "3.3.1",
+              "token_name": "Contact_Artifact",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "3.3.2",
+              "token_name": "Contact_User",
+              "token_type": "select_single"
+            },
+            {
+              "address": "3.3.3",
+              "token_name": "Contact_Company",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "3.3.4",
+              "token_name": "Contact_Fund",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "3.3.5",
+              "token_name": "Contact_Round",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "3.3.6",
+              "token_name": "Contact_Project",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "3.3.7",
+              "token_name": "Contact_Task",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "3.3.8",
+              "token_name": "Contact_Note",
+              "token_type": "select_multi"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "Employment",
+          "subsection_address": "3.4.0",
+          "structure_token": "Contact_Employment",
+          "tokens": [
+            {
+              "address": "3.4.1",
+              "token_name": "Contact_Employment",
+              "token_type": "select_multi"
+            }
+          ]
+        },
+        {
+          "level_2": "5",
+          "subsection": "Studies",
+          "subsection_address": "3.5.0",
+          "structure_token": "Contact_Studies",
+          "tokens": [
+            {
+              "address": "3.5.1",
+              "token_name": "Contact_Studies",
+              "token_type": "select_multi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "level_1": "4",
+      "entity": "Companies",
+      "entity_label": "Company",
+      "entity_address": "4.0.0",
+      "structure_token": {
+        "address": "4.0.0",
+        "token_name": "Company",
+        "token_type": "structure"
+      },
+      "subsections": [
+        {
+          "level_2": "1",
+          "subsection": "System_Data",
+          "subsection_address": "4.1.0",
+          "structure_token": "Company_System_Data",
+          "tokens": [
+            {
+              "address": "4.1.1",
+              "token_name": "Company_ID",
+              "token_type": "id"
+            },
+            {
+              "address": "4.1.2",
+              "token_name": "Company_Creator",
+              "token_type": "select_single"
+            },
+            {
+              "address": "4.1.3",
+              "token_name": "Company_DateTime_Stamp",
+              "token_type": "datetime"
+            },
+            {
+              "address": "4.1.4",
+              "token_name": "Company_Status",
+              "token_type": "select_single"
+            },
+            {
+              "address": "4.1.5",
+              "token_name": "Company_Short_Name",
+              "token_type": "text"
+            },
+            {
+              "address": "4.1.6",
+              "token_name": "Company_Website",
+              "token_type": "url"
+            },
+            {
+              "address": "4.1.7",
+              "token_name": "Company_Tagline",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "2",
+          "subsection": "KDB_Relations",
+          "subsection_address": "4.2.0",
+          "structure_token": "Company_KDB_Relations",
+          "tokens": [
+            {
+              "address": "4.2.1",
+              "token_name": "Company_Artifact",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.2.2",
+              "token_name": "Company_User",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.2.3",
+              "token_name": "Company_Contact",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.2.4",
+              "token_name": "Company_Company",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.2.5",
+              "token_name": "Company_Fund",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.2.6",
+              "token_name": "Company_Round",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.2.7",
+              "token_name": "Company_Project",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.2.8",
+              "token_name": "Company_Task",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.2.9",
+              "token_name": "Company_Note",
+              "token_type": "select_multi"
+            }
+          ]
+        },
+        {
+          "level_2": "3",
+          "subsection": "Inc_Info",
+          "subsection_address": "4.3.0",
+          "structure_token": "Company_Inc_Info",
+          "tokens": [
+            {
+              "address": "4.3.1",
+              "token_name": "Company_Legal_Name",
+              "token_type": "text"
+            },
+            {
+              "address": "4.3.2",
+              "token_name": "Company_Inc_Date",
+              "token_type": "date"
+            },
+            {
+              "address": "4.3.3",
+              "token_name": "Company_Inc_Country",
+              "token_type": "select_single"
+            },
+            {
+              "address": "4.3.4",
+              "token_name": "Company_Entity_Type",
+              "token_type": "select_single"
+            },
+            {
+              "address": "4.3.5",
+              "token_name": "Company_Founders",
+              "token_type": "select_multi"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "Docs",
+          "subsection_address": "4.4.0",
+          "structure_token": "Company_Docs",
+          "tokens": [
+            {
+              "address": "4.4.1",
+              "token_name": "Company_Inc_Certificate",
+              "token_type": "file"
+            },
+            {
+              "address": "4.4.2",
+              "token_name": "Company_Inc_Articles",
+              "token_type": "file"
+            },
+            {
+              "address": "4.4.3",
+              "token_name": "Company_Agreements",
+              "token_type": "file"
+            },
+            {
+              "address": "4.4.4",
+              "token_name": "Company_Bylaws",
+              "token_type": "file"
+            },
+            {
+              "address": "4.4.5",
+              "token_name": "Company_IP",
+              "token_type": "file"
+            },
+            {
+              "address": "4.4.6",
+              "token_name": "Company_FS_Yearly",
+              "token_type": "file"
+            },
+            {
+              "address": "4.4.7",
+              "token_name": "Company_FS_Quarterly",
+              "token_type": "file"
+            },
+            {
+              "address": "4.4.8",
+              "token_name": "Company_FS_Monthly",
+              "token_type": "file"
+            },
+            {
+              "address": "4.4.9",
+              "token_name": "Company_Descriptives",
+              "token_type": "file"
+            }
+          ]
+        },
+        {
+          "level_2": "5",
+          "subsection": "Ops_Overview",
+          "subsection_address": "4.5.0",
+          "structure_token": "Company_Ops_Overview",
+          "tokens": [
+            {
+              "address": "4.5.1",
+              "token_name": "Company_Stage",
+              "token_type": "select_single"
+            },
+            {
+              "address": "4.5.2",
+              "token_name": "Company_HQ_Locations",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.5.3",
+              "token_name": "Company_Ops_Locations",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.5.4",
+              "token_name": "Company_Pax_Count",
+              "token_type": "number"
+            },
+            {
+              "address": "4.5.5",
+              "token_name": "Company_Pax_Known",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.5.6",
+              "token_name": "Company_Business_Structure",
+              "token_type": "file"
+            },
+            {
+              "address": "4.5.7",
+              "token_name": "Company_Corporate_Structure",
+              "token_type": "file"
+            },
+            {
+              "address": "4.5.8",
+              "token_name": "Company_Organizational_Structure",
+              "token_type": "file"
+            },
+            {
+              "address": "4.5.9",
+              "token_name": "Company_Leadership_Team",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.5.10",
+              "token_name": "Company_Advisors",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.5.11",
+              "token_name": "Company_Other",
+              "token_type": "textarea"
+            }
+          ]
+        },
+        {
+          "level_2": "6",
+          "subsection": "Business_Overview",
+          "subsection_address": "4.6.0",
+          "structure_token": "Company_Business_Overview",
+          "tokens": [
+            {
+              "address": "4.6.1",
+              "token_name": "Company_Description",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.2",
+              "token_name": "Company_News",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.3",
+              "token_name": "Company_Updates",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.4",
+              "token_name": "Company_Objectives",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.5",
+              "token_name": "Company_Products",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.6",
+              "token_name": "Company_Key_Features",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.7",
+              "token_name": "Company_Backlog_Features",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.8",
+              "token_name": "Company_ICP",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.9",
+              "token_name": "Company_Business_Model",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.10",
+              "token_name": "Company_Pricing",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.11",
+              "token_name": "Company_Placement",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.6.12",
+              "token_name": "Company_Promotion",
+              "token_type": "textarea"
+            }
+          ]
+        },
+        {
+          "level_2": "7",
+          "subsection": "Market_Overview",
+          "subsection_address": "4.7.0",
+          "structure_token": "Company_Market_Overview",
+          "tokens": [
+            {
+              "address": "4.7.1",
+              "token_name": "Company_Market",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.7.2",
+              "token_name": "Company_Demand_Analysis",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.7.3",
+              "token_name": "Company_Supply_Analysis",
+              "token_type": "textarea"
+            }
+          ]
+        },
+        {
+          "level_2": "8",
+          "subsection": "Results_Overview",
+          "subsection_address": "4.8.0",
+          "structure_token": "Company_Results_Overview",
+          "tokens": [
+            {
+              "address": "4.8.1",
+              "token_name": "Company_Traction",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.2",
+              "token_name": "Company_Sales",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.3",
+              "token_name": "Company_Revenue",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.4",
+              "token_name": "Company_Clients_Analysis",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.5",
+              "token_name": "Company_Cohorts_Analysis",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.6",
+              "token_name": "Company_Costs_Direct",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.7",
+              "token_name": "Company_Costs_Indirect",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.8",
+              "token_name": "Company_Costs_Marketing",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.9",
+              "token_name": "Company_Unit_Economics",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.10",
+              "token_name": "Company_CAC",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.11",
+              "token_name": "Company_LTV",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.12",
+              "token_name": "Company_Costs_Admin",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.13",
+              "token_name": "Company_Costs_Tech_RD",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.8.14",
+              "token_name": "Company_IS",
+              "token_type": "file"
+            },
+            {
+              "address": "4.8.15",
+              "token_name": "Company_BS",
+              "token_type": "file"
+            },
+            {
+              "address": "4.8.16",
+              "token_name": "Company_CF",
+              "token_type": "file"
+            },
+            {
+              "address": "4.8.17",
+              "token_name": "Company_Tax_Filings",
+              "token_type": "file"
+            },
+            {
+              "address": "4.8.18",
+              "token_name": "Company_Bank_Statements",
+              "token_type": "file"
+            }
+          ]
+        },
+        {
+          "level_2": "9",
+          "subsection": "Business_Plan",
+          "subsection_address": "4.9.0",
+          "structure_token": "Company_Business_Plan",
+          "tokens": [
+            {
+              "address": "4.9.1",
+              "token_name": "Company_BP_Overview",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.9.2",
+              "token_name": "Company_BP_Fcst",
+              "token_type": "file"
+            },
+            {
+              "address": "4.9.3",
+              "token_name": "Company_BP_ST_Obj",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.9.4",
+              "token_name": "Company_BP_LT_Obj",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.9.5",
+              "token_name": "Company_BP_Resources_Uses",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.9.6",
+              "token_name": "Company_BP_Runway",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.9.7",
+              "token_name": "Company_BP_Capital_Need",
+              "token_type": "textarea"
+            },
+            {
+              "address": "4.9.8",
+              "token_name": "Company_BP_Funding_Strategy",
+              "token_type": "textarea"
+            }
+          ]
+        },
+        {
+          "level_2": "10",
+          "subsection": "Fund_Raising",
+          "subsection_address": "4.10.0",
+          "structure_token": "Company_Fund_Raising",
+          "tokens": [
+            {
+              "address": "4.10.1",
+              "token_name": "Company_Shareholder_Structure",
+              "token_type": "file"
+            },
+            {
+              "address": "4.10.2",
+              "token_name": "Company_Shareholders",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.10.3",
+              "token_name": "Company_Round_Raised",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "4.10.4",
+              "token_name": "Company_Amount_Raised",
+              "token_type": "number"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

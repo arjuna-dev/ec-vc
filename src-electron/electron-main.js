@@ -1032,6 +1032,42 @@ function listContacts() {
   )
 }
 
+function listRounds() {
+  return dbAll(
+    `
+    SELECT
+      r.id,
+      r.Round_Name,
+      ro.sponsor_company_id,
+      ro.Round_Raising_Status,
+      ro.Round_Security_Type,
+      ro.Round_Target_Size,
+      ro.Round_Commited_Amounts,
+      ro.Round_Close_Date
+    FROM Rounds r
+    LEFT JOIN Round_Overview ro ON ro.round_id = r.id
+    ORDER BY COALESCE(r.Round_Name, '') ASC, r.id DESC
+  `,
+  )
+}
+
+function listFunds() {
+  return dbAll(
+    `
+    SELECT
+      f.id,
+      f.Fund_Name,
+      fo.Fund_Raising_Status,
+      fo.Fund_Target_Size,
+      fo.Fund_Commited_Amounts,
+      fo.Fund_Close_Date
+    FROM Funds f
+    LEFT JOIN Fund_Overview fo ON fo.fund_id = f.id
+    ORDER BY COALESCE(f.Fund_Name, '') ASC, f.id DESC
+  `,
+  )
+}
+
 function listUsers() {
   return dbAll(
     `
@@ -1045,6 +1081,53 @@ function listUsers() {
     ORDER BY COALESCE(User_Name, '') ASC, id ASC
   `,
   )
+}
+
+function createUser(payload = {}) {
+  const database = initDb()
+  const userName =
+    normalizeNullableString(payload?.User_Name) || normalizeNullableString(payload?.Name)
+  const userEmail =
+    normalizeNullableString(payload?.User_PEmail) ||
+    normalizeNullableString(payload?.Professional_Email) ||
+    normalizeNullableString(payload?.Personal_Email) ||
+    normalizeNullableString(payload?.Email)
+
+  if (!userName) throw new Error('User name is required')
+  if (!userEmail) throw new Error('Primary email is required')
+  if (!isEmail(userEmail)) throw new Error('Primary email must be a valid email address')
+
+  const explicitId = normalizeNullableString(payload?.id)
+  const existing = database
+    .prepare('SELECT id FROM Users WHERE User_PEmail = ? LIMIT 1')
+    .get(userEmail)
+  const userId = explicitId || existing?.id || `user:${crypto.randomUUID()}`
+
+  database
+    .prepare(
+      `
+      INSERT INTO Users (
+        id, User_Name, User_PEmail, created_at, updated_at
+      ) VALUES (
+        @id, @User_Name, @User_PEmail, datetime('now'), datetime('now')
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        User_Name = excluded.User_Name,
+        User_PEmail = excluded.User_PEmail,
+        updated_at = datetime('now')
+    `,
+    )
+    .run({
+      id: userId,
+      User_Name: userName,
+      User_PEmail: userEmail,
+    })
+
+  return {
+    id: userId,
+    User_Name: userName,
+    User_PEmail: userEmail,
+  }
 }
 
 function listNotes() {
@@ -2059,6 +2142,18 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['Name', 'Professional_Email', 'Personal_Email', 'id'],
     readonlyColumns: new Set(['id']),
   },
+  Users: {
+    tableName: 'Users',
+    entityLabel: 'User',
+    displayColumns: ['User_Name', 'User_PEmail', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Artifacts: {
+    tableName: 'Artifacts',
+    entityLabel: 'Artifact',
+    displayColumns: ['title', 'artifact_id'],
+    readonlyColumns: new Set(['artifact_id', 'created_at', 'updated_at']),
+  },
   Opportunities: {
     tableName: 'Opportunities',
     entityLabel: 'Opportunity',
@@ -2077,9 +2172,9 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['Round_Name', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
-  Pipelines: {
+  Projects: {
     tableName: 'Projects',
-    entityLabel: 'Pipeline',
+    entityLabel: 'Project',
     displayColumns: ['Project_Name', 'id'],
     readonlyColumns: new Set([
       'id',
@@ -2090,6 +2185,18 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
       'updated_at',
     ]),
   },
+  Tasks: {
+    tableName: 'Tasks',
+    entityLabel: 'Task',
+    displayColumns: ['Task_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Notes: {
+    tableName: 'Notes',
+    entityLabel: 'Note',
+    displayColumns: ['title', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
 })
 
 const DATABOOK_TABLE_ALIASES = Object.freeze({
@@ -2097,16 +2204,24 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   company: 'Companies',
   contacts: 'Contacts',
   contact: 'Contacts',
+  users: 'Users',
+  user: 'Users',
+  artifacts: 'Artifacts',
+  artifact: 'Artifacts',
   opportunities: 'Opportunities',
   opportunity: 'Opportunities',
   funds: 'Funds',
   fund: 'Funds',
   rounds: 'Rounds',
   round: 'Rounds',
-  pipelines: 'Pipelines',
-  pipeline: 'Pipelines',
-  projects: 'Pipelines',
-  project: 'Pipelines',
+  pipelines: 'Projects',
+  pipeline: 'Projects',
+  projects: 'Projects',
+  project: 'Projects',
+  tasks: 'Tasks',
+  task: 'Tasks',
+  notes: 'Notes',
+  note: 'Notes',
 })
 
 function getDatabookTableConfig(tableName) {
@@ -2445,6 +2560,88 @@ function buildCompanyDatabookView(database, recordId) {
   }
 }
 
+function createDatabookField({
+  tableName,
+  recordId,
+  fieldName,
+  value,
+  editable,
+  idColumn,
+  keyPrefix = null,
+}) {
+  const prefix = keyPrefix || tableName
+  return {
+    key: `${prefix}|${recordId}|${fieldName}`,
+    section: '',
+    label: formatDatabookFieldLabel(fieldName),
+    value: value == null ? '' : String(value),
+    editable: Boolean(editable),
+    table_name: tableName,
+    record_id: recordId,
+    field_name: fieldName,
+    id_column: idColumn,
+  }
+}
+
+function buildUserDatabookView(database, recordId) {
+  const rid = normalizeNullableString(recordId)
+  if (!rid) throw new Error('recordId is required')
+
+  const row =
+    database
+      .prepare(
+        `
+        SELECT id, User_Name, User_PEmail, created_at, updated_at
+        FROM Users
+        WHERE id = ?
+        LIMIT 1
+      `,
+      )
+      .get(rid) || null
+
+  if (!row) throw new Error(`User not found: ${rid}`)
+
+  const metadataFieldNames = ['id', 'User_Name', 'User_PEmail', 'created_at', 'updated_at']
+  const metadataFields = metadataFieldNames.map((fieldName) =>
+    createDatabookField({
+      tableName: 'Users',
+      recordId: rid,
+      fieldName,
+      value: row?.[fieldName],
+      editable: !new Set(['id', 'created_at', 'updated_at']).has(fieldName),
+      idColumn: 'id',
+    }),
+  )
+
+  const fields = metadataFields.map((field) => ({
+    ...field,
+    section: 'Metadata',
+  }))
+
+  return {
+    table_name: 'Users',
+    record_id: rid,
+    entity_label: 'User',
+    entity_name: normalizeNullableString(row.User_Name) || normalizeNullableString(row.User_PEmail) || rid,
+    record: row,
+    sections: [
+      {
+        id: 'metadata',
+        label: 'Metadata',
+        kind: 'fields',
+        items: metadataFields,
+      },
+      {
+        id: 'kdb-relationships',
+        label: 'KDB Relationships',
+        kind: 'relationships',
+        items: [],
+      },
+    ],
+    fields,
+  }
+}
+
 function getDatabookView(tableName, recordId) {
   const database = initDb()
   const config = getDatabookTableConfig(tableName)
@@ -2453,6 +2650,9 @@ function getDatabookView(tableName, recordId) {
 
   if (config.tableName === 'Companies') {
     return buildCompanyDatabookView(database, rid)
+  }
+  if (config.tableName === 'Users') {
+    return buildUserDatabookView(database, rid)
   }
 
   const tableMeta = getTableMeta(database, config.tableName)
@@ -2569,7 +2769,7 @@ async function resolveArtifactFileForAction(artifactId) {
 
   if (!artifact) throw new Error('Artifact not found.')
 
-  const relativePath = normalizeNullableString(artifact.fs_path)
+  const relativePath = normalizeLegacyArtifactWorkspacePath(normalizeNullableString(artifact.fs_path))
   if (!relativePath) throw new Error('Artifact file path is missing.')
 
   const absolutePath = path.resolve(workspace.rootPath, relativePath)
@@ -2588,6 +2788,15 @@ async function resolveArtifactFileForAction(artifactId) {
   }
 }
 
+function normalizeLegacyArtifactWorkspacePath(relativePath) {
+  const normalized = String(relativePath || '').trim()
+  if (!normalized) return ''
+
+  return normalized
+    .replace(/User[\\/]+WORKSPACE FILES[\\/]+Artifacts(?=[\\/])/i, 'User/WORKSPACE FILES/2. Artifacts')
+    .replace(/User[\\/]+WORKSPACE FILES[\\/]+Company(?=[\\/])/i, 'User/WORKSPACE FILES/4. Companies')
+}
+
 async function deleteArtifact(artifactId) {
   const database = initDb()
   const id = String(artifactId || '').trim()
@@ -2598,7 +2807,7 @@ async function deleteArtifact(artifactId) {
     .get(id)
   if (!artifact) return { changes: 0, file_deleted: false, cleanup_warning: null }
 
-  const fsPath = normalizeNullableString(artifact.fs_path)
+  const fsPath = normalizeLegacyArtifactWorkspacePath(normalizeNullableString(artifact.fs_path))
   const result = database.prepare('DELETE FROM Artifacts WHERE artifact_id = ?').run(id)
 
   let fileDeleted = false
@@ -4792,11 +5001,65 @@ function registerIpc() {
     const database = initDb()
     const apiSettings = getApiSettings(database)
     const existingCompanies = listCompanies()
+    const existingContacts = listContacts()
+    const existingRounds = listRounds()
+    const existingFunds = listFunds()
+    const emitStatus = (status) => {
+      try {
+        _event?.sender?.send?.('autofill:preview:status', status)
+      } catch {
+        // ignore
+      }
+    }
     return previewAutofillFromFiles({
       filePaths: payload?.filePaths || [],
       apiKeys: { gemini: apiSettings.geminiApiKey },
       existingCompanies,
+      existingContacts,
+      existingRounds,
+      existingFunds,
+      emitStatus,
+      context: payload?.context || {},
     })
+  })
+
+  ipcMain.handle('projects:list', async () => {
+    initDb()
+    return { projects: listPipelines() }
+  })
+
+  ipcMain.handle('projects:install', async (_event, { projectId, pipelineId } = {}) => {
+    initDb()
+    return installPipeline(String(projectId || pipelineId || ''))
+  })
+
+  ipcMain.handle('projects:uninstall', async (_event, { projectId, pipelineId } = {}) => {
+    initDb()
+    return uninstallPipeline(String(projectId || pipelineId || ''))
+  })
+
+  ipcMain.handle('projects:upsertMany', async (_event, { rows } = {}) => {
+    initDb()
+    const result = upsertPipelines(rows)
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('projects:create', async (_event, payload) => {
+    initDb()
+    const result = createPipeline(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('projects:delete', async (_event, { projectId, pipelineId } = {}) => {
+    initDb()
+    const pid = String(projectId || pipelineId || '')
+    if (!pid) throw new Error('pipelineId is required')
+    if (pid === 'pipeline_default') throw new Error('Cannot delete the default pipeline')
+    const result = deleteRow('Projects', 'id', pid)
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('pipelines:list', async () => {
@@ -4975,6 +5238,17 @@ function registerIpc() {
   ipcMain.handle('users:list', async () => {
     initDb()
     return { users: listUsers() }
+  })
+
+  ipcMain.handle('users:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createUser(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'users'))
+    }
   })
 
   ipcMain.handle('contacts:create', async (_event, payload) => {

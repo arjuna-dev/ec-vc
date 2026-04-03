@@ -36,13 +36,9 @@
         </div>
 
         <div v-else class="q-gutter-md">
-          <q-banner
-            v-if="isResumeLinkMode"
-            class="bg-blue-1 text-blue-10"
-            rounded
-          >
-            This step is only for linking the existing artifact to an opportunity. You can close and return later if
-            you are not ready to link it yet.
+          <q-banner v-if="isResumeLinkMode" class="bg-blue-1 text-blue-10" rounded>
+            This step is only for linking the existing artifact to an opportunity. You can close and
+            return later if you are not ready to link it yet.
           </q-banner>
           <q-select
             v-model="opportunityId"
@@ -168,14 +164,36 @@ const opportunityOptions = computed(() =>
   })),
 )
 
-const isResumeLinkMode = computed(() => String(activeDraft.value?.resumeMode || '').trim() === 'existing-artifact-link')
-const dialogTitle = computed(() => (isResumeLinkMode.value ? 'Continue Artifact Intake' : 'Add new artifacts'))
+const isResumeLinkMode = computed(
+  () => String(activeDraft.value?.resumeMode || '').trim() === 'existing-artifact-link',
+)
+const dialogTitle = computed(() =>
+  isResumeLinkMode.value ? 'Continue Artifact Intake' : 'Add new artifacts',
+)
 const dialogCaption = computed(() =>
   isResumeLinkMode.value
     ? 'Resume this artifact at the opportunity-linking step.'
     : 'Drop files first, then select the opportunity.',
 )
 
+const shouldResumeProcessingWindow = computed(() => {
+  if (!activeDraft.value || isResumeLinkMode.value) return false
+
+  return Boolean(
+    activeDraft.value.opportunityForm ||
+    activeDraft.value.companyForm ||
+    activeDraft.value.contactForm ||
+    Object.keys(activeDraft.value.ingestStatusByFile || {}).length > 0 ||
+    Object.keys(activeDraft.value.releasedMarkdownChunks || {}).length > 0 ||
+    (Array.isArray(activeDraft.value.draftArtifactIds) &&
+      activeDraft.value.draftArtifactIds.length > 0) ||
+    (Array.isArray(activeDraft.value.generatedNotes) &&
+      activeDraft.value.generatedNotes.length > 0) ||
+    (Array.isArray(activeDraft.value.generatedTasks) &&
+      activeDraft.value.generatedTasks.length > 0) ||
+    Object.keys(activeDraft.value.assistantProposal || {}).length > 0,
+  )
+})
 async function loadAll() {
   if (!bridge.value?.opportunities?.list) return
   loading.value = true
@@ -238,7 +256,12 @@ async function findExistingDroppedFiles(files = []) {
   const rawNames = new Set(
     artifacts
       .filter((artifact) => String(artifact?.artifact_type || '').toLowerCase() === 'raw')
-      .map((artifact) => String(artifact?.fs_path || '').split('/').pop()?.toLowerCase())
+      .map((artifact) =>
+        String(artifact?.fs_path || '')
+          .split('/')
+          .pop()
+          ?.toLowerCase(),
+      )
       .filter(Boolean),
   )
 
@@ -295,7 +318,9 @@ async function finish() {
   try {
     const activeDraftId = activeDraft.value?.id || null
     const resumeArtifactIds = Array.isArray(activeDraft.value?.resumeArtifactIds)
-      ? activeDraft.value.resumeArtifactIds.map((artifactId) => String(artifactId || '').trim()).filter(Boolean)
+      ? activeDraft.value.resumeArtifactIds
+          .map((artifactId) => String(artifactId || '').trim())
+          .filter(Boolean)
       : []
 
     if (resumeArtifactIds.length > 0 && bridge.value?.artifacts?.linkToOpportunity) {
@@ -307,13 +332,16 @@ async function finish() {
     } else {
       if (!bridge.value?.artifacts?.ingest) return
       const existingCheck = await findExistingDroppedFiles(droppedFiles.value)
-      await ingestArtifactsWithDuplicateHandling({
-        filePaths: droppedFiles.value.map((f) => f.path),
-        pipelineId: DEFAULT_PIPELINE_ID,
-        opportunityId: opportunityId.value,
-      }, {
-        hasExistingConflict: existingCheck.existingNames.length > 0,
-      })
+      await ingestArtifactsWithDuplicateHandling(
+        {
+          filePaths: droppedFiles.value.map((f) => f.path),
+          pipelineId: DEFAULT_PIPELINE_ID,
+          opportunityId: opportunityId.value,
+        },
+        {
+          hasExistingConflict: existingCheck.existingNames.length > 0,
+        },
+      )
     }
     if (activeDraftId) {
       removeIntakeDraft(activeDraftId)
@@ -330,6 +358,12 @@ watch(
   () => props.modelValue,
   async (v) => {
     if (!v) {
+      return
+    }
+    if (shouldResumeProcessingWindow.value) {
+      await loadAll()
+      open.value = false
+      opportunityDialogOpen.value = true
       return
     }
     step.value = droppedFiles.value.length > 0 ? 2 : 1
