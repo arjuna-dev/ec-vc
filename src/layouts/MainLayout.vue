@@ -536,6 +536,7 @@ const workspaceNavigationItems = [
   { label: 'Projects', to: '/projects', exact: true, icon: 'schema' },
   { label: 'Notes', to: '/notes', exact: true, icon: 'note' },
   { label: 'Tasks', to: '/tasks', exact: true, icon: 'check_circle' },
+  { label: 'Test Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
 ].map((item) => ({
   ...item,
@@ -554,6 +555,7 @@ const routeLabelByName = {
   artifacts: 'Artifacts',
   notes: 'Notes',
   tasks: 'Tasks',
+  'test-shell': 'Test Shell',
   assistants: 'Roles',
   avatar: 'Avatar',
   'user-settings': 'Owner',
