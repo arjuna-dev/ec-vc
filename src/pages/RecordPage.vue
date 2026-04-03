@@ -5720,12 +5720,12 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   color: #4f4f4f;
   cursor: pointer;
   background: transparent;
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 999px;
+  border-radius: 10px;
   font-family: var(--font-body);
   font-size: var(--text-sm---medium);
   font-weight: var(--font-weight-medium);
@@ -5763,7 +5763,8 @@ onBeforeUnmount(() => {
 
 .contact-databook__nav-item--kdb,
 .contact-databook__nav-item--system {
-  padding: 7px 10px;
+  padding: 5px 8px;
+  border-radius: 8px;
 }
 
 .contact-databook__nav-item--kdb .contact-databook__nav-item-label,
