@@ -313,6 +313,7 @@ When editing one file card page:
 - prefer keeping wrapper names identical
 - prefer keeping loop alias naming identical
 - avoid one-off template shape changes unless they are truly entity-specific
+- prefer shared page-mechanics helpers for repeated record navigation, return-path building, and selection actions
 
 Before making a bulk card change:
 
@@ -461,9 +462,9 @@ It should not be treated as the final contract.
 
 ### 3. Naming Drift
 
-Some route and shared-layer logic still uses older `Databook` wording.
+Most route-level record navigation now uses `Record View` naming and shared helper utilities, but some shared-layer and styling logic still uses older `Databook` wording.
 
-That needs to finish migrating to `File`, `Record`, and `Record View`.
+That remaining internal naming still needs to finish migrating to `File`, `Record`, and `Record View`.
 
 ### 4. Relationship Drift
 
@@ -683,6 +684,7 @@ Recommended order:
 - [x] Card relationship icon affordance added
 - [x] Excel + JSON companion workflow introduced
 - [x] Canonical direction decided: `JSON + app editing`
+- [x] Route-level `Record View` navigation is centralized through shared helpers
 - [ ] Route and shared naming fully cleaned of `Databook`
 - [ ] Heuristic section mapping fully replaced
 - [ ] Light vs rich payload split documented per entity

@@ -585,13 +585,13 @@ without losing confidence or context.
 
 ### Overall
 
-- [ ] Shared intake draft module exists
-- [ ] MainLayout owns shared draft lifetime
-- [ ] Artifact entry flow is draft-aware
-- [ ] Draft Files surface exists
+- [x] Shared intake draft module exists
+- [x] MainLayout owns shared draft lifetime
+- [x] Artifact entry flow is draft-aware
+- [x] Draft Files surface exists
 - [ ] High-value prompt flow exists
-- [ ] Staged markdown chunk model exists
-- [ ] Used metadata ownership is visible
+- [x] Staged markdown chunk model exists
+- [x] Used metadata ownership is visible
 - [ ] Deep extraction and matching inform each other
 - [ ] Review surfaces support AI / Human / Existing Record comparison
 - [ ] Slide-intent hints are visible in artifact review
@@ -599,6 +599,8 @@ without losing confidence or context.
 
 ### Current Good Foundations
 
+- [x] `MainLayout` already owns the visible draft tray and resume surface
+- [x] `ArtifactAddDialog` already reads and updates shared intake draft state
 - [x] intake drafts already persist during the session
 - [x] released markdown chunks can already be previewed
 - [x] used metadata claims can already be shown in review surfaces
@@ -607,11 +609,11 @@ without losing confidence or context.
 
 ### Immediate Build Sequence
 
-- [ ] create `intakeDraftState.js`
-- [ ] move artifact staging to shared draft ownership
+- [x] create `intakeDraftState.js`
+- [x] move artifact staging to shared draft ownership
 - [ ] move reusable ingest state out of opportunity-private ownership
 - [ ] make `OpportunityCreateDialog` consume shared draft state
-- [ ] add visible Draft Files surface
+- [x] add visible Draft Files surface
 - [ ] add early confirmation prompts
 
 ## Working Principle

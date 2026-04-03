@@ -380,7 +380,7 @@ import ProjectCreateDialog from 'components/ProjectCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { createRecordViewOpener } from 'src/utils/recordViewNavigation'
-import { copySelectionSummary } from 'src/utils/selectionShare'
+import { openFirstSelectedRecord, shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import {
   buildCardRelationshipItems,
   buildCardRelationshipOptions,
@@ -1047,26 +1047,18 @@ async function confirmDeleteSelected() {
 }
 
 function editSelected() {
-  const row = selectedRows.value[0]
-  if (!row) return
-  openRecordView(row)
+  return openFirstSelectedRecord(selectedRows.value, openRecordView)
 }
 
 async function shareSelected() {
-  if (selectedCount.value === 0) return
-  try {
-    await copySelectionSummary({
-      rows: selectedRows.value,
-      getLabel: (row) => getPipelineCardTitle(row),
-      entityLabel: 'projects',
-    })
-    $q.notify({
-      type: 'positive',
-      message: `Copied ${selectedCount.value} selected project${selectedCount.value === 1 ? '' : 's'}.`,
-    })
-  } catch (e) {
-    $q.notify({ type: 'negative', message: e?.message || String(e) })
-  }
+  return shareRecordSelection({
+    rows: selectedRows.value,
+    getLabel: (row) => getPipelineCardTitle(row),
+    entityLabel: 'projects',
+    singularLabel: 'project',
+    pluralLabel: 'projects',
+    notify: (payload) => $q.notify(payload),
+  })
 }
 
 async function importRows(importedRows) {

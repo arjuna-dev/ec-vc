@@ -984,7 +984,7 @@ import TableCsvActions from 'components/TableCsvActions.vue'
 import { setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { createRecordViewOpener } from 'src/utils/recordViewNavigation'
-import { copySelectionSummary } from 'src/utils/selectionShare'
+import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import {
   buildCardRelationshipItems,
   buildCardRelationshipOptions,
@@ -3053,20 +3053,14 @@ async function editSelected() {
 }
 
 async function shareSelected() {
-  if (selectedCount.value === 0) return
-  try {
-    await copySelectionSummary({
-      rows: selectedRows.value,
-      getLabel: (row) => artifactDisplayName(row) || `Artifact ${row?.artifact_id || ''}`.trim(),
-      entityLabel: 'artifacts',
-    })
-    $q.notify({
-      type: 'positive',
-      message: `Copied ${selectedCount.value} selected artifact${selectedCount.value === 1 ? '' : 's'}.`,
-    })
-  } catch (e) {
-    $q.notify({ type: 'negative', message: e?.message || String(e) })
-  }
+  return shareRecordSelection({
+    rows: selectedRows.value,
+    getLabel: (row) => artifactDisplayName(row) || `Artifact ${row?.artifact_id || ''}`.trim(),
+    entityLabel: 'artifacts',
+    singularLabel: 'artifact',
+    pluralLabel: 'artifacts',
+    notify: (payload) => $q.notify(payload),
+  })
 }
 
 onMounted(() => {

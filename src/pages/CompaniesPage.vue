@@ -423,7 +423,7 @@ import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { buildResolvedPagePath, createRecordViewOpener } from 'src/utils/recordViewNavigation'
-import { copySelectionSummary } from 'src/utils/selectionShare'
+import { openFirstSelectedRecord, shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import {
   buildCardRelationshipItems,
   buildCardRelationshipOptions,
@@ -1721,26 +1721,18 @@ async function confirmDeleteSelected() {
 }
 
 function editSelected() {
-  const row = selectedRows.value[0]
-  if (!row) return
-  openRecordView(row)
+  return openFirstSelectedRecord(selectedRows.value, openRecordView)
 }
 
 async function shareSelected() {
-  if (selectedCount.value === 0) return
-  try {
-    await copySelectionSummary({
-      rows: selectedRows.value,
-      getLabel: (row) => normalizeCompanyValue(row?.Company_Name) || `Company ${row?.id || ''}`.trim(),
-      entityLabel: 'companies',
-    })
-    $q.notify({
-      type: 'positive',
-      message: `Copied ${selectedCount.value} selected compan${selectedCount.value === 1 ? 'y' : 'ies'}.`,
-    })
-  } catch (e) {
-    $q.notify({ type: 'negative', message: e?.message || String(e) })
-  }
+  return shareRecordSelection({
+    rows: selectedRows.value,
+    getLabel: (row) => normalizeCompanyValue(row?.Company_Name) || `Company ${row?.id || ''}`.trim(),
+    entityLabel: 'companies',
+    singularLabel: 'company',
+    pluralLabel: 'companies',
+    notify: (payload) => $q.notify(payload),
+  })
 }
 
 async function openCompanyMetadataAction(link, event) {

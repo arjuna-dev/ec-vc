@@ -35,9 +35,10 @@ To stay precise while the codebase is still finishing its naming cleanup, use th
 - `DB` or `DB Tables` when talking about the database
 - `File page` when talking about landing pages such as `Users`, `Contacts`, `Companies`, `Artifacts`, `Projects`, `Notes`, `Tasks`, and `Opportunities`
 - `Record page` or `Record View` when talking about the eye-opened detail page
-- `databook-view` only when talking about the literal current route or code name
+- `record-view` when talking about the literal current route name
+- `Databook` only when talking about older internal bridge or class naming that has not been fully cleaned yet
 
-This distinction matters because the product language is cleaner than some of the older route and implementation language still present in the app.
+This distinction matters because product language is now cleaner than the remaining older internal implementation language still present in the app.
 
 ## System Model
 
@@ -46,6 +47,12 @@ Pattern:
 `File -> record list -> eye icon -> Record View`
 
 When the user clicks the eye icon from a file, they open the detailed view for that specific record.
+
+Implementation note:
+
+- route path: `/records/:tableName/:recordId`
+- route name: `record-view`
+- legacy `databooks/...` links should be treated as compatibility redirects, not canonical product language
 
 ## Structure Ownership
 
@@ -131,6 +138,12 @@ Every record landing view should share the same overall look and feel.
 The shell, spacing rhythm, action language, and visual hierarchy should feel consistent across record types.
 
 The content inside that frame can then specialize by entity.
+
+The same consistency rule also applies to page mechanics:
+
+- record-opening navigation should come from shared helper utilities, not page-local route objects
+- return-path construction should be centralized when multiple file pages use the same pattern
+- one-off helper drift should be treated as cleanup debt, not as an acceptable steady state
 
 ## Reserved Concept
 

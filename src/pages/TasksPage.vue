@@ -344,7 +344,7 @@ import TableCsvActions from 'components/TableCsvActions.vue'
 import TaskCreateDialog from 'components/TaskCreateDialog.vue'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { createRecordViewOpener } from 'src/utils/recordViewNavigation'
-import { copySelectionSummary } from 'src/utils/selectionShare'
+import { openFirstSelectedRecord, shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import {
   buildCardRelationshipItems,
   buildCardRelationshipOptions,
@@ -844,26 +844,18 @@ async function confirmDeleteSelected() {
 }
 
 function editSelected() {
-  const row = selectedRows.value[0]
-  if (!row) return
-  openRecordView(row)
+  return openFirstSelectedRecord(selectedRows.value, openRecordView)
 }
 
 async function shareSelected() {
-  if (selectedCount.value === 0) return
-  try {
-    await copySelectionSummary({
-      rows: selectedRows.value,
-      getLabel: (row) => normalizeTaskValue(row?.Task_Name) || `Task ${row?.id || ''}`.trim(),
-      entityLabel: 'tasks',
-    })
-    $q.notify({
-      type: 'positive',
-      message: `Copied ${selectedCount.value} selected task${selectedCount.value === 1 ? '' : 's'}.`,
-    })
-  } catch (e) {
-    $q.notify({ type: 'negative', message: e?.message || String(e) })
-  }
+  return shareRecordSelection({
+    rows: selectedRows.value,
+    getLabel: (row) => normalizeTaskValue(row?.Task_Name) || `Task ${row?.id || ''}`.trim(),
+    entityLabel: 'tasks',
+    singularLabel: 'task',
+    pluralLabel: 'tasks',
+    notify: (payload) => $q.notify(payload),
+  })
 }
 
 onMounted(async () => {
