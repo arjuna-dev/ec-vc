@@ -93,7 +93,7 @@
       </q-banner>
 
         <template v-if="fields.length">
-        <div v-if="isContactView" class="contact-databook">
+        <div v-if="isContactView && !isStructuredGenericRecordView" class="contact-databook">
           <section
             ref="contactHeroRef"
             class="contact-databook__hero"
@@ -3067,6 +3067,7 @@ const isNoteView = computed(
 )
 const isStructuredGenericRecordView = computed(
   () =>
+    isContactView.value ||
     isCompanyView.value ||
     isUserView.value ||
     isArtifactView.value ||
@@ -3947,6 +3948,12 @@ const genericRecordConfig = computed(() => {
       subtitleAliases: ['User_PEmail', 'Professional_Email', 'Email'],
       secondaryAliases: ['Country_based', 'Phone', 'LinkedIn'],
       pillAliases: ['Country_based', 'LinkedIn'],
+    },
+    Contacts: {
+      primaryAliases: ['Name', 'Contact_Name', 'id'],
+      subtitleAliases: ['Role', 'Current_Company_Name', 'One_Liner'],
+      secondaryAliases: ['Country_based', 'Professional_Email', 'Phone'],
+      pillAliases: ['Country_based', 'Role'],
     },
     Artifacts: {
       primaryAliases: ['title', 'Title', 'artifact_id', 'id'],
