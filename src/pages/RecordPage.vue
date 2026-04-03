@@ -1463,8 +1463,10 @@
                     Review the structured fields and relationships tied to this {{ entityLabel.toLowerCase() }} record.
                   </div>
                 </div>
+              </div>
+
+              <div v-if="!/kdb/i.test(activeGenericSection)" class="contact-section-card__view-toolbar">
                 <q-btn-toggle
-                  v-if="!/kdb/i.test(activeGenericSection)"
                   v-model="genericSectionViewMode"
                   dense
                   unelevated
@@ -6936,6 +6938,15 @@ onBeforeUnmount(() => {
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
   box-shadow: none;
+  min-width: 27px;
+  width: 27px;
+  height: 27px;
+  min-height: 27px;
+  padding: 0;
+}
+
+.contact-section-card__view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
 }
 
 .contact-section-card__intro {
