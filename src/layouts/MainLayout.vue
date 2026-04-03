@@ -16,9 +16,8 @@
           />
         </div>
 
-        <q-toolbar-title class="ec-shell-toolbar-title">
+        <div v-if="isTestShellRoute" class="ec-shell-toolbar-center">
           <q-select
-            v-if="isTestShellRoute"
             v-model="selectedTestShellSection"
             dense
             standout="bg-black text-white"
@@ -31,6 +30,9 @@
             popup-content-class="ec-shell-test-select-menu"
             class="ec-shell-test-select"
           />
+        </div>
+
+        <q-toolbar-title class="ec-shell-toolbar-title">
           <div v-if="toolbarActions.length" class="ec-shell-toolbar-actions">
             <template v-for="action in toolbarActions" :key="action.id">
               <div v-if="action.kind === 'text'" class="ec-shell-toolbar-status">
@@ -1861,6 +1863,14 @@ function goBack() {
   gap: 12px;
   margin-left: auto;
   min-width: 0;
+}
+
+.ec-shell-toolbar-center {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  padding-inline: 12px;
 }
 
 .ec-shell-test-select {

@@ -48,6 +48,7 @@
         </template>
       </q-input>
       <q-btn-toggle
+        v-if="showViewToggle"
         :model-value="viewMode"
         dense
         unelevated
@@ -74,6 +75,7 @@ defineProps({
   searchPlaceholder: { type: String, default: 'Search records...' },
   viewMode: { type: String, default: 'card' },
   viewOptions: { type: Array, default: () => [] },
+  showViewToggle: { type: Boolean, default: true },
 })
 
 defineEmits(['toggle-select-all', 'add', 'import', 'update:searchQuery', 'update:viewMode'])
