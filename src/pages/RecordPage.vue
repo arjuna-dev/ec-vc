@@ -5757,7 +5757,9 @@ onBeforeUnmount(() => {
 
 .contact-databook__nav-item--kdb,
 .contact-databook__nav-item--system {
-  padding: 5px 8px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 8px;
   border-radius: 8px;
 }
 
