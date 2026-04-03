@@ -5761,6 +5761,20 @@ onBeforeUnmount(() => {
   border-color: rgba(17, 17, 17, 0.22);
 }
 
+.contact-databook__nav-item--kdb,
+.contact-databook__nav-item--system {
+  padding: 7px 10px;
+}
+
+.contact-databook__nav-item--kdb .contact-databook__nav-item-label,
+.contact-databook__nav-item--system .contact-databook__nav-item-label {
+  font-size: calc(var(--text-sm---medium) * 0.6);
+}
+
+.contact-databook__nav-item--kdb .contact-databook__nav-item-icon {
+  font-size: 10px !important;
+}
+
 .contact-databook__nav-item--push-right {
   margin-left: auto;
 }
