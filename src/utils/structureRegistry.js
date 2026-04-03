@@ -1,5 +1,4 @@
 import canonicalStructure from '../../docs/canonical-structure.json'
-import workbookSchemaCompanion from '../../docs/workbook-schema-companion.json'
 
 const FILE_PAGE_ROUTE_META = Object.freeze({
   Users: { key: 'users', label: 'Users', singularLabel: 'User', routeName: 'users', path: '/users', icon: 'badge', showInWorkspaceNav: true },
@@ -67,13 +66,12 @@ function formatLabel(value) {
 }
 
 const canonicalEntitiesByName = Object.fromEntries((canonicalStructure?.entities || []).map((entity) => [entity.entity, entity]))
-const companionEntitiesByName = Object.fromEntries((workbookSchemaCompanion?.entities || []).map((entity) => [entity.entity, entity]))
 
 function buildEntityRegistry(entityName) {
   const meta = FILE_PAGE_ROUTE_META[entityName]
   if (!meta) return null
 
-  const sourceEntity = canonicalEntitiesByName[entityName] || companionEntitiesByName[entityName]
+  const sourceEntity = canonicalEntitiesByName[entityName]
   if (!sourceEntity) return null
 
   const subsections = normalizeSubsections(sourceEntity)
