@@ -5731,14 +5731,18 @@ onBeforeUnmount(() => {
 }
 
 .contact-databook__nav-item--push-right {
-  margin-left: auto;
+  margin-left: 0;
   align-self: center;
 }
 
 .contact-databook__nav-view-toggle {
   align-self: center;
-  margin-left: auto;
+  margin-left: 6px;
   order: 999;
+}
+
+.contact-databook__nav-item:not(.contact-databook__nav-item--push-right) + .contact-databook__nav-item--push-right {
+  margin-left: auto;
 }
 
 .contact-databook__details {
