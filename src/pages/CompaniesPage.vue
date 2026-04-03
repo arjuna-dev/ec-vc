@@ -2647,6 +2647,13 @@ watch(
   box-shadow: none;
 }
 
+.company-card__summary-add-relation :deep(.q-btn__content) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
 .company-card__summary-add-relation-plus {
   display: inline-flex;
   align-items: center;

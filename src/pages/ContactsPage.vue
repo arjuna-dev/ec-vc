@@ -2419,6 +2419,13 @@ watch(displayRows, () => {
   box-shadow: none;
 }
 
+.contact-card__summary-add-relation :deep(.q-btn__content) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
 .contact-card__summary-add-relation-plus {
   display: inline-flex;
   align-items: center;
