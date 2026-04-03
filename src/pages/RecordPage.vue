@@ -4571,20 +4571,6 @@ function syncCompanySummarySelection() {
   saveContactSummarySelection(companySummaryStorageKey.value, fallback)
 }
 
-function isCompanySummaryStatSelected(id) {
-  return selectedCompanySummaryStatIds.value.includes(id)
-}
-
-function toggleCompanySummaryStat(id) {
-  if (!id) return
-  const next = selectedCompanySummaryStatIds.value.includes(id)
-    ? selectedCompanySummaryStatIds.value.filter((candidate) => candidate !== id)
-    : [...selectedCompanySummaryStatIds.value, id]
-
-  selectedCompanySummaryStatIds.value = next
-  saveContactSummarySelection(companySummaryStorageKey.value, next)
-}
-
 function syncRecordFeedSelection() {
   const validIds = availableRecordFeedSourceOptions.value.map((option) => option.id)
   const currentIds = selectedRecordFeedSourceIds.value.filter((id) => validIds.includes(id))
