@@ -558,7 +558,7 @@ const routeLabelByName = {
   'user-settings': 'Owner',
   pipelines: 'Projects',
   'file-system': 'File System',
-  'databook-view': 'Databook',
+  'databook-view': 'Record View',
 }
 const router = useRouter()
 const route = useRoute()
@@ -638,7 +638,7 @@ const currentHeaderTitle = computed(() => {
     if (recordLabelByTableName[tableName]) {
       return recordLabelByTableName[tableName]
     }
-    return 'Databook'
+    return 'Record View'
   }
 
   return routeLabelByName[currentRouteName] || toTitleCase(currentRouteName.replace(/[-_]/g, ' '))

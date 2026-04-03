@@ -16,9 +16,9 @@
 
     <div v-else class="databook-page">
       <div
-        v-if="!isStructuredDatabookView"
+        v-if="!isStructuredRecordView"
         class="databook-heading"
-        :class="{ 'databook-heading--compact': isStructuredDatabookView }"
+        :class="{ 'databook-heading--compact': isStructuredRecordView }"
       >
         <div class="databook-heading__main">
           <div>
@@ -1746,7 +1746,7 @@ const isStructuredGenericRecordView = computed(
     isTaskView.value ||
     isNoteView.value,
 )
-const isStructuredDatabookView = computed(
+const isStructuredRecordView = computed(
   () => isContactView.value || isCompanyView.value || isStructuredGenericRecordView.value,
 )
 const fieldByName = computed(() =>
@@ -2027,7 +2027,7 @@ function createCanonicalSection(entityName, subsectionConfig = {}) {
   const subsectionName = String(subsectionConfig.subsection || '').trim()
   const sectionFields = (subsectionConfig.tokens || [])
     .map((token) =>
-      resolveDatabookField({
+      resolveRecordField({
         label: formatCanonicalLabel(token?.token_name, entityPrefix),
         aliases: getCanonicalTokenAliases(entityName, String(token?.token_name || '').trim()),
       }),
@@ -2054,7 +2054,7 @@ function createCanonicalGeneralInformationFallback(entityName) {
   }
   const fields = (aliasesByEntity[entityName] || [])
     .map((alias) =>
-      resolveDatabookField({
+      resolveRecordField({
         label: formatCanonicalLabel(alias, entityName === 'Contacts' ? 'Contact' : 'Company'),
         aliases: [alias],
       }),
@@ -4173,7 +4173,7 @@ function formatArtifactDomainLabel(value) {
   return labels[raw] || raw.replace(/_/g, ' ')
 }
 
-function resolveDatabookField(config = {}) {
+function resolveRecordField(config = {}) {
   const aliases = Array.isArray(config.aliases) ? config.aliases : []
   const field = aliases.map((alias) => fieldByName.value[alias]).find(Boolean)
   if (!field) return null
@@ -4248,7 +4248,7 @@ async function ensureActorReadyForSave() {
   return false
 }
 
-async function applyDatabookChanges(changes, { syncDraftFieldNames = [], exitEditMode = false } = {}) {
+async function applyRecordChanges(changes, { syncDraftFieldNames = [], exitEditMode = false } = {}) {
   if (!hasBridge.value) return false
   if (!tableNameParam.value || !recordIdParam.value) return false
   if (!Array.isArray(changes) || changes.length === 0) return true
@@ -4304,10 +4304,10 @@ async function saveChanges() {
     })
     .filter(Boolean)
 
-  await applyDatabookChanges(changes, { exitEditMode: true })
+  await applyRecordChanges(changes, { exitEditMode: true })
 }
 
-async function loadDatabook() {
+async function loadRecordView() {
   if (!hasBridge.value) return
   if (!tableNameParam.value || !recordIdParam.value) {
     currentView.value = null
@@ -4433,7 +4433,7 @@ async function openVersion(snapshotId) {
 async function switchToLatestVersion() {
   selectedVersionId.value = null
   modifiedByMap.value = {}
-  await loadDatabook()
+  await loadRecordView()
 }
 
 function triggerContactImagePicker() {
@@ -4498,7 +4498,7 @@ async function removeRecordImage({ field, fieldName, successMessage }) {
   if (!field) return
   uploadingContactImage.value = true
   try {
-    const saved = await applyDatabookChanges(
+    const saved = await applyRecordChanges(
       [
         {
           table_name: field.table_name,
@@ -4538,7 +4538,7 @@ async function saveCompanyLogo(imageData) {
 
 async function saveRecordImage({ field, fieldName, imageData, successMessage }) {
   if (!field) return false
-  const saved = await applyDatabookChanges(
+  const saved = await applyRecordChanges(
     [
       {
         table_name: field.table_name,
@@ -4732,7 +4732,7 @@ watch(
   () => {
     activeContactSection.value = 'general-information'
     activeCompanySection.value = 'general-information'
-    loadDatabook()
+    loadRecordView()
   },
 )
 
@@ -4886,7 +4886,7 @@ void __legacyBranchSymbols
 
 onMounted(() => {
   if (!hasBridge.value) return
-  loadDatabook()
+  loadRecordView()
 })
 
 onBeforeUnmount(() => {
