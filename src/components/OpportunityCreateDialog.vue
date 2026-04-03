@@ -1869,8 +1869,70 @@ function buildEntityQueueId(draftId, entityTypeName, entity = {}) {
   return `entity-create:${normalizedDraftId}:${normalizedType}:${normalizedRef}`
 }
 
+function syncQueuedFieldReviewBundles(nextFields = {}) {
+  const draftId = String(activeDraft.value?.id || '').trim()
+  if (!draftId) return
+
+  const pendingKeys = new Set(getPendingIntakeReviewFieldKeys(nextFields))
+
+  for (const item of Array.isArray(intakeReviewQueueState.items) ? intakeReviewQueueState.items : []) {
+    if (String(item?.draftId || '').trim() !== draftId) continue
+    if (String(item?.kind || '').trim() !== 'field-review') continue
+    if (!(item?.status === 'pending' || item?.status === 'active')) continue
+
+    const existingFields = Array.isArray(item?.payload?.fields) ? item.payload.fields : []
+    const reconciledFields = existingFields
+      .map((field) => {
+        const key = String(field?.key || '').trim()
+        if (!key || !pendingKeys.has(key)) return null
+        const nextValue = String(nextFields[key] || '').trim()
+        if (!nextValue) return null
+        return {
+          ...field,
+          label: intakeFieldLabel(key),
+          owner: intakeFieldOwner(key),
+          target: intakeFieldTarget(key),
+          value: nextValue,
+        }
+      })
+      .filter(Boolean)
+
+    if (!reconciledFields.length) {
+      item.status = 'resolved'
+      item.updatedAt = Date.now()
+      if (String(intakeReviewQueueState.activeItemId || '').trim() === String(item?.id || '').trim()) {
+        intakeReviewQueueState.activeItemId = null
+      }
+      continue
+    }
+
+    const sameAsExisting =
+      reconciledFields.length === existingFields.length &&
+      reconciledFields.every((field, index) => {
+        const existing = existingFields[index] || {}
+        return (
+          String(existing?.key || '').trim() === field.key &&
+          String(existing?.value || '').trim() === field.value &&
+          String(existing?.label || '').trim() === field.label &&
+          String(existing?.owner || '').trim() === field.owner &&
+          String(existing?.target || '').trim() === field.target
+        )
+      })
+    if (sameAsExisting) continue
+
+    item.payload = {
+      ...item.payload,
+      title: `Verify extracted ${entityType.value} fields`,
+      entityType: entityType.value,
+      fields: reconciledFields,
+    }
+    item.updatedAt = Date.now()
+  }
+}
+
 function enqueueFieldReviewBundle(force = false) {
   const nextFields = buildIntakeReviewFieldsFromForms()
+  syncQueuedFieldReviewBundles(nextFields)
   const queuedFieldKeys = new Set(
     (Array.isArray(intakeReviewQueueState.items) ? intakeReviewQueueState.items : [])
       .filter(
