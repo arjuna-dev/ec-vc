@@ -56,21 +56,22 @@ Implementation note:
 
 ## Structure Ownership
 
-For the current first architecture pass:
+For the current architecture pass:
 
-- the workbook is being used to define and validate the structure
-- the JSON companion is the machine-readable representation of that structure
+- `docs/canonical-structure.json` is the app-readable canonical structure layer
+- the workbook is being used to validate and refine that structure
+- the workbook companion remains a useful workbook-derived reference surface
 
-The intended longer-term product direction is:
+The intended product direction is:
 
 - canonical structure should live in a machine-readable app-native layer
-- the app should eventually edit that canonical structure directly
+- the app should edit that canonical structure directly
 - exporters and importers should support migration and outside data sources such as Excel
 
 So the working mental model is:
 
 - `Workbook` = design and validation surface
-- `JSON` = target canonical structure surface
+- `JSON` = current canonical structure surface
 - `Exporters/Importers` = adapters
 
 ## File To Record Mapping

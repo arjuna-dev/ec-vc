@@ -25,15 +25,15 @@ For the current first-pass architecture work, the active workbook schema referen
 - `docs/workbook-schema-companion.json`
 - `docs/canonical-structure.json`
 
-That workbook should be treated as the live structural document being used to define the first approved architecture pass.
+That workbook should be treated as the active structural reference used to validate and refine the first approved architecture pass.
 
-The JSON companion should be treated as the machine-readable export of that same structure.
+The JSON companion should be treated as a workbook-derived reference layer, not the app-owned canonical registry.
 
 During this phase, the intended direction is:
 
-- `Workbook` helps define and validate the first structure
-- `JSON` becomes the canonical machine-readable structure layer
-- the app should eventually edit that canonical JSON structure directly
+- `Workbook` helps define and validate the structure
+- `docs/canonical-structure.json` is the canonical machine-readable structure layer used by the app
+- the app should edit that canonical JSON structure directly
 - exporters and importers should remain available as adapters for migration and outside data sources
 
 ## Objective
@@ -62,8 +62,8 @@ This initial architecture pass is meant to define the first clean, stable struct
 
 For this phase:
 
-- the `Workbook` is the first-pass structural authority
-- the app uses the workbook to establish order, ownership, and consistency
+- the `Workbook` is the first-pass validation and design reference
+- the app uses canonical JSON to establish order, ownership, and consistency
 - the UI should align to that structure while we standardize the system
 
 But the intended product architecture after this first pass is:
@@ -87,19 +87,19 @@ In other words:
 
 So the current goal is not to freeze the workbook forever.
 
-The current goal is to use the workbook as the best available structural guide for the first cohesive system pass.
+The current goal is to keep canonical JSON, workbook validation, and UI behavior aligned during the first cohesive system pass.
 
 ## Governing Model
 
-The first-pass structural authority is:
+The current structural authority is:
 
-`Workbook -> DB Tables -> Payload -> UI`
+`Canonical JSON -> DB Tables -> Payload -> UI`
 
 More clearly:
 
-- the `Workbook` defines intended structure
+- the `Canonical JSON` defines app-owned intended structure
 - the `DB Tables` should stay aligned to that structure
-- the `Workbook` mirrors the DB
+- the `Workbook` and companion remain validation and reference surfaces
 - the `Payload` is built from the DB
 - the `UI` renders the payload
 
@@ -107,9 +107,9 @@ This is not a purely one-way system, because the workbook files are themselves m
 
 So the practical meaning is:
 
-- `Workbook` is the canonical structure reference
+- `Canonical JSON` is the canonical structure reference
 - `DB` is the runtime source
-- `Payloads` must reflect workbook structure
+- `Payloads` must reflect canonical structure
 - `UI` should not invent structure on the fly
 
 ## Canonical Structure Direction
@@ -126,18 +126,18 @@ With supporting adapters:
 
 This means:
 
-- the workbook is helping us design and validate the first structure
-- the app should not depend forever on Excel as the primary bridge
-- canonical structure should live in a machine-readable form that the app can edit directly
+- the workbook is helping us validate and refine the structure
+- the app should not depend on Excel as the primary runtime bridge
+- canonical structure lives in a machine-readable form that the app can edit directly
 - exporters remain valuable, but they should act as adapters rather than the permanent backbone
 
 Working interpretation:
 
 - `Workbook` is the current design and validation surface
-- `JSON` is the target canonical structure surface
-- `app editing` should eventually operate against that canonical JSON structure
+- `JSON` is the current canonical structure surface
+- `app editing` should operate against that canonical JSON structure
 
-Current draft file:
+Current canonical file:
 
 - `docs/canonical-structure.json`
 
@@ -345,11 +345,11 @@ The workbook is not intended to remain the permanent runtime bridge once the can
 
 ### Canonical Structure Rule
 
-The long-term structure source of truth should be a machine-readable app-native layer.
+The structure source of truth should remain a machine-readable app-native layer.
 
 For this project, that means:
 
-- `JSON` should become the canonical structure source of truth
+- `JSON` is the canonical structure source of truth
 - the app should be able to edit that structure directly
 - workbook export/import should support migration and outside editing, not define the runtime forever
 
