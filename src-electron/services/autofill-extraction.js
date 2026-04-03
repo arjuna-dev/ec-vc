@@ -32,6 +32,8 @@ function buildPrompt({ kind } = {}) {
     'For contacts, the Name field must contain only the person name.',
     'Never include email addresses, phone numbers, roles, separators, or combined strings like "Name - email@example.com" inside Name.',
     'Put emails only in Personal_Email or Professional_Email.',
+    'For company, fund, and round names, use human-readable names exactly as written in the materials when possible.',
+    'Do not invent slug-like placeholders or internal identifiers such as "predictive_fund".',
     `The current creation context is ${targetKind}.`,
     `Support multiple companies and contacts when the document mentions them.`,
     `Only extract ${targetKind === 'fund' ? 'funds' : 'rounds'} for the primary opportunity entities in this run.`,
