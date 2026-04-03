@@ -5757,19 +5757,19 @@ onBeforeUnmount(() => {
 
 .contact-databook__nav-item--kdb,
 .contact-databook__nav-item--system {
-  height: 22px;
-  min-height: 22px;
-  padding: 0 8px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 10px;
   border-radius: 8px;
 }
 
 .contact-databook__nav-item--kdb .contact-databook__nav-item-label,
 .contact-databook__nav-item--system .contact-databook__nav-item-label {
-  font-size: calc(var(--text-sm---medium) * 0.6);
+  font-size: calc(var(--text-sm---medium) * 0.72);
 }
 
 .contact-databook__nav-item--kdb .contact-databook__nav-item-icon {
-  font-size: 10px !important;
+  font-size: 12px !important;
 }
 
 .contact-databook__nav-item--push-right {
