@@ -532,6 +532,7 @@ const workspaceNavigationItems = [
   { label: 'Artifacts', to: '/artifacts', exact: true, icon: 'attach_file' },
   { label: 'Contacts', to: '/contacts', exact: true, icon: 'people' },
   { label: 'Companies', to: '/companies', exact: true, icon: 'apartment' },
+  { label: 'Company (2)', to: '/company-2', exact: true, icon: 'domain' },
   { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
   { label: 'Projects', to: '/projects', exact: true, icon: 'schema' },
   { label: 'Notes', to: '/notes', exact: true, icon: 'note' },
@@ -545,6 +546,7 @@ const workspaceNavigationItems = [
 const routeLabelByName = {
   home: 'Home',
   companies: 'Companies',
+  'company-2': 'Company (2)',
   contacts: 'Contacts',
   users: 'Users',
   opportunities: 'Opportunities',
