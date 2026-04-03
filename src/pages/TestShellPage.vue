@@ -1,27 +1,14 @@
 <template>
   <q-page class="q-pa-md test-shell-page">
-    <section class="test-shell-panel">
-      <div class="test-shell-panel__header">
-        <div>
-          <div class="test-shell-panel__eyebrow">Sandbox</div>
-          <h2 class="test-shell-panel__title">Test Shell</h2>
-          <p class="test-shell-panel__text">
-            Pick a file section and inspect how the shared shell behaves before we start migrating
-            the real pages onto it.
-          </p>
-        </div>
-
-        <div class="test-shell-panel__controls">
-          <q-toggle
-            v-model="showTableView"
-            color="primary"
-            label="Table view"
-          />
-        </div>
-      </div>
-    </section>
-
     <section class="test-shell-preview">
+      <div class="test-shell-preview__controls">
+        <q-toggle
+          v-model="showTableView"
+          color="primary"
+          label="Table view"
+        />
+      </div>
+
       <FilePageHeroDashboard
         :title="activeShell.heroTitle"
         :text="activeShell.heroText"
@@ -352,28 +339,12 @@ function notifyAction(label) {
   gap: 24px;
 }
 
-.test-shell-panel,
 .test-shell-preview {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.test-shell-panel {
-  padding: 24px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 247, 255, 0.96) 100%);
-  border: 1px solid var(--ds-color-border-soft);
-  border-radius: var(--ds-radius-lg);
-  box-shadow: var(--ds-shadow-card-soft);
-}
-
-.test-shell-panel__header {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.test-shell-panel__eyebrow,
 .test-shell-card__summary-label {
   color: var(--ds-color-text-muted);
   font-family: var(--ds-font-family-body);
@@ -383,30 +354,11 @@ function notifyAction(label) {
   text-transform: uppercase;
 }
 
-.test-shell-panel__title {
-  margin: 10px 0 0;
-  font-family: var(--ds-font-family-title);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: var(--ds-font-weight-black);
-  line-height: 0.98;
-}
-
-.test-shell-panel__text {
-  margin: 12px 0 0;
-  max-width: 60ch;
-  color: var(--ds-color-text-secondary);
-}
-
-.test-shell-panel__controls {
+.test-shell-preview__controls {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  align-items: flex-start;
-}
-
-.test-shell-surface__table-actions {
-  display: inline-flex;
-  gap: 4px;
+  justify-content: flex-end;
 }
 
 .test-shell-card {
@@ -473,9 +425,8 @@ function notifyAction(label) {
   color: #334155;
 }
 
-@media (max-width: 900px) {
-  .test-shell-panel__header {
-    flex-direction: column;
-  }
+.test-shell-surface__table-actions {
+  display: inline-flex;
+  gap: 4px;
 }
 </style>
