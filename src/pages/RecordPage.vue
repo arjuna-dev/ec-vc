@@ -1452,6 +1452,17 @@
               <span class="contact-databook__nav-item-label">{{ section.title }}</span>
               <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
+            <q-btn-toggle
+              v-if="!/kdb/i.test(activeGenericSection)"
+              v-model="genericSectionViewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+              :options="CONTACT_KDB_VIEW_OPTIONS"
+            />
           </section>
 
           <section class="contact-databook__details">
@@ -1463,19 +1474,6 @@
                     Review the structured fields and relationships tied to this {{ entityLabel.toLowerCase() }} record.
                   </div>
                 </div>
-              </div>
-
-              <div v-if="!/kdb/i.test(activeGenericSection)" class="contact-section-card__view-toolbar">
-                <q-btn-toggle
-                  v-model="genericSectionViewMode"
-                  dense
-                  unelevated
-                  toggle-color="primary"
-                  color="grey-3"
-                  text-color="grey-8"
-                  class="contact-section-card__view-toggle"
-                  :options="CONTACT_KDB_VIEW_OPTIONS"
-                />
               </div>
 
               <div v-if="/kdb/i.test(activeGenericSection)" class="contact-kdb">
@@ -1828,6 +1826,17 @@
               <span class="contact-databook__nav-item-label">{{ section.title }}</span>
               <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
+            <q-btn-toggle
+              v-if="!/kdb/i.test(activeGenericSection)"
+              v-model="genericSectionViewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+              :options="CONTACT_KDB_VIEW_OPTIONS"
+            />
           </section>
 
           <template v-if="/kdb/i.test(activeGenericSection)">
@@ -1938,19 +1947,6 @@
           </template>
 
           <template v-else>
-            <div class="contact-section-card__view-toolbar">
-              <q-btn-toggle
-                v-model="genericSectionViewMode"
-                dense
-                unelevated
-                toggle-color="primary"
-                color="grey-3"
-                text-color="grey-8"
-                class="contact-section-card__view-toggle"
-                :options="CONTACT_KDB_VIEW_OPTIONS"
-              />
-            </div>
-
             <q-banner
               v-if="!visibleGenericFields.length"
               class="contact-section-card__empty bg-grey-1 text-black"
@@ -2038,6 +2034,17 @@
               <span class="contact-databook__nav-item-label">{{ section.title }}</span>
               <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
             </button>
+            <q-btn-toggle
+              v-if="!/kdb/i.test(activeGenericSection)"
+              v-model="genericSectionViewMode"
+              dense
+              unelevated
+              toggle-color="primary"
+              color="grey-3"
+              text-color="grey-8"
+              class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+              :options="CONTACT_KDB_VIEW_OPTIONS"
+            />
           </section>
 
           <template v-if="/kdb/i.test(activeGenericSection)">
@@ -2148,19 +2155,6 @@
           </template>
 
           <template v-else>
-            <div class="contact-section-card__view-toolbar">
-              <q-btn-toggle
-                v-model="genericSectionViewMode"
-                dense
-                unelevated
-                toggle-color="primary"
-                color="grey-3"
-                text-color="grey-8"
-                class="contact-section-card__view-toggle"
-                :options="CONTACT_KDB_VIEW_OPTIONS"
-              />
-            </div>
-
             <q-banner
               v-if="!visibleGenericFields.length"
               class="contact-section-card__empty bg-grey-1 text-black"
@@ -6934,8 +6928,8 @@ onBeforeUnmount(() => {
   align-items: center;
   align-self: center;
   flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  border-radius: var(--ds-control-radius);
+  height: 22px;
+  border-radius: 7px;
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-regular);
@@ -6951,17 +6945,17 @@ onBeforeUnmount(() => {
 .contact-section-card__view-toggle :deep(.q-btn) {
   background: transparent;
   border: 1px solid var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
+  border-radius: 7px;
   box-shadow: none;
-  min-width: 27px;
-  width: 27px;
-  height: 27px;
-  min-height: 27px;
+  min-width: 22px;
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
   padding: 0;
 }
 
 .contact-section-card__view-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 6px;
+  margin-left: 4px;
 }
 
 .contact-section-card__intro {
