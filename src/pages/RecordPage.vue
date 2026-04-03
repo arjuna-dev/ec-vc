@@ -776,7 +776,7 @@
           </section>
         </div>
 
-        <div v-else-if="isCompanyView" class="contact-databook">
+        <div v-else-if="isCompanyView && !isStructuredGenericRecordView" class="contact-databook">
           <section
             ref="contactHeroRef"
             class="contact-databook__hero"
@@ -3067,6 +3067,7 @@ const isNoteView = computed(
 )
 const isStructuredGenericRecordView = computed(
   () =>
+    isCompanyView.value ||
     isUserView.value ||
     isArtifactView.value ||
     isProjectView.value ||
@@ -3958,6 +3959,12 @@ const genericRecordConfig = computed(() => {
       subtitleAliases: ['Status', 'Stage', 'Round_Type'],
       secondaryAliases: ['Amount_Target', 'company_id', 'updated_at'],
       pillAliases: ['Status', 'Stage', 'Round_Type'],
+    },
+    Companies: {
+      primaryAliases: ['Company_Name', 'Short_Name', 'name', 'id'],
+      subtitleAliases: ['One_Liner', 'Status', 'Company_Type'],
+      secondaryAliases: ['Website', 'Country_based', 'updated_at'],
+      pillAliases: ['Status', 'Company_Type', 'Country_based'],
     },
     Funds: {
       primaryAliases: ['Fund_Name', 'name', 'id'],
