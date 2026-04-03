@@ -5737,7 +5737,8 @@ onBeforeUnmount(() => {
 
 .contact-databook__nav-view-toggle {
   align-self: center;
-  margin-left: 6px;
+  margin-left: auto;
+  order: 999;
 }
 
 .contact-databook__details {
