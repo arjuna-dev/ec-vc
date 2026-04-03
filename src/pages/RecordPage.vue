@@ -2174,6 +2174,143 @@ const GENERIC_SECTION_CONTRACTS = Object.freeze({
       [GENERIC_KDB_SECTION_LABEL]: [],
     },
   },
+  Contacts: {
+    sections: [GENERIC_METADATA_SECTION_LABEL, 'Employment', 'Studies', GENERIC_KDB_SECTION_LABEL],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: [
+        'id',
+        'created_by_label',
+        'created_by',
+        'updated_at',
+        'created_at',
+        'Name',
+        'Contact_Name',
+        'Personal_Email',
+        'Business_Email',
+        'Professional_Email',
+        'Email',
+        'Phone',
+        'Country_based',
+        'LinkedIn',
+      ],
+      Employment: [
+        'Current_Companies',
+        'Current_Company',
+        'Current_Company_Name',
+        'Previous_Companies',
+        'Current_Roles',
+        'Role',
+        'Expertise',
+        'Tenure_at_Firm',
+        'Tenure_at_Firm_yrs',
+      ],
+      Studies: ['Degrees_Program', 'University', 'Credentials'],
+      [GENERIC_KDB_SECTION_LABEL]: [
+        'Contact_User',
+        'Contact_Contact',
+        'Contact_Company',
+        'Contact_Fund',
+        'Contact_Round',
+        'Contact_Project',
+        'Contact_Task',
+        'Contact_Note',
+        'Related_Funds',
+        'Related_Rounds',
+        'Related_Projects',
+        'Related_Tasks',
+      ],
+    },
+  },
+  Companies: {
+    sections: [
+      GENERIC_METADATA_SECTION_LABEL,
+      'Incorporation',
+      'Documents',
+      'Operations',
+      'Business',
+      'Market',
+      'Results',
+      'Business Plan',
+      'Fund Raising',
+      GENERIC_KDB_SECTION_LABEL,
+    ],
+    fieldsBySection: {
+      [GENERIC_METADATA_SECTION_LABEL]: [
+        'id',
+        'created_by_label',
+        'created_by',
+        'updated_at',
+        'created_at',
+        'Company_Name',
+        'Legal_Name',
+        'Short_Name',
+        'Status',
+        'One_Liner',
+        'Tagline',
+        'Website',
+      ],
+      Incorporation: [
+        'Date_of_Incorporation',
+        'Country_of_Incorporation',
+        'Incorporation_Country_Name',
+        'country_id',
+        'Company_Type',
+      ],
+      Documents: ['Company_Documents'],
+      Operations: ['Founders', 'HQ_Locations', 'Headquarters_City_Name', 'Ops_Locations', 'Pax', 'Pax_Known'],
+      Business: [
+        'Description',
+        'Products',
+        'Key_Features',
+        'Backlog_Features',
+        'ICP',
+        'Business_Model',
+        'Pricing',
+        'Placement',
+        'Promotion',
+      ],
+      Market: ['Market', 'Demand_Analysis', 'Supply_Analysis'],
+      Results: [
+        'News',
+        'Updates',
+        'Objectives',
+        'Traction',
+        'Sales',
+        'Revenue',
+        'Clients_Analysis',
+        'Cohorts_Analysis',
+        'Costs_Direct',
+        'Costs_Indirect',
+        'Costs_Marketing',
+        'Unit_Economics',
+        'CAC',
+        'LTV',
+        'Costs_Admin',
+        'Costs_Tech_RD',
+      ],
+      'Business Plan': [
+        'BP_Overview',
+        'BP_Fcst',
+        'BP_ST_Obj',
+        'BP_LT_Obj',
+        'BP_Resources_Uses',
+        'BP_Runway',
+        'BP_Capital_Need',
+        'BP_Funding_Strategy',
+      ],
+      'Fund Raising': ['Amount_Raised_AUMs', 'Amount_Raised'],
+      [GENERIC_KDB_SECTION_LABEL]: [
+        'Company_User',
+        'Company_Contact',
+        'Company_Company',
+        'Company_Fund',
+        'Company_Round',
+        'Company_Project',
+        'Company_Task',
+        'Company_Note',
+      ],
+    },
+  },
   Artifacts: {
     sections: [GENERIC_METADATA_SECTION_LABEL, GENERIC_KDB_SECTION_LABEL],
     fieldsBySection: {
@@ -2405,6 +2542,7 @@ function normalizeGenericSectionLabel(sectionName) {
   const raw = String(sectionName || '').trim()
   if (!raw) return ''
   if (/kdb/i.test(raw)) return GENERIC_KDB_SECTION_LABEL
+  if (/system|metadata/i.test(raw)) return GENERIC_METADATA_SECTION_LABEL
   if (/general/i.test(raw)) return GENERIC_GENERAL_SECTION_LABEL
   if (raw === entityLabel.value) return GENERIC_METADATA_SECTION_LABEL
   return raw
@@ -2414,23 +2552,54 @@ function getPayloadSectionContract() {
   const sections = Array.isArray(currentView.value?.sections) ? currentView.value.sections : []
   if (!sections.length) return null
 
+  const fieldsBySection = {}
+  const sectionLabels = []
+
+  sections.forEach((section) => {
+    const label = normalizeGenericSectionLabel(section?.label)
+    if (!label) return
+    if (!sectionLabels.includes(label)) sectionLabels.push(label)
+    if (!fieldsBySection[label]) fieldsBySection[label] = []
+
+    ;(Array.isArray(section?.items) ? section.items : [])
+      .map((item) => String(item?.field_name || '').trim())
+      .filter(Boolean)
+      .forEach((fieldName) => {
+        if (!fieldsBySection[label].includes(fieldName)) {
+          fieldsBySection[label].push(fieldName)
+        }
+      })
+  })
+
   return {
-    sections: sections.map((section) => String(section?.label || '').trim()).filter(Boolean),
-    fieldsBySection: Object.fromEntries(
-      sections.map((section) => [
-        String(section?.label || '').trim(),
-        (Array.isArray(section?.items) ? section.items : [])
-          .map((item) => String(item?.field_name || '').trim())
-          .filter(Boolean),
-      ]),
-    ),
+    sections: sectionLabels,
+    fieldsBySection,
   }
 }
 
 function getGenericSectionContract(tableName) {
+  const baseContract = GENERIC_SECTION_CONTRACTS[tableName] || null
   const payloadContract = getPayloadSectionContract()
-  if (payloadContract?.sections?.length) return payloadContract
-  return GENERIC_SECTION_CONTRACTS[tableName] || null
+  if (!baseContract) return payloadContract
+  if (!payloadContract?.sections?.length) return baseContract
+
+  const mergedSections = [...baseContract.sections]
+  payloadContract.sections.forEach((section) => {
+    if (!mergedSections.includes(section)) mergedSections.push(section)
+  })
+
+  const mergedFieldsBySection = Object.fromEntries(
+    mergedSections.map((section) => {
+      const baseFields = baseContract.fieldsBySection?.[section] || []
+      const payloadFields = payloadContract.fieldsBySection?.[section] || []
+      return [section, [...new Set([...baseFields, ...payloadFields])]]
+    }),
+  )
+
+  return {
+    sections: mergedSections,
+    fieldsBySection: mergedFieldsBySection,
+  }
 }
 
 function getGenericSectionFieldLookup(tableName) {
