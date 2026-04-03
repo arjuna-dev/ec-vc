@@ -1892,7 +1892,7 @@ function enqueueFieldReviewBundle(force = false) {
     kind: 'field-review',
     draftId: activeDraft.value?.id || null,
     payload: {
-      title: 'Verify extracted fields',
+      title: `Verify extracted ${entityType.value} fields`,
       fields,
       entityType: entityType.value,
     },
@@ -2044,52 +2044,105 @@ function onExternalDraftReviewApplied(event) {
 
 function createDefaultIntakeReviewFields(overrides = {}) {
   return {
-    primaryCompanyName: '',
-    relatedFund: '',
-    relatedRound: '',
-    relatedContact: '',
-    website: '',
+    companyName: '',
+    companyStatus: '',
+    companyWebsite: '',
+    contactName: '',
+    contactEmail: '',
+    opportunityName: '',
+    targetSize: '',
+    committedAmounts: '',
+    closeDate: '',
+    raisingStatus: '',
+    fundPeriod: '',
+    roundStage: '',
+    securityType: '',
+    preValuation: '',
+    postValuation: '',
+    previousPost: '',
     ...overrides,
   }
 }
 
-const INTAKE_REVIEW_PRIORITY = Object.freeze([
-  'primaryCompanyName',
-  'relatedContact',
-  'website',
-  'relatedFund',
-  'relatedRound',
-])
+function intakeReviewPriority() {
+  return entityType.value === 'fund'
+    ? [
+        'companyName',
+        'opportunityName',
+        'targetSize',
+        'committedAmounts',
+        'closeDate',
+        'raisingStatus',
+        'fundPeriod',
+        'contactName',
+        'contactEmail',
+        'companyStatus',
+        'companyWebsite',
+      ]
+    : [
+        'companyName',
+        'opportunityName',
+        'roundStage',
+        'securityType',
+        'targetSize',
+        'committedAmounts',
+        'preValuation',
+        'postValuation',
+        'previousPost',
+        'closeDate',
+        'raisingStatus',
+        'contactName',
+        'contactEmail',
+        'companyStatus',
+        'companyWebsite',
+      ]
+}
 
 function buildVisibleIntakeFieldKeys(fields = {}) {
-  const prioritized = INTAKE_REVIEW_PRIORITY.filter((key) => {
-    if (key === 'relatedFund')
-      return entityType.value === 'fund' && String(fields[key] || '').trim()
-    if (key === 'relatedRound')
-      return entityType.value === 'round' && String(fields[key] || '').trim()
-    return String(fields[key] || '').trim()
-  })
+  const prioritized = intakeReviewPriority().filter((key) => String(fields[key] || '').trim())
   return prioritized
 }
 
 function createDefaultIntakeReviewVerified(overrides = {}) {
   return {
-    primaryCompanyName: false,
-    relatedFund: false,
-    relatedRound: false,
-    relatedContact: false,
-    website: false,
+    companyName: false,
+    companyStatus: false,
+    companyWebsite: false,
+    contactName: false,
+    contactEmail: false,
+    opportunityName: false,
+    targetSize: false,
+    committedAmounts: false,
+    closeDate: false,
+    raisingStatus: false,
+    fundPeriod: false,
+    roundStage: false,
+    securityType: false,
+    preValuation: false,
+    postValuation: false,
+    previousPost: false,
     ...overrides,
   }
 }
 
 function createDefaultIntakeReviewSources(overrides = {}) {
   return {
-    primaryCompanyName: '',
-    relatedFund: '',
-    relatedRound: '',
-    relatedContact: '',
-    website: '',
+    companyName: '',
+    companyStatus: '',
+    companyWebsite: '',
+    contactName: '',
+    contactEmail: '',
+    opportunityName: '',
+    targetSize: '',
+    committedAmounts: '',
+    closeDate: '',
+    raisingStatus: '',
+    fundPeriod: '',
+    roundStage: '',
+    securityType: '',
+    preValuation: '',
+    postValuation: '',
+    previousPost: '',
     ...overrides,
   }
 }
@@ -2097,11 +2150,22 @@ function createDefaultIntakeReviewSources(overrides = {}) {
 function intakeFieldLabel(fieldKey) {
   return (
     {
-      primaryCompanyName: 'Primary Company',
-      relatedFund: 'Related Fund',
-      relatedRound: 'Related Round',
-      relatedContact: 'Related Contact',
-      website: 'Website',
+      companyName: 'Company',
+      companyStatus: 'Company Status',
+      companyWebsite: 'Company Website',
+      contactName: 'Contact Name',
+      contactEmail: 'Contact Email',
+      opportunityName: entityType.value === 'fund' ? 'Fund Name' : 'Round Name',
+      targetSize: entityType.value === 'fund' ? 'Fund Target Size' : 'Target Size',
+      committedAmounts: entityType.value === 'fund' ? 'Committed Amounts' : 'Hard Commits',
+      closeDate: entityType.value === 'fund' ? 'Close Date' : 'Final Close Date',
+      raisingStatus: entityType.value === 'fund' ? 'Fund Raising Status' : 'Round Raising Status',
+      fundPeriod: 'Fund Period',
+      roundStage: 'Funding Series',
+      securityType: 'Type of Security',
+      preValuation: 'Pre Valuation',
+      postValuation: 'Post Valuation',
+      previousPost: 'Previous Post',
     }[fieldKey] || fieldKey
   )
 }
@@ -2109,11 +2173,22 @@ function intakeFieldLabel(fieldKey) {
 function intakeFieldOwner(fieldKey) {
   return (
     {
-      primaryCompanyName: 'Companies',
-      relatedFund: 'Funds',
-      relatedRound: 'Rounds',
-      relatedContact: 'Contacts',
-      website: 'Companies',
+      companyName: 'Companies',
+      companyStatus: 'Companies',
+      companyWebsite: 'Companies',
+      contactName: 'Contacts',
+      contactEmail: 'Contacts',
+      opportunityName: entityType.value === 'fund' ? 'Funds' : 'Rounds',
+      targetSize: entityType.value === 'fund' ? 'Funds' : 'Rounds',
+      committedAmounts: entityType.value === 'fund' ? 'Funds' : 'Rounds',
+      closeDate: entityType.value === 'fund' ? 'Funds' : 'Rounds',
+      raisingStatus: entityType.value === 'fund' ? 'Funds' : 'Rounds',
+      fundPeriod: 'Funds',
+      roundStage: 'Rounds',
+      securityType: 'Rounds',
+      preValuation: 'Rounds',
+      postValuation: 'Rounds',
+      previousPost: 'Rounds',
     }[fieldKey] || 'Draft Intake'
   )
 }
@@ -2121,11 +2196,22 @@ function intakeFieldOwner(fieldKey) {
 function intakeFieldTarget(fieldKey) {
   return (
     {
-      primaryCompanyName: 'Company section',
-      relatedFund: 'Opportunity section',
-      relatedRound: 'Opportunity section',
-      relatedContact: 'Primary Contact section',
-      website: 'Company section',
+      companyName: 'Company section',
+      companyStatus: 'Company section',
+      companyWebsite: 'Company section',
+      contactName: 'Contact section',
+      contactEmail: 'Contact section',
+      opportunityName: 'Opportunity section',
+      targetSize: 'Opportunity section',
+      committedAmounts: 'Opportunity section',
+      closeDate: 'Opportunity section',
+      raisingStatus: 'Opportunity section',
+      fundPeriod: 'Opportunity section',
+      roundStage: 'Opportunity section',
+      securityType: 'Opportunity section',
+      preValuation: 'Opportunity section',
+      postValuation: 'Opportunity section',
+      previousPost: 'Opportunity section',
     }[fieldKey] || 'Draft intake'
   )
 }
@@ -2138,36 +2224,66 @@ function hasAiSuggestedValue(section, key) {
 }
 
 function buildIntakeReviewFieldsFromForms() {
-  const relatedContact = [
-    String(contactForm.value.Name || '').trim(),
-    String(contactForm.value.Professional_Email || contactForm.value.Personal_Email || '').trim(),
-  ]
-    .filter(Boolean)
-    .join(' - ')
-
   return createDefaultIntakeReviewFields({
-    primaryCompanyName: hasAiSuggestedValue('company', 'Company_Name')
+    companyName: hasAiSuggestedValue('company', 'Company_Name')
       ? String(companyForm.value.Company_Name || '').trim()
       : '',
-    relatedFund:
-      entityType.value === 'fund' && hasAiSuggestedValue('opportunity', 'Venture_Oppty_Name')
-        ? String(form.value.Venture_Oppty_Name || '').trim()
-        : '',
-    relatedRound:
-      entityType.value === 'round' &&
-        (hasAiSuggestedValue('opportunity', 'Round_Stage') ||
-          hasAiSuggestedValue('opportunity', 'Venture_Oppty_Name'))
-        ? String(form.value.Round_Stage || form.value.Venture_Oppty_Name || '').trim()
-        : '',
-    relatedContact: hasAiSuggestedValue('contact', 'Name') ? relatedContact : '',
-    website: hasAiSuggestedValue('company', 'Website')
+    companyStatus: hasAiSuggestedValue('company', 'Status')
+      ? String(companyForm.value.Status || '').trim()
+      : '',
+    companyWebsite: hasAiSuggestedValue('company', 'Website')
       ? String(companyForm.value.Website || '').trim()
       : '',
+    contactName: hasAiSuggestedValue('contact', 'Name') ? String(contactForm.value.Name || '').trim() : '',
+    contactEmail: hasAiSuggestedValue('contact', 'Professional_Email')
+      ? String(contactForm.value.Professional_Email || '').trim()
+      : hasAiSuggestedValue('contact', 'Personal_Email')
+        ? String(contactForm.value.Personal_Email || '').trim()
+        : '',
+    opportunityName: hasAiSuggestedValue('opportunity', 'Venture_Oppty_Name')
+      ? String(form.value.Venture_Oppty_Name || '').trim()
+      : '',
+    targetSize: hasAiSuggestedValue('opportunity', 'Investment_Ask')
+      ? String(form.value.Investment_Ask || '').trim()
+      : '',
+    committedAmounts: hasAiSuggestedValue('opportunity', 'Hard_Commits')
+      ? String(form.value.Hard_Commits || '').trim()
+      : '',
+    closeDate: hasAiSuggestedValue('opportunity', 'Final_Close_Date')
+      ? String(form.value.Final_Close_Date || '').trim()
+      : '',
+    raisingStatus: hasAiSuggestedValue('opportunity', 'Raising_Status')
+      ? String(form.value.Raising_Status || '').trim()
+      : '',
+    fundPeriod:
+      entityType.value === 'fund' && hasAiSuggestedValue('opportunity', 'Pipeline_Status')
+        ? String(form.value.Pipeline_Status || '').trim()
+        : '',
+    roundStage:
+      entityType.value === 'round' && hasAiSuggestedValue('opportunity', 'Round_Stage')
+        ? String(form.value.Round_Stage || '').trim()
+        : '',
+    securityType:
+      entityType.value === 'round' && hasAiSuggestedValue('opportunity', 'Type_of_Security')
+        ? String(form.value.Type_of_Security || '').trim()
+        : '',
+    preValuation:
+      entityType.value === 'round' && hasAiSuggestedValue('opportunity', 'Pre_Valuation')
+        ? String(form.value.Pre_Valuation || '').trim()
+        : '',
+    postValuation:
+      entityType.value === 'round' && hasAiSuggestedValue('opportunity', 'Post_Valuation')
+        ? String(form.value.Post_Valuation || '').trim()
+        : '',
+    previousPost:
+      entityType.value === 'round' && hasAiSuggestedValue('opportunity', 'Previous_Post')
+        ? String(form.value.Previous_Post || '').trim()
+        : '',
   })
 }
 
 function getPendingIntakeReviewFieldKeys(fields = intakeReviewFields.value) {
-  return INTAKE_REVIEW_PRIORITY.filter((key) => {
+  return intakeReviewPriority().filter((key) => {
     const value = String(fields[key] || '').trim()
     if (!value) return false
     const currentlyVerifiedValue = String(intakeReviewFields.value[key] || '').trim()
@@ -2264,7 +2380,7 @@ function buildNextIntakeReviewVerified(nextFields = {}) {
     ...intakeReviewVerified.value,
   }
 
-  for (const key of INTAKE_REVIEW_PRIORITY) {
+  for (const key of intakeReviewPriority()) {
     const nextValue = String(nextFields[key] || '').trim()
     const currentValue = String(intakeReviewFields.value[key] || '').trim()
     const confirmedValue = String(intakeConfirmedFieldValues.value[key] || '').trim()
@@ -2384,7 +2500,7 @@ function verifyIntakeReviewField(fieldKey) {
     ...intakeLockedFields.value,
     [fieldKey]: true,
   }
-  if (fieldKey === 'primaryCompanyName') {
+  if (fieldKey === 'companyName') {
     companyForm.value.Company_Name = normalized
     const existingCompany = findCompanyByName(normalized)
     if (existingCompany?.id) {
@@ -2394,18 +2510,7 @@ function verifyIntakeReviewField(fieldKey) {
       sourceLabel = 'Selected existing company match'
     }
     markAutofilled('company', 'Company_Name')
-  } else if (fieldKey === 'relatedFund') {
-    form.value.Venture_Oppty_Name = normalized
-    form.value.kind = 'fund'
-    markAutofilled('opportunity', 'Venture_Oppty_Name')
-  } else if (fieldKey === 'relatedRound') {
-    form.value.Round_Stage = normalized
-    if (!String(form.value.Venture_Oppty_Name || '').trim()) {
-      form.value.Venture_Oppty_Name = normalized
-    }
-    form.value.kind = 'round'
-    markAutofilled('opportunity', 'Round_Stage')
-  } else if (fieldKey === 'relatedContact') {
+  } else if (fieldKey === 'contactName') {
     const existingContact = findContactByPromptLabel(normalized)
     if (existingContact?.id) {
       contactForm.value = buildContactFormFromSource(existingContact)
@@ -2415,19 +2520,49 @@ function verifyIntakeReviewField(fieldKey) {
       contactForm.value.Name = normalized
     }
     markAutofilled('contact', 'Name')
-  } else if (fieldKey === 'documentType') {
-    sourceLabel = 'Confirmed inferred document type'
-    syncActiveDraft({
-      inferredDocumentType: normalized,
-    })
-  } else if (fieldKey === 'artifactTitle') {
-    sourceLabel = 'Confirmed inferred artifact title'
-    syncActiveDraft({
-      inferredArtifactTitle: normalized,
-    })
-  } else if (fieldKey === 'website') {
+  } else if (fieldKey === 'contactEmail') {
+    contactForm.value.Professional_Email = normalized
+    markAutofilled('contact', 'Professional_Email')
+  } else if (fieldKey === 'companyWebsite') {
     companyForm.value.Website = normalized
     markAutofilled('company', 'Website')
+  } else if (fieldKey === 'companyStatus') {
+    companyForm.value.Status = normalizeCompanyStatusValue(normalized)
+    markAutofilled('company', 'Status')
+  } else if (fieldKey === 'opportunityName') {
+    form.value.Venture_Oppty_Name = normalized
+    markAutofilled('opportunity', 'Venture_Oppty_Name')
+  } else if (fieldKey === 'targetSize') {
+    form.value.Investment_Ask = normalized
+    if (entityType.value === 'fund') form.value.Round_Amount = normalized
+    markAutofilled('opportunity', 'Investment_Ask')
+  } else if (fieldKey === 'committedAmounts') {
+    form.value.Hard_Commits = normalized
+    markAutofilled('opportunity', 'Hard_Commits')
+  } else if (fieldKey === 'closeDate') {
+    form.value.Final_Close_Date = normalized
+    markAutofilled('opportunity', 'Final_Close_Date')
+  } else if (fieldKey === 'raisingStatus') {
+    form.value.Raising_Status = normalized
+    markAutofilled('opportunity', 'Raising_Status')
+  } else if (fieldKey === 'fundPeriod') {
+    form.value.Pipeline_Status = normalized
+    markAutofilled('opportunity', 'Pipeline_Status')
+  } else if (fieldKey === 'roundStage') {
+    form.value.Round_Stage = normalized
+    markAutofilled('opportunity', 'Round_Stage')
+  } else if (fieldKey === 'securityType') {
+    form.value.Type_of_Security = normalized
+    markAutofilled('opportunity', 'Type_of_Security')
+  } else if (fieldKey === 'preValuation') {
+    form.value.Pre_Valuation = normalized
+    markAutofilled('opportunity', 'Pre_Valuation')
+  } else if (fieldKey === 'postValuation') {
+    form.value.Post_Valuation = normalized
+    markAutofilled('opportunity', 'Post_Valuation')
+  } else if (fieldKey === 'previousPost') {
+    form.value.Previous_Post = normalized
+    markAutofilled('opportunity', 'Previous_Post')
   }
   intakeReviewVerified.value = {
     ...intakeReviewVerified.value,
@@ -2443,14 +2578,23 @@ function verifyIntakeReviewField(fieldKey) {
       fieldValue: normalized,
       ownerTable: intakeFieldOwner(fieldKey),
       consumerLane:
-        fieldKey === 'primaryCompanyName'
+        fieldKey === 'companyName' || fieldKey === 'companyStatus' || fieldKey === 'companyWebsite'
           ? 'Company'
-          : fieldKey === 'relatedFund' ||
-              fieldKey === 'relatedRound'
+          : fieldKey === 'contactName' || fieldKey === 'contactEmail'
+            ? 'Contacts'
+            : fieldKey === 'opportunityName' ||
+                fieldKey === 'targetSize' ||
+                fieldKey === 'committedAmounts' ||
+                fieldKey === 'closeDate' ||
+                fieldKey === 'raisingStatus' ||
+                fieldKey === 'fundPeriod' ||
+                fieldKey === 'roundStage' ||
+                fieldKey === 'securityType' ||
+                fieldKey === 'preValuation' ||
+                fieldKey === 'postValuation' ||
+                fieldKey === 'previousPost'
             ? 'Opportunity'
-            : fieldKey === 'relatedContact'
-              ? 'Contacts'
-              : 'Company',
+            : 'Company',
       sourceChunkId: releasedMarkdownChunkRows.value[0]?.chunk_id || '',
       sourceType: 'user_verified_prompt',
       verificationState: 'verified',
@@ -3076,6 +3220,19 @@ function shouldQueueStreamedEntity(entityTypeName, entity = {}, primaryRef = '',
   const displayName = String(entityDisplayName(entityTypeName, entity) || '').trim()
   if (!displayName) return false
 
+  const currentDisplayName =
+    entityTypeName === 'company'
+      ? String(companyForm.value.Company_Name || '').trim()
+      : entityTypeName === 'contact'
+        ? String(contactForm.value.Name || '').trim()
+        : String(form.value.Venture_Oppty_Name || '').trim()
+  if (
+    currentDisplayName &&
+    normalizeComparisonText(currentDisplayName) === normalizeComparisonText(displayName)
+  ) {
+    return false
+  }
+
   const fingerprint = `${entityTypeName}:${entityRef || displayName}`
   if (streamedEntityFingerprints.value[fingerprint]) return false
   streamedEntityFingerprints.value = {
@@ -3122,8 +3279,17 @@ function applyPrimaryStructuredValues(structured = {}) {
         : {},
   )) {
     if (!Object.prototype.hasOwnProperty.call(form.value, key)) continue
-    if (key === 'Venture_Oppty_Name' && intakeLockedFields.value.relatedFund) continue
-    if (key === 'Round_Stage' && intakeLockedFields.value.relatedRound) continue
+    if (key === 'Venture_Oppty_Name' && intakeLockedFields.value.opportunityName) continue
+    if (key === 'Round_Stage' && intakeLockedFields.value.roundStage) continue
+    if (key === 'Investment_Ask' && intakeLockedFields.value.targetSize) continue
+    if (key === 'Hard_Commits' && intakeLockedFields.value.committedAmounts) continue
+    if (key === 'Final_Close_Date' && intakeLockedFields.value.closeDate) continue
+    if (key === 'Raising_Status' && intakeLockedFields.value.raisingStatus) continue
+    if (key === 'Pipeline_Status' && intakeLockedFields.value.fundPeriod) continue
+    if (key === 'Type_of_Security' && intakeLockedFields.value.securityType) continue
+    if (key === 'Pre_Valuation' && intakeLockedFields.value.preValuation) continue
+    if (key === 'Post_Valuation' && intakeLockedFields.value.postValuation) continue
+    if (key === 'Previous_Post' && intakeLockedFields.value.previousPost) continue
     const normalizedValue = value == null ? '' : stripHumanVerify(value)
     if (!shouldApplyStreamedPrimaryValue('opportunity', key, normalizedValue)) continue
     recordAiSuggestion('opportunity', key, normalizedValue)
@@ -3148,8 +3314,9 @@ function applyPrimaryStructuredValues(structured = {}) {
       : {},
   )) {
     if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
-    if (key === 'Company_Name' && intakeLockedFields.value.primaryCompanyName) continue
-    if (key === 'Website' && intakeLockedFields.value.website) continue
+    if (key === 'Company_Name' && intakeLockedFields.value.companyName) continue
+    if (key === 'Website' && intakeLockedFields.value.companyWebsite) continue
+    if (key === 'Status' && intakeLockedFields.value.companyStatus) continue
     const normalizedValue =
       key === 'Status'
         ? normalizeCompanyStatusValue(value)
@@ -3178,7 +3345,9 @@ function applyPrimaryStructuredValues(structured = {}) {
       : {},
   )) {
     if (!Object.prototype.hasOwnProperty.call(contactForm.value, key)) continue
-    if (key === 'Name' && intakeLockedFields.value.relatedContact) continue
+    if (key === 'Name' && intakeLockedFields.value.contactName) continue
+    if (key === 'Professional_Email' && intakeLockedFields.value.contactEmail) continue
+    if (key === 'Personal_Email' && intakeLockedFields.value.contactEmail) continue
     const normalizedValue = value == null ? '' : stripHumanVerify(value)
     if (!shouldApplyStreamedPrimaryValue('contact', key, normalizedValue)) continue
     recordAiSuggestion('contact', key, normalizedValue)
