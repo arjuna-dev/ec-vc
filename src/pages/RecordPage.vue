@@ -6949,15 +6949,19 @@ onBeforeUnmount(() => {
   border: 1px solid var(--ds-control-border);
   border-radius: 7px;
   box-shadow: none;
-  min-width: 22px;
-  width: 22px;
-  height: 22px;
-  min-height: 22px;
+  min-width: 24px;
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
   padding: 0;
 }
 
 .contact-section-card__view-toggle :deep(.q-btn + .q-btn) {
   margin-left: 4px;
+}
+
+.contact-section-card__view-toggle :deep(.q-icon) {
+  font-size: 14px;
 }
 
 .contact-section-card__intro {
