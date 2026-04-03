@@ -262,7 +262,6 @@
                           <q-icon name="add" />
                         </span>
                         <span class="user-card__summary-add-relation-label">Add Relation</span>
-                        <q-tooltip>Add Relation</q-tooltip>
                       </q-btn>
                     </div>
                     <div class="user-card__summary-body">

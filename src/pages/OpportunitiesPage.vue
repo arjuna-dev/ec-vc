@@ -286,7 +286,6 @@
                           <q-icon name="add" />
                         </span>
                         <span class="opportunity-card__summary-add-relation-label">Add Relation</span>
-                        <q-tooltip>Add Relation</q-tooltip>
                       </q-btn>
                     </div>
                     <div class="opportunity-card__summary-body">

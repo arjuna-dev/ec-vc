@@ -279,7 +279,6 @@
                           <q-icon name="add" />
                         </span>
                         <span class="task-card__summary-add-relation-label">Add Relation</span>
-                        <q-tooltip>Add Relation</q-tooltip>
                       </q-btn>
                     </div>
                     <div class="task-card__summary-body">
