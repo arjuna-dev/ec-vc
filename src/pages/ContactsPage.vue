@@ -167,7 +167,7 @@
                     icon="visibility"
                     color="grey-8"
                     :disable="loading"
-                    @click="openDatabook(props.row)"
+                    @click="openRecordView(props.row)"
                   />
                   <q-btn
                     dense
@@ -208,7 +208,7 @@
                     icon="visibility"
                     class="contact-card__control-eye"
                     :disable="loading"
-                    @click="openDatabook(row)"
+                    @click="openRecordView(row)"
                   />
                 </q-card-section>
                 <q-card-section class="contact-card__hero">
@@ -372,6 +372,7 @@ import ContactCreateDialog from 'components/ContactCreateDialog.vue'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
+import { pushRecordView } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -595,13 +596,11 @@ function consumeQueuedContactDialogOpen() {
   return true
 }
 
-function openDatabook(row) {
-  const recordId = String(row?.id || '').trim()
-  if (!recordId) return
-  router.push({
-    name: 'databook-view',
-    params: { tableName: 'Contacts', recordId },
-    query: { returnTo: getContactsReturnToPath() },
+function openRecordView(row) {
+  return pushRecordView(router, {
+    tableName: 'Contacts',
+    recordId: row?.id,
+    returnTo: getContactsReturnToPath(),
   })
 }
 
@@ -1381,7 +1380,7 @@ async function confirmDeleteSelected() {
 function editSelected() {
   const row = selectedRows.value[0]
   if (!row) return
-  openDatabook(row)
+  openRecordView(row)
 }
 
 async function shareSelected() {

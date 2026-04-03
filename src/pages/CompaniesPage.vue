@@ -338,7 +338,7 @@
                     icon="table_view"
                     color="grey-8"
                     :disable="loading"
-                    @click="openDataBookView(props.row)"
+                    @click="openCardsTableView(props.row)"
                   />
                   <q-btn
                     dense
@@ -422,6 +422,7 @@ import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
+import { pushRecordView } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -545,21 +546,19 @@ function consumeQueuedCompanyDialogOpen() {
   return true
 }
 
-function openDatabook(row) {
-  const recordId = String(row?.id || '').trim()
-  if (!recordId) return
-  router.push({
-    name: 'databook-view',
-    params: { tableName: 'Companies', recordId },
-    query: { returnTo: getCompaniesReturnToPath() },
+function openRecordView(row) {
+  return pushRecordView(router, {
+    tableName: 'Companies',
+    recordId: row?.id,
+    returnTo: getCompaniesReturnToPath(),
   })
 }
 
 function openEyeView(row) {
-  openDatabook(row)
+  openRecordView(row)
 }
 
-function openDataBookView(row) {
+function openCardsTableView(row) {
   const rowId = String(row?.id || '').trim()
   if (rowId) {
     const focusedRow = rows.value.find((entry) => String(entry?.id || '').trim() === rowId)
@@ -1730,7 +1729,7 @@ async function confirmDeleteSelected() {
 function editSelected() {
   const row = selectedRows.value[0]
   if (!row) return
-  openDatabook(row)
+  openRecordView(row)
 }
 
 async function shareSelected() {

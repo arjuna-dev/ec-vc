@@ -166,7 +166,7 @@
                     icon="visibility"
                     color="grey-8"
                     :disable="loading"
-                    @click="openDatabook(props.row)"
+                    @click="openRecordView(props.row)"
                   />
                   <q-btn
                     dense
@@ -207,7 +207,7 @@
                     icon="visibility"
                     class="note-card__control-eye"
                     :disable="loading"
-                    @click="openDatabook(row)"
+                    @click="openRecordView(row)"
                   />
                 </q-card-section>
                 <q-card-section class="note-card__hero">
@@ -343,6 +343,7 @@ import SelectionActionBar from 'components/SelectionActionBar.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import NoteCreateDialog from 'components/NoteCreateDialog.vue'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
+import { pushRecordView } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -590,13 +591,11 @@ function consumeQueuedOpen() {
   return true
 }
 
-function openDatabook(row) {
-  const recordId = String(row?.id || '').trim()
-  if (!recordId) return
-  router.push({
-    name: 'databook-view',
-    params: { tableName: 'Notes', recordId },
-    query: { returnTo: route.fullPath },
+function openRecordView(row) {
+  return pushRecordView(router, {
+    tableName: 'Notes',
+    recordId: row?.id,
+    returnTo: route.fullPath,
   })
 }
 
@@ -827,7 +826,7 @@ async function confirmDeleteSelected() {
 function editSelected() {
   const row = selectedRows.value[0]
   if (!row) return
-  openDatabook(row)
+  openRecordView(row)
 }
 
 async function shareSelected() {

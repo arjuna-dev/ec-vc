@@ -34,7 +34,7 @@
               </div>
             </template>
             <template v-else>
-              <div class="databook-heading__title">{{ databookTitle }}</div>
+              <div class="databook-heading__title">{{ recordTitle }}</div>
               <div class="databook-heading__subtitle">
                 Review the full record, make edits in one place, and save a new audited snapshot.
               </div>
@@ -1702,7 +1702,7 @@ const recordIdParam = computed(() => String(route.params.recordId || '').trim())
 const entityLabel = computed(
   () => currentView.value?.entity_label || TABLE_LABELS[tableNameParam.value] || 'Record',
 )
-const databookTitle = computed(() => {
+const recordTitle = computed(() => {
   const name = String(currentView.value?.entity_name || '').trim()
   if (name) return `${name} Record`
   return recordIdParam.value ? `${recordIdParam.value} Record` : 'Record'

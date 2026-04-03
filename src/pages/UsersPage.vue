@@ -186,7 +186,7 @@
                     icon="visibility"
                     class="user-card__control-eye"
                     :disable="loading"
-                    @click="openDatabook(user)"
+                    @click="openRecordView(user)"
                   />
                 </q-card-section>
 
@@ -331,6 +331,7 @@ import {
   buildCardRelationshipOptions,
   resolveCardRelationshipPanel,
 } from 'src/utils/card-kdb-relationships'
+import { pushRecordView } from 'src/utils/recordViewNavigation'
 
 const rows = ref([])
 const loading = ref(false)
@@ -705,20 +706,18 @@ function toggleSelectAllVisibleUsers(shouldSelect) {
   selectedUsers.value = [...selectedUsers.value, ...additions]
 }
 
-function openDatabook(user) {
-  const recordId = String(user?.id || '').trim()
-  if (!recordId) return
-  router.push({
-    name: 'databook-view',
-    params: { tableName: 'Users', recordId },
-    query: { returnTo: route.fullPath },
+function openRecordView(user) {
+  return pushRecordView(router, {
+    tableName: 'Users',
+    recordId: user?.id,
+    returnTo: route.fullPath,
   })
 }
 
 function editSelected() {
   const user = selectedUsers.value[0]
   if (!user) return
-  openDatabook(user)
+  openRecordView(user)
 }
 
 async function shareSelected() {

@@ -57,7 +57,7 @@ This tracker should stay aligned with:
 - Add a consistent resume affordance in both card and table views for unfinished artifacts
 - Define role ownership for intake stages under the new `Roles` / `Avatar` direction
 - Decide which `Avatar` and `Role` parameters belong in the tracker versus inside dedicated `Avatar` / `Roles` views
-- Finish removing remaining `Databook` route and fallback naming in the shared record layer
+- Finish removing remaining internal `Databook` bridge and class naming in the shared record layer
 - Replace remaining heuristic record section mapping with workbook-backed ownership
 
 ## Parked For Later
@@ -82,6 +82,9 @@ This tracker should stay aligned with:
   - summary panel structure normalized
   - `Add Relation` moved into the lower dynamic box
   - card loop alias drift reduced by standardizing toward `row`
+- as of April 3, 2026:
+  - route-level `Databook` navigation has been renamed to `Record View`
+  - page-level record navigation now runs through one shared helper instead of per-page route objects
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
   - start the first true structure-contract pass with `Company` as the reference entity

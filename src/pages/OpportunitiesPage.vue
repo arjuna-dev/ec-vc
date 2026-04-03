@@ -167,7 +167,7 @@
                     icon="visibility"
                     color="grey-8"
                     :disable="loading"
-                    @click="openDatabook(props.row)"
+                    @click="openRecordView(props.row)"
                   />
                   <q-btn
                     dense
@@ -208,7 +208,7 @@
                     icon="visibility"
                     class="opportunity-card__control-eye"
                     :disable="loading"
-                    @click="openDatabook(row)"
+                    @click="openRecordView(row)"
                   />
                 </q-card-section>
                 <q-card-section class="opportunity-card__hero">
@@ -365,6 +365,7 @@ import OpportunityCreateDialog from 'src/components/OpportunityCreateDialog.vue'
 import RoundCreateDialog from 'src/components/RoundCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
+import { pushRecordView } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -533,14 +534,12 @@ async function onOpportunityCreated() {
   await loadOpportunities()
 }
 
-function openDatabook(row) {
-  const recordId = String(row?.id || '').trim()
-  if (!recordId) return
+function openRecordView(row) {
   const tableName = row?.kind === 'fund' ? 'Funds' : row?.kind === 'round' ? 'Rounds' : 'Funds'
-  router.push({
-    name: 'databook-view',
-    params: { tableName, recordId },
-    query: { returnTo: route.fullPath },
+  return pushRecordView(router, {
+    tableName,
+    recordId: row?.id,
+    returnTo: route.fullPath,
   })
 }
 
@@ -1095,7 +1094,7 @@ async function confirmDeleteSelected() {
 function editSelected() {
   const row = selectedRows.value[0]
   if (!row) return
-  openDatabook(row)
+  openRecordView(row)
 }
 
 async function shareSelected() {

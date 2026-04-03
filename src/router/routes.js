@@ -1,3 +1,5 @@
+import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
+
 const routes = [
   {
     path: '/',
@@ -20,7 +22,16 @@ const routes = [
       { path: 'notes', name: 'notes', component: () => import('pages/NotesPage.vue') },
       { path: 'tasks', name: 'tasks', component: () => import('pages/TasksPage.vue') },
       { path: 'assistants', name: 'assistants', component: () => import('pages/AssistantsPage.vue') },
-      { path: 'databooks/:tableName/:recordId', name: 'databook-view', component: () => import('pages/RecordPage.vue') },
+      { path: 'records/:tableName/:recordId', name: RECORD_VIEW_ROUTE_NAME, component: () => import('pages/RecordPage.vue') },
+      {
+        path: 'databooks/:tableName/:recordId',
+        redirect: (to) => ({
+          name: RECORD_VIEW_ROUTE_NAME,
+          params: to.params,
+          query: to.query,
+          hash: to.hash,
+        }),
+      },
     ],
   },
 

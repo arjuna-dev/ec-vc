@@ -189,7 +189,7 @@
               icon="visibility"
               class="artifact-card__control-eye"
               :disable="loading"
-              @click="openDatabook(group.primaryArtifact)"
+              @click="openRecordView(group.primaryArtifact)"
             />
           </q-card-section>
           <q-card-section class="artifact-card__hero">
@@ -325,7 +325,7 @@
               icon="visibility"
               color="primary"
               :disable="loading"
-              @click="openDatabook(props.row)"
+              @click="openRecordView(props.row)"
             />
             <q-btn
               dense
@@ -983,6 +983,7 @@ import SelectionActionBar from 'components/SelectionActionBar.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import { setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
+import { pushRecordView } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -2944,13 +2945,11 @@ async function openArtifactForReview(row) {
   }
 }
 
-function openDatabook(row) {
-  const recordId = String(row?.artifact_id || '').trim()
-  if (!recordId) return
-  router.push({
-    name: 'databook-view',
-    params: { tableName: 'Artifacts', recordId },
-    query: { returnTo: getArtifactsReturnToPath() },
+function openRecordView(row) {
+  return pushRecordView(router, {
+    tableName: 'Artifacts',
+    recordId: row?.artifact_id,
+    returnTo: getArtifactsReturnToPath(),
   })
 }
 

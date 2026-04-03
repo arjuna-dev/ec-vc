@@ -460,6 +460,7 @@ import {
   useIntakeDraftState,
 } from 'src/utils/intakeDraftState'
 import { useBreadcrumbActionsState } from 'src/utils/breadcrumbActionsState'
+import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
 import {
   activateNextIntakeReviewItem,
   dismissIntakeReviewItem,
@@ -558,7 +559,7 @@ const routeLabelByName = {
   'user-settings': 'Owner',
   pipelines: 'Projects',
   'file-system': 'File System',
-  'databook-view': 'Record View',
+  [RECORD_VIEW_ROUTE_NAME]: 'Record View',
 }
 const router = useRouter()
 const route = useRoute()
@@ -621,7 +622,7 @@ const currentHeaderTitle = computed(() => {
     return 'Home'
   }
 
-  if (currentRouteName === 'databook-view') {
+  if (currentRouteName === RECORD_VIEW_ROUTE_NAME) {
     const recordLabelByTableName = {
       contacts: 'Contact Records',
       companies: 'Company Records',

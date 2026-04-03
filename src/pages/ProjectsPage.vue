@@ -195,7 +195,7 @@
                     icon="visibility"
                     color="grey-8"
                     :disable="loading"
-                    @click="openDatabook(props.row)"
+                    @click="openRecordView(props.row)"
                   />
                   <q-btn
                     dense
@@ -240,7 +240,7 @@
                     icon="visibility"
                     class="pipeline-card__control-eye"
                     :disable="loading"
-                    @click="openDatabook(row)"
+                    @click="openRecordView(row)"
                   />
                 </q-card-section>
                 <q-card-section class="pipeline-card__hero">
@@ -379,6 +379,7 @@ import SelectionActionBar from 'components/SelectionActionBar.vue'
 import ProjectCreateDialog from 'components/ProjectCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
+import { pushRecordView } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -1048,7 +1049,7 @@ async function confirmDeleteSelected() {
 function editSelected() {
   const row = selectedRows.value[0]
   if (!row) return
-  openDatabook(row)
+  openRecordView(row)
 }
 
 async function shareSelected() {
@@ -1078,13 +1079,11 @@ function openCreatePipeline() {
   pipelineDialogOpen.value = true
 }
 
-function openDatabook(row) {
-  const recordId = String(row?.pipeline_id || '').trim()
-  if (!recordId) return
-  router.push({
-    name: 'databook-view',
-    params: { tableName: 'Projects', recordId },
-    query: { returnTo: route.fullPath },
+function openRecordView(row) {
+  return pushRecordView(router, {
+    tableName: 'Projects',
+    recordId: row?.pipeline_id,
+    returnTo: route.fullPath,
   })
 }
 
