@@ -143,6 +143,7 @@ The same consistency rule also applies to page mechanics:
 
 - record-opening navigation should come from shared helper utilities, not page-local route objects
 - return-path construction should be centralized when multiple file pages use the same pattern
+- route-query normalization and sync should be shared when multiple file pages expose the same view-state model
 - one-off helper drift should be treated as cleanup debt, not as an acceptable steady state
 
 ## Reserved Concept

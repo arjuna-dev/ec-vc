@@ -374,6 +374,7 @@ import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { buildResolvedPagePath, createRecordViewOpener } from 'src/utils/recordViewNavigation'
 import { openFirstSelectedRecord, shareRecordSelection } from 'src/utils/recordListSelectionActions'
+import { buildRouteQueryWithState, normalizeRouteQueryValue, syncRouteQueryState } from 'src/utils/recordListRouteState'
 import {
   buildCardRelationshipItems,
   buildCardRelationshipOptions,
@@ -602,30 +603,32 @@ const openRecordView = createRecordViewOpener(router, {
 })
 
 function getRouteViewMode(value) {
-  const normalized = String(value || '').trim().toLowerCase()
-  return CONTACT_VIEW_MODES.has(normalized) ? normalized : 'card'
+  return normalizeRouteQueryValue(value, CONTACT_VIEW_MODES, 'card')
 }
 
 function getContactsReturnToPath() {
-  const nextQuery = { ...route.query }
-
-  if (viewMode.value === 'table') nextQuery.view = 'table'
-  else delete nextQuery.view
+  const nextQuery = buildRouteQueryWithState(route.query, [
+    {
+      key: 'view',
+      value: viewMode.value,
+      fallbackValue: 'card',
+    },
+  ])
 
   return buildResolvedPagePath(router, route, nextQuery)
 }
 
 function syncViewModeQuery() {
-  const currentRouteView = getRouteViewMode(route.query.view)
-  const nextView = CONTACT_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'card'
-
-  if (currentRouteView === nextView) return
-
-  const nextQuery = { ...route.query }
-  if (nextView === 'table') nextQuery.view = 'table'
-  else delete nextQuery.view
-
-  router.replace({ query: nextQuery })
+  return syncRouteQueryState({
+    router,
+    currentQuery: route.query,
+    currentState: {
+      view: CONTACT_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'card',
+    },
+    stateEntries: [
+      { key: 'view', fallbackValue: 'card' },
+    ],
+  })
 }
 
 const displayRows = computed(() => {

@@ -424,6 +424,7 @@ import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 import { buildResolvedPagePath, createRecordViewOpener } from 'src/utils/recordViewNavigation'
 import { openFirstSelectedRecord, shareRecordSelection } from 'src/utils/recordListSelectionActions'
+import { buildRouteQueryWithState, normalizeRouteQueryValue, syncRouteQueryState } from 'src/utils/recordListRouteState'
 import {
   buildCardRelationshipItems,
   buildCardRelationshipOptions,
@@ -566,41 +567,43 @@ function openCardsTableView(row) {
 }
 
 function getRouteViewMode(value) {
-  const normalized = String(value || '').trim().toLowerCase()
-  return COMPANY_VIEW_MODES.has(normalized) ? normalized : 'card'
+  return normalizeRouteQueryValue(value, COMPANY_VIEW_MODES, 'card')
 }
 
 function getRouteTableTab(value) {
-  const normalized = String(value || '').trim().toLowerCase()
-  return COMPANY_TABLE_TABS.has(normalized) ? normalized : 'all'
+  return normalizeRouteQueryValue(value, COMPANY_TABLE_TABS, 'all')
 }
 
 function getCompaniesReturnToPath() {
-  const nextQuery = { ...route.query }
-
-  if (viewMode.value === 'table') nextQuery.view = 'table'
-  else delete nextQuery.view
-
-  if (viewMode.value === 'table' && companyTableTab.value !== 'all') {
-    nextQuery.tableTab = companyTableTab.value
-  } else {
-    delete nextQuery.tableTab
-  }
+  const nextQuery = buildRouteQueryWithState(route.query, [
+    {
+      key: 'view',
+      value: viewMode.value,
+      fallbackValue: 'card',
+    },
+    {
+      key: 'tableTab',
+      value: viewMode.value === 'table' ? companyTableTab.value : 'all',
+      fallbackValue: 'all',
+    },
+  ])
 
   return buildResolvedPagePath(router, route, nextQuery)
 }
 
 function syncViewModeQuery() {
-  const currentRouteView = getRouteViewMode(route.query.view)
-  const nextView = COMPANY_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'card'
-
-  if (currentRouteView === nextView) return
-
-  const nextQuery = { ...route.query }
-  if (nextView === 'table') nextQuery.view = 'table'
-  else delete nextQuery.view
-
-  router.replace({ query: nextQuery })
+  return syncRouteQueryState({
+    router,
+    currentQuery: route.query,
+    currentState: {
+      view: COMPANY_VIEW_MODES.has(viewMode.value) ? viewMode.value : 'card',
+      tableTab: viewMode.value === 'table' ? companyTableTab.value : 'all',
+    },
+    stateEntries: [
+      { key: 'view', fallbackValue: 'card' },
+      { key: 'tableTab', fallbackValue: 'all' },
+    ],
+  })
 }
 
 const columns = [

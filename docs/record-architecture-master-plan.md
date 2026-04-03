@@ -685,6 +685,7 @@ Recommended order:
 - [x] Excel + JSON companion workflow introduced
 - [x] Canonical direction decided: `JSON + app editing`
 - [x] Route-level `Record View` navigation is centralized through shared helpers
+- [x] Repeated route-query sync for normalized file-page view state is moving into shared helpers
 - [ ] Route and shared naming fully cleaned of `Databook`
 - [ ] Heuristic section mapping fully replaced
 - [ ] Light vs rich payload split documented per entity
