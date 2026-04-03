@@ -892,18 +892,25 @@ function draftWithFieldReviewApplied(draft = {}, fields = []) {
     nextLockedFields[key] = true
     nextFieldSources[key] = 'User verified prompt suggestion'
 
-    if (key === 'primaryCompanyName') assignAiField('company', 'Company_Name', value)
-    else if (key === 'relatedContact') assignAiField('contact', 'Name', value)
-    else if (key === 'relatedFund') {
-      nextOpportunityForm.kind = 'fund'
-      assignAiField('opportunity', 'Venture_Oppty_Name', value)
-    } else if (key === 'relatedRound') {
-      nextOpportunityForm.kind = 'round'
-      assignAiField('opportunity', 'Round_Stage', value)
-      if (!normalizeValue(nextOpportunityForm.Venture_Oppty_Name)) {
-        assignAiField('opportunity', 'Venture_Oppty_Name', value)
-      }
-    } else if (key === 'website') assignAiField('company', 'Website', value)
+    if (key === 'companyName') assignAiField('company', 'Company_Name', value)
+    else if (key === 'companyLocation') assignAiField('company', 'Headquarters_City', value)
+    else if (key === 'companyOneLiner') assignAiField('company', 'One_Liner', value)
+    else if (key === 'companyDescription') assignAiField('company', 'Description', value)
+    else if (key === 'companyStatus') assignAiField('company', 'Status', value)
+    else if (key === 'companyWebsite') assignAiField('company', 'Website', value)
+    else if (key === 'contactName') assignAiField('contact', 'Name', value)
+    else if (key === 'contactEmail') assignAiField('contact', 'Professional_Email', value)
+    else if (key === 'opportunityName') assignAiField('opportunity', 'Venture_Oppty_Name', value)
+    else if (key === 'targetSize') assignAiField('opportunity', 'Investment_Ask', value)
+    else if (key === 'committedAmounts') assignAiField('opportunity', 'Hard_Commits', value)
+    else if (key === 'closeDate') assignAiField('opportunity', 'Final_Close_Date', value)
+    else if (key === 'raisingStatus') assignAiField('opportunity', 'Raising_Status', value)
+    else if (key === 'fundPeriod') assignAiField('opportunity', 'Pipeline_Status', value)
+    else if (key === 'roundStage') assignAiField('opportunity', 'Round_Stage', value)
+    else if (key === 'securityType') assignAiField('opportunity', 'Type_of_Security', value)
+    else if (key === 'preValuation') assignAiField('opportunity', 'Pre_Valuation', value)
+    else if (key === 'postValuation') assignAiField('opportunity', 'Post_Valuation', value)
+    else if (key === 'previousPost') assignAiField('opportunity', 'Previous_Post', value)
   }
 
   return {
@@ -919,6 +926,32 @@ function draftWithFieldReviewApplied(draft = {}, fields = []) {
     intakeLockedFields: nextLockedFields,
     intakeFieldSources: nextFieldSources,
     stage: 'Ready for Review',
+  }
+}
+
+function scrubFieldFromQueuedBundles(draftId, fieldKey) {
+  const normalizedDraftId = String(draftId || '').trim()
+  const normalizedFieldKey = String(fieldKey || '').trim()
+  if (!normalizedDraftId || !normalizedFieldKey) return
+
+  for (const item of intakeReviewQueueState.items) {
+    if (String(item?.draftId || '').trim() !== normalizedDraftId) continue
+    if (String(item?.kind || '').trim() !== 'field-review') continue
+    const existingFields = Array.isArray(item?.payload?.fields) ? item.payload.fields : []
+    const nextFields = existingFields.filter((field) => String(field?.key || '').trim() !== normalizedFieldKey)
+    if (nextFields.length === existingFields.length) continue
+    if (!nextFields.length) {
+      item.status = 'resolved'
+      if (String(intakeReviewQueueState.activeItemId || '').trim() === String(item.id || '').trim()) {
+        intakeReviewQueueState.activeItemId = null
+      }
+      continue
+    }
+    item.payload = {
+      ...item.payload,
+      fields: nextFields,
+    }
+    item.updatedAt = Date.now()
   }
 }
 
@@ -939,6 +972,7 @@ function consumeActiveFieldBundle(fields = [], nextAction = 'resolved') {
 
   if (draft && fields.length) {
     updateIntakeDraft(draftId, draftWithFieldReviewApplied(draft, fields))
+    fields.forEach((field) => scrubFieldFromQueuedBundles(draftId, field.key))
     globalThis?.dispatchEvent?.(
       new CustomEvent('ecvc:intake-draft-review-applied', { detail: { draftId } }),
     )
