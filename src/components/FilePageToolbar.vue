@@ -5,6 +5,7 @@
         :model-value="allVisibleSelected"
         :indeterminate="someVisibleSelected && !allVisibleSelected"
         :disable="loading || disabled"
+        dense
         color="dark"
         class="file-page-toolbar__select-all"
         @update:model-value="$emit('toggle-select-all', $event)"
@@ -88,7 +89,7 @@ defineEmits(['toggle-select-all', 'add', 'import', 'update:searchQuery', 'update
   align-items: center;
   gap: 12px;
   min-width: 0;
-  padding: 24px;
+  padding: 24px 20px;
   background: var(--ds-color-surface-base);
   border: 1px solid var(--ds-color-border-soft);
   border-radius: var(--ds-radius-lg);
@@ -120,6 +121,7 @@ defineEmits(['toggle-select-all', 'add', 'import', 'update:searchQuery', 'update
 
 .file-page-toolbar__select-all {
   min-height: 26px;
+  margin-left: -1px;
   color: var(--ds-color-text-default, #111111);
 }
 
