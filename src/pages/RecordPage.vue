@@ -1014,55 +1014,108 @@
             </div>
 
             <div class="contact-databook__summary">
-              <div class="contact-databook__summary-header">
-                <div class="contact-databook__summary-label">Company snapshot</div>
+              <div class="contact-databook__summary-header contact-databook__summary-header--feed">
                 <q-btn
                   round
                   flat
                   dense
-                  icon="add"
-                  aria-label="Customize company snapshot"
-                  class="contact-databook__summary-add"
+                  icon="tune"
+                  aria-label="Record feed settings"
+                  class="contact-databook__summary-add contact-databook__summary-add--feed"
                 >
                   <q-menu
-                    anchor="bottom right"
-                    self="top right"
+                    anchor="top right"
+                    self="top left"
                     class="contact-databook__summary-menu"
                     content-class="contact-databook__summary-menu-content"
                     :content-style="summaryMenuContentStyle"
                   >
                     <div class="contact-databook__summary-menu-shell">
-                      <q-list dense style="min-width: 220px">
-                        <q-item-label header>Snapshot fields</q-item-label>
-                        <q-item
-                          v-for="option in availableCompanySummaryOptions"
-                          :key="option.id"
-                          clickable
-                          @click="toggleCompanySummaryStat(option.id)"
-                        >
-                          <q-item-section>{{ option.label }}</q-item-section>
-                          <q-item-section side>
-                            <q-icon :name="isCompanySummaryStatSelected(option.id) ? 'check' : 'add'" />
-                          </q-item-section>
-                        </q-item>
+                      <div class="contact-databook__summary-menu-header">
+                        <div class="contact-databook__summary-menu-title">Feed Settings</div>
+                        <div class="contact-databook__summary-menu-caption">Choose what you see</div>
+                      </div>
+                      <q-list dense style="min-width: 200px; background: transparent; padding: 0">
+                        <div class="contact-databook__summary-menu-rows">
+                          <div
+                            v-for="row in recordFeedMenuRows"
+                            :key="row.id"
+                            class="contact-databook__summary-menu-row"
+                          >
+                            <q-checkbox
+                              :model-value="row.enabled"
+                              dense
+                              size="xs"
+                              checked-icon="check_box"
+                              unchecked-icon="check_box_outline_blank"
+                              class="contact-databook__summary-menu-row-checkbox"
+                              @update:model-value="setRecordFeedSourceEnabled(row.id, $event)"
+                            />
+                            <div class="contact-databook__summary-menu-row-label">{{ row.label }}</div>
+                            <div class="contact-databook__summary-menu-row-actions">
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="!row.enabled || !row.canMoveUp"
+                                @click.stop="moveRecordFeedSource(row.id, -1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="contact-databook__summary-menu-chevron">
+                                  <path d="M7 14L12 9L17 14" />
+                                </svg>
+                              </q-btn>
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="!row.enabled || !row.canMoveDown"
+                                @click.stop="moveRecordFeedSource(row.id, 1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="contact-databook__summary-menu-chevron">
+                                  <path d="M7 10L12 15L17 10" />
+                                </svg>
+                              </q-btn>
+                            </div>
+                          </div>
+                        </div>
                       </q-list>
                     </div>
                   </q-menu>
                 </q-btn>
+                <div class="contact-databook__summary-label">Record Feed</div>
               </div>
 
-              <div v-if="companySummaryStats.length" class="contact-databook__summary-grid">
-                <div
-                  v-for="stat in companySummaryStats"
-                  :key="stat.id"
-                  class="contact-databook__summary-item"
+              <div v-if="recordFeedTabOptions.length" class="contact-databook__summary-feed-tabs">
+                <button
+                  v-for="tab in recordFeedTabOptions"
+                  :key="tab.id"
+                  type="button"
+                  class="contact-databook__summary-feed-tab"
+                  :class="{ 'contact-databook__summary-feed-tab--active': activeRecordFeedTab === tab.id }"
+                  @click="activeRecordFeedTab = tab.id"
                 >
-                  <div class="contact-databook__summary-item-label">{{ stat.label }}</div>
-                  <div class="contact-databook__summary-item-value">{{ stat.displayValue }}</div>
+                  {{ tab.label }}
+                </button>
+              </div>
+
+              <div v-if="displayedRecordFeedItems.length" class="contact-databook__summary-feed-list">
+                <div
+                  v-for="item in displayedRecordFeedItems"
+                  :key="item.id"
+                  class="contact-databook__summary-feed-entry"
+                >
+                  <div class="contact-databook__summary-feed-entry-top">
+                    <div class="contact-databook__summary-feed-entry-source">{{ item.sourceLabel }}</div>
+                    <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
+                  </div>
+                  <div class="contact-databook__summary-feed-entry-title">{{ item.title }}</div>
+                  <div v-if="item.content" class="contact-databook__summary-feed-entry-content">
+                    {{ item.content }}
+                  </div>
                 </div>
               </div>
-              <div v-else class="contact-databook__summary-empty">
-                Use the + button to add the company details you want to keep in view here.
+              <div v-else class="contact-databook__summary-feed-state">
+                No feed items yet for this record. Use settings to choose what you want to view here.
               </div>
             </div>
           </section>
