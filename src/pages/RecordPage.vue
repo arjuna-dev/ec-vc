@@ -3000,7 +3000,9 @@ function formatCanonicalLabel(value, entityPrefix = '') {
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ')
   if (/^general information$/i.test(label)) return 'General'
+  if (/^metadata$/i.test(label)) return 'System'
   if (/^system data$/i.test(label)) return 'System'
+  if (/^kdb relationships?$/i.test(label)) return 'KDB'
   if (/^kdb relations$/i.test(label)) return 'KDB'
   if (/^inc info$/i.test(label)) return 'Incorporation'
   if (/^docs$/i.test(label)) return 'Documents'
@@ -3484,7 +3486,7 @@ const genericRecordNavItems = computed(() => {
     })
 
     const general = unique.find((section) => /general/i.test(section))
-    const system = unique.find((section) => /system/i.test(section))
+    const system = unique.find((section) => /system|metadata/i.test(section))
     const kdb = unique.find((section) => /kdb/i.test(section))
     const middle = unique.filter((section) => section !== general && section !== system && section !== kdb)
 
@@ -3514,7 +3516,7 @@ const genericRecordNavItems = computed(() => {
     return orderedSections.map((section) => {
       const value = String(section || '').trim()
       const isKdb = /kdb/i.test(value)
-      const isSystem = /system/i.test(value)
+      const isSystem = /system|metadata/i.test(value)
       return {
         value,
         title: mapSectionTitle(value),
