@@ -5701,6 +5701,7 @@ onBeforeUnmount(() => {
   top: 76px;
   z-index: 3;
   display: flex;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
   padding: 12px;
@@ -5774,6 +5775,12 @@ onBeforeUnmount(() => {
 
 .contact-databook__nav-item--push-right {
   margin-left: auto;
+  align-self: center;
+}
+
+.contact-databook__nav-view-toggle {
+  align-self: center;
+  margin-left: 6px;
 }
 
 .contact-databook__details {
