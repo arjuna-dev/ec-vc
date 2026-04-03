@@ -1084,7 +1084,7 @@ import {
   upsertDraftMarkdownChunk,
   useIntakeDraftState,
 } from 'src/utils/intakeDraftState'
-import { enqueueIntakeReviewItem } from 'src/utils/intakeReviewQueueState'
+import { enqueueIntakeReviewItem, useIntakeReviewQueueState } from 'src/utils/intakeReviewQueueState'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -1103,6 +1103,7 @@ const open = computed({
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const $q = useQuasar()
 const intakeDraftState = useIntakeDraftState()
+const intakeReviewQueueState = useIntakeReviewQueueState()
 const entityType = computed(() => {
   const normalized = String(props.initialKind || '')
     .trim()
@@ -1215,6 +1216,7 @@ const companyFields = [
   { key: 'Website', label: 'Website', inputType: 'text' },
   { key: 'Pax', label: 'Estimated Pax Count', inputType: 'number' },
   { key: 'One_Liner', label: 'One Liner', inputType: 'text' },
+  { key: 'Description', label: 'Company Description', inputType: 'textarea' },
   { key: 'Updates', label: 'Annotations', inputType: 'text' },
 ]
 
@@ -1247,7 +1249,7 @@ const companyTypeOptions = [
   { label: 'Government', value: 'Government' },
   { label: 'Other', value: 'Other' },
 ]
-const companyFullWidthFieldKeys = new Set(['One_Liner', 'Updates'])
+const companyFullWidthFieldKeys = new Set(['One_Liner', 'Description', 'Updates'])
 const companyLayoutOrder = Object.freeze({
   Company_Type: 1,
   Status: 2,
@@ -1262,7 +1264,8 @@ const companyLayoutOrder = Object.freeze({
   Website: 11,
   Pax: 12,
   One_Liner: 13,
-  Updates: 14,
+  Description: 14,
+  Updates: 15,
 })
 
 const form = ref({})
@@ -1868,7 +1871,21 @@ function buildEntityQueueId(draftId, entityTypeName, entity = {}) {
 
 function enqueueFieldReviewBundle(force = false) {
   const nextFields = buildIntakeReviewFieldsFromForms()
-  const pendingKeys = getPendingIntakeReviewFieldKeys(nextFields)
+  const queuedFieldKeys = new Set(
+    (Array.isArray(intakeReviewQueueState.items) ? intakeReviewQueueState.items : [])
+      .filter(
+        (item) =>
+          String(item?.draftId || '').trim() === String(activeDraft.value?.id || '').trim() &&
+          String(item?.kind || '').trim() === 'field-review' &&
+          (item?.status === 'pending' || item?.status === 'active'),
+      )
+      .flatMap((item) => (Array.isArray(item?.payload?.fields) ? item.payload.fields : []))
+      .map((field) => String(field?.key || '').trim())
+      .filter(Boolean),
+  )
+  const pendingKeys = getPendingIntakeReviewFieldKeys(nextFields).filter(
+    (key) => !queuedFieldKeys.has(key),
+  )
   if (!pendingKeys.length) return
 
   const queueKeys = (force ? buildVisibleIntakeFieldKeys(nextFields) : pendingKeys).slice(0, 3)
@@ -2045,6 +2062,9 @@ function onExternalDraftReviewApplied(event) {
 function createDefaultIntakeReviewFields(overrides = {}) {
   return {
     companyName: '',
+    companyLocation: '',
+    companyOneLiner: '',
+    companyDescription: '',
     companyStatus: '',
     companyWebsite: '',
     contactName: '',
@@ -2068,6 +2088,9 @@ function intakeReviewPriority() {
   return entityType.value === 'fund'
     ? [
         'companyName',
+        'companyLocation',
+        'companyOneLiner',
+        'companyDescription',
         'opportunityName',
         'targetSize',
         'committedAmounts',
@@ -2081,6 +2104,9 @@ function intakeReviewPriority() {
       ]
     : [
         'companyName',
+        'companyLocation',
+        'companyOneLiner',
+        'companyDescription',
         'opportunityName',
         'roundStage',
         'securityType',
@@ -2106,6 +2132,9 @@ function buildVisibleIntakeFieldKeys(fields = {}) {
 function createDefaultIntakeReviewVerified(overrides = {}) {
   return {
     companyName: false,
+    companyLocation: false,
+    companyOneLiner: false,
+    companyDescription: false,
     companyStatus: false,
     companyWebsite: false,
     contactName: false,
@@ -2128,6 +2157,9 @@ function createDefaultIntakeReviewVerified(overrides = {}) {
 function createDefaultIntakeReviewSources(overrides = {}) {
   return {
     companyName: '',
+    companyLocation: '',
+    companyOneLiner: '',
+    companyDescription: '',
     companyStatus: '',
     companyWebsite: '',
     contactName: '',
@@ -2151,6 +2183,9 @@ function intakeFieldLabel(fieldKey) {
   return (
     {
       companyName: 'Company',
+      companyLocation: 'HQ Location',
+      companyOneLiner: 'One Liner',
+      companyDescription: 'Company Description',
       companyStatus: 'Company Status',
       companyWebsite: 'Company Website',
       contactName: 'Contact Name',
@@ -2174,6 +2209,9 @@ function intakeFieldOwner(fieldKey) {
   return (
     {
       companyName: 'Companies',
+      companyLocation: 'Companies',
+      companyOneLiner: 'Companies',
+      companyDescription: 'Companies',
       companyStatus: 'Companies',
       companyWebsite: 'Companies',
       contactName: 'Contacts',
@@ -2197,6 +2235,9 @@ function intakeFieldTarget(fieldKey) {
   return (
     {
       companyName: 'Company section',
+      companyLocation: 'Company section',
+      companyOneLiner: 'Company section',
+      companyDescription: 'Company section',
       companyStatus: 'Company section',
       companyWebsite: 'Company section',
       contactName: 'Contact section',
@@ -2227,6 +2268,15 @@ function buildIntakeReviewFieldsFromForms() {
   return createDefaultIntakeReviewFields({
     companyName: hasAiSuggestedValue('company', 'Company_Name')
       ? String(companyForm.value.Company_Name || '').trim()
+      : '',
+    companyLocation: hasAiSuggestedValue('company', 'Headquarters_City')
+      ? String(companyForm.value.Headquarters_City || '').trim()
+      : '',
+    companyOneLiner: hasAiSuggestedValue('company', 'One_Liner')
+      ? String(companyForm.value.One_Liner || '').trim()
+      : '',
+    companyDescription: hasAiSuggestedValue('company', 'Description')
+      ? String(companyForm.value.Description || '').trim()
       : '',
     companyStatus: hasAiSuggestedValue('company', 'Status')
       ? String(companyForm.value.Status || '').trim()
@@ -2510,6 +2560,15 @@ function verifyIntakeReviewField(fieldKey) {
       sourceLabel = 'Selected existing company match'
     }
     markAutofilled('company', 'Company_Name')
+  } else if (fieldKey === 'companyLocation') {
+    companyForm.value.Headquarters_City = normalized
+    markAutofilled('company', 'Headquarters_City')
+  } else if (fieldKey === 'companyOneLiner') {
+    companyForm.value.One_Liner = normalized
+    markAutofilled('company', 'One_Liner')
+  } else if (fieldKey === 'companyDescription') {
+    companyForm.value.Description = normalized
+    markAutofilled('company', 'Description')
   } else if (fieldKey === 'contactName') {
     const existingContact = findContactByPromptLabel(normalized)
     if (existingContact?.id) {
@@ -2578,7 +2637,12 @@ function verifyIntakeReviewField(fieldKey) {
       fieldValue: normalized,
       ownerTable: intakeFieldOwner(fieldKey),
       consumerLane:
-        fieldKey === 'companyName' || fieldKey === 'companyStatus' || fieldKey === 'companyWebsite'
+        fieldKey === 'companyName' ||
+          fieldKey === 'companyLocation' ||
+          fieldKey === 'companyOneLiner' ||
+          fieldKey === 'companyDescription' ||
+          fieldKey === 'companyStatus' ||
+          fieldKey === 'companyWebsite'
           ? 'Company'
           : fieldKey === 'contactName' || fieldKey === 'contactEmail'
             ? 'Contacts'
@@ -2978,6 +3042,7 @@ function createDefaultCompanyForm(overrides = {}) {
     Company_Name: '',
     Company_Type: entityType.value === 'fund' ? 'Asset Manager' : 'Corporation',
     One_Liner: '',
+    Description: '',
     Status: 'ongoing',
     Headquarters_City: '',
     Date_of_Incorporation: '',
@@ -2993,6 +3058,7 @@ function buildCompanyFormFromSource(source = {}, overrides = {}) {
     Company_Name: stripHumanVerify(getCompanyFieldValue(source, 'Company_Name')),
     Company_Type: normalizeCompanyTypeValue(getCompanyFieldValue(source, 'Company_Type')),
     One_Liner: stripHumanVerify(getCompanyFieldValue(source, 'One_Liner')),
+    Description: stripHumanVerify(getCompanyFieldValue(source, 'Description')),
     Status: normalizeCompanyStatusValue(getCompanyFieldValue(source, 'Status')),
     Headquarters_City: stripHumanVerify(getCompanyFieldValue(source, 'Headquarters_City')),
     Date_of_Incorporation: stripHumanVerify(getCompanyFieldValue(source, 'Date_of_Incorporation')),
@@ -3315,6 +3381,9 @@ function applyPrimaryStructuredValues(structured = {}) {
   )) {
     if (!Object.prototype.hasOwnProperty.call(companyForm.value, key)) continue
     if (key === 'Company_Name' && intakeLockedFields.value.companyName) continue
+    if (key === 'Headquarters_City' && intakeLockedFields.value.companyLocation) continue
+    if (key === 'One_Liner' && intakeLockedFields.value.companyOneLiner) continue
+    if (key === 'Description' && intakeLockedFields.value.companyDescription) continue
     if (key === 'Website' && intakeLockedFields.value.companyWebsite) continue
     if (key === 'Status' && intakeLockedFields.value.companyStatus) continue
     const normalizedValue =

@@ -899,6 +899,9 @@ function draftWithFieldReviewApplied(draft = {}, fields = []) {
     nextFieldSources[key] = 'User verified prompt suggestion'
 
     if (key === 'companyName') assignAiField('company', 'Company_Name', value)
+    else if (key === 'companyLocation') assignAiField('company', 'Headquarters_City', value)
+    else if (key === 'companyOneLiner') assignAiField('company', 'One_Liner', value)
+    else if (key === 'companyDescription') assignAiField('company', 'Description', value)
     else if (key === 'companyStatus') assignAiField('company', 'Status', value)
     else if (key === 'companyWebsite') assignAiField('company', 'Website', value)
     else if (key === 'contactName') assignAiField('contact', 'Name', value)
