@@ -21,11 +21,14 @@
             v-if="isTestShellRoute"
             v-model="selectedTestShellSection"
             dense
-            outlined
+            standout="bg-black text-white"
+            dark
+            options-dark
             emit-value
             map-options
             :options="testShellSectionOptions"
-            label="Section"
+            label="Live L1 Source"
+            popup-content-class="ec-shell-test-select-menu"
             class="ec-shell-test-select"
           />
           <div v-if="toolbarActions.length" class="ec-shell-toolbar-actions">
@@ -542,8 +545,8 @@ const mainNavigationItems = [
 const workspaceNavigationItems = [
   ...WORKSPACE_FILE_NAV_ITEMS,
   { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
-  { label: 'Test Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
+  { label: 'Test Shell', to: '/test-shell', exact: true, icon: 'science' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
@@ -1863,6 +1866,20 @@ function goBack() {
 .ec-shell-test-select {
   width: min(220px, 100%);
   min-width: 180px;
+}
+
+.ec-shell-test-select :deep(.q-field__control) {
+  background: #000;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.ec-shell-test-select :deep(.q-field__label),
+.ec-shell-test-select :deep(.q-field__native),
+.ec-shell-test-select :deep(.q-field__append),
+.ec-shell-test-select :deep(.q-icon),
+.ec-shell-test-select :deep(.q-field__marginal) {
+  color: #fff !important;
 }
 
 .ec-breadcrumb-bar {

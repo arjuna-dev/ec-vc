@@ -158,8 +158,10 @@ export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
   ),
 )
 
+const TEST_SHELL_RENDERABLE_KEYS = ['users', 'artifacts', 'contacts', 'companies', 'projects', 'notes', 'tasks']
+
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
-  LEVEL_1_FILE_REGISTRY.map((entry) => ({
+  LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({
     label: entry.label,
     value: entry.key,
   })),
