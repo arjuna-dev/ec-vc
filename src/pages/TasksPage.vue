@@ -1443,7 +1443,7 @@ watch(displayRows, () => {
   display: flex;
   min-width: 0;
   padding: 16px 18px 14px 14px;
-  background: rgba(255, 255, 255, 0.22);
+  background: transparent;
   overflow: hidden;
 }
 
