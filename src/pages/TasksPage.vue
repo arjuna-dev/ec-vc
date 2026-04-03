@@ -1586,6 +1586,7 @@ watch(displayRows, () => {
 }
 
 .task-card__summary-toggle {
+  margin-left: 14px;
   margin-right: auto;
 }
 

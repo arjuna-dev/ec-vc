@@ -2010,6 +2010,7 @@ watch(
 }
 
 .opportunity-card__summary-toggle {
+  margin-left: 14px;
   margin-right: auto;
 }
 

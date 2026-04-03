@@ -1935,6 +1935,7 @@ watch(displayRows, () => {
 }
 
 .pipeline-card__summary-toggle {
+  margin-left: 14px;
   margin-right: auto;
 }
 
