@@ -365,7 +365,7 @@ import OpportunityCreateDialog from 'src/components/OpportunityCreateDialog.vue'
 import RoundCreateDialog from 'src/components/RoundCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
-import { pushRecordView } from 'src/utils/recordViewNavigation'
+import { createRecordViewOpener } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -534,14 +534,10 @@ async function onOpportunityCreated() {
   await loadOpportunities()
 }
 
-function openRecordView(row) {
-  const tableName = row?.kind === 'fund' ? 'Funds' : row?.kind === 'round' ? 'Rounds' : 'Funds'
-  return pushRecordView(router, {
-    tableName,
-    recordId: row?.id,
-    returnTo: route.fullPath,
-  })
-}
+const openRecordView = createRecordViewOpener(router, {
+  getTableName: (row) => (row?.kind === 'fund' ? 'Funds' : row?.kind === 'round' ? 'Rounds' : 'Funds'),
+  getReturnTo: () => route.fullPath,
+})
 
 const columns = [
   { name: 'kind', label: 'Kind', field: 'kind', align: 'left', sortable: true },

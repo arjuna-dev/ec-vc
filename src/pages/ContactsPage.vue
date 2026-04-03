@@ -372,7 +372,7 @@ import ContactCreateDialog from 'components/ContactCreateDialog.vue'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
-import { pushRecordView } from 'src/utils/recordViewNavigation'
+import { buildResolvedPagePath, createRecordViewOpener } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -596,13 +596,10 @@ function consumeQueuedContactDialogOpen() {
   return true
 }
 
-function openRecordView(row) {
-  return pushRecordView(router, {
-    tableName: 'Contacts',
-    recordId: row?.id,
-    returnTo: getContactsReturnToPath(),
-  })
-}
+const openRecordView = createRecordViewOpener(router, {
+  tableName: 'Contacts',
+  getReturnTo: getContactsReturnToPath,
+})
 
 function getRouteViewMode(value) {
   const normalized = String(value || '').trim().toLowerCase()
@@ -615,10 +612,7 @@ function getContactsReturnToPath() {
   if (viewMode.value === 'table') nextQuery.view = 'table'
   else delete nextQuery.view
 
-  return router.resolve({
-    path: route.path,
-    query: nextQuery,
-  }).fullPath
+  return buildResolvedPagePath(router, route, nextQuery)
 }
 
 function syncViewModeQuery() {

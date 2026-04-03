@@ -24,3 +24,29 @@ export function pushRecordView(router, options) {
   if (!location) return Promise.resolve()
   return router.push(location)
 }
+
+export function buildResolvedPagePath(router, route, query = {}) {
+  return router.resolve({
+    path: route.path,
+    query,
+  }).fullPath
+}
+
+export function createRecordViewOpener(
+  router,
+  { tableName, getTableName, recordIdKey = 'id', getRecordId, getReturnTo } = {},
+) {
+  return (row) => {
+    const resolvedTableName =
+      typeof getTableName === 'function' ? getTableName(row) : tableName
+    const resolvedRecordId =
+      typeof getRecordId === 'function' ? getRecordId(row) : row?.[recordIdKey]
+    const resolvedReturnTo = typeof getReturnTo === 'function' ? getReturnTo(row) : undefined
+
+    return pushRecordView(router, {
+      tableName: resolvedTableName,
+      recordId: resolvedRecordId,
+      returnTo: resolvedReturnTo,
+    })
+  }
+}

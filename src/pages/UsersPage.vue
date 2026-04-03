@@ -331,7 +331,7 @@ import {
   buildCardRelationshipOptions,
   resolveCardRelationshipPanel,
 } from 'src/utils/card-kdb-relationships'
-import { pushRecordView } from 'src/utils/recordViewNavigation'
+import { createRecordViewOpener } from 'src/utils/recordViewNavigation'
 
 const rows = ref([])
 const loading = ref(false)
@@ -706,13 +706,10 @@ function toggleSelectAllVisibleUsers(shouldSelect) {
   selectedUsers.value = [...selectedUsers.value, ...additions]
 }
 
-function openRecordView(user) {
-  return pushRecordView(router, {
-    tableName: 'Users',
-    recordId: user?.id,
-    returnTo: route.fullPath,
-  })
-}
+const openRecordView = createRecordViewOpener(router, {
+  tableName: 'Users',
+  getReturnTo: () => route.fullPath,
+})
 
 function editSelected() {
   const user = selectedUsers.value[0]

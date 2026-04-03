@@ -379,7 +379,7 @@ import SelectionActionBar from 'components/SelectionActionBar.vue'
 import ProjectCreateDialog from 'components/ProjectCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
-import { pushRecordView } from 'src/utils/recordViewNavigation'
+import { createRecordViewOpener } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -1079,13 +1079,11 @@ function openCreatePipeline() {
   pipelineDialogOpen.value = true
 }
 
-function openRecordView(row) {
-  return pushRecordView(router, {
-    tableName: 'Projects',
-    recordId: row?.pipeline_id,
-    returnTo: route.fullPath,
-  })
-}
+const openRecordView = createRecordViewOpener(router, {
+  tableName: 'Projects',
+  recordIdKey: 'pipeline_id',
+  getReturnTo: () => route.fullPath,
+})
 
 function onOpenPipelineDialog() {
   globalThis.__ecvcOpenPipelineDialog = false

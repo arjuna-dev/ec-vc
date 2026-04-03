@@ -343,7 +343,7 @@ import SelectionActionBar from 'components/SelectionActionBar.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import TaskCreateDialog from 'components/TaskCreateDialog.vue'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
-import { pushRecordView } from 'src/utils/recordViewNavigation'
+import { createRecordViewOpener } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -613,13 +613,10 @@ function consumeQueuedOpen() {
   return true
 }
 
-function openRecordView(row) {
-  return pushRecordView(router, {
-    tableName: 'Tasks',
-    recordId: row?.id,
-    returnTo: route.fullPath,
-  })
-}
+const openRecordView = createRecordViewOpener(router, {
+  tableName: 'Tasks',
+  getReturnTo: () => route.fullPath,
+})
 
 function getTaskAvatarColor() {
   return '#111111'

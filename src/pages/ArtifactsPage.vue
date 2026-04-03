@@ -983,7 +983,7 @@ import SelectionActionBar from 'components/SelectionActionBar.vue'
 import TableCsvActions from 'components/TableCsvActions.vue'
 import { setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
-import { pushRecordView } from 'src/utils/recordViewNavigation'
+import { createRecordViewOpener } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -2945,13 +2945,11 @@ async function openArtifactForReview(row) {
   }
 }
 
-function openRecordView(row) {
-  return pushRecordView(router, {
-    tableName: 'Artifacts',
-    recordId: row?.artifact_id,
-    returnTo: getArtifactsReturnToPath(),
-  })
-}
+const openRecordView = createRecordViewOpener(router, {
+  tableName: 'Artifacts',
+  recordIdKey: 'artifact_id',
+  getReturnTo: getArtifactsReturnToPath,
+})
 
 function openCreateArtifact() {
   if (typeof window === 'undefined') return

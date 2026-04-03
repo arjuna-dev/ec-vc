@@ -422,7 +422,7 @@ import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
 import { csvToRows, rowsToCsv } from 'src/utils/csv'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
-import { pushRecordView } from 'src/utils/recordViewNavigation'
+import { buildResolvedPagePath, createRecordViewOpener } from 'src/utils/recordViewNavigation'
 import { copySelectionSummary } from 'src/utils/selectionShare'
 import {
   buildCardRelationshipItems,
@@ -546,13 +546,10 @@ function consumeQueuedCompanyDialogOpen() {
   return true
 }
 
-function openRecordView(row) {
-  return pushRecordView(router, {
-    tableName: 'Companies',
-    recordId: row?.id,
-    returnTo: getCompaniesReturnToPath(),
-  })
-}
+const openRecordView = createRecordViewOpener(router, {
+  tableName: 'Companies',
+  getReturnTo: getCompaniesReturnToPath,
+})
 
 function openEyeView(row) {
   openRecordView(row)
@@ -590,10 +587,7 @@ function getCompaniesReturnToPath() {
     delete nextQuery.tableTab
   }
 
-  return router.resolve({
-    path: route.path,
-    query: nextQuery,
-  }).fullPath
+  return buildResolvedPagePath(router, route, nextQuery)
 }
 
 function syncViewModeQuery() {
