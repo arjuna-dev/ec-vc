@@ -1172,8 +1172,8 @@ onBeforeUnmount(() => {
 .create-record-shell__processing-entry-input :deep(.q-field__native),
 .create-record-shell__processing-entry-input :deep(.q-field__input) {
   min-height: 24px;
-  padding-top: 0;
-  padding-bottom: 0;
+  padding-top: 1px;
+  padding-bottom: 1px;
   font-size: 10px;
   line-height: 1.1;
 }
