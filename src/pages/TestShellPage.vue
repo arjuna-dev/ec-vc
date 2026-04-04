@@ -1557,10 +1557,10 @@ function notifyShellAction(label) {
 
 .test-shell-table__name {
   color: var(--ds-color-text-primary);
-  font-family: var(--font-title);
-  font-size: 1rem;
+  font-family: var(--ds-font-family-body);
+  font-size: 12px;
   font-weight: var(--font-weight-black);
-  line-height: 0.98;
+  line-height: 1.35;
 }
 
 .test-shell-table tbody tr:last-child .test-shell-table__cell {
