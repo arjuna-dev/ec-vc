@@ -165,7 +165,7 @@ const allSections = computed(() => [
 
 const headerNameToken = computed(() => props.keyFieldTokens[0] || null)
 
-const headerNamePlaceholder = computed(() => `Input ${String(props.singularLabel || 'record').toLowerCase()} name`)
+const headerNamePlaceholder = computed(() => `${String(props.singularLabel || 'record')} name`)
 
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
@@ -272,8 +272,7 @@ function isWideField(token) {
 
 .create-record-shell__title-input {
   min-width: min(100%, 460px);
-  padding: 0 0 2px;
-  border-bottom: 1px solid rgba(17, 17, 17, 0.16);
+  padding: 0;
 }
 
 .create-record-shell__title-input :deep(.q-field__control) {
