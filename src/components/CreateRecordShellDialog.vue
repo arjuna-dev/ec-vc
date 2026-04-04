@@ -23,16 +23,6 @@
             :aria-label="isMaximized ? 'Exit fullscreen' : 'Open fullscreen'"
             @click="isMaximized = !isMaximized"
           />
-          <q-btn flat no-caps label="Cancel" :disable="loading" @click="open = false" />
-          <q-btn
-            no-caps
-            unelevated
-            color="dark"
-            label="Create"
-            :loading="loading"
-            :disable="submitDisabled"
-            @click="submit"
-          />
         </div>
       </q-card-section>
 
@@ -114,6 +104,19 @@
           </div>
         </div>
       </q-card-section>
+
+      <q-card-actions align="right" class="create-record-shell__footer">
+        <q-btn flat no-caps label="Cancel" :disable="loading" @click="open = false" />
+        <q-btn
+          no-caps
+          unelevated
+          color="dark"
+          label="Create"
+          :loading="loading"
+          :disable="submitDisabled"
+          @click="submit"
+        />
+      </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
@@ -399,6 +402,12 @@ function isWideField(token) {
   font-family: var(--font-body);
   font-size: 0.88rem;
   font-weight: var(--font-weight-light);
+}
+
+.create-record-shell__footer {
+  padding: 14px 28px 22px;
+  border-top: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.92);
 }
 
 @media (max-width: 900px) {
