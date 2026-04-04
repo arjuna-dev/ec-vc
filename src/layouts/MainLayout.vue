@@ -1999,8 +1999,10 @@ function goBack() {
   display: inline-flex;
   align-items: center;
   min-height: 26px;
-  padding: 0;
+  padding: 0 8px;
   color: #ffffff;
+  background: #111111;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
   font-family: var(--font-title);
   font-size: 0.88rem;
   font-weight: 800;
@@ -2019,8 +2021,8 @@ function goBack() {
 .ec-shell-test-select-menu__item.q-item--active .ec-shell-test-select-menu__value,
 .ec-shell-test-select-menu :deep(.q-item.q-manual-focusable--focused .q-item__label),
 .ec-shell-test-select-menu :deep(.q-item--active .q-item__label) {
-  background: transparent;
-  box-shadow: none;
+  background: #000000;
+  box-shadow: 0 0 0 1px #ffffff;
 }
 
 .ec-breadcrumb-bar {
