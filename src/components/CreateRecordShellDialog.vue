@@ -150,19 +150,6 @@
                           Delete
                         </button>
                       </div>
-                      <div class="create-record-shell__processing-entry-add-row">
-                        <input
-                          v-model="pendingUrlEntry"
-                          type="text"
-                          class="create-record-shell__processing-entry-native-input create-record-shell__processing-entry-native-input--boxed"
-                          @keydown.enter.prevent="addSupportResourceEntry('url')"
-                        />
-                        <q-icon
-                          v-if="pendingUrlEntry.trim()"
-                          name="keyboard_return"
-                          class="create-record-shell__processing-entry-hint"
-                        />
-                      </div>
                       <div v-if="urlEntries.length" class="create-record-shell__processing-entry-list">
                         <label
                           v-for="entry in urlEntries"
@@ -194,19 +181,6 @@
                         >
                           Delete
                         </button>
-                      </div>
-                      <div class="create-record-shell__processing-entry-add-row">
-                        <input
-                          v-model="pendingGuidanceEntry"
-                          type="text"
-                          class="create-record-shell__processing-entry-native-input create-record-shell__processing-entry-native-input--boxed"
-                          @keydown.enter.prevent="addSupportResourceEntry('guidance')"
-                        />
-                        <q-icon
-                          v-if="pendingGuidanceEntry.trim()"
-                          name="keyboard_return"
-                          class="create-record-shell__processing-entry-hint"
-                        />
                       </div>
                       <div v-if="guidanceEntries.length" class="create-record-shell__processing-entry-list">
                         <label
@@ -421,8 +395,6 @@ const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
-const pendingUrlEntry = ref('')
-const pendingGuidanceEntry = ref('')
 const urlEntries = ref([])
 const guidanceEntries = ref([])
 const selectedUrlEntryIds = ref([])
@@ -499,8 +471,6 @@ watch(
     stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
     selectedArtifactIds.value = []
     autoProcessArtifacts.value = false
-    pendingUrlEntry.value = ''
-    pendingGuidanceEntry.value = ''
     urlEntries.value = []
     guidanceEntries.value = []
     selectedUrlEntryIds.value = []
@@ -678,28 +648,6 @@ function formatArtifactSize(size) {
   if (normalized < 1024) return `${normalized} B`
   if (normalized < 1024 * 1024) return `${(normalized / 1024).toFixed(1)} KB`
   return `${(normalized / (1024 * 1024)).toFixed(1)} MB`
-}
-
-function addSupportResourceEntry(kind) {
-  const normalizedKind = String(kind || '').trim().toLowerCase()
-  const sourceRef = normalizedKind === 'guidance' ? pendingGuidanceEntry : pendingUrlEntry
-  const nextValue = String(sourceRef.value || '').trim()
-  if (!nextValue) return
-
-  const nextEntry = {
-    id: `${normalizedKind}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
-    value: nextValue,
-  }
-
-  if (normalizedKind === 'guidance') {
-    guidanceEntries.value = [...guidanceEntries.value, nextEntry]
-    pendingGuidanceEntry.value = ''
-  } else {
-    urlEntries.value = [...urlEntries.value, nextEntry]
-    pendingUrlEntry.value = ''
-  }
-
-  markDialogChanged()
 }
 
 function toggleSupportResourceSelection(kind, entryId, nextValue) {
