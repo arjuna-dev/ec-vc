@@ -207,17 +207,6 @@
                   @update:model-value="testShellRelationshipPanel = $event"
                 />
 
-                <q-btn-toggle
-                  :model-value="summaryContentView"
-                  dense
-                  unelevated
-                  toggle-color="primary"
-                  color="grey-3"
-                  text-color="grey-8"
-                  class="test-shell-card__summary-view-toggle"
-                  :options="summaryContentViewOptions"
-                  @update:model-value="summaryContentView = $event"
-                />
               </div>
 
               <div class="test-shell-card__summary-panel">
@@ -234,10 +223,7 @@
                   <div class="test-shell-card__summary-body-content">
                     <div
                       v-if="row.sectionTokenRows.length"
-                      :class="[
-                        'test-shell-card__notes-list',
-                        { 'test-shell-card__notes-list--rows': summaryContentView === 'table' },
-                      ]"
+                      class="test-shell-card__notes-list"
                     >
                       <div
                         v-for="tokenRow in row.sectionTokenRows"
@@ -368,7 +354,6 @@ const error = ref('')
 const searchQuery = ref('')
 const rawRows = ref([])
 const viewMode = ref('card')
-const summaryContentView = ref('card')
 const testShellRelationshipPanel = ref('notes')
 const selectedRowIds = ref([])
 
@@ -537,10 +522,6 @@ const healthSegments = computed(() => [
 
 const searchPlaceholder = computed(() => `Search ${activeRegistryEntry.value?.label || 'Records'}`)
 const viewOptions = Object.freeze([
-  { value: 'card', icon: 'grid_view' },
-  { value: 'table', icon: 'view_list' },
-])
-const summaryContentViewOptions = Object.freeze([
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
 ])
@@ -1196,44 +1177,18 @@ function notifyShellAction(label) {
   gap: 12px;
 }
 
-.test-shell-card__summary-view-toggle,
 .test-shell-card__summary-toggle {
   border-radius: var(--ds-control-radius);
 }
 
-.test-shell-card__summary-view-toggle {
-  margin-left: auto;
-  margin-right: 14px;
-}
-
-.test-shell-card__summary-view-toggle :deep(.q-btn-group),
 .test-shell-card__summary-toggle :deep(.q-btn-group) {
   background: transparent;
   box-shadow: none;
   border: 0;
 }
 
-.test-shell-card__summary-view-toggle :deep(.q-btn) {
-  min-height: 21px;
-  min-width: 21px;
-  height: 21px;
-  width: 21px;
-  padding: 0 2px;
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: var(--ds-control-radius);
-}
-
-.test-shell-card__summary-view-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 6px;
-}
-
-.test-shell-card__summary-view-toggle :deep(.q-icon) {
-  font-size: 13px;
-}
-
 .test-shell-card__summary-toggle {
-  margin-left: 14px;
-  margin-right: auto;
+  margin: 0 auto 0 14px;
 }
 
 .test-shell-card__summary-toggle :deep(.q-btn) {
@@ -1357,10 +1312,6 @@ function notifyShellAction(label) {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.test-shell-card__notes-list--rows {
-  gap: 6px;
 }
 
 .test-shell-card__note-pill {
