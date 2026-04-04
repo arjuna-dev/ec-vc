@@ -608,7 +608,8 @@ onBeforeUnmount(() => {
 
 .create-record-shell__artifact-drop-list {
   display: grid;
-  gap: 8px;
+  align-content: start;
+  gap: 4px;
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -622,7 +623,7 @@ onBeforeUnmount(() => {
 .create-record-shell__artifact-drop-items {
   display: grid;
   align-content: start;
-  gap: 6px;
+  gap: 4px;
   max-height: 136px;
   overflow: auto;
   padding-right: 2px;
@@ -632,8 +633,8 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  padding: 7px 8px;
+  gap: 6px;
+  padding: 5px 7px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 8px;
