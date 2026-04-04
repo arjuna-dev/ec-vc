@@ -1003,7 +1003,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 0;
   padding-top: 6px;
-  justify-self: start;
+  justify-self: end;
 }
 
 .create-record-shell__field-label {
@@ -1012,11 +1012,25 @@ onBeforeUnmount(() => {
   font-size: 0.76rem;
   font-weight: var(--font-weight-black);
   line-height: 0.95;
-  text-align: left;
+  text-align: right;
 }
 
 .create-record-shell__input {
+  width: min(100%, 240px);
+  justify-self: start;
   background: rgba(255, 255, 255, 0.92);
+}
+
+.create-record-shell__input :deep(.q-field__control) {
+  min-height: 34px;
+  border-radius: 5px;
+}
+
+.create-record-shell__input :deep(.q-field__native),
+.create-record-shell__input :deep(.q-field__input) {
+  padding-top: 0;
+  padding-bottom: 0;
+  min-height: 34px;
 }
 
 .create-record-shell__input :deep(.q-field__native),
@@ -1025,6 +1039,10 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-chip) {
   font-size: 0.78rem;
   line-height: 1.2;
+}
+
+.create-record-shell__input--summary {
+  width: 100%;
 }
 
 .create-record-shell__input--summary :deep(.q-field__control) {
