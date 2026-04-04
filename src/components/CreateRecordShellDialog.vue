@@ -611,7 +611,7 @@ onBeforeUnmount(() => {
 .create-record-shell__artifact-drop-list {
   display: grid;
   gap: 8px;
-  margin-top: auto;
+  flex: 1 1 auto;
   min-height: 0;
 }
 
