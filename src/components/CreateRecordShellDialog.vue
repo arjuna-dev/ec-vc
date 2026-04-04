@@ -6,7 +6,17 @@
     >
       <q-card-section class="create-record-shell__header">
         <div class="create-record-shell__header-copy">
-          <div class="create-record-shell__title">Create {{ singularLabel }}</div>
+          <q-input
+            v-if="headerNameToken"
+            :model-value="stringValue(formValues[headerNameToken.key])"
+            dense
+            borderless
+            :disable="loading"
+            class="create-record-shell__title-input"
+            :placeholder="headerNamePlaceholder"
+            @update:model-value="updateField(headerNameToken.key, $event)"
+          />
+          <div v-else class="create-record-shell__title">Create {{ singularLabel }}</div>
         </div>
 
         <div class="create-record-shell__header-actions">
@@ -153,11 +163,17 @@ const allSections = computed(() => [
   ...props.rightSections,
 ])
 
+const headerNameToken = computed(() => props.keyFieldTokens[0] || null)
+
+const headerNamePlaceholder = computed(() => `Input ${String(props.singularLabel || 'record').toLowerCase()} name`)
+
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
 )
 
-const activeFields = computed(() => activeSection.value?.tokens || [])
+const activeFields = computed(() =>
+  (activeSection.value?.tokens || []).filter((token) => token.key !== headerNameToken.value?.key),
+)
 
 watch(
   () => props.modelValue,
@@ -252,6 +268,31 @@ function isWideField(token) {
   font-size: clamp(1.8rem, 3vw, 2.4rem);
   font-weight: var(--font-weight-black);
   line-height: 0.96;
+}
+
+.create-record-shell__title-input {
+  min-width: min(100%, 460px);
+  padding: 0 0 2px;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.16);
+}
+
+.create-record-shell__title-input :deep(.q-field__control) {
+  min-height: auto;
+}
+
+.create-record-shell__title-input :deep(.q-field__native),
+.create-record-shell__title-input :deep(.q-field__input) {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  padding: 0;
+}
+
+.create-record-shell__title-input :deep(.q-field__native::placeholder),
+.create-record-shell__title-input :deep(.q-field__input::placeholder) {
+  color: rgba(17, 17, 17, 0.34);
 }
 
 .create-record-shell__header-actions {
