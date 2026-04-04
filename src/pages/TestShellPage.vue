@@ -263,12 +263,79 @@
         </div>
       </div>
       <div v-else class="test-shell-table-surface">
-        <div v-for="row in displayRows" :key="row.cardId" class="test-shell-table-row">
+        <div class="test-shell-table-tabs">
+          <div class="test-shell-table-tabs__left">
+            <button
+              v-for="section in tableLeftSections"
+              :key="section.key"
+              type="button"
+              class="test-shell-table-tabs__tab"
+              :class="{ 'test-shell-table-tabs__tab--active': section.key === activeSection?.key }"
+              @click="activeSectionKeyForCards = section.key"
+            >
+              {{ section.label }}
+            </button>
+          </div>
+
+          <div class="test-shell-table-tabs__right">
+            <button
+              v-for="section in tableRightSections"
+              :key="section.key"
+              type="button"
+              class="test-shell-table-tabs__tab"
+              :class="{ 'test-shell-table-tabs__tab--active': section.key === activeSection?.key }"
+              @click="activeSectionKeyForCards = section.key"
+            >
+              {{ section.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="test-shell-table-scroll">
+          <table class="test-shell-table">
+            <thead>
+              <tr>
+                <th class="test-shell-table__head test-shell-table__head--name">Name</th>
+                <th
+                  v-for="token in activeSectionTokens"
+                  :key="token.key"
+                  class="test-shell-table__head"
+                >
+                  {{ token.label }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in displayRows" :key="row.cardId">
+                <td class="test-shell-table__cell test-shell-table__cell--name">
+                  <div
+                    class="test-shell-table__name"
+                    :class="{ 'test-shell-card__value--placeholder': !row.titleValue }"
+                  >
+                    {{ row.titleValue || 'Name mapping undefined' }}
+                  </div>
+                </td>
+                <td
+                  v-for="tokenRow in row.sectionTokenRows"
+                  :key="tokenRow.key"
+                  class="test-shell-table__cell"
+                >
+                  <span :class="{ 'test-shell-card__value--placeholder': !tokenRow.value }">
+                    {{ tokenRow.value || 'No explicit value' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <template v-if="false">
+          <div v-for="row in displayRows" :key="row.cardId" class="test-shell-table-row">
           <div class="test-shell-table-row__title">{{ row.titleValue || 'Title mapping undefined' }}</div>
           <div class="test-shell-table-row__meta">
             {{ row.recordId || 'Unavailable' }} · {{ row.matchedTokenCount }} explicit token values
           </div>
-        </div>
+          </div>
+        </template>
       </div>
     </div>
   </q-page>
@@ -480,6 +547,18 @@ const summaryContentViewOptions = Object.freeze([
 
 const multiTokenFilterSections = computed(() =>
   level2Sections.value.filter((section) => getFilterSectionTokenCount(section.key) > 1),
+)
+const tableLeftSections = computed(() =>
+  level2Sections.value.filter((section) => {
+    const label = String(section.label || '').trim().toLowerCase()
+    return label !== 'kdb' && label !== 'system'
+  }),
+)
+const tableRightSections = computed(() =>
+  level2Sections.value.filter((section) => {
+    const label = String(section.label || '').trim().toLowerCase()
+    return label === 'kdb' || label === 'system'
+  }),
 )
 const summarySectionShellOptions = Object.freeze(buildCardRelationshipOptions())
 
@@ -1327,7 +1406,115 @@ function notifyShellAction(label) {
 
 .test-shell-table-surface {
   display: grid;
-  gap: 10px;
+  gap: 12px;
+}
+
+.test-shell-table-tabs {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.test-shell-table-tabs__left,
+.test-shell-table-tabs__right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.test-shell-table-tabs__right {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.test-shell-table-tabs__tab {
+  min-height: 28px;
+  padding: 0 10px;
+  color: rgba(17, 17, 17, 0.62);
+  background: transparent;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.test-shell-table-tabs__tab--active {
+  color: #111111;
+  background: rgba(17, 17, 17, 0.06);
+  border-color: rgba(17, 17, 17, 0.14);
+}
+
+.test-shell-table-scroll {
+  overflow: auto;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.test-shell-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.test-shell-table__head,
+.test-shell-table__cell {
+  min-width: 168px;
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.test-shell-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  color: rgba(17, 17, 17, 0.68);
+  background: #f8f6f0;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.test-shell-table__head--name,
+.test-shell-table__cell--name {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.test-shell-table__head--name {
+  z-index: 4;
+  background: #f3f1ea;
+}
+
+.test-shell-table__cell {
+  color: var(--ds-color-text-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+  vertical-align: top;
+}
+
+.test-shell-table__name {
+  color: var(--ds-color-text-primary);
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.98;
+}
+
+.test-shell-table tbody tr:last-child .test-shell-table__cell {
+  border-bottom: 0;
 }
 
 .test-shell-table-row {
@@ -1349,5 +1536,22 @@ function notifyShellAction(label) {
   margin-top: 6px;
   color: var(--ds-color-text-secondary);
   font-size: 0.78rem;
+}
+
+@media (max-width: 900px) {
+  .test-shell-table-tabs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .test-shell-table-tabs__right {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .test-shell-table__head--name,
+  .test-shell-table__cell--name {
+    min-width: 180px;
+  }
 }
 </style>
