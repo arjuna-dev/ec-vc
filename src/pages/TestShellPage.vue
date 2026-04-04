@@ -1498,8 +1498,8 @@ function notifyShellAction(label) {
 
 .test-shell-table__head,
 .test-shell-table__cell {
-  min-width: 168px;
-  padding: 12px 14px;
+  min-width: 144px;
+  padding: 10px 12px;
   text-align: left;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
@@ -1524,7 +1524,7 @@ function notifyShellAction(label) {
   position: sticky;
   left: 0;
   z-index: 3;
-  min-width: 220px;
+  min-width: 196px;
   background: rgba(255, 255, 255, 0.98);
 }
 
@@ -1643,7 +1643,7 @@ function notifyShellAction(label) {
 
   .test-shell-table__head--name,
   .test-shell-table__cell--name {
-    min-width: 180px;
+    min-width: 164px;
   }
 
   .test-shell-table__kdb-list {
