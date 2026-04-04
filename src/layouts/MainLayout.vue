@@ -19,6 +19,7 @@
         <div v-if="isTestShellRoute" class="ec-shell-toolbar-center">
           <div class="ec-shell-test-select-wrap">
             <q-select
+              ref="testShellSectionSelectRef"
               v-model="selectedTestShellSection"
               dense
               dark
@@ -36,7 +37,11 @@
                 <span class="ec-shell-test-select__value">{{ scope.opt.label }}</span>
               </template>
             </q-select>
-            <q-icon name="expand_more" class="ec-shell-test-select__chevron" />
+            <q-icon
+              name="expand_more"
+              class="ec-shell-test-select__chevron"
+              @click.stop="openTestShellSectionMenu"
+            />
           </div>
         </div>
 
@@ -514,6 +519,7 @@ const globalContactDialogOpen = ref(false)
 const globalFundDialogOpen = ref(false)
 const globalRoundDialogOpen = ref(false)
 const globalCreateInitialData = ref(null)
+const testShellSectionSelectRef = ref(null)
 const drawerSectionOpen = ref({
   main: true,
   radars: true,
@@ -736,6 +742,18 @@ const selectedTestShellSection = computed({
     })
   },
 })
+
+function openTestShellSectionMenu() {
+  const select = testShellSectionSelectRef.value
+  if (!select) return
+  if (typeof select.showPopup === 'function') {
+    select.showPopup()
+    return
+  }
+  if (typeof select.focus === 'function') {
+    select.focus()
+  }
+}
 
 const quickWidgetStyle = computed(() => ({
   left: `${quickWidgetPosition.value.x}px`,
