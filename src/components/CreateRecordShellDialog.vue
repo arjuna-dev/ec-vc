@@ -2,6 +2,7 @@
   <q-dialog v-model="open">
     <q-card
       class="create-record-shell"
+      :style="dialogStyle"
     >
       <q-card-section class="create-record-shell__header">
         <div class="create-record-shell__header-copy">
@@ -201,12 +202,19 @@
           @click="submit"
         />
       </q-card-actions>
+
+      <button
+        type="button"
+        class="create-record-shell__resize-handle"
+        aria-label="Resize dialog"
+        @mousedown.prevent="startResize"
+      />
     </q-card>
   </q-dialog>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -236,6 +244,9 @@ const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
 const artifactUrlInput = ref('')
+const dialogWidth = ref(760)
+const dialogHeight = ref(780)
+let removeResizeListeners = null
 
 const allSections = computed(() => [
   {
@@ -276,6 +287,10 @@ const activeSection = computed(
 )
 
 const activeFields = computed(() => activeSection.value?.tokens || [])
+const dialogStyle = computed(() => ({
+  width: `${dialogWidth.value}px`,
+  height: `${dialogHeight.value}px`,
+}))
 
 watch(
   () => props.modelValue,
@@ -287,6 +302,8 @@ watch(
     selectedArtifactIds.value = []
     autoProcessArtifacts.value = false
     artifactUrlInput.value = ''
+    dialogWidth.value = 760
+    dialogHeight.value = 780
     formValues.value = Object.fromEntries(
       allSections.value
         .flatMap((section) => section.tokens || [])
@@ -421,10 +438,49 @@ function formatArtifactSize(size) {
   if (normalized < 1024 * 1024) return `${(normalized / 1024).toFixed(1)} KB`
   return `${(normalized / (1024 * 1024)).toFixed(1)} MB`
 }
+
+function startResize(event) {
+  stopResize()
+  const startX = Number(event?.clientX || 0)
+  const startY = Number(event?.clientY || 0)
+  const initialWidth = dialogWidth.value
+  const initialHeight = dialogHeight.value
+
+  const handlePointerMove = (moveEvent) => {
+    const nextWidth = Math.max(560, Math.min(window.innerWidth - 48, initialWidth + Number(moveEvent?.clientX || 0) - startX))
+    const nextHeight = Math.max(520, Math.min(window.innerHeight - 48, initialHeight + Number(moveEvent?.clientY || 0) - startY))
+    dialogWidth.value = nextWidth
+    dialogHeight.value = nextHeight
+  }
+
+  const handlePointerUp = () => {
+    stopResize()
+  }
+
+  window.addEventListener('mousemove', handlePointerMove)
+  window.addEventListener('mouseup', handlePointerUp)
+
+  removeResizeListeners = () => {
+    window.removeEventListener('mousemove', handlePointerMove)
+    window.removeEventListener('mouseup', handlePointerUp)
+  }
+}
+
+function stopResize() {
+  if (typeof removeResizeListeners === 'function') {
+    removeResizeListeners()
+    removeResizeListeners = null
+  }
+}
+
+onBeforeUnmount(() => {
+  stopResize()
+})
 </script>
 
 <style scoped>
 .create-record-shell {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: min(52vw, 760px);
@@ -712,6 +768,20 @@ function formatArtifactSize(size) {
   padding: 14px 28px 22px;
   border-top: 1px solid rgba(17, 17, 17, 0.08);
   background: rgba(255, 255, 255, 0.92);
+}
+
+.create-record-shell__resize-handle {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background:
+    linear-gradient(135deg, transparent 0 42%, rgba(17, 17, 17, 0.34) 42% 48%, transparent 48% 58%, rgba(17, 17, 17, 0.5) 58% 64%, transparent 64%);
+  border: 0;
+  cursor: nwse-resize;
+  opacity: 0.8;
 }
 
 @media (max-width: 900px) {
