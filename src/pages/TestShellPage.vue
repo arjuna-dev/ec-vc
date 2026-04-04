@@ -1549,7 +1549,7 @@ function notifyShellAction(label) {
   color: #111111;
   background: #fdfdfb;
   border: 1px solid #111111;
-  border-radius: 4px;
+  border-radius: 2px;
   font-family: var(--font-title);
   font-size: 0.76rem;
   font-weight: var(--font-weight-black);
@@ -1567,7 +1567,7 @@ function notifyShellAction(label) {
 .test-shell-table-scroll {
   overflow: auto;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 6px;
+  border-radius: 3px;
   background: rgba(255, 255, 255, 0.96);
 }
 
@@ -1678,7 +1678,7 @@ function notifyShellAction(label) {
   color: #111111;
   background: rgba(17, 17, 17, 0.04);
   border: 1px solid rgba(17, 17, 17, 0.1);
-  border-radius: 8px;
+  border-radius: 3px;
 }
 
 .test-shell-table__kdb-icon {
