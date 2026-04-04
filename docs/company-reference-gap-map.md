@@ -39,7 +39,7 @@ This is primarily:
 From the workbook `Tokens` sheet, `Company` currently includes these level-2 groups:
 
 - `Meta_Data`
-- `KDB_Relations`
+- `KDB`
 - `Inc_Info`
 - `Co_Docs`
 - `Ops_Overview`
@@ -75,7 +75,7 @@ Gap:
 
 - app `Metadata` is narrower and does not clearly reflect all workbook metadata tokens
 
-### `KDB_Relations`
+### `KDB`
 
 Workbook intent:
 
@@ -106,7 +106,7 @@ Gap:
 
 - the app treats some relationships as top-level sections
 - the workbook treats them as one grouped relationship layer
-- app is currently missing the broader grouped `KDB_Relations` concept
+- app is currently missing the broader grouped `KDB` concept
 - app also does not currently surface all relationship types listed in the workbook, especially:
   - users
   - companies
@@ -350,7 +350,7 @@ So the current app is too relationship-first and not structural enough.
 For `Company`, the `Record View` should eventually move toward workbook-aligned top-level groups such as:
 
 - `Metadata`
-- `KDB Relations`
+- `KDB`
 - `Incorporation`
 - `Documents`
 - `Operations`
@@ -368,7 +368,7 @@ Relationship-specific lists like:
 - artifacts
 - notes
 
-should likely live inside `KDB Relations`, or inside clearly related structural sections, instead of acting as the full company model by themselves.
+should likely live inside `KDB`, or inside clearly related structural sections, instead of acting as the full company model by themselves.
 
 ## Immediate Design Implication
 
@@ -376,4 +376,4 @@ Before more `Company` UI work, the next design pass should decide:
 
 1. whether the `Company Record View` should use the workbook section set directly
 2. which workbook section labels should be translated into friendlier UI labels
-3. how `KDB_Relations` should expose linked entities without taking over the whole page structure
+3. how `KDB` should expose linked entities without taking over the whole page structure

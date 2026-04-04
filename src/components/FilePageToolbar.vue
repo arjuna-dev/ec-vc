@@ -18,22 +18,13 @@
           <span class="file-page-toolbar__add-button-label">{{ addLabel }}</span>
         </span>
       </q-btn>
-      <q-btn
-        dense
-        flat
-        round
-        icon="download"
-        color="grey-6"
-        class="file-page-toolbar__icon-button"
-        :disable="loading"
-        @click="$emit('import')"
-      >
-        <q-tooltip>Import CSV</q-tooltip>
-      </q-btn>
+      <slot name="primary-trailing" />
     </div>
 
     <div class="file-page-toolbar__block file-page-toolbar__block--actions">
-      <q-icon name="tune" size="18px" class="file-page-toolbar__filters-icon" />
+      <slot name="filters">
+        <q-icon name="tune" size="18px" class="file-page-toolbar__filters-icon" />
+      </slot>
       <q-input
         :model-value="searchQuery"
         dense
@@ -73,13 +64,13 @@ defineProps({
   loading: { type: Boolean, default: false },
   addLabel: { type: String, default: 'Add Record' },
   searchQuery: { type: String, default: '' },
-  searchPlaceholder: { type: String, default: 'Search records...' },
+  searchPlaceholder: { type: String, default: 'Search [file/Record]' },
   viewMode: { type: String, default: 'card' },
   viewOptions: { type: Array, default: () => [] },
   showViewToggle: { type: Boolean, default: true },
 })
 
-defineEmits(['toggle-select-all', 'add', 'import', 'update:searchQuery', 'update:viewMode'])
+defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'])
 </script>
 
 <style scoped>
@@ -173,6 +164,9 @@ defineEmits(['toggle-select-all', 'add', 'import', 'update:searchQuery', 'update
 }
 
 .file-page-toolbar__view-toggle :deep(.q-btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 26px;
   min-height: 26px;
   height: 26px;
@@ -184,24 +178,14 @@ defineEmits(['toggle-select-all', 'add', 'import', 'update:searchQuery', 'update
 }
 
 .file-page-toolbar__view-toggle :deep(.q-icon) {
-  font-size: 18px;
-}
-
-.file-page-toolbar__icon-button {
-  align-self: center;
-  width: 26px;
-  height: 26px;
-  min-width: 26px;
-  min-height: 26px;
-  padding: 0;
-}
-
-.file-page-toolbar__icon-button :deep(.q-icon) {
-  font-size: 18px;
+  font-size: 16.2px;
 }
 
 .file-page-toolbar__add-button {
   align-self: center;
+  min-height: 36px;
+  height: 36px;
+  min-width: 36px;
   min-height: 36px;
   padding: 0 14px 0 8px;
   color: #111111;
@@ -217,10 +201,14 @@ defineEmits(['toggle-select-all', 'add', 'import', 'update:searchQuery', 'update
   background: #f5f3ee;
 }
 
+.file-page-toolbar__add-button :deep(.q-btn__content) {
+  padding: 0;
+}
+
 .file-page-toolbar__add-button-inner {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .file-page-toolbar__add-button-plus {
@@ -229,16 +217,24 @@ defineEmits(['toggle-select-all', 'add', 'import', 'update:searchQuery', 'update
   justify-content: center;
   width: 22px;
   height: 22px;
+  min-width: 22px;
+  min-height: 22px;
   border-radius: 999px;
-  background: #111111;
+  background: #2647ff;
   color: #ffffff;
 }
 
+.file-page-toolbar__add-button-plus :deep(.q-icon) {
+  font-size: 18px;
+}
+
 .file-page-toolbar__add-button-label {
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-medium);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-sm);
+  color: inherit;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+  letter-spacing: 0.01em;
 }
 
 @media (max-width: 900px) {
