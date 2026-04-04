@@ -19,6 +19,7 @@
             round
             dense
             color="dark"
+            size="0.57rem"
             :icon="isMaximized ? 'close_fullscreen' : 'open_in_full'"
             :aria-label="isMaximized ? 'Exit fullscreen' : 'Open fullscreen'"
             @click="isMaximized = !isMaximized"
