@@ -1026,7 +1026,7 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__field--wide .create-record-shell__field-copy {
-  padding-top: 6px;
+  padding-top: 0;
 }
 
 .create-record-shell__field-label {
@@ -1076,6 +1076,7 @@ onBeforeUnmount(() => {
 
 .create-record-shell__input--summary :deep(textarea) {
   min-height: 108px !important;
+  padding-top: 10px !important;
 }
 
 .create-record-shell__empty {
