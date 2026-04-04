@@ -1496,7 +1496,7 @@ function notifyShellAction(label) {
 }
 
 .test-shell-card__control-row :deep(.q-checkbox__inner) {
-  font-size: 18px;
+  font-size: 22px;
 }
 
 .test-shell-card__control-settings,
