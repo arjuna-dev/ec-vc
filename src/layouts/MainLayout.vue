@@ -1983,7 +1983,7 @@ function goBack() {
   font-size: 20px;
   line-height: 1;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .ec-shell-test-select-menu {
