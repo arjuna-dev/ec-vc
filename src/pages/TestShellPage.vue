@@ -514,10 +514,8 @@ const tableSectionTokens = computed(() =>
 )
 
 const unmappedShellSlots = computed(() => [
-  'card.title',
   'card.subtitle',
   'card.chips',
-  'card.summary',
 ])
 
 const displayRows = computed(() => {
