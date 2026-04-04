@@ -1980,11 +1980,19 @@ function goBack() {
   pointer-events: none;
 }
 
+.ec-shell-test-select-menu {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
 .ec-shell-test-select-menu :deep(.q-virtual-scroll__content),
 .ec-shell-test-select-menu :deep(.q-menu),
 .ec-shell-test-select-menu :deep(.q-list) {
-  background: transparent;
-  border-radius: 6px;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0;
 }
 
 .ec-shell-test-select-menu__item,
