@@ -7,9 +7,6 @@
       <q-card-section class="create-record-shell__header">
         <div class="create-record-shell__header-copy">
           <div class="create-record-shell__title">Create {{ singularLabel }}</div>
-          <div class="create-record-shell__caption">
-            Key Fields come first. The remaining sections follow canonical order so you can move fast without losing structure.
-          </div>
         </div>
 
         <div class="create-record-shell__header-actions">
@@ -255,15 +252,6 @@ function isWideField(token) {
   font-size: clamp(1.8rem, 3vw, 2.4rem);
   font-weight: var(--font-weight-black);
   line-height: 0.96;
-}
-
-.create-record-shell__caption {
-  max-width: 680px;
-  color: rgba(17, 17, 17, 0.66);
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: var(--font-weight-light);
-  line-height: 1.5;
 }
 
 .create-record-shell__header-actions {
