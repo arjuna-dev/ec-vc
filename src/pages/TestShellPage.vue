@@ -279,7 +279,7 @@
               <tr>
                 <th class="test-shell-table__head test-shell-table__head--name">Name</th>
                 <th
-                  v-for="token in activeSectionTokens"
+                  v-for="token in tableSectionTokens"
                   :key="token.key"
                   class="test-shell-table__head"
                 >
@@ -479,6 +479,9 @@ const canonicalTitleToken = computed(
       (token) => String(token.parentLevel_2) === '3' && String(token.level_3) === '1',
     ) || null,
 )
+const tableSectionTokens = computed(() =>
+  activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
+)
 
 const unmappedShellSlots = computed(() => [
   'card.title',
@@ -664,7 +667,7 @@ function buildShellRow(row, index) {
         .some((token) => tokenPresence[token.key]),
     ]),
   )
-  const tokenRows = activeSectionTokens.value.map((token) => {
+  const tokenRows = tableSectionTokens.value.map((token) => {
     const rawValue = getCanonicalTokenValue(row, token)
     const value = stringifyValue(rawValue)
     return {
