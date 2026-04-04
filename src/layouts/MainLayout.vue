@@ -1987,15 +1987,15 @@ function goBack() {
 }
 
 .ec-shell-test-select-menu {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: 0 !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14) !important;
+  border: 1px solid rgba(17, 17, 17, 0.08) !important;
 }
 
 .ec-shell-test-select-menu :deep(.q-virtual-scroll__content),
 .ec-shell-test-select-menu :deep(.q-menu),
 .ec-shell-test-select-menu :deep(.q-list) {
-  background: transparent !important;
+  background: #ffffff !important;
   box-shadow: none !important;
   border: 0 !important;
   border-radius: 0;
