@@ -306,7 +306,22 @@
                   :key="tokenRow.key"
                   class="test-shell-table__cell"
                 >
-                  <span :class="{ 'test-shell-card__value--placeholder': !tokenRow.value }">
+                  <template v-if="isKdbSectionActive">
+                    <div v-if="getKdbDisplayItems(tokenRow).length" class="test-shell-table__kdb-list">
+                      <div
+                        v-for="item in getKdbDisplayItems(tokenRow)"
+                        :key="`${tokenRow.key}:${item}`"
+                        class="test-shell-table__kdb-item"
+                      >
+                        <span class="test-shell-table__kdb-icon">
+                          <q-icon name="share" size="10px" />
+                        </span>
+                        <span class="test-shell-table__kdb-text">{{ item }}</span>
+                      </div>
+                    </div>
+                    <span v-else class="test-shell-card__value--placeholder">No explicit value</span>
+                  </template>
+                  <span v-else :class="{ 'test-shell-card__value--placeholder': !tokenRow.value }">
                     {{ tokenRow.value || 'No explicit value' }}
                   </span>
                 </td>
@@ -425,6 +440,7 @@ const expandedFilterSectionKey = ref('')
 const activeSection = computed(() => {
   return level2Sections.value.find((section) => section.key === activeSectionKeyForCards.value) || level2Sections.value[0] || null
 })
+const isKdbSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'kdb')
 
 const activeSectionTokens = computed(() => {
   if (!activeSection.value) return []
@@ -607,11 +623,13 @@ function buildShellRow(row, index) {
     ]),
   )
   const tokenRows = activeSectionTokens.value.map((token) => {
-    const value = stringifyValue(getCanonicalTokenValue(row, token))
+    const rawValue = getCanonicalTokenValue(row, token)
+    const value = stringifyValue(rawValue)
     return {
       key: `${recordId || index}:${token.key}`,
       tokenName: token.tokenName,
       label: token.label,
+      rawValue,
       value,
     }
   })
@@ -669,6 +687,19 @@ function stringifyValue(value) {
   if (Array.isArray(value)) return value.map((item) => stringifyValue(item)).filter(Boolean).join(', ')
   if (typeof value === 'object') return ''
   return String(value).trim()
+}
+
+function getKdbDisplayItems(tokenRow) {
+  const rawValue = tokenRow?.rawValue
+  if (Array.isArray(rawValue)) {
+    return rawValue.map((item) => stringifyValue(item)).filter(Boolean)
+  }
+  const normalized = stringifyValue(rawValue || tokenRow?.value)
+  if (!normalized) return []
+  return normalized
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
 }
 
 function getTestShellMetadataRows(row) {
@@ -1456,6 +1487,44 @@ function notifyShellAction(label) {
   vertical-align: top;
 }
 
+.test-shell-table__kdb-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.test-shell-table__kdb-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 7px;
+  color: #111111;
+  background: rgba(17, 17, 17, 0.04);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 8px;
+}
+
+.test-shell-table__kdb-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  color: rgba(17, 17, 17, 0.7);
+}
+
+.test-shell-table__kdb-text {
+  min-width: 0;
+  color: #111111;
+  font-family: var(--ds-font-family-body);
+  font-size: 10px;
+  font-weight: var(--ds-font-weight-light);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
 .test-shell-table__name {
   color: var(--ds-color-text-primary);
   font-family: var(--font-title);
@@ -1503,6 +1572,10 @@ function notifyShellAction(label) {
   .test-shell-table__head--name,
   .test-shell-table__cell--name {
     min-width: 180px;
+  }
+
+  .test-shell-table__kdb-list {
+    grid-template-columns: 1fr;
   }
 }
 </style>
