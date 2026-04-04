@@ -107,12 +107,6 @@
         {{ error }}
       </q-banner>
 
-      <q-banner v-else-if="unmappedShellSlots.length" class="test-shell-gap-banner bg-orange-1 text-orange-10" rounded>
-        Missing explicit shell mapping:
-        {{ unmappedShellSlots.join(', ') }}.
-        Real rows and canonical sections are still rendered below without guessing.
-      </q-banner>
-
       <q-banner
         v-if="!loading && displayRows.length === 0"
         class="test-shell-empty-state bg-grey-1 text-black"
@@ -320,9 +314,19 @@
                     </div>
 
                     <div class="test-shell-card__bottom-stack">
-                      <div v-if="getTestShellMetadataRows(row).length" class="test-shell-card__detail-stack">
+                      <div
+                        v-if="getTestShellSubtitleRow(row)"
+                        class="test-shell-card__subtitle"
+                      >
+                        {{ getTestShellSubtitleRow(row).value }}
+                        <q-tooltip anchor="top middle" self="bottom middle" class="test-shell-card__inline-chip-tooltip">
+                          {{ getTestShellSubtitleRow(row).label }}
+                        </q-tooltip>
+                      </div>
+
+                      <div v-if="getTestShellChipRows(row).length" class="test-shell-card__detail-stack">
                         <div
-                          v-for="detail in getTestShellMetadataRows(row)"
+                          v-for="detail in getTestShellChipRows(row)"
                           :key="detail.label"
                           class="test-shell-card__detail-row"
                         >
@@ -809,11 +813,6 @@ const canDeleteSelectedRows = computed(() => {
 const tableSectionTokens = computed(() =>
   activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
 )
-
-const unmappedShellSlots = computed(() => [
-  'card.subtitle',
-  'card.chips',
-])
 
 const displayRows = computed(() => {
   const query = String(searchQuery.value || '').trim().toLowerCase()
@@ -1485,6 +1484,14 @@ function setRowRelationshipPanel(row, nextValue) {
 
 function getTestShellMetadataRows(row) {
   return Array.isArray(row?.cardDetailRows) ? row.cardDetailRows : []
+}
+
+function getTestShellSubtitleRow(row) {
+  return getTestShellMetadataRows(row)[0] || null
+}
+
+function getTestShellChipRows(row) {
+  return getTestShellMetadataRows(row).slice(1)
 }
 
 function getTestShellAvatarColor() {
@@ -2285,6 +2292,14 @@ async function handleSelectedRowsDelete() {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.test-shell-card__subtitle {
+  color: rgba(17, 17, 17, 0.7);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-light);
+  line-height: 1.35;
 }
 
 .test-shell-card__detail-stack {
