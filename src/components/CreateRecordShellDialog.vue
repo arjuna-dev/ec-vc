@@ -140,29 +140,79 @@
                     <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
                       <div class="create-record-shell__processing-box-head">
                         <div class="create-record-shell__processing-box-title">URLs</div>
+                        <button
+                          type="button"
+                          class="create-record-shell__processing-delete"
+                          :disabled="!selectedUrlEntryIds.length"
+                          @click="removeSelectedSupportResourceEntries('url')"
+                        >
+                          Delete
+                        </button>
                       </div>
                       <q-input
-                        v-model="supportResourceUrls"
-                        type="textarea"
-                        autogrow
+                        v-model="pendingUrlEntry"
                         dense
                         outlined
-                        class="create-record-shell__processing-input"
+                        class="create-record-shell__processing-entry-input"
+                        @keyup.enter.prevent="addSupportResourceEntry('url')"
                       />
+                      <div v-if="urlEntries.length" class="create-record-shell__processing-entry-list">
+                        <label
+                          v-for="entry in urlEntries"
+                          :key="entry.id"
+                          class="create-record-shell__processing-entry-row"
+                        >
+                          <q-checkbox
+                            :model-value="selectedUrlEntryIds.includes(entry.id)"
+                            dense
+                            size="xs"
+                            checked-icon="check_box"
+                            unchecked-icon="check_box_outline_blank"
+                            class="create-record-shell__artifact-checkbox"
+                            @update:model-value="toggleSupportResourceSelection('url', entry.id, $event)"
+                          />
+                          <span class="create-record-shell__processing-entry-value">{{ entry.value }}</span>
+                        </label>
+                      </div>
                     </section>
 
                     <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
                       <div class="create-record-shell__processing-box-head">
                         <div class="create-record-shell__processing-box-title">Text Blurb / Guides</div>
+                        <button
+                          type="button"
+                          class="create-record-shell__processing-delete"
+                          :disabled="!selectedGuidanceEntryIds.length"
+                          @click="removeSelectedSupportResourceEntries('guidance')"
+                        >
+                          Delete
+                        </button>
                       </div>
                       <q-input
-                        v-model="supportResourceGuidance"
-                        type="textarea"
-                        autogrow
+                        v-model="pendingGuidanceEntry"
                         dense
                         outlined
-                        class="create-record-shell__processing-input"
+                        class="create-record-shell__processing-entry-input"
+                        @keyup.enter.prevent="addSupportResourceEntry('guidance')"
                       />
+                      <div v-if="guidanceEntries.length" class="create-record-shell__processing-entry-list">
+                        <label
+                          v-for="entry in guidanceEntries"
+                          :key="entry.id"
+                          class="create-record-shell__processing-entry-row"
+                        >
+                          <q-checkbox
+                            :model-value="selectedGuidanceEntryIds.includes(entry.id)"
+                            dense
+                            size="xs"
+                            checked-icon="check_box"
+                            unchecked-icon="check_box_outline_blank"
+                            class="create-record-shell__artifact-checkbox"
+                            @update:model-value="toggleSupportResourceSelection('guidance', entry.id, $event)"
+                          />
+                          <span class="create-record-shell__processing-entry-value">{{ entry.value }}</span>
+                        </label>
+                      </div>
                     </section>
                   </div>
                 </div>
@@ -358,8 +408,12 @@ const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
-const supportResourceUrls = ref('')
-const supportResourceGuidance = ref('')
+const pendingUrlEntry = ref('')
+const pendingGuidanceEntry = ref('')
+const urlEntries = ref([])
+const guidanceEntries = ref([])
+const selectedUrlEntryIds = ref([])
+const selectedGuidanceEntryIds = ref([])
 const supportResourcesCollapsed = ref(false)
 const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
@@ -432,8 +486,12 @@ watch(
     stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
     selectedArtifactIds.value = []
     autoProcessArtifacts.value = false
-    supportResourceUrls.value = ''
-    supportResourceGuidance.value = ''
+    pendingUrlEntry.value = ''
+    pendingGuidanceEntry.value = ''
+    urlEntries.value = []
+    guidanceEntries.value = []
+    selectedUrlEntryIds.value = []
+    selectedGuidanceEntryIds.value = []
     dialogWidth.value = 760
     dialogHeight.value = 780
     formValues.value = Object.fromEntries(
@@ -473,11 +531,16 @@ function buildDialogSnapshot() {
       autoProcess: autoProcessArtifacts.value,
     },
     companion: {
-      urls: supportResourceUrls.value,
-      guidance: supportResourceGuidance.value,
+      urls: urlEntries.value.map((entry) => entry.value),
+      guidance: guidanceEntries.value.map((entry) => entry.value),
     },
     hasUserChanges: hasUserChanges.value,
   }
+}
+
+function markDialogChanged() {
+  hasUserChanges.value = true
+  emit('change', buildDialogSnapshot())
 }
 
 function stringValue(value) {
@@ -540,6 +603,7 @@ function onArtifactDrop(event) {
   })
 
   stagedArtifacts.value = Array.from(existingByPath.values())
+  markDialogChanged()
 }
 
 function normalizeArtifactFile(file) {
@@ -576,19 +640,23 @@ function toggleArtifactSelection(artifactId, nextValue) {
     if (!selectedArtifactIds.value.includes(artifactId)) {
       selectedArtifactIds.value = [...selectedArtifactIds.value, artifactId]
     }
+    markDialogChanged()
     return
   }
 
   selectedArtifactIds.value = selectedArtifactIds.value.filter((id) => id !== artifactId)
+  markDialogChanged()
 }
 
 function toggleAllArtifacts(nextValue) {
   if (nextValue) {
     selectedArtifactIds.value = stagedArtifacts.value.map((artifact) => artifact.id)
+    markDialogChanged()
     return
   }
 
   selectedArtifactIds.value = []
+  markDialogChanged()
 }
 
 function formatArtifactSize(size) {
@@ -597,6 +665,56 @@ function formatArtifactSize(size) {
   if (normalized < 1024) return `${normalized} B`
   if (normalized < 1024 * 1024) return `${(normalized / 1024).toFixed(1)} KB`
   return `${(normalized / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function addSupportResourceEntry(kind) {
+  const normalizedKind = String(kind || '').trim().toLowerCase()
+  const sourceRef = normalizedKind === 'guidance' ? pendingGuidanceEntry : pendingUrlEntry
+  const nextValue = String(sourceRef.value || '').trim()
+  if (!nextValue) return
+
+  const nextEntry = {
+    id: `${normalizedKind}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+    value: nextValue,
+  }
+
+  if (normalizedKind === 'guidance') {
+    guidanceEntries.value = [...guidanceEntries.value, nextEntry]
+    pendingGuidanceEntry.value = ''
+  } else {
+    urlEntries.value = [...urlEntries.value, nextEntry]
+    pendingUrlEntry.value = ''
+  }
+
+  markDialogChanged()
+}
+
+function toggleSupportResourceSelection(kind, entryId, nextValue) {
+  const normalizedKind = String(kind || '').trim().toLowerCase()
+  const selectedRef = normalizedKind === 'guidance' ? selectedGuidanceEntryIds : selectedUrlEntryIds
+  const normalizedId = String(entryId || '').trim()
+  if (!normalizedId) return
+  if (nextValue) {
+    if (!selectedRef.value.includes(normalizedId)) {
+      selectedRef.value = [...selectedRef.value, normalizedId]
+    }
+    return
+  }
+  selectedRef.value = selectedRef.value.filter((id) => id !== normalizedId)
+}
+
+function removeSelectedSupportResourceEntries(kind) {
+  const normalizedKind = String(kind || '').trim().toLowerCase()
+  if (normalizedKind === 'guidance') {
+    const selected = new Set(selectedGuidanceEntryIds.value)
+    guidanceEntries.value = guidanceEntries.value.filter((entry) => !selected.has(entry.id))
+    selectedGuidanceEntryIds.value = []
+  } else {
+    const selected = new Set(selectedUrlEntryIds.value)
+    urlEntries.value = urlEntries.value.filter((entry) => !selected.has(entry.id))
+    selectedUrlEntryIds.value = []
+  }
+  markDialogChanged()
 }
 
 function startResize(event) {
@@ -1019,13 +1137,55 @@ onBeforeUnmount(() => {
   flex: 0 0 auto;
 }
 
-.create-record-shell__processing-input :deep(.q-field__control) {
-  min-height: 72px;
+.create-record-shell__processing-delete {
+  padding: 0;
+  color: rgba(17, 17, 17, 0.64);
+  background: transparent;
+  border: 0;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.create-record-shell__processing-delete:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.create-record-shell__processing-entry-input :deep(.q-field__control) {
+  min-height: 34px;
   border-radius: 6px;
 }
 
-.create-record-shell__processing-input :deep(textarea) {
-  min-height: 52px !important;
+.create-record-shell__processing-entry-list {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 0;
+  max-height: 124px;
+  overflow: auto;
+}
+
+.create-record-shell__processing-entry-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+}
+
+.create-record-shell__processing-entry-value {
+  min-width: 0;
+  color: #111111;
+  font-size: 0.74rem;
+  line-height: 1.28;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .create-record-shell__tabs {
