@@ -127,6 +127,28 @@ Current frontend direction:
 - `Knowledge DB` files should reuse the same shared file shell path used for the shell standardization work
 - once promoted into real file surfaces, they should not live on a separate placeholder page design
 
+## Shared File Shell
+
+The product should use one shared file shell source.
+
+Current implementation:
+
+- shared shell source: `src/components/FilePageShell.vue`
+- page files are thin wrappers
+- file routes still own their own `L1`
+
+That means:
+
+- `Users` should load `Users`
+- `Companies` should load `Companies`
+- `Markets` should load `Markets`
+- `Securities` should load `Securities`
+- `Ingestion` should load `Ingestion`
+
+Only the literal `Test Shell` should switch `L1` through the shell selector.
+
+Normal file pages should not inherit the last chosen shell source from `Test Shell`.
+
 ## Standard DB Settings
 
 New file-backed DBs should start with one standard baseline unless there is an explicit approved reason to diverge.
@@ -149,6 +171,22 @@ This is the default contract for new `Knowledge DB` files such as:
 - `Securities`
 - `Ingestion`
 - `Roles`
+
+## Owner Bootstrapping
+
+The local owner profile should become the first real `User`.
+
+Current product meaning:
+
+- owner settings should not live only in a separate profile surface
+- if owner identity exists, it should also appear in the `Users` file
+- the system should also ensure an `Owner` role record exists
+
+Current limit:
+
+- the product now has a real `Roles` DB
+- but there is not yet a true user-to-role relationship contract
+- so the system should not pretend that `User -> Owner Role` linkage is already modeled if it is not
 
 ## Product Description
 
@@ -273,6 +311,16 @@ Examples:
 - contact name, email, phone, LinkedIn -> first-order `Contacts`
 - artifact title, format, linked opportunity -> first-order `Artifacts`
 - task name, status, due date -> first-order `Tasks`
+
+For person records and profile inputs:
+
+- use `Given Names`
+- use `Last Names`
+
+Current implementation rule:
+
+- the UI captures split name inputs where they apply
+- the current DB still stores the existing combined name field underneath
 
 If a field belongs to a different canonical table, the UI should either:
 

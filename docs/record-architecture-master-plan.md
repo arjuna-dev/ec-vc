@@ -120,6 +120,30 @@ Working rule:
 - if the live payload field name differs, that token should declare `db_field_aliases`
 - the UI may read those aliases, but it should not infer them heuristically
 
+## Shared Shell Rule
+
+The `File` shell should have one shared source implementation.
+
+Current rule:
+
+- the shared file shell lives in `src/components/FilePageShell.vue`
+- file pages are thin route wrappers around that one shell source
+- if the shell changes, all file pages should change automatically
+
+This is different from route ownership.
+
+Route ownership should still stay explicit:
+
+- each file page owns its own route
+- each file page should load its own route-owned `L1`
+- only the literal `Test Shell` route should switch source from the shell selector
+
+Working rule:
+
+- shared shell behavior changes once
+- page wrappers stay thin
+- route-owned `L1` loading should not be overridden by the last selected `Test Shell` source
+
 ## Canonical Input Rules
 
 The shared create/edit record dialog should read field meaning from canonical structure, not from page-local UI logic.
@@ -372,6 +396,43 @@ Current frontend preparation rule:
 - new `Knowledge DB` files should reuse the same shared file shell path as `Test Shell`
 - frontend work may prepare canonical registry entries, routes, and navigation before runtime source wiring is complete
 - do not create a separate placeholder UI path once the intended final surface is the shared shell
+
+Current implementation rule:
+
+- `Markets`
+- `Securities`
+- `Ingestion`
+
+should each have their own page wrapper and route, but all three should still render through the one shared file shell source.
+
+## Owner Identity Rule
+
+The local owner profile should become the first real `User`.
+
+Current working rule:
+
+- owner settings are not just local decoration
+- owner identity should bootstrap into the `Users` table
+- the owner bootstrap should also ensure an `Owner` role exists in `Roles`
+
+Important current limit:
+
+- `Owner` can exist as a real role record
+- but there is not yet a dedicated user-to-role relationship contract in the current schema
+- do not fake that relationship in the shell until the structure exists
+
+## Name Input Rule
+
+Where the current product treats a person as a profile, user, or contact, the input surface should split the name into:
+
+- `Given Names`
+- `Last Names`
+
+Current implementation rule:
+
+- the UI captures split name inputs
+- the current DB still stores the combined full-name field underneath
+- the shell and direct forms should compose the stored full name from those two inputs instead of exposing one unsplit name box
 
 ## Current File Card Shell
 

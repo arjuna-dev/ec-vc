@@ -17,7 +17,8 @@ This tracker should stay aligned with:
 
 ## Front-Loaded
 
-- Finish the remaining `File View` shell pass by turning `Industries` and `Securities` into fully runtime-backed `Knowledge DB` file sources, not just frontend-prepared shared-shell surfaces
+- Keep the shared `FilePageShell` as the one shell source while each file route continues to own its own `L1`
+- Finish the remaining `Knowledge DB` runtime pass so `Markets`, `Securities`, and `Ingestion` all behave like normal file surfaces
 - Keep the canonical structure aligned with the active workbook and approved UI behavior
 - Normalize token names toward their final approved form during the same structure pass
 - Keep the canonical JSON structure shape stable enough for direct app ownership
@@ -41,7 +42,10 @@ This tracker should stay aligned with:
 - parent `L1`s with subtype branches now use an explicit route-choice step before create/add-record opens the shared dialog
 - `Knowledge DBs` is now being treated as a real subset inside `Files` for reusable reference entities such as `Stages`, `Financial Industries`, and `Round Securities`
 - `Ingestion` is now an approved secondary `Knowledge DB` direction for tracking original artifact links, processing events, and created-file lineage
-- `Industries` and `Securities` are now frontend-prepared as shared-shell file surfaces through canonical registry, routes, and nav, with runtime source wiring intentionally left as the next explicit step
+- the file pages now render through one shared shell source with thin page wrappers, instead of drifting as copied page implementations
+- only the literal `Test Shell` route should switch `L1` through the shell selector; normal file pages should resolve from their own route-owned `L1`
+- owner identity now bootstraps into the `Users` table so the local owner can appear as the first real `User`
+- split-name inputs are now being used where person/profile records are entered, while the current DB still stores the combined full-name field underneath
 - the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points
 - card shell slots are now explicit for `title`, `subtitle`, and `chips`, with `subtitle` = first selected extra field and `chips` = remaining selected extra fields
 - `Knowledge DBs` now behaves as a real left-nav sibling branch under `My Workspace`, and its parent/child rows have been pulled back onto the same styling path as the `Files` navigation family
@@ -103,13 +107,15 @@ This tracker should stay aligned with:
   - `File View` shell work exposed a remaining divergence: runtime create/manage support for new `Knowledge DB` files still needs real source wiring behind the now-prepared shared shell
 - as of April 4, 2026:
 - `Knowledge DBs` is now a dedicated left-nav branch below `Files`
-- `Industries` and `Securities` now reuse the shared shell routing path instead of a separate placeholder page surface
+- `Markets`, `Securities`, and `Ingestion` now sit on their own page routes while still rendering through the one shared file shell source
 - `Roles` now has its own dedicated DB direction instead of relying on the old assistant prompt table as the conceptual source of truth
 - the standard DB baseline is now explicit for new DB-backed file surfaces:
   - sqlite table
   - preload/main bridge
   - `System`, `KDB`, `General`
   - `Name`, `Summary`
+  - owner identity now bootstraps into `Users`, and an `Owner` role record is ensured during that flow
+  - person/profile inputs now use `Given Names` and `Last Names` on the UI side while saving back to the current combined-name field
   - the shared create/edit dialog now renders canonical date fields as date inputs
   - stale resolved bug notes were cleaned out of `bugs/`, leaving only the current `Knowledge DBs` nav follow-up notes
 - current shared goal:
