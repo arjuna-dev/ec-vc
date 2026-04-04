@@ -72,6 +72,19 @@ function formatLabel(value) {
     .join(' ')
 }
 
+function getSubsectionDisplayRank(subsection) {
+  const rawLabel = String(subsection?.rawLabel || subsection?.label || '').trim().toLowerCase()
+  if (rawLabel === 'kdb') return 998
+  if (rawLabel === 'system') return 999
+  return Number(subsection?.level_2 || 0)
+}
+
+function compareSubsectionDisplayOrder(a, b) {
+  const rankDifference = getSubsectionDisplayRank(a) - getSubsectionDisplayRank(b)
+  if (rankDifference !== 0) return rankDifference
+  return Number(a?.level_2 || 0) - Number(b?.level_2 || 0)
+}
+
 const canonicalEntitiesByName = Object.fromEntries((canonicalStructure?.entities || []).map((entity) => [entity.entity, entity]))
 
 function buildEntityRegistry(entityName) {
@@ -99,7 +112,7 @@ function buildEntityRegistry(entityName) {
         label: formatLabel(String(token?.token_name || '').trim().replace(`${meta.singularLabel}_`, '')),
       })),
     }))
-    .sort((a, b) => Number(a.level_2 || 0) - Number(b.level_2 || 0))
+    .sort(compareSubsectionDisplayOrder)
 
   return {
     ...meta,
