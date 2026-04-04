@@ -300,7 +300,7 @@ Current approved `Knowledge DB` file direction includes:
 - `Roles`
 - `Financial Industries`
 - `Round Securities`
-- `Artifacts Processed`
+- `Ingestion`
 
 Working rule:
 
@@ -313,9 +313,9 @@ Examples:
 - `Round_Security_Type` should read from `Round_Securities`
 - `Fund_Target_Stages` should read from `Stages`
 
-### Artifacts Processed Contract
+### Ingestion Contract
 
-`Artifacts Processed` should be treated as a secondary `Knowledge DB` that tracks artifact-processing provenance.
+`Ingestion` should be treated as a secondary `Knowledge DB` that tracks artifact-processing provenance.
 
 It exists to show:
 
@@ -334,20 +334,20 @@ Minimum contract:
 
 Working rule:
 
-- when an artifact is selected and sent into the `Ingestion Companion` processing lane, that is the point where the `Artifacts Processed` record should be created/tracked
-- one original artifact may have many `Artifacts Processed` records
-- one `Artifacts Processed` record may have many `Created Files`
+- when an artifact is selected and sent into the `Ingestion Companion` processing lane, that is the point where the `Ingestion` record should be created/tracked
+- one original artifact may have many `Ingestion` records
+- one `Ingestion` record may have many `Created Files`
 
 Relationship rule:
 
-- the original artifact should show related `Artifacts Processed`
+- the original artifact should show related `Ingestion`
 - the original artifact should also show related `Created Files`
 - the processed row should link back to the original artifact and forward to the created files
 
 This means provenance should be visible from either direction:
 
-- original artifact -> processed artifacts -> created files
-- created file -> processed artifact -> original artifact
+- original artifact -> ingestion -> created files
+- created file -> ingestion -> original artifact
 
 Current frontend preparation rule:
 

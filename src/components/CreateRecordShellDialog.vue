@@ -106,7 +106,7 @@
                   <div class="create-record-shell__processing-sections">
                     <section class="create-record-shell__processing-box">
                       <div class="create-record-shell__processing-box-head">
-                        <div class="create-record-shell__processing-box-title">Artifacts Processed</div>
+                        <div class="create-record-shell__processing-box-title">Ingestion</div>
                         <div class="create-record-shell__processing-panel-meta">
                           {{ processingArtifacts.length }} loading
                         </div>

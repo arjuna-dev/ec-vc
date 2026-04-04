@@ -599,7 +599,7 @@ const workspaceNavigationItems = [
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
   {
-    label: 'Artifacts Processed',
+    label: 'Ingestion',
     to: '/artifacts-processed',
     exact: true,
     icon: 'hub',
@@ -626,7 +626,7 @@ const routeLabelByName = {
   industries: 'Markets',
   notes: 'Notes',
   securities: 'Securities',
-  'artifacts-processed': 'Artifacts Processed',
+  'artifacts-processed': 'Ingestion',
   tasks: 'Tasks',
   'test-shell': 'Test Shell',
   assistants: 'Roles',

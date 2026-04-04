@@ -3061,7 +3061,7 @@
     {
       "level_1": "20",
       "entity": "Artifacts_Processed",
-      "entity_label": "Processed Artifact",
+      "entity_label": "Ingestion",
       "entity_address": "20.0.0",
       "structure_token": {
         "address": "20.0.0",

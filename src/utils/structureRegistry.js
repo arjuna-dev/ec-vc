@@ -61,8 +61,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   },
   Artifacts_Processed: {
     key: 'artifacts-processed',
-    label: 'Artifacts Processed',
-    singularLabel: 'Processed Artifact',
+    label: 'Ingestion',
+    singularLabel: 'Ingestion',
     routeName: 'artifacts-processed',
     path: '/artifacts-processed',
     icon: 'hub',
