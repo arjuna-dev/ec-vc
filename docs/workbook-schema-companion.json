@@ -1379,10 +1379,11 @@
               "level_3": "5",
               "address": "4.6.5",
               "token_name": "Company_Pax_Known",
-              "token_type": "select_multi",
+              "token_type": "number",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "4.6.0"
+              "parent_id": "4.6.0",
+              "input_source": "direct_input"
             },
             {
               "index": "",
@@ -2810,7 +2811,9 @@
               "token_type": "select_multi",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "5.4.0"
+              "parent_id": "5.4.0",
+              "option_source": "record_subset",
+              "subset_entity": "Financial_Industries"
             },
             {
               "index": "",
@@ -2820,7 +2823,9 @@
               "token_type": "select_multi",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "5.4.0"
+              "parent_id": "5.4.0",
+              "option_source": "live_entity",
+              "option_entity": "Stages"
             },
             {
               "index": "",
@@ -3237,7 +3242,9 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "6.4.0"
+              "parent_id": "6.4.0",
+              "option_source": "canonical_list",
+              "option_list": "Round_Security_Type_List"
             },
             {
               "index": "",
@@ -3718,7 +3725,13 @@
               "token_type": "select_multi",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "7.4.0"
+              "parent_id": "7.4.0",
+              "option_source": "record_subset",
+              "subset_entity": "Stages",
+              "subset_shape": [
+                "Milestone",
+                "Objective"
+              ]
             },
             {
               "index": "",
@@ -3728,7 +3741,11 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "7.4.0"
+              "parent_id": "7.4.0",
+              "input_source": "derived_subset",
+              "option_source": "record_subset",
+              "subset_entity": "Stages",
+              "derived_from_token": "Project_Stages"
             },
             {
               "index": "",
@@ -5805,6 +5822,16 @@
       {
         "label": "Back-burner",
         "value": "Back-burner"
+      }
+    ],
+    "Round_Security_Type_List": [
+      {
+        "label": "Common",
+        "value": "Common"
+      },
+      {
+        "label": "Preferred",
+        "value": "Preferred"
       }
     ]
   }

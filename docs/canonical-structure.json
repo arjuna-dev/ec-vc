@@ -755,7 +755,8 @@
             {
               "address": "4.6.5",
               "token_name": "Company_Pax_Known",
-              "token_type": "select_multi"
+              "token_type": "number",
+              "input_source": "direct_input"
             },
             {
               "address": "4.6.6",
@@ -1539,12 +1540,16 @@
             {
               "address": "5.4.14",
               "token_name": "Fund_Target_Industries",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "record_subset",
+              "subset_entity": "Financial_Industries"
             },
             {
               "address": "5.4.15",
               "token_name": "Fund_Target_Stages",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Stages"
             },
             {
               "address": "5.4.16",
@@ -1759,7 +1764,9 @@
             {
               "address": "6.4.3",
               "token_name": "Round_Security_Type",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Round_Security_Type_List"
             },
             {
               "address": "6.4.4",
@@ -2008,12 +2015,22 @@
             {
               "address": "7.4.2",
               "token_name": "Project_Stages",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "record_subset",
+              "subset_entity": "Stages",
+              "subset_shape": [
+                "Milestone",
+                "Objective"
+              ]
             },
             {
               "address": "7.4.3",
               "token_name": "Project_Current_Stage",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "input_source": "derived_subset",
+              "option_source": "record_subset",
+              "subset_entity": "Stages",
+              "derived_from_token": "Project_Stages"
             },
             {
               "address": "7.4.4",
@@ -3165,6 +3182,16 @@
       {
         "label": "Back-burner",
         "value": "Back-burner"
+      }
+    ],
+    "Round_Security_Type_List": [
+      {
+        "label": "Common",
+        "value": "Common"
+      },
+      {
+        "label": "Preferred",
+        "value": "Preferred"
       }
     ]
   }

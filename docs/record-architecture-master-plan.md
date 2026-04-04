@@ -144,6 +144,9 @@ Approved option-source families:
 - `record_subset`
   - structured record-owned subsets
   - example: `Contact_Employment`
+- `derived_subset`
+  - single values derived from an owned subset table
+  - example: `Project_Current_Stage` derives from `Project_Stages`
 - `direct_input`
   - user-entered value, not a dropdown
   - example: `Company_Round_Raised`
@@ -158,6 +161,22 @@ Working rule:
 - live pickers should point to their source entity explicitly
 - the shared dialog may render from canonical and live row sources
 - the page should not hardcode field meaning
+
+Current approved examples:
+
+- `Company_Pax_Known`
+  - direct user input
+- `Round_Security_Type`
+  - dedicated evolving security-type list
+  - current values: `Common`, `Preferred`
+- `Fund_Target_Industries`
+  - evolving subset table, not a hardcoded page list
+- `Fund_Target_Stages`
+  - sourced from `Stages`
+- `Project_Stages`
+  - project-owned subset table with stage details such as milestone and objective
+- `Project_Current_Stage`
+  - derived from the `Project_Stages` subset
 
 ## Canonical Structure Direction
 
