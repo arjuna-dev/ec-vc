@@ -1072,6 +1072,9 @@ onBeforeUnmount(() => {
 
 .create-record-shell__processing-box--compact {
   align-content: start;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 6px;
 }
 
 .create-record-shell__processing-box-head {
@@ -1170,11 +1173,11 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   min-height: 0;
-  padding: 0 2px;
+  padding: 0 4px;
   border: 1px solid rgba(17, 17, 17, 0.18);
-  border-radius: 2px;
+  border-radius: 1px;
   background: rgba(255, 255, 255, 0.96);
 }
 
@@ -1182,25 +1185,26 @@ onBeforeUnmount(() => {
   width: 100%;
   min-width: 0;
   padding: 0;
+  height: 12px;
   color: #111111;
   background: transparent;
   border: 0;
   outline: none;
   font-family: var(--font-body);
   font-size: 10px;
-  line-height: 1;
+  line-height: 12px;
 }
 
 .create-record-shell__processing-entry-hint {
   color: rgba(17, 17, 17, 0.5);
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1;
 }
 
 .create-record-shell__processing-entry-list {
   display: grid;
   align-content: start;
-  gap: 4px;
+  gap: 3px;
   min-height: 0;
   max-height: 124px;
   overflow: auto;
@@ -1210,19 +1214,19 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 6px;
-  min-height: 28px;
-  padding: 4px 7px;
+  gap: 5px;
+  min-height: 18px;
+  padding: 2px 5px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 .create-record-shell__processing-entry-value {
   min-width: 0;
   color: #111111;
-  font-size: 0.74rem;
-  line-height: 1.15;
+  font-size: 10px;
+  line-height: 1.1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
