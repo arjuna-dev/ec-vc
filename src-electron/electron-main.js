@@ -2197,6 +2197,12 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['title', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
+  Artifacts_Processed: {
+    tableName: 'Artifacts_Processed',
+    entityLabel: 'Processed Artifact',
+    displayColumns: ['Processed_Artifact_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
 })
 
 const DATABOOK_TABLE_ALIASES = Object.freeze({
@@ -2222,6 +2228,10 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   task: 'Tasks',
   notes: 'Notes',
   note: 'Notes',
+  'artifacts_processed': 'Artifacts_Processed',
+  'artifacts-processed': 'Artifacts_Processed',
+  'processed artifact': 'Artifacts_Processed',
+  'processed artifacts': 'Artifacts_Processed',
 })
 
 function getDatabookTableConfig(tableName) {
@@ -2741,6 +2751,91 @@ function listArtifacts() {
     ORDER BY a.created_at DESC
   `,
   )
+}
+
+function listProcessedArtifacts() {
+  return dbAll(
+    `
+    SELECT
+      id,
+      Processed_Artifact_Name,
+      Processed_Artifact_Summary,
+      Original_Artifact_Id,
+      Created_Files_JSON,
+      Working,
+      created_by,
+      created_at,
+      updated_at
+    FROM Artifacts_Processed
+    ORDER BY created_at DESC, id DESC
+  `,
+  )
+}
+
+function createProcessedArtifact(payload = {}) {
+  const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
+  const name =
+    normalizeNullableString(payload?.Processed_Artifact_Name) ||
+    normalizeNullableString(payload?.Name) ||
+    normalizeNullableString(payload?.title)
+
+  if (!name) throw new Error('Processed artifact name is required')
+
+  const id = normalizeNullableString(payload?.id) || `processed-artifact:${crypto.randomUUID()}`
+  const summary =
+    normalizeNullableString(payload?.Processed_Artifact_Summary) ||
+    normalizeNullableString(payload?.Summary) ||
+    normalizeNullableString(payload?.description)
+  const originalArtifactId =
+    normalizeNullableString(payload?.Original_Artifact_Id) ||
+    normalizeNullableString(payload?.original_artifact_id)
+  const createdFilesValue = Array.isArray(payload?.Created_Files)
+    ? JSON.stringify(payload.Created_Files)
+    : normalizeNullableString(payload?.Created_Files_JSON) || null
+  const workingValue =
+    payload?.Working === true || String(payload?.Working || '').trim() === '1' ? 1 : 0
+
+  database
+    .prepare(
+      `
+      INSERT INTO Artifacts_Processed (
+        id,
+        Processed_Artifact_Name,
+        Processed_Artifact_Summary,
+        Original_Artifact_Id,
+        Created_Files_JSON,
+        Working,
+        created_by,
+        created_at,
+        updated_at
+      ) VALUES (
+        @id,
+        @Processed_Artifact_Name,
+        @Processed_Artifact_Summary,
+        @Original_Artifact_Id,
+        @Created_Files_JSON,
+        @Working,
+        @created_by,
+        datetime('now'),
+        datetime('now')
+      )
+    `,
+    )
+    .run({
+      id,
+      Processed_Artifact_Name: name,
+      Processed_Artifact_Summary: summary,
+      Original_Artifact_Id: originalArtifactId,
+      Created_Files_JSON: createdFilesValue,
+      Working: workingValue,
+      created_by:
+        normalizeNullableString(payload?.Processed_Artifact_Creator) ||
+        normalizeNullableString(payload?.created_by) ||
+        actor.user_id,
+    })
+
+  return { id }
 }
 
 function isPathWithinRoot(rootPath, targetPath) {
@@ -5345,6 +5440,29 @@ function registerIpc() {
   ipcMain.handle('artifacts:list', async () => {
     initDb()
     return { artifacts: listArtifacts() }
+  })
+
+  ipcMain.handle('artifacts-processed:list', async () => {
+    initDb()
+    return { artifactsProcessed: listProcessedArtifacts() }
+  })
+
+  ipcMain.handle('artifacts-processed:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createProcessedArtifact(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'processed artifacts'))
+    }
+  })
+
+  ipcMain.handle('artifacts-processed:delete', async (_event, { processedArtifactId } = {}) => {
+    initDb()
+    const result = deleteRow('Artifacts_Processed', 'id', String(processedArtifactId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('artifacts:upsertMany', async (_event, { rows } = {}) => {

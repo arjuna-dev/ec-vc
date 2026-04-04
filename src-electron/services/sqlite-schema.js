@@ -1737,6 +1737,26 @@ CREATE TABLE IF NOT EXISTS Artifact_Links (
   FOREIGN KEY (to_artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS Artifacts_Processed (
+  id TEXT PRIMARY KEY,
+  Processed_Artifact_Name TEXT NOT NULL,
+  Processed_Artifact_Summary TEXT,
+  Original_Artifact_Id TEXT,
+  Created_Files_JSON TEXT,
+  Working INTEGER NOT NULL DEFAULT 0 CHECK (Working IN (0, 1)),
+  created_by TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (Original_Artifact_Id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Artifacts_Processed_original_artifact
+  ON Artifacts_Processed(Original_Artifact_Id);
+
+CREATE INDEX IF NOT EXISTS idx_Artifacts_Processed_created_by
+  ON Artifacts_Processed(created_by);
+
 -- Triggers (Omitted for brevity, but logically follow the same FK enforcement)
 `
 const TRIGGERS_SQL = `

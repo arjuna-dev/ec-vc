@@ -683,6 +683,11 @@ const SECTION_LOADERS = {
     resultKey: 'tasks',
     recordIdField: 'id',
   },
+  'artifacts-processed': {
+    listFn: (bridgeValue) => bridgeValue?.['artifacts-processed']?.list?.(),
+    resultKey: 'artifactsProcessed',
+    recordIdField: 'id',
+  },
 }
 
 const fallbackSectionKey =

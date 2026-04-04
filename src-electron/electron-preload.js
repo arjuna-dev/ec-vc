@@ -157,6 +157,12 @@ contextBridge.exposeInMainWorld('ecvc', {
       return () => ipcRenderer.removeListener('artifacts:ingest:status', handler)
     },
   },
+  'artifacts-processed': {
+    list: () => ipcRenderer.invoke('artifacts-processed:list'),
+    create: (payload) => ipcRenderer.invoke('artifacts-processed:create', payload),
+    delete: (processedArtifactId) =>
+      ipcRenderer.invoke('artifacts-processed:delete', { processedArtifactId }),
+  },
   db: {
     info: () => ipcRenderer.invoke('db:info'),
     query: (sql, params) => ipcRenderer.invoke('db:query', { sql, params }),
