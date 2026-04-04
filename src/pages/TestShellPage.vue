@@ -1486,12 +1486,14 @@ function notifyShellAction(label) {
   top: 0;
   z-index: 2;
   color: rgba(17, 17, 17, 0.68);
-  background: #f8f6f0;
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: var(--font-weight-medium);
+  padding-top: 8px;
+  padding-bottom: 8px;
+  background: #ece9e2;
+  font-family: var(--font-title);
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-black);
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  line-height: 0.96;
 }
 
 .test-shell-table__head--name,
@@ -1505,7 +1507,7 @@ function notifyShellAction(label) {
 
 .test-shell-table__head--name {
   z-index: 4;
-  background: #f3f1ea;
+  background: #e7e3db;
 }
 
 .test-shell-table__cell {
