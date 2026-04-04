@@ -7,6 +7,7 @@
       <q-card-section class="create-record-shell__header">
         <div class="create-record-shell__header-copy">
           <div class="create-record-shell__intake-lane">
+            <div class="create-record-shell__intake-title">Ingestion Companion</div>
             <div
               class="create-record-shell__artifact-drop"
               :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
@@ -526,6 +527,14 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 12px;
   width: 100%;
+}
+
+.create-record-shell__intake-title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.92rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
 }
 
 .create-record-shell__artifact-drop {
