@@ -17,19 +17,30 @@
         </div>
 
         <div v-if="isTestShellRoute" class="ec-shell-toolbar-center">
-          <q-select
-            v-model="selectedTestShellSection"
-            dense
-            standout="bg-black text-white"
-            dark
-            options-dark
-            emit-value
-            map-options
-            :options="testShellSectionOptions"
-            label="Live L1 Source"
-            popup-content-class="ec-shell-test-select-menu"
-            class="ec-shell-test-select"
-          />
+          <div class="ec-shell-test-select-wrap">
+            <q-select
+              v-model="selectedTestShellSection"
+              dense
+              dark
+              options-dark
+              borderless
+              hide-bottom-space
+              emit-value
+              map-options
+              hide-dropdown-icon
+              :options="testShellSectionOptions"
+              popup-content-class="ec-shell-test-select-menu"
+              class="ec-shell-test-select"
+            >
+              <template #selected-item="scope">
+                <span class="ec-shell-test-select__value">{{ scope.opt.label }}</span>
+              </template>
+            </q-select>
+            <q-icon name="expand_more" class="ec-shell-test-select__chevron" />
+            <q-tooltip anchor="bottom middle" self="top middle" class="ec-shell-test-select__tooltip">
+              Live L2 Source
+            </q-tooltip>
+          </div>
         </div>
 
         <q-toolbar-title class="ec-shell-toolbar-title">
@@ -1888,21 +1899,60 @@ function goBack() {
 
 .ec-shell-test-select {
   width: min(220px, 100%);
-  min-width: 180px;
+  min-width: 0;
 }
 
 .ec-shell-test-select :deep(.q-field__control) {
-  background: #000;
-  border-radius: 14px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  min-height: 40px;
+  padding: 0 12px;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+  transition:
+    background-color 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
-.ec-shell-test-select :deep(.q-field__label),
 .ec-shell-test-select :deep(.q-field__native),
-.ec-shell-test-select :deep(.q-field__append),
-.ec-shell-test-select :deep(.q-icon),
 .ec-shell-test-select :deep(.q-field__marginal) {
   color: #fff !important;
+}
+
+.ec-shell-test-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ec-shell-test-select-wrap:hover .ec-shell-test-select :deep(.q-field__control),
+.ec-shell-test-select-wrap:focus-within .ec-shell-test-select :deep(.q-field__control) {
+  background: #000;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    0 0 0 1px rgba(255, 255, 255, 0.82);
+}
+
+.ec-shell-test-select__value {
+  color: #fff;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+}
+
+.ec-shell-test-select__chevron {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 18px;
+}
+
+.ec-shell-test-select__tooltip {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  letter-spacing: 0.01em;
 }
 
 .ec-breadcrumb-bar {
