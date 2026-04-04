@@ -36,6 +36,16 @@
               <template #selected-item="scope">
                 <span class="ec-shell-test-select__value">{{ scope.opt.label }}</span>
               </template>
+              <template #option="scope">
+                <q-item
+                  v-bind="scope.itemProps"
+                  class="ec-shell-test-select-menu__item"
+                >
+                  <q-item-section>
+                    <span class="ec-shell-test-select-menu__value">{{ scope.opt.label }}</span>
+                  </q-item-section>
+                </q-item>
+              </template>
             </q-select>
             <q-icon
               name="expand_more"
@@ -1977,6 +1987,7 @@ function goBack() {
   border-radius: 6px;
 }
 
+.ec-shell-test-select-menu__item,
 .ec-shell-test-select-menu :deep(.q-item) {
   min-height: 34px;
   padding: 4px 6px;
@@ -1984,7 +1995,7 @@ function goBack() {
   background: transparent;
 }
 
-.ec-shell-test-select-menu :deep(.q-item__label) {
+.ec-shell-test-select-menu__value {
   display: inline-flex;
   align-items: center;
   min-height: 26px;
@@ -1999,11 +2010,15 @@ function goBack() {
   letter-spacing: -0.03em;
 }
 
+.ec-shell-test-select-menu__item.q-manual-focusable--focused,
+.ec-shell-test-select-menu__item.q-item--active,
 .ec-shell-test-select-menu :deep(.q-item.q-manual-focusable--focused),
 .ec-shell-test-select-menu :deep(.q-item--active) {
   background: transparent;
 }
 
+.ec-shell-test-select-menu__item.q-manual-focusable--focused .ec-shell-test-select-menu__value,
+.ec-shell-test-select-menu__item.q-item--active .ec-shell-test-select-menu__value,
 .ec-shell-test-select-menu :deep(.q-item.q-manual-focusable--focused .q-item__label),
 .ec-shell-test-select-menu :deep(.q-item--active .q-item__label) {
   background: #000000;
