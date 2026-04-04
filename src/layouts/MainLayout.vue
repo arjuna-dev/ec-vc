@@ -567,7 +567,7 @@ const workspaceNavigationItems = [
     exact: true,
     icon: 'category',
     parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-kdb-leaf',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
     iconSize: '22px',
   },
   {
@@ -576,7 +576,7 @@ const workspaceNavigationItems = [
     exact: true,
     icon: 'shield',
     parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-kdb-leaf',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
     iconSize: '22px',
   },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
@@ -663,7 +663,7 @@ const drawerNavigationSections = computed(() => [
       {
         kind: 'toggle',
         label: 'Knowledge DBs',
-        itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle ec-nav-item--workspace-kdb-toggle',
+        itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
         icon: 'database',
         iconSize: '22px',
         toggleKey: 'knowledge-dbs',
@@ -2056,10 +2056,6 @@ function goBack() {
   transform: translateY(-1px);
 }
 
-.ec-nav-item--workspace-kdb-toggle :deep(.q-item__section--avatar .q-icon) {
-  transform: none;
-}
-
 .ec-nav-branch {
   display: flex;
   flex-direction: column;
@@ -2134,17 +2130,6 @@ function goBack() {
 .ec-nav-item--workspace-child :deep(.q-item__section) {
   padding-top: 1px;
   padding-bottom: 1px;
-}
-
-.ec-nav-item--workspace-kdb-leaf {
-  margin-left: 0;
-  min-height: 24px;
-  padding-left: 56px;
-}
-
-.ec-nav-item--workspace-kdb-leaf :deep(.q-item__section) {
-  padding-top: 0;
-  padding-bottom: 0;
 }
 
 .ec-quick-widget {
