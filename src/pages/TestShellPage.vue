@@ -160,50 +160,58 @@
                       </div>
 
                       <div class="test-shell-card-settings-panel__list">
-                        <div
-                          v-for="token in availableCardItemTokens"
-                          :key="token.key"
-                          class="test-shell-card-settings-row"
+                        <section
+                          v-for="group in cardItemTokenGroups"
+                          :key="group.key"
+                          class="test-shell-card-settings-group"
                         >
-                          <q-checkbox
-                            :model-value="isCardItemEnabled(token.key)"
-                            dense
-                            size="xs"
-                            checked-icon="check_box"
-                            unchecked-icon="check_box_outline_blank"
-                            class="test-shell-card-settings-row__checkbox"
-                            @update:model-value="setCardItemEnabled(token.key, $event)"
-                          />
+                          <div class="test-shell-card-settings-group__title">{{ group.label }}</div>
 
-                          <div class="test-shell-card-settings-row__copy">
-                            <div class="test-shell-card-settings-row__label">{{ token.label }}</div>
-                          </div>
+                          <div
+                            v-for="token in group.tokens"
+                            :key="token.key"
+                            class="test-shell-card-settings-row"
+                          >
+                            <q-checkbox
+                              :model-value="isCardItemEnabled(token.key)"
+                              dense
+                              size="xs"
+                              checked-icon="check_box"
+                              unchecked-icon="check_box_outline_blank"
+                              class="test-shell-card-settings-row__checkbox"
+                              @update:model-value="setCardItemEnabled(token.key, $event)"
+                            />
 
-                          <div class="test-shell-card-settings-row__actions">
-                            <q-btn
-                              flat
-                              dense
-                              round
-                              :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) <= 0"
-                              @click.stop="moveCardItem(token.key, -1)"
-                            >
-                              <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
-                                <path d="M7 14L12 9L17 14" />
-                              </svg>
-                            </q-btn>
-                            <q-btn
-                              flat
-                              dense
-                              round
-                              :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) < 0 || getCardItemOrderIndex(token.key) >= enabledCardItemKeys.length - 1"
-                              @click.stop="moveCardItem(token.key, 1)"
-                            >
-                              <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
-                                <path d="M7 10L12 15L17 10" />
-                              </svg>
-                            </q-btn>
+                            <div class="test-shell-card-settings-row__copy">
+                              <div class="test-shell-card-settings-row__label">{{ token.label }}</div>
+                            </div>
+
+                            <div class="test-shell-card-settings-row__actions">
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) <= 0"
+                                @click.stop="moveCardItem(token.key, -1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
+                                  <path d="M7 14L12 9L17 14" />
+                                </svg>
+                              </q-btn>
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) < 0 || getCardItemOrderIndex(token.key) >= enabledCardItemKeys.length - 1"
+                                @click.stop="moveCardItem(token.key, 1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
+                                  <path d="M7 10L12 15L17 10" />
+                                </svg>
+                              </q-btn>
+                            </div>
                           </div>
-                        </div>
+                        </section>
                       </div>
                     </div>
                   </q-menu>
@@ -588,6 +596,15 @@ const enabledCardItemKeys = computed(() => {
   const allowedKeys = new Set(availableCardItemTokens.value.map((token) => token.key))
   return configured.filter((key) => allowedKeys.has(key))
 })
+const cardItemTokenGroups = computed(() =>
+  level2Sections.value
+    .map((section) => ({
+      key: section.key,
+      label: section.label,
+      tokens: availableCardItemTokens.value.filter((token) => token.parentKey === section.key),
+    }))
+    .filter((group) => group.tokens.length),
+)
 const tableSectionTokens = computed(() =>
   activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
 )
@@ -1388,8 +1405,21 @@ function notifyShellAction(label) {
 
 .test-shell-card-settings-panel__list {
   display: grid;
-  gap: 4px;
+  gap: 10px;
   margin-top: 10px;
+}
+
+.test-shell-card-settings-group {
+  display: grid;
+  gap: 4px;
+}
+
+.test-shell-card-settings-group__title {
+  color: rgba(17, 17, 17, 0.62);
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.95;
 }
 
 .test-shell-card-settings-row {
