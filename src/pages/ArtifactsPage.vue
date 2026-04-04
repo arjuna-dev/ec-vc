@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-md test-shell-page">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
         Artifacts requires Electron. Run <code>quasar dev -m electron</code> or
@@ -7,4284 +7,2611 @@
       </q-banner>
     </div>
 
-    <div v-else-if="!hasBridge" class="q-pa-md">
+    <div v-else-if="!hasSupportedBridge" class="q-pa-md">
       <q-banner class="bg-red-2 text-black" rounded>
-        Electron detected, but the preload bridge is missing (<code>window.ecvc</code> not
-        available).
+        Electron detected, but this section does not expose a supported list bridge yet.
       </q-banner>
     </div>
 
-    <div v-else class="artifacts-page">
-      <section class="artifacts-shell">
-        <div
-          class="artifacts-shell__hero"
-          @pointerenter="onHeroDashboardPointerEnter"
-          @pointermove="onHeroDashboardPointerMove"
-          @pointerleave="onHeroDashboardPointerLeave"
-        >
-          <div class="artifacts-shell__copy">
-            <div class="artifacts-shell__eyebrow">Dashboard</div>
-            <h2 class="artifacts-shell__hero-title">Review source files, links, and intake state in one place.</h2>
-            <p class="artifacts-shell__hero-text">{{ artifactsHeroText }}</p>
-
-          </div>
-
-          <div class="artifacts-dashboard">
-            <div class="artifacts-dashboard__stats">
-              <article
-                v-for="stat in artifactsDashboardStats"
-                :key="stat.label"
-                class="artifacts-dashboard__stat"
-                :class="`artifacts-dashboard__stat--${stat.tone}`"
-              >
-                <div class="artifacts-dashboard__stat-label">{{ stat.label }}</div>
-                <div class="artifacts-dashboard__stat-value">{{ stat.value }}</div>
-                <div class="artifacts-dashboard__stat-caption">{{ stat.caption }}</div>
-              </article>
-            </div>
-
-            <div class="artifacts-dashboard__health">
-              <div class="artifacts-dashboard__health-copy">
-                <div class="artifacts-dashboard__health-label">Review health</div>
-                <div class="artifacts-dashboard__health-text">
-                  {{ artifactsDashboard.readyCount }} ready, {{ artifactsDashboard.attentionCount }} need review,
-                  {{ artifactsDashboard.linkedCount }} already linked
-                </div>
-              </div>
-
-              <div class="artifacts-dashboard__health-bar" aria-hidden="true">
-                <span
-                  class="artifacts-dashboard__health-segment artifacts-dashboard__health-segment--sparse"
-                  :style="{ width: `${artifactsDashboard.attentionShare}%` }"
-                />
-                <span
-                  class="artifacts-dashboard__health-segment artifacts-dashboard__health-segment--medium"
-                  :style="{ width: `${artifactsDashboard.linkedShare}%` }"
-                />
-                <span
-                  class="artifacts-dashboard__health-segment artifacts-dashboard__health-segment--rich"
-                  :style="{ width: `${artifactsDashboard.readyShare}%` }"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="artifacts-toolbar">
-          <div class="artifacts-toolbar__block artifacts-toolbar__block--primary">
-            <q-checkbox
-              :model-value="allVisibleArtifactsSelected"
-              :indeterminate="someVisibleArtifactsSelected && !allVisibleArtifactsSelected"
-              :disable="loading || displayArtifactRows.length === 0"
-              color="dark"
-              class="artifacts-toolbar__select-all"
-              @update:model-value="toggleSelectAllVisibleArtifacts"
-            />
-            <q-btn
-              no-caps
-              unelevated
-              class="artifacts-toolbar__add-button"
-              :disable="loading"
-              @click="openCreateArtifact"
-            >
-              <span class="artifacts-toolbar__add-button-inner">
-                <span class="artifacts-toolbar__add-button-plus">
-                  <q-icon name="add" />
-                </span>
-                <span class="artifacts-toolbar__add-button-label">Add Record</span>
-              </span>
-            </q-btn>
-            <q-btn dense flat round icon="download" color="grey-6" class="artifacts-toolbar__icon-button" :disable="loading" @click="csvActionsRef?.pickFile?.()">
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-          </div>
-
-          <div class="artifacts-toolbar__block artifacts-toolbar__block--actions">
-            <q-icon name="tune" size="18px" class="artifacts-toolbar__filters-icon" />
-            <q-input
-              v-model="searchQuery"
-              dense
-              outlined
-              borderless
-              class="artifacts-toolbar__search"
-              placeholder="Search artifacts..."
-              :disable="loading"
-            >
-              <template #prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn-toggle
-              v-model="viewMode"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="artifacts-toolbar__toggle artifacts-toolbar__view-toggle"
-              :options="viewModeOptions"
-            />
-          </div>
-        </div>
-
-        <q-banner
-          v-if="resumeIntakeDraft"
-          class="artifacts-resume-banner bg-blue-1 text-blue-10"
-          rounded
-        >
-          <div class="row items-center justify-between q-col-gutter-md">
-            <div class="col">
-              <div class="text-subtitle2">Resume artifact processing</div>
-              <div class="text-caption">
-                {{ resumeIntakeBannerText }}
-              </div>
-            </div>
-            <div class="col-auto">
-              <q-btn
-                color="primary"
-                no-caps
-                label="Return to Processing"
-                @click="resumeArtifactProcessing"
-              />
-            </div>
-          </div>
-        </q-banner>
-
-        <q-banner v-if="error" class="bg-red-2 text-black" rounded>
-          {{ error }}
-        </q-banner>
-
-        <q-banner v-if="!loading && displayArtifactRows.length === 0" class="artifacts-empty-state bg-grey-2 text-black" rounded>
-          <div class="row items-center justify-between">
-            <div>No artifacts created yet.</div>
-          </div>
-        </q-banner>
-
-        <div v-else-if="viewMode === 'grid'" class="row q-col-gutter-md artifacts-grid">
-        <div
-          v-for="group in displayArtifactGroups"
-          :key="group.groupId"
-          class="col-12 col-sm-6 col-lg-4"
-        >
-        <q-card
-          flat
-          bordered
-          class="artifact-card full-height"
-          :style="getArtifactCardStyle()"
-          @pointerenter="onArtifactCardPointerEnter"
-          @pointermove="onArtifactCardPointerMove"
-          @pointerleave="onArtifactCardPointerLeave"
-        >
-          <q-card-section class="artifact-card__control-row">
-            <q-checkbox
-              :model-value="isSelected(group.primaryArtifact)"
-              :disable="loading || savingProperties"
-              color="dark"
-              class="artifact-card__select-box"
-              @update:model-value="toggleRowSelection(group.primaryArtifact, $event)"
-            />
-            <q-btn
-              flat
-              round
-              icon="visibility"
-              class="artifact-card__control-eye"
-              :disable="loading"
-              @click="openRecordView(group.primaryArtifact)"
-            />
-          </q-card-section>
-          <q-card-section class="artifact-card__hero">
-            <div class="artifact-card__hero-main">
-              <figure class="artifact-card__portrait">
-                <div class="artifact-card__portrait-shell" aria-hidden="true">
-                  <div
-                    class="artifact-card__portrait-badge"
-                    :style="{ backgroundColor: getArtifactAvatarColor(group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Artifact') }"
-                  >
-                    {{ getArtifactAvatarInitial(group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Artifact') }}
-                  </div>
-                </div>
-              </figure>
-
-              <div class="artifact-card__hero-side">
-                <div class="artifact-card__hero-copy">
-                  <div class="artifact-card__title">
-                    {{ group.primaryArtifact.title || artifactFileName(group.primaryArtifact) || 'Untitled artifact' }}
-                  </div>
-
-                  <div class="artifact-card__bottom-stack">
-                    <div v-if="getArtifactCardDetails(group).length" class="artifact-card__detail-stack">
-                      <div
-                        v-for="detail in getArtifactCardDetails(group)"
-                        :key="detail.label"
-                        class="artifact-card__detail-row"
-                      >
-                        <button type="button" class="artifact-card__inline-chip">
-                          <q-icon :name="detail.icon" size="14px" />
-                          <span>{{ detail.value }}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-
-          <q-card-section class="artifact-card__summary">
-            <div class="artifact-card__summary-head">
-              <q-btn-toggle
-                :model-value="getArtifactCardPanel(group)"
-                dense
-                unelevated
-                toggle-color="dark"
-                color="white"
-                text-color="grey-8"
-                class="artifact-card__summary-toggle"
-                :options="getArtifactRelationshipOptions(group)"
-                @update:model-value="setArtifactCardPanel(group, $event)"
-              />
-              <q-btn-toggle
-                :model-value="getArtifactCardContentView(group)"
-                dense
-                unelevated
-                toggle-color="primary"
-                color="grey-3"
-                text-color="grey-8"
-                class="artifact-card__summary-view-toggle"
-                :options="artifactCardContentViewOptions"
-                @update:model-value="setArtifactCardContentView(group, $event)"
-              />
-            </div>
-
-            <div class="artifact-card__summary-panel">
-              <div class="artifact-card__summary-panel-head">
-                <q-btn flat no-caps class="artifact-card__summary-add-relation" aria-label="Add Relation">
-                  <span class="artifact-card__summary-add-relation-plus">
-                    <q-icon name="add" />
-                  </span>
-                  <span class="artifact-card__summary-add-relation-label">Add Relation</span>
-                </q-btn>
-              </div>
-              <div class="artifact-card__summary-body">
-                <div class="artifact-card__summary-body-content">
-                  <div
-                    v-if="getArtifactActiveRelationshipItems(group).length"
-                    :class="[
-                      'artifact-card__notes-list',
-                      { 'artifact-card__notes-list--rows': getArtifactCardContentView(group) === 'table' },
-                    ]"
-                  >
-                    <div
-                      v-for="item in getArtifactActiveRelationshipItems(group)"
-                      :key="item"
-                      class="artifact-card__note-pill"
-                    >
-                      {{ item }}
-                    </div>
-                  </div>
-
-                  <div v-else class="artifact-card__summary-empty">
-                    No linked KDB relationships yet.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-        </div>
-        </div>
-
-        <q-table
-          v-else
-          class="artifacts-table"
-          flat
-          bordered
-          row-key="artifact_id"
-          v-model:selected="selectedRows"
-          selection="multiple"
-          :rows="displayArtifactRows"
-          :columns="columns"
-          :loading="loading"
-          :pagination="{ rowsPerPage: 15 }"
-        >
-        <template #body-cell-opportunity_id="props">
-          <q-td :props="props">
-            <div class="column">
-              <div>{{ resolveOpportunityLabel(props.row) }}</div>
-              <div class="text-caption text-grey-6">{{ props.row.opportunity_id || 'Unlinked' }}</div>
-            </div>
-          </q-td>
-        </template>
-
-        <template #body-cell-actions="props">
-          <q-td :props="props">
-            <q-btn
-              dense
-              flat
-              round
-              icon="visibility"
-              color="primary"
-              :disable="loading"
-              @click="openRecordView(props.row)"
-            />
-            <q-btn
-              dense
-              flat
-              round
-              icon="tune"
-              color="primary"
-              :disable="loading || savingProperties"
-              @click="void openPropertiesDialog(props.row)"
-            />
-            <q-btn
-              dense
-              flat
-              round
-              icon="delete"
-              color="negative"
-              :disable="loading"
-              @click="confirmDelete(props.row)"
-            />
-          </q-td>
-        </template>
-        </q-table>
-
-        <div style="display: none">
-          <TableCsvActions
-            ref="csvActionsRef"
-            filename-base="artifacts"
-            :headers="csvHeaders"
-            :rows="displayArtifactRows"
-            :on-import-rows="importRows"
-          />
-        </div>
-      </section>
-
-      <SelectionActionBar
-        :count="selectedCount"
-        :loading="loading"
-        @share="shareSelected"
-        @edit="editSelected"
-        @delete="confirmDeleteSelected"
+    <div v-else class="test-shell-body">
+      <FilePageHeroDashboard
+        eyebrow="Artifacts"
+        :title="heroTitle"
+        :text="heroText"
+        :stats="heroStats"
+        health-label="Contract health"
+        :health-text="healthText"
+        :health-segments="healthSegments"
       />
 
-      <q-dialog v-model="propertiesDialogOpen" persistent>
-        <q-card style="width: 720px; max-width: 96vw">
-          <q-card-section class="row items-start justify-between q-col-gutter-md">
-            <div class="col">
-              <div class="text-h6">Artifact Properties</div>
-              <div class="text-caption text-grey-7">
-                Review this artifact and manually adjust its linked opportunity when needed.
-              </div>
-            </div>
-            <div class="col-auto text-caption text-grey-6">
-              {{ artifactDisplayName(propertiesForm) || 'Artifact' }}
-            </div>
-          </q-card-section>
+      <FilePageToolbar
+        :all-visible-selected="allVisibleSelected"
+        :some-visible-selected="someVisibleSelected"
+        :disabled="false"
+        :loading="loading"
+        :search-query="searchQuery"
+        :search-placeholder="searchPlaceholder"
+        :view-mode="viewMode"
+        :view-options="viewOptions"
+        :show-view-toggle="true"
+        @toggle-select-all="toggleSelectAllVisible"
+        @add="openCreateRecordShell"
+        @update:search-query="searchQuery = $event"
+        @update:view-mode="viewMode = $event"
+      >
+        <template #filters>
+          <q-btn flat round dense class="test-shell-filters-trigger" icon="filter_list" aria-label="File shell filters">
+            <q-menu
+              anchor="top left"
+              self="top right"
+              class="test-shell-filters-menu"
+              content-class="test-shell-filters-menu__content"
+            >
+              <div class="test-shell-filters-panel">
+                <div class="test-shell-filters-panel__title">File Filter</div>
 
-          <q-card-section class="q-pt-none">
-            <q-banner v-if="propertiesError" class="bg-red-2 text-black q-mb-md" rounded>
-              {{ propertiesError }}
-            </q-banner>
-
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-8">
-                <q-input
-                  v-model="propertiesForm.title"
-                  outlined
-                  dense
-                  label="Title"
-                />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input
-                  :model-value="String(propertiesForm.artifact_type || '')"
-                  outlined
-                  dense
-                  label="Artifact Type"
-                  readonly
-                />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-select
-                  v-model="propertiesForm.opportunity_id"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                  clearable
-                  :options="opportunityOptions"
-                  label="Linked Opportunity"
-                  option-label="label"
-                  option-value="value"
-                  use-input
-                  input-debounce="0"
-                  @filter="filterOpportunityOptions"
-                />
-              </div>
-              <div class="col-12 col-md-3">
-                <q-input
-                  v-model="propertiesForm.artifact_format"
-                  outlined
-                  dense
-                  label="Format"
-                />
-              </div>
-              <div class="col-12 col-md-3">
-                <div class="text-caption text-grey-7 q-mb-xs">Versions</div>
-                <div class="artifact-properties__versions">
-                  <q-chip
-                    v-for="artifactType in propertiesForm.group_artifact_types"
-                    :key="artifactType"
-                    dense
-                    square
-                    color="grey-2"
-                    text-color="grey-8"
+                <div class="test-shell-filters-panel__rows">
+                  <div
+                    v-for="section in multiTokenFilterSections"
+                    :key="section.key"
+                    class="test-shell-filter-group"
                   >
-                    {{ artifactType }}
-                  </q-chip>
-                  <span v-if="propertiesForm.group_artifact_types.length === 0" class="text-caption text-grey-6">
-                    Artifact
-                  </span>
-                </div>
-              </div>
-              <div class="col-12">
-                <q-input
-                  v-model="propertiesForm.description"
-                  outlined
-                  type="textarea"
-                  autogrow
-                  label="Description"
-                />
-              </div>
-              <div class="col-12">
-                <div class="text-subtitle2 q-mb-sm">Relationships</div>
-              </div>
-              <div class="col-12 col-md-8">
-                <q-select
-                  v-model="propertiesForm.related_company_ids"
-                  outlined
-                  dense
-                  multiple
-                  emit-value
-                  map-options
-                  use-input
-                  use-chips
-                  input-debounce="0"
-                  :options="companyOptions"
-                  label="Related Companies"
-                  option-label="label"
-                  option-value="value"
-                  @filter="(value, update) => filterSelectableOptions(value, update, 'company')"
-                />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-select
-                  v-model="propertiesForm.company_document_type"
-                  outlined
-                  dense
-                  clearable
-                  :disable="propertiesForm.related_company_ids.length === 0"
-                  :options="companyDocumentTypeOptions"
-                  label="Company Document Type"
-                />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-select
-                  v-model="propertiesForm.related_industry_ids"
-                  outlined
-                  dense
-                  multiple
-                  emit-value
-                  map-options
-                  use-input
-                  use-chips
-                  input-debounce="0"
-                  :options="industryOptions"
-                  label="Related Industries"
-                  option-label="label"
-                  option-value="value"
-                  @filter="(value, update) => filterSelectableOptions(value, update, 'industry')"
-                />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-select
-                  v-model="propertiesForm.related_region_ids"
-                  outlined
-                  dense
-                  multiple
-                  emit-value
-                  map-options
-                  use-input
-                  use-chips
-                  input-debounce="0"
-                  :options="regionOptions"
-                  label="Related Regions"
-                  option-label="label"
-                  option-value="value"
-                  @filter="(value, update) => filterSelectableOptions(value, update, 'region')"
-                />
-              </div>
-              <div class="col-12 col-md-6">
-                <q-input
-                  :model-value="String(propertiesForm.fs_path || '')"
-                  outlined
-                  dense
-                  label="File Path"
-                  readonly
-                >
-                  <template #append>
-                    <q-btn
-                      flat
-                      dense
-                      round
-                      icon="visibility"
-                      :disable="!propertiesForm.artifact_id"
-                      @click="void openArtifactForReview({ artifact_id: propertiesForm.artifact_id, fs_path: propertiesForm.fs_path, title: propertiesForm.title })"
-                    />
-                  </template>
-                </q-input>
-              </div>
-              <div class="col-12 col-md-3">
-                <q-input
-                  :model-value="String(propertiesForm.original_artifact_id || '')"
-                  outlined
-                  dense
-                  label="Original Artifact"
-                  readonly
-                />
-              </div>
-              <div class="col-12 col-md-3">
-                <q-input
-                  :model-value="String(propertiesForm.created_at || '')"
-                  outlined
-                  dense
-                  label="Created"
-                  readonly
-                />
-              </div>
-            </div>
-          </q-card-section>
-
-          <q-card-actions align="right">
-            <q-btn flat label="Close" :disable="savingProperties" @click="closePropertiesDialog" />
-            <q-btn
-              color="primary"
-              unelevated
-              label="Save Properties"
-              :loading="savingProperties"
-              @click="saveArtifactProperties"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-
-      <q-dialog v-model="previewDialogOpen" full-width @hide="closePreviewDialog">
-        <q-card class="artifact-preview-dialog">
-          <q-card-section class="row items-center justify-between q-col-gutter-md">
-            <div class="col">
-              <div class="text-h6">{{ previewState.fileName || 'Artifact review' }}</div>
-              <div class="text-caption text-grey-7">
-                {{ previewLoading ? 'Loading review...' : previewKindLabel }}
-              </div>
-            </div>
-            <div class="col-auto">
-              <q-btn
-                flat
-                dense
-                no-caps
-                icon="right_panel_open"
-                :label="previewSidebarOpen ? 'Hide Markdown' : 'Show Markdown'"
-                @click="togglePreviewSidebar"
-              />
-              <q-btn flat round dense icon="close" @click="closePreviewDialog" />
-            </div>
-          </q-card-section>
-
-          <q-separator />
-
-          <q-card-section class="artifact-preview-dialog__body">
-            <div class="artifact-preview-dialog__workspace">
-              <div class="artifact-preview-dialog__top">
-            <div class="artifact-preview-dialog__main">
-              <div v-if="previewLoading" class="artifact-preview-dialog__state">
-                <q-spinner color="primary" size="40px" />
-                <div class="text-subtitle2 q-mt-md">Loading artifact review</div>
-              </div>
-
-              <iframe
-                v-else-if="previewState.kind === 'pdf' && previewPdfSrc"
-                :key="previewPdfSrc"
-                :src="previewPdfSrc"
-                class="artifact-preview-dialog__frame"
-                title="Artifact PDF preview"
-              />
-
-              <img
-                v-else-if="previewState.kind === 'image' && previewState.fileUrl"
-                :src="previewState.fileUrl"
-                :alt="previewState.fileName || 'Artifact preview'"
-                class="artifact-preview-dialog__image"
-              />
-
-              <pre
-                v-else-if="previewState.kind === 'text'"
-                class="artifact-preview-dialog__text"
-              ><code>{{ previewState.content || '' }}</code></pre>
-
-              <div v-else class="artifact-preview-dialog__state">
-                <q-icon name="description" size="40px" color="grey-5" />
-                <div class="text-subtitle2 q-mt-md">Preview not available</div>
-                <div class="text-caption text-grey-7 q-mt-sm">
-                  Try Download if this artifact format does not support inline preview yet.
-                </div>
-              </div>
-            </div>
-
-            <aside v-if="previewSidebarOpen" class="artifact-preview-sidebar">
-              <div class="artifact-preview-sidebar__section">
-                <div class="row items-start justify-between q-col-gutter-sm">
-                  <div class="col">
-                    <div class="text-subtitle2">Extraction Review</div>
-                    <div class="text-caption text-grey-7">
-                      Review by PDF page and see where the extracted data writes.
-                    </div>
-                  </div>
-              <div class="col-auto" v-if="showContinueDocumentReview">
-                <q-btn
-                  color="primary"
-                  outline
-                  no-caps
-                  label="Review markdown fields"
-                  @click="continuePreviewDocumentReview"
-                />
-              </div>
-                </div>
-              </div>
-
-              <div class="artifact-preview-sidebar__section">
-                <div class="row items-center justify-between q-col-gutter-sm q-mb-sm">
-                  <div class="col">
-                    <div class="text-caption text-grey-7">Review Focus</div>
-                    <div class="text-body2">{{ previewSelectedFocusClaim?.field_label || 'Connected data items' }}</div>
-                  </div>
-                  <div class="col-auto">
-                    <q-btn
-                      flat
-                      dense
-                      round
-                      :icon="previewFocusStripHidden ? 'visibility' : 'visibility_off'"
-                      :aria-label="previewFocusStripHidden ? 'Show review focus' : 'Hide review focus'"
-                      @click="void togglePreviewFocusSidebarSection()"
-                    />
-                  </div>
-                </div>
-
-                <div v-if="!previewFocusStripHidden" class="column q-gutter-sm">
-                  <div v-if="previewFocusClaimRows.length" class="artifact-preview-sidebar__focus-chips">
                     <button
-                      v-for="claim in previewFocusClaimRows"
-                      :key="claim.claim_id"
                       type="button"
-                      class="artifact-preview-dialog__focus-chip"
-                      :class="{
-                        'artifact-preview-dialog__focus-chip--active':
-                          String(previewSelectedFocusClaimId || '') === String(claim.claim_id || ''),
-                      }"
-                      @click="selectPreviewFocusClaim(claim)"
+                      class="test-shell-filter-heading"
+                      @click="toggleExpandedFilterSection(section.key)"
                     >
-                      {{ claim.field_label }}
-                    </button>
-                  </div>
-                  <div v-else class="row items-center justify-between q-col-gutter-sm">
-                    <div class="col text-caption text-grey-6">
-                      No connected data items are loaded for this review yet.
-                    </div>
-                    <div class="col-auto">
-                      <q-btn
-                        flat
-                        dense
-                        no-caps
-                        icon="restart_alt"
-                        label="Load connected items"
-                        @click="void ensurePreviewReviewDataLoaded({ force: true })"
+                      <span class="test-shell-filter-heading__label">{{ section.label }}</span>
+                      <span class="test-shell-filter-heading__meta">{{ getFilterSectionTokenCount(section.key) }}</span>
+                      <q-icon
+                        :name="expandedFilterSectionKey === section.key ? 'expand_less' : 'expand_more'"
+                        size="14px"
+                        class="test-shell-filter-heading__chevron"
                       />
-                    </div>
-                  </div>
+                    </button>
 
-                  <div v-if="previewSelectedFocusClaim" class="artifact-preview-sidebar__focus-card">
-                    <div class="artifact-preview-sidebar__claim-title">{{ previewSelectedFocusClaim.field_label }}</div>
-                    <div class="text-body2">{{ previewSelectedFocusClaim.field_value || 'No value' }}</div>
-                    <div class="text-caption text-grey-7 q-mt-xs">
-                      {{ previewSelectedFocusClaim.owner_table || 'Draft Intake' }} • {{ previewSelectedFocusClaim.consumer_lane || 'Review' }}
-                    </div>
-                    <div class="text-caption text-blue-9 q-mt-xs">
-                      Item box: {{ previewSelectedFocusClaim.item_box }}
+                    <div
+                      v-if="expandedFilterSectionKey === section.key"
+                      class="test-shell-filter-group__children"
+                    >
+                      <button
+                        v-for="token in getSectionTokens(section.key)"
+                        :key="token.key"
+                        type="button"
+                        class="test-shell-filter-child-row"
+                        :class="{ 'test-shell-filter-child-row--selected': token.key === activeFilterTokenKey }"
+                        @click="applyFilterSelection(`token:${token.key}`)"
+                      >
+                        <q-checkbox
+                          :model-value="token.key === activeFilterTokenKey"
+                          dense
+                          size="xs"
+                          checked-icon="check_box"
+                          unchecked-icon="check_box_outline_blank"
+                          class="test-shell-filter-child-row__checkbox"
+                          @update:model-value="toggleFilterToken(token.key, $event)"
+                          @click.stop
+                        />
+                        <span class="test-shell-filter-child-row__label">{{ token.label }}</span>
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
+            </q-menu>
+          </q-btn>
+        </template>
+      </FilePageToolbar>
 
-              <div v-if="previewState.kind === 'pdf' && previewPdfPageCount > 0" class="artifact-preview-sidebar__section">
-                <div class="row items-center justify-between q-col-gutter-sm">
-                  <div class="col-auto">
-                    <q-btn
-                      flat
-                      dense
-                      icon="chevron_left"
-                      :disable="previewCurrentPage <= 1"
-                      @click="setPreviewCurrentPage(previewCurrentPage - 1)"
-                    />
-                  </div>
-                  <div class="col text-center">
-                    <div class="text-caption text-grey-7">Page Review</div>
-                    <div class="text-body2">Page {{ previewCurrentPage }} of {{ previewPdfPageCount }}</div>
-                  </div>
-                  <div class="col-auto">
-                    <q-btn
-                      flat
-                      dense
-                      icon="chevron_right"
-                      :disable="previewCurrentPage >= previewPdfPageCount"
-                      @click="setPreviewCurrentPage(previewCurrentPage + 1)"
-                    />
-                  </div>
-                </div>
-                <div class="q-mt-sm">
-                  <q-select
-                    :model-value="previewCurrentPage"
-                    outlined
-                    dense
-                    emit-value
-                    map-options
-                    label="Jump to page"
-                    :options="previewPageOptions"
-                    @update:model-value="setPreviewCurrentPage"
-                  />
-                </div>
-              </div>
+      <q-banner v-if="error" class="bg-red-2 text-black" rounded>
+        {{ error }}
+      </q-banner>
 
-              <div v-else-if="previewSectionOptions.length > 1" class="artifact-preview-sidebar__section">
-                <q-select
-                  v-model="previewSelectedSectionKey"
-                  outlined
+      <q-banner
+        v-if="!loading && displayRows.length === 0"
+        class="test-shell-empty-state bg-grey-1 text-black"
+        rounded
+      >
+        No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
+      </q-banner>
+
+      <div v-else-if="viewMode === 'card'" class="row q-col-gutter-md test-shell-cards-grid">
+        <div v-for="row in displayRows" :key="row.cardId" class="col-12 col-sm-6 col-lg-4">
+          <q-card
+            flat
+            bordered
+            class="test-shell-card full-height"
+            :style="getTestShellCardStyle()"
+            @pointerenter="onTestShellCardPointerEnter"
+            @pointermove="onTestShellCardPointerMove"
+            @pointerleave="onTestShellCardPointerLeave"
+          >
+            <q-card-section class="test-shell-card__control-row">
+              <div class="test-shell-card__control-leading">
+                <q-checkbox
+                  :model-value="isRowSelected(row)"
+                  color="dark"
+                  class="test-shell-card__select-box"
+                  @update:model-value="toggleRowSelection(row, $event)"
+                />
+                <q-btn
+                  flat
+                  round
                   dense
-                  emit-value
-                  map-options
-                  label="Slide / Section"
-                  :options="previewSectionOptions"
+                  icon="edit"
+                  class="test-shell-card__control-edit"
+                  :disable="!row.recordId"
+                  @click="openEditRecordShell(row)"
                 />
               </div>
-
-              <div
-                v-if="previewState.kind === 'pdf' && previewPdfPageCount <= 0"
-                class="artifact-preview-sidebar__section"
-              >
-                <div class="text-caption text-grey-6">
-                  Page-level mappings are not available for this file yet, so this review falls back to document-wide markdown.
-                </div>
-              </div>
-
-              <div class="artifact-preview-sidebar__section">
-                <div class="text-caption text-grey-7 q-mb-sm">Used data sections</div>
-                <div v-if="previewUsedClaimRows.length" class="column q-gutter-sm">
-                  <div
-                    v-for="claim in previewUsedClaimRows"
-                    :key="claim.claim_id"
-                    class="artifact-preview-sidebar__claim"
+              <div class="test-shell-card__control-actions">
+                <q-btn
+                  flat
+                  round
+                  icon="tune"
+                  class="test-shell-card__control-settings"
+                  aria-label="Card settings"
+                >
+                  <q-menu
+                    anchor="bottom right"
+                    self="top right"
+                    class="test-shell-card-settings-menu"
+                    content-class="test-shell-card-settings-menu__content"
                   >
-                    <div class="artifact-preview-sidebar__claim-title">{{ claim.field_label }}</div>
-                    <div class="text-body2">{{ claim.field_value || 'No value' }}</div>
-                    <div class="text-caption text-grey-7">
-                      {{ claim.owner_table || 'Draft Intake' }} • {{ claim.consumer_lane || 'Review' }}
+                    <div class="test-shell-card-settings-panel">
+                      <div class="test-shell-card-settings-panel__title">Card Settings</div>
+                      <div class="test-shell-card-settings-panel__caption">
+                        Name stays fixed. Choose and order the extra fields shown on the card.
+                      </div>
+
+                      <div class="test-shell-card-settings-panel__list">
+                        <section
+                          v-if="selectedCardItemTokens.length"
+                          class="test-shell-card-settings-group test-shell-card-settings-group--selected"
+                        >
+                          <div class="test-shell-card-settings-group__title">Selected</div>
+
+                          <div
+                            v-for="token in selectedCardItemTokens"
+                            :key="`selected:${token.key}`"
+                            class="test-shell-card-settings-row"
+                          >
+                            <q-checkbox
+                              :model-value="true"
+                              dense
+                              size="xs"
+                              checked-icon="check_box"
+                              unchecked-icon="check_box_outline_blank"
+                              class="test-shell-card-settings-row__checkbox"
+                              @update:model-value="setCardItemEnabled(token.key, $event)"
+                            />
+
+                            <div class="test-shell-card-settings-row__copy">
+                              <div class="test-shell-card-settings-row__label">{{ token.label }}</div>
+                            </div>
+
+                            <div class="test-shell-card-settings-row__actions">
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="getCardItemOrderIndex(token.key) <= 0"
+                                @click.stop="moveCardItem(token.key, -1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
+                                  <path d="M7 14L12 9L17 14" />
+                                </svg>
+                              </q-btn>
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                :disable="getCardItemOrderIndex(token.key) < 0 || getCardItemOrderIndex(token.key) >= enabledCardItemKeys.length - 1"
+                                @click.stop="moveCardItem(token.key, 1)"
+                              >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
+                                  <path d="M7 10L12 15L17 10" />
+                                </svg>
+                              </q-btn>
+                            </div>
+                          </div>
+                        </section>
+
+                        <section
+                          v-for="group in cardItemTokenGroups"
+                          :key="group.key"
+                          class="test-shell-card-settings-group"
+                        >
+                          <button
+                            type="button"
+                            class="test-shell-card-settings-group__toggle"
+                            @click="toggleCardSettingsGroup(group.key)"
+                          >
+                            <span class="test-shell-card-settings-group__title">{{ group.label }}</span>
+                            <q-icon
+                              :name="isCardSettingsGroupExpanded(group.key) ? 'expand_less' : 'expand_more'"
+                              size="14px"
+                              class="test-shell-card-settings-group__icon"
+                            />
+                          </button>
+
+                          <div v-if="isCardSettingsGroupExpanded(group.key)" class="test-shell-card-settings-group__body">
+                            <div
+                              v-for="token in group.tokens"
+                              :key="token.key"
+                              class="test-shell-card-settings-row"
+                            >
+                              <q-checkbox
+                                :model-value="isCardItemEnabled(token.key)"
+                                dense
+                                size="xs"
+                                checked-icon="check_box"
+                                unchecked-icon="check_box_outline_blank"
+                                class="test-shell-card-settings-row__checkbox"
+                                @update:model-value="setCardItemEnabled(token.key, $event)"
+                              />
+
+                              <div class="test-shell-card-settings-row__copy">
+                                <div class="test-shell-card-settings-row__label">{{ token.label }}</div>
+                              </div>
+
+                              <div class="test-shell-card-settings-row__actions">
+                                <q-btn
+                                  flat
+                                  dense
+                                  round
+                                  :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) <= 0"
+                                  @click.stop="moveCardItem(token.key, -1)"
+                                >
+                                  <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
+                                    <path d="M7 14L12 9L17 14" />
+                                  </svg>
+                                </q-btn>
+                                <q-btn
+                                  flat
+                                  dense
+                                  round
+                                  :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) < 0 || getCardItemOrderIndex(token.key) >= enabledCardItemKeys.length - 1"
+                                  @click.stop="moveCardItem(token.key, 1)"
+                                >
+                                  <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
+                                    <path d="M7 10L12 15L17 10" />
+                                  </svg>
+                                </q-btn>
+                              </div>
+                            </div>
+                          </div>
+                        </section>
+                      </div>
                     </div>
-                    <div class="text-caption text-blue-9 q-mt-xs">
-                      Item box: {{ claim.item_box }}
+                  </q-menu>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  icon="visibility"
+                  class="test-shell-card__control-eye"
+                  :disable="!row.recordId"
+                  @click="openRecordView(row)"
+                />
+              </div>
+            </q-card-section>
+
+            <q-card-section class="test-shell-card__hero">
+              <div class="test-shell-card__hero-main">
+                <figure class="test-shell-card__portrait">
+                  <div class="test-shell-card__portrait-shell" aria-hidden="true">
+                    <div class="test-shell-card__portrait-badge" :style="{ backgroundColor: getTestShellAvatarColor(row) }">
+                      {{ row.avatarText }}
+                    </div>
+                  </div>
+                </figure>
+
+                <div class="test-shell-card__hero-side">
+                  <div class="test-shell-card__hero-copy">
+                    <div class="test-shell-card__title" :class="{ 'test-shell-card__value--placeholder': !row.titleValue }">
+                      {{ row.titleValue || 'Title mapping undefined' }}
+                    </div>
+
+                    <div class="test-shell-card__bottom-stack">
+                      <div
+                        v-if="getTestShellSubtitleRow(row)"
+                        class="test-shell-card__subtitle"
+                      >
+                        {{ getTestShellSubtitleRow(row).value }}
+                        <q-tooltip anchor="top middle" self="bottom middle" class="test-shell-card__inline-chip-tooltip">
+                          {{ getTestShellSubtitleRow(row).label }}
+                        </q-tooltip>
+                      </div>
+
+                      <div v-if="getTestShellChipRows(row).length" class="test-shell-card__detail-stack">
+                        <div
+                          v-for="detail in getTestShellChipRows(row)"
+                          :key="detail.label"
+                          class="test-shell-card__detail-row"
+                        >
+                          <button type="button" class="test-shell-card__inline-chip">
+                            <span class="test-shell-card__inline-chip-value">{{ detail.value }}</span>
+                            <q-tooltip anchor="top middle" self="bottom middle" class="test-shell-card__inline-chip-tooltip">
+                              {{ detail.label }}
+                            </q-tooltip>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div v-else class="test-shell-card__detail-stack">
+                        <div class="test-shell-card__detail-row">
+                          <button type="button" class="test-shell-card__inline-chip test-shell-card__inline-chip--placeholder">
+                            <q-icon name="info" size="14px" />
+                            <span>Metadata mapping undefined</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div v-else class="text-caption text-grey-6">
-                  No connected data items are available for this page yet.
-                </div>
               </div>
+            </q-card-section>
 
-              <div class="artifact-preview-sidebar__section artifact-preview-sidebar__section--grow">
-                <div class="row items-center justify-between q-mb-sm">
-                  <div class="text-caption text-grey-7">Markdown</div>
-                  <q-chip
-                    v-if="previewMarkdownSourceLabel"
-                    dense
-                    square
-                    color="grey-2"
-                    text-color="grey-8"
-                  >
-                    {{ previewMarkdownSourceLabel }}
-                  </q-chip>
-                </div>
-
-                <div v-if="previewMarkdownLoading" class="artifact-preview-sidebar__state">
-                  <q-spinner color="primary" size="20px" />
-                  <span>Loading markdown...</span>
-                </div>
-                <div v-else-if="previewMarkdownError" class="text-caption text-negative">
-                  {{ previewMarkdownError }}
-                </div>
-                <div v-else-if="previewSelectedMarkdownSection" class="column q-gutter-md">
-                  <div
-                    :key="previewSelectedMarkdownSection.key"
-                    class="artifact-preview-sidebar__markdown-block"
-                    :class="{ 'artifact-preview-sidebar__markdown-block--used': previewSelectedMarkdownSection.used }"
-                  >
-                    <div class="row items-center justify-between q-mb-xs">
-                      <div class="text-body2">{{ previewSelectedMarkdownSection.title }}</div>
-                      <q-chip
-                        v-if="previewSelectedMarkdownSection.used"
-                        dense
-                        square
-                        color="amber-2"
-                        text-color="amber-10"
-                      >
-                        Used
-                      </q-chip>
-                    </div>
-                    <div
-                      v-if="previewSelectedMarkdownSection.sourceTitle"
-                      class="text-caption text-grey-7 q-mb-sm"
-                    >
-                      Source heading: {{ previewSelectedMarkdownSection.sourceTitle }}
-                    </div>
-                    <div v-if="previewSelectedMarkdownSection.ownedFields.length" class="q-mb-sm">
-                      <q-chip
-                        v-for="fieldKey in previewSelectedMarkdownSection.ownedFields"
-                        :key="fieldKey"
-                        dense
-                        square
-                        color="blue-1"
-                        text-color="blue-9"
-                        class="q-mr-xs q-mb-xs"
-                      >
-                        {{ fieldKey }}
-                      </q-chip>
-                    </div>
-                    <pre class="artifact-preview-sidebar__markdown-text"><code>{{ previewSelectedMarkdownSection.text }}</code></pre>
-                  </div>
-                </div>
-                <div v-else class="text-caption text-grey-6">
-                  No markdown is available for this slide/section yet.
-                </div>
-              </div>
-            </aside>
-              </div>
-
-              <div class="artifact-preview-dialog__bottom">
-                <q-tabs
-                  v-model="previewReviewTab"
+            <q-card-section class="test-shell-card__summary">
+              <div class="test-shell-card__summary-head">
+                <q-btn-toggle
+                  :model-value="getRowRelationshipPanel(row)"
                   dense
-                  no-caps
-                  active-color="primary"
-                  indicator-color="primary"
-                  align="left"
-                  class="artifact-preview-dialog__tabs"
-                >
-                  <q-tab
-                    v-for="tab in previewReviewTabs"
-                    :key="tab.key"
-                    :name="tab.key"
-                    :label="tab.label"
-                  />
-                </q-tabs>
+                  unelevated
+                  toggle-color="dark"
+                  color="white"
+                  text-color="grey-8"
+                  class="test-shell-card__summary-toggle"
+                  :options="summarySectionShellOptions"
+                  @update:model-value="setRowRelationshipPanel(row, $event)"
+                />
+                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" @click="openAddRelationShell(row)">
+                  <span class="test-shell-card__summary-add-relation-plus">
+                    <q-icon name="add" />
+                  </span>
+                  <span class="test-shell-card__summary-add-relation-label">Add Relation</span>
+                </q-btn>
+              </div>
 
-                <q-separator />
-
-                <q-tab-panels
-                  v-model="previewReviewTab"
-                  animated
-                  class="artifact-preview-dialog__tab-panels"
-                >
-                  <q-tab-panel
-                    v-for="tab in previewReviewTabs"
-                    :key="tab.key"
-                    :name="tab.key"
-                    class="artifact-preview-dialog__tab-panel"
-                  >
-                    <div class="artifact-preview-dialog__panel-head">
-                      <div>
-                        <div class="text-subtitle2">{{ tab.label }}</div>
-                        <div class="text-caption text-grey-7">{{ tab.caption }}</div>
+              <div class="test-shell-card__summary-panel">
+                <div class="test-shell-card__summary-body">
+                  <div class="test-shell-card__summary-body-content">
+                    <div v-if="getActiveRelationshipItems(row).length" class="test-shell-card__notes-list">
+                      <div
+                        v-for="item in getActiveRelationshipItems(row)"
+                        :key="`${row.cardId}:${getRowRelationshipPanel(row)}:${item}`"
+                        class="test-shell-card__note-pill"
+                      >
+                        <span class="test-shell-card__note-pill-name">
+                          {{ getCardRelationshipLabel(getRowRelationshipPanel(row)) }}
+                        </span>
+                        <span class="test-shell-card__note-pill-value">{{ item }}</span>
                       </div>
                     </div>
 
-                    <div v-if="tab.groups.length" class="artifact-preview-dialog__group-stack">
-                      <section
-                        v-for="group in tab.groups"
-                        :key="`${tab.key}:${group.key}`"
-                        class="artifact-preview-dialog__group"
-                      >
-                        <div class="artifact-preview-dialog__group-head">
-                          <div class="text-subtitle2">{{ group.label }}</div>
-                          <div class="text-caption text-grey-7">
-                            {{ group.caption }}
-                          </div>
-                        </div>
-
-                        <div class="artifact-preview-dialog__claim-grid">
-                          <article
-                            v-for="claim in group.rows"
-                            :key="claim.claim_id"
-                            class="artifact-preview-dialog__claim-card"
-                          >
-                            <div class="artifact-preview-dialog__claim-card-top">
-                              <div>
-                                <div class="artifact-preview-dialog__claim-card-label">{{ claim.field_label }}</div>
-                                <div class="artifact-preview-dialog__claim-card-value">{{ claim.field_value || 'No value' }}</div>
-                              </div>
-                              <q-chip
-                                dense
-                                square
-                                :color="claim.verification_state === 'verified' ? 'green-1' : 'amber-2'"
-                                :text-color="claim.verification_state === 'verified' ? 'green-9' : 'amber-10'"
-                              >
-                                {{ claim.verification_state === 'verified' ? 'Verified' : 'Proposed' }}
-                              </q-chip>
-                            </div>
-                            <div class="text-caption text-grey-7">
-                              {{ claim.owner_table || 'Draft Intake' }} • {{ claim.consumer_lane || 'Review' }}
-                            </div>
-                            <div class="text-caption text-blue-9 q-mt-xs">
-                              Golden item: {{ claim.item_box }}
-                            </div>
-                            <div v-if="claim.source_chunk_id" class="text-caption text-grey-6 q-mt-xs">
-                              Source chunk: {{ claim.source_chunk_id }}
-                            </div>
-                          </article>
-                        </div>
-                      </section>
+                    <div v-else class="test-shell-card__summary-empty">
+                      No {{ getCardRelationshipLabel(getRowRelationshipPanel(row)).toLowerCase() }} linked to this record.
                     </div>
-                    <div v-else class="artifact-preview-dialog__tab-empty text-caption text-grey-6">
-                      No linked review items are available for this file system area yet.
-                    </div>
-                  </q-tab-panel>
-                </q-tab-panels>
+                  </div>
+                </div>
               </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </q-dialog>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+      <div v-else class="test-shell-table-surface">
+        <div class="test-shell-table-tabs">
+          <div class="test-shell-table-tabs__left">
+            <button
+              v-for="section in tableLeftSections"
+              :key="section.key"
+              type="button"
+              class="test-shell-table-tabs__tab"
+              :class="{ 'test-shell-table-tabs__tab--active': section.key === activeSection?.key }"
+              @click="activeSectionKeyForCards = section.key"
+            >
+              {{ section.label }}
+            </button>
+          </div>
+
+          <div class="test-shell-table-tabs__right">
+            <button
+              v-for="section in tableRightSections"
+              :key="section.key"
+              type="button"
+              class="test-shell-table-tabs__tab"
+              :class="{ 'test-shell-table-tabs__tab--active': section.key === activeSection?.key }"
+              @click="activeSectionKeyForCards = section.key"
+            >
+              {{ section.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="test-shell-table-scroll">
+          <table class="test-shell-table">
+            <thead>
+              <tr>
+                <th
+                  class="test-shell-table__head test-shell-table__head--name"
+                  :style="getTableColumnStyle('name', NAME_COLUMN_MIN_WIDTH)"
+                >
+                  <div class="test-shell-table__head-inner">
+                    <span>Name</span>
+                    <button
+                      type="button"
+                      class="test-shell-table__resize-handle"
+                      aria-label="Resize Name column"
+                      @mousedown.prevent="startColumnResize('name', NAME_COLUMN_MIN_WIDTH, $event)"
+                    />
+                  </div>
+                </th>
+                <th
+                  v-for="token in tableSectionTokens"
+                  :key="token.key"
+                  class="test-shell-table__head"
+                  :style="getTableColumnStyle(token.key, DEFAULT_COLUMN_MIN_WIDTH)"
+                >
+                  <div class="test-shell-table__head-inner">
+                    <span>{{ token.label }}</span>
+                    <button
+                      type="button"
+                      class="test-shell-table__resize-handle"
+                      :aria-label="`Resize ${token.label} column`"
+                      @mousedown.prevent="startColumnResize(token.key, DEFAULT_COLUMN_MIN_WIDTH, $event)"
+                    />
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in displayRows" :key="row.cardId">
+                <td
+                  class="test-shell-table__cell test-shell-table__cell--name"
+                  :style="getTableColumnStyle('name', NAME_COLUMN_MIN_WIDTH)"
+                >
+                  <div class="test-shell-table__name-row">
+                    <q-checkbox
+                      :model-value="isRowSelected(row)"
+                      color="dark"
+                      dense
+                      size="xs"
+                      class="test-shell-table__select-box"
+                      @update:model-value="toggleRowSelection(row, $event)"
+                    />
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      size="8px"
+                      icon="visibility"
+                      class="test-shell-table__eye"
+                      :disable="!row.recordId"
+                      @click="openRecordView(row)"
+                    />
+                    <div
+                      class="test-shell-table__name"
+                      :class="{ 'test-shell-card__value--placeholder': !row.titleValue }"
+                    >
+                      {{ row.titleValue || 'Name mapping undefined' }}
+                    </div>
+                  </div>
+                </td>
+                <td
+                  v-for="tokenRow in row.sectionTokenRows"
+                  :key="tokenRow.key"
+                  class="test-shell-table__cell"
+                  :style="getTableColumnStyle(tokenRow.tokenName, DEFAULT_COLUMN_MIN_WIDTH)"
+                >
+                  <template v-if="isKdbSectionActive">
+                    <div v-if="getKdbDisplayItems(tokenRow).length" class="test-shell-table__kdb-list">
+                      <div
+                        v-for="item in getKdbDisplayItems(tokenRow)"
+                        :key="`${tokenRow.key}:${item}`"
+                        class="test-shell-table__kdb-item"
+                      >
+                        <span class="test-shell-table__kdb-icon">
+                          <q-icon name="share" size="10px" />
+                        </span>
+                        <span class="test-shell-table__kdb-text">{{ item }}</span>
+                      </div>
+                    </div>
+                    <span v-else class="test-shell-card__value--placeholder">No explicit value</span>
+                  </template>
+                  <span v-else :class="{ 'test-shell-card__value--placeholder': !tokenRow.value }">
+                    {{ tokenRow.value || 'No explicit value' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <template v-if="false">
+          <div v-for="row in displayRows" :key="row.cardId" class="test-shell-table-row">
+          <div class="test-shell-table-row__title">{{ row.titleValue || 'Title mapping undefined' }}</div>
+          <div class="test-shell-table-row__meta">
+            {{ row.recordId || 'Unavailable' }} · {{ row.matchedTokenCount }} explicit token values
+          </div>
+          </div>
+        </template>
+      </div>
+
+      <SelectionActionBar
+        :count="selectedRows.length"
+        :loading="loading"
+        :can-share="selectedRows.length > 0"
+        :can-edit="false"
+        :can-delete="canDeleteSelectedRows"
+        @share="handleSelectedRowsShare"
+        @edit="handleSelectedRowsEdit"
+        @remove="handleSelectedRowsDelete"
+      />
+
+      <CreateRecordShellDialog
+        :key="createDialogRenderKey"
+        v-model="createDialogOpen"
+        :mode="createDialogMode"
+        :source-label="activeRegistryEntry?.label || 'Records'"
+        :singular-label="activeRegistryEntry?.singularLabel || 'record'"
+        :key-field-tokens="createKeyFieldTokens"
+        :left-sections="createDialogLeftSections"
+        :right-sections="createDialogRightSections"
+        :loading="createDialogLoading"
+        :submit-disabled="!canCreateWithShell"
+        :initial-values="createDialogInitialValues"
+        :initial-section-key="createDialogInitialSectionKey"
+        :initial-artifacts="createDialogInitialArtifacts"
+        @change="handleCreateDialogChange"
+        @request-close="handleCreateDialogClose"
+        @submit="submitCreateRecordShell"
+      />
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import CreateRecordShellDialog from 'components/CreateRecordShellDialog.vue'
+import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
+import FilePageToolbar from 'components/FilePageToolbar.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
-import TableCsvActions from 'components/TableCsvActions.vue'
-import { setActiveIntakeDraft, useIntakeDraftState } from 'src/utils/intakeDraftState'
-import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
-import { createRecordViewOpener } from 'src/utils/recordViewNavigation'
-import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import {
   buildCardRelationshipItems,
   buildCardRelationshipOptions,
+  getCardRelationshipLabel,
   resolveCardRelationshipPanel,
 } from 'src/utils/card-kdb-relationships'
+import {
+  CANONICAL_OPTION_LISTS,
+  getFilePageRegistryEntry,
+  getCanonicalTokenFieldNames,
+  getCanonicalTokenValue,
+  LEVEL_2_FILE_REGISTRY_BY_KEY,
+  LEVEL_3_FILE_REGISTRY_BY_KEY,
+  TEST_SHELL_SECTION_OPTIONS,
+} from 'src/utils/structureRegistry'
+import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
+import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString()
-
-const isElectronRuntime = computed(() => {
-  if (typeof navigator === 'undefined') return false
-  return /Electron/i.test(navigator.userAgent || '')
-})
-
-const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
-const intakeDraftState = useIntakeDraftState()
 const route = useRoute()
 const router = useRouter()
-const hasBridge = computed(
-  () =>
-    !!bridge.value?.artifacts?.list &&
-    !!bridge.value?.artifacts?.upsertMany &&
-    !!bridge.value?.artifacts?.delete &&
-    !!bridge.value?.db?.execute &&
-    !!bridge.value?.db?.query,
-)
+const $q = useQuasar()
 
-function onHeroDashboardPointerEnter(event) {
-  updateHeroDashboardGradientPosition(event)
-  event?.currentTarget?.style?.setProperty('--hero-dashboard-blob-opacity', '1')
-}
-
-function onHeroDashboardPointerMove(event) {
-  updateHeroDashboardGradientPosition(event)
-}
-
-function onHeroDashboardPointerLeave(event) {
-  const element = event?.currentTarget
-  if (!element) return
-  element.style.setProperty('--hero-dashboard-blob-opacity', '0')
-}
-
-function updateHeroDashboardGradientPosition(event) {
-  const element = event?.currentTarget
-  if (!element) return
-
-  const rect = element.getBoundingClientRect()
-  if (!rect.width || !rect.height) return
-
-  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
-  const x = ((event.clientX - rect.left) / rect.width) * 100
-  const y = ((event.clientY - rect.top) / rect.height) * 100
-
-  element.style.setProperty('--hero-dashboard-blob-x', `${clamp(x, 10, 90)}%`)
-  element.style.setProperty('--hero-dashboard-blob-y', `${clamp(y, 10, 90)}%`)
-}
-
-const rows = ref([])
-const opportunities = ref([])
-const companies = ref([])
-const industries = ref([])
-const regions = ref([])
-const filteredOpportunityOptions = ref([])
-const filteredCompanyOptions = ref([])
-const filteredIndustryOptions = ref([])
-const filteredRegionOptions = ref([])
-const artifactCompanyLinks = ref([])
-const selectedRows = ref([])
+const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
+const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const loading = ref(false)
 const error = ref('')
-const viewMode = ref('grid')
-const artifactKindFilter = ref('all')
-const companyFilter = ref('')
-const opportunityFilter = ref('')
-const typeFilter = ref('')
 const searchQuery = ref('')
-const previewDialogOpen = ref(false)
-const previewLoading = ref(false)
-const previewPdfObjectUrl = ref('')
-const previewPdfPageCount = ref(0)
-const previewSidebarOpen = ref(false)
-const previewFocusStripHidden = ref(false)
-const previewMarkdownLoading = ref(false)
-const previewMarkdownError = ref('')
-const previewMarkdownContent = ref('')
-const previewMarkdownArtifactId = ref('')
-const previewSelectedSectionKey = ref('')
-const previewSelectedFocusClaimId = ref('')
-const previewCurrentPage = ref(1)
-const previewReviewTab = ref('users')
-const propertiesDialogOpen = ref(false)
-const savingProperties = ref(false)
-const propertiesError = ref('')
-const propertiesForm = ref(createEmptyPropertiesForm())
-const selectedCount = computed(() => selectedRows.value.length)
-const previewState = ref(createEmptyPreviewState())
-const csvActionsRef = ref(null)
-const artifactCardContentViews = ref({})
-const artifactCardPanels = ref({})
+const rawRows = ref([])
+const viewMode = ref('card')
+const createDialogOpen = ref(false)
+const createDialogRenderKey = ref(0)
+const createDialogLoading = ref(false)
+const createDialogMode = ref('create')
+const editDialogRow = ref(null)
+const createDialogDraftRecordId = ref('')
+const createDialogDraftEntityName = ref('')
+const createDialogInitialSectionKey = ref('key-fields')
+const createDialogPrefillValues = ref({})
+const createDialogInitialArtifacts = ref([])
+const createDialogLastChangeSnapshot = ref(null)
+const createDialogLastSavedSignature = ref('')
+const createDialogAutosavePending = ref(false)
+let createDialogAutosaveTimer = null
+let createDialogAutosaveInFlight = false
+let queuedCreateDialogSnapshot = null
+const cardRelationshipPanelById = ref({})
+const selectedRowIds = ref([])
+const tableColumnWidths = ref({})
+const cardItemKeysBySource = ref({})
+const liveOptionRowsBySource = ref({})
 
-const $q = useQuasar()
-const ARTIFACTS_BREADCRUMB_ACTION_OWNER = 'artifacts-page'
+const DEFAULT_COLUMN_MIN_WIDTH = 120
+const NAME_COLUMN_MIN_WIDTH = 188
 
-const viewModeOptions = [
-  { value: 'grid', icon: 'grid_view' },
-  { value: 'table', icon: 'view_list' },
-]
-const artifactCardContentViewOptions = [
-  { value: 'card', icon: 'grid_view' },
-  { value: 'table', icon: 'view_list' },
-]
-
-const columns = [
-  { name: 'title', label: 'Title', field: 'title', align: 'left', sortable: true },
-  { name: 'artifact_type', label: 'Type', field: 'artifact_type', align: 'left', sortable: true },
-  { name: 'artifact_format', label: 'Format', field: 'artifact_format', align: 'left', sortable: true },
-  { name: 'opportunity_id', label: 'Opportunity', field: 'opportunity_id', align: 'left', sortable: true },
-  { name: 'created_at', label: 'Created', field: 'created_at', align: 'left', sortable: true },
-  { name: 'actions', label: 'Actions', field: 'actions', align: 'right' },
-]
-
-const csvHeaders = [
-  'artifact_id',
-  'original_artifact_id',
-  'title',
-  'artifact_type',
-  'artifact_format',
-  'type',
-  'fs_path',
-  'opportunity_id',
-  'created_by',
-  'created_at',
-]
-
-const companyDocumentTypeOptions = [
-  'incorporation_certificate',
-  'incorporation_articles',
-  'company_bylaws',
-  'intellectual_property',
-  'yearly_statements',
-  'quarterly_statements',
-  'monthly_statements',
-  'descriptive_materials',
-]
-
-const opportunityOptions = computed(() =>
-  filteredOpportunityOptions.value.map((opportunity) => ({
-    label: buildOpportunityOptionLabel(opportunity),
-    value: opportunity.id,
-  })),
-)
-
-const companyOptions = computed(() =>
-  filteredCompanyOptions.value.map((company) => ({
-    label: buildCompanyOptionLabel(company),
-    value: String(company?.id || '').trim(),
-  })),
-)
-
-const industryOptions = computed(() =>
-  filteredIndustryOptions.value.map((industry) => ({
-    label: String(industry?.Industry_Name || industry?.id || '').trim(),
-    value: String(industry?.id || '').trim(),
-  })),
-)
-
-const regionOptions = computed(() =>
-  filteredRegionOptions.value.map((region) => ({
-    label: String(region?.Name || region?.id || '').trim(),
-    value: String(region?.id || '').trim(),
-  })),
-)
-
-const latestArtifactGroups = computed(() =>
-  groupArtifacts(rows.value)
-    .sort((left, right) => parseDateValue(right.latestCreatedAt) - parseDateValue(left.latestCreatedAt))
-    .slice(0, 12),
-)
-
-function normalizeArtifactFilterValue(value) {
-  return String(value || '').trim()
+const SECTION_LOADERS = {
+  users: {
+    listFn: (bridgeValue) => bridgeValue?.users?.list?.(),
+    resultKey: 'users',
+    recordIdField: 'id',
+  },
+  artifacts: {
+    listFn: (bridgeValue) => bridgeValue?.artifacts?.list?.(),
+    resultKey: 'artifacts',
+    recordIdField: 'artifact_id',
+  },
+  contacts: {
+    listFn: (bridgeValue) => bridgeValue?.contacts?.list?.(),
+    resultKey: 'contacts',
+    recordIdField: 'id',
+  },
+  companies: {
+    listFn: (bridgeValue) => bridgeValue?.companies?.list?.(),
+    resultKey: 'companies',
+    recordIdField: 'id',
+  },
+  opportunities: {
+    listFn: (bridgeValue) => bridgeValue?.opportunities?.list?.(),
+    resultKey: 'opportunities',
+    recordIdField: 'id',
+  },
+  funds: {
+    listFn: (bridgeValue) => bridgeValue?.funds?.list?.(),
+    resultKey: 'funds',
+    recordIdField: 'id',
+  },
+  rounds: {
+    listFn: (bridgeValue) => bridgeValue?.rounds?.list?.(),
+    resultKey: 'rounds',
+    recordIdField: 'id',
+  },
+  projects: {
+    listFn: (bridgeValue) => bridgeValue?.projects?.list?.(),
+    resultKey: 'projects',
+    recordIdField: 'pipeline_id',
+  },
+  notes: {
+    listFn: (bridgeValue) => bridgeValue?.notes?.list?.(),
+    resultKey: 'notes',
+    recordIdField: 'id',
+  },
+  tasks: {
+    listFn: (bridgeValue) => bridgeValue?.tasks?.list?.(),
+    resultKey: 'tasks',
+    recordIdField: 'id',
+  },
 }
 
-function getArtifactCompanyIds(row = {}) {
-  const artifactId = String(row?.artifact_id || '').trim()
-  if (!artifactId) return []
-  return artifactCompanyLinks.value
-    .filter((entry) => String(entry?.artifact_id || '').trim() === artifactId)
-    .map((entry) => String(entry?.company_id || '').trim())
-    .filter(Boolean)
+const fallbackSectionKey =
+  TEST_SHELL_SECTION_OPTIONS.find((option) => option.value === 'tasks')?.value ||
+  TEST_SHELL_SECTION_OPTIONS[0]?.value ||
+  'tasks'
+
+const routeDrivenSourceKey = computed(() => {
+  const routeName = String(route.name || '').trim().toLowerCase()
+  return TEST_SHELL_SECTION_OPTIONS.find((option) => option.value === routeName)?.value || ''
+})
+
+const activeSourceKey = computed(() => {
+  const current = String(route.query.section || '').trim().toLowerCase()
+  if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current)) return current
+  if (routeDrivenSourceKey.value) return routeDrivenSourceKey.value
+  return fallbackSectionKey
+})
+
+const activeRegistryEntry = computed(
+  () => getFilePageRegistryEntry(activeSourceKey.value) || getFilePageRegistryEntry(fallbackSectionKey),
+)
+
+const activeLoader = computed(() => SECTION_LOADERS[activeSourceKey.value] || null)
+const hasSupportedBridge = computed(() => {
+  if (!activeLoader.value) return false
+  return typeof activeLoader.value.listFn(bridge.value) !== 'undefined'
+})
+
+const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
+const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
+const activeSectionKeyForCards = ref('')
+const activeFilterSectionKey = ref('')
+const activeFilterTokenKey = ref('')
+const expandedFilterSectionKey = ref('')
+const expandedCardSettingsGroupsBySource = ref({})
+
+const activeSection = computed(() => {
+  return level2Sections.value.find((section) => section.key === activeSectionKeyForCards.value) || level2Sections.value[0] || null
+})
+const isKdbSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'kdb')
+
+const activeSectionTokens = computed(() => {
+  if (!activeSection.value) return []
+  return level3Tokens.value.filter((token) => token.parentKey === activeSection.value.key)
+})
+
+const canonicalTitleToken = computed(
+  () =>
+    level3Tokens.value.find(
+      (token) => String(token.parentLevel_2) === '3' && String(token.level_3) === '1',
+    ) || null,
+)
+const availableCardItemTokens = computed(() =>
+  level3Tokens.value.filter((token) => {
+    if (token.key === canonicalTitleToken.value?.key) return false
+    return String(token.parentLabel || '').trim().toLowerCase() !== 'kdb'
+  }),
+)
+const enabledCardItemKeys = computed(() => {
+  const sourceKey = activeSourceKey.value
+  const configured = Array.isArray(cardItemKeysBySource.value[sourceKey]) ? cardItemKeysBySource.value[sourceKey] : []
+  const allowedKeys = new Set(availableCardItemTokens.value.map((token) => token.key))
+  return configured.filter((key) => allowedKeys.has(key))
+})
+const selectedCardItemTokens = computed(() =>
+  enabledCardItemKeys.value
+    .map((tokenKey) => availableCardItemTokens.value.find((token) => token.key === tokenKey))
+    .filter(Boolean),
+)
+const createKeyFieldTokens = computed(() => {
+  const tokens = [canonicalTitleToken.value, ...selectedCardItemTokens.value].filter(Boolean)
+  const seen = new Set()
+  return tokens
+    .filter((token) => {
+      if (seen.has(token.key)) return false
+      seen.add(token.key)
+      return true
+    })
+    .map((token) => normalizeCreateDialogToken(token))
+})
+const cardItemTokenGroups = computed(() =>
+  level2Sections.value
+    .map((section) => ({
+      key: section.key,
+      label: section.label,
+      tokens: availableCardItemTokens.value.filter((token) => token.parentKey === section.key),
+    }))
+    .filter((group) => group.tokens.length),
+)
+const createSectionGroups = computed(() => {
+  const keyFieldKeys = new Set(createKeyFieldTokens.value.map((token) => token.key))
+  return level2Sections.value
+    .map((section) => ({
+      key: section.key,
+      label: section.label,
+      tokens: level3Tokens.value
+        .filter((token) => token.parentKey === section.key && !keyFieldKeys.has(token.key))
+        .map((token) => normalizeCreateDialogToken(token)),
+    }))
+    .filter((group) => group.tokens.length)
+})
+const createDialogLeftSections = computed(() =>
+  createSectionGroups.value.filter((section) => {
+    const normalized = String(section.label || '').trim().toLowerCase()
+    return normalized !== 'kdb' && normalized !== 'system'
+  }),
+)
+const createDialogRightSections = computed(() =>
+  createSectionGroups.value.filter((section) => {
+    const normalized = String(section.label || '').trim().toLowerCase()
+    return normalized === 'kdb' || normalized === 'system'
+  }),
+)
+const createDialogKdbSectionKey = computed(
+  () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || '',
+)
+const expandedCardSettingsGroups = computed(() => {
+  const sourceKey = activeSourceKey.value
+  const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
+  return Array.isArray(existing) ? existing : cardItemTokenGroups.value.map((group) => group.key)
+})
+const canCreateWithShell = computed(() => {
+  if (activeSourceKey.value === 'artifacts') return false
+  if (activeSourceKey.value === 'opportunities') return Boolean(bridge.value?.funds?.create || bridge.value?.rounds?.create)
+  return Boolean(bridge.value?.[activeSourceKey.value]?.create)
+})
+const createDialogInitialValues = computed(() => {
+  if (createDialogMode.value !== 'edit' || !editDialogRow.value?.raw) {
+    return createDialogPrefillValues.value
+  }
+
+  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const editValues = Object.fromEntries(
+    allTokens.map((token) => {
+      const value = getCanonicalTokenValue(editDialogRow.value.raw, token)
+      return [token.key, normalizeCreateDialogInitialValue(token, value)]
+    }),
+  )
+  return {
+    ...createDialogPrefillValues.value,
+    ...editValues,
+  }
+})
+const canDeleteSelectedRows = computed(() => {
+  if (selectedRows.value.length === 0) return false
+  return typeof bridge.value?.[activeSourceKey.value]?.delete === 'function'
+})
+const tableSectionTokens = computed(() =>
+  activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
+)
+
+const displayRows = computed(() => {
+  const query = String(searchQuery.value || '').trim().toLowerCase()
+
+  return rawRows.value
+    .map((row, index) => buildShellRow(row, index))
+    .filter((row) => {
+      if (activeFilterSectionKey.value && !row.sectionPresence[activeFilterSectionKey.value]) return false
+      if (activeFilterTokenKey.value && !row.tokenPresence[activeFilterTokenKey.value]) return false
+      if (!query) return true
+      const haystack = [
+        row.recordId,
+        ...row.sectionTokenRows.map((tokenRow) => tokenRow.tokenName),
+        ...row.sectionTokenRows.map((tokenRow) => tokenRow.value),
+        ...Object.keys(row.raw || {}),
+      ]
+      return haystack.some((value) => String(value || '').toLowerCase().includes(query))
+    })
+})
+
+function normalizeCreateDialogToken(token) {
+  const tokenType = String(token?.tokenType || '').trim()
+  if (!tokenType.startsWith('select_')) return token
+
+  return {
+    ...token,
+    inputOptions: getInputOptionsForToken(token),
+  }
 }
 
-function matchesArtifactKind(row = {}) {
-  if (artifactKindFilter.value === 'needs-review') return artifactNeedsAttention(row)
-  if (artifactKindFilter.value === 'ready') return !artifactNeedsAttention(row)
+function getInputOptionsForToken(token) {
+  const optionSource = String(token?.optionSource || '').trim()
+  const optionList = String(token?.optionList || '').trim()
+
+  if (optionSource === 'canonical_list' && optionList) {
+    return CANONICAL_OPTION_LISTS[optionList] || []
+  }
+
+  if (optionSource === 'live_entity') {
+    return getLiveEntityOptionsForToken(token)
+  }
+
+  if (optionSource === 'live_entity_set') {
+    return getLiveEntitySetOptionsForToken(token)
+  }
+
+  if (optionSource === 'record_subset') return []
+
+  const values = Array.from(
+    new Set(
+      rawRows.value
+        .map((row) => getCanonicalTokenValue(row, token))
+        .flatMap((value) => (Array.isArray(value) ? value : [value]))
+        .map((value) => String(value || '').trim())
+        .filter(Boolean),
+    ),
+  )
+
+  return values.map((value) => ({
+    label: value,
+    value,
+  }))
+}
+
+function resolveCreateDialogOptionValue(token, rawValue) {
+  if (rawValue == null) return ''
+  const normalized = String(rawValue || '').trim()
+  if (!normalized) return ''
+  const options = Array.isArray(token?.inputOptions) ? token.inputOptions : getInputOptionsForToken(token)
+  const matchedOption = options.find((option) => {
+    const optionValue = String(option?.value ?? '').trim()
+    const optionLabel = String(option?.label ?? '').trim()
+    return normalized === optionValue || normalized === optionLabel
+  })
+  return matchedOption ? matchedOption.value : normalized
+}
+
+function normalizeCreateDialogInitialValue(token, value) {
+  const tokenType = String(token?.tokenType || '').trim()
+
+  if (tokenType === 'select_multi') {
+    const values = Array.isArray(value)
+      ? value
+      : String(value || '')
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean)
+
+    return values.map((item) => resolveCreateDialogOptionValue(token, item)).filter(Boolean)
+  }
+
+  if (tokenType === 'select_single') {
+    return resolveCreateDialogOptionValue(token, value)
+  }
+
+  return value == null ? '' : String(value)
+}
+
+function normalizeEntitySourceKey(entityName) {
+  return String(entityName || '').trim().toLowerCase()
+}
+
+function getRegistryTitleTokenForSource(sourceKey) {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  if (!entry) return null
+  const generalSection = entry.subsections.find((section) => String(section.rawLabel || '').trim().toLowerCase() === 'general')
+  return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '1') || null
+}
+
+function getOptionRowsForSource(sourceKey) {
+  const normalized = normalizeEntitySourceKey(sourceKey)
+  if (!normalized) return []
+  if (normalized === activeSourceKey.value) return rawRows.value
+  return Array.isArray(liveOptionRowsBySource.value[normalized]) ? liveOptionRowsBySource.value[normalized] : []
+}
+
+function getOptionSubsetToken(sourceKey, fieldName) {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  if (!entry) return null
+  return entry.subsections.flatMap((section) => section.tokens || []).find((token) => token.tokenName === fieldName) || null
+}
+
+function matchesOptionSubset(row, sourceKey, optionSubset) {
+  if (!optionSubset || typeof optionSubset !== 'object') return true
+  if (optionSubset.field && Array.isArray(optionSubset.includes) && optionSubset.includes.length) {
+    const subsetToken = getOptionSubsetToken(sourceKey, optionSubset.field)
+    const rawValue = subsetToken ? getCanonicalTokenValue(row, subsetToken) : row?.[optionSubset.field]
+    const normalizedValues = Array.isArray(rawValue)
+      ? rawValue.map((value) => String(value || '').trim()).filter(Boolean)
+      : [String(rawValue || '').trim()].filter(Boolean)
+    return normalizedValues.some((value) => optionSubset.includes.includes(value))
+  }
   return true
 }
 
-function matchesArtifactFilters(row = {}, group = null) {
-  if (!matchesArtifactKind(row)) return false
+function buildOptionsFromSourceRows(sourceKey, token) {
+  const rows = getOptionRowsForSource(sourceKey)
+  const titleToken = getRegistryTitleTokenForSource(sourceKey)
+  const recordIdField = SECTION_LOADERS[sourceKey]?.recordIdField || 'id'
 
-  if (companyFilter.value) {
-    const companyLabels = getArtifactCompanyIds(row)
-      .map((companyId) =>
-        buildCompanyOptionLabel(
-          companies.value.find((company) => String(company?.id || '').trim() === companyId),
-        ),
-      )
-      .filter(Boolean)
-    if (!companyLabels.includes(companyFilter.value)) return false
-  }
+  const options = rows
+    .filter((row) => matchesOptionSubset(row, sourceKey, token?.optionSubset))
+    .map((row) => {
+      const label =
+        stringifyValue(titleToken ? getCanonicalTokenValue(row, titleToken) : null) ||
+        stringifyValue(row?.Name) ||
+        stringifyValue(row?.label) ||
+        stringifyValue(row?.title) ||
+        stringifyValue(row?.[recordIdField])
+      if (!label) return null
+      return {
+        label,
+        value: label,
+      }
+    })
+    .filter(Boolean)
 
-  if (opportunityFilter.value && resolveOpportunityLabel(row) !== opportunityFilter.value) return false
-  if (typeFilter.value && normalizeArtifactFilterValue(row?.artifact_type) !== typeFilter.value) return false
-
-  const query = normalizeArtifactFilterValue(searchQuery.value).toLowerCase()
-  if (!query) return true
-
-  const haystack = [
-    row?.title,
-    row?.description,
-    artifactDisplayName(row),
-    artifactFileName(row),
-    getArtifactCompanyIds(row)
-      .map((companyId) =>
-        buildCompanyOptionLabel(
-          companies.value.find((company) => String(company?.id || '').trim() === companyId),
-        ),
-      )
-      .filter(Boolean)
-      .join(' '),
-    resolveOpportunityLabel(row),
-    row?.artifact_type,
-    group?.versionSummary,
-    group?.primaryArtifact?.title,
-  ]
-    .map((value) => String(value || '').toLowerCase())
-    .join(' ')
-
-  return haystack.includes(query)
+  return Array.from(new Map(options.map((option) => [option.value, option])).values())
 }
 
-const displayArtifactRows = computed(() =>
-  rows.value.filter((row) => matchesArtifactFilters(row)),
-)
+function getLiveEntityOptionsForToken(token) {
+  const sourceKey = normalizeEntitySourceKey(token?.optionEntity)
+  if (!sourceKey) return []
+  return buildOptionsFromSourceRows(sourceKey, token)
+}
 
-const displayArtifactGroups = computed(() =>
-  latestArtifactGroups.value.filter((group) => matchesArtifactFilters(group.primaryArtifact, group)),
-)
+function getLiveEntitySetOptionsForToken(token) {
+  const sourceKeys = Array.isArray(token?.optionEntities) ? token.optionEntities.map(normalizeEntitySourceKey).filter(Boolean) : []
+  const options = sourceKeys.flatMap((sourceKey) => buildOptionsFromSourceRows(sourceKey, token))
+  return Array.from(new Map(options.map((option) => [option.value, option])).values())
+}
 
-const allVisibleArtifactsSelected = computed(
-  () =>
-    displayArtifactRows.value.length > 0 &&
-    displayArtifactRows.value.every((row) => isSelected(row)),
-)
+async function ensureLiveOptionRowsLoaded(sourceKey) {
+  const normalized = normalizeEntitySourceKey(sourceKey)
+  if (!normalized || normalized === activeSourceKey.value) return
+  if (Array.isArray(liveOptionRowsBySource.value[normalized])) return
 
-const someVisibleArtifactsSelected = computed(
-  () =>
-    displayArtifactRows.value.some((row) => isSelected(row)) &&
-    !allVisibleArtifactsSelected.value,
-)
+  const loader = SECTION_LOADERS[normalized]
+  const bridgeValue = bridge.value
+  if (!loader || !bridgeValue) return
 
-function toggleSelectAllVisibleArtifacts(shouldSelect) {
-  if (!shouldSelect) {
-    const visibleIds = new Set(
-      displayArtifactRows.value.map((row) => String(row?.artifact_id || '').trim()).filter(Boolean),
-    )
-    selectedRows.value = selectedRows.value.filter(
-      (row) => !visibleIds.has(String(row?.artifact_id || '').trim()),
-    )
-    return
+  try {
+    const result = await loader.listFn(bridgeValue)
+    const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
+    liveOptionRowsBySource.value = {
+      ...liveOptionRowsBySource.value,
+      [normalized]: rows,
+    }
+  } catch {
+    liveOptionRowsBySource.value = {
+      ...liveOptionRowsBySource.value,
+      [normalized]: [],
+    }
   }
+}
 
-  const selectedIds = new Set(
-    selectedRows.value.map((row) => String(row?.artifact_id || '').trim()).filter(Boolean),
-  )
-  const additions = displayArtifactRows.value.filter((row) => {
-    const rowId = String(row?.artifact_id || '').trim()
-    return rowId && !selectedIds.has(rowId)
+async function preloadCreateDialogOptionSources() {
+  const tokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const sourceKeys = new Set()
+
+  tokens.forEach((token) => {
+    const optionSource = String(token?.optionSource || '').trim()
+    if (optionSource === 'live_entity') {
+      const sourceKey = normalizeEntitySourceKey(token?.optionEntity)
+      if (sourceKey) sourceKeys.add(sourceKey)
+    }
+
+    if (optionSource === 'live_entity_set') {
+      ;(Array.isArray(token?.optionEntities) ? token.optionEntities : [])
+        .map(normalizeEntitySourceKey)
+        .filter(Boolean)
+        .forEach((sourceKey) => sourceKeys.add(sourceKey))
+    }
   })
-  if (additions.length) selectedRows.value = [...selectedRows.value, ...additions]
+
+  await Promise.all(Array.from(sourceKeys).map((sourceKey) => ensureLiveOptionRowsLoaded(sourceKey)))
 }
 
-const artifactsDashboard = computed(() => {
-  const total = rows.value.length
-  const attentionCount = rows.value.filter((row) => artifactNeedsAttention(row)).length
-  const readyCount = total - attentionCount
-  const linkedCount = rows.value.filter((row) => normalizeArtifactFilterValue(row?.opportunity_id)).length
-  const groupedCount = latestArtifactGroups.value.filter((group) => group.artifacts.length > 1).length
-  const safeTotal = total || 1
-  return {
-    total,
-    attentionCount,
-    readyCount,
-    linkedCount,
-    groupedCount,
-    readyRate: Math.round((readyCount / safeTotal) * 100),
-    attentionShare: total ? (attentionCount / total) * 100 : 0,
-    linkedShare: total ? (linkedCount / total) * 100 : 0,
-    readyShare: total ? (readyCount / total) * 100 : 0,
-  }
+const visibleSelectableRowIds = computed(() =>
+  displayRows.value.map((row) => String(row.recordId || row.cardId || '').trim()).filter(Boolean),
+)
+const selectedRows = computed(() => displayRows.value.filter((row) => isRowSelected(row)))
+
+const allVisibleSelected = computed(() => {
+  if (!visibleSelectableRowIds.value.length) return false
+  return visibleSelectableRowIds.value.every((id) => selectedRowIds.value.includes(id))
 })
 
-const artifactsHeroText = computed(() => {
-  const { total, readyCount, attentionCount, linkedCount } = artifactsDashboard.value
-  if (!total) {
-    return 'Drop source files here to start review, linking, and artifact cleanup.'
-  }
-  return `${total} artifacts tracked, ${readyCount} ready, ${attentionCount} still need attention, and ${linkedCount} already linked into opportunities.`
+const someVisibleSelected = computed(() => {
+  if (!visibleSelectableRowIds.value.length) return false
+  return visibleSelectableRowIds.value.some((id) => selectedRowIds.value.includes(id))
 })
 
-function draftHasResumeState(draft = {}) {
-  if (!draft || typeof draft !== 'object') return false
+const heroTitle = computed(() => 'Shared File / Page View Shell')
+const heroText = computed(
+  () => 'This is the actual fixed page shell under standardization. The selected L1 source changes the real payload and canonical L2/L3 structure underneath it.',
+)
 
-  return Boolean(
-    String(draft?.resumeMode || '').trim() === 'existing-artifact-link' ||
-    draft?.opportunityForm ||
-    draft?.companyForm ||
-    draft?.contactForm ||
-    Object.keys(draft?.ingestStatusByFile || {}).length > 0 ||
-    Object.keys(draft?.releasedMarkdownChunks || {}).length > 0 ||
-    (Array.isArray(draft?.draftArtifactIds) && draft.draftArtifactIds.length > 0) ||
-    (Array.isArray(draft?.resumeArtifactIds) && draft.resumeArtifactIds.length > 0) ||
-    (Array.isArray(draft?.generatedNotes) && draft.generatedNotes.length > 0) ||
-    (Array.isArray(draft?.generatedTasks) && draft.generatedTasks.length > 0) ||
-    Object.keys(draft?.assistantProposal || {}).length > 0
-  )
-}
-
-const resumeIntakeDraft = computed(() => {
-  const activeDraftId = String(intakeDraftState.activeDraftId || '').trim()
-  const orderedDrafts = [
-    ...(activeDraftId && intakeDraftState.drafts?.[activeDraftId]
-      ? [intakeDraftState.drafts[activeDraftId]]
-      : []),
-    ...Object.values(intakeDraftState.drafts || {})
-      .filter((draft) => String(draft?.id || '').trim() !== activeDraftId)
-      .sort(
-        (left, right) =>
-          parseDateValue(String(right?.updatedAt || right?.updated_at || right?.createdAt || '')) -
-          parseDateValue(String(left?.updatedAt || left?.updated_at || left?.createdAt || '')),
-      ),
-  ]
-
-  return orderedDrafts.find((draft) => draftHasResumeState(draft)) || null
-})
-
-const resumeIntakeBannerText = computed(() => {
-  const draft = resumeIntakeDraft.value
-  if (!draft) return ''
-
-  const fileCount = Array.isArray(draft?.droppedFiles) ? draft.droppedFiles.length : 0
-  const stage = String(draft?.stage || '').trim() || 'In progress'
-  const linkedMode = String(draft?.resumeMode || '').trim() === 'existing-artifact-link'
-
-  if (linkedMode) {
-    return `Draft is waiting at ${stage.toLowerCase()}. Jump back in and finish linking the artifact.`
-  }
-
-  if (fileCount === 1) {
-    return `1 file is mid-intake at ${stage.toLowerCase()}. Jump back into the processing window.`
-  }
-
-  return `${fileCount || 'Your'} files are mid-intake at ${stage.toLowerCase()}. Jump back into the processing window.`
-})
-
-function resumeArtifactProcessing() {
-  const draftId = String(resumeIntakeDraft.value?.id || '').trim()
-  if (!draftId) return
-  setActiveIntakeDraft(draftId)
-  globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
-}
-
-const artifactsDashboardStats = computed(() => [
+const heroStats = computed(() => [
   {
-    label: 'Total artifacts',
-    value: artifactsDashboard.value.total,
-    caption: 'Files tracked in the workspace',
+    label: 'Source',
+    value: activeRegistryEntry.value?.label || '--',
+    caption: 'Selected L1 entity',
     tone: 'neutral',
   },
   {
-    label: 'Ready',
-    value: artifactsDashboard.value.readyCount,
-    caption: 'No immediate review blockers',
+    label: 'Rows',
+    value: rawRows.value.length,
+    caption: 'Real rows loaded',
     tone: 'rich',
   },
   {
-    label: 'Linked',
-    value: artifactsDashboard.value.linkedCount,
-    caption: 'Already connected to an opportunity',
-    tone: 'rich',
+    label: 'L2',
+    value: level2Sections.value.length,
+    caption: 'Canonical sections',
+    tone: 'neutral',
   },
   {
-    label: 'Grouped',
-    value: artifactsDashboard.value.groupedCount,
-    caption: 'Have RAW and MD siblings together',
+    label: 'L3',
+    value: level3Tokens.value.length,
+    caption: 'Canonical tokens',
     tone: 'sparse',
   },
 ])
 
-const previewPdfSrc = computed(() => {
-  if (previewState.value.kind !== 'pdf') return ''
-  const base =
-    previewPdfObjectUrl.value ||
-    previewState.value.fileUrl ||
-    (previewState.value.fileDataBase64 ? `data:application/pdf;base64,${previewState.value.fileDataBase64}` : '')
-  if (!base) return ''
-  const page = Math.max(1, Number(previewCurrentPage.value || 1))
-  return `${base}#page=${page}`
+const healthText = computed(() => {
+  return `The shell is fixed. Real rows and explicit canonical token values are shown without guessing. Unmapped shell slots remain placeholders until canonical shell mapping exists.`
 })
 
-const previewKindLabel = computed(() => {
-  if (previewState.value.kind === 'pdf') return 'PDF preview'
-  if (previewState.value.kind === 'image') return 'Image preview'
-  if (previewState.value.kind === 'text') return 'Text preview'
-  return 'Artifact preview'
-})
-
-const previewArtifactGroup = computed(() => {
-  const artifactId = String(previewState.value.artifactId || '').trim()
-  if (!artifactId) return null
-  return findArtifactGroup({ artifact_id: artifactId })
-})
-
-const previewReviewDraft = computed(() => {
-  const previewArtifactIds = new Set(
-    (previewArtifactGroup.value?.artifacts || [])
-      .map((artifact) => String(artifact?.artifact_id || '').trim())
-      .filter(Boolean),
-  )
-  if (!previewArtifactIds.size) return null
-
-  return Object.values(intakeDraftState.drafts || {}).find((draft) => {
-    const draftArtifactIds = [
-      ...(Array.isArray(draft?.draftArtifactIds) ? draft.draftArtifactIds : []),
-      ...(Array.isArray(draft?.resumeArtifactIds) ? draft.resumeArtifactIds : []),
-      ...Object.values(draft?.releasedMarkdownChunks || {}).map((chunk) => chunk?.artifact_id),
-    ]
-      .map((value) => String(value || '').trim())
-      .filter(Boolean)
-    return draftArtifactIds.some((artifactId) => previewArtifactIds.has(artifactId))
-  }) || null
-})
-
-const PREVIEW_FILE_REVIEW_TABS = [
-  { key: 'users', label: '1. Users', caption: 'Owner and guest data points that belong in the Users file.' },
-  { key: 'artifacts', label: '2. Artifacts', caption: 'Artifact metadata and filing checks for the Artifacts file.' },
-  { key: 'contacts', label: '3. Contacts', caption: 'Contact records and person-linked golden items.' },
-  { key: 'companies', label: '4. Companies', caption: 'Company golden items ordered by company subsections.' },
-  { key: 'opportunities', label: '5. Opportunities', caption: 'Fund, round, and opportunity-linked review items.' },
-  { key: 'pipelines', label: '6. Pipelines', caption: 'Pipeline and project golden items for filing.' },
-  { key: 'notes', label: '7. Notes', caption: 'Notes-linked review items and observations.' },
-  { key: 'tasks', label: '8. Tasks', caption: 'Task-linked review items that still need filing.' },
-]
-
-const PREVIEW_SUBSECTION_ORDERS = {
-  users: ['Owner section', 'Team section', 'Guest section', 'General review'],
-  artifacts: ['Artifact metadata', 'Artifact title', 'Artifact intake', 'General review'],
-  contacts: ['Primary Contact section', 'Contact section', 'General review'],
-  companies: ['Company section', 'General review'],
-  opportunities: ['Opportunity section', 'Fund section', 'Round section', 'General review'],
-  pipelines: ['Pipeline section', 'General review'],
-  notes: ['Notes section', 'General review'],
-  tasks: ['Tasks section', 'Task section', 'General review'],
-}
-
-const CONNECTED_CLAIM_OWNER_TABLES = new Set([
-  'Companies',
-  'Rounds',
-  'Funds',
-  'Contacts',
-  'Tasks',
-  'Projects',
-  'Notes',
-  'Artifacts',
-  'Intros',
-  'PipelineInvestmentProcess',
-  'Regions',
-  'Industries',
+const healthSegments = computed(() => [
+  { tone: 'medium', width: 35 },
+  { tone: 'rich', width: 45 },
+  { tone: 'sparse', width: 20 },
 ])
 
-const NOISY_REVIEW_FIELD_KEYS = new Set([
-  'documentType',
-  'artifactTitle',
-  'matchingDocumentName',
+const searchPlaceholder = computed(() => `Search ${activeRegistryEntry.value?.label || 'Records'}`)
+const viewOptions = Object.freeze([
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
 ])
 
-function isConnectedReviewClaim(claim = {}) {
-  const fieldValue = String(claim?.field_value || '').trim()
-  if (!fieldValue) return false
-
-  const fieldKey = String(claim?.field_key || '').trim()
-  if (NOISY_REVIEW_FIELD_KEYS.has(fieldKey)) return false
-
-  const ownerTable = String(claim?.owner_table || '').trim()
-  const consumerLane = String(claim?.consumer_lane || '').trim().toLowerCase()
-  const itemBox = formatClaimItemBox(fieldKey)
-
-  if (CONNECTED_CLAIM_OWNER_TABLES.has(ownerTable)) return true
-  if (itemBox === 'Opportunity section') return true
-  if (consumerLane === 'opportunity') return true
-  return false
-}
-
-const previewConnectedClaimRows = computed(() => {
-  const draft = previewReviewDraft.value
-  const chunkIds = new Set(
-    Object.values(draft?.releasedMarkdownChunks || {})
-      .filter((chunk) => String(chunk?.artifact_id || '').trim() === previewMarkdownArtifactId.value)
-      .map((chunk) => String(chunk?.chunk_id || '').trim())
-      .filter(Boolean),
-  )
-
-  return (Array.isArray(draft?.usedMetadataClaims) ? draft.usedMetadataClaims : [])
-    .filter((claim) => {
-      const sourceChunkId = String(claim?.source_chunk_id || '').trim()
-      return (!chunkIds.size || chunkIds.has(sourceChunkId)) && isConnectedReviewClaim(claim)
-    })
-    .map((claim) => ({
-      ...claim,
-      field_label: formatClaimFieldLabel(claim?.field_key),
-      item_box: formatClaimItemBox(claim?.field_key),
-    }))
-})
-
-const previewUsedClaimRows = computed(() => {
-  if (previewState.value.kind === 'pdf') {
-    const sourceChunkIds = Array.isArray(previewSelectedMarkdownSection.value?.sourceChunkIds)
-      ? previewSelectedMarkdownSection.value.sourceChunkIds.map((value) => String(value || '').trim()).filter(Boolean)
-      : []
-    if (!sourceChunkIds.length) return []
-    const sourceChunkIdSet = new Set(sourceChunkIds)
-    return previewConnectedClaimRows.value.filter((claim) =>
-      sourceChunkIdSet.has(String(claim?.source_chunk_id || '').trim()),
-    )
-  }
-  if (!previewSelectedSectionKey.value) return previewConnectedClaimRows.value
-  return previewConnectedClaimRows.value.filter(
-    (claim) => String(claim?.source_chunk_id || '').trim() === String(previewSelectedSectionKey.value || '').trim(),
-  )
-})
-
-const previewMarkdownSourceLabel = computed(() => {
-  const artifact = (previewArtifactGroup.value?.artifacts || []).find(
-    (entry) => String(entry?.artifact_id || '').trim() === previewMarkdownArtifactId.value,
-  )
-  const artifactType = String(artifact?.artifact_type || '').trim()
-  return artifactType ? artifactType.toUpperCase() : ''
-})
-
-const previewMarkdownSections = computed(() => {
-  const chunkMap = previewReviewDraft.value?.releasedMarkdownChunks || {}
-  const chunkRows = Object.values(chunkMap)
-    .filter((chunk) => String(chunk?.artifact_id || '').trim() === previewMarkdownArtifactId.value)
-    .sort((left, right) => String(left?.created_at || '').localeCompare(String(right?.created_at || '')))
-
-  const hasStructuredChunkSections = chunkRows.some((chunk) => {
-    const pageRange = String(chunk?.source_page_range || '').trim()
-    const markdownText = String(chunk?.markdown_text || '').trim()
-    return Boolean(pageRange || markdownText)
-  })
-
-  if (previewState.value.kind === 'pdf' && previewPdfPageCount.value > 0) {
-    return buildPdfPageSections({
-      artifactId: previewMarkdownArtifactId.value || 'markdown',
-      pageCount: previewPdfPageCount.value,
-      chunkRows,
-      markdown: previewMarkdownContent.value,
-      usedClaims: previewConnectedClaimRows.value,
-    })
-  }
-
-  if (chunkRows.length && hasStructuredChunkSections) {
-    return chunkRows.map((chunk, index) => ({
-      key: String(chunk?.chunk_id || `chunk:${index}`),
-      title: formatPreviewSectionTitle(chunk, index),
-      text: String(chunk?.markdown_text || '').trim() || previewMarkdownContent.value || 'Markdown text not stored for this chunk yet.',
-      used:
-        Array.isArray(chunk?.used_by) && chunk.used_by.length > 0
-          ? true
-          : previewConnectedClaimRows.value.some(
-              (claim) => String(claim?.source_chunk_id || '').trim() === String(chunk?.chunk_id || '').trim(),
-            ),
-      ownedFields: Array.isArray(chunk?.owned_fields) ? chunk.owned_fields.filter(Boolean) : [],
-      sourceChunkIds: [String(chunk?.chunk_id || `chunk:${index}`)],
-    }))
-  }
-
-  if (!previewMarkdownContent.value.trim()) return []
-  return derivePreviewSectionsFromMarkdown(previewMarkdownContent.value, {
-    artifactId: previewMarkdownArtifactId.value,
-    isPdf: false,
-    usedClaims: previewConnectedClaimRows.value,
-  })
-})
-
-const previewSectionOptions = computed(() =>
-  previewMarkdownSections.value.map((section) => ({
-    label: section.title,
-    value: section.key,
-  })),
+const multiTokenFilterSections = computed(() =>
+  level2Sections.value.filter((section) => getFilterSectionTokenCount(section.key) > 1),
 )
-
-const previewPageOptions = computed(() =>
-  Array.from({ length: Math.max(0, Number(previewPdfPageCount.value || 0)) }, (_, index) => ({
-    label: `Page ${index + 1}`,
-    value: index + 1,
-  })),
+const tableLeftSections = computed(() =>
+  level2Sections.value.filter((section) => {
+    const label = String(section.label || '').trim().toLowerCase()
+    return label !== 'kdb' && label !== 'system'
+  }),
 )
+const tableRightSections = computed(() =>
+  level2Sections.value.filter((section) => {
+    const label = String(section.label || '').trim().toLowerCase()
+    return label === 'kdb' || label === 'system'
+  }),
+)
+const summarySectionShellOptions = Object.freeze(buildCardRelationshipOptions())
 
-const previewSelectedMarkdownSection = computed(() => {
-  if (!previewMarkdownSections.value.length) return null
-  if (previewState.value.kind === 'pdf') {
-    const page = Math.max(1, Math.min(Number(previewCurrentPage.value || 1), previewMarkdownSections.value.length))
-    return previewMarkdownSections.value[page - 1] || null
-  }
-  const selectedKey = String(previewSelectedSectionKey.value || '').trim()
-  return (
-    previewMarkdownSections.value.find((section) => section.key === selectedKey) ||
-    previewMarkdownSections.value[0]
-  )
-})
-
-const previewFocusClaimRows = computed(() => {
-  const seen = new Set()
-  return previewConnectedClaimRows.value.filter((claim) => {
-    const key = `${String(claim?.field_key || '').trim()}::${String(claim?.field_value || '').trim()}`
-    if (!key.trim() || seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
-})
-
-const previewSelectedFocusClaim = computed(() => {
-  const selectedId = String(previewSelectedFocusClaimId.value || '').trim()
-  return (
-    previewFocusClaimRows.value.find((claim) => String(claim?.claim_id || '').trim() === selectedId) ||
-    previewFocusClaimRows.value[0] ||
-    null
-  )
-})
-
-function previewTabKeyForClaim(claim = {}) {
-  const ownerTable = String(claim?.owner_table || '').trim()
-  const itemBox = String(claim?.item_box || '').trim().toLowerCase()
-  const consumerLane = String(claim?.consumer_lane || '').trim().toLowerCase()
-
-  if (ownerTable === 'Users') return 'users'
-  if (ownerTable === 'Artifacts') return 'artifacts'
-  if (ownerTable === 'Contacts') return 'contacts'
-  if (ownerTable === 'Companies') return 'companies'
-  if (ownerTable === 'Projects') return 'pipelines'
-  if (ownerTable === 'Notes') return 'notes'
-  if (ownerTable === 'Tasks') return 'tasks'
-  if (ownerTable === 'Funds' || ownerTable === 'Rounds') return 'opportunities'
-  if (consumerLane === 'opportunity' || itemBox === 'opportunity section') return 'opportunities'
-  if (itemBox.includes('contact')) return 'contacts'
-  if (itemBox.includes('company')) return 'companies'
-  if (itemBox.includes('artifact')) return 'artifacts'
-  return ''
-}
-
-function previewSubsectionLabelForClaim(claim = {}) {
-  const ownerTable = String(claim?.owner_table || '').trim()
-  const itemBox = String(claim?.item_box || '').trim()
-  if (itemBox && itemBox !== 'Dialog review') return itemBox
-  if (ownerTable === 'Users') return 'Owner section'
-  if (ownerTable === 'Funds') return 'Fund section'
-  if (ownerTable === 'Rounds') return 'Round section'
-  if (ownerTable === 'Projects') return 'Pipeline section'
-  if (ownerTable === 'Tasks') return 'Task section'
-  if (ownerTable === 'Notes') return 'Notes section'
-  if (ownerTable) return `${ownerTable} section`
-  return 'General review'
-}
-
-function comparePreviewSubsectionLabels(tabKey, leftLabel, rightLabel) {
-  const order = PREVIEW_SUBSECTION_ORDERS[tabKey] || []
-  const leftIndex = order.indexOf(leftLabel)
-  const rightIndex = order.indexOf(rightLabel)
-  if (leftIndex !== -1 || rightIndex !== -1) {
-    if (leftIndex === -1) return 1
-    if (rightIndex === -1) return -1
-    return leftIndex - rightIndex
-  }
-  return leftLabel.localeCompare(rightLabel)
-}
-
-const previewReviewTabs = computed(() => {
-  return PREVIEW_FILE_REVIEW_TABS.map((tab) => {
-    const rows = previewConnectedClaimRows.value.filter((claim) => previewTabKeyForClaim(claim) === tab.key)
-    const grouped = new Map()
-
-    for (const claim of rows) {
-      const groupLabel = previewSubsectionLabelForClaim(claim)
-      const groupKey = groupLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-      if (!grouped.has(groupKey)) {
-        grouped.set(groupKey, {
-          key: groupKey,
-          label: groupLabel,
-          caption: `Golden items that belong in ${groupLabel}.`,
-          rows: [],
-        })
-      }
-      grouped.get(groupKey).rows.push(claim)
-    }
-
-    const groups = [...grouped.values()]
-      .map((group) => ({
-        ...group,
-        rows: [...group.rows].sort((left, right) => {
-          const leftLabel = String(left?.field_label || '').toLowerCase()
-          const rightLabel = String(right?.field_label || '').toLowerCase()
-          if (leftLabel !== rightLabel) return leftLabel.localeCompare(rightLabel)
-          return String(left?.field_value || '').localeCompare(String(right?.field_value || ''))
-        }),
-      }))
-      .sort((left, right) => comparePreviewSubsectionLabels(tab.key, left.label, right.label))
-
-    return {
-      ...tab,
-      rows,
-      groups,
-    }
-  })
-})
-
-const previewPrimaryArtifact = computed(() => previewArtifactGroup.value?.primaryArtifact || null)
-
-const showContinueDocumentReview = computed(
-  () =>
-    Boolean(previewPrimaryArtifact.value?.artifact_id) &&
-    !previewMarkdownLoading.value &&
-    (!previewSelectedMarkdownSection.value || !previewUsedClaimRows.value.length),
+watch(
+  activeSourceKey,
+  async () => {
+    searchQuery.value = ''
+    activeFilterSectionKey.value = ''
+    activeFilterTokenKey.value = ''
+    expandedFilterSectionKey.value = ''
+    await loadRows()
+    activeSectionKeyForCards.value = level2Sections.value[0]?.key || ''
+  },
+  { immediate: true },
 )
 
 watch(
-  previewReviewTabs,
-  (tabs) => {
-    const current = String(previewReviewTab.value || '').trim()
-    if (!tabs.some((tab) => tab.key === current)) {
-      previewReviewTab.value = tabs[0]?.key || 'users'
+  level2Sections,
+  (sections) => {
+    if (!sections.some((section) => section.key === activeSectionKeyForCards.value)) {
+      activeSectionKeyForCards.value = sections[0]?.key || ''
     }
   },
   { immediate: true },
 )
 
-async function loadArtifacts() {
-  if (!hasBridge.value) return
-  loading.value = true
+watch(
+  displayRows,
+  (rows) => {
+    const nextMap = {}
+    rows.forEach((row) => {
+      const rowId = getRowSelectionId(row)
+      if (!rowId) return
+      nextMap[rowId] = resolveCardRelationshipPanel(cardRelationshipPanelById.value[rowId], row.relationshipItemsByType || {})
+    })
+    cardRelationshipPanelById.value = nextMap
+  },
+  { immediate: true },
+)
+
+watch(
+  [createDialogOpen, activeSourceKey, createKeyFieldTokens, createSectionGroups],
+  async ([isOpen]) => {
+    if (!isOpen) return
+    await preloadCreateDialogOptionSources()
+  },
+  { immediate: true },
+)
+
+watch(
+  [() => route.name, () => route.query.create, activeSourceKey, createKeyFieldTokens, createSectionGroups],
+  async ([routeName, createFlag]) => {
+    if (String(routeName || '').trim() !== 'artifacts') return
+    if (!String(createFlag || '').trim()) return
+
+    await preloadCreateDialogOptionSources()
+
+    const nextInitialValues = {}
+    if (activeSourceKey.value === 'opportunities') {
+      const requestedKind = String(route.query.kind || '').trim().toLowerCase()
+      const opportunityKindToken =
+        [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+          (token) => String(token?.tokenName || '').trim() === 'Opportunity_Kind',
+        ) || null
+
+      if (opportunityKindToken && (requestedKind === 'fund' || requestedKind === 'round')) {
+        nextInitialValues[opportunityKindToken.key] = resolveCreateDialogOptionValue(opportunityKindToken, requestedKind)
+      }
+    }
+
+    openCreateRecordShell({ initialValues: nextInitialValues })
+
+    const nextQuery = {
+      ...route.query,
+    }
+    delete nextQuery.create
+    delete nextQuery.kind
+    router.replace({ query: nextQuery })
+  },
+  { immediate: true },
+)
+
+watch(
+  [activeSourceKey, availableCardItemTokens],
+  () => {
+    const sourceKey = activeSourceKey.value
+    const allowedKeys = new Set(availableCardItemTokens.value.map((token) => token.key))
+    const existing = Array.isArray(cardItemKeysBySource.value[sourceKey]) ? cardItemKeysBySource.value[sourceKey] : []
+    const normalized = existing.filter((key) => allowedKeys.has(key))
+
+    if (normalized.length) {
+      if (normalized.length !== existing.length) {
+        cardItemKeysBySource.value = {
+          ...cardItemKeysBySource.value,
+          [sourceKey]: normalized,
+        }
+      }
+      return
+    }
+
+    cardItemKeysBySource.value = {
+      ...cardItemKeysBySource.value,
+      [sourceKey]: availableCardItemTokens.value.slice(0, 4).map((token) => token.key),
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  [activeSourceKey, cardItemTokenGroups],
+  () => {
+    const sourceKey = activeSourceKey.value
+    const availableKeys = new Set(cardItemTokenGroups.value.map((group) => group.key))
+    const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
+    const normalized = Array.isArray(existing)
+      ? existing.filter((key) => availableKeys.has(key))
+      : cardItemTokenGroups.value.map((group) => group.key)
+
+    expandedCardSettingsGroupsBySource.value = {
+      ...expandedCardSettingsGroupsBySource.value,
+      [sourceKey]: normalized,
+    }
+  },
+  { immediate: true },
+)
+
+let removeColumnResizeListeners = null
+
+function getColumnWidth(columnKey, fallbackWidth) {
+  const storedWidth = Number(tableColumnWidths.value[String(columnKey || '').trim()])
+  return Number.isFinite(storedWidth) && storedWidth > 0 ? storedWidth : fallbackWidth
+}
+
+function getTableColumnStyle(columnKey, fallbackWidth) {
+  const width = getColumnWidth(columnKey, fallbackWidth)
+  return {
+    width: `${width}px`,
+    minWidth: `${width}px`,
+  }
+}
+
+function isCardItemEnabled(tokenKey) {
+  return enabledCardItemKeys.value.includes(tokenKey)
+}
+
+function getCardItemOrderIndex(tokenKey) {
+  return enabledCardItemKeys.value.indexOf(tokenKey)
+}
+
+function setCardItemEnabled(tokenKey, nextValue) {
+  const sourceKey = activeSourceKey.value
+  const current = enabledCardItemKeys.value
+  if (!nextValue) {
+    cardItemKeysBySource.value = {
+      ...cardItemKeysBySource.value,
+      [sourceKey]: current.filter((key) => key !== tokenKey),
+    }
+    return
+  }
+  if (current.includes(tokenKey)) return
+  cardItemKeysBySource.value = {
+    ...cardItemKeysBySource.value,
+    [sourceKey]: [...current, tokenKey],
+  }
+}
+
+function moveCardItem(tokenKey, direction) {
+  const sourceKey = activeSourceKey.value
+  const current = [...enabledCardItemKeys.value]
+  const currentIndex = current.indexOf(tokenKey)
+  const nextIndex = currentIndex + direction
+  if (currentIndex < 0 || nextIndex < 0 || nextIndex >= current.length) return
+  const [item] = current.splice(currentIndex, 1)
+  current.splice(nextIndex, 0, item)
+  cardItemKeysBySource.value = {
+    ...cardItemKeysBySource.value,
+    [sourceKey]: current,
+  }
+}
+
+function isCardSettingsGroupExpanded(groupKey) {
+  return expandedCardSettingsGroups.value.includes(groupKey)
+}
+
+function toggleCardSettingsGroup(groupKey) {
+  const sourceKey = activeSourceKey.value
+  const current = [...expandedCardSettingsGroups.value]
+  const next = current.includes(groupKey)
+    ? current.filter((key) => key !== groupKey)
+    : [...current, groupKey]
+
+  expandedCardSettingsGroupsBySource.value = {
+    ...expandedCardSettingsGroupsBySource.value,
+    [sourceKey]: next,
+  }
+}
+
+function stopColumnResize() {
+  if (typeof removeColumnResizeListeners === 'function') {
+    removeColumnResizeListeners()
+    removeColumnResizeListeners = null
+  }
+}
+
+function startColumnResize(columnKey, minWidth, event) {
+  stopColumnResize()
+  const normalizedKey = String(columnKey || '').trim()
+  const startX = Number(event?.clientX || 0)
+  const initialWidth = getColumnWidth(normalizedKey, minWidth)
+
+  const handlePointerMove = (moveEvent) => {
+    const nextWidth = Math.max(minWidth, initialWidth + Number(moveEvent?.clientX || 0) - startX)
+    tableColumnWidths.value = {
+      ...tableColumnWidths.value,
+      [normalizedKey]: nextWidth,
+    }
+  }
+
+  const handlePointerUp = () => {
+    stopColumnResize()
+  }
+
+  window.addEventListener('mousemove', handlePointerMove)
+  window.addEventListener('mouseup', handlePointerUp)
+  removeColumnResizeListeners = () => {
+    window.removeEventListener('mousemove', handlePointerMove)
+    window.removeEventListener('mouseup', handlePointerUp)
+  }
+}
+
+onBeforeUnmount(() => {
+  stopColumnResize()
+})
+
+async function loadRows() {
   error.value = ''
+  rawRows.value = []
+  const loader = activeLoader.value
+  if (!loader) {
+    error.value = 'This section does not have a supported live loader yet.'
+    return
+  }
+
+  const bridgeValue = bridge.value
+  if (!bridgeValue) {
+    error.value = 'The preload bridge is not available.'
+    return
+  }
+
+  loading.value = true
   try {
-    const result = await bridge.value.artifacts.list()
-    rows.value = result?.artifacts || []
-    normalizeSelectedRows()
-  } catch (e) {
-    error.value = e?.message || String(e)
-    rows.value = []
-    normalizeSelectedRows()
+    const result = await loader.listFn(bridgeValue)
+    rawRows.value = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
+  } catch (loadError) {
+    error.value = loadError?.message || `Could not load ${activeRegistryEntry.value?.label || 'records'}.`
   } finally {
     loading.value = false
   }
 }
 
-async function importRows(importedRows) {
-  const result = await bridge.value.artifacts.upsertMany(importedRows)
-  await loadArtifacts()
-  return result
-}
-
-async function loadOpportunities() {
-  if (!bridge.value?.opportunities?.list) {
-    opportunities.value = []
-    filteredOpportunityOptions.value = []
-    return
-  }
-
-  try {
-    const result = await bridge.value.opportunities.list()
-    opportunities.value = Array.isArray(result?.opportunities) ? result.opportunities : []
-    filteredOpportunityOptions.value = [...opportunities.value]
-  } catch {
-    opportunities.value = []
-    filteredOpportunityOptions.value = []
-  }
-}
-
-async function loadRelationshipOptions() {
-  await Promise.all([loadCompanies(), loadIndustries(), loadRegions(), loadArtifactCompanyLinks()])
-}
-
-async function loadCompanies() {
-  if (!bridge.value?.companies?.list) {
-    companies.value = []
-    filteredCompanyOptions.value = []
-    return
-  }
-
-  try {
-    const result = await bridge.value.companies.list()
-    companies.value = Array.isArray(result?.companies) ? result.companies : []
-    filteredCompanyOptions.value = [...companies.value]
-  } catch {
-    companies.value = []
-    filteredCompanyOptions.value = []
-  }
-}
-
-async function loadIndustries() {
-  if (!bridge.value?.db?.query) {
-    industries.value = []
-    filteredIndustryOptions.value = []
-    return
-  }
-
-  try {
-    const rows = await bridge.value.db.query(
-      `
-      SELECT id, Industry_Name
-      FROM Industries
-      ORDER BY COALESCE(Industry_Name, id), id
-    `,
-    )
-    industries.value = Array.isArray(rows) ? rows : []
-    filteredIndustryOptions.value = [...industries.value]
-  } catch {
-    industries.value = []
-    filteredIndustryOptions.value = []
-  }
-}
-
-async function loadRegions() {
-  if (!bridge.value?.db?.query) {
-    regions.value = []
-    filteredRegionOptions.value = []
-    return
-  }
-
-  try {
-    const rows = await bridge.value.db.query(
-      `
-      SELECT id, Name
-      FROM Regions
-      ORDER BY COALESCE(Name, id), id
-    `,
-    )
-    regions.value = Array.isArray(rows) ? rows : []
-    filteredRegionOptions.value = [...regions.value]
-  } catch {
-    regions.value = []
-    filteredRegionOptions.value = []
-  }
-}
-
-function normalizeSelectedRows() {
-  const activeIds = new Set(displayArtifactRows.value.map((row) => row.artifact_id))
-  selectedRows.value = selectedRows.value.filter((row) => activeIds.has(row.artifact_id))
-}
-
-function isSelected(row) {
-  const rowId = String(row?.artifact_id || '').trim()
-  if (!rowId) return false
-  return selectedRows.value.some((selectedRow) => String(selectedRow?.artifact_id || '').trim() === rowId)
-}
-
-function toggleRowSelection(row, shouldSelect) {
-  const rowId = String(row?.artifact_id || '').trim()
-  if (!rowId) return
-  if (shouldSelect) {
-    if (isSelected(row)) return
-    selectedRows.value = [...selectedRows.value, row]
-    return
-  }
-  selectedRows.value = selectedRows.value.filter(
-    (selectedRow) => String(selectedRow?.artifact_id || '').trim() !== rowId,
+function buildShellRow(row, index) {
+  const recordIdField = activeLoader.value?.recordIdField || ''
+  const recordId = String(row?.[recordIdField] || '').trim()
+  const titleValue = stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
+  const sourcePrefixes = (
+    activeRegistryEntry.value?.relationshipSourcePrefixes?.length
+      ? activeRegistryEntry.value.relationshipSourcePrefixes
+      : [activeRegistryEntry.value?.singularLabel]
   )
-}
-
-function parseDateValue(value) {
-  const raw = String(value || '').trim()
-  if (!raw) return 0
-  const parsed = Date.parse(raw.replace(' ', 'T'))
-  return Number.isNaN(parsed) ? 0 : parsed
-}
-
-function artifactGroupKey(row = {}) {
-  return String(row?.original_artifact_id || row?.artifact_id || '').trim()
-}
-
-function compareArtifactPriority(left = {}, right = {}) {
-  const priority = {
-    'llm-ready': 0,
-    raw: 1,
-    'llm-generated': 2,
-  }
-  const leftPriority = priority[String(left?.artifact_type || '').trim().toLowerCase()] ?? 99
-  const rightPriority = priority[String(right?.artifact_type || '').trim().toLowerCase()] ?? 99
-  if (leftPriority !== rightPriority) return leftPriority - rightPriority
-  return parseDateValue(right?.created_at) - parseDateValue(left?.created_at)
-}
-
-function resolveMetadataArtifact(group = []) {
-  return [...group].sort(compareArtifactPriority)[0] || {}
-}
-
-function resolvePreviewArtifact(group = []) {
-  return (
-    group.find((artifact) => String(artifact?.artifact_type || '').trim().toLowerCase() === 'raw') ||
-    resolveMetadataArtifact(group)
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+  const tokenPresence = Object.fromEntries(
+    level3Tokens.value.map((token) => [token.key, Boolean(stringifyValue(getCanonicalTokenValue(row, token)))]),
   )
-}
-
-function groupArtifacts(items = []) {
-  const grouped = new Map()
-  for (const item of items) {
-    const key = artifactGroupKey(item)
-    if (!key) continue
-    if (!grouped.has(key)) grouped.set(key, [])
-    grouped.get(key).push(item)
-  }
-
-  return [...grouped.entries()].map(([groupId, artifacts]) => {
-    const sortedArtifacts = [...artifacts].sort(compareArtifactPriority)
-    const primaryArtifact = resolveMetadataArtifact(sortedArtifacts)
-    const previewArtifact = resolvePreviewArtifact(sortedArtifacts)
-    const latestCreatedAt = sortedArtifacts.reduce((latest, artifact) => {
-      return parseDateValue(artifact?.created_at) > parseDateValue(latest) ? artifact?.created_at || '' : latest
-    }, '')
-    const versionSummary = sortedArtifacts
-      .map((artifact) => String(artifact?.artifact_type || 'artifact').trim().toUpperCase())
-      .filter(Boolean)
-      .join(' / ')
-
+  const sectionPresence = Object.fromEntries(
+    level2Sections.value.map((section) => [
+      section.key,
+      level3Tokens.value
+        .filter((token) => token.parentKey === section.key)
+        .some((token) => tokenPresence[token.key]),
+    ]),
+  )
+  const tokenRows = tableSectionTokens.value.map((token) => {
+    const rawValue = getCanonicalTokenValue(row, token)
+    const value = stringifyValue(rawValue)
     return {
-      groupId,
-      artifacts: sortedArtifacts,
-      primaryArtifact,
-      previewArtifact,
-      latestCreatedAt,
-      versionSummary: versionSummary || 'ARTIFACT',
+      key: `${recordId || index}:${token.key}`,
+      tokenName: token.tokenName,
+      label: token.label,
+      rawValue,
+      value,
     }
   })
+
+  const cardDetailRows = enabledCardItemKeys.value
+    .map((tokenKey) => availableCardItemTokens.value.find((token) => token.key === tokenKey))
+    .filter(Boolean)
+    .map((token) => {
+      const value = stringifyValue(getCanonicalTokenValue(row, token))
+      return {
+        key: `${recordId || index}:detail:${token.key}`,
+        label: token.label,
+        value,
+      }
+    })
+    .filter((item) => item.value)
+
+  const matchedTokenCount = tokenRows.filter((token) => token.value).length
+
+  return {
+    cardId: `${recordId || 'row'}:${index}`,
+    recordId,
+    raw: row,
+    avatarText: buildInitialsFromName(titleValue) || activeRegistryEntry.value?.singularLabel?.slice(0, 2)?.toUpperCase() || 'TS',
+    titleValue,
+    subtitleValue: '',
+    cardDetailRows,
+    relationshipItemsByType: buildCardRelationshipItems(row, sourcePrefixes),
+    sectionPresence,
+    tokenPresence,
+    sectionTokenRows: tokenRows,
+    matchedTokenCount,
+    visibleTokenCount: tokenRows.length,
+  }
 }
 
-function findArtifactGroup(row = {}) {
-  const key = artifactGroupKey(row)
-  if (!key) return null
-  return groupArtifacts(rows.value).find((group) => group.groupId === key) || null
+function getRowSelectionId(row) {
+  return String(row?.recordId || row?.cardId || '').trim()
 }
 
-function getArtifactCardSubtitle(group = {}) {
-  const displayName =
-    artifactDisplayName(group?.previewArtifact) || artifactDisplayName(group?.primaryArtifact) || 'Document'
-  const title = String(group?.primaryArtifact?.title || '').trim()
-  if (displayName && displayName !== title) return displayName
-  const format = String(group?.primaryArtifact?.artifact_format || '').trim()
-  return format ? `${group?.versionSummary || 'Single version'} • ${format}` : group?.versionSummary || 'Document'
+function isRowSelected(row) {
+  const id = getRowSelectionId(row)
+  return Boolean(id) && selectedRowIds.value.includes(id)
 }
 
-function getArtifactCardDetails(group = {}) {
-  return [
-    {
-      label: 'Summary',
-      value: getArtifactCardSubtitle(group),
-      icon: 'notes',
-    },
-    {
-      label: 'Opportunity',
-      value: resolveOpportunityLabel(group?.primaryArtifact),
-      icon: 'schema',
-    },
-    {
-      label: 'Created',
-      value: formatArtifactDate(group?.latestCreatedAt),
-      icon: 'schedule',
-    },
-    {
-      label: 'Format',
-      value: String(group?.primaryArtifact?.artifact_format || 'Unknown').trim(),
-      icon: 'description',
-    },
-    {
-      label: 'Versions',
-      value: String(group?.versionSummary || 'Single version').trim(),
-      icon: 'layers',
-    },
-  ]
+function toggleRowSelection(row, nextValue) {
+  const id = getRowSelectionId(row)
+  if (!id) return
+  if (nextValue) {
+    if (!selectedRowIds.value.includes(id)) {
+      selectedRowIds.value = [...selectedRowIds.value, id]
+    }
+    return
+  }
+  selectedRowIds.value = selectedRowIds.value.filter((selectedId) => selectedId !== id)
 }
 
-function getArtifactAvatarColor() {
+function toggleSelectAllVisible(nextValue) {
+  const visibleIds = visibleSelectableRowIds.value
+  if (!visibleIds.length) return
+  if (nextValue) {
+    selectedRowIds.value = Array.from(new Set([...selectedRowIds.value, ...visibleIds]))
+    return
+  }
+  selectedRowIds.value = selectedRowIds.value.filter((id) => !visibleIds.includes(id))
+}
+
+function stringifyValue(value) {
+  if (value == null) return ''
+  if (Array.isArray(value)) return value.map((item) => stringifyValue(item)).filter(Boolean).join(', ')
+  if (typeof value === 'object') return ''
+  return String(value).trim()
+}
+
+function buildInitialsFromName(value) {
+  const parts = String(value || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  if (!parts.length) return ''
+  return parts
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('')
+}
+
+function getKdbDisplayItems(tokenRow) {
+  const rawValue = tokenRow?.rawValue
+  if (Array.isArray(rawValue)) {
+    return rawValue.map((item) => stringifyValue(item)).filter(Boolean)
+  }
+  const normalized = stringifyValue(rawValue || tokenRow?.value)
+  if (!normalized) return []
+  return normalized
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function getActiveRelationshipItems(row) {
+  return row?.relationshipItemsByType?.[getRowRelationshipPanel(row)] || []
+}
+
+function getRowRelationshipPanel(row) {
+  const rowId = getRowSelectionId(row)
+  return rowId ? cardRelationshipPanelById.value[rowId] || 'notes' : 'notes'
+}
+
+function setRowRelationshipPanel(row, nextValue) {
+  const rowId = getRowSelectionId(row)
+  if (!rowId) return
+  cardRelationshipPanelById.value = {
+    ...cardRelationshipPanelById.value,
+    [rowId]: resolveCardRelationshipPanel(nextValue, row.relationshipItemsByType || {}),
+  }
+}
+
+function getTestShellMetadataRows(row) {
+  return Array.isArray(row?.cardDetailRows) ? row.cardDetailRows : []
+}
+
+function getTestShellSubtitleRow(row) {
+  return getTestShellMetadataRows(row)[0] || null
+}
+
+function getTestShellChipRows(row) {
+  return getTestShellMetadataRows(row).slice(1)
+}
+
+function getTestShellAvatarColor() {
   return '#111111'
 }
 
-function getArtifactAvatarInitial(label) {
-  const text = String(label || 'Artifact').trim()
-  return (
-    text
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase?.() || '')
-      .join('') || 'AR'
-  )
-}
-
-function getArtifactCardStyle() {
+function getTestShellCardStyle() {
   return {
-    '--artifact-card-blob-x': '50%',
-    '--artifact-card-blob-y': '30%',
-    '--artifact-card-blob-size': '60%',
-    '--artifact-card-blob-opacity': '0',
-    '--artifact-card-blob-strong': 'rgba(38, 71, 255, 0.2)',
-    '--artifact-card-blob-soft': 'rgba(38, 71, 255, 0.1)',
-    '--artifact-card-blob-fade': 'rgba(38, 71, 255, 0.05)',
+    '--test-shell-card-blob-x': '50%',
+    '--test-shell-card-blob-y': '30%',
+    '--test-shell-card-blob-size': '60%',
+    '--test-shell-card-blob-opacity': '0',
+    '--test-shell-card-blob-strong': 'rgba(38, 71, 255, 0.2)',
+    '--test-shell-card-blob-soft': 'rgba(38, 71, 255, 0.1)',
+    '--test-shell-card-blob-fade': 'rgba(38, 71, 255, 0.05)',
   }
 }
 
-function onArtifactCardPointerEnter(event) {
-  updateArtifactCardGradientPosition(event)
-  event?.currentTarget?.style?.setProperty('--artifact-card-blob-opacity', '1')
+function onTestShellCardPointerEnter(event) {
+  updateTestShellCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--test-shell-card-blob-opacity', '1')
 }
 
-function onArtifactCardPointerMove(event) {
-  updateArtifactCardGradientPosition(event)
+function onTestShellCardPointerMove(event) {
+  updateTestShellCardGradientPosition(event)
 }
 
-function onArtifactCardPointerLeave(event) {
+function onTestShellCardPointerLeave(event) {
   const element = event?.currentTarget
   if (!element) return
-  element.style.setProperty('--artifact-card-blob-opacity', '0')
+  element.style.setProperty('--test-shell-card-blob-opacity', '0')
 }
 
-function updateArtifactCardGradientPosition(event) {
+function updateTestShellCardGradientPosition(event) {
   const element = event?.currentTarget
-  if (!element) return
+  if (!element || typeof element.getBoundingClientRect !== 'function') return
   const rect = element.getBoundingClientRect()
   if (!rect.width || !rect.height) return
   const x = ((event.clientX - rect.left) / rect.width) * 100
   const y = ((event.clientY - rect.top) / rect.height) * 100
   const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
-  element.style.setProperty('--artifact-card-blob-x', `${clamp(x, 10, 90)}%`)
-  element.style.setProperty('--artifact-card-blob-y', `${clamp(y, 10, 90)}%`)
+  element.style.setProperty('--test-shell-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--test-shell-card-blob-y', `${clamp(y, 10, 90)}%`)
 }
 
-function getArtifactCardContentView(group = {}) {
-  const rowId = String(group?.groupId || '').trim()
-  return artifactCardContentViews.value[rowId] || 'card'
-}
-
-function setArtifactCardContentView(group = {}, value) {
-  const rowId = String(group?.groupId || '').trim()
-  if (!rowId) return
-  artifactCardContentViews.value = { ...artifactCardContentViews.value, [rowId]: value || 'card' }
-}
-
-function getArtifactCardPanel(group = {}) {
-  const rowId = String(group?.groupId || '').trim()
-  return resolveCardRelationshipPanel(artifactCardPanels.value[rowId], getArtifactRelationshipItems(group))
-}
-
-function setArtifactCardPanel(group = {}, value) {
-  const rowId = String(group?.groupId || '').trim()
-  if (!rowId) return
-  artifactCardPanels.value = { ...artifactCardPanels.value, [rowId]: value || 'notes' }
-}
-
-function getArtifactRelationshipItems(group = {}) {
-  return buildCardRelationshipItems(group?.primaryArtifact || group?.previewArtifact || {}, [], {
-    notes: () => getArtifactLinkedNotes(group),
-    artifacts: () => getArtifactGroupedItems(group),
-  })
-}
-
-function getArtifactRelationshipOptions(group = {}) {
-  return buildCardRelationshipOptions(getArtifactRelationshipItems(group))
-}
-
-function getArtifactActiveRelationshipItems(group = {}) {
-  return getArtifactRelationshipItems(group)[getArtifactCardPanel(group)] || []
-}
-
-function getArtifactLinkedNotes(group = {}) {
-  const source = group?.primaryArtifact || {}
-  return [
-    ...String(source?.Artifact_Note || '')
-      .split('|')
-      .map((value) => value.trim())
-      .filter(Boolean),
-    ...String(source?.related_note_ids || '')
-      .split('|')
-      .map((value) => value.trim())
-      .filter(Boolean),
-  ].slice(0, 4)
-}
-
-function getArtifactGroupedItems(group = {}) {
-  return (Array.isArray(group?.artifacts) ? group.artifacts : [])
-    .map((artifact) => String(artifact?.title || artifactFileName(artifact) || artifact?.artifact_id || '').trim())
-    .filter(Boolean)
-    .slice(0, 4)
-}
-
-function createEmptyPropertiesForm() {
-  return {
-    artifact_id: '',
-    title: '',
-    artifact_type: '',
-    artifact_format: '',
-    type: '',
-    opportunity_id: null,
-    description: '',
-    group_artifact_ids: [],
-    group_artifact_types: [],
-    related_company_ids: [],
-    company_document_type: null,
-    related_industry_ids: [],
-    related_region_ids: [],
-    fs_path: '',
-    original_artifact_id: '',
-    created_at: '',
-  }
-}
-
-function buildOpportunityOptionLabel(opportunity = {}) {
-  const name = String(opportunity?.opportunity_name || opportunity?.Venture_Oppty_Name || 'Untitled opportunity').trim()
-  const kind = String(opportunity?.kind || 'opportunity').trim()
-  const company = String(opportunity?.Company_Name || '').trim()
-  return company ? `${name} (${kind} • ${company})` : `${name} (${kind})`
-}
-
-function resolveOpportunityLabel(row = {}) {
-  const opportunityId = String(row?.opportunity_id || '').trim()
-  if (!opportunityId) return 'Unlinked'
-  const match = opportunities.value.find((opportunity) => String(opportunity?.id || '').trim() === opportunityId)
-  return match ? buildOpportunityOptionLabel(match) : opportunityId
-}
-
-function buildCompanyOptionLabel(company = {}) {
-  const name = String(company?.Company_Name || '').trim()
-  const type = String(company?.Company_Type || '').trim()
-  return type ? `${name} (${type})` : name || String(company?.id || '').trim()
-}
-
-function artifactFileName(row = {}) {
-  const fsPath = String(row?.fs_path || '').trim()
-  if (!fsPath) return ''
-  return fsPath.split(/[\\/]/).pop() || ''
-}
-
-function looksLikeUuid(value = '') {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    String(value || '').trim(),
-  )
-}
-
-function artifactBaseName(row = {}) {
-  const fileName = artifactFileName(row)
-  if (!fileName) return ''
-  return fileName.replace(/\.[^.]+$/, '').trim()
-}
-
-function artifactDisplayName(row = {}) {
-  const title = String(row?.title || '').trim()
-  if (title && !looksLikeUuid(title)) return title
-  return artifactBaseName(row) || artifactFileName(row)
-}
-
-function formatArtifactDate(value) {
-  const raw = String(value || '').trim()
-  if (!raw) return 'Unknown'
-  const parsed = new Date(raw)
-  if (Number.isNaN(parsed.getTime())) return raw
-  return parsed.toLocaleString()
-}
-
-function artifactNeedsAttention(row = {}) {
-  return artifactNextAction(row) !== 'ready'
-}
-
-function artifactNextAction(row = {}) {
-  const title = String(row?.title || '').trim()
-  const description = String(row?.description || '').trim()
-  const opportunityId = String(row?.opportunity_id || '').trim()
-
-  if (!title || !description) return 'artifact-properties'
-  if (!opportunityId) return 'link-opportunity'
-  return 'ready'
-}
-
-function filterOpportunityOptions(value, update) {
-  update(() => {
-    const search = String(value || '').trim().toLowerCase()
-    if (!search) {
-      filteredOpportunityOptions.value = [...opportunities.value]
-      return
-    }
-
-    filteredOpportunityOptions.value = opportunities.value.filter((opportunity) => {
-      const haystack = [
-        opportunity?.opportunity_name,
-        opportunity?.Venture_Oppty_Name,
-        opportunity?.Company_Name,
-        opportunity?.kind,
-        opportunity?.id,
-      ]
-        .map((part) => String(part || '').toLowerCase())
-        .join(' ')
-      return haystack.includes(search)
+function openRecordView(row) {
+  if (!row?.recordId || !activeRegistryEntry.value?.entityName) return
+  const cardFields = selectedCardItemTokens.value.map((token) => String(token?.tokenName || '').trim()).filter(Boolean)
+  const location = buildRecordViewLocation({
+      tableName: activeRegistryEntry.value.entityName,
+      recordId: row.recordId,
+      returnTo: route.fullPath,
+      query: cardFields.length ? { cardFields: cardFields.join(',') } : {},
     })
-  })
+  if (!location) return
+  router.push(location)
 }
 
-function filterSelectableOptions(value, update, type) {
-  update(() => {
-    const search = String(value || '').trim().toLowerCase()
-    const configByType = {
-      company: {
-        source: companies.value,
-        assign: (items) => {
-          filteredCompanyOptions.value = items
-        },
-        fields: ['id', 'Company_Name', 'Company_Type', 'Website'],
-      },
-      industry: {
-        source: industries.value,
-        assign: (items) => {
-          filteredIndustryOptions.value = items
-        },
-        fields: ['id', 'Industry_Name'],
-      },
-      region: {
-        source: regions.value,
-        assign: (items) => {
-          filteredRegionOptions.value = items
-        },
-        fields: ['id', 'Name'],
-      },
-    }
-
-    const config = configByType[type]
-    if (!config) return
-    if (!search) {
-      config.assign([...config.source])
-      return
-    }
-
-    config.assign(
-      config.source.filter((item) =>
-        config.fields
-          .map((field) => String(item?.[field] || '').toLowerCase())
-          .join(' ')
-          .includes(search),
-      ),
-    )
-  })
+function openCreateRecordShell(options = {}) {
+  resetCreateDialogAutosaveState()
+  createDialogMode.value = 'create'
+  editDialogRow.value = null
+  createDialogInitialSectionKey.value = 'key-fields'
+  createDialogPrefillValues.value = options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}
+  createDialogInitialArtifacts.value = []
+  createDialogRenderKey.value += 1
+  createDialogOpen.value = true
 }
 
-async function openPropertiesDialog(row) {
-  propertiesError.value = ''
-  filteredOpportunityOptions.value = [...opportunities.value]
-  filteredCompanyOptions.value = [...companies.value]
-  filteredIndustryOptions.value = [...industries.value]
-  filteredRegionOptions.value = [...regions.value]
-  const artifactGroup = findArtifactGroup(row)
-  const nextForm = {
-    artifact_id: String(row?.artifact_id || ''),
-    title: String(row?.title || ''),
-    artifact_type: String(row?.artifact_type || ''),
-    artifact_format: String(row?.artifact_format || ''),
-    type: String(row?.type || ''),
-    opportunity_id: String(row?.opportunity_id || '').trim() || null,
-    description: '',
-    group_artifact_ids:
-      artifactGroup?.artifacts?.map((artifact) => String(artifact?.artifact_id || '').trim()).filter(Boolean) || [],
-    group_artifact_types:
-      artifactGroup?.artifacts
-        ?.map((artifact) => String(artifact?.artifact_type || '').trim().toUpperCase())
-        .filter(Boolean) || [],
-    related_company_ids: [],
-    company_document_type: null,
-    related_industry_ids: [],
-    related_region_ids: [],
-    fs_path: String(row?.fs_path || ''),
-    original_artifact_id: String(row?.original_artifact_id || ''),
-    created_at: String(row?.created_at || ''),
-  }
-
-  if (bridge.value?.db?.query && nextForm.artifact_id) {
-    try {
-      const [detailRows, companyRows, industryRows, regionRows] = await Promise.all([
-        bridge.value.db.query(
-          `
-          SELECT description
-          FROM Artifact_Details
-          WHERE artifact_id = ?
-          LIMIT 1
-        `,
-          [nextForm.artifact_id],
-        ),
-        bridge.value.db.query(
-          `
-          SELECT cad.company_id, ca.document_type
-          FROM Companies_Artifacts_documents cad
-          LEFT JOIN Company_Artifacts ca ON ca.artifact_id = cad.artifact_id
-          WHERE cad.artifact_id = ?
-          ORDER BY cad.company_id
-        `,
-          [nextForm.artifact_id],
-        ),
-        bridge.value.db.query(
-          `
-          SELECT industry_id
-          FROM Artifacts_Industries
-          WHERE artifact_id = ?
-          ORDER BY industry_id
-        `,
-          [nextForm.artifact_id],
-        ),
-        bridge.value.db.query(
-          `
-          SELECT region_id
-          FROM Artifacts_Regions
-          WHERE artifact_id = ?
-          ORDER BY region_id
-        `,
-          [nextForm.artifact_id],
-        ),
-      ])
-      const detail = Array.isArray(detailRows) ? detailRows[0] : null
-      nextForm.description = String(detail?.description || '')
-      const companyLinks = Array.isArray(companyRows) ? companyRows : []
-      nextForm.related_company_ids = companyLinks
-        .map((entry) => String(entry?.company_id || '').trim())
-        .filter(Boolean)
-      nextForm.company_document_type = String(companyLinks[0]?.document_type || '').trim() || null
-      nextForm.related_industry_ids = (Array.isArray(industryRows) ? industryRows : [])
-        .map((entry) => String(entry?.industry_id || '').trim())
-        .filter(Boolean)
-      nextForm.related_region_ids = (Array.isArray(regionRows) ? regionRows : [])
-        .map((entry) => String(entry?.region_id || '').trim())
-        .filter(Boolean)
-    } catch {
-      // Keep the dialog usable even if the detail lookup fails.
-    }
-  }
-
-  propertiesForm.value = nextForm
-  propertiesDialogOpen.value = true
+async function openEditRecordShell(row) {
+  if (!row?.recordId) return
+  resetCreateDialogAutosaveState()
+  createDialogMode.value = 'edit'
+  editDialogRow.value = row
+  createDialogDraftRecordId.value = String(row.recordId || '').trim()
+  createDialogDraftEntityName.value = resolveEditEntityName(row)
+  createDialogInitialSectionKey.value = 'key-fields'
+  createDialogPrefillValues.value = {}
+  createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
+  createDialogRenderKey.value += 1
+  createDialogOpen.value = true
 }
 
-function closePropertiesDialog() {
-  if (savingProperties.value) return
-  propertiesDialogOpen.value = false
-  propertiesError.value = ''
-  propertiesForm.value = createEmptyPropertiesForm()
+async function openAddRelationShell(row) {
+  if (!row?.recordId) return
+  resetCreateDialogAutosaveState()
+  createDialogMode.value = 'edit'
+  editDialogRow.value = row
+  createDialogDraftRecordId.value = String(row.recordId || '').trim()
+  createDialogDraftEntityName.value = resolveEditEntityName(row)
+  createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'key-fields'
+  createDialogPrefillValues.value = {}
+  createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
+  createDialogRenderKey.value += 1
+  createDialogOpen.value = true
 }
 
-async function saveArtifactProperties() {
-  if (!bridge.value?.db?.execute) return
+async function submitCreateRecordShell({ values } = {}) {
+  clearCreateDialogAutosaveTimer()
+  const isEditMode = createDialogMode.value === 'edit'
 
-  const artifactId = String(propertiesForm.value.artifact_id || '').trim()
-  if (!artifactId) {
-    propertiesError.value = 'Artifact ID is missing.'
+  if (!isEditMode && !canCreateWithShell.value) {
+    notifyShellAction('Create record')
     return
   }
 
-  const targetArtifactIds = [
-    ...new Set(
-      (propertiesForm.value.group_artifact_ids || [])
-        .map((id) => String(id || '').trim())
-        .filter(Boolean),
-    ),
-  ]
-  if (targetArtifactIds.length === 0) targetArtifactIds.push(artifactId)
-
-  const opportunityId = String(propertiesForm.value.opportunity_id || '').trim()
-  const roundId = opportunityId && !opportunityId.startsWith('fund:') ? opportunityId : null
-  const fundId = opportunityId && opportunityId.startsWith('fund:') ? opportunityId : null
-  const relatedCompanyIds = [
-    ...new Set(
-      (propertiesForm.value.related_company_ids || [])
-        .map((id) => String(id || '').trim())
-        .filter(Boolean),
-    ),
-  ]
-  const relatedIndustryIds = [
-    ...new Set(
-      (propertiesForm.value.related_industry_ids || [])
-        .map((id) => String(id || '').trim())
-        .filter(Boolean),
-    ),
-  ]
-  const relatedRegionIds = [
-    ...new Set(
-      (propertiesForm.value.related_region_ids || [])
-        .map((id) => String(id || '').trim())
-        .filter(Boolean),
-    ),
-  ]
-  const companyDocumentType = String(propertiesForm.value.company_document_type || '').trim() || null
-
-  if (relatedCompanyIds.length > 0 && !companyDocumentType) {
-    propertiesError.value = 'Company Document Type is required when Related Companies are selected.'
+  const payload = buildCreatePayload(values)
+  if (!Object.keys(payload).length) {
+    $q.notify({ type: 'negative', message: 'Add at least one field before creating the record.' })
     return
   }
 
-  savingProperties.value = true
-  propertiesError.value = ''
+  createDialogLoading.value = true
   try {
-    for (const targetArtifactId of targetArtifactIds) {
-      await bridge.value.db.execute(
-        `
-        UPDATE Artifacts
-        SET
-          round_id = ?,
-          fund_id = ?,
-          title = ?,
-          description = ?,
-          artifact_format = ?,
-          updated_at = datetime('now')
-        WHERE artifact_id = ?
-      `,
-        [
-          roundId,
-          fundId,
-          String(propertiesForm.value.title || '').trim() || null,
-          String(propertiesForm.value.description || '').trim() || null,
-          String(propertiesForm.value.artifact_format || '').trim().toLowerCase() || null,
-          targetArtifactId,
-        ],
-      )
+    if (isEditMode) {
+      if (!activeRegistryEntry.value?.entityName || !editDialogRow.value?.recordId) {
+        $q.notify({ type: 'negative', message: 'This record cannot be edited from the shared shell yet.' })
+        return
+      }
 
-      await bridge.value.db.execute('DELETE FROM Companies_Artifacts_documents WHERE artifact_id = ?', [
-        targetArtifactId,
-      ])
-      if (relatedCompanyIds.length > 0) {
-        await bridge.value.db.execute(
-          `
-          INSERT INTO Company_Artifacts (artifact_id, document_type)
-          VALUES (?, ?)
-          ON CONFLICT(artifact_id) DO UPDATE SET
-            document_type = excluded.document_type
-        `,
-          [targetArtifactId, companyDocumentType],
-        )
+      await bridge.value?.databooks?.update?.({
+        tableName: activeRegistryEntry.value.entityName,
+        recordId: editDialogRow.value.recordId,
+        changes: buildUpdateChanges(payload),
+      })
 
-        for (const companyId of relatedCompanyIds) {
-          await bridge.value.db.execute(
-            'INSERT OR IGNORE INTO Companies_Artifacts_documents (company_id, artifact_id) VALUES (?, ?)',
-            [companyId, targetArtifactId],
-          )
+      createDialogOpen.value = false
+      resetCreateDialogAutosaveState()
+      createDialogMode.value = 'create'
+      editDialogRow.value = null
+      createDialogInitialSectionKey.value = 'key-fields'
+      createDialogPrefillValues.value = {}
+      createDialogInitialArtifacts.value = []
+      $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
+      await loadRows()
+    } else {
+      const sourceKey = activeSourceKey.value
+      let result = null
+
+      if (sourceKey === 'opportunities') {
+        const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
+        if (kind === 'fund') result = await bridge.value?.funds?.create?.(payload)
+        else if (kind === 'round') result = await bridge.value?.rounds?.create?.(payload)
+        else {
+          $q.notify({ type: 'negative', message: 'Choose Opportunity Kind as Fund or Round before creating.' })
+          return
         }
       } else {
-        await bridge.value.db.execute('DELETE FROM Company_Artifacts WHERE artifact_id = ?', [targetArtifactId])
+        result = await bridge.value?.[sourceKey]?.create?.(payload)
       }
 
-      await bridge.value.db.execute('DELETE FROM Artifacts_Industries WHERE artifact_id = ?', [targetArtifactId])
-      for (const industryId of relatedIndustryIds) {
-        await bridge.value.db.execute(
-          'INSERT OR IGNORE INTO Artifacts_Industries (artifact_id, industry_id) VALUES (?, ?)',
-          [targetArtifactId, industryId],
-        )
+      if (!result) {
+        $q.notify({ type: 'negative', message: 'Create bridge is not available for this record type yet.' })
+        return
       }
 
-      await bridge.value.db.execute('DELETE FROM Artifacts_Regions WHERE artifact_id = ?', [targetArtifactId])
-      for (const regionId of relatedRegionIds) {
-        await bridge.value.db.execute(
-          'INSERT OR IGNORE INTO Artifacts_Regions (artifact_id, region_id) VALUES (?, ?)',
-          [targetArtifactId, regionId],
-        )
-      }
+      createDialogOpen.value = false
+      resetCreateDialogAutosaveState()
+      createDialogInitialSectionKey.value = 'key-fields'
+      createDialogPrefillValues.value = {}
+      createDialogInitialArtifacts.value = []
+      $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
+      await loadRows()
     }
-
-    await loadArtifacts()
-    propertiesDialogOpen.value = false
-    $q.notify({ type: 'positive', message: 'Artifact properties updated.' })
-  } catch (e) {
-    propertiesError.value = e?.message || String(e)
+  } catch (createError) {
+    $q.notify({ type: 'negative', message: createError?.message || String(createError) })
   } finally {
-    savingProperties.value = false
+    createDialogLoading.value = false
   }
 }
 
-async function previewArtifact(row, options = {}) {
-  const artifactId = String(row?.artifact_id || '').trim()
-  if (!artifactId || !bridge.value?.artifacts?.preview) return ''
-  const silent = Boolean(options?.silent)
-  try {
-    previewDialogOpen.value = true
-    previewLoading.value = true
-    resetPreviewPdfObjectUrl()
-    previewPdfPageCount.value = 0
-    previewState.value = createEmptyPreviewState()
-    const preview = await bridge.value.artifacts.preview({ artifactId })
-    previewState.value = {
-      artifactId,
-      fileName: String(row?.title || artifactDisplayName(row) || preview?.fileName || '').trim(),
-      kind: String(preview?.kind || '').trim(),
-      fileUrl: String(preview?.fileUrl || '').trim(),
-      fileDataBase64: String(preview?.fileDataBase64 || ''),
-      content: String(preview?.content || ''),
-    }
-    if (previewState.value.kind === 'pdf' && previewState.value.fileDataBase64) {
-      previewPdfObjectUrl.value = buildPdfObjectUrl(previewState.value.fileDataBase64)
-      previewPdfPageCount.value = await resolvePdfPageCount(previewState.value.fileDataBase64)
-    }
-    if (previewSidebarOpen.value) {
-      await loadPreviewReviewSidebar(artifactId)
-    }
-    return previewState.value.kind
-  } catch (e) {
-    previewDialogOpen.value = false
-    if (!silent) {
-      $q.notify({ type: 'negative', message: e?.message || String(e) })
-    }
-    return ''
-  } finally {
-    previewLoading.value = false
+function handleCreateDialogChange(snapshot) {
+  createDialogLastChangeSnapshot.value = snapshot
+  if (!snapshot?.hasUserChanges) return
+  queueCreateDialogAutosave(snapshot)
+}
+
+async function handleCreateDialogClose(snapshot) {
+  createDialogLastChangeSnapshot.value = snapshot
+  await flushCreateDialogAutosave(snapshot, { immediate: true, reloadRows: true })
+  resetCreateDialogAutosaveState()
+  createDialogMode.value = 'create'
+  editDialogRow.value = null
+  createDialogInitialSectionKey.value = 'key-fields'
+  createDialogPrefillValues.value = {}
+  createDialogInitialArtifacts.value = []
+}
+
+function queueCreateDialogAutosave(snapshot) {
+  queuedCreateDialogSnapshot = snapshot
+  createDialogAutosavePending.value = true
+  clearCreateDialogAutosaveTimer()
+  createDialogAutosaveTimer = setTimeout(() => {
+    void flushCreateDialogAutosave(queuedCreateDialogSnapshot)
+  }, 280)
+}
+
+function clearCreateDialogAutosaveTimer() {
+  if (createDialogAutosaveTimer) {
+    clearTimeout(createDialogAutosaveTimer)
+    createDialogAutosaveTimer = null
   }
 }
 
-async function loadArtifactCompanyLinks() {
-  if (!bridge.value?.db?.query) {
-    artifactCompanyLinks.value = []
-    return
-  }
-
-  try {
-    const rows = await bridge.value.db.query(
-      `
-      SELECT artifact_id, company_id
-      FROM Companies_Artifacts_documents
-      ORDER BY artifact_id, company_id
-    `,
-    )
-    artifactCompanyLinks.value = Array.isArray(rows) ? rows : []
-  } catch {
-    artifactCompanyLinks.value = []
-  }
+function resetCreateDialogAutosaveState() {
+  clearCreateDialogAutosaveTimer()
+  createDialogDraftRecordId.value = ''
+  createDialogDraftEntityName.value = ''
+  createDialogLastChangeSnapshot.value = null
+  createDialogLastSavedSignature.value = ''
+  createDialogAutosavePending.value = false
+  queuedCreateDialogSnapshot = null
 }
 
-function formatClaimFieldLabel(fieldKey = '') {
-  const raw = String(fieldKey || '').trim()
-  if (!raw) return 'Field'
-  return raw
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replaceAll('_', ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/^./, (value) => value.toUpperCase())
+function buildCreateDialogAutosaveSignature(payload = {}, recordId = '', entityName = '') {
+  return JSON.stringify({
+    entityName: String(entityName || '').trim(),
+    recordId: String(recordId || '').trim(),
+    payload,
+  })
 }
 
-function formatClaimItemBox(fieldKey = '') {
-  return {
-    sponsorCompany: 'Company section',
-    existingOpportunityMatch: 'Opportunity section',
-    matchingDocumentName: 'Artifact intake',
-    documentType: 'Artifact metadata',
-    artifactTitle: 'Artifact title',
-    relatedFund: 'Opportunity section',
-    relatedRound: 'Opportunity section',
-    relatedContact: 'Primary Contact section',
-    website: 'Company section',
-  }[String(fieldKey || '').trim()] || 'Dialog review'
+function resolveCreateDialogEntityName(payload = {}) {
+  if (createDialogDraftEntityName.value) return createDialogDraftEntityName.value
+  if (activeSourceKey.value === 'opportunities') {
+    const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
+    if (kind === 'fund') return 'Funds'
+    if (kind === 'round') return 'Rounds'
+  }
+  return activeRegistryEntry.value?.entityName || ''
 }
 
-function selectPreviewFocusClaim(claim = {}) {
-  previewSelectedFocusClaimId.value = String(claim?.claim_id || '').trim()
-  const sourceChunkId = String(claim?.source_chunk_id || '').trim()
-  if (previewState.value.kind === 'pdf') {
-    const match =
-      sourceChunkId.match(/:slide:(\d+)$/i) ||
-      sourceChunkId.match(/:page:(\d+)$/i) ||
-      String(claim?.field_label || '').match(/\b(\d+)\b/)
-    if (match?.[1]) {
-      setPreviewCurrentPage(Number(match[1]))
-      return
-    }
-  }
-  if (sourceChunkId) {
-    previewSelectedSectionKey.value = sourceChunkId
-  }
+function resolveEditEntityName(row) {
+  if (activeSourceKey.value !== 'opportunities') return activeRegistryEntry.value?.entityName || ''
+  const kindValue =
+    String(getCanonicalTokenValue(row?.raw || {}, { tokenName: 'Opportunity_Kind', dbFieldAliases: ['Opportunity_Kind'] }) || '')
+      .trim()
+      .toLowerCase()
+  if (kindValue === 'fund') return 'Funds'
+  if (kindValue === 'round') return 'Rounds'
+  return activeRegistryEntry.value?.entityName || ''
 }
 
-function setPreviewCurrentPage(value) {
-  const nextPage = Math.max(1, Math.min(Number(previewPdfPageCount.value || 1), Number(value || 1)))
-  previewCurrentPage.value = nextPage
-}
+async function createRecordFromPayload(payload = {}) {
+  const sourceKey = activeSourceKey.value
+  let result = null
+  let entityName = activeRegistryEntry.value?.entityName || ''
 
-function formatPreviewSectionTitle(chunk = {}, index = 0) {
-  const pageRange = String(chunk?.source_page_range || '').trim()
-  if (pageRange) {
-    if (pageRange.includes('-')) return `Slides ${pageRange}`
-    return `Slide ${pageRange}`
-  }
-  const sectionHint = String(chunk?.section_hint || '').trim()
-  return sectionHint || `Section ${index + 1}`
-}
-
-function expandPageRange(pageRange = '') {
-  const normalized = String(pageRange || '').trim()
-  if (!normalized) return []
-  const values = []
-  for (const part of normalized.split(',')) {
-    const token = String(part || '').trim()
-    if (!token) continue
-    const rangeMatch = token.match(/^(\d+)\s*-\s*(\d+)$/)
-    if (rangeMatch) {
-      const start = Number(rangeMatch[1])
-      const end = Number(rangeMatch[2])
-      if (start > 0 && end >= start) {
-        for (let page = start; page <= end; page += 1) values.push(page)
-      }
-      continue
-    }
-    const page = Number(token)
-    if (page > 0) values.push(page)
-  }
-  return [...new Set(values)]
-}
-
-function parseMarkdownPageSections(markdown = '', totalPages = 0) {
-  const content = String(markdown || '').replaceAll('\r\n', '\n').trim()
-  const sections = new Map()
-  if (!content || totalPages <= 0) return sections
-
-  const lines = content.split('\n')
-  let currentPage = null
-  let currentTitle = ''
-  let buffer = []
-
-  const commit = () => {
-    if (!currentPage || currentPage < 1 || currentPage > totalPages) return
-    const text = buffer.join('\n').trim()
-    if (!text) return
-    sections.set(currentPage, {
-      text,
-      title: currentTitle || `Page ${currentPage}`,
-    })
-  }
-
-  for (const line of lines) {
-    const trimmed = String(line || '').trim()
-    const headingMatch = trimmed.match(/^#{1,6}\s+(.+)$/)
-    const candidate = headingMatch ? String(headingMatch[1] || '').trim() : trimmed
-    const pageMatch =
-      candidate.match(/\b(?:slide|page)\s+(\d+)\b(?:\s*[:-]\s*(.+))?$/i) ||
-      candidate.match(/^(\d+)\s*[-:.]\s*(.+)$/)
-
-    if (pageMatch) {
-      commit()
-      currentPage = Number(pageMatch[1])
-      currentTitle = String(pageMatch[2] || '').trim()
-      buffer = [line]
-      continue
-    }
-
-    if (currentPage) {
-      buffer.push(line)
-    }
-  }
-
-  commit()
-  return sections
-}
-
-function buildPdfPageSections({ artifactId = '', pageCount = 0, chunkRows = [], markdown = '', usedClaims = [] } = {}) {
-  const totalPages = Math.max(0, Number(pageCount || 0))
-  if (!totalPages) return []
-
-  const pages = Array.from({ length: totalPages }, (_, index) => ({
-    key: `${artifactId}:page:${index + 1}`,
-    title: `Page ${index + 1}`,
-    text: '',
-    sourceTitle: `Page ${index + 1}`,
-    used: false,
-    ownedFields: [],
-    sourceChunkIds: [],
-  }))
-
-  const fallbackMarkdownSections = parseMarkdownPageSections(markdown, totalPages)
-
-  for (const chunk of chunkRows) {
-    const chunkId = String(chunk?.chunk_id || '').trim()
-    const pageNumbers = expandPageRange(chunk?.source_page_range)
-    if (!pageNumbers.length) continue
-    for (const pageNumber of pageNumbers) {
-      const page = pages[pageNumber - 1]
-      if (!page) continue
-      if (chunkId) page.sourceChunkIds.push(chunkId)
-      const chunkText = String(chunk?.markdown_text || '').trim()
-      if (chunkText) {
-        page.text = page.text ? `${page.text}\n\n${chunkText}` : chunkText
-      }
-      const chunkFields = Array.isArray(chunk?.owned_fields) ? chunk.owned_fields.filter(Boolean) : []
-      if (chunkFields.length) {
-        page.ownedFields = [...new Set([...page.ownedFields, ...chunkFields])]
-      }
-      const sectionHint = String(chunk?.section_hint || '').trim()
-      if (sectionHint) {
-        page.sourceTitle = sectionHint
-        page.title = `Page ${pageNumber} - ${sectionHint}`
-      }
-      if (Array.isArray(chunk?.used_by) && chunk.used_by.length > 0) {
-        page.used = true
-      }
-    }
-  }
-
-  for (const [pageNumber, section] of fallbackMarkdownSections.entries()) {
-    const page = pages[pageNumber - 1]
-    if (!page) continue
-    if (!page.text.trim()) {
-      page.text = String(section?.text || '').trim()
-    }
-    const title = String(section?.title || '').trim()
-    if (title) {
-      page.sourceTitle = title
-      page.title = `Page ${pageNumber} - ${title}`
-    }
-  }
-
-  for (const claim of usedClaims) {
-    const sourceChunkId = String(claim?.source_chunk_id || '').trim()
-    if (!sourceChunkId) continue
-    for (const page of pages) {
-      if (!page.sourceChunkIds.includes(sourceChunkId)) continue
-      page.used = true
-      if (claim?.field_key) {
-        page.ownedFields = [...new Set([...page.ownedFields, String(claim.field_key).trim()])]
-      }
-    }
-  }
-
-  if (!chunkRows.length && markdown.trim()) {
-    pages[0].text = markdown.trim()
-  }
-
-  return pages.map((page, index) => ({
-    ...page,
-    sourceChunkIds: [...new Set(page.sourceChunkIds)],
-    text: page.text.trim() || `No markdown mapped to Page ${index + 1} yet.`,
-  }))
-}
-
-function derivePreviewSectionsFromMarkdown(markdown = '', { artifactId = '', isPdf = false, usedClaims = [] } = {}) {
-  const content = String(markdown || '').replaceAll('\r\n', '\n').trim()
-  if (!content) return []
-
-  const lines = content.split('\n')
-  const sections = []
-  let current = null
-
-  const startSection = (title, line) => {
-    if (current) sections.push(current)
-    current = {
-      key: `${artifactId || 'markdown'}:${sections.length + 1}`,
-      title: title || `${isPdf ? 'Slide' : 'Section'} ${sections.length + 1}`,
-      lines: line ? [line] : [],
-    }
-  }
-
-  for (const line of lines) {
-    const trimmed = String(line || '').trim()
-    const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/)
-    const slideMatch = trimmed.match(/^(slide|page)\s+(\d+)(?:\s*[:-]\s*(.+))?$/i)
-
-    if (headingMatch) {
-      startSection(headingMatch[2].trim(), line)
-      continue
-    }
-
-    if (slideMatch) {
-      const kind = /^page/i.test(slideMatch[1]) ? 'Page' : 'Slide'
-      const suffix = String(slideMatch[3] || '').trim()
-      startSection(`${kind} ${slideMatch[2]}${suffix ? ` - ${suffix}` : ''}`, line)
-      continue
-    }
-
-    if (!current) {
-      startSection(isPdf ? 'Document Review' : 'Full Markdown', '')
-    }
-    current.lines.push(line)
-  }
-
-  if (current) sections.push(current)
-
-  const normalizedSections = sections
-    .map((section, index) => {
-      const text = section.lines.join('\n').trim()
-      if (!text) return null
-      return {
-        key: section.key || `${artifactId || 'markdown'}:${index + 1}`,
-        title: section.title || `${isPdf ? 'Slide' : 'Section'} ${index + 1}`,
-        text,
-        sourceTitle: section.title || '',
-        used: index === 0 && usedClaims.length > 0,
-        ownedFields: index === 0 ? usedClaims.map((claim) => claim.field_key).filter(Boolean) : [],
-      }
-    })
-    .filter(Boolean)
-
-  return normalizedSections.length
-    ? normalizedSections
-    : [
-        {
-          key: artifactId || 'markdown',
-          title: isPdf ? 'Document Review' : 'Full Markdown',
-          text: content,
-          sourceTitle: isPdf ? 'Document Review' : 'Full Markdown',
-          used: usedClaims.length > 0,
-          ownedFields: usedClaims.map((claim) => claim.field_key).filter(Boolean),
-        },
-      ]
-}
-
-async function loadPreviewReviewSidebar(artifactId = '') {
-  previewFocusStripHidden.value = false
-  previewMarkdownLoading.value = true
-  previewMarkdownError.value = ''
-  previewMarkdownContent.value = ''
-  previewMarkdownArtifactId.value = ''
-  previewSelectedSectionKey.value = ''
-  previewSelectedFocusClaimId.value = ''
-  previewCurrentPage.value = 1
-
-  const group = findArtifactGroup({ artifact_id: artifactId })
-  const markdownArtifact = (group?.artifacts || []).find(
-    (artifact) => String(artifact?.artifact_type || '').trim().toLowerCase() === 'llm-ready',
-  )
-
-  if (!markdownArtifact?.artifact_id) {
-    previewMarkdownLoading.value = false
-    previewMarkdownError.value = 'No markdown sibling was found for this artifact group yet.'
-    return
-  }
-
-  previewMarkdownArtifactId.value = String(markdownArtifact.artifact_id || '').trim()
-
-  if (!bridge.value?.artifacts?.preview) {
-    previewMarkdownLoading.value = false
-    previewMarkdownError.value = 'Markdown preview is not available in this runtime.'
-    return
-  }
-
-  try {
-    const markdownPreview = await bridge.value.artifacts.preview({ artifactId: previewMarkdownArtifactId.value })
-    if (String(markdownPreview?.kind || '').trim() === 'text') {
-      previewMarkdownContent.value = String(markdownPreview?.content || '')
+  if (sourceKey === 'opportunities') {
+    const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
+    if (kind === 'fund') {
+      result = await bridge.value?.funds?.create?.(payload)
+      entityName = 'Funds'
+    } else if (kind === 'round') {
+      result = await bridge.value?.rounds?.create?.(payload)
+      entityName = 'Rounds'
     } else {
-      previewMarkdownError.value = 'The markdown sibling could not be rendered as text.'
+      throw new Error('Choose Opportunity Kind as Fund or Round before creating.')
     }
-  } catch (e) {
-    previewMarkdownError.value = e?.message || String(e)
+  } else {
+    result = await bridge.value?.[sourceKey]?.create?.(payload)
+  }
+
+  if (!result?.id) {
+    throw new Error('Create bridge is not available for this record type yet.')
+  }
+
+  createDialogDraftRecordId.value = String(result.id || '').trim()
+  createDialogDraftEntityName.value = entityName
+  createDialogMode.value = 'edit'
+  editDialogRow.value = {
+    recordId: createDialogDraftRecordId.value,
+    raw: null,
+  }
+
+  await loadRows()
+  return { recordId: createDialogDraftRecordId.value, entityName }
+}
+
+async function updateRecordFromPayload(recordId, entityName, payload = {}) {
+  if (!recordId || !entityName) {
+    throw new Error('This record cannot be edited from the shared shell yet.')
+  }
+
+  await bridge.value?.databooks?.update?.({
+    tableName: entityName,
+    recordId,
+    changes: Object.entries(payload).map(([fieldName, value]) => ({
+      table_name: entityName,
+      record_id: recordId,
+      field_name: fieldName,
+      id_column: activeLoader.value?.recordIdField || 'id',
+      new_value: Array.isArray(value) ? JSON.stringify(value) : String(value ?? ''),
+    })),
+  })
+}
+
+async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRows = false } = {}) {
+  if (!snapshot?.hasUserChanges) return
+  if (!immediate && createDialogAutosaveInFlight) {
+    queuedCreateDialogSnapshot = snapshot
+    return
+  }
+
+  clearCreateDialogAutosaveTimer()
+  const payload = buildCreatePayload(snapshot.values)
+  if (!Object.keys(payload).length) {
+    createDialogAutosavePending.value = false
+    return
+  }
+
+  const currentRecordId = createDialogDraftRecordId.value || editDialogRow.value?.recordId || ''
+  const currentEntityName = resolveCreateDialogEntityName(payload)
+  const signature = buildCreateDialogAutosaveSignature(payload, currentRecordId, currentEntityName)
+  if (signature === createDialogLastSavedSignature.value) {
+    createDialogAutosavePending.value = false
+    return
+  }
+
+  if (createDialogAutosaveInFlight) {
+    queuedCreateDialogSnapshot = snapshot
+    return
+  }
+
+  createDialogAutosaveInFlight = true
+  createDialogAutosavePending.value = true
+  try {
+    let recordId = currentRecordId
+    let entityName = currentEntityName
+
+    if (!recordId) {
+      const createResult = await createRecordFromPayload(payload)
+      recordId = createResult.recordId
+      entityName = createResult.entityName
+    } else {
+      await updateRecordFromPayload(recordId, entityName, payload)
+      if (reloadRows) await loadRows()
+    }
+
+    createDialogLastSavedSignature.value = buildCreateDialogAutosaveSignature(payload, recordId, entityName)
+  } catch (autosaveError) {
+    $q.notify({ type: 'negative', message: autosaveError?.message || String(autosaveError) })
   } finally {
-    previewMarkdownLoading.value = false
-  }
-}
-
-async function ensurePreviewReviewDataLoaded(options = {}) {
-  if (!previewState.value.artifactId) return
-  if (previewMarkdownLoading.value) return
-  if (!options?.force && previewMarkdownContent.value.trim() && previewMarkdownArtifactId.value) return
-  await loadPreviewReviewSidebar(previewState.value.artifactId)
-}
-
-async function togglePreviewFocusSidebarSection() {
-  previewFocusStripHidden.value = !previewFocusStripHidden.value
-  if (!previewFocusStripHidden.value) {
-    await ensurePreviewReviewDataLoaded()
-  }
-}
-
-async function togglePreviewSidebar() {
-  previewSidebarOpen.value = !previewSidebarOpen.value
-  if (previewSidebarOpen.value && previewState.value.artifactId) {
-    await loadPreviewReviewSidebar(previewState.value.artifactId)
-  }
-}
-
-function continuePreviewDocumentReview() {
-  if (!previewPrimaryArtifact.value) return
-  void reviewArtifactMarkdown(previewPrimaryArtifact.value)
-}
-
-function buildPdfObjectUrl(fileDataBase64 = '') {
-  const normalized = String(fileDataBase64 || '').trim()
-  if (!normalized || typeof window === 'undefined' || typeof window.atob !== 'function') return ''
-  const binary = window.atob(normalized)
-  const bytes = new Uint8Array(binary.length)
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index)
-  }
-  return URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }))
-}
-
-async function resolvePdfPageCount(fileDataBase64 = '') {
-  const normalized = String(fileDataBase64 || '').trim()
-  if (!normalized || typeof window === 'undefined' || typeof window.atob !== 'function') return 0
-  try {
-    const binary = window.atob(normalized)
-    const bytes = new Uint8Array(binary.length)
-    for (let index = 0; index < binary.length; index += 1) {
-      bytes[index] = binary.charCodeAt(index)
+    createDialogAutosaveInFlight = false
+    createDialogAutosavePending.value = false
+    if (queuedCreateDialogSnapshot && queuedCreateDialogSnapshot !== snapshot) {
+      const nextSnapshot = queuedCreateDialogSnapshot
+      queuedCreateDialogSnapshot = null
+      void flushCreateDialogAutosave(nextSnapshot, { immediate: true, reloadRows })
+    } else {
+      queuedCreateDialogSnapshot = null
     }
-    const loadingTask = pdfjsLib.getDocument({ data: bytes })
-    const pdfDocument = await loadingTask.promise
-    return Number(pdfDocument?.numPages || 0)
+  }
+}
+
+function buildCreatePayload(values = {}) {
+  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const payloadEntries = []
+
+  allTokens.forEach((token) => {
+    const rawValue = values?.[token.key]
+    const normalizedValue = normalizeCreateFieldValue(token, rawValue)
+    if (normalizedValue == null) return
+    const fieldName = getCanonicalTokenFieldNames(token)[1] || getCanonicalTokenFieldNames(token)[0]
+    if (!fieldName) return
+    payloadEntries.push([fieldName, normalizedValue])
+  })
+
+  return Object.fromEntries(payloadEntries)
+}
+
+function buildUpdateChanges(payload = {}) {
+  const editRow = editDialogRow.value
+  if (!editRow?.recordId) return []
+
+  return Object.entries(payload).map(([fieldName, value]) => ({
+    table_name: activeRegistryEntry.value?.entityName,
+    record_id: editRow.recordId,
+    field_name: fieldName,
+    id_column: activeLoader.value?.recordIdField || 'id',
+    new_value: Array.isArray(value) ? JSON.stringify(value) : String(value ?? ''),
+  }))
+}
+
+async function resolveTrueArtifactsForRow(row) {
+  const sourceKey = activeSourceKey.value
+  if (sourceKey === 'companies') return await loadCompanyArtifactsForRow(row)
+  if (sourceKey === 'contacts') return await loadContactArtifactsForRow(row)
+  return buildFallbackArtifactsForRow(row)
+}
+
+function buildFallbackArtifactsForRow(row) {
+  const artifactItems = Array.isArray(row?.relationshipItemsByType?.artifacts) ? row.relationshipItemsByType.artifacts : []
+  return artifactItems
+    .map((name, index) => ({
+      id: `${row?.recordId || 'record'}:artifact:${index}`,
+      name: String(name || '').trim(),
+    }))
+    .filter((artifact) => artifact.name)
+}
+
+async function loadCompanyArtifactsForRow(row) {
+  const recordId = String(row?.recordId || '').trim()
+  if (!recordId || !bridge.value?.artifacts?.list) return buildFallbackArtifactsForRow(row)
+
+  try {
+    const [artifactResult, relatedOpportunityIds] = await Promise.all([
+      bridge.value.artifacts.list(),
+      resolveCompanyOpportunityIdsForShell(recordId),
+    ])
+    const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
+    const grouped = new Map()
+
+    for (const artifact of artifacts) {
+      const opportunityId = String(artifact?.opportunity_id || '').trim()
+      if (!relatedOpportunityIds.has(opportunityId)) continue
+      const groupKey = String(artifact?.original_artifact_id || '').trim() || String(artifact?.artifact_id || '').trim()
+      if (!groupKey) continue
+      const existing = grouped.get(groupKey)
+      if (!existing) grouped.set(groupKey, artifact)
+    }
+
+    return Array.from(grouped.values())
+      .map((artifact, index) => ({
+        id: String(artifact?.original_artifact_id || artifact?.artifact_id || `artifact:${index}`).trim(),
+        name:
+          String(artifact?.title || '').trim() ||
+          String(artifact?.fs_path || '').split('/').pop()?.trim() ||
+          `Artifact ${index + 1}`,
+      }))
+      .filter((artifact) => artifact.name)
   } catch {
-    return 0
+    return buildFallbackArtifactsForRow(row)
   }
 }
 
-function resetPreviewPdfObjectUrl() {
-  if (!previewPdfObjectUrl.value) return
-  URL.revokeObjectURL(previewPdfObjectUrl.value)
-  previewPdfObjectUrl.value = ''
-}
+async function resolveCompanyOpportunityIdsForShell(companyId) {
+  const normalizedCompanyId = String(companyId || '').trim()
+  if (!normalizedCompanyId) return new Set()
 
-function createEmptyPreviewState() {
-  return {
-    artifactId: '',
-    fileName: '',
-    kind: '',
-    fileUrl: '',
-    fileDataBase64: '',
-    content: '',
-  }
-}
+  if (bridge.value?.db?.query) {
+    try {
+      const rows = await bridge.value.db.query(
+        `
+        SELECT DISTINCT id
+        FROM (
+          SELECT o.id
+          FROM Opportunities o
+          WHERE o.company_id = ?
 
-async function shareArtifact(row, options = {}) {
-  const artifactId = String(row?.artifact_id || '').trim()
-  if (!artifactId || !bridge.value?.artifacts?.share) return
-  const silent = Boolean(options?.silent)
-  try {
-    await bridge.value.artifacts.share({ artifactId })
-    if (!silent) {
-      $q.notify({ type: 'positive', message: 'Artifact path copied and revealed in folder.' })
+          UNION
+
+          SELECT r.id
+          FROM Rounds r
+          INNER JOIN Round_Overview ro ON ro.round_id = r.id
+          WHERE ro.sponsor_company_id = ?
+        ) related_opportunities
+      `,
+        [normalizedCompanyId, normalizedCompanyId],
+      )
+      return new Set((Array.isArray(rows) ? rows : []).map((entry) => String(entry?.id || '').trim()).filter(Boolean))
+    } catch {
+      // Fall back to the generic opportunity list when direct querying is unavailable.
     }
-  } catch (e) {
-    if (!silent) {
-      $q.notify({ type: 'negative', message: e?.message || String(e) })
+  }
+
+  if (bridge.value?.opportunities?.list) {
+    try {
+      const result = await bridge.value.opportunities.list()
+      const opportunities = Array.isArray(result?.opportunities) ? result.opportunities : []
+      return new Set(
+        opportunities
+          .filter((opportunity) => String(opportunity?.company_id || '').trim() === normalizedCompanyId)
+          .map((opportunity) => String(opportunity?.id || '').trim())
+          .filter(Boolean),
+      )
+    } catch {
+      // Return an empty set below if the list bridge cannot resolve related opportunities.
     }
-    throw e
   }
+
+  return new Set()
 }
 
-async function openArtifactForReview(row) {
-  const kind = await previewArtifact(row, { silent: true })
-  if (kind && kind !== 'unsupported') return
+async function loadContactArtifactsForRow(row) {
+  const recordId = String(row?.recordId || '').trim()
+  if (!recordId || !bridge.value?.artifacts?.list) return buildFallbackArtifactsForRow(row)
+
   try {
-    await shareArtifact(row, { silent: true })
-    $q.notify({ type: 'info', message: 'Inline preview was not available, so the original file was opened in your folder.' })
-  } catch (e) {
-    $q.notify({ type: 'negative', message: e?.message || String(e) })
+    const [artifactResult, opportunitiesResult] = await Promise.all([
+      bridge.value.artifacts.list(),
+      bridge.value?.opportunities?.list ? bridge.value.opportunities.list() : Promise.resolve({ opportunities: [] }),
+    ])
+    const opportunities = Array.isArray(opportunitiesResult?.opportunities) ? opportunitiesResult.opportunities : []
+    const relatedOpportunityIds = new Set(
+      opportunities
+        .filter(
+          (opportunity) =>
+            String(opportunity?.Owner || '').trim() === recordId ||
+            String(opportunity?.Source_Contact || '').trim() === recordId,
+        )
+        .map((opportunity) => String(opportunity?.id || '').trim())
+        .filter(Boolean),
+    )
+    const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
+    const grouped = new Map()
+
+    for (const artifact of artifacts) {
+      const createdBy = String(artifact?.created_by || '').trim()
+      const opportunityId = String(artifact?.opportunity_id || '').trim()
+      if (createdBy !== recordId && !relatedOpportunityIds.has(opportunityId)) continue
+      const groupKey = String(artifact?.original_artifact_id || '').trim() || String(artifact?.artifact_id || '').trim()
+      if (!groupKey) continue
+      const existing = grouped.get(groupKey)
+      if (!existing) grouped.set(groupKey, artifact)
+    }
+
+    return Array.from(grouped.values())
+      .map((artifact, index) => ({
+        id: String(artifact?.original_artifact_id || artifact?.artifact_id || `artifact:${index}`).trim(),
+        name:
+          String(artifact?.title || '').trim() ||
+          String(artifact?.fs_path || '').split('/').pop()?.trim() ||
+          `Artifact ${index + 1}`,
+      }))
+      .filter((artifact) => artifact.name)
+  } catch {
+    return buildFallbackArtifactsForRow(row)
   }
 }
 
-const openRecordView = createRecordViewOpener(router, {
-  tableName: 'Artifacts',
-  recordIdKey: 'artifact_id',
-  getReturnTo: getArtifactsReturnToPath,
-})
+function normalizeCreateFieldValue(token, value) {
+  const tokenType = String(token?.tokenType || '').trim()
+  if (tokenType === 'select_multi') {
+    const normalized = Array.isArray(value)
+      ? value.map((item) => String(item || '').trim()).filter(Boolean)
+      : String(value || '')
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean)
+    return normalized.length ? normalized : null
+  }
 
-function openCreateArtifact() {
-  if (typeof window === 'undefined') return
-  window.dispatchEvent(new CustomEvent('ecvc:open-artifact-dialog'))
+  const normalized = String(value || '').trim()
+  return normalized ? normalized : null
 }
 
-function getArtifactsReturnToPath() {
-  const queryView = String(route.query.view || '').trim().toLowerCase()
-  const nextView = queryView === 'table' ? 'table' : viewMode.value
-  return nextView === 'table' ? '/artifacts?view=table' : '/artifacts'
+function setActiveFilterSection(sectionKey) {
+  activeFilterSectionKey.value = sectionKey
+  if (activeFilterTokenKey.value) {
+    const tokenStillVisible = level3Tokens.value.some(
+      (token) => token.key === activeFilterTokenKey.value && token.parentKey === sectionKey,
+    )
+    if (!tokenStillVisible) activeFilterTokenKey.value = ''
+  }
 }
 
-async function reviewArtifactMarkdown(row) {
-  previewSidebarOpen.value = true
-  previewFocusStripHidden.value = false
-  const kind = await previewArtifact(row, { silent: true })
-  if (!previewDialogOpen.value) return
+function clearSectionFilter() {
+  activeFilterSectionKey.value = ''
+}
 
-  await ensurePreviewReviewDataLoaded({ force: true })
+function setActiveFilterToken(tokenKey) {
+  activeFilterTokenKey.value = tokenKey
+  const token = level3Tokens.value.find((entry) => entry.key === tokenKey)
+  if (token?.parentKey) activeFilterSectionKey.value = token.parentKey
+}
 
+function clearTokenFilter() {
+  activeFilterTokenKey.value = ''
+}
+
+function toggleFilterToken(tokenKey, nextValue) {
+  if (nextValue === false) {
+    clearTokenFilter()
+    clearSectionFilter()
+    return
+  }
+  setActiveFilterToken(tokenKey)
+}
+
+function getSectionTokens(sectionKey) {
+  return level3Tokens.value.filter((token) => token.parentKey === sectionKey)
+}
+
+function getFilterSectionTokenCount(sectionKey) {
+  return getSectionTokens(sectionKey).length
+}
+
+function toggleExpandedFilterSection(sectionKey) {
+  expandedFilterSectionKey.value = expandedFilterSectionKey.value === sectionKey ? '' : sectionKey
+}
+
+function applyFilterSelection(value) {
+  const normalized = String(value || '').trim()
+  if (!normalized || normalized === 'all') {
+    clearTokenFilter()
+    clearSectionFilter()
+    expandedFilterSectionKey.value = ''
+    return
+  }
+
+  if (normalized.startsWith('section:')) {
+    clearTokenFilter()
+    const sectionKey = normalized.slice('section:'.length)
+    setActiveFilterSection(sectionKey)
+    expandedFilterSectionKey.value = sectionKey
+    return
+  }
+
+  if (normalized.startsWith('token:')) {
+    const tokenKey = normalized.slice('token:'.length)
+    setActiveFilterToken(tokenKey)
+    const token = level3Tokens.value.find((entry) => entry.key === tokenKey)
+    expandedFilterSectionKey.value = token?.parentKey || ''
+  }
+}
+
+function notifyShellAction(label) {
   $q.notify({
     type: 'info',
-    message:
-      kind === 'unsupported'
-        ? 'Markdown review is open in the sidebar even though the original file cannot be previewed inline.'
-        : 'Markdown review is ready. Work through the sections and choose the fields you want to carry forward.',
+    message: `${label} is visible in the shared shell, but the explicit shell action contract is not defined yet.`,
   })
 }
 
-function closePreviewDialog() {
-  previewDialogOpen.value = false
-  previewLoading.value = false
-  previewPdfPageCount.value = 0
-  previewSidebarOpen.value = false
-  previewFocusStripHidden.value = false
-  previewMarkdownLoading.value = false
-  previewMarkdownError.value = ''
-  previewMarkdownContent.value = ''
-  previewMarkdownArtifactId.value = ''
-  previewSelectedSectionKey.value = ''
-  previewSelectedFocusClaimId.value = ''
-  previewCurrentPage.value = 1
-  previewReviewTab.value = 'users'
-  resetPreviewPdfObjectUrl()
-  previewState.value = createEmptyPreviewState()
-}
-
-async function deleteArtifact(row) {
-  await bridge.value.artifacts.delete(row.artifact_id)
-}
-
-async function confirmDelete(row) {
-  if (!bridge.value?.artifacts?.delete) return
-  const title = row?.title ? ` (${row.title})` : ''
-
-  $q.dialog({
-    title: 'Delete artifact?',
-    message: `This will permanently delete this artifact${title}.`,
-    cancel: true,
-    persistent: true,
-  }).onOk(async () => {
-    loading.value = true
-    try {
-      await deleteArtifact(row)
-      await loadArtifacts()
-    } catch (e) {
-      $q.notify({ type: 'negative', message: e?.message || String(e) })
-    } finally {
-      loading.value = false
-    }
-  })
-}
-
-async function confirmDeleteSelected() {
-  if (!bridge.value?.artifacts?.delete || selectedCount.value === 0) return
-  $q.dialog({
-    title: 'Delete selected artifacts?',
-    message: `This will permanently delete ${selectedCount.value} selected artifact${selectedCount.value === 1 ? '' : 's'}.`,
-    cancel: true,
-    persistent: true,
-  }).onOk(async () => {
-    loading.value = true
-    try {
-      for (const row of selectedRows.value) {
-        await deleteArtifact(row)
-      }
-      selectedRows.value = []
-      await loadArtifacts()
-    } catch (e) {
-      $q.notify({ type: 'negative', message: e?.message || String(e) })
-    } finally {
-      loading.value = false
-    }
-  })
-}
-
-async function editSelected() {
-  const row = selectedRows.value[0]
-  if (!row) return
-  await openPropertiesDialog(row)
-}
-
-async function shareSelected() {
-  return shareRecordSelection({
+async function handleSelectedRowsShare() {
+  await shareRecordSelection({
     rows: selectedRows.value,
-    getLabel: (row) => artifactDisplayName(row) || `Artifact ${row?.artifact_id || ''}`.trim(),
-    entityLabel: 'artifacts',
-    singularLabel: 'artifact',
-    pluralLabel: 'artifacts',
+    entityLabel: activeRegistryEntry.value?.label || 'Records',
+    singularLabel: activeRegistryEntry.value?.singularLabel || 'record',
+    pluralLabel: activeRegistryEntry.value?.label || 'records',
+    getLabel: (row) => row?.titleValue || row?.recordId || '',
     notify: (payload) => $q.notify(payload),
   })
 }
 
-onMounted(() => {
-  setBreadcrumbActions(ARTIFACTS_BREADCRUMB_ACTION_OWNER, [
-    {
-      id: 'import-csv',
-      label: 'Import CSV',
-      icon: 'download',
-      disabled: () => loading.value,
-      onClick: () => csvActionsRef.value?.pickFile?.(),
+function handleSelectedRowsEdit() {
+  const row = selectedRows.value[0] || null
+  openEditRecordShell(row)
+}
+
+async function handleSelectedRowsDelete() {
+  if (!canDeleteSelectedRows.value) return
+
+  const deleteFn = bridge.value?.[activeSourceKey.value]?.delete
+  if (typeof deleteFn !== 'function') return
+
+  const selectedCount = selectedRows.value.length
+  const entityLabel = String(activeRegistryEntry.value?.label || 'records').trim()
+
+  $q.dialog({
+    title: 'Delete Selected',
+    message: `This will permanently delete ${selectedCount} selected ${entityLabel.toLowerCase()}.`,
+    cancel: true,
+    persistent: true,
+    ok: {
+      label: 'Delete',
+      color: 'negative',
+      unelevated: true,
+      noCaps: true,
     },
-    {
-      id: 'export-csv',
-      label: 'Export CSV',
-      icon: 'upload',
-      disabled: () => loading.value || rows.value.length === 0,
-      onClick: () => csvActionsRef.value?.exportCsv?.(),
-    },
-  ])
-  if (!hasBridge.value) return
-  loadArtifacts()
-  loadOpportunities()
-  loadRelationshipOptions()
-})
+  }).onOk(async () => {
+    loading.value = true
+    error.value = ''
 
-onBeforeUnmount(() => {
-  clearBreadcrumbActions(ARTIFACTS_BREADCRUMB_ACTION_OWNER)
-  resetPreviewPdfObjectUrl()
-})
+    try {
+      for (const row of selectedRows.value) {
+        await deleteFn(row.recordId)
+      }
 
-watch(previewSectionOptions, (options) => {
-  const firstValue = String(options?.[0]?.value || '').trim()
-  const currentValue = String(previewSelectedSectionKey.value || '').trim()
-  if (!firstValue) {
-    previewSelectedSectionKey.value = ''
-    return
-  }
-  if (!currentValue || !options.some((option) => String(option?.value || '').trim() === currentValue)) {
-    previewSelectedSectionKey.value = firstValue
-  }
-})
+      selectedRowIds.value = []
+      await loadRows()
+      $q.notify({
+        type: 'positive',
+        message: `${selectedCount} ${entityLabel.toLowerCase()} deleted.`,
+      })
+    } catch (deleteError) {
+      const message = String(deleteError?.message || '').trim() || 'Failed to delete selected records.'
+      error.value = message
+      $q.notify({
+        type: 'negative',
+        message,
+      })
+    } finally {
+      loading.value = false
+    }
+  })
+}
 
-watch(previewFocusClaimRows, (claims) => {
-  const currentValue = String(previewSelectedFocusClaimId.value || '').trim()
-  if (!claims.length) {
-    previewSelectedFocusClaimId.value = ''
-    return
-  }
-  if (!currentValue || !claims.some((claim) => String(claim?.claim_id || '').trim() === currentValue)) {
-    previewSelectedFocusClaimId.value = String(claims[0]?.claim_id || '').trim()
-  }
-})
-
-watch(displayArtifactRows, () => {
-  normalizeSelectedRows()
-})
 </script>
 
 <style scoped>
-.artifacts-page {
+.test-shell-page,
+.test-shell-body {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-24);
+  gap: 20px;
 }
 
-.artifacts-shell {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-  padding-top: 16px;
+.test-shell-gap-banner {
+  border: 1px solid rgba(249, 115, 22, 0.18);
 }
 
-.artifacts-shell__hero {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-  gap: var(--ds-space-24);
-  padding: var(--ds-space-32);
-  background: var(--ds-color-surface-base);
-  border: 1px solid var(--ds-color-border-soft);
-  border-radius: var(--ds-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--ds-shadow-card-soft);
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.artifacts-shell__hero::before {
-  position: absolute;
-  inset: 0;
-  content: '';
-  background: radial-gradient(
-    circle at var(--hero-dashboard-blob-x, 50%) var(--hero-dashboard-blob-y, 28%),
-    rgba(38, 71, 255, 0.2) 0%,
-    rgba(38, 71, 255, 0.1) calc(var(--hero-dashboard-blob-size, 62%) * 0.46),
-    rgba(38, 71, 255, 0.05) calc(var(--hero-dashboard-blob-size, 62%) * 0.7),
-    transparent var(--hero-dashboard-blob-size, 62%)
-  );
-  opacity: var(--hero-dashboard-blob-opacity, 0);
-  pointer-events: none;
-  transition: opacity 180ms ease;
-}
-
-.artifacts-shell__hero:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 24px 54px rgba(17, 17, 17, 0.08);
-}
-
-.artifacts-shell__hero > * {
-  position: relative;
-  z-index: 1;
-}
-
-.artifacts-shell__copy,
-.artifacts-dashboard {
-  position: relative;
-  z-index: 1;
-}
-
-.artifacts-shell__copy {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-12);
-  justify-content: flex-start;
-  min-width: 0;
-}
-
-.artifacts-shell__eyebrow,
-.artifacts-dashboard__stat-label,
-.artifacts-dashboard__health-label {
+.test-shell-filters-trigger {
   color: var(--ds-color-text-muted);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-medium);
-  font-weight: var(--ds-font-weight-medium);
-  letter-spacing: 0.12em;
-  line-height: var(--ds-line-height-xs);
-  text-transform: uppercase;
 }
 
-.artifacts-shell__hero-title {
-  margin: 38px 0 0;
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: clamp(2rem, 3vw, 2.8rem);
-  font-weight: var(--ds-font-weight-black);
+.test-shell-filters-menu {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.test-shell-filters-panel {
+  width: fit-content;
+  max-width: min(720px, calc(100vw - 16px));
+  padding: 6px;
+  background: rgba(17, 17, 17, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.test-shell-filters-panel__title {
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-black);
   line-height: 0.96;
-  max-width: 13ch;
+  padding: 2px 2px 6px;
 }
 
-.artifacts-shell__hero-text {
-  margin: auto 0 0;
-  color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-base-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-base);
-}
-
-.artifacts-shell__hero-text {
-  display: flex;
-  align-items: flex-end;
-}
-
-.artifacts-dashboard__stat-caption,
-.artifacts-dashboard__health-text {
-  color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-sm);
-}
-
-.artifacts-shell__hero-meta {
+.test-shell-filters-panel__rows {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--ds-space-8);
+  align-items: flex-start;
+  gap: 8px;
 }
 
-.artifacts-shell__meta-pill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 var(--ds-space-12);
-  color: var(--ds-color-text-subtle);
-  background: var(--ds-color-surface-overlay-72);
-  border: 1px solid var(--ds-color-border-strong);
-  border-radius: var(--ds-radius-pill);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-medium);
-  font-weight: var(--ds-font-weight-medium);
-}
-
-.artifacts-dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-14);
-  min-width: 0;
-}
-
-.artifacts-dashboard__stats {
+.test-shell-filter-group {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--ds-space-12);
+  gap: 4px;
+  flex: 0 1 auto;
+  width: max-content;
+  min-width: 0;
+  max-width: 220px;
 }
 
-.artifacts-dashboard__stat {
+.test-shell-filter-child-row {
+  width: max-content;
+  min-width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.test-shell-filter-child-row {
   display: flex;
-  min-height: 116px;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--ds-space-6);
-  padding: var(--ds-space-16);
-  background: var(--ds-color-surface-overlay-84);
-  border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-xl);
-  box-shadow: var(--ds-shadow-card-soft);
+  align-items: center;
+  gap: 6px;
+  padding: 3px 2px 3px 2px;
 }
 
-.artifacts-dashboard__stat--neutral {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(247, 244, 238, 0.94) 100%);
-}
-
-.artifacts-dashboard__stat--rich {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(238, 241, 255, 0.96) 100%);
-}
-
-.artifacts-dashboard__stat--sparse {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
-}
-
-.artifacts-dashboard__stat-value {
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: clamp(1.8rem, 2vw, 2.4rem);
-  font-weight: var(--ds-font-weight-black);
-  line-height: 0.92;
-}
-
-.artifacts-dashboard__health {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-12);
-  padding: var(--ds-space-16) var(--ds-space-18);
-  background: var(--ds-color-surface-overlay-78);
-  border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-xl);
-}
-
-.artifacts-dashboard__health-copy {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-4);
-}
-
-.artifacts-dashboard__health-bar {
-  display: flex;
-  width: 100%;
-  height: 12px;
-  overflow: hidden;
-  background: var(--ds-color-fill-subtle);
-  border-radius: var(--ds-radius-pill);
-}
-
-.artifacts-dashboard__health-segment {
-  display: block;
-  height: 100%;
-}
-
-.artifacts-dashboard__health-segment--sparse {
-  background: #ff5521;
-}
-
-.artifacts-dashboard__health-segment--medium {
-  background: #ebff5a;
-}
-
-.artifacts-dashboard__health-segment--rich {
-  background: #2647ff;
-}
-
-.artifacts-toolbar {
+.test-shell-filter-heading {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
+  width: max-content;
+  max-width: 100%;
+  padding: 2px 2px 4px;
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.86);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.test-shell-filter-heading__label,
+.test-shell-filter-child-row__label {
   min-width: 0;
-  padding: 24px;
-  background: var(--ds-color-surface-base);
-  border: 1px solid var(--ds-color-border-soft);
-  border-radius: var(--ds-radius-lg);
-}
-
-.artifacts-toolbar__block {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.artifacts-toolbar__block--view {
-  padding-top: 2px;
-  margin-right: 18px;
-}
-
-.artifacts-toolbar__block--primary {
-  margin-right: 4px;
-}
-
-.artifacts-toolbar__block--actions {
-  grid-column: -2 / -1;
-  align-items: center;
-  justify-content: flex-end;
-  margin-left: auto;
-}
-
-.artifacts-toolbar__filters-icon {
-  align-self: center;
-  color: var(--ds-color-text-muted);
-  flex: 0 0 auto;
-}
-
-.artifacts-toolbar__select-all {
-  min-height: 26px;
-  color: var(--ds-color-text-default, #111111);
-}
-
-.artifacts-toolbar__toggle {
-  display: flex;
-  align-items: center;
-  align-self: center;
-  flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  border-radius: var(--ds-control-radius);
   font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
-}
-
-.artifacts-toolbar__toggle :deep(.q-btn-group) {
-  background: transparent;
-  box-shadow: none;
-  border: 0;
-}
-
-.artifacts-toolbar__toggle :deep(.q-btn) {
-  background: transparent;
-  border: 1px solid var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: none;
-}
-
-.artifacts-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 26px;
-  min-height: 26px;
-  height: 26px;
-  padding-inline: 4px;
-}
-
-.artifacts-toolbar__view-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 6px;
-}
-
-.artifacts-toolbar__view-toggle :deep(.q-icon) {
-  font-size: 18px;
-}
-
-.artifacts-toolbar__icon-button {
-  align-self: center;
-  width: 26px;
-  height: 26px;
-  min-width: 26px;
-  min-height: 26px;
-  padding: 0;
-}
-
-.artifacts-toolbar__icon-button :deep(.q-icon) {
-  font-size: 18px;
-}
-
-.artifacts-toolbar__add-button {
-  align-self: center;
-  min-height: 36px;
-  padding: 0 14px 0 8px;
-  color: #111111;
-  background: #ffffff;
-  border: 0;
-  border-radius: 999px;
-  box-shadow: none;
-  white-space: nowrap;
-  transition:
-    background-color 140ms ease,
-    color 140ms ease,
-    transform 140ms ease;
-}
-
-.artifacts-toolbar__add-button:hover,
-.artifacts-toolbar__add-button:focus-visible {
-  transform: translateY(-1px);
-}
-
-.artifacts-toolbar__add-button:active,
-.artifacts-toolbar__add-button.q-btn--active,
-.artifacts-toolbar__add-button.q-btn--standard.q-btn--active {
-  color: #ffffff;
-  background: #111111;
-}
-
-.artifacts-toolbar__add-button :deep(.q-btn__content) {
-  padding: 0;
-}
-
-.artifacts-toolbar__add-button-inner {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.artifacts-toolbar__add-button-plus {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
-  border-radius: 999px;
-  color: #ffffff;
-  background: #2647ff;
-}
-
-.artifacts-toolbar__add-button-plus :deep(.q-icon) {
-  font-size: 12px;
-}
-
-.artifacts-toolbar__add-button-label {
-  color: inherit;
-  font-family: var(--font-title);
-  font-size: 0.95rem;
-  font-weight: var(--font-weight-black);
-  line-height: 0.92;
+  font-size: 0.62rem;
+  font-weight: var(--ds-font-weight-light);
   letter-spacing: 0.01em;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
-.artifacts-toolbar__kind-toggle :deep(.q-btn) {
-  min-width: 84px;
-  padding-inline: 18px;
+.test-shell-filter-heading__label {
+  color: #ffffff;
 }
 
-.artifacts-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 6px;
+.test-shell-filter-heading__meta {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.56rem;
 }
 
-.artifacts-toolbar__filter-control {
-  flex: 0 1 clamp(110px, 16vw, 160px);
-  min-width: 110px;
-  background: var(--ds-control-surface);
-  border-radius: var(--ds-control-radius);
+.test-shell-filter-heading__chevron {
+  color: rgba(255, 255, 255, 0.48);
 }
 
-.artifacts-toolbar__search {
-  width: min(100%, 300px);
-  min-width: min(100%, 300px);
-  flex: 0 0 min(100%, 300px);
-  background: var(--ds-control-surface);
-  border: 1px solid var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
+.test-shell-filter-group__children {
+  display: grid;
+  gap: 5px;
 }
 
-.artifacts-toolbar__search :deep(.q-field__control),
-.artifacts-toolbar__search :deep(.q-field__native),
-.artifacts-toolbar__search :deep(.q-field__input) {
-  min-height: var(--ds-control-height-md);
-  height: var(--ds-control-height-md);
+
+.test-shell-filter-child-row--selected {
+  color: #ffffff;
 }
 
-.artifacts-toolbar__search :deep(.q-field__control) {
-  padding: 0 var(--ds-control-inline-padding);
+.test-shell-filter-child-row__checkbox {
+  min-height: 12px;
 }
 
-.artifacts-empty-state {
-  padding: 24px;
+.test-shell-filter-child-row__checkbox :deep(.q-checkbox__inner) {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.14) !important;
 }
 
-.artifacts-resume-banner {
-  border: 1px solid rgba(59, 130, 246, 0.2);
+.test-shell-filter-child-row__checkbox :deep(.q-checkbox__inner--truthy) {
+  color: rgba(255, 255, 255, 0.28) !important;
 }
 
-.artifacts-grid {
+.test-shell-filter-child-row__checkbox :deep(.q-checkbox__bg) {
+  background: transparent !important;
+}
+
+.test-shell-cards-grid {
   align-items: stretch;
 }
 
-.artifact-card {
+.test-shell-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  position: relative;
+  min-height: 100%;
   overflow: hidden;
-  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 240, 0.98) 100%);
+  border-radius: 14px;
   border-color: #e5e5e5;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 240, 0.98) 100%);
   box-shadow: none;
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease;
 }
 
-.artifact-card::before {
-  content: '';
+.test-shell-card::before {
   position: absolute;
   inset: 0;
+  content: '';
   background: radial-gradient(
-    circle at var(--artifact-card-blob-x) var(--artifact-card-blob-y),
-    var(--artifact-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
-    var(--artifact-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--artifact-card-blob-size) * 0.46),
-    var(--artifact-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--artifact-card-blob-size) * 0.7),
-    transparent var(--artifact-card-blob-size)
+    circle at var(--test-shell-card-blob-x) var(--test-shell-card-blob-y),
+    var(--test-shell-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--test-shell-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--test-shell-card-blob-size) * 0.46),
+    var(--test-shell-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--test-shell-card-blob-size) * 0.7),
+    transparent var(--test-shell-card-blob-size)
   );
-  opacity: var(--artifact-card-blob-opacity, 0);
+  opacity: var(--test-shell-card-blob-opacity, 0);
   pointer-events: none;
   transition: opacity 180ms ease;
 }
 
-.artifact-card > * {
+.test-shell-card > * {
   position: relative;
   z-index: 1;
 }
 
-.artifact-card:hover {
+.test-shell-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(59, 130, 246, 0.28);
   box-shadow: none;
 }
 
-.artifact-card__control-row {
+.test-shell-card__control-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  border-radius: 18px 18px 0 0;
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 9px 9px 0 0;
   overflow: hidden;
   background: transparent;
 }
 
-.artifact-card__control-row :deep(.q-checkbox__inner),
-.artifact-card__control-row :deep(.q-btn__content) {
+.test-shell-card__control-leading {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.test-shell-card__control-row :deep(.q-checkbox) {
+  min-height: 22px;
+}
+
+.test-shell-card__control-row :deep(.q-checkbox__inner),
+.test-shell-card__control-row :deep(.q-btn__content) {
   filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
-.artifact-card__title-button {
-  display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  line-height: 1.25;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #0f172a;
-  cursor: pointer;
+.test-shell-card__control-row :deep(.q-checkbox__inner) {
+  font-size: 22px;
 }
 
-.artifact-card__title-button:hover {
-  color: #2563eb;
+.test-shell-card__control-edit,
+.test-shell-card__control-settings,
+.test-shell-card__control-eye {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  color: rgba(17, 17, 17, 0.82);
 }
 
-.artifact-card__hero {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding-bottom: 10px;
+.test-shell-card__control-edit {
+  color: #2647ff;
 }
 
-.artifact-card__hero-main {
-  display: grid;
-  grid-template-columns: 104px minmax(0, 1fr);
-  align-items: start;
-  gap: 14px;
-}
-
-.artifact-card__portrait {
-  position: relative;
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  background: transparent;
-  border-right: 0;
-}
-
-.artifact-card__portrait::after {
-  display: none;
-}
-
-.artifact-card__portrait-shell {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.artifact-card__portrait-badge {
-  display: flex;
-  position: relative;
-  z-index: 1;
-  width: clamp(124px, 48%, 152px);
-  height: clamp(124px, 48%, 152px);
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 999px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 18px 40px rgba(17, 17, 17, 0.16);
-  font-family: var(--font-title);
-  font-size: clamp(2.2rem, 4.2vw, 3rem);
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.02em;
-  overflow: hidden;
-}
-
-.artifact-card__hero-side {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 8px;
-}
-
-.artifact-card__hero-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.artifact-card__hero-copy {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 6px;
-}
-
-.artifact-card__subtitle {
-  font-size: 0.88rem;
-  color: #475569;
-  line-height: 1.4;
-}
-
-.artifact-card__inline-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.58);
-}
-
-.artifact-card__summary-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.artifact-card__details {
-  display: grid;
-  gap: 10px;
-}
-
-.artifact-card__details--compact {
-  gap: 8px;
-}
-
-.artifact-card__detail {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.artifact-card__detail-icon {
-  margin-top: 2px;
-  color: #64748b;
-}
-
-.artifact-card__detail-copy {
-  min-width: 0;
-}
-
-.artifact-card__detail-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.artifact-card__detail-value {
-  margin-top: 2px;
-  color: #0f172a;
-  line-height: 1.45;
-}
-
-.artifact-card__description {
-  margin-top: auto;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: #475569;
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.artifact-card__description--inline {
-  margin-top: 0;
-}
-
-.artifact-card__icon-action {
-  color: #111;
-  background: transparent;
-  border: 0;
-  transform: scale(0.75);
-  transform-origin: center;
-}
-
-.artifact-card__select-box {
-  margin-left: -3.5px;
-  transform: scale(0.75);
-  transform-origin: center;
-}
-
-
-.artifact-card__control-eye {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
-  padding: 0;
-  color: #111;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-}
-
-.artifact-card__control-eye :deep(.q-icon) {
+.test-shell-card__control-edit :deep(.q-icon) {
   font-size: 14px;
 }
 
-.artifact-card__footer {
-  display: flex;
+.test-shell-card__control-settings :deep(.q-icon),
+.test-shell-card__control-eye :deep(.q-icon) {
+  font-size: 16px;
+}
+
+.test-shell-card__control-actions {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px 14px;
-  border-top: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(255, 255, 255, 0.54);
+  gap: 2px;
 }
 
-.artifact-card__footer-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.artifact-card__icon-action {
-  color: #475569;
-}
-
-.artifact-card__icon-action--resume {
-  color: #2563eb;
-}
-
-.artifact-properties__versions {
-  display: flex;
-  min-height: 40px;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 10px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  border-radius: 4px;
-  background: rgba(248, 250, 252, 0.7);
-}
-
-.artifact-preview-dialog {
-  display: flex;
-  flex-direction: column;
-  width: calc(100vw - 48px);
-  max-width: none;
-  height: min(92vh, 980px);
-  margin: 0;
-  border-radius: 28px;
+.test-shell-card-settings-menu {
+  border-radius: 14px;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
-    #fff;
-  box-shadow:
-    0 26px 80px rgba(15, 23, 42, 0.24),
-    0 10px 28px rgba(15, 23, 42, 0.16);
 }
 
-.artifact-preview-dialog__body {
-  flex: 1;
-  min-height: 0;
-  padding: 0;
-  background: #f8fafc;
+.test-shell-card-settings-panel {
+  width: min(280px, calc(100vw - 24px));
+  padding: 10px;
+  background: rgba(248, 248, 246, 0.98);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 16px 32px rgba(17, 17, 17, 0.12);
 }
 
-.artifact-preview-dialog__workspace {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
+.test-shell-card-settings-panel__title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.84rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
 }
 
-.artifact-preview-dialog__top {
-  display: flex;
-  min-height: 0;
-  flex: 1 1 56%;
+.test-shell-card-settings-panel__caption {
+  margin-top: 4px;
+  color: rgba(17, 17, 17, 0.62);
+  font-family: var(--font-body);
+  font-size: 0.69rem;
+  font-weight: var(--font-weight-light);
+  line-height: 1.35;
 }
 
-.artifact-preview-dialog__main {
-  display: flex;
-  flex: 1 1 auto;
-  min-width: 0;
-  position: relative;
-  align-items: stretch;
-  justify-content: center;
-  padding: 16px;
-  background: linear-gradient(180deg, rgba(241, 245, 249, 0.92), rgba(226, 232, 240, 0.72));
+.test-shell-card-settings-panel__list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-.artifact-preview-dialog__focus-chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.artifact-preview-dialog__focus-chip {
-  padding: 6px 10px;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  border-radius: 999px;
-  background: rgba(248, 250, 252, 0.96);
-  color: #475569;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
-}
-
-.artifact-preview-dialog__focus-chip:hover {
-  transform: translateY(-1px);
-  border-color: rgba(59, 130, 246, 0.32);
-  color: #1d4ed8;
-}
-
-.artifact-preview-dialog__focus-chip--active {
-  border-color: rgba(59, 130, 246, 0.42);
-  background: rgba(219, 234, 254, 0.96);
-  color: #1d4ed8;
-}
-
-.artifact-preview-dialog__focus-chip--exit {
-  border-color: rgba(148, 163, 184, 0.38);
-  background: rgba(255, 255, 255, 0.96);
-  color: #0f172a;
-}
-
-.artifact-preview-dialog__focus-chip--empty {
-  cursor: pointer;
-  border-style: dashed;
-}
-
-.artifact-preview-dialog__state {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.artifact-preview-dialog__frame {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  border: 0;
-  background: white;
-  border-radius: 18px;
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
-}
-
-.artifact-preview-dialog__image {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 18px;
-}
-
-.artifact-preview-dialog__text {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 16px;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-  background: white;
-  border-radius: 12px;
-}
-
-.artifact-preview-sidebar {
-  width: min(420px, 32vw);
-  min-width: 320px;
-  max-width: 460px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 18px 16px;
-  overflow: auto;
-  border-left: 1px solid rgba(148, 163, 184, 0.25);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)),
-    #fff;
-}
-
-.artifact-preview-dialog__bottom {
-  display: flex;
-  min-height: 0;
-  flex: 0 0 42%;
-  flex-direction: column;
-  border-top: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(255, 255, 255, 0.96);
-}
-
-.artifact-preview-dialog__tabs {
-  padding: 0 14px;
-  min-height: 48px;
-}
-
-.artifact-preview-dialog__tab-panels {
-  flex: 1;
-  min-height: 0;
-  background: transparent;
-}
-
-.artifact-preview-dialog__tab-panel {
-  height: 100%;
-  overflow: auto;
-}
-
-.artifact-preview-dialog__group-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.artifact-preview-dialog__group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.artifact-preview-dialog__group-head {
-  display: flex;
-  flex-direction: column;
+.test-shell-card-settings-group {
+  display: grid;
   gap: 4px;
 }
 
-.artifact-preview-dialog__panel-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+.test-shell-card-settings-group--selected {
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.08);
 }
 
-.artifact-preview-dialog__claim-grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.artifact-preview-dialog__claim-card {
-  padding: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 16px;
-  background: rgba(248, 250, 252, 0.82);
-}
-
-.artifact-preview-dialog__claim-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.artifact-preview-dialog__claim-card-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.artifact-preview-dialog__claim-card-value {
-  margin-top: 4px;
-  color: #0f172a;
-  line-height: 1.45;
-}
-
-.artifact-preview-dialog__tab-empty {
-  padding: 16px 0;
-}
-
-.artifact-preview-sidebar__section {
-  display: flex;
-  flex-direction: column;
-}
-
-.artifact-preview-sidebar__section--grow {
-  flex: 1;
-  min-height: 0;
-}
-
-.artifact-preview-sidebar__claim {
-  padding: 10px 12px;
-  border: 1px solid rgba(251, 191, 36, 0.45);
-  border-radius: 12px;
-  background: rgba(255, 251, 235, 0.92);
-}
-
-.artifact-preview-sidebar__focus-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.artifact-preview-sidebar__focus-card {
-  padding: 10px 12px;
-  border: 1px solid rgba(59, 130, 246, 0.22);
-  border-radius: 12px;
-  background: rgba(239, 246, 255, 0.92);
-}
-
-.artifact-preview-sidebar__claim-title {
-  margin-bottom: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: #92400e;
-}
-
-.artifact-preview-sidebar__state {
+.test-shell-card-settings-group__toggle {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  color: #475569;
-}
-
-.artifact-preview-sidebar__markdown-block {
-  padding: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.94);
-}
-
-.artifact-preview-sidebar__markdown-block--used {
-  border-color: rgba(251, 191, 36, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.3);
-  background: rgba(255, 251, 235, 0.92);
-}
-
-.artifact-preview-sidebar__markdown-text {
-  margin: 0;
-  max-height: 240px;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.artifacts-table {
-  border: 1px solid var(--ds-table-border);
-  border-radius: var(--ds-control-radius);
-  overflow: hidden;
-}
-
-.artifacts-table :deep(thead tr) {
-  background: var(--ds-table-header-bg);
-}
-
-.artifacts-table :deep(th) {
-  color: var(--ds-table-header-text);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-medium);
-  font-weight: var(--ds-font-weight-medium);
-}
-
-.artifacts-table :deep(td) {
-  color: var(--ds-table-cell-text);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm);
-  font-weight: var(--ds-font-weight-light);
-}
-
-@media (max-width: 900px) {
-  .artifact-preview-dialog {
-    width: 96vw;
-    height: 92vh;
-  }
-
-  .artifact-preview-dialog__top {
-    flex-direction: column;
-  }
-
-  .artifact-preview-sidebar {
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-    border-left: 0;
-    border-top: 1px solid rgba(148, 163, 184, 0.25);
-  }
-}
-
-@media (max-width: 1200px) {
-  .artifacts-shell {
-    gap: 32px;
-  }
-
-  .artifacts-shell__hero {
-    grid-template-columns: 1fr;
-    padding: 24px;
-  }
-
-  .artifacts-toolbar {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-    padding: 20px;
-  }
-
-  .artifacts-toolbar__block {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .artifacts-toolbar__filter-control,
-  .artifacts-toolbar__search,
-  .artifacts-toolbar__toggle {
-    width: 100%;
-    min-width: 0;
-  }
-}
-
-@media (max-width: 720px) {
-  .artifacts-dashboard__stats {
-    grid-template-columns: 1fr;
-  }
-
-  .artifact-card__hero-main {
-    grid-template-columns: 1fr;
-  }
-
-  .artifact-card__portrait {
-    min-height: 112px;
-  }
-
-  .artifact-card__portrait-shell {
-    min-height: 112px;
-  }
-
-  .artifact-preview-dialog {
-    width: 98vw;
-    height: 94vh;
-  }
-
-  .artifact-preview-dialog__top {
-    flex: 1 1 auto;
-  }
-
-  .artifact-preview-dialog__main {
-    min-height: 260px;
-    padding: 12px;
-  }
-
-  .artifact-preview-dialog__bottom {
-    flex: 0 0 48%;
-  }
-
-  .artifact-preview-dialog__claim-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.artifact-card__hero {
+  width: 100%;
   padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  text-align: left;
 }
 
-.artifact-card__hero-main {
+.test-shell-card-settings-group__title {
+  color: rgba(17, 17, 17, 0.62);
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.95;
+}
+
+.test-shell-card-settings-group__icon {
+  color: rgba(17, 17, 17, 0.56);
+}
+
+.test-shell-card-settings-group__body {
+  display: grid;
+  gap: 4px;
+}
+
+.test-shell-card-settings-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 2px 4px;
+  border-radius: 8px;
+}
+
+.test-shell-card-settings-row__checkbox {
+  color: rgba(17, 17, 17, 0.72);
+}
+
+.test-shell-card-settings-row__copy {
+  min-width: 0;
+}
+
+.test-shell-card-settings-row__label {
+  color: #111111;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-light);
+  line-height: 1.2;
+}
+
+.test-shell-card-settings-row__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.test-shell-card-settings-row__actions :deep(.q-btn) {
+  color: rgba(17, 17, 17, 0.68);
+}
+
+.test-shell-card-settings-row__chevron {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  fill: none;
+}
+
+.test-shell-card__hero {
+  padding: 0 0 4px;
+}
+
+.test-shell-card__hero-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 224px;
   height: 248px;
 }
 
-.artifact-card__portrait {
+.test-shell-card__portrait {
   position: relative;
   width: 100%;
   min-width: 0;
@@ -4295,11 +2622,7 @@ watch(displayArtifactRows, () => {
   border-right: 0;
 }
 
-.artifact-card__portrait::after {
-  display: none;
-}
-
-.artifact-card__portrait-shell {
+.test-shell-card__portrait-shell {
   position: relative;
   z-index: 1;
   display: flex;
@@ -4310,7 +2633,7 @@ watch(displayArtifactRows, () => {
   padding: 24px;
 }
 
-.artifact-card__portrait-badge {
+.test-shell-card__portrait-badge {
   display: flex;
   position: relative;
   z-index: 1;
@@ -4331,7 +2654,7 @@ watch(displayArtifactRows, () => {
   overflow: hidden;
 }
 
-.artifact-card__hero-side {
+.test-shell-card__hero-side {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -4341,7 +2664,7 @@ watch(displayArtifactRows, () => {
   overflow: hidden;
 }
 
-.artifact-card__hero-copy {
+.test-shell-card__hero-copy {
   display: flex;
   min-width: 0;
   flex: 1 1 auto;
@@ -4349,67 +2672,110 @@ watch(displayArtifactRows, () => {
   gap: 10px;
 }
 
-.artifact-card__title {
+.test-shell-card__slot-label,
+.test-shell-card__summary-label,
+.test-shell-card__summary-panel-title,
+.test-shell-token-row__meta {
+  color: var(--ds-color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.test-shell-card__title {
+  min-width: 0;
   color: #0a0a0a;
   font-family: var(--font-title);
   font-size: clamp(1.3rem, 2vw, 1.6rem);
   font-weight: var(--font-weight-black);
   line-height: 0.96;
-  display: -webkit-box;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-.artifact-card__bottom-stack,
-.artifact-card__detail-stack {
+.test-shell-card__bottom-stack,
+.test-shell-card__detail-stack {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.artifact-card__detail-stack {
+.test-shell-card__subtitle {
+  color: rgba(17, 17, 17, 0.7);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-light);
+  line-height: 1.35;
+}
+
+.test-shell-card__detail-stack {
   gap: 4px;
 }
 
-.artifact-card__detail-row {
+.test-shell-card__detail-row {
   display: flex;
   align-items: center;
   width: 100%;
-  min-width: 0;
 }
 
-.artifact-card__inline-chip {
+.test-shell-card__inline-chip {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
   width: 100%;
   min-height: 26px;
-  padding: 0 10px;
+  padding: 0;
   color: #111;
   background: transparent;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0;
   font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
-  min-width: 0;
-  overflow: hidden;
+  font-size: 0.74rem;
+  font-weight: var(--font-weight-light);
 }
 
-.artifact-card__inline-chip span {
+.test-shell-card__inline-chip-value {
+  color: #111111;
+  font-weight: var(--font-weight-medium);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.artifact-card__summary {
+.test-shell-card__inline-chip-tooltip {
+  color: rgba(17, 17, 17, 0.76);
+  background: rgba(239, 239, 239, 0.92);
+  border-radius: 5px;
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  padding: 4px 7px;
+}
+
+.test-shell-card__inline-chip--placeholder {
+  color: #6f6f6f;
+}
+
+.test-shell-card__subtitle,
+.test-shell-card__summary-meta,
+.test-shell-card__summary-status,
+.test-shell-token-row__value,
+.test-shell-card__empty {
+  color: var(--ds-color-text-secondary);
+}
+
+.test-shell-card__value--placeholder {
+  color: var(--ds-color-text-muted);
+  font-style: italic;
+}
+
+.test-shell-card__summary {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -4420,53 +2786,32 @@ watch(displayArtifactRows, () => {
   padding: 0;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 18px;
+  border-radius: 9px;
   box-shadow: none;
-  backdrop-filter: none;
 }
 
-.artifact-card__summary-head {
+.test-shell-card__summary-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.artifact-card__summary-view-toggle,
-.artifact-card__summary-toggle {
+.test-shell-card__summary-toggle {
   border-radius: var(--ds-control-radius);
 }
 
-.artifact-card__summary-view-toggle {
-  margin-left: auto;
-  margin-right: 14px;
-}
-
-.artifact-card__summary-view-toggle :deep(.q-btn-group),
-.artifact-card__summary-toggle :deep(.q-btn-group) {
+.test-shell-card__summary-toggle :deep(.q-btn-group) {
   background: transparent;
   box-shadow: none;
   border: 0;
 }
 
-.artifact-card__summary-view-toggle :deep(.q-btn) {
-  min-height: 21px;
-  min-width: 21px;
-  height: 21px;
-  width: 21px;
-  padding: 0 2px;
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: var(--ds-control-radius);
+.test-shell-card__summary-toggle {
+  margin: 0 auto 0 14px;
 }
 
-.artifact-card__summary-view-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 6px;
-}
-
-.artifact-card__summary-view-toggle :deep(.q-icon) {
-  font-size: 13px;
-}
-
-.artifact-card__summary-toggle :deep(.q-btn) {
+.test-shell-card__summary-toggle :deep(.q-btn) {
   position: relative;
   min-height: 24px;
   min-width: 24px;
@@ -4478,8 +2823,8 @@ watch(displayArtifactRows, () => {
   font-size: 12px;
 }
 
-.artifact-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
-.artifact-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+.test-shell-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
+.test-shell-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
   content: attr(data-tooltip);
   position: absolute;
   left: 0;
@@ -4499,57 +2844,63 @@ watch(displayArtifactRows, () => {
   z-index: 3;
 }
 
-.artifact-card__summary-toggle :deep(.q-btn + .q-btn) {
+.test-shell-card__summary-toggle :deep(.q-btn + .q-btn) {
   margin-left: 4px;
 }
 
-.artifact-card__summary-toggle :deep(.q-icon) {
+.test-shell-card__summary-toggle :deep(.q-icon) {
   font-size: 12px;
 }
 
-.artifact-card__summary-toggle {
-  margin-left: 14px;
-  margin-right: auto;
+.test-shell-card__summary-panel {
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 8px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
 }
 
-.artifact-card__summary-add-relation {
+.test-shell-card__summary-add-relation {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 22px;
-  min-height: 22px;
-  padding: 0 2px 0 0;
+  height: 24px;
+  min-height: 24px;
+  margin: 0 14px 0 auto;
+  padding: 0 2px;
   color: inherit;
   background: transparent;
   border: 0;
   box-shadow: none;
 }
 
-.artifact-card__summary-add-relation :deep(.q-btn__content) {
+.test-shell-card__summary-add-relation :deep(.q-btn__content) {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
 }
 
-.artifact-card__summary-add-relation-plus {
+.test-shell-card__summary-add-relation-plus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  min-height: 18px;
-  border-radius: 999px;
+  width: 19px;
+  height: 19px;
+  min-width: 19px;
+  min-height: 19px;
+  border-radius: 6px;
   color: #ffffff;
   background: #2647ff;
 }
 
-.artifact-card__summary-add-relation-plus :deep(.q-icon) {
+.test-shell-card__summary-add-relation-plus :deep(.q-icon) {
   font-size: 11px;
 }
 
-.artifact-card__summary-add-relation-label {
+.test-shell-card__summary-add-relation-label {
   color: rgba(17, 17, 17, 0.86);
   font-family: var(--font-title);
   font-size: 0.68rem;
@@ -4558,59 +2909,304 @@ watch(displayArtifactRows, () => {
   letter-spacing: 0.01em;
 }
 
-.artifact-card__summary-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 8px;
-}
-
-.artifact-card__summary-panel {
+.test-shell-card__summary-body {
   flex: 1 1 auto;
   min-height: 0;
-  padding: 14px 14px 12px;
-  border-radius: 16px;
-  background: var(--ds-color-surface-base);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-}
-
-.artifact-card__summary-body {
-  flex: 1 1 auto;
-  min-height: 0;
+  margin-top: 0;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-.artifact-card__summary-body-content,
-.artifact-card__notes-list {
+.test-shell-card__summary-body-content {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.artifact-card__notes-list--rows {
-  gap: 6px;
+.test-shell-card__notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.artifact-card__note-pill {
+.test-shell-card__note-pill {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   min-height: 36px;
   padding: 8px 10px;
   color: #111;
   background: #fff;
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: var(--font-body);
   font-size: 12px;
   line-height: 1.4;
 }
 
-.artifact-card__summary-empty {
+.test-shell-card__note-pill--placeholder {
   color: #6f6f6f;
-  font-family: var(--font-body);
-  font-size: var(--text-sm---light);
-  font-weight: var(--font-weight-light);
-  line-height: 20px;
+}
+
+.test-shell-card__note-pill-name {
+  font-weight: var(--font-weight-medium);
+}
+
+.test-shell-card__note-pill-value {
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .test-shell-card__summary-head,
+  .test-shell-card__note-pill {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .test-shell-card__hero-main {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.test-shell-table-surface {
+  display: grid;
+  gap: 6px;
+}
+
+.test-shell-table-tabs {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.test-shell-table-tabs__left,
+.test-shell-table-tabs__right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.test-shell-table-tabs__right {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.test-shell-table-tabs__tab {
+  min-height: 30px;
+  padding: 0 11px;
+  color: #111111;
+  background: #fdfdfb;
+  border: 1px solid #111111;
+  border-radius: 2px;
+  font-family: var(--font-title);
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+
+.test-shell-table-tabs__tab--active {
+  color: #ffffff;
+  background: #111111;
+  border-color: #111111;
+}
+
+.test-shell-table-scroll {
+  overflow: auto;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.test-shell-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.test-shell-table__head,
+.test-shell-table__cell {
+  min-width: 144px;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.test-shell-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  color: rgba(17, 17, 17, 0.68);
+  padding-top: 8px;
+  padding-bottom: 8px;
+  background: #f3f4f6;
+  font-family: var(--font-title);
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.04em;
+  line-height: 0.96;
+}
+
+.test-shell-table__head-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.test-shell-table__resize-handle {
+  width: 8px;
+  min-width: 8px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-right: 2px solid rgba(17, 17, 17, 0.18);
+  cursor: col-resize;
+}
+
+.test-shell-table__resize-handle:hover,
+.test-shell-table__resize-handle:focus-visible {
+  border-right-color: rgba(17, 17, 17, 0.46);
+  outline: none;
+}
+
+.test-shell-table__head--name,
+.test-shell-table__cell--name {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  min-width: 196px;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.test-shell-table__head--name {
+  z-index: 4;
+  background: #eef0f2;
+}
+
+.test-shell-table__cell {
+  color: var(--ds-color-text-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+  vertical-align: top;
+}
+
+.test-shell-table__name-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.test-shell-table__select-box,
+.test-shell-table__eye {
+  flex: 0 0 auto;
+}
+
+.test-shell-table__eye {
+  justify-self: start;
+}
+
+.test-shell-table__kdb-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.test-shell-table__kdb-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 7px;
+  color: #111111;
+  background: rgba(17, 17, 17, 0.04);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 3px;
+}
+
+.test-shell-table__kdb-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  color: rgba(17, 17, 17, 0.7);
+}
+
+.test-shell-table__kdb-text {
+  min-width: 0;
+  color: #111111;
+  font-family: var(--ds-font-family-body);
+  font-size: 10px;
+  font-weight: var(--ds-font-weight-light);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.test-shell-table__name {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-body);
+  font-size: 12px;
+  font-weight: var(--font-weight-black);
+  line-height: 1.35;
+  min-width: 0;
+  text-align: left;
+  justify-self: start;
+}
+
+.test-shell-table tbody tr:last-child .test-shell-table__cell {
+  border-bottom: 0;
+}
+
+.test-shell-table-row {
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.test-shell-table-row__title {
+  color: var(--ds-color-text-primary);
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+}
+
+.test-shell-table-row__meta {
+  margin-top: 6px;
+  color: var(--ds-color-text-secondary);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 900px) {
+  .test-shell-table-tabs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .test-shell-table-tabs__right {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .test-shell-table__head--name,
+  .test-shell-table__cell--name {
+    min-width: 164px;
+  }
+
+  .test-shell-table__kdb-list {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
