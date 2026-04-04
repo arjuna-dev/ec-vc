@@ -1522,56 +1522,51 @@ function confirmCreateBranch(branchValue) {
 }
 
 async function openNoteFromQuickAction() {
-  closeQuickActions()
-  await router.push({ name: 'test-shell', query: { section: 'notes', create: '1' } })
+  await openShellCreateFromQuickAction('notes')
 }
 
 async function openCompanyFromQuickAction() {
-  closeQuickActions()
-  await router.push({ name: 'test-shell', query: { section: 'companies', create: '1' } })
+  await openShellCreateFromQuickAction('companies')
 }
 
 async function openContactFromQuickAction() {
-  closeQuickActions()
-  await router.push({ name: 'test-shell', query: { section: 'contacts', create: '1' } })
+  await openShellCreateFromQuickAction('contacts')
 }
 
 async function openUserFromQuickAction() {
-  closeQuickActions()
-  await router.push({ name: 'test-shell', query: { section: 'users', create: '1' } })
+  await openShellCreateFromQuickAction('users')
 }
 
 async function openTaskFromQuickAction() {
-  closeQuickActions()
-  await router.push({ name: 'test-shell', query: { section: 'tasks', create: '1' } })
+  await openShellCreateFromQuickAction('tasks')
 }
 
 async function openProjectFromQuickAction() {
-  closeQuickActions()
-  await router.push({ name: 'test-shell', query: { section: 'projects', create: '1' } })
+  await openShellCreateFromQuickAction('projects')
 }
 
 async function openArtifactFromQuickAction() {
-  closeQuickActions()
-  try {
-    await router.push({ name: 'artifacts' })
-  } finally {
-    draftTrayDismissed.value = false
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-artifact-dialog'))
-    }, 80)
-  }
+  await openShellCreateFromQuickAction('artifacts')
 }
 
 async function openFundFromQuickAction() {
-  closeQuickActions()
-  await router.push({ name: 'test-shell', query: { section: 'opportunities', create: '1', kind: 'fund' } })
+  await openShellCreateFromQuickAction('opportunities', { kind: 'fund' })
 }
 
 async function openRoundFromQuickAction() {
+  await openShellCreateFromQuickAction('opportunities', { kind: 'round' })
+}
+
+async function openShellCreateFromQuickAction(section, extraQuery = {}) {
   closeQuickActions()
-  await router.push({ name: 'test-shell', query: { section: 'opportunities', create: '1', kind: 'round' } })
+  await router.push({
+    name: 'test-shell',
+    query: {
+      section,
+      create: String(Date.now()),
+      ...extraQuery,
+    },
+  })
 }
 
 function initLogoAnimation() {
