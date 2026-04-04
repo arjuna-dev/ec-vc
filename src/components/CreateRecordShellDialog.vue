@@ -98,7 +98,7 @@
 
               <q-select
                 v-else-if="token.tokenType === 'select_single'"
-                :model-value="stringValue(formValues[token.key])"
+                :model-value="selectSingleValue(formValues[token.key])"
                 dense
                 outlined
                 emit-value
@@ -218,7 +218,7 @@ watch(
         .map((token) => {
           const initialValue = props.initialValues?.[token.key]
           if (token.tokenType === 'select_multi') {
-            return [token.key, Array.isArray(initialValue) ? initialValue : []]
+            return [token.key, normalizeMultiValue(initialValue)]
           }
           return [token.key, initialValue == null ? '' : initialValue]
         }),
@@ -239,6 +239,18 @@ function submit() {
 
 function stringValue(value) {
   return typeof value === 'string' ? value : String(value || '')
+}
+
+function selectSingleValue(value) {
+  return value == null ? '' : value
+}
+
+function normalizeMultiValue(value) {
+  if (Array.isArray(value)) return value
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
 }
 
 function inputTypeForToken(tokenType) {

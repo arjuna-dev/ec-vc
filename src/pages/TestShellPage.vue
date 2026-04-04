@@ -730,11 +730,13 @@ const selectedCardItemTokens = computed(() =>
 const createKeyFieldTokens = computed(() => {
   const tokens = [canonicalTitleToken.value, ...selectedCardItemTokens.value].filter(Boolean)
   const seen = new Set()
-  return tokens.filter((token) => {
-    if (seen.has(token.key)) return false
-    seen.add(token.key)
-    return true
-  })
+  return tokens
+    .filter((token) => {
+      if (seen.has(token.key)) return false
+      seen.add(token.key)
+      return true
+    })
+    .map((token) => normalizeCreateDialogToken(token))
 })
 const cardItemTokenGroups = computed(() =>
   level2Sections.value
@@ -789,7 +791,7 @@ const createDialogInitialValues = computed(() => {
   return Object.fromEntries(
     allTokens.map((token) => {
       const value = getCanonicalTokenValue(editDialogRow.value.raw, token)
-      return [token.key, Array.isArray(value) ? [...value] : value == null ? '' : String(value)]
+      return [token.key, normalizeCreateDialogInitialValue(token, value)]
     }),
   )
 })
@@ -867,6 +869,40 @@ function getInputOptionsForToken(token) {
     label: value,
     value,
   }))
+}
+
+function resolveCreateDialogOptionValue(token, rawValue) {
+  if (rawValue == null) return ''
+  const normalized = String(rawValue || '').trim()
+  if (!normalized) return ''
+  const options = Array.isArray(token?.inputOptions) ? token.inputOptions : getInputOptionsForToken(token)
+  const matchedOption = options.find((option) => {
+    const optionValue = String(option?.value ?? '').trim()
+    const optionLabel = String(option?.label ?? '').trim()
+    return normalized === optionValue || normalized === optionLabel
+  })
+  return matchedOption ? matchedOption.value : normalized
+}
+
+function normalizeCreateDialogInitialValue(token, value) {
+  const tokenType = String(token?.tokenType || '').trim()
+
+  if (tokenType === 'select_multi') {
+    const values = Array.isArray(value)
+      ? value
+      : String(value || '')
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean)
+
+    return values.map((item) => resolveCreateDialogOptionValue(token, item)).filter(Boolean)
+  }
+
+  if (tokenType === 'select_single') {
+    return resolveCreateDialogOptionValue(token, value)
+  }
+
+  return value == null ? '' : String(value)
 }
 
 function normalizeEntitySourceKey(entityName) {
