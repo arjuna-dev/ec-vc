@@ -48,9 +48,9 @@
                     />
                   </div>
 
-                  <div class="create-record-shell__artifact-drop-items">
+                  <div v-if="availableArtifacts.length" class="create-record-shell__artifact-drop-items">
                     <label
-                      v-for="artifact in stagedArtifacts"
+                      v-for="artifact in availableArtifacts"
                       :key="artifact.id"
                       class="create-record-shell__artifact-drop-item"
                     >
@@ -66,6 +66,10 @@
                       <span class="create-record-shell__artifact-drop-item-name">{{ artifact.name }}</span>
                       <span class="create-record-shell__artifact-drop-item-size">{{ formatArtifactSize(artifact.size) }}</span>
                     </label>
+                  </div>
+
+                  <div v-else class="create-record-shell__artifact-drop-empty">
+                    All staged artifacts are in the processing lane.
                   </div>
                 </div>
 
@@ -87,12 +91,35 @@
                   <div class="create-record-shell__processing-panel-head">
                     <div class="create-record-shell__processing-panel-title">Processing Files</div>
                     <div class="create-record-shell__processing-panel-meta">
-                      {{ selectedArtifactCount }} of {{ stagedArtifacts.length }} selected
+                      {{ processingArtifacts.length }} loading
                     </div>
                   </div>
 
-                  <div v-if="stagedArtifacts.length" class="create-record-shell__processing-ready">
-                    Staged files are ready for selection and processing.
+                  <div v-if="processingArtifacts.length" class="create-record-shell__processing-list">
+                    <label
+                      v-for="artifact in processingArtifacts"
+                      :key="`processing:${artifact.id}`"
+                      class="create-record-shell__processing-item"
+                    >
+                      <q-checkbox
+                        :model-value="true"
+                        dense
+                        size="xs"
+                        checked-icon="check_box"
+                        unchecked-icon="check_box_outline_blank"
+                        class="create-record-shell__artifact-checkbox"
+                        @update:model-value="toggleArtifactSelection(artifact.id, $event)"
+                      />
+                      <span class="create-record-shell__processing-item-name">{{ artifact.name }}</span>
+                      <span class="create-record-shell__processing-item-status">
+                        <q-spinner size="12px" color="dark" class="create-record-shell__processing-spinner" />
+                        Loading
+                      </span>
+                    </label>
+                  </div>
+
+                  <div v-else-if="stagedArtifacts.length" class="create-record-shell__processing-ready">
+                    Select artifacts on the left to move them into processing.
                   </div>
 
                   <div v-else class="create-record-shell__processing-empty">
@@ -318,6 +345,12 @@ const selectedArtifactCount = computed(() => selectedArtifactIds.value.length)
 const allArtifactsSelected = computed(() =>
   stagedArtifacts.value.length > 0 && selectedArtifactIds.value.length === stagedArtifacts.value.length,
 )
+const availableArtifacts = computed(() =>
+  stagedArtifacts.value.filter((artifact) => !selectedArtifactIds.value.includes(artifact.id)),
+)
+const processingArtifacts = computed(() =>
+  stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
+)
 const activeFieldLabelWidth = computed(() => {
   const longestLabelLength = activeFields.value.reduce((max, token) => {
     const length = String(token?.label || '').trim().length
@@ -345,7 +378,7 @@ watch(
     activeSectionKey.value = String(props.initialSectionKey || '').trim() || 'key-fields'
     artifactDragOver.value = false
     stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
-    selectedArtifactIds.value = stagedArtifacts.value.map((artifact) => artifact.id)
+    selectedArtifactIds.value = []
     autoProcessArtifacts.value = false
     dialogWidth.value = 760
     dialogHeight.value = 780
@@ -440,7 +473,6 @@ function onArtifactDrop(event) {
   })
 
   stagedArtifacts.value = Array.from(existingByPath.values())
-  selectedArtifactIds.value = stagedArtifacts.value.map((artifact) => artifact.id)
 }
 
 function normalizeArtifactFile(file) {
@@ -729,6 +761,12 @@ onBeforeUnmount(() => {
   padding-right: 2px;
 }
 
+.create-record-shell__artifact-drop-empty {
+  color: rgba(17, 17, 17, 0.54);
+  font-size: 0.74rem;
+  line-height: 1.3;
+}
+
 .create-record-shell__artifact-drop-item {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -825,6 +863,49 @@ onBeforeUnmount(() => {
   color: rgba(17, 17, 17, 0.66);
   font-size: 0.76rem;
   line-height: 1.35;
+}
+
+.create-record-shell__processing-list {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.create-record-shell__processing-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+}
+
+.create-record-shell__processing-item-name {
+  min-width: 0;
+  color: #111111;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-record-shell__processing-item-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(17, 17, 17, 0.68);
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.create-record-shell__processing-spinner {
+  flex: 0 0 auto;
 }
 
 .create-record-shell__tabs {
