@@ -1170,9 +1170,9 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 4px;
-  min-height: 14px;
-  padding: 1px 3px;
+  gap: 3px;
+  min-height: 0;
+  padding: 0 2px;
   border: 1px solid rgba(17, 17, 17, 0.18);
   border-radius: 2px;
   background: rgba(255, 255, 255, 0.96);
@@ -1188,12 +1188,13 @@ onBeforeUnmount(() => {
   outline: none;
   font-family: var(--font-body);
   font-size: 10px;
-  line-height: 1.05;
+  line-height: 1;
 }
 
 .create-record-shell__processing-entry-hint {
   color: rgba(17, 17, 17, 0.5);
-  font-size: 0.72rem;
+  font-size: 10px;
+  line-height: 1;
 }
 
 .create-record-shell__processing-entry-list {
