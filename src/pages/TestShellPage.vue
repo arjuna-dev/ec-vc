@@ -1520,7 +1520,7 @@ function notifyShellAction(label) {
 
 .test-shell-table-surface {
   display: grid;
-  gap: 12px;
+  gap: 6px;
 }
 
 .test-shell-table-tabs {
