@@ -294,8 +294,20 @@
                     <q-checkbox
                       :model-value="isRowSelected(row)"
                       color="dark"
+                      dense
+                      size="xs"
                       class="test-shell-table__select-box"
                       @update:model-value="toggleRowSelection(row, $event)"
+                    />
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      size="8px"
+                      icon="visibility"
+                      class="test-shell-table__eye"
+                      :disable="!row.recordId"
+                      @click="openRecordView(row)"
                     />
                     <div
                       class="test-shell-table__name"
@@ -303,15 +315,6 @@
                     >
                       {{ row.titleValue || 'Name mapping undefined' }}
                     </div>
-                    <q-btn
-                      flat
-                      round
-                      dense
-                      icon="visibility"
-                      class="test-shell-table__eye"
-                      :disable="!row.recordId"
-                      @click="openRecordView(row)"
-                    />
                   </div>
                 </td>
                 <td
@@ -1544,6 +1547,10 @@ function notifyShellAction(label) {
 .test-shell-table__select-box,
 .test-shell-table__eye {
   flex: 0 0 auto;
+}
+
+.test-shell-table__eye {
+  justify-self: start;
 }
 
 .test-shell-table__kdb-list {
