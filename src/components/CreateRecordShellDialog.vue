@@ -414,6 +414,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'submit', 'change', 'request-close'])
+const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 
 const hasUserChanges = ref(false)
 
@@ -555,6 +556,13 @@ function buildDialogSnapshot() {
     values: { ...formValues.value },
     artifacts: {
       stagedFiles: stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
+      processedFiles: stagedArtifacts.value
+        .filter((artifact) => selectedArtifactIds.value.includes(artifact.id))
+        .map((artifact) => ({
+          artifactId: artifact.artifactId || artifact.id,
+          processedArtifactId: artifact.processedArtifactId || '',
+          name: artifact.name,
+        })),
       autoProcess: autoProcessArtifacts.value,
     },
     companion: {
@@ -614,14 +622,17 @@ function isSummarySidecarField(token) {
   return activeSectionKey.value === 'key-fields' && isSummaryField(token)
 }
 
-function onArtifactDrop(event) {
+async function onArtifactDrop(event) {
   artifactDragOver.value = false
   const files = Array.from(event?.dataTransfer?.files || [])
   if (!files.length) return
 
-  const nextArtifacts = files
+  const nextArtifacts = await Promise.all(
+    files
     .map((file) => normalizeArtifactFile(file))
     .filter((file) => file.path || file.name)
+    .map((artifact) => persistDroppedArtifact(artifact)),
+  )
 
   if (!nextArtifacts.length) return
 
@@ -647,6 +658,8 @@ function normalizeArtifactFile(file) {
     name,
     path: path || null,
     size,
+    artifactId: '',
+    processedArtifactId: '',
   }
 }
 
@@ -658,35 +671,41 @@ function normalizeInitialArtifacts(artifacts = []) {
       const size = Number(artifact?.size || 0)
       if (!name && !path) return null
       return {
-        id: String(artifact?.id || path || `${name}:${index}`).trim(),
+        id: String(artifact?.id || artifact?.artifactId || path || `${name}:${index}`).trim(),
         name: name || path,
         path: path || null,
         size,
+        artifactId: String(artifact?.artifactId || artifact?.id || '').trim(),
+        processedArtifactId: String(artifact?.processedArtifactId || '').trim(),
       }
     })
     .filter(Boolean)
 }
 
-function toggleArtifactSelection(artifactId, nextValue) {
+async function toggleArtifactSelection(artifactId, nextValue) {
   if (nextValue) {
     if (!selectedArtifactIds.value.includes(artifactId)) {
       selectedArtifactIds.value = [...selectedArtifactIds.value, artifactId]
     }
+    await ensureProcessedArtifactForSelection(artifactId)
     markDialogChanged()
     return
   }
 
   selectedArtifactIds.value = selectedArtifactIds.value.filter((id) => id !== artifactId)
+  await removeProcessedArtifactForSelection(artifactId)
   markDialogChanged()
 }
 
-function toggleAllArtifacts(nextValue) {
+async function toggleAllArtifacts(nextValue) {
   if (nextValue) {
     selectedArtifactIds.value = stagedArtifacts.value.map((artifact) => artifact.id)
+    await Promise.all(selectedArtifactIds.value.map((artifactId) => ensureProcessedArtifactForSelection(artifactId)))
     markDialogChanged()
     return
   }
 
+  await Promise.all(selectedArtifactIds.value.map((artifactId) => removeProcessedArtifactForSelection(artifactId)))
   selectedArtifactIds.value = []
   markDialogChanged()
 }
@@ -707,6 +726,68 @@ function artifactPreviewIcon(artifact) {
   if (name.endsWith('.ppt') || name.endsWith('.pptx')) return 'slideshow'
   if (name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.gif') || name.endsWith('.webp')) return 'image'
   return 'insert_drive_file'
+}
+
+async function persistDroppedArtifact(artifact) {
+  if (!artifact?.path || !bridge.value?.artifacts?.create) return artifact
+  try {
+    const result = await bridge.value.artifacts.create({
+      path: artifact.path,
+      name: artifact.name,
+      size: artifact.size,
+      title: artifact.name,
+    })
+    const persistedId = String(result?.artifact_id || result?.id || '').trim()
+    if (!persistedId) return artifact
+    return {
+      ...artifact,
+      id: persistedId,
+      artifactId: persistedId,
+    }
+  } catch {
+    return artifact
+  }
+}
+
+async function ensureProcessedArtifactForSelection(artifactId) {
+  const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
+  if (!artifact || artifact.processedArtifactId || !bridge.value?.['artifacts-processed']?.create) return
+
+  try {
+    const result = await bridge.value['artifacts-processed'].create({
+      Processed_Artifact_Name: artifact.name,
+      Processed_Artifact_Summary: '',
+      Original_Artifact_Id: artifact.artifactId || artifact.id,
+      Working: 1,
+    })
+    const processedArtifactId = String(result?.id || '').trim()
+    if (!processedArtifactId) return
+    stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
+      entry.id === artifactId
+        ? { ...entry, processedArtifactId }
+        : entry,
+    )
+  } catch {
+    // Keep the shell usable even if the processed-artifact bridge is not ready.
+  }
+}
+
+async function removeProcessedArtifactForSelection(artifactId) {
+  const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
+  const processedArtifactId = String(artifact?.processedArtifactId || '').trim()
+  if (!processedArtifactId) return
+
+  try {
+    await bridge.value?.['artifacts-processed']?.delete?.(processedArtifactId)
+  } catch {
+    // Leave the local shell state consistent even if delete fails.
+  }
+
+  stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
+    entry.id === artifactId
+      ? { ...entry, processedArtifactId: '' }
+      : entry,
+  )
 }
 
 function addCompanionEntry(kind) {

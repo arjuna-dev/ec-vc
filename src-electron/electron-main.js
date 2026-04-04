@@ -2859,6 +2859,89 @@ function listArtifacts() {
   )
 }
 
+function normalizeArtifactFormatFromPath(filePath = '', fallbackName = '') {
+  const target = String(filePath || fallbackName || '').trim().toLowerCase()
+  if (target.endsWith('.pdf')) return 'pdf'
+  if (target.endsWith('.doc')) return 'doc'
+  if (target.endsWith('.docx')) return 'docx'
+  if (target.endsWith('.ppt')) return 'ppt'
+  if (target.endsWith('.pptx')) return 'pptx'
+  if (target.endsWith('.xls')) return 'xls'
+  if (target.endsWith('.xlsx')) return 'xlsx'
+  if (target.endsWith('.csv')) return 'csv'
+  if (target.endsWith('.txt')) return 'txt'
+  if (target.endsWith('.md')) return 'md'
+  if (target.endsWith('.json')) return 'json'
+  if (target.endsWith('.html') || target.endsWith('.htm')) return 'html'
+  if (target.endsWith('.png')) return 'png'
+  if (target.endsWith('.jpg')) return 'jpg'
+  if (target.endsWith('.jpeg')) return 'jpeg'
+  if (target.endsWith('.webp')) return 'webp'
+  if (target.endsWith('.gif')) return 'gif'
+  if (target.endsWith('.tif')) return 'tif'
+  if (target.endsWith('.tiff')) return 'tiff'
+  return 'other'
+}
+
+function createArtifact(payload = {}) {
+  const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
+  const fsPath =
+    normalizeNullableString(payload?.fs_path) ||
+    normalizeNullableString(payload?.path)
+  if (!fsPath) throw new Error('Artifact file path is required')
+
+  const title =
+    normalizeNullableString(payload?.title) ||
+    normalizeNullableString(payload?.name) ||
+    path.basename(fsPath)
+  const artifactId = normalizeNullableString(payload?.artifact_id) || `artifact:${crypto.randomUUID()}`
+  const artifactFormat =
+    normalizeNullableString(payload?.artifact_format) || normalizeArtifactFormatFromPath(fsPath, title)
+  const description =
+    normalizeNullableString(payload?.description) ||
+    normalizeNullableString(payload?.summary)
+  const fsHash = normalizeNullableString(payload?.fs_hash)
+  const fsSizeBytes = normalizeNullableNumber(payload?.fs_size_bytes) ?? normalizeNullableNumber(payload?.size)
+
+  database
+    .prepare(
+      `
+      INSERT INTO Artifacts (
+        artifact_id, round_id, fund_id, created_by, artifact_format, type, title, description, created_at, updated_at
+      ) VALUES (
+        @artifact_id, NULL, NULL, @created_by, @artifact_format, NULL, @title, @description, datetime('now'), datetime('now')
+      )
+    `,
+    )
+    .run({
+      artifact_id: artifactId,
+      created_by: normalizeNullableString(payload?.created_by) || actor.user_id,
+      artifact_format: artifactFormat,
+      title,
+      description,
+    })
+
+  database
+    .prepare(
+      `
+      INSERT INTO Artifact_Raw (
+        artifact_id, fs_path, fs_hash, fs_size_bytes
+      ) VALUES (
+        @artifact_id, @fs_path, @fs_hash, @fs_size_bytes
+      )
+    `,
+    )
+    .run({
+      artifact_id: artifactId,
+      fs_path: fsPath,
+      fs_hash: fsHash,
+      fs_size_bytes: fsSizeBytes,
+    })
+
+  return { id: artifactId, artifact_id: artifactId, title }
+}
+
 function listProcessedArtifacts() {
   return dbAll(
     `
@@ -5592,6 +5675,17 @@ function registerIpc() {
   ipcMain.handle('artifacts:list', async () => {
     initDb()
     return { artifacts: listArtifacts() }
+  })
+
+  ipcMain.handle('artifacts:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createArtifact(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'artifacts'))
+    }
   })
 
   ipcMain.handle('artifacts-processed:list', async () => {

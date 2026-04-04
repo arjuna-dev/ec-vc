@@ -145,6 +145,7 @@ contextBridge.exposeInMainWorld('ecvc', {
   },
   artifacts: {
     list: () => ipcRenderer.invoke('artifacts:list'),
+    create: (payload) => ipcRenderer.invoke('artifacts:create', payload),
     upsertMany: (rows) => ipcRenderer.invoke('artifacts:upsertMany', { rows }),
     delete: (artifactId) => ipcRenderer.invoke('artifacts:delete', { artifactId }),
     download: ({ artifactId } = {}) => ipcRenderer.invoke('artifacts:download', { artifactId }),
