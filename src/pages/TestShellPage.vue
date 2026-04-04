@@ -1852,10 +1852,13 @@ async function handleSelectedRowsDelete() {
   color: #2647ff;
 }
 
-.test-shell-card__control-edit :deep(.q-icon),
+.test-shell-card__control-edit :deep(.q-icon) {
+  font-size: 14px;
+}
+
 .test-shell-card__control-settings :deep(.q-icon),
 .test-shell-card__control-eye :deep(.q-icon) {
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .test-shell-card__control-actions {
