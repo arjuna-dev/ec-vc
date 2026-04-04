@@ -1067,14 +1067,14 @@ onBeforeUnmount(() => {
   padding: 8px;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .create-record-shell__processing-box--compact {
   align-content: start;
-  gap: 6px;
-  padding: 6px;
-  border-radius: 6px;
+  gap: 4px;
+  padding: 4px 5px;
+  border-radius: 3px;
 }
 
 .create-record-shell__processing-box-head {
@@ -1170,32 +1170,41 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__processing-entry-add-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
   gap: 2px;
-  min-height: 0;
-  padding: 0 4px;
+  height: 14px;
+  min-height: 14px;
+  padding: 0 3px;
   border: 1px solid rgba(17, 17, 17, 0.18);
   border-radius: 1px;
   background: rgba(255, 255, 255, 0.96);
+  box-sizing: border-box;
 }
 
 .create-record-shell__processing-entry-native-input {
+  display: block;
+  flex: 1 1 auto;
   width: 100%;
   min-width: 0;
+  box-sizing: border-box;
   padding: 0;
-  height: 12px;
+  height: 10px;
+  min-height: 10px;
   color: #111111;
+  caret-color: #111111;
   background: transparent;
   border: 0;
   outline: none;
+  appearance: none;
   font-family: var(--font-body);
-  font-size: 10px;
-  line-height: 12px;
+  font-size: 9px;
+  line-height: 10px;
+  vertical-align: top;
 }
 
 .create-record-shell__processing-entry-hint {
+  flex: 0 0 auto;
   color: rgba(17, 17, 17, 0.5);
   font-size: 9px;
   line-height: 1;
@@ -1214,19 +1223,19 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 5px;
-  min-height: 18px;
-  padding: 2px 5px;
+  gap: 4px;
+  min-height: 14px;
+  padding: 1px 4px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 2px;
+  border-radius: 1px;
 }
 
 .create-record-shell__processing-entry-value {
   min-width: 0;
   color: #111111;
-  font-size: 10px;
-  line-height: 1.1;
+  font-size: 9px;
+  line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
