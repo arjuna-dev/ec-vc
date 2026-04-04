@@ -11,15 +11,15 @@
             <button
               type="button"
               class="create-record-shell__intake-toggle"
-              @click="ingestionCompanionCollapsed = !ingestionCompanionCollapsed"
+              @click="supportResourcesCollapsed = !supportResourcesCollapsed"
             >
-              <span class="create-record-shell__intake-title">Ingestion Companion</span>
+              <span class="create-record-shell__intake-title">Support Resources</span>
               <q-icon
-                :name="ingestionCompanionCollapsed ? 'expand_more' : 'expand_less'"
+                :name="supportResourcesCollapsed ? 'expand_more' : 'expand_less'"
                 class="create-record-shell__intake-toggle-icon"
               />
             </button>
-            <div v-if="!ingestionCompanionCollapsed" class="create-record-shell__intake-body">
+            <div v-if="!supportResourcesCollapsed" class="create-record-shell__intake-body">
               <div
                 class="create-record-shell__artifact-drop"
                 :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
@@ -317,7 +317,7 @@ const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
-const ingestionCompanionCollapsed = ref(false)
+const supportResourcesCollapsed = ref(false)
 const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
 const dialogHeight = ref(780)
