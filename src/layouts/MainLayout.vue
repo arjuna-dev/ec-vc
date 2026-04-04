@@ -1493,80 +1493,32 @@ function confirmOpportunityKind(kind) {
 
 async function openNoteFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenNoteDialog = true
-  try {
-    await router.push({ name: 'notes', query: { create: '1' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-note-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-note-dialog'))
-    }, 80)
-  }
+  await router.push({ name: 'test-shell', query: { section: 'notes', create: '1' } })
 }
 
 async function openCompanyFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenCompanyDialog = true
-  try {
-    await router.push({ name: 'companies', query: { create: '1' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-company-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-company-dialog'))
-    }, 80)
-  }
+  await router.push({ name: 'test-shell', query: { section: 'companies', create: '1' } })
 }
 
 async function openContactFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenContactDialog = true
-  try {
-    await router.push({ name: 'contacts', query: { create: '1' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-contact-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-contact-dialog'))
-    }, 80)
-  }
+  await router.push({ name: 'test-shell', query: { section: 'contacts', create: '1' } })
 }
 
 async function openUserFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenUserDialog = true
-  try {
-    await router.push({ name: 'users', query: { create: '1' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-user-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-user-dialog'))
-    }, 80)
-  }
+  await router.push({ name: 'test-shell', query: { section: 'users', create: '1' } })
 }
 
 async function openTaskFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenTaskDialog = true
-  try {
-    await router.push({ name: 'tasks', query: { create: '1' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-task-dialog'))
-    }, 80)
-  }
+  await router.push({ name: 'test-shell', query: { section: 'tasks', create: '1' } })
 }
 
 async function openProjectFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenPipelineDialog = true
-  try {
-    await router.push({ name: 'projects', query: { create: '1' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-pipeline-dialog'))
-    }, 80)
-  }
+  await router.push({ name: 'test-shell', query: { section: 'projects', create: '1' } })
 }
 
 async function openArtifactFromQuickAction() {
@@ -1584,28 +1536,12 @@ async function openArtifactFromQuickAction() {
 
 async function openFundFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenFundDialog = true
-  try {
-    await router.push({ name: 'funds', query: { create: 'fund' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-fund-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-fund-dialog'))
-    }, 80)
-  }
+  await router.push({ name: 'test-shell', query: { section: 'opportunities', create: '1', kind: 'fund' } })
 }
 
 async function openRoundFromQuickAction() {
   closeQuickActions()
-  globalThis.__ecvcOpenRoundDialog = true
-  try {
-    await router.push({ name: 'rounds', query: { create: 'round' } })
-  } finally {
-    globalThis?.dispatchEvent?.(new Event('ecvc:open-round-dialog'))
-    setTimeout(() => {
-      globalThis?.dispatchEvent?.(new Event('ecvc:open-round-dialog'))
-    }, 80)
-  }
+  await router.push({ name: 'test-shell', query: { section: 'opportunities', create: '1', kind: 'round' } })
 }
 
 function initLogoAnimation() {

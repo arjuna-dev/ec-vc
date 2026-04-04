@@ -608,6 +608,7 @@ const createDialogLoading = ref(false)
 const createDialogMode = ref('create')
 const editDialogRow = ref(null)
 const createDialogInitialSectionKey = ref('key-fields')
+const createDialogPrefillValues = ref({})
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
@@ -796,15 +797,21 @@ const canCreateWithShell = computed(() => {
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
 const createDialogInitialValues = computed(() => {
-  if (createDialogMode.value !== 'edit' || !editDialogRow.value?.raw) return {}
+  if (createDialogMode.value !== 'edit' || !editDialogRow.value?.raw) {
+    return createDialogPrefillValues.value
+  }
 
   const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
-  return Object.fromEntries(
+  const editValues = Object.fromEntries(
     allTokens.map((token) => {
       const value = getCanonicalTokenValue(editDialogRow.value.raw, token)
       return [token.key, normalizeCreateDialogInitialValue(token, value)]
     }),
   )
+  return {
+    ...createDialogPrefillValues.value,
+    ...editValues,
+  }
 })
 const canDeleteSelectedRows = computed(() => {
   if (selectedRows.value.length === 0) return false
@@ -1153,6 +1160,40 @@ watch(
   async ([isOpen]) => {
     if (!isOpen) return
     await preloadCreateDialogOptionSources()
+  },
+  { immediate: true },
+)
+
+watch(
+  [() => route.name, () => route.query.create, activeSourceKey, createKeyFieldTokens, createSectionGroups],
+  async ([routeName, createFlag]) => {
+    if (String(routeName || '').trim() !== 'test-shell') return
+    if (!String(createFlag || '').trim()) return
+    if (createDialogOpen.value) return
+
+    await preloadCreateDialogOptionSources()
+
+    const nextInitialValues = {}
+    if (activeSourceKey.value === 'opportunities') {
+      const requestedKind = String(route.query.kind || '').trim().toLowerCase()
+      const opportunityKindToken =
+        [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+          (token) => String(token?.tokenName || '').trim() === 'Opportunity_Kind',
+        ) || null
+
+      if (opportunityKindToken && (requestedKind === 'fund' || requestedKind === 'round')) {
+        nextInitialValues[opportunityKindToken.key] = resolveCreateDialogOptionValue(opportunityKindToken, requestedKind)
+      }
+    }
+
+    openCreateRecordShell({ initialValues: nextInitialValues })
+
+    const nextQuery = {
+      ...route.query,
+    }
+    delete nextQuery.create
+    delete nextQuery.kind
+    router.replace({ query: nextQuery })
   },
   { immediate: true },
 )
@@ -1550,10 +1591,11 @@ function openRecordView(row) {
   router.push(location)
 }
 
-function openCreateRecordShell() {
+function openCreateRecordShell(options = {}) {
   createDialogMode.value = 'create'
   editDialogRow.value = null
   createDialogInitialSectionKey.value = 'key-fields'
+  createDialogPrefillValues.value = options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}
   createDialogOpen.value = true
 }
 
@@ -1562,6 +1604,7 @@ function openEditRecordShell(row) {
   createDialogMode.value = 'edit'
   editDialogRow.value = row
   createDialogInitialSectionKey.value = 'key-fields'
+  createDialogPrefillValues.value = {}
   createDialogOpen.value = true
 }
 
@@ -1570,6 +1613,7 @@ function openAddRelationShell(row) {
   createDialogMode.value = 'edit'
   editDialogRow.value = row
   createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'key-fields'
+  createDialogPrefillValues.value = {}
   createDialogOpen.value = true
 }
 
@@ -1605,6 +1649,7 @@ async function submitCreateRecordShell({ values } = {}) {
       createDialogMode.value = 'create'
       editDialogRow.value = null
       createDialogInitialSectionKey.value = 'key-fields'
+      createDialogPrefillValues.value = {}
       $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
       await loadRows()
     } else {
@@ -1630,6 +1675,7 @@ async function submitCreateRecordShell({ values } = {}) {
 
       createDialogOpen.value = false
       createDialogInitialSectionKey.value = 'key-fields'
+      createDialogPrefillValues.value = {}
       $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
       await loadRows()
     }
