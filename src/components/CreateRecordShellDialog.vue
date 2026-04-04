@@ -5,7 +5,82 @@
       :class="{ 'create-record-shell--maximized': isMaximized }"
     >
       <q-card-section class="create-record-shell__header">
-        <div class="create-record-shell__header-copy"></div>
+        <div class="create-record-shell__header-copy">
+          <div class="create-record-shell__intake-lane">
+            <div
+              class="create-record-shell__artifact-drop"
+              :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
+              @dragover.prevent="artifactDragOver = true"
+              @dragleave.prevent="artifactDragOver = false"
+              @drop.prevent="onArtifactDrop"
+            >
+              <div class="create-record-shell__artifact-drop-copy">
+                <div class="create-record-shell__artifact-drop-title">Artifacts</div>
+                <div class="create-record-shell__artifact-drop-caption">
+                  {{ artifactDragOver ? 'Release to stage files' : 'Drag files or a folder here' }}
+                </div>
+              </div>
+
+              <div v-if="stagedArtifacts.length" class="create-record-shell__artifact-drop-list">
+                <div class="create-record-shell__artifact-drop-list-head">
+                  <q-checkbox
+                    :model-value="allArtifactsSelected"
+                    dense
+                    size="xs"
+                    checked-icon="check_box"
+                    unchecked-icon="check_box_outline_blank"
+                    class="create-record-shell__artifact-checkbox"
+                    @update:model-value="toggleAllArtifacts"
+                  />
+                  <div class="create-record-shell__artifact-drop-list-meta">
+                    {{ selectedArtifactCount }} of {{ stagedArtifacts.length }} selected
+                  </div>
+                </div>
+
+                <div class="create-record-shell__artifact-drop-items">
+                  <label
+                    v-for="artifact in stagedArtifacts"
+                    :key="artifact.id"
+                    class="create-record-shell__artifact-drop-item"
+                  >
+                    <q-checkbox
+                      :model-value="selectedArtifactIds.includes(artifact.id)"
+                      dense
+                      size="xs"
+                      checked-icon="check_box"
+                      unchecked-icon="check_box_outline_blank"
+                      class="create-record-shell__artifact-checkbox"
+                      @update:model-value="toggleArtifactSelection(artifact.id, $event)"
+                    />
+                    <span class="create-record-shell__artifact-drop-item-name">{{ artifact.name }}</span>
+                    <span class="create-record-shell__artifact-drop-item-size">{{ formatArtifactSize(artifact.size) }}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="create-record-shell__artifact-drop-footer">
+                <q-checkbox
+                  v-model="autoProcessArtifacts"
+                  dense
+                  size="sm"
+                  checked-icon="check_box"
+                  unchecked-icon="check_box_outline_blank"
+                  class="create-record-shell__artifact-checkbox"
+                  label="Automatically begin to process files as I drop"
+                />
+              </div>
+            </div>
+
+            <q-input
+              v-model="artifactUrlInput"
+              dense
+              outlined
+              type="url"
+              class="create-record-shell__artifact-url-input"
+              placeholder="Artifact URL"
+            />
+          </div>
+        </div>
 
         <div class="create-record-shell__header-actions">
           <q-btn
@@ -161,6 +236,11 @@ const open = computed({
 const activeSectionKey = ref('key-fields')
 const formValues = ref({})
 const isMaximized = ref(false)
+const artifactDragOver = ref(false)
+const stagedArtifacts = ref([])
+const selectedArtifactIds = ref([])
+const autoProcessArtifacts = ref(false)
+const artifactUrlInput = ref('')
 
 const allSections = computed(() => [
   {
@@ -182,6 +262,10 @@ const leftPanelSections = computed(() => [
 ])
 
 const submitLabel = computed(() => (String(props.mode || '').trim().toLowerCase() === 'edit' ? 'Save' : 'Create'))
+const selectedArtifactCount = computed(() => selectedArtifactIds.value.length)
+const allArtifactsSelected = computed(() =>
+  stagedArtifacts.value.length > 0 && selectedArtifactIds.value.length === stagedArtifacts.value.length,
+)
 
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
@@ -195,6 +279,11 @@ watch(
     if (!nextValue) return
     isMaximized.value = false
     activeSectionKey.value = String(props.initialSectionKey || '').trim() || 'key-fields'
+    artifactDragOver.value = false
+    stagedArtifacts.value = []
+    selectedArtifactIds.value = []
+    autoProcessArtifacts.value = false
+    artifactUrlInput.value = ''
     formValues.value = Object.fromEntries(
       allSections.value
         .flatMap((section) => section.tokens || [])
@@ -217,7 +306,14 @@ function updateField(tokenKey, value) {
 }
 
 function submit() {
-  emit('submit', { values: { ...formValues.value } })
+  emit('submit', {
+    values: { ...formValues.value },
+    artifacts: {
+      stagedFiles: stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
+      autoProcess: autoProcessArtifacts.value,
+      url: String(artifactUrlInput.value || '').trim(),
+    },
+  })
 }
 
 function stringValue(value) {
@@ -258,6 +354,70 @@ function isWideField(token) {
 function isSummaryField(token) {
   return String(token?.label || '').trim().toLowerCase() === 'summary'
 }
+
+function onArtifactDrop(event) {
+  artifactDragOver.value = false
+  const files = Array.from(event?.dataTransfer?.files || [])
+  if (!files.length) return
+
+  const nextArtifacts = files
+    .map((file) => normalizeArtifactFile(file))
+    .filter((file) => file.path || file.name)
+
+  if (!nextArtifacts.length) return
+
+  const existingByPath = new Map(
+    stagedArtifacts.value.map((artifact) => [artifact.path || artifact.name, artifact]),
+  )
+
+  nextArtifacts.forEach((artifact) => {
+    const key = artifact.path || artifact.name
+    existingByPath.set(key, artifact)
+  })
+
+  stagedArtifacts.value = Array.from(existingByPath.values())
+  selectedArtifactIds.value = stagedArtifacts.value.map((artifact) => artifact.id)
+}
+
+function normalizeArtifactFile(file) {
+  const name = String(file?.name || '').trim()
+  const path = String(file?.path || file?.webkitRelativePath || '').trim()
+  const size = Number(file?.size || 0)
+  return {
+    id: path || `${name}:${size}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+    name,
+    path: path || null,
+    size,
+  }
+}
+
+function toggleArtifactSelection(artifactId, nextValue) {
+  if (nextValue) {
+    if (!selectedArtifactIds.value.includes(artifactId)) {
+      selectedArtifactIds.value = [...selectedArtifactIds.value, artifactId]
+    }
+    return
+  }
+
+  selectedArtifactIds.value = selectedArtifactIds.value.filter((id) => id !== artifactId)
+}
+
+function toggleAllArtifacts(nextValue) {
+  if (nextValue) {
+    selectedArtifactIds.value = stagedArtifacts.value.map((artifact) => artifact.id)
+    return
+  }
+
+  selectedArtifactIds.value = []
+}
+
+function formatArtifactSize(size) {
+  const normalized = Number(size || 0)
+  if (!Number.isFinite(normalized) || normalized <= 0) return '--'
+  if (normalized < 1024) return `${normalized} B`
+  if (normalized < 1024 * 1024) return `${(normalized / 1024).toFixed(1)} KB`
+  return `${(normalized / (1024 * 1024)).toFixed(1)} MB`
+}
 </script>
 
 <style scoped>
@@ -297,6 +457,7 @@ function isSummaryField(token) {
 .create-record-shell__header-copy {
   flex: 1 1 auto;
   min-height: 1px;
+  min-width: 0;
 }
 
 .create-record-shell__header-actions {
@@ -312,6 +473,112 @@ function isSummaryField(token) {
   gap: 10px;
   min-height: 0;
   padding: 18px 28px 28px;
+}
+
+.create-record-shell__intake-lane {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.create-record-shell__artifact-drop {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px 12px;
+  background: rgba(249, 249, 247, 0.96);
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  border-radius: 10px;
+}
+
+.create-record-shell__artifact-drop--active {
+  background: rgba(238, 241, 255, 0.98);
+  border-color: rgba(38, 71, 255, 0.6);
+}
+
+.create-record-shell__artifact-drop-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.create-record-shell__artifact-drop-title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+}
+
+.create-record-shell__artifact-drop-caption {
+  color: rgba(17, 17, 17, 0.62);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.create-record-shell__artifact-drop-list {
+  display: grid;
+  gap: 8px;
+}
+
+.create-record-shell__artifact-drop-list-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.create-record-shell__artifact-drop-list-meta {
+  color: rgba(17, 17, 17, 0.66);
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
+.create-record-shell__artifact-drop-items {
+  display: grid;
+  gap: 6px;
+  max-height: 136px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.create-record-shell__artifact-drop-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+}
+
+.create-record-shell__artifact-drop-item-name {
+  min-width: 0;
+  color: #111111;
+  font-size: 0.77rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-record-shell__artifact-drop-item-size {
+  color: rgba(17, 17, 17, 0.55);
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.create-record-shell__artifact-drop-footer {
+  padding-top: 2px;
+}
+
+.create-record-shell__artifact-checkbox {
+  margin: 0;
+}
+
+.create-record-shell__artifact-url-input :deep(.q-field__control) {
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 8px;
 }
 
 .create-record-shell__tabs {
