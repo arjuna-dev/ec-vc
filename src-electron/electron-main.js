@@ -1069,6 +1069,8 @@ function listFunds() {
 }
 
 function listUsers() {
+  const database = initDb()
+  ensureOwnerUserProfile(database)
   return dbAll(
     `
     SELECT
@@ -3714,6 +3716,28 @@ function getUserById(database, userId) {
   )
 }
 
+function ensureOwnerRole(database, ownerUserId = null) {
+  const existing = database
+    .prepare("SELECT id FROM Roles WHERE lower(trim(Role_Name)) = 'owner' LIMIT 1")
+    .get()
+  if (existing?.id) return existing.id
+
+  const roleId = 'role:owner'
+  database
+    .prepare(
+      `
+      INSERT INTO Roles (
+        id, Role_Name, Role_Summary, created_by, created_at, updated_at
+      ) VALUES (
+        ?, 'Owner', 'Default owner role for the local workspace.', ?, datetime('now'), datetime('now')
+      )
+    `,
+    )
+    .run(roleId, normalizeNullableString(ownerUserId))
+
+  return roleId
+}
+
 function createOrUpdateUserProfile(database, profile = {}) {
   const name = normalizeNullableString(profile?.Name)
   if (!name) throw new Error('User name is required')
@@ -3798,8 +3822,47 @@ function createOrUpdateUserProfile(database, profile = {}) {
   setAppSetting(database, APP_SETTING_KEYS.userId, userId)
   setAppSetting(database, APP_SETTING_KEYS.userContactId, contactId)
   setAppSetting(database, 'user_label', name)
+  ensureOwnerRole(database, userId)
 
   return { userId, contactId, email, name }
+}
+
+function ensureOwnerUserProfile(database) {
+  const storedUserId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
+  const existingUser = storedUserId ? getUserById(database, storedUserId) : null
+  if (existingUser) {
+    ensureOwnerRole(database, existingUser.id)
+    return existingUser
+  }
+
+  const storedContactId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userContactId))
+  const contact =
+    storedContactId
+      ? database
+          .prepare(
+            `
+            SELECT
+              id,
+              Name,
+              Personal_Email,
+              Professional_Email,
+              Phone,
+              Country_based,
+              LinkedIn,
+              linked_user_id
+            FROM Contacts
+            WHERE id = ?
+            LIMIT 1
+          `,
+          )
+          .get(storedContactId)
+      : null
+
+  if (!contact) return null
+
+  createOrUpdateUserProfile(database, contact)
+  const nextUserId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
+  return nextUserId ? getUserById(database, nextUserId) : null
 }
 
 function ensureAuditActor(database) {
@@ -3911,6 +3974,7 @@ function getContactById(database, contactId) {
 }
 
 function getUserSettingsPayload(database) {
+  ensureOwnerUserProfile(database)
   const actor = getAuditActor(database)
   const userId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
   const user = userId ? getUserById(database, userId) : null
