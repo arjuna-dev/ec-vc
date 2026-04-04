@@ -1165,15 +1165,17 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__processing-entry-input :deep(.q-field__control) {
-  min-height: 28px;
-  border-radius: 4px;
+  min-height: 24px;
+  border-radius: 2px;
 }
 
 .create-record-shell__processing-entry-input :deep(.q-field__native),
 .create-record-shell__processing-entry-input :deep(.q-field__input) {
-  min-height: 28px;
+  min-height: 24px;
   padding-top: 0;
   padding-bottom: 0;
+  font-size: 10px;
+  line-height: 1.1;
 }
 
 .create-record-shell__processing-entry-hint {
