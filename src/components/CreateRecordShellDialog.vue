@@ -502,7 +502,8 @@ function formatArtifactSize(size) {
   display: grid;
   gap: 12px;
   width: 100%;
-  padding: 14px 16px 12px;
+  min-height: 220px;
+  padding: 20px 22px 16px;
   background: rgba(249, 249, 247, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.14);
   border-radius: 10px;
