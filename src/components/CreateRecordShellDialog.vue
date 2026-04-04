@@ -34,80 +34,133 @@
       </q-card-section>
 
       <q-card-section class="create-record-shell__body">
-        <div class="create-record-shell__tabs">
-          <div class="create-record-shell__tabs-left">
-            <button
-              v-for="section in leftSections"
-              :key="section.key"
-              type="button"
-              class="create-record-shell__tab"
-              :class="{ 'create-record-shell__tab--active': section.key === activeSectionKey }"
-              @click="activeSectionKey = section.key"
-            >
-              {{ section.label }}
-            </button>
-          </div>
+        <div class="create-record-shell__workspace">
+          <div class="create-record-shell__column create-record-shell__column--left">
+            <div class="create-record-shell__tabs create-record-shell__tabs--left">
+              <button
+                v-for="section in leftPanelSections"
+                :key="section.key"
+                type="button"
+                class="create-record-shell__tab"
+                :class="{ 'create-record-shell__tab--active': section.key === activeLeftSectionKey }"
+                @click="activeLeftSectionKey = section.key"
+              >
+                {{ section.label }}
+              </button>
+            </div>
 
-          <div class="create-record-shell__tabs-right">
-            <button
-              v-for="section in rightSections"
-              :key="section.key"
-              type="button"
-              class="create-record-shell__tab"
-              :class="{ 'create-record-shell__tab--active': section.key === activeSectionKey }"
-              @click="activeSectionKey = section.key"
-            >
-              {{ section.label }}
-            </button>
-          </div>
-        </div>
+            <div class="create-record-shell__panel">
+              <div class="create-record-shell__panel-head">
+                <div class="create-record-shell__panel-title">{{ activeLeftSection?.label || 'Key Fields' }}</div>
+                <div class="create-record-shell__panel-meta">{{ activeLeftFields.length }} fields</div>
+              </div>
 
-        <div class="create-record-shell__panel">
-          <div class="create-record-shell__panel-head">
-            <div class="create-record-shell__panel-title">{{ activeSection?.label || 'Key Fields' }}</div>
-            <div class="create-record-shell__panel-meta">{{ activeFields.length }} fields</div>
-          </div>
+              <div v-if="activeLeftFields.length" class="create-record-shell__fields">
+                <div
+                  v-for="token in activeLeftFields"
+                  :key="token.key"
+                  class="create-record-shell__field"
+                  :class="{ 'create-record-shell__field--wide': isWideField(token) }"
+                >
+                  <div class="create-record-shell__field-label">{{ token.label }}</div>
+                  <div class="create-record-shell__field-type">{{ formatFieldType(token.tokenType) }}</div>
 
-          <div v-if="activeFields.length" class="create-record-shell__fields">
-            <div
-              v-for="token in activeFields"
-              :key="token.key"
-              class="create-record-shell__field"
-              :class="{ 'create-record-shell__field--wide': isWideField(token) }"
-            >
-              <div class="create-record-shell__field-label">{{ token.label }}</div>
-              <div class="create-record-shell__field-type">{{ formatFieldType(token.tokenType) }}</div>
+                  <q-select
+                    v-if="token.tokenType === 'select_multi'"
+                    :model-value="Array.isArray(formValues[token.key]) ? formValues[token.key] : []"
+                    dense
+                    outlined
+                    use-input
+                    use-chips
+                    multiple
+                    hide-dropdown-icon
+                    new-value-mode="add-unique"
+                    :disable="loading"
+                    class="create-record-shell__input"
+                    @update:model-value="updateField(token.key, $event)"
+                  />
 
-              <q-select
-                v-if="token.tokenType === 'select_multi'"
-                :model-value="Array.isArray(formValues[token.key]) ? formValues[token.key] : []"
-                dense
-                outlined
-                use-input
-                use-chips
-                multiple
-                hide-dropdown-icon
-                new-value-mode="add-unique"
-                :disable="loading"
-                class="create-record-shell__input"
-                @update:model-value="updateField(token.key, $event)"
-              />
+                  <q-input
+                    v-else
+                    :model-value="stringValue(formValues[token.key])"
+                    dense
+                    outlined
+                    :disable="loading"
+                    :type="inputTypeForToken(token.tokenType)"
+                    class="create-record-shell__input"
+                    @update:model-value="updateField(token.key, $event)"
+                  />
+                </div>
+              </div>
 
-              <q-input
-                v-else
-                :model-value="stringValue(formValues[token.key])"
-                dense
-                outlined
-                :disable="loading"
-                :type="inputTypeForToken(token.tokenType)"
-                class="create-record-shell__input"
-                @update:model-value="updateField(token.key, $event)"
-              />
+              <div v-else class="create-record-shell__empty">
+                No canonical fields are mapped to this section yet.
+              </div>
             </div>
           </div>
 
-          <div v-else class="create-record-shell__empty">
-            No canonical fields are mapped to this section yet.
+          <div v-if="rightSections.length" class="create-record-shell__column create-record-shell__column--right">
+            <div class="create-record-shell__tabs create-record-shell__tabs--right">
+              <button
+                v-for="section in rightSections"
+                :key="section.key"
+                type="button"
+                class="create-record-shell__tab"
+                :class="{ 'create-record-shell__tab--active': section.key === activeRightSectionKey }"
+                @click="activeRightSectionKey = section.key"
+              >
+                {{ section.label }}
+              </button>
+            </div>
+
+            <div class="create-record-shell__panel">
+              <div class="create-record-shell__panel-head">
+                <div class="create-record-shell__panel-title">{{ activeRightSection?.label || 'System' }}</div>
+                <div class="create-record-shell__panel-meta">{{ activeRightFields.length }} fields</div>
+              </div>
+
+              <div v-if="activeRightFields.length" class="create-record-shell__fields">
+                <div
+                  v-for="token in activeRightFields"
+                  :key="token.key"
+                  class="create-record-shell__field"
+                  :class="{ 'create-record-shell__field--wide': isWideField(token) }"
+                >
+                  <div class="create-record-shell__field-label">{{ token.label }}</div>
+                  <div class="create-record-shell__field-type">{{ formatFieldType(token.tokenType) }}</div>
+
+                  <q-select
+                    v-if="token.tokenType === 'select_multi'"
+                    :model-value="Array.isArray(formValues[token.key]) ? formValues[token.key] : []"
+                    dense
+                    outlined
+                    use-input
+                    use-chips
+                    multiple
+                    hide-dropdown-icon
+                    new-value-mode="add-unique"
+                    :disable="loading"
+                    class="create-record-shell__input"
+                    @update:model-value="updateField(token.key, $event)"
+                  />
+
+                  <q-input
+                    v-else
+                    :model-value="stringValue(formValues[token.key])"
+                    dense
+                    outlined
+                    :disable="loading"
+                    :type="inputTypeForToken(token.tokenType)"
+                    class="create-record-shell__input"
+                    @update:model-value="updateField(token.key, $event)"
+                  />
+                </div>
+              </div>
+
+              <div v-else class="create-record-shell__empty">
+                No canonical fields are mapped to this section yet.
+              </div>
+            </div>
           </div>
         </div>
       </q-card-section>
@@ -149,7 +202,8 @@ const open = computed({
   set: (value) => emit('update:modelValue', value),
 })
 
-const activeSectionKey = ref('key-fields')
+const activeLeftSectionKey = ref('key-fields')
+const activeRightSectionKey = ref('')
 const formValues = ref({})
 const isMaximized = ref(false)
 
@@ -163,16 +217,33 @@ const allSections = computed(() => [
   ...props.rightSections,
 ])
 
+const leftPanelSections = computed(() => [
+  {
+    key: 'key-fields',
+    label: 'Key Fields',
+    tokens: props.keyFieldTokens,
+  },
+  ...props.leftSections,
+])
+
 const headerNameToken = computed(() => props.keyFieldTokens[0] || null)
 
 const headerNamePlaceholder = computed(() => `${String(props.singularLabel || 'record')} name`)
 
-const activeSection = computed(
-  () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
+const activeLeftSection = computed(
+  () => leftPanelSections.value.find((section) => section.key === activeLeftSectionKey.value) || leftPanelSections.value[0] || null,
 )
 
-const activeFields = computed(() =>
-  (activeSection.value?.tokens || []).filter((token) => token.key !== headerNameToken.value?.key),
+const activeRightSection = computed(
+  () => props.rightSections.find((section) => section.key === activeRightSectionKey.value) || props.rightSections[0] || null,
+)
+
+const activeLeftFields = computed(() =>
+  (activeLeftSection.value?.tokens || []).filter((token) => token.key !== headerNameToken.value?.key),
+)
+
+const activeRightFields = computed(() =>
+  (activeRightSection.value?.tokens || []).filter((token) => token.key !== headerNameToken.value?.key),
 )
 
 watch(
@@ -180,7 +251,8 @@ watch(
   (nextValue) => {
     if (!nextValue) return
     isMaximized.value = false
-    activeSectionKey.value = 'key-fields'
+    activeLeftSectionKey.value = 'key-fields'
+    activeRightSectionKey.value = props.rightSections[0]?.key || ''
     formValues.value = Object.fromEntries(
       allSections.value
         .flatMap((section) => section.tokens || [])
@@ -303,28 +375,30 @@ function isWideField(token) {
 .create-record-shell__body {
   display: flex;
   flex: 1 1 auto;
-  flex-direction: column;
-  gap: 10px;
   min-height: 0;
   padding: 18px 28px 28px;
 }
 
-.create-record-shell__tabs {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.create-record-shell__workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.9fr);
+  gap: 14px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
-.create-record-shell__tabs-left,
-.create-record-shell__tabs-right {
+.create-record-shell__column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.create-record-shell__tabs {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-}
-
-.create-record-shell__tabs-right {
-  margin-left: auto;
 }
 
 .create-record-shell__tab {
@@ -446,13 +520,8 @@ function isWideField(token) {
     flex-direction: column;
   }
 
-  .create-record-shell__tabs {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .create-record-shell__tabs-right {
-    margin-left: 0;
+  .create-record-shell__workspace {
+    grid-template-columns: 1fr;
   }
 
   .create-record-shell__fields {
