@@ -2980,9 +2980,9 @@
         },
         {
           "level_2": "2",
-          "subsection": "Overview",
+          "subsection": "KDB",
           "subsection_address": "18.2.0",
-          "structure_token": "Financial_Industry_Overview",
+          "structure_token": "Financial_Industry_KDB",
           "tokens": []
         },
         {
@@ -3033,9 +3033,9 @@
         },
         {
           "level_2": "2",
-          "subsection": "Overview",
+          "subsection": "KDB",
           "subsection_address": "19.2.0",
-          "structure_token": "Round_Security_Overview",
+          "structure_token": "Round_Security_KDB",
           "tokens": []
         },
         {
@@ -3084,9 +3084,9 @@
         },
         {
           "level_2": "2",
-          "subsection": "Overview",
+          "subsection": "KDB",
           "subsection_address": "20.2.0",
-          "structure_token": "Processed_Artifact_Overview",
+          "structure_token": "Processed_Artifact_KDB",
           "tokens": []
         },
         {
