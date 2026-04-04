@@ -5,19 +5,7 @@
       :class="{ 'create-record-shell--maximized': isMaximized }"
     >
       <q-card-section class="create-record-shell__header">
-        <div class="create-record-shell__header-copy">
-          <q-input
-            v-if="headerNameToken"
-            :model-value="stringValue(formValues[headerNameToken.key])"
-            dense
-            borderless
-            :disable="loading"
-            class="create-record-shell__title-input"
-            :placeholder="headerNamePlaceholder"
-            @update:model-value="updateField(headerNameToken.key, $event)"
-          />
-          <div v-else class="create-record-shell__title">Create {{ singularLabel }}</div>
-        </div>
+        <div class="create-record-shell__header-copy"></div>
 
         <div class="create-record-shell__header-actions">
           <q-btn
@@ -193,18 +181,13 @@ const leftPanelSections = computed(() => [
   ...props.leftSections,
 ])
 
-const headerNameToken = computed(() => props.keyFieldTokens[0] || null)
-
-const headerNamePlaceholder = computed(() => `${String(props.singularLabel || 'record')} name`)
 const submitLabel = computed(() => (String(props.mode || '').trim().toLowerCase() === 'edit' ? 'Save' : 'Create'))
 
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
 )
 
-const activeFields = computed(() =>
-  (activeSection.value?.tokens || []).filter((token) => token.key !== headerNameToken.value?.key),
-)
+const activeFields = computed(() => activeSection.value?.tokens || [])
 
 watch(
   () => props.modelValue,
@@ -312,40 +295,8 @@ function isSummaryField(token) {
 }
 
 .create-record-shell__header-copy {
-  display: grid;
-  gap: 6px;
-}
-
-.create-record-shell__title {
-  color: #111111;
-  font-family: var(--font-title);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: var(--font-weight-black);
-  line-height: 0.96;
-}
-
-.create-record-shell__title-input {
-  min-width: min(100%, 460px);
-  padding: 0;
-}
-
-.create-record-shell__title-input :deep(.q-field__control) {
-  min-height: auto;
-}
-
-.create-record-shell__title-input :deep(.q-field__native),
-.create-record-shell__title-input :deep(.q-field__input) {
-  color: #111111;
-  font-family: var(--font-title);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: var(--font-weight-black);
-  line-height: 0.96;
-  padding: 0;
-}
-
-.create-record-shell__title-input :deep(.q-field__native::placeholder),
-.create-record-shell__title-input :deep(.q-field__input::placeholder) {
-  color: rgba(17, 17, 17, 0.34);
+  flex: 1 1 auto;
+  min-height: 1px;
 }
 
 .create-record-shell__header-actions {
