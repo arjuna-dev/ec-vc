@@ -33,10 +33,8 @@
                       unchecked-icon="check_box_outline_blank"
                       class="create-record-shell__artifact-checkbox"
                       @update:model-value="toggleAllArtifacts"
+                      :label="`${selectedArtifactCount} of ${stagedArtifacts.length} selected · Select all / none`"
                     />
-                    <div class="create-record-shell__artifact-drop-list-meta">
-                      {{ selectedArtifactCount }} of {{ stagedArtifacts.length }} selected
-                    </div>
                   </div>
 
                   <div class="create-record-shell__artifact-drop-items">
@@ -618,13 +616,7 @@ onBeforeUnmount(() => {
 .create-record-shell__artifact-drop-list-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.create-record-shell__artifact-drop-list-meta {
-  color: rgba(17, 17, 17, 0.66);
-  font-size: 0.74rem;
-  line-height: 1.2;
+  gap: 6px;
 }
 
 .create-record-shell__artifact-drop-items {
@@ -670,6 +662,12 @@ onBeforeUnmount(() => {
 
 .create-record-shell__artifact-checkbox {
   margin: 0;
+}
+
+.create-record-shell__artifact-drop-list-head .create-record-shell__artifact-checkbox :deep(.q-checkbox__label) {
+  color: rgba(17, 17, 17, 0.68);
+  font-size: 0.72rem;
+  line-height: 1.2;
 }
 
 .create-record-shell__artifact-drop-footer .create-record-shell__artifact-checkbox :deep(.q-checkbox__label) {
