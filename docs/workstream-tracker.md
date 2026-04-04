@@ -17,6 +17,7 @@ This tracker should stay aligned with:
 
 ## Front-Loaded
 
+- Finish the `File View` shell structural layout pass, then immediately canonicalize L1 create-action behavior so shared page-shell actions are not derived from per-entity quick-action wiring
 - Keep the canonical structure aligned with the active workbook and approved UI behavior
 - Normalize token names toward their final approved form during the same structure pass
 - Keep the canonical JSON structure shape stable enough for direct app ownership
@@ -33,6 +34,7 @@ This tracker should stay aligned with:
 - Excel workbook + canonical JSON workflow is now in place for schema indexing
 - `JSON + app editing` is now the chosen canonical structure direction
 - `docs/canonical-structure.json` is now the app-readable canonical structure registry across the current L1/L2/L3 entity set
+- canonical tokens can now carry explicit `db_field_aliases`, so shell rendering can resolve through canonical structure without guessing when live row payload fields still use older DB names
 - Exporters are now being treated as migration / ingestion utilities, not the permanent architecture backbone
 - Artifact processing recovery and continuity
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`
@@ -41,7 +43,7 @@ This tracker should stay aligned with:
 - Tracker-driven restart point for `Company`, `Opportunity`, and `Contacts` first-pass extraction
 - Include `Avatar` and `Roles` parameters in the intake control surface so operator behavior can be tuned with the workstream
 - Unify KDB relationship behavior so cards stay lightweight and record views can get richer grouped relationship payloads
-- Rename section labels and token names together so `System_Data` does not coexist indefinitely with stale `*_Metadata` naming
+- Rename section labels and token names together so `System` does not coexist indefinitely with stale `*_Metadata` naming
 
 ## Pending
 
@@ -84,6 +86,9 @@ This tracker should stay aligned with:
   - route-level `Databook` navigation has been renamed to `Record View`
   - page-level record navigation now runs through one shared helper instead of per-page route objects
   - `docs/canonical-structure.json` now carries the active app-readable L1/L2/L3 structure registry
+  - canonical `General` now standardizes `Name` at `*.3.1` and `Summary` at `*.3.2`
+  - canonical structure now carries explicit DB-field aliases where live row payloads still use older field names such as `Name`, `Company_Name`, or `title`
+  - `File View` shell work exposed a remaining divergence: L1 create-action behavior is still app-owned per entity and is not yet part of the canonical shared shell contract
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
   - keep the structure contract coherent while `Company` remains the main reference entity

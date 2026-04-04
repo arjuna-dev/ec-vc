@@ -61,6 +61,7 @@ For the current architecture pass:
 - `docs/canonical-structure.json` is the app-readable canonical structure layer
 - the workbook is being used to validate and refine that structure
 - the workbook companion remains a useful workbook-derived reference surface
+- canonical tokens may declare explicit `db_field_aliases` when live payload field names still reflect older DB naming
 
 The intended product direction is:
 
@@ -73,6 +74,30 @@ So the working mental model is:
 - `Workbook` = design and validation surface
 - `JSON` = current canonical structure surface
 - `Exporters/Importers` = adapters
+
+## Canonical Token Contract
+
+Canonical tokens are the app-facing structural descriptors.
+
+They should be understood as:
+
+- canonical address
+- canonical token name
+- optional explicit DB aliases when runtime field names have not yet caught up
+
+This matters because the shell should not guess whether:
+
+- `Contact_Name` really means `Name`
+- `Company_Summary` really means `One_Liner`
+- `Artifact_Name` really means `title`
+
+Instead, canonical should declare that relationship explicitly.
+
+Working rule:
+
+- read shell fields through canonical structure first
+- if runtime payload names differ, use explicit canonical alias metadata
+- do not rebuild old per-page field maps in the UI
 
 ## File To Record Mapping
 
@@ -115,20 +140,20 @@ The section bar below the hero/dashboard is part of the `Record View` pattern.
 
 It should follow these rules:
 
-- `System Data` is always first on the left
+- `System` is always first on the left
 - file-specific sections go in the middle
-- `KDB Relationships` is always last on the right
+- `KDB` is always last on the right
 
-`KDB Relationships` is different from the other sections because it changes the interaction model of the page.
+`KDB` is different from the other sections because it changes the interaction model of the page.
 
-When the user opens `KDB Relationships`, that section can support:
+When the user opens `KDB`, that section can support:
 
 - labels
 - filters
 - grid/row toggles
 - relationship browsing
 
-So `KDB Relationships` is not just another content tab.
+So `KDB` is not just another content tab.
 
 It is a special section with its own browsing mode and should stay anchored on the far right.
 
@@ -289,3 +314,5 @@ We want the system to be understandable as one coherent product.
 So the practical principle is:
 
 `Use File and Record as the product language, treat first-level records as canonical owners, and make linked editing read and write through the real canonical sources of truth.`
+
+

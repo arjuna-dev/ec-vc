@@ -45,7 +45,7 @@ That means:
 - every workbook-backed entity should follow one clear structure
 - file views should stay lightweight and fast
 - record views should be richer and more correct
-- KDB relationships should behave consistently
+- KDB should behave consistently
 - addresses, sections, payloads, and UI should all refer to the same underlying structure
 
 The goal is not just visual consistency.
@@ -111,6 +111,14 @@ So the practical meaning is:
 - `DB` is the runtime source
 - `Payloads` must reflect canonical structure
 - `UI` should not invent structure on the fly
+
+When live row payload fields still use older DB column names, canonical tokens should carry explicit DB aliases rather than forcing the UI to guess.
+
+Working rule:
+
+- the shell should resolve a field through canonical address and canonical token first
+- if the live payload field name differs, that token should declare `db_field_aliases`
+- the UI may read those aliases, but it should not infer them heuristically
 
 ## Canonical Structure Direction
 
@@ -258,7 +266,7 @@ It is split into two parts:
 
 This row should contain:
 
-- the KDB relationship icon strip on the left
+- the KDBhip icon strip on the left
 - the mini grid/row toggle on the right
 
 Rules:
@@ -357,14 +365,14 @@ For this project, that means:
 
 Every workbook-backed record should expose:
 
-- `System Data` first on the left
+- `System` first on the left
 - file-specific middle sections next
-- `KDB Relationships` last on the right
+- `KDB` last on the right
 
 Section behavior:
 
 - normal sections render their leaf tokens
-- `KDB Relationships` renders the relationship browser
+- `KDB` renders the relationship browser
 
 ### Payload Rule
 
@@ -384,13 +392,34 @@ That means:
 
 - section-label changes should not stop at the section label layer
 - token names should be reviewed and renamed where appropriate so the workbook, JSON companion, and app vocabulary move together
-- the goal is to reduce mixed states such as `System_Data` sections still containing `*_Metadata` token names unless that mismatch is intentionally preserved
+- the goal is to reduce mixed states such as `System` sections still containing `*_Metadata` token names unless that mismatch is intentionally preserved
 
 Working principle:
 
 - user-facing labels may evolve
 - structural addresses should remain stable
 - token names should move toward their final approved naming during this pass, not be deferred indefinitely
+
+### Canonical Token Resolution Rule
+
+Canonical token identity and live payload field names are not always the same thing.
+
+The intended contract is:
+
+- canonical token = structural token used by the app architecture
+- DB field alias = explicit runtime field name when the current DB or row payload still uses older naming
+
+Examples:
+
+- canonical `Contact_Name` may resolve through DB field alias `Name`
+- canonical `Company_Summary` may resolve through DB field aliases such as `One_Liner` or `Description`
+- canonical `Artifact_Name` may resolve through explicit list payload aliases such as `title`
+
+This means:
+
+- the shell should render through canonical structure
+- payload mismatches should be handled by explicit alias declaration in canonical JSON
+- do not restore per-page field guessing to bridge naming drift
 
 ### Addressing Rule
 
@@ -468,7 +497,7 @@ That remaining internal naming still needs to finish migrating to `File`, `Recor
 
 ### 4. Relationship Drift
 
-KDB relationships are now more consistent visually, but not yet fully backed by the same data contract everywhere.
+KDB are now more consistent visually, but not yet fully backed by the same data contract everywhere.
 
 That means:
 
@@ -517,7 +546,7 @@ Defines:
 Used by:
 
 - record view
-- KDB relationship browser
+- KDBhip browser
 - future review and audit experiences
 
 Defines:
@@ -539,18 +568,29 @@ Defines:
   "sections": [
     {
       "id": "metadata",
-      "label": "System Data",
+      "label": "System",
       "kind": "fields",
       "items": []
     },
     {
       "id": "kdb-relationships",
-      "label": "KDB Relationships",
+      "label": "KDB",
       "kind": "relationships",
       "items": []
     }
   ],
   "fields": []
+}
+```
+
+Canonical tokens may also carry explicit runtime alias metadata when needed, for example:
+
+```json
+{
+  "address": "3.3.1",
+  "token_name": "Contact_Name",
+  "token_type": "text",
+  "db_field_aliases": ["Name"]
 }
 ```
 
@@ -561,16 +601,16 @@ Working guidance:
 
 ## Canonical Section Order By File
 
-- `Users`: `System Data`, `KDB Relationships`
-- `Artifacts`: `System Data`, `KDB Relationships`
-- `Contacts`: `System Data`, `Employment`, `Studies`, `KDB Relationships`
-- `Companies`: `System Data`, `Incorporation`, `Documents`, `Operations`, `Business`, `Market`, `Results`, `Business Plan`, `Fund Raising`, `KDB Relationships`
-- `Funds`: `System Data`, `Overview`, `Economics`, `Controls`, `KDB Relationships`
-- `Rounds`: `System Data`, `Overview`, `Economics`, `Controls`, `KDB Relationships`
-- `Projects`: `System Data`, `Overview`, `Team`, `KDB Relationships`
-- `Tasks`: `System Data`, `Overview`, `Team`, `KDB Relationships`
-- `Notes`: `System Data`, `KDB Relationships`
-- `Roles`: `System Data`, `KDB Relationships`
+- `Users`: `System`, `KDB`
+- `Artifacts`: `System`, `KDB`
+- `Contacts`: `System`, `Employment`, `Studies`, `KDB`
+- `Companies`: `System`, `Incorporation`, `Documents`, `Operations`, `Business`, `Market`, `Results`, `Business Plan`, `Fund Raising`, `KDB`
+- `Funds`: `System`, `Overview`, `Economics`, `Controls`, `KDB`
+- `Rounds`: `System`, `Overview`, `Economics`, `Controls`, `KDB`
+- `Projects`: `System`, `Overview`, `Team`, `KDB`
+- `Tasks`: `System`, `Overview`, `Team`, `KDB`
+- `Notes`: `System`, `KDB`
+- `Roles`: `System`, `KDB`
 
 ## Execution Plan
 
@@ -581,7 +621,7 @@ For each entity define:
 - section order
 - section ids
 - schema-group ownership
-- KDB relationship categories
+- KDBhip categories
 - item-address ranges
 - final token naming
 
@@ -637,9 +677,9 @@ Deliver:
 - canonical JSON subsection structure
 - light payload for file/cards
 - rich payload for record view
-- KDB relationship groups
+- KDBhip groups
 
-### Phase 6. Standardize KDB Relationship Contracts
+### Phase 6. Standardize KDBhip Contracts
 
 For each entity define:
 
@@ -704,7 +744,7 @@ Recommended order:
 - [ ] final token naming approved
 - [ ] light file/card payload defined
 - [ ] rich record payload defined
-- [ ] KDB relationship contract defined
+- [ ] KDBhip contract defined
 - [ ] grouped table tabs aligned
 - [ ] record view aligned to final payload
 
@@ -731,3 +771,5 @@ We are trying to make every surface structurally coherent.
 So the practical principle is:
 
 `Use the workbook to define and validate the first structure, move canonical ownership into JSON with app editing, keep file views lightweight, make record views rich, and let stable addresses tie the system together.`
+
+
