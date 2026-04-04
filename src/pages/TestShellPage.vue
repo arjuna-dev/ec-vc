@@ -779,11 +779,11 @@ const displayRows = computed(() => {
 })
 
 function normalizeCreateDialogToken(token) {
-  if (!isSingleSelectToken(token)) return token
+  const tokenType = String(token?.tokenType || '').trim()
+  if (tokenType !== 'select_single') return token
 
   return {
     ...token,
-    tokenType: 'select_single',
     inputOptions: getSingleSelectOptionsForToken(token),
   }
 }
@@ -793,17 +793,17 @@ const EXPLICIT_SINGLE_SELECT_OPTIONS_BY_TOKEN = Object.freeze({
     { label: 'On-Going', value: 'ongoing' },
     { label: 'Closed', value: 'closed' },
   ],
+  Company_Entity_Type: ['Asset Manager', 'Venture', 'Corporation', 'Academia', 'Government', 'Other'].map((value) => ({
+    label: value,
+    value,
+  })),
+  Opportunity_Kind: ['Fund', 'Round'].map((value) => ({ label: value, value: value.toLowerCase() })),
   Task_Status: ['Not Started', 'On-Going', 'Paused', 'Dropped', 'Finished'].map((value) => ({
     label: value,
     value,
   })),
   Task_Priority_Rank: ['Low', 'Mid-Low', 'Mid', 'Mid-High', 'High'].map((value) => ({ label: value, value })),
 })
-
-function isSingleSelectToken(token) {
-  const tokenName = String(token?.tokenName || token?.key || '').trim()
-  return tokenName.endsWith('_Status') || tokenName.endsWith('_Priority_Rank')
-}
 
 function getSingleSelectOptionsForToken(token) {
   const tokenName = String(token?.tokenName || token?.key || '').trim()

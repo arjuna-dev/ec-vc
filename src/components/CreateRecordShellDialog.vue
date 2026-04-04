@@ -73,10 +73,7 @@
               v-for="token in activeFields"
               :key="token.key"
               class="create-record-shell__field"
-              :class="{
-                'create-record-shell__field--wide': isWideField(token),
-                'create-record-shell__field--stacked': isKdbSectionActive,
-              }"
+              :class="{ 'create-record-shell__field--wide': isWideField(token) }"
             >
               <div class="create-record-shell__field-copy">
                 <div class="create-record-shell__field-label">{{ token.label }}</div>
@@ -200,8 +197,6 @@ const headerNamePlaceholder = computed(() => `${String(props.singularLabel || 'r
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
 )
-
-const isKdbSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'kdb')
 
 const activeFields = computed(() =>
   (activeSection.value?.tokens || []).filter((token) => token.key !== headerNameToken.value?.key),
@@ -433,15 +428,6 @@ function isSummaryField(token) {
 
 .create-record-shell__field--wide {
   grid-column: span 1;
-}
-
-.create-record-shell__field--stacked {
-  grid-template-columns: 1fr;
-  gap: 6px;
-}
-
-.create-record-shell__field--stacked .create-record-shell__field-copy {
-  padding-top: 0;
 }
 
 .create-record-shell__field-copy {
