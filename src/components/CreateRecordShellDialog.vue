@@ -386,7 +386,7 @@ function formatFieldType(tokenType) {
 }
 
 function isWideField(token) {
-  return ['select_multi'].includes(String(token?.tokenType || '').trim())
+  return ['select_multi'].includes(String(token?.tokenType || '').trim()) || isSummaryField(token)
 }
 
 function isSummaryField(token) {
@@ -798,6 +798,7 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px 14px;
   align-content: start;
+  grid-auto-flow: dense;
   overflow: auto;
 }
 
