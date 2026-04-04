@@ -131,7 +131,11 @@
             <div class="create-record-shell__panel-meta">{{ activeFields.length }} fields</div>
           </div>
 
-          <div v-if="activeFields.length" class="create-record-shell__fields">
+          <div
+            v-if="activeFields.length"
+            class="create-record-shell__fields"
+            :style="{ '--create-record-shell-label-width': activeFieldLabelWidth }"
+          >
             <div
               v-for="token in activeFields"
               :key="token.key"
@@ -266,6 +270,15 @@ const selectedArtifactCount = computed(() => selectedArtifactIds.value.length)
 const allArtifactsSelected = computed(() =>
   stagedArtifacts.value.length > 0 && selectedArtifactIds.value.length === stagedArtifacts.value.length,
 )
+const activeFieldLabelWidth = computed(() => {
+  const longestLabelLength = activeFields.value.reduce((max, token) => {
+    const length = String(token?.label || '').trim().length
+    return Math.max(max, length)
+  }, 0)
+
+  const widthInCh = Math.min(Math.max(longestLabelLength + 2, 10), 18)
+  return `${widthInCh}ch`
+})
 
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
@@ -662,7 +675,7 @@ function formatArtifactSize(size) {
 
 .create-record-shell__field {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: var(--create-record-shell-label-width, 12ch) minmax(0, 1fr);
   gap: 4px;
   align-items: start;
 }
