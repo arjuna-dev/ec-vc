@@ -280,7 +280,7 @@ const activeFieldLabelWidth = computed(() => {
     return Math.max(max, length)
   }, 0)
 
-  const widthInCh = Math.min(Math.max(longestLabelLength + 1, 8), 14)
+  const widthInCh = Math.min(Math.max(longestLabelLength, 7), 11)
   return `${widthInCh}ch`
 })
 
