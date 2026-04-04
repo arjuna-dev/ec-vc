@@ -13,7 +13,7 @@
               class="create-record-shell__intake-toggle"
               @click="supportResourcesCollapsed = !supportResourcesCollapsed"
             >
-              <span class="create-record-shell__intake-title">Ingestion Companion</span>
+              <span class="create-record-shell__intake-title">Resources</span>
               <q-icon
                 :name="supportResourcesCollapsed ? 'expand_more' : 'expand_less'"
                 class="create-record-shell__intake-toggle-icon"
@@ -29,8 +29,8 @@
                   @dragleave.prevent="artifactDragOver = false"
                   @drop.prevent="onArtifactDrop"
                 >
-                <div class="create-record-shell__artifact-drop-copy">
-                  <div class="create-record-shell__artifact-drop-title">Artifacts</div>
+                  <div class="create-record-shell__artifact-drop-copy">
+                    <div class="create-record-shell__artifact-drop-title">Artifacts</div>
                   <div class="create-record-shell__artifact-drop-caption">
                     {{ artifactDragOver ? 'Release to stage files' : 'Drag files or a folder here' }}
                   </div>
@@ -65,6 +65,12 @@
                         class="create-record-shell__artifact-checkbox"
                         @update:model-value="toggleArtifactSelection(artifact.id, $event)"
                       />
+                      <div class="create-record-shell__artifact-drop-item-preview">
+                        <q-icon
+                          :name="artifactPreviewIcon(artifact)"
+                          class="create-record-shell__artifact-drop-item-icon"
+                        />
+                      </div>
                       <span class="create-record-shell__artifact-drop-item-name">{{ artifact.name }}</span>
                       <span class="create-record-shell__artifact-drop-item-size">{{ formatArtifactSize(artifact.size) }}</span>
                     </label>
@@ -90,11 +96,11 @@
               </div>
 
               <div class="create-record-shell__intake-column">
-                <div class="create-record-shell__intake-column-title">Processed Resources</div>
+                <div class="create-record-shell__intake-column-title">Ingestion Companion</div>
                 <div class="create-record-shell__intake-side">
                   <div class="create-record-shell__processing-panel">
                   <div class="create-record-shell__processing-panel-head">
-                    <div class="create-record-shell__processing-panel-title">Ingestion Companion</div>
+                    <div class="create-record-shell__processing-panel-title">Resources</div>
                   </div>
 
                   <div class="create-record-shell__processing-sections">
@@ -141,25 +147,93 @@
                     <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
                       <div class="create-record-shell__processing-box-head">
                         <div class="create-record-shell__processing-box-title">URLs</div>
+                        <button
+                          type="button"
+                          class="create-record-shell__processing-delete"
+                          :disabled="!selectedUrlEntryIds.length"
+                          @click="removeCompanionEntries('url')"
+                        >
+                          Delete
+                        </button>
                       </div>
                       <input
                         v-model="companionUrl"
                         type="url"
                         class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
                         @input="markDialogChanged"
+                        @keydown.enter.prevent="addCompanionEntry('url')"
                       />
+                      <div v-if="urlEntries.length" class="create-record-shell__processing-entry-list">
+                        <label
+                          v-for="entry in urlEntries"
+                          :key="entry.id"
+                          class="create-record-shell__processing-entry-row"
+                          :class="{ 'create-record-shell__processing-entry-row--expanded': expandedEntryIds.includes(entry.id) }"
+                        >
+                          <q-checkbox
+                            :model-value="selectedUrlEntryIds.includes(entry.id)"
+                            dense
+                            size="xs"
+                            checked-icon="check_box"
+                            unchecked-icon="check_box_outline_blank"
+                            class="create-record-shell__artifact-checkbox"
+                            @update:model-value="toggleCompanionEntrySelection('url', entry.id, $event)"
+                          />
+                          <button
+                            type="button"
+                            class="create-record-shell__processing-entry-toggle"
+                            @click="toggleCompanionEntryExpanded(entry.id)"
+                          >
+                            {{ entry.value }}
+                          </button>
+                        </label>
+                      </div>
                     </section>
 
                     <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
                       <div class="create-record-shell__processing-box-head">
                         <div class="create-record-shell__processing-box-title">Blurbs</div>
+                        <button
+                          type="button"
+                          class="create-record-shell__processing-delete"
+                          :disabled="!selectedBlurbEntryIds.length"
+                          @click="removeCompanionEntries('blurb')"
+                        >
+                          Delete
+                        </button>
                       </div>
                       <input
                         v-model="companionBlurb"
                         type="text"
                         class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
                         @input="markDialogChanged"
+                        @keydown.enter.prevent="addCompanionEntry('blurb')"
                       />
+                      <div v-if="blurbEntries.length" class="create-record-shell__processing-entry-list">
+                        <label
+                          v-for="entry in blurbEntries"
+                          :key="entry.id"
+                          class="create-record-shell__processing-entry-row"
+                          :class="{ 'create-record-shell__processing-entry-row--expanded': expandedEntryIds.includes(entry.id) }"
+                        >
+                          <q-checkbox
+                            :model-value="selectedBlurbEntryIds.includes(entry.id)"
+                            dense
+                            size="xs"
+                            checked-icon="check_box"
+                            unchecked-icon="check_box_outline_blank"
+                            class="create-record-shell__artifact-checkbox"
+                            @update:model-value="toggleCompanionEntrySelection('blurb', entry.id, $event)"
+                          />
+                          <button
+                            type="button"
+                            class="create-record-shell__processing-entry-toggle"
+                            @click="toggleCompanionEntryExpanded(entry.id)"
+                          >
+                            {{ entry.value }}
+                          </button>
+                        </label>
+                      </div>
                     </section>
 
                   </div>
@@ -358,6 +432,11 @@ const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
 const companionUrl = ref('')
 const companionBlurb = ref('')
+const urlEntries = ref([])
+const blurbEntries = ref([])
+const selectedUrlEntryIds = ref([])
+const selectedBlurbEntryIds = ref([])
+const expandedEntryIds = ref([])
 const supportResourcesCollapsed = ref(false)
 const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
@@ -432,6 +511,11 @@ watch(
     autoProcessArtifacts.value = false
     companionUrl.value = ''
     companionBlurb.value = ''
+    urlEntries.value = []
+    blurbEntries.value = []
+    selectedUrlEntryIds.value = []
+    selectedBlurbEntryIds.value = []
+    expandedEntryIds.value = []
     dialogWidth.value = 760
     dialogHeight.value = 780
     formValues.value = Object.fromEntries(
@@ -471,8 +555,8 @@ function buildDialogSnapshot() {
       autoProcess: autoProcessArtifacts.value,
     },
     companion: {
-      urls: companionUrl.value.trim() ? [companionUrl.value.trim()] : [],
-      guidance: companionBlurb.value.trim() ? [companionBlurb.value.trim()] : [],
+      urls: urlEntries.value.map((entry) => entry.value),
+      guidance: blurbEntries.value.map((entry) => entry.value),
     },
     hasUserChanges: hasUserChanges.value,
   }
@@ -605,6 +689,80 @@ function formatArtifactSize(size) {
   if (normalized < 1024) return `${normalized} B`
   if (normalized < 1024 * 1024) return `${(normalized / 1024).toFixed(1)} KB`
   return `${(normalized / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function artifactPreviewIcon(artifact) {
+  const name = String(artifact?.name || '').trim().toLowerCase()
+  if (name.endsWith('.pdf')) return 'picture_as_pdf'
+  if (name.endsWith('.xls') || name.endsWith('.xlsx') || name.endsWith('.csv')) return 'table_chart'
+  if (name.endsWith('.doc') || name.endsWith('.docx')) return 'description'
+  if (name.endsWith('.ppt') || name.endsWith('.pptx')) return 'slideshow'
+  if (name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.gif') || name.endsWith('.webp')) return 'image'
+  return 'insert_drive_file'
+}
+
+function addCompanionEntry(kind) {
+  const normalizedKind = String(kind || '').trim().toLowerCase()
+  const sourceRef = normalizedKind === 'url' ? companionUrl : companionBlurb
+  const nextValue = String(sourceRef.value || '').trim()
+  if (!nextValue) return
+
+  const nextEntry = {
+    id: `${normalizedKind}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+    value: nextValue,
+  }
+
+  if (normalizedKind === 'url') {
+    urlEntries.value = [...urlEntries.value, nextEntry]
+    companionUrl.value = ''
+  } else {
+    blurbEntries.value = [...blurbEntries.value, nextEntry]
+    companionBlurb.value = ''
+  }
+
+  markDialogChanged()
+}
+
+function toggleCompanionEntrySelection(kind, entryId, nextValue) {
+  const normalizedKind = String(kind || '').trim().toLowerCase()
+  const targetRef = normalizedKind === 'url' ? selectedUrlEntryIds : selectedBlurbEntryIds
+  const normalizedId = String(entryId || '').trim()
+  if (!normalizedId) return
+
+  if (nextValue) {
+    if (!targetRef.value.includes(normalizedId)) {
+      targetRef.value = [...targetRef.value, normalizedId]
+    }
+    return
+  }
+
+  targetRef.value = targetRef.value.filter((id) => id !== normalizedId)
+}
+
+function removeCompanionEntries(kind) {
+  const normalizedKind = String(kind || '').trim().toLowerCase()
+  if (normalizedKind === 'url') {
+    const selected = new Set(selectedUrlEntryIds.value)
+    urlEntries.value = urlEntries.value.filter((entry) => !selected.has(entry.id))
+    selectedUrlEntryIds.value = []
+    expandedEntryIds.value = expandedEntryIds.value.filter((id) => !selected.has(id))
+  } else {
+    const selected = new Set(selectedBlurbEntryIds.value)
+    blurbEntries.value = blurbEntries.value.filter((entry) => !selected.has(entry.id))
+    selectedBlurbEntryIds.value = []
+    expandedEntryIds.value = expandedEntryIds.value.filter((id) => !selected.has(id))
+  }
+  markDialogChanged()
+}
+
+function toggleCompanionEntryExpanded(entryId) {
+  const normalizedId = String(entryId || '').trim()
+  if (!normalizedId) return
+  if (expandedEntryIds.value.includes(normalizedId)) {
+    expandedEntryIds.value = expandedEntryIds.value.filter((id) => id !== normalizedId)
+    return
+  }
+  expandedEntryIds.value = [...expandedEntryIds.value, normalizedId]
 }
 
 function startResize(event) {
@@ -840,8 +998,9 @@ onBeforeUnmount(() => {
 
 .create-record-shell__artifact-drop-items {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
   align-content: start;
-  gap: 4px;
+  gap: 10px;
   max-height: 136px;
   overflow: auto;
   padding-right: 2px;
@@ -855,21 +1014,46 @@ onBeforeUnmount(() => {
 
 .create-record-shell__artifact-drop-item {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 7px;
+  grid-template-rows: auto auto auto;
+  justify-items: center;
+  gap: 5px;
+  padding: 8px 8px 6px;
+  position: relative;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 8px;
+  border-radius: 6px;
+}
+
+.create-record-shell__artifact-drop-item .create-record-shell__artifact-checkbox {
+  position: absolute;
+  top: -7px;
+  left: -7px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 999px;
+}
+
+.create-record-shell__artifact-drop-item-preview {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 68px;
+  background: rgba(248, 248, 246, 0.96);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 6px;
+}
+
+.create-record-shell__artifact-drop-item-icon {
+  color: #111111;
+  font-size: 2rem;
 }
 
 .create-record-shell__artifact-drop-item-name {
-  min-width: 0;
+  width: 100%;
   color: #111111;
-  font-size: 0.77rem;
+  font-size: 0.72rem;
   font-weight: 600;
   line-height: 1.2;
+  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -877,7 +1061,7 @@ onBeforeUnmount(() => {
 
 .create-record-shell__artifact-drop-item-size {
   color: rgba(17, 17, 17, 0.55);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   line-height: 1.2;
 }
 
@@ -1134,6 +1318,28 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.create-record-shell__processing-entry-toggle {
+  min-width: 0;
+  padding: 0;
+  color: #111111;
+  background: transparent;
+  border: 0;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.create-record-shell__processing-entry-row--expanded .create-record-shell__processing-entry-toggle {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .create-record-shell__processing-placeholder-box {
