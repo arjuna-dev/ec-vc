@@ -310,10 +310,9 @@
       <SelectionActionBar
         :count="selectedCount"
         :loading="loading"
-        :can-delete="true"
+        :can-delete="false"
         @share="shareSelected"
         @edit="editSelected"
-        @delete="deleteSelected"
       />
     </div>
   </q-page>
@@ -746,14 +745,6 @@ async function shareSelected() {
       message: 'Unable to copy selected users from this environment.',
     })
   }
-}
-
-function deleteSelected() {
-  if (selectedCount.value === 0) return
-  $q.notify({
-    type: 'info',
-    message: 'Delete is visible in the Users prototype now, but the actual delete action is not wired yet.',
-  })
 }
 
 async function importRows(importedRows = []) {
