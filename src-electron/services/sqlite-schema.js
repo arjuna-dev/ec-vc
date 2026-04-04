@@ -1361,6 +1361,19 @@ CREATE TABLE IF NOT EXISTS Assistant_System_Prompts (
 CREATE INDEX IF NOT EXISTS idx_Assistant_System_Prompts_active
   ON Assistant_System_Prompts(is_active);
 
+CREATE TABLE IF NOT EXISTS Roles (
+  id TEXT PRIMARY KEY,
+  Role_Name TEXT NOT NULL,
+  Role_Summary TEXT,
+  created_by TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Roles_created_by
+  ON Roles(created_by);
+
 CREATE TABLE IF NOT EXISTS Project_Stages (
   stage_id TEXT PRIMARY KEY,
   project_id TEXT NOT NULL,

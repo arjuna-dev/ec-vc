@@ -466,12 +466,12 @@ const WORKBOOK_DEFINITIONS = [
     getRows: listNoteRows,
   },
   {
-    key: 'Agent',
-    fileName: '9. Agents.xlsx',
-    sheetName: 'Agents',
+    key: 'Role',
+    fileName: '9. Roles.xlsx',
+    sheetName: 'Roles',
     targetDir: (workspaceRootPath) => getNetworkDatabaseSectionPath(workspaceRootPath, 'Agents'),
-    eventTables: ['Assistant_System_Prompts'],
-    getRows: listAgentRows,
+    eventTables: ['Roles'],
+    getRows: listRoleRows,
   },
 ]
 
@@ -485,7 +485,7 @@ const ENTITY_SECTION_LENGTHS = {
   Project: [5, 9, 9, 8],
   Task: [5, 9, 6, 4],
   Note: [5, 9],
-  Agent: [5, 4],
+  Role: [5, 4],
 }
 
 function listArtifactRows() {
@@ -917,21 +917,17 @@ function listNoteRows() {
   )
 }
 
-function listAgentRows() {
+function listRoleRows() {
   return dbAll(
     `
     SELECT
-      assistant_system_prompt_id AS Agent_ID,
-      name AS Agent_Name,
-      version AS Agent_Version,
-      description AS Agent_Description,
-      system_prompt AS Agent_System_Prompt,
-      input_contract AS Agent_Input_Contract,
-      output_contract AS Agent_Output_Contract,
-      schema_name AS Agent_Schema_Name,
-      created_at AS Agent_Created_At
-    FROM Assistant_System_Prompts
-    ORDER BY COALESCE(created_at, '') DESC, assistant_system_prompt_id DESC
+      id AS Role_ID,
+      Role_Name,
+      Role_Summary,
+      created_by AS Role_Creator,
+      created_at AS Role_Created_At
+    FROM Roles
+    ORDER BY COALESCE(created_at, '') DESC, id DESC
   `,
   )
 }

@@ -5922,6 +5922,117 @@
           ]
         }
       }
+    },
+    {
+      "level_1": "21",
+      "entity": "Roles",
+      "entity_address": "21.0.0",
+      "subsections": {
+        "21.0.0": {
+          "level_2": "0",
+          "subsection": "na",
+          "subsection_address": "21.0.0",
+          "parent_id": "null",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "21.0.0",
+              "token_name": "Role",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "1",
+              "parent_id": "null"
+            }
+          ]
+        },
+        "21.1.0": {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "21.1.0",
+          "parent_id": "21.1.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "21.1.1",
+              "token_name": "Role_ID",
+              "token_type": "id",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "21.1.0"
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "21.1.0",
+              "token_name": "Role_System",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "21.0.0"
+            }
+          ]
+        },
+        "21.2.0": {
+          "level_2": "2",
+          "subsection": "KDB",
+          "subsection_address": "21.2.0",
+          "parent_id": "21.2.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "21.2.0",
+              "token_name": "Role_KDB",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "21.0.0"
+            }
+          ]
+        },
+        "21.3.0": {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "21.3.0",
+          "parent_id": "21.3.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "21.3.1",
+              "token_name": "Role_Name",
+              "token_type": "text",
+              "db_field_aliases": ["Role_Name"],
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "21.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "21.3.2",
+              "token_name": "Role_Summary",
+              "token_type": "text",
+              "db_field_aliases": ["Role_Summary"],
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "21.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "21.3.0",
+              "token_name": "Role_General",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "21.0.0"
+            }
+          ]
+        }
+      }
     }
   ],
   "option_lists": {

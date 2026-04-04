@@ -1407,22 +1407,63 @@ function upsertTasks(rows = []) {
 }
 
 function listAssistantPrompts() {
+  return listRoles()
+}
+
+function listRoles() {
   return dbAll(
     `
     SELECT
-      assistant_system_prompt_id,
-      name,
-      version,
-      description,
-      system_prompt,
-      input_contract,
-      output_contract,
-      schema_name,
+      id AS assistant_system_prompt_id,
+      Role_Name AS name,
+      '' AS version,
+      Role_Summary AS description,
+      '' AS system_prompt,
+      '' AS input_contract,
+      '' AS output_contract,
+      '' AS schema_name,
+      'Roles' AS domain,
       created_at
-    FROM Assistant_System_Prompts
-    ORDER BY created_at DESC, assistant_system_prompt_id DESC
+    FROM Roles
+    ORDER BY created_at DESC, id DESC
   `,
   )
+}
+
+function createRole(payload = {}) {
+  const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
+  const name =
+    normalizeNullableString(payload?.Role_Name) ||
+    normalizeNullableString(payload?.Name) ||
+    normalizeNullableString(payload?.title)
+
+  if (!name) throw new Error('Role name is required')
+
+  const id = normalizeNullableString(payload?.id) || `role:${crypto.randomUUID()}`
+  const summary =
+    normalizeNullableString(payload?.Role_Summary) ||
+    normalizeNullableString(payload?.Summary) ||
+    normalizeNullableString(payload?.description)
+
+  database
+    .prepare(
+      `
+      INSERT INTO Roles (
+        id, Role_Name, Role_Summary, created_by, created_at, updated_at
+      ) VALUES (
+        ?, ?, ?, ?, datetime('now'), datetime('now')
+      )
+    `,
+    )
+    .run(
+      id,
+      name,
+      summary,
+      normalizeNullableString(payload?.created_by) || actor.user_id,
+    )
+
+  return { id }
 }
 
 function listDatabookVersions(tableName, recordId) {
@@ -2250,6 +2291,12 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['title', 'artifact_id'],
     readonlyColumns: new Set(['artifact_id', 'created_at', 'updated_at']),
   },
+  Roles: {
+    tableName: 'Roles',
+    entityLabel: 'Role',
+    displayColumns: ['Role_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
   Opportunities: {
     tableName: 'Opportunities',
     entityLabel: 'Opportunity',
@@ -2316,6 +2363,8 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   'financial industries': 'Industries',
   artifacts: 'Artifacts',
   artifact: 'Artifacts',
+  roles: 'Roles',
+  role: 'Roles',
   opportunities: 'Opportunities',
   opportunity: 'Opportunities',
   funds: 'Funds',
@@ -5670,6 +5719,24 @@ function registerIpc() {
   ipcMain.handle('assistants:list', async () => {
     initDb()
     return { assistants: listAssistantPrompts() }
+  })
+
+  ipcMain.handle('assistants:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createRole(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'roles'))
+    }
+  })
+
+  ipcMain.handle('assistants:delete', async (_event, { roleId } = {}) => {
+    initDb()
+    const result = deleteRow('Roles', 'id', String(roleId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('artifacts:list', async () => {

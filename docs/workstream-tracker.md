@@ -102,8 +102,14 @@ This tracker should stay aligned with:
   - `Funds` and `Rounds` remain subtype-owned where `Economics` and `Controls` diverge structurally
   - `File View` shell work exposed a remaining divergence: runtime create/manage support for new `Knowledge DB` files still needs real source wiring behind the now-prepared shared shell
 - as of April 4, 2026:
-  - `Knowledge DBs` is now a dedicated left-nav branch below `Files`
-  - `Industries` and `Securities` now reuse the shared shell routing path instead of a separate placeholder page surface
+- `Knowledge DBs` is now a dedicated left-nav branch below `Files`
+- `Industries` and `Securities` now reuse the shared shell routing path instead of a separate placeholder page surface
+- `Roles` now has its own dedicated DB direction instead of relying on the old assistant prompt table as the conceptual source of truth
+- the standard DB baseline is now explicit for new DB-backed file surfaces:
+  - sqlite table
+  - preload/main bridge
+  - `System`, `KDB`, `General`
+  - `Name`, `Summary`
   - the shared create/edit dialog now renders canonical date fields as date inputs
   - stale resolved bug notes were cleaned out of `bugs/`, leaving only the current `Knowledge DBs` nav follow-up notes
 - current shared goal:

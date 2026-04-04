@@ -3108,6 +3108,59 @@
           ]
         }
       ]
+    },
+    {
+      "level_1": "21",
+      "entity": "Roles",
+      "entity_label": "Role",
+      "entity_address": "21.0.0",
+      "structure_token": {
+        "address": "21.0.0",
+        "token_name": "Role",
+        "token_type": "structure"
+      },
+      "subsections": [
+        {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "21.1.0",
+          "structure_token": "Role_System",
+          "tokens": [
+            {
+              "address": "21.1.1",
+              "token_name": "Role_ID",
+              "token_type": "id"
+            }
+          ]
+        },
+        {
+          "level_2": "2",
+          "subsection": "KDB",
+          "subsection_address": "21.2.0",
+          "structure_token": "Role_KDB",
+          "tokens": []
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "21.3.0",
+          "structure_token": "Role_General",
+          "tokens": [
+            {
+              "address": "21.3.1",
+              "token_name": "Role_Name",
+              "token_type": "text",
+              "db_field_aliases": ["Role_Name"]
+            },
+            {
+              "address": "21.3.2",
+              "token_name": "Role_Summary",
+              "token_type": "text",
+              "db_field_aliases": ["Role_Summary"]
+            }
+          ]
+        }
+      ]
     }
   ],
   "option_lists": {

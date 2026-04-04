@@ -302,6 +302,24 @@ Current approved `Knowledge DB` file direction includes:
 - `Round Securities`
 - `Ingestion`
 
+### Standard DB Baseline
+
+When a new file becomes a real DB-backed surface, it should start from one standard baseline.
+
+That baseline is:
+
+- a real sqlite table
+- a preload/main bridge with at least `list`, `create`, and `delete`
+- canonical `L2` sections:
+  - `System`
+  - `KDB`
+  - `General`
+- canonical `General` tokens:
+  - `Name`
+  - `Summary`
+
+If a new DB needs more than that, add it on top of this baseline instead of inventing a one-off structure.
+
 Working rule:
 
 - when a controlled field should evolve as a reusable reference set, prefer a `Knowledge DB` file over a page-local hardcoded list

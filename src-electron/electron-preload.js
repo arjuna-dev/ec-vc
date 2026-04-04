@@ -142,6 +142,8 @@ contextBridge.exposeInMainWorld('ecvc', {
   },
   assistants: {
     list: () => ipcRenderer.invoke('assistants:list'),
+    create: (payload) => ipcRenderer.invoke('assistants:create', payload),
+    delete: (roleId) => ipcRenderer.invoke('assistants:delete', { roleId }),
   },
   artifacts: {
     list: () => ipcRenderer.invoke('artifacts:list'),

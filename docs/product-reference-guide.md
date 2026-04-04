@@ -127,6 +127,29 @@ Current frontend direction:
 - `Knowledge DB` files should reuse the same shared file shell path used for the shell standardization work
 - once promoted into real file surfaces, they should not live on a separate placeholder page design
 
+## Standard DB Settings
+
+New file-backed DBs should start with one standard baseline unless there is an explicit approved reason to diverge.
+
+That baseline is:
+
+- one real sqlite table behind the file
+- one preload/main bridge path with at least `list`, `create`, and `delete`
+- one canonical structure with:
+  - `System`
+  - `KDB`
+  - `General`
+- `General` should at minimum include:
+  - `Name`
+  - `Summary`
+
+This is the default contract for new `Knowledge DB` files such as:
+
+- `Markets`
+- `Securities`
+- `Ingestion`
+- `Roles`
+
 ## Product Description
 
 A `Record` is the detailed view for a single row or item inside a file.
