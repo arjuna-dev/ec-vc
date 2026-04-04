@@ -20,13 +20,15 @@
               />
             </button>
             <div v-if="!supportResourcesCollapsed" class="create-record-shell__intake-body">
-              <div
-                class="create-record-shell__artifact-drop"
-                :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
-                @dragover.prevent="artifactDragOver = true"
-                @dragleave.prevent="artifactDragOver = false"
-                @drop.prevent="onArtifactDrop"
-              >
+              <div class="create-record-shell__intake-column">
+                <div class="create-record-shell__intake-column-title">Artifacts</div>
+                <div
+                  class="create-record-shell__artifact-drop"
+                  :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
+                  @dragover.prevent="artifactDragOver = true"
+                  @dragleave.prevent="artifactDragOver = false"
+                  @drop.prevent="onArtifactDrop"
+                >
                 <div class="create-record-shell__artifact-drop-copy">
                   <div class="create-record-shell__artifact-drop-title">Artifacts</div>
                   <div class="create-record-shell__artifact-drop-caption">
@@ -85,9 +87,12 @@
                   />
                 </div>
               </div>
+              </div>
 
-              <div class="create-record-shell__intake-side">
-                <div class="create-record-shell__processing-panel">
+              <div class="create-record-shell__intake-column">
+                <div class="create-record-shell__intake-column-title">Ingestion Companion</div>
+                <div class="create-record-shell__intake-side">
+                  <div class="create-record-shell__processing-panel">
                   <div class="create-record-shell__processing-panel-head">
                     <div class="create-record-shell__processing-panel-title">Ingestion Companion</div>
                   </div>
@@ -162,6 +167,7 @@
                     </section>
                   </div>
                 </div>
+              </div>
               </div>
             </div>
           </div>
@@ -759,6 +765,21 @@ onBeforeUnmount(() => {
   align-items: stretch;
 }
 
+.create-record-shell__intake-column {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 6px;
+  min-height: 0;
+}
+
+.create-record-shell__intake-column-title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+}
+
 .create-record-shell__artifact-drop {
   display: flex;
   flex-direction: column;
@@ -787,11 +808,7 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__artifact-drop-title {
-  color: #111111;
-  font-family: var(--font-title);
-  font-size: 0.82rem;
-  font-weight: var(--font-weight-black);
-  line-height: 0.92;
+  display: none;
 }
 
 .create-record-shell__artifact-drop-caption {
@@ -895,10 +912,7 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__processing-panel-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
+  display: none;
 }
 
 .create-record-shell__processing-panel-title {
