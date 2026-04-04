@@ -664,7 +664,7 @@ const drawerNavigationSections = computed(() => [
         kind: 'toggle',
         label: 'Knowledge DBs',
         itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
-        icon: 'database',
+        icon: 'folder',
         iconSize: '22px',
         toggleKey: 'knowledge-dbs',
       },
