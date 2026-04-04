@@ -1965,6 +1965,31 @@ function goBack() {
   padding: 4px 7px;
 }
 
+.ec-shell-test-select-menu :deep(.q-virtual-scroll__content),
+.ec-shell-test-select-menu :deep(.q-menu),
+.ec-shell-test-select-menu :deep(.q-list) {
+  background: #111111;
+}
+
+.ec-shell-test-select-menu :deep(.q-item) {
+  min-height: 34px;
+  color: #ffffff;
+}
+
+.ec-shell-test-select-menu :deep(.q-item__label) {
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+}
+
+.ec-shell-test-select-menu :deep(.q-item.q-manual-focusable--focused),
+.ec-shell-test-select-menu :deep(.q-item--active) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .ec-breadcrumb-bar {
   display: flex;
   align-items: center;
