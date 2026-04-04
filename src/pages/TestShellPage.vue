@@ -139,14 +139,84 @@
                 class="test-shell-card__select-box"
                 @update:model-value="toggleRowSelection(row, $event)"
               />
-              <q-btn
-                flat
-                round
-                icon="visibility"
-                class="test-shell-card__control-eye"
-                :disable="!row.recordId"
-                @click="openRecordView(row)"
-              />
+              <div class="test-shell-card__control-actions">
+                <q-btn
+                  flat
+                  round
+                  icon="tune"
+                  class="test-shell-card__control-settings"
+                  aria-label="Card settings"
+                >
+                  <q-menu
+                    anchor="bottom right"
+                    self="top right"
+                    class="test-shell-card-settings-menu"
+                    content-class="test-shell-card-settings-menu__content"
+                  >
+                    <div class="test-shell-card-settings-panel">
+                      <div class="test-shell-card-settings-panel__title">Card Settings</div>
+                      <div class="test-shell-card-settings-panel__caption">
+                        Name stays fixed. Choose and order the extra fields shown on the card.
+                      </div>
+
+                      <div class="test-shell-card-settings-panel__list">
+                        <div
+                          v-for="token in availableCardItemTokens"
+                          :key="token.key"
+                          class="test-shell-card-settings-row"
+                        >
+                          <q-checkbox
+                            :model-value="isCardItemEnabled(token.key)"
+                            dense
+                            size="xs"
+                            checked-icon="check_box"
+                            unchecked-icon="check_box_outline_blank"
+                            class="test-shell-card-settings-row__checkbox"
+                            @update:model-value="setCardItemEnabled(token.key, $event)"
+                          />
+
+                          <div class="test-shell-card-settings-row__copy">
+                            <div class="test-shell-card-settings-row__label">{{ token.label }}</div>
+                          </div>
+
+                          <div class="test-shell-card-settings-row__actions">
+                            <q-btn
+                              flat
+                              dense
+                              round
+                              :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) <= 0"
+                              @click.stop="moveCardItem(token.key, -1)"
+                            >
+                              <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
+                                <path d="M7 14L12 9L17 14" />
+                              </svg>
+                            </q-btn>
+                            <q-btn
+                              flat
+                              dense
+                              round
+                              :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) < 0 || getCardItemOrderIndex(token.key) >= enabledCardItemKeys.length - 1"
+                              @click.stop="moveCardItem(token.key, 1)"
+                            >
+                              <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
+                                <path d="M7 10L12 15L17 10" />
+                              </svg>
+                            </q-btn>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </q-menu>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  icon="visibility"
+                  class="test-shell-card__control-eye"
+                  :disable="!row.recordId"
+                  @click="openRecordView(row)"
+                />
+              </div>
             </q-card-section>
 
             <q-card-section class="test-shell-card__hero">
@@ -173,8 +243,8 @@
                           class="test-shell-card__detail-row"
                         >
                           <button type="button" class="test-shell-card__inline-chip">
-                            <q-icon :name="detail.icon" size="14px" />
-                            <span>{{ detail.value }}</span>
+                            <span class="test-shell-card__inline-chip-label">{{ detail.label }}</span>
+                            <span class="test-shell-card__inline-chip-value">{{ detail.value }}</span>
                           </button>
                         </div>
                       </div>
@@ -419,6 +489,7 @@ const viewMode = ref('card')
 const testShellRelationshipPanel = ref('notes')
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
+const cardItemKeysBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
 const NAME_COLUMN_MIN_WIDTH = 188
@@ -509,6 +580,18 @@ const canonicalTitleToken = computed(
       (token) => String(token.parentLevel_2) === '3' && String(token.level_3) === '1',
     ) || null,
 )
+const availableCardItemTokens = computed(() =>
+  level3Tokens.value.filter((token) => {
+    if (token.key === canonicalTitleToken.value?.key) return false
+    return String(token.parentLabel || '').trim().toLowerCase() !== 'kdb'
+  }),
+)
+const enabledCardItemKeys = computed(() => {
+  const sourceKey = activeSourceKey.value
+  const configured = Array.isArray(cardItemKeysBySource.value[sourceKey]) ? cardItemKeysBySource.value[sourceKey] : []
+  const allowedKeys = new Set(availableCardItemTokens.value.map((token) => token.key))
+  return configured.filter((key) => allowedKeys.has(key))
+})
 const tableSectionTokens = computed(() =>
   activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
 )
@@ -648,6 +731,32 @@ watch(
   { immediate: true },
 )
 
+watch(
+  [activeSourceKey, availableCardItemTokens],
+  () => {
+    const sourceKey = activeSourceKey.value
+    const allowedKeys = new Set(availableCardItemTokens.value.map((token) => token.key))
+    const existing = Array.isArray(cardItemKeysBySource.value[sourceKey]) ? cardItemKeysBySource.value[sourceKey] : []
+    const normalized = existing.filter((key) => allowedKeys.has(key))
+
+    if (normalized.length) {
+      if (normalized.length !== existing.length) {
+        cardItemKeysBySource.value = {
+          ...cardItemKeysBySource.value,
+          [sourceKey]: normalized,
+        }
+      }
+      return
+    }
+
+    cardItemKeysBySource.value = {
+      ...cardItemKeysBySource.value,
+      [sourceKey]: availableCardItemTokens.value.slice(0, 4).map((token) => token.key),
+    }
+  },
+  { immediate: true },
+)
+
 let removeColumnResizeListeners = null
 
 function getColumnWidth(columnKey, fallbackWidth) {
@@ -660,6 +769,45 @@ function getTableColumnStyle(columnKey, fallbackWidth) {
   return {
     width: `${width}px`,
     minWidth: `${width}px`,
+  }
+}
+
+function isCardItemEnabled(tokenKey) {
+  return enabledCardItemKeys.value.includes(tokenKey)
+}
+
+function getCardItemOrderIndex(tokenKey) {
+  return enabledCardItemKeys.value.indexOf(tokenKey)
+}
+
+function setCardItemEnabled(tokenKey, nextValue) {
+  const sourceKey = activeSourceKey.value
+  const current = enabledCardItemKeys.value
+  if (!nextValue) {
+    cardItemKeysBySource.value = {
+      ...cardItemKeysBySource.value,
+      [sourceKey]: current.filter((key) => key !== tokenKey),
+    }
+    return
+  }
+  if (current.includes(tokenKey)) return
+  cardItemKeysBySource.value = {
+    ...cardItemKeysBySource.value,
+    [sourceKey]: [...current, tokenKey],
+  }
+}
+
+function moveCardItem(tokenKey, direction) {
+  const sourceKey = activeSourceKey.value
+  const current = [...enabledCardItemKeys.value]
+  const currentIndex = current.indexOf(tokenKey)
+  const nextIndex = currentIndex + direction
+  if (currentIndex < 0 || nextIndex < 0 || nextIndex >= current.length) return
+  const [item] = current.splice(currentIndex, 1)
+  current.splice(nextIndex, 0, item)
+  cardItemKeysBySource.value = {
+    ...cardItemKeysBySource.value,
+    [sourceKey]: current,
   }
 }
 
@@ -759,6 +907,19 @@ function buildShellRow(row, index) {
     }
   })
 
+  const cardDetailRows = enabledCardItemKeys.value
+    .map((tokenKey) => availableCardItemTokens.value.find((token) => token.key === tokenKey))
+    .filter(Boolean)
+    .map((token) => {
+      const value = stringifyValue(getCanonicalTokenValue(row, token))
+      return {
+        key: `${recordId || index}:detail:${token.key}`,
+        label: token.label,
+        value,
+      }
+    })
+    .filter((item) => item.value)
+
   const matchedTokenCount = tokenRows.filter((token) => token.value).length
 
   return {
@@ -768,6 +929,7 @@ function buildShellRow(row, index) {
     avatarText: activeRegistryEntry.value?.singularLabel?.slice(0, 2)?.toUpperCase() || 'TS',
     titleValue: stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value)),
     subtitleValue: '',
+    cardDetailRows,
     relationshipItemsByType: buildCardRelationshipItems(row, sourcePrefixes),
     sectionPresence,
     tokenPresence,
@@ -833,10 +995,7 @@ function getActiveRelationshipItems(row) {
 }
 
 function getTestShellMetadataRows(row) {
-  return [
-    row.subtitleValue ? { label: 'Subtitle', value: row.subtitleValue, icon: 'badge' } : null,
-    row.recordId ? { label: 'Record ID', value: row.recordId, icon: 'fingerprint' } : null,
-  ].filter(Boolean)
+  return Array.isArray(row?.cardDetailRows) ? row.cardDetailRows : []
 }
 
 function getTestShellAvatarColor() {
@@ -1171,6 +1330,99 @@ function notifyShellAction(label) {
   filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
+.test-shell-card__control-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.test-shell-card__control-settings,
+.test-shell-card__control-eye {
+  color: rgba(17, 17, 17, 0.82);
+}
+
+.test-shell-card-settings-menu {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.test-shell-card-settings-panel {
+  width: min(280px, calc(100vw - 24px));
+  padding: 10px;
+  background: rgba(248, 248, 246, 0.98);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 16px 32px rgba(17, 17, 17, 0.12);
+}
+
+.test-shell-card-settings-panel__title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.84rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.test-shell-card-settings-panel__caption {
+  margin-top: 4px;
+  color: rgba(17, 17, 17, 0.62);
+  font-family: var(--font-body);
+  font-size: 0.69rem;
+  font-weight: var(--font-weight-light);
+  line-height: 1.35;
+}
+
+.test-shell-card-settings-panel__list {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.test-shell-card-settings-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 2px 4px;
+  border-radius: 8px;
+}
+
+.test-shell-card-settings-row__checkbox {
+  color: rgba(17, 17, 17, 0.72);
+}
+
+.test-shell-card-settings-row__copy {
+  min-width: 0;
+}
+
+.test-shell-card-settings-row__label {
+  color: #111111;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-light);
+  line-height: 1.2;
+}
+
+.test-shell-card-settings-row__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.test-shell-card-settings-row__actions :deep(.q-btn) {
+  color: rgba(17, 17, 17, 0.68);
+}
+
+.test-shell-card-settings-row__chevron {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  fill: none;
+}
+
 .test-shell-card__hero {
   padding: 0 0 4px;
 }
@@ -1289,14 +1541,29 @@ function notifyShellAction(label) {
   gap: 6px;
   width: 100%;
   min-height: 26px;
-  padding: 0 10px;
+  padding: 0;
   color: #111;
   background: transparent;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0;
   font-family: var(--font-body);
-  font-size: 11px;
+  font-size: 0.74rem;
+  font-weight: var(--font-weight-light);
+}
+
+.test-shell-card__inline-chip-label {
+  color: rgba(17, 17, 17, 0.54);
+  font-weight: var(--font-weight-light);
+  white-space: nowrap;
+}
+
+.test-shell-card__inline-chip-value {
+  color: #111111;
   font-weight: var(--font-weight-medium);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .test-shell-card__inline-chip--placeholder {
