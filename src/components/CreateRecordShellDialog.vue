@@ -305,7 +305,10 @@
                   v-for="token in activeFields"
                   :key="token.key"
                   class="create-record-shell__field"
-                  :class="{ 'create-record-shell__field--wide': isWideField(token) }"
+                  :class="{
+                    'create-record-shell__field--wide': isWideField(token),
+                    'create-record-shell__field--summary-sidecar': isSummarySidecarField(token),
+                  }"
                 >
                   <div class="create-record-shell__field-copy">
                     <div class="create-record-shell__field-label">
@@ -599,11 +602,16 @@ function formatFieldType(tokenType) {
 }
 
 function isWideField(token) {
+  if (isSummarySidecarField(token)) return false
   return isSummaryField(token)
 }
 
 function isSummaryField(token) {
   return String(token?.label || '').trim().toLowerCase() === 'summary'
+}
+
+function isSummarySidecarField(token) {
+  return activeSectionKey.value === 'key-fields' && isSummaryField(token)
 }
 
 function onArtifactDrop(event) {
@@ -1462,6 +1470,12 @@ onBeforeUnmount(() => {
   align-items: start;
 }
 
+.create-record-shell__field--summary-sidecar {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-items: start;
+}
+
 .create-record-shell__field-copy {
   display: grid;
   gap: 0;
@@ -1469,7 +1483,8 @@ onBeforeUnmount(() => {
   justify-self: end;
 }
 
-.create-record-shell__field--wide .create-record-shell__field-copy {
+.create-record-shell__field--wide .create-record-shell__field-copy,
+.create-record-shell__field--summary-sidecar .create-record-shell__field-copy {
   padding-top: 13px;
 }
 
@@ -1521,6 +1536,10 @@ onBeforeUnmount(() => {
 .create-record-shell__input--summary :deep(textarea) {
   min-height: 108px !important;
   padding-top: 10px !important;
+}
+
+.create-record-shell__field--summary-sidecar .create-record-shell__input--summary {
+  align-self: stretch;
 }
 
 .create-record-shell__empty {
