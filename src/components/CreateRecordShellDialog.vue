@@ -1026,7 +1026,7 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__field--wide .create-record-shell__field-copy {
-  padding-top: 3px;
+  padding-top: 10px;
 }
 
 .create-record-shell__field-label {
