@@ -266,7 +266,7 @@
             <q-card-section class="test-shell-card__summary">
               <div class="test-shell-card__summary-head">
                 <q-btn-toggle
-                  :model-value="testShellRelationshipPanel"
+                  :model-value="getRowRelationshipPanel(row)"
                   dense
                   unelevated
                   toggle-color="dark"
@@ -274,7 +274,7 @@
                   text-color="grey-8"
                   class="test-shell-card__summary-toggle"
                   :options="summarySectionShellOptions"
-                  @update:model-value="testShellRelationshipPanel = $event"
+                  @update:model-value="setRowRelationshipPanel(row, $event)"
                 />
                 <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" @click="notifyShellAction('Add Relation')">
                   <span class="test-shell-card__summary-add-relation-plus">
@@ -290,18 +290,18 @@
                     <div v-if="getActiveRelationshipItems(row).length" class="test-shell-card__notes-list">
                       <div
                         v-for="item in getActiveRelationshipItems(row)"
-                        :key="`${row.cardId}:${testShellRelationshipPanel}:${item}`"
+                        :key="`${row.cardId}:${getRowRelationshipPanel(row)}:${item}`"
                         class="test-shell-card__note-pill"
                       >
                         <span class="test-shell-card__note-pill-name">
-                          {{ getCardRelationshipLabel(testShellRelationshipPanel) }}
+                          {{ getCardRelationshipLabel(getRowRelationshipPanel(row)) }}
                         </span>
                         <span class="test-shell-card__note-pill-value">{{ item }}</span>
                       </div>
                     </div>
 
                     <div v-else class="test-shell-card__summary-empty">
-                      No {{ getCardRelationshipLabel(testShellRelationshipPanel).toLowerCase() }} linked to this record.
+                      No {{ getCardRelationshipLabel(getRowRelationshipPanel(row)).toLowerCase() }} linked to this record.
                     </div>
                   </div>
                 </div>
@@ -482,7 +482,7 @@ const error = ref('')
 const searchQuery = ref('')
 const rawRows = ref([])
 const viewMode = ref('card')
-const testShellRelationshipPanel = ref('notes')
+const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
 const cardItemKeysBySource = ref({})
@@ -721,8 +721,13 @@ watch(
 watch(
   displayRows,
   (rows) => {
-    const firstRelationshipMap = rows[0]?.relationshipItemsByType || {}
-    testShellRelationshipPanel.value = resolveCardRelationshipPanel(testShellRelationshipPanel.value, firstRelationshipMap)
+    const nextMap = {}
+    rows.forEach((row) => {
+      const rowId = getRowSelectionId(row)
+      if (!rowId) return
+      nextMap[rowId] = resolveCardRelationshipPanel(cardRelationshipPanelById.value[rowId], row.relationshipItemsByType || {})
+    })
+    cardRelationshipPanelById.value = nextMap
   },
   { immediate: true },
 )
@@ -987,7 +992,21 @@ function getKdbDisplayItems(tokenRow) {
 }
 
 function getActiveRelationshipItems(row) {
-  return row?.relationshipItemsByType?.[testShellRelationshipPanel.value] || []
+  return row?.relationshipItemsByType?.[getRowRelationshipPanel(row)] || []
+}
+
+function getRowRelationshipPanel(row) {
+  const rowId = getRowSelectionId(row)
+  return rowId ? cardRelationshipPanelById.value[rowId] || 'notes' : 'notes'
+}
+
+function setRowRelationshipPanel(row, nextValue) {
+  const rowId = getRowSelectionId(row)
+  if (!rowId) return
+  cardRelationshipPanelById.value = {
+    ...cardRelationshipPanelById.value,
+    [rowId]: resolveCardRelationshipPanel(nextValue, row.relationshipItemsByType || {}),
+  }
 }
 
 function getTestShellMetadataRows(row) {
