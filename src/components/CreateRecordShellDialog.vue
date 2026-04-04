@@ -154,7 +154,7 @@
                         <input
                           v-model="pendingUrlEntry"
                           type="text"
-                          class="create-record-shell__processing-entry-native-input"
+                          class="create-record-shell__processing-entry-native-input create-record-shell__processing-entry-native-input--boxed"
                           @keydown.enter.prevent="addSupportResourceEntry('url')"
                         />
                         <q-icon
@@ -199,7 +199,7 @@
                         <input
                           v-model="pendingGuidanceEntry"
                           type="text"
-                          class="create-record-shell__processing-entry-native-input"
+                          class="create-record-shell__processing-entry-native-input create-record-shell__processing-entry-native-input--boxed"
                           @keydown.enter.prevent="addSupportResourceEntry('guidance')"
                         />
                         <q-icon
@@ -1074,7 +1074,7 @@ onBeforeUnmount(() => {
   align-content: start;
   gap: 4px;
   padding: 4px 5px;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .create-record-shell__processing-box-head {
@@ -1082,6 +1082,10 @@ onBeforeUnmount(() => {
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
+}
+
+.create-record-shell__processing-box--compact .create-record-shell__processing-box-head {
+  gap: 6px;
 }
 
 .create-record-shell__processing-box-title {
@@ -1170,15 +1174,13 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__processing-entry-add-row {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  height: 14px;
-  min-height: 14px;
-  padding: 0 3px;
-  border: 1px solid rgba(17, 17, 17, 0.18);
-  border-radius: 1px;
-  background: rgba(255, 255, 255, 0.96);
+  position: relative;
+  display: block;
+  height: 11px;
+  min-height: 11px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   box-sizing: border-box;
 }
 
@@ -1189,8 +1191,8 @@ onBeforeUnmount(() => {
   min-width: 0;
   box-sizing: border-box;
   padding: 0;
-  height: 10px;
-  min-height: 10px;
+  height: 9px;
+  min-height: 9px;
   color: #111111;
   caret-color: #111111;
   background: transparent;
@@ -1199,15 +1201,30 @@ onBeforeUnmount(() => {
   appearance: none;
   font-family: var(--font-body);
   font-size: 9px;
-  line-height: 10px;
+  line-height: 9px;
   vertical-align: top;
 }
 
+.create-record-shell__processing-entry-native-input--boxed {
+  padding: 0 12px 0 3px;
+  height: 11px;
+  min-height: 11px;
+  border: 1px solid rgba(17, 17, 17, 0.18);
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.96);
+}
+
 .create-record-shell__processing-entry-hint {
-  flex: 0 0 auto;
+  position: absolute;
+  right: 3px;
+  top: 50%;
+  transform: translateY(-50%);
   color: rgba(17, 17, 17, 0.5);
   font-size: 9px;
   line-height: 1;
+  pointer-events: none;
 }
 
 .create-record-shell__processing-entry-list {
@@ -1217,6 +1234,7 @@ onBeforeUnmount(() => {
   min-height: 0;
   max-height: 124px;
   overflow: auto;
+  margin-top: 2px;
 }
 
 .create-record-shell__processing-entry-row {
@@ -1224,17 +1242,17 @@ onBeforeUnmount(() => {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 4px;
-  min-height: 14px;
-  padding: 1px 4px;
+  min-height: 12px;
+  padding: 1px 3px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 1px;
+  border-radius: 0;
 }
 
 .create-record-shell__processing-entry-value {
   min-width: 0;
   color: #111111;
-  font-size: 9px;
+  font-size: 8px;
   line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
