@@ -545,7 +545,7 @@
         :can-delete="canDeleteSelectedRows"
         @share="handleSelectedRowsShare"
         @edit="handleSelectedRowsEdit"
-        @delete="handleSelectedRowsDelete"
+        @remove="handleSelectedRowsDelete"
       />
 
       <CreateRecordShellDialog

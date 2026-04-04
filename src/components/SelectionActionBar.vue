@@ -40,7 +40,7 @@
         color="negative"
         :disable="loading"
         aria-label="Delete selected"
-        @click="$emit('delete')"
+        @click="$emit('remove')"
       >
         <q-tooltip>Delete selected</q-tooltip>
       </q-btn>
@@ -72,7 +72,7 @@ defineProps({
   },
 })
 
-defineEmits(['share', 'edit', 'delete'])
+defineEmits(['share', 'edit', 'remove'])
 </script>
 
 <style scoped>
