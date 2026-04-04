@@ -353,11 +353,8 @@
     </div>
     <q-dialog v-model="createBranchDialogOpen" persistent>
       <q-card style="width: 420px; max-width: 92vw">
-        <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
+        <q-card-section class="q-px-lg q-pt-lg q-pb-md">
           <div class="text-h6">{{ createBranchDialogTitle }}</div>
-          <div class="text-caption text-grey-7">
-            {{ createBranchDialogCaption }}
-          </div>
         </q-card-section>
 
         <q-card-section class="q-px-lg q-pb-md">
@@ -826,11 +823,6 @@ const createBranchOptions = computed(() =>
 const createBranchDialogTitle = computed(() => {
   const singularLabel = activeCreateBranchParentEntry.value?.singularLabel || 'Record'
   return `Choose ${singularLabel} Route`
-})
-
-const createBranchDialogCaption = computed(() => {
-  const singularLabel = (activeCreateBranchParentEntry.value?.singularLabel || 'record').toLowerCase()
-  return `Start by confirming which route this ${singularLabel} should take.`
 })
 
 const quickWidgetActions = computed(() =>
