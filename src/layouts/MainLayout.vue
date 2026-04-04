@@ -2015,7 +2015,14 @@ function goBack() {
   min-height: 26px;
   padding: 0 8px;
   color: #ffffff;
-  background: transparent;
+  background: linear-gradient(
+    180deg,
+    transparent 0,
+    transparent 44%,
+    #111111 44%,
+    #111111 86%,
+    transparent 86%
+  );
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
   font-family: var(--font-title);
   font-size: 0.88rem;
@@ -2035,7 +2042,14 @@ function goBack() {
 .ec-shell-test-select-menu__item.q-item--active .ec-shell-test-select-menu__value,
 .ec-shell-test-select-menu :deep(.q-item.q-manual-focusable--focused .q-item__label),
 .ec-shell-test-select-menu :deep(.q-item--active .q-item__label) {
-  background: transparent;
+  background: linear-gradient(
+    180deg,
+    transparent 0,
+    transparent 44%,
+    #000000 44%,
+    #000000 86%,
+    transparent 86%
+  );
   box-shadow: 0 0 0 1px #ffffff;
 }
 
