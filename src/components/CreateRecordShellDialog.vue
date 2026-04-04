@@ -72,15 +72,6 @@
               </div>
 
               <div class="create-record-shell__intake-side">
-                <q-input
-                  v-model="artifactUrlInput"
-                  dense
-                  outlined
-                  type="url"
-                  class="create-record-shell__artifact-url-input"
-                  placeholder="URL"
-                />
-
                 <div class="create-record-shell__processing-panel">
                   <div class="create-record-shell__processing-panel-head">
                     <div class="create-record-shell__processing-panel-title">Processing Files</div>
@@ -264,7 +255,6 @@ const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
-const artifactUrlInput = ref('')
 const dialogWidth = ref(760)
 const dialogHeight = ref(780)
 let removeResizeListeners = null
@@ -322,7 +312,6 @@ watch(
     stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
     selectedArtifactIds.value = stagedArtifacts.value.map((artifact) => artifact.id)
     autoProcessArtifacts.value = false
-    artifactUrlInput.value = ''
     dialogWidth.value = 760
     dialogHeight.value = 780
     formValues.value = Object.fromEntries(
@@ -352,7 +341,6 @@ function submit() {
     artifacts: {
       stagedFiles: stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
       autoProcess: autoProcessArtifacts.value,
-      url: String(artifactUrlInput.value || '').trim(),
     },
   })
 }
@@ -600,8 +588,6 @@ onBeforeUnmount(() => {
 
 .create-record-shell__intake-side {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 12px;
   min-height: 220px;
 }
 
@@ -699,11 +685,6 @@ onBeforeUnmount(() => {
 
 .create-record-shell__artifact-drop-footer .create-record-shell__artifact-checkbox :deep(.q-checkbox__inner) {
   font-size: 0.9rem;
-}
-
-.create-record-shell__artifact-url-input :deep(.q-field__control) {
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 8px;
 }
 
 .create-record-shell__processing-panel {
