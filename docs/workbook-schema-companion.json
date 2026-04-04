@@ -59,7 +59,8 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "1.1.0"
+              "parent_id": "1.1.0",
+              "input_source": "system_actor"
             },
             {
               "index": "",
@@ -513,7 +514,8 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "3.1.0"
+              "parent_id": "3.1.0",
+              "input_source": "system_actor"
             },
             {
               "index": "",
@@ -898,7 +900,8 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "4.1.0"
+              "parent_id": "4.1.0",
+              "input_source": "system_actor"
             },
             {
               "index": "",
@@ -1327,7 +1330,9 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "4.6.0"
+              "parent_id": "4.6.0",
+              "option_source": "canonical_list",
+              "option_list": "Co_Stage_List"
             },
             {
               "index": "",
@@ -2053,7 +2058,8 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "17.1.0"
+              "parent_id": "17.1.0",
+              "input_source": "system_actor"
             },
             {
               "index": "",
@@ -2324,7 +2330,9 @@
               "parent_id": "17.4.0",
               "db_field_aliases": [
                 "Company_Name"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "index": "",
@@ -2463,7 +2471,8 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "5.1.0"
+              "parent_id": "5.1.0",
+              "input_source": "system_actor"
             },
             {
               "index": "",
@@ -3010,7 +3019,8 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "6.1.0"
+              "parent_id": "6.1.0",
+              "input_source": "system_actor"
             },
             {
               "index": "",
@@ -3486,7 +3496,8 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "7.1.0"
+              "parent_id": "7.1.0",
+              "input_source": "system_actor"
             },
             {
               "index": "",
@@ -3932,7 +3943,8 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "8.1.0"
+              "parent_id": "8.1.0",
+              "input_source": "system_actor"
             },
             {
               "index": "",
@@ -4302,7 +4314,8 @@
               "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "9.1.0"
+              "parent_id": "9.1.0",
+              "input_source": "system_actor"
             },
             {
               "index": "",
@@ -5766,6 +5779,32 @@
       {
         "label": "South America",
         "value": "South America"
+      }
+    ],
+    "Co_Stage_List": [
+      {
+        "label": "Formation",
+        "value": "Formation"
+      },
+      {
+        "label": "Early",
+        "value": "Early"
+      },
+      {
+        "label": "Mid",
+        "value": "Mid"
+      },
+      {
+        "label": "Late",
+        "value": "Late"
+      },
+      {
+        "label": "Wind-down",
+        "value": "Wind-down"
+      },
+      {
+        "label": "Back-burner",
+        "value": "Back-burner"
       }
     ]
   }
