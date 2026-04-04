@@ -1969,6 +1969,7 @@ function goBack() {
 .ec-shell-test-select-menu :deep(.q-menu),
 .ec-shell-test-select-menu :deep(.q-list) {
   background: #111111;
+  border-radius: 6px;
 }
 
 .ec-shell-test-select-menu :deep(.q-item) {
