@@ -1983,7 +1983,7 @@ function goBack() {
 .ec-shell-test-select-menu :deep(.q-virtual-scroll__content),
 .ec-shell-test-select-menu :deep(.q-menu),
 .ec-shell-test-select-menu :deep(.q-list) {
-  background: #111111;
+  background: transparent;
   border-radius: 6px;
 }
 
