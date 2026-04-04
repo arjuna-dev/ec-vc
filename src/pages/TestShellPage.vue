@@ -25,118 +25,251 @@
       />
 
       <FilePageToolbar
-        :all-visible-selected="false"
-        :some-visible-selected="false"
-        :disabled="true"
+        :all-visible-selected="allVisibleSelected"
+        :some-visible-selected="someVisibleSelected"
+        :disabled="false"
         :loading="loading"
         :search-query="searchQuery"
         :search-placeholder="searchPlaceholder"
-        view-mode="card"
-        :view-options="[]"
-        :show-view-toggle="false"
-        @toggle-select-all="noop"
+        :view-mode="viewMode"
+        :view-options="viewOptions"
+        :show-view-toggle="true"
+        @toggle-select-all="toggleSelectAllVisible"
         @add="notifyShellAction('Add Record')"
-        @import="notifyShellAction('Import CSV')"
         @update:search-query="searchQuery = $event"
-      />
+        @update:view-mode="viewMode = $event"
+      >
+        <template #filters>
+          <q-btn flat round dense class="test-shell-filters-trigger" icon="filter_list" aria-label="File shell filters">
+            <q-menu
+              anchor="top left"
+              self="top right"
+              class="test-shell-filters-menu"
+              content-class="test-shell-filters-menu__content"
+            >
+              <div class="test-shell-filters-panel">
+                <div class="test-shell-filters-panel__title">File Filter</div>
+
+                <div class="test-shell-filters-panel__rows">
+                  <div
+                    v-for="section in multiTokenFilterSections"
+                    :key="section.key"
+                    class="test-shell-filter-group"
+                  >
+                    <button
+                      type="button"
+                      class="test-shell-filter-heading"
+                      @click="toggleExpandedFilterSection(section.key)"
+                    >
+                      <span class="test-shell-filter-heading__label">{{ section.label }}</span>
+                      <span class="test-shell-filter-heading__meta">{{ getFilterSectionTokenCount(section.key) }}</span>
+                      <q-icon
+                        :name="expandedFilterSectionKey === section.key ? 'expand_less' : 'expand_more'"
+                        size="14px"
+                        class="test-shell-filter-heading__chevron"
+                      />
+                    </button>
+
+                    <div
+                      v-if="expandedFilterSectionKey === section.key"
+                      class="test-shell-filter-group__children"
+                    >
+                      <button
+                        v-for="token in getSectionTokens(section.key)"
+                        :key="token.key"
+                        type="button"
+                        class="test-shell-filter-child-row"
+                        :class="{ 'test-shell-filter-child-row--selected': token.key === activeFilterTokenKey }"
+                        @click="applyFilterSelection(`token:${token.key}`)"
+                      >
+                        <q-checkbox
+                          :model-value="token.key === activeFilterTokenKey"
+                          dense
+                          size="xs"
+                          checked-icon="check_box"
+                          unchecked-icon="check_box_outline_blank"
+                          class="test-shell-filter-child-row__checkbox"
+                          @update:model-value="toggleFilterToken(token.key, $event)"
+                          @click.stop
+                        />
+                        <span class="test-shell-filter-child-row__label">{{ token.label }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </q-menu>
+          </q-btn>
+        </template>
+      </FilePageToolbar>
 
       <q-banner v-if="error" class="bg-red-2 text-black" rounded>
         {{ error }}
       </q-banner>
 
-      <q-card flat bordered class="test-shell-contract-card">
-        <q-card-section class="test-shell-contract-card__head">
-          <div>
-            <div class="test-shell-contract-card__eyebrow">Strict Contract Check</div>
-            <h3 class="test-shell-contract-card__title">Canonical Source Review</h3>
-            <div class="test-shell-contract-card__source">
-              Selected source: {{ activeRegistryEntry?.label || 'Section' }}
-            </div>
-          </div>
-          <div class="test-shell-contract-card__meta">
-            {{ rawRows.length }} real rows loaded
-          </div>
-        </q-card-section>
+      <q-banner v-else-if="unmappedShellSlots.length" class="test-shell-gap-banner bg-orange-1 text-orange-10" rounded>
+        Missing explicit shell mapping:
+        {{ unmappedShellSlots.join(', ') }}.
+        Real rows and canonical sections are still rendered below without guessing.
+      </q-banner>
 
-        <q-card-section class="test-shell-contract-card__body">
-          <div class="test-shell-contract-card__summary">
-            <p>
-              The shared page shell is now reading only explicit canonical structure plus live row counts.
-              Card rendering is intentionally blocked until the canonical architecture provides an explicit shell payload contract.
-            </p>
-          </div>
+      <q-banner
+        v-if="!loading && displayRows.length === 0"
+        class="test-shell-empty-state bg-grey-1 text-black"
+        rounded
+      >
+        No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
+      </q-banner>
 
-          <div class="test-shell-contract-grid">
-            <article class="test-shell-contract-panel">
-              <div class="test-shell-contract-panel__label">Canonical Inputs Present</div>
-              <ul class="test-shell-contract-list">
-                <li>`L1` entity: {{ activeRegistryEntry?.entityName || '--' }}</li>
-                <li>`L2` sections: {{ level2Sections.length }}</li>
-                <li>`L3` tokens: {{ level3Tokens.length }}</li>
-                <li>`DB` rows: {{ rawRows.length }}</li>
-              </ul>
-            </article>
+      <div v-else-if="viewMode === 'card'" class="row q-col-gutter-md test-shell-cards-grid">
+        <div v-for="row in displayRows" :key="row.cardId" class="col-12 col-sm-6 col-lg-4">
+          <q-card
+            flat
+            bordered
+            class="test-shell-card full-height"
+            :style="getTestShellCardStyle()"
+            @pointerenter="onTestShellCardPointerEnter"
+            @pointermove="onTestShellCardPointerMove"
+            @pointerleave="onTestShellCardPointerLeave"
+          >
+            <q-card-section class="test-shell-card__control-row">
+              <q-checkbox
+                :model-value="isRowSelected(row)"
+                color="dark"
+                class="test-shell-card__select-box"
+                @update:model-value="toggleRowSelection(row, $event)"
+              />
+              <q-btn
+                flat
+                round
+                icon="visibility"
+                class="test-shell-card__control-eye"
+                :disable="!row.recordId"
+                @click="openRecordView(row)"
+              />
+            </q-card-section>
 
-            <article class="test-shell-contract-panel test-shell-contract-panel--missing">
-              <div class="test-shell-contract-panel__label">Explicit Contract Missing</div>
-              <ul class="test-shell-contract-list">
-                <li>`card.title` source mapping</li>
-                <li>`card.subtitle` source mapping</li>
-                <li>`card.chips[]` source mapping</li>
-                <li>`card.summary` source mapping</li>
-                <li>`card.sections[]` source-to-L2 ownership mapping</li>
-              </ul>
-            </article>
-          </div>
+            <q-card-section class="test-shell-card__hero">
+              <div class="test-shell-card__hero-main">
+                <figure class="test-shell-card__portrait">
+                  <div class="test-shell-card__portrait-shell" aria-hidden="true">
+                    <div class="test-shell-card__portrait-badge" :style="{ backgroundColor: getTestShellAvatarColor(row) }">
+                      {{ row.avatarText }}
+                    </div>
+                  </div>
+                </figure>
 
-          <div class="test-shell-canonical">
-            <div class="test-shell-canonical__section">
-              <div class="test-shell-canonical__label">Level 2 Sections</div>
-              <div class="test-shell-canonical__chips">
-                <span
-                  v-for="section in level2Sections"
-                  :key="section.key"
-                  class="test-shell-canonical__chip"
-                >
-                  {{ section.label }}
-                </span>
-              </div>
-            </div>
+                <div class="test-shell-card__hero-side">
+                  <div class="test-shell-card__hero-copy">
+                    <div class="test-shell-card__title" :class="{ 'test-shell-card__value--placeholder': !row.titleValue }">
+                      {{ row.titleValue || 'Title mapping undefined' }}
+                    </div>
 
-            <div class="test-shell-canonical__section">
-              <div class="test-shell-canonical__label">Level 3 Tokens</div>
-              <div class="test-shell-token-list">
-                <div
-                  v-for="token in visibleTokens"
-                  :key="token.key"
-                  class="test-shell-token-row"
-                >
-                  <div class="test-shell-token-row__name">{{ token.tokenName }}</div>
-                  <div class="test-shell-token-row__meta">
-                    {{ token.parentLabel }} • {{ token.tokenType || 'token' }}
+                    <div class="test-shell-card__bottom-stack">
+                      <div v-if="getTestShellMetadataRows(row).length" class="test-shell-card__detail-stack">
+                        <div
+                          v-for="detail in getTestShellMetadataRows(row)"
+                          :key="detail.label"
+                          class="test-shell-card__detail-row"
+                        >
+                          <button type="button" class="test-shell-card__inline-chip">
+                            <q-icon :name="detail.icon" size="14px" />
+                            <span>{{ detail.value }}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div v-else class="test-shell-card__detail-stack">
+                        <div class="test-shell-card__detail-row">
+                          <button type="button" class="test-shell-card__inline-chip test-shell-card__inline-chip--placeholder">
+                            <q-icon name="info" size="14px" />
+                            <span>Metadata mapping undefined</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </q-card-section>
 
-            <div class="test-shell-canonical__section">
-              <div class="test-shell-canonical__label">Live Row Shape</div>
-              <div v-if="visibleRowKeys.length" class="test-shell-canonical__chips">
-                <span
-                  v-for="key in visibleRowKeys"
-                  :key="key"
-                  class="test-shell-canonical__chip test-shell-canonical__chip--row"
-                >
-                  {{ key }}
-                </span>
+            <q-card-section class="test-shell-card__summary">
+              <div class="test-shell-card__summary-head">
+                <q-btn-toggle
+                  :model-value="activeSectionKeyForCards || 'selected-section'"
+                  dense
+                  unelevated
+                  toggle-color="dark"
+                  color="white"
+                  text-color="grey-8"
+                  class="test-shell-card__summary-toggle"
+                  :options="summarySectionShellOptions"
+                  disable
+                />
+
+                <q-btn-toggle
+                  :model-value="summaryContentView"
+                  dense
+                  unelevated
+                  toggle-color="primary"
+                  color="grey-3"
+                  text-color="grey-8"
+                  class="test-shell-card__summary-view-toggle"
+                  :options="summaryContentViewOptions"
+                  @update:model-value="summaryContentView = $event"
+                />
               </div>
-              <div v-else class="test-shell-contract-card__empty">
-                No rows loaded for this section.
+
+              <div class="test-shell-card__summary-panel">
+                <div class="test-shell-card__summary-panel-head">
+                  <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" @click="notifyShellAction('Add Relation')">
+                    <span class="test-shell-card__summary-add-relation-plus">
+                      <q-icon name="add" />
+                    </span>
+                    <span class="test-shell-card__summary-add-relation-label">Add Relation</span>
+                  </q-btn>
+                </div>
+
+                <div class="test-shell-card__summary-body">
+                  <div class="test-shell-card__summary-body-content">
+                    <div
+                      v-if="row.sectionTokenRows.length"
+                      :class="[
+                        'test-shell-card__notes-list',
+                        { 'test-shell-card__notes-list--rows': summaryContentView === 'table' },
+                      ]"
+                    >
+                      <div
+                        v-for="tokenRow in row.sectionTokenRows"
+                        :key="tokenRow.key"
+                        class="test-shell-card__note-pill"
+                        :class="{ 'test-shell-card__note-pill--placeholder': !tokenRow.value }"
+                      >
+                        <span class="test-shell-card__note-pill-name">{{ tokenRow.label }}</span>
+                        <span class="test-shell-card__note-pill-value">
+                          {{ tokenRow.value || 'No explicit value' }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div v-else class="test-shell-card__summary-empty">
+                      This L2 section has no visible tokens.
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+      <div v-else class="test-shell-table-surface">
+        <div v-for="row in displayRows" :key="row.cardId" class="test-shell-table-row">
+          <div class="test-shell-table-row__title">{{ row.titleValue || 'Title mapping undefined' }}</div>
+          <div class="test-shell-table-row__meta">
+            {{ row.recordId || 'Unavailable' }} · {{ row.matchedTokenCount }} explicit token values
           </div>
-        </q-card-section>
-      </q-card>
+        </div>
+      </div>
     </div>
   </q-page>
 </template>
@@ -144,7 +277,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import {
@@ -153,8 +286,10 @@ import {
   LEVEL_3_FILE_REGISTRY_BY_KEY,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
+import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 
 const route = useRoute()
+const router = useRouter()
 const $q = useQuasar()
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
@@ -163,35 +298,45 @@ const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
 const rawRows = ref([])
+const viewMode = ref('card')
+const summaryContentView = ref('card')
+const selectedRowIds = ref([])
 
 const SECTION_LOADERS = {
   users: {
     listFn: (bridgeValue) => bridgeValue?.users?.list?.(),
     resultKey: 'users',
+    recordIdField: 'id',
   },
   artifacts: {
     listFn: (bridgeValue) => bridgeValue?.artifacts?.list?.(),
     resultKey: 'artifacts',
+    recordIdField: 'artifact_id',
   },
   contacts: {
     listFn: (bridgeValue) => bridgeValue?.contacts?.list?.(),
     resultKey: 'contacts',
+    recordIdField: 'id',
   },
   companies: {
     listFn: (bridgeValue) => bridgeValue?.companies?.list?.(),
     resultKey: 'companies',
+    recordIdField: 'id',
   },
   projects: {
     listFn: (bridgeValue) => bridgeValue?.projects?.list?.(),
     resultKey: 'projects',
+    recordIdField: 'pipeline_id',
   },
   notes: {
     listFn: (bridgeValue) => bridgeValue?.notes?.list?.(),
     resultKey: 'notes',
+    recordIdField: 'id',
   },
   tasks: {
     listFn: (bridgeValue) => bridgeValue?.tasks?.list?.(),
     resultKey: 'tasks',
+    recordIdField: 'id',
   },
 }
 
@@ -200,107 +345,166 @@ const fallbackSectionKey =
   TEST_SHELL_SECTION_OPTIONS[0]?.value ||
   'tasks'
 
-const activeSectionKey = computed(() => {
+const activeSourceKey = computed(() => {
   const current = String(route.query.section || '').trim().toLowerCase()
   return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current) ? current : fallbackSectionKey
 })
 
 const activeRegistryEntry = computed(
-  () => getFilePageRegistryEntry(activeSectionKey.value) || getFilePageRegistryEntry(fallbackSectionKey),
+  () => getFilePageRegistryEntry(activeSourceKey.value) || getFilePageRegistryEntry(fallbackSectionKey),
 )
 
-const activeLoader = computed(() => SECTION_LOADERS[activeSectionKey.value] || null)
+const activeLoader = computed(() => SECTION_LOADERS[activeSourceKey.value] || null)
 const hasSupportedBridge = computed(() => {
   if (!activeLoader.value) return false
   return typeof activeLoader.value.listFn(bridge.value) !== 'undefined'
 })
 
-const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSectionKey.value] || [])
-const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSectionKey.value] || [])
+const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
+const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
+const activeSectionKeyForCards = ref('')
+const activeFilterSectionKey = ref('')
+const activeFilterTokenKey = ref('')
+const expandedFilterSectionKey = ref('')
 
-const visibleTokens = computed(() => {
-  const query = String(searchQuery.value || '').trim().toLowerCase()
-  const tokens = level3Tokens.value
-  if (!query) return tokens.slice(0, 24)
-  return tokens
-    .filter((token) =>
-      [token.tokenName, token.parentLabel, token.tokenType].some((value) =>
-        String(value || '').toLowerCase().includes(query),
-      ),
-    )
-    .slice(0, 24)
+const activeSection = computed(() => {
+  return level2Sections.value.find((section) => section.key === activeSectionKeyForCards.value) || level2Sections.value[0] || null
 })
 
-const visibleRowKeys = computed(() => {
-  const query = String(searchQuery.value || '').trim().toLowerCase()
-  const keyCounts = new Map()
-
-  for (const row of rawRows.value) {
-    for (const key of Object.keys(row || {})) {
-      const normalizedKey = String(key || '').trim()
-      if (!normalizedKey) continue
-      if (query && !normalizedKey.toLowerCase().includes(query)) continue
-      keyCounts.set(normalizedKey, (keyCounts.get(normalizedKey) || 0) + 1)
-    }
-  }
-
-  return [...keyCounts.entries()]
-    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
-    .slice(0, 24)
-    .map(([key]) => key)
+const activeSectionLabel = computed(() => activeSection.value?.label || 'Canonical Section')
+const activeSectionTokens = computed(() => {
+  if (!activeSection.value) return []
+  return level3Tokens.value.filter((token) => token.parentKey === activeSection.value.key)
 })
 
-const heroTitle = computed(() => 'Test the shared page shell.')
+const canonicalTitleToken = computed(
+  () =>
+    level3Tokens.value.find(
+      (token) => String(token.parentLevel_2) === '3' && String(token.level_3) === '1',
+    ) || null,
+)
+
+const unmappedShellSlots = computed(() => [
+  'card.title',
+  'card.subtitle',
+  'card.chips',
+  'card.summary',
+])
+
+const displayRows = computed(() => {
+  const query = String(searchQuery.value || '').trim().toLowerCase()
+
+  return rawRows.value
+    .map((row, index) => buildShellRow(row, index))
+    .filter((row) => {
+      if (activeFilterSectionKey.value && !row.sectionPresence[activeFilterSectionKey.value]) return false
+      if (activeFilterTokenKey.value && !row.tokenPresence[activeFilterTokenKey.value]) return false
+      if (!query) return true
+      const haystack = [
+        row.recordId,
+        ...row.sectionTokenRows.map((tokenRow) => tokenRow.tokenName),
+        ...row.sectionTokenRows.map((tokenRow) => tokenRow.value),
+        ...Object.keys(row.raw || {}),
+      ]
+      return haystack.some((value) => String(value || '').toLowerCase().includes(query))
+    })
+})
+
+const visibleSelectableRowIds = computed(() =>
+  displayRows.value.map((row) => String(row.recordId || row.cardId || '').trim()).filter(Boolean),
+)
+
+const allVisibleSelected = computed(() => {
+  if (!visibleSelectableRowIds.value.length) return false
+  return visibleSelectableRowIds.value.every((id) => selectedRowIds.value.includes(id))
+})
+
+const someVisibleSelected = computed(() => {
+  if (!visibleSelectableRowIds.value.length) return false
+  return visibleSelectableRowIds.value.some((id) => selectedRowIds.value.includes(id))
+})
+
+const heroTitle = computed(() => 'Shared File / Page View Shell')
 const heroText = computed(
-  () => 'This shell now reads only explicit canonical structure plus live source rows. Rendering stops where the explicit shell contract is still missing.',
+  () => 'This is the actual fixed page shell under standardization. The selected L1 source changes the real payload and canonical L2/L3 structure underneath it.',
 )
 
 const heroStats = computed(() => [
   {
+    label: 'Source',
+    value: activeRegistryEntry.value?.label || '--',
+    caption: 'Selected L1 entity',
+    tone: 'neutral',
+  },
+  {
     label: 'Rows',
     value: rawRows.value.length,
-    caption: 'Loaded from live source',
-    tone: 'neutral',
+    caption: 'Real rows loaded',
+    tone: 'rich',
   },
   {
     label: 'L2',
     value: level2Sections.value.length,
-    caption: 'Canonical sections present',
-    tone: 'rich',
+    caption: 'Canonical sections',
+    tone: 'neutral',
   },
   {
     label: 'L3',
     value: level3Tokens.value.length,
-    caption: 'Canonical tokens present',
-    tone: 'neutral',
-  },
-  {
-    label: 'Gap',
-    value: 5,
-    caption: 'Explicit shell fields still undefined',
+    caption: 'Canonical tokens',
     tone: 'sparse',
   },
 ])
 
 const healthText = computed(() => {
-  return `Canonical structure is present, but explicit page-shell payload mapping is still missing for title, subtitle, chips, summary, and section ownership.`
+  return `The shell is fixed. Real rows and explicit canonical token values are shown without guessing. Unmapped shell slots remain placeholders until canonical shell mapping exists.`
 })
 
 const healthSegments = computed(() => [
-  { tone: 'medium', width: 45 },
-  { tone: 'rich', width: 35 },
+  { tone: 'medium', width: 35 },
+  { tone: 'rich', width: 45 },
   { tone: 'sparse', width: 20 },
 ])
 
-const searchPlaceholder = computed(
-  () => 'Filter canonical tokens and live row keys...',
+const searchPlaceholder = computed(() => `Search ${activeRegistryEntry.value?.label || 'Records'}`)
+const viewOptions = Object.freeze([
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
+])
+const summaryContentViewOptions = Object.freeze([
+  { value: 'card', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
+])
+
+const multiTokenFilterSections = computed(() =>
+  level2Sections.value.filter((section) => getFilterSectionTokenCount(section.key) > 1),
+)
+const summarySectionShellOptions = computed(() => [
+  {
+    value: activeSectionKeyForCards.value || 'selected-section',
+    label: abbreviateLabel(activeSectionLabel.value || 'Section'),
+  },
+])
+
+watch(
+  activeSourceKey,
+  async () => {
+    searchQuery.value = ''
+    activeFilterSectionKey.value = ''
+    activeFilterTokenKey.value = ''
+    expandedFilterSectionKey.value = ''
+    await loadRows()
+    activeSectionKeyForCards.value = level2Sections.value[0]?.key || ''
+  },
+  { immediate: true },
 )
 
 watch(
-  activeSectionKey,
-  async () => {
-    searchQuery.value = ''
-    await loadRows()
+  level2Sections,
+  (sections) => {
+    if (!sections.some((section) => section.key === activeSectionKeyForCards.value)) {
+      activeSectionKeyForCards.value = sections[0]?.key || ''
+    }
   },
   { immediate: true },
 )
@@ -331,14 +535,230 @@ async function loadRows() {
   }
 }
 
+function buildShellRow(row, index) {
+  const recordIdField = activeLoader.value?.recordIdField || ''
+  const recordId = String(row?.[recordIdField] || '').trim()
+  const titleTokenName = canonicalTitleToken.value?.tokenName || ''
+  const tokenPresence = Object.fromEntries(
+    level3Tokens.value.map((token) => [token.key, Boolean(stringifyValue(row?.[token.tokenName]))]),
+  )
+  const sectionPresence = Object.fromEntries(
+    level2Sections.value.map((section) => [
+      section.key,
+      level3Tokens.value
+        .filter((token) => token.parentKey === section.key)
+        .some((token) => tokenPresence[token.key]),
+    ]),
+  )
+  const tokenRows = activeSectionTokens.value.map((token) => {
+    const value = stringifyValue(row?.[token.tokenName])
+    return {
+      key: `${recordId || index}:${token.key}`,
+      tokenName: token.tokenName,
+      label: token.label,
+      value,
+    }
+  })
+
+  const matchedTokenCount = tokenRows.filter((token) => token.value).length
+
+  return {
+    cardId: `${recordId || 'row'}:${index}`,
+    recordId,
+    raw: row,
+    avatarText: activeRegistryEntry.value?.singularLabel?.slice(0, 2)?.toUpperCase() || 'TS',
+    titleValue: stringifyValue(row?.[titleTokenName]),
+    subtitleValue: '',
+    sectionPresence,
+    tokenPresence,
+    sectionTokenRows: tokenRows,
+    matchedTokenCount,
+    visibleTokenCount: tokenRows.length,
+  }
+}
+
+function getRowSelectionId(row) {
+  return String(row?.recordId || row?.cardId || '').trim()
+}
+
+function isRowSelected(row) {
+  const id = getRowSelectionId(row)
+  return Boolean(id) && selectedRowIds.value.includes(id)
+}
+
+function toggleRowSelection(row, nextValue) {
+  const id = getRowSelectionId(row)
+  if (!id) return
+  if (nextValue) {
+    if (!selectedRowIds.value.includes(id)) {
+      selectedRowIds.value = [...selectedRowIds.value, id]
+    }
+    return
+  }
+  selectedRowIds.value = selectedRowIds.value.filter((selectedId) => selectedId !== id)
+}
+
+function toggleSelectAllVisible(nextValue) {
+  const visibleIds = visibleSelectableRowIds.value
+  if (!visibleIds.length) return
+  if (nextValue) {
+    selectedRowIds.value = Array.from(new Set([...selectedRowIds.value, ...visibleIds]))
+    return
+  }
+  selectedRowIds.value = selectedRowIds.value.filter((id) => !visibleIds.includes(id))
+}
+
+function abbreviateLabel(value) {
+  const text = String(value || '').trim()
+  if (!text) return 'Section'
+  return text.length > 10 ? `${text.slice(0, 10)}…` : text
+}
+
+function stringifyValue(value) {
+  if (value == null) return ''
+  if (Array.isArray(value)) return value.map((item) => stringifyValue(item)).filter(Boolean).join(', ')
+  if (typeof value === 'object') return ''
+  return String(value).trim()
+}
+
+function getTestShellMetadataRows(row) {
+  return [
+    row.subtitleValue ? { label: 'Subtitle', value: row.subtitleValue, icon: 'badge' } : null,
+    row.recordId ? { label: 'Record ID', value: row.recordId, icon: 'fingerprint' } : null,
+  ].filter(Boolean)
+}
+
+function getTestShellAvatarColor() {
+  return '#111111'
+}
+
+function getTestShellCardStyle() {
+  return {
+    '--test-shell-card-blob-x': '50%',
+    '--test-shell-card-blob-y': '30%',
+    '--test-shell-card-blob-size': '60%',
+    '--test-shell-card-blob-opacity': '0',
+    '--test-shell-card-blob-strong': 'rgba(38, 71, 255, 0.2)',
+    '--test-shell-card-blob-soft': 'rgba(38, 71, 255, 0.1)',
+    '--test-shell-card-blob-fade': 'rgba(38, 71, 255, 0.05)',
+  }
+}
+
+function onTestShellCardPointerEnter(event) {
+  updateTestShellCardGradientPosition(event)
+  event?.currentTarget?.style?.setProperty('--test-shell-card-blob-opacity', '1')
+}
+
+function onTestShellCardPointerMove(event) {
+  updateTestShellCardGradientPosition(event)
+}
+
+function onTestShellCardPointerLeave(event) {
+  const element = event?.currentTarget
+  if (!element) return
+  element.style.setProperty('--test-shell-card-blob-opacity', '0')
+}
+
+function updateTestShellCardGradientPosition(event) {
+  const element = event?.currentTarget
+  if (!element || typeof element.getBoundingClientRect !== 'function') return
+  const rect = element.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+  const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
+  element.style.setProperty('--test-shell-card-blob-x', `${clamp(x, 10, 90)}%`)
+  element.style.setProperty('--test-shell-card-blob-y', `${clamp(y, 10, 90)}%`)
+}
+
+function openRecordView(row) {
+  if (!row?.recordId || !activeRegistryEntry.value?.entityName) return
+  const location = buildRecordViewLocation({
+      tableName: activeRegistryEntry.value.entityName,
+      recordId: row.recordId,
+      returnTo: route.fullPath,
+    })
+  if (!location) return
+  router.push(location)
+}
+
+function setActiveFilterSection(sectionKey) {
+  activeFilterSectionKey.value = sectionKey
+  if (activeFilterTokenKey.value) {
+    const tokenStillVisible = level3Tokens.value.some(
+      (token) => token.key === activeFilterTokenKey.value && token.parentKey === sectionKey,
+    )
+    if (!tokenStillVisible) activeFilterTokenKey.value = ''
+  }
+}
+
+function clearSectionFilter() {
+  activeFilterSectionKey.value = ''
+}
+
+function setActiveFilterToken(tokenKey) {
+  activeFilterTokenKey.value = tokenKey
+  const token = level3Tokens.value.find((entry) => entry.key === tokenKey)
+  if (token?.parentKey) activeFilterSectionKey.value = token.parentKey
+}
+
+function clearTokenFilter() {
+  activeFilterTokenKey.value = ''
+}
+
+function toggleFilterToken(tokenKey, nextValue) {
+  if (nextValue === false) {
+    clearTokenFilter()
+    clearSectionFilter()
+    return
+  }
+  setActiveFilterToken(tokenKey)
+}
+
+function getSectionTokens(sectionKey) {
+  return level3Tokens.value.filter((token) => token.parentKey === sectionKey)
+}
+
+function getFilterSectionTokenCount(sectionKey) {
+  return getSectionTokens(sectionKey).length
+}
+
+function toggleExpandedFilterSection(sectionKey) {
+  expandedFilterSectionKey.value = expandedFilterSectionKey.value === sectionKey ? '' : sectionKey
+}
+
+function applyFilterSelection(value) {
+  const normalized = String(value || '').trim()
+  if (!normalized || normalized === 'all') {
+    clearTokenFilter()
+    clearSectionFilter()
+    expandedFilterSectionKey.value = ''
+    return
+  }
+
+  if (normalized.startsWith('section:')) {
+    clearTokenFilter()
+    const sectionKey = normalized.slice('section:'.length)
+    setActiveFilterSection(sectionKey)
+    expandedFilterSectionKey.value = sectionKey
+    return
+  }
+
+  if (normalized.startsWith('token:')) {
+    const tokenKey = normalized.slice('token:'.length)
+    setActiveFilterToken(tokenKey)
+    const token = level3Tokens.value.find((entry) => entry.key === tokenKey)
+    expandedFilterSectionKey.value = token?.parentKey || ''
+  }
+}
+
 function notifyShellAction(label) {
   $q.notify({
     type: 'info',
-    message: `${label} stays disabled here until the explicit shell contract exists.`,
+    message: `${label} is visible in the shared shell, but the explicit shell action contract is not defined yet.`,
   })
 }
 
-function noop() {}
 </script>
 
 <style scoped>
@@ -349,22 +769,272 @@ function noop() {}
   gap: 20px;
 }
 
-.test-shell-contract-card {
-  border-radius: 28px;
-  box-shadow: var(--ds-shadow-card-soft);
+.test-shell-gap-banner {
+  border: 1px solid rgba(249, 115, 22, 0.18);
 }
 
-.test-shell-contract-card__head {
+.test-shell-filters-trigger {
+  color: var(--ds-color-text-muted);
+}
+
+.test-shell-filters-menu {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.test-shell-filters-panel {
+  width: fit-content;
+  max-width: min(720px, calc(100vw - 16px));
+  padding: 6px;
+  background: rgba(17, 17, 17, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.test-shell-filters-panel__title {
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  padding: 2px 2px 6px;
+}
+
+.test-shell-filters-panel__rows {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 12px;
+  gap: 8px;
 }
 
-.test-shell-contract-card__eyebrow,
-.test-shell-contract-panel__label,
-.test-shell-canonical__label {
+.test-shell-filter-group {
+  display: grid;
+  gap: 4px;
+  flex: 0 1 auto;
+  width: max-content;
+  min-width: 0;
+  max-width: 220px;
+}
+
+.test-shell-filter-child-row {
+  width: max-content;
+  min-width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.test-shell-filter-child-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 2px 3px 2px;
+}
+
+.test-shell-filter-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  max-width: 100%;
+  padding: 2px 2px 4px;
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.86);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.test-shell-filter-heading__label,
+.test-shell-filter-child-row__label {
+  min-width: 0;
+  font-family: var(--ds-font-family-body);
+  font-size: 0.62rem;
+  font-weight: var(--ds-font-weight-light);
+  letter-spacing: 0.01em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.test-shell-filter-heading__label {
+  color: #ffffff;
+}
+
+.test-shell-filter-heading__meta {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.56rem;
+}
+
+.test-shell-filter-heading__chevron {
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.test-shell-filter-group__children {
+  display: grid;
+  gap: 5px;
+}
+
+
+.test-shell-filter-child-row--selected {
+  color: #ffffff;
+}
+
+.test-shell-filter-child-row__checkbox {
+  min-height: 12px;
+}
+
+.test-shell-filter-child-row__checkbox :deep(.q-checkbox__inner) {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.14) !important;
+}
+
+.test-shell-filter-child-row__checkbox :deep(.q-checkbox__inner--truthy) {
+  color: rgba(255, 255, 255, 0.28) !important;
+}
+
+.test-shell-filter-child-row__checkbox :deep(.q-checkbox__bg) {
+  background: transparent !important;
+}
+
+.test-shell-cards-grid {
+  align-items: stretch;
+}
+
+.test-shell-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 240, 0.98) 100%);
+  border-radius: 28px;
+  border-color: #e5e5e5;
+  box-shadow: none;
+}
+
+.test-shell-card::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--test-shell-card-blob-x) var(--test-shell-card-blob-y),
+    var(--test-shell-card-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--test-shell-card-blob-soft, rgba(38, 71, 255, 0.1)) calc(var(--test-shell-card-blob-size) * 0.46),
+    var(--test-shell-card-blob-fade, rgba(38, 71, 255, 0.05)) calc(var(--test-shell-card-blob-size) * 0.7),
+    transparent var(--test-shell-card-blob-size)
+  );
+  opacity: var(--test-shell-card-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.test-shell-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.test-shell-card:hover {
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+
+.test-shell-card__control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.test-shell-card__control-row :deep(.q-checkbox__inner),
+.test-shell-card__control-row :deep(.q-btn__content) {
+  filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
+}
+
+.test-shell-card__hero {
+  padding: 0 0 4px;
+}
+
+.test-shell-card__hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 224px;
+  height: 248px;
+}
+
+.test-shell-card__portrait {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  border-right: 0;
+}
+
+.test-shell-card__portrait-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.test-shell-card__portrait-badge {
+  display: flex;
+  position: relative;
+  z-index: 1;
+  width: clamp(124px, 48%, 152px);
+  height: clamp(124px, 48%, 152px);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 18px 40px rgba(17, 17, 17, 0.16);
+  font-family: var(--font-title);
+  font-size: clamp(2.2rem, 4.2vw, 3rem);
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
+  overflow: hidden;
+}
+
+.test-shell-card__hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px 18px 14px 14px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.test-shell-card__hero-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.test-shell-card__slot-label,
+.test-shell-card__summary-label,
+.test-shell-card__summary-panel-title,
+.test-shell-token-row__meta {
   color: var(--ds-color-text-muted);
   font-size: 0.72rem;
   font-weight: 700;
@@ -372,136 +1042,292 @@ function noop() {}
   text-transform: uppercase;
 }
 
-.test-shell-contract-card__title {
-  margin: 8px 0 0;
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
-  font-size: 1.5rem;
-  font-weight: var(--ds-font-weight-bold);
+.test-shell-card__title {
+  min-width: 0;
+  color: #0a0a0a;
+  font-family: var(--font-title);
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-.test-shell-contract-card__meta {
-  color: var(--ds-color-text-muted);
-  font-size: 0.9rem;
-}
-
-.test-shell-contract-card__source {
-  margin-top: 8px;
-  color: var(--ds-color-text-secondary);
-  font-size: 0.92rem;
-}
-
-.test-shell-contract-card__body {
+.test-shell-card__bottom-stack,
+.test-shell-card__detail-stack {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-.test-shell-contract-card__summary {
-  color: var(--ds-color-text-secondary);
-  line-height: 1.6;
-}
-
-.test-shell-contract-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.test-shell-contract-panel {
-  display: grid;
-  gap: 10px;
-  padding: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  background: rgba(248, 250, 252, 0.72);
-}
-
-.test-shell-contract-panel--missing {
-  background: rgba(255, 244, 238, 0.84);
-}
-
-.test-shell-contract-list {
-  margin: 0;
-  padding-left: 18px;
-  color: var(--ds-color-text-secondary);
-  line-height: 1.6;
-}
-
-.test-shell-canonical {
-  display: grid;
-  gap: 18px;
-}
-
-.test-shell-canonical__section {
-  display: grid;
-  gap: 10px;
-}
-
-.test-shell-canonical__chips {
-  display: flex;
-  flex-wrap: wrap;
   gap: 8px;
 }
 
-.test-shell-canonical__chip {
+.test-shell-card__detail-stack {
+  gap: 4px;
+}
+
+.test-shell-card__detail-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.test-shell-card__inline-chip {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 26px;
   padding: 0 10px;
+  color: #111;
+  background: transparent;
+  border: 0;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.06);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.test-shell-card__inline-chip--placeholder {
+  color: #6f6f6f;
+}
+
+.test-shell-card__subtitle,
+.test-shell-card__summary-meta,
+.test-shell-card__summary-status,
+.test-shell-token-row__value,
+.test-shell-card__empty {
   color: var(--ds-color-text-secondary);
-  font-size: 0.82rem;
 }
 
-.test-shell-canonical__chip--row {
-  background: rgba(238, 241, 255, 0.96);
+.test-shell-card__value--placeholder {
+  color: var(--ds-color-text-muted);
+  font-style: italic;
 }
 
-.test-shell-token-list {
-  display: grid;
-  gap: 10px;
+.test-shell-card__summary {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 208px;
+  max-height: 208px;
+  margin: 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  box-shadow: none;
 }
 
-.test-shell-token-row {
+.test-shell-card__summary-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.92);
 }
 
-.test-shell-token-row__name {
-  color: var(--ds-color-text-primary);
-  font-weight: 600;
+.test-shell-card__summary-view-toggle,
+.test-shell-card__summary-toggle {
+  border-radius: var(--ds-control-radius);
 }
 
-.test-shell-token-row__meta {
-  color: var(--ds-color-text-muted);
-  font-size: 0.82rem;
+.test-shell-card__summary-view-toggle {
+  margin-left: auto;
+  margin-right: 14px;
+}
+
+.test-shell-card__summary-view-toggle :deep(.q-btn-group),
+.test-shell-card__summary-toggle :deep(.q-btn-group) {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+}
+
+.test-shell-card__summary-view-toggle :deep(.q-btn) {
+  min-height: 21px;
+  min-width: 21px;
+  height: 21px;
+  width: 21px;
+  padding: 0 2px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--ds-control-radius);
+}
+
+.test-shell-card__summary-view-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 6px;
+}
+
+.test-shell-card__summary-view-toggle :deep(.q-icon) {
+  font-size: 13px;
+}
+
+.test-shell-card__summary-toggle {
+  margin-left: 14px;
+  margin-right: auto;
+}
+
+.test-shell-card__summary-toggle :deep(.q-btn) {
+  min-height: 24px;
+  min-width: 24px;
+  width: 24px;
+  padding: 0 3px;
+  border: 1px solid transparent;
+  border-radius: var(--ds-control-radius);
+  background: transparent;
+  font-size: 12px;
+}
+
+.test-shell-card__summary-panel {
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 14px 14px 12px;
+  border-radius: 16px;
+  background: var(--ds-color-surface-base);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.test-shell-card__summary-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.test-shell-card__summary-add-relation {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 2px 0 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.test-shell-card__summary-add-relation :deep(.q-btn__content) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.test-shell-card__summary-add-relation-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #2647ff;
+}
+
+.test-shell-card__summary-add-relation-plus :deep(.q-icon) {
+  font-size: 11px;
+}
+
+.test-shell-card__summary-add-relation-label {
+  color: rgba(17, 17, 17, 0.86);
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+}
+
+.test-shell-card__summary-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.test-shell-card__summary-body-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.test-shell-card__notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.test-shell-card__notes-list--rows {
+  gap: 6px;
+}
+
+.test-shell-card__note-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 36px;
+  padding: 8px 10px;
+  color: #111;
+  background: #fff;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.test-shell-card__note-pill--placeholder {
+  color: #6f6f6f;
+}
+
+.test-shell-card__note-pill-name {
+  font-weight: var(--font-weight-medium);
+}
+
+.test-shell-card__note-pill-value {
   text-align: right;
 }
 
-.test-shell-contract-card__empty {
-  color: var(--ds-color-text-muted);
-}
-
 @media (max-width: 900px) {
-  .test-shell-contract-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .test-shell-token-row {
+  .test-shell-card__summary-head,
+  .test-shell-card__note-pill {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .test-shell-token-row__meta {
-    text-align: left;
+  .test-shell-card__hero-main {
+    grid-template-columns: 1fr;
+    height: auto;
   }
+}
+
+.test-shell-table-surface {
+  display: grid;
+  gap: 10px;
+}
+
+.test-shell-table-row {
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.test-shell-table-row__title {
+  color: var(--ds-color-text-primary);
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+}
+
+.test-shell-table-row__meta {
+  margin-top: 6px;
+  color: var(--ds-color-text-secondary);
+  font-size: 0.78rem;
 }
 </style>
