@@ -1165,15 +1165,20 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__processing-entry-input :deep(.q-field__control) {
-  min-height: 24px;
+  min-height: 22px;
   border-radius: 2px;
+}
+
+.create-record-shell__processing-entry-input :deep(.q-field__control-container) {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .create-record-shell__processing-entry-input :deep(.q-field__native),
 .create-record-shell__processing-entry-input :deep(.q-field__input) {
-  min-height: 24px;
-  padding-top: 1px;
-  padding-bottom: 1px;
+  min-height: 22px;
+  padding-top: 0;
+  padding-bottom: 0;
   font-size: 10px;
   line-height: 1.1;
 }
