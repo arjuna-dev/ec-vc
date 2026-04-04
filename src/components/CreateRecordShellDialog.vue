@@ -155,7 +155,11 @@
                         outlined
                         class="create-record-shell__processing-entry-input"
                         @keyup.enter.prevent="addSupportResourceEntry('url')"
-                      />
+                      >
+                        <template v-if="pendingUrlEntry.trim()" #append>
+                          <q-icon name="keyboard_return" class="create-record-shell__processing-entry-hint" />
+                        </template>
+                      </q-input>
                       <div v-if="urlEntries.length" class="create-record-shell__processing-entry-list">
                         <label
                           v-for="entry in urlEntries"
@@ -194,7 +198,11 @@
                         outlined
                         class="create-record-shell__processing-entry-input"
                         @keyup.enter.prevent="addSupportResourceEntry('guidance')"
-                      />
+                      >
+                        <template v-if="pendingGuidanceEntry.trim()" #append>
+                          <q-icon name="keyboard_return" class="create-record-shell__processing-entry-hint" />
+                        </template>
+                      </q-input>
                       <div v-if="guidanceEntries.length" class="create-record-shell__processing-entry-list">
                         <label
                           v-for="entry in guidanceEntries"
@@ -1156,6 +1164,11 @@ onBeforeUnmount(() => {
 .create-record-shell__processing-entry-input :deep(.q-field__control) {
   min-height: 34px;
   border-radius: 6px;
+}
+
+.create-record-shell__processing-entry-hint {
+  color: rgba(17, 17, 17, 0.5);
+  font-size: 0.92rem;
 }
 
 .create-record-shell__processing-entry-list {
