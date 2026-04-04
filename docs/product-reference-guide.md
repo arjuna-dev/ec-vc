@@ -228,6 +228,7 @@ For the opportunity lane:
 - `Funds` and `Rounds` are subtype branches under that parent
 - shared fields should be owned by `Opportunities`
 - diverging `Economics` and `Controls` structures should remain subtype-owned instead of being forced into one fake shared section
+- create/add-record should ask the user which subtype route to take before opening the shared record dialog
 
 For every first-level canonical table:
 

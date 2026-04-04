@@ -37,6 +37,7 @@ This tracker should stay aligned with:
 - `docs/canonical-structure.json` is now the app-readable canonical structure registry across the current L1/L2/L3 entity set
 - canonical tokens can now carry explicit `db_field_aliases`, so shell rendering can resolve through canonical structure without guessing when live row payload fields still use older DB names
 - `Opportunities` is now being formalized as a parent canonical `L1` contract with `Funds` and `Rounds` as subtype branches
+- parent `L1`s with subtype branches now use an explicit route-choice step before create/add-record opens the shared dialog
 - `Knowledge DBs` is now being treated as a real subset inside `Files` for reusable reference entities such as `Stages`, `Financial Industries`, and `Round Securities`
 - `Industries` and `Securities` are now frontend-prepared as shared-shell file surfaces through canonical registry, routes, and nav, with runtime source wiring intentionally left as the next explicit step
 - the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points

@@ -351,34 +351,29 @@
         <div ref="quickWidgetIconContainer" class="ec-quick-widget-icon" />
       </q-btn>
     </div>
-    <q-dialog v-model="opportunityKindDialogOpen" persistent>
+    <q-dialog v-model="createBranchDialogOpen" persistent>
       <q-card style="width: 420px; max-width: 92vw">
         <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
-          <div class="text-h6">Choose Opportunity Type</div>
+          <div class="text-h6">{{ createBranchDialogTitle }}</div>
           <div class="text-caption text-grey-7">
-            Start by confirming whether this opportunity is a fund or a round.
+            {{ createBranchDialogCaption }}
           </div>
         </q-card-section>
 
         <q-card-section class="q-px-lg q-pb-md">
           <div class="row q-col-gutter-sm">
-            <div class="col-12 col-sm-6">
+            <div
+              v-for="branch in createBranchOptions"
+              :key="branch.value"
+              class="col-12 col-sm-6"
+            >
               <q-btn
                 class="full-width"
+                :outline="branch !== createBranchOptions[0]"
                 color="primary"
-                icon="account_balance_wallet"
-                label="Fund"
-                @click="confirmOpportunityKind('fund')"
-              />
-            </div>
-            <div class="col-12 col-sm-6">
-              <q-btn
-                class="full-width"
-                outline
-                color="primary"
-                icon="donut_large"
-                label="Round"
-                @click="confirmOpportunityKind('round')"
+                :icon="branch.icon"
+                :label="branch.label"
+                @click="confirmCreateBranch(branch.value)"
               />
             </div>
           </div>
@@ -387,7 +382,7 @@
         <q-separator />
 
         <q-card-actions align="right" class="q-px-lg q-py-md">
-          <q-btn flat no-caps label="Close" @click="opportunityKindDialogOpen = false" />
+          <q-btn flat no-caps label="Close" @click="closeCreateBranchDialog" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -477,7 +472,11 @@ import {
 } from 'src/utils/intakeDraftState'
 import { useBreadcrumbActionsState } from 'src/utils/breadcrumbActionsState'
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
-import { TEST_SHELL_SECTION_OPTIONS, WORKSPACE_FILE_NAV_ITEMS } from 'src/utils/structureRegistry'
+import {
+  getFilePageRegistryEntry,
+  TEST_SHELL_SECTION_OPTIONS,
+  WORKSPACE_FILE_NAV_ITEMS,
+} from 'src/utils/structureRegistry'
 import {
   activateNextIntakeReviewItem,
   dismissIntakeReviewItem,
@@ -489,7 +488,8 @@ const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
 const quickOpportunityBranchOpen = ref(false)
 const artifactDialogOpen = ref(false)
-const opportunityKindDialogOpen = ref(false)
+const createBranchDialogOpen = ref(false)
+const activeCreateBranchParentKey = ref('')
 const auditUserLabel = ref('')
 const logoContainer = ref(null)
 const logoReady = ref(false)
@@ -754,7 +754,7 @@ const quickWidgetActionCatalog = computed(() => {
       id: 'opportunity',
       label: 'Opportunity',
       icon: 'work',
-      onClick: openOpportunityKindDialog,
+      onClick: () => openCreateBranchDialog('opportunities'),
     },
     contact: {
       id: 'contact',
@@ -811,6 +811,26 @@ const quickWidgetActionCatalog = computed(() => {
   ]
 
   return order.map((id) => actionById[id]).filter(Boolean)
+})
+
+const activeCreateBranchParentEntry = computed(() =>
+  getFilePageRegistryEntry(activeCreateBranchParentKey.value),
+)
+
+const createBranchOptions = computed(() =>
+  Array.isArray(activeCreateBranchParentEntry.value?.createBranches)
+    ? activeCreateBranchParentEntry.value.createBranches
+    : [],
+)
+
+const createBranchDialogTitle = computed(() => {
+  const singularLabel = activeCreateBranchParentEntry.value?.singularLabel || 'Record'
+  return `Choose ${singularLabel} Route`
+})
+
+const createBranchDialogCaption = computed(() => {
+  const singularLabel = (activeCreateBranchParentEntry.value?.singularLabel || 'record').toLowerCase()
+  return `Start by confirming which route this ${singularLabel} should take.`
 })
 
 const quickWidgetActions = computed(() =>
@@ -1477,18 +1497,30 @@ function closeQuickActions() {
   playQuickWidgetBack()
 }
 
-function openOpportunityKindDialog() {
+function openCreateBranchDialog(parentKey) {
   closeQuickActions()
-  opportunityKindDialogOpen.value = true
+  activeCreateBranchParentKey.value = String(parentKey || '')
+  if (!createBranchOptions.value.length) {
+    return
+  }
+  createBranchDialogOpen.value = true
 }
 
-function confirmOpportunityKind(kind) {
-  opportunityKindDialogOpen.value = false
-  if (kind === 'fund') {
+function closeCreateBranchDialog() {
+  createBranchDialogOpen.value = false
+  activeCreateBranchParentKey.value = ''
+}
+
+function confirmCreateBranch(branchValue) {
+  const parentKey = activeCreateBranchParentKey.value
+  closeCreateBranchDialog()
+  if (parentKey === 'opportunities' && branchValue === 'fund') {
     void openFundFromQuickAction()
     return
   }
-  void openRoundFromQuickAction()
+  if (parentKey === 'opportunities' && branchValue === 'round') {
+    void openRoundFromQuickAction()
+  }
 }
 
 async function openNoteFromQuickAction() {

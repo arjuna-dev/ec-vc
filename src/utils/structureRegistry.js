@@ -30,6 +30,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     icon: 'work',
     showInWorkspaceNav: false,
     relationshipSourcePrefixes: ['Opportunity', 'Fund', 'Round'],
+    createBranches: [
+      { value: 'fund', label: 'Fund', icon: 'account_balance_wallet' },
+      { value: 'round', label: 'Round', icon: 'donut_large' },
+    ],
   },
   Funds: { key: 'funds', label: 'Funds', singularLabel: 'Fund', routeName: 'funds', path: '/funds', icon: 'account_balance', showInWorkspaceNav: false },
   Rounds: { key: 'rounds', label: 'Rounds', singularLabel: 'Round', routeName: 'rounds', path: '/rounds', icon: 'toll', showInWorkspaceNav: false },

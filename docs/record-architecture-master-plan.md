@@ -231,6 +231,12 @@ Current approved interpretation:
   - `Round` `Economics`
   - `Round` `Controls`
 
+Create rule:
+
+- if an `L1` owns subtype branches, create/add-record should first ask which route to take
+- that route-choice step is canonical behavior, not a widget-only special case
+- example: `Opportunities` should ask whether the new record should follow the `Fund` route or the `Round` route
+
 Working rule:
 
 - do not pretend `Economics` and `Controls` are one shared structure just because their labels match
