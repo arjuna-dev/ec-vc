@@ -25,9 +25,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "1.1.0",
-          "structure_token": "Artifact_System_Data",
+          "structure_token": "Artifact_System",
           "tokens": [
             {
               "address": "1.1.1",
@@ -41,26 +41,16 @@
             },
             {
               "address": "1.1.3",
-              "token_name": "Artifact_Time_Stamp",
+              "token_name": "Artifact_Datetime",
               "token_type": "datetime"
-            },
-            {
-              "address": "1.1.4",
-              "token_name": "Artifact_Date_Stamp",
-              "token_type": "date"
-            },
-            {
-              "address": "1.1.5",
-              "token_name": "Artifact_File",
-              "token_type": "file"
             }
           ]
         },
         {
           "level_2": "2",
-          "subsection": "KDB_Relations",
+          "subsection": "KDB",
           "subsection_address": "1.2.0",
-          "structure_token": "Artifact_KDB_Relations",
+          "structure_token": "Artifact_KDB",
           "tokens": [
             {
               "address": "1.2.1",
@@ -103,6 +93,19 @@
               "token_type": "select_multi"
             }
           ]
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "1.3.0",
+          "structure_token": "Artifact_General",
+          "tokens": [
+            {
+              "address": "1.3.1",
+              "token_name": "Artifact_Name",
+              "token_type": "text"
+            }
+          ]
         }
       ]
     },
@@ -119,9 +122,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "2.1.0",
-          "structure_token": "User_System_Data",
+          "structure_token": "User_System",
           "tokens": [
             {
               "address": "2.1.1",
@@ -130,11 +133,6 @@
             },
             {
               "address": "2.1.2",
-              "token_name": "User_Name",
-              "token_type": "text"
-            },
-            {
-              "address": "2.1.3",
               "token_name": "User_Email",
               "token_type": "email"
             }
@@ -142,9 +140,9 @@
         },
         {
           "level_2": "2",
-          "subsection": "KDB_Relations",
+          "subsection": "KDB",
           "subsection_address": "2.2.0",
-          "structure_token": "User_KDB_Relations",
+          "structure_token": "User_KDB",
           "tokens": [
             {
               "address": "2.2.1",
@@ -187,6 +185,19 @@
               "token_type": "select_multi"
             }
           ]
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "2.3.0",
+          "structure_token": "User_General",
+          "tokens": [
+            {
+              "address": "2.3.1",
+              "token_name": "User_Name",
+              "token_type": "text"
+            }
+          ]
         }
       ]
     },
@@ -203,9 +214,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "3.1.0",
-          "structure_token": "Contact_System_Data",
+          "structure_token": "Contact_System",
           "tokens": [
             {
               "address": "3.1.1",
@@ -214,123 +225,123 @@
             },
             {
               "address": "3.1.2",
-              "token_name": "Contact_DateTime_Stamp",
-              "token_type": "datetime"
+              "token_name": "Contact_Creator",
+              "token_type": "select_single"
             },
             {
               "address": "3.1.3",
-              "token_name": "Contact_Creator",
-              "token_type": "select_single"
+              "token_name": "Contact_Datetime",
+              "token_type": "datetime"
             }
           ]
         },
         {
-          "level_2": "2",
-          "subsection": "General_Information",
-          "subsection_address": "3.2.0",
-          "structure_token": "Contact_General_Information",
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "3.3.0",
+          "structure_token": "Contact_General",
           "tokens": [
             {
-              "address": "3.2.1",
+              "address": "3.3.1",
               "token_name": "Contact_Name",
               "token_type": "text"
             },
             {
-              "address": "3.2.2",
+              "address": "3.3.2",
               "token_name": "Contact_PEmail",
               "token_type": "email"
             },
             {
-              "address": "3.2.3",
+              "address": "3.3.3",
               "token_name": "Contact_BEmail",
               "token_type": "email"
             },
             {
-              "address": "3.2.4",
+              "address": "3.3.4",
               "token_name": "Contact_Phone",
               "token_type": "phone"
             },
             {
-              "address": "3.2.5",
+              "address": "3.3.5",
               "token_name": "Contact_HQ",
               "token_type": "select_single"
             },
             {
-              "address": "3.2.6",
+              "address": "3.3.6",
               "token_name": "Contact_LinkedIn",
               "token_type": "url"
             }
           ]
         },
         {
-          "level_2": "3",
-          "subsection": "KDB_Relations",
-          "subsection_address": "3.3.0",
-          "structure_token": "Contact_KDB_Relations",
+          "level_2": "4",
+          "subsection": "KDB",
+          "subsection_address": "3.4.0",
+          "structure_token": "Contact_KDB",
           "tokens": [
             {
-              "address": "3.3.1",
+              "address": "3.4.1",
               "token_name": "Contact_Artifact",
               "token_type": "select_multi"
             },
             {
-              "address": "3.3.2",
+              "address": "3.4.2",
               "token_name": "Contact_User",
               "token_type": "select_single"
             },
             {
-              "address": "3.3.3",
+              "address": "3.4.3",
               "token_name": "Contact_Company",
               "token_type": "select_multi"
             },
             {
-              "address": "3.3.4",
+              "address": "3.4.4",
               "token_name": "Contact_Fund",
               "token_type": "select_multi"
             },
             {
-              "address": "3.3.5",
+              "address": "3.4.5",
               "token_name": "Contact_Round",
               "token_type": "select_multi"
             },
             {
-              "address": "3.3.6",
+              "address": "3.4.6",
               "token_name": "Contact_Project",
               "token_type": "select_multi"
             },
             {
-              "address": "3.3.7",
+              "address": "3.4.7",
               "token_name": "Contact_Task",
               "token_type": "select_multi"
             },
             {
-              "address": "3.3.8",
+              "address": "3.4.8",
               "token_name": "Contact_Note",
               "token_type": "select_multi"
             }
           ]
         },
         {
-          "level_2": "4",
+          "level_2": "5",
           "subsection": "Employment",
-          "subsection_address": "3.4.0",
+          "subsection_address": "3.5.0",
           "structure_token": "Contact_Employment",
           "tokens": [
             {
-              "address": "3.4.1",
+              "address": "3.5.1",
               "token_name": "Contact_Employment",
               "token_type": "select_multi"
             }
           ]
         },
         {
-          "level_2": "5",
+          "level_2": "6",
           "subsection": "Studies",
-          "subsection_address": "3.5.0",
+          "subsection_address": "3.6.0",
           "structure_token": "Contact_Studies",
           "tokens": [
             {
-              "address": "3.5.1",
+              "address": "3.6.1",
               "token_name": "Contact_Studies",
               "token_type": "select_multi"
             }
@@ -351,9 +362,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "4.1.0",
-          "structure_token": "Company_System_Data",
+          "structure_token": "Company_System",
           "tokens": [
             {
               "address": "4.1.1",
@@ -367,7 +378,7 @@
             },
             {
               "address": "4.1.3",
-              "token_name": "Company_DateTime_Stamp",
+              "token_name": "Company_Datetime",
               "token_type": "datetime"
             },
             {
@@ -377,16 +388,11 @@
             },
             {
               "address": "4.1.5",
-              "token_name": "Company_Short_Name",
-              "token_type": "text"
-            },
-            {
-              "address": "4.1.6",
               "token_name": "Company_Website",
               "token_type": "url"
             },
             {
-              "address": "4.1.7",
+              "address": "4.1.6",
               "token_name": "Company_Tagline",
               "token_type": "text"
             }
@@ -394,9 +400,9 @@
         },
         {
           "level_2": "2",
-          "subsection": "KDB_Relations",
+          "subsection": "KDB",
           "subsection_address": "4.2.0",
-          "structure_token": "Company_KDB_Relations",
+          "structure_token": "Company_KDB",
           "tokens": [
             {
               "address": "4.2.1",
@@ -447,413 +453,426 @@
         },
         {
           "level_2": "3",
-          "subsection": "Inc_Info",
+          "subsection": "General",
           "subsection_address": "4.3.0",
-          "structure_token": "Company_Inc_Info",
+          "structure_token": "Company_General",
           "tokens": [
             {
               "address": "4.3.1",
+              "token_name": "Company_Name",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "Inc_Info",
+          "subsection_address": "4.4.0",
+          "structure_token": "Company_Inc_Info",
+          "tokens": [
+            {
+              "address": "4.4.1",
               "token_name": "Company_Legal_Name",
               "token_type": "text"
             },
             {
-              "address": "4.3.2",
+              "address": "4.4.2",
               "token_name": "Company_Inc_Date",
               "token_type": "date"
             },
             {
-              "address": "4.3.3",
+              "address": "4.4.3",
               "token_name": "Company_Inc_Country",
               "token_type": "select_single"
             },
             {
-              "address": "4.3.4",
+              "address": "4.4.4",
               "token_name": "Company_Entity_Type",
               "token_type": "select_single"
             },
             {
-              "address": "4.3.5",
+              "address": "4.4.5",
               "token_name": "Company_Founders",
               "token_type": "select_multi"
             }
           ]
         },
         {
-          "level_2": "4",
+          "level_2": "5",
           "subsection": "Docs",
-          "subsection_address": "4.4.0",
+          "subsection_address": "4.5.0",
           "structure_token": "Company_Docs",
           "tokens": [
             {
-              "address": "4.4.1",
+              "address": "4.5.1",
               "token_name": "Company_Inc_Certificate",
               "token_type": "file"
             },
             {
-              "address": "4.4.2",
+              "address": "4.5.2",
               "token_name": "Company_Inc_Articles",
               "token_type": "file"
             },
             {
-              "address": "4.4.3",
+              "address": "4.5.3",
               "token_name": "Company_Agreements",
               "token_type": "file"
             },
             {
-              "address": "4.4.4",
+              "address": "4.5.4",
               "token_name": "Company_Bylaws",
               "token_type": "file"
             },
             {
-              "address": "4.4.5",
+              "address": "4.5.5",
               "token_name": "Company_IP",
               "token_type": "file"
             },
             {
-              "address": "4.4.6",
+              "address": "4.5.6",
               "token_name": "Company_FS_Yearly",
               "token_type": "file"
             },
             {
-              "address": "4.4.7",
+              "address": "4.5.7",
               "token_name": "Company_FS_Quarterly",
               "token_type": "file"
             },
             {
-              "address": "4.4.8",
+              "address": "4.5.8",
               "token_name": "Company_FS_Monthly",
               "token_type": "file"
             },
             {
-              "address": "4.4.9",
+              "address": "4.5.9",
               "token_name": "Company_Descriptives",
               "token_type": "file"
             }
           ]
         },
         {
-          "level_2": "5",
+          "level_2": "6",
           "subsection": "Ops_Overview",
-          "subsection_address": "4.5.0",
+          "subsection_address": "4.6.0",
           "structure_token": "Company_Ops_Overview",
           "tokens": [
             {
-              "address": "4.5.1",
+              "address": "4.6.1",
               "token_name": "Company_Stage",
               "token_type": "select_single"
             },
             {
-              "address": "4.5.2",
+              "address": "4.6.2",
               "token_name": "Company_HQ_Locations",
               "token_type": "select_multi"
             },
             {
-              "address": "4.5.3",
+              "address": "4.6.3",
               "token_name": "Company_Ops_Locations",
               "token_type": "select_multi"
             },
             {
-              "address": "4.5.4",
+              "address": "4.6.4",
               "token_name": "Company_Pax_Count",
               "token_type": "number"
             },
             {
-              "address": "4.5.5",
+              "address": "4.6.5",
               "token_name": "Company_Pax_Known",
               "token_type": "select_multi"
             },
             {
-              "address": "4.5.6",
+              "address": "4.6.6",
               "token_name": "Company_Business_Structure",
               "token_type": "file"
             },
             {
-              "address": "4.5.7",
+              "address": "4.6.7",
               "token_name": "Company_Corporate_Structure",
               "token_type": "file"
             },
             {
-              "address": "4.5.8",
+              "address": "4.6.8",
               "token_name": "Company_Organizational_Structure",
               "token_type": "file"
             },
             {
-              "address": "4.5.9",
+              "address": "4.6.9",
               "token_name": "Company_Leadership_Team",
               "token_type": "select_multi"
             },
             {
-              "address": "4.5.10",
+              "address": "4.6.10",
               "token_name": "Company_Advisors",
               "token_type": "select_multi"
             },
             {
-              "address": "4.5.11",
+              "address": "4.6.11",
               "token_name": "Company_Other",
               "token_type": "textarea"
             }
           ]
         },
         {
-          "level_2": "6",
+          "level_2": "7",
           "subsection": "Business_Overview",
-          "subsection_address": "4.6.0",
+          "subsection_address": "4.7.0",
           "structure_token": "Company_Business_Overview",
           "tokens": [
             {
-              "address": "4.6.1",
+              "address": "4.7.1",
               "token_name": "Company_Description",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.2",
+              "address": "4.7.2",
               "token_name": "Company_News",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.3",
+              "address": "4.7.3",
               "token_name": "Company_Updates",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.4",
+              "address": "4.7.4",
               "token_name": "Company_Objectives",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.5",
+              "address": "4.7.5",
               "token_name": "Company_Products",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.6",
+              "address": "4.7.6",
               "token_name": "Company_Key_Features",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.7",
+              "address": "4.7.7",
               "token_name": "Company_Backlog_Features",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.8",
+              "address": "4.7.8",
               "token_name": "Company_ICP",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.9",
+              "address": "4.7.9",
               "token_name": "Company_Business_Model",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.10",
+              "address": "4.7.10",
               "token_name": "Company_Pricing",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.11",
+              "address": "4.7.11",
               "token_name": "Company_Placement",
               "token_type": "textarea"
             },
             {
-              "address": "4.6.12",
+              "address": "4.7.12",
               "token_name": "Company_Promotion",
               "token_type": "textarea"
             }
           ]
         },
         {
-          "level_2": "7",
+          "level_2": "8",
           "subsection": "Market_Overview",
-          "subsection_address": "4.7.0",
+          "subsection_address": "4.8.0",
           "structure_token": "Company_Market_Overview",
           "tokens": [
             {
-              "address": "4.7.1",
+              "address": "4.8.1",
               "token_name": "Company_Market",
               "token_type": "textarea"
             },
             {
-              "address": "4.7.2",
+              "address": "4.8.2",
               "token_name": "Company_Demand_Analysis",
               "token_type": "textarea"
             },
             {
-              "address": "4.7.3",
+              "address": "4.8.3",
               "token_name": "Company_Supply_Analysis",
               "token_type": "textarea"
             }
           ]
         },
         {
-          "level_2": "8",
+          "level_2": "9",
           "subsection": "Results_Overview",
-          "subsection_address": "4.8.0",
+          "subsection_address": "4.9.0",
           "structure_token": "Company_Results_Overview",
           "tokens": [
             {
-              "address": "4.8.1",
+              "address": "4.9.1",
               "token_name": "Company_Traction",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.2",
+              "address": "4.9.2",
               "token_name": "Company_Sales",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.3",
+              "address": "4.9.3",
               "token_name": "Company_Revenue",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.4",
+              "address": "4.9.4",
               "token_name": "Company_Clients_Analysis",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.5",
+              "address": "4.9.5",
               "token_name": "Company_Cohorts_Analysis",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.6",
+              "address": "4.9.6",
               "token_name": "Company_Costs_Direct",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.7",
+              "address": "4.9.7",
               "token_name": "Company_Costs_Indirect",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.8",
+              "address": "4.9.8",
               "token_name": "Company_Costs_Marketing",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.9",
+              "address": "4.9.9",
               "token_name": "Company_Unit_Economics",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.10",
+              "address": "4.9.10",
               "token_name": "Company_CAC",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.11",
+              "address": "4.9.11",
               "token_name": "Company_LTV",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.12",
+              "address": "4.9.12",
               "token_name": "Company_Costs_Admin",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.13",
+              "address": "4.9.13",
               "token_name": "Company_Costs_Tech_RD",
               "token_type": "textarea"
             },
             {
-              "address": "4.8.14",
+              "address": "4.9.14",
               "token_name": "Company_IS",
               "token_type": "file"
             },
             {
-              "address": "4.8.15",
+              "address": "4.9.15",
               "token_name": "Company_BS",
               "token_type": "file"
             },
             {
-              "address": "4.8.16",
+              "address": "4.9.16",
               "token_name": "Company_CF",
               "token_type": "file"
             },
             {
-              "address": "4.8.17",
+              "address": "4.9.17",
               "token_name": "Company_Tax_Filings",
               "token_type": "file"
             },
             {
-              "address": "4.8.18",
+              "address": "4.9.18",
               "token_name": "Company_Bank_Statements",
               "token_type": "file"
             }
           ]
         },
         {
-          "level_2": "9",
+          "level_2": "10",
           "subsection": "Business_Plan",
-          "subsection_address": "4.9.0",
+          "subsection_address": "4.10.0",
           "structure_token": "Company_Business_Plan",
           "tokens": [
             {
-              "address": "4.9.1",
+              "address": "4.10.1",
               "token_name": "Company_BP_Overview",
               "token_type": "textarea"
             },
             {
-              "address": "4.9.2",
+              "address": "4.10.2",
               "token_name": "Company_BP_Fcst",
               "token_type": "file"
             },
             {
-              "address": "4.9.3",
+              "address": "4.10.3",
               "token_name": "Company_BP_ST_Obj",
               "token_type": "textarea"
             },
             {
-              "address": "4.9.4",
+              "address": "4.10.4",
               "token_name": "Company_BP_LT_Obj",
               "token_type": "textarea"
             },
             {
-              "address": "4.9.5",
+              "address": "4.10.5",
               "token_name": "Company_BP_Resources_Uses",
               "token_type": "textarea"
             },
             {
-              "address": "4.9.6",
+              "address": "4.10.6",
               "token_name": "Company_BP_Runway",
               "token_type": "textarea"
             },
             {
-              "address": "4.9.7",
+              "address": "4.10.7",
               "token_name": "Company_BP_Capital_Need",
               "token_type": "textarea"
             },
             {
-              "address": "4.9.8",
+              "address": "4.10.8",
               "token_name": "Company_BP_Funding_Strategy",
               "token_type": "textarea"
             }
           ]
         },
         {
-          "level_2": "10",
+          "level_2": "11",
           "subsection": "Fund_Raising",
-          "subsection_address": "4.10.0",
+          "subsection_address": "4.11.0",
           "structure_token": "Company_Fund_Raising",
           "tokens": [
             {
-              "address": "4.10.1",
+              "address": "4.11.1",
               "token_name": "Company_Shareholder_Structure",
               "token_type": "file"
             },
             {
-              "address": "4.10.2",
+              "address": "4.11.2",
               "token_name": "Company_Shareholders",
               "token_type": "select_multi"
             },
             {
-              "address": "4.10.3",
+              "address": "4.11.3",
               "token_name": "Company_Round_Raised",
               "token_type": "select_multi"
             },
             {
-              "address": "4.10.4",
+              "address": "4.11.4",
               "token_name": "Company_Amount_Raised",
               "token_type": "number"
             }
@@ -874,9 +893,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "5.1.0",
-          "structure_token": "Fund_System_Data",
+          "structure_token": "Fund_System",
           "tokens": [
             {
               "address": "5.1.1",
@@ -890,26 +909,16 @@
             },
             {
               "address": "5.1.3",
-              "token_name": "Fund_Time_Stamp",
+              "token_name": "Fund_Datetime",
               "token_type": "datetime"
-            },
-            {
-              "address": "5.1.4",
-              "token_name": "Fund_Date_Stamp",
-              "token_type": "date"
-            },
-            {
-              "address": "5.1.5",
-              "token_name": "Fund_Name",
-              "token_type": "text"
             }
           ]
         },
         {
           "level_2": "2",
-          "subsection": "KDB_Relations",
+          "subsection": "KDB",
           "subsection_address": "5.2.0",
-          "structure_token": "Fund_KDB_Relations",
+          "structure_token": "Fund_KDB",
           "tokens": [
             {
               "address": "5.2.1",
@@ -960,148 +969,161 @@
         },
         {
           "level_2": "3",
-          "subsection": "Overview",
+          "subsection": "General",
           "subsection_address": "5.3.0",
-          "structure_token": "Fund_Overview",
+          "structure_token": "Fund_General",
           "tokens": [
             {
               "address": "5.3.1",
+              "token_name": "Fund_Name",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "Overview",
+          "subsection_address": "5.4.0",
+          "structure_token": "Fund_Overview",
+          "tokens": [
+            {
+              "address": "5.4.1",
               "token_name": "Fund_Manager",
               "token_type": "select_single"
             },
             {
-              "address": "5.3.2",
+              "address": "5.4.2",
               "token_name": "Fund_Raising_Status",
               "token_type": "select_single"
             },
             {
-              "address": "5.3.3",
+              "address": "5.4.3",
               "token_name": "Fund_Period",
               "token_type": "select_single"
             },
             {
-              "address": "5.3.4",
+              "address": "5.4.4",
               "token_name": "Fund_Target_Size",
               "token_type": "number"
             },
             {
-              "address": "5.3.5",
+              "address": "5.4.5",
               "token_name": "Fund_Commited_Amounts",
               "token_type": "number"
             },
             {
-              "address": "5.3.6",
+              "address": "5.4.6",
               "token_name": "Fund_Min_Ticket_Size",
               "token_type": "number"
             },
             {
-              "address": "5.3.7",
+              "address": "5.4.7",
               "token_name": "Fund_Close_Date",
               "token_type": "date"
             },
             {
-              "address": "5.3.8",
+              "address": "5.4.8",
               "token_name": "Fund_Summary",
               "token_type": "text"
             },
             {
-              "address": "5.3.9",
+              "address": "5.4.9",
               "token_name": "Fund_Reserve",
               "token_type": "number"
             },
             {
-              "address": "5.3.10",
+              "address": "5.4.10",
               "token_name": "Fund_Initial_Ticket_Size",
               "token_type": "number"
             },
             {
-              "address": "5.3.11",
+              "address": "5.4.11",
               "token_name": "Fund_Target_Positions",
               "token_type": "number"
             },
             {
-              "address": "5.3.12",
+              "address": "5.4.12",
               "token_name": "Fund_Target_Regions",
               "token_type": "select_multi"
             },
             {
-              "address": "5.3.13",
+              "address": "5.4.13",
               "token_name": "Fund_Target_Asset_Types",
               "token_type": "select_multi"
             },
             {
-              "address": "5.3.14",
+              "address": "5.4.14",
               "token_name": "Fund_Target_Industries",
               "token_type": "select_multi"
             },
             {
-              "address": "5.3.15",
+              "address": "5.4.15",
               "token_name": "Fund_Target_Stages",
               "token_type": "select_multi"
             },
             {
-              "address": "5.3.16",
+              "address": "5.4.16",
               "token_name": "Fund_Other",
               "token_type": "file"
             }
           ]
         },
         {
-          "level_2": "4",
+          "level_2": "5",
           "subsection": "Economics",
-          "subsection_address": "5.4.0",
+          "subsection_address": "5.5.0",
           "structure_token": "Fund_Economics",
           "tokens": [
             {
-              "address": "5.4.1",
+              "address": "5.5.1",
               "token_name": "Fund_Economic_Provisions",
               "token_type": "file"
             },
             {
-              "address": "5.4.2",
+              "address": "5.5.2",
               "token_name": "Fund_Fees",
               "token_type": "file"
             },
             {
-              "address": "5.4.3",
+              "address": "5.5.3",
               "token_name": "Fund_Promote",
               "token_type": "file"
             },
             {
-              "address": "5.4.4",
+              "address": "5.5.4",
               "token_name": "Fund_Target_Hurdles",
               "token_type": "file"
             },
             {
-              "address": "5.4.5",
+              "address": "5.5.5",
               "token_name": "Fund_Target_MOIC",
               "token_type": "file"
             }
           ]
         },
         {
-          "level_2": "5",
+          "level_2": "6",
           "subsection": "Controls",
-          "subsection_address": "5.5.0",
+          "subsection_address": "5.6.0",
           "structure_token": "Fund_Controls",
           "tokens": [
             {
-              "address": "5.5.1",
+              "address": "5.6.1",
               "token_name": "Fund_Control_Provisions",
               "token_type": "file"
             },
             {
-              "address": "5.5.2",
+              "address": "5.6.2",
               "token_name": "Fund_Information_Rights",
               "token_type": "file"
             },
             {
-              "address": "5.5.3",
+              "address": "5.6.3",
               "token_name": "Fund_Board_Representation",
               "token_type": "file"
             },
             {
-              "address": "5.5.4",
+              "address": "5.6.4",
               "token_name": "Fund_Item_Voting",
               "token_type": "file"
             }
@@ -1122,9 +1144,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "6.1.0",
-          "structure_token": "Round_System_Data",
+          "structure_token": "Round_System",
           "tokens": [
             {
               "address": "6.1.1",
@@ -1138,26 +1160,16 @@
             },
             {
               "address": "6.1.3",
-              "token_name": "Round_Time_Stamp",
+              "token_name": "Round_Datetime",
               "token_type": "datetime"
-            },
-            {
-              "address": "6.1.4",
-              "token_name": "Round_Date_Stamp",
-              "token_type": "date"
-            },
-            {
-              "address": "6.1.5",
-              "token_name": "Round_Name",
-              "token_type": "text"
             }
           ]
         },
         {
           "level_2": "2",
-          "subsection": "KDB_Relations",
+          "subsection": "KDB",
           "subsection_address": "6.2.0",
-          "structure_token": "Round_KDB_Relations",
+          "structure_token": "Round_KDB",
           "tokens": [
             {
               "address": "6.2.1",
@@ -1203,123 +1215,136 @@
         },
         {
           "level_2": "3",
-          "subsection": "Overview",
+          "subsection": "General",
           "subsection_address": "6.3.0",
-          "structure_token": "Round_Overview",
+          "structure_token": "Round_General",
           "tokens": [
             {
               "address": "6.3.1",
-              "token_name": "Round_Sponsor",
-              "token_type": "select_single"
-            },
-            {
-              "address": "6.3.2",
-              "token_name": "Round_Raising_Status",
-              "token_type": "select_single"
-            },
-            {
-              "address": "6.3.3",
-              "token_name": "Round_Security_Type",
-              "token_type": "select_single"
-            },
-            {
-              "address": "6.3.4",
-              "token_name": "Round_Target_Size",
-              "token_type": "number"
-            },
-            {
-              "address": "6.3.5",
-              "token_name": "Round_Commited_Amounts",
-              "token_type": "number"
-            },
-            {
-              "address": "6.3.6",
-              "token_name": "Round_Min_Ticket_Size",
-              "token_type": "number"
-            },
-            {
-              "address": "6.3.7",
-              "token_name": "Round_Close_Date",
-              "token_type": "date"
-            },
-            {
-              "address": "6.3.8",
-              "token_name": "Round_Summary",
+              "token_name": "Round_Name",
               "token_type": "text"
             }
           ]
         },
         {
           "level_2": "4",
-          "subsection": "Economics",
+          "subsection": "Overview",
           "subsection_address": "6.4.0",
-          "structure_token": "Round_Economics",
+          "structure_token": "Round_Overview",
           "tokens": [
             {
               "address": "6.4.1",
+              "token_name": "Round_Sponsor",
+              "token_type": "select_single"
+            },
+            {
+              "address": "6.4.2",
+              "token_name": "Round_Raising_Status",
+              "token_type": "select_single"
+            },
+            {
+              "address": "6.4.3",
+              "token_name": "Round_Security_Type",
+              "token_type": "select_single"
+            },
+            {
+              "address": "6.4.4",
+              "token_name": "Round_Target_Size",
+              "token_type": "number"
+            },
+            {
+              "address": "6.4.5",
+              "token_name": "Round_Commited_Amounts",
+              "token_type": "number"
+            },
+            {
+              "address": "6.4.6",
+              "token_name": "Round_Min_Ticket_Size",
+              "token_type": "number"
+            },
+            {
+              "address": "6.4.7",
+              "token_name": "Round_Close_Date",
+              "token_type": "date"
+            },
+            {
+              "address": "6.4.8",
+              "token_name": "Round_Summary",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "5",
+          "subsection": "Economics",
+          "subsection_address": "6.5.0",
+          "structure_token": "Round_Economics",
+          "tokens": [
+            {
+              "address": "6.5.1",
               "token_name": "Round_Pre$_Valuation",
               "token_type": "number"
             },
             {
-              "address": "6.4.2",
+              "address": "6.5.2",
               "token_name": "Round_Post$_Valuation",
               "token_type": "number"
             },
             {
-              "address": "6.4.3",
+              "address": "6.5.3",
               "token_name": "Round_Previous_Post$_Valuation",
               "token_type": "number"
             },
             {
-              "address": "6.4.4",
+              "address": "6.5.4",
               "token_name": "Round_Economic_Provisions",
               "token_type": "file"
             },
             {
-              "address": "6.4.5",
+              "address": "6.5.5",
               "token_name": "Round_Liquidation_Preference",
               "token_type": "file"
             },
             {
-              "address": "6.4.6",
+              "address": "6.5.6",
               "token_name": "Round_Drag_Tag",
               "token_type": "file"
             },
             {
-              "address": "6.4.7",
+              "address": "6.5.7",
               "token_name": "Round_Put_Call",
               "token_type": "file"
             },
             {
-              "address": "6.4.8",
+              "address": "6.5.8",
               "token_name": "Round_Conversion",
               "token_type": "file"
             }
           ]
         },
         {
-          "level_2": "5",
+          "level_2": "6",
           "subsection": "Controls",
-          "subsection_address": "6.5.0",
+          "subsection_address": "6.6.0",
           "structure_token": "Round_Controls",
           "tokens": [
             {
-              "address": "6.5.1",
+              "address": "6.6.1",
               "token_name": "Round_Control_Provisions",
               "token_type": "file"
             },
             {
-              "address": "6.5.2",
+              "address": "6.6.2",
               "token_name": "Round_Information_Rights",
               "token_type": "file"
             },
             {
-              "address": "6.5.3",
+              "address": "6.6.3",
               "token_name": "Round_Board_Representation",
               "token_type": "file"
             },
             {
-              "address": "6.5.4",
+              "address": "6.6.4",
               "token_name": "Round_Item_Voting",
               "token_type": "file"
             }
@@ -1340,9 +1365,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "7.1.0",
-          "structure_token": "Project_System_Data",
+          "structure_token": "Project_System",
           "tokens": [
             {
               "address": "7.1.1",
@@ -1356,26 +1381,16 @@
             },
             {
               "address": "7.1.3",
-              "token_name": "Project_Time_Stamp",
+              "token_name": "Project_Datetime",
               "token_type": "datetime"
-            },
-            {
-              "address": "7.1.4",
-              "token_name": "Project_Date_Stamp",
-              "token_type": "date"
-            },
-            {
-              "address": "7.1.5",
-              "token_name": "Project_Name",
-              "token_type": "text"
             }
           ]
         },
         {
           "level_2": "2",
-          "subsection": "KDB_Relations",
+          "subsection": "KDB",
           "subsection_address": "7.2.0",
-          "structure_token": "Project_KDB_Relations",
+          "structure_token": "Project_KDB",
           "tokens": [
             {
               "address": "7.2.1",
@@ -1426,95 +1441,108 @@
         },
         {
           "level_2": "3",
-          "subsection": "Overview",
+          "subsection": "General",
           "subsection_address": "7.3.0",
-          "structure_token": "Project_Overview",
+          "structure_token": "Project_General",
           "tokens": [
             {
               "address": "7.3.1",
-              "token_name": "Project_Status",
-              "token_type": "select_single"
-            },
-            {
-              "address": "7.3.2",
-              "token_name": "Project_Stages",
-              "token_type": "select_multi"
-            },
-            {
-              "address": "7.3.3",
-              "token_name": "Project_Current_Stage",
-              "token_type": "select_single"
-            },
-            {
-              "address": "7.3.4",
-              "token_name": "Project_Priority_Rank",
-              "token_type": "select_single"
-            },
-            {
-              "address": "7.3.5",
-              "token_name": "Project_Start_Date",
-              "token_type": "date"
-            },
-            {
-              "address": "7.3.6",
-              "token_name": "Project_Due_Date",
-              "token_type": "date"
-            },
-            {
-              "address": "7.3.7",
-              "token_name": "Project_End_Date",
-              "token_type": "date"
-            },
-            {
-              "address": "7.3.8",
-              "token_name": "Project_Target_Amount",
-              "token_type": "number"
-            },
-            {
-              "address": "7.3.9",
-              "token_name": "Project_Summary",
+              "token_name": "Project_Name",
               "token_type": "text"
             }
           ]
         },
         {
           "level_2": "4",
-          "subsection": "Team",
+          "subsection": "Overview",
           "subsection_address": "7.4.0",
-          "structure_token": "Project_Team",
+          "structure_token": "Project_Overview",
           "tokens": [
             {
               "address": "7.4.1",
-              "token_name": "Project_Team_Owner",
+              "token_name": "Project_Status",
               "token_type": "select_single"
             },
             {
               "address": "7.4.2",
-              "token_name": "Project_Team_Lead",
+              "token_name": "Project_Stages",
               "token_type": "select_multi"
             },
             {
               "address": "7.4.3",
+              "token_name": "Project_Current_Stage",
+              "token_type": "select_single"
+            },
+            {
+              "address": "7.4.4",
+              "token_name": "Project_Priority_Rank",
+              "token_type": "select_single"
+            },
+            {
+              "address": "7.4.5",
+              "token_name": "Project_Start_Date",
+              "token_type": "date"
+            },
+            {
+              "address": "7.4.6",
+              "token_name": "Project_Due_Date",
+              "token_type": "date"
+            },
+            {
+              "address": "7.4.7",
+              "token_name": "Project_End_Date",
+              "token_type": "date"
+            },
+            {
+              "address": "7.4.8",
+              "token_name": "Project_Target_Amount",
+              "token_type": "number"
+            },
+            {
+              "address": "7.4.9",
+              "token_name": "Project_Summary",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "5",
+          "subsection": "Team",
+          "subsection_address": "7.5.0",
+          "structure_token": "Project_Team",
+          "tokens": [
+            {
+              "address": "7.5.1",
+              "token_name": "Project_Team_Owner",
+              "token_type": "select_single"
+            },
+            {
+              "address": "7.5.2",
+              "token_name": "Project_Team_Lead",
+              "token_type": "select_multi"
+            },
+            {
+              "address": "7.5.3",
               "token_name": "Project_Team_Senior",
               "token_type": "select_multi"
             },
             {
-              "address": "7.4.4",
+              "address": "7.5.4",
               "token_name": "Project_Team_Mid",
               "token_type": "select_multi"
             },
             {
-              "address": "7.4.5",
+              "address": "7.5.5",
               "token_name": "Project_Team_Junior",
               "token_type": "select_multi"
             },
             {
-              "address": "7.4.6",
+              "address": "7.5.6",
               "token_name": "Project_Team_Agents",
               "token_type": "select_multi"
             },
             {
-              "address": "7.4.7",
+              "address": "7.5.7",
               "token_name": "Project_Team_Other",
               "token_type": "file"
             }
@@ -1535,9 +1563,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "8.1.0",
-          "structure_token": "Task_System_Data",
+          "structure_token": "Task_System",
           "tokens": [
             {
               "address": "8.1.1",
@@ -1551,26 +1579,16 @@
             },
             {
               "address": "8.1.3",
-              "token_name": "Task_Time_Stamp",
+              "token_name": "Task_Datetime",
               "token_type": "datetime"
-            },
-            {
-              "address": "8.1.4",
-              "token_name": "Task_Date_Stamp",
-              "token_type": "date"
-            },
-            {
-              "address": "8.1.5",
-              "token_name": "Task_Name",
-              "token_type": "text"
             }
           ]
         },
         {
           "level_2": "2",
-          "subsection": "KDB_Relations",
+          "subsection": "KDB",
           "subsection_address": "8.2.0",
-          "structure_token": "Task_KDB_Relations",
+          "structure_token": "Task_KDB",
           "tokens": [
             {
               "address": "8.2.1",
@@ -1621,60 +1639,73 @@
         },
         {
           "level_2": "3",
-          "subsection": "Overview",
+          "subsection": "General",
           "subsection_address": "8.3.0",
-          "structure_token": "Task_Overview",
+          "structure_token": "Task_General",
           "tokens": [
             {
               "address": "8.3.1",
+              "token_name": "Task_Name",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "Overview",
+          "subsection_address": "8.4.0",
+          "structure_token": "Task_Overview",
+          "tokens": [
+            {
+              "address": "8.4.1",
               "token_name": "Task_Summary",
               "token_type": "text"
             },
             {
-              "address": "8.3.2",
+              "address": "8.4.2",
               "token_name": "Task_Status",
               "token_type": "select_single"
             },
             {
-              "address": "8.3.3",
+              "address": "8.4.3",
               "token_name": "Task_Priority_Rank",
               "token_type": "select_single"
             },
             {
-              "address": "8.3.4",
+              "address": "8.4.4",
               "token_name": "Task_Start_Date",
               "token_type": "date"
             },
             {
-              "address": "8.3.5",
+              "address": "8.4.5",
               "token_name": "Task_Due_Date",
               "token_type": "date"
             },
             {
-              "address": "8.3.6",
+              "address": "8.4.6",
               "token_name": "Task_End_Date",
               "token_type": "date"
             }
           ]
         },
         {
-          "level_2": "4",
+          "level_2": "5",
           "subsection": "Team",
-          "subsection_address": "8.4.0",
+          "subsection_address": "8.5.0",
           "structure_token": "Task_Team",
           "tokens": [
             {
-              "address": "8.4.1",
+              "address": "8.5.1",
               "token_name": "Task_Team_Owner",
               "token_type": "select_single"
             },
             {
-              "address": "8.4.2",
+              "address": "8.5.2",
               "token_name": "Task_Team_Assigned",
               "token_type": "select_multi"
             },
             {
-              "address": "8.4.3",
+              "address": "8.5.3",
               "token_name": "Task_Team_Support",
               "token_type": "select_multi"
             }
@@ -1695,9 +1726,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "9.1.0",
-          "structure_token": "Note_System_Data",
+          "structure_token": "Note_System",
           "tokens": [
             {
               "address": "9.1.1",
@@ -1711,26 +1742,16 @@
             },
             {
               "address": "9.1.3",
-              "token_name": "Note_Time_Stamp",
+              "token_name": "Note_Datetime",
               "token_type": "datetime"
-            },
-            {
-              "address": "9.1.4",
-              "token_name": "Note_Date_Stamp",
-              "token_type": "date"
-            },
-            {
-              "address": "9.1.5",
-              "token_name": "Note_Name",
-              "token_type": "text"
             }
           ]
         },
         {
           "level_2": "2",
-          "subsection": "KDB_Relations",
+          "subsection": "KDB",
           "subsection_address": "9.2.0",
-          "structure_token": "Note_KDB_Relations",
+          "structure_token": "Note_KDB",
           "tokens": [
             {
               "address": "9.2.1",
@@ -1778,6 +1799,19 @@
               "token_type": "select_multi"
             }
           ]
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "9.3.0",
+          "structure_token": "Note_General",
+          "tokens": [
+            {
+              "address": "9.3.1",
+              "token_name": "Note_Name",
+              "token_type": "text"
+            }
+          ]
         }
       ]
     },
@@ -1794,9 +1828,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "10.1.0",
-          "structure_token": "Market_System_Data",
+          "structure_token": "Market_System",
           "tokens": [
             {
               "address": "10.1.1",
@@ -1820,25 +1854,38 @@
         },
         {
           "level_2": "3",
-          "subsection": "Industries",
+          "subsection": "General",
           "subsection_address": "10.3.0",
-          "structure_token": "Market_Industries",
+          "structure_token": "Market_General",
           "tokens": [
             {
               "address": "10.3.1",
+              "token_name": "Market_Name",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "Industries",
+          "subsection_address": "10.4.0",
+          "structure_token": "Market_Industries",
+          "tokens": [
+            {
+              "address": "10.4.1",
               "token_name": "Market_Industry_ID",
               "token_type": "id"
             }
           ]
         },
         {
-          "level_2": "4",
+          "level_2": "5",
           "subsection": "Niches",
-          "subsection_address": "10.4.0",
+          "subsection_address": "10.5.0",
           "structure_token": "Market_Niches",
           "tokens": [
             {
-              "address": "10.4.1",
+              "address": "10.5.1",
               "token_name": "Market_Niche_ID",
               "token_type": "id"
             }
@@ -1859,9 +1906,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "11.1.0",
-          "structure_token": "Location_System_Data",
+          "structure_token": "Location_System",
           "tokens": [
             {
               "address": "11.1.1",
@@ -1885,25 +1932,38 @@
         },
         {
           "level_2": "3",
-          "subsection": "State",
+          "subsection": "General",
           "subsection_address": "11.3.0",
-          "structure_token": "Location_State",
+          "structure_token": "Location_General",
           "tokens": [
             {
               "address": "11.3.1",
+              "token_name": "Location_Name",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "State",
+          "subsection_address": "11.4.0",
+          "structure_token": "Location_State",
+          "tokens": [
+            {
+              "address": "11.4.1",
               "token_name": "Location_State_ID",
               "token_type": "id"
             }
           ]
         },
         {
-          "level_2": "4",
+          "level_2": "5",
           "subsection": "City",
-          "subsection_address": "11.4.0",
+          "subsection_address": "11.5.0",
           "structure_token": "Location_City",
           "tokens": [
             {
-              "address": "11.4.1",
+              "address": "11.5.1",
               "token_name": "Location_City_ID",
               "token_type": "id"
             }
@@ -1924,9 +1984,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "12.1.0",
-          "structure_token": "Term_System_Data",
+          "structure_token": "Term_System",
           "tokens": [
             {
               "address": "12.1.1",
@@ -1950,38 +2010,51 @@
         },
         {
           "level_2": "3",
-          "subsection": "Entities",
+          "subsection": "General",
           "subsection_address": "12.3.0",
-          "structure_token": "Term_Entities",
+          "structure_token": "Term_General",
           "tokens": [
             {
               "address": "12.3.1",
+              "token_name": "Term_Name",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "Entities",
+          "subsection_address": "12.4.0",
+          "structure_token": "Term_Entities",
+          "tokens": [
+            {
+              "address": "12.4.1",
               "token_name": "Term_Entity_ID",
               "token_type": "id"
             }
           ]
         },
         {
-          "level_2": "4",
+          "level_2": "5",
           "subsection": "Asset Types",
-          "subsection_address": "12.4.0",
+          "subsection_address": "12.5.0",
           "structure_token": "Term_Asset_Type",
           "tokens": [
             {
-              "address": "12.4.1",
+              "address": "12.5.1",
               "token_name": "Term_Asset_Type_ID",
               "token_type": "id"
             }
           ]
         },
         {
-          "level_2": "5",
+          "level_2": "6",
           "subsection": "Terms",
-          "subsection_address": "12.5.0",
+          "subsection_address": "12.6.0",
           "structure_token": "Term_Terms",
           "tokens": [
             {
-              "address": "12.5.1",
+              "address": "12.6.1",
               "token_name": "Term_Term_ID",
               "token_type": "id"
             }
@@ -2002,9 +2075,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "13.1.0",
-          "structure_token": "Academia_System_Data",
+          "structure_token": "Academia_System",
           "tokens": [
             {
               "address": "13.1.1",
@@ -2028,12 +2101,25 @@
         },
         {
           "level_2": "3",
-          "subsection": "Degree",
+          "subsection": "General",
           "subsection_address": "13.3.0",
-          "structure_token": "Academia_Degree",
+          "structure_token": "Academia_General",
           "tokens": [
             {
               "address": "13.3.1",
+              "token_name": "Academia_Name",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "Degree",
+          "subsection_address": "13.4.0",
+          "structure_token": "Academia_Degree",
+          "tokens": [
+            {
+              "address": "13.4.1",
               "token_name": "Academia_Degree_ID",
               "token_type": "id"
             }
@@ -2054,9 +2140,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "14.1.0",
-          "structure_token": "Employment_System_Data",
+          "structure_token": "Employment_System",
           "tokens": [
             {
               "address": "14.1.1",
@@ -2080,12 +2166,25 @@
         },
         {
           "level_2": "3",
-          "subsection": "Role",
+          "subsection": "General",
           "subsection_address": "14.3.0",
-          "structure_token": "Employment_Role",
+          "structure_token": "Employment_General",
           "tokens": [
             {
               "address": "14.3.1",
+              "token_name": "Employment_Name",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "Role",
+          "subsection_address": "14.4.0",
+          "structure_token": "Employment_Role",
+          "tokens": [
+            {
+              "address": "14.4.1",
               "token_name": "Employment_Role_ID",
               "token_type": "id"
             }
@@ -2106,9 +2205,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "15.1.0",
-          "structure_token": "Stage_System_Data",
+          "structure_token": "Stage_System",
           "tokens": [
             {
               "address": "15.1.1",
@@ -2129,6 +2228,19 @@
               "token_type": "text"
             }
           ]
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "15.3.0",
+          "structure_token": "Stage_General",
+          "tokens": [
+            {
+              "address": "15.3.1",
+              "token_name": "Stage_Name",
+              "token_type": "text"
+            }
+          ]
         }
       ]
     },
@@ -2145,9 +2257,9 @@
       "subsections": [
         {
           "level_2": "1",
-          "subsection": "System_Data",
+          "subsection": "System",
           "subsection_address": "16.1.0",
-          "structure_token": "Agent_System_Data",
+          "structure_token": "Agent_System",
           "tokens": [
             {
               "address": "16.1.1",
@@ -2165,6 +2277,19 @@
             {
               "address": "16.2.1",
               "token_name": "Agent_Summary",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "16.3.0",
+          "structure_token": "Agent_General",
+          "tokens": [
+            {
+              "address": "16.3.1",
+              "token_name": "Agent_Name",
               "token_type": "text"
             }
           ]
