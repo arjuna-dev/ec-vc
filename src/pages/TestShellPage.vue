@@ -217,50 +217,63 @@
                           :key="group.key"
                           class="test-shell-card-settings-group"
                         >
-                          <div class="test-shell-card-settings-group__title">{{ group.label }}</div>
-
-                          <div
-                            v-for="token in group.tokens"
-                            :key="token.key"
-                            class="test-shell-card-settings-row"
+                          <button
+                            type="button"
+                            class="test-shell-card-settings-group__toggle"
+                            @click="toggleCardSettingsGroup(group.key)"
                           >
-                            <q-checkbox
-                              :model-value="isCardItemEnabled(token.key)"
-                              dense
-                              size="xs"
-                              checked-icon="check_box"
-                              unchecked-icon="check_box_outline_blank"
-                              class="test-shell-card-settings-row__checkbox"
-                              @update:model-value="setCardItemEnabled(token.key, $event)"
+                            <span class="test-shell-card-settings-group__title">{{ group.label }}</span>
+                            <q-icon
+                              :name="isCardSettingsGroupExpanded(group.key) ? 'expand_less' : 'expand_more'"
+                              size="14px"
+                              class="test-shell-card-settings-group__icon"
                             />
+                          </button>
 
-                            <div class="test-shell-card-settings-row__copy">
-                              <div class="test-shell-card-settings-row__label">{{ token.label }}</div>
-                            </div>
+                          <div v-if="isCardSettingsGroupExpanded(group.key)" class="test-shell-card-settings-group__body">
+                            <div
+                              v-for="token in group.tokens"
+                              :key="token.key"
+                              class="test-shell-card-settings-row"
+                            >
+                              <q-checkbox
+                                :model-value="isCardItemEnabled(token.key)"
+                                dense
+                                size="xs"
+                                checked-icon="check_box"
+                                unchecked-icon="check_box_outline_blank"
+                                class="test-shell-card-settings-row__checkbox"
+                                @update:model-value="setCardItemEnabled(token.key, $event)"
+                              />
 
-                            <div class="test-shell-card-settings-row__actions">
-                              <q-btn
-                                flat
-                                dense
-                                round
-                                :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) <= 0"
-                                @click.stop="moveCardItem(token.key, -1)"
-                              >
-                                <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
-                                  <path d="M7 14L12 9L17 14" />
-                                </svg>
-                              </q-btn>
-                              <q-btn
-                                flat
-                                dense
-                                round
-                                :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) < 0 || getCardItemOrderIndex(token.key) >= enabledCardItemKeys.length - 1"
-                                @click.stop="moveCardItem(token.key, 1)"
-                              >
-                                <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
-                                  <path d="M7 10L12 15L17 10" />
-                                </svg>
-                              </q-btn>
+                              <div class="test-shell-card-settings-row__copy">
+                                <div class="test-shell-card-settings-row__label">{{ token.label }}</div>
+                              </div>
+
+                              <div class="test-shell-card-settings-row__actions">
+                                <q-btn
+                                  flat
+                                  dense
+                                  round
+                                  :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) <= 0"
+                                  @click.stop="moveCardItem(token.key, -1)"
+                                >
+                                  <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
+                                    <path d="M7 14L12 9L17 14" />
+                                  </svg>
+                                </q-btn>
+                                <q-btn
+                                  flat
+                                  dense
+                                  round
+                                  :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) < 0 || getCardItemOrderIndex(token.key) >= enabledCardItemKeys.length - 1"
+                                  @click.stop="moveCardItem(token.key, 1)"
+                                >
+                                  <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
+                                    <path d="M7 10L12 15L17 10" />
+                                  </svg>
+                                </q-btn>
+                              </div>
                             </div>
                           </div>
                         </section>
@@ -619,6 +632,7 @@ const activeSectionKeyForCards = ref('')
 const activeFilterSectionKey = ref('')
 const activeFilterTokenKey = ref('')
 const expandedFilterSectionKey = ref('')
+const expandedCardSettingsGroupsBySource = ref({})
 
 const activeSection = computed(() => {
   return level2Sections.value.find((section) => section.key === activeSectionKeyForCards.value) || level2Sections.value[0] || null
@@ -662,6 +676,11 @@ const cardItemTokenGroups = computed(() =>
     }))
     .filter((group) => group.tokens.length),
 )
+const expandedCardSettingsGroups = computed(() => {
+  const sourceKey = activeSourceKey.value
+  const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
+  return Array.isArray(existing) ? existing : cardItemTokenGroups.value.map((group) => group.key)
+})
 const tableSectionTokens = computed(() =>
   activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
 )
@@ -832,6 +851,24 @@ watch(
   { immediate: true },
 )
 
+watch(
+  [activeSourceKey, cardItemTokenGroups],
+  () => {
+    const sourceKey = activeSourceKey.value
+    const availableKeys = new Set(cardItemTokenGroups.value.map((group) => group.key))
+    const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
+    const normalized = Array.isArray(existing)
+      ? existing.filter((key) => availableKeys.has(key))
+      : cardItemTokenGroups.value.map((group) => group.key)
+
+    expandedCardSettingsGroupsBySource.value = {
+      ...expandedCardSettingsGroupsBySource.value,
+      [sourceKey]: normalized,
+    }
+  },
+  { immediate: true },
+)
+
 let removeColumnResizeListeners = null
 
 function getColumnWidth(columnKey, fallbackWidth) {
@@ -883,6 +920,23 @@ function moveCardItem(tokenKey, direction) {
   cardItemKeysBySource.value = {
     ...cardItemKeysBySource.value,
     [sourceKey]: current,
+  }
+}
+
+function isCardSettingsGroupExpanded(groupKey) {
+  return expandedCardSettingsGroups.value.includes(groupKey)
+}
+
+function toggleCardSettingsGroup(groupKey) {
+  const sourceKey = activeSourceKey.value
+  const current = [...expandedCardSettingsGroups.value]
+  const next = current.includes(groupKey)
+    ? current.filter((key) => key !== groupKey)
+    : [...current, groupKey]
+
+  expandedCardSettingsGroupsBySource.value = {
+    ...expandedCardSettingsGroupsBySource.value,
+    [sourceKey]: next,
   }
 }
 
@@ -1476,12 +1530,34 @@ function notifyShellAction(label) {
   border-bottom: 1px solid rgba(17, 17, 17, 0.08);
 }
 
+.test-shell-card-settings-group__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  text-align: left;
+}
+
 .test-shell-card-settings-group__title {
   color: rgba(17, 17, 17, 0.62);
   font-family: var(--font-title);
   font-size: 0.72rem;
   font-weight: var(--font-weight-black);
   line-height: 0.95;
+}
+
+.test-shell-card-settings-group__icon {
+  color: rgba(17, 17, 17, 0.56);
+}
+
+.test-shell-card-settings-group__body {
+  display: grid;
+  gap: 4px;
 }
 
 .test-shell-card-settings-row {
