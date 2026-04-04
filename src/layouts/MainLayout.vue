@@ -562,14 +562,6 @@ if (companiesNavIndex >= 0) {
 const workspaceNavigationItems = [
   ...workspaceFileNavItems,
   {
-    kind: 'toggle',
-    label: 'Knowledge DBs',
-    toggleKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child ec-nav-item--workspace-toggle ec-nav-item--workspace-group',
-    icon: 'database',
-    iconSize: '18px',
-  },
-  {
     kind: 'subheader',
     label: '- Industries',
     parentKey: 'knowledge-dbs',
@@ -656,10 +648,26 @@ const drawerNavigationSections = computed(() => [
         iconSize: '22px',
         toggleKey: 'workspace',
       },
-      ...workspaceNavigationItems.map((item) => ({
-        ...item,
-        parentKey: 'workspace',
-      })),
+      ...workspaceNavigationItems
+        .filter((item) => item.parentKey !== 'knowledge-dbs')
+        .map((item) => ({
+          ...item,
+          parentKey: 'workspace',
+        })),
+      {
+        kind: 'toggle',
+        label: 'Knowledge DBs',
+        itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
+        icon: 'database',
+        iconSize: '22px',
+        toggleKey: 'knowledge-dbs',
+      },
+      ...workspaceNavigationItems
+        .filter((item) => item.parentKey === 'knowledge-dbs')
+        .map((item) => ({
+          ...item,
+          parentKey: 'knowledge-dbs',
+        })),
     ],
   },
 ])
