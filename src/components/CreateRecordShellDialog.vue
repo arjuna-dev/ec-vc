@@ -143,8 +143,12 @@
               :class="{ 'create-record-shell__field--wide': isWideField(token) }"
             >
               <div class="create-record-shell__field-copy">
-                <div class="create-record-shell__field-label">{{ token.label }}</div>
-                <div class="create-record-shell__field-type">{{ formatFieldType(token.tokenType) }}</div>
+                <div class="create-record-shell__field-label">
+                  {{ token.label }}
+                  <q-tooltip anchor="top middle" self="bottom middle">
+                    {{ formatFieldType(token.tokenType) }}
+                  </q-tooltip>
+                </div>
               </div>
 
               <q-select
@@ -276,7 +280,7 @@ const activeFieldLabelWidth = computed(() => {
     return Math.max(max, length)
   }, 0)
 
-  const widthInCh = Math.min(Math.max(longestLabelLength + 2, 10), 18)
+  const widthInCh = Math.min(Math.max(longestLabelLength + 1, 8), 14)
   return `${widthInCh}ch`
 })
 
@@ -686,7 +690,7 @@ function formatArtifactSize(size) {
 
 .create-record-shell__field-copy {
   display: grid;
-  gap: 4px;
+  gap: 0;
   padding-top: 6px;
   justify-self: start;
 }
@@ -697,16 +701,6 @@ function formatArtifactSize(size) {
   font-size: 0.76rem;
   font-weight: var(--font-weight-black);
   line-height: 0.95;
-  text-align: left;
-}
-
-.create-record-shell__field-type {
-  color: rgba(17, 17, 17, 0.48);
-  font-family: var(--font-body);
-  font-size: 0.66rem;
-  font-weight: var(--font-weight-light);
-  line-height: 1;
-  text-transform: uppercase;
   text-align: left;
 }
 
