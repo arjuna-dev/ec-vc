@@ -257,6 +257,7 @@ function inputTypeForToken(tokenType) {
   if (tokenType === 'email') return 'email'
   if (tokenType === 'phone') return 'tel'
   if (tokenType === 'url') return 'url'
+  if (tokenType === 'date') return 'date'
   if (tokenType === 'datetime') return 'datetime-local'
   return 'text'
 }
