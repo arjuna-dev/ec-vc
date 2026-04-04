@@ -306,6 +306,12 @@ Examples:
 - `Round_Security_Type` should read from `Round_Securities`
 - `Fund_Target_Stages` should read from `Stages`
 
+Current frontend preparation rule:
+
+- new `Knowledge DB` files should reuse the same shared file shell path as `Test Shell`
+- frontend work may prepare canonical registry entries, routes, and navigation before runtime source wiring is complete
+- do not create a separate placeholder UI path once the intended final surface is the shared shell
+
 ## Current File Card Shell
 
 The current normalized shared `File` card shell applies to:

@@ -121,6 +121,11 @@ Examples of current `Knowledge DB` files:
 - `Financial Industries File` -> `Financial Industry Record`
 - `Round Securities File` -> `Round Security Record`
 
+Current frontend direction:
+
+- `Knowledge DB` files should reuse the same shared file shell path used for the shell standardization work
+- once promoted into real file surfaces, they should not live on a separate placeholder page design
+
 ## Product Description
 
 A `Record` is the detailed view for a single row or item inside a file.

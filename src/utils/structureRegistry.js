@@ -36,9 +36,27 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   Projects: { key: 'projects', label: 'Projects', singularLabel: 'Project', routeName: 'projects', path: '/projects', icon: 'schema', showInWorkspaceNav: true },
   Tasks: { key: 'tasks', label: 'Tasks', singularLabel: 'Task', routeName: 'tasks', path: '/tasks', icon: 'check_circle', showInWorkspaceNav: true },
   Notes: { key: 'notes', label: 'Notes', singularLabel: 'Note', routeName: 'notes', path: '/notes', icon: 'note', showInWorkspaceNav: true },
+  Financial_Industries: {
+    key: 'industries',
+    label: 'Industries',
+    singularLabel: 'Industry',
+    routeName: 'industries',
+    path: '/industries',
+    icon: 'category',
+    showInWorkspaceNav: false,
+  },
+  Round_Securities: {
+    key: 'securities',
+    label: 'Securities',
+    singularLabel: 'Security',
+    routeName: 'securities',
+    path: '/securities',
+    icon: 'shield',
+    showInWorkspaceNav: false,
+  },
 })
 
-const FILE_PAGE_ENTITY_ORDER = ['Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes']
+const FILE_PAGE_ENTITY_ORDER = ['Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Financial_Industries', 'Round_Securities']
 
 function normalizeSubsections(entity) {
   const subsections = entity?.subsections
@@ -224,7 +242,7 @@ export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
   ),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks']
+const TEST_SHELL_RENDERABLE_KEYS = ['users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'industries', 'securities']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({

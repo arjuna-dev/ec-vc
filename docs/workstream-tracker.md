@@ -37,6 +37,7 @@ This tracker should stay aligned with:
 - canonical tokens can now carry explicit `db_field_aliases`, so shell rendering can resolve through canonical structure without guessing when live row payload fields still use older DB names
 - `Opportunities` is now being formalized as a parent canonical `L1` contract with `Funds` and `Rounds` as subtype branches
 - `Knowledge DB` is now being treated as a real subset inside `Files` for reusable reference entities such as `Stages`, `Financial Industries`, and `Round Securities`
+- `Industries` and `Securities` are now frontend-prepared as shared-shell file surfaces through canonical registry, routes, and nav, with runtime source wiring intentionally left as the next explicit step
 - Exporters are now being treated as migration / ingestion utilities, not the permanent architecture backbone
 - Artifact processing recovery and continuity
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`

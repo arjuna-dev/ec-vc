@@ -671,9 +671,16 @@ const fallbackSectionKey =
   TEST_SHELL_SECTION_OPTIONS[0]?.value ||
   'tasks'
 
+const routeDrivenSourceKey = computed(() => {
+  const routeName = String(route.name || '').trim().toLowerCase()
+  return TEST_SHELL_SECTION_OPTIONS.find((option) => option.value === routeName)?.value || ''
+})
+
 const activeSourceKey = computed(() => {
   const current = String(route.query.section || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current) ? current : fallbackSectionKey
+  if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current)) return current
+  if (routeDrivenSourceKey.value) return routeDrivenSourceKey.value
+  return fallbackSectionKey
 })
 
 const activeRegistryEntry = computed(
