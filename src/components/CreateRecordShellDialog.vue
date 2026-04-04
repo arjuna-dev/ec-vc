@@ -1,6 +1,9 @@
 <template>
-  <q-dialog v-model="open" maximized>
-    <q-card class="create-record-shell">
+  <q-dialog v-model="open">
+    <q-card
+      class="create-record-shell"
+      :class="{ 'create-record-shell--maximized': isMaximized }"
+    >
       <q-card-section class="create-record-shell__header">
         <div class="create-record-shell__header-copy">
           <div class="create-record-shell__eyebrow">Create Record</div>
@@ -11,6 +14,15 @@
         </div>
 
         <div class="create-record-shell__header-actions">
+          <q-btn
+            flat
+            round
+            dense
+            color="dark"
+            :icon="isMaximized ? 'close_fullscreen' : 'open_in_full'"
+            :aria-label="isMaximized ? 'Exit fullscreen' : 'Open fullscreen'"
+            @click="isMaximized = !isMaximized"
+          />
           <q-btn flat no-caps label="Cancel" :disable="loading" @click="open = false" />
           <q-btn
             no-caps
@@ -129,6 +141,7 @@ const open = computed({
 
 const activeSectionKey = ref('key-fields')
 const formValues = ref({})
+const isMaximized = ref(false)
 
 const allSections = computed(() => [
   {
@@ -150,6 +163,7 @@ watch(
   () => props.modelValue,
   (nextValue) => {
     if (!nextValue) return
+    isMaximized.value = false
     activeSectionKey.value = 'key-fields'
     formValues.value = Object.fromEntries(
       allSections.value
@@ -197,8 +211,25 @@ function isWideField(token) {
 .create-record-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  width: min(70vw, 1180px);
+  height: min(70vh, 860px);
+  min-width: min(70vw, 900px);
+  min-height: min(70vh, 680px);
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 48px);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 246, 244, 0.98) 100%);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.create-record-shell--maximized {
+  width: calc(100vw - 24px);
+  height: calc(100vh - 24px);
+  min-width: calc(100vw - 24px);
+  min-height: calc(100vh - 24px);
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  border-radius: 22px;
 }
 
 .create-record-shell__header {
@@ -371,6 +402,17 @@ function isWideField(token) {
 }
 
 @media (max-width: 900px) {
+  .create-record-shell,
+  .create-record-shell--maximized {
+    width: calc(100vw - 20px);
+    height: calc(100vh - 20px);
+    min-width: calc(100vw - 20px);
+    min-height: calc(100vh - 20px);
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    border-radius: 18px;
+  }
+
   .create-record-shell__header {
     flex-direction: column;
   }
