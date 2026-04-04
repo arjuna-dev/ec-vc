@@ -354,7 +354,7 @@
     <q-dialog v-model="createBranchDialogOpen" persistent>
       <q-card style="width: 420px; max-width: 92vw">
         <q-card-section class="q-px-lg q-pt-lg q-pb-md">
-          <div class="text-h6">{{ createBranchDialogTitle }}</div>
+          <div class="ec-create-branch-dialog-title">choose_item</div>
         </q-card-section>
 
         <q-card-section class="q-px-lg q-pb-md">
@@ -819,11 +819,6 @@ const createBranchOptions = computed(() =>
     ? activeCreateBranchParentEntry.value.createBranches
     : [],
 )
-
-const createBranchDialogTitle = computed(() => {
-  const singularLabel = activeCreateBranchParentEntry.value?.singularLabel || 'Record'
-  return `Choose ${singularLabel} Route`
-})
 
 const quickWidgetActions = computed(() =>
   quickWidgetActionCatalog.value.filter((action) => isQuickWidgetActionEnabled(action.id)),
@@ -1796,6 +1791,16 @@ function goBack() {
 .ec-intake-queue-field__caption {
   color: var(--ds-color-text-navigation);
   font-size: var(--ds-font-size-sm);
+}
+
+.ec-create-branch-dialog-title {
+  color: var(--ds-color-text-header);
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
 }
 
 .ec-shell-toolbar-heading {
