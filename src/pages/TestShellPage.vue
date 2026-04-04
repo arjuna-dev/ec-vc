@@ -1547,7 +1547,7 @@ function notifyShellAction(label) {
   min-height: 30px;
   padding: 0 11px;
   color: #111111;
-  background: #faf9f5;
+  background: #fdfdfb;
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 4px;
   font-family: var(--font-title);
