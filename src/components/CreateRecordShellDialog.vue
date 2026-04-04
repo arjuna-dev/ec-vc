@@ -66,7 +66,7 @@
                   checked-icon="check_box"
                   unchecked-icon="check_box_outline_blank"
                   class="create-record-shell__artifact-checkbox"
-                  label="Automatically begin to process files as I drop"
+                  label="Autmatically process files as I drop"
                 />
               </div>
             </div>
