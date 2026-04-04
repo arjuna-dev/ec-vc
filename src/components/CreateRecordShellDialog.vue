@@ -212,9 +212,9 @@ function isWideField(token) {
   display: flex;
   flex-direction: column;
   width: min(52vw, 760px);
-  height: min(52vh, 520px);
+  height: min(78vh, 780px);
   min-width: min(52vw, 640px);
-  min-height: min(52vh, 460px);
+  min-height: min(78vh, 690px);
   max-width: calc(100vw - 48px);
   max-height: calc(100vh - 48px);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 246, 244, 0.98) 100%);
