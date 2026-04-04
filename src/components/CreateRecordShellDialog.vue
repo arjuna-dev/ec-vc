@@ -348,7 +348,7 @@ function formatFieldType(tokenType) {
 }
 
 function isWideField(token) {
-  return ['text', 'url', 'select_multi'].includes(String(token?.tokenType || '').trim())
+  return ['select_multi'].includes(String(token?.tokenType || '').trim())
 }
 
 function isSummaryField(token) {
@@ -654,8 +654,8 @@ function formatArtifactSize(size) {
 
 .create-record-shell__fields {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
   align-content: start;
   overflow: auto;
 }
@@ -668,7 +668,7 @@ function formatArtifactSize(size) {
 }
 
 .create-record-shell__field--wide {
-  grid-column: span 1;
+  grid-column: 1 / -1;
 }
 
 .create-record-shell__field-copy {
