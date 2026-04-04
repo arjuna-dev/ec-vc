@@ -27,6 +27,10 @@ The product should use `File` and `Record` as the main information architecture 
 
 This is the default language for navigation, structure, and page meaning.
 
+There is also a `Knowledge DB` subset inside `Files`.
+
+`Knowledge DB` files are reusable reference files that support other records with shared taxonomies, terms, stages, securities, industries, and similar evolving reference sets.
+
 ## Precision Language
 
 To stay precise while the codebase is still finishing its naming cleanup, use the following language:
@@ -109,6 +113,13 @@ Working rule:
 - `Tasks File` -> `Task Record`
 - `Notes File` -> `Note Record`
 - `Roles File` -> `Role Record`
+
+Examples of current `Knowledge DB` files:
+
+- `Stages File` -> `Stage Record`
+- `Locations File` -> `Location Record`
+- `Financial Industries File` -> `Financial Industry Record`
+- `Round Securities File` -> `Round Security Record`
 
 ## Product Description
 

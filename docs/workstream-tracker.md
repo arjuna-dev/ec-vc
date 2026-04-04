@@ -36,6 +36,7 @@ This tracker should stay aligned with:
 - `docs/canonical-structure.json` is now the app-readable canonical structure registry across the current L1/L2/L3 entity set
 - canonical tokens can now carry explicit `db_field_aliases`, so shell rendering can resolve through canonical structure without guessing when live row payload fields still use older DB names
 - `Opportunities` is now being formalized as a parent canonical `L1` contract with `Funds` and `Rounds` as subtype branches
+- `Knowledge DB` is now being treated as a real subset inside `Files` for reusable reference entities such as `Stages`, `Financial Industries`, and `Round Securities`
 - Exporters are now being treated as migration / ingestion utilities, not the permanent architecture backbone
 - Artifact processing recovery and continuity
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`

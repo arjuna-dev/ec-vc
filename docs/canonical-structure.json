@@ -1541,8 +1541,8 @@
               "address": "5.4.14",
               "token_name": "Fund_Target_Industries",
               "token_type": "select_multi",
-              "option_source": "record_subset",
-              "subset_entity": "Financial_Industries"
+              "option_source": "live_entity",
+              "option_entity": "Financial_Industries"
             },
             {
               "address": "5.4.15",
@@ -1765,8 +1765,8 @@
               "address": "6.4.3",
               "token_name": "Round_Security_Type",
               "token_type": "select_single",
-              "option_source": "canonical_list",
-              "option_list": "Round_Security_Type_List"
+              "option_source": "live_entity",
+              "option_entity": "Round_Securities"
             },
             {
               "address": "6.4.4",
@@ -2953,6 +2953,108 @@
           ]
         }
       ]
+    },
+    {
+      "level_1": "18",
+      "entity": "Financial_Industries",
+      "entity_label": "Financial Industry",
+      "entity_address": "18.0.0",
+      "structure_token": {
+        "address": "18.0.0",
+        "token_name": "Financial_Industry",
+        "token_type": "structure"
+      },
+      "subsections": [
+        {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "18.1.0",
+          "structure_token": "Financial_Industry_System",
+          "tokens": [
+            {
+              "address": "18.1.1",
+              "token_name": "Financial_Industry_ID",
+              "token_type": "id"
+            }
+          ]
+        },
+        {
+          "level_2": "2",
+          "subsection": "Overview",
+          "subsection_address": "18.2.0",
+          "structure_token": "Financial_Industry_Overview",
+          "tokens": []
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "18.3.0",
+          "structure_token": "Financial_Industry_General",
+          "tokens": [
+            {
+              "address": "18.3.1",
+              "token_name": "Financial_Industry_Name",
+              "token_type": "text"
+            },
+            {
+              "address": "18.3.2",
+              "token_name": "Financial_Industry_Summary",
+              "token_type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "level_1": "19",
+      "entity": "Round_Securities",
+      "entity_label": "Round Security",
+      "entity_address": "19.0.0",
+      "structure_token": {
+        "address": "19.0.0",
+        "token_name": "Round_Security",
+        "token_type": "structure"
+      },
+      "subsections": [
+        {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "19.1.0",
+          "structure_token": "Round_Security_System",
+          "tokens": [
+            {
+              "address": "19.1.1",
+              "token_name": "Round_Security_ID",
+              "token_type": "id"
+            }
+          ]
+        },
+        {
+          "level_2": "2",
+          "subsection": "Overview",
+          "subsection_address": "19.2.0",
+          "structure_token": "Round_Security_Overview",
+          "tokens": []
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "19.3.0",
+          "structure_token": "Round_Security_General",
+          "tokens": [
+            {
+              "address": "19.3.1",
+              "token_name": "Round_Security_Name",
+              "token_type": "text"
+            },
+            {
+              "address": "19.3.2",
+              "token_name": "Round_Security_Summary",
+              "token_type": "text"
+            }
+          ]
+        }
+      ]
     }
   ],
   "option_lists": {
@@ -3182,16 +3284,6 @@
       {
         "label": "Back-burner",
         "value": "Back-burner"
-      }
-    ],
-    "Round_Security_Type_List": [
-      {
-        "label": "Common",
-        "value": "Common"
-      },
-      {
-        "label": "Preferred",
-        "value": "Preferred"
       }
     ]
   }

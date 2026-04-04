@@ -277,6 +277,35 @@ Working rule:
 
 `File/Card View stays light. Record View gets rich.`
 
+## Knowledge DB Files
+
+Inside `Files`, there is also a `Knowledge DB` subset.
+
+These are reusable reference files that support other records and evolving controlled vocabularies.
+
+Current approved `Knowledge DB` direction includes:
+
+- `Markets`
+- `Locations`
+- `Terms`
+- `Academia`
+- `Employments`
+- `Stages`
+- `Agents`
+- `Financial Industries`
+- `Round Securities`
+
+Working rule:
+
+- when a controlled field should evolve as a reusable reference set, prefer a `Knowledge DB` file over a page-local hardcoded list
+- shells may still render those sources as selects or pickers, but the meaning should come from the `Knowledge DB` file contract
+
+Examples:
+
+- `Fund_Target_Industries` should read from `Financial_Industries`
+- `Round_Security_Type` should read from `Round_Securities`
+- `Fund_Target_Stages` should read from `Stages`
+
 ## Current File Card Shell
 
 The current normalized shared `File` card shell applies to:

@@ -2812,8 +2812,8 @@
               "node_type": "leaf",
               "level": "3",
               "parent_id": "5.4.0",
-              "option_source": "record_subset",
-              "subset_entity": "Financial_Industries"
+              "option_source": "live_entity",
+              "option_entity": "Financial_Industries"
             },
             {
               "index": "",
@@ -3243,8 +3243,8 @@
               "node_type": "leaf",
               "level": "3",
               "parent_id": "6.4.0",
-              "option_source": "canonical_list",
-              "option_list": "Round_Security_Type_List"
+              "option_source": "live_entity",
+              "option_entity": "Round_Securities"
             },
             {
               "index": "",
@@ -5593,6 +5593,224 @@
           ]
         }
       }
+    },
+    {
+      "level_1": "18",
+      "entity": "Financial_Industries",
+      "entity_address": "18.0.0",
+      "subsections": {
+        "18.0.0": {
+          "level_2": "0",
+          "subsection": "na",
+          "subsection_address": "18.0.0",
+          "parent_id": "null",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "18.0.0",
+              "token_name": "Financial_Industry",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "1",
+              "parent_id": "null"
+            }
+          ]
+        },
+        "18.1.0": {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "18.1.0",
+          "parent_id": "18.1.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "18.1.1",
+              "token_name": "Financial_Industry_ID",
+              "token_type": "id",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "18.1.0"
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "18.1.0",
+              "token_name": "Financial_Industry_System",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "18.0.0"
+            }
+          ]
+        },
+        "18.2.0": {
+          "level_2": "2",
+          "subsection": "Overview",
+          "subsection_address": "18.2.0",
+          "parent_id": "18.2.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "18.2.0",
+              "token_name": "Financial_Industry_Overview",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "18.0.0"
+            }
+          ]
+        },
+        "18.3.0": {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "18.3.0",
+          "parent_id": "18.3.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "18.3.1",
+              "token_name": "Financial_Industry_Name",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "18.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "18.3.2",
+              "token_name": "Financial_Industry_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "18.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "18.3.0",
+              "token_name": "Financial_Industry_General",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "18.0.0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "level_1": "19",
+      "entity": "Round_Securities",
+      "entity_address": "19.0.0",
+      "subsections": {
+        "19.0.0": {
+          "level_2": "0",
+          "subsection": "na",
+          "subsection_address": "19.0.0",
+          "parent_id": "null",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "19.0.0",
+              "token_name": "Round_Security",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "1",
+              "parent_id": "null"
+            }
+          ]
+        },
+        "19.1.0": {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "19.1.0",
+          "parent_id": "19.1.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "19.1.1",
+              "token_name": "Round_Security_ID",
+              "token_type": "id",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "19.1.0"
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "19.1.0",
+              "token_name": "Round_Security_System",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "19.0.0"
+            }
+          ]
+        },
+        "19.2.0": {
+          "level_2": "2",
+          "subsection": "Overview",
+          "subsection_address": "19.2.0",
+          "parent_id": "19.2.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "19.2.0",
+              "token_name": "Round_Security_Overview",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "19.0.0"
+            }
+          ]
+        },
+        "19.3.0": {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "19.3.0",
+          "parent_id": "19.3.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "19.3.1",
+              "token_name": "Round_Security_Name",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "19.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "19.3.2",
+              "token_name": "Round_Security_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "19.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "19.3.0",
+              "token_name": "Round_Security_General",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "19.0.0"
+            }
+          ]
+        }
+      }
     }
   ],
   "option_lists": {
@@ -5822,16 +6040,6 @@
       {
         "label": "Back-burner",
         "value": "Back-burner"
-      }
-    ],
-    "Round_Security_Type_List": [
-      {
-        "label": "Common",
-        "value": "Common"
-      },
-      {
-        "label": "Preferred",
-        "value": "Preferred"
       }
     ]
   }
