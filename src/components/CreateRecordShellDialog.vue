@@ -2,7 +2,6 @@
   <q-dialog v-model="open">
     <q-card
       class="create-record-shell"
-      :class="{ 'create-record-shell--maximized': isMaximized }"
     >
       <q-card-section class="create-record-shell__header">
         <div class="create-record-shell__header-copy">
@@ -82,18 +81,7 @@
           </div>
         </div>
 
-        <div class="create-record-shell__header-actions">
-          <q-btn
-            flat
-            round
-            dense
-            color="dark"
-            size="0.57rem"
-            :icon="isMaximized ? 'close_fullscreen' : 'open_in_full'"
-            :aria-label="isMaximized ? 'Exit fullscreen' : 'Open fullscreen'"
-            @click="isMaximized = !isMaximized"
-          />
-        </div>
+        <div class="create-record-shell__header-actions"></div>
       </q-card-section>
 
       <q-card-section class="create-record-shell__body">
@@ -243,7 +231,6 @@ const open = computed({
 
 const activeSectionKey = ref('key-fields')
 const formValues = ref({})
-const isMaximized = ref(false)
 const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
@@ -294,7 +281,6 @@ watch(
   () => props.modelValue,
   (nextValue) => {
     if (!nextValue) return
-    isMaximized.value = false
     activeSectionKey.value = String(props.initialSectionKey || '').trim() || 'key-fields'
     artifactDragOver.value = false
     stagedArtifacts.value = []
@@ -452,16 +438,6 @@ function formatArtifactSize(size) {
   overflow: hidden;
 }
 
-.create-record-shell--maximized {
-  width: calc(100vw - 24px);
-  height: calc(100vh - 24px);
-  min-width: calc(100vw - 24px);
-  min-height: calc(100vh - 24px);
-  max-width: calc(100vw - 24px);
-  max-height: calc(100vh - 24px);
-  border-radius: 22px;
-}
-
 .create-record-shell__header {
   display: flex;
   align-items: flex-start;
@@ -478,9 +454,7 @@ function formatArtifactSize(size) {
 }
 
 .create-record-shell__header-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  display: none;
 }
 
 .create-record-shell__body {
@@ -741,8 +715,7 @@ function formatArtifactSize(size) {
 }
 
 @media (max-width: 900px) {
-  .create-record-shell,
-  .create-record-shell--maximized {
+  .create-record-shell {
     width: calc(100vw - 20px);
     height: calc(100vh - 20px);
     min-width: calc(100vw - 20px);
