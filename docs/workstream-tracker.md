@@ -37,7 +37,7 @@ This tracker should stay aligned with:
 - `docs/canonical-structure.json` is now the app-readable canonical structure registry across the current L1/L2/L3 entity set
 - canonical tokens can now carry explicit `db_field_aliases`, so shell rendering can resolve through canonical structure without guessing when live row payload fields still use older DB names
 - `Opportunities` is now being formalized as a parent canonical `L1` contract with `Funds` and `Rounds` as subtype branches
-- `Knowledge DB` is now being treated as a real subset inside `Files` for reusable reference entities such as `Stages`, `Financial Industries`, and `Round Securities`
+- `Knowledge DBs` is now being treated as a real subset inside `Files` for reusable reference entities such as `Stages`, `Financial Industries`, and `Round Securities`
 - `Industries` and `Securities` are now frontend-prepared as shared-shell file surfaces through canonical registry, routes, and nav, with runtime source wiring intentionally left as the next explicit step
 - the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points
 - card shell slots are now explicit for `title`, `subtitle`, and `chips`, with `subtitle` = first selected extra field and `chips` = remaining selected extra fields
@@ -56,10 +56,8 @@ This tracker should stay aligned with:
 
 - Fix workbook wrapper-token drift so the JSON companion validates cleanly for `Company`, `Funds`, `Markets`, and `Terms`
 - Rework `Record View` table behavior so tabs switch locally and instantly
-- Change `Cards` inside `Table` so it shows card-visible fields in workbook/table form, not literal cards
 - Align company `Record View` tabs with workbook structural nodes
 - Decide which workbook labels stay technical and which get friendlier UI labels
-- Extend the same model to `Contacts`
 - Build a clearer intake tracker surface that shows stage, blockers, and next action per draft
 - Add a consistent resume affordance in both card and table views for unfinished artifacts
 - Define role ownership for intake stages under the new `Roles` / `Avatar` direction
@@ -103,7 +101,7 @@ This tracker should stay aligned with:
   - `Knowledge DBs` is now a dedicated left-nav branch below `Files`
   - `Industries` and `Securities` now reuse the shared shell routing path instead of a separate placeholder page surface
   - the shared create/edit dialog now renders canonical date fields as date inputs
-  - stale resolved bug notes were cleaned out of `bugs/`, leaving only active `Knowledge DBs` nav follow-up notes
+  - stale resolved bug notes were cleaned out of `bugs/`, leaving only the current `Knowledge DBs` nav follow-up notes
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
   - keep the structure contract coherent while `Company` remains the main reference entity

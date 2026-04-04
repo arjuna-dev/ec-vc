@@ -279,11 +279,11 @@ Working rule:
 
 ## Knowledge DB Files
 
-Inside `Files`, there is also a `Knowledge DB` subset.
+Inside `Files`, there is also a `Knowledge DBs` subset.
 
 These are reusable reference files that support other records and evolving controlled vocabularies.
 
-Current approved `Knowledge DB` direction includes:
+Current approved `Knowledge DB` file direction includes:
 
 - `Markets`
 - `Locations`
@@ -291,7 +291,7 @@ Current approved `Knowledge DB` direction includes:
 - `Academia`
 - `Employments`
 - `Stages`
-- `Agents`
+- `Roles`
 - `Financial Industries`
 - `Round Securities`
 
@@ -371,11 +371,11 @@ The hero section is the top content block below the control row.
 It contains:
 
 - the visual identity area on the left
-- the metadata box on the right
+- the detail lane on the right
 
 Rules:
 
-- the right box is the main metadata box for the card
+- the right lane should formalize `title`, `subtitle`, and `chips` instead of relying on older metadata wording
 - title typography should stay consistent across file families unless intentionally specialized
 - `Notes` and `Tasks` should not drift into smaller typography unless that is explicitly approved
 
