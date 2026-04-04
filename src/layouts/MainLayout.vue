@@ -564,22 +564,22 @@ const workspaceNavigationItems = [
     kind: 'toggle',
     label: 'Knowledge DBs',
     toggleKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-toggle',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child ec-nav-item--workspace-toggle ec-nav-item--workspace-group',
     icon: 'database',
     iconSize: '18px',
   },
   {
     kind: 'subheader',
-    label: '- Financial Industries',
+    label: '- Industries',
     parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child ec-nav-item--workspace-leaf',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-kdb-leaf',
     labelClass: 'ec-nav-label--subtle',
   },
   {
     kind: 'subheader',
-    label: '- Round Securities',
+    label: '- Securities',
     parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child ec-nav-item--workspace-leaf',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-kdb-leaf',
     labelClass: 'ec-nav-label--subtle',
   },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
@@ -2104,6 +2104,10 @@ function goBack() {
   min-height: 28px;
 }
 
+.ec-nav-item--workspace-group {
+  margin-left: 0;
+}
+
 .ec-nav-item--workspace-child + .ec-nav-item--workspace-child {
   margin-top: -1px;
 }
@@ -2111,6 +2115,17 @@ function goBack() {
 .ec-nav-item--workspace-child :deep(.q-item__section) {
   padding-top: 1px;
   padding-bottom: 1px;
+}
+
+.ec-nav-item--workspace-kdb-leaf {
+  margin-left: 0;
+  min-height: 24px;
+  padding-left: 56px;
+}
+
+.ec-nav-item--workspace-kdb-leaf :deep(.q-item__section) {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .ec-quick-widget {
