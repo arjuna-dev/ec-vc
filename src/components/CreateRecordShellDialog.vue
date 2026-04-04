@@ -8,78 +8,95 @@
         <div class="create-record-shell__header-copy">
           <div class="create-record-shell__intake-lane">
             <div class="create-record-shell__intake-title">Ingestion Companion</div>
-            <div
-              class="create-record-shell__artifact-drop"
-              :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
-              @dragover.prevent="artifactDragOver = true"
-              @dragleave.prevent="artifactDragOver = false"
-              @drop.prevent="onArtifactDrop"
-            >
-              <div class="create-record-shell__artifact-drop-copy">
-                <div class="create-record-shell__artifact-drop-title">Artifacts</div>
-                <div class="create-record-shell__artifact-drop-caption">
-                  {{ artifactDragOver ? 'Release to stage files' : 'Drag files or a folder here' }}
-                </div>
-              </div>
-
-              <div v-if="stagedArtifacts.length" class="create-record-shell__artifact-drop-list">
-                <div class="create-record-shell__artifact-drop-list-head">
-                  <q-checkbox
-                    :model-value="allArtifactsSelected"
-                    dense
-                    size="xs"
-                    checked-icon="check_box"
-                    unchecked-icon="check_box_outline_blank"
-                    class="create-record-shell__artifact-checkbox"
-                    @update:model-value="toggleAllArtifacts"
-                  />
-                  <div class="create-record-shell__artifact-drop-list-meta">
-                    {{ selectedArtifactCount }} of {{ stagedArtifacts.length }} selected
+            <div class="create-record-shell__intake-body">
+              <div
+                class="create-record-shell__artifact-drop"
+                :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
+                @dragover.prevent="artifactDragOver = true"
+                @dragleave.prevent="artifactDragOver = false"
+                @drop.prevent="onArtifactDrop"
+              >
+                <div class="create-record-shell__artifact-drop-copy">
+                  <div class="create-record-shell__artifact-drop-title">Drop Artifacts</div>
+                  <div class="create-record-shell__artifact-drop-caption">
+                    {{ artifactDragOver ? 'Release to stage files' : 'Drag files or a folder here' }}
                   </div>
                 </div>
 
-                <div class="create-record-shell__artifact-drop-items">
-                  <label
-                    v-for="artifact in stagedArtifacts"
-                    :key="artifact.id"
-                    class="create-record-shell__artifact-drop-item"
-                  >
-                    <q-checkbox
-                      :model-value="selectedArtifactIds.includes(artifact.id)"
-                      dense
-                      size="xs"
-                      checked-icon="check_box"
-                      unchecked-icon="check_box_outline_blank"
-                      class="create-record-shell__artifact-checkbox"
-                      @update:model-value="toggleArtifactSelection(artifact.id, $event)"
-                    />
-                    <span class="create-record-shell__artifact-drop-item-name">{{ artifact.name }}</span>
-                    <span class="create-record-shell__artifact-drop-item-size">{{ formatArtifactSize(artifact.size) }}</span>
-                  </label>
+                <div class="create-record-shell__artifact-drop-footer">
+                  <q-checkbox
+                    v-model="autoProcessArtifacts"
+                    dense
+                    size="sm"
+                    checked-icon="check_box"
+                    unchecked-icon="check_box_outline_blank"
+                    class="create-record-shell__artifact-checkbox"
+                    label="Autmatically process files as I drop"
+                  />
                 </div>
               </div>
 
-              <div class="create-record-shell__artifact-drop-footer">
-                <q-checkbox
-                  v-model="autoProcessArtifacts"
+              <div class="create-record-shell__intake-side">
+                <q-input
+                  v-model="artifactUrlInput"
                   dense
-                  size="sm"
-                  checked-icon="check_box"
-                  unchecked-icon="check_box_outline_blank"
-                  class="create-record-shell__artifact-checkbox"
-                  label="Autmatically process files as I drop"
+                  outlined
+                  type="url"
+                  class="create-record-shell__artifact-url-input"
+                  placeholder="URL"
                 />
+
+                <div class="create-record-shell__processing-panel">
+                  <div class="create-record-shell__processing-panel-head">
+                    <div class="create-record-shell__processing-panel-title">Processing Files</div>
+                    <div class="create-record-shell__processing-panel-meta">
+                      {{ selectedArtifactCount }} of {{ stagedArtifacts.length }} selected
+                    </div>
+                  </div>
+
+                  <div v-if="stagedArtifacts.length" class="create-record-shell__artifact-drop-list">
+                    <div class="create-record-shell__artifact-drop-list-head">
+                      <q-checkbox
+                        :model-value="allArtifactsSelected"
+                        dense
+                        size="xs"
+                        checked-icon="check_box"
+                        unchecked-icon="check_box_outline_blank"
+                        class="create-record-shell__artifact-checkbox"
+                        @update:model-value="toggleAllArtifacts"
+                      />
+                      <div class="create-record-shell__artifact-drop-list-meta">
+                        Select one, many, or all
+                      </div>
+                    </div>
+
+                    <div class="create-record-shell__artifact-drop-items">
+                      <label
+                        v-for="artifact in stagedArtifacts"
+                        :key="artifact.id"
+                        class="create-record-shell__artifact-drop-item"
+                      >
+                        <q-checkbox
+                          :model-value="selectedArtifactIds.includes(artifact.id)"
+                          dense
+                          size="xs"
+                          checked-icon="check_box"
+                          unchecked-icon="check_box_outline_blank"
+                          class="create-record-shell__artifact-checkbox"
+                          @update:model-value="toggleArtifactSelection(artifact.id, $event)"
+                        />
+                        <span class="create-record-shell__artifact-drop-item-name">{{ artifact.name }}</span>
+                        <span class="create-record-shell__artifact-drop-item-size">{{ formatArtifactSize(artifact.size) }}</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div v-else class="create-record-shell__processing-empty">
+                    Staged files will appear here as you drop them.
+                  </div>
+                </div>
               </div>
             </div>
-
-            <q-input
-              v-model="artifactUrlInput"
-              dense
-              outlined
-              type="url"
-              class="create-record-shell__artifact-url-input"
-              placeholder="URL"
-            />
           </div>
         </div>
 
@@ -537,6 +554,13 @@ onBeforeUnmount(() => {
   line-height: 0.92;
 }
 
+.create-record-shell__intake-body {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
 .create-record-shell__artifact-drop {
   display: flex;
   flex-direction: column;
@@ -552,6 +576,13 @@ onBeforeUnmount(() => {
 .create-record-shell__artifact-drop--active {
   background: rgba(238, 241, 255, 0.98);
   border-color: rgba(38, 71, 255, 0.6);
+}
+
+.create-record-shell__intake-side {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  min-height: 220px;
 }
 
 .create-record-shell__artifact-drop-copy {
@@ -651,6 +682,44 @@ onBeforeUnmount(() => {
 .create-record-shell__artifact-url-input :deep(.q-field__control) {
   background: rgba(255, 255, 255, 0.98);
   border-radius: 8px;
+}
+
+.create-record-shell__processing-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
+  padding: 14px 16px;
+  background: rgba(249, 249, 247, 0.96);
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  border-radius: 10px;
+}
+
+.create-record-shell__processing-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.create-record-shell__processing-panel-title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+}
+
+.create-record-shell__processing-panel-meta {
+  color: rgba(17, 17, 17, 0.52);
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.create-record-shell__processing-empty {
+  color: rgba(17, 17, 17, 0.54);
+  font-size: 0.76rem;
+  line-height: 1.35;
 }
 
 .create-record-shell__tabs {
@@ -824,6 +893,10 @@ onBeforeUnmount(() => {
   }
 
   .create-record-shell__fields {
+    grid-template-columns: 1fr;
+  }
+
+  .create-record-shell__intake-body {
     grid-template-columns: 1fr;
   }
 
