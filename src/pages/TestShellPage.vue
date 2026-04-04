@@ -1479,10 +1479,15 @@ function notifyShellAction(label) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  min-height: 30px;
+  padding: 0 14px;
   border-radius: 18px 18px 0 0;
   overflow: hidden;
   background: transparent;
+}
+
+.test-shell-card__control-row :deep(.q-checkbox) {
+  min-height: 20px;
 }
 
 .test-shell-card__control-row :deep(.q-checkbox__inner),
@@ -1490,15 +1495,28 @@ function notifyShellAction(label) {
   filter: drop-shadow(0 6px 12px rgba(17, 17, 17, 0.08));
 }
 
-.test-shell-card__control-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
+.test-shell-card__control-row :deep(.q-checkbox__inner) {
+  font-size: 16px;
 }
 
 .test-shell-card__control-settings,
 .test-shell-card__control-eye {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
   color: rgba(17, 17, 17, 0.82);
+}
+
+.test-shell-card__control-settings :deep(.q-icon),
+.test-shell-card__control-eye :deep(.q-icon) {
+  font-size: 15px;
+}
+
+.test-shell-card__control-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .test-shell-card-settings-menu {
