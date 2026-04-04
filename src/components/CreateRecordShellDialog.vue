@@ -138,69 +138,6 @@
                       </div>
                     </section>
 
-                    <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
-                      <div class="create-record-shell__processing-box-head">
-                        <div class="create-record-shell__processing-box-title">URLs</div>
-                        <button
-                          type="button"
-                          class="create-record-shell__processing-delete"
-                          :disabled="!selectedUrlEntryIds.length"
-                          @click="removeSelectedSupportResourceEntries('url')"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                      <div v-if="urlEntries.length" class="create-record-shell__processing-entry-list">
-                        <label
-                          v-for="entry in urlEntries"
-                          :key="entry.id"
-                          class="create-record-shell__processing-entry-row"
-                        >
-                          <q-checkbox
-                            :model-value="selectedUrlEntryIds.includes(entry.id)"
-                            dense
-                            size="xs"
-                            checked-icon="check_box"
-                            unchecked-icon="check_box_outline_blank"
-                            class="create-record-shell__artifact-checkbox"
-                            @update:model-value="toggleSupportResourceSelection('url', entry.id, $event)"
-                          />
-                          <span class="create-record-shell__processing-entry-value">{{ entry.value }}</span>
-                        </label>
-                      </div>
-                    </section>
-
-                    <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
-                      <div class="create-record-shell__processing-box-head">
-                        <div class="create-record-shell__processing-box-title">Text Blurb / Guides</div>
-                        <button
-                          type="button"
-                          class="create-record-shell__processing-delete"
-                          :disabled="!selectedGuidanceEntryIds.length"
-                          @click="removeSelectedSupportResourceEntries('guidance')"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                      <div v-if="guidanceEntries.length" class="create-record-shell__processing-entry-list">
-                        <label
-                          v-for="entry in guidanceEntries"
-                          :key="entry.id"
-                          class="create-record-shell__processing-entry-row"
-                        >
-                          <q-checkbox
-                            :model-value="selectedGuidanceEntryIds.includes(entry.id)"
-                            dense
-                            size="xs"
-                            checked-icon="check_box"
-                            unchecked-icon="check_box_outline_blank"
-                            class="create-record-shell__artifact-checkbox"
-                            @update:model-value="toggleSupportResourceSelection('guidance', entry.id, $event)"
-                          />
-                          <span class="create-record-shell__processing-entry-value">{{ entry.value }}</span>
-                        </label>
-                      </div>
-                    </section>
                   </div>
                 </div>
               </div>
@@ -395,10 +332,6 @@ const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
-const urlEntries = ref([])
-const guidanceEntries = ref([])
-const selectedUrlEntryIds = ref([])
-const selectedGuidanceEntryIds = ref([])
 const supportResourcesCollapsed = ref(false)
 const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
@@ -471,10 +404,6 @@ watch(
     stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
     selectedArtifactIds.value = []
     autoProcessArtifacts.value = false
-    urlEntries.value = []
-    guidanceEntries.value = []
-    selectedUrlEntryIds.value = []
-    selectedGuidanceEntryIds.value = []
     dialogWidth.value = 760
     dialogHeight.value = 780
     formValues.value = Object.fromEntries(
@@ -514,8 +443,8 @@ function buildDialogSnapshot() {
       autoProcess: autoProcessArtifacts.value,
     },
     companion: {
-      urls: urlEntries.value.map((entry) => entry.value),
-      guidance: guidanceEntries.value.map((entry) => entry.value),
+      urls: [],
+      guidance: [],
     },
     hasUserChanges: hasUserChanges.value,
   }
@@ -648,34 +577,6 @@ function formatArtifactSize(size) {
   if (normalized < 1024) return `${normalized} B`
   if (normalized < 1024 * 1024) return `${(normalized / 1024).toFixed(1)} KB`
   return `${(normalized / (1024 * 1024)).toFixed(1)} MB`
-}
-
-function toggleSupportResourceSelection(kind, entryId, nextValue) {
-  const normalizedKind = String(kind || '').trim().toLowerCase()
-  const selectedRef = normalizedKind === 'guidance' ? selectedGuidanceEntryIds : selectedUrlEntryIds
-  const normalizedId = String(entryId || '').trim()
-  if (!normalizedId) return
-  if (nextValue) {
-    if (!selectedRef.value.includes(normalizedId)) {
-      selectedRef.value = [...selectedRef.value, normalizedId]
-    }
-    return
-  }
-  selectedRef.value = selectedRef.value.filter((id) => id !== normalizedId)
-}
-
-function removeSelectedSupportResourceEntries(kind) {
-  const normalizedKind = String(kind || '').trim().toLowerCase()
-  if (normalizedKind === 'guidance') {
-    const selected = new Set(selectedGuidanceEntryIds.value)
-    guidanceEntries.value = guidanceEntries.value.filter((entry) => !selected.has(entry.id))
-    selectedGuidanceEntryIds.value = []
-  } else {
-    const selected = new Set(selectedUrlEntryIds.value)
-    urlEntries.value = urlEntries.value.filter((entry) => !selected.has(entry.id))
-    selectedUrlEntryIds.value = []
-  }
-  markDialogChanged()
 }
 
 function startResize(event) {
@@ -1003,7 +904,7 @@ onBeforeUnmount(() => {
 
 .create-record-shell__processing-sections {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: minmax(0, 1fr);
   gap: 10px;
   min-height: 0;
 }
