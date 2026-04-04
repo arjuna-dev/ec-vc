@@ -77,7 +77,7 @@
               outlined
               type="url"
               class="create-record-shell__artifact-url-input"
-              placeholder="Artifact URL"
+              placeholder="URL"
             />
           </div>
         </div>
