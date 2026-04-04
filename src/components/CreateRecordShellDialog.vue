@@ -8,8 +8,18 @@
         <div class="create-record-shell__header-copy">
           <div class="create-record-shell__title">{{ dialogTitle }}</div>
           <div class="create-record-shell__intake-lane">
-            <div class="create-record-shell__intake-title">Ingestion Companion</div>
-            <div class="create-record-shell__intake-body">
+            <button
+              type="button"
+              class="create-record-shell__intake-toggle"
+              @click="ingestionCompanionCollapsed = !ingestionCompanionCollapsed"
+            >
+              <span class="create-record-shell__intake-title">Ingestion Companion</span>
+              <q-icon
+                :name="ingestionCompanionCollapsed ? 'expand_more' : 'expand_less'"
+                class="create-record-shell__intake-toggle-icon"
+              />
+            </button>
+            <div v-if="!ingestionCompanionCollapsed" class="create-record-shell__intake-body">
               <div
                 class="create-record-shell__artifact-drop"
                 :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
@@ -256,6 +266,7 @@ const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
+const ingestionCompanionCollapsed = ref(false)
 const dialogWidth = ref(760)
 const dialogHeight = ref(780)
 let removeResizeListeners = null
@@ -570,12 +581,31 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
+.create-record-shell__intake-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
 .create-record-shell__intake-title {
   color: #111111;
   font-family: var(--font-title);
   font-size: 0.92rem;
   font-weight: var(--font-weight-black);
   line-height: 0.92;
+}
+
+.create-record-shell__intake-toggle-icon {
+  color: rgba(17, 17, 17, 0.58);
+  font-size: 1rem;
+  flex: 0 0 auto;
 }
 
 .create-record-shell__intake-body {
