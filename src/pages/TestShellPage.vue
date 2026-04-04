@@ -1670,10 +1670,10 @@ function notifyShellAction(label) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 22px;
-  min-height: 22px;
-  margin: 0 2px 0 auto;
-  padding: 0;
+  height: 24px;
+  min-height: 24px;
+  margin: 0 14px 0 auto;
+  padding: 0 2px;
   color: inherit;
   background: transparent;
   border: 0;
@@ -1691,11 +1691,11 @@ function notifyShellAction(label) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  min-height: 18px;
-  border-radius: 999px;
+  width: 19px;
+  height: 19px;
+  min-width: 19px;
+  min-height: 19px;
+  border-radius: 6px;
   color: #ffffff;
   background: #2647ff;
 }
