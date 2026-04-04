@@ -531,6 +531,7 @@ onBeforeUnmount(() => {
 .create-record-shell__artifact-drop {
   display: grid;
   gap: 12px;
+  align-content: start;
   width: 100%;
   min-height: 220px;
   padding: 20px 22px 16px;
@@ -617,11 +618,23 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__artifact-drop-footer {
-  padding-top: 2px;
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 .create-record-shell__artifact-checkbox {
   margin: 0;
+}
+
+.create-record-shell__artifact-drop-footer .create-record-shell__artifact-checkbox :deep(.q-checkbox__label) {
+  color: rgba(17, 17, 17, 0.5);
+  font-size: 0.64rem;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.create-record-shell__artifact-drop-footer .create-record-shell__artifact-checkbox :deep(.q-checkbox__inner) {
+  font-size: 0.9rem;
 }
 
 .create-record-shell__artifact-url-input :deep(.q-field__control) {
