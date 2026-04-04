@@ -224,6 +224,7 @@
                     :model-value="selectSingleValue(formValues[token.key])"
                     dense
                     outlined
+                    use-chips
                     emit-value
                     map-options
                     :options="token.inputOptions || []"
