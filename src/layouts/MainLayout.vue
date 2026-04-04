@@ -598,6 +598,14 @@ const workspaceNavigationItems = [
     parentKey: 'knowledge-dbs',
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
+  {
+    label: 'Artifacts Processed',
+    to: '/artifacts-processed',
+    exact: true,
+    icon: 'hub',
+    parentKey: 'knowledge-dbs',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
+  },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
   { label: 'Test Shell', to: '/test-shell', exact: true, icon: 'science' },
 ].map((item) => ({
@@ -618,6 +626,7 @@ const routeLabelByName = {
   industries: 'Industries',
   notes: 'Notes',
   securities: 'Securities',
+  'artifacts-processed': 'Artifacts Processed',
   tasks: 'Tasks',
   'test-shell': 'Test Shell',
   assistants: 'Roles',

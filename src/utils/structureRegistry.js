@@ -59,9 +59,18 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     icon: 'shield',
     showInWorkspaceNav: false,
   },
+  Artifacts_Processed: {
+    key: 'artifacts-processed',
+    label: 'Artifacts Processed',
+    singularLabel: 'Processed Artifact',
+    routeName: 'artifacts-processed',
+    path: '/artifacts-processed',
+    icon: 'hub',
+    showInWorkspaceNav: false,
+  },
 })
 
-const FILE_PAGE_ENTITY_ORDER = ['Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Financial_Industries', 'Round_Securities']
+const FILE_PAGE_ENTITY_ORDER = ['Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Financial_Industries', 'Round_Securities', 'Artifacts_Processed']
 
 function normalizeSubsections(entity) {
   const subsections = entity?.subsections
@@ -247,7 +256,7 @@ export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
   ),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'industries', 'securities']
+const TEST_SHELL_RENDERABLE_KEYS = ['users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'industries', 'securities', 'artifacts-processed']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({

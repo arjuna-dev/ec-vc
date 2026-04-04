@@ -3055,6 +3055,57 @@
           ]
         }
       ]
+    },
+    {
+      "level_1": "20",
+      "entity": "Artifacts_Processed",
+      "entity_label": "Processed Artifact",
+      "entity_address": "20.0.0",
+      "structure_token": {
+        "address": "20.0.0",
+        "token_name": "Processed_Artifact",
+        "token_type": "structure"
+      },
+      "subsections": [
+        {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "20.1.0",
+          "structure_token": "Processed_Artifact_System",
+          "tokens": [
+            {
+              "address": "20.1.1",
+              "token_name": "Processed_Artifact_ID",
+              "token_type": "id"
+            }
+          ]
+        },
+        {
+          "level_2": "2",
+          "subsection": "Overview",
+          "subsection_address": "20.2.0",
+          "structure_token": "Processed_Artifact_Overview",
+          "tokens": []
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "20.3.0",
+          "structure_token": "Processed_Artifact_General",
+          "tokens": [
+            {
+              "address": "20.3.1",
+              "token_name": "Processed_Artifact_Name",
+              "token_type": "text"
+            },
+            {
+              "address": "20.3.2",
+              "token_name": "Processed_Artifact_Summary",
+              "token_type": "text"
+            }
+          ]
+        }
+      ]
     }
   ],
   "option_lists": {

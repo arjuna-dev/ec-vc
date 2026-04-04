@@ -21,6 +21,7 @@ const routes = [
       { path: 'users', name: 'users', component: () => import('pages/UsersPage.vue') },
       { path: 'industries', name: 'industries', component: () => import('pages/TestShellPage.vue') },
       { path: 'securities', name: 'securities', component: () => import('pages/TestShellPage.vue') },
+      { path: 'artifacts-processed', name: 'artifacts-processed', component: () => import('pages/TestShellPage.vue') },
       { path: 'notes', name: 'notes', component: () => import('pages/NotesPage.vue') },
       { path: 'tasks', name: 'tasks', component: () => import('pages/TasksPage.vue') },
       { path: 'test-shell', name: 'test-shell', component: () => import('pages/TestShellPage.vue') },

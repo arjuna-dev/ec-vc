@@ -5811,6 +5811,115 @@
           ]
         }
       }
+    },
+    {
+      "level_1": "20",
+      "entity": "Artifacts_Processed",
+      "entity_address": "20.0.0",
+      "subsections": {
+        "20.0.0": {
+          "level_2": "0",
+          "subsection": "na",
+          "subsection_address": "20.0.0",
+          "parent_id": "null",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "20.0.0",
+              "token_name": "Processed_Artifact",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "1",
+              "parent_id": "null"
+            }
+          ]
+        },
+        "20.1.0": {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "20.1.0",
+          "parent_id": "20.1.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "20.1.1",
+              "token_name": "Processed_Artifact_ID",
+              "token_type": "id",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "20.1.0"
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "20.1.0",
+              "token_name": "Processed_Artifact_System",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "20.0.0"
+            }
+          ]
+        },
+        "20.2.0": {
+          "level_2": "2",
+          "subsection": "Overview",
+          "subsection_address": "20.2.0",
+          "parent_id": "20.2.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "20.2.0",
+              "token_name": "Processed_Artifact_Overview",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "20.0.0"
+            }
+          ]
+        },
+        "20.3.0": {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "20.3.0",
+          "parent_id": "20.3.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "20.3.1",
+              "token_name": "Processed_Artifact_Name",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "20.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "20.3.2",
+              "token_name": "Processed_Artifact_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "20.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "20.3.0",
+              "token_name": "Processed_Artifact_General",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "20.0.0"
+            }
+          ]
+        }
+      }
     }
   ],
   "option_lists": {
