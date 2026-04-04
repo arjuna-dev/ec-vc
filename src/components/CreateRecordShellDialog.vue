@@ -154,6 +154,7 @@
                         v-model="pendingUrlEntry"
                         dense
                         outlined
+                        hide-bottom-space
                         class="create-record-shell__processing-entry-input"
                         @keyup.enter.prevent="addSupportResourceEntry('url')"
                       >
@@ -197,6 +198,7 @@
                         v-model="pendingGuidanceEntry"
                         dense
                         outlined
+                        hide-bottom-space
                         class="create-record-shell__processing-entry-input"
                         @keyup.enter.prevent="addSupportResourceEntry('guidance')"
                       >
