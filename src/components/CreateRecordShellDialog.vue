@@ -34,6 +34,43 @@
                     label="Autmatically process files as I drop"
                   />
                 </div>
+
+                <div v-if="stagedArtifacts.length" class="create-record-shell__artifact-drop-list">
+                  <div class="create-record-shell__artifact-drop-list-head">
+                    <q-checkbox
+                      :model-value="allArtifactsSelected"
+                      dense
+                      size="xs"
+                      checked-icon="check_box"
+                      unchecked-icon="check_box_outline_blank"
+                      class="create-record-shell__artifact-checkbox"
+                      @update:model-value="toggleAllArtifacts"
+                    />
+                    <div class="create-record-shell__artifact-drop-list-meta">
+                      {{ selectedArtifactCount }} of {{ stagedArtifacts.length }} selected
+                    </div>
+                  </div>
+
+                  <div class="create-record-shell__artifact-drop-items">
+                    <label
+                      v-for="artifact in stagedArtifacts"
+                      :key="artifact.id"
+                      class="create-record-shell__artifact-drop-item"
+                    >
+                      <q-checkbox
+                        :model-value="selectedArtifactIds.includes(artifact.id)"
+                        dense
+                        size="xs"
+                        checked-icon="check_box"
+                        unchecked-icon="check_box_outline_blank"
+                        class="create-record-shell__artifact-checkbox"
+                        @update:model-value="toggleArtifactSelection(artifact.id, $event)"
+                      />
+                      <span class="create-record-shell__artifact-drop-item-name">{{ artifact.name }}</span>
+                      <span class="create-record-shell__artifact-drop-item-size">{{ formatArtifactSize(artifact.size) }}</span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <div class="create-record-shell__intake-side">
@@ -54,45 +91,12 @@
                     </div>
                   </div>
 
-                  <div v-if="stagedArtifacts.length" class="create-record-shell__artifact-drop-list">
-                    <div class="create-record-shell__artifact-drop-list-head">
-                      <q-checkbox
-                        :model-value="allArtifactsSelected"
-                        dense
-                        size="xs"
-                        checked-icon="check_box"
-                        unchecked-icon="check_box_outline_blank"
-                        class="create-record-shell__artifact-checkbox"
-                        @update:model-value="toggleAllArtifacts"
-                      />
-                      <div class="create-record-shell__artifact-drop-list-meta">
-                        Select one, many, or all
-                      </div>
-                    </div>
-
-                    <div class="create-record-shell__artifact-drop-items">
-                      <label
-                        v-for="artifact in stagedArtifacts"
-                        :key="artifact.id"
-                        class="create-record-shell__artifact-drop-item"
-                      >
-                        <q-checkbox
-                          :model-value="selectedArtifactIds.includes(artifact.id)"
-                          dense
-                          size="xs"
-                          checked-icon="check_box"
-                          unchecked-icon="check_box_outline_blank"
-                          class="create-record-shell__artifact-checkbox"
-                          @update:model-value="toggleArtifactSelection(artifact.id, $event)"
-                        />
-                        <span class="create-record-shell__artifact-drop-item-name">{{ artifact.name }}</span>
-                        <span class="create-record-shell__artifact-drop-item-size">{{ formatArtifactSize(artifact.size) }}</span>
-                      </label>
-                    </div>
+                  <div v-if="stagedArtifacts.length" class="create-record-shell__processing-ready">
+                    Staged files are ready for selection and processing.
                   </div>
 
                   <div v-else class="create-record-shell__processing-empty">
-                    Staged files will appear here as you drop them.
+                    Drop files on the left to stage them for this record.
                   </div>
                 </div>
               </div>
@@ -566,7 +570,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  min-height: 220px;
+  min-height: 260px;
   padding: 20px 22px 16px;
   background: rgba(249, 249, 247, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.14);
@@ -607,7 +611,7 @@ onBeforeUnmount(() => {
 .create-record-shell__artifact-drop-list {
   display: grid;
   gap: 8px;
-  flex: 1 1 auto;
+  margin-top: auto;
   min-height: 0;
 }
 
@@ -718,6 +722,12 @@ onBeforeUnmount(() => {
 
 .create-record-shell__processing-empty {
   color: rgba(17, 17, 17, 0.54);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.create-record-shell__processing-ready {
+  color: rgba(17, 17, 17, 0.66);
   font-size: 0.76rem;
   line-height: 1.35;
 }
