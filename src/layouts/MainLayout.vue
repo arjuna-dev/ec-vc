@@ -663,7 +663,7 @@ const drawerNavigationSections = computed(() => [
       {
         kind: 'toggle',
         label: 'Knowledge DBs',
-        itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
+        itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle ec-nav-item--workspace-kdb-toggle',
         icon: 'database',
         iconSize: '22px',
         toggleKey: 'knowledge-dbs',
@@ -2054,6 +2054,10 @@ function goBack() {
 
 .ec-nav-item--workspace-toggle :deep(.q-item__section--avatar .q-icon) {
   transform: translateY(-1px);
+}
+
+.ec-nav-item--workspace-kdb-toggle :deep(.q-item__section--avatar .q-icon) {
+  transform: none;
 }
 
 .ec-nav-branch {
