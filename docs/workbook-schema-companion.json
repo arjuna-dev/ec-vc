@@ -5675,6 +5675,7 @@
               "address": "18.3.1",
               "token_name": "Financial_Industry_Name",
               "token_type": "text",
+              "db_field_aliases": ["Industry_Name"],
               "node_type": "leaf",
               "level": "3",
               "parent_id": "18.3.0"
@@ -5685,6 +5686,7 @@
               "address": "18.3.2",
               "token_name": "Financial_Industry_Summary",
               "token_type": "text",
+              "db_field_aliases": ["Industry_Summary"],
               "node_type": "leaf",
               "level": "3",
               "parent_id": "18.3.0"

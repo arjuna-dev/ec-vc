@@ -638,6 +638,16 @@ const SECTION_LOADERS = {
     resultKey: 'users',
     recordIdField: 'id',
   },
+  industries: {
+    listFn: (bridgeValue) => bridgeValue?.industries?.list?.(),
+    resultKey: 'industries',
+    recordIdField: 'id',
+  },
+  securities: {
+    listFn: (bridgeValue) => bridgeValue?.securities?.list?.(),
+    resultKey: 'securities',
+    recordIdField: 'id',
+  },
   artifacts: {
     listFn: (bridgeValue) => bridgeValue?.artifacts?.list?.(),
     resultKey: 'artifacts',

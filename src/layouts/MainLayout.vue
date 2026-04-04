@@ -583,7 +583,7 @@ if (companiesNavIndex >= 0) {
 const workspaceNavigationItems = [
   ...workspaceFileNavItems,
   {
-    label: 'Industries',
+    label: 'Markets',
     to: '/industries',
     exact: true,
     icon: 'category',
@@ -594,7 +594,7 @@ const workspaceNavigationItems = [
     label: 'Securities',
     to: '/securities',
     exact: true,
-    icon: 'shield',
+    icon: 'receipt_long',
     parentKey: 'knowledge-dbs',
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
@@ -623,7 +623,7 @@ const routeLabelByName = {
   rounds: 'Rounds',
   projects: 'Projects',
   artifacts: 'Artifacts',
-  industries: 'Industries',
+  industries: 'Markets',
   notes: 'Notes',
   securities: 'Securities',
   'artifacts-processed': 'Artifacts Processed',

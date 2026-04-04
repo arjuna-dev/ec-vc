@@ -43,8 +43,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   Notes: { key: 'notes', label: 'Notes', singularLabel: 'Note', routeName: 'notes', path: '/notes', icon: 'note', showInWorkspaceNav: true },
   Financial_Industries: {
     key: 'industries',
-    label: 'Industries',
-    singularLabel: 'Industry',
+    label: 'Markets',
+    singularLabel: 'Market',
     routeName: 'industries',
     path: '/industries',
     icon: 'category',
@@ -56,7 +56,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     singularLabel: 'Security',
     routeName: 'securities',
     path: '/securities',
-    icon: 'shield',
+    icon: 'receipt_long',
     showInWorkspaceNav: false,
   },
   Artifacts_Processed: {

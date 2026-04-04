@@ -118,6 +118,16 @@ contextBridge.exposeInMainWorld('ecvc', {
     create: (payload) => ipcRenderer.invoke('users:create', payload),
     delete: (userId) => ipcRenderer.invoke('users:delete', { userId }),
   },
+  industries: {
+    list: () => ipcRenderer.invoke('industries:list'),
+    create: (payload) => ipcRenderer.invoke('industries:create', payload),
+    delete: (industryId) => ipcRenderer.invoke('industries:delete', { industryId }),
+  },
+  securities: {
+    list: () => ipcRenderer.invoke('securities:list'),
+    create: (payload) => ipcRenderer.invoke('securities:create', payload),
+    delete: (securityId) => ipcRenderer.invoke('securities:delete', { securityId }),
+  },
   notes: {
     list: () => ipcRenderer.invoke('notes:list'),
     create: (payload) => ipcRenderer.invoke('notes:create', payload),

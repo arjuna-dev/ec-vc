@@ -1083,6 +1083,90 @@ function listUsers() {
   )
 }
 
+function listIndustries() {
+  return dbAll(
+    `
+    SELECT
+      id,
+      Industry_Name,
+      Industry_Summary,
+      created_at,
+      updated_at
+    FROM Industries
+    ORDER BY COALESCE(Industry_Name, '') ASC, id ASC
+  `,
+  )
+}
+
+function createIndustry(payload = {}) {
+  const database = initDb()
+  const name =
+    normalizeNullableString(payload?.Industry_Name) ||
+    normalizeNullableString(payload?.Financial_Industry_Name) ||
+    normalizeNullableString(payload?.Name) ||
+    normalizeNullableString(payload?.title)
+  if (!name) throw new Error('Market name is required')
+
+  const id = normalizeNullableString(payload?.id) || `industry:${crypto.randomUUID()}`
+  const summary =
+    normalizeNullableString(payload?.Industry_Summary) ||
+    normalizeNullableString(payload?.Financial_Industry_Summary) ||
+    normalizeNullableString(payload?.Summary) ||
+    normalizeNullableString(payload?.description)
+
+  database
+    .prepare(
+      `
+      INSERT INTO Industries (id, Industry_Name, Industry_Summary, created_at, updated_at)
+      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    `,
+    )
+    .run(id, name, summary)
+
+  return { id }
+}
+
+function listSecurities() {
+  return dbAll(
+    `
+    SELECT
+      id,
+      Round_Security_Name,
+      Round_Security_Summary,
+      created_at,
+      updated_at
+    FROM Round_Securities
+    ORDER BY COALESCE(Round_Security_Name, '') ASC, id ASC
+  `,
+  )
+}
+
+function createSecurity(payload = {}) {
+  const database = initDb()
+  const name =
+    normalizeNullableString(payload?.Round_Security_Name) ||
+    normalizeNullableString(payload?.Name) ||
+    normalizeNullableString(payload?.title)
+  if (!name) throw new Error('Security name is required')
+
+  const id = normalizeNullableString(payload?.id) || `security:${crypto.randomUUID()}`
+  const summary =
+    normalizeNullableString(payload?.Round_Security_Summary) ||
+    normalizeNullableString(payload?.Summary) ||
+    normalizeNullableString(payload?.description)
+
+  database
+    .prepare(
+      `
+      INSERT INTO Round_Securities (id, Round_Security_Name, Round_Security_Summary, created_at, updated_at)
+      VALUES (?, ?, ?, datetime('now'), datetime('now'))
+    `,
+    )
+    .run(id, name, summary)
+
+  return { id }
+}
+
 function createUser(payload = {}) {
   const database = initDb()
   const userName =
@@ -2148,6 +2232,18 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['User_Name', 'User_PEmail', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
+  Industries: {
+    tableName: 'Industries',
+    entityLabel: 'Market',
+    displayColumns: ['Industry_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Round_Securities: {
+    tableName: 'Round_Securities',
+    entityLabel: 'Security',
+    displayColumns: ['Round_Security_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
   Artifacts: {
     tableName: 'Artifacts',
     entityLabel: 'Artifact',
@@ -2212,6 +2308,12 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   contact: 'Contacts',
   users: 'Users',
   user: 'Users',
+  industries: 'Industries',
+  industry: 'Industries',
+  markets: 'Industries',
+  market: 'Industries',
+  financial_industries: 'Industries',
+  'financial industries': 'Industries',
   artifacts: 'Artifacts',
   artifact: 'Artifacts',
   opportunities: 'Opportunities',
@@ -2228,6 +2330,10 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   task: 'Tasks',
   notes: 'Notes',
   note: 'Notes',
+  securities: 'Round_Securities',
+  security: 'Round_Securities',
+  round_securities: 'Round_Securities',
+  'round securities': 'Round_Securities',
   'artifacts_processed': 'Artifacts_Processed',
   'artifacts-processed': 'Artifacts_Processed',
   'processed artifact': 'Artifacts_Processed',
@@ -5333,6 +5439,52 @@ function registerIpc() {
   ipcMain.handle('users:list', async () => {
     initDb()
     return { users: listUsers() }
+  })
+
+  ipcMain.handle('industries:list', async () => {
+    initDb()
+    return { industries: listIndustries() }
+  })
+
+  ipcMain.handle('industries:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createIndustry(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'markets'))
+    }
+  })
+
+  ipcMain.handle('industries:delete', async (_event, { industryId } = {}) => {
+    initDb()
+    const result = deleteRow('Industries', 'id', String(industryId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('securities:list', async () => {
+    initDb()
+    return { securities: listSecurities() }
+  })
+
+  ipcMain.handle('securities:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createSecurity(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'securities'))
+    }
+  })
+
+  ipcMain.handle('securities:delete', async (_event, { securityId } = {}) => {
+    initDb()
+    const result = deleteRow('Round_Securities', 'id', String(securityId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('users:create', async (_event, payload = {}) => {

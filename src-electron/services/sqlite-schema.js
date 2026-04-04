@@ -547,6 +547,15 @@ CREATE TABLE IF NOT EXISTS Intros (
 CREATE TABLE IF NOT EXISTS Industries (
   id TEXT PRIMARY KEY,
   Industry_Name TEXT,
+  Industry_Summary TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS Round_Securities (
+  id TEXT PRIMARY KEY,
+  Round_Security_Name TEXT,
+  Round_Security_Summary TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

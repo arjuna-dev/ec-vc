@@ -2994,12 +2994,14 @@
             {
               "address": "18.3.1",
               "token_name": "Financial_Industry_Name",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": ["Industry_Name"]
             },
             {
               "address": "18.3.2",
               "token_name": "Financial_Industry_Summary",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": ["Industry_Summary"]
             }
           ]
         }

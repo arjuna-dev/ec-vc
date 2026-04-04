@@ -86,6 +86,10 @@ function maybeRecreateDb(dbPath) {
     hasColumn(probe, 'Contacts', 'Personal_Email') &&
     hasColumn(probe, 'Contacts', 'Professional_Email') &&
     hasColumn(probe, 'Contacts', 'linked_user_id') &&
+    hasColumn(probe, 'Industries', 'Industry_Summary') &&
+    hasTable(probe, 'Round_Securities') &&
+    hasColumn(probe, 'Round_Securities', 'Round_Security_Name') &&
+    hasColumn(probe, 'Round_Securities', 'Round_Security_Summary') &&
     hasColumn(probe, 'Artifacts', 'created_by') &&
     hasColumn(probe, 'Artifacts', 'type') &&
     hasColumn(probe, 'Artifacts', 'round_id') &&
