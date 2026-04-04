@@ -562,6 +562,8 @@
         :initial-values="createDialogInitialValues"
         :initial-section-key="createDialogInitialSectionKey"
         :initial-artifacts="createDialogInitialArtifacts"
+        @change="handleCreateDialogChange"
+        @request-close="handleCreateDialogClose"
         @submit="submitCreateRecordShell"
       />
     </div>
@@ -610,9 +612,17 @@ const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
 const createDialogMode = ref('create')
 const editDialogRow = ref(null)
+const createDialogDraftRecordId = ref('')
+const createDialogDraftEntityName = ref('')
 const createDialogInitialSectionKey = ref('key-fields')
 const createDialogPrefillValues = ref({})
 const createDialogInitialArtifacts = ref([])
+const createDialogLastChangeSnapshot = ref(null)
+const createDialogLastSavedSignature = ref('')
+const createDialogAutosavePending = ref(false)
+let createDialogAutosaveTimer = null
+let createDialogAutosaveInFlight = false
+let queuedCreateDialogSnapshot = null
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
@@ -1595,6 +1605,7 @@ function openRecordView(row) {
 }
 
 function openCreateRecordShell(options = {}) {
+  resetCreateDialogAutosaveState()
   createDialogMode.value = 'create'
   editDialogRow.value = null
   createDialogInitialSectionKey.value = 'key-fields'
@@ -1606,8 +1617,11 @@ function openCreateRecordShell(options = {}) {
 
 async function openEditRecordShell(row) {
   if (!row?.recordId) return
+  resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
   editDialogRow.value = row
+  createDialogDraftRecordId.value = String(row.recordId || '').trim()
+  createDialogDraftEntityName.value = resolveEditEntityName(row)
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
@@ -1617,8 +1631,11 @@ async function openEditRecordShell(row) {
 
 async function openAddRelationShell(row) {
   if (!row?.recordId) return
+  resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
   editDialogRow.value = row
+  createDialogDraftRecordId.value = String(row.recordId || '').trim()
+  createDialogDraftEntityName.value = resolveEditEntityName(row)
   createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'key-fields'
   createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
@@ -1627,6 +1644,7 @@ async function openAddRelationShell(row) {
 }
 
 async function submitCreateRecordShell({ values } = {}) {
+  clearCreateDialogAutosaveTimer()
   const isEditMode = createDialogMode.value === 'edit'
 
   if (!isEditMode && !canCreateWithShell.value) {
@@ -1655,6 +1673,7 @@ async function submitCreateRecordShell({ values } = {}) {
       })
 
       createDialogOpen.value = false
+      resetCreateDialogAutosaveState()
       createDialogMode.value = 'create'
       editDialogRow.value = null
       createDialogInitialSectionKey.value = 'key-fields'
@@ -1684,6 +1703,7 @@ async function submitCreateRecordShell({ values } = {}) {
       }
 
       createDialogOpen.value = false
+      resetCreateDialogAutosaveState()
       createDialogInitialSectionKey.value = 'key-fields'
       createDialogPrefillValues.value = {}
       createDialogInitialArtifacts.value = []
@@ -1694,6 +1714,190 @@ async function submitCreateRecordShell({ values } = {}) {
     $q.notify({ type: 'negative', message: createError?.message || String(createError) })
   } finally {
     createDialogLoading.value = false
+  }
+}
+
+function handleCreateDialogChange(snapshot) {
+  createDialogLastChangeSnapshot.value = snapshot
+  if (!snapshot?.hasUserChanges) return
+  queueCreateDialogAutosave(snapshot)
+}
+
+async function handleCreateDialogClose(snapshot) {
+  createDialogLastChangeSnapshot.value = snapshot
+  await flushCreateDialogAutosave(snapshot, { immediate: true, reloadRows: true })
+  resetCreateDialogAutosaveState()
+  createDialogMode.value = 'create'
+  editDialogRow.value = null
+  createDialogInitialSectionKey.value = 'key-fields'
+  createDialogPrefillValues.value = {}
+  createDialogInitialArtifacts.value = []
+}
+
+function queueCreateDialogAutosave(snapshot) {
+  queuedCreateDialogSnapshot = snapshot
+  createDialogAutosavePending.value = true
+  clearCreateDialogAutosaveTimer()
+  createDialogAutosaveTimer = setTimeout(() => {
+    void flushCreateDialogAutosave(queuedCreateDialogSnapshot)
+  }, 280)
+}
+
+function clearCreateDialogAutosaveTimer() {
+  if (createDialogAutosaveTimer) {
+    clearTimeout(createDialogAutosaveTimer)
+    createDialogAutosaveTimer = null
+  }
+}
+
+function resetCreateDialogAutosaveState() {
+  clearCreateDialogAutosaveTimer()
+  createDialogDraftRecordId.value = ''
+  createDialogDraftEntityName.value = ''
+  createDialogLastChangeSnapshot.value = null
+  createDialogLastSavedSignature.value = ''
+  createDialogAutosavePending.value = false
+  queuedCreateDialogSnapshot = null
+}
+
+function buildCreateDialogAutosaveSignature(payload = {}, recordId = '', entityName = '') {
+  return JSON.stringify({
+    entityName: String(entityName || '').trim(),
+    recordId: String(recordId || '').trim(),
+    payload,
+  })
+}
+
+function resolveCreateDialogEntityName(payload = {}) {
+  if (createDialogDraftEntityName.value) return createDialogDraftEntityName.value
+  if (activeSourceKey.value === 'opportunities') {
+    const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
+    if (kind === 'fund') return 'Funds'
+    if (kind === 'round') return 'Rounds'
+  }
+  return activeRegistryEntry.value?.entityName || ''
+}
+
+function resolveEditEntityName(row) {
+  if (activeSourceKey.value !== 'opportunities') return activeRegistryEntry.value?.entityName || ''
+  const kindValue =
+    String(getCanonicalTokenValue(row?.raw || {}, { tokenName: 'Opportunity_Kind', dbFieldAliases: ['Opportunity_Kind'] }) || '')
+      .trim()
+      .toLowerCase()
+  if (kindValue === 'fund') return 'Funds'
+  if (kindValue === 'round') return 'Rounds'
+  return activeRegistryEntry.value?.entityName || ''
+}
+
+async function createRecordFromPayload(payload = {}) {
+  const sourceKey = activeSourceKey.value
+  let result = null
+  let entityName = activeRegistryEntry.value?.entityName || ''
+
+  if (sourceKey === 'opportunities') {
+    const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
+    if (kind === 'fund') {
+      result = await bridge.value?.funds?.create?.(payload)
+      entityName = 'Funds'
+    } else if (kind === 'round') {
+      result = await bridge.value?.rounds?.create?.(payload)
+      entityName = 'Rounds'
+    } else {
+      throw new Error('Choose Opportunity Kind as Fund or Round before creating.')
+    }
+  } else {
+    result = await bridge.value?.[sourceKey]?.create?.(payload)
+  }
+
+  if (!result?.id) {
+    throw new Error('Create bridge is not available for this record type yet.')
+  }
+
+  createDialogDraftRecordId.value = String(result.id || '').trim()
+  createDialogDraftEntityName.value = entityName
+  createDialogMode.value = 'edit'
+  editDialogRow.value = {
+    recordId: createDialogDraftRecordId.value,
+    raw: null,
+  }
+
+  await loadRows()
+  return { recordId: createDialogDraftRecordId.value, entityName }
+}
+
+async function updateRecordFromPayload(recordId, entityName, payload = {}) {
+  if (!recordId || !entityName) {
+    throw new Error('This record cannot be edited from the shared shell yet.')
+  }
+
+  await bridge.value?.databooks?.update?.({
+    tableName: entityName,
+    recordId,
+    changes: Object.entries(payload).map(([fieldName, value]) => ({
+      table_name: entityName,
+      record_id: recordId,
+      field_name: fieldName,
+      id_column: activeLoader.value?.recordIdField || 'id',
+      new_value: Array.isArray(value) ? JSON.stringify(value) : String(value ?? ''),
+    })),
+  })
+}
+
+async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRows = false } = {}) {
+  if (!snapshot?.hasUserChanges) return
+  if (!immediate && createDialogAutosaveInFlight) {
+    queuedCreateDialogSnapshot = snapshot
+    return
+  }
+
+  clearCreateDialogAutosaveTimer()
+  const payload = buildCreatePayload(snapshot.values)
+  if (!Object.keys(payload).length) {
+    createDialogAutosavePending.value = false
+    return
+  }
+
+  const currentRecordId = createDialogDraftRecordId.value || editDialogRow.value?.recordId || ''
+  const currentEntityName = resolveCreateDialogEntityName(payload)
+  const signature = buildCreateDialogAutosaveSignature(payload, currentRecordId, currentEntityName)
+  if (signature === createDialogLastSavedSignature.value) {
+    createDialogAutosavePending.value = false
+    return
+  }
+
+  if (createDialogAutosaveInFlight) {
+    queuedCreateDialogSnapshot = snapshot
+    return
+  }
+
+  createDialogAutosaveInFlight = true
+  createDialogAutosavePending.value = true
+  try {
+    let recordId = currentRecordId
+    let entityName = currentEntityName
+
+    if (!recordId) {
+      const createResult = await createRecordFromPayload(payload)
+      recordId = createResult.recordId
+      entityName = createResult.entityName
+    } else {
+      await updateRecordFromPayload(recordId, entityName, payload)
+      if (reloadRows) await loadRows()
+    }
+
+    createDialogLastSavedSignature.value = buildCreateDialogAutosaveSignature(payload, recordId, entityName)
+  } catch (autosaveError) {
+    $q.notify({ type: 'negative', message: autosaveError?.message || String(autosaveError) })
+  } finally {
+    createDialogAutosaveInFlight = false
+    createDialogAutosavePending.value = false
+    if (queuedCreateDialogSnapshot && queuedCreateDialogSnapshot !== snapshot) {
+      const nextSnapshot = queuedCreateDialogSnapshot
+      queuedCreateDialogSnapshot = null
+      void flushCreateDialogAutosave(nextSnapshot, { immediate: true, reloadRows })
+    } else {
+      queuedCreateDialogSnapshot = null
+    }
   }
 }
 

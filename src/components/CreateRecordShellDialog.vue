@@ -297,11 +297,18 @@ const props = defineProps({
   initialArtifacts: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['update:modelValue', 'submit'])
+const emit = defineEmits(['update:modelValue', 'submit', 'change', 'request-close'])
+
+const hasUserChanges = ref(false)
 
 const open = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
+  set: (value) => {
+    if (!value) {
+      emit('request-close', buildDialogSnapshot())
+    }
+    emit('update:modelValue', value)
+  },
 })
 
 const activeSectionKey = ref('key-fields')
@@ -376,6 +383,7 @@ watch(
   () => props.modelValue,
   (nextValue) => {
     if (!nextValue) return
+    hasUserChanges.value = false
     activeSectionKey.value = String(props.initialSectionKey || '').trim() || 'key-fields'
     artifactDragOver.value = false
     stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
@@ -402,16 +410,25 @@ function updateField(tokenKey, value) {
     ...formValues.value,
     [tokenKey]: value,
   }
+  hasUserChanges.value = true
+  emit('change', buildDialogSnapshot())
 }
 
 function submit() {
   emit('submit', {
+    ...buildDialogSnapshot(),
+  })
+}
+
+function buildDialogSnapshot() {
+  return {
     values: { ...formValues.value },
     artifacts: {
       stagedFiles: stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
       autoProcess: autoProcessArtifacts.value,
     },
-  })
+    hasUserChanges: hasUserChanges.value,
+  }
 }
 
 function stringValue(value) {
