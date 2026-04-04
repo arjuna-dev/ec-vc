@@ -38,7 +38,7 @@
             </q-select>
             <q-icon name="expand_more" class="ec-shell-test-select__chevron" />
             <q-tooltip anchor="bottom middle" self="top middle" class="ec-shell-test-select__tooltip">
-              Live L2 Source
+              Live L1 Source
             </q-tooltip>
           </div>
         </div>
