@@ -37,7 +37,7 @@
               </template>
             </q-select>
             <q-icon name="expand_more" class="ec-shell-test-select__chevron" />
-            <q-tooltip anchor="bottom middle" self="top middle" class="ec-shell-test-select__tooltip">
+            <q-tooltip anchor="top middle" self="bottom middle" class="ec-shell-test-select__tooltip">
               Live L2 Source
             </q-tooltip>
           </div>
@@ -1957,8 +1957,12 @@ function goBack() {
 
 .ec-shell-test-select__tooltip {
   font-family: var(--font-body);
-  font-size: 0.7rem;
-  letter-spacing: 0.01em;
+  font-size: 0.62rem;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(17, 17, 17, 0.92);
+  padding: 4px 7px;
 }
 
 .ec-breadcrumb-bar {
