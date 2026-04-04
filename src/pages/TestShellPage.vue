@@ -35,7 +35,7 @@
         :view-options="viewOptions"
         :show-view-toggle="true"
         @toggle-select-all="toggleSelectAllVisible"
-        @add="notifyShellAction('Add Record')"
+        @add="openCreateRecordForActiveSource"
         @update:search-query="searchQuery = $event"
         @update:view-mode="viewMode = $event"
       >
@@ -620,6 +620,16 @@ const SECTION_LOADERS = {
     recordIdField: 'id',
   },
 }
+
+const CREATE_ROUTE_BY_SOURCE = Object.freeze({
+  users: { name: 'users', query: { create: '1' } },
+  contacts: { name: 'contacts', query: { create: '1' } },
+  companies: { name: 'companies', query: { create: '1' } },
+  opportunities: { name: 'opportunities', query: { create: 'opportunity' } },
+  projects: { name: 'projects', query: { create: '1' } },
+  tasks: { name: 'tasks', query: { create: '1' } },
+  notes: { name: 'notes', query: { create: '1' } },
+})
 
 const fallbackSectionKey =
   TEST_SHELL_SECTION_OPTIONS.find((option) => option.value === 'tasks')?.value ||
@@ -1224,6 +1234,27 @@ function openRecordView(row) {
     })
   if (!location) return
   router.push(location)
+}
+
+async function openCreateRecordForActiveSource() {
+  const sourceKey = activeSourceKey.value
+
+  if (sourceKey === 'artifacts') {
+    await router.push({ name: 'artifacts' })
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('ecvc:open-artifact-dialog'))
+      window.setTimeout(() => window.dispatchEvent(new Event('ecvc:open-artifact-dialog')), 80)
+    }
+    return
+  }
+
+  const routeTarget = CREATE_ROUTE_BY_SOURCE[sourceKey]
+  if (!routeTarget) {
+    notifyShellAction('Add Record')
+    return
+  }
+
+  await router.push(routeTarget)
 }
 
 function setActiveFilterSection(sectionKey) {
