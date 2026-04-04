@@ -1439,23 +1439,24 @@ function notifyShellAction(label) {
 }
 
 .test-shell-table-tabs__tab {
-  min-height: 28px;
-  padding: 0 10px;
-  color: rgba(17, 17, 17, 0.62);
-  background: transparent;
+  min-height: 30px;
+  padding: 0 11px;
+  color: #111111;
+  background: #f3f1ea;
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 999px;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: var(--font-weight-medium);
-  line-height: 1;
+  border-radius: 10px;
+  font-family: var(--font-title);
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  letter-spacing: 0.01em;
   cursor: pointer;
 }
 
 .test-shell-table-tabs__tab--active {
-  color: #111111;
-  background: rgba(17, 17, 17, 0.06);
-  border-color: rgba(17, 17, 17, 0.14);
+  color: #ffffff;
+  background: #111111;
+  border-color: #111111;
 }
 
 .test-shell-table-scroll {
