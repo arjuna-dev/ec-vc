@@ -521,6 +521,17 @@
           </div>
         </template>
       </div>
+
+      <SelectionActionBar
+        :count="selectedRows.length"
+        :loading="loading"
+        :can-share="selectedRows.length > 0"
+        :can-edit="selectedRows.length > 0"
+        :can-delete="selectedRows.length > 0"
+        @share="handleSelectedRowsShare"
+        @edit="handleSelectedRowsEdit"
+        @delete="handleSelectedRowsDelete"
+      />
     </div>
   </q-page>
 </template>
@@ -531,6 +542,7 @@ import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
+import SelectionActionBar from 'components/SelectionActionBar.vue'
 import {
   buildCardRelationshipItems,
   buildCardRelationshipOptions,
@@ -545,6 +557,7 @@ import {
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
+import { openFirstSelectedRecord, shareRecordSelection } from 'src/utils/recordListSelectionActions'
 
 const route = useRoute()
 const router = useRouter()
@@ -714,6 +727,7 @@ const displayRows = computed(() => {
 const visibleSelectableRowIds = computed(() =>
   displayRows.value.map((row) => String(row.recordId || row.cardId || '').trim()).filter(Boolean),
 )
+const selectedRows = computed(() => displayRows.value.filter((row) => isRowSelected(row)))
 
 const allVisibleSelected = computed(() => {
   if (!visibleSelectableRowIds.value.length) return false
@@ -1287,6 +1301,25 @@ function notifyShellAction(label) {
     type: 'info',
     message: `${label} is visible in the shared shell, but the explicit shell action contract is not defined yet.`,
   })
+}
+
+async function handleSelectedRowsShare() {
+  await shareRecordSelection({
+    rows: selectedRows.value,
+    entityLabel: activeRegistryEntry.value?.label || 'Records',
+    singularLabel: activeRegistryEntry.value?.singularLabel || 'record',
+    pluralLabel: activeRegistryEntry.value?.label || 'records',
+    getLabel: (row) => row?.titleValue || row?.recordId || '',
+    notify: (payload) => $q.notify(payload),
+  })
+}
+
+function handleSelectedRowsEdit() {
+  openFirstSelectedRecord(selectedRows.value, openRecordView)
+}
+
+function handleSelectedRowsDelete() {
+  notifyShellAction('Delete selected')
 }
 
 </script>
