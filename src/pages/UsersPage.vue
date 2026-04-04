@@ -310,9 +310,10 @@
       <SelectionActionBar
         :count="selectedCount"
         :loading="loading"
-        :can-delete="false"
+        :can-delete="canDeleteUsers"
         @share="shareSelected"
         @edit="editSelected"
+        @remove="deleteSelected"
       />
     </div>
   </q-page>
@@ -477,6 +478,7 @@ const displayRows = computed(() => {
 })
 
 const selectedCount = computed(() => selectedUsers.value.length)
+const canDeleteUsers = computed(() => !!bridge.value?.users?.delete)
 const visibleUserIds = computed(() =>
   displayRows.value
     .map((row) => String(row?.id || '').trim())
@@ -745,6 +747,38 @@ async function shareSelected() {
       message: 'Unable to copy selected users from this environment.',
     })
   }
+}
+
+async function deleteUser(user) {
+  await bridge.value.users.delete(user.id)
+}
+
+function deleteSelected() {
+  if (!bridge.value?.users?.delete || selectedCount.value === 0) return
+  const count = selectedCount.value
+  $q.dialog({
+    title: 'Delete selected users?',
+    message: `This will permanently delete ${count} selected user${count === 1 ? '' : 's'}.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      for (const user of selectedUsers.value) {
+        await deleteUser(user)
+      }
+      selectedUsers.value = []
+      await loadUsers()
+      $q.notify({
+        type: 'positive',
+        message: `${count} user${count === 1 ? '' : 's'} deleted.`,
+      })
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e?.message || String(e) })
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 async function importRows(importedRows = []) {
