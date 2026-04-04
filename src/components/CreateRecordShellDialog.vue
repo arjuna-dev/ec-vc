@@ -1010,18 +1010,23 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: var(--create-record-shell-label-width, 12ch) minmax(0, 1fr);
   gap: 10px;
-  align-items: start;
+  align-items: center;
 }
 
 .create-record-shell__field--wide {
   grid-column: 1 / -1;
+  align-items: start;
 }
 
 .create-record-shell__field-copy {
   display: grid;
   gap: 0;
-  padding-top: 6px;
+  padding-top: 0;
   justify-self: end;
+}
+
+.create-record-shell__field--wide .create-record-shell__field-copy {
+  padding-top: 6px;
 }
 
 .create-record-shell__field-label {
