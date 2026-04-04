@@ -13,7 +13,6 @@
               class="create-record-shell__intake-toggle"
               @click="supportResourcesCollapsed = !supportResourcesCollapsed"
             >
-              <span class="create-record-shell__intake-title">Support Resources</span>
               <q-icon
                 :name="supportResourcesCollapsed ? 'expand_more' : 'expand_less'"
                 class="create-record-shell__intake-toggle-icon"
@@ -673,7 +672,7 @@ onBeforeUnmount(() => {
 .create-record-shell__title {
   color: #111111;
   font-family: var(--font-title);
-  font-size: 1.02rem;
+  font-size: 1.22rem;
   font-weight: var(--font-weight-black);
   line-height: 0.94;
   margin-bottom: 12px;
