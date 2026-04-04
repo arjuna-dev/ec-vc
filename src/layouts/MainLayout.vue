@@ -566,7 +566,7 @@ const mainNavigationItems = [
   itemClass: 'ec-nav-item--primary',
   iconSize: '22px',
 }))
-const workspaceFileNavItems = [...WORKSPACE_FILE_NAV_ITEMS]
+const workspaceFileNavItems = WORKSPACE_FILE_NAV_ITEMS.filter((item) => item.to !== '/assistants')
 const companiesNavIndex = workspaceFileNavItems.findIndex((item) => item.to === '/companies')
 
 if (companiesNavIndex >= 0) {

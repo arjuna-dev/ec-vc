@@ -716,9 +716,13 @@ const routeDrivenSourceKey = computed(() => {
   return TEST_SHELL_SECTION_OPTIONS.find((option) => option.value === routeName)?.value || ''
 })
 
+const isLiteralTestShellRoute = computed(() => String(route.name || '').trim().toLowerCase() === 'test-shell')
+
 const activeSourceKey = computed(() => {
-  const current = String(route.query.section || '').trim().toLowerCase()
-  if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current)) return current
+  if (isLiteralTestShellRoute.value) {
+    const current = String(route.query.section || '').trim().toLowerCase()
+    if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current)) return current
+  }
   if (routeDrivenSourceKey.value) return routeDrivenSourceKey.value
   return fallbackSectionKey
 })
@@ -728,7 +732,7 @@ const activeRegistryEntry = computed(
 )
 const routeRegistryEntry = computed(() => getFilePageRegistryEntryByRouteName(route.name))
 const pageShellLabel = computed(() => {
-  if (String(route.name || '').trim().toLowerCase() === 'test-shell') return 'Test Shell'
+  if (isLiteralTestShellRoute.value) return 'Test Shell'
   return routeRegistryEntry.value?.label || activeRegistryEntry.value?.label || 'Records'
 })
 
