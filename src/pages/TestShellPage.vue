@@ -1188,10 +1188,12 @@ function updateTestShellCardGradientPosition(event) {
 
 function openRecordView(row) {
   if (!row?.recordId || !activeRegistryEntry.value?.entityName) return
+  const cardFields = selectedCardItemTokens.value.map((token) => String(token?.tokenName || '').trim()).filter(Boolean)
   const location = buildRecordViewLocation({
       tableName: activeRegistryEntry.value.entityName,
       recordId: row.recordId,
       returnTo: route.fullPath,
+      query: cardFields.length ? { cardFields: cardFields.join(',') } : {},
     })
   if (!location) return
   router.push(location)

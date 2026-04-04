@@ -1,6 +1,6 @@
 export const RECORD_VIEW_ROUTE_NAME = 'record-view'
 
-export function buildRecordViewLocation({ tableName, recordId, returnTo } = {}) {
+export function buildRecordViewLocation({ tableName, recordId, returnTo, query } = {}) {
   const normalizedRecordId = String(recordId || '').trim()
   if (!normalizedRecordId) return null
 
@@ -12,8 +12,14 @@ export function buildRecordViewLocation({ tableName, recordId, returnTo } = {}) 
     },
   }
 
+  const nextQuery = { ...(query || {}) }
+
   if (returnTo) {
-    location.query = { returnTo }
+    nextQuery.returnTo = returnTo
+  }
+
+  if (Object.keys(nextQuery).length) {
+    location.query = nextQuery
   }
 
   return location

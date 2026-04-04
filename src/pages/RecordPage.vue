@@ -1863,6 +1863,32 @@ const recordFeedStorageKey = computed(() => {
   const tableName = String(currentView.value?.table_name || tableNameParam.value || 'Record').trim() || 'Record'
   return `ecvc.recordFeed.${userKey}.${tableName}`
 })
+const routeCardFieldTokenNames = computed(() => {
+  const raw = route.query.cardFields
+  const joined = Array.isArray(raw) ? raw.join(',') : String(raw || '')
+  return joined
+    .split(',')
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+})
+const routeCardFieldTokenConfigs = computed(() => {
+  const entityName = String(currentView.value?.table_name || tableNameParam.value || '').trim()
+  const subsections = CANONICAL_STRUCTURE_BY_ENTITY[entityName]?.subsections || []
+  const tokens = subsections.flatMap((subsection) => subsection?.tokens || [])
+  return routeCardFieldTokenNames.value
+    .map((tokenName) => {
+      const token = tokens.find((entry) => String(entry?.token_name || '').trim() === tokenName)
+      if (!token) return null
+      return {
+        tokenName,
+        label: formatCanonicalLabel(tokenName, getCanonicalEntityPrefix(entityName)),
+        aliases: Array.isArray(token?.db_field_aliases) && token.db_field_aliases.length
+          ? token.db_field_aliases
+          : getCanonicalTokenAliases(entityName, tokenName),
+      }
+    })
+    .filter(Boolean)
+})
 const availableContactSummaryOptions = computed(() =>
   CONTACT_SUMMARY_OPTIONS.map((option) => ({
     ...option,
@@ -1921,6 +1947,16 @@ const companySummaryStats = computed(() => {
     }))
 })
 const genericMiniDashboardStats = computed(() => {
+  if (routeCardFieldTokenConfigs.value.length) {
+    return routeCardFieldTokenConfigs.value.map((token) => ({
+      id: token.tokenName,
+      label: token.label,
+      displayValue:
+        token.aliases.map((alias) => getFieldDisplayValue(alias)).find((value) => String(value || '').trim()) ||
+        'Not added yet',
+    }))
+  }
+
   const configured = [
     {
       id: 'subtitle',
@@ -2002,6 +2038,22 @@ function formatCanonicalLabel(value, entityPrefix = '') {
   if (/^results overview$/i.test(label)) return 'Results'
   if (/^business plan$/i.test(label)) return 'Planning'
   return label
+}
+
+function getCanonicalEntityPrefix(entityName = '') {
+  const mapping = {
+    Artifacts: 'Artifact',
+    Users: 'User',
+    Contacts: 'Contact',
+    Companies: 'Company',
+    Opportunities: 'Opportunity',
+    Funds: 'Fund',
+    Rounds: 'Round',
+    Projects: 'Project',
+    Tasks: 'Task',
+    Notes: 'Note',
+  }
+  return mapping[String(entityName || '').trim()] || ''
 }
 
 function getCanonicalSectionIcon(subsection) {
