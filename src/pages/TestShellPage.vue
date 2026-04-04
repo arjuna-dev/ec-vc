@@ -527,7 +527,7 @@
         :loading="loading"
         :can-share="selectedRows.length > 0"
         :can-edit="selectedRows.length > 0"
-        :can-delete="selectedRows.length > 0"
+        :can-delete="canDeleteSelectedRows"
         @share="handleSelectedRowsShare"
         @edit="handleSelectedRowsEdit"
         @delete="handleSelectedRowsDelete"
@@ -749,6 +749,10 @@ const canCreateWithShell = computed(() => {
   if (activeSourceKey.value === 'artifacts') return false
   if (activeSourceKey.value === 'opportunities') return Boolean(bridge.value?.funds?.create || bridge.value?.rounds?.create)
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
+})
+const canDeleteSelectedRows = computed(() => {
+  if (selectedRows.value.length === 0) return false
+  return typeof bridge.value?.[activeSourceKey.value]?.delete === 'function'
 })
 const tableSectionTokens = computed(() =>
   activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
@@ -1500,8 +1504,52 @@ function handleSelectedRowsEdit() {
   openFirstSelectedRecord(selectedRows.value, openRecordView)
 }
 
-function handleSelectedRowsDelete() {
-  notifyShellAction('Delete selected')
+async function handleSelectedRowsDelete() {
+  if (!canDeleteSelectedRows.value) return
+
+  const deleteFn = bridge.value?.[activeSourceKey.value]?.delete
+  if (typeof deleteFn !== 'function') return
+
+  const selectedCount = selectedRows.value.length
+  const entityLabel = String(activeRegistryEntry.value?.label || 'records').trim()
+
+  $q.dialog({
+    title: 'Delete Selected',
+    message: `This will permanently delete ${selectedCount} selected ${entityLabel.toLowerCase()}.`,
+    cancel: true,
+    persistent: true,
+    ok: {
+      label: 'Delete',
+      color: 'negative',
+      unelevated: true,
+      noCaps: true,
+    },
+  }).onOk(async () => {
+    loading.value = true
+    error.value = ''
+
+    try {
+      for (const row of selectedRows.value) {
+        await deleteFn(row.recordId)
+      }
+
+      selectedRowIds.value = []
+      await loadRows()
+      $q.notify({
+        type: 'positive',
+        message: `${selectedCount} ${entityLabel.toLowerCase()} deleted.`,
+      })
+    } catch (deleteError) {
+      const message = String(deleteError?.message || '').trim() || 'Failed to delete selected records.'
+      error.value = message
+      $q.notify({
+        type: 'negative',
+        message,
+      })
+    } finally {
+      loading.value = false
+    }
+  })
 }
 
 </script>
