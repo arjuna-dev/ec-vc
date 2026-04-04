@@ -779,7 +779,7 @@ const displayRows = computed(() => {
 })
 
 function normalizeCreateDialogToken(token) {
-  if (!isStatusToken(token)) return token
+  if (!isSingleSelectToken(token)) return token
 
   return {
     ...token,
@@ -788,11 +788,25 @@ function normalizeCreateDialogToken(token) {
   }
 }
 
-function isStatusToken(token) {
-  return String(token?.label || '').trim().toLowerCase() === 'status'
+const EXPLICIT_SINGLE_SELECT_OPTIONS_BY_TOKEN = Object.freeze({
+  Company_Status: [
+    { label: 'On-Going', value: 'ongoing' },
+    { label: 'Closed', value: 'closed' },
+  ],
+  Task_Status: ['Backlog', 'In Progress', 'Completed', 'Closed'].map((value) => ({ label: value, value })),
+  Task_Priority_Rank: ['Low', 'Mid-Low', 'Mid', 'Mid-High', 'High'].map((value) => ({ label: value, value })),
+})
+
+function isSingleSelectToken(token) {
+  const tokenName = String(token?.tokenName || token?.key || '').trim()
+  return tokenName.endsWith('_Status') || tokenName.endsWith('_Priority_Rank')
 }
 
 function getSingleSelectOptionsForToken(token) {
+  const tokenName = String(token?.tokenName || token?.key || '').trim()
+  const explicitOptions = EXPLICIT_SINGLE_SELECT_OPTIONS_BY_TOKEN[tokenName]
+  if (explicitOptions?.length) return explicitOptions
+
   const values = Array.from(
     new Set(
       rawRows.value
