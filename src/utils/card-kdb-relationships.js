@@ -1,7 +1,7 @@
 export const CARD_KDB_RELATIONSHIP_DEFS = [
-  { value: 'users', label: 'Users', icon: 'person' },
+  { value: 'users', label: 'Users', icon: 'badge' },
   { value: 'artifacts', label: 'Artifacts', icon: 'attach_file' },
-  { value: 'contacts', label: 'Contacts', icon: 'badge' },
+  { value: 'contacts', label: 'Contacts', icon: 'person' },
   { value: 'companies', label: 'Companies', icon: 'apartment' },
   { value: 'opportunities', label: 'Opportunities', icon: 'paid' },
   { value: 'projects', label: 'Projects', icon: 'workspaces' },
