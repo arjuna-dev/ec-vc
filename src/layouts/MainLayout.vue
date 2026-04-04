@@ -367,7 +367,7 @@
               <q-btn
                 class="full-width"
                 :outline="branch !== createBranchOptions[0]"
-                color="primary"
+                color="black"
                 :icon="branch.icon"
                 :label="branch.label"
                 @click="confirmCreateBranch(branch.value)"
