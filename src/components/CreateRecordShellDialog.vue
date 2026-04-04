@@ -662,7 +662,7 @@ function formatArtifactSize(size) {
 
 .create-record-shell__field {
   display: grid;
-  grid-template-columns: minmax(96px, 120px) minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: 4px;
   align-items: start;
 }
@@ -675,6 +675,7 @@ function formatArtifactSize(size) {
   display: grid;
   gap: 4px;
   padding-top: 6px;
+  justify-self: start;
 }
 
 .create-record-shell__field-label {
