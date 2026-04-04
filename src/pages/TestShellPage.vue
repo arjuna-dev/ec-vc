@@ -793,7 +793,10 @@ const EXPLICIT_SINGLE_SELECT_OPTIONS_BY_TOKEN = Object.freeze({
     { label: 'On-Going', value: 'ongoing' },
     { label: 'Closed', value: 'closed' },
   ],
-  Task_Status: ['Backlog', 'In Progress', 'Completed', 'Closed'].map((value) => ({ label: value, value })),
+  Task_Status: ['Not Started', 'On-Going', 'Paused', 'Dropped', 'Finished'].map((value) => ({
+    label: value,
+    value,
+  })),
   Task_Priority_Rank: ['Low', 'Mid-Low', 'Mid', 'Mid-High', 'High'].map((value) => ({ label: value, value })),
 })
 
