@@ -610,6 +610,7 @@ const createDialogMode = ref('create')
 const editDialogRow = ref(null)
 const createDialogInitialSectionKey = ref('key-fields')
 const createDialogPrefillValues = ref({})
+const createDialogInitialArtifacts = ref([])
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
@@ -813,16 +814,6 @@ const createDialogInitialValues = computed(() => {
     ...createDialogPrefillValues.value,
     ...editValues,
   }
-})
-const createDialogInitialArtifacts = computed(() => {
-  if (createDialogMode.value !== 'edit' || !editDialogRow.value) return []
-  const artifactItems = Array.isArray(editDialogRow.value.relationshipItemsByType?.artifacts)
-    ? editDialogRow.value.relationshipItemsByType.artifacts
-    : []
-  return artifactItems.map((name, index) => ({
-    id: `${editDialogRow.value.recordId || 'record'}:artifact:${index}`,
-    name: String(name || '').trim(),
-  })).filter((artifact) => artifact.name)
 })
 const canDeleteSelectedRows = computed(() => {
   if (selectedRows.value.length === 0) return false
@@ -1607,24 +1598,27 @@ function openCreateRecordShell(options = {}) {
   editDialogRow.value = null
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}
+  createDialogInitialArtifacts.value = []
   createDialogOpen.value = true
 }
 
-function openEditRecordShell(row) {
+async function openEditRecordShell(row) {
   if (!row?.recordId) return
   createDialogMode.value = 'edit'
   editDialogRow.value = row
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = {}
+  createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
   createDialogOpen.value = true
 }
 
-function openAddRelationShell(row) {
+async function openAddRelationShell(row) {
   if (!row?.recordId) return
   createDialogMode.value = 'edit'
   editDialogRow.value = row
   createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'key-fields'
   createDialogPrefillValues.value = {}
+  createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
   createDialogOpen.value = true
 }
 
@@ -1661,6 +1655,7 @@ async function submitCreateRecordShell({ values } = {}) {
       editDialogRow.value = null
       createDialogInitialSectionKey.value = 'key-fields'
       createDialogPrefillValues.value = {}
+      createDialogInitialArtifacts.value = []
       $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
       await loadRows()
     } else {
@@ -1687,6 +1682,7 @@ async function submitCreateRecordShell({ values } = {}) {
       createDialogOpen.value = false
       createDialogInitialSectionKey.value = 'key-fields'
       createDialogPrefillValues.value = {}
+      createDialogInitialArtifacts.value = []
       $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
       await loadRows()
     }
@@ -1724,6 +1720,153 @@ function buildUpdateChanges(payload = {}) {
     id_column: activeLoader.value?.recordIdField || 'id',
     new_value: Array.isArray(value) ? JSON.stringify(value) : String(value ?? ''),
   }))
+}
+
+async function resolveTrueArtifactsForRow(row) {
+  const sourceKey = activeSourceKey.value
+  if (sourceKey === 'companies') return await loadCompanyArtifactsForRow(row)
+  if (sourceKey === 'contacts') return await loadContactArtifactsForRow(row)
+  return buildFallbackArtifactsForRow(row)
+}
+
+function buildFallbackArtifactsForRow(row) {
+  const artifactItems = Array.isArray(row?.relationshipItemsByType?.artifacts) ? row.relationshipItemsByType.artifacts : []
+  return artifactItems
+    .map((name, index) => ({
+      id: `${row?.recordId || 'record'}:artifact:${index}`,
+      name: String(name || '').trim(),
+    }))
+    .filter((artifact) => artifact.name)
+}
+
+async function loadCompanyArtifactsForRow(row) {
+  const recordId = String(row?.recordId || '').trim()
+  if (!recordId || !bridge.value?.artifacts?.list) return buildFallbackArtifactsForRow(row)
+
+  try {
+    const [artifactResult, relatedOpportunityIds] = await Promise.all([
+      bridge.value.artifacts.list(),
+      resolveCompanyOpportunityIdsForShell(recordId),
+    ])
+    const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
+    const grouped = new Map()
+
+    for (const artifact of artifacts) {
+      const opportunityId = String(artifact?.opportunity_id || '').trim()
+      if (!relatedOpportunityIds.has(opportunityId)) continue
+      const groupKey = String(artifact?.original_artifact_id || '').trim() || String(artifact?.artifact_id || '').trim()
+      if (!groupKey) continue
+      const existing = grouped.get(groupKey)
+      if (!existing) grouped.set(groupKey, artifact)
+    }
+
+    return Array.from(grouped.values())
+      .map((artifact, index) => ({
+        id: String(artifact?.original_artifact_id || artifact?.artifact_id || `artifact:${index}`).trim(),
+        name:
+          String(artifact?.title || '').trim() ||
+          String(artifact?.fs_path || '').split('/').pop()?.trim() ||
+          `Artifact ${index + 1}`,
+      }))
+      .filter((artifact) => artifact.name)
+  } catch {
+    return buildFallbackArtifactsForRow(row)
+  }
+}
+
+async function resolveCompanyOpportunityIdsForShell(companyId) {
+  const normalizedCompanyId = String(companyId || '').trim()
+  if (!normalizedCompanyId) return new Set()
+
+  if (bridge.value?.db?.query) {
+    try {
+      const rows = await bridge.value.db.query(
+        `
+        SELECT DISTINCT id
+        FROM (
+          SELECT o.id
+          FROM Opportunities o
+          WHERE o.company_id = ?
+
+          UNION
+
+          SELECT r.id
+          FROM Rounds r
+          INNER JOIN Round_Overview ro ON ro.round_id = r.id
+          WHERE ro.sponsor_company_id = ?
+        ) related_opportunities
+      `,
+        [normalizedCompanyId, normalizedCompanyId],
+      )
+      return new Set((Array.isArray(rows) ? rows : []).map((entry) => String(entry?.id || '').trim()).filter(Boolean))
+    } catch {
+      // Fall back to the generic opportunity list when direct querying is unavailable.
+    }
+  }
+
+  if (bridge.value?.opportunities?.list) {
+    try {
+      const result = await bridge.value.opportunities.list()
+      const opportunities = Array.isArray(result?.opportunities) ? result.opportunities : []
+      return new Set(
+        opportunities
+          .filter((opportunity) => String(opportunity?.company_id || '').trim() === normalizedCompanyId)
+          .map((opportunity) => String(opportunity?.id || '').trim())
+          .filter(Boolean),
+      )
+    } catch {
+      // Return an empty set below if the list bridge cannot resolve related opportunities.
+    }
+  }
+
+  return new Set()
+}
+
+async function loadContactArtifactsForRow(row) {
+  const recordId = String(row?.recordId || '').trim()
+  if (!recordId || !bridge.value?.artifacts?.list) return buildFallbackArtifactsForRow(row)
+
+  try {
+    const [artifactResult, opportunitiesResult] = await Promise.all([
+      bridge.value.artifacts.list(),
+      bridge.value?.opportunities?.list ? bridge.value.opportunities.list() : Promise.resolve({ opportunities: [] }),
+    ])
+    const opportunities = Array.isArray(opportunitiesResult?.opportunities) ? opportunitiesResult.opportunities : []
+    const relatedOpportunityIds = new Set(
+      opportunities
+        .filter(
+          (opportunity) =>
+            String(opportunity?.Owner || '').trim() === recordId ||
+            String(opportunity?.Source_Contact || '').trim() === recordId,
+        )
+        .map((opportunity) => String(opportunity?.id || '').trim())
+        .filter(Boolean),
+    )
+    const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
+    const grouped = new Map()
+
+    for (const artifact of artifacts) {
+      const createdBy = String(artifact?.created_by || '').trim()
+      const opportunityId = String(artifact?.opportunity_id || '').trim()
+      if (createdBy !== recordId && !relatedOpportunityIds.has(opportunityId)) continue
+      const groupKey = String(artifact?.original_artifact_id || '').trim() || String(artifact?.artifact_id || '').trim()
+      if (!groupKey) continue
+      const existing = grouped.get(groupKey)
+      if (!existing) grouped.set(groupKey, artifact)
+    }
+
+    return Array.from(grouped.values())
+      .map((artifact, index) => ({
+        id: String(artifact?.original_artifact_id || artifact?.artifact_id || `artifact:${index}`).trim(),
+        name:
+          String(artifact?.title || '').trim() ||
+          String(artifact?.fs_path || '').split('/').pop()?.trim() ||
+          `Artifact ${index + 1}`,
+      }))
+      .filter((artifact) => artifact.name)
+  } catch {
+    return buildFallbackArtifactsForRow(row)
+  }
 }
 
 function normalizeCreateFieldValue(token, value) {

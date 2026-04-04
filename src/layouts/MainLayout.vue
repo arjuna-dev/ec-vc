@@ -31,12 +31,6 @@
               hide-dropdown-icon
               :options="testShellSectionOptions"
               popup-content-class="ec-shell-test-select-menu"
-              :popup-content-style="{
-                background: 'transparent',
-                boxShadow: 'none',
-                border: '0',
-                padding: '0',
-              }"
               class="ec-shell-test-select"
             >
               <template #selected-item="scope">
