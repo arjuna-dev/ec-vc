@@ -79,6 +79,7 @@
                     new-value-mode="add-unique"
                     :disable="loading"
                     class="create-record-shell__input"
+                    :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
                     @update:model-value="updateField(token.key, $event)"
                   />
 
@@ -88,8 +89,10 @@
                     dense
                     outlined
                     :disable="loading"
-                    :type="inputTypeForToken(token.tokenType)"
+                    :type="isSummaryField(token) ? 'textarea' : inputTypeForToken(token.tokenType)"
+                    :autogrow="isSummaryField(token)"
                     class="create-record-shell__input"
+                    :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
                     @update:model-value="updateField(token.key, $event)"
                   />
                 </div>
@@ -145,6 +148,7 @@
                     new-value-mode="add-unique"
                     :disable="loading"
                     class="create-record-shell__input"
+                    :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
                     @update:model-value="updateField(token.key, $event)"
                   />
 
@@ -154,8 +158,10 @@
                     dense
                     outlined
                     :disable="loading"
-                    :type="inputTypeForToken(token.tokenType)"
+                    :type="isSummaryField(token) ? 'textarea' : inputTypeForToken(token.tokenType)"
+                    :autogrow="isSummaryField(token)"
                     class="create-record-shell__input"
+                    :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
                     @update:model-value="updateField(token.key, $event)"
                   />
                 </div>
@@ -296,6 +302,10 @@ function formatFieldType(tokenType) {
 
 function isWideField(token) {
   return ['text', 'url', 'select_multi'].includes(String(token?.tokenType || '').trim())
+}
+
+function isSummaryField(token) {
+  return String(token?.label || '').trim().toLowerCase() === 'summary'
 }
 </script>
 
@@ -503,6 +513,16 @@ function isWideField(token) {
 
 .create-record-shell__input {
   background: rgba(255, 255, 255, 0.92);
+}
+
+.create-record-shell__input--summary :deep(.q-field__control) {
+  min-height: 132px;
+  border-radius: 8px;
+  align-items: flex-start;
+}
+
+.create-record-shell__input--summary :deep(textarea) {
+  min-height: 108px !important;
 }
 
 .create-record-shell__empty {
