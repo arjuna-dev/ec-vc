@@ -108,107 +108,123 @@
       </q-card-section>
 
       <q-card-section class="create-record-shell__body">
-        <div class="create-record-shell__tabs">
-          <div class="create-record-shell__tabs-left">
-            <button
-              v-for="section in leftPanelSections"
-              :key="section.key"
-              type="button"
-              class="create-record-shell__tab"
-              :class="{ 'create-record-shell__tab--active': section.key === activeSectionKey }"
-              @click="activeSectionKey = section.key"
-            >
-              {{ section.label }}
-            </button>
-          </div>
-
-          <div class="create-record-shell__tabs-right">
-            <button
-              v-for="section in rightSections"
-              :key="section.key"
-              type="button"
-              class="create-record-shell__tab"
-              :class="{ 'create-record-shell__tab--active': section.key === activeSectionKey }"
-              @click="activeSectionKey = section.key"
-            >
-              {{ section.label }}
-            </button>
-          </div>
-        </div>
-
-        <div class="create-record-shell__panel">
-          <div class="create-record-shell__panel-head">
-            <div class="create-record-shell__panel-title">{{ activeSection?.label || 'Key Fields' }}</div>
-            <div class="create-record-shell__panel-meta">{{ activeFields.length }} fields</div>
-          </div>
-
-          <div
-            v-if="activeFields.length"
-            class="create-record-shell__fields"
-            :style="{ '--create-record-shell-label-width': activeFieldLabelWidth }"
+        <div class="create-record-shell__record-data">
+          <button
+            type="button"
+            class="create-record-shell__record-data-toggle"
+            @click="recordDataCollapsed = !recordDataCollapsed"
           >
-            <div
-              v-for="token in activeFields"
-              :key="token.key"
-              class="create-record-shell__field"
-              :class="{ 'create-record-shell__field--wide': isWideField(token) }"
-            >
-              <div class="create-record-shell__field-copy">
-                <div class="create-record-shell__field-label">
-                  {{ token.label }}
-                  <q-tooltip anchor="top middle" self="bottom middle">
-                    {{ formatFieldType(token.tokenType) }}
-                  </q-tooltip>
+            <span class="create-record-shell__record-data-title">Record Data</span>
+            <q-icon
+              :name="recordDataCollapsed ? 'expand_more' : 'expand_less'"
+              class="create-record-shell__record-data-toggle-icon"
+            />
+          </button>
+
+          <template v-if="!recordDataCollapsed">
+            <div class="create-record-shell__tabs">
+              <div class="create-record-shell__tabs-left">
+                <button
+                  v-for="section in leftPanelSections"
+                  :key="section.key"
+                  type="button"
+                  class="create-record-shell__tab"
+                  :class="{ 'create-record-shell__tab--active': section.key === activeSectionKey }"
+                  @click="activeSectionKey = section.key"
+                >
+                  {{ section.label }}
+                </button>
+              </div>
+
+              <div class="create-record-shell__tabs-right">
+                <button
+                  v-for="section in rightSections"
+                  :key="section.key"
+                  type="button"
+                  class="create-record-shell__tab"
+                  :class="{ 'create-record-shell__tab--active': section.key === activeSectionKey }"
+                  @click="activeSectionKey = section.key"
+                >
+                  {{ section.label }}
+                </button>
+              </div>
+            </div>
+
+            <div class="create-record-shell__panel">
+              <div class="create-record-shell__panel-head">
+                <div class="create-record-shell__panel-title">{{ activeSection?.label || 'Key Fields' }}</div>
+                <div class="create-record-shell__panel-meta">{{ activeFields.length }} fields</div>
+              </div>
+
+              <div
+                v-if="activeFields.length"
+                class="create-record-shell__fields"
+                :style="{ '--create-record-shell-label-width': activeFieldLabelWidth }"
+              >
+                <div
+                  v-for="token in activeFields"
+                  :key="token.key"
+                  class="create-record-shell__field"
+                  :class="{ 'create-record-shell__field--wide': isWideField(token) }"
+                >
+                  <div class="create-record-shell__field-copy">
+                    <div class="create-record-shell__field-label">
+                      {{ token.label }}
+                      <q-tooltip anchor="top middle" self="bottom middle">
+                        {{ formatFieldType(token.tokenType) }}
+                      </q-tooltip>
+                    </div>
+                  </div>
+
+                  <q-select
+                    v-if="token.tokenType === 'select_multi'"
+                    :model-value="Array.isArray(formValues[token.key]) ? formValues[token.key] : []"
+                    dense
+                    outlined
+                    use-chips
+                    multiple
+                    emit-value
+                    map-options
+                    :options="token.inputOptions || []"
+                    :disable="loading"
+                    class="create-record-shell__input"
+                    :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
+                    @update:model-value="updateField(token.key, $event)"
+                  />
+
+                  <q-select
+                    v-else-if="token.tokenType === 'select_single'"
+                    :model-value="selectSingleValue(formValues[token.key])"
+                    dense
+                    outlined
+                    emit-value
+                    map-options
+                    :options="token.inputOptions || []"
+                    :disable="loading"
+                    class="create-record-shell__input"
+                    @update:model-value="updateField(token.key, $event)"
+                  />
+
+                  <q-input
+                    v-else
+                    :model-value="stringValue(formValues[token.key])"
+                    dense
+                    outlined
+                    :disable="loading"
+                    :type="isSummaryField(token) ? 'textarea' : inputTypeForToken(token.tokenType)"
+                    :autogrow="isSummaryField(token)"
+                    class="create-record-shell__input"
+                    :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
+                    @update:model-value="updateField(token.key, $event)"
+                  />
                 </div>
               </div>
 
-              <q-select
-                v-if="token.tokenType === 'select_multi'"
-                :model-value="Array.isArray(formValues[token.key]) ? formValues[token.key] : []"
-                dense
-                outlined
-                use-chips
-                multiple
-                emit-value
-                map-options
-                :options="token.inputOptions || []"
-                :disable="loading"
-                class="create-record-shell__input"
-                :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
-                @update:model-value="updateField(token.key, $event)"
-              />
-
-              <q-select
-                v-else-if="token.tokenType === 'select_single'"
-                :model-value="selectSingleValue(formValues[token.key])"
-                dense
-                outlined
-                emit-value
-                map-options
-                :options="token.inputOptions || []"
-                :disable="loading"
-                class="create-record-shell__input"
-                @update:model-value="updateField(token.key, $event)"
-              />
-
-              <q-input
-                v-else
-                :model-value="stringValue(formValues[token.key])"
-                dense
-                outlined
-                :disable="loading"
-                :type="isSummaryField(token) ? 'textarea' : inputTypeForToken(token.tokenType)"
-                :autogrow="isSummaryField(token)"
-                class="create-record-shell__input"
-                :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
-                @update:model-value="updateField(token.key, $event)"
-              />
+              <div v-else class="create-record-shell__empty">
+                No canonical fields are mapped to this section yet.
+              </div>
             </div>
-          </div>
-
-          <div v-else class="create-record-shell__empty">
-            No canonical fields are mapped to this section yet.
-          </div>
+          </template>
         </div>
       </q-card-section>
 
@@ -267,6 +283,7 @@ const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
 const ingestionCompanionCollapsed = ref(false)
+const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
 const dialogHeight = ref(780)
 let removeResizeListeners = null
@@ -573,6 +590,39 @@ onBeforeUnmount(() => {
   gap: 10px;
   min-height: 0;
   padding: 18px 28px 28px;
+}
+
+.create-record-shell__record-data {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+}
+
+.create-record-shell__record-data-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.create-record-shell__record-data-title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.92rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.92;
+}
+
+.create-record-shell__record-data-toggle-icon {
+  color: rgba(17, 17, 17, 0.58);
+  font-size: 1rem;
+  flex: 0 0 auto;
 }
 
 .create-record-shell__intake-lane {
