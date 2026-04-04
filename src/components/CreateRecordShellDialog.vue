@@ -150,18 +150,19 @@
                           Delete
                         </button>
                       </div>
-                      <q-input
-                        v-model="pendingUrlEntry"
-                        dense
-                        outlined
-                        hide-bottom-space
-                        class="create-record-shell__processing-entry-input"
-                        @keyup.enter.prevent="addSupportResourceEntry('url')"
-                      >
-                        <template v-if="pendingUrlEntry.trim()" #append>
-                          <q-icon name="keyboard_return" class="create-record-shell__processing-entry-hint" />
-                        </template>
-                      </q-input>
+                      <div class="create-record-shell__processing-entry-add-row">
+                        <input
+                          v-model="pendingUrlEntry"
+                          type="text"
+                          class="create-record-shell__processing-entry-native-input"
+                          @keydown.enter.prevent="addSupportResourceEntry('url')"
+                        />
+                        <q-icon
+                          v-if="pendingUrlEntry.trim()"
+                          name="keyboard_return"
+                          class="create-record-shell__processing-entry-hint"
+                        />
+                      </div>
                       <div v-if="urlEntries.length" class="create-record-shell__processing-entry-list">
                         <label
                           v-for="entry in urlEntries"
@@ -194,18 +195,19 @@
                           Delete
                         </button>
                       </div>
-                      <q-input
-                        v-model="pendingGuidanceEntry"
-                        dense
-                        outlined
-                        hide-bottom-space
-                        class="create-record-shell__processing-entry-input"
-                        @keyup.enter.prevent="addSupportResourceEntry('guidance')"
-                      >
-                        <template v-if="pendingGuidanceEntry.trim()" #append>
-                          <q-icon name="keyboard_return" class="create-record-shell__processing-entry-hint" />
-                        </template>
-                      </q-input>
+                      <div class="create-record-shell__processing-entry-add-row">
+                        <input
+                          v-model="pendingGuidanceEntry"
+                          type="text"
+                          class="create-record-shell__processing-entry-native-input"
+                          @keydown.enter.prevent="addSupportResourceEntry('guidance')"
+                        />
+                        <q-icon
+                          v-if="pendingGuidanceEntry.trim()"
+                          name="keyboard_return"
+                          class="create-record-shell__processing-entry-hint"
+                        />
+                      </div>
                       <div v-if="guidanceEntries.length" class="create-record-shell__processing-entry-list">
                         <label
                           v-for="entry in guidanceEntries"
@@ -1164,28 +1166,34 @@ onBeforeUnmount(() => {
   cursor: default;
 }
 
-.create-record-shell__processing-entry-input :deep(.q-field__control) {
-  min-height: 22px;
+.create-record-shell__processing-entry-add-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px;
+  min-height: 14px;
+  padding: 1px 3px;
+  border: 1px solid rgba(17, 17, 17, 0.18);
   border-radius: 2px;
+  background: rgba(255, 255, 255, 0.96);
 }
 
-.create-record-shell__processing-entry-input :deep(.q-field__control-container) {
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-.create-record-shell__processing-entry-input :deep(.q-field__native),
-.create-record-shell__processing-entry-input :deep(.q-field__input) {
-  min-height: 22px;
-  padding-top: 0;
-  padding-bottom: 0;
+.create-record-shell__processing-entry-native-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  color: #111111;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font-family: var(--font-body);
   font-size: 10px;
-  line-height: 1.1;
+  line-height: 1.05;
 }
 
 .create-record-shell__processing-entry-hint {
   color: rgba(17, 17, 17, 0.5);
-  font-size: 0.92rem;
+  font-size: 0.72rem;
 }
 
 .create-record-shell__processing-entry-list {
