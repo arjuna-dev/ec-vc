@@ -560,6 +560,28 @@ if (companiesNavIndex >= 0) {
 
 const workspaceNavigationItems = [
   ...workspaceFileNavItems,
+  {
+    kind: 'toggle',
+    label: 'Knowledge DBs',
+    toggleKey: 'knowledge-dbs',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-toggle',
+    icon: 'database',
+    iconSize: '18px',
+  },
+  {
+    kind: 'subheader',
+    label: '- Financial Industries',
+    parentKey: 'knowledge-dbs',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child ec-nav-item--workspace-leaf',
+    labelClass: 'ec-nav-label--subtle',
+  },
+  {
+    kind: 'subheader',
+    label: '- Round Securities',
+    parentKey: 'knowledge-dbs',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child ec-nav-item--workspace-leaf',
+    labelClass: 'ec-nav-label--subtle',
+  },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
   { label: 'Test Shell', to: '/test-shell', exact: true, icon: 'science' },
 ].map((item) => ({
