@@ -17,7 +17,7 @@
                 @drop.prevent="onArtifactDrop"
               >
                 <div class="create-record-shell__artifact-drop-copy">
-                  <div class="create-record-shell__artifact-drop-title">Drop Artifacts</div>
+                  <div class="create-record-shell__artifact-drop-title">Artifacts</div>
                   <div class="create-record-shell__artifact-drop-caption">
                     {{ artifactDragOver ? 'Release to stage files' : 'Drag files or a folder here' }}
                   </div>
