@@ -1908,15 +1908,10 @@ function goBack() {
 
 .ec-shell-test-select :deep(.q-field__control) {
   min-height: 40px;
-  padding: 0 12px;
-  background: #000;
+  padding: 0 4px 0 0;
+  background: transparent;
   border-radius: 0;
-  box-shadow:
-    inset 0 0 0 1px #000,
-    0 0 0 1px rgba(255, 255, 255, 0.82);
-  transition:
-    background-color 0.16s ease,
-    box-shadow 0.16s ease;
+  box-shadow: none;
 }
 
 .ec-shell-test-select :deep(.q-field__native),
@@ -1932,11 +1927,6 @@ function goBack() {
   overflow: visible;
 }
 
-.ec-shell-test-select-wrap:hover .ec-shell-test-select :deep(.q-field__control),
-.ec-shell-test-select-wrap:focus-within .ec-shell-test-select :deep(.q-field__control) {
-  background: #000;
-}
-
 .ec-shell-test-select__value {
   color: #fff;
   font-family: var(--font-title);
@@ -1945,6 +1935,12 @@ function goBack() {
   line-height: 1;
   letter-spacing: -0.04em;
   text-transform: lowercase;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
 }
 
 .ec-shell-test-select__chevron {
