@@ -160,6 +160,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   submitDisabled: { type: Boolean, default: false },
   initialValues: { type: Object, default: () => ({}) },
+  initialSectionKey: { type: String, default: 'key-fields' },
 })
 
 const emit = defineEmits(['update:modelValue', 'submit'])
@@ -210,7 +211,7 @@ watch(
   (nextValue) => {
     if (!nextValue) return
     isMaximized.value = false
-    activeSectionKey.value = 'key-fields'
+    activeSectionKey.value = String(props.initialSectionKey || '').trim() || 'key-fields'
     formValues.value = Object.fromEntries(
       allSections.value
         .flatMap((section) => section.tokens || [])

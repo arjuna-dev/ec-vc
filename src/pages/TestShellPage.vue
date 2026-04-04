@@ -362,7 +362,7 @@
                   :options="summarySectionShellOptions"
                   @update:model-value="setRowRelationshipPanel(row, $event)"
                 />
-                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" @click="notifyShellAction('Add Relation')">
+                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" @click="openAddRelationShell(row)">
                   <span class="test-shell-card__summary-add-relation-plus">
                     <q-icon name="add" />
                   </span>
@@ -555,6 +555,7 @@
         :loading="createDialogLoading"
         :submit-disabled="!canCreateWithShell"
         :initial-values="createDialogInitialValues"
+        :initial-section-key="createDialogInitialSectionKey"
         @submit="submitCreateRecordShell"
       />
     </div>
@@ -601,6 +602,7 @@ const createDialogOpen = ref(false)
 const createDialogLoading = ref(false)
 const createDialogMode = ref('create')
 const editDialogRow = ref(null)
+const createDialogInitialSectionKey = ref('key-fields')
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
@@ -754,6 +756,9 @@ const createDialogRightSections = computed(() =>
     const normalized = String(section.label || '').trim().toLowerCase()
     return normalized === 'kdb' || normalized === 'system'
   }),
+)
+const createDialogKdbSectionKey = computed(
+  () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || '',
 )
 const expandedCardSettingsGroups = computed(() => {
   const sourceKey = activeSourceKey.value
@@ -1361,6 +1366,7 @@ function openRecordView(row) {
 function openCreateRecordShell() {
   createDialogMode.value = 'create'
   editDialogRow.value = null
+  createDialogInitialSectionKey.value = 'key-fields'
   createDialogOpen.value = true
 }
 
@@ -1368,6 +1374,15 @@ function openEditRecordShell(row) {
   if (!row?.recordId) return
   createDialogMode.value = 'edit'
   editDialogRow.value = row
+  createDialogInitialSectionKey.value = 'key-fields'
+  createDialogOpen.value = true
+}
+
+function openAddRelationShell(row) {
+  if (!row?.recordId) return
+  createDialogMode.value = 'edit'
+  editDialogRow.value = row
+  createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'key-fields'
   createDialogOpen.value = true
 }
 
@@ -1402,6 +1417,7 @@ async function submitCreateRecordShell({ values } = {}) {
       createDialogOpen.value = false
       createDialogMode.value = 'create'
       editDialogRow.value = null
+      createDialogInitialSectionKey.value = 'key-fields'
       $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
       await loadRows()
     } else {
@@ -1426,6 +1442,7 @@ async function submitCreateRecordShell({ values } = {}) {
       }
 
       createDialogOpen.value = false
+      createDialogInitialSectionKey.value = 'key-fields'
       $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
       await loadRows()
     }
