@@ -120,6 +120,45 @@ Working rule:
 - if the live payload field name differs, that token should declare `db_field_aliases`
 - the UI may read those aliases, but it should not infer them heuristically
 
+## Canonical Input Rules
+
+The shared create/edit record dialog should read field meaning from canonical structure, not from page-local UI logic.
+
+That means each `L3` token should declare:
+
+- its `token_type`
+- whether it is a fixed list, a live entity pick, a live entity set, a system stamp, or a direct input
+- any reusable canonical list it depends on
+
+Approved option-source families:
+
+- `canonical_list`
+  - fixed reusable dropdown libraries
+  - example: `Task_Status -> Task_Status_List`
+- `live_entity`
+  - one live entity source
+  - example: `Fund_Manager -> Companies`, filtered to `Asset Manager`
+- `live_entity_set`
+  - more than one live entity source
+  - example: `Round_Sponsor -> Contacts + Companies`
+- `record_subset`
+  - structured record-owned subsets
+  - example: `Contact_Employment`
+- `direct_input`
+  - user-entered value, not a dropdown
+  - example: `Company_Round_Raised`
+- system-owned values
+  - `Creator`
+  - `Datetime`
+
+Working rule:
+
+- fixed dropdown values should live in top-level reusable `option_lists` inside `docs/canonical-structure.json`
+- tokens should reference those lists explicitly
+- live pickers should point to their source entity explicitly
+- the shared dialog may render from canonical and live row sources
+- the page should not hardcode field meaning
+
 ## Canonical Structure Direction
 
 The long-term canonical structure direction is:

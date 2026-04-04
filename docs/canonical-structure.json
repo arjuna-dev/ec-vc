@@ -55,42 +55,58 @@
             {
               "address": "1.2.1",
               "token_name": "Artifact_User",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "1.2.2",
               "token_name": "Artifact_Contact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts"
             },
             {
               "address": "1.2.3",
               "token_name": "Artifact_Company",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "address": "1.2.4",
               "token_name": "Artifact_Fund",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds"
             },
             {
               "address": "1.2.5",
               "token_name": "Artifact_Round",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Rounds"
             },
             {
               "address": "1.2.6",
               "token_name": "Artifact_Project",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects"
             },
             {
               "address": "1.2.7",
               "token_name": "Artifact_Task",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks"
             },
             {
               "address": "1.2.8",
               "token_name": "Artifact_Note",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes"
             }
           ]
         },
@@ -160,42 +176,58 @@
             {
               "address": "2.2.1",
               "token_name": "User_Artifact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts"
             },
             {
               "address": "2.2.2",
               "token_name": "User_Contact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts"
             },
             {
               "address": "2.2.3",
               "token_name": "User_Company",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "address": "2.2.4",
               "token_name": "User_Fund",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds"
             },
             {
               "address": "2.2.5",
               "token_name": "User_Round",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Rounds"
             },
             {
               "address": "2.2.6",
               "token_name": "User_Project",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects"
             },
             {
               "address": "2.2.7",
               "token_name": "User_Task",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks"
             },
             {
               "address": "2.2.8",
               "token_name": "User_Note",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes"
             }
           ]
         },
@@ -311,7 +343,12 @@
               "token_type": "select_single",
               "db_field_aliases": [
                 "Country_based"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Locations",
+              "option_subset": {
+                "dimension": "country_city"
+              }
             },
             {
               "address": "3.3.7",
@@ -332,42 +369,58 @@
             {
               "address": "3.4.1",
               "token_name": "Contact_Artifact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts"
             },
             {
               "address": "3.4.2",
               "token_name": "Contact_User",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "3.4.3",
               "token_name": "Contact_Company",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "address": "3.4.4",
               "token_name": "Contact_Fund",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds"
             },
             {
               "address": "3.4.5",
               "token_name": "Contact_Round",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Rounds"
             },
             {
               "address": "3.4.6",
               "token_name": "Contact_Project",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects"
             },
             {
               "address": "3.4.7",
               "token_name": "Contact_Task",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks"
             },
             {
               "address": "3.4.8",
               "token_name": "Contact_Note",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes"
             }
           ]
         },
@@ -380,7 +433,14 @@
             {
               "address": "3.5.1",
               "token_name": "Contact_Employment",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "record_subset",
+              "subset_entity": "Employments",
+              "subset_shape": [
+                "Company",
+                "Role",
+                "Time_Range"
+              ]
             }
           ]
         },
@@ -393,7 +453,14 @@
             {
               "address": "3.6.1",
               "token_name": "Contact_Studies",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "record_subset",
+              "subset_entity": "Academia",
+              "subset_shape": [
+                "Institution",
+                "Degree",
+                "Date_Obtained"
+              ]
             }
           ]
         }
@@ -434,7 +501,9 @@
             {
               "address": "4.1.4",
               "token_name": "Company_Status",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Co_Status_List"
             },
             {
               "address": "4.1.5",
@@ -457,47 +526,65 @@
             {
               "address": "4.2.1",
               "token_name": "Company_Artifact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts"
             },
             {
               "address": "4.2.2",
               "token_name": "Company_User",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "4.2.3",
               "token_name": "Company_Contact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts"
             },
             {
               "address": "4.2.4",
               "token_name": "Company_Company",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "address": "4.2.5",
               "token_name": "Company_Fund",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds"
             },
             {
               "address": "4.2.6",
               "token_name": "Company_Round",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Rounds"
             },
             {
               "address": "4.2.7",
               "token_name": "Company_Project",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects"
             },
             {
               "address": "4.2.8",
               "token_name": "Company_Task",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks"
             },
             {
               "address": "4.2.9",
               "token_name": "Company_Note",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes"
             }
           ]
         },
@@ -545,17 +632,29 @@
             {
               "address": "4.4.3",
               "token_name": "Company_Inc_Country",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "live_entity",
+              "option_entity": "Locations",
+              "option_subset": {
+                "dimension": "country"
+              }
             },
             {
               "address": "4.4.4",
               "token_name": "Company_Entity_Type",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Company_Entity_Type_List"
             },
             {
               "address": "4.4.5",
               "token_name": "Company_Founders",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts",
+              "option_subset": {
+                "role_family": "contact_roles"
+              }
             }
           ]
         },
@@ -626,12 +725,22 @@
             {
               "address": "4.6.2",
               "token_name": "Company_HQ_Locations",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Locations",
+              "option_subset": {
+                "dimension": "city"
+              }
             },
             {
               "address": "4.6.3",
               "token_name": "Company_Ops_Locations",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Locations",
+              "option_subset": {
+                "dimension": "city"
+              }
             },
             {
               "address": "4.6.4",
@@ -661,12 +770,22 @@
             {
               "address": "4.6.9",
               "token_name": "Company_Leadership_Team",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts",
+              "option_subset": {
+                "role_family": "contact_roles"
+              }
             },
             {
               "address": "4.6.10",
               "token_name": "Company_Advisors",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts",
+              "option_subset": {
+                "role_family": "contact_roles"
+              }
             },
             {
               "address": "4.6.11",
@@ -921,12 +1040,18 @@
             {
               "address": "4.11.2",
               "token_name": "Company_Shareholders",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts",
+              "option_subset": {
+                "role_family": "contact_roles"
+              }
             },
             {
               "address": "4.11.3",
               "token_name": "Company_Round_Raised",
-              "token_type": "select_multi"
+              "token_type": "number",
+              "input_source": "direct_input"
             },
             {
               "address": "4.11.4",
@@ -995,7 +1120,9 @@
                 "Opportunity_Artifact",
                 "Fund_Artifact",
                 "Round_Artifact"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Artifacts"
             },
             {
               "address": "17.2.2",
@@ -1005,7 +1132,9 @@
                 "Opportunity_User",
                 "Fund_User",
                 "Round_User"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "17.2.3",
@@ -1015,7 +1144,9 @@
                 "Opportunity_Contact",
                 "Fund_Contact",
                 "Round_Contact"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Contacts"
             },
             {
               "address": "17.2.4",
@@ -1025,7 +1156,9 @@
                 "Opportunity_Company",
                 "Fund_Company",
                 "Round_Company"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "address": "17.2.5",
@@ -1035,7 +1168,9 @@
                 "Opportunity_Fund",
                 "Fund_Fund",
                 "Round_Fund"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Funds"
             },
             {
               "address": "17.2.6",
@@ -1044,7 +1179,9 @@
               "db_field_aliases": [
                 "Opportunity_Round",
                 "Fund_Round"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Rounds"
             },
             {
               "address": "17.2.7",
@@ -1054,7 +1191,9 @@
                 "Opportunity_Project",
                 "Fund_Project",
                 "Round_Project"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Projects"
             },
             {
               "address": "17.2.8",
@@ -1064,7 +1203,9 @@
                 "Opportunity_Task",
                 "Fund_Task",
                 "Round_Task"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Tasks"
             },
             {
               "address": "17.2.9",
@@ -1074,7 +1215,9 @@
                 "Opportunity_Note",
                 "Fund_Note",
                 "Round_Note"
-              ]
+              ],
+              "option_source": "live_entity",
+              "option_entity": "Notes"
             }
           ]
         },
@@ -1112,7 +1255,9 @@
               "token_type": "select_single",
               "db_field_aliases": [
                 "kind"
-              ]
+              ],
+              "option_source": "canonical_list",
+              "option_list": "Opportunity_Kind_List"
             },
             {
               "address": "17.4.2",
@@ -1130,7 +1275,9 @@
                 "Raising_Status",
                 "Pipeline_Status",
                 "Status"
-              ]
+              ],
+              "option_source": "canonical_list",
+              "option_list": "Opportunity_Status_List"
             },
             {
               "address": "17.4.4",
@@ -1218,47 +1365,65 @@
             {
               "address": "5.2.1",
               "token_name": "Fund_Artifact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts"
             },
             {
               "address": "5.2.2",
               "token_name": "Fund_User",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "5.2.3",
               "token_name": "Fund_Contact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts"
             },
             {
               "address": "5.2.4",
               "token_name": "Fund_Company",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "address": "5.2.5",
               "token_name": "Fund_Fund",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds"
             },
             {
               "address": "5.2.6",
               "token_name": "Fund_Round",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Rounds"
             },
             {
               "address": "5.2.7",
               "token_name": "Fund_Project",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects"
             },
             {
               "address": "5.2.8",
               "token_name": "Fund_Task",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks"
             },
             {
               "address": "5.2.9",
               "token_name": "Fund_Note",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes"
             }
           ]
         },
@@ -1289,17 +1454,29 @@
             {
               "address": "5.4.1",
               "token_name": "Fund_Manager",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "live_entity",
+              "option_entity": "Companies",
+              "option_subset": {
+                "field": "Company_Entity_Type",
+                "includes": [
+                  "Asset Manager"
+                ]
+              }
             },
             {
               "address": "5.4.2",
               "token_name": "Fund_Raising_Status",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Raising_Status_List"
             },
             {
               "address": "5.4.3",
               "token_name": "Fund_Period",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Fund_Period_List"
             },
             {
               "address": "5.4.4",
@@ -1339,12 +1516,16 @@
             {
               "address": "5.4.12",
               "token_name": "Fund_Target_Regions",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "canonical_list",
+              "option_list": "Continental_Regions_List"
             },
             {
               "address": "5.4.13",
               "token_name": "Fund_Target_Asset_Types",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "canonical_list",
+              "option_list": "Fund_Target_Asset_Types_List"
             },
             {
               "address": "5.4.14",
@@ -1469,42 +1650,58 @@
             {
               "address": "6.2.1",
               "token_name": "Round_Artifact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts"
             },
             {
               "address": "6.2.2",
               "token_name": "Round_User",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "6.2.3",
               "token_name": "Round_Contact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts"
             },
             {
               "address": "6.2.4",
               "token_name": "Round_Company",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "address": "6.2.5",
               "token_name": "Round_Fund",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds"
             },
             {
               "address": "6.2.6",
               "token_name": "Round_Project",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects"
             },
             {
               "address": "6.2.7",
               "token_name": "Round_Task",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks"
             },
             {
               "address": "6.2.8",
               "token_name": "Round_Note",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes"
             }
           ]
         },
@@ -1535,12 +1732,19 @@
             {
               "address": "6.4.1",
               "token_name": "Round_Sponsor",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "live_entity_set",
+              "option_entities": [
+                "Contacts",
+                "Companies"
+              ]
             },
             {
               "address": "6.4.2",
               "token_name": "Round_Raising_Status",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Raising_Status_List"
             },
             {
               "address": "6.4.3",
@@ -1690,47 +1894,65 @@
             {
               "address": "7.2.1",
               "token_name": "Project_Artifact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts"
             },
             {
               "address": "7.2.2",
               "token_name": "Project_User",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "7.2.3",
               "token_name": "Project_Contact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts"
             },
             {
               "address": "7.2.4",
               "token_name": "Project_Company",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "address": "7.2.5",
               "token_name": "Project_Fund",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds"
             },
             {
               "address": "7.2.6",
               "token_name": "Project_Round",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Rounds"
             },
             {
               "address": "7.2.7",
               "token_name": "Project_Project",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects"
             },
             {
               "address": "7.2.8",
               "token_name": "Project_Task",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks"
             },
             {
               "address": "7.2.9",
               "token_name": "Project_Note",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes"
             }
           ]
         },
@@ -1768,7 +1990,9 @@
             {
               "address": "7.4.1",
               "token_name": "Project_Status",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Project_Status_List"
             },
             {
               "address": "7.4.2",
@@ -1783,7 +2007,9 @@
             {
               "address": "7.4.4",
               "token_name": "Project_Priority_Rank",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Priority_Ranking_List"
             },
             {
               "address": "7.4.5",
@@ -1816,32 +2042,44 @@
             {
               "address": "7.5.1",
               "token_name": "Project_Team_Owner",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "7.5.2",
               "token_name": "Project_Team_Lead",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "7.5.3",
               "token_name": "Project_Team_Senior",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "7.5.4",
               "token_name": "Project_Team_Mid",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "7.5.5",
               "token_name": "Project_Team_Junior",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "7.5.6",
               "token_name": "Project_Team_Agents",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "7.5.7",
@@ -1895,47 +2133,65 @@
             {
               "address": "8.2.1",
               "token_name": "Task_Artifact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts"
             },
             {
               "address": "8.2.2",
               "token_name": "Task_User",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "8.2.3",
               "token_name": "Task_Contact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts"
             },
             {
               "address": "8.2.4",
               "token_name": "Task_Company",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "address": "8.2.5",
               "token_name": "Task_Fund",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds"
             },
             {
               "address": "8.2.6",
               "token_name": "Task_Round",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Rounds"
             },
             {
               "address": "8.2.7",
               "token_name": "Task_Project",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects"
             },
             {
               "address": "8.2.8",
               "token_name": "Task_Task",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks"
             },
             {
               "address": "8.2.9",
               "token_name": "Task_Note",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes"
             }
           ]
         },
@@ -1973,12 +2229,16 @@
             {
               "address": "8.4.2",
               "token_name": "Task_Status",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Task_Status_List"
             },
             {
               "address": "8.4.3",
               "token_name": "Task_Priority_Rank",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Priority_Ranking_List"
             },
             {
               "address": "8.4.4",
@@ -2006,17 +2266,23 @@
             {
               "address": "8.5.1",
               "token_name": "Task_Team_Owner",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "8.5.2",
               "token_name": "Task_Team_Assigned",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "8.5.3",
               "token_name": "Task_Team_Support",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             }
           ]
         }
@@ -2065,47 +2331,65 @@
             {
               "address": "9.2.1",
               "token_name": "Note_Artifact",
-              "token_type": "file"
+              "token_type": "file",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts"
             },
             {
               "address": "9.2.2",
               "token_name": "Note_User",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users"
             },
             {
               "address": "9.2.3",
               "token_name": "Note_Contact",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts"
             },
             {
               "address": "9.2.4",
               "token_name": "Note_Company",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies"
             },
             {
               "address": "9.2.5",
               "token_name": "Note_Fund",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds"
             },
             {
               "address": "9.2.6",
               "token_name": "Note_Round",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Rounds"
             },
             {
               "address": "9.2.7",
               "token_name": "Note_Project",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects"
             },
             {
               "address": "9.2.8",
               "token_name": "Note_Task",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks"
             },
             {
               "address": "9.2.9",
               "token_name": "Note_Note",
-              "token_type": "select_multi"
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes"
             }
           ]
         },
@@ -2640,5 +2924,209 @@
         }
       ]
     }
-  ]
+  ],
+  "option_lists": {
+    "Co_Status_List": [
+      {
+        "label": "On-Going",
+        "value": "ongoing"
+      },
+      {
+        "label": "Closed",
+        "value": "closed"
+      }
+    ],
+    "Raising_Status_List": [
+      {
+        "label": "Raising",
+        "value": "Raising"
+      },
+      {
+        "label": "Raised",
+        "value": "Raised"
+      },
+      {
+        "label": "Abandoned",
+        "value": "Abandoned"
+      },
+      {
+        "label": "Exit",
+        "value": "Exit"
+      },
+      {
+        "label": "Dropped",
+        "value": "Dropped"
+      }
+    ],
+    "Opportunity_Status_List": [
+      {
+        "label": "Raising",
+        "value": "Raising"
+      },
+      {
+        "label": "Raised",
+        "value": "Raised"
+      },
+      {
+        "label": "Abandoned",
+        "value": "Abandoned"
+      },
+      {
+        "label": "Exit",
+        "value": "Exit"
+      },
+      {
+        "label": "Dropped",
+        "value": "Dropped"
+      }
+    ],
+    "Fund_Period_List": [
+      {
+        "label": "Raising",
+        "value": "Raising"
+      },
+      {
+        "label": "Deployment",
+        "value": "Deployment"
+      },
+      {
+        "label": "Holding",
+        "value": "Holding"
+      },
+      {
+        "label": "Finished",
+        "value": "Finished"
+      }
+    ],
+    "Project_Status_List": [
+      {
+        "label": "Pre-Launch",
+        "value": "Pre-Launch"
+      },
+      {
+        "label": "On-Going",
+        "value": "On-Going"
+      },
+      {
+        "label": "Paused",
+        "value": "Paused"
+      }
+    ],
+    "Task_Status_List": [
+      {
+        "label": "Not Started",
+        "value": "Not Started"
+      },
+      {
+        "label": "On-Going",
+        "value": "On-Going"
+      },
+      {
+        "label": "Paused",
+        "value": "Paused"
+      },
+      {
+        "label": "Dropped",
+        "value": "Dropped"
+      },
+      {
+        "label": "Finished",
+        "value": "Finished"
+      }
+    ],
+    "Priority_Ranking_List": [
+      {
+        "label": "[1/5] - Low",
+        "value": "[1/5] - Low"
+      },
+      {
+        "label": "[2/5] - Mid-Low",
+        "value": "[2/5] - Mid-Low"
+      },
+      {
+        "label": "[3/5] - Mid",
+        "value": "[3/5] - Mid"
+      },
+      {
+        "label": "[4/5] - Mid-High",
+        "value": "[4/5] - Mid-High"
+      },
+      {
+        "label": "[5/5] - High",
+        "value": "[5/5] - High"
+      }
+    ],
+    "Opportunity_Kind_List": [
+      {
+        "label": "Fund",
+        "value": "fund"
+      },
+      {
+        "label": "Round",
+        "value": "round"
+      }
+    ],
+    "Company_Entity_Type_List": [
+      {
+        "label": "Asset Manager",
+        "value": "Asset Manager"
+      },
+      {
+        "label": "Venture",
+        "value": "Venture"
+      },
+      {
+        "label": "Corporation",
+        "value": "Corporation"
+      },
+      {
+        "label": "Academia",
+        "value": "Academia"
+      },
+      {
+        "label": "Government",
+        "value": "Government"
+      },
+      {
+        "label": "Other",
+        "value": "Other"
+      }
+    ],
+    "Fund_Target_Asset_Types_List": [
+      {
+        "label": "Equity Assets",
+        "value": "Equity Assets"
+      },
+      {
+        "label": "Debt Assets",
+        "value": "Debt Assets"
+      }
+    ],
+    "Continental_Regions_List": [
+      {
+        "label": "Africa",
+        "value": "Africa"
+      },
+      {
+        "label": "Asia",
+        "value": "Asia"
+      },
+      {
+        "label": "Europe",
+        "value": "Europe"
+      },
+      {
+        "label": "North America",
+        "value": "North America"
+      },
+      {
+        "label": "Oceania",
+        "value": "Oceania"
+      },
+      {
+        "label": "South America",
+        "value": "South America"
+      }
+    ]
+  }
 }
