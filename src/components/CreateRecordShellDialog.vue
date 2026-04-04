@@ -138,6 +138,29 @@
                       </div>
                     </section>
 
+                    <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
+                      <div class="create-record-shell__processing-box-head">
+                        <div class="create-record-shell__processing-box-title">URLs</div>
+                      </div>
+                      <input
+                        v-model="companionUrl"
+                        type="url"
+                        class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
+                        @input="markDialogChanged"
+                      />
+                    </section>
+
+                    <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
+                      <div class="create-record-shell__processing-box-head">
+                        <div class="create-record-shell__processing-box-title">Blurbs</div>
+                      </div>
+                      <textarea
+                        v-model="companionBlurb"
+                        class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--textarea"
+                        @input="markDialogChanged"
+                      />
+                    </section>
+
                   </div>
                 </div>
               </div>
@@ -332,6 +355,8 @@ const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
+const companionUrl = ref('')
+const companionBlurb = ref('')
 const supportResourcesCollapsed = ref(false)
 const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
@@ -404,6 +429,8 @@ watch(
     stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
     selectedArtifactIds.value = []
     autoProcessArtifacts.value = false
+    companionUrl.value = ''
+    companionBlurb.value = ''
     dialogWidth.value = 760
     dialogHeight.value = 780
     formValues.value = Object.fromEntries(
@@ -443,8 +470,8 @@ function buildDialogSnapshot() {
       autoProcess: autoProcessArtifacts.value,
     },
     companion: {
-      urls: [],
-      guidance: [],
+      urls: companionUrl.value.trim() ? [companionUrl.value.trim()] : [],
+      guidance: companionBlurb.value.trim() ? [companionBlurb.value.trim()] : [],
     },
     hasUserChanges: hasUserChanges.value,
   }
@@ -904,7 +931,7 @@ onBeforeUnmount(() => {
 
 .create-record-shell__processing-sections {
   display: grid;
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto auto;
   gap: 10px;
   min-height: 0;
 }
@@ -1106,6 +1133,39 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.create-record-shell__processing-placeholder-box {
+  height: 16px;
+  border: 1px solid rgba(17, 17, 17, 0.18);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.create-record-shell__processing-placeholder-box--input,
+.create-record-shell__processing-placeholder-box--textarea {
+  width: 100%;
+  padding: 0 4px;
+  color: #111111;
+  border: 1px solid rgba(17, 17, 17, 0.18);
+  outline: none;
+  box-sizing: border-box;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.create-record-shell__processing-placeholder-box--input {
+  height: 16px;
+  line-height: 14px;
+}
+
+.create-record-shell__processing-placeholder-box--textarea {
+  min-height: 44px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  line-height: 1.2;
+  resize: vertical;
 }
 
 .create-record-shell__tabs {
