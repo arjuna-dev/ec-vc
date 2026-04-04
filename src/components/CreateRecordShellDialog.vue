@@ -13,6 +13,7 @@
               class="create-record-shell__intake-toggle"
               @click="supportResourcesCollapsed = !supportResourcesCollapsed"
             >
+              <span class="create-record-shell__intake-title">Ingestion Companion</span>
               <q-icon
                 :name="supportResourcesCollapsed ? 'expand_more' : 'expand_less'"
                 class="create-record-shell__intake-toggle-icon"
@@ -89,7 +90,7 @@
               </div>
 
               <div class="create-record-shell__intake-column">
-                <div class="create-record-shell__intake-column-title">Ingestion Companion</div>
+                <div class="create-record-shell__intake-column-title">Processed Resources</div>
                 <div class="create-record-shell__intake-side">
                   <div class="create-record-shell__processing-panel">
                   <div class="create-record-shell__processing-panel-head">
@@ -910,8 +911,8 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  min-height: 260px;
-  padding: 20px 22px 16px;
+  min-height: 130px;
+  padding: 14px 16px 12px;
   background: rgba(249, 249, 247, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.14);
   border-radius: 10px;
@@ -924,7 +925,7 @@ onBeforeUnmount(() => {
 
 .create-record-shell__intake-side {
   display: grid;
-  min-height: 220px;
+  min-height: 130px;
 }
 
 .create-record-shell__artifact-drop-copy {
@@ -1059,7 +1060,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 8px;
   min-height: 0;
-  padding: 10px;
+  padding: 8px;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 8px;
@@ -1162,8 +1163,15 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__processing-entry-input :deep(.q-field__control) {
-  min-height: 34px;
-  border-radius: 6px;
+  min-height: 28px;
+  border-radius: 4px;
+}
+
+.create-record-shell__processing-entry-input :deep(.q-field__native),
+.create-record-shell__processing-entry-input :deep(.q-field__input) {
+  min-height: 28px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .create-record-shell__processing-entry-hint {
