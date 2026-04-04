@@ -85,11 +85,11 @@
                 :model-value="Array.isArray(formValues[token.key]) ? formValues[token.key] : []"
                 dense
                 outlined
-                use-input
                 use-chips
                 multiple
-                hide-dropdown-icon
-                new-value-mode="add-unique"
+                emit-value
+                map-options
+                :options="token.inputOptions || []"
                 :disable="loading"
                 class="create-record-shell__input"
                 :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"

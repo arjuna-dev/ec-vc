@@ -577,6 +577,7 @@ import {
   resolveCardRelationshipPanel,
 } from 'src/utils/card-kdb-relationships'
 import {
+  CANONICAL_OPTION_LISTS,
   getFilePageRegistryEntry,
   getCanonicalTokenFieldNames,
   getCanonicalTokenValue,
@@ -607,6 +608,7 @@ const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
 const cardItemKeysBySource = ref({})
+const liveOptionRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
 const NAME_COLUMN_MIN_WIDTH = 188
@@ -635,6 +637,16 @@ const SECTION_LOADERS = {
   opportunities: {
     listFn: (bridgeValue) => bridgeValue?.opportunities?.list?.(),
     resultKey: 'opportunities',
+    recordIdField: 'id',
+  },
+  funds: {
+    listFn: (bridgeValue) => bridgeValue?.funds?.list?.(),
+    resultKey: 'funds',
+    recordIdField: 'id',
+  },
+  rounds: {
+    listFn: (bridgeValue) => bridgeValue?.rounds?.list?.(),
+    resultKey: 'rounds',
     recordIdField: 'id',
   },
   projects: {
@@ -815,35 +827,31 @@ const displayRows = computed(() => {
 
 function normalizeCreateDialogToken(token) {
   const tokenType = String(token?.tokenType || '').trim()
-  if (tokenType !== 'select_single') return token
+  if (!tokenType.startsWith('select_')) return token
 
   return {
     ...token,
-    inputOptions: getSingleSelectOptionsForToken(token),
+    inputOptions: getInputOptionsForToken(token),
   }
 }
 
-const EXPLICIT_SINGLE_SELECT_OPTIONS_BY_TOKEN = Object.freeze({
-  Company_Status: [
-    { label: 'On-Going', value: 'ongoing' },
-    { label: 'Closed', value: 'closed' },
-  ],
-  Company_Entity_Type: ['Asset Manager', 'Venture', 'Corporation', 'Academia', 'Government', 'Other'].map((value) => ({
-    label: value,
-    value,
-  })),
-  Opportunity_Kind: ['Fund', 'Round'].map((value) => ({ label: value, value: value.toLowerCase() })),
-  Task_Status: ['Not Started', 'On-Going', 'Paused', 'Dropped', 'Finished'].map((value) => ({
-    label: value,
-    value,
-  })),
-  Task_Priority_Rank: ['Low', 'Mid-Low', 'Mid', 'Mid-High', 'High'].map((value) => ({ label: value, value })),
-})
+function getInputOptionsForToken(token) {
+  const optionSource = String(token?.optionSource || '').trim()
+  const optionList = String(token?.optionList || '').trim()
 
-function getSingleSelectOptionsForToken(token) {
-  const tokenName = String(token?.tokenName || token?.key || '').trim()
-  const explicitOptions = EXPLICIT_SINGLE_SELECT_OPTIONS_BY_TOKEN[tokenName]
-  if (explicitOptions?.length) return explicitOptions
+  if (optionSource === 'canonical_list' && optionList) {
+    return CANONICAL_OPTION_LISTS[optionList] || []
+  }
+
+  if (optionSource === 'live_entity') {
+    return getLiveEntityOptionsForToken(token)
+  }
+
+  if (optionSource === 'live_entity_set') {
+    return getLiveEntitySetOptionsForToken(token)
+  }
+
+  if (optionSource === 'record_subset') return []
 
   const values = Array.from(
     new Set(
@@ -859,6 +867,126 @@ function getSingleSelectOptionsForToken(token) {
     label: value,
     value,
   }))
+}
+
+function normalizeEntitySourceKey(entityName) {
+  return String(entityName || '').trim().toLowerCase()
+}
+
+function getRegistryTitleTokenForSource(sourceKey) {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  if (!entry) return null
+  const generalSection = entry.subsections.find((section) => String(section.rawLabel || '').trim().toLowerCase() === 'general')
+  return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '1') || null
+}
+
+function getOptionRowsForSource(sourceKey) {
+  const normalized = normalizeEntitySourceKey(sourceKey)
+  if (!normalized) return []
+  if (normalized === activeSourceKey.value) return rawRows.value
+  return Array.isArray(liveOptionRowsBySource.value[normalized]) ? liveOptionRowsBySource.value[normalized] : []
+}
+
+function getOptionSubsetToken(sourceKey, fieldName) {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  if (!entry) return null
+  return entry.subsections.flatMap((section) => section.tokens || []).find((token) => token.tokenName === fieldName) || null
+}
+
+function matchesOptionSubset(row, sourceKey, optionSubset) {
+  if (!optionSubset || typeof optionSubset !== 'object') return true
+  if (optionSubset.field && Array.isArray(optionSubset.includes) && optionSubset.includes.length) {
+    const subsetToken = getOptionSubsetToken(sourceKey, optionSubset.field)
+    const rawValue = subsetToken ? getCanonicalTokenValue(row, subsetToken) : row?.[optionSubset.field]
+    const normalizedValues = Array.isArray(rawValue)
+      ? rawValue.map((value) => String(value || '').trim()).filter(Boolean)
+      : [String(rawValue || '').trim()].filter(Boolean)
+    return normalizedValues.some((value) => optionSubset.includes.includes(value))
+  }
+  return true
+}
+
+function buildOptionsFromSourceRows(sourceKey, token) {
+  const rows = getOptionRowsForSource(sourceKey)
+  const titleToken = getRegistryTitleTokenForSource(sourceKey)
+  const recordIdField = SECTION_LOADERS[sourceKey]?.recordIdField || 'id'
+
+  const options = rows
+    .filter((row) => matchesOptionSubset(row, sourceKey, token?.optionSubset))
+    .map((row) => {
+      const label =
+        stringifyValue(titleToken ? getCanonicalTokenValue(row, titleToken) : null) ||
+        stringifyValue(row?.Name) ||
+        stringifyValue(row?.label) ||
+        stringifyValue(row?.title) ||
+        stringifyValue(row?.[recordIdField])
+      if (!label) return null
+      return {
+        label,
+        value: label,
+      }
+    })
+    .filter(Boolean)
+
+  return Array.from(new Map(options.map((option) => [option.value, option])).values())
+}
+
+function getLiveEntityOptionsForToken(token) {
+  const sourceKey = normalizeEntitySourceKey(token?.optionEntity)
+  if (!sourceKey) return []
+  return buildOptionsFromSourceRows(sourceKey, token)
+}
+
+function getLiveEntitySetOptionsForToken(token) {
+  const sourceKeys = Array.isArray(token?.optionEntities) ? token.optionEntities.map(normalizeEntitySourceKey).filter(Boolean) : []
+  const options = sourceKeys.flatMap((sourceKey) => buildOptionsFromSourceRows(sourceKey, token))
+  return Array.from(new Map(options.map((option) => [option.value, option])).values())
+}
+
+async function ensureLiveOptionRowsLoaded(sourceKey) {
+  const normalized = normalizeEntitySourceKey(sourceKey)
+  if (!normalized || normalized === activeSourceKey.value) return
+  if (Array.isArray(liveOptionRowsBySource.value[normalized])) return
+
+  const loader = SECTION_LOADERS[normalized]
+  const bridgeValue = bridge.value
+  if (!loader || !bridgeValue) return
+
+  try {
+    const result = await loader.listFn(bridgeValue)
+    const rows = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
+    liveOptionRowsBySource.value = {
+      ...liveOptionRowsBySource.value,
+      [normalized]: rows,
+    }
+  } catch {
+    liveOptionRowsBySource.value = {
+      ...liveOptionRowsBySource.value,
+      [normalized]: [],
+    }
+  }
+}
+
+async function preloadCreateDialogOptionSources() {
+  const tokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const sourceKeys = new Set()
+
+  tokens.forEach((token) => {
+    const optionSource = String(token?.optionSource || '').trim()
+    if (optionSource === 'live_entity') {
+      const sourceKey = normalizeEntitySourceKey(token?.optionEntity)
+      if (sourceKey) sourceKeys.add(sourceKey)
+    }
+
+    if (optionSource === 'live_entity_set') {
+      ;(Array.isArray(token?.optionEntities) ? token.optionEntities : [])
+        .map(normalizeEntitySourceKey)
+        .filter(Boolean)
+        .forEach((sourceKey) => sourceKeys.add(sourceKey))
+    }
+  })
+
+  await Promise.all(Array.from(sourceKeys).map((sourceKey) => ensureLiveOptionRowsLoaded(sourceKey)))
 }
 
 const visibleSelectableRowIds = computed(() =>
@@ -974,6 +1102,15 @@ watch(
       nextMap[rowId] = resolveCardRelationshipPanel(cardRelationshipPanelById.value[rowId], row.relationshipItemsByType || {})
     })
     cardRelationshipPanelById.value = nextMap
+  },
+  { immediate: true },
+)
+
+watch(
+  [createDialogOpen, activeSourceKey, createKeyFieldTokens, createSectionGroups],
+  async ([isOpen]) => {
+    if (!isOpen) return
+    await preloadCreateDialogOptionSources()
   },
   { immediate: true },
 )

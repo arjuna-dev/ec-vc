@@ -74,6 +74,23 @@ function normalizeDbFieldAliases(token) {
     .filter(Boolean)
 }
 
+function normalizeOptionItems(items) {
+  if (!Array.isArray(items)) return []
+  return items
+    .map((item) => {
+      if (item && typeof item === 'object') {
+        const label = String(item.label ?? item.value ?? '').trim()
+        const value = item.value ?? label
+        if (!label) return null
+        return { label, value }
+      }
+      const value = String(item || '').trim()
+      if (!value) return null
+      return { label: value, value }
+    })
+    .filter(Boolean)
+}
+
 function formatLabel(value) {
   return String(value || '')
     .split('_')
@@ -96,6 +113,11 @@ function compareSubsectionDisplayOrder(a, b) {
 }
 
 const canonicalEntitiesByName = Object.fromEntries((canonicalStructure?.entities || []).map((entity) => [entity.entity, entity]))
+export const CANONICAL_OPTION_LISTS = Object.freeze(
+  Object.fromEntries(
+    Object.entries(canonicalStructure?.option_lists || {}).map(([listName, items]) => [listName, normalizeOptionItems(items)]),
+  ),
+)
 
 function buildEntityRegistry(entityName) {
   const meta = FILE_PAGE_ROUTE_META[entityName]
@@ -119,6 +141,18 @@ function buildEntityRegistry(entityName) {
         tokenName: String(token?.token_name || '').trim(),
         dbFieldAliases: normalizeDbFieldAliases(token),
         tokenType: String(token?.token_type || '').trim(),
+        inputSource: String(token?.input_source || '').trim(),
+        optionSource: String(token?.option_source || '').trim(),
+        optionList: String(token?.option_list || '').trim(),
+        optionEntity: String(token?.option_entity || '').trim(),
+        optionEntities: Array.isArray(token?.option_entities)
+          ? token.option_entities.map((value) => String(value || '').trim()).filter(Boolean)
+          : [],
+        optionSubset: token?.option_subset && typeof token.option_subset === 'object' ? { ...token.option_subset } : null,
+        subsetEntity: String(token?.subset_entity || '').trim(),
+        subsetShape: Array.isArray(token?.subset_shape)
+          ? token.subset_shape.map((value) => String(value || '').trim()).filter(Boolean)
+          : [],
         label: formatLabel(String(token?.token_name || '').trim().replace(`${meta.singularLabel}_`, '')),
       })),
     }))
