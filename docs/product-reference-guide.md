@@ -120,6 +120,7 @@ Examples of current `Knowledge DB` files:
 - `Locations File` -> `Location Record`
 - `Financial Industries File` -> `Financial Industry Record`
 - `Round Securities File` -> `Round Security Record`
+- `Artifacts Processed File` -> `Processed Artifact Record`
 
 Current frontend direction:
 
@@ -270,6 +271,35 @@ Examples:
 - linking a round should search round metadata such as `Round_Name`
 - linking a fund should search fund metadata such as `Fund_Name`
 - linking an artifact should search artifact metadata such as `title`, `artifact_format`, and linked owner labels
+
+## Artifact Processing Provenance Rule
+
+When an artifact is selected and moved into the `Ingestion Companion` processing lane, the system should treat that as the start of a tracked processing record.
+
+That tracked record belongs in:
+
+- `Artifacts Processed`
+
+The intended relationship model is:
+
+- `Original Artifact`
+  - related `Processed Artifacts`
+  - related `Created Files`
+- `Processed Artifact`
+  - linked back to the `Original Artifact`
+  - linked to its `Created Files`
+
+Working meaning:
+
+- the original artifact should show what processing happened to it
+- the original artifact should also show the files that were created from that processing
+- each created file should still preserve the link back to the original artifact through the processed-artifact chain
+
+Created-file rule:
+
+- created files should be stored under the processed-artifact record in a `Created Files` column or equivalent relation surface
+- each created file should render as its own line item
+- each created file should carry a `Working` marker so it is clear that it is an AI working file derived from the source artifact
 
 ## Canonical Relationship Editing Rule
 

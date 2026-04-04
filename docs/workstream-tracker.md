@@ -23,6 +23,7 @@ This tracker should stay aligned with:
 - Keep the canonical JSON structure shape stable enough for direct app ownership
 - Split `File/Card` light payloads from `Record View` rich payloads in a deliberate way
 - Keep the shared create/edit record dialog moving toward fully canonical field and option ownership
+- Define and wire `Artifacts Processed` as a secondary `Knowledge DB` for artifact-processing provenance and created-file lineage
 - Resume `Artifact Intake` as an active guided workflow
 - Keep the intake tracker visible so drafts can always be resumed
 - Stabilize the review loop so verified inputs stay verified and review can be skipped when needed
@@ -39,12 +40,14 @@ This tracker should stay aligned with:
 - `Opportunities` is now being formalized as a parent canonical `L1` contract with `Funds` and `Rounds` as subtype branches
 - parent `L1`s with subtype branches now use an explicit route-choice step before create/add-record opens the shared dialog
 - `Knowledge DBs` is now being treated as a real subset inside `Files` for reusable reference entities such as `Stages`, `Financial Industries`, and `Round Securities`
+- `Artifacts Processed` is now an approved secondary `Knowledge DB` direction for tracking original artifact links, processing events, and created-file lineage
 - `Industries` and `Securities` are now frontend-prepared as shared-shell file surfaces through canonical registry, routes, and nav, with runtime source wiring intentionally left as the next explicit step
 - the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points
 - card shell slots are now explicit for `title`, `subtitle`, and `chips`, with `subtitle` = first selected extra field and `chips` = remaining selected extra fields
 - `Knowledge DBs` now behaves as a real left-nav sibling branch under `My Workspace`, and its parent/child rows have been pulled back onto the same styling path as the `Files` navigation family
 - Exporters are now being treated as migration / ingestion utilities, not the permanent architecture backbone
 - Artifact processing recovery and continuity
+- artifact-processing provenance so original artifacts, processed-artifact rows, and created files remain explicitly linked
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`
 - Verification dialog behavior and staged review UX
 - Visible document preview during staged markdown intake
