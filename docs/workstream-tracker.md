@@ -17,11 +17,12 @@ This tracker should stay aligned with:
 
 ## Front-Loaded
 
-- Finish the `File View` shell structural layout pass, then immediately canonicalize L1 create-action behavior so shared page-shell actions are not derived from per-entity quick-action wiring
+- Finish the remaining `File View` shell pass by turning `Industries` and `Securities` into fully runtime-backed `Knowledge DB` file sources, not just frontend-prepared shared-shell surfaces
 - Keep the canonical structure aligned with the active workbook and approved UI behavior
 - Normalize token names toward their final approved form during the same structure pass
 - Keep the canonical JSON structure shape stable enough for direct app ownership
 - Split `File/Card` light payloads from `Record View` rich payloads in a deliberate way
+- Keep the shared create/edit record dialog moving toward fully canonical field and option ownership
 - Resume `Artifact Intake` as an active guided workflow
 - Keep the intake tracker visible so drafts can always be resumed
 - Stabilize the review loop so verified inputs stay verified and review can be skipped when needed
@@ -38,6 +39,9 @@ This tracker should stay aligned with:
 - `Opportunities` is now being formalized as a parent canonical `L1` contract with `Funds` and `Rounds` as subtype branches
 - `Knowledge DB` is now being treated as a real subset inside `Files` for reusable reference entities such as `Stages`, `Financial Industries`, and `Round Securities`
 - `Industries` and `Securities` are now frontend-prepared as shared-shell file surfaces through canonical registry, routes, and nav, with runtime source wiring intentionally left as the next explicit step
+- the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points
+- card shell slots are now explicit for `title`, `subtitle`, and `chips`, with `subtitle` = first selected extra field and `chips` = remaining selected extra fields
+- `Knowledge DBs` now behaves as a real left-nav sibling branch under `My Workspace`, and its parent/child rows have been pulled back onto the same styling path as the `Files` navigation family
 - Exporters are now being treated as migration / ingestion utilities, not the permanent architecture backbone
 - Artifact processing recovery and continuity
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`
@@ -85,6 +89,7 @@ This tracker should stay aligned with:
   - summary panel structure normalized
   - `Add Relation` moved into the lower dynamic box
   - card loop alias drift reduced by standardizing toward `row`
+  - card shell now uses explicit `title`, `subtitle`, and `chips` slots instead of the older shared-shell `metadata` wording
 - as of April 3, 2026:
   - route-level `Databook` navigation has been renamed to `Record View`
   - page-level record navigation now runs through one shared helper instead of per-page route objects
@@ -93,7 +98,12 @@ This tracker should stay aligned with:
   - canonical structure now carries explicit DB-field aliases where live row payloads still use older field names such as `Name`, `Company_Name`, or `title`
   - `Opportunities` now exists as a canonical parent structure with shared `System`, `KDB`, `General`, and `Overview`
   - `Funds` and `Rounds` remain subtype-owned where `Economics` and `Controls` diverge structurally
-  - `File View` shell work exposed a remaining divergence: L1 create-action behavior is still app-owned per entity and is not yet part of the canonical shared shell contract
+  - `File View` shell work exposed a remaining divergence: runtime create/manage support for new `Knowledge DB` files still needs real source wiring behind the now-prepared shared shell
+- as of April 4, 2026:
+  - `Knowledge DBs` is now a dedicated left-nav branch below `Files`
+  - `Industries` and `Securities` now reuse the shared shell routing path instead of a separate placeholder page surface
+  - the shared create/edit dialog now renders canonical date fields as date inputs
+  - stale resolved bug notes were cleaned out of `bugs/`, leaving only active `Knowledge DBs` nav follow-up notes
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
   - keep the structure contract coherent while `Company` remains the main reference entity
