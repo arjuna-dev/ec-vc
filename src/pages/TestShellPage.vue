@@ -276,19 +276,15 @@
                   :options="summarySectionShellOptions"
                   @update:model-value="testShellRelationshipPanel = $event"
                 />
-
+                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" @click="notifyShellAction('Add Relation')">
+                  <span class="test-shell-card__summary-add-relation-plus">
+                    <q-icon name="add" />
+                  </span>
+                  <span class="test-shell-card__summary-add-relation-label">Add Relation</span>
+                </q-btn>
               </div>
 
               <div class="test-shell-card__summary-panel">
-                <div class="test-shell-card__summary-panel-head">
-                  <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" @click="notifyShellAction('Add Relation')">
-                    <span class="test-shell-card__summary-add-relation-plus">
-                      <q-icon name="add" />
-                    </span>
-                    <span class="test-shell-card__summary-add-relation-label">Add Relation</span>
-                  </q-btn>
-                </div>
-
                 <div class="test-shell-card__summary-body">
                   <div class="test-shell-card__summary-body-content">
                     <div v-if="getActiveRelationshipItems(row).length" class="test-shell-card__notes-list">
@@ -1670,20 +1666,14 @@ function notifyShellAction(label) {
   border: 1px solid rgba(17, 17, 17, 0.08);
 }
 
-.test-shell-card__summary-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 8px;
-}
-
 .test-shell-card__summary-add-relation {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 22px;
   min-height: 22px;
-  padding: 0 2px 0 0;
+  margin: 0 2px 0 auto;
+  padding: 0;
   color: inherit;
   background: transparent;
   border: 0;
@@ -1726,6 +1716,7 @@ function notifyShellAction(label) {
 .test-shell-card__summary-body {
   flex: 1 1 auto;
   min-height: 0;
+  margin-top: 0;
   overflow-y: auto;
   overflow-x: hidden;
 }
