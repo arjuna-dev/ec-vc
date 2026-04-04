@@ -1593,7 +1593,7 @@ function notifyShellAction(label) {
   color: rgba(17, 17, 17, 0.68);
   padding-top: 8px;
   padding-bottom: 8px;
-  background: #f5f4f1;
+  background: #f3f4f6;
   font-family: var(--font-title);
   font-size: 0.7rem;
   font-weight: var(--font-weight-black);
@@ -1637,7 +1637,7 @@ function notifyShellAction(label) {
 
 .test-shell-table__head--name {
   z-index: 4;
-  background: #f1f0ec;
+  background: #eef0f2;
 }
 
 .test-shell-table__cell {
