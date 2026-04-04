@@ -23,18 +23,6 @@
                   </div>
                 </div>
 
-                <div class="create-record-shell__artifact-drop-footer">
-                  <q-checkbox
-                    v-model="autoProcessArtifacts"
-                    dense
-                    size="sm"
-                    checked-icon="check_box"
-                    unchecked-icon="check_box_outline_blank"
-                    class="create-record-shell__artifact-checkbox"
-                    label="Autmatically process files as I drop"
-                  />
-                </div>
-
                 <div v-if="stagedArtifacts.length" class="create-record-shell__artifact-drop-list">
                   <div class="create-record-shell__artifact-drop-list-head">
                     <q-checkbox
@@ -70,6 +58,18 @@
                       <span class="create-record-shell__artifact-drop-item-size">{{ formatArtifactSize(artifact.size) }}</span>
                     </label>
                   </div>
+                </div>
+
+                <div class="create-record-shell__artifact-drop-footer">
+                  <q-checkbox
+                    v-model="autoProcessArtifacts"
+                    dense
+                    size="sm"
+                    checked-icon="check_box"
+                    unchecked-icon="check_box_outline_blank"
+                    class="create-record-shell__artifact-checkbox"
+                    label="Autmatically process files as I drop"
+                  />
                 </div>
               </div>
 
