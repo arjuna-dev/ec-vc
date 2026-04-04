@@ -221,25 +221,21 @@
 
                 <div class="test-shell-card__summary-body">
                   <div class="test-shell-card__summary-body-content">
-                    <div
-                      v-if="row.sectionTokenRows.length"
-                      class="test-shell-card__notes-list"
-                    >
+                    <div v-if="getActiveRelationshipItems(row).length" class="test-shell-card__notes-list">
                       <div
-                        v-for="tokenRow in row.sectionTokenRows"
-                        :key="tokenRow.key"
+                        v-for="item in getActiveRelationshipItems(row)"
+                        :key="`${row.cardId}:${testShellRelationshipPanel}:${item}`"
                         class="test-shell-card__note-pill"
-                        :class="{ 'test-shell-card__note-pill--placeholder': !tokenRow.value }"
                       >
-                        <span class="test-shell-card__note-pill-name">{{ tokenRow.label }}</span>
-                        <span class="test-shell-card__note-pill-value">
-                          {{ tokenRow.value || 'No explicit value' }}
+                        <span class="test-shell-card__note-pill-name">
+                          {{ getCardRelationshipLabel(testShellRelationshipPanel) }}
                         </span>
+                        <span class="test-shell-card__note-pill-value">{{ item }}</span>
                       </div>
                     </div>
 
                     <div v-else class="test-shell-card__summary-empty">
-                      This L2 section has no visible tokens.
+                      No {{ getCardRelationshipLabel(testShellRelationshipPanel).toLowerCase() }} linked to this record.
                     </div>
                   </div>
                 </div>
@@ -348,7 +344,12 @@ import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
-import { buildCardRelationshipOptions } from 'src/utils/card-kdb-relationships'
+import {
+  buildCardRelationshipItems,
+  buildCardRelationshipOptions,
+  getCardRelationshipLabel,
+  resolveCardRelationshipPanel,
+} from 'src/utils/card-kdb-relationships'
 import {
   getFilePageRegistryEntry,
   getCanonicalTokenValue,
@@ -582,6 +583,15 @@ watch(
   { immediate: true },
 )
 
+watch(
+  displayRows,
+  (rows) => {
+    const firstRelationshipMap = rows[0]?.relationshipItemsByType || {}
+    testShellRelationshipPanel.value = resolveCardRelationshipPanel(testShellRelationshipPanel.value, firstRelationshipMap)
+  },
+  { immediate: true },
+)
+
 async function loadRows() {
   error.value = ''
   rawRows.value = []
@@ -611,6 +621,7 @@ async function loadRows() {
 function buildShellRow(row, index) {
   const recordIdField = activeLoader.value?.recordIdField || ''
   const recordId = String(row?.[recordIdField] || '').trim()
+  const sourcePrefixes = [activeRegistryEntry.value?.singularLabel].map((value) => String(value || '').trim()).filter(Boolean)
   const tokenPresence = Object.fromEntries(
     level3Tokens.value.map((token) => [token.key, Boolean(stringifyValue(getCanonicalTokenValue(row, token)))]),
   )
@@ -643,6 +654,7 @@ function buildShellRow(row, index) {
     avatarText: activeRegistryEntry.value?.singularLabel?.slice(0, 2)?.toUpperCase() || 'TS',
     titleValue: stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value)),
     subtitleValue: '',
+    relationshipItemsByType: buildCardRelationshipItems(row, sourcePrefixes),
     sectionPresence,
     tokenPresence,
     sectionTokenRows: tokenRows,
@@ -700,6 +712,10 @@ function getKdbDisplayItems(tokenRow) {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
+}
+
+function getActiveRelationshipItems(row) {
+  return row?.relationshipItemsByType?.[testShellRelationshipPanel.value] || []
 }
 
 function getTestShellMetadataRows(row) {
