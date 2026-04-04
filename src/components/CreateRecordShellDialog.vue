@@ -158,10 +158,10 @@
                       </div>
                       <input
                         v-model="companionUrl"
-                        type="url"
+                        type="text"
                         class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
                         @input="markDialogChanged"
-                        @keydown.enter.prevent="addCompanionEntry('url')"
+                        @keydown.enter.stop.prevent="addCompanionEntry('url')"
                       />
                       <div v-if="urlEntries.length" class="create-record-shell__processing-entry-list">
                         <label
@@ -207,7 +207,7 @@
                         type="text"
                         class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
                         @input="markDialogChanged"
-                        @keydown.enter.prevent="addCompanionEntry('blurb')"
+                        @keydown.enter.stop.prevent="addCompanionEntry('blurb')"
                       />
                       <div v-if="blurbEntries.length" class="create-record-shell__processing-entry-list">
                         <label
