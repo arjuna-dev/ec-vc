@@ -560,6 +560,7 @@
         :submit-disabled="!canCreateWithShell"
         :initial-values="createDialogInitialValues"
         :initial-section-key="createDialogInitialSectionKey"
+        :initial-artifacts="createDialogInitialArtifacts"
         @submit="submitCreateRecordShell"
       />
     </div>
@@ -812,6 +813,16 @@ const createDialogInitialValues = computed(() => {
     ...createDialogPrefillValues.value,
     ...editValues,
   }
+})
+const createDialogInitialArtifacts = computed(() => {
+  if (createDialogMode.value !== 'edit' || !editDialogRow.value) return []
+  const artifactItems = Array.isArray(editDialogRow.value.relationshipItemsByType?.artifacts)
+    ? editDialogRow.value.relationshipItemsByType.artifacts
+    : []
+  return artifactItems.map((name, index) => ({
+    id: `${editDialogRow.value.recordId || 'record'}:artifact:${index}`,
+    name: String(name || '').trim(),
+  })).filter((artifact) => artifact.name)
 })
 const canDeleteSelectedRows = computed(() => {
   if (selectedRows.value.length === 0) return false

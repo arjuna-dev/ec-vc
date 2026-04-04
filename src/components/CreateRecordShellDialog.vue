@@ -248,6 +248,7 @@ const props = defineProps({
   submitDisabled: { type: Boolean, default: false },
   initialValues: { type: Object, default: () => ({}) },
   initialSectionKey: { type: String, default: 'key-fields' },
+  initialArtifacts: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['update:modelValue', 'submit'])
@@ -318,8 +319,8 @@ watch(
     if (!nextValue) return
     activeSectionKey.value = String(props.initialSectionKey || '').trim() || 'key-fields'
     artifactDragOver.value = false
-    stagedArtifacts.value = []
-    selectedArtifactIds.value = []
+    stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
+    selectedArtifactIds.value = stagedArtifacts.value.map((artifact) => artifact.id)
     autoProcessArtifacts.value = false
     artifactUrlInput.value = ''
     dialogWidth.value = 760
@@ -429,6 +430,23 @@ function normalizeArtifactFile(file) {
     path: path || null,
     size,
   }
+}
+
+function normalizeInitialArtifacts(artifacts = []) {
+  return (Array.isArray(artifacts) ? artifacts : [])
+    .map((artifact, index) => {
+      const name = String(artifact?.name || artifact?.label || artifact?.title || artifact || '').trim()
+      const path = String(artifact?.path || '').trim()
+      const size = Number(artifact?.size || 0)
+      if (!name && !path) return null
+      return {
+        id: String(artifact?.id || path || `${name}:${index}`).trim(),
+        name: name || path,
+        path: path || null,
+        size,
+      }
+    })
+    .filter(Boolean)
 }
 
 function toggleArtifactSelection(artifactId, nextValue) {
