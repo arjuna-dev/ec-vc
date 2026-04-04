@@ -2389,7 +2389,7 @@ async function handleSelectedRowsDelete() {
   min-height: 100%;
   overflow: hidden;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 240, 0.98) 100%);
-  border-radius: 28px;
+  border-radius: 14px;
   border-color: #e5e5e5;
   box-shadow: none;
 }
@@ -2426,7 +2426,7 @@ async function handleSelectedRowsDelete() {
   justify-content: space-between;
   min-height: 32px;
   padding: 0 14px;
-  border-radius: 18px 18px 0 0;
+  border-radius: 9px 9px 0 0;
   overflow: hidden;
   background: transparent;
 }
@@ -2786,7 +2786,7 @@ async function handleSelectedRowsDelete() {
   padding: 0;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 18px;
+  border-radius: 9px;
   box-shadow: none;
 }
 
@@ -2857,7 +2857,7 @@ async function handleSelectedRowsDelete() {
   flex-direction: column;
   min-height: 0;
   padding: 14px 14px 12px;
-  border-radius: 16px;
+  border-radius: 8px;
   background: var(--ds-color-surface-base);
   border: 1px solid rgba(17, 17, 17, 0.08);
 }
@@ -2939,7 +2939,7 @@ async function handleSelectedRowsDelete() {
   color: #111;
   background: #fff;
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 12px;
+  border-radius: 6px;
   font-family: var(--font-body);
   font-size: 12px;
   line-height: 1.4;
