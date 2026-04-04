@@ -535,6 +535,7 @@
 
       <CreateRecordShellDialog
         v-model="createDialogOpen"
+        :mode="createDialogMode"
         :source-label="activeRegistryEntry?.label || 'Records'"
         :singular-label="activeRegistryEntry?.singularLabel || 'record'"
         :key-field-tokens="createKeyFieldTokens"
@@ -542,6 +543,7 @@
         :right-sections="createDialogRightSections"
         :loading="createDialogLoading"
         :submit-disabled="!canCreateWithShell"
+        :initial-values="createDialogInitialValues"
         @submit="submitCreateRecordShell"
       />
     </div>
@@ -571,7 +573,7 @@ import {
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
-import { openFirstSelectedRecord, shareRecordSelection } from 'src/utils/recordListSelectionActions'
+import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 
 const route = useRoute()
 const router = useRouter()
@@ -586,6 +588,8 @@ const rawRows = ref([])
 const viewMode = ref('card')
 const createDialogOpen = ref(false)
 const createDialogLoading = ref(false)
+const createDialogMode = ref('create')
+const editDialogRow = ref(null)
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
@@ -749,6 +753,17 @@ const canCreateWithShell = computed(() => {
   if (activeSourceKey.value === 'artifacts') return false
   if (activeSourceKey.value === 'opportunities') return Boolean(bridge.value?.funds?.create || bridge.value?.rounds?.create)
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
+})
+const createDialogInitialValues = computed(() => {
+  if (createDialogMode.value !== 'edit' || !editDialogRow.value?.raw) return {}
+
+  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  return Object.fromEntries(
+    allTokens.map((token) => {
+      const value = getCanonicalTokenValue(editDialogRow.value.raw, token)
+      return [token.key, Array.isArray(value) ? [...value] : value == null ? '' : String(value)]
+    }),
+  )
 })
 const canDeleteSelectedRows = computed(() => {
   if (selectedRows.value.length === 0) return false
@@ -1333,11 +1348,15 @@ function openRecordView(row) {
 }
 
 function openCreateRecordShell() {
+  createDialogMode.value = 'create'
+  editDialogRow.value = null
   createDialogOpen.value = true
 }
 
 async function submitCreateRecordShell({ values } = {}) {
-  if (!canCreateWithShell.value) {
+  const isEditMode = createDialogMode.value === 'edit'
+
+  if (!isEditMode && !canCreateWithShell.value) {
     notifyShellAction('Create record')
     return
   }
@@ -1350,29 +1369,48 @@ async function submitCreateRecordShell({ values } = {}) {
 
   createDialogLoading.value = true
   try {
-    const sourceKey = activeSourceKey.value
-    let result = null
-
-    if (sourceKey === 'opportunities') {
-      const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
-      if (kind === 'fund') result = await bridge.value?.funds?.create?.(payload)
-      else if (kind === 'round') result = await bridge.value?.rounds?.create?.(payload)
-      else {
-        $q.notify({ type: 'negative', message: 'Choose Opportunity Kind as Fund or Round before creating.' })
+    if (isEditMode) {
+      if (!activeRegistryEntry.value?.entityName || !editDialogRow.value?.recordId) {
+        $q.notify({ type: 'negative', message: 'This record cannot be edited from the shared shell yet.' })
         return
       }
+
+      await bridge.value?.databooks?.update?.({
+        tableName: activeRegistryEntry.value.entityName,
+        recordId: editDialogRow.value.recordId,
+        changes: buildUpdateChanges(payload),
+      })
+
+      createDialogOpen.value = false
+      createDialogMode.value = 'create'
+      editDialogRow.value = null
+      $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
+      await loadRows()
     } else {
-      result = await bridge.value?.[sourceKey]?.create?.(payload)
-    }
+      const sourceKey = activeSourceKey.value
+      let result = null
 
-    if (!result) {
-      $q.notify({ type: 'negative', message: 'Create bridge is not available for this record type yet.' })
-      return
-    }
+      if (sourceKey === 'opportunities') {
+        const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
+        if (kind === 'fund') result = await bridge.value?.funds?.create?.(payload)
+        else if (kind === 'round') result = await bridge.value?.rounds?.create?.(payload)
+        else {
+          $q.notify({ type: 'negative', message: 'Choose Opportunity Kind as Fund or Round before creating.' })
+          return
+        }
+      } else {
+        result = await bridge.value?.[sourceKey]?.create?.(payload)
+      }
 
-    createDialogOpen.value = false
-    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
-    await loadRows()
+      if (!result) {
+        $q.notify({ type: 'negative', message: 'Create bridge is not available for this record type yet.' })
+        return
+      }
+
+      createDialogOpen.value = false
+      $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
+      await loadRows()
+    }
   } catch (createError) {
     $q.notify({ type: 'negative', message: createError?.message || String(createError) })
   } finally {
@@ -1394,6 +1432,19 @@ function buildCreatePayload(values = {}) {
   })
 
   return Object.fromEntries(payloadEntries)
+}
+
+function buildUpdateChanges(payload = {}) {
+  const editRow = editDialogRow.value
+  if (!editRow?.recordId) return []
+
+  return Object.entries(payload).map(([fieldName, value]) => ({
+    table_name: activeRegistryEntry.value?.entityName,
+    record_id: editRow.recordId,
+    field_name: fieldName,
+    id_column: activeLoader.value?.recordIdField || 'id',
+    new_value: Array.isArray(value) ? JSON.stringify(value) : String(value ?? ''),
+  }))
 }
 
 function normalizeCreateFieldValue(token, value) {
@@ -1501,7 +1552,11 @@ async function handleSelectedRowsShare() {
 }
 
 function handleSelectedRowsEdit() {
-  openFirstSelectedRecord(selectedRows.value, openRecordView)
+  const row = selectedRows.value[0] || null
+  if (!row?.recordId) return
+  createDialogMode.value = 'edit'
+  editDialogRow.value = row
+  createDialogOpen.value = true
 }
 
 async function handleSelectedRowsDelete() {

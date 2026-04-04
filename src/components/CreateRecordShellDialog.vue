@@ -136,7 +136,7 @@
           no-caps
           unelevated
           color="dark"
-          label="Create"
+          :label="submitLabel"
           :loading="loading"
           :disable="submitDisabled"
           @click="submit"
@@ -151,6 +151,7 @@ import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
+  mode: { type: String, default: 'create' },
   sourceLabel: { type: String, default: 'Records' },
   singularLabel: { type: String, default: 'record' },
   keyFieldTokens: { type: Array, default: () => [] },
@@ -158,6 +159,7 @@ const props = defineProps({
   rightSections: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
   submitDisabled: { type: Boolean, default: false },
+  initialValues: { type: Object, default: () => ({}) },
 })
 
 const emit = defineEmits(['update:modelValue', 'submit'])
@@ -193,6 +195,7 @@ const leftPanelSections = computed(() => [
 const headerNameToken = computed(() => props.keyFieldTokens[0] || null)
 
 const headerNamePlaceholder = computed(() => `${String(props.singularLabel || 'record')} name`)
+const submitLabel = computed(() => (String(props.mode || '').trim().toLowerCase() === 'edit' ? 'Save' : 'Create'))
 
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
@@ -211,7 +214,13 @@ watch(
     formValues.value = Object.fromEntries(
       allSections.value
         .flatMap((section) => section.tokens || [])
-        .map((token) => [token.key, token.tokenType === 'select_multi' ? [] : '']),
+        .map((token) => {
+          const initialValue = props.initialValues?.[token.key]
+          if (token.tokenType === 'select_multi') {
+            return [token.key, Array.isArray(initialValue) ? initialValue : []]
+          }
+          return [token.key, initialValue == null ? '' : initialValue]
+        }),
     )
   },
 )
