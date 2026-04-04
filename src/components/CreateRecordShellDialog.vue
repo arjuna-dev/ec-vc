@@ -529,9 +529,9 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__artifact-drop {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  align-content: start;
   width: 100%;
   min-height: 220px;
   padding: 20px 22px 16px;
@@ -567,6 +567,8 @@ onBeforeUnmount(() => {
 .create-record-shell__artifact-drop-list {
   display: grid;
   gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .create-record-shell__artifact-drop-list-head {
@@ -619,7 +621,7 @@ onBeforeUnmount(() => {
 
 .create-record-shell__artifact-drop-footer {
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 14px;
 }
 
 .create-record-shell__artifact-checkbox {
