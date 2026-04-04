@@ -2001,7 +2001,7 @@ function goBack() {
   min-height: 26px;
   padding: 0 8px;
   color: #ffffff;
-  background: #111111;
+  background: transparent;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
   font-family: var(--font-title);
   font-size: 0.88rem;
@@ -2021,7 +2021,7 @@ function goBack() {
 .ec-shell-test-select-menu__item.q-item--active .ec-shell-test-select-menu__value,
 .ec-shell-test-select-menu :deep(.q-item.q-manual-focusable--focused .q-item__label),
 .ec-shell-test-select-menu :deep(.q-item--active .q-item__label) {
-  background: #000000;
+  background: transparent;
   box-shadow: 0 0 0 1px #ffffff;
 }
 
