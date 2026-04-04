@@ -62,8 +62,10 @@
                   class="create-record-shell__field"
                   :class="{ 'create-record-shell__field--wide': isWideField(token) }"
                 >
-                  <div class="create-record-shell__field-label">{{ token.label }}</div>
-                  <div class="create-record-shell__field-type">{{ formatFieldType(token.tokenType) }}</div>
+                  <div class="create-record-shell__field-copy">
+                    <div class="create-record-shell__field-label">{{ token.label }}</div>
+                    <div class="create-record-shell__field-type">{{ formatFieldType(token.tokenType) }}</div>
+                  </div>
 
                   <q-select
                     v-if="token.tokenType === 'select_multi'"
@@ -126,8 +128,10 @@
                   class="create-record-shell__field"
                   :class="{ 'create-record-shell__field--wide': isWideField(token) }"
                 >
-                  <div class="create-record-shell__field-label">{{ token.label }}</div>
-                  <div class="create-record-shell__field-type">{{ formatFieldType(token.tokenType) }}</div>
+                  <div class="create-record-shell__field-copy">
+                    <div class="create-record-shell__field-label">{{ token.label }}</div>
+                    <div class="create-record-shell__field-type">{{ formatFieldType(token.tokenType) }}</div>
+                  </div>
 
                   <q-select
                     v-if="token.tokenType === 'select_multi'"
@@ -455,19 +459,27 @@ function isWideField(token) {
 
 .create-record-shell__fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 16px;
+  grid-template-columns: 1fr;
+  gap: 10px;
   align-content: start;
   overflow: auto;
 }
 
 .create-record-shell__field {
   display: grid;
-  gap: 6px;
+  grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
 }
 
 .create-record-shell__field--wide {
-  grid-column: span 2;
+  grid-column: span 1;
+}
+
+.create-record-shell__field-copy {
+  display: grid;
+  gap: 4px;
+  padding-top: 6px;
 }
 
 .create-record-shell__field-label {
@@ -476,6 +488,7 @@ function isWideField(token) {
   font-size: 0.76rem;
   font-weight: var(--font-weight-black);
   line-height: 0.95;
+  text-align: left;
 }
 
 .create-record-shell__field-type {
@@ -485,6 +498,7 @@ function isWideField(token) {
   font-weight: var(--font-weight-light);
   line-height: 1;
   text-transform: uppercase;
+  text-align: left;
 }
 
 .create-record-shell__input {
@@ -526,6 +540,15 @@ function isWideField(token) {
 
   .create-record-shell__fields {
     grid-template-columns: 1fr;
+  }
+
+  .create-record-shell__field {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .create-record-shell__field-copy {
+    padding-top: 0;
   }
 
   .create-record-shell__field--wide {
