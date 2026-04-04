@@ -83,6 +83,19 @@
                     @update:model-value="updateField(token.key, $event)"
                   />
 
+                  <q-select
+                    v-else-if="token.tokenType === 'select_single'"
+                    :model-value="stringValue(formValues[token.key])"
+                    dense
+                    outlined
+                    emit-value
+                    map-options
+                    :options="token.inputOptions || []"
+                    :disable="loading"
+                    class="create-record-shell__input"
+                    @update:model-value="updateField(token.key, $event)"
+                  />
+
                   <q-input
                     v-else
                     :model-value="stringValue(formValues[token.key])"
@@ -149,6 +162,19 @@
                     :disable="loading"
                     class="create-record-shell__input"
                     :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
+                    @update:model-value="updateField(token.key, $event)"
+                  />
+
+                  <q-select
+                    v-else-if="token.tokenType === 'select_single'"
+                    :model-value="stringValue(formValues[token.key])"
+                    dense
+                    outlined
+                    emit-value
+                    map-options
+                    :options="token.inputOptions || []"
+                    :disable="loading"
+                    class="create-record-shell__input"
                     @update:model-value="updateField(token.key, $event)"
                   />
 

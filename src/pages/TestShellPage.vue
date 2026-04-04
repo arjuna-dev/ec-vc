@@ -722,7 +722,9 @@ const createSectionGroups = computed(() => {
     .map((section) => ({
       key: section.key,
       label: section.label,
-      tokens: level3Tokens.value.filter((token) => token.parentKey === section.key && !keyFieldKeys.has(token.key)),
+      tokens: level3Tokens.value
+        .filter((token) => token.parentKey === section.key && !keyFieldKeys.has(token.key))
+        .map((token) => normalizeCreateDialogToken(token)),
     }))
     .filter((group) => group.tokens.length)
 })
@@ -775,6 +777,37 @@ const displayRows = computed(() => {
       return haystack.some((value) => String(value || '').toLowerCase().includes(query))
     })
 })
+
+function normalizeCreateDialogToken(token) {
+  if (!isStatusToken(token)) return token
+
+  return {
+    ...token,
+    tokenType: 'select_single',
+    inputOptions: getSingleSelectOptionsForToken(token),
+  }
+}
+
+function isStatusToken(token) {
+  return String(token?.label || '').trim().toLowerCase() === 'status'
+}
+
+function getSingleSelectOptionsForToken(token) {
+  const values = Array.from(
+    new Set(
+      rawRows.value
+        .map((row) => getCanonicalTokenValue(row, token))
+        .flatMap((value) => (Array.isArray(value) ? value : [value]))
+        .map((value) => String(value || '').trim())
+        .filter(Boolean),
+    ),
+  )
+
+  return values.map((value) => ({
+    label: value,
+    value,
+  }))
+}
 
 const visibleSelectableRowIds = computed(() =>
   displayRows.value.map((row) => String(row.recordId || row.cardId || '').trim()).filter(Boolean),
