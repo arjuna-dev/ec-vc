@@ -1925,8 +1925,8 @@ function goBack() {
 .ec-shell-test-select-wrap {
   position: relative;
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  padding-right: 18px;
 }
 
 .ec-shell-test-select-wrap:hover .ec-shell-test-select :deep(.q-field__control),
@@ -1948,9 +1948,12 @@ function goBack() {
 }
 
 .ec-shell-test-select__chevron {
-  flex: 0 0 auto;
+  position: absolute;
+  right: 0;
+  bottom: 2px;
   color: rgba(255, 255, 255, 0.92);
   font-size: 18px;
+  line-height: 1;
 }
 
 .ec-shell-test-select__tooltip {
