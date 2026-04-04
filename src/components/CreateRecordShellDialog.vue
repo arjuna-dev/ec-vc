@@ -256,7 +256,7 @@ const leftPanelSections = computed(() => [
   ...props.leftSections,
 ])
 
-const submitLabel = computed(() => (String(props.mode || '').trim().toLowerCase() === 'edit' ? 'Save' : 'Create'))
+const submitLabel = computed(() => 'Save')
 const selectedArtifactCount = computed(() => selectedArtifactIds.value.length)
 const allArtifactsSelected = computed(() =>
   stagedArtifacts.value.length > 0 && selectedArtifactIds.value.length === stagedArtifacts.value.length,
