@@ -801,7 +801,7 @@ onBeforeUnmount(() => {
 .create-record-shell__title {
   color: #111111;
   font-family: var(--font-title);
-  font-size: 1.22rem;
+  font-size: 1.46rem;
   font-weight: var(--font-weight-black);
   line-height: 0.94;
   margin-bottom: 12px;
