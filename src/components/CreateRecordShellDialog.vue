@@ -90,40 +90,76 @@
                 <div class="create-record-shell__processing-panel">
                   <div class="create-record-shell__processing-panel-head">
                     <div class="create-record-shell__processing-panel-title">Ingestion Companion</div>
-                    <div class="create-record-shell__processing-panel-meta">
-                      {{ processingArtifacts.length }} loading
-                    </div>
                   </div>
 
-                  <div v-if="processingArtifacts.length" class="create-record-shell__processing-list">
-                    <label
-                      v-for="artifact in processingArtifacts"
-                      :key="`processing:${artifact.id}`"
-                      class="create-record-shell__processing-item"
-                    >
-                      <q-checkbox
-                        :model-value="true"
+                  <div class="create-record-shell__processing-sections">
+                    <section class="create-record-shell__processing-box">
+                      <div class="create-record-shell__processing-box-head">
+                        <div class="create-record-shell__processing-box-title">Artifacts Processed</div>
+                        <div class="create-record-shell__processing-panel-meta">
+                          {{ processingArtifacts.length }} loading
+                        </div>
+                      </div>
+
+                      <div v-if="processingArtifacts.length" class="create-record-shell__processing-list">
+                        <label
+                          v-for="artifact in processingArtifacts"
+                          :key="`processing:${artifact.id}`"
+                          class="create-record-shell__processing-item"
+                        >
+                          <q-checkbox
+                            :model-value="true"
+                            dense
+                            size="xs"
+                            checked-icon="check_box"
+                            unchecked-icon="check_box_outline_blank"
+                            class="create-record-shell__artifact-checkbox"
+                            @update:model-value="toggleArtifactSelection(artifact.id, $event)"
+                          />
+                          <span class="create-record-shell__processing-item-name">{{ artifact.name }}</span>
+                          <span class="create-record-shell__processing-item-status">
+                            <q-spinner size="12px" color="dark" class="create-record-shell__processing-spinner" />
+                            Loading
+                          </span>
+                        </label>
+                      </div>
+
+                      <div v-else-if="stagedArtifacts.length" class="create-record-shell__processing-ready">
+                        Select artifacts on the left to move them into processing.
+                      </div>
+
+                      <div v-else class="create-record-shell__processing-empty">
+                        Drop files on the left to stage them for this record.
+                      </div>
+                    </section>
+
+                    <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
+                      <div class="create-record-shell__processing-box-head">
+                        <div class="create-record-shell__processing-box-title">URLs</div>
+                      </div>
+                      <q-input
+                        v-model="supportResourceUrls"
+                        type="textarea"
+                        autogrow
                         dense
-                        size="xs"
-                        checked-icon="check_box"
-                        unchecked-icon="check_box_outline_blank"
-                        class="create-record-shell__artifact-checkbox"
-                        @update:model-value="toggleArtifactSelection(artifact.id, $event)"
+                        outlined
+                        class="create-record-shell__processing-input"
                       />
-                      <span class="create-record-shell__processing-item-name">{{ artifact.name }}</span>
-                      <span class="create-record-shell__processing-item-status">
-                        <q-spinner size="12px" color="dark" class="create-record-shell__processing-spinner" />
-                        Loading
-                      </span>
-                    </label>
-                  </div>
+                    </section>
 
-                  <div v-else-if="stagedArtifacts.length" class="create-record-shell__processing-ready">
-                    Select artifacts on the left to move them into processing.
-                  </div>
-
-                  <div v-else class="create-record-shell__processing-empty">
-                    Drop files on the left to stage them for this record.
+                    <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
+                      <div class="create-record-shell__processing-box-head">
+                        <div class="create-record-shell__processing-box-title">Text Blurb / Guides</div>
+                      </div>
+                      <q-input
+                        v-model="supportResourceGuidance"
+                        type="textarea"
+                        autogrow
+                        dense
+                        outlined
+                        class="create-record-shell__processing-input"
+                      />
+                    </section>
                   </div>
                 </div>
               </div>
@@ -317,6 +353,8 @@ const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
+const supportResourceUrls = ref('')
+const supportResourceGuidance = ref('')
 const supportResourcesCollapsed = ref(false)
 const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
@@ -389,6 +427,8 @@ watch(
     stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
     selectedArtifactIds.value = []
     autoProcessArtifacts.value = false
+    supportResourceUrls.value = ''
+    supportResourceGuidance.value = ''
     dialogWidth.value = 760
     dialogHeight.value = 780
     formValues.value = Object.fromEntries(
@@ -426,6 +466,10 @@ function buildDialogSnapshot() {
     artifacts: {
       stagedFiles: stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
       autoProcess: autoProcessArtifacts.value,
+    },
+    companion: {
+      urls: supportResourceUrls.value,
+      guidance: supportResourceGuidance.value,
     },
     hasUserChanges: hasUserChanges.value,
   }
@@ -865,6 +909,42 @@ onBeforeUnmount(() => {
   line-height: 0.92;
 }
 
+.create-record-shell__processing-sections {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  min-height: 0;
+}
+
+.create-record-shell__processing-box {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+}
+
+.create-record-shell__processing-box--compact {
+  align-content: start;
+}
+
+.create-record-shell__processing-box-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.create-record-shell__processing-box-title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.74rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
 .create-record-shell__processing-panel-meta {
   color: rgba(17, 17, 17, 0.52);
   font-size: 0.72rem;
@@ -924,6 +1004,15 @@ onBeforeUnmount(() => {
 
 .create-record-shell__processing-spinner {
   flex: 0 0 auto;
+}
+
+.create-record-shell__processing-input :deep(.q-field__control) {
+  min-height: 72px;
+  border-radius: 6px;
+}
+
+.create-record-shell__processing-input :deep(textarea) {
+  min-height: 52px !important;
 }
 
 .create-record-shell__tabs {
