@@ -5251,6 +5251,13 @@ function registerIpc() {
     }
   })
 
+  ipcMain.handle('users:delete', async (_event, { userId } = {}) => {
+    initDb()
+    const result = deleteRow('Users', 'id', String(userId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
   ipcMain.handle('contacts:create', async (_event, payload) => {
     initDb()
     const result = createContact(payload)
