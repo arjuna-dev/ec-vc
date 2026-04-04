@@ -1598,6 +1598,8 @@ function notifyShellAction(label) {
   font-weight: var(--font-weight-black);
   line-height: 1.35;
   min-width: 0;
+  text-align: left;
+  justify-self: start;
 }
 
 .test-shell-table tbody tr:last-child .test-shell-table__cell {
