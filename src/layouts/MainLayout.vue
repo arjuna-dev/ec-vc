@@ -544,9 +544,22 @@ const mainNavigationItems = [
   itemClass: 'ec-nav-item--primary',
   iconSize: '22px',
 }))
+const workspaceFileNavItems = [...WORKSPACE_FILE_NAV_ITEMS]
+const companiesNavIndex = workspaceFileNavItems.findIndex((item) => item.to === '/companies')
+
+if (companiesNavIndex >= 0) {
+  workspaceFileNavItems.splice(companiesNavIndex + 1, 0, {
+    label: 'Opportunities',
+    to: '/opportunities',
+    exact: true,
+    icon: 'work',
+  })
+} else {
+  workspaceFileNavItems.push({ label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' })
+}
+
 const workspaceNavigationItems = [
-  ...WORKSPACE_FILE_NAV_ITEMS,
-  { label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' },
+  ...workspaceFileNavItems,
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
   { label: 'Test Shell', to: '/test-shell', exact: true, icon: 'science' },
 ].map((item) => ({
