@@ -37,9 +37,6 @@
               </template>
             </q-select>
             <q-icon name="expand_more" class="ec-shell-test-select__chevron" />
-            <q-tooltip anchor="bottom middle" self="top middle" class="ec-shell-test-select__tooltip">
-              Live L1 Source
-            </q-tooltip>
           </div>
         </div>
 
@@ -1953,16 +1950,6 @@ function goBack() {
   line-height: 1;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
   pointer-events: none;
-}
-
-.ec-shell-test-select__tooltip {
-  font-family: var(--font-body);
-  font-size: 0.62rem;
-  font-weight: 300;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.72);
-  background: rgba(17, 17, 17, 0.92);
-  padding: 4px 7px;
 }
 
 .ec-shell-test-select-menu :deep(.q-virtual-scroll__content),
