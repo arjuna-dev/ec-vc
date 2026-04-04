@@ -290,11 +290,28 @@
             <tbody>
               <tr v-for="row in displayRows" :key="row.cardId">
                 <td class="test-shell-table__cell test-shell-table__cell--name">
-                  <div
-                    class="test-shell-table__name"
-                    :class="{ 'test-shell-card__value--placeholder': !row.titleValue }"
-                  >
-                    {{ row.titleValue || 'Name mapping undefined' }}
+                  <div class="test-shell-table__name-row">
+                    <q-checkbox
+                      :model-value="isRowSelected(row)"
+                      color="dark"
+                      class="test-shell-table__select-box"
+                      @update:model-value="toggleRowSelection(row, $event)"
+                    />
+                    <div
+                      class="test-shell-table__name"
+                      :class="{ 'test-shell-card__value--placeholder': !row.titleValue }"
+                    >
+                      {{ row.titleValue || 'Name mapping undefined' }}
+                    </div>
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      icon="visibility"
+                      class="test-shell-table__eye"
+                      :disable="!row.recordId"
+                      @click="openRecordView(row)"
+                    />
                   </div>
                 </td>
                 <td
@@ -1517,6 +1534,18 @@ function notifyShellAction(label) {
   vertical-align: top;
 }
 
+.test-shell-table__name-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.test-shell-table__select-box,
+.test-shell-table__eye {
+  flex: 0 0 auto;
+}
+
 .test-shell-table__kdb-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1561,6 +1590,7 @@ function notifyShellAction(label) {
   font-size: 12px;
   font-weight: var(--font-weight-black);
   line-height: 1.35;
+  min-width: 0;
 }
 
 .test-shell-table tbody tr:last-child .test-shell-table__cell {
