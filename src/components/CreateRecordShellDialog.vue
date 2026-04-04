@@ -700,6 +700,14 @@ function formatArtifactSize(size) {
   background: rgba(255, 255, 255, 0.92);
 }
 
+.create-record-shell__input :deep(.q-field__native),
+.create-record-shell__input :deep(.q-field__input),
+.create-record-shell__input :deep(.q-field__marginal),
+.create-record-shell__input :deep(.q-chip) {
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
 .create-record-shell__input--summary :deep(.q-field__control) {
   min-height: 132px;
   border-radius: 8px;
