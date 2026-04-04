@@ -2,7 +2,7 @@
   <q-page class="q-pa-md test-shell-page">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Artifacts requires Electron. Run <code>quasar dev -m electron</code> or
+        {{ pageShellLabel }} requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -15,7 +15,7 @@
 
     <div v-else class="test-shell-body">
       <FilePageHeroDashboard
-        eyebrow="Artifacts"
+        :eyebrow="pageShellLabel"
         :title="heroTitle"
         :text="heroText"
         :stats="heroStats"
@@ -587,6 +587,7 @@ import {
 import {
   CANONICAL_OPTION_LISTS,
   getFilePageRegistryEntry,
+  getFilePageRegistryEntryByRouteName,
   getCanonicalTokenFieldNames,
   getCanonicalTokenValue,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
@@ -705,6 +706,8 @@ const activeSourceKey = computed(() => {
 const activeRegistryEntry = computed(
   () => getFilePageRegistryEntry(activeSourceKey.value) || getFilePageRegistryEntry(fallbackSectionKey),
 )
+const routeRegistryEntry = computed(() => getFilePageRegistryEntryByRouteName(route.name))
+const pageShellLabel = computed(() => routeRegistryEntry.value?.label || activeRegistryEntry.value?.label || 'Records')
 
 const activeLoader = computed(() => SECTION_LOADERS[activeSourceKey.value] || null)
 const hasSupportedBridge = computed(() => {
@@ -1180,8 +1183,7 @@ watch(
 
 watch(
   [() => route.name, () => route.query.create, activeSourceKey, createKeyFieldTokens, createSectionGroups],
-  async ([routeName, createFlag]) => {
-    if (String(routeName || '').trim() !== 'artifacts') return
+  async ([, createFlag]) => {
     if (!String(createFlag || '').trim()) return
 
     await preloadCreateDialogOptionSources()

@@ -287,6 +287,11 @@ export function getFilePageRegistryEntry(key) {
   return FILE_PAGE_REGISTRY_BY_KEY[String(key || '').trim().toLowerCase()] || null
 }
 
+export function getFilePageRegistryEntryByRouteName(routeName) {
+  const normalizedRouteName = String(routeName || '').trim().toLowerCase()
+  return LEVEL_1_FILE_REGISTRY.find((entry) => entry.routeName === normalizedRouteName) || null
+}
+
 export function getCanonicalTokenFieldNames(token = {}) {
   return Array.from(
     new Set(
