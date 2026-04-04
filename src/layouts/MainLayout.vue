@@ -513,6 +513,7 @@ const drawerSectionOpen = ref({
   main: true,
   radars: true,
   workspace: true,
+  'knowledge-dbs': false,
 })
 
 const QUICK_WIDGET_TRIGGER_SIZE = 112
@@ -586,8 +587,8 @@ const workspaceNavigationItems = [
   { label: 'Test Shell', to: '/test-shell', exact: true, icon: 'science' },
 ].map((item) => ({
   ...item,
-  itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-  iconSize: '18px',
+  itemClass: item.itemClass || 'ec-nav-item--secondary ec-nav-item--workspace-child',
+  iconSize: item.iconSize || '18px',
 }))
 const routeLabelByName = {
   home: 'Home',
