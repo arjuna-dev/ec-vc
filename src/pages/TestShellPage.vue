@@ -1542,7 +1542,7 @@ function notifyShellAction(label) {
 
 .test-shell-table__name-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
   gap: 8px;
 }
