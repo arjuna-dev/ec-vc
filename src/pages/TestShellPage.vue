@@ -35,7 +35,7 @@
         :view-options="viewOptions"
         :show-view-toggle="true"
         @toggle-select-all="toggleSelectAllVisible"
-        @add="openCreateRecordForActiveSource"
+        @add="openCreateRecordShell"
         @update:search-query="searchQuery = $event"
         @update:view-mode="viewMode = $event"
       >
@@ -532,6 +532,18 @@
         @edit="handleSelectedRowsEdit"
         @delete="handleSelectedRowsDelete"
       />
+
+      <CreateRecordShellDialog
+        v-model="createDialogOpen"
+        :source-label="activeRegistryEntry?.label || 'Records'"
+        :singular-label="activeRegistryEntry?.singularLabel || 'record'"
+        :key-field-tokens="createKeyFieldTokens"
+        :left-sections="createDialogLeftSections"
+        :right-sections="createDialogRightSections"
+        :loading="createDialogLoading"
+        :submit-disabled="!canCreateWithShell"
+        @submit="submitCreateRecordShell"
+      />
     </div>
   </q-page>
 </template>
@@ -540,6 +552,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import CreateRecordShellDialog from 'components/CreateRecordShellDialog.vue'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
@@ -551,6 +564,7 @@ import {
 } from 'src/utils/card-kdb-relationships'
 import {
   getFilePageRegistryEntry,
+  getCanonicalTokenFieldNames,
   getCanonicalTokenValue,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
@@ -570,6 +584,8 @@ const error = ref('')
 const searchQuery = ref('')
 const rawRows = ref([])
 const viewMode = ref('card')
+const createDialogOpen = ref(false)
+const createDialogLoading = ref(false)
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
@@ -620,16 +636,6 @@ const SECTION_LOADERS = {
     recordIdField: 'id',
   },
 }
-
-const CREATE_ROUTE_BY_SOURCE = Object.freeze({
-  users: { name: 'users', query: { create: '1' } },
-  contacts: { name: 'contacts', query: { create: '1' } },
-  companies: { name: 'companies', query: { create: '1' } },
-  opportunities: { name: 'opportunities', query: { create: 'opportunity' } },
-  projects: { name: 'projects', query: { create: '1' } },
-  tasks: { name: 'tasks', query: { create: '1' } },
-  notes: { name: 'notes', query: { create: '1' } },
-})
 
 const fallbackSectionKey =
   TEST_SHELL_SECTION_OPTIONS.find((option) => option.value === 'tasks')?.value ||
@@ -692,6 +698,15 @@ const selectedCardItemTokens = computed(() =>
     .map((tokenKey) => availableCardItemTokens.value.find((token) => token.key === tokenKey))
     .filter(Boolean),
 )
+const createKeyFieldTokens = computed(() => {
+  const tokens = [canonicalTitleToken.value, ...selectedCardItemTokens.value].filter(Boolean)
+  const seen = new Set()
+  return tokens.filter((token) => {
+    if (seen.has(token.key)) return false
+    seen.add(token.key)
+    return true
+  })
+})
 const cardItemTokenGroups = computed(() =>
   level2Sections.value
     .map((section) => ({
@@ -701,10 +716,37 @@ const cardItemTokenGroups = computed(() =>
     }))
     .filter((group) => group.tokens.length),
 )
+const createSectionGroups = computed(() => {
+  const keyFieldKeys = new Set(createKeyFieldTokens.value.map((token) => token.key))
+  return level2Sections.value
+    .map((section) => ({
+      key: section.key,
+      label: section.label,
+      tokens: level3Tokens.value.filter((token) => token.parentKey === section.key && !keyFieldKeys.has(token.key)),
+    }))
+    .filter((group) => group.tokens.length)
+})
+const createDialogLeftSections = computed(() =>
+  createSectionGroups.value.filter((section) => {
+    const normalized = String(section.label || '').trim().toLowerCase()
+    return normalized !== 'kdb' && normalized !== 'system'
+  }),
+)
+const createDialogRightSections = computed(() =>
+  createSectionGroups.value.filter((section) => {
+    const normalized = String(section.label || '').trim().toLowerCase()
+    return normalized === 'kdb' || normalized === 'system'
+  }),
+)
 const expandedCardSettingsGroups = computed(() => {
   const sourceKey = activeSourceKey.value
   const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
   return Array.isArray(existing) ? existing : cardItemTokenGroups.value.map((group) => group.key)
+})
+const canCreateWithShell = computed(() => {
+  if (activeSourceKey.value === 'artifacts') return false
+  if (activeSourceKey.value === 'opportunities') return Boolean(bridge.value?.funds?.create || bridge.value?.rounds?.create)
+  return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
 const tableSectionTokens = computed(() =>
   activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
@@ -1236,25 +1278,84 @@ function openRecordView(row) {
   router.push(location)
 }
 
-async function openCreateRecordForActiveSource() {
-  const sourceKey = activeSourceKey.value
+function openCreateRecordShell() {
+  createDialogOpen.value = true
+}
 
-  if (sourceKey === 'artifacts') {
-    await router.push({ name: 'artifacts' })
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('ecvc:open-artifact-dialog'))
-      window.setTimeout(() => window.dispatchEvent(new Event('ecvc:open-artifact-dialog')), 80)
+async function submitCreateRecordShell({ values } = {}) {
+  if (!canCreateWithShell.value) {
+    notifyShellAction('Create record')
+    return
+  }
+
+  const payload = buildCreatePayload(values)
+  if (!Object.keys(payload).length) {
+    $q.notify({ type: 'negative', message: 'Add at least one field before creating the record.' })
+    return
+  }
+
+  createDialogLoading.value = true
+  try {
+    const sourceKey = activeSourceKey.value
+    let result = null
+
+    if (sourceKey === 'opportunities') {
+      const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
+      if (kind === 'fund') result = await bridge.value?.funds?.create?.(payload)
+      else if (kind === 'round') result = await bridge.value?.rounds?.create?.(payload)
+      else {
+        $q.notify({ type: 'negative', message: 'Choose Opportunity Kind as Fund or Round before creating.' })
+        return
+      }
+    } else {
+      result = await bridge.value?.[sourceKey]?.create?.(payload)
     }
-    return
+
+    if (!result) {
+      $q.notify({ type: 'negative', message: 'Create bridge is not available for this record type yet.' })
+      return
+    }
+
+    createDialogOpen.value = false
+    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
+    await loadRows()
+  } catch (createError) {
+    $q.notify({ type: 'negative', message: createError?.message || String(createError) })
+  } finally {
+    createDialogLoading.value = false
+  }
+}
+
+function buildCreatePayload(values = {}) {
+  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const payloadEntries = []
+
+  allTokens.forEach((token) => {
+    const rawValue = values?.[token.key]
+    const normalizedValue = normalizeCreateFieldValue(token, rawValue)
+    if (normalizedValue == null) return
+    const fieldName = getCanonicalTokenFieldNames(token)[1] || getCanonicalTokenFieldNames(token)[0]
+    if (!fieldName) return
+    payloadEntries.push([fieldName, normalizedValue])
+  })
+
+  return Object.fromEntries(payloadEntries)
+}
+
+function normalizeCreateFieldValue(token, value) {
+  const tokenType = String(token?.tokenType || '').trim()
+  if (tokenType === 'select_multi') {
+    const normalized = Array.isArray(value)
+      ? value.map((item) => String(item || '').trim()).filter(Boolean)
+      : String(value || '')
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean)
+    return normalized.length ? normalized : null
   }
 
-  const routeTarget = CREATE_ROUTE_BY_SOURCE[sourceKey]
-  if (!routeTarget) {
-    notifyShellAction('Add Record')
-    return
-  }
-
-  await router.push(routeTarget)
+  const normalized = String(value || '').trim()
+  return normalized ? normalized : null
 }
 
 function setActiveFilterSection(sectionKey) {
