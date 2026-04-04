@@ -25,6 +25,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     key: 'opportunities',
     label: 'Opportunities',
     singularLabel: 'Opportunity',
+    createBranchLabel: 'Opportunity Type',
     routeName: 'opportunities',
     path: '/opportunities',
     icon: 'work',

@@ -365,7 +365,7 @@
     <q-dialog v-model="createBranchDialogOpen" persistent>
       <q-card style="width: 420px; max-width: 92vw">
         <q-card-section class="q-px-lg q-pt-lg q-pb-md">
-          <div class="ec-create-branch-dialog-title">choose_item</div>
+          <div class="ec-create-branch-dialog-title">{{ createBranchDialogTitle }}</div>
         </q-card-section>
 
         <q-card-section class="q-px-lg q-pb-md">
@@ -830,6 +830,15 @@ const createBranchOptions = computed(() =>
     ? activeCreateBranchParentEntry.value.createBranches
     : [],
 )
+
+const createBranchDialogTitle = computed(() => {
+  const label = String(
+    activeCreateBranchParentEntry.value?.createBranchLabel ||
+      activeCreateBranchParentEntry.value?.singularLabel ||
+      'Item',
+  ).trim()
+  return `Choose ${label}`
+})
 
 const quickWidgetActions = computed(() =>
   quickWidgetActionCatalog.value.filter((action) => isQuickWidgetActionEnabled(action.id)),
