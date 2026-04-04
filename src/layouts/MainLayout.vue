@@ -1929,6 +1929,7 @@ function goBack() {
   display: inline-flex;
   align-items: flex-start;
   padding-right: 18px;
+  overflow: visible;
 }
 
 .ec-shell-test-select-wrap:hover .ec-shell-test-select :deep(.q-field__control),
@@ -1948,11 +1949,14 @@ function goBack() {
 
 .ec-shell-test-select__chevron {
   position: absolute;
-  right: 0;
-  bottom: 2px;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 18px;
+  right: -4px;
+  bottom: -2px;
+  z-index: 2;
+  color: #ffffff;
+  font-size: 20px;
   line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
 }
 
 .ec-shell-test-select__tooltip {
