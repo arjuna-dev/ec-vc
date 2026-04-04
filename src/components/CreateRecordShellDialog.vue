@@ -386,7 +386,7 @@ function formatFieldType(tokenType) {
 }
 
 function isWideField(token) {
-  return ['select_multi'].includes(String(token?.tokenType || '').trim()) || isSummaryField(token)
+  return isSummaryField(token)
 }
 
 function isSummaryField(token) {
