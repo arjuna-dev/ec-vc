@@ -29,7 +29,7 @@
               <div class="settings-identity-preview__badge">
                 <q-icon name="settings" class="settings-identity-preview__icon" />
               </div>
-              <div class="settings-identity-preview__name">{{ form.Name || 'Owner Profile' }}</div>
+              <div class="settings-identity-preview__name">{{ fullProfileName || 'Owner Profile' }}</div>
               <div class="settings-identity-preview__meta">
                 {{ form.User_PEmail || 'Primary email pending' }} /
                 {{ form.Country_based || 'Region pending' }}
@@ -62,10 +62,19 @@
                 <div class="row q-col-gutter-md">
                   <div class="col-12 col-md-6">
                     <q-input
-                      v-model="form.Name"
+                      v-model="form.Given_Names"
                       outlined
                       dense
-                      label="Name *"
+                      label="Given Names *"
+                      :disable="loading || saving"
+                    />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <q-input
+                      v-model="form.Last_Names"
+                      outlined
+                      dense
+                      label="Last Names"
                       :disable="loading || saving"
                     />
                   </div>
@@ -298,7 +307,8 @@ const saving = ref(false)
 const savingWorkspaceSettings = ref(false)
 const error = ref('')
 const form = ref({
-  Name: '',
+  Given_Names: '',
+  Last_Names: '',
   User_PEmail: '',
   Professional_Email: '',
   Phone: '',
@@ -306,7 +316,8 @@ const form = ref({
   Country_based: '',
 })
 const savedForm = ref({
-  Name: '',
+  Given_Names: '',
+  Last_Names: '',
   User_PEmail: '',
   Professional_Email: '',
   Phone: '',
@@ -316,13 +327,15 @@ const savedForm = ref({
 const workspaceSettings = ref({ ...defaultWorkspaceSettings })
 const savedWorkspaceSettings = ref({ ...defaultWorkspaceSettings })
 
+const fullProfileName = computed(() => [form.value.Given_Names, form.value.Last_Names].map(normalizeInput).filter(Boolean).join(' ').trim())
+
 const settingsHeroText = computed(() => {
   if (loading.value) return 'Loading the local owner profile and node settings.'
-  if (!form.value.Name && !form.value.User_PEmail) {
+  if (!fullProfileName.value && !form.value.User_PEmail) {
     return 'Start by defining the owner profile that the node will use across settings, avatar, and shared local identity.'
   }
 
-  return `${form.value.Name || 'Owner'} is the local node profile. Keep the core contact details current so the rest of the workspace stays grounded in one shared identity.`
+  return `${fullProfileName.value || 'Owner'} is the local node profile. Keep the core contact details current so the rest of the workspace stays grounded in one shared identity.`
 })
 
 function onHeroDashboardPointerEnter(event) {
@@ -367,7 +380,8 @@ function normalizeInput(value) {
 
 function normalizedFormSignature(value) {
   return JSON.stringify({
-    Name: normalizeInput(value?.Name),
+    Given_Names: normalizeInput(value?.Given_Names),
+    Last_Names: normalizeInput(value?.Last_Names),
     User_PEmail: normalizeInput(value?.User_PEmail),
     Professional_Email: normalizeInput(value?.Professional_Email),
     Phone: normalizeInput(value?.Phone),
@@ -399,13 +413,23 @@ const workspaceToolbarText = computed(() => {
 })
 
 function mapContactToForm(contact = null) {
+  const nameParts = splitNameParts(contact?.Name)
   return {
-    Name: contact?.Name || '',
+    Given_Names: nameParts.givenNames,
+    Last_Names: nameParts.lastNames,
     User_PEmail: '',
     Professional_Email: contact?.Professional_Email || '',
     Phone: contact?.Phone || '',
     LinkedIn: contact?.LinkedIn || '',
     Country_based: contact?.Country_based || '',
+  }
+}
+
+function splitNameParts(value) {
+  const parts = String(value || '').trim().split(/\s+/).filter(Boolean)
+  return {
+    givenNames: parts.slice(0, -1).join(' ') || parts[0] || '',
+    lastNames: parts.length > 1 ? parts.slice(-1).join(' ') : '',
   }
 }
 
@@ -435,10 +459,10 @@ async function loadUserSettings() {
 
 async function saveUserSettings() {
   if (!hasBridge.value) return
-  const name = normalizeInput(form.value.Name)
+  const name = fullProfileName.value
   const email = normalizeInput(form.value.User_PEmail)
   if (!name) {
-    const message = 'User name should not be empty'
+    const message = 'Given names should not be empty'
     error.value = message
     $q.notify({ type: 'negative', message: `Error: ${message}` })
     return

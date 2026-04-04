@@ -319,8 +319,32 @@
                     </div>
                   </div>
 
+                  <div
+                    v-if="isSplitNameToken(token)"
+                    class="create-record-shell__split-name"
+                  >
+                    <q-input
+                      :model-value="splitNameValue(token.key).givenNames"
+                      dense
+                      outlined
+                      :disable="loading"
+                      label="Given Names"
+                      class="create-record-shell__input create-record-shell__input--split"
+                      @update:model-value="updateSplitNameField(token.key, 'givenNames', $event)"
+                    />
+                    <q-input
+                      :model-value="splitNameValue(token.key).lastNames"
+                      dense
+                      outlined
+                      :disable="loading"
+                      label="Last Names"
+                      class="create-record-shell__input create-record-shell__input--split"
+                      @update:model-value="updateSplitNameField(token.key, 'lastNames', $event)"
+                    />
+                  </div>
+
                   <q-select
-                    v-if="token.tokenType === 'select_multi'"
+                    v-else-if="token.tokenType === 'select_multi'"
                     :model-value="Array.isArray(formValues[token.key]) ? formValues[token.key] : []"
                     dense
                     outlined
@@ -527,6 +551,9 @@ watch(
         .flatMap((section) => section.tokens || [])
         .map((token) => {
           const initialValue = props.initialValues?.[token.key]
+          if (isSplitNameToken(token)) {
+            return [token.key, normalizeSplitNameValue(initialValue)]
+          }
           if (token.tokenType === 'select_multi') {
             return [token.key, normalizeMultiValue(initialValue)]
           }
@@ -540,6 +567,19 @@ function updateField(tokenKey, value) {
   formValues.value = {
     ...formValues.value,
     [tokenKey]: value,
+  }
+  hasUserChanges.value = true
+  emit('change', buildDialogSnapshot())
+}
+
+function updateSplitNameField(tokenKey, part, value) {
+  const existing = normalizeSplitNameValue(formValues.value[tokenKey])
+  formValues.value = {
+    ...formValues.value,
+    [tokenKey]: {
+      ...existing,
+      [part]: String(value || ''),
+    },
   }
   hasUserChanges.value = true
   emit('change', buildDialogSnapshot())
@@ -580,6 +620,34 @@ function markDialogChanged() {
 
 function stringValue(value) {
   return typeof value === 'string' ? value : String(value || '')
+}
+
+function isSplitNameToken(token) {
+  const tokenName = String(token?.tokenName || '').trim()
+  return tokenName === 'User_Name' || tokenName === 'Contact_Name'
+}
+
+function normalizeSplitNameValue(value) {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return {
+      givenNames: String(value.givenNames || ''),
+      lastNames: String(value.lastNames || ''),
+    }
+  }
+
+  const parts = String(value || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+
+  return {
+    givenNames: parts.slice(0, -1).join(' ') || parts[0] || '',
+    lastNames: parts.length > 1 ? parts.slice(-1).join(' ') : '',
+  }
+}
+
+function splitNameValue(tokenKey) {
+  return normalizeSplitNameValue(formValues.value[tokenKey])
 }
 
 function selectSingleValue(value) {
@@ -1576,6 +1644,13 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-black);
   line-height: 0.95;
   text-align: right;
+}
+
+.create-record-shell__split-name {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
 }
 
 .create-record-shell__input {
