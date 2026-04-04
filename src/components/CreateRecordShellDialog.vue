@@ -6,6 +6,7 @@
     >
       <q-card-section class="create-record-shell__header">
         <div class="create-record-shell__header-copy">
+          <div class="create-record-shell__title">{{ dialogTitle }}</div>
           <div class="create-record-shell__intake-lane">
             <div class="create-record-shell__intake-title">Ingestion Companion</div>
             <div class="create-record-shell__intake-body">
@@ -278,6 +279,12 @@ const leftPanelSections = computed(() => [
   ...props.leftSections,
 ])
 
+const dialogTitle = computed(() => {
+  const normalizedLabel = String(props.singularLabel || 'record').trim()
+  const modeLabel = props.mode === 'edit' ? 'Editing' : 'Creating'
+  return `${modeLabel} ${normalizedLabel}`
+})
+
 const submitLabel = computed(() => 'Save')
 const selectedArtifactCount = computed(() => selectedArtifactIds.value.length)
 const allArtifactsSelected = computed(() =>
@@ -533,6 +540,15 @@ onBeforeUnmount(() => {
   flex: 1 1 auto;
   min-height: 1px;
   min-width: 0;
+}
+
+.create-record-shell__title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 1.02rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.94;
+  margin-bottom: 12px;
 }
 
 .create-record-shell__header-actions {
