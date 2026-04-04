@@ -282,6 +282,7 @@ import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import {
   getFilePageRegistryEntry,
+  getCanonicalTokenValue,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
   TEST_SHELL_SECTION_OPTIONS,
@@ -538,9 +539,8 @@ async function loadRows() {
 function buildShellRow(row, index) {
   const recordIdField = activeLoader.value?.recordIdField || ''
   const recordId = String(row?.[recordIdField] || '').trim()
-  const titleTokenName = canonicalTitleToken.value?.tokenName || ''
   const tokenPresence = Object.fromEntries(
-    level3Tokens.value.map((token) => [token.key, Boolean(stringifyValue(row?.[token.tokenName]))]),
+    level3Tokens.value.map((token) => [token.key, Boolean(stringifyValue(getCanonicalTokenValue(row, token)))]),
   )
   const sectionPresence = Object.fromEntries(
     level2Sections.value.map((section) => [
@@ -551,7 +551,7 @@ function buildShellRow(row, index) {
     ]),
   )
   const tokenRows = activeSectionTokens.value.map((token) => {
-    const value = stringifyValue(row?.[token.tokenName])
+    const value = stringifyValue(getCanonicalTokenValue(row, token))
     return {
       key: `${recordId || index}:${token.key}`,
       tokenName: token.tokenName,
@@ -567,7 +567,7 @@ function buildShellRow(row, index) {
     recordId,
     raw: row,
     avatarText: activeRegistryEntry.value?.singularLabel?.slice(0, 2)?.toUpperCase() || 'TS',
-    titleValue: stringifyValue(row?.[titleTokenName]),
+    titleValue: stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value)),
     subtitleValue: '',
     sectionPresence,
     tokenPresence,

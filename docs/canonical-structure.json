@@ -103,12 +103,20 @@
             {
               "address": "1.3.1",
               "token_name": "Artifact_Name",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "title",
+                "fileName"
+              ]
             },
             {
               "address": "1.3.2",
               "token_name": "Artifact_Summary",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "summary",
+                "description"
+              ]
             }
           ]
         }
@@ -200,12 +208,18 @@
             {
               "address": "2.3.1",
               "token_name": "User_Name",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "User_Name"
+              ]
             },
             {
               "address": "2.3.2",
               "token_name": "User_Summary",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "User_Summary"
+              ]
             }
           ]
         }
@@ -254,37 +268,58 @@
             {
               "address": "3.3.1",
               "token_name": "Contact_Name",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "Name"
+              ]
             },
             {
               "address": "3.3.2",
               "token_name": "Contact_Summary",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "Contact_Summary"
+              ]
             },
             {
               "address": "3.3.3",
               "token_name": "Contact_PEmail",
-              "token_type": "email"
+              "token_type": "email",
+              "db_field_aliases": [
+                "Personal_Email"
+              ]
             },
             {
               "address": "3.3.4",
               "token_name": "Contact_BEmail",
-              "token_type": "email"
+              "token_type": "email",
+              "db_field_aliases": [
+                "Professional_Email"
+              ]
             },
             {
               "address": "3.3.5",
               "token_name": "Contact_Phone",
-              "token_type": "phone"
+              "token_type": "phone",
+              "db_field_aliases": [
+                "Phone"
+              ]
             },
             {
               "address": "3.3.6",
               "token_name": "Contact_HQ",
-              "token_type": "select_single"
+              "token_type": "select_single",
+              "db_field_aliases": [
+                "Country_based"
+              ]
             },
             {
               "address": "3.3.7",
               "token_name": "Contact_LinkedIn",
-              "token_type": "url"
+              "token_type": "url",
+              "db_field_aliases": [
+                "LinkedIn"
+              ]
             }
           ]
         },
@@ -475,12 +510,19 @@
             {
               "address": "4.3.1",
               "token_name": "Company_Name",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "Company_Name"
+              ]
             },
             {
               "address": "4.3.2",
               "token_name": "Company_Summary",
-              "token_type": "textarea"
+              "token_type": "textarea",
+              "db_field_aliases": [
+                "One_Liner",
+                "Description"
+              ]
             }
           ]
         },
@@ -1463,12 +1505,19 @@
             {
               "address": "7.3.1",
               "token_name": "Project_Name",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "name",
+                "Project_Name"
+              ]
             },
             {
               "address": "7.3.2",
               "token_name": "Project_Summary",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "Project_Summary"
+              ]
             }
           ]
         },
@@ -1661,12 +1710,19 @@
             {
               "address": "8.3.1",
               "token_name": "Task_Name",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "Task_Name"
+              ]
             },
             {
               "address": "8.3.2",
               "token_name": "Task_Summary",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "Task_Summary",
+                "Task_Description"
+              ]
             }
           ]
         },
@@ -1824,12 +1880,19 @@
             {
               "address": "9.3.1",
               "token_name": "Note_Name",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "Note_Name"
+              ]
             },
             {
               "address": "9.3.2",
               "token_name": "Note_Summary",
-              "token_type": "text"
+              "token_type": "text",
+              "db_field_aliases": [
+                "Note_Content",
+                "Note_Summary"
+              ]
             }
           ]
         }

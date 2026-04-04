@@ -57,6 +57,13 @@ function normalizeTokens(subsection) {
     }))
 }
 
+function normalizeDbFieldAliases(token) {
+  const aliases = Array.isArray(token?.db_field_aliases) ? token.db_field_aliases : []
+  return aliases
+    .map((alias) => String(alias || '').trim())
+    .filter(Boolean)
+}
+
 function formatLabel(value) {
   return String(value || '')
     .split('_')
@@ -87,6 +94,7 @@ function buildEntityRegistry(entityName) {
         level_3: String(token?.level_3 || '').trim(),
         address: String(token?.address || '').trim(),
         tokenName: String(token?.token_name || '').trim(),
+        dbFieldAliases: normalizeDbFieldAliases(token),
         tokenType: String(token?.token_type || '').trim(),
         label: formatLabel(String(token?.token_name || '').trim().replace(`${meta.singularLabel}_`, '')),
       })),
@@ -178,4 +186,23 @@ export const WORKSPACE_FILE_NAV_ITEMS = Object.freeze(
 
 export function getFilePageRegistryEntry(key) {
   return FILE_PAGE_REGISTRY_BY_KEY[String(key || '').trim().toLowerCase()] || null
+}
+
+export function getCanonicalTokenFieldNames(token = {}) {
+  return Array.from(
+    new Set(
+      [token.tokenName, ...(Array.isArray(token.dbFieldAliases) ? token.dbFieldAliases : [])]
+        .map((value) => String(value || '').trim())
+        .filter(Boolean),
+    ),
+  )
+}
+
+export function getCanonicalTokenValue(row = {}, token = {}) {
+  const fieldNames = getCanonicalTokenFieldNames(token)
+  for (const fieldName of fieldNames) {
+    const value = row?.[fieldName]
+    if (value != null && !(typeof value === 'string' && !value.trim())) return value
+  }
+  return null
 }
