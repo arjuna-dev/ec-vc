@@ -89,7 +89,7 @@
               <div class="create-record-shell__intake-side">
                 <div class="create-record-shell__processing-panel">
                   <div class="create-record-shell__processing-panel-head">
-                    <div class="create-record-shell__processing-panel-title">Processing Files</div>
+                    <div class="create-record-shell__processing-panel-title">Ingestion Companion</div>
                     <div class="create-record-shell__processing-panel-meta">
                       {{ processingArtifacts.length }} loading
                     </div>
