@@ -1158,7 +1158,9 @@ onBeforeUnmount(() => {
 
 .create-record-shell__processing-placeholder-box--input {
   height: 16px;
-  line-height: 14px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  line-height: 12px;
 }
 
 
