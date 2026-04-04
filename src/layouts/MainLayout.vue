@@ -568,7 +568,6 @@ const workspaceNavigationItems = [
     icon: 'category',
     parentKey: 'knowledge-dbs',
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-    iconSize: '22px',
   },
   {
     label: 'Securities',
@@ -577,7 +576,6 @@ const workspaceNavigationItems = [
     icon: 'shield',
     parentKey: 'knowledge-dbs',
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-    iconSize: '22px',
   },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
   { label: 'Test Shell', to: '/test-shell', exact: true, icon: 'science' },
