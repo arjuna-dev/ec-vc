@@ -549,6 +549,7 @@
       />
 
       <CreateRecordShellDialog
+        :key="createDialogRenderKey"
         v-model="createDialogOpen"
         :mode="createDialogMode"
         :source-label="activeRegistryEntry?.label || 'Records'"
@@ -605,6 +606,7 @@ const searchQuery = ref('')
 const rawRows = ref([])
 const viewMode = ref('card')
 const createDialogOpen = ref(false)
+const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
 const createDialogMode = ref('create')
 const editDialogRow = ref(null)
@@ -1171,7 +1173,6 @@ watch(
   async ([routeName, createFlag]) => {
     if (String(routeName || '').trim() !== 'test-shell') return
     if (!String(createFlag || '').trim()) return
-    if (createDialogOpen.value) return
 
     await preloadCreateDialogOptionSources()
 
@@ -1599,6 +1600,7 @@ function openCreateRecordShell(options = {}) {
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}
   createDialogInitialArtifacts.value = []
+  createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
 
@@ -1609,6 +1611,7 @@ async function openEditRecordShell(row) {
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
+  createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
 
@@ -1619,6 +1622,7 @@ async function openAddRelationShell(row) {
   createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'key-fields'
   createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
+  createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
 
