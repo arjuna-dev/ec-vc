@@ -1184,18 +1184,19 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 7px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .create-record-shell__processing-entry-value {
   min-width: 0;
   color: #111111;
   font-size: 0.74rem;
-  line-height: 1.28;
+  line-height: 1.15;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
