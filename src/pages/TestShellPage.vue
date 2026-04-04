@@ -196,7 +196,7 @@
             <q-card-section class="test-shell-card__summary">
               <div class="test-shell-card__summary-head">
                 <q-btn-toggle
-                  :model-value="activeSectionKeyForCards || 'selected-section'"
+                  :model-value="testShellRelationshipPanel"
                   dense
                   unelevated
                   toggle-color="dark"
@@ -204,7 +204,7 @@
                   text-color="grey-8"
                   class="test-shell-card__summary-toggle"
                   :options="summarySectionShellOptions"
-                  disable
+                  @update:model-value="testShellRelationshipPanel = $event"
                 />
 
                 <q-btn-toggle
@@ -280,6 +280,7 @@ import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
+import { buildCardRelationshipOptions } from 'src/utils/card-kdb-relationships'
 import {
   getFilePageRegistryEntry,
   getCanonicalTokenValue,
@@ -301,6 +302,7 @@ const searchQuery = ref('')
 const rawRows = ref([])
 const viewMode = ref('card')
 const summaryContentView = ref('card')
+const testShellRelationshipPanel = ref('notes')
 const selectedRowIds = ref([])
 
 const SECTION_LOADERS = {
@@ -372,7 +374,6 @@ const activeSection = computed(() => {
   return level2Sections.value.find((section) => section.key === activeSectionKeyForCards.value) || level2Sections.value[0] || null
 })
 
-const activeSectionLabel = computed(() => activeSection.value?.label || 'Canonical Section')
 const activeSectionTokens = computed(() => {
   if (!activeSection.value) return []
   return level3Tokens.value.filter((token) => token.parentKey === activeSection.value.key)
@@ -480,12 +481,7 @@ const summaryContentViewOptions = Object.freeze([
 const multiTokenFilterSections = computed(() =>
   level2Sections.value.filter((section) => getFilterSectionTokenCount(section.key) > 1),
 )
-const summarySectionShellOptions = computed(() => [
-  {
-    value: activeSectionKeyForCards.value || 'selected-section',
-    label: abbreviateLabel(activeSectionLabel.value || 'Section'),
-  },
-])
+const summarySectionShellOptions = Object.freeze(buildCardRelationshipOptions())
 
 watch(
   activeSourceKey,
@@ -606,12 +602,6 @@ function toggleSelectAllVisible(nextValue) {
     return
   }
   selectedRowIds.value = selectedRowIds.value.filter((id) => !visibleIds.includes(id))
-}
-
-function abbreviateLabel(value) {
-  const text = String(value || '').trim()
-  if (!text) return 'Section'
-  return text.length > 10 ? `${text.slice(0, 10)}…` : text
 }
 
 function stringifyValue(value) {
@@ -1168,6 +1158,7 @@ function notifyShellAction(label) {
 }
 
 .test-shell-card__summary-toggle :deep(.q-btn) {
+  position: relative;
   min-height: 24px;
   min-width: 24px;
   width: 24px;
@@ -1175,6 +1166,35 @@ function notifyShellAction(label) {
   border: 1px solid transparent;
   border-radius: var(--ds-control-radius);
   background: transparent;
+  font-size: 12px;
+}
+
+.test-shell-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
+.test-shell-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  transform: none;
+  padding: 4px 7px;
+  color: rgba(17, 17, 17, 0.72);
+  background: rgba(239, 239, 239, 0.5);
+  border-radius: 5px;
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.test-shell-card__summary-toggle :deep(.q-btn + .q-btn) {
+  margin-left: 4px;
+}
+
+.test-shell-card__summary-toggle :deep(.q-icon) {
   font-size: 12px;
 }
 
