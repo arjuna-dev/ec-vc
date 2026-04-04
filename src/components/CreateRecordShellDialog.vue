@@ -621,6 +621,7 @@ onBeforeUnmount(() => {
 
 .create-record-shell__artifact-drop-items {
   display: grid;
+  align-content: start;
   gap: 6px;
   max-height: 136px;
   overflow: auto;
