@@ -938,6 +938,244 @@
       ]
     },
     {
+      "level_1": "17",
+      "entity": "Opportunities",
+      "entity_label": "Opportunity",
+      "entity_address": "17.0.0",
+      "structure_token": {
+        "address": "17.0.0",
+        "token_name": "Opportunity",
+        "token_type": "structure"
+      },
+      "subtypes": [
+        "Funds",
+        "Rounds"
+      ],
+      "subsections": [
+        {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "17.1.0",
+          "structure_token": "Opportunity_System",
+          "tokens": [
+            {
+              "address": "17.1.1",
+              "token_name": "Opportunity_ID",
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
+            },
+            {
+              "address": "17.1.2",
+              "token_name": "Opportunity_Creator",
+              "token_type": "select_single"
+            },
+            {
+              "address": "17.1.3",
+              "token_name": "Opportunity_Datetime",
+              "token_type": "datetime",
+              "db_field_aliases": [
+                "created_at"
+              ]
+            }
+          ]
+        },
+        {
+          "level_2": "2",
+          "subsection": "KDB",
+          "subsection_address": "17.2.0",
+          "structure_token": "Opportunity_KDB",
+          "tokens": [
+            {
+              "address": "17.2.1",
+              "token_name": "Opportunity_Artifact",
+              "token_type": "select_multi",
+              "db_field_aliases": [
+                "Opportunity_Artifact",
+                "Fund_Artifact",
+                "Round_Artifact"
+              ]
+            },
+            {
+              "address": "17.2.2",
+              "token_name": "Opportunity_User",
+              "token_type": "select_multi",
+              "db_field_aliases": [
+                "Opportunity_User",
+                "Fund_User",
+                "Round_User"
+              ]
+            },
+            {
+              "address": "17.2.3",
+              "token_name": "Opportunity_Contact",
+              "token_type": "select_multi",
+              "db_field_aliases": [
+                "Opportunity_Contact",
+                "Fund_Contact",
+                "Round_Contact"
+              ]
+            },
+            {
+              "address": "17.2.4",
+              "token_name": "Opportunity_Company",
+              "token_type": "select_multi",
+              "db_field_aliases": [
+                "Opportunity_Company",
+                "Fund_Company",
+                "Round_Company"
+              ]
+            },
+            {
+              "address": "17.2.5",
+              "token_name": "Opportunity_Fund",
+              "token_type": "select_multi",
+              "db_field_aliases": [
+                "Opportunity_Fund",
+                "Fund_Fund",
+                "Round_Fund"
+              ]
+            },
+            {
+              "address": "17.2.6",
+              "token_name": "Opportunity_Round",
+              "token_type": "select_multi",
+              "db_field_aliases": [
+                "Opportunity_Round",
+                "Fund_Round"
+              ]
+            },
+            {
+              "address": "17.2.7",
+              "token_name": "Opportunity_Project",
+              "token_type": "select_multi",
+              "db_field_aliases": [
+                "Opportunity_Project",
+                "Fund_Project",
+                "Round_Project"
+              ]
+            },
+            {
+              "address": "17.2.8",
+              "token_name": "Opportunity_Task",
+              "token_type": "select_multi",
+              "db_field_aliases": [
+                "Opportunity_Task",
+                "Fund_Task",
+                "Round_Task"
+              ]
+            },
+            {
+              "address": "17.2.9",
+              "token_name": "Opportunity_Note",
+              "token_type": "select_multi",
+              "db_field_aliases": [
+                "Opportunity_Note",
+                "Fund_Note",
+                "Round_Note"
+              ]
+            }
+          ]
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "17.3.0",
+          "structure_token": "Opportunity_General",
+          "tokens": [
+            {
+              "address": "17.3.1",
+              "token_name": "Opportunity_Name",
+              "token_type": "text",
+              "db_field_aliases": [
+                "opportunity_name",
+                "Venture_Oppty_Name"
+              ]
+            },
+            {
+              "address": "17.3.2",
+              "token_name": "Opportunity_Summary",
+              "token_type": "text"
+            }
+          ]
+        },
+        {
+          "level_2": "4",
+          "subsection": "Overview",
+          "subsection_address": "17.4.0",
+          "structure_token": "Opportunity_Overview",
+          "tokens": [
+            {
+              "address": "17.4.1",
+              "token_name": "Opportunity_Kind",
+              "token_type": "select_single",
+              "db_field_aliases": [
+                "kind"
+              ]
+            },
+            {
+              "address": "17.4.2",
+              "token_name": "Opportunity_Company",
+              "token_type": "select_single",
+              "db_field_aliases": [
+                "Company_Name"
+              ]
+            },
+            {
+              "address": "17.4.3",
+              "token_name": "Opportunity_Status",
+              "token_type": "select_single",
+              "db_field_aliases": [
+                "Raising_Status",
+                "Pipeline_Status",
+                "Status"
+              ]
+            },
+            {
+              "address": "17.4.4",
+              "token_name": "Opportunity_Target_Size",
+              "token_type": "number",
+              "db_field_aliases": [
+                "Round_Amount",
+                "Fund_Size_Target",
+                "Investment_Ask"
+              ]
+            },
+            {
+              "address": "17.4.5",
+              "token_name": "Opportunity_Commited_Amounts",
+              "token_type": "number",
+              "db_field_aliases": [
+                "Round_Commited_Amounts",
+                "Fund_Commited_Amounts"
+              ]
+            },
+            {
+              "address": "17.4.6",
+              "token_name": "Opportunity_Min_Ticket_Size",
+              "token_type": "number",
+              "db_field_aliases": [
+                "Round_Min_Ticket_Size",
+                "Fund_Min_Ticket_Size"
+              ]
+            },
+            {
+              "address": "17.4.7",
+              "token_name": "Opportunity_Close_Date",
+              "token_type": "date",
+              "db_field_aliases": [
+                "Closing_Date",
+                "Close_Date",
+                "Round_Close_Date",
+                "Fund_Close_Date"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "level_1": "5",
       "entity": "Funds",
       "entity_label": "Fund",

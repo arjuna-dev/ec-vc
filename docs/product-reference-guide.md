@@ -193,8 +193,9 @@ That means:
 These are the main first-level canonical tables that currently matter most to product workflows:
 
 - `Companies`
-- `Rounds`
-- `Funds`
+- `Opportunities`
+- `Funds` as an opportunity subtype
+- `Rounds` as an opportunity subtype
 - `Contacts`
 - `Tasks`
 - `Projects`
@@ -204,6 +205,13 @@ These are the main first-level canonical tables that currently matter most to pr
 - `PipelineInvestmentProcess`
 
 ## Canonical Contract
+
+For the opportunity lane:
+
+- `Opportunities` is the shared parent canonical shell contract
+- `Funds` and `Rounds` are subtype branches under that parent
+- shared fields should be owned by `Opportunities`
+- diverging `Economics` and `Controls` structures should remain subtype-owned instead of being forced into one fake shared section
 
 For every first-level canonical table:
 

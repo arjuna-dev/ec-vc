@@ -21,6 +21,16 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     icon: 'apartment',
     showInWorkspaceNav: true,
   },
+  Opportunities: {
+    key: 'opportunities',
+    label: 'Opportunities',
+    singularLabel: 'Opportunity',
+    routeName: 'opportunities',
+    path: '/opportunities',
+    icon: 'work',
+    showInWorkspaceNav: false,
+    relationshipSourcePrefixes: ['Opportunity', 'Fund', 'Round'],
+  },
   Funds: { key: 'funds', label: 'Funds', singularLabel: 'Fund', routeName: 'funds', path: '/funds', icon: 'account_balance', showInWorkspaceNav: false },
   Rounds: { key: 'rounds', label: 'Rounds', singularLabel: 'Round', routeName: 'rounds', path: '/rounds', icon: 'toll', showInWorkspaceNav: false },
   Projects: { key: 'projects', label: 'Projects', singularLabel: 'Project', routeName: 'projects', path: '/projects', icon: 'schema', showInWorkspaceNav: true },
@@ -28,7 +38,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   Notes: { key: 'notes', label: 'Notes', singularLabel: 'Note', routeName: 'notes', path: '/notes', icon: 'note', showInWorkspaceNav: true },
 })
 
-const FILE_PAGE_ENTITY_ORDER = ['Users', 'Artifacts', 'Contacts', 'Companies', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes']
+const FILE_PAGE_ENTITY_ORDER = ['Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes']
 
 function normalizeSubsections(entity) {
   const subsections = entity?.subsections
@@ -144,6 +154,7 @@ export const LEVEL_1_FILE_REGISTRY = Object.freeze(
     routeName: entry.routeName,
     path: entry.path,
     icon: entry.icon,
+    relationshipSourcePrefixes: Array.isArray(entry.relationshipSourcePrefixes) ? entry.relationshipSourcePrefixes : [],
   })),
 )
 
@@ -179,7 +190,7 @@ export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
   ),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['users', 'artifacts', 'contacts', 'companies', 'projects', 'notes', 'tasks']
+const TEST_SHELL_RENDERABLE_KEYS = ['users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({

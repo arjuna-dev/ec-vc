@@ -149,6 +149,36 @@ Current canonical file:
 
 - `docs/canonical-structure.json`
 
+## Opportunity Structure Rule
+
+`Opportunities` is now the shared parent `L1` contract for the opportunity lane.
+
+That means:
+
+- `Opportunities` owns the shared shell-facing contract
+- `Funds` and `Rounds` are subtype branches under that parent
+- shared sections should stay at the `Opportunity` level when they are truly shared
+- subtype-specific sections should remain subtype-owned when their internal structures diverge
+
+Current approved interpretation:
+
+- shared `Opportunity` sections:
+  - `System`
+  - `KDB`
+  - `General`
+  - `Overview`
+- subtype-owned deeper sections:
+  - `Fund` `Economics`
+  - `Fund` `Controls`
+  - `Round` `Economics`
+  - `Round` `Controls`
+
+Working rule:
+
+- do not pretend `Economics` and `Controls` are one shared structure just because their labels match
+- keep the shell unified where the contract is shared
+- fork the deeper sections where the structure is actually different
+
 ## Surface Split
 
 The app should use two payload lanes.

@@ -394,6 +394,11 @@ const SECTION_LOADERS = {
     resultKey: 'companies',
     recordIdField: 'id',
   },
+  opportunities: {
+    listFn: (bridgeValue) => bridgeValue?.opportunities?.list?.(),
+    resultKey: 'opportunities',
+    recordIdField: 'id',
+  },
   projects: {
     listFn: (bridgeValue) => bridgeValue?.projects?.list?.(),
     resultKey: 'projects',
@@ -621,7 +626,13 @@ async function loadRows() {
 function buildShellRow(row, index) {
   const recordIdField = activeLoader.value?.recordIdField || ''
   const recordId = String(row?.[recordIdField] || '').trim()
-  const sourcePrefixes = [activeRegistryEntry.value?.singularLabel].map((value) => String(value || '').trim()).filter(Boolean)
+  const sourcePrefixes = (
+    activeRegistryEntry.value?.relationshipSourcePrefixes?.length
+      ? activeRegistryEntry.value.relationshipSourcePrefixes
+      : [activeRegistryEntry.value?.singularLabel]
+  )
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
   const tokenPresence = Object.fromEntries(
     level3Tokens.value.map((token) => [token.key, Boolean(stringifyValue(getCanonicalTokenValue(row, token)))]),
   )

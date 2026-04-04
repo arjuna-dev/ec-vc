@@ -1861,6 +1861,401 @@
       }
     },
     {
+      "level_1": "17",
+      "entity": "Opportunities",
+      "entity_address": "17.0.0",
+      "subtypes": [
+        "Funds",
+        "Rounds"
+      ],
+      "subsections": {
+        "17.0.0": {
+          "level_2": "0",
+          "subsection": "na",
+          "subsection_address": "17.0.0",
+          "parent_id": "null",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "17.0.0",
+              "token_name": "Opportunity",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "1",
+              "parent_id": "null"
+            }
+          ]
+        },
+        "17.1.0": {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "17.1.0",
+          "parent_id": "17.1.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "17.1.1",
+              "token_name": "Opportunity_ID",
+              "token_type": "id",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "17.1.2",
+              "token_name": "Opportunity_Creator",
+              "token_type": "select_single",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.1.0"
+            },
+            {
+              "index": "",
+              "level_3": "3",
+              "address": "17.1.3",
+              "token_name": "Opportunity_Datetime",
+              "token_type": "datetime",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.1.0",
+              "db_field_aliases": [
+                "created_at"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "17.1.0",
+              "token_name": "Opportunity_System",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "17.0.0"
+            }
+          ]
+        },
+        "17.2.0": {
+          "level_2": "2",
+          "subsection": "KDB",
+          "subsection_address": "17.2.0",
+          "parent_id": "17.2.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "17.2.1",
+              "token_name": "Opportunity_Artifact",
+              "token_type": "select_multi",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.2.0",
+              "db_field_aliases": [
+                "Opportunity_Artifact",
+                "Fund_Artifact",
+                "Round_Artifact"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "17.2.2",
+              "token_name": "Opportunity_User",
+              "token_type": "select_multi",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.2.0",
+              "db_field_aliases": [
+                "Opportunity_User",
+                "Fund_User",
+                "Round_User"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "3",
+              "address": "17.2.3",
+              "token_name": "Opportunity_Contact",
+              "token_type": "select_multi",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.2.0",
+              "db_field_aliases": [
+                "Opportunity_Contact",
+                "Fund_Contact",
+                "Round_Contact"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "4",
+              "address": "17.2.4",
+              "token_name": "Opportunity_Company",
+              "token_type": "select_multi",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.2.0",
+              "db_field_aliases": [
+                "Opportunity_Company",
+                "Fund_Company",
+                "Round_Company"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "5",
+              "address": "17.2.5",
+              "token_name": "Opportunity_Fund",
+              "token_type": "select_multi",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.2.0",
+              "db_field_aliases": [
+                "Opportunity_Fund",
+                "Fund_Fund",
+                "Round_Fund"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "6",
+              "address": "17.2.6",
+              "token_name": "Opportunity_Round",
+              "token_type": "select_multi",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.2.0",
+              "db_field_aliases": [
+                "Opportunity_Round",
+                "Fund_Round"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "7",
+              "address": "17.2.7",
+              "token_name": "Opportunity_Project",
+              "token_type": "select_multi",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.2.0",
+              "db_field_aliases": [
+                "Opportunity_Project",
+                "Fund_Project",
+                "Round_Project"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "8",
+              "address": "17.2.8",
+              "token_name": "Opportunity_Task",
+              "token_type": "select_multi",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.2.0",
+              "db_field_aliases": [
+                "Opportunity_Task",
+                "Fund_Task",
+                "Round_Task"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "9",
+              "address": "17.2.9",
+              "token_name": "Opportunity_Note",
+              "token_type": "select_multi",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.2.0",
+              "db_field_aliases": [
+                "Opportunity_Note",
+                "Fund_Note",
+                "Round_Note"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "17.2.0",
+              "token_name": "Opportunity_KDB",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "17.0.0"
+            }
+          ]
+        },
+        "17.3.0": {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "17.3.0",
+          "parent_id": "17.3.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "17.3.1",
+              "token_name": "Opportunity_Name",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.3.0",
+              "db_field_aliases": [
+                "opportunity_name",
+                "Venture_Oppty_Name"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "17.3.2",
+              "token_name": "Opportunity_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "17.3.0",
+              "token_name": "Opportunity_General",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "17.0.0"
+            }
+          ]
+        },
+        "17.4.0": {
+          "level_2": "4",
+          "subsection": "Overview",
+          "subsection_address": "17.4.0",
+          "parent_id": "17.4.0",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "1",
+              "address": "17.4.1",
+              "token_name": "Opportunity_Kind",
+              "token_type": "select_single",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.4.0",
+              "db_field_aliases": [
+                "kind"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "17.4.2",
+              "token_name": "Opportunity_Company",
+              "token_type": "select_single",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.4.0",
+              "db_field_aliases": [
+                "Company_Name"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "3",
+              "address": "17.4.3",
+              "token_name": "Opportunity_Status",
+              "token_type": "select_single",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.4.0",
+              "db_field_aliases": [
+                "Raising_Status",
+                "Pipeline_Status",
+                "Status"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "4",
+              "address": "17.4.4",
+              "token_name": "Opportunity_Target_Size",
+              "token_type": "number",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.4.0",
+              "db_field_aliases": [
+                "Round_Amount",
+                "Fund_Size_Target",
+                "Investment_Ask"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "5",
+              "address": "17.4.5",
+              "token_name": "Opportunity_Commited_Amounts",
+              "token_type": "number",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.4.0",
+              "db_field_aliases": [
+                "Round_Commited_Amounts",
+                "Fund_Commited_Amounts"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "6",
+              "address": "17.4.6",
+              "token_name": "Opportunity_Min_Ticket_Size",
+              "token_type": "number",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.4.0",
+              "db_field_aliases": [
+                "Round_Min_Ticket_Size",
+                "Fund_Min_Ticket_Size"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "7",
+              "address": "17.4.7",
+              "token_name": "Opportunity_Close_Date",
+              "token_type": "date",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "17.4.0",
+              "db_field_aliases": [
+                "Closing_Date",
+                "Close_Date",
+                "Round_Close_Date",
+                "Fund_Close_Date"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "17.4.0",
+              "token_name": "Opportunity_Overview",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "2",
+              "parent_id": "17.0.0"
+            }
+          ]
+        }
+      }
+    },
+    {
       "level_1": "5",
       "entity": "Funds",
       "entity_address": "5.0.0",

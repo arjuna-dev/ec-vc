@@ -35,6 +35,7 @@ This tracker should stay aligned with:
 - `JSON + app editing` is now the chosen canonical structure direction
 - `docs/canonical-structure.json` is now the app-readable canonical structure registry across the current L1/L2/L3 entity set
 - canonical tokens can now carry explicit `db_field_aliases`, so shell rendering can resolve through canonical structure without guessing when live row payload fields still use older DB names
+- `Opportunities` is now being formalized as a parent canonical `L1` contract with `Funds` and `Rounds` as subtype branches
 - Exporters are now being treated as migration / ingestion utilities, not the permanent architecture backbone
 - Artifact processing recovery and continuity
 - Intake draft resume flow from `Artifacts` cards and `Draft Files`
@@ -88,6 +89,8 @@ This tracker should stay aligned with:
   - `docs/canonical-structure.json` now carries the active app-readable L1/L2/L3 structure registry
   - canonical `General` now standardizes `Name` at `*.3.1` and `Summary` at `*.3.2`
   - canonical structure now carries explicit DB-field aliases where live row payloads still use older field names such as `Name`, `Company_Name`, or `title`
+  - `Opportunities` now exists as a canonical parent structure with shared `System`, `KDB`, `General`, and `Overview`
+  - `Funds` and `Rounds` remain subtype-owned where `Economics` and `Controls` diverge structurally
   - `File View` shell work exposed a remaining divergence: L1 create-action behavior is still app-owned per entity and is not yet part of the canonical shared shell contract
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
