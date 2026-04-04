@@ -104,6 +104,11 @@
               "address": "1.3.1",
               "token_name": "Artifact_Name",
               "token_type": "text"
+            },
+            {
+              "address": "1.3.2",
+              "token_name": "Artifact_Summary",
+              "token_type": "text"
             }
           ]
         }
@@ -196,6 +201,11 @@
               "address": "2.3.1",
               "token_name": "User_Name",
               "token_type": "text"
+            },
+            {
+              "address": "2.3.2",
+              "token_name": "User_Summary",
+              "token_type": "text"
             }
           ]
         }
@@ -248,26 +258,31 @@
             },
             {
               "address": "3.3.2",
+              "token_name": "Contact_Summary",
+              "token_type": "text"
+            },
+            {
+              "address": "3.3.3",
               "token_name": "Contact_PEmail",
               "token_type": "email"
             },
             {
-              "address": "3.3.3",
+              "address": "3.3.4",
               "token_name": "Contact_BEmail",
               "token_type": "email"
             },
             {
-              "address": "3.3.4",
+              "address": "3.3.5",
               "token_name": "Contact_Phone",
               "token_type": "phone"
             },
             {
-              "address": "3.3.5",
+              "address": "3.3.6",
               "token_name": "Contact_HQ",
               "token_type": "select_single"
             },
             {
-              "address": "3.3.6",
+              "address": "3.3.7",
               "token_name": "Contact_LinkedIn",
               "token_type": "url"
             }
@@ -461,6 +476,11 @@
               "address": "4.3.1",
               "token_name": "Company_Name",
               "token_type": "text"
+            },
+            {
+              "address": "4.3.2",
+              "token_name": "Company_Summary",
+              "token_type": "textarea"
             }
           ]
         },
@@ -619,11 +639,6 @@
           "subsection_address": "4.7.0",
           "structure_token": "Company_Business_Overview",
           "tokens": [
-            {
-              "address": "4.7.1",
-              "token_name": "Company_Description",
-              "token_type": "textarea"
-            },
             {
               "address": "4.7.2",
               "token_name": "Company_News",
@@ -977,6 +992,11 @@
               "address": "5.3.1",
               "token_name": "Fund_Name",
               "token_type": "text"
+            },
+            {
+              "address": "5.3.2",
+              "token_name": "Fund_Summary",
+              "token_type": "text"
             }
           ]
         },
@@ -1020,11 +1040,6 @@
               "address": "5.4.7",
               "token_name": "Fund_Close_Date",
               "token_type": "date"
-            },
-            {
-              "address": "5.4.8",
-              "token_name": "Fund_Summary",
-              "token_type": "text"
             },
             {
               "address": "5.4.9",
@@ -1223,6 +1238,11 @@
               "address": "6.3.1",
               "token_name": "Round_Name",
               "token_type": "text"
+            },
+            {
+              "address": "6.3.2",
+              "token_name": "Round_Summary",
+              "token_type": "text"
             }
           ]
         },
@@ -1266,11 +1286,6 @@
               "address": "6.4.7",
               "token_name": "Round_Close_Date",
               "token_type": "date"
-            },
-            {
-              "address": "6.4.8",
-              "token_name": "Round_Summary",
-              "token_type": "text"
             }
           ]
         },
@@ -1449,6 +1464,11 @@
               "address": "7.3.1",
               "token_name": "Project_Name",
               "token_type": "text"
+            },
+            {
+              "address": "7.3.2",
+              "token_name": "Project_Summary",
+              "token_type": "text"
             }
           ]
         },
@@ -1497,11 +1517,6 @@
               "address": "7.4.8",
               "token_name": "Project_Target_Amount",
               "token_type": "number"
-            },
-            {
-              "address": "7.4.9",
-              "token_name": "Project_Summary",
-              "token_type": "text"
             }
           ]
         },
@@ -1647,6 +1662,11 @@
               "address": "8.3.1",
               "token_name": "Task_Name",
               "token_type": "text"
+            },
+            {
+              "address": "8.3.2",
+              "token_name": "Task_Summary",
+              "token_type": "text"
             }
           ]
         },
@@ -1656,11 +1676,6 @@
           "subsection_address": "8.4.0",
           "structure_token": "Task_Overview",
           "tokens": [
-            {
-              "address": "8.4.1",
-              "token_name": "Task_Summary",
-              "token_type": "text"
-            },
             {
               "address": "8.4.2",
               "token_name": "Task_Status",
@@ -1810,6 +1825,11 @@
               "address": "9.3.1",
               "token_name": "Note_Name",
               "token_type": "text"
+            },
+            {
+              "address": "9.3.2",
+              "token_name": "Note_Summary",
+              "token_type": "text"
             }
           ]
         }
@@ -1861,6 +1881,11 @@
             {
               "address": "10.3.1",
               "token_name": "Market_Name",
+              "token_type": "text"
+            },
+            {
+              "address": "10.3.2",
+              "token_name": "Market_Summary",
               "token_type": "text"
             }
           ]
@@ -1940,6 +1965,11 @@
               "address": "11.3.1",
               "token_name": "Location_Name",
               "token_type": "text"
+            },
+            {
+              "address": "11.3.2",
+              "token_name": "Location_Summary",
+              "token_type": "text"
             }
           ]
         },
@@ -2017,6 +2047,11 @@
             {
               "address": "12.3.1",
               "token_name": "Term_Name",
+              "token_type": "text"
+            },
+            {
+              "address": "12.3.2",
+              "token_name": "Term_Summary",
               "token_type": "text"
             }
           ]
@@ -2109,6 +2144,11 @@
               "address": "13.3.1",
               "token_name": "Academia_Name",
               "token_type": "text"
+            },
+            {
+              "address": "13.3.2",
+              "token_name": "Academia_Summary",
+              "token_type": "text"
             }
           ]
         },
@@ -2174,6 +2214,11 @@
               "address": "14.3.1",
               "token_name": "Employment_Name",
               "token_type": "text"
+            },
+            {
+              "address": "14.3.2",
+              "token_name": "Employment_Summary",
+              "token_type": "text"
             }
           ]
         },
@@ -2221,13 +2266,7 @@
           "subsection": "Overview",
           "subsection_address": "15.2.0",
           "structure_token": "Stage_Overview",
-          "tokens": [
-            {
-              "address": "15.2.1",
-              "token_name": "Stage_Summary",
-              "token_type": "text"
-            }
-          ]
+          "tokens": []
         },
         {
           "level_2": "3",
@@ -2238,6 +2277,11 @@
             {
               "address": "15.3.1",
               "token_name": "Stage_Name",
+              "token_type": "text"
+            },
+            {
+              "address": "15.3.2",
+              "token_name": "Stage_Summary",
               "token_type": "text"
             }
           ]
@@ -2273,13 +2317,7 @@
           "subsection": "Overview",
           "subsection_address": "16.2.0",
           "structure_token": "Agent_Overview",
-          "tokens": [
-            {
-              "address": "16.2.1",
-              "token_name": "Agent_Summary",
-              "token_type": "text"
-            }
-          ]
+          "tokens": []
         },
         {
           "level_2": "3",
@@ -2290,6 +2328,11 @@
             {
               "address": "16.3.1",
               "token_name": "Agent_Name",
+              "token_type": "text"
+            },
+            {
+              "address": "16.3.2",
+              "token_name": "Agent_Summary",
               "token_type": "text"
             }
           ]

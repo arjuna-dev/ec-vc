@@ -199,6 +199,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "1.3.2",
+              "token_name": "Artifact_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "1.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "1.3.0",
               "token_name": "Artifact_General",
@@ -388,6 +398,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "2.3.2",
+              "token_name": "User_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "2.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "2.3.0",
               "token_name": "User_General",
@@ -491,8 +511,8 @@
               "index": "",
               "level_3": "2",
               "address": "3.3.2",
-              "token_name": "Contact_PEmail",
-              "token_type": "email",
+              "token_name": "Contact_Summary",
+              "token_type": "text",
               "node_type": "leaf",
               "level": "3",
               "parent_id": "3.3.0"
@@ -501,7 +521,7 @@
               "index": "",
               "level_3": "3",
               "address": "3.3.3",
-              "token_name": "Contact_BEmail",
+              "token_name": "Contact_PEmail",
               "token_type": "email",
               "node_type": "leaf",
               "level": "3",
@@ -511,8 +531,8 @@
               "index": "",
               "level_3": "4",
               "address": "3.3.4",
-              "token_name": "Contact_Phone",
-              "token_type": "phone",
+              "token_name": "Contact_BEmail",
+              "token_type": "email",
               "node_type": "leaf",
               "level": "3",
               "parent_id": "3.3.0"
@@ -521,8 +541,8 @@
               "index": "",
               "level_3": "5",
               "address": "3.3.5",
-              "token_name": "Contact_HQ",
-              "token_type": "select_single",
+              "token_name": "Contact_Phone",
+              "token_type": "phone",
               "node_type": "leaf",
               "level": "3",
               "parent_id": "3.3.0"
@@ -531,6 +551,16 @@
               "index": "",
               "level_3": "6",
               "address": "3.3.6",
+              "token_name": "Contact_HQ",
+              "token_type": "select_single",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "3.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "7",
+              "address": "3.3.7",
               "token_name": "Contact_LinkedIn",
               "token_type": "url",
               "node_type": "leaf",
@@ -932,6 +962,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "4.3.2",
+              "token_name": "Company_Summary",
+              "token_type": "textarea",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "4.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "4.3.0",
               "token_name": "Company_General",
@@ -1255,16 +1295,6 @@
             {
               "index": "",
               "level_3": "1",
-              "address": "4.7.1",
-              "token_name": "Company_Description",
-              "token_type": "textarea",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "4.7.0"
-            },
-            {
-              "index": "",
-              "level_3": "2",
               "address": "4.7.2",
               "token_name": "Company_News",
               "token_type": "textarea",
@@ -1274,7 +1304,7 @@
             },
             {
               "index": "",
-              "level_3": "3",
+              "level_3": "2",
               "address": "4.7.3",
               "token_name": "Company_Updates",
               "token_type": "textarea",
@@ -1284,7 +1314,7 @@
             },
             {
               "index": "",
-              "level_3": "4",
+              "level_3": "3",
               "address": "4.7.4",
               "token_name": "Company_Objectives",
               "token_type": "textarea",
@@ -1294,7 +1324,7 @@
             },
             {
               "index": "",
-              "level_3": "5",
+              "level_3": "4",
               "address": "4.7.5",
               "token_name": "Company_Products",
               "token_type": "textarea",
@@ -1304,7 +1334,7 @@
             },
             {
               "index": "",
-              "level_3": "6",
+              "level_3": "5",
               "address": "4.7.6",
               "token_name": "Company_Key_Features",
               "token_type": "textarea",
@@ -1314,7 +1344,7 @@
             },
             {
               "index": "",
-              "level_3": "7",
+              "level_3": "6",
               "address": "4.7.7",
               "token_name": "Company_Backlog_Features",
               "token_type": "textarea",
@@ -1324,7 +1354,7 @@
             },
             {
               "index": "",
-              "level_3": "8",
+              "level_3": "7",
               "address": "4.7.8",
               "token_name": "Company_ICP",
               "token_type": "textarea",
@@ -1334,7 +1364,7 @@
             },
             {
               "index": "",
-              "level_3": "9",
+              "level_3": "8",
               "address": "4.7.9",
               "token_name": "Company_Business_Model",
               "token_type": "textarea",
@@ -1344,7 +1374,7 @@
             },
             {
               "index": "",
-              "level_3": "10",
+              "level_3": "9",
               "address": "4.7.10",
               "token_name": "Company_Pricing",
               "token_type": "textarea",
@@ -1354,7 +1384,7 @@
             },
             {
               "index": "",
-              "level_3": "11",
+              "level_3": "10",
               "address": "4.7.11",
               "token_name": "Company_Placement",
               "token_type": "textarea",
@@ -1364,7 +1394,7 @@
             },
             {
               "index": "",
-              "level_3": "12",
+              "level_3": "11",
               "address": "4.7.12",
               "token_name": "Company_Promotion",
               "token_type": "textarea",
@@ -1985,6 +2015,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "5.3.2",
+              "token_name": "Fund_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "5.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "5.3.0",
               "token_name": "Fund_General",
@@ -2074,16 +2114,6 @@
             {
               "index": "",
               "level_3": "8",
-              "address": "5.4.8",
-              "token_name": "Fund_Summary",
-              "token_type": "text",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "5.4.0"
-            },
-            {
-              "index": "",
-              "level_3": "9",
               "address": "5.4.9",
               "token_name": "Fund_Reserve",
               "token_type": "number",
@@ -2093,7 +2123,7 @@
             },
             {
               "index": "",
-              "level_3": "10",
+              "level_3": "9",
               "address": "5.4.10",
               "token_name": "Fund_Initial_Ticket_Size",
               "token_type": "number",
@@ -2103,7 +2133,7 @@
             },
             {
               "index": "",
-              "level_3": "11",
+              "level_3": "10",
               "address": "5.4.11",
               "token_name": "Fund_Target_Positions",
               "token_type": "number",
@@ -2113,7 +2143,7 @@
             },
             {
               "index": "",
-              "level_3": "12",
+              "level_3": "11",
               "address": "5.4.12",
               "token_name": "Fund_Target_Regions",
               "token_type": "select_multi",
@@ -2123,7 +2153,7 @@
             },
             {
               "index": "",
-              "level_3": "13",
+              "level_3": "12",
               "address": "5.4.13",
               "token_name": "Fund_Target_Asset_Types",
               "token_type": "select_multi",
@@ -2133,7 +2163,7 @@
             },
             {
               "index": "",
-              "level_3": "14",
+              "level_3": "13",
               "address": "5.4.14",
               "token_name": "Fund_Target_Industries",
               "token_type": "select_multi",
@@ -2143,7 +2173,7 @@
             },
             {
               "index": "",
-              "level_3": "15",
+              "level_3": "14",
               "address": "5.4.15",
               "token_name": "Fund_Target_Stages",
               "token_type": "select_multi",
@@ -2153,7 +2183,7 @@
             },
             {
               "index": "",
-              "level_3": "16",
+              "level_3": "15",
               "address": "5.4.16",
               "token_name": "Fund_Other",
               "token_type": "file",
@@ -2488,6 +2518,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "6.3.2",
+              "token_name": "Round_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "6.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "6.3.0",
               "token_name": "Round_General",
@@ -2570,16 +2610,6 @@
               "address": "6.4.7",
               "token_name": "Round_Close_Date",
               "token_type": "date",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "6.4.0"
-            },
-            {
-              "index": "",
-              "level_3": "8",
-              "address": "6.4.8",
-              "token_name": "Round_Summary",
-              "token_type": "text",
               "node_type": "leaf",
               "level": "3",
               "parent_id": "6.4.0"
@@ -2951,6 +2981,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "7.3.2",
+              "token_name": "Project_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "7.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "7.3.0",
               "token_name": "Project_General",
@@ -3043,16 +3083,6 @@
               "address": "7.4.8",
               "token_name": "Project_Target_Amount",
               "token_type": "number",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "7.4.0"
-            },
-            {
-              "index": "",
-              "level_3": "9",
-              "address": "7.4.9",
-              "token_name": "Project_Summary",
-              "token_type": "text",
               "node_type": "leaf",
               "level": "3",
               "parent_id": "7.4.0"
@@ -3356,6 +3386,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "8.3.2",
+              "token_name": "Task_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "8.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "8.3.0",
               "token_name": "Task_General",
@@ -3375,16 +3415,6 @@
             {
               "index": "",
               "level_3": "1",
-              "address": "8.4.1",
-              "token_name": "Task_Summary",
-              "token_type": "text",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "8.4.0"
-            },
-            {
-              "index": "",
-              "level_3": "2",
               "address": "8.4.2",
               "token_name": "Task_Status",
               "token_type": "select_single",
@@ -3394,7 +3424,7 @@
             },
             {
               "index": "",
-              "level_3": "3",
+              "level_3": "2",
               "address": "8.4.3",
               "token_name": "Task_Priority_Rank",
               "token_type": "select_single",
@@ -3404,7 +3434,7 @@
             },
             {
               "index": "",
-              "level_3": "4",
+              "level_3": "3",
               "address": "8.4.4",
               "token_name": "Task_Start_Date",
               "token_type": "date",
@@ -3414,7 +3444,7 @@
             },
             {
               "index": "",
-              "level_3": "5",
+              "level_3": "4",
               "address": "8.4.5",
               "token_name": "Task_Due_Date",
               "token_type": "date",
@@ -3424,7 +3454,7 @@
             },
             {
               "index": "",
-              "level_3": "6",
+              "level_3": "5",
               "address": "8.4.6",
               "token_name": "Task_End_Date",
               "token_type": "date",
@@ -3691,6 +3721,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "9.3.2",
+              "token_name": "Note_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "9.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "9.3.0",
               "token_name": "Note_General",
@@ -3793,6 +3833,16 @@
               "level_3": "1",
               "address": "10.3.1",
               "token_name": "Market_Name",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "10.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "10.3.2",
+              "token_name": "Market_Summary",
               "token_type": "text",
               "node_type": "leaf",
               "level": "3",
@@ -3965,6 +4015,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "11.3.2",
+              "token_name": "Location_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "11.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "11.3.0",
               "token_name": "Location_General",
@@ -4123,6 +4183,16 @@
               "level_3": "1",
               "address": "12.3.1",
               "token_name": "Term_Name",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "12.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "12.3.2",
+              "token_name": "Term_Summary",
               "token_type": "text",
               "node_type": "leaf",
               "level": "3",
@@ -4323,6 +4393,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "13.3.2",
+              "token_name": "Academia_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "13.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "13.3.0",
               "token_name": "Academia_General",
@@ -4460,6 +4540,16 @@
             },
             {
               "index": "",
+              "level_3": "2",
+              "address": "14.3.2",
+              "token_name": "Employment_Summary",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "14.3.0"
+            },
+            {
+              "index": "",
               "level_3": "0",
               "address": "14.3.0",
               "token_name": "Employment_General",
@@ -4559,16 +4649,6 @@
           "tokens": [
             {
               "index": "",
-              "level_3": "1",
-              "address": "15.2.1",
-              "token_name": "Stage_Summary",
-              "token_type": "text",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "15.2.0"
-            },
-            {
-              "index": "",
               "level_3": "0",
               "address": "15.2.0",
               "token_name": "Stage_Overview",
@@ -4590,6 +4670,16 @@
               "level_3": "1",
               "address": "15.3.1",
               "token_name": "Stage_Name",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "15.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "15.3.2",
+              "token_name": "Stage_Summary",
               "token_type": "text",
               "node_type": "leaf",
               "level": "3",
@@ -4668,16 +4758,6 @@
           "tokens": [
             {
               "index": "",
-              "level_3": "1",
-              "address": "16.2.1",
-              "token_name": "Agent_Summary",
-              "token_type": "text",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "16.2.0"
-            },
-            {
-              "index": "",
               "level_3": "0",
               "address": "16.2.0",
               "token_name": "Agent_Overview",
@@ -4699,6 +4779,16 @@
               "level_3": "1",
               "address": "16.3.1",
               "token_name": "Agent_Name",
+              "token_type": "text",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "16.3.0"
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "16.3.2",
+              "token_name": "Agent_Summary",
               "token_type": "text",
               "node_type": "leaf",
               "level": "3",
