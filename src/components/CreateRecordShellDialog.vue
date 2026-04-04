@@ -154,9 +154,10 @@
                       <div class="create-record-shell__processing-box-head">
                         <div class="create-record-shell__processing-box-title">Blurbs</div>
                       </div>
-                      <textarea
+                      <input
                         v-model="companionBlurb"
-                        class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--textarea"
+                        type="text"
+                        class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
                         @input="markDialogChanged"
                       />
                     </section>
@@ -1160,13 +1161,6 @@ onBeforeUnmount(() => {
   line-height: 14px;
 }
 
-.create-record-shell__processing-placeholder-box--textarea {
-  min-height: 44px;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  line-height: 1.2;
-  resize: vertical;
-}
 
 .create-record-shell__tabs {
   display: flex;
