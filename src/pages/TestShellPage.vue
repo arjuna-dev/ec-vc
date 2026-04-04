@@ -133,12 +133,23 @@
             @pointerleave="onTestShellCardPointerLeave"
           >
             <q-card-section class="test-shell-card__control-row">
-              <q-checkbox
-                :model-value="isRowSelected(row)"
-                color="dark"
-                class="test-shell-card__select-box"
-                @update:model-value="toggleRowSelection(row, $event)"
-              />
+              <div class="test-shell-card__control-leading">
+                <q-checkbox
+                  :model-value="isRowSelected(row)"
+                  color="dark"
+                  class="test-shell-card__select-box"
+                  @update:model-value="toggleRowSelection(row, $event)"
+                />
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="edit"
+                  class="test-shell-card__control-edit"
+                  :disable="!row.recordId"
+                  @click="openEditRecordShell(row)"
+                />
+              </div>
               <div class="test-shell-card__control-actions">
                 <q-btn
                   flat
@@ -526,7 +537,7 @@
         :count="selectedRows.length"
         :loading="loading"
         :can-share="selectedRows.length > 0"
-        :can-edit="selectedRows.length > 0"
+        :can-edit="false"
         :can-delete="canDeleteSelectedRows"
         @share="handleSelectedRowsShare"
         @edit="handleSelectedRowsEdit"
@@ -1353,6 +1364,13 @@ function openCreateRecordShell() {
   createDialogOpen.value = true
 }
 
+function openEditRecordShell(row) {
+  if (!row?.recordId) return
+  createDialogMode.value = 'edit'
+  editDialogRow.value = row
+  createDialogOpen.value = true
+}
+
 async function submitCreateRecordShell({ values } = {}) {
   const isEditMode = createDialogMode.value === 'edit'
 
@@ -1553,10 +1571,7 @@ async function handleSelectedRowsShare() {
 
 function handleSelectedRowsEdit() {
   const row = selectedRows.value[0] || null
-  if (!row?.recordId) return
-  createDialogMode.value = 'edit'
-  editDialogRow.value = row
-  createDialogOpen.value = true
+  openEditRecordShell(row)
 }
 
 async function handleSelectedRowsDelete() {
@@ -1804,6 +1819,12 @@ async function handleSelectedRowsDelete() {
   background: transparent;
 }
 
+.test-shell-card__control-leading {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
 .test-shell-card__control-row :deep(.q-checkbox) {
   min-height: 22px;
 }
@@ -1817,6 +1838,7 @@ async function handleSelectedRowsDelete() {
   font-size: 22px;
 }
 
+.test-shell-card__control-edit,
 .test-shell-card__control-settings,
 .test-shell-card__control-eye {
   width: 24px;
@@ -1826,6 +1848,7 @@ async function handleSelectedRowsDelete() {
   color: rgba(17, 17, 17, 0.82);
 }
 
+.test-shell-card__control-edit :deep(.q-icon),
 .test-shell-card__control-settings :deep(.q-icon),
 .test-shell-card__control-eye :deep(.q-icon) {
   font-size: 16px;
