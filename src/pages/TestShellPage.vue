@@ -316,8 +316,10 @@
                           class="test-shell-card__detail-row"
                         >
                           <button type="button" class="test-shell-card__inline-chip">
-                            <span class="test-shell-card__inline-chip-label">{{ detail.label }}</span>
                             <span class="test-shell-card__inline-chip-value">{{ detail.value }}</span>
+                            <q-tooltip anchor="top middle" self="bottom middle" class="test-shell-card__inline-chip-tooltip">
+                              {{ detail.label }}
+                            </q-tooltip>
                           </button>
                         </div>
                       </div>
@@ -1734,12 +1736,6 @@ function notifyShellAction(label) {
   font-weight: var(--font-weight-light);
 }
 
-.test-shell-card__inline-chip-label {
-  color: rgba(17, 17, 17, 0.54);
-  font-weight: var(--font-weight-light);
-  white-space: nowrap;
-}
-
 .test-shell-card__inline-chip-value {
   color: #111111;
   font-weight: var(--font-weight-medium);
@@ -1747,6 +1743,18 @@ function notifyShellAction(label) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.test-shell-card__inline-chip-tooltip {
+  color: rgba(17, 17, 17, 0.76);
+  background: rgba(239, 239, 239, 0.92);
+  border-radius: 5px;
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: var(--font-weight-light);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  padding: 4px 7px;
 }
 
 .test-shell-card__inline-chip--placeholder {
