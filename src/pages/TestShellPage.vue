@@ -1008,6 +1008,7 @@ async function loadRows() {
 function buildShellRow(row, index) {
   const recordIdField = activeLoader.value?.recordIdField || ''
   const recordId = String(row?.[recordIdField] || '').trim()
+  const titleValue = stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
   const sourcePrefixes = (
     activeRegistryEntry.value?.relationshipSourcePrefixes?.length
       ? activeRegistryEntry.value.relationshipSourcePrefixes
@@ -1057,8 +1058,8 @@ function buildShellRow(row, index) {
     cardId: `${recordId || 'row'}:${index}`,
     recordId,
     raw: row,
-    avatarText: activeRegistryEntry.value?.singularLabel?.slice(0, 2)?.toUpperCase() || 'TS',
-    titleValue: stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value)),
+    avatarText: buildInitialsFromName(titleValue) || activeRegistryEntry.value?.singularLabel?.slice(0, 2)?.toUpperCase() || 'TS',
+    titleValue,
     subtitleValue: '',
     cardDetailRows,
     relationshipItemsByType: buildCardRelationshipItems(row, sourcePrefixes),
@@ -1106,6 +1107,18 @@ function stringifyValue(value) {
   if (Array.isArray(value)) return value.map((item) => stringifyValue(item)).filter(Boolean).join(', ')
   if (typeof value === 'object') return ''
   return String(value).trim()
+}
+
+function buildInitialsFromName(value) {
+  const parts = String(value || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  if (!parts.length) return ''
+  return parts
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('')
 }
 
 function getKdbDisplayItems(tokenRow) {
