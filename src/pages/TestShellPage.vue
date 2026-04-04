@@ -277,19 +277,44 @@
           <table class="test-shell-table">
             <thead>
               <tr>
-                <th class="test-shell-table__head test-shell-table__head--name">Name</th>
+                <th
+                  class="test-shell-table__head test-shell-table__head--name"
+                  :style="getTableColumnStyle('name', NAME_COLUMN_MIN_WIDTH)"
+                >
+                  <div class="test-shell-table__head-inner">
+                    <span>Name</span>
+                    <button
+                      type="button"
+                      class="test-shell-table__resize-handle"
+                      aria-label="Resize Name column"
+                      @mousedown.prevent="startColumnResize('name', NAME_COLUMN_MIN_WIDTH, $event)"
+                    />
+                  </div>
+                </th>
                 <th
                   v-for="token in tableSectionTokens"
                   :key="token.key"
                   class="test-shell-table__head"
+                  :style="getTableColumnStyle(token.key, DEFAULT_COLUMN_MIN_WIDTH)"
                 >
-                  {{ token.label }}
+                  <div class="test-shell-table__head-inner">
+                    <span>{{ token.label }}</span>
+                    <button
+                      type="button"
+                      class="test-shell-table__resize-handle"
+                      :aria-label="`Resize ${token.label} column`"
+                      @mousedown.prevent="startColumnResize(token.key, DEFAULT_COLUMN_MIN_WIDTH, $event)"
+                    />
+                  </div>
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in displayRows" :key="row.cardId">
-                <td class="test-shell-table__cell test-shell-table__cell--name">
+                <td
+                  class="test-shell-table__cell test-shell-table__cell--name"
+                  :style="getTableColumnStyle('name', NAME_COLUMN_MIN_WIDTH)"
+                >
                   <div class="test-shell-table__name-row">
                     <q-checkbox
                       :model-value="isRowSelected(row)"
@@ -321,6 +346,7 @@
                   v-for="tokenRow in row.sectionTokenRows"
                   :key="tokenRow.key"
                   class="test-shell-table__cell"
+                  :style="getTableColumnStyle(tokenRow.tokenName, DEFAULT_COLUMN_MIN_WIDTH)"
                 >
                   <template v-if="isKdbSectionActive">
                     <div v-if="getKdbDisplayItems(tokenRow).length" class="test-shell-table__kdb-list">
@@ -359,7 +385,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
@@ -392,6 +418,10 @@ const rawRows = ref([])
 const viewMode = ref('card')
 const testShellRelationshipPanel = ref('notes')
 const selectedRowIds = ref([])
+const tableColumnWidths = ref({})
+
+const DEFAULT_COLUMN_MIN_WIDTH = 120
+const NAME_COLUMN_MIN_WIDTH = 188
 
 const SECTION_LOADERS = {
   users: {
@@ -619,6 +649,58 @@ watch(
   },
   { immediate: true },
 )
+
+let removeColumnResizeListeners = null
+
+function getColumnWidth(columnKey, fallbackWidth) {
+  const storedWidth = Number(tableColumnWidths.value[String(columnKey || '').trim()])
+  return Number.isFinite(storedWidth) && storedWidth > 0 ? storedWidth : fallbackWidth
+}
+
+function getTableColumnStyle(columnKey, fallbackWidth) {
+  const width = getColumnWidth(columnKey, fallbackWidth)
+  return {
+    width: `${width}px`,
+    minWidth: `${width}px`,
+  }
+}
+
+function stopColumnResize() {
+  if (typeof removeColumnResizeListeners === 'function') {
+    removeColumnResizeListeners()
+    removeColumnResizeListeners = null
+  }
+}
+
+function startColumnResize(columnKey, minWidth, event) {
+  stopColumnResize()
+  const normalizedKey = String(columnKey || '').trim()
+  const startX = Number(event?.clientX || 0)
+  const initialWidth = getColumnWidth(normalizedKey, minWidth)
+
+  const handlePointerMove = (moveEvent) => {
+    const nextWidth = Math.max(minWidth, initialWidth + Number(moveEvent?.clientX || 0) - startX)
+    tableColumnWidths.value = {
+      ...tableColumnWidths.value,
+      [normalizedKey]: nextWidth,
+    }
+  }
+
+  const handlePointerUp = () => {
+    stopColumnResize()
+  }
+
+  window.addEventListener('mousemove', handlePointerMove)
+  window.addEventListener('mouseup', handlePointerUp)
+  removeColumnResizeListeners = () => {
+    window.removeEventListener('mousemove', handlePointerMove)
+    window.removeEventListener('mouseup', handlePointerUp)
+  }
+}
+
+onBeforeUnmount(() => {
+  stopColumnResize()
+})
 
 async function loadRows() {
   error.value = ''
@@ -1517,6 +1599,31 @@ function notifyShellAction(label) {
   font-weight: var(--font-weight-black);
   letter-spacing: 0.04em;
   line-height: 0.96;
+}
+
+.test-shell-table__head-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.test-shell-table__resize-handle {
+  width: 8px;
+  min-width: 8px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-right: 2px solid rgba(17, 17, 17, 0.18);
+  cursor: col-resize;
+}
+
+.test-shell-table__resize-handle:hover,
+.test-shell-table__resize-handle:focus-visible {
+  border-right-color: rgba(17, 17, 17, 0.46);
+  outline: none;
 }
 
 .test-shell-table__head--name,
