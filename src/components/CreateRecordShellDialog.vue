@@ -292,7 +292,6 @@
 
             <div class="create-record-shell__panel">
               <div class="create-record-shell__panel-head">
-                <div class="create-record-shell__panel-title">{{ activeSection?.label || 'Key Fields' }}</div>
                 <div class="create-record-shell__panel-meta">{{ activeFields.length }} fields</div>
               </div>
 
@@ -1746,7 +1745,8 @@ onBeforeUnmount(() => {
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  padding: 18px;
+  padding: 10px 18px 18px;
+  overflow: auto;
   background: rgba(249, 249, 247, 0.92);
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 12px;
@@ -1755,9 +1755,9 @@ onBeforeUnmount(() => {
 .create-record-shell__panel-head {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .create-record-shell__panel-title {
@@ -1781,9 +1781,9 @@ onBeforeUnmount(() => {
   gap: 20px 14px;
   align-content: start;
   grid-auto-flow: dense;
-  overflow: auto;
-  margin-right: -18px;
-  padding-right: 18px;
+  overflow: visible;
+  margin-right: 0;
+  padding-right: 0;
 }
 
 .create-record-shell__field {
