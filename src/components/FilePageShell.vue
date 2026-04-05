@@ -560,6 +560,7 @@
         :loading="createDialogLoading"
         :submit-disabled="!canCreateWithShell"
         :initial-values="createDialogInitialValues"
+        :initial-field-meta="createDialogInitialFieldMeta"
         :initial-section-key="createDialogInitialSectionKey"
         :initial-artifacts="createDialogInitialArtifacts"
         @change="handleCreateDialogChange"
@@ -620,6 +621,7 @@ const createDialogDraftRecordId = ref('')
 const createDialogDraftEntityName = ref('')
 const createDialogInitialSectionKey = ref('key-fields')
 const createDialogPrefillValues = ref({})
+const createDialogFieldMeta = ref({})
 const createDialogInitialArtifacts = ref([])
 const createDialogLastChangeSnapshot = ref(null)
 const createDialogLastSavedSignature = ref('')
@@ -882,8 +884,36 @@ function getEditDialogTokenValueFromPayload(payload, token) {
   return ''
 }
 
+function getEditDialogTokenMetaFromPayload(payload, token, entityName, recordId) {
+  if (!payload) return null
+  const normalizedEntityName = String(entityName || '').trim()
+  const normalizedRecordId = String(recordId || '').trim()
+  const fieldNames = getCanonicalTokenFieldNames(token)
+  const matchingField = (Array.isArray(payload.fields) ? payload.fields : []).find((field) =>
+    fieldNames.includes(String(field?.field_name || '').trim()),
+  )
+  if (!matchingField) return null
+
+  const fieldTableName = String(matchingField?.table_name || '').trim()
+  const fieldRecordId = String(matchingField?.record_id || '').trim()
+
+  return {
+    tableName: fieldTableName,
+    recordId: fieldRecordId,
+    fieldName: String(matchingField?.field_name || '').trim(),
+    idColumn: String(matchingField?.id_column || '').trim(),
+    locked:
+      Boolean(fieldTableName && fieldRecordId) &&
+      (fieldTableName !== normalizedEntityName || fieldRecordId !== normalizedRecordId),
+  }
+}
+
 const createDialogInitialValues = computed(() => {
   return createDialogPrefillValues.value
+})
+
+const createDialogInitialFieldMeta = computed(() => {
+  return createDialogFieldMeta.value
 })
 
 async function loadEditDialogRecordPayload(entityName, recordId) {
@@ -903,6 +933,16 @@ function buildEditDialogInitialValuesFromPayload(payload) {
       const value = getEditDialogTokenValueFromPayload(payload, token)
       return [token.key, normalizeCreateDialogInitialValue(token, value)]
     }),
+  )
+}
+
+function buildEditDialogFieldMetaFromPayload(payload, entityName, recordId) {
+  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  return Object.fromEntries(
+    allTokens.map((token) => [
+      token.key,
+      getEditDialogTokenMetaFromPayload(payload, token, entityName, recordId),
+    ]),
   )
 }
 const canDeleteSelectedRows = computed(() => {
@@ -1695,6 +1735,7 @@ function openCreateRecordShell(options = {}) {
   editDialogRecordPayload.value = null
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}
+  createDialogFieldMeta.value = {}
   createDialogInitialArtifacts.value = []
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
@@ -1725,6 +1766,11 @@ async function openEditRecordShell(row) {
     return
   }
   createDialogPrefillValues.value = buildEditDialogInitialValuesFromPayload(editDialogRecordPayload.value)
+  createDialogFieldMeta.value = buildEditDialogFieldMetaFromPayload(
+    editDialogRecordPayload.value,
+    createDialogDraftEntityName.value,
+    createDialogDraftRecordId.value,
+  )
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
@@ -1754,6 +1800,11 @@ async function openAddRelationShell(row) {
     return
   }
   createDialogPrefillValues.value = buildEditDialogInitialValuesFromPayload(editDialogRecordPayload.value)
+  createDialogFieldMeta.value = buildEditDialogFieldMetaFromPayload(
+    editDialogRecordPayload.value,
+    createDialogDraftEntityName.value,
+    createDialogDraftRecordId.value,
+  )
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
@@ -1799,6 +1850,7 @@ async function submitCreateRecordShell({ values } = {}) {
       editDialogRecordPayload.value = null
       createDialogInitialSectionKey.value = 'key-fields'
       createDialogPrefillValues.value = {}
+      createDialogFieldMeta.value = {}
       createDialogInitialArtifacts.value = []
       $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
       await loadRows()
@@ -1828,6 +1880,7 @@ async function submitCreateRecordShell({ values } = {}) {
       editDialogRecordPayload.value = null
       createDialogInitialSectionKey.value = 'key-fields'
       createDialogPrefillValues.value = {}
+      createDialogFieldMeta.value = {}
       createDialogInitialArtifacts.value = []
       $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
       await loadRows()
@@ -1854,6 +1907,7 @@ async function handleCreateDialogClose(snapshot) {
   editDialogRecordPayload.value = null
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = {}
+  createDialogFieldMeta.value = {}
   createDialogInitialArtifacts.value = []
 }
 

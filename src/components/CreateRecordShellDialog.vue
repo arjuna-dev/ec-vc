@@ -311,11 +311,24 @@
                   }"
                 >
                   <div class="create-record-shell__field-copy">
-                    <div class="create-record-shell__field-label">
-                      {{ token.label }}
-                      <q-tooltip anchor="top middle" self="bottom middle">
-                        {{ formatFieldType(token.tokenType) }}
-                      </q-tooltip>
+                    <div class="create-record-shell__field-label-row">
+                      <div class="create-record-shell__field-label">
+                        {{ token.label }}
+                        <q-tooltip anchor="top middle" self="bottom middle">
+                          {{ formatFieldType(token.tokenType) }}
+                        </q-tooltip>
+                      </div>
+                      <q-btn
+                        v-if="fieldHasParentRecordLink(token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        icon="link"
+                        class="create-record-shell__field-parent-link"
+                        :aria-label="`Open source record for ${token.label}`"
+                        @click="openFieldParentRecord(token)"
+                      />
                     </div>
                   </div>
 
@@ -329,7 +342,7 @@
                     emit-value
                     map-options
                     :options="token.inputOptions || []"
-                    :disable="loading"
+                    :disable="loading || isFieldLocked(token)"
                     class="create-record-shell__input"
                     :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
                     @update:model-value="updateField(token.key, $event)"
@@ -344,7 +357,7 @@
                     emit-value
                     map-options
                     :options="token.inputOptions || []"
-                    :disable="loading"
+                    :disable="loading || isFieldLocked(token)"
                     class="create-record-shell__input"
                     @update:model-value="updateField(token.key, $event)"
                   />
@@ -354,7 +367,7 @@
                     :model-value="stringValue(formValues[token.key])"
                     dense
                     outlined
-                    :disable="loading"
+                    :disable="loading || isFieldLocked(token)"
                     :type="isSummaryField(token) ? 'textarea' : inputTypeForToken(token.tokenType)"
                     :autogrow="isSummaryField(token)"
                     class="create-record-shell__input"
@@ -397,6 +410,8 @@
 
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -409,12 +424,15 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   submitDisabled: { type: Boolean, default: false },
   initialValues: { type: Object, default: () => ({}) },
+  initialFieldMeta: { type: Object, default: () => ({}) },
   initialSectionKey: { type: String, default: 'key-fields' },
   initialArtifacts: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['update:modelValue', 'submit', 'change', 'request-close'])
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
+const router = useRouter()
+const route = useRoute()
 
 const hasUserChanges = ref(false)
 
@@ -625,6 +643,31 @@ function isSummaryField(token) {
 
 function isSummarySidecarField(token) {
   return activeSectionKey.value === 'key-fields' && isSummaryField(token)
+}
+
+function getFieldMeta(token) {
+  return props.initialFieldMeta?.[token?.key] || null
+}
+
+function isFieldLocked(token) {
+  return Boolean(getFieldMeta(token)?.locked)
+}
+
+function fieldHasParentRecordLink(token) {
+  const meta = getFieldMeta(token)
+  return Boolean(meta?.locked && meta?.tableName && meta?.recordId)
+}
+
+function openFieldParentRecord(token) {
+  const meta = getFieldMeta(token)
+  if (!meta?.tableName || !meta?.recordId) return
+  const location = buildRecordViewLocation({
+    tableName: meta.tableName,
+    recordId: meta.recordId,
+    returnTo: route.fullPath,
+  })
+  if (!location) return
+  router.push(location)
 }
 
 async function onArtifactDrop(event) {
@@ -1569,6 +1612,13 @@ onBeforeUnmount(() => {
   justify-self: end;
 }
 
+.create-record-shell__field-label-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
 .create-record-shell__field--wide .create-record-shell__field-copy,
 .create-record-shell__field--summary-sidecar .create-record-shell__field-copy {
   padding-top: 13px;
@@ -1581,6 +1631,10 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-black);
   line-height: 0.95;
   text-align: right;
+}
+
+.create-record-shell__field-parent-link {
+  color: #4f4f4f;
 }
 
 
