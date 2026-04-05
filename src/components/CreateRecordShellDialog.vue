@@ -302,7 +302,7 @@
                 :style="{ '--create-record-shell-label-width': activeFieldLabelWidth }"
               >
                 <div
-                  v-for="token in activeFields"
+                  v-for="(token, tokenIndex) in activeFields"
                   :key="token.key"
                   class="create-record-shell__field"
                   :class="{
@@ -398,7 +398,10 @@
                       :icon="fieldVerificationIcon(token)"
                       :aria-label="`Change verification state for ${token.label}`"
                     >
-                      <q-menu anchor="bottom right" self="top right">
+                      <q-menu
+                        :anchor="verificationMenuAnchor(token, tokenIndex)"
+                        :self="verificationMenuSelf(token, tokenIndex)"
+                      >
                         <q-list dense class="create-record-shell__verification-menu">
                           <q-item
                             v-for="option in fieldVerificationActionOptions"
@@ -787,6 +790,20 @@ function fieldVerificationIcon(token) {
   const state = resolvedFieldVerificationState(token)
   const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
   return option?.icon || 'help'
+}
+
+function isFieldInRightColumn(token, tokenIndex) {
+  if (isSummarySidecarField(token)) return true
+  if (isWideField(token)) return false
+  return Number(tokenIndex) % 2 === 1
+}
+
+function verificationMenuAnchor(token, tokenIndex) {
+  return isFieldInRightColumn(token, tokenIndex) ? 'bottom left' : 'bottom right'
+}
+
+function verificationMenuSelf(token, tokenIndex) {
+  return isFieldInRightColumn(token, tokenIndex) ? 'top right' : 'top left'
 }
 
 function updateFieldVerificationState(token, nextState) {
