@@ -114,6 +114,18 @@
               </figure>
 
               <div class="contact-databook__hero-copy">
+                <div v-if="canShowHeroEditAction" class="contact-databook__hero-edit-row">
+                  <q-btn
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="contact-databook__action contact-databook__action--hero-edit"
+                    :icon="editMode ? 'close' : 'edit'"
+                    :label="editMode ? 'Close edit' : 'Edit'"
+                    :disable="loading || saving || !fields.length || isHistoricalMode"
+                    @click="editMode ? cancelEdit() : enterEditMode()"
+                  />
+                </div>
                 <h1 class="contact-databook__name">
                   {{ genericRecordName }}
                 </h1>
@@ -141,19 +153,7 @@
                   </q-badge>
                 </div>
 
-                <div v-if="genericRecordActionLinks.length || canShowHeroEditAction" class="contact-databook__actions">
-                  <q-btn
-                    v-if="canShowHeroEditAction"
-                    outline
-                    no-caps
-                    unelevated
-                    size="sm"
-                    class="contact-databook__action"
-                    :icon="editMode ? 'close' : 'edit'"
-                    :label="editMode ? 'Close edit' : 'Edit'"
-                    :disable="loading || saving || !fields.length || isHistoricalMode"
-                    @click="editMode ? cancelEdit() : enterEditMode()"
-                  />
+                <div v-if="genericRecordActionLinks.length" class="contact-databook__actions">
                   <q-btn
                     v-for="link in genericRecordActionLinks"
                     :key="link.label"
@@ -597,6 +597,18 @@
               </figure>
 
               <div class="contact-databook__hero-copy">
+                <div v-if="canShowHeroEditAction" class="contact-databook__hero-edit-row">
+                  <q-btn
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="contact-databook__action contact-databook__action--hero-edit"
+                    :icon="editMode ? 'close' : 'edit'"
+                    :label="editMode ? 'Close edit' : 'Edit'"
+                    :disable="loading || saving || !fields.length || isHistoricalMode"
+                    @click="editMode ? cancelEdit() : enterEditMode()"
+                  />
+                </div>
                 <h1 class="contact-databook__name">
                   {{ genericRecordName }}
                 </h1>
@@ -624,19 +636,7 @@
                   </q-badge>
                 </div>
 
-                <div v-if="genericRecordActionLinks.length || canShowHeroEditAction" class="contact-databook__actions">
-                  <q-btn
-                    v-if="canShowHeroEditAction"
-                    outline
-                    no-caps
-                    unelevated
-                    size="sm"
-                    class="contact-databook__action"
-                    :icon="editMode ? 'close' : 'edit'"
-                    :label="editMode ? 'Close edit' : 'Edit'"
-                    :disable="loading || saving || !fields.length || isHistoricalMode"
-                    @click="editMode ? cancelEdit() : enterEditMode()"
-                  />
+                <div v-if="genericRecordActionLinks.length" class="contact-databook__actions">
                   <q-btn
                     v-for="link in genericRecordActionLinks"
                     :key="link.label"
@@ -6246,6 +6246,12 @@ onBeforeUnmount(() => {
   gap: 8px;
 }
 
+.contact-databook__hero-edit-row {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
 .contact-databook__pill {
   padding: 7px 10px;
   color: #111;
@@ -6272,6 +6278,13 @@ onBeforeUnmount(() => {
   font-family: var(--font-body);
   font-size: var(--text-sm---medium);
   font-weight: var(--font-weight-medium);
+}
+
+.contact-databook__action--hero-edit {
+  color: #ffffff;
+  background: #2669ff;
+  border-color: #2669ff;
+  box-shadow: 0 10px 24px rgba(38, 105, 255, 0.22);
 }
 
 .contact-databook__hero-notes-panel {
