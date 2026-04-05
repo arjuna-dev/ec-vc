@@ -612,6 +612,22 @@ const companionDocumentMenu = [
     heroTitle: 'Tracker',
   },
   {
+    id: 'game-rulebook',
+    label: 'Game Rulebook',
+    short: 'Boards + points',
+    path: 'docs/game-rulebook.md',
+    eyebrow: 'Game Rulebook',
+    heroTitle: 'Game',
+  },
+  {
+    id: 'game-master-contract',
+    label: 'Game Master Contract',
+    short: 'Guide behavior',
+    path: 'docs/game-master-contract.md',
+    eyebrow: 'Game Master',
+    heroTitle: 'Master',
+  },
+  {
     id: 'glossary',
     label: 'Index / Glossary',
     short: 'Concept index',
