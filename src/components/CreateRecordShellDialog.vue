@@ -392,10 +392,13 @@
                         size="sm"
                         :disable="loading"
                         :class="[fieldActionClass(fieldEntry.token), fieldVerificationClass(fieldEntry.token)]"
-                        :icon="fieldVerificationIcon(fieldEntry.token)"
-                        :icon-class="fieldVerificationIconClass(fieldEntry.token)"
                         :aria-label="`Change verification state for ${fieldEntry.token.label}`"
                       >
+                        <q-icon
+                          :name="fieldVerificationIcon(fieldEntry.token)"
+                          :class="fieldVerificationIconClass(fieldEntry.token)"
+                          size="14px"
+                        />
                         <q-menu
                           :anchor="verificationMenuAnchor(fieldEntry.column)"
                           :self="verificationMenuSelf(fieldEntry.column)"
@@ -517,10 +520,13 @@
                         size="sm"
                         :disable="loading"
                         :class="[fieldActionClass(fieldEntry.token), fieldVerificationClass(fieldEntry.token)]"
-                        :icon="fieldVerificationIcon(fieldEntry.token)"
-                        :icon-class="fieldVerificationIconClass(fieldEntry.token)"
                         :aria-label="`Change verification state for ${fieldEntry.token.label}`"
                       >
+                        <q-icon
+                          :name="fieldVerificationIcon(fieldEntry.token)"
+                          :class="fieldVerificationIconClass(fieldEntry.token)"
+                          size="14px"
+                        />
                         <q-menu
                           :anchor="verificationMenuAnchor(fieldEntry.column)"
                           :self="verificationMenuSelf(fieldEntry.column)"
