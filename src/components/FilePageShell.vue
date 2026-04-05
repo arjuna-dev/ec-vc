@@ -1812,6 +1812,7 @@ async function openAddRelationShell(row) {
 async function submitCreateRecordShell({ values } = {}) {
   clearCreateDialogAutosaveTimer()
   const isEditMode = createDialogMode.value === 'edit'
+  assertNoUnsupportedRelationshipWrites(values)
 
   if (!isEditMode && !canCreateWithShell.value) {
     notifyShellAction('Create record')
@@ -1832,16 +1833,11 @@ async function submitCreateRecordShell({ values } = {}) {
         return
       }
 
-      const changes = buildUpdateChangesFromValues(values, {
-        recordId: editDialogRow.value.recordId,
-        entityName: activeRegistryEntry.value.entityName,
-        idColumn: activeLoader.value?.recordIdField || 'id',
-      })
-      await bridge.value?.databooks?.update?.({
-        tableName: activeRegistryEntry.value.entityName,
-        recordId: editDialogRow.value.recordId,
-        changes,
-      })
+      await updateRecordFromPayload(
+        editDialogRow.value.recordId,
+        activeRegistryEntry.value.entityName,
+        values,
+      )
 
       createDialogOpen.value = false
       resetCreateDialogAutosaveState()
@@ -2029,6 +2025,7 @@ async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRo
   }
 
   clearCreateDialogAutosaveTimer()
+  assertNoUnsupportedRelationshipWrites(snapshot.values)
   const payload = buildCreatePayload(snapshot.values)
   if (!Object.keys(payload).length) {
     createDialogAutosavePending.value = false
@@ -2096,6 +2093,38 @@ function buildCreatePayload(values = {}) {
   return Object.fromEntries(payloadEntries)
 }
 
+function tokenHasDirectWriteTarget(token) {
+  return Boolean(String(token?.dbWriteField || '').trim())
+}
+
+function isUnsupportedRelationshipWriteToken(token) {
+  const optionSource = String(token?.optionSource || '').trim()
+  if (!['live_entity', 'live_entity_set', 'record_subset'].includes(optionSource)) return false
+  return !tokenHasDirectWriteTarget(token)
+}
+
+function getUnsupportedRelationshipWriteLabels(values = {}) {
+  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  return allTokens
+    .filter((token) => {
+      if (isAutomaticCreatorToken(token)) return false
+      if (!isUnsupportedRelationshipWriteToken(token)) return false
+      const rawValue = values?.[token.key]
+      const normalizedValue = normalizeCreateFieldValue(token, rawValue)
+      if (normalizedValue == null) return false
+      if (Array.isArray(normalizedValue)) return normalizedValue.length > 0
+      return String(normalizedValue || '').trim().length > 0
+    })
+    .map((token) => String(token?.label || token?.tokenName || '').trim())
+    .filter(Boolean)
+}
+
+function assertNoUnsupportedRelationshipWrites(values = {}) {
+  const labels = getUnsupportedRelationshipWriteLabels(values)
+  if (!labels.length) return
+  throw new Error(`Relationship save contract is not wired yet for: ${labels.join(', ')}`)
+}
+
 function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName = '', idColumn = 'id' } = {}) {
   if (!recordId || !entityName) return []
 
@@ -2103,6 +2132,7 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
 
   return allTokens.flatMap((token) => {
     if (isAutomaticCreatorToken(token)) return []
+    if (isUnsupportedRelationshipWriteToken(token)) return []
     const rawValue = values?.[token.key]
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
     if (normalizedValue == null) return []
