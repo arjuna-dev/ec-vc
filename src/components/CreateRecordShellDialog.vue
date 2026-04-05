@@ -1782,6 +1782,8 @@ onBeforeUnmount(() => {
   align-content: start;
   grid-auto-flow: dense;
   overflow: auto;
+  margin-right: -18px;
+  padding-right: 18px;
 }
 
 .create-record-shell__field {
