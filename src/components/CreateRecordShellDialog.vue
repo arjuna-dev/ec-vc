@@ -503,37 +503,42 @@ const dialogStyle = computed(() => ({
   height: `${dialogHeight.value}px`,
 }))
 
+function initializeDialogState() {
+  hasUserChanges.value = false
+  activeSectionKey.value = String(props.initialSectionKey || '').trim() || 'key-fields'
+  artifactDragOver.value = false
+  stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
+  selectedArtifactIds.value = []
+  autoProcessArtifacts.value = false
+  companionUrl.value = ''
+  companionBlurb.value = ''
+  urlEntries.value = []
+  blurbEntries.value = []
+  selectedUrlEntryIds.value = []
+  selectedBlurbEntryIds.value = []
+  expandedEntryIds.value = []
+  dialogWidth.value = 760
+  dialogHeight.value = 780
+  formValues.value = Object.fromEntries(
+    allSections.value
+      .flatMap((section) => section.tokens || [])
+      .map((token) => {
+        const initialValue = props.initialValues?.[token.key]
+        if (token.tokenType === 'select_multi') {
+          return [token.key, normalizeMultiValue(initialValue)]
+        }
+        return [token.key, initialValue == null ? '' : initialValue]
+      }),
+  )
+}
+
 watch(
   () => props.modelValue,
   (nextValue) => {
     if (!nextValue) return
-    hasUserChanges.value = false
-    activeSectionKey.value = String(props.initialSectionKey || '').trim() || 'key-fields'
-    artifactDragOver.value = false
-    stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
-    selectedArtifactIds.value = []
-    autoProcessArtifacts.value = false
-    companionUrl.value = ''
-    companionBlurb.value = ''
-    urlEntries.value = []
-    blurbEntries.value = []
-    selectedUrlEntryIds.value = []
-    selectedBlurbEntryIds.value = []
-    expandedEntryIds.value = []
-    dialogWidth.value = 760
-    dialogHeight.value = 780
-    formValues.value = Object.fromEntries(
-      allSections.value
-        .flatMap((section) => section.tokens || [])
-        .map((token) => {
-          const initialValue = props.initialValues?.[token.key]
-          if (token.tokenType === 'select_multi') {
-            return [token.key, normalizeMultiValue(initialValue)]
-          }
-          return [token.key, initialValue == null ? '' : initialValue]
-        }),
-    )
+    initializeDialogState()
   },
+  { immediate: true },
 )
 
 function updateField(tokenKey, value) {
