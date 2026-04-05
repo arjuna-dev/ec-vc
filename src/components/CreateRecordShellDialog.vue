@@ -956,7 +956,8 @@ function fieldVerificationIcon(token) {
 }
 
 function shouldShowFieldVerificationRegister(token) {
-  return !isSummaryField(token) && fieldHasValue(token)
+  if (isSummaryField(token) || !fieldHasValue(token)) return false
+  return resolvedFieldVerificationState(token) !== 'verified'
 }
 
 function fieldVerificationRegisterLabel(token) {
