@@ -590,6 +590,7 @@ import {
   getFilePageRegistryEntryByRouteName,
   getCanonicalTokenFieldNames,
   getCanonicalTokenWriteFieldName,
+  getCanonicalTokenWriteTarget,
   getCanonicalTokenValue,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
@@ -1780,10 +1781,15 @@ async function submitCreateRecordShell({ values } = {}) {
         return
       }
 
+      const changes = buildUpdateChangesFromValues(values, {
+        recordId: editDialogRow.value.recordId,
+        entityName: activeRegistryEntry.value.entityName,
+        idColumn: activeLoader.value?.recordIdField || 'id',
+      })
       await bridge.value?.databooks?.update?.({
         tableName: activeRegistryEntry.value.entityName,
         recordId: editDialogRow.value.recordId,
-        changes: buildUpdateChanges(payload),
+        changes,
       })
 
       createDialogOpen.value = false
@@ -1947,16 +1953,17 @@ async function updateRecordFromPayload(recordId, entityName, payload = {}) {
     throw new Error('This record cannot be edited from the shared shell yet.')
   }
 
+  const changes = buildUpdateChangesFromValues(payload, {
+    recordId,
+    entityName,
+    idColumn: activeLoader.value?.recordIdField || 'id',
+  })
+  if (!changes.length) return
+
   await bridge.value?.databooks?.update?.({
     tableName: entityName,
     recordId,
-    changes: Object.entries(payload).map(([fieldName, value]) => ({
-      table_name: entityName,
-      record_id: recordId,
-      field_name: fieldName,
-      id_column: activeLoader.value?.recordIdField || 'id',
-      new_value: Array.isArray(value) ? JSON.stringify(value) : String(value ?? ''),
-    })),
+    changes,
   })
 }
 
@@ -2035,17 +2042,30 @@ function buildCreatePayload(values = {}) {
   return Object.fromEntries(payloadEntries)
 }
 
-function buildUpdateChanges(payload = {}) {
-  const editRow = editDialogRow.value
-  if (!editRow?.recordId) return []
+function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName = '', idColumn = 'id' } = {}) {
+  if (!recordId || !entityName) return []
 
-  return Object.entries(payload).map(([fieldName, value]) => ({
-    table_name: activeRegistryEntry.value?.entityName,
-    record_id: editRow.recordId,
-    field_name: fieldName,
-    id_column: activeLoader.value?.recordIdField || 'id',
-    new_value: Array.isArray(value) ? JSON.stringify(value) : String(value ?? ''),
-  }))
+  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+
+  return allTokens.flatMap((token) => {
+    if (isAutomaticCreatorToken(token)) return []
+    const rawValue = values?.[token.key]
+    const normalizedValue = normalizeCreateFieldValue(token, rawValue)
+    if (normalizedValue == null) return []
+
+    const writeTarget = getCanonicalTokenWriteTarget(token, entityName, idColumn)
+    if (!writeTarget?.tableName || !writeTarget?.fieldName) return []
+
+    return [
+      {
+        table_name: writeTarget.tableName,
+        record_id: recordId,
+        field_name: writeTarget.fieldName,
+        id_column: writeTarget.idColumn,
+        new_value: Array.isArray(normalizedValue) ? JSON.stringify(normalizedValue) : String(normalizedValue ?? ''),
+      },
+    ]
+  })
 }
 
 async function resolveTrueArtifactsForRow(row) {

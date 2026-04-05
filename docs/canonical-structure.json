@@ -1985,14 +1985,17 @@
               "token_name": "Project_Name",
               "token_type": "text",
               "db_field_aliases": [
-                "name",
-                "Project_Name"
+                "Project_Name",
+                "name"
               ]
             },
             {
               "address": "7.3.2",
               "token_name": "Project_Summary",
               "token_type": "text",
+              "db_write_table": "Project_Overview",
+              "db_write_id_column": "project_id",
+              "db_write_field": "Project_Summary",
               "db_field_aliases": [
                 "Project_Summary"
               ]
@@ -2008,6 +2011,9 @@
             {
               "address": "7.4.1",
               "token_name": "Project_Status",
+              "db_write_table": "Project_Overview",
+              "db_write_id_column": "project_id",
+              "db_write_field": "Project_Status",
               "token_type": "select_single",
               "option_source": "canonical_list",
               "option_list": "Project_Status_List"
@@ -2035,6 +2041,9 @@
             {
               "address": "7.4.4",
               "token_name": "Project_Priority_Rank",
+              "db_write_table": "Project_Overview",
+              "db_write_id_column": "project_id",
+              "db_write_field": "Project_Priority_Rank",
               "token_type": "select_single",
               "option_source": "canonical_list",
               "option_list": "Priority_Ranking_List"
@@ -2042,21 +2051,33 @@
             {
               "address": "7.4.5",
               "token_name": "Project_Start_Date",
+              "db_write_table": "Project_Overview",
+              "db_write_id_column": "project_id",
+              "db_write_field": "Project_Start_Date",
               "token_type": "date"
             },
             {
               "address": "7.4.6",
               "token_name": "Project_Due_Date",
+              "db_write_table": "Project_Overview",
+              "db_write_id_column": "project_id",
+              "db_write_field": "Project_Due_Date",
               "token_type": "date"
             },
             {
               "address": "7.4.7",
               "token_name": "Project_End_Date",
+              "db_write_table": "Project_Overview",
+              "db_write_id_column": "project_id",
+              "db_write_field": "Project_End_Date",
               "token_type": "date"
             },
             {
               "address": "7.4.8",
               "token_name": "Project_Target_Amount",
+              "db_write_table": "Project_Overview",
+              "db_write_id_column": "project_id",
+              "db_write_field": "Project_Target_Amount",
               "token_type": "number"
             }
           ]
@@ -2070,6 +2091,9 @@
             {
               "address": "7.5.1",
               "token_name": "Project_Team_Owner",
+              "db_write_table": "Project_Team",
+              "db_write_id_column": "project_id",
+              "db_write_field": "Project_Team_Owner",
               "token_type": "select_single",
               "option_source": "live_entity",
               "option_entity": "Users"
@@ -2242,6 +2266,9 @@
               "address": "8.3.2",
               "token_name": "Task_Summary",
               "token_type": "text",
+              "db_write_table": "Task_Overview",
+              "db_write_id_column": "task_id",
+              "db_write_field": "Task_Summary",
               "db_field_aliases": [
                 "Task_Summary",
                 "Task_Description"
@@ -2258,6 +2285,9 @@
             {
               "address": "8.4.2",
               "token_name": "Task_Status",
+              "db_write_table": "Task_Overview",
+              "db_write_id_column": "task_id",
+              "db_write_field": "Task_Status",
               "token_type": "select_single",
               "option_source": "canonical_list",
               "option_list": "Task_Status_List"
@@ -2265,6 +2295,9 @@
             {
               "address": "8.4.3",
               "token_name": "Task_Priority_Rank",
+              "db_write_table": "Task_Overview",
+              "db_write_id_column": "task_id",
+              "db_write_field": "Task_Priority_Rank",
               "token_type": "select_single",
               "option_source": "canonical_list",
               "option_list": "Priority_Ranking_List"
@@ -2272,16 +2305,25 @@
             {
               "address": "8.4.4",
               "token_name": "Task_Start_Date",
+              "db_write_table": "Task_Overview",
+              "db_write_id_column": "task_id",
+              "db_write_field": "Task_Start_Date",
               "token_type": "date"
             },
             {
               "address": "8.4.5",
               "token_name": "Task_Due_Date",
+              "db_write_table": "Task_Overview",
+              "db_write_id_column": "task_id",
+              "db_write_field": "Task_Due_Date",
               "token_type": "date"
             },
             {
               "address": "8.4.6",
               "token_name": "Task_End_Date",
+              "db_write_table": "Task_Overview",
+              "db_write_id_column": "task_id",
+              "db_write_field": "Task_End_Date",
               "token_type": "date"
             }
           ]
@@ -2295,6 +2337,9 @@
             {
               "address": "8.5.1",
               "token_name": "Task_Team_Owner",
+              "db_write_table": "Task_Team",
+              "db_write_id_column": "task_id",
+              "db_write_field": "Task_Team_Owner",
               "token_type": "select_single",
               "option_source": "live_entity",
               "option_entity": "Users"

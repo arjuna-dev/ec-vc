@@ -181,6 +181,9 @@ function buildEntityRegistry(entityName) {
         address: String(token?.address || '').trim(),
         tokenName: String(token?.token_name || '').trim(),
         dbFieldAliases: normalizeDbFieldAliases(token),
+        dbWriteField: String(token?.db_write_field || '').trim(),
+        dbWriteTable: String(token?.db_write_table || '').trim(),
+        dbWriteIdColumn: String(token?.db_write_id_column || '').trim(),
         tokenType: String(token?.token_type || '').trim(),
         inputSource: String(token?.input_source || '').trim(),
         optionSource: String(token?.option_source || '').trim(),
@@ -303,18 +306,24 @@ export function getCanonicalTokenFieldNames(token = {}) {
 }
 
 export function getCanonicalTokenWriteFieldName(token = {}) {
-  const fieldNames = getCanonicalTokenFieldNames(token)
-  const tokenName = String(token?.tokenName || '').trim()
+  const explicitWriteField = String(token?.dbWriteField || '').trim()
+  if (explicitWriteField) return explicitWriteField
+  const aliases = Array.isArray(token?.dbFieldAliases)
+    ? token.dbFieldAliases.map((value) => String(value || '').trim()).filter(Boolean)
+    : []
+  if (aliases.length) return aliases[0]
+  return String(token?.tokenName || '').trim()
+}
 
-  if (tokenName && fieldNames.includes(tokenName) && /[A-Z]/.test(tokenName)) {
-    return tokenName
+export function getCanonicalTokenWriteTarget(token = {}, fallbackTableName = '', fallbackIdColumn = 'id') {
+  const fieldName = getCanonicalTokenWriteFieldName(token)
+  if (!fieldName) return null
+
+  return {
+    tableName: String(token?.dbWriteTable || fallbackTableName || '').trim(),
+    idColumn: String(token?.dbWriteIdColumn || fallbackIdColumn || 'id').trim() || 'id',
+    fieldName,
   }
-
-  const explicitDbFields = fieldNames.filter((fieldName) => /[A-Z]/.test(fieldName))
-  if (explicitDbFields.length) return explicitDbFields[0]
-
-  if (fieldNames.length) return fieldNames[fieldNames.length - 1]
-  return ''
 }
 
 export function getCanonicalTokenValue(row = {}, token = {}) {
