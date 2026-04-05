@@ -2072,7 +2072,7 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-field__marginal),
 .create-record-shell__input :deep(.q-chip) {
   font-size: 0.78rem;
-  line-height: 1;
+  line-height: 0.92;
 }
 
 .create-record-shell__input :deep(.q-field__native),
