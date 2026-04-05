@@ -75,8 +75,8 @@ function listPipelines() {
   return dbAll(
     `
     SELECT 
-      p.id AS pipeline_id, 
-      p.Project_Name AS name, 
+      p.id,
+      p.Project_Name,
       CASE WHEN p.id = 'pipeline_default' THEN 1 ELSE 0 END AS is_default, 
       po.install_status, 
       po.install_error,
@@ -96,7 +96,9 @@ function listPipelines() {
     `,
   ).map((row) => ({
     ...row,
-    dir_name: toDirName(row.name, 'pipeline'),
+    pipeline_id: row.id,
+    name: row.Project_Name,
+    dir_name: toDirName(row.Project_Name, 'pipeline'),
   }))
 }
 
@@ -231,7 +233,7 @@ function createPipeline(payload = {}) {
 
   tx()
 
-  return { pipeline_id: pipelineId }
+  return { id: pipelineId, pipeline_id: pipelineId }
 }
 
 async function installPipeline(pipelineId) {

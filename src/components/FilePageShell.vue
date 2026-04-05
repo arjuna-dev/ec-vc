@@ -684,7 +684,7 @@ const SECTION_LOADERS = {
   projects: {
     listFn: (bridgeValue) => bridgeValue?.projects?.list?.(),
     resultKey: 'projects',
-    recordIdField: 'pipeline_id',
+    recordIdField: 'id',
   },
   notes: {
     listFn: (bridgeValue) => bridgeValue?.notes?.list?.(),
