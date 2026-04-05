@@ -32,7 +32,7 @@ const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 let mainWindow
-const repoRootPath = path.resolve(currentDir, '..')
+const repoRootPath = path.resolve(currentDir, '..', '..')
 
 function resolveRepoMarkdownPath(relativePath) {
   const raw = String(relativePath || '').trim()
