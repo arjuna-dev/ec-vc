@@ -19,6 +19,10 @@ import {
   NETWORK_DATABASE_SECTION_DIRS,
   USER_WORKSPACE_DIR,
 } from './services/workspace-structure.js'
+import {
+  getKdbRelationshipContractForToken,
+  getKdbRelationshipContractsForEntity,
+} from '../src/shared/kdbRelationshipContracts.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -2390,6 +2394,95 @@ function getDatabookTableConfig(tableName) {
   return config
 }
 
+function getDatabookPrimaryKeyColumn(database, tableName) {
+  const tableMeta = getTableMeta(database, tableName)
+  const idColumn = tableMeta?.pkColumn
+  if (!idColumn) throw new Error(`Databook table ${tableName} must have a primary key`)
+  return idColumn
+}
+
+function resolveDatabookDisplayLabel(record, config, fallback = '') {
+  for (const columnName of config.displayColumns || []) {
+    const value = normalizeNullableString(record?.[columnName])
+    if (value) return value
+  }
+  return normalizeNullableString(fallback) || ''
+}
+
+function listKdbRelationshipItems(database, contract, sourceRecordId) {
+  const targetConfig = getDatabookTableConfig(contract.targetEntity)
+  const targetTableName = targetConfig.tableName
+  const targetIdColumn = getDatabookPrimaryKeyColumn(database, targetTableName)
+  const rows = database
+    .prepare(
+      `
+      SELECT rel.${quoteIdentifier(contract.targetJoinColumn)} AS id, target.*
+      FROM ${quoteIdentifier(contract.joinTable)} rel
+      JOIN ${quoteIdentifier(targetTableName)} target
+        ON target.${quoteIdentifier(targetIdColumn)} = rel.${quoteIdentifier(contract.targetJoinColumn)}
+      WHERE rel.${quoteIdentifier(contract.sourceJoinColumn)} = ?
+      ORDER BY target.${quoteIdentifier(targetIdColumn)}
+    `,
+    )
+    .all(sourceRecordId)
+
+  return rows.map((row) => ({
+    id: normalizeNullableString(row?.id),
+    label:
+      resolveDatabookDisplayLabel(row, targetConfig, normalizeNullableString(row?.id)) ||
+      normalizeNullableString(row?.id) ||
+      '',
+  }))
+}
+
+function buildKdbRelationshipFields(database, entityName, recordId, idColumn = 'id') {
+  return getKdbRelationshipContractsForEntity(entityName).map((contract) => {
+    const relatedItems = listKdbRelationshipItems(database, contract, recordId).filter((item) => item.id)
+    return {
+      key: `${entityName}|${recordId}|${contract.sourceToken}`,
+      section: 'KDB',
+      label: formatDatabookFieldLabel(contract.sourceToken),
+      value: relatedItems.map((item) => item.label).join(', '),
+      editable: true,
+      table_name: entityName,
+      record_id: recordId,
+      field_name: contract.sourceToken,
+      id_column: idColumn,
+      relationship_ids: relatedItems.map((item) => item.id),
+      related_items: relatedItems,
+      relationship_join_table: contract.joinTable,
+      relationship_target_entity: contract.targetEntity,
+    }
+  })
+}
+
+function normalizeRelationshipIds(rawValue) {
+  if (Array.isArray(rawValue)) {
+    return Array.from(new Set(rawValue.map((value) => normalizeNullableString(value)).filter(Boolean)))
+  }
+
+  const normalizedText = normalizeNullableString(rawValue)
+  if (!normalizedText) return []
+
+  try {
+    const parsed = JSON.parse(normalizedText)
+    if (Array.isArray(parsed)) {
+      return Array.from(new Set(parsed.map((value) => normalizeNullableString(value)).filter(Boolean)))
+    }
+  } catch {
+    // ignore
+  }
+
+  return Array.from(
+    new Set(
+      normalizedText
+        .split(',')
+        .map((value) => normalizeNullableString(value))
+        .filter(Boolean),
+    ),
+  )
+}
+
 function formatDatabookFieldLabel(fieldName) {
   const specialWords = {
     id: 'ID',
@@ -2706,6 +2799,7 @@ function buildCompanyDatabookView(database, recordId) {
       id_column: 'company_id',
     })),
   ]
+  const relationshipFields = buildKdbRelationshipFields(database, 'Companies', rid, 'id')
 
   return {
     table_name: 'Companies',
@@ -2713,7 +2807,21 @@ function buildCompanyDatabookView(database, recordId) {
     entity_label: 'Company',
     entity_name: normalizeNullableString(row.Company_Name) || rid,
     record: row,
-    fields,
+    sections: [
+      {
+        id: 'company-fields',
+        label: 'Company',
+        kind: 'fields',
+        items: fields,
+      },
+      {
+        id: 'kdb-relationships',
+        label: 'KDB',
+        kind: 'relationships',
+        items: relationshipFields,
+      },
+    ],
+    fields: [...fields, ...relationshipFields],
   }
 }
 
@@ -2774,6 +2882,7 @@ function buildUserDatabookView(database, recordId) {
     ...field,
     section: 'Metadata',
   }))
+  const relationshipFields = buildKdbRelationshipFields(database, 'Users', rid, 'id')
 
   return {
     table_name: 'Users',
@@ -2790,12 +2899,12 @@ function buildUserDatabookView(database, recordId) {
       },
       {
         id: 'kdb-relationships',
-        label: 'KDB Relationships',
+        label: 'KDB',
         kind: 'relationships',
-        items: [],
+        items: relationshipFields,
       },
     ],
-    fields,
+    fields: [...fields, ...relationshipFields],
   }
 }
 
@@ -2834,6 +2943,7 @@ function getDatabookView(tableName, recordId) {
     field_name: columnName,
     id_column: idColumn,
   }))
+  const relationshipFields = buildKdbRelationshipFields(database, config.tableName, rid, idColumn)
 
   return {
     table_name: config.tableName,
@@ -2841,7 +2951,21 @@ function getDatabookView(tableName, recordId) {
     entity_label: config.entityLabel,
     entity_name: resolveDatabookEntityName(row, config, rid),
     record: row,
-    fields,
+    sections: [
+      {
+        id: 'metadata',
+        label: config.entityLabel,
+        kind: 'fields',
+        items: fields,
+      },
+      {
+        id: 'kdb-relationships',
+        label: 'KDB',
+        kind: 'relationships',
+        items: relationshipFields,
+      },
+    ],
+    fields: [...fields, ...relationshipFields],
   }
 }
 
@@ -4052,13 +4176,19 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
   const database = initDb()
   const normalizedChanges = (Array.isArray(changes) ? changes : [])
     .map((change) => ({
+      change_kind: normalizeNullableString(change?.change_kind) || 'field',
       table_name: normalizeNullableString(change?.table_name),
       record_id: normalizeNullableString(change?.record_id),
       field_name: normalizeNullableString(change?.field_name),
+      relationship_token: normalizeNullableString(change?.relationship_token),
       id_column: normalizeNullableString(change?.id_column),
       new_value: change?.new_value,
     }))
-    .filter((change) => change.table_name && change.record_id && change.field_name)
+    .filter((change) =>
+      change.change_kind === 'relationship'
+        ? change.table_name && change.record_id && change.relationship_token
+        : change.table_name && change.record_id && change.field_name,
+    )
 
   if (!normalizedChanges.length) {
     const actor = getAuditActor(database)
@@ -4072,6 +4202,80 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
     let eventsCreated = 0
 
     for (const change of normalizedChanges) {
+      if (change.change_kind === 'relationship') {
+        const relationshipContract = getKdbRelationshipContractForToken(change.table_name, change.relationship_token)
+        if (!relationshipContract) {
+          throw new Error(`Relationship contract is not wired for ${change.relationship_token} on ${change.table_name}`)
+        }
+
+        const requestedIds = normalizeRelationshipIds(change.new_value)
+        const currentIds = database
+          .prepare(
+            `
+            SELECT ${quoteIdentifier(relationshipContract.targetJoinColumn)} AS related_id
+            FROM ${quoteIdentifier(relationshipContract.joinTable)}
+            WHERE ${quoteIdentifier(relationshipContract.sourceJoinColumn)} = ?
+          `,
+          )
+          .all(change.record_id)
+          .map((row) => normalizeNullableString(row?.related_id))
+          .filter(Boolean)
+
+        const currentSet = new Set(currentIds)
+        const requestedSet = new Set(requestedIds)
+        const toInsert = requestedIds.filter((id) => !currentSet.has(id))
+        const toDelete = currentIds.filter((id) => !requestedSet.has(id))
+
+        for (const relatedId of toDelete) {
+          database
+            .prepare(
+              `
+              DELETE FROM ${quoteIdentifier(relationshipContract.joinTable)}
+              WHERE ${quoteIdentifier(relationshipContract.sourceJoinColumn)} = ?
+                AND ${quoteIdentifier(relationshipContract.targetJoinColumn)} = ?
+            `,
+            )
+            .run(change.record_id, relatedId)
+        }
+
+        for (const relatedId of toInsert) {
+          database
+            .prepare(
+              `
+              INSERT OR IGNORE INTO ${quoteIdentifier(relationshipContract.joinTable)} (
+                ${quoteIdentifier(relationshipContract.sourceJoinColumn)},
+                ${quoteIdentifier(relationshipContract.targetJoinColumn)}
+              ) VALUES (?, ?)
+            `,
+            )
+            .run(change.record_id, relatedId)
+        }
+
+        if (toInsert.length || toDelete.length) {
+          updated += 1
+          database
+            .prepare(
+              `
+              INSERT INTO events (
+                id, table_name, record_id, field_name, old_value, new_value,
+                edited_by, edited_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            `,
+            )
+            .run(
+              `event:${crypto.randomUUID()}`,
+              relationshipContract.joinTable,
+              change.record_id,
+              change.relationship_token,
+              JSON.stringify(currentIds),
+              JSON.stringify(requestedIds),
+              actor.user_id,
+            )
+          eventsCreated += 1
+        }
+        continue
+      }
+
       const tableMeta = getTableMeta(database, change.table_name)
       if (tableMeta.table === 'events') {
         throw new Error('Direct writes to events are not allowed')

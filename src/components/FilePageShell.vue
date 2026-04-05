@@ -597,6 +597,7 @@ import {
   LEVEL_3_FILE_REGISTRY_BY_KEY,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
+import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipContracts'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 
@@ -856,14 +857,17 @@ function getEditDialogTokenValueFromPayload(payload, token) {
   if (!payload) return ''
 
   const fieldNames = getCanonicalTokenFieldNames(token)
-  const fieldMap = Object.fromEntries(
-    (Array.isArray(payload.fields) ? payload.fields : [])
-      .map((field) => [String(field?.field_name || '').trim(), field?.value])
-      .filter(([fieldName]) => fieldName),
-  )
+  const payloadFields = Array.isArray(payload.fields) ? payload.fields : []
 
   for (const fieldName of fieldNames) {
-    const fieldValue = fieldMap[fieldName]
+    const matchingField = payloadFields.find((field) => String(field?.field_name || '').trim() === fieldName)
+    if (!matchingField) continue
+    const relationshipIds = Array.isArray(matchingField?.relationship_ids)
+      ? matchingField.relationship_ids.map((value) => String(value || '').trim()).filter(Boolean)
+      : []
+    if (relationshipIds.length) return relationshipIds
+
+    const fieldValue = matchingField?.value
     if (fieldValue != null && !(typeof fieldValue === 'string' && !fieldValue.trim())) {
       return fieldValue
     }
@@ -1102,16 +1106,17 @@ function buildOptionsFromSourceRows(sourceKey, token) {
   const options = rows
     .filter((row) => matchesOptionSubset(row, sourceKey, token?.optionSubset))
     .map((row) => {
+      const recordId = stringifyValue(row?.[recordIdField])
       const label =
         stringifyValue(titleToken ? getCanonicalTokenValue(row, titleToken) : null) ||
         stringifyValue(row?.Name) ||
         stringifyValue(row?.label) ||
         stringifyValue(row?.title) ||
-        stringifyValue(row?.[recordIdField])
-      if (!label) return null
+        recordId
+      if (!label || !recordId) return null
       return {
         label,
-        value: label,
+        value: recordId,
       }
     })
     .filter(Boolean)
@@ -1812,7 +1817,10 @@ async function openAddRelationShell(row) {
 async function submitCreateRecordShell({ values } = {}) {
   clearCreateDialogAutosaveTimer()
   const isEditMode = createDialogMode.value === 'edit'
-  assertNoUnsupportedRelationshipWrites(values)
+  const activeEntityName = isEditMode
+    ? activeRegistryEntry.value?.entityName || ''
+    : resolveCreateDialogEntityName(buildCreatePayload(values))
+  assertNoUnsupportedRelationshipWrites(values, activeEntityName)
 
   if (!isEditMode && !canCreateWithShell.value) {
     notifyShellAction('Create record')
@@ -1869,6 +1877,17 @@ async function submitCreateRecordShell({ values } = {}) {
       if (!result) {
         $q.notify({ type: 'negative', message: 'Create bridge is not available for this record type yet.' })
         return
+      }
+
+      const createdEntityName =
+        sourceKey === 'opportunities'
+          ? String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase() === 'fund'
+            ? 'Funds'
+            : 'Rounds'
+          : activeRegistryEntry.value?.entityName || ''
+      const createdRecordId = String(result?.id || '').trim()
+      if (createdRecordId && createdEntityName) {
+        await updateRecordFromPayload(createdRecordId, createdEntityName, values)
       }
 
       createDialogOpen.value = false
@@ -2025,16 +2044,25 @@ async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRo
   }
 
   clearCreateDialogAutosaveTimer()
-  assertNoUnsupportedRelationshipWrites(snapshot.values)
   const payload = buildCreatePayload(snapshot.values)
-  if (!Object.keys(payload).length) {
+  const currentRecordId = createDialogDraftRecordId.value || editDialogRow.value?.recordId || ''
+  const entityNameForValidation = resolveCreateDialogEntityName(payload)
+  assertNoUnsupportedRelationshipWrites(snapshot.values, entityNameForValidation)
+  const previewEntityName = entityNameForValidation || activeRegistryEntry.value?.entityName || ''
+  const pendingChanges = currentRecordId
+    ? buildUpdateChangesFromValues(snapshot.values || {}, {
+        recordId: currentRecordId,
+        entityName: previewEntityName,
+        idColumn: activeLoader.value?.recordIdField || 'id',
+      })
+    : []
+  if (!Object.keys(payload).length && !pendingChanges.length) {
     createDialogAutosavePending.value = false
     return
   }
 
-  const currentRecordId = createDialogDraftRecordId.value || editDialogRow.value?.recordId || ''
   const currentEntityName = resolveCreateDialogEntityName(payload)
-  const signature = buildCreateDialogAutosaveSignature(payload, currentRecordId, currentEntityName)
+  const signature = buildCreateDialogAutosaveSignature(snapshot.values || {}, currentRecordId, currentEntityName)
   if (signature === createDialogLastSavedSignature.value) {
     createDialogAutosavePending.value = false
     return
@@ -2055,12 +2083,11 @@ async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRo
       const createResult = await createRecordFromPayload(payload)
       recordId = createResult.recordId
       entityName = createResult.entityName
-    } else {
-      await updateRecordFromPayload(recordId, entityName, payload)
-      if (reloadRows) await loadRows()
     }
+    await updateRecordFromPayload(recordId, entityName, snapshot.values || {})
+    if (reloadRows) await loadRows()
 
-    createDialogLastSavedSignature.value = buildCreateDialogAutosaveSignature(payload, recordId, entityName)
+    createDialogLastSavedSignature.value = buildCreateDialogAutosaveSignature(snapshot.values || {}, recordId, entityName)
   } catch (autosaveError) {
     $q.notify({ type: 'negative', message: autosaveError?.message || String(autosaveError) })
   } finally {
@@ -2097,18 +2124,23 @@ function tokenHasDirectWriteTarget(token) {
   return Boolean(String(token?.dbWriteField || '').trim())
 }
 
-function isUnsupportedRelationshipWriteToken(token) {
+function tokenHasRelationshipWriteContract(token, entityName = '') {
+  return Boolean(getKdbRelationshipContractForToken(entityName, token?.tokenName))
+}
+
+function isUnsupportedRelationshipWriteToken(token, entityName = '') {
   const optionSource = String(token?.optionSource || '').trim()
   if (!['live_entity', 'live_entity_set', 'record_subset'].includes(optionSource)) return false
+  if (tokenHasRelationshipWriteContract(token, entityName)) return false
   return !tokenHasDirectWriteTarget(token)
 }
 
-function getUnsupportedRelationshipWriteLabels(values = {}) {
+function getUnsupportedRelationshipWriteLabels(values = {}, entityName = '') {
   const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   return allTokens
     .filter((token) => {
       if (isAutomaticCreatorToken(token)) return false
-      if (!isUnsupportedRelationshipWriteToken(token)) return false
+      if (!isUnsupportedRelationshipWriteToken(token, entityName)) return false
       const rawValue = values?.[token.key]
       const normalizedValue = normalizeCreateFieldValue(token, rawValue)
       if (normalizedValue == null) return false
@@ -2119,8 +2151,8 @@ function getUnsupportedRelationshipWriteLabels(values = {}) {
     .filter(Boolean)
 }
 
-function assertNoUnsupportedRelationshipWrites(values = {}) {
-  const labels = getUnsupportedRelationshipWriteLabels(values)
+function assertNoUnsupportedRelationshipWrites(values = {}, entityName = '') {
+  const labels = getUnsupportedRelationshipWriteLabels(values, entityName)
   if (!labels.length) return
   throw new Error(`Relationship save contract is not wired yet for: ${labels.join(', ')}`)
 }
@@ -2132,10 +2164,28 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
 
   return allTokens.flatMap((token) => {
     if (isAutomaticCreatorToken(token)) return []
-    if (isUnsupportedRelationshipWriteToken(token)) return []
     const rawValue = values?.[token.key]
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
     if (normalizedValue == null) return []
+
+    const relationshipContract = getKdbRelationshipContractForToken(entityName, token?.tokenName)
+    if (relationshipContract) {
+      const relationshipIds = Array.isArray(normalizedValue)
+        ? normalizedValue.map((value) => String(value || '').trim()).filter(Boolean)
+        : [String(normalizedValue || '').trim()].filter(Boolean)
+      return [
+        {
+          change_kind: 'relationship',
+          table_name: entityName,
+          record_id: recordId,
+          field_name: token.tokenName,
+          relationship_token: token.tokenName,
+          new_value: JSON.stringify(relationshipIds),
+        },
+      ]
+    }
+
+    if (isUnsupportedRelationshipWriteToken(token, entityName)) return []
 
     const writeTarget = getCanonicalTokenWriteTarget(token, entityName, idColumn)
     if (!writeTarget?.tableName || !writeTarget?.fieldName) return []

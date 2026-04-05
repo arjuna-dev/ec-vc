@@ -3476,6 +3476,18 @@ function createGenericKdbSectionOption(field) {
 function buildGenericKdbItemsFromField(field, label) {
   if (!field) return []
 
+  const relatedItems = Array.isArray(field?.related_items) ? field.related_items : []
+  if (relatedItems.length) {
+    return relatedItems
+      .map((item, index) => ({
+        id: `${field.key}-${item?.id || index}`,
+        title: String(item?.label || item?.id || '').trim(),
+        meta: label,
+        content: String(item?.id || '').trim(),
+      }))
+      .filter((item) => item.title)
+  }
+
   const raw = String(field?.value || '').trim()
   if (!raw) return []
 
