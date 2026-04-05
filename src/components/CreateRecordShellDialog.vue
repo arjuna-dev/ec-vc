@@ -2198,7 +2198,7 @@ onBeforeUnmount(() => {
 .create-record-shell__footer-status {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 2px 10px;
   border-radius: 4px;
   font-size: 0.66rem;
   font-weight: 700;
