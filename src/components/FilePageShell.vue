@@ -1102,7 +1102,9 @@ function buildOptionsFromSourceRows(sourceKey, token) {
   const rows = getOptionRowsForSource(sourceKey)
   const titleToken = getRegistryTitleTokenForSource(sourceKey)
   const recordIdField = SECTION_LOADERS[sourceKey]?.recordIdField || 'id'
-  const useRecordIdValue = tokenHasRelationshipWriteContract(token, activeRegistryEntry.value?.entityName || '')
+  const useRecordIdValue =
+    tokenHasRelationshipWriteContract(token, activeRegistryEntry.value?.entityName || '') ||
+    String(token?.optionValueMode || '').trim() === 'record_id'
 
   const options = rows
     .filter((row) => matchesOptionSubset(row, sourceKey, token?.optionSubset))

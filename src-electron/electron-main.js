@@ -1102,13 +1102,17 @@ function listUsers() {
   return dbAll(
     `
     SELECT
-      id,
-      User_Name,
-      User_PEmail,
-      created_at,
-      updated_at
-    FROM Users
-    ORDER BY COALESCE(User_Name, '') ASC, id ASC
+      u.id,
+      u.User_Name,
+      u.User_PEmail,
+      ur.role_id,
+      r.Role_Name,
+      u.created_at,
+      u.updated_at
+    FROM Users u
+    LEFT JOIN Users_Roles ur ON ur.user_id = u.id
+    LEFT JOIN Roles r ON r.id = ur.role_id
+    ORDER BY COALESCE(u.User_Name, '') ASC, u.id ASC
   `,
   )
 }
@@ -1236,6 +1240,8 @@ function createUser(payload = {}) {
       User_Name: userName,
       User_PEmail: userEmail,
     })
+
+  ensureUserRoleAssignmentRow(database, userId)
 
   return {
     id: userId,
@@ -2920,9 +2926,18 @@ function buildUserDatabookView(database, recordId) {
     database
       .prepare(
         `
-        SELECT id, User_Name, User_PEmail, created_at, updated_at
-        FROM Users
-        WHERE id = ?
+        SELECT
+          u.id,
+          u.User_Name,
+          u.User_PEmail,
+          ur.role_id,
+          r.Role_Name,
+          u.created_at,
+          u.updated_at
+        FROM Users u
+        LEFT JOIN Users_Roles ur ON ur.user_id = u.id
+        LEFT JOIN Roles r ON r.id = ur.role_id
+        WHERE u.id = ?
         LIMIT 1
       `,
       )
@@ -2942,7 +2957,29 @@ function buildUserDatabookView(database, recordId) {
     }),
   )
 
-  const fields = metadataFields.map((field) => ({
+  const roleField = {
+    key: `Users|${rid}|User_Role`,
+    section: 'System',
+    label: 'User Role',
+    value: normalizeNullableString(row?.Role_Name) || '',
+    editable: true,
+    table_name: 'Users',
+    record_id: rid,
+    field_name: 'User_Role',
+    id_column: 'id',
+    relationship_ids: normalizeNullableString(row?.role_id) ? [normalizeNullableString(row.role_id)] : [],
+    related_items: normalizeNullableString(row?.role_id)
+      ? [
+          {
+            id: normalizeNullableString(row.role_id),
+            label: normalizeNullableString(row?.Role_Name) || normalizeNullableString(row.role_id),
+          },
+        ]
+      : [],
+    relationship_target_entity: 'Roles',
+  }
+
+  const fields = [...metadataFields, roleField].map((field) => ({
     ...field,
     section: 'Metadata',
   }))
@@ -3880,13 +3917,17 @@ function getUserById(database, userId) {
       .prepare(
         `
       SELECT
-        id,
-        User_Name,
-        User_PEmail,
-        created_at,
-        updated_at
-      FROM Users
-      WHERE id = ?
+        u.id,
+        u.User_Name,
+        u.User_PEmail,
+        ur.role_id,
+        r.Role_Name,
+        u.created_at,
+        u.updated_at
+      FROM Users u
+      LEFT JOIN Users_Roles ur ON ur.user_id = u.id
+      LEFT JOIN Roles r ON r.id = ur.role_id
+      WHERE u.id = ?
       LIMIT 1
     `,
       )
@@ -3914,6 +3955,69 @@ function ensureOwnerRole(database, ownerUserId = null) {
     .run(roleId, normalizeNullableString(ownerUserId))
 
   return roleId
+}
+
+function ensureOwnerDb(database, ownerUserId) {
+  const normalizedUserId = normalizeNullableString(ownerUserId)
+  if (!normalizedUserId) return null
+
+  const ownerDbId = 'owner_db'
+  database
+    .prepare(
+      `
+      INSERT INTO Owner_DB (
+        id, owner_user_id, created_at, updated_at
+      ) VALUES (
+        ?, ?, datetime('now'), datetime('now')
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        owner_user_id = excluded.owner_user_id,
+        updated_at = datetime('now')
+    `,
+    )
+    .run(ownerDbId, normalizedUserId)
+
+  return ownerDbId
+}
+
+function ensureUserRoleAssignmentRow(database, userId, assignedBy = null) {
+  const normalizedUserId = normalizeNullableString(userId)
+  if (!normalizedUserId) return
+
+  database
+    .prepare(
+      `
+      INSERT INTO Users_Roles (
+        user_id, role_id, assigned_by, created_at, updated_at
+      ) VALUES (
+        ?, NULL, ?, datetime('now'), datetime('now')
+      )
+      ON CONFLICT(user_id) DO NOTHING
+    `,
+    )
+    .run(normalizedUserId, normalizeNullableString(assignedBy))
+}
+
+function assignUserRole(database, userId, roleId, assignedBy = null) {
+  const normalizedUserId = normalizeNullableString(userId)
+  const normalizedRoleId = normalizeNullableString(roleId)
+  if (!normalizedUserId || !normalizedRoleId) return
+
+  database
+    .prepare(
+      `
+      INSERT INTO Users_Roles (
+        user_id, role_id, assigned_by, created_at, updated_at
+      ) VALUES (
+        ?, ?, ?, datetime('now'), datetime('now')
+      )
+      ON CONFLICT(user_id) DO UPDATE SET
+        role_id = excluded.role_id,
+        assigned_by = excluded.assigned_by,
+        updated_at = datetime('now')
+    `,
+    )
+    .run(normalizedUserId, normalizedRoleId, normalizeNullableString(assignedBy) || normalizedUserId)
 }
 
 function createOrUpdateUserProfile(database, profile = {}) {
@@ -4000,7 +4104,10 @@ function createOrUpdateUserProfile(database, profile = {}) {
   setAppSetting(database, APP_SETTING_KEYS.userId, userId)
   setAppSetting(database, APP_SETTING_KEYS.userContactId, contactId)
   setAppSetting(database, 'user_label', name)
-  ensureOwnerRole(database, userId)
+  const ownerRoleId = ensureOwnerRole(database, userId)
+  ensureOwnerDb(database, userId)
+  ensureUserRoleAssignmentRow(database, userId, userId)
+  assignUserRole(database, userId, ownerRoleId, userId)
 
   return { userId, contactId, email, name }
 }
@@ -4009,7 +4116,10 @@ function ensureOwnerUserProfile(database) {
   const storedUserId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
   const existingUser = storedUserId ? getUserById(database, storedUserId) : null
   if (existingUser) {
-    ensureOwnerRole(database, existingUser.id)
+    const ownerRoleId = ensureOwnerRole(database, existingUser.id)
+    ensureOwnerDb(database, existingUser.id)
+    ensureUserRoleAssignmentRow(database, existingUser.id, existingUser.id)
+    assignUserRole(database, existingUser.id, ownerRoleId, existingUser.id)
     return existingUser
   }
 

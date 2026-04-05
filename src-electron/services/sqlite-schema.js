@@ -6,6 +6,14 @@ CREATE TABLE IF NOT EXISTS app_settings (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS Owner_DB (
+  id TEXT PRIMARY KEY,
+  owner_user_id TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (owner_user_id) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
 CREATE TABLE IF NOT EXISTS events (
   id TEXT PRIMARY KEY,
   table_name TEXT NOT NULL,
@@ -1373,6 +1381,20 @@ CREATE TABLE IF NOT EXISTS Roles (
 
 CREATE INDEX IF NOT EXISTS idx_Roles_created_by
   ON Roles(created_by);
+
+CREATE TABLE IF NOT EXISTS Users_Roles (
+  user_id TEXT PRIMARY KEY,
+  role_id TEXT,
+  assigned_by TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (role_id) REFERENCES Roles(id) ON UPDATE CASCADE ON DELETE SET NULL,
+  FOREIGN KEY (assigned_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Users_Roles_role_id
+  ON Users_Roles(role_id);
 
 CREATE TABLE IF NOT EXISTS Project_Stages (
   stage_id TEXT PRIMARY KEY,

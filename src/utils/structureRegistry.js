@@ -189,6 +189,7 @@ function buildEntityRegistry(entityName) {
         optionSource: String(token?.option_source || '').trim(),
         optionList: String(token?.option_list || '').trim(),
         optionEntity: String(token?.option_entity || '').trim(),
+        optionValueMode: String(token?.option_value_mode || '').trim(),
         optionEntities: Array.isArray(token?.option_entities)
           ? token.option_entities.map((value) => String(value || '').trim()).filter(Boolean)
           : [],
