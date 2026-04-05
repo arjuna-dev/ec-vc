@@ -2165,6 +2165,15 @@ onBeforeUnmount(() => {
   min-height: 26px;
 }
 
+.create-record-shell__verification-menu-item :deep(.q-item__section--avatar) {
+  min-width: 16px;
+  padding-right: 2px;
+}
+
+.create-record-shell__verification-menu-item :deep(.q-item__section--main) {
+  padding-left: 0;
+}
+
 .create-record-shell__verification-menu-label {
   font-size: 8px;
   line-height: 1.15;
