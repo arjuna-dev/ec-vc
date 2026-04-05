@@ -2198,10 +2198,11 @@ onBeforeUnmount(() => {
 .create-record-shell__footer-status {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
+  padding: 1px 10px;
   border-radius: 4px;
   font-size: 0.66rem;
   font-weight: 700;
+  line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
