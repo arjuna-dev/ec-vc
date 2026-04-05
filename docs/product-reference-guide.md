@@ -392,6 +392,73 @@ The target behavior is:
 - edit against the canonical linked record or join table
 - avoid creating duplicates by accident
 
+## KDB Relationship Rule
+
+KDB relationships are not optional UI conveniences.
+
+They are intended to be real information pipelines between linked `L1`s.
+
+That means if a KDB relationship is declared in canonical structure:
+
+- it should have a real owner path
+- it should have a real reverse-read path
+- it should appear from both linked records once backed
+- it should behave the same way across `Page View`, `Card View`, and `Record View`
+
+Product rule:
+
+- the shell should never guess relationship ownership
+- the shell should never treat a relationship token like a normal writable column
+- if a relationship is declared but not yet backed, that is a product contract gap that should be surfaced honestly
+
+## Mandatory KDB Standard For New Connections
+
+When a new connection is approved between two `L1`s, it should follow the same contract every time.
+
+Required pieces:
+
+- canonical relationship token on the declaring side
+- canonical reverse relationship presence on the linked side
+- one real runtime owner path underneath the relationship
+- one reverse-read path so the relationship is visible from both sides
+- one shared editing rule, not page-specific behavior
+
+This is the minimum standard for new KDB connections.
+
+Do not:
+
+- add a relationship token without planning the owner path
+- fake reverse appearance in only one surface
+- patch a single page to behave as if the relationship were complete
+
+## Current Relationship Status
+
+Currently runtime-backed strongly enough to be treated as real relationship paths:
+
+- `Company <-> Project`
+- `Company <-> Task`
+- `Company <-> Fund`
+- `Company <-> Round`
+- `Contact <-> Company`
+- `Contact <-> Fund`
+- `Contact <-> Round`
+- `Contact <-> Project`
+- `Task <-> Project`
+- `Project <-> Fund`
+- `Project <-> Round`
+- `Project <-> Company`
+
+Currently declared in canon but still incomplete underneath:
+
+- many `User_*` relationships
+- many `Artifact_*` relationships
+- several `Note_*` relationships
+
+Important example:
+
+- `User <-> Project` is declared in canon
+- but it should not be treated as finished until the runtime owner path and reverse-read path really exist
+
 ## Current Working Interpretation
 
 ### Generally Working

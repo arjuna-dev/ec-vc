@@ -120,6 +120,91 @@ Working rule:
 - if the live payload field name differs, that token should declare `db_field_aliases`
 - the UI may read those aliases, but it should not infer them heuristically
 
+## KDB Relationship Contract
+
+KDB relationships must now be treated as real system paths, not as optional UI affordances.
+
+If a KDB relationship token is declared in canonical structure, the system should assume that relationship is intended to be real and operational.
+
+That means every declared KDB relationship must eventually have:
+
+- one real owner path
+- one reverse-read path
+- bidirectional appearance from both linked `L1`s
+- one shared relationship contract across `Page View`, `Card View`, and `Record View`
+
+Working rule:
+
+- the shell must not guess or simulate relationship behavior
+- relationship tokens should not be written like normal columns
+- if a relationship owner path is missing, that is a contract gap, not a shell-rendering problem
+- reverse appearance is part of the contract, not a later enhancement
+
+### Mandatory Relationship Standard
+
+For the current architecture pass, KDB relationships should be understood in three states:
+
+1. `Declared`
+- the relationship exists in canonical structure
+
+2. `Runtime-backed`
+- the relationship has a real owner path underneath it, such as a join table or owned subset path
+
+3. `Bidirectionally rendered`
+- both linked `L1`s can read that same relationship back through their KDB surfaces
+
+The intended steady state is:
+
+`Declared -> Runtime-backed -> Bidirectionally rendered`
+
+No relationship should be treated as complete until all three are true.
+
+### New L1 Rule
+
+When a new `L1` is created, its KDB relationship contract should be created with it.
+
+That means:
+
+- the new `L1` should not declare relationship tokens casually
+- each declared relationship should have an approved owner path
+- each declared relationship should have an approved reverse-read path
+- new connections should follow the same relationship contract as existing ones
+- do not create one-off relationship behavior for a single page, dialog, or record surface
+
+### Current Mandatory KDB Set
+
+The currently approved KDB direction is:
+
+- every first-level working `L1` should be able to relate through KDB to the other first-level working `L1`s where that connection is canonically declared
+- those relationships should be visible from either side once they are truly backed
+
+For the current concrete audit, the runtime-backed set is:
+
+- `Company <-> Project`
+- `Company <-> Task`
+- `Company <-> Fund`
+- `Company <-> Round`
+- `Contact <-> Company`
+- `Contact <-> Fund`
+- `Contact <-> Round`
+- `Contact <-> Project`
+- `Task <-> Project`
+- `Project <-> Fund`
+- `Project <-> Round`
+- `Project <-> Company`
+
+The currently declared-but-not-yet-backed set includes:
+
+- most `User_*` relationships such as `User <-> Project`
+- most `Artifact_*` relationships
+- several `Note_*` relationships
+
+Working rule:
+
+- do not pretend the declared-but-not-yet-backed set is already complete
+- document and expose that gap clearly
+- close the runtime gap underneath the canonical relationship rather than adding shell-side interpretation
+
 ## Shared Shell Rule
 
 The `File` shell should have one shared source implementation.
@@ -371,6 +456,12 @@ Working rule:
 
 - when a controlled field should evolve as a reusable reference set, prefer a `Knowledge DB` file over a page-local hardcoded list
 - shells may still render those sources as selects or pickers, but the meaning should come from the `Knowledge DB` file contract
+
+Relationship inheritance rule:
+
+- when a new `Knowledge DB` or first-level `L1` is introduced, its KDB relationship expectations should be documented immediately
+- if the relationship is declared in canon, the owner path and reverse-read path should be planned at the same time
+- do not allow canon to drift far ahead of runtime relationship ownership without documenting that gap
 
 Examples:
 
@@ -944,6 +1035,9 @@ For each entity define:
 - lightweight card preview behavior
 - rich record-view relationship behavior
 - empty-state behavior
+- real owner path
+- reverse-read path
+- bidirectional appearance rule
 
 ### Phase 7. Align Table Group Tabs
 

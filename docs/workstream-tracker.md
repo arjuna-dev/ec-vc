@@ -18,6 +18,8 @@ This tracker should stay aligned with:
 ## Front-Loaded
 
 - Keep the shared `FilePageShell` as the one shell source while each file route continues to own its own `L1`
+- Make the KDB relationship contract explicit in the architecture docs before adding more runtime relationship paths
+- Treat declared KDB relationships as real system paths that require owner-path and reverse-read planning
 - Finish the remaining `Knowledge DB` runtime pass so `Markets`, `Securities`, and `Ingestion` all behave like normal file surfaces
 - Keep the canonical structure aligned with the active workbook and approved UI behavior
 - Normalize token names toward their final approved form during the same structure pass
@@ -59,10 +61,31 @@ This tracker should stay aligned with:
 - Include `Avatar` and `Roles` parameters in the intake control surface so operator behavior can be tuned with the workstream
 - Unify KDB relationship behavior so cards stay lightweight and record views can get richer grouped relationship payloads
 - Rename section labels and token names together so `System` does not coexist indefinitely with stale `*_Metadata` naming
+- KDB relationships are now being treated as strict contract paths:
+  - declared in canon
+  - runtime-backed underneath
+  - bidirectionally visible from both linked `L1`s
+- relationship tokens should no longer be thought of as ordinary writable columns
+- new `L1` relationships should follow the same owner-path and reverse-read contract instead of being introduced ad hoc
+- the currently runtime-backed relationship set is centered on:
+  - `Company`
+  - `Contact`
+  - `Project`
+  - `Task`
+  - `Fund`
+  - `Round`
+- the currently declared-but-not-yet-backed set still includes many:
+  - `User_*`
+  - `Artifact_*`
+  - `Note_*`
+  relationships
 
 ## Pending
 
 - Fix workbook wrapper-token drift so the JSON companion validates cleanly for `Company`, `Funds`, `Markets`, and `Terms`
+- Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths
+- Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships
+- Add reverse-read behavior for every newly-backed KDB relationship so both linked `L1`s reflect the same connection
 - Rework `Record View` table behavior so tabs switch locally and instantly
 - Align company `Record View` tabs with workbook structural nodes
 - Decide which workbook labels stay technical and which get friendlier UI labels
@@ -117,6 +140,13 @@ This tracker should stay aligned with:
   - owner identity now bootstraps into `Users`, and an `Owner` role record is ensured during that flow
   - the shared create/edit dialog now renders canonical date fields as date inputs
   - stale resolved bug notes were cleaned out of `bugs/`, leaving only the current `Knowledge DBs` nav follow-up notes
+- as of April 5, 2026:
+  - the architecture docs now make the KDB relationship rule explicit
+  - declared KDB relationships are now formally understood as requiring:
+    - owner path
+    - reverse-read path
+    - bidirectional appearance
+  - the current runtime-backed set has been separated from the canon-declared-but-still-missing set so future relationship work can stay strict instead of drifting into one-offs
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
   - keep the structure contract coherent while `Company` remains the main reference entity
