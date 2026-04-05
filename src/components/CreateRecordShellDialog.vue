@@ -912,6 +912,16 @@ function isSummaryField(token) {
   return String(token?.label || '').trim().toLowerCase() === 'summary'
 }
 
+function isLongTextField(token) {
+  const normalizedType = String(token?.tokenType || '').trim().toLowerCase()
+  return (
+    isSummaryField(token)
+    || normalizedType === 'long_text'
+    || normalizedType === 'textarea'
+    || normalizedType === 'rich_text'
+  )
+}
+
 function getFieldMeta(token) {
   return props.initialFieldMeta?.[token?.key] || null
 }
@@ -955,7 +965,7 @@ function showFieldVerificationAction(token) {
 }
 
 function usesCompactFieldAction(token) {
-  return !isSummaryField(token)
+  return !isLongTextField(token)
 }
 
 function fieldVerificationIcon(token) {
