@@ -141,7 +141,19 @@
                   </q-badge>
                 </div>
 
-                <div v-if="genericRecordActionLinks.length" class="contact-databook__actions">
+                <div v-if="genericRecordActionLinks.length || canShowHeroEditAction" class="contact-databook__actions">
+                  <q-btn
+                    v-if="canShowHeroEditAction"
+                    outline
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="contact-databook__action"
+                    :icon="editMode ? 'close' : 'edit'"
+                    :label="editMode ? 'Close edit' : 'Edit'"
+                    :disable="loading || saving || !fields.length || isHistoricalMode"
+                    @click="editMode ? cancelEdit() : enterEditMode()"
+                  />
                   <q-btn
                     v-for="link in genericRecordActionLinks"
                     :key="link.label"
@@ -612,7 +624,19 @@
                   </q-badge>
                 </div>
 
-                <div v-if="genericRecordActionLinks.length" class="contact-databook__actions">
+                <div v-if="genericRecordActionLinks.length || canShowHeroEditAction" class="contact-databook__actions">
+                  <q-btn
+                    v-if="canShowHeroEditAction"
+                    outline
+                    no-caps
+                    unelevated
+                    size="sm"
+                    class="contact-databook__action"
+                    :icon="editMode ? 'close' : 'edit'"
+                    :label="editMode ? 'Close edit' : 'Edit'"
+                    :disable="loading || saving || !fields.length || isHistoricalMode"
+                    @click="editMode ? cancelEdit() : enterEditMode()"
+                  />
                   <q-btn
                     v-for="link in genericRecordActionLinks"
                     :key="link.label"
@@ -1777,6 +1801,7 @@ const contactHeroGradient = ref({ ...CONTACT_HERO_GRADIENT_DEFAULT })
 let contactHeroTrackingActive = false
 
 const isHistoricalMode = computed(() => !!selectedVersionId.value)
+const canShowHeroEditAction = computed(() => !isHistoricalMode.value)
 const tableNameParam = computed(() => String(route.params.tableName || '').trim())
 const recordIdParam = computed(() => String(route.params.recordId || '').trim())
 const entityLabel = computed(
