@@ -2166,11 +2166,13 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__verification-menu {
-  min-width: 164px;
+  min-width: 0;
+  width: max-content;
 }
 
 .create-record-shell__verification-menu-item {
-  min-height: 26px;
+  min-height: 22px;
+  padding: 0 6px;
 }
 
 .create-record-shell__verification-menu-item :deep(.q-item__section--avatar) {
