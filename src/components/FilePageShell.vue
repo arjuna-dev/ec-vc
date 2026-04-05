@@ -589,6 +589,7 @@ import {
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByRouteName,
   getCanonicalTokenFieldNames,
+  getCanonicalTokenWriteFieldName,
   getCanonicalTokenValue,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
@@ -1952,7 +1953,7 @@ function buildCreatePayload(values = {}) {
     const rawValue = values?.[token.key]
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
     if (normalizedValue == null) return
-    const fieldName = getCanonicalTokenFieldNames(token)[1] || getCanonicalTokenFieldNames(token)[0]
+    const fieldName = getCanonicalTokenWriteFieldName(token)
     if (!fieldName) return
     payloadEntries.push([fieldName, normalizedValue])
   })

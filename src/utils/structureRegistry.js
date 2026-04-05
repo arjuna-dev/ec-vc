@@ -302,6 +302,21 @@ export function getCanonicalTokenFieldNames(token = {}) {
   )
 }
 
+export function getCanonicalTokenWriteFieldName(token = {}) {
+  const fieldNames = getCanonicalTokenFieldNames(token)
+  const tokenName = String(token?.tokenName || '').trim()
+
+  if (tokenName && fieldNames.includes(tokenName) && /[A-Z]/.test(tokenName)) {
+    return tokenName
+  }
+
+  const explicitDbFields = fieldNames.filter((fieldName) => /[A-Z]/.test(fieldName))
+  if (explicitDbFields.length) return explicitDbFields[0]
+
+  if (fieldNames.length) return fieldNames[fieldNames.length - 1]
+  return ''
+}
+
 export function getCanonicalTokenValue(row = {}, token = {}) {
   const fieldNames = getCanonicalTokenFieldNames(token)
   for (const fieldName of fieldNames) {
