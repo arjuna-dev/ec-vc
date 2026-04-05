@@ -424,6 +424,17 @@
                         </q-menu>
                       </q-btn>
                     </div>
+                    <div
+                      v-if="shouldShowFieldVerificationRegister(fieldEntry.token)"
+                      class="create-record-shell__field-register"
+                    >
+                      <div
+                        class="create-record-shell__field-status-chip"
+                        :class="fieldVerificationRegisterClass(fieldEntry.token)"
+                      >
+                        {{ fieldVerificationRegisterLabel(fieldEntry.token) }}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -550,6 +561,17 @@
                           </q-list>
                         </q-menu>
                       </q-btn>
+                    </div>
+                    <div
+                      v-if="shouldShowFieldVerificationRegister(fieldEntry.token)"
+                      class="create-record-shell__field-register"
+                    >
+                      <div
+                        class="create-record-shell__field-status-chip"
+                        :class="fieldVerificationRegisterClass(fieldEntry.token)"
+                      >
+                        {{ fieldVerificationRegisterLabel(fieldEntry.token) }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -931,6 +953,32 @@ function fieldVerificationIcon(token) {
   const state = resolvedFieldVerificationState(token)
   const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
   return option?.icon || 'help'
+}
+
+function shouldShowFieldVerificationRegister(token) {
+  return !isSummaryField(token) && fieldHasValue(token)
+}
+
+function fieldVerificationRegisterLabel(token) {
+  const state = resolvedFieldVerificationState(token)
+  if (state === 'default_preselected_unverified') return 'Pre-Selected'
+  if (state === 'suggested_unverified') return 'Suggested'
+  if (state === 'rejected') return 'Rejected'
+  return 'Input'
+}
+
+function fieldVerificationRegisterClass(token) {
+  const state = resolvedFieldVerificationState(token)
+  if (state === 'default_preselected_unverified') {
+    return 'create-record-shell__field-status-chip--default'
+  }
+  if (state === 'suggested_unverified') {
+    return 'create-record-shell__field-status-chip--suggested'
+  }
+  if (state === 'rejected') {
+    return 'create-record-shell__field-status-chip--rejected'
+  }
+  return 'create-record-shell__field-status-chip--verified'
 }
 
 function isFieldInRightColumn(token, tokenIndex) {
@@ -1956,11 +2004,12 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__field-label-row {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
   min-width: 0;
+  width: 100%;
 }
 
 .create-record-shell__field-label-wrap {
@@ -1985,15 +2034,15 @@ onBeforeUnmount(() => {
 .create-record-shell__field-status-chip {
   display: inline-flex;
   align-items: center;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
-  background: rgba(191, 147, 0, 0.12);
-  color: rgba(106, 78, 5, 0.92);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  background: rgba(17, 17, 17, 0.05);
+  color: rgba(17, 17, 17, 0.7);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  text-align: right;
+  text-align: left;
 }
 
 .create-record-shell__field-action {
@@ -2014,6 +2063,33 @@ onBeforeUnmount(() => {
   width: calc(100% - 4px);
   max-width: calc(100% - 4px);
   margin-left: 4px;
+}
+
+.create-record-shell__field-register {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin-left: 4px;
+}
+
+.create-record-shell__field-status-chip--default {
+  background: rgba(83, 176, 110, 0.14);
+  color: rgba(31, 105, 56, 0.96);
+}
+
+.create-record-shell__field-status-chip--suggested {
+  background: rgba(235, 188, 31, 0.16);
+  color: rgba(128, 93, 0, 0.96);
+}
+
+.create-record-shell__field-status-chip--verified {
+  background: rgba(17, 17, 17, 0.06);
+  color: rgba(17, 17, 17, 0.7);
+}
+
+.create-record-shell__field-status-chip--rejected {
+  background: rgba(196, 67, 67, 0.14);
+  color: rgba(132, 22, 22, 0.96);
 }
 
 .create-record-shell__input {
