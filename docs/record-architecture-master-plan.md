@@ -228,6 +228,8 @@ That means:
 - the node owner should change only through an explicit ownership-transfer flow
 - owner profile data may be edited, but only by the owner
 - owner-rooted files should inherit owner provenance and ownership from the same spine
+- the owner `User` and owner `Contact` should be protected from normal deletion
+- the last remaining `User` and `Contact` should also be protected from deletion
 
 Working rule:
 

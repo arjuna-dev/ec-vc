@@ -89,6 +89,7 @@ This tracker should stay aligned with:
   - `Users_Roles`
 - owner authority is now being treated as locked runtime behavior rather than a normal editable role field
 - owner profile data should stay editable only by owner
+- owner and last-human spine records should now be treated as deletion-protected runtime paths
 - the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points
 - card shell slots are now explicit for `title`, `subtitle`, and `chips`, with `subtitle` = first selected extra field and `chips` = remaining selected extra fields
 - `Knowledge DBs` now behaves as a real left-nav sibling branch under `My Workspace`, and its parent/child rows have been pulled back onto the same styling path as the `Files` navigation family

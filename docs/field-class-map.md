@@ -79,6 +79,8 @@ Working rule:
 - owner authority is locked in normal editing
 - owner data remains editable, but only by the owner
 - owner-rooted files should follow the owner spine for provenance and ownership
+- the owner `User` and owner `Contact` should not be deletable through normal editing
+- the last remaining `User` and `Contact` should not be deletable
 - the next step is to make those paths clearer in the UI and token metadata layer
 
 ## Review Prompts

@@ -4111,6 +4111,42 @@ function assertOwnerRecordEditAllowed(database, actor, change) {
   throw new Error('Only the owner can edit owner profile data.')
 }
 
+function countRows(database, tableName) {
+  return Number(
+    database
+      .prepare(`SELECT COUNT(*) AS total FROM ${quoteIdentifier(tableName)}`)
+      .get()?.total || 0,
+  )
+}
+
+function assertUserDeleteAllowed(database, userId) {
+  const normalizedUserId = normalizeNullableString(userId)
+  if (!normalizedUserId) throw new Error('User ID is required')
+
+  const ownerUserId = getOwnerUserId(database)
+  if (ownerUserId && normalizedUserId === ownerUserId) {
+    throw new Error('The owner user cannot be deleted from normal editing.')
+  }
+
+  if (countRows(database, 'Users') <= 1) {
+    throw new Error('The last user cannot be deleted.')
+  }
+}
+
+function assertContactDeleteAllowed(database, contactId) {
+  const normalizedContactId = normalizeNullableString(contactId)
+  if (!normalizedContactId) throw new Error('Contact ID is required')
+
+  const ownerContactId = getOwnerContactId(database)
+  if (ownerContactId && normalizedContactId === ownerContactId) {
+    throw new Error('The owner contact cannot be deleted from normal editing.')
+  }
+
+  if (countRows(database, 'Contacts') <= 1) {
+    throw new Error('The last contact cannot be deleted.')
+  }
+}
+
 function ensureUserRoleAssignmentRow(database, userId, assignedBy = null) {
   const normalizedUserId = normalizeNullableString(userId)
   if (!normalizedUserId) return
@@ -6405,7 +6441,8 @@ function registerIpc() {
   })
 
   ipcMain.handle('users:delete', async (_event, { userId } = {}) => {
-    initDb()
+    const database = initDb()
+    assertUserDeleteAllowed(database, userId)
     const result = deleteRow('Users', 'id', String(userId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -6426,7 +6463,8 @@ function registerIpc() {
   })
 
   ipcMain.handle('contacts:delete', async (_event, { contactId } = {}) => {
-    initDb()
+    const database = initDb()
+    assertContactDeleteAllowed(database, contactId)
     const result = deleteRow('Contacts', 'id', String(contactId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
