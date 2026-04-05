@@ -55,6 +55,13 @@
               <q-banner v-if="error" class="settings-form-card__error bg-red-2 text-black" rounded>
                 {{ error }}
               </q-banner>
+              <q-banner
+                v-else-if="!canEditOwnerSettings"
+                class="settings-form-card__error bg-orange-2 text-black"
+                rounded
+              >
+                Owner authority is locked. Only the owner can update Owner Settings.
+              </q-banner>
 
               <q-separator />
 
@@ -66,7 +73,7 @@
                       outlined
                       dense
                       label="Name *"
-                      :disable="loading || saving"
+                      :disable="loading || saving || !canEditOwnerSettings"
                     />
                   </div>
                   <div class="col-12 col-md-6">
@@ -75,7 +82,7 @@
                       outlined
                       dense
                       label="Email *"
-                      :disable="loading || saving"
+                      :disable="loading || saving || !canEditOwnerSettings"
                     />
                   </div>
                   <div class="col-12 col-md-6">
@@ -84,7 +91,7 @@
                       outlined
                       dense
                       label="Professional Email"
-                      :disable="loading || saving"
+                      :disable="loading || saving || !canEditOwnerSettings"
                     />
                   </div>
                   <div class="col-12 col-md-6">
@@ -93,7 +100,7 @@
                       outlined
                       dense
                       label="Phone"
-                      :disable="loading || saving"
+                      :disable="loading || saving || !canEditOwnerSettings"
                     />
                   </div>
                   <div class="col-12 col-md-6">
@@ -102,7 +109,7 @@
                       outlined
                       dense
                       label="LinkedIn"
-                      :disable="loading || saving"
+                      :disable="loading || saving || !canEditOwnerSettings"
                     />
                   </div>
                   <div class="col-12 col-md-6">
@@ -111,7 +118,7 @@
                       outlined
                       dense
                       label="Country Based"
-                      :disable="loading || saving"
+                      :disable="loading || saving || !canEditOwnerSettings"
                     />
                   </div>
                 </div>
@@ -133,7 +140,7 @@
                   icon-start="save"
                   label="Save Owner Settings"
                   :loading="saving"
-                  :disable="loading || !hasUnsavedChanges"
+                  :disable="loading || !hasUnsavedChanges || !canEditOwnerSettings"
                   @click="saveUserSettings"
                 />
               </q-card-actions>
@@ -297,6 +304,7 @@ const loading = ref(false)
 const saving = ref(false)
 const savingWorkspaceSettings = ref(false)
 const error = ref('')
+const canEditOwnerSettings = ref(true)
 const form = ref({
   Name: '',
   User_PEmail: '',
@@ -318,6 +326,9 @@ const savedWorkspaceSettings = ref({ ...defaultWorkspaceSettings })
 
 const settingsHeroText = computed(() => {
   if (loading.value) return 'Loading the local owner profile and node settings.'
+  if (!canEditOwnerSettings.value) {
+    return 'Owner authority is locked. Owner data stays visible here, but only the owner can update the local node profile.'
+  }
   if (!form.value.Name && !form.value.User_PEmail) {
     return 'Start by defining the owner profile that the node will use across settings, companion, and shared local identity.'
   }
@@ -424,6 +435,7 @@ async function loadUserSettings() {
   error.value = ''
   try {
     const result = await bridge.value.userSettings.get()
+    canEditOwnerSettings.value = result?.canEditOwnerSettings !== false
     form.value = mapUserSettingsToForm(result)
     savedForm.value = { ...form.value }
   } catch (e) {
@@ -435,6 +447,7 @@ async function loadUserSettings() {
 
 async function saveUserSettings() {
   if (!hasBridge.value) return
+  if (!canEditOwnerSettings.value) return
   const name = normalizeInput(form.value.Name)
   const email = normalizeInput(form.value.User_PEmail)
   if (!name) {

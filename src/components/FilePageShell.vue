@@ -907,8 +907,9 @@ function getEditDialogTokenMetaFromPayload(payload, token, entityName, recordId)
     fieldName: String(matchingField?.field_name || '').trim(),
     idColumn: String(matchingField?.id_column || '').trim(),
     locked:
-      Boolean(fieldTableName && fieldRecordId) &&
-      (fieldTableName !== normalizedEntityName || fieldRecordId !== normalizedRecordId),
+      matchingField?.editable === false ||
+      (Boolean(fieldTableName && fieldRecordId) &&
+        (fieldTableName !== normalizedEntityName || fieldRecordId !== normalizedRecordId)),
   }
 }
 

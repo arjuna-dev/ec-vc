@@ -40,7 +40,7 @@ These are the first cases we should normalize before the broader pass.
 
 | L1 | L2 | L3 Token | Human Meaning | Field Class | Ownership Mode | Cardinality | Reverse Visibility | Write Path | Editable Where | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `Owner_DB` | `System` | `Owner_User` | The node can have only one owner user | `directional_link` | `root_owned` | `one_to_one` | `visible` | current runtime root path: app setting `user_id`; target steady-state path: `Owner_DB.owner_user_id` | owner/root only | This is authority and bootstrap, not casual KDB |
+| `Owner_DB` | `System` | `Owner_User` | The node can have only one owner user | `directional_link` | `root_owned` | `one_to_one` | `visible` | `Owner_DB.owner_user_id` | owner/root only | This is authority and bootstrap, not casual KDB |
 | `Users` | `System` | `User_Role` | A user receives a role and permissions | `directional_link` | `root_owned` | `one_to_one` to start | `visible` | `Users_Roles.role_id` | owner / admin side | Treat as permissions path, not loose KDB. |
 | `Contacts` | `KDB` | `Contact_User` | A contact may be the same human as a user | `directional_link` | `root_owned` | `one_to_one` | `visible` | `Contacts.linked_user_id` | owner side only | Already backed directly in the DB |
 | `Users` | `KDB` | `User_Contact` | Reverse-visible identity link from user to contact | `directional_link` | `root_owned` | `one_to_one` | `visible` | reverse of `Contacts.linked_user_id` | follow back to owner side | Should not behave like generic multi-link KDB |
@@ -76,6 +76,9 @@ What is not yet fully true:
 Working rule:
 
 - owner bootstrap is now runtime-backed through explicit owner and role paths
+- owner authority is locked in normal editing
+- owner data remains editable, but only by the owner
+- owner-rooted files should follow the owner spine for provenance and ownership
 - the next step is to make those paths clearer in the UI and token metadata layer
 
 ## Review Prompts

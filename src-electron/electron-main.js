@@ -2923,6 +2923,11 @@ function createDatabookField({
 function buildUserDatabookView(database, recordId) {
   const rid = normalizeNullableString(recordId)
   if (!rid) throw new Error('recordId is required')
+  const actor = getAuditActor(database)
+  const ownerUserId = getOwnerUserId(database)
+  const ownerContactId = getOwnerContactId(database)
+  const actorIsOwner = isOwnerActor(database, actor)
+  const isOwnerUserRecord = Boolean(ownerUserId && rid === ownerUserId)
 
   const row =
     database
@@ -2954,7 +2959,9 @@ function buildUserDatabookView(database, recordId) {
       recordId: rid,
       fieldName,
       value: row?.[fieldName],
-      editable: !new Set(['id', 'created_at', 'updated_at']).has(fieldName),
+      editable:
+        !new Set(['id', 'created_at', 'updated_at']).has(fieldName) &&
+        (!isOwnerUserRecord || actorIsOwner),
       idColumn: 'id',
     }),
   )
@@ -2964,7 +2971,7 @@ function buildUserDatabookView(database, recordId) {
     section: 'System',
     label: 'User Role',
     value: normalizeNullableString(row?.Role_Name) || '',
-    editable: true,
+    editable: !isOwnerUserRecord,
     table_name: 'Users',
     record_id: rid,
     field_name: 'User_Role',
@@ -2985,7 +2992,20 @@ function buildUserDatabookView(database, recordId) {
     ...field,
     section: 'Metadata',
   }))
-  const relationshipFields = buildKdbRelationshipFields(database, 'Users', rid, 'id')
+  const relationshipFields = buildKdbRelationshipFields(database, 'Users', rid, 'id').map((field) => {
+    if (
+      field.field_name === 'User_Contact' &&
+      ownerContactId &&
+      Array.isArray(field.relationship_ids) &&
+      field.relationship_ids.includes(ownerContactId)
+    ) {
+      return {
+        ...field,
+        editable: false,
+      }
+    }
+    return field
+  })
 
   return {
     table_name: 'Users',
@@ -3035,12 +3055,19 @@ function getDatabookView(tableName, recordId) {
     .get(rid)
   if (!row) throw new Error(`${config.entityLabel} not found: ${rid}`)
 
+  const actor = getAuditActor(database)
+  const ownerContactId = getOwnerContactId(database)
+  const isProtectedOwnerContact = config.tableName === 'Contacts' && ownerContactId && rid === ownerContactId
+  const canEditProtectedOwnerContact = !isProtectedOwnerContact || isOwnerActor(database, actor)
+
   const fields = tableMeta.columnNames.map((columnName) => ({
     key: `${config.tableName}|${rid}|${columnName}`,
     section: config.entityLabel,
     label: formatDatabookFieldLabel(columnName),
     value: row?.[columnName] == null ? '' : String(row[columnName]),
-    editable: isDatabookFieldEditable(config, tableMeta, columnName),
+    editable:
+      isDatabookFieldEditable(config, tableMeta, columnName) &&
+      canEditProtectedOwnerContact,
     table_name: config.tableName,
     record_id: rid,
     field_name: columnName,
@@ -4004,6 +4031,86 @@ function ensureOwnerDb(database, ownerUserId) {
   return ownerDbId
 }
 
+function getOwnerUserId(database) {
+  const ownerUserId = normalizeNullableString(
+    database
+      .prepare(
+        `
+        SELECT owner_user_id
+        FROM Owner_DB
+        WHERE id = 'owner_db'
+        LIMIT 1
+      `,
+      )
+      .get()?.owner_user_id,
+  )
+  if (ownerUserId) return ownerUserId
+  return normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
+}
+
+function getOwnerContactId(database) {
+  const ownerUserId = getOwnerUserId(database)
+  if (!ownerUserId) return ''
+  return normalizeNullableString(
+    database
+      .prepare(
+        `
+        SELECT id
+        FROM Contacts
+        WHERE linked_user_id = ?
+        LIMIT 1
+      `,
+      )
+      .get(ownerUserId)?.id,
+  )
+}
+
+function isOwnerActor(database, actor = null) {
+  const ownerUserId = getOwnerUserId(database)
+  const actorUserId = normalizeNullableString(actor?.user_id)
+  return Boolean(ownerUserId && actorUserId && ownerUserId === actorUserId)
+}
+
+function assertOwnerAuthorityChangeAllowed(database, change) {
+  const ownerUserId = getOwnerUserId(database)
+  if (!ownerUserId) return
+
+  if (
+    change.change_kind === 'field' &&
+    change.table_name === 'Owner_DB' &&
+    change.field_name === 'owner_user_id'
+  ) {
+    throw new Error('Owner designation can only change through an explicit ownership transfer flow.')
+  }
+
+  if (
+    change.change_kind === 'field' &&
+    change.table_name === 'Users_Roles' &&
+    change.field_name === 'role_id' &&
+    change.record_id === ownerUserId
+  ) {
+    throw new Error('Owner designation is locked and cannot be changed from normal editing.')
+  }
+}
+
+function assertOwnerRecordEditAllowed(database, actor, change) {
+  const ownerUserId = getOwnerUserId(database)
+  const ownerContactId = getOwnerContactId(database)
+  if (!ownerUserId && !ownerContactId) return
+
+  const touchesOwnerUser = change.table_name === 'Users' && change.record_id === ownerUserId
+  const touchesOwnerContact = change.table_name === 'Contacts' && change.record_id === ownerContactId
+  const touchesOwnerIdentityLink =
+    change.change_kind === 'relationship' &&
+    ((change.table_name === 'Users' && change.record_id === ownerUserId) ||
+      (change.table_name === 'Contacts' && change.record_id === ownerContactId))
+
+  if (!touchesOwnerUser && !touchesOwnerContact && !touchesOwnerIdentityLink) return
+  if (isOwnerActor(database, actor)) return
+
+  throw new Error('Only the owner can edit owner profile data.')
+}
+
 function ensureUserRoleAssignmentRow(database, userId, assignedBy = null) {
   const normalizedUserId = normalizeNullableString(userId)
   if (!normalizedUserId) return
@@ -4288,6 +4395,8 @@ function getContactById(database, contactId) {
 function getUserSettingsPayload(database) {
   ensureOwnerUserProfile(database)
   const actor = getAuditActor(database)
+  const ownerUserId = getOwnerUserId(database)
+  const ownerContactId = getOwnerContactId(database)
   const userId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
   const user = userId ? getUserById(database, userId) : null
   const userContactId = normalizeNullableString(
@@ -4296,6 +4405,9 @@ function getUserSettingsPayload(database) {
   const userContact = userContactId ? getContactById(database, userContactId) : null
   return {
     auditUserId: actor.user_id,
+    ownerUserId: ownerUserId || null,
+    ownerContactId: ownerContactId || null,
+    canEditOwnerSettings: !ownerUserId || actor.user_id === ownerUserId,
     userId: user?.id || null,
     user,
     userContactId: userContact?.id || null,
@@ -4305,6 +4417,12 @@ function getUserSettingsPayload(database) {
 
 function setUserSettings(payload = {}) {
   const database = initDb()
+  ensureOwnerUserProfile(database)
+  const actor = getAuditActor(database)
+  const ownerUserId = getOwnerUserId(database)
+  if (ownerUserId && actor.user_id && actor.user_id !== ownerUserId) {
+    throw new Error('Only the owner can update Owner Settings.')
+  }
   const contactPayload =
     payload && typeof payload === 'object' && !Array.isArray(payload) ? payload.contact : null
   if (!contactPayload || typeof contactPayload !== 'object') {
@@ -4394,6 +4512,10 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
   }
 
   const actor = getAuditActor(database, { requireUser: true })
+  for (const change of normalizedChanges) {
+    assertOwnerAuthorityChangeAllowed(database, change)
+    assertOwnerRecordEditAllowed(database, actor, change)
+  }
 
   const tx = database.transaction(() => {
     let updated = 0

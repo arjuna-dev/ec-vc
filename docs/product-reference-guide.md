@@ -64,6 +64,9 @@ Working rule:
 - these are related layers of the human system
 - they are not interchangeable cards
 - identity links between them should follow explicit owner paths
+- owner authority is locked in normal editing
+- owner profile data is editable only by the owner
+- owner-rooted files should inherit owner provenance through that same spine
 
 The current first-pass human spine should also be understood as including two supporting DB layers:
 

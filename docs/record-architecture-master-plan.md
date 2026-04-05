@@ -218,6 +218,23 @@ The currently approved KDB direction is:
 - every first-level working `L1` should be able to relate through KDB to the other first-level working `L1`s where that connection is canonically declared
 - those relationships should be visible from either side once they are truly backed
 
+## Owner Spine Rule
+
+The `Owner` spine should now be treated as a protected root path.
+
+That means:
+
+- owner authority is not a normal editable field
+- the node owner should change only through an explicit ownership-transfer flow
+- owner profile data may be edited, but only by the owner
+- owner-rooted files should inherit owner provenance and ownership from the same spine
+
+Working rule:
+
+- do not treat owner authority like casual `User_Role` editing
+- do not allow non-owner actors to edit the owner's `User` or linked `Contact` data
+- make the UI reflect the same lock/edit split that the runtime enforces
+
 For the current concrete audit, the runtime-backed set is:
 
 - `Company <-> Project`
