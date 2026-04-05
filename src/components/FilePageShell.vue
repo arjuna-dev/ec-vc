@@ -563,6 +563,7 @@
         :initial-field-meta="createDialogInitialFieldMeta"
         :initial-section-key="createDialogInitialSectionKey"
         :initial-artifacts="createDialogInitialArtifacts"
+        :artifact-context="createDialogArtifactContext"
         @change="handleCreateDialogChange"
         @request-close="handleCreateDialogClose"
         @submit="submitCreateRecordShell"
@@ -919,6 +920,25 @@ const createDialogInitialValues = computed(() => {
 
 const createDialogInitialFieldMeta = computed(() => {
   return createDialogFieldMeta.value
+})
+
+const createDialogArtifactContext = computed(() => {
+  if (activeSourceKey.value === 'artifacts') return null
+  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  const entityLabel = String(activeRegistryEntry.value?.singularLabel || activeRegistryEntry.value?.label || '').trim()
+  if (!entityName || !entityLabel) return null
+
+  const recordId = String(editDialogRow.value?.recordId || createDialogDraftRecordId.value || '').trim()
+  const recordLabel =
+    String(editDialogRow.value?.titleValue || editDialogRow.value?.raw?.Name || editDialogRow.value?.raw?.title || '').trim()
+
+  return {
+    entityName,
+    entityLabel,
+    recordId,
+    recordLabel,
+    state: 'default_preselected_unverified',
+  }
 })
 
 async function loadEditDialogRecordPayload(entityName, recordId) {

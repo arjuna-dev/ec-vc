@@ -179,6 +179,10 @@ Working rule:
 - relationship tokens should not be written like normal columns
 - if a relationship owner path is missing, that is a contract gap, not a shell-rendering problem
 - reverse appearance is part of the contract, not a later enhancement
+- context-aware artifact assumptions may be surfaced as `default/preselected unverified`
+- those assumptions should be clearly marked as verification-ready, not silently treated as true links
+- when the artifact is added from the `Artifacts` file itself, no extra parent-page context should be inferred
+- ingestion should begin from the linked source artifact and should not create a second artifact record until a downstream output document is created
 
 ### Mandatory Relationship Standard
 

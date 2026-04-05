@@ -14,6 +14,8 @@ Current first active direction:
 - the first game/file guidance layer should also begin on `Ingestion`
 - the companion should help surface missing ownership, provenance, verification, and relationship gaps there first
 - artifact and ingestion provenance should treat the acting user as the automatic source actor through system fields, not through user-editable payload overrides
+- page context may create a `default/preselected unverified` artifact-link assumption that should be carried forward as verification-ready context, not as settled truth
+- exception: when creating directly inside `Artifacts`, do not add an extra page-context assumption beyond the artifact's own creation path
 
 This contract should be used whenever a companion:
 

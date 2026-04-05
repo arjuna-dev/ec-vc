@@ -23,6 +23,17 @@
               <div class="create-record-shell__intake-column">
                 <div class="create-record-shell__intake-column-title">Artifacts</div>
                 <div
+                  v-if="artifactContextNote"
+                  class="create-record-shell__artifact-context-note"
+                >
+                  <div class="create-record-shell__artifact-context-chip">
+                    {{ artifactContextNote.statusLabel }}
+                  </div>
+                  <div class="create-record-shell__artifact-context-text">
+                    {{ artifactContextNote.detail }}
+                  </div>
+                </div>
+                <div
                   class="create-record-shell__artifact-drop"
                   :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
                   @dragover.prevent="artifactDragOver = true"
@@ -427,6 +438,7 @@ const props = defineProps({
   initialFieldMeta: { type: Object, default: () => ({}) },
   initialSectionKey: { type: String, default: 'key-fields' },
   initialArtifacts: { type: Array, default: () => [] },
+  artifactContext: { type: Object, default: null },
 })
 
 const emit = defineEmits(['update:modelValue', 'submit', 'change', 'request-close'])
@@ -488,6 +500,19 @@ const dialogTitle = computed(() => {
   const normalizedLabel = String(props.singularLabel || 'record').trim()
   const modeLabel = props.mode === 'edit' ? 'Editing' : 'Creating'
   return `${modeLabel} ${normalizedLabel}`
+})
+
+const artifactContextNote = computed(() => {
+  const entityLabel = String(props.artifactContext?.entityLabel || '').trim()
+  if (!entityLabel) return null
+
+  const recordLabel = String(props.artifactContext?.recordLabel || '').trim()
+  return {
+    statusLabel: 'Default / preselected unverified',
+    detail: recordLabel
+      ? `Artifacts added here will carry ${entityLabel} -> ${recordLabel} as the first verification-ready context.`
+      : `Artifacts added here will carry ${entityLabel} as the first verification-ready context.`,
+  }
 })
 
 const submitLabel = computed(() => 'Save')
@@ -575,6 +600,19 @@ function submit() {
 }
 
 function buildDialogSnapshot() {
+  const contextDefaults = artifactContextNote.value
+    ? stagedArtifacts.value
+      .filter((artifact) => selectedArtifactIds.value.includes(artifact.id))
+      .map((artifact) => ({
+        artifactId: artifact.artifactId || artifact.id,
+        state: 'default_preselected_unverified',
+        sourceEntity: String(props.artifactContext?.entityName || '').trim(),
+        sourceRecordId: String(props.artifactContext?.recordId || '').trim(),
+        sourceLabel: String(props.artifactContext?.entityLabel || '').trim(),
+        sourceRecordLabel: String(props.artifactContext?.recordLabel || '').trim(),
+      }))
+    : []
+
   return {
     values: { ...formValues.value },
     artifacts: {
@@ -587,6 +625,7 @@ function buildDialogSnapshot() {
           name: artifact.name,
         })),
       autoProcess: autoProcessArtifacts.value,
+      contextDefaults,
     },
     companion: {
       urls: urlEntries.value.map((entry) => entry.value),
@@ -1092,6 +1131,36 @@ onBeforeUnmount(() => {
   background: rgba(249, 249, 247, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.14);
   border-radius: 10px;
+}
+
+.create-record-shell__artifact-context-note {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 245, 214, 0.92);
+  border: 1px solid rgba(186, 129, 13, 0.28);
+  border-radius: 10px;
+}
+
+.create-record-shell__artifact-context-chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(186, 129, 13, 0.18);
+  color: rgba(92, 61, 0, 0.96);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.create-record-shell__artifact-context-text {
+  color: rgba(62, 46, 4, 0.88);
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 .create-record-shell__artifact-drop--active {

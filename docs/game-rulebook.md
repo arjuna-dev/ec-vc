@@ -83,6 +83,25 @@ This should also inform ranking and front-loading:
 - likely options may be ranked by what is worth the most now
 - the point model can help companions and users see which choices are most relevant
 - this ranking may help order human-facing options and bot-facing suggestions
+
+## Default Assumption Rule
+
+Some context-aware defaults may be front-loaded for speed.
+
+Example:
+
+- when an artifact is added from within another file or record flow, the current page context may become the first suggested link context
+
+But these must be treated as:
+
+- `default/preselected unverified`
+
+Working rule:
+
+- front-load them
+- highlight them
+- treat them as verification-ready
+- do not score them as realized truth until they are confirmed
 - but it must not alter ownership or write-path truth
 
 ## Base-10 Scoring Rule

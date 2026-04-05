@@ -27,6 +27,7 @@ This tracker should stay aligned with:
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
 - keep owner authority locked while still allowing owner-only editing of owner profile data
 - finish the setup layer so the first Companion role and first game board can begin on `Ingestion`
+- implement highlighted `default/preselected unverified` context cues so artifact assumptions become verification-ready rather than hidden
 
 ### Open Activity
 
@@ -105,6 +106,8 @@ This tracker should stay aligned with:
 - the `Companion` should now be understood as a guide helping the user navigate the game and score points in a useful way
 - the first `Companion` role and first game/file focus should be `Ingestion`
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
+- artifact context assumptions should now be treated as `default/preselected unverified`
+- ingestion should start from the linked source artifact and should not create a duplicate artifact record at processing start
 - the `Game Master` should explain ranking and point changes without overriding verification or ownership
 - the field-class direction is now becoming explicit:
   - `owned_field`

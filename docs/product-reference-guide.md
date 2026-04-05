@@ -133,6 +133,21 @@ So the working mental model is:
 - `JSON` = current canonical structure surface
 - `Exporters/Importers` = adapters
 
+## Artifact Context Rule
+
+When an artifact is added from within another file or record flow, the current page context may become the first assumed link context.
+
+That assumption must be shown clearly as:
+
+- `default/preselected unverified`
+
+Working rule:
+
+- treat it as verification-ready context
+- do not silently treat it as settled truth
+- if the artifact is being created directly inside `Artifacts`, do not add a second page-context assumption
+- when `Ingestion` starts from that artifact, the processed record should point to the linked source artifact instead of creating a second artifact record
+
 ## Canonical Token Contract
 
 Canonical tokens are the app-facing structural descriptors.
