@@ -13,6 +13,7 @@ Current first active direction:
 - the first Companion role should center on `Ingestion`
 - the first game/file guidance layer should also begin on `Ingestion`
 - the companion should help surface missing ownership, provenance, verification, and relationship gaps there first
+- artifact and ingestion provenance should treat the acting user as the automatic source actor through system fields, not through user-editable payload overrides
 
 This contract should be used whenever a companion:
 

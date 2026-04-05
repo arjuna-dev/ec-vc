@@ -38,12 +38,18 @@
               "address": "1.1.2",
               "token_name": "Artifact_Creator",
               "token_type": "select_single",
-              "input_source": "system_actor"
+              "input_source": "system_actor",
+              "db_field_aliases": [
+                "created_by"
+              ]
             },
             {
               "address": "1.1.3",
               "token_name": "Artifact_Datetime",
-              "token_type": "datetime"
+              "token_type": "datetime",
+              "db_field_aliases": [
+                "created_at"
+              ]
             }
           ]
         },
@@ -3149,6 +3155,23 @@
               "address": "20.1.1",
               "token_name": "Processed_Artifact_ID",
               "token_type": "id"
+            },
+            {
+              "address": "20.1.2",
+              "token_name": "Processed_Artifact_Creator",
+              "token_type": "select_single",
+              "input_source": "system_actor",
+              "db_field_aliases": [
+                "created_by"
+              ]
+            },
+            {
+              "address": "20.1.3",
+              "token_name": "Processed_Artifact_Datetime",
+              "token_type": "datetime",
+              "db_field_aliases": [
+                "created_at"
+              ]
             }
           ]
         },

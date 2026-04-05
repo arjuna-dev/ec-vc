@@ -69,6 +69,7 @@ Working rule:
 - owner-rooted files should inherit owner provenance through that same spine
 - the owner `User` and owner `Contact` are protected from normal deletion
 - the last remaining `User` and `Contact` are protected from deletion
+- owner identity should now use one email path in settings, not two competing owner email inputs
 
 The current first-pass human spine should also be understood as including two supporting DB layers:
 

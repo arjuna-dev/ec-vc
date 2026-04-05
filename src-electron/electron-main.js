@@ -3334,7 +3334,7 @@ function createArtifact(payload = {}) {
     )
     .run({
       artifact_id: artifactId,
-      created_by: normalizeNullableString(payload?.created_by) || actor.user_id,
+      created_by: actor.user_id,
       artifact_format: artifactFormat,
       title,
       description,
@@ -3436,10 +3436,7 @@ function createProcessedArtifact(payload = {}) {
       Original_Artifact_Id: originalArtifactId,
       Created_Files_JSON: createdFilesValue,
       Working: workingValue,
-      created_by:
-        normalizeNullableString(payload?.Processed_Artifact_Creator) ||
-        normalizeNullableString(payload?.created_by) ||
-        actor.user_id,
+      created_by: actor.user_id,
     })
 
   return { id }

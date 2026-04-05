@@ -87,15 +87,6 @@
                   </div>
                   <div class="col-12 col-md-6">
                     <q-input
-                      v-model="form.Professional_Email"
-                      outlined
-                      dense
-                      label="Professional Email"
-                      :disable="loading || saving || !canEditOwnerSettings"
-                    />
-                  </div>
-                  <div class="col-12 col-md-6">
-                    <q-input
                       v-model="form.Phone"
                       outlined
                       dense
@@ -308,7 +299,6 @@ const canEditOwnerSettings = ref(true)
 const form = ref({
   Name: '',
   User_PEmail: '',
-  Professional_Email: '',
   Phone: '',
   LinkedIn: '',
   Country_based: '',
@@ -316,7 +306,6 @@ const form = ref({
 const savedForm = ref({
   Name: '',
   User_PEmail: '',
-  Professional_Email: '',
   Phone: '',
   LinkedIn: '',
   Country_based: '',
@@ -380,7 +369,6 @@ function normalizedFormSignature(value) {
   return JSON.stringify({
     Name: normalizeInput(value?.Name),
     User_PEmail: normalizeInput(value?.User_PEmail),
-    Professional_Email: normalizeInput(value?.Professional_Email),
     Phone: normalizeInput(value?.Phone),
     LinkedIn: normalizeInput(value?.LinkedIn),
     Country_based: normalizeInput(value?.Country_based),
@@ -413,7 +401,6 @@ function mapContactToForm(contact = null) {
   return {
     Name: contact?.Name || '',
     User_PEmail: '',
-    Professional_Email: contact?.Professional_Email || '',
     Phone: contact?.Phone || '',
     LinkedIn: contact?.LinkedIn || '',
     Country_based: contact?.Country_based || '',
@@ -425,7 +412,7 @@ function mapUserSettingsToForm(result = null) {
   const user = result?.user || null
   return {
     ...mapContactToForm(contact),
-    User_PEmail: user?.User_PEmail || contact?.Professional_Email || contact?.Personal_Email || '',
+    User_PEmail: user?.User_PEmail || contact?.Personal_Email || contact?.Professional_Email || '',
   }
 }
 
@@ -477,7 +464,7 @@ async function saveUserSettings() {
         Name: name,
         User_PEmail: email,
         Personal_Email: email,
-        Professional_Email: normalizeInput(form.value.Professional_Email),
+        Professional_Email: '',
         Phone: normalizeInput(form.value.Phone),
         LinkedIn: normalizeInput(form.value.LinkedIn),
         Country_based: normalizeInput(form.value.Country_based),

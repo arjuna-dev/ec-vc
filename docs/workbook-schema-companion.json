@@ -60,7 +60,10 @@
               "node_type": "leaf",
               "level": "3",
               "parent_id": "1.1.0",
-              "input_source": "system_actor"
+              "input_source": "system_actor",
+              "db_field_aliases": [
+                "created_by"
+              ]
             },
             {
               "index": "",
@@ -70,7 +73,10 @@
               "token_type": "datetime",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "1.1.0"
+              "parent_id": "1.1.0",
+              "db_field_aliases": [
+                "created_at"
+              ]
             },
             {
               "index": "",
@@ -5932,6 +5938,33 @@
               "node_type": "leaf",
               "level": "3",
               "parent_id": "20.1.0"
+            },
+            {
+              "index": "",
+              "level_3": "2",
+              "address": "20.1.2",
+              "token_name": "Processed_Artifact_Creator",
+              "token_type": "select_single",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "20.1.0",
+              "input_source": "system_actor",
+              "db_field_aliases": [
+                "created_by"
+              ]
+            },
+            {
+              "index": "",
+              "level_3": "3",
+              "address": "20.1.3",
+              "token_name": "Processed_Artifact_Datetime",
+              "token_type": "datetime",
+              "node_type": "leaf",
+              "level": "3",
+              "parent_id": "20.1.0",
+              "db_field_aliases": [
+                "created_at"
+              ]
             },
             {
               "index": "",
