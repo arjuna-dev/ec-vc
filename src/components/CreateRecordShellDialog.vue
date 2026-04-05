@@ -895,7 +895,6 @@ function formatFieldType(tokenType) {
 }
 
 function isWideField(token) {
-  if (isSummarySidecarField(token)) return false
   return isSummaryField(token)
 }
 
@@ -903,8 +902,8 @@ function isSummaryField(token) {
   return String(token?.label || '').trim().toLowerCase() === 'summary'
 }
 
-function isSummarySidecarField(token) {
-  return activeSectionKey.value === 'key-fields' && isSummaryField(token)
+function isSummarySidecarField() {
+  return false
 }
 
 function getFieldMeta(token) {
@@ -983,7 +982,6 @@ function fieldVerificationRegisterClass(token) {
 }
 
 function isFieldInRightColumn(token, tokenIndex) {
-  if (isSummarySidecarField(token)) return true
   if (isWideField(token)) return false
   return Number(tokenIndex) % 2 === 1
 }
@@ -1997,13 +1995,6 @@ onBeforeUnmount(() => {
   align-items: start;
 }
 
-.create-record-shell__field--summary-sidecar {
-  grid-column: 2;
-  grid-row: 1 / span 3;
-  align-items: start;
-  gap: 10px;
-}
-
 .create-record-shell__field-label-row {
   display: flex;
   align-items: center;
@@ -2220,14 +2211,6 @@ onBeforeUnmount(() => {
 .create-record-shell__input--summary :deep(textarea) {
   min-height: 108px !important;
   padding-top: 0 !important;
-}
-
-.create-record-shell__field--summary-sidecar .create-record-shell__field-value-row {
-  align-self: start;
-}
-
-.create-record-shell__field--summary-sidecar .create-record-shell__input--summary {
-  align-self: start;
 }
 
 .create-record-shell__empty {
