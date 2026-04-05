@@ -614,6 +614,7 @@ const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
 const createDialogMode = ref('create')
 const editDialogRow = ref(null)
+const editDialogRecordPayload = ref(null)
 const createDialogDraftRecordId = ref('')
 const createDialogDraftEntityName = ref('')
 const createDialogInitialSectionKey = ref('key-fields')
@@ -848,14 +849,15 @@ const canCreateWithShell = computed(() => {
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
 const createDialogInitialValues = computed(() => {
-  if (createDialogMode.value !== 'edit' || !editDialogRow.value?.raw) {
+  const editRecord = editDialogRecordPayload.value?.record || editDialogRow.value?.raw || null
+  if (createDialogMode.value !== 'edit' || !editRecord) {
     return createDialogPrefillValues.value
   }
 
   const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   const editValues = Object.fromEntries(
     allTokens.map((token) => {
-      const value = getCanonicalTokenValue(editDialogRow.value.raw, token)
+      const value = getCanonicalTokenValue(editRecord, token)
       return [token.key, normalizeCreateDialogInitialValue(token, value)]
     }),
   )
@@ -1651,6 +1653,7 @@ function openCreateRecordShell(options = {}) {
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'create'
   editDialogRow.value = null
+  editDialogRecordPayload.value = null
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}
   createDialogInitialArtifacts.value = []
@@ -1663,11 +1666,22 @@ async function openEditRecordShell(row) {
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
   editDialogRow.value = row
+  editDialogRecordPayload.value = null
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
   createDialogDraftEntityName.value = resolveEditEntityName(row)
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
+  if (bridge.value?.databooks?.view && createDialogDraftEntityName.value) {
+    try {
+      editDialogRecordPayload.value = await bridge.value.databooks.view({
+        tableName: createDialogDraftEntityName.value,
+        recordId: createDialogDraftRecordId.value,
+      })
+    } catch {
+      editDialogRecordPayload.value = null
+    }
+  }
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
@@ -1677,11 +1691,22 @@ async function openAddRelationShell(row) {
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
   editDialogRow.value = row
+  editDialogRecordPayload.value = null
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
   createDialogDraftEntityName.value = resolveEditEntityName(row)
   createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'key-fields'
   createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
+  if (bridge.value?.databooks?.view && createDialogDraftEntityName.value) {
+    try {
+      editDialogRecordPayload.value = await bridge.value.databooks.view({
+        tableName: createDialogDraftEntityName.value,
+        recordId: createDialogDraftRecordId.value,
+      })
+    } catch {
+      editDialogRecordPayload.value = null
+    }
+  }
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
@@ -1719,6 +1744,7 @@ async function submitCreateRecordShell({ values } = {}) {
       resetCreateDialogAutosaveState()
       createDialogMode.value = 'create'
       editDialogRow.value = null
+      editDialogRecordPayload.value = null
       createDialogInitialSectionKey.value = 'key-fields'
       createDialogPrefillValues.value = {}
       createDialogInitialArtifacts.value = []
@@ -1747,6 +1773,7 @@ async function submitCreateRecordShell({ values } = {}) {
 
       createDialogOpen.value = false
       resetCreateDialogAutosaveState()
+      editDialogRecordPayload.value = null
       createDialogInitialSectionKey.value = 'key-fields'
       createDialogPrefillValues.value = {}
       createDialogInitialArtifacts.value = []
@@ -1772,6 +1799,7 @@ async function handleCreateDialogClose(snapshot) {
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'create'
   editDialogRow.value = null
+  editDialogRecordPayload.value = null
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = []
