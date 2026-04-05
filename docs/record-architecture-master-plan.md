@@ -209,6 +209,8 @@ Working rule:
 - do not duplicate the record value just to track review state
 - store the value once
 - store the verification/preselection state separately in the shared metadata layer
+- store shared history in `events`
+- group meaningful edit boundaries with one shared `action_id`
 
 ### Mandatory Relationship Standard
 

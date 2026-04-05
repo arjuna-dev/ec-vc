@@ -1706,6 +1706,7 @@ const actor = ref(null)
 const editMode = ref(false)
 const saving = ref(false)
 const draftValues = ref({})
+const editSessionActionId = ref('')
 const showUserLabelDialog = ref(false)
 const userLabelInput = ref('')
 const savingUserLabel = ref(false)
@@ -4543,16 +4544,25 @@ function openFieldParentRecord(field = {}) {
   })
 }
 
+function generateEditSessionActionId(prefix = 'record-edit-session') {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `${prefix}:${crypto.randomUUID()}`
+  }
+  return `${prefix}:${Date.now()}`
+}
+
 function enterEditMode() {
   const next = {}
   for (const field of fields.value) next[field.key] = field.value == null ? '' : String(field.value)
   draftValues.value = next
+  editSessionActionId.value = generateEditSessionActionId()
   editMode.value = true
 }
 
 function cancelEdit() {
   editMode.value = false
   draftValues.value = {}
+  editSessionActionId.value = ''
 }
 
 async function refreshActor() {
@@ -4599,6 +4609,8 @@ async function applyRecordChanges(changes, { syncDraftFieldNames = [], exitEditM
       tableName: tableNameParam.value,
       recordId: recordIdParam.value,
       changes,
+      actionId: editSessionActionId.value || null,
+      actionLabel: 'record_view_edit_session',
     })
     currentView.value = result?.view || currentView.value
     fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : []

@@ -39,6 +39,12 @@ That means:
 - do not invent paths
 - do not improvise field meaning
 
+When the companion participates in editing or review:
+
+- runtime state may be granular while a session is open
+- history should be written as meaningful grouped actions
+- related changes should share one `action_id`
+
 ## Field Classes
 
 The companion must distinguish between three different kinds of work:

@@ -165,6 +165,14 @@ The review state belongs in metadata such as:
 - `verified_by`
 - `verified_at`
 
+The history of that state should stay in the shared audit stream.
+
+That means:
+
+- normal field edits are written into shared `events`
+- verification-state changes are also written into shared `events`
+- related changes should share one `action_id` when they belong to the same dialog or record-edit session
+
 ## Canonical Token Contract
 
 Canonical tokens are the app-facing structural descriptors.

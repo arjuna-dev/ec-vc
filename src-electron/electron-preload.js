@@ -100,13 +100,13 @@ contextBridge.exposeInMainWorld('ecvc', {
     view: (tableName, recordId) => ipcRenderer.invoke('databooks:view', { tableName, recordId }),
     versions: (tableName, recordId) => ipcRenderer.invoke('databooks:versions', { tableName, recordId }),
     viewSnapshot: (snapshotId) => ipcRenderer.invoke('databooks:viewSnapshot', { snapshotId }),
-    update: ({ tableName, recordId, changes } = {}) =>
-      ipcRenderer.invoke('databooks:update', { tableName, recordId, changes }),
+    update: ({ tableName, recordId, changes, actionId, actionLabel } = {}) =>
+      ipcRenderer.invoke('databooks:update', { tableName, recordId, changes, actionId, actionLabel }),
   },
   verification: {
     list: ({ tableName, recordId } = {}) =>
       ipcRenderer.invoke('verification:list', { tableName, recordId }),
-    upsert: ({ tableName, recordId, fieldName, state, source, confidence } = {}) =>
+    upsert: ({ tableName, recordId, fieldName, state, source, confidence, actionId, actionLabel } = {}) =>
       ipcRenderer.invoke('verification:upsert', {
         tableName,
         recordId,
@@ -114,6 +114,8 @@ contextBridge.exposeInMainWorld('ecvc', {
         state,
         source,
         confidence,
+        actionId,
+        actionLabel,
       }),
   },
   audit: {

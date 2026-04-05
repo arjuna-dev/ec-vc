@@ -628,6 +628,7 @@ const createDialogInitialArtifacts = ref([])
 const createDialogLastChangeSnapshot = ref(null)
 const createDialogLastSavedSignature = ref('')
 const createDialogAutosavePending = ref(false)
+const createDialogChangeActionId = ref('')
 let createDialogAutosaveTimer = null
 let createDialogAutosaveInFlight = false
 let queuedCreateDialogSnapshot = null
@@ -639,6 +640,13 @@ const liveOptionRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
 const NAME_COLUMN_MIN_WIDTH = 188
+
+function generateChangeActionId(prefix = 'change-action') {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `${prefix}:${crypto.randomUUID()}`
+  }
+  return `${prefix}:${Date.now()}`
+}
 
 const SECTION_LOADERS = {
   users: {
@@ -1759,6 +1767,7 @@ function openRecordView(row) {
 
 function openCreateRecordShell(options = {}) {
   resetCreateDialogAutosaveState()
+  createDialogChangeActionId.value = generateChangeActionId('dialog-session')
   createDialogMode.value = 'create'
   editDialogRow.value = null
   editDialogRecordPayload.value = null
@@ -1773,6 +1782,7 @@ function openCreateRecordShell(options = {}) {
 async function openEditRecordShell(row) {
   if (!row?.recordId) return
   resetCreateDialogAutosaveState()
+  createDialogChangeActionId.value = generateChangeActionId('dialog-session')
   createDialogMode.value = 'edit'
   editDialogRow.value = row
   editDialogRecordPayload.value = null
@@ -1807,6 +1817,7 @@ async function openEditRecordShell(row) {
 async function openAddRelationShell(row) {
   if (!row?.recordId) return
   resetCreateDialogAutosaveState()
+  createDialogChangeActionId.value = generateChangeActionId('dialog-session')
   createDialogMode.value = 'edit'
   editDialogRow.value = row
   editDialogRecordPayload.value = null
@@ -1973,6 +1984,7 @@ function resetCreateDialogAutosaveState() {
   createDialogLastChangeSnapshot.value = null
   createDialogLastSavedSignature.value = ''
   createDialogAutosavePending.value = false
+  createDialogChangeActionId.value = ''
   queuedCreateDialogSnapshot = null
 }
 
@@ -2057,6 +2069,8 @@ async function updateRecordFromPayload(recordId, entityName, payload = {}) {
     tableName: entityName,
     recordId,
     changes,
+    actionId: createDialogChangeActionId.value || null,
+    actionLabel: 'shared_shell_dialog_session',
   })
 }
 

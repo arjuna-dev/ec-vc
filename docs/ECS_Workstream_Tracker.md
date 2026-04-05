@@ -29,6 +29,7 @@ This tracker should stay aligned with:
 - finish the setup layer so the first Companion role and first game board can begin on `Ingestion`
 - implement highlighted `default/preselected unverified` context cues so artifact assumptions become verification-ready rather than hidden
 - put the shared field verification metadata layer in place before the first full ingestion board pass
+- group shared history by dialog/edit-session action boundaries instead of logging every tiny intermediate step
 
 ### Open Activity
 

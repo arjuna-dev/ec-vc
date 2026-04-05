@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS events (
   table_name TEXT NOT NULL,
   record_id TEXT NOT NULL,
   field_name TEXT NOT NULL,
+  action_id TEXT,
+  action_label TEXT,
   old_value TEXT,
   new_value TEXT,
   edited_by TEXT NOT NULL,
@@ -34,6 +36,9 @@ CREATE INDEX IF NOT EXISTS idx_events_editor
 
 CREATE INDEX IF NOT EXISTS idx_events_edited_at
   ON events(edited_at);
+
+CREATE INDEX IF NOT EXISTS idx_events_action
+  ON events(action_id, edited_at);
 
 CREATE TABLE IF NOT EXISTS databook_snapshots (
   id TEXT PRIMARY KEY,

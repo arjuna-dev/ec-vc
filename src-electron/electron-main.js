@@ -4006,6 +4006,82 @@ function stringifyEventValue(value) {
   return String(value)
 }
 
+function writeAuditEvent(
+  database,
+  {
+    tableName,
+    recordId,
+    fieldName,
+    oldValue,
+    newValue,
+    editedBy,
+    actionId = null,
+    actionLabel = null,
+  } = {},
+) {
+  const normalizedOldValue = stringifyEventValue(oldValue)
+  const normalizedNewValue = stringifyEventValue(newValue)
+  if (actionId) {
+    const existingEvent = database
+      .prepare(
+        `
+        SELECT id, old_value
+        FROM events
+        WHERE action_id = ? AND table_name = ? AND record_id = ? AND field_name = ?
+        LIMIT 1
+      `,
+      )
+      .get(actionId, tableName, recordId, fieldName)
+
+    if (existingEvent?.id) {
+      database
+        .prepare(
+          `
+          UPDATE events
+          SET
+            action_label = ?,
+            old_value = COALESCE(old_value, ?),
+            new_value = ?,
+            edited_by = ?,
+            edited_at = datetime('now')
+          WHERE id = ?
+        `,
+        )
+        .run(
+          actionLabel,
+          normalizedOldValue,
+          normalizedNewValue,
+          editedBy,
+          existingEvent.id,
+        )
+      return existingEvent.id
+    }
+  }
+
+  const eventId = `event:${crypto.randomUUID()}`
+  database
+    .prepare(
+      `
+      INSERT INTO events (
+        id, table_name, record_id, field_name, action_id, action_label, old_value, new_value,
+        edited_by, edited_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `,
+    )
+    .run(
+      eventId,
+      tableName,
+      recordId,
+      fieldName,
+      actionId,
+      actionLabel,
+      normalizedOldValue,
+      normalizedNewValue,
+      editedBy,
+    )
+  return eventId
+}
+
 const APP_SETTING_KEYS = {
   openaiApiKey: 'openai_api_key',
   geminiApiKey: 'gemini_api_key',
@@ -4628,6 +4704,7 @@ function listEvents(filters = {}) {
   const params = []
   const tableName = normalizeNullableString(filters.table_name)
   const recordId = normalizeNullableString(filters.record_id)
+  const actionId = normalizeNullableString(filters.action_id)
   const editedBy = normalizeNullableString(filters.edited_by || filters.edited_by_uuid)
   const since = normalizeNullableString(filters.since)
   const until = normalizeNullableString(filters.until)
@@ -4641,6 +4718,10 @@ function listEvents(filters = {}) {
   if (recordId) {
     where.push('record_id = ?')
     params.push(recordId)
+  }
+  if (actionId) {
+    where.push('action_id = ?')
+    params.push(actionId)
   }
   if (editedBy) {
     where.push('edited_by = ?')
@@ -4664,6 +4745,8 @@ function listEvents(filters = {}) {
         table_name,
         record_id,
         field_name,
+        action_id,
+        action_label,
         old_value,
         new_value,
         edited_by,
@@ -4717,25 +4800,32 @@ function upsertFieldVerificationMetadata(payload = {}) {
   const state = normalizeNullableString(payload?.state)
   const source = normalizeNullableString(payload?.source)
   const confidence = normalizeNullableString(payload?.confidence)
+  const actionId = normalizeNullableString(payload?.actionId)
+  const actionLabel = normalizeNullableString(payload?.actionLabel) || 'verification_state_change'
 
   if (!tableName || !recordId || !fieldName || !state) {
     throw new Error('tableName, recordId, fieldName, and state are required')
   }
 
+  const existingMetadata = database
+    .prepare(
+      `
+      SELECT
+        id,
+        state,
+        source,
+        confidence,
+        verified_by,
+        verified_at
+      FROM Field_Verification_Metadata
+      WHERE table_name = ? AND record_id = ? AND field_name = ?
+      LIMIT 1
+    `,
+    )
+    .get(tableName, recordId, fieldName)
   const verifiedBy = state === 'verified' ? actor.user_id : null
   const verifiedAt = state === 'verified' ? new Date().toISOString() : null
-  const existingId = normalizeNullableString(
-    database
-      .prepare(
-        `
-        SELECT id
-        FROM Field_Verification_Metadata
-        WHERE table_name = ? AND record_id = ? AND field_name = ?
-        LIMIT 1
-      `,
-      )
-      .get(tableName, recordId, fieldName)?.id,
-  )
+  const existingId = normalizeNullableString(existingMetadata?.id)
   const id = existingId || `fieldmeta:${crypto.randomUUID()}`
 
   database
@@ -4787,6 +4877,36 @@ function upsertFieldVerificationMetadata(payload = {}) {
       verified_at: verifiedAt,
     })
 
+  const previousVerificationState = existingMetadata
+    ? {
+        state: normalizeNullableString(existingMetadata.state),
+        source: normalizeNullableString(existingMetadata.source),
+        confidence: normalizeNullableString(existingMetadata.confidence),
+        verified_by: normalizeNullableString(existingMetadata.verified_by),
+        verified_at: normalizeNullableString(existingMetadata.verified_at),
+      }
+    : null
+  const nextVerificationState = {
+    state,
+    source,
+    confidence,
+    verified_by: verifiedBy,
+    verified_at: verifiedAt,
+  }
+
+  if (JSON.stringify(previousVerificationState) !== JSON.stringify(nextVerificationState)) {
+    writeAuditEvent(database, {
+      tableName,
+      recordId,
+      fieldName: `${fieldName}__verification`,
+      actionId,
+      actionLabel,
+      oldValue: previousVerificationState ? JSON.stringify(previousVerificationState) : null,
+      newValue: JSON.stringify(nextVerificationState),
+      editedBy: actor.user_id,
+    })
+  }
+
   return {
     id,
     table_name: tableName,
@@ -4797,10 +4917,15 @@ function upsertFieldVerificationMetadata(payload = {}) {
     confidence,
     verified_by: verifiedBy,
     verified_at: verifiedAt,
+    action_id: actionId,
+    action_label: actionLabel,
   }
 }
 
-function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } = {}) {
+function applyAuditedChanges(
+  changes = [],
+  { createDatabookSnapshotFor = null, actionId = null, actionLabel = null } = {},
+) {
   const database = initDb()
   const normalizedChanges = (Array.isArray(changes) ? changes : [])
     .map((change) => ({
@@ -5063,24 +5188,16 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
 
         if (toInsert.length || toDelete.length) {
           updated += 1
-          database
-            .prepare(
-              `
-              INSERT INTO events (
-                id, table_name, record_id, field_name, old_value, new_value,
-                edited_by, edited_at
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-            `,
-            )
-            .run(
-              `event:${crypto.randomUUID()}`,
-              relationshipContract.joinTable,
-              change.record_id,
-              change.relationship_token,
-              JSON.stringify(currentIds),
-              JSON.stringify(requestedIds),
-              actor.user_id,
-            )
+          writeAuditEvent(database, {
+            tableName: relationshipContract.joinTable,
+            recordId: change.record_id,
+            fieldName: change.relationship_token,
+            actionId,
+            actionLabel,
+            oldValue: JSON.stringify(currentIds),
+            newValue: JSON.stringify(requestedIds),
+            editedBy: actor.user_id,
+          })
           eventsCreated += 1
         }
         continue
@@ -5134,24 +5251,16 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
 
       updated += 1
 
-      database
-        .prepare(
-          `
-          INSERT INTO events (
-            id, table_name, record_id, field_name, old_value, new_value,
-            edited_by, edited_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-        `,
-        )
-        .run(
-          `event:${crypto.randomUUID()}`,
-          change.table_name,
-          change.record_id,
-          change.field_name,
-          stringifyEventValue(oldValue),
-          stringifyEventValue(newValue),
-          actor.user_id,
-        )
+      writeAuditEvent(database, {
+        tableName: change.table_name,
+        recordId: change.record_id,
+        fieldName: change.field_name,
+        actionId,
+        actionLabel,
+        oldValue,
+        newValue,
+        editedBy: actor.user_id,
+      })
       eventsCreated += 1
     }
 
@@ -6607,25 +6716,30 @@ function registerIpc() {
     return getDatabookSnapshot(snapshotId)
   })
 
-  ipcMain.handle('databooks:update', async (_event, { tableName, recordId, changes } = {}) => {
-    initDb()
-    try {
-      const config = getDatabookTableConfig(tableName)
-      const rid = normalizeNullableString(recordId)
-      if (!rid) throw new Error('recordId is required')
-      const result = applyAuditedChanges(changes, {
-        createDatabookSnapshotFor: { tableName: config.tableName, recordId: rid },
-      })
-      await syncWorkspaceWorkbooksSafe()
-      return {
-        ...result,
-        view: getDatabookView(config.tableName, rid),
+  ipcMain.handle(
+    'databooks:update',
+    async (_event, { tableName, recordId, changes, actionId, actionLabel } = {}) => {
+      initDb()
+      try {
+        const config = getDatabookTableConfig(tableName)
+        const rid = normalizeNullableString(recordId)
+        if (!rid) throw new Error('recordId is required')
+        const result = applyAuditedChanges(changes, {
+          createDatabookSnapshotFor: { tableName: config.tableName, recordId: rid },
+          actionId: normalizeNullableString(actionId),
+          actionLabel: normalizeNullableString(actionLabel) || 'record_edit_session',
+        })
+        await syncWorkspaceWorkbooksSafe()
+        return {
+          ...result,
+          view: getDatabookView(config.tableName, rid),
+        }
+      } catch (e) {
+        console.error('databooks:update failed:', e)
+        throw new Error(sanitizeDatabookUpdateError(e))
       }
-    } catch (e) {
-      console.error('databooks:update failed:', e)
-      throw new Error(sanitizeDatabookUpdateError(e))
-    }
-  })
+    },
+  )
 
   ipcMain.handle('verification:list', async (_event, { tableName, recordId } = {}) => {
     initDb()
@@ -6636,7 +6750,7 @@ function registerIpc() {
 
   ipcMain.handle(
     'verification:upsert',
-    async (_event, { tableName, recordId, fieldName, state, source, confidence } = {}) => {
+    async (_event, { tableName, recordId, fieldName, state, source, confidence, actionId, actionLabel } = {}) => {
       initDb()
       return upsertFieldVerificationMetadata({
         tableName,
@@ -6645,6 +6759,8 @@ function registerIpc() {
         state,
         source,
         confidence,
+        actionId,
+        actionLabel,
       })
     },
   )
