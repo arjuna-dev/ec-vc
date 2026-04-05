@@ -2059,10 +2059,10 @@ onBeforeUnmount(() => {
   height: 18px;
   min-height: 18px;
   padding: 0;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.62);
-  border: 1px solid rgba(17, 17, 17, 0.12);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .create-record-shell__field-value-row {
