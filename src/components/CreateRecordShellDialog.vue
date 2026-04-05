@@ -1898,8 +1898,8 @@ onBeforeUnmount(() => {
 
 .create-record-shell__input :deep(.q-field__native),
 .create-record-shell__input :deep(.q-field__input) {
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 .create-record-shell__input--verification-default :deep(.q-chip) {
