@@ -909,12 +909,21 @@ function getEditDialogTokenMetaFromPayload(payload, token, entityName, recordId)
 
   const fieldTableName = String(matchingField?.table_name || '').trim()
   const fieldRecordId = String(matchingField?.record_id || '').trim()
+  const verificationFields = Array.isArray(payload?.verificationFields) ? payload.verificationFields : []
+  const verificationMatch = verificationFields.find(
+    (field) =>
+      String(field?.field_name || '').trim() === String(matchingField?.field_name || '').trim() &&
+      String(field?.table_name || '').trim() === normalizedEntityName &&
+      String(field?.record_id || '').trim() === normalizedRecordId,
+  )
 
   return {
     tableName: fieldTableName,
     recordId: fieldRecordId,
     fieldName: String(matchingField?.field_name || '').trim(),
     idColumn: String(matchingField?.id_column || '').trim(),
+    verificationState: String(verificationMatch?.state || '').trim(),
+    verificationSource: String(verificationMatch?.source || '').trim(),
     locked:
       matchingField?.editable === false ||
       (Boolean(fieldTableName && fieldRecordId) &&
@@ -955,8 +964,23 @@ async function loadEditDialogRecordPayload(entityName, recordId) {
   if (!bridge.value?.databooks?.view || !normalizedEntityName || !normalizedRecordId) return null
 
   const result = await bridge.value.databooks.view(normalizedEntityName, normalizedRecordId)
-  if (result?.record) return result
-  return null
+  if (!result?.record) return null
+
+  let verificationFields = []
+  try {
+    const verificationResult = await bridge.value?.verification?.list?.({
+      tableName: normalizedEntityName,
+      recordId: normalizedRecordId,
+    })
+    verificationFields = Array.isArray(verificationResult?.fields) ? verificationResult.fields : []
+  } catch {
+    verificationFields = []
+  }
+
+  return {
+    ...result,
+    verificationFields,
+  }
 }
 
 function buildEditDialogInitialValuesFromPayload(payload) {
@@ -1849,7 +1873,7 @@ async function openAddRelationShell(row) {
   createDialogOpen.value = true
 }
 
-async function submitCreateRecordShell({ values } = {}) {
+async function submitCreateRecordShell({ values, verification } = {}) {
   clearCreateDialogAutosaveTimer()
   const isEditMode = createDialogMode.value === 'edit'
   const activeEntityName = isEditMode
@@ -1880,6 +1904,11 @@ async function submitCreateRecordShell({ values } = {}) {
         editDialogRow.value.recordId,
         activeRegistryEntry.value.entityName,
         values,
+      )
+      await applyVerificationChanges(
+        editDialogRow.value.recordId,
+        activeRegistryEntry.value.entityName,
+        verification || {},
       )
 
       createDialogOpen.value = false
@@ -1923,6 +1952,7 @@ async function submitCreateRecordShell({ values } = {}) {
       const createdRecordId = String(result?.id || '').trim()
       if (createdRecordId && createdEntityName) {
         await updateRecordFromPayload(createdRecordId, createdEntityName, values)
+        await applyVerificationChanges(createdRecordId, createdEntityName, verification || {})
       }
 
       createDialogOpen.value = false
@@ -2074,6 +2104,30 @@ async function updateRecordFromPayload(recordId, entityName, payload = {}) {
   })
 }
 
+async function applyVerificationChanges(recordId, entityName, verification = {}) {
+  const changes = Array.isArray(verification?.changes) ? verification.changes : []
+  if (!changes.length) return
+
+  for (const change of changes) {
+    const targetTableName = String(change?.tableName || entityName || '').trim()
+    const targetRecordId = String(change?.recordId || recordId || '').trim()
+    const fieldName = String(change?.fieldName || '').trim()
+    const state = String(change?.state || '').trim()
+    const source = String(change?.source || 'dialog_field_review').trim()
+    if (!targetTableName || !targetRecordId || !fieldName || !state) continue
+
+    await bridge.value?.verification?.upsert?.({
+      tableName: targetTableName,
+      recordId: targetRecordId,
+      fieldName,
+      state,
+      source,
+      actionId: createDialogChangeActionId.value || null,
+      actionLabel: 'shared_shell_dialog_session',
+    })
+  }
+}
+
 async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRows = false } = {}) {
   if (!snapshot?.hasUserChanges) return
   if (!immediate && createDialogAutosaveInFlight) {
@@ -2123,6 +2177,7 @@ async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRo
       entityName = createResult.entityName
     }
     await updateRecordFromPayload(recordId, entityName, snapshot.values || {})
+    await applyVerificationChanges(recordId, entityName, snapshot.verification || {})
     if (reloadRows) await loadRows()
 
     createDialogLastSavedSignature.value = buildCreateDialogAutosaveSignature(snapshot.values || {}, recordId, entityName)

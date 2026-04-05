@@ -26,12 +26,7 @@
                   v-if="artifactContextNote"
                   class="create-record-shell__artifact-context-note"
                 >
-                  <div class="create-record-shell__artifact-context-chip">
-                    {{ artifactContextNote.statusLabel }}
-                  </div>
-                  <div class="create-record-shell__artifact-context-text">
-                    {{ artifactContextNote.detail }}
-                  </div>
+                  {{ artifactContextNote.detail }}
                 </div>
                 <div
                   class="create-record-shell__artifact-drop"
@@ -319,16 +314,37 @@
                   :class="{
                     'create-record-shell__field--wide': isWideField(token),
                     'create-record-shell__field--summary-sidecar': isSummarySidecarField(token),
+                    'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(token),
                   }"
                 >
                   <div class="create-record-shell__field-copy">
                     <div class="create-record-shell__field-label-row">
-                      <div class="create-record-shell__field-label">
-                        {{ token.label }}
-                        <q-tooltip anchor="top middle" self="bottom middle">
-                          {{ formatFieldType(token.tokenType) }}
-                        </q-tooltip>
+                      <div class="create-record-shell__field-label-wrap">
+                        <div class="create-record-shell__field-label">
+                          {{ token.label }}
+                          <q-tooltip anchor="top middle" self="bottom middle">
+                            {{ formatFieldType(token.tokenType) }}
+                          </q-tooltip>
+                        </div>
+                        <div
+                          v-if="fieldVerificationStatusLabel(token)"
+                          class="create-record-shell__field-status-chip"
+                        >
+                          {{ fieldVerificationStatusLabel(token) }}
+                        </div>
                       </div>
+                      <q-select
+                        v-if="showFieldVerificationAction(token)"
+                        :model-value="fieldVerificationState(token)"
+                        dense
+                        outlined
+                        emit-value
+                        map-options
+                        :options="fieldVerificationActionOptions"
+                        :disable="loading"
+                        class="create-record-shell__field-action"
+                        @update:model-value="updateFieldVerificationState(token, $event)"
+                      />
                       <q-btn
                         v-if="fieldHasParentRecordLink(token)"
                         flat
@@ -355,7 +371,10 @@
                     :options="token.inputOptions || []"
                     :disable="loading || isFieldLocked(token)"
                     class="create-record-shell__input"
-                    :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
+                    :class="[
+                      { 'create-record-shell__input--summary': isSummaryField(token) },
+                      fieldVerificationClass(token),
+                    ]"
                     @update:model-value="updateField(token.key, $event)"
                   />
 
@@ -370,6 +389,7 @@
                     :options="token.inputOptions || []"
                     :disable="loading || isFieldLocked(token)"
                     class="create-record-shell__input"
+                    :class="fieldVerificationClass(token)"
                     @update:model-value="updateField(token.key, $event)"
                   />
 
@@ -382,7 +402,10 @@
                     :type="isSummaryField(token) ? 'textarea' : inputTypeForToken(token.tokenType)"
                     :autogrow="isSummaryField(token)"
                     class="create-record-shell__input"
-                    :class="{ 'create-record-shell__input--summary': isSummaryField(token) }"
+                    :class="[
+                      { 'create-record-shell__input--summary': isSummaryField(token) },
+                      fieldVerificationClass(token),
+                    ]"
                     @update:model-value="updateField(token.key, $event)"
                   />
                 </div>
@@ -397,6 +420,14 @@
       </q-card-section>
 
       <q-card-actions align="right" class="create-record-shell__footer">
+        <div class="create-record-shell__footer-legend">
+          <div class="create-record-shell__footer-status create-record-shell__footer-status--default">
+            Pre-Selected
+          </div>
+          <div class="create-record-shell__footer-status create-record-shell__footer-status--suggested">
+            Suggested
+          </div>
+        </div>
         <q-btn flat no-caps label="Cancel" :disable="loading" @click="open = false" />
         <q-btn
           no-caps
@@ -475,6 +506,7 @@ const supportResourcesCollapsed = ref(false)
 const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
 const dialogHeight = ref(780)
+const fieldVerificationStates = ref({})
 let removeResizeListeners = null
 
 const allSections = computed(() => [
@@ -508,7 +540,6 @@ const artifactContextNote = computed(() => {
 
   const recordLabel = String(props.artifactContext?.recordLabel || '').trim()
   return {
-    statusLabel: 'Default / preselected unverified',
     detail: recordLabel
       ? `Artifacts added here will carry ${entityLabel} -> ${recordLabel} as the first verification-ready context.`
       : `Artifacts added here will carry ${entityLabel} as the first verification-ready context.`,
@@ -516,6 +547,12 @@ const artifactContextNote = computed(() => {
 })
 
 const submitLabel = computed(() => 'Save')
+const fieldVerificationActionOptions = [
+  { label: 'Verify field', value: 'verified' },
+  { label: 'Default / preselected unverified', value: 'default_preselected_unverified' },
+  { label: 'Suggested / unverified', value: 'suggested_unverified' },
+  { label: 'Reject field', value: 'rejected' },
+]
 const selectedArtifactCount = computed(() => selectedArtifactIds.value.length)
 const allArtifactsSelected = computed(() =>
   stagedArtifacts.value.length > 0 && selectedArtifactIds.value.length === stagedArtifacts.value.length,
@@ -573,6 +610,14 @@ function initializeDialogState() {
         return [token.key, initialValue == null ? '' : initialValue]
       }),
   )
+  fieldVerificationStates.value = Object.fromEntries(
+    allSections.value
+      .flatMap((section) => section.tokens || [])
+      .map((token) => [
+        token.key,
+        String(props.initialFieldMeta?.[token.key]?.verificationState || '').trim(),
+      ]),
+  )
 }
 
 watch(
@@ -615,6 +660,9 @@ function buildDialogSnapshot() {
 
   return {
     values: { ...formValues.value },
+    verification: {
+      changes: buildVerificationChanges(),
+    },
     artifacts: {
       stagedFiles: stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
       processedFiles: stagedArtifacts.value
@@ -686,6 +734,78 @@ function isSummarySidecarField(token) {
 
 function getFieldMeta(token) {
   return props.initialFieldMeta?.[token?.key] || null
+}
+
+function fieldVerificationState(token) {
+  return String(fieldVerificationStates.value?.[token?.key] || '').trim()
+}
+
+function fieldHasValue(token) {
+  const value = formValues.value?.[token?.key]
+  if (Array.isArray(value)) return value.length > 0
+  return String(value ?? '').trim().length > 0
+}
+
+function isKdbSectionActive() {
+  return String(activeSection.value?.label || '').trim().toLowerCase() === 'kdb'
+}
+
+function shouldHighlightFieldVerification(token) {
+  if (!isKdbSectionActive()) return false
+  if (!fieldHasValue(token)) return false
+  const state = fieldVerificationState(token)
+  return state !== 'verified'
+}
+
+function fieldVerificationClass(token) {
+  if (!shouldHighlightFieldVerification(token)) return ''
+  const state = fieldVerificationState(token)
+  if (state === 'default_preselected_unverified') {
+    return 'create-record-shell__input--verification-default'
+  }
+  return 'create-record-shell__input--verification-suggested'
+}
+
+function showFieldVerificationAction(token) {
+  if (!isKdbSectionActive()) return false
+  return fieldHasValue(token)
+}
+
+function fieldVerificationStatusLabel(token) {
+  if (!showFieldVerificationAction(token)) return ''
+  const state = fieldVerificationState(token)
+  if (!state) return 'Needs verification'
+  const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
+  return option?.label || state
+}
+
+function updateFieldVerificationState(token, nextState) {
+  fieldVerificationStates.value = {
+    ...fieldVerificationStates.value,
+    [token.key]: String(nextState || '').trim(),
+  }
+  hasUserChanges.value = true
+  emit('change', buildDialogSnapshot())
+}
+
+function buildVerificationChanges() {
+  return allSections.value
+    .flatMap((section) => section.tokens || [])
+    .map((token) => {
+      const meta = getFieldMeta(token)
+      const nextState = fieldVerificationState(token)
+      const initialState = String(meta?.verificationState || '').trim()
+      if (!nextState || nextState === initialState) return null
+      return {
+        tokenKey: token.key,
+        fieldName: String(meta?.fieldName || '').trim(),
+        tableName: String(meta?.tableName || '').trim(),
+        recordId: String(meta?.recordId || '').trim(),
+        source: String(meta?.verificationSource || 'dialog_field_review').trim(),
+        state: nextState,
+      }
+    })
+    .filter(Boolean)
 }
 
 function isFieldLocked(token) {
@@ -1134,33 +1254,11 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__artifact-context-note {
-  display: grid;
-  gap: 6px;
+  display: block;
   margin-bottom: 10px;
-  padding: 10px 12px;
-  background: rgba(255, 245, 214, 0.92);
-  border: 1px solid rgba(186, 129, 13, 0.28);
-  border-radius: 10px;
-}
-
-.create-record-shell__artifact-context-chip {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(186, 129, 13, 0.18);
-  color: rgba(92, 61, 0, 0.96);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.create-record-shell__artifact-context-text {
-  color: rgba(62, 46, 4, 0.88);
-  font-size: 0.75rem;
-  line-height: 1.4;
+  color: rgba(62, 46, 4, 0.74);
+  font-size: 0.73rem;
+  line-height: 1.35;
 }
 
 .create-record-shell__artifact-drop--active {
@@ -1685,6 +1783,12 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 6px;
+}
+
+.create-record-shell__field-label-wrap {
+  display: grid;
+  justify-items: end;
   gap: 4px;
 }
 
@@ -1706,6 +1810,24 @@ onBeforeUnmount(() => {
   color: #4f4f4f;
 }
 
+.create-record-shell__field-status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(191, 147, 0, 0.12);
+  color: rgba(106, 78, 5, 0.92);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+.create-record-shell__field-action {
+  width: 220px;
+  min-width: 220px;
+}
 
 .create-record-shell__input {
   width: min(100%, 240px);
@@ -1731,6 +1853,18 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-chip) {
   font-size: 0.78rem;
   line-height: 1.2;
+}
+
+.create-record-shell__input--verification-default :deep(.q-field__control) {
+  background: rgba(232, 249, 224, 0.96);
+  border-color: rgba(71, 147, 57, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(71, 147, 57, 0.18);
+}
+
+.create-record-shell__input--verification-suggested :deep(.q-field__control) {
+  background: rgba(255, 246, 214, 0.98);
+  border-color: rgba(186, 129, 13, 0.34);
+  box-shadow: inset 0 0 0 1px rgba(186, 129, 13, 0.16);
 }
 
 .create-record-shell__input--summary {
@@ -1760,9 +1894,43 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
   padding: 14px 28px 22px;
   border-top: 1px solid rgba(17, 17, 17, 0.08);
   background: rgba(255, 255, 255, 0.92);
+}
+
+.create-record-shell__footer-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+}
+
+.create-record-shell__footer-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.create-record-shell__footer-status--default {
+  background: rgba(232, 249, 224, 0.96);
+  color: rgba(35, 92, 26, 0.96);
+  border: 1px solid rgba(71, 147, 57, 0.32);
+}
+
+.create-record-shell__footer-status--suggested {
+  background: rgba(255, 246, 214, 0.98);
+  color: rgba(106, 78, 5, 0.92);
+  border: 1px solid rgba(186, 129, 13, 0.28);
 }
 
 .create-record-shell__resize-handle {
