@@ -1800,6 +1800,7 @@ onBeforeUnmount(() => {
   grid-column: 2;
   grid-row: 1 / span 3;
   align-items: start;
+  gap: 10px;
 }
 
 .create-record-shell__field-label-row {
@@ -1992,8 +1993,12 @@ onBeforeUnmount(() => {
   padding-top: 0 !important;
 }
 
+.create-record-shell__field--summary-sidecar .create-record-shell__field-value-row {
+  align-self: start;
+}
+
 .create-record-shell__field--summary-sidecar .create-record-shell__input--summary {
-  align-self: stretch;
+  align-self: start;
 }
 
 .create-record-shell__empty {
