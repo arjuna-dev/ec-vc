@@ -19,6 +19,7 @@ Companion behavior rules now also live in:
 - `docs/companion-contract.md`
 - `docs/game-rulebook.md`
 - `docs/game-master-contract.md`
+- `docs/ECS_Workstream_Tracker.md`
 
 When these rules change:
 

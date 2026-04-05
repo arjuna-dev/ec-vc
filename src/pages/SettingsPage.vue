@@ -605,9 +605,9 @@ const companionDocumentMenu = [
   },
   {
     id: 'workstream-tracker',
-    label: 'Workstream Tracker',
+    label: 'ECS Workstream Tracker',
     short: 'Active direction',
-    path: 'docs/workstream-tracker.md',
+    path: 'docs/ECS_Workstream_Tracker.md',
     eyebrow: 'Tracker',
     heroTitle: 'Tracker',
   },
