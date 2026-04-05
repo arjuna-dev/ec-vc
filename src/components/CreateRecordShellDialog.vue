@@ -1872,7 +1872,7 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__input :deep(.q-field__control) {
-  min-height: 22px;
+  min-height: 20px;
   border-radius: 5px;
 }
 
@@ -1880,7 +1880,7 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-field__input) {
   padding-top: 0.25px;
   padding-bottom: 0.25px;
-  min-height: 22px;
+  min-height: 20px;
 }
 
 .create-record-shell__input :deep(.q-field__native),
@@ -1888,7 +1888,7 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-field__marginal),
 .create-record-shell__input :deep(.q-chip) {
   font-size: 0.78rem;
-  line-height: 1.2;
+  line-height: 1.05;
 }
 
 .create-record-shell__input--verification-default :deep(.q-chip) {
