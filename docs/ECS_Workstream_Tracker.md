@@ -83,6 +83,9 @@ This tracker should stay aligned with:
 - only the literal `Live Shell` route should switch `L1` through the shell selector; normal file pages should resolve from their own route-owned `L1`
 - shared edit-dialog preload should come from `databooks.view(activeL1Entity, recordId)`, with token values resolved from databook `fields` first and not from summary rows
 - owner identity now bootstraps into the `Users` table so the local owner can appear as the first real `User`
+- the human spine now includes explicit runtime owner paths:
+  - `Owner_DB`
+  - `Users_Roles`
 - the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points
 - card shell slots are now explicit for `title`, `subtitle`, and `chips`, with `subtitle` = first selected extra field and `chips` = remaining selected extra fields
 - `Knowledge DBs` now behaves as a real left-nav sibling branch under `My Workspace`, and its parent/child rows have been pulled back onto the same styling path as the `Files` navigation family
@@ -136,6 +139,7 @@ This tracker should stay aligned with:
   - `Note_*`
   relationships
 - the `Owner / User / Contact` language should now be repeated consistently across contracts, game docs, and future UI help so users and companions understand that these are related but not interchangeable human-system layers
+- `Users_Roles` should now be treated as a real underlying assignment DB, even though it is not yet a standalone file page
 
 ## Pending
 

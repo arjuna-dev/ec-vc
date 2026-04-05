@@ -59,6 +59,16 @@ What is already true in the app now:
 - the app now persists a real `User -> Role` owner path through `Users_Roles`
 - the app now persists a real root owner path through `Owner_DB.owner_user_id`
 
+Supporting DB paths:
+
+- `Roles`
+  - defines the role records
+
+- `Users_Roles`
+  - defines the assignment path from `User` to `Role`
+  - should be treated as a real underlying assignment DB
+  - does not need to be its own user-facing file page yet
+
 What is not yet fully true:
 
 - product surfaces still need to make those new spine paths more visible and easier to inspect

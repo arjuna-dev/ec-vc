@@ -287,6 +287,38 @@ Working rule:
 - `User <-> Contact` should be treated as an identity-link path when it represents the same human
 - this identity-link path should not be treated like a loose generic KDB relationship
 
+### Human Spine Runtime Paths
+
+The current runtime-backed human spine should be understood as:
+
+- `Owner_DB`
+  - singleton owner authority path
+  - currently backed by `Owner_DB.owner_user_id`
+
+- `Users`
+  - actor layer
+
+- `Contacts`
+  - person layer
+  - identity-linked to users through `Contacts.linked_user_id`
+
+- `Roles`
+  - role definitions such as:
+    - `Owner`
+    - `Admin`
+    - `Guest`
+
+- `Users_Roles`
+  - role assignment DB
+  - stores which user has which role
+  - should be treated as a real underlying owner path, not as an incidental helper table
+
+Working rule:
+
+- `Roles` defines the role records
+- `Users_Roles` defines the user-to-role assignments
+- `Users_Roles` is a real assignment DB even if it is not yet a standalone file page
+
 ## Field Class Model
 
 The lasting architecture should not depend on remembered exceptions.

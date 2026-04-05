@@ -65,6 +65,20 @@ Working rule:
 - they are not interchangeable cards
 - identity links between them should follow explicit owner paths
 
+The current first-pass human spine should also be understood as including two supporting DB layers:
+
+- `Owner_DB`
+  - singleton owner authority path
+
+- `Users_Roles`
+  - user-to-role assignment DB
+
+Working rule:
+
+- `Roles` is the role-definition file
+- `Users_Roles` is the underlying assignment path
+- `Users_Roles` is real runtime ownership even if it is not yet its own file page
+
 ## Precision Language
 
 To stay precise while the codebase is still finishing its naming cleanup, use the following language:
