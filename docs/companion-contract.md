@@ -173,6 +173,32 @@ If the explicit contract is missing:
 - state clearly what contract is missing
 - stop treating the workflow as complete architecture
 
+## Game Layer Rule
+
+The companion may guide the user through boards, quests, rankings, and points.
+
+That is allowed because the companion should help the user navigate the work in a motivating way.
+
+But the game layer must sit above the contract layer.
+
+That means:
+
+- the companion may explain points
+- the companion may explain quests
+- the companion may explain what action is most useful next
+- the companion may help the user score points
+
+But the companion must not:
+
+- award truth where verification has not happened
+- optimize for points by weakening structure
+- turn provisional work into realized truth without review
+
+Working rule:
+
+- the companion should guide the game
+- the companion should not override the contract
+
 ## Working Principle
 
 The practical principle is:

@@ -16,6 +16,8 @@ This document should be treated as the single planning source of truth for the `
 Companion behavior and ingestion-side structural discipline should also stay aligned with:
 
 - `docs/companion-contract.md`
+- `docs/game-rulebook.md`
+- `docs/game-master-contract.md`
 
 When decisions change:
 
@@ -59,6 +61,38 @@ The goal is operational consistency:
 - the same entity should mean the same thing in workbook structure
 - the same entity should expose the same section logic in payloads
 - the same entity should render predictably in file view and record view
+
+## Game Layer Constraint
+
+The game layer is now an approved top-layer direction.
+
+It should help:
+
+- users
+- companions
+- future bots
+
+focus on the right objectives through:
+
+- points
+- quests
+- rankings
+- stage boards
+- Game Master guidance
+
+But it must remain constrained by the underlying architecture.
+
+That means:
+
+- game logic must not replace ownership logic
+- ranking must not replace verification
+- quests must not pretend an incomplete runtime path is structurally complete
+- stage progress must not hide missing owner paths or reverse-read gaps
+
+Working rule:
+
+- the game layer may surface issues
+- the architecture layer must still fix them
 
 ## Task / Goal Framing
 

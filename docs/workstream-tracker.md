@@ -18,6 +18,7 @@ This tracker should stay aligned with:
 ## Front-Loaded
 
 - Keep the shared `FilePageShell` as the one shell source while each file route continues to own its own `L1`
+- Define the first-pass game layer clearly enough that it guides users and companions without pulling focus away from the current structure pass
 - Make the KDB relationship contract explicit in the architecture docs before adding more runtime relationship paths
 - Treat declared KDB relationships as real system paths that require owner-path and reverse-read planning
 - Finish the remaining `Knowledge DB` runtime pass so `Markets`, `Securities`, and `Ingestion` all behave like normal file surfaces
@@ -37,6 +38,7 @@ This tracker should stay aligned with:
 - `RAMP` is now the single architecture source of truth for `File -> Card -> Record View`
 - `Intake Architecture Master Plan` is now the single intake planning source of truth
 - `Companion Contract` is now the working reference for ingestion-side ownership and relationship discipline
+- `Game Rulebook` is now the first-pass reference for points, quests, boards, and the Game Master layer
 - Excel workbook + canonical JSON workflow is now in place for schema indexing
 - `JSON + app editing` is now the chosen canonical structure direction
 - `docs/canonical-structure.json` is now the app-readable canonical structure registry across the current L1/L2/L3 entity set
@@ -60,6 +62,9 @@ This tracker should stay aligned with:
 - Visible document preview during staged markdown intake
 - Tracker-driven restart point for `Company`, `Opportunity`, and `Contacts` first-pass extraction
 - Include `Companion` and `Roles` parameters in the intake control surface so operator behavior can be tuned with the workstream
+- the `Companion` should now be understood as a guide helping the user navigate the game and score points in a useful way
+- the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
+- the `Game Master` should explain ranking and point changes without overriding verification or ownership
 - Unify KDB relationship behavior so cards stay lightweight and record views can get richer grouped relationship payloads
 - Rename section labels and token names together so `System` does not coexist indefinitely with stale `*_Metadata` naming
 - KDB relationships are now being treated as strict contract paths:
@@ -84,6 +89,9 @@ This tracker should stay aligned with:
 
 ## Pending
 
+- turn the first-pass game rulebook into a clearer scoring reference per board and per stage
+- define how provisional points, realized points, deductions, and bonuses should map to actual workflows
+- define how pipeline boards should express required information and expected outcome per stage
 - Fix workbook wrapper-token drift so the JSON companion validates cleanly for `Company`, `Funds`, `Markets`, and `Terms`
 - Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths
 - Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships
@@ -153,6 +161,11 @@ This tracker should stay aligned with:
   - helpful about content
   - strict about structure
   - honest about missing ownership
+- the game layer is now documented as a first draft:
+  - Companion guides
+  - Game Master explains
+  - points and quests motivate
+  - structure and verification still govern
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
   - keep the structure contract coherent while `Company` remains the main reference entity

@@ -17,6 +17,8 @@ It should be treated as the single reference source for:
 Companion behavior rules now also live in:
 
 - `docs/companion-contract.md`
+- `docs/game-rulebook.md`
+- `docs/game-master-contract.md`
 
 When these rules change:
 
@@ -153,6 +155,37 @@ That means:
 Only the literal `Live Shell` should switch `L1` through the shell selector.
 
 Normal file pages should not inherit the last chosen shell source from `Live Shell`.
+
+## Game Layer
+
+The product is also moving toward a game-styled guidance layer.
+
+This game layer should:
+
+- make progress visible
+- turn structured work into quests
+- rank objectives by relevance
+- help the user understand what matters next
+
+Current rule:
+
+- this layer is guidance, not truth
+- it should sit above the contract system
+- it should not weaken canonical ownership or runtime verification
+
+Current player-facing role:
+
+- the `Companion` should help the user navigate the game and score points in a useful way
+
+Current guide-facing role:
+
+- the `Game Master` should explain rankings, quests, stage objectives, and point changes
+
+Current scope:
+
+- this is a first draft
+- the active main objective is still getting the underlying structure, ownership, and runtime paths correct
+- the game layer should help surface issues in that structure, not distract from fixing them
 
 ## Edit Dialog Contract
 
