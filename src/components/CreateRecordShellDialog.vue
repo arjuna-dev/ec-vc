@@ -559,6 +559,7 @@
                 No canonical fields are mapped to this section yet.
               </div>
             </div>
+          </template>
         </div>
       </q-card-section>
 
