@@ -20,8 +20,10 @@ import {
   USER_WORKSPACE_DIR,
 } from './services/workspace-structure.js'
 import {
+  getGenericKdbRelationshipTableName,
   getKdbRelationshipContractForToken,
   getKdbRelationshipContractsForEntity,
+  isGenericKdbRelationshipContract,
 } from '../src/shared/kdbRelationshipContracts.js'
 
 // needed in case process is undefined under Linux
@@ -2413,18 +2415,34 @@ function listKdbRelationshipItems(database, contract, sourceRecordId) {
   const targetConfig = getDatabookTableConfig(contract.targetEntity)
   const targetTableName = targetConfig.tableName
   const targetIdColumn = getDatabookPrimaryKeyColumn(database, targetTableName)
-  const rows = database
-    .prepare(
-      `
-      SELECT rel.${quoteIdentifier(contract.targetJoinColumn)} AS id, target.*
-      FROM ${quoteIdentifier(contract.joinTable)} rel
-      JOIN ${quoteIdentifier(targetTableName)} target
-        ON target.${quoteIdentifier(targetIdColumn)} = rel.${quoteIdentifier(contract.targetJoinColumn)}
-      WHERE rel.${quoteIdentifier(contract.sourceJoinColumn)} = ?
-      ORDER BY target.${quoteIdentifier(targetIdColumn)}
-    `,
-    )
-    .all(sourceRecordId)
+  const rows = isGenericKdbRelationshipContract(contract)
+    ? database
+        .prepare(
+          `
+          SELECT rel.target_record_id AS id, target.*
+          FROM ${quoteIdentifier(getGenericKdbRelationshipTableName())} rel
+          JOIN ${quoteIdentifier(targetTableName)} target
+            ON target.${quoteIdentifier(targetIdColumn)} = rel.target_record_id
+          WHERE rel.source_entity = ?
+            AND rel.source_record_id = ?
+            AND rel.source_token = ?
+            AND rel.target_entity = ?
+          ORDER BY target.${quoteIdentifier(targetIdColumn)}
+        `,
+        )
+        .all(contract.sourceEntity, sourceRecordId, contract.sourceToken, contract.targetEntity)
+    : database
+        .prepare(
+          `
+          SELECT rel.${quoteIdentifier(contract.targetJoinColumn)} AS id, target.*
+          FROM ${quoteIdentifier(contract.joinTable)} rel
+          JOIN ${quoteIdentifier(targetTableName)} target
+            ON target.${quoteIdentifier(targetIdColumn)} = rel.${quoteIdentifier(contract.targetJoinColumn)}
+          WHERE rel.${quoteIdentifier(contract.sourceJoinColumn)} = ?
+          ORDER BY target.${quoteIdentifier(targetIdColumn)}
+        `,
+        )
+        .all(sourceRecordId)
 
   return rows.map((row) => ({
     id: normalizeNullableString(row?.id),
@@ -4209,17 +4227,37 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
         }
 
         const requestedIds = normalizeRelationshipIds(change.new_value)
-        const currentIds = database
-          .prepare(
-            `
-            SELECT ${quoteIdentifier(relationshipContract.targetJoinColumn)} AS related_id
-            FROM ${quoteIdentifier(relationshipContract.joinTable)}
-            WHERE ${quoteIdentifier(relationshipContract.sourceJoinColumn)} = ?
-          `,
-          )
-          .all(change.record_id)
-          .map((row) => normalizeNullableString(row?.related_id))
-          .filter(Boolean)
+        const currentIds = isGenericKdbRelationshipContract(relationshipContract)
+          ? database
+              .prepare(
+                `
+                SELECT target_record_id AS related_id
+                FROM ${quoteIdentifier(getGenericKdbRelationshipTableName())}
+                WHERE source_entity = ?
+                  AND source_record_id = ?
+                  AND source_token = ?
+                  AND target_entity = ?
+              `,
+              )
+              .all(
+                relationshipContract.sourceEntity,
+                change.record_id,
+                relationshipContract.sourceToken,
+                relationshipContract.targetEntity,
+              )
+              .map((row) => normalizeNullableString(row?.related_id))
+              .filter(Boolean)
+          : database
+              .prepare(
+                `
+                SELECT ${quoteIdentifier(relationshipContract.targetJoinColumn)} AS related_id
+                FROM ${quoteIdentifier(relationshipContract.joinTable)}
+                WHERE ${quoteIdentifier(relationshipContract.sourceJoinColumn)} = ?
+              `,
+              )
+              .all(change.record_id)
+              .map((row) => normalizeNullableString(row?.related_id))
+              .filter(Boolean)
 
         const currentSet = new Set(currentIds)
         const requestedSet = new Set(requestedIds)
@@ -4227,28 +4265,118 @@ function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } 
         const toDelete = currentIds.filter((id) => !requestedSet.has(id))
 
         for (const relatedId of toDelete) {
-          database
-            .prepare(
-              `
-              DELETE FROM ${quoteIdentifier(relationshipContract.joinTable)}
-              WHERE ${quoteIdentifier(relationshipContract.sourceJoinColumn)} = ?
-                AND ${quoteIdentifier(relationshipContract.targetJoinColumn)} = ?
-            `,
-            )
-            .run(change.record_id, relatedId)
+          if (isGenericKdbRelationshipContract(relationshipContract)) {
+            database
+              .prepare(
+                `
+                DELETE FROM ${quoteIdentifier(getGenericKdbRelationshipTableName())}
+                WHERE source_entity = ?
+                  AND source_record_id = ?
+                  AND source_token = ?
+                  AND target_entity = ?
+                  AND target_record_id = ?
+              `,
+              )
+              .run(
+                relationshipContract.sourceEntity,
+                change.record_id,
+                relationshipContract.sourceToken,
+                relationshipContract.targetEntity,
+                relatedId,
+              )
+
+            if (relationshipContract.targetToken) {
+              database
+                .prepare(
+                  `
+                  DELETE FROM ${quoteIdentifier(getGenericKdbRelationshipTableName())}
+                  WHERE source_entity = ?
+                    AND source_record_id = ?
+                    AND source_token = ?
+                    AND target_entity = ?
+                    AND target_record_id = ?
+                `,
+                )
+                .run(
+                  relationshipContract.targetEntity,
+                  relatedId,
+                  relationshipContract.targetToken,
+                  relationshipContract.sourceEntity,
+                  change.record_id,
+                )
+            }
+          } else {
+            database
+              .prepare(
+                `
+                DELETE FROM ${quoteIdentifier(relationshipContract.joinTable)}
+                WHERE ${quoteIdentifier(relationshipContract.sourceJoinColumn)} = ?
+                  AND ${quoteIdentifier(relationshipContract.targetJoinColumn)} = ?
+              `,
+              )
+              .run(change.record_id, relatedId)
+          }
         }
 
         for (const relatedId of toInsert) {
-          database
-            .prepare(
-              `
-              INSERT OR IGNORE INTO ${quoteIdentifier(relationshipContract.joinTable)} (
-                ${quoteIdentifier(relationshipContract.sourceJoinColumn)},
-                ${quoteIdentifier(relationshipContract.targetJoinColumn)}
-              ) VALUES (?, ?)
-            `,
-            )
-            .run(change.record_id, relatedId)
+          if (isGenericKdbRelationshipContract(relationshipContract)) {
+            database
+              .prepare(
+                `
+                INSERT OR IGNORE INTO ${quoteIdentifier(getGenericKdbRelationshipTableName())} (
+                  id,
+                  source_entity,
+                  source_record_id,
+                  source_token,
+                  target_entity,
+                  target_record_id
+                ) VALUES (?, ?, ?, ?, ?, ?)
+              `,
+              )
+              .run(
+                `kdbrel:${crypto.randomUUID()}`,
+                relationshipContract.sourceEntity,
+                change.record_id,
+                relationshipContract.sourceToken,
+                relationshipContract.targetEntity,
+                relatedId,
+              )
+
+            if (relationshipContract.targetToken) {
+              database
+                .prepare(
+                  `
+                  INSERT OR IGNORE INTO ${quoteIdentifier(getGenericKdbRelationshipTableName())} (
+                    id,
+                    source_entity,
+                    source_record_id,
+                    source_token,
+                    target_entity,
+                    target_record_id
+                  ) VALUES (?, ?, ?, ?, ?, ?)
+                `,
+                )
+                .run(
+                  `kdbrel:${crypto.randomUUID()}`,
+                  relationshipContract.targetEntity,
+                  relatedId,
+                  relationshipContract.targetToken,
+                  relationshipContract.sourceEntity,
+                  change.record_id,
+                )
+            }
+          } else {
+            database
+              .prepare(
+                `
+                INSERT OR IGNORE INTO ${quoteIdentifier(relationshipContract.joinTable)} (
+                  ${quoteIdentifier(relationshipContract.sourceJoinColumn)},
+                  ${quoteIdentifier(relationshipContract.targetJoinColumn)}
+                ) VALUES (?, ?)
+              `,
+              )
+              .run(change.record_id, relatedId)
+          }
         }
 
         if (toInsert.length || toDelete.length) {

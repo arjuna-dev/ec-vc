@@ -1779,6 +1779,25 @@ CREATE INDEX IF NOT EXISTS idx_Artifacts_Processed_original_artifact
 CREATE INDEX IF NOT EXISTS idx_Artifacts_Processed_created_by
   ON Artifacts_Processed(created_by);
 
+CREATE TABLE IF NOT EXISTS KDB_Relationships (
+  id TEXT PRIMARY KEY,
+  source_entity TEXT NOT NULL,
+  source_record_id TEXT NOT NULL,
+  source_token TEXT NOT NULL,
+  target_entity TEXT NOT NULL,
+  target_record_id TEXT NOT NULL,
+  created_by TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (source_entity, source_record_id, source_token, target_entity, target_record_id),
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_KDB_Relationships_source
+  ON KDB_Relationships(source_entity, source_record_id, source_token);
+
+CREATE INDEX IF NOT EXISTS idx_KDB_Relationships_target
+  ON KDB_Relationships(target_entity, target_record_id);
+
 -- Triggers (Omitted for brevity, but logically follow the same FK enforcement)
 `
 const TRIGGERS_SQL = `

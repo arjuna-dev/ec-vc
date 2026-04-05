@@ -1,4 +1,8 @@
-const KDB_RELATIONSHIP_PAIRS = Object.freeze([
+import canonicalStructure from '../../docs/canonical-structure.json'
+
+const GENERIC_KDB_TABLE = 'KDB_Relationships'
+
+const EXPLICIT_KDB_RELATIONSHIP_PAIRS = Object.freeze([
   {
     joinTable: 'Companies_Projects_projects',
     leftEntity: 'Companies',
@@ -82,9 +86,21 @@ function normalize(value) {
   return String(value || '').trim()
 }
 
+function normalizeSubsections(entity) {
+  const subsections = entity?.subsections
+  if (Array.isArray(subsections)) return subsections
+  if (subsections && typeof subsections === 'object') return Object.values(subsections)
+  return []
+}
+
+function normalizeTokens(subsection) {
+  return Array.isArray(subsection?.tokens) ? subsection.tokens : []
+}
+
 function buildDirectionalContract(pair, direction = 'left') {
   const fromLeft = direction === 'left'
   return {
+    contractType: 'join_table',
     joinTable: pair.joinTable,
     sourceEntity: fromLeft ? pair.leftEntity : pair.rightEntity,
     sourceToken: fromLeft ? pair.leftToken : pair.rightToken,
@@ -95,12 +111,68 @@ function buildDirectionalContract(pair, direction = 'left') {
   }
 }
 
-export const KDB_RELATIONSHIP_CONTRACTS = Object.freeze(
-  KDB_RELATIONSHIP_PAIRS.flatMap((pair) => [
+const EXPLICIT_KDB_RELATIONSHIP_CONTRACTS = Object.freeze(
+  EXPLICIT_KDB_RELATIONSHIP_PAIRS.flatMap((pair) => [
     buildDirectionalContract(pair, 'left'),
     buildDirectionalContract(pair, 'right'),
   ]),
 )
+
+const entities = Array.isArray(canonicalStructure?.entities) ? canonicalStructure.entities : []
+
+const KDB_TOKENS = entities.flatMap((entity) => {
+  const entityName = normalize(entity?.entity)
+  return normalizeSubsections(entity)
+    .filter((subsection) => normalize(subsection?.subsection).toLowerCase() === 'kdb')
+    .flatMap((subsection) =>
+      normalizeTokens(subsection).map((token) => ({
+        entityName,
+        tokenName: normalize(token?.token_name),
+        optionSource: normalize(token?.option_source),
+        optionEntity: normalize(token?.option_entity),
+        optionEntities: Array.isArray(token?.option_entities)
+          ? token.option_entities.map((value) => normalize(value)).filter(Boolean)
+          : [],
+      })),
+    )
+})
+
+function findReverseKdbToken(targetEntity, sourceEntity) {
+  return (
+    KDB_TOKENS.find((token) => {
+      if (token.entityName !== normalize(targetEntity)) return false
+      if (token.optionSource === 'live_entity') return token.optionEntity === normalize(sourceEntity)
+      if (token.optionSource === 'live_entity_set') return token.optionEntities.includes(normalize(sourceEntity))
+      return false
+    }) || null
+  )
+}
+
+const GENERIC_KDB_RELATIONSHIP_CONTRACTS = Object.freeze(
+  KDB_TOKENS.filter((token) => token.optionSource === 'live_entity' && token.optionEntity)
+    .filter(
+      (token) =>
+        !EXPLICIT_KDB_RELATIONSHIP_CONTRACTS.some(
+          (contract) => contract.sourceEntity === token.entityName && contract.sourceToken === token.tokenName,
+        ),
+    )
+    .map((token) => {
+      const reverseToken = findReverseKdbToken(token.optionEntity, token.entityName)
+      return {
+        contractType: 'generic_kdb',
+        joinTable: GENERIC_KDB_TABLE,
+        sourceEntity: token.entityName,
+        sourceToken: token.tokenName,
+        targetEntity: token.optionEntity,
+        targetToken: normalize(reverseToken?.tokenName),
+      }
+    }),
+)
+
+export const KDB_RELATIONSHIP_CONTRACTS = Object.freeze([
+  ...EXPLICIT_KDB_RELATIONSHIP_CONTRACTS,
+  ...GENERIC_KDB_RELATIONSHIP_CONTRACTS,
+])
 
 export function getKdbRelationshipContractForToken(entityName, tokenName) {
   const normalizedEntity = normalize(entityName)
@@ -115,4 +187,12 @@ export function getKdbRelationshipContractForToken(entityName, tokenName) {
 export function getKdbRelationshipContractsForEntity(entityName) {
   const normalizedEntity = normalize(entityName)
   return KDB_RELATIONSHIP_CONTRACTS.filter((contract) => contract.sourceEntity === normalizedEntity)
+}
+
+export function isGenericKdbRelationshipContract(contract) {
+  return normalize(contract?.contractType) === 'generic_kdb'
+}
+
+export function getGenericKdbRelationshipTableName() {
+  return GENERIC_KDB_TABLE
 }

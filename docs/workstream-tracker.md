@@ -65,6 +65,7 @@ This tracker should stay aligned with:
   - declared in canon
   - runtime-backed underneath
   - bidirectionally visible from both linked `L1`s
+- the shared fallback owner path for canon-declared KDB links without a special join table is now `KDB_Relationships`
 - relationship tokens should no longer be thought of as ordinary writable columns
 - new `L1` relationships should follow the same owner-path and reverse-read contract instead of being introduced ad hoc
 - the currently runtime-backed relationship set is centered on:

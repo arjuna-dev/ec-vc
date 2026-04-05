@@ -431,6 +431,13 @@ Do not:
 - fake reverse appearance in only one surface
 - patch a single page to behave as if the relationship were complete
 
+Current shared owner-path standard:
+
+- if a canon-declared KDB relationship already has an approved domain-specific join table, use that
+- otherwise use the shared `KDB_Relationships` runtime contract
+
+This keeps even non-golden `L1`s and `Knowledge DB` files on the same relationship system instead of drifting into custom pair logic.
+
 ## Current Relationship Status
 
 Currently runtime-backed strongly enough to be treated as real relationship paths:

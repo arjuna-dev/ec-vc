@@ -100,6 +100,11 @@ function maybeRecreateDb(dbPath) {
     hasTable(probe, 'Artifacts_Processed') &&
     hasColumn(probe, 'Artifacts_Processed', 'Processed_Artifact_Name') &&
     hasColumn(probe, 'Artifacts_Processed', 'Original_Artifact_Id') &&
+    hasTable(probe, 'KDB_Relationships') &&
+    hasColumn(probe, 'KDB_Relationships', 'source_entity') &&
+    hasColumn(probe, 'KDB_Relationships', 'source_token') &&
+    hasColumn(probe, 'KDB_Relationships', 'target_entity') &&
+    hasColumn(probe, 'KDB_Relationships', 'target_record_id') &&
     hasColumn(probe, 'databook_snapshots', 'table_name') &&
     hasColumn(probe, 'databook_snapshots', 'record_id')
 

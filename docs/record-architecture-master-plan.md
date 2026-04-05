@@ -205,6 +205,21 @@ Working rule:
 - document and expose that gap clearly
 - close the runtime gap underneath the canonical relationship rather than adding shell-side interpretation
 
+### Generic KDB Owner Path
+
+For canon-declared KDB relationships that do not already have an approved domain-specific join table, the standard owner path is now:
+
+- `KDB_Relationships`
+
+This table exists to keep the missing relationship set on one shared contract instead of multiplying one-off pair tables.
+
+Working rule:
+
+- existing domain-specific relationship tables may continue where they are already meaningful and approved
+- canon-declared KDB links without that special owner path should use the shared `KDB_Relationships` contract
+- reverse appearance should be maintained through the same shared contract
+- new `L1`s and `Knowledge DB` `L1`s should inherit this rule instead of inventing their own relationship storage pattern
+
 ## Shared Shell Rule
 
 The `File` shell should have one shared source implementation.
