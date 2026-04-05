@@ -395,6 +395,7 @@
                         class="create-record-shell__field-action"
                         :class="fieldVerificationClass(fieldEntry.token)"
                         :icon="fieldVerificationIcon(fieldEntry.token)"
+                        :icon-class="fieldVerificationIconClass(fieldEntry.token)"
                         :aria-label="`Change verification state for ${fieldEntry.token.label}`"
                       >
                         <q-menu
@@ -521,6 +522,7 @@
                         class="create-record-shell__field-action"
                         :class="fieldVerificationClass(fieldEntry.token)"
                         :icon="fieldVerificationIcon(fieldEntry.token)"
+                        :icon-class="fieldVerificationIconClass(fieldEntry.token)"
                         :aria-label="`Change verification state for ${fieldEntry.token.label}`"
                       >
                         <q-menu
@@ -952,6 +954,12 @@ function fieldVerificationIcon(token) {
   const state = resolvedFieldVerificationState(token)
   const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
   return option?.icon || 'help'
+}
+
+function fieldVerificationIconClass(token) {
+  const state = resolvedFieldVerificationState(token)
+  const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
+  return option?.iconClass || ''
 }
 
 function verificationMenuAnchor(column) {
