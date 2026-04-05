@@ -386,19 +386,40 @@
                       @update:model-value="updateField(token.key, $event)"
                     />
 
-                    <q-select
+                    <q-btn
                       v-if="showFieldVerificationAction(token)"
-                      :model-value="resolvedFieldVerificationState(token)"
+                      flat
                       dense
-                      outlined
-                      emit-value
-                      map-options
-                      :options="fieldVerificationActionOptions"
+                      round
+                      size="sm"
                       :disable="loading"
                       class="create-record-shell__field-action"
                       :class="fieldVerificationClass(token)"
-                      @update:model-value="updateFieldVerificationState(token, $event)"
-                    />
+                      :icon="fieldVerificationIcon(token)"
+                      :aria-label="`Change verification state for ${token.label}`"
+                    >
+                      <q-menu anchor="bottom right" self="top right">
+                        <q-list dense class="create-record-shell__verification-menu">
+                          <q-item
+                            v-for="option in fieldVerificationActionOptions"
+                            :key="option.value"
+                            clickable
+                            v-close-popup
+                            class="create-record-shell__verification-menu-item"
+                            @click="updateFieldVerificationState(token, option.value)"
+                          >
+                            <q-item-section avatar>
+                              <q-icon :name="option.icon" :class="option.iconClass" size="14px" />
+                            </q-item-section>
+                            <q-item-section>
+                              <q-item-label class="create-record-shell__verification-menu-label">
+                                {{ option.label }}
+                              </q-item-label>
+                            </q-item-section>
+                          </q-item>
+                        </q-list>
+                      </q-menu>
+                    </q-btn>
                   </div>
                 </div>
               </div>
@@ -540,10 +561,10 @@ const artifactContextNote = computed(() => {
 
 const submitLabel = computed(() => 'Save')
 const fieldVerificationActionOptions = [
-  { label: 'Verify field', value: 'verified' },
-  { label: 'Default / preselected unverified', value: 'default_preselected_unverified' },
-  { label: 'Suggested / unverified', value: 'suggested_unverified' },
-  { label: 'Reject field', value: 'rejected' },
+  { label: 'Verify field', value: 'verified', icon: 'check_circle', iconClass: 'create-record-shell__verification-icon--verified' },
+  { label: 'Pre-Selected', value: 'default_preselected_unverified', icon: 'auto_awesome', iconClass: 'create-record-shell__verification-icon--default' },
+  { label: 'Suggested', value: 'suggested_unverified', icon: 'lightbulb', iconClass: 'create-record-shell__verification-icon--suggested' },
+  { label: 'Reject field', value: 'rejected', icon: 'cancel', iconClass: 'create-record-shell__verification-icon--rejected' },
 ]
 const selectedArtifactCount = computed(() => selectedArtifactIds.value.length)
 const allArtifactsSelected = computed(() =>
@@ -768,6 +789,12 @@ function fieldVerificationClass(token) {
 
 function showFieldVerificationAction(token) {
   return fieldHasValue(token)
+}
+
+function fieldVerificationIcon(token) {
+  const state = resolvedFieldVerificationState(token)
+  const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
+  return option?.icon || 'help'
 }
 
 function updateFieldVerificationState(token, nextState) {
@@ -1821,8 +1848,11 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__field-action {
-  width: 220px;
-  min-width: 220px;
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
 }
 
 .create-record-shell__field-value-row {
@@ -1898,6 +1928,36 @@ onBeforeUnmount(() => {
 .create-record-shell__field-action.create-record-shell__input--verification-suggested :deep(.q-field__control) {
   background: rgba(255, 246, 214, 0.98);
   border-color: rgba(186, 129, 13, 0.28);
+}
+
+.create-record-shell__verification-menu {
+  min-width: 164px;
+}
+
+.create-record-shell__verification-menu-item {
+  min-height: 26px;
+}
+
+.create-record-shell__verification-menu-label {
+  font-size: 8px;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+}
+
+.create-record-shell__verification-icon--verified {
+  color: rgba(35, 92, 26, 0.96);
+}
+
+.create-record-shell__verification-icon--default {
+  color: rgba(71, 147, 57, 0.92);
+}
+
+.create-record-shell__verification-icon--suggested {
+  color: rgba(186, 129, 13, 0.92);
+}
+
+.create-record-shell__verification-icon--rejected {
+  color: rgba(166, 43, 43, 0.92);
 }
 
 .create-record-shell__input--summary {
