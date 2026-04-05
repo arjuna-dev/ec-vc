@@ -965,7 +965,6 @@ function fieldVerificationIcon(token) {
 }
 
 function fieldVerificationIconClass(token) {
-  if (usesCompactFieldAction(token)) return 'create-record-shell__field-action-icon--neutral'
   const state = resolvedFieldVerificationState(token)
   const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
   return option?.iconClass || ''
@@ -2048,10 +2047,6 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.62);
   border: 1px solid rgba(17, 17, 17, 0.12);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
-}
-
-.create-record-shell__field-action-icon--neutral {
-  color: #111111 !important;
 }
 
 .create-record-shell__field-value-row {
