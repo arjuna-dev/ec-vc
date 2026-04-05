@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Avatar requires Electron. Run <code>quasar dev -m electron</code> or
+        Companion requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
@@ -24,7 +24,7 @@
           @pointerleave="onHeroDashboardPointerLeave"
         >
           <div class="avatar-shell__copy">
-            <h2 class="avatar-shell__hero-title">Tune your Avatar</h2>
+            <h2 class="avatar-shell__hero-title">Tune your Companion</h2>
 
             <div class="avatar-preview-inline">
               <div class="avatar-preview-inline__stage">
@@ -39,6 +39,15 @@
             </div>
 
             <p class="avatar-shell__hero-text">{{ avatarSummaryText }}</p>
+
+            <div class="avatar-shell__hero-actions">
+              <B10Button
+                variant="primary"
+                icon-start="description"
+                label="Companion Contract"
+                @click="showCompanionContractDialog = true"
+              />
+            </div>
           </div>
 
           <div class="avatar-hero-controls">
@@ -48,7 +57,7 @@
                   variant="subtle"
                   size="small"
                   icon="chevron_left"
-                  aria-label="Show previous avatar control panel"
+                  aria-label="Show previous companion control panel"
                   @click="showPreviousHeroControl"
                 />
                 <div class="avatar-card__switcher-label">{{ activeHeroControlStepLabel }}</div>
@@ -56,7 +65,7 @@
                   variant="subtle"
                   size="small"
                   icon="chevron_right"
-                  aria-label="Show next avatar control panel"
+                  aria-label="Show next companion control panel"
                   @click="showNextHeroControl"
                 />
               </div>
@@ -75,7 +84,7 @@
               <q-card-section v-if="activeHeroControl === 'shell'" class="avatar-card__body">
                 <div class="row q-col-gutter-md">
                   <div class="col-12">
-                    <q-input v-model="avatarProfile.name" outlined dense label="Avatar Name" />
+                    <q-input v-model="avatarProfile.name" outlined dense label="Companion Name" />
                   </div>
                   <div class="col-12 col-md-6">
                     <q-select
@@ -302,7 +311,7 @@
               outlined
               borderless
               class="avatar-toolbar__search"
-              placeholder="Search avatar builds..."
+              placeholder="Search companion builds..."
             >
               <template #prepend>
                 <q-icon name="search" />
@@ -341,7 +350,7 @@
             rounded
           >
             <div class="row items-center justify-between">
-              <div>No avatar builds found.</div>
+              <div>No companion builds found.</div>
             </div>
           </q-banner>
 
@@ -393,6 +402,54 @@
             @change="importAvatarBuilds"
           />
         </div>
+
+        <q-dialog v-model="showCompanionContractDialog">
+          <q-card class="companion-contract-dialog">
+            <q-card-section class="companion-contract-dialog__head">
+              <div class="avatar-card__eyebrow">Companion Contract</div>
+              <div class="avatar-shell__hero-title companion-contract-dialog__title">Companion</div>
+              <div class="companion-contract-dialog__owner">For the Owner</div>
+              <div class="companion-contract-dialog__lead">
+                This companion should be helpful about content, strict about structure, and honest about missing ownership.
+              </div>
+            </q-card-section>
+
+            <q-separator />
+
+            <q-card-section class="companion-contract-dialog__body">
+              <div class="companion-contract-dialog__section">
+                <div class="companion-contract-dialog__section-title">Core Rule</div>
+                <p class="companion-contract-dialog__copy">
+                  The companion should not be creative about structure. It should be disciplined about structure.
+                </p>
+              </div>
+
+              <div class="companion-contract-dialog__section">
+                <div class="companion-contract-dialog__section-title">Working Rules</div>
+                <ul class="companion-contract-dialog__list">
+                  <li>if the token is an owned field, propose a value</li>
+                  <li>if the token is a KDB relationship, propose a link target</li>
+                  <li>never collapse a relationship into a scalar field</li>
+                  <li>never create a new relationship path if canon does not declare it</li>
+                  <li>when confidence is low, suggest rather than commit</li>
+                  <li>when confidence is high, still write through the approved owner path only</li>
+                </ul>
+              </div>
+
+              <div class="companion-contract-dialog__section">
+                <div class="companion-contract-dialog__section-title">Owner Experience</div>
+                <p class="companion-contract-dialog__copy">
+                  Top-layer mechanisms may be tuned for speed, comfort, and experience, but they must not modify the
+                  underlying contract or ownership rules.
+                </p>
+              </div>
+            </q-card-section>
+
+            <q-card-actions align="right" class="companion-contract-dialog__actions">
+              <B10Button variant="primary" label="Close" @click="showCompanionContractDialog = false" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
       </section>
     </div>
   </q-page>
@@ -409,6 +466,7 @@ const $q = useQuasar()
 const AVATAR_STORAGE_KEY = 'ecvc.avatarBuilderProfile'
 const LLM_STORAGE_KEY = 'ecvc.avatarLlmProfile'
 const CUSTOM_AVATAR_BUILDS_STORAGE_KEY = 'ecvc.avatarCustomBuilds'
+const showCompanionContractDialog = ref(false)
 
 const avatarArchetypeOptions = [
   { label: 'Guide', value: 'guide' },
@@ -463,7 +521,7 @@ const defaultAvatarProfile = {
   colorway: 'aurora-blue',
   temperament: 'calm',
   voice: 'founder-friendly',
-  originStory: 'A composed strategist avatar tuned to help the owner steer the node with clarity and momentum.',
+  originStory: 'A composed strategist companion tuned to help the owner steer the node with clarity and momentum.',
 }
 const defaultLlmProfile = {
   provider: 'hybrid',
@@ -559,14 +617,14 @@ const activeHeroControlEyebrow = computed(() => {
 const activeHeroControlTitle = computed(() => '')
 const activeHeroControlCaption = computed(() => {
   if (activeHeroControl.value === 'shell') {
-    return 'Set how the avatar looks, sounds, and introduces itself in the workspace.'
+    return 'Set how the companion looks, sounds, and introduces itself in the workspace.'
   }
 
   if (activeHeroControl.value === 'operator') {
-    return 'Keep the familiar model controls close to the avatar builder.'
+    return 'Keep the familiar model controls close to the companion builder.'
   }
 
-  return 'Store the provider keys that let your avatar operator connect when needed.'
+  return 'Store the provider keys that let your companion operator connect when needed.'
 })
 const activeHeroControlStepLabel = computed(() => {
   const currentIndex = heroControlOrder.indexOf(activeHeroControl.value)
@@ -937,7 +995,7 @@ function exportAvatarBuildsCsv() {
     systemNotes: build.systemNotes,
   }))
   const csv = rowsToCsv(avatarBuildCsvHeaders, rows)
-  const ok = exportFile('avatar-builds.csv', csv, 'text/csv')
+  const ok = exportFile('companion-builds.csv', csv, 'text/csv')
   if (ok !== true) {
     $q.notify({ type: 'negative', message: 'Browser denied file download.' })
   }
@@ -959,7 +1017,7 @@ async function importAvatarBuilds(event) {
       .filter((build) => build.id !== 'current-build')
 
     if (!importedBuilds.length) {
-      throw new Error('No avatar builds found in that CSV.')
+      throw new Error('No companion builds found in that CSV.')
     }
 
     const mergedBuilds = new Map(customAvatarBuilds.value.map((build) => [build.id, build]))
@@ -967,7 +1025,7 @@ async function importAvatarBuilds(event) {
       mergedBuilds.set(build.id, build)
     }
     customAvatarBuilds.value = Array.from(mergedBuilds.values())
-    $q.notify({ type: 'positive', message: `Imported ${importedBuilds.length} avatar build(s).` })
+    $q.notify({ type: 'positive', message: `Imported ${importedBuilds.length} companion build(s).` })
   } catch (errorValue) {
     $q.notify({ type: 'negative', message: errorValue?.message || String(errorValue) })
   } finally {
@@ -1123,6 +1181,81 @@ onMounted(() => {
   color: #475569;
   font-family: var(--font-body);
   line-height: 1.6;
+}
+
+.avatar-shell__hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.companion-contract-dialog {
+  width: min(760px, calc(100vw - 32px));
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(247, 249, 252, 0.98));
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.16);
+}
+
+.companion-contract-dialog__head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 28px 20px;
+}
+
+.companion-contract-dialog__title {
+  max-width: none;
+}
+
+.companion-contract-dialog__owner {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.companion-contract-dialog__lead,
+.companion-contract-dialog__copy {
+  margin: 0;
+  color: #475569;
+  font-family: var(--font-body);
+  line-height: 1.65;
+}
+
+.companion-contract-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px 28px 28px;
+}
+
+.companion-contract-dialog__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.companion-contract-dialog__section-title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+}
+
+.companion-contract-dialog__list {
+  margin: 0;
+  padding-left: 18px;
+  color: #475569;
+  font-family: var(--font-body);
+  line-height: 1.65;
+}
+
+.companion-contract-dialog__actions {
+  padding: 0 28px 24px;
 }
 
 .avatar-preview-inline {

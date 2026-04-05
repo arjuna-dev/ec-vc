@@ -59,7 +59,7 @@ This tracker should stay aligned with:
 - Verification dialog behavior and staged review UX
 - Visible document preview during staged markdown intake
 - Tracker-driven restart point for `Company`, `Opportunity`, and `Contacts` first-pass extraction
-- Include `Avatar` and `Roles` parameters in the intake control surface so operator behavior can be tuned with the workstream
+- Include `Companion` and `Roles` parameters in the intake control surface so operator behavior can be tuned with the workstream
 - Unify KDB relationship behavior so cards stay lightweight and record views can get richer grouped relationship payloads
 - Rename section labels and token names together so `System` does not coexist indefinitely with stale `*_Metadata` naming
 - KDB relationships are now being treated as strict contract paths:
@@ -93,8 +93,8 @@ This tracker should stay aligned with:
 - Decide which workbook labels stay technical and which get friendlier UI labels
 - Build a clearer intake tracker surface that shows stage, blockers, and next action per draft
 - Add a consistent resume affordance in both card and table views for unfinished artifacts
-- Define role ownership for intake stages under the new `Roles` / `Avatar` direction
-- Decide which `Avatar` and `Role` parameters belong in the tracker versus inside dedicated `Avatar` / `Roles` views
+- Define role ownership for intake stages under the new `Roles` / `Companion` direction
+- Decide which `Companion` and `Role` parameters belong in the tracker versus inside dedicated `Companion` / `Roles` views
 - Finish removing remaining internal `Databook` bridge and class naming in the shared record layer
 - Replace remaining heuristic record section mapping with workbook-backed ownership
 

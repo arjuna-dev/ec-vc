@@ -47,7 +47,7 @@
                   <div class="settings-form-card__title">Owner Settings</div>
                 </div>
                 <div class="settings-form-card__caption">
-                  Keep the local owner identity complete so Avatar, Files, and future agents all read
+                  Keep the local owner identity complete so Companion, Files, and future agents all read
                   from the same base profile.
                 </div>
               </q-card-section>
@@ -319,7 +319,7 @@ const savedWorkspaceSettings = ref({ ...defaultWorkspaceSettings })
 const settingsHeroText = computed(() => {
   if (loading.value) return 'Loading the local owner profile and node settings.'
   if (!form.value.Name && !form.value.User_PEmail) {
-    return 'Start by defining the owner profile that the node will use across settings, avatar, and shared local identity.'
+    return 'Start by defining the owner profile that the node will use across settings, companion, and shared local identity.'
   }
 
   return `${form.value.Name || 'Owner'} is the local node profile. Keep the core contact details current so the rest of the workspace stays grounded in one shared identity.`

@@ -559,7 +559,7 @@ const DEFAULT_QUICK_WIDGET_ACTION_ORDER = [
 const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
   { label: 'Owner', to: '/user-settings', exact: true, icon: 'accessibility_new' },
-  { label: 'Avatar', to: '/avatar', exact: true, icon: 'smart_toy' },
+  { label: 'Companion', to: '/avatar', exact: true, icon: 'smart_toy' },
   { label: 'Roles', to: '/roles', exact: true, icon: 'theater_comedy' },
 ].map((item) => ({
   ...item,
@@ -630,7 +630,7 @@ const routeLabelByName = {
   tasks: 'Tasks',
   'test-shell': 'Live Shell',
   roles: 'Roles',
-  avatar: 'Avatar',
+  avatar: 'Companion',
   'user-settings': 'Owner',
   pipelines: 'Projects',
   'file-system': 'File System',
