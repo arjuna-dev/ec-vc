@@ -959,7 +959,6 @@ function usesCompactFieldAction(token) {
 }
 
 function fieldVerificationIcon(token) {
-  if (usesCompactFieldAction(token)) return 'keyboard_arrow_down'
   const state = resolvedFieldVerificationState(token)
   const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
   return option?.icon || 'help'
