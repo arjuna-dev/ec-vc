@@ -736,19 +736,43 @@ const activeSection = computed(
 )
 
 const activeFields = computed(() => activeSection.value?.tokens || [])
-const activeFieldEntries = computed(() =>
-  activeFields.value.map((token, tokenIndex) => ({
-    token,
-    tokenIndex,
-    column: isFieldInRightColumn(token, tokenIndex) ? 'right' : 'left',
-  })),
-)
-const leftFieldEntries = computed(() =>
-  activeFieldEntries.value.filter((entry) => entry.column === 'left'),
-)
-const rightFieldEntries = computed(() =>
-  activeFieldEntries.value.filter((entry) => entry.column === 'right'),
-)
+const activeFieldEntries = computed(() => {
+  const nameEntries = []
+  const summaryEntries = []
+  const remainingEntries = []
+
+  activeFields.value.forEach((token, tokenIndex) => {
+    const entry = { token, tokenIndex, column: 'left' }
+    if (isNameField(token)) {
+      nameEntries.push({ ...entry, column: 'left' })
+      return
+    }
+    if (isSummaryField(token)) {
+      summaryEntries.push({ ...entry, column: 'right' })
+      return
+    }
+    remainingEntries.push(entry)
+  })
+
+  let nextColumn = 'left'
+  const alternatingEntries = remainingEntries.map((entry) => {
+    const assigned = { ...entry, column: nextColumn }
+    nextColumn = nextColumn === 'left' ? 'right' : 'left'
+    return assigned
+  })
+
+  return [...nameEntries, ...summaryEntries, ...alternatingEntries]
+})
+const leftFieldEntries = computed(() => {
+  const pinned = activeFieldEntries.value.filter((entry) => entry.column === 'left' && isNameField(entry.token))
+  const remainder = activeFieldEntries.value.filter((entry) => entry.column === 'left' && !isNameField(entry.token))
+  return [...pinned, ...remainder]
+})
+const rightFieldEntries = computed(() => {
+  const pinned = activeFieldEntries.value.filter((entry) => entry.column === 'right' && isSummaryField(entry.token))
+  const remainder = activeFieldEntries.value.filter((entry) => entry.column === 'right' && !isSummaryField(entry.token))
+  return [...pinned, ...remainder]
+})
 const dialogStyle = computed(() => ({
   width: `${dialogWidth.value}px`,
   height: `${dialogHeight.value}px`,
@@ -898,6 +922,10 @@ function isWideField(token) {
   return isSummaryField(token)
 }
 
+function isNameField(token) {
+  return String(token?.label || '').trim().toLowerCase() === 'name'
+}
+
 function isSummaryField(token) {
   return String(token?.label || '').trim().toLowerCase() === 'summary'
 }
@@ -979,11 +1007,6 @@ function fieldVerificationRegisterClass(token) {
     return 'create-record-shell__field-status-chip--rejected'
   }
   return 'create-record-shell__field-status-chip--verified'
-}
-
-function isFieldInRightColumn(token, tokenIndex) {
-  if (isWideField(token)) return false
-  return Number(tokenIndex) % 2 === 1
 }
 
 function verificationMenuAnchor(column) {
