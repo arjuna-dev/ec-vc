@@ -118,6 +118,29 @@ const EXPLICIT_KDB_RELATIONSHIP_CONTRACTS = Object.freeze(
   ]),
 )
 
+const EXPLICIT_DIRECT_KDB_RELATIONSHIP_CONTRACTS = Object.freeze([
+  {
+    contractType: 'direct_foreign_key',
+    sourceEntity: 'Contacts',
+    sourceToken: 'Contact_User',
+    targetEntity: 'Users',
+    targetToken: 'User_Contact',
+    ownerTable: 'Contacts',
+    ownerIdColumn: 'id',
+    ownerField: 'linked_user_id',
+  },
+  {
+    contractType: 'reverse_direct_foreign_key',
+    sourceEntity: 'Users',
+    sourceToken: 'User_Contact',
+    targetEntity: 'Contacts',
+    targetToken: 'Contact_User',
+    ownerTable: 'Contacts',
+    ownerIdColumn: 'id',
+    ownerField: 'linked_user_id',
+  },
+])
+
 const entities = Array.isArray(canonicalStructure?.entities) ? canonicalStructure.entities : []
 
 const KDB_TOKENS = entities.flatMap((entity) => {
@@ -154,6 +177,9 @@ const GENERIC_KDB_RELATIONSHIP_CONTRACTS = Object.freeze(
       (token) =>
         !EXPLICIT_KDB_RELATIONSHIP_CONTRACTS.some(
           (contract) => contract.sourceEntity === token.entityName && contract.sourceToken === token.tokenName,
+        ) &&
+        !EXPLICIT_DIRECT_KDB_RELATIONSHIP_CONTRACTS.some(
+          (contract) => contract.sourceEntity === token.entityName && contract.sourceToken === token.tokenName,
         ),
     )
     .map((token) => {
@@ -171,6 +197,7 @@ const GENERIC_KDB_RELATIONSHIP_CONTRACTS = Object.freeze(
 
 export const KDB_RELATIONSHIP_CONTRACTS = Object.freeze([
   ...EXPLICIT_KDB_RELATIONSHIP_CONTRACTS,
+  ...EXPLICIT_DIRECT_KDB_RELATIONSHIP_CONTRACTS,
   ...GENERIC_KDB_RELATIONSHIP_CONTRACTS,
 ])
 
@@ -191,6 +218,11 @@ export function getKdbRelationshipContractsForEntity(entityName) {
 
 export function isGenericKdbRelationshipContract(contract) {
   return normalize(contract?.contractType) === 'generic_kdb'
+}
+
+export function isDirectKdbRelationshipContract(contract) {
+  const contractType = normalize(contract?.contractType)
+  return contractType === 'direct_foreign_key' || contractType === 'reverse_direct_foreign_key'
 }
 
 export function getGenericKdbRelationshipTableName() {

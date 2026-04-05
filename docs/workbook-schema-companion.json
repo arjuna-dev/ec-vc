@@ -330,7 +330,7 @@
               "level_3": "2",
               "address": "2.2.2",
               "token_name": "User_Contact",
-              "token_type": "select_multi",
+              "token_type": "select_single",
               "node_type": "leaf",
               "level": "3",
               "parent_id": "2.2.0",

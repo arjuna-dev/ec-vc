@@ -184,7 +184,7 @@
             {
               "address": "2.2.2",
               "token_name": "User_Contact",
-              "token_type": "select_multi",
+              "token_type": "select_single",
               "option_source": "live_entity",
               "option_entity": "Contacts"
             },
