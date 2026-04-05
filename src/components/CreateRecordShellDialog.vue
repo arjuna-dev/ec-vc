@@ -1874,6 +1874,7 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-field__control) {
   min-height: 20px;
   border-radius: 5px;
+  border: 1px solid #111111;
 }
 
 .create-record-shell__input :deep(.q-field__native),
