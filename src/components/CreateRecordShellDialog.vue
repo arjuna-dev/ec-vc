@@ -1418,7 +1418,7 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__record-data-toggle-icon {
-  color: rgba(17, 17, 17, 0.58);
+  color: #111111;
   font-size: 1rem;
   flex: 0 0 auto;
 }
@@ -1451,7 +1451,7 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__intake-toggle-icon {
-  color: rgba(17, 17, 17, 0.58);
+  color: #111111;
   font-size: 1rem;
   flex: 0 0 auto;
 }
