@@ -15,6 +15,28 @@ This tracker should stay aligned with:
 - `docs/record-architecture-master-plan.md`
 - `docs/intake-architecture-master-plan.md`
 
+## Summary
+
+### Current Focus
+
+- keep the underlying structure, ownership, and runtime relationship paths converging cleanly
+- use the `Companion` and the first-pass game layer to surface issues without weakening the contract
+- keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
+
+### Open Activity
+
+- convert the declared-but-not-yet-backed KDB relationship set into real runtime-backed paths
+- keep `Knowledge DB` behavior converging with the normal file-shell contract
+- refine the game layer as a guide on top of the structure pass, not as a replacement for it
+
+### Top 5 To-Do
+
+1. Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths.
+2. Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships.
+3. Add reverse-read behavior for every newly-backed KDB relationship so both linked `L1`s reflect the same connection.
+4. Define the first relevance maps for major boards so points can reflect what matters most at each stage.
+5. Keep the shared create/edit dialog and shell payloads converging on fully canonical field and ownership behavior.
+
 ## Front-Loaded
 
 - Keep the shared `FilePageShell` as the one shell source while each file route continues to own its own `L1`
