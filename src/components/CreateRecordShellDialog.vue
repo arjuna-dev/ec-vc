@@ -311,28 +311,26 @@
                     'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(token),
                   }"
                 >
-                  <div class="create-record-shell__field-copy">
-                    <div class="create-record-shell__field-label-row">
-                      <div class="create-record-shell__field-label-wrap">
-                        <div class="create-record-shell__field-label">
-                          {{ token.label }}
-                          <q-tooltip anchor="top middle" self="bottom middle">
-                            {{ formatFieldType(token.tokenType) }}
-                          </q-tooltip>
-                        </div>
+                  <div class="create-record-shell__field-label-row">
+                    <div class="create-record-shell__field-label-wrap">
+                      <div class="create-record-shell__field-label">
+                        {{ token.label }}
+                        <q-tooltip anchor="top middle" self="bottom middle">
+                          {{ formatFieldType(token.tokenType) }}
+                        </q-tooltip>
                       </div>
-                      <q-btn
-                        v-if="fieldHasParentRecordLink(token)"
-                        flat
-                        dense
-                        round
-                        size="sm"
-                        icon="link"
-                        class="create-record-shell__field-parent-link"
-                        :aria-label="`Open source record for ${token.label}`"
-                        @click="openFieldParentRecord(token)"
-                      />
                     </div>
+                    <q-btn
+                      v-if="fieldHasParentRecordLink(token)"
+                      flat
+                      dense
+                      round
+                      size="sm"
+                      icon="link"
+                      class="create-record-shell__field-parent-link"
+                      :aria-label="`Open source record for ${token.label}`"
+                      @click="openFieldParentRecord(token)"
+                    />
                   </div>
 
                   <div class="create-record-shell__field-value-row">
@@ -1788,9 +1786,9 @@ onBeforeUnmount(() => {
 
 .create-record-shell__field {
   display: grid;
-  grid-template-columns: var(--create-record-shell-label-width, 10ch) minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  align-items: start;
 }
 
 .create-record-shell__field--wide {
@@ -1804,31 +1802,18 @@ onBeforeUnmount(() => {
   align-items: start;
 }
 
-.create-record-shell__field-copy {
-  display: grid;
-  gap: 0;
-  padding-top: 0;
-  justify-self: end;
-  width: var(--create-record-shell-label-width, 10ch);
-}
-
 .create-record-shell__field-label-row {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 6px;
+  min-width: 0;
 }
 
 .create-record-shell__field-label-wrap {
   display: grid;
-  justify-items: end;
+  justify-items: start;
   gap: 4px;
-  width: 100%;
-}
-
-.create-record-shell__field--wide .create-record-shell__field-copy,
-.create-record-shell__field--summary-sidecar .create-record-shell__field-copy {
-  padding-top: 13px;
 }
 
 .create-record-shell__field-label {
@@ -1837,7 +1822,7 @@ onBeforeUnmount(() => {
   font-size: 0.76rem;
   font-weight: var(--font-weight-black);
   line-height: 0.95;
-  text-align: right;
+  text-align: left;
 }
 
 .create-record-shell__field-parent-link {
@@ -1873,28 +1858,29 @@ onBeforeUnmount(() => {
   gap: 8px;
   min-width: 0;
   justify-self: start;
-  width: fit-content;
-  max-width: min(100%, 300px);
+  width: calc(100% - 4px);
+  max-width: calc(100% - 4px);
+  margin-left: 4px;
 }
 
 .create-record-shell__input {
   flex: 0 1 auto;
-  width: auto;
+  width: fit-content;
   min-width: 132px;
-  max-width: 260px;
+  max-width: 280px;
   background: rgba(255, 255, 255, 0.92);
 }
 
 .create-record-shell__input :deep(.q-field__control) {
-  min-height: 34px;
+  min-height: 24px;
   border-radius: 5px;
 }
 
 .create-record-shell__input :deep(.q-field__native),
 .create-record-shell__input :deep(.q-field__input) {
-  padding-top: 0;
-  padding-bottom: 0;
-  min-height: 34px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  min-height: 24px;
 }
 
 .create-record-shell__input :deep(.q-field__native),
