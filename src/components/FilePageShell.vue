@@ -734,7 +734,7 @@ const activeRegistryEntry = computed(
 )
 const routeRegistryEntry = computed(() => getFilePageRegistryEntryByRouteName(route.name))
 const pageShellLabel = computed(() => {
-  if (isLiteralTestShellRoute.value) return 'Test Shell'
+  if (isLiteralTestShellRoute.value) return 'Live Shell'
   return routeRegistryEntry.value?.label || activeRegistryEntry.value?.label || 'Records'
 })
 

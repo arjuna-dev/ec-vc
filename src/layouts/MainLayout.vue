@@ -607,7 +607,7 @@ const workspaceNavigationItems = [
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
-  { label: 'Test Shell', to: '/test-shell', exact: true, icon: 'science' },
+  { label: 'Live Shell', to: '/test-shell', exact: true, icon: 'science' },
 ].map((item) => ({
   ...item,
   itemClass: item.itemClass || 'ec-nav-item--secondary ec-nav-item--workspace-child',
@@ -628,7 +628,7 @@ const routeLabelByName = {
   securities: 'Securities',
   'artifacts-processed': 'Ingestion',
   tasks: 'Tasks',
-  'test-shell': 'Test Shell',
+  'test-shell': 'Live Shell',
   assistants: 'Roles',
   avatar: 'Avatar',
   'user-settings': 'Owner',
