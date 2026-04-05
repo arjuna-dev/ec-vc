@@ -1872,15 +1872,15 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__input :deep(.q-field__control) {
-  min-height: 24px;
+  min-height: 22px;
   border-radius: 5px;
 }
 
 .create-record-shell__input :deep(.q-field__native),
 .create-record-shell__input :deep(.q-field__input) {
-  padding-top: 1px;
-  padding-bottom: 1px;
-  min-height: 24px;
+  padding-top: 0.5px;
+  padding-bottom: 0.5px;
+  min-height: 22px;
 }
 
 .create-record-shell__input :deep(.q-field__native),
