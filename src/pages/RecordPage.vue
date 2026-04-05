@@ -482,7 +482,20 @@
                   :key="field.key"
                   class="contact-field-card"
                 >
-                  <div class="contact-field-card__label">{{ field.label }}</div>
+                  <div class="contact-field-card__label-row">
+                    <div class="contact-field-card__label">{{ field.label }}</div>
+                    <q-btn
+                      v-if="fieldHasParentRecordLink(field)"
+                      flat
+                      dense
+                      round
+                      size="sm"
+                      icon="link"
+                      class="contact-field-card__parent-link"
+                      :aria-label="`Open source record for ${field.label}`"
+                      @click="openFieldParentRecord(field)"
+                    />
+                  </div>
                   <div
                     v-if="isHistoricalMode && modifiedByMap[field.key]"
                     class="contact-section-card__modified"
@@ -510,7 +523,20 @@
                 <q-item v-for="field in visibleGenericFields" :key="field.key">
                   <q-item-section>
                     <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
-                    <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                    <q-item-label class="text-caption text-grey-7">
+                      <span>{{ field.label }}</span>
+                      <q-btn
+                        v-if="fieldHasParentRecordLink(field)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        icon="link"
+                        class="contact-field-card__parent-link contact-field-card__parent-link--inline"
+                        :aria-label="`Open source record for ${field.label}`"
+                        @click="openFieldParentRecord(field)"
+                      />
+                    </q-item-label>
                     <q-item-label
                       v-if="isHistoricalMode && modifiedByMap[field.key]"
                       class="text-caption text-negative text-italic"
@@ -919,7 +945,20 @@
                 :key="field.key"
                 class="contact-field-card"
               >
-                <div class="contact-field-card__label">{{ field.label }}</div>
+                <div class="contact-field-card__label-row">
+                  <div class="contact-field-card__label">{{ field.label }}</div>
+                  <q-btn
+                    v-if="fieldHasParentRecordLink(field)"
+                    flat
+                    dense
+                    round
+                    size="sm"
+                    icon="link"
+                    class="contact-field-card__parent-link"
+                    :aria-label="`Open source record for ${field.label}`"
+                    @click="openFieldParentRecord(field)"
+                  />
+                </div>
                 <div
                   v-if="isHistoricalMode && modifiedByMap[field.key]"
                   class="contact-section-card__modified"
@@ -947,7 +986,20 @@
               <q-item v-for="field in visibleGenericFields" :key="field.key">
                 <q-item-section>
                   <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
-                  <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                  <q-item-label class="text-caption text-grey-7">
+                    <span>{{ field.label }}</span>
+                    <q-btn
+                      v-if="fieldHasParentRecordLink(field)"
+                      flat
+                      dense
+                      round
+                      size="sm"
+                      icon="link"
+                      class="contact-field-card__parent-link contact-field-card__parent-link--inline"
+                      :aria-label="`Open source record for ${field.label}`"
+                      @click="openFieldParentRecord(field)"
+                    />
+                  </q-item-label>
                   <q-item-label
                     v-if="isHistoricalMode && modifiedByMap[field.key]"
                     class="text-caption text-negative text-italic"
@@ -1110,7 +1162,20 @@
                 :key="field.key"
                 class="contact-field-card"
               >
-                <div class="contact-field-card__label">{{ field.label }}</div>
+                <div class="contact-field-card__label-row">
+                  <div class="contact-field-card__label">{{ field.label }}</div>
+                  <q-btn
+                    v-if="fieldHasParentRecordLink(field)"
+                    flat
+                    dense
+                    round
+                    size="sm"
+                    icon="link"
+                    class="contact-field-card__parent-link"
+                    :aria-label="`Open source record for ${field.label}`"
+                    @click="openFieldParentRecord(field)"
+                  />
+                </div>
                 <div
                   v-if="isHistoricalMode && modifiedByMap[field.key]"
                   class="contact-section-card__modified"
@@ -1138,7 +1203,20 @@
               <q-item v-for="field in visibleGenericFields" :key="field.key">
                 <q-item-section>
                   <q-item-label caption class="text-weight-medium">{{ field.section }}</q-item-label>
-                  <q-item-label class="text-caption text-grey-7">{{ field.label }}</q-item-label>
+                  <q-item-label class="text-caption text-grey-7">
+                    <span>{{ field.label }}</span>
+                    <q-btn
+                      v-if="fieldHasParentRecordLink(field)"
+                      flat
+                      dense
+                      round
+                      size="sm"
+                      icon="link"
+                      class="contact-field-card__parent-link contact-field-card__parent-link--inline"
+                      :aria-label="`Open source record for ${field.label}`"
+                      @click="openFieldParentRecord(field)"
+                    />
+                  </q-item-label>
                   <q-item-label
                     v-if="isHistoricalMode && modifiedByMap[field.key]"
                     class="text-caption text-negative text-italic"
@@ -1367,6 +1445,7 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { countFilledContactFields, getContactCompletenessTheme } from 'src/utils/contactCompleteness'
+import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
 import canonicalStructure from '../../docs/canonical-structure.json'
 
 const route = useRoute()
@@ -4430,6 +4509,28 @@ function normalizeIpcErrorMessage(errorValue) {
   return raw.replace(/^Error invoking remote method '[^']+':\s*/i, '').trim()
 }
 
+function fieldHasParentRecordLink(field = {}) {
+  const fieldTableName = String(field?.table_name || '').trim()
+  const fieldRecordId = String(field?.record_id || '').trim()
+  const currentTableName = String(currentView.value?.table_name || tableNameParam.value || '').trim()
+  const currentRecordId = String(currentView.value?.record_id || recordIdParam.value || '').trim()
+  if (!fieldTableName || !fieldRecordId) return false
+  return fieldTableName !== currentTableName || fieldRecordId !== currentRecordId
+}
+
+function openFieldParentRecord(field = {}) {
+  if (!fieldHasParentRecordLink(field)) return
+  const fieldTableName = String(field?.table_name || '').trim()
+  const fieldRecordId = String(field?.record_id || '').trim()
+  router.push({
+    name: RECORD_VIEW_ROUTE_NAME,
+    params: {
+      tableName: fieldTableName,
+      recordId: fieldRecordId,
+    },
+  })
+}
+
 function enterEditMode() {
   const next = {}
   for (const field of fields.value) next[field.key] = field.value == null ? '' : String(field.value)
@@ -6931,6 +7032,13 @@ onBeforeUnmount(() => {
   border-radius: var(--ds-radius-panel);
 }
 
+.contact-field-card__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .contact-field-card__label,
 .contact-side-card__meta-label {
   color: var(--ds-color-text-muted);
@@ -6940,6 +7048,15 @@ onBeforeUnmount(() => {
   letter-spacing: 0.08em;
   line-height: var(--ds-line-height-xs);
   text-transform: uppercase;
+}
+
+.contact-field-card__parent-link {
+  color: var(--ds-color-text-muted);
+}
+
+.contact-field-card__parent-link--inline {
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 .contact-field-card__value,
