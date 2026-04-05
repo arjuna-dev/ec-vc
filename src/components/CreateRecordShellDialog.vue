@@ -301,125 +301,256 @@
                 :style="{ '--create-record-shell-label-width': activeFieldLabelWidth }"
               >
                 <div
-                  v-for="(token, tokenIndex) in activeFields"
-                  :key="token.key"
-                  class="create-record-shell__field"
-                  :class="{
-                    'create-record-shell__field--wide': isWideField(token),
-                    'create-record-shell__field--summary-sidecar': isSummarySidecarField(token),
-                    'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(token),
-                  }"
+                  class="create-record-shell__fields-grid create-record-shell__fields-grid--left"
                 >
-                  <div class="create-record-shell__field-label-row">
-                    <div class="create-record-shell__field-label-wrap">
-                      <div class="create-record-shell__field-label">
-                        {{ token.label }}
-                        <q-tooltip anchor="top middle" self="bottom middle">
-                          {{ formatFieldType(token.tokenType) }}
-                        </q-tooltip>
+                  <div
+                    v-for="fieldEntry in leftFieldEntries"
+                    :key="fieldEntry.token.key"
+                    class="create-record-shell__field"
+                    :class="{
+                      'create-record-shell__field--wide': isWideField(fieldEntry.token),
+                      'create-record-shell__field--summary-sidecar': isSummarySidecarField(fieldEntry.token),
+                      'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(fieldEntry.token),
+                    }"
+                  >
+                    <div class="create-record-shell__field-label-row">
+                      <div class="create-record-shell__field-label-wrap">
+                        <div class="create-record-shell__field-label">
+                          {{ fieldEntry.token.label }}
+                          <q-tooltip anchor="top middle" self="bottom middle">
+                            {{ formatFieldType(fieldEntry.token.tokenType) }}
+                          </q-tooltip>
+                        </div>
                       </div>
+                      <q-btn
+                        v-if="fieldHasParentRecordLink(fieldEntry.token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        icon="link"
+                        class="create-record-shell__field-parent-link"
+                        :aria-label="`Open source record for ${fieldEntry.token.label}`"
+                        @click="openFieldParentRecord(fieldEntry.token)"
+                      />
                     </div>
-                    <q-btn
-                      v-if="fieldHasParentRecordLink(token)"
-                      flat
-                      dense
-                      round
-                      size="sm"
-                      icon="link"
-                      class="create-record-shell__field-parent-link"
-                      :aria-label="`Open source record for ${token.label}`"
-                      @click="openFieldParentRecord(token)"
-                    />
-                  </div>
 
-                  <div class="create-record-shell__field-value-row">
-                    <q-select
-                      v-if="token.tokenType === 'select_multi'"
-                      :model-value="Array.isArray(formValues[token.key]) ? formValues[token.key] : []"
-                      dense
-                      outlined
-                      use-chips
-                      multiple
-                      emit-value
-                      map-options
-                      :options="token.inputOptions || []"
-                      :disable="loading || isFieldLocked(token)"
-                      class="create-record-shell__input"
-                      :class="[
-                        { 'create-record-shell__input--summary': isSummaryField(token) },
-                        fieldVerificationClass(token),
-                      ]"
-                      @update:model-value="updateField(token.key, $event)"
-                    />
+                    <div class="create-record-shell__field-value-row">
+                      <q-select
+                        v-if="fieldEntry.token.tokenType === 'select_multi'"
+                        :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
+                        dense
+                        outlined
+                        use-chips
+                        multiple
+                        emit-value
+                        map-options
+                        :options="fieldEntry.token.inputOptions || []"
+                        :disable="loading || isFieldLocked(fieldEntry.token)"
+                        class="create-record-shell__input"
+                        :class="[
+                          { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
+                          fieldVerificationClass(fieldEntry.token),
+                        ]"
+                        @update:model-value="updateField(fieldEntry.token.key, $event)"
+                      />
 
-                    <q-select
-                      v-else-if="token.tokenType === 'select_single'"
-                      :model-value="selectSingleValue(formValues[token.key])"
-                      dense
-                      outlined
-                      use-chips
-                      emit-value
-                      map-options
-                      :options="token.inputOptions || []"
-                      :disable="loading || isFieldLocked(token)"
-                      class="create-record-shell__input"
-                      :class="fieldVerificationClass(token)"
-                      @update:model-value="updateField(token.key, $event)"
-                    />
+                      <q-select
+                        v-else-if="fieldEntry.token.tokenType === 'select_single'"
+                        :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
+                        dense
+                        outlined
+                        use-chips
+                        emit-value
+                        map-options
+                        :options="fieldEntry.token.inputOptions || []"
+                        :disable="loading || isFieldLocked(fieldEntry.token)"
+                        class="create-record-shell__input"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                        @update:model-value="updateField(fieldEntry.token.key, $event)"
+                      />
 
-                    <q-input
-                      v-else
-                      :model-value="stringValue(formValues[token.key])"
-                      dense
-                      outlined
-                      :disable="loading || isFieldLocked(token)"
-                      :type="isSummaryField(token) ? 'textarea' : inputTypeForToken(token.tokenType)"
-                      :autogrow="isSummaryField(token)"
-                      class="create-record-shell__input"
-                      :class="[
-                        { 'create-record-shell__input--summary': isSummaryField(token) },
-                        fieldVerificationClass(token),
-                      ]"
-                      @update:model-value="updateField(token.key, $event)"
-                    />
+                      <q-input
+                        v-else
+                        :model-value="stringValue(formValues[fieldEntry.token.key])"
+                        dense
+                        outlined
+                        :disable="loading || isFieldLocked(fieldEntry.token)"
+                        :type="isSummaryField(fieldEntry.token) ? 'textarea' : inputTypeForToken(fieldEntry.token.tokenType)"
+                        :autogrow="isSummaryField(fieldEntry.token)"
+                        class="create-record-shell__input"
+                        :class="[
+                          { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
+                          fieldVerificationClass(fieldEntry.token),
+                        ]"
+                        @update:model-value="updateField(fieldEntry.token.key, $event)"
+                      />
 
-                    <q-btn
-                      v-if="showFieldVerificationAction(token)"
-                      flat
-                      dense
-                      round
-                      size="sm"
-                      :disable="loading"
-                      class="create-record-shell__field-action"
-                      :class="fieldVerificationClass(token)"
-                      :icon="fieldVerificationIcon(token)"
-                      :aria-label="`Change verification state for ${token.label}`"
-                    >
-                      <q-menu
-                        :anchor="verificationMenuAnchor(token, tokenIndex)"
-                        :self="verificationMenuSelf(token, tokenIndex)"
+                      <q-btn
+                        v-if="showFieldVerificationAction(fieldEntry.token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        :disable="loading"
+                        class="create-record-shell__field-action"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                        :icon="fieldVerificationIcon(fieldEntry.token)"
+                        :aria-label="`Change verification state for ${fieldEntry.token.label}`"
                       >
-                        <q-list dense class="create-record-shell__verification-menu">
-                          <q-item
-                            v-for="option in fieldVerificationActionOptions"
-                            :key="option.value"
-                            clickable
-                            v-close-popup
-                            class="create-record-shell__verification-menu-item"
-                            @click="updateFieldVerificationState(token, option.value)"
-                          >
-                            <q-item-section avatar>
-                              <q-icon :name="option.icon" :class="option.iconClass" size="14px" />
-                            </q-item-section>
-                            <q-item-section>
-                              <q-item-label class="create-record-shell__verification-menu-label">
-                                {{ option.label }}
-                              </q-item-label>
-                            </q-item-section>
-                          </q-item>
-                        </q-list>
-                      </q-menu>
-                    </q-btn>
+                        <q-menu
+                          :anchor="verificationMenuAnchor(fieldEntry.column)"
+                          :self="verificationMenuSelf(fieldEntry.column)"
+                        >
+                          <q-list dense class="create-record-shell__verification-menu">
+                            <q-item
+                              v-for="option in fieldVerificationActionOptions"
+                              :key="option.value"
+                              clickable
+                              v-close-popup
+                              class="create-record-shell__verification-menu-item"
+                              @click="updateFieldVerificationState(fieldEntry.token, option.value)"
+                            >
+                              <q-item-section avatar>
+                                <q-icon :name="option.icon" :class="option.iconClass" size="14px" />
+                              </q-item-section>
+                              <q-item-section>
+                                <q-item-label class="create-record-shell__verification-menu-label">
+                                  {{ option.label }}
+                                </q-item-label>
+                              </q-item-section>
+                            </q-item>
+                          </q-list>
+                        </q-menu>
+                      </q-btn>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="create-record-shell__fields-grid create-record-shell__fields-grid--right"
+                >
+                  <div
+                    v-for="fieldEntry in rightFieldEntries"
+                    :key="fieldEntry.token.key"
+                    class="create-record-shell__field"
+                    :class="{
+                      'create-record-shell__field--wide': isWideField(fieldEntry.token),
+                      'create-record-shell__field--summary-sidecar': isSummarySidecarField(fieldEntry.token),
+                      'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(fieldEntry.token),
+                    }"
+                  >
+                    <div class="create-record-shell__field-label-row">
+                      <div class="create-record-shell__field-label-wrap">
+                        <div class="create-record-shell__field-label">
+                          {{ fieldEntry.token.label }}
+                          <q-tooltip anchor="top middle" self="bottom middle">
+                            {{ formatFieldType(fieldEntry.token.tokenType) }}
+                          </q-tooltip>
+                        </div>
+                      </div>
+                      <q-btn
+                        v-if="fieldHasParentRecordLink(fieldEntry.token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        icon="link"
+                        class="create-record-shell__field-parent-link"
+                        :aria-label="`Open source record for ${fieldEntry.token.label}`"
+                        @click="openFieldParentRecord(fieldEntry.token)"
+                      />
+                    </div>
+
+                    <div class="create-record-shell__field-value-row">
+                      <q-select
+                        v-if="fieldEntry.token.tokenType === 'select_multi'"
+                        :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
+                        dense
+                        outlined
+                        use-chips
+                        multiple
+                        emit-value
+                        map-options
+                        :options="fieldEntry.token.inputOptions || []"
+                        :disable="loading || isFieldLocked(fieldEntry.token)"
+                        class="create-record-shell__input"
+                        :class="[
+                          { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
+                          fieldVerificationClass(fieldEntry.token),
+                        ]"
+                        @update:model-value="updateField(fieldEntry.token.key, $event)"
+                      />
+
+                      <q-select
+                        v-else-if="fieldEntry.token.tokenType === 'select_single'"
+                        :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
+                        dense
+                        outlined
+                        use-chips
+                        emit-value
+                        map-options
+                        :options="fieldEntry.token.inputOptions || []"
+                        :disable="loading || isFieldLocked(fieldEntry.token)"
+                        class="create-record-shell__input"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                        @update:model-value="updateField(fieldEntry.token.key, $event)"
+                      />
+
+                      <q-input
+                        v-else
+                        :model-value="stringValue(formValues[fieldEntry.token.key])"
+                        dense
+                        outlined
+                        :disable="loading || isFieldLocked(fieldEntry.token)"
+                        :type="isSummaryField(fieldEntry.token) ? 'textarea' : inputTypeForToken(fieldEntry.token.tokenType)"
+                        :autogrow="isSummaryField(fieldEntry.token)"
+                        class="create-record-shell__input"
+                        :class="[
+                          { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
+                          fieldVerificationClass(fieldEntry.token),
+                        ]"
+                        @update:model-value="updateField(fieldEntry.token.key, $event)"
+                      />
+
+                      <q-btn
+                        v-if="showFieldVerificationAction(fieldEntry.token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        :disable="loading"
+                        class="create-record-shell__field-action"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                        :icon="fieldVerificationIcon(fieldEntry.token)"
+                        :aria-label="`Change verification state for ${fieldEntry.token.label}`"
+                      >
+                        <q-menu
+                          :anchor="verificationMenuAnchor(fieldEntry.column)"
+                          :self="verificationMenuSelf(fieldEntry.column)"
+                        >
+                          <q-list dense class="create-record-shell__verification-menu">
+                            <q-item
+                              v-for="option in fieldVerificationActionOptions"
+                              :key="option.value"
+                              clickable
+                              v-close-popup
+                              class="create-record-shell__verification-menu-item"
+                              @click="updateFieldVerificationState(fieldEntry.token, option.value)"
+                            >
+                              <q-item-section avatar>
+                                <q-icon :name="option.icon" :class="option.iconClass" size="14px" />
+                              </q-item-section>
+                              <q-item-section>
+                                <q-item-label class="create-record-shell__verification-menu-label">
+                                  {{ option.label }}
+                                </q-item-label>
+                              </q-item-section>
+                            </q-item>
+                          </q-list>
+                        </q-menu>
+                      </q-btn>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -428,7 +559,6 @@
                 No canonical fields are mapped to this section yet.
               </div>
             </div>
-          </template>
         </div>
       </q-card-section>
 
@@ -583,6 +713,19 @@ const activeSection = computed(
 )
 
 const activeFields = computed(() => activeSection.value?.tokens || [])
+const activeFieldEntries = computed(() =>
+  activeFields.value.map((token, tokenIndex) => ({
+    token,
+    tokenIndex,
+    column: isFieldInRightColumn(token, tokenIndex) ? 'right' : 'left',
+  })),
+)
+const leftFieldEntries = computed(() =>
+  activeFieldEntries.value.filter((entry) => entry.column === 'left'),
+)
+const rightFieldEntries = computed(() =>
+  activeFieldEntries.value.filter((entry) => entry.column === 'right'),
+)
 const dialogStyle = computed(() => ({
   width: `${dialogWidth.value}px`,
   height: `${dialogHeight.value}px`,
@@ -795,12 +938,12 @@ function isFieldInRightColumn(token, tokenIndex) {
   return Number(tokenIndex) % 2 === 1
 }
 
-function verificationMenuAnchor(token, tokenIndex) {
-  return isFieldInRightColumn(token, tokenIndex) ? 'bottom left' : 'bottom right'
+function verificationMenuAnchor(column) {
+  return column === 'right' ? 'bottom left' : 'bottom right'
 }
 
-function verificationMenuSelf(token, tokenIndex) {
-  return isFieldInRightColumn(token, tokenIndex) ? 'top right' : 'top left'
+function verificationMenuSelf(column) {
+  return column === 'right' ? 'top right' : 'top left'
 }
 
 function updateFieldVerificationState(token, nextState) {
@@ -1780,10 +1923,16 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px 14px;
   align-content: start;
-  grid-auto-flow: dense;
   overflow: visible;
   margin-right: 0;
   padding-right: 0;
+}
+
+.create-record-shell__fields-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-content: start;
 }
 
 .create-record-shell__field {
@@ -2081,6 +2230,10 @@ onBeforeUnmount(() => {
 
   .create-record-shell__fields {
     grid-template-columns: 1fr;
+  }
+
+  .create-record-shell__fields-grid {
+    gap: 20px;
   }
 
   .create-record-shell__intake-body {
