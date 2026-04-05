@@ -1778,7 +1778,7 @@ onBeforeUnmount(() => {
 .create-record-shell__fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 14px;
+  gap: 20px 14px;
   align-content: start;
   grid-auto-flow: dense;
   overflow: auto;
@@ -1787,7 +1787,7 @@ onBeforeUnmount(() => {
 .create-record-shell__field {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 5px;
+  gap: 10px;
   align-items: start;
 }
 
@@ -1989,7 +1989,7 @@ onBeforeUnmount(() => {
 
 .create-record-shell__input--summary :deep(textarea) {
   min-height: 108px !important;
-  padding-top: 10px !important;
+  padding-top: 0 !important;
 }
 
 .create-record-shell__field--summary-sidecar .create-record-shell__input--summary {
