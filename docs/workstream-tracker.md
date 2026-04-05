@@ -65,6 +65,14 @@ This tracker should stay aligned with:
 - the `Companion` should now be understood as a guide helping the user navigate the game and score points in a useful way
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - the `Game Master` should explain ranking and point changes without overriding verification or ownership
+- the game layer should now be understood as dynamically relevance-based:
+  - score what matters most at the current stage
+  - do not score all actions as if they were equal
+  - use the base-10 scoring family:
+    - `1, 2, 3, 4`
+    - `10`
+    - `100`
+    - `1000`
 - Unify KDB relationship behavior so cards stay lightweight and record views can get richer grouped relationship payloads
 - Rename section labels and token names together so `System` does not coexist indefinitely with stale `*_Metadata` naming
 - KDB relationships are now being treated as strict contract paths:
@@ -92,6 +100,7 @@ This tracker should stay aligned with:
 - turn the first-pass game rulebook into a clearer scoring reference per board and per stage
 - define how provisional points, realized points, deductions, and bonuses should map to actual workflows
 - define how pipeline boards should express required information and expected outcome per stage
+- define the first relevance maps for major boards so points can reflect what matters most at each stage
 - Fix workbook wrapper-token drift so the JSON companion validates cleanly for `Company`, `Funds`, `Markets`, and `Terms`
 - Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths
 - Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships

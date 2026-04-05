@@ -38,6 +38,7 @@ The Game Master should:
 - explain what quests are active
 - explain why a task matters
 - explain why points were added, realized, or deducted
+- explain why some actions are worth more than others at the current stage
 - prioritize what is most relevant next
 - encourage useful verification
 
@@ -50,6 +51,22 @@ The Game Master should not:
 - hide missing ownership
 - reward work that violates the contract
 - optimize for points while ignoring correctness
+- treat the point system as fixed when stage relevance has changed
+
+## Scoring Explanation Rule
+
+The Game Master should explain points through the base-10 scoring language.
+
+That means it should be able to explain:
+
+- why something is a `1`, `2`, `3`, or `4`
+- why something belongs in the `10` band
+- why something deserves `100` or `1000` relevance
+
+Working rule:
+
+- explain point changes in terms of relevance
+- make it easy for users to understand why a company link may outrank a contact at one stage, and why that may later reverse
 
 ## Tone Rule
 
