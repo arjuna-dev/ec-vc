@@ -43,7 +43,8 @@ This tracker should stay aligned with:
 - `Knowledge DBs` is now being treated as a real subset inside `Files` for reusable reference entities such as `Stages`, `Financial Industries`, and `Round Securities`
 - `Ingestion` is now an approved secondary `Knowledge DB` direction for tracking original artifact links, processing events, and created-file lineage
 - the file pages now render through one shared shell source with thin page wrappers, instead of drifting as copied page implementations
-- only the literal `Test Shell` route should switch `L1` through the shell selector; normal file pages should resolve from their own route-owned `L1`
+- only the literal `Live Shell` route should switch `L1` through the shell selector; normal file pages should resolve from their own route-owned `L1`
+- shared edit-dialog preload should come from `databooks.view(activeL1Entity, recordId)`, with token values resolved from databook `fields` first and not from summary rows
 - owner identity now bootstraps into the `Users` table so the local owner can appear as the first real `User`
 - the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points
 - card shell slots are now explicit for `title`, `subtitle`, and `chips`, with `subtitle` = first selected extra field and `chips` = remaining selected extra fields

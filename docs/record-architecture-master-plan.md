@@ -136,13 +136,13 @@ Route ownership should still stay explicit:
 
 - each file page owns its own route
 - each file page should load its own route-owned `L1`
-- only the literal `Test Shell` route should switch source from the shell selector
+- only the literal `Live Shell` route should switch source from the shell selector
 
 Working rule:
 
 - shared shell behavior changes once
 - page wrappers stay thin
-- route-owned `L1` loading should not be overridden by the last selected `Test Shell` source
+- route-owned `L1` loading should not be overridden by the last selected `Live Shell` source
 
 ## Canonical Input Rules
 
@@ -166,6 +166,29 @@ Approved option-source families:
   - more than one live entity source
   - example: `Round_Sponsor -> Contacts + Companies`
 - `record_subset`
+
+## Edit Payload Rule
+
+The shared edit dialog should preload from the true databook payload for the active `L1`, not from summary rows or card chips.
+
+That means:
+
+- edit should call `databooks.view(activeL1Entity, recordId)`
+- token values should read from the returned databook `fields` first
+- token values may then fall back to the returned flat `record` only when the exact field is present there
+- cards, table rows, and chips are display surfaces only; they are not the edit preload contract
+
+Expected token return shape:
+
+- scalar token
+  - one scalar value
+- `select_single`
+  - one explicit selected value
+  - options still come from the token's declared option source
+- `select_multi`
+  - one array of selected values
+- KDB relationship token
+  - one explicit relationship list in the token's expected shape
   - structured record-owned subsets
   - example: `Contact_Employment`
 - `derived_subset`

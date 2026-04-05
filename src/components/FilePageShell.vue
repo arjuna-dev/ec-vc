@@ -848,16 +848,49 @@ const canCreateWithShell = computed(() => {
   if (activeSourceKey.value === 'opportunities') return Boolean(bridge.value?.funds?.create || bridge.value?.rounds?.create)
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
+
+function getEditDialogTokenValue(token) {
+  const payload = editDialogRecordPayload.value
+  if (!payload) return ''
+
+  const fieldNames = getCanonicalTokenFieldNames(token)
+  const fieldMap = Object.fromEntries(
+    (Array.isArray(payload.fields) ? payload.fields : [])
+      .map((field) => [String(field?.field_name || '').trim(), field?.value])
+      .filter(([fieldName]) => fieldName),
+  )
+
+  for (const fieldName of fieldNames) {
+    const fieldValue = fieldMap[fieldName]
+    if (fieldValue != null && !(typeof fieldValue === 'string' && !fieldValue.trim())) {
+      return fieldValue
+    }
+  }
+
+  for (const fieldName of fieldNames) {
+    const recordValue = payload.record?.[fieldName]
+    if (recordValue != null && !(typeof recordValue === 'string' && !recordValue.trim())) {
+      return recordValue
+    }
+  }
+
+  const optionEntity = String(token?.optionEntity || '').trim()
+  if (optionEntity === 'Artifacts') {
+    return createDialogInitialArtifacts.value.map((artifact) => String(artifact?.name || '').trim()).filter(Boolean)
+  }
+
+  return ''
+}
+
 const createDialogInitialValues = computed(() => {
-  const editRecord = editDialogRecordPayload.value?.record || null
-  if (createDialogMode.value !== 'edit' || !editRecord) {
+  if (createDialogMode.value !== 'edit' || !editDialogRecordPayload.value) {
     return createDialogPrefillValues.value
   }
 
   const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   const editValues = Object.fromEntries(
     allTokens.map((token) => {
-      const value = getCanonicalTokenValue(editRecord, token)
+      const value = getEditDialogTokenValue(token)
       return [token.key, normalizeCreateDialogInitialValue(token, value)]
     }),
   )

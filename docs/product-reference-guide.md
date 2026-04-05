@@ -145,9 +145,28 @@ That means:
 - `Securities` should load `Securities`
 - `Ingestion` should load `Ingestion`
 
-Only the literal `Test Shell` should switch `L1` through the shell selector.
+Only the literal `Live Shell` should switch `L1` through the shell selector.
 
-Normal file pages should not inherit the last chosen shell source from `Test Shell`.
+Normal file pages should not inherit the last chosen shell source from `Live Shell`.
+
+## Edit Dialog Contract
+
+The shared edit dialog should read the true current record through:
+
+- `active L1 entity`
+- selected `recordId`
+- `databooks.view(activeL1Entity, recordId)`
+
+The dialog should then preload token values from:
+
+- returned databook `fields` first
+- returned flat `record` second
+
+It should not preload from:
+
+- card chips
+- table summaries
+- reduced list-row payloads
 
 ## Standard DB Settings
 
