@@ -788,6 +788,7 @@ const createKeyFieldTokens = computed(() => {
   const seen = new Set()
   return tokens
     .filter((token) => {
+      if (isAutomaticCreatorToken(token)) return false
       if (seen.has(token.key)) return false
       seen.add(token.key)
       return true
@@ -810,7 +811,12 @@ const createSectionGroups = computed(() => {
       key: section.key,
       label: section.label,
       tokens: level3Tokens.value
-        .filter((token) => token.parentKey === section.key && !keyFieldKeys.has(token.key))
+        .filter(
+          (token) =>
+            token.parentKey === section.key &&
+            !keyFieldKeys.has(token.key) &&
+            !isAutomaticCreatorToken(token),
+        )
         .map((token) => normalizeCreateDialogToken(token)),
     }))
     .filter((group) => group.tokens.length)
@@ -892,6 +898,13 @@ function normalizeCreateDialogToken(token) {
     ...token,
     inputOptions: getInputOptionsForToken(token),
   }
+}
+
+function isAutomaticCreatorToken(token) {
+  const tokenName = String(token?.tokenName || '').trim()
+  const fieldNames = getCanonicalTokenFieldNames(token).map((name) => String(name || '').trim())
+  if (fieldNames.includes('created_by') || fieldNames.includes('created_by_label')) return true
+  return tokenName.endsWith('_Creator')
 }
 
 function getInputOptionsForToken(token) {
@@ -1935,6 +1948,7 @@ function buildCreatePayload(values = {}) {
   const payloadEntries = []
 
   allTokens.forEach((token) => {
+    if (isAutomaticCreatorToken(token)) return
     const rawValue = values?.[token.key]
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
     if (normalizedValue == null) return
