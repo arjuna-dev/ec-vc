@@ -32,6 +32,25 @@ const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 let mainWindow
+const repoRootPath = path.resolve(currentDir, '..')
+
+function resolveRepoMarkdownPath(relativePath) {
+  const raw = String(relativePath || '').trim()
+  if (!raw) throw new Error('Document path is required.')
+
+  const normalized = path.normalize(raw)
+  const resolved = path.resolve(repoRootPath, normalized)
+  const relativeFromRepo = path.relative(repoRootPath, resolved)
+  const isInsideRepo =
+    relativeFromRepo && !relativeFromRepo.startsWith('..') && !path.isAbsolute(relativeFromRepo)
+
+  if (!isInsideRepo) throw new Error('Document path must stay inside the repository root.')
+  if (path.extname(resolved).toLowerCase() !== '.md') {
+    throw new Error('Only markdown documents can be edited through this surface.')
+  }
+
+  return resolved
+}
 
 function compareWorkspaceEntries(a, b, orderMap = null) {
   if (a.type !== b.type) {
@@ -5694,6 +5713,24 @@ function registerIpc() {
     const result = await ensureWorkspace()
     await syncWorkspaceWorkbooksSafe(result.rootPath)
     return { rootPath: result.rootPath }
+  })
+
+  ipcMain.handle('docs:read', async (_event, { relativePath } = {}) => {
+    const resolvedPath = resolveRepoMarkdownPath(relativePath)
+    const content = await fs.readFile(resolvedPath, 'utf8')
+    return {
+      relativePath: path.relative(repoRootPath, resolvedPath).replace(/\\/g, '/'),
+      content,
+    }
+  })
+
+  ipcMain.handle('docs:write', async (_event, { relativePath, content } = {}) => {
+    const resolvedPath = resolveRepoMarkdownPath(relativePath)
+    await fs.writeFile(resolvedPath, String(content ?? ''), 'utf8')
+    return {
+      relativePath: path.relative(repoRootPath, resolvedPath).replace(/\\/g, '/'),
+      saved: true,
+    }
   })
 
   ipcMain.handle('settings:get', async () => {

@@ -45,6 +45,7 @@
                 variant="primary"
                 icon-start="description"
                 label="Companion Contract"
+                :disable="!hasDocsBridge"
                 @click="showCompanionContractDialog = true"
               />
             </div>
@@ -406,42 +407,152 @@
         <q-dialog v-model="showCompanionContractDialog">
           <q-card class="companion-contract-dialog">
             <q-card-section class="companion-contract-dialog__head">
-              <div class="avatar-card__eyebrow">Companion Contract</div>
-              <div class="avatar-shell__hero-title companion-contract-dialog__title">Companion</div>
-              <div class="companion-contract-dialog__owner">For the Owner</div>
-              <div class="companion-contract-dialog__lead">
-                This companion should be helpful about content, strict about structure, and honest about missing ownership.
+              <div class="avatar-card__eyebrow">{{ activeCompanionDocument?.eyebrow || 'Companion Contract' }}</div>
+              <div class="avatar-shell__hero-title companion-contract-dialog__title">
+                {{ activeCompanionDocument?.heroTitle || 'Companion' }}
               </div>
+              <div class="companion-contract-dialog__owner">For the Owner</div>
+              <div class="companion-contract-dialog__lead">{{ companionDialogLead }}</div>
             </q-card-section>
 
             <q-separator />
 
             <q-card-section class="companion-contract-dialog__body">
-              <div class="companion-contract-dialog__section">
-                <div class="companion-contract-dialog__section-title">Core Rule</div>
-                <p class="companion-contract-dialog__copy">
-                  The companion should not be creative about structure. It should be disciplined about structure.
-                </p>
-              </div>
+              <div class="companion-contract-workspace">
+                <div class="companion-contract-workspace__main">
+                  <div v-if="companionDocError" class="companion-contract-workspace__error">
+                    {{ companionDocError }}
+                  </div>
 
-              <div class="companion-contract-dialog__section">
-                <div class="companion-contract-dialog__section-title">Working Rules</div>
-                <ul class="companion-contract-dialog__list">
-                  <li>if the token is an owned field, propose a value</li>
-                  <li>if the token is a KDB relationship, propose a link target</li>
-                  <li>never collapse a relationship into a scalar field</li>
-                  <li>never create a new relationship path if canon does not declare it</li>
-                  <li>when confidence is low, suggest rather than commit</li>
-                  <li>when confidence is high, still write through the approved owner path only</li>
-                </ul>
-              </div>
+                  <div class="companion-contract-workspace__toolbar">
+                    <div class="companion-contract-workspace__toolbar-copy">
+                      <div class="companion-contract-workspace__document-title">
+                        {{ activeCompanionDocument?.label || 'Companion Contract' }}
+                      </div>
+                      <div class="companion-contract-workspace__document-path">
+                        {{ activeCompanionDocument?.path || '' }}
+                      </div>
+                    </div>
 
-              <div class="companion-contract-dialog__section">
-                <div class="companion-contract-dialog__section-title">Owner Experience</div>
-                <p class="companion-contract-dialog__copy">
-                  Top-layer mechanisms may be tuned for speed, comfort, and experience, but they must not modify the
-                  underlying contract or ownership rules.
-                </p>
+                    <div class="companion-contract-workspace__toolbar-actions">
+                      <B10Button
+                        variant="subtle"
+                        icon-start="refresh"
+                        label="Reload"
+                        :disable="companionDocLoading || companionDocSaving || !hasDocsBridge"
+                        @click="reloadActiveCompanionDocument"
+                      />
+                      <B10Button
+                        variant="subtle"
+                        :icon-start="companionDocEditMode ? 'visibility' : 'edit'"
+                        :label="companionDocEditMode ? 'View' : 'Edit'"
+                        :disable="companionDocLoading || !hasDocsBridge"
+                        @click="companionDocEditMode = !companionDocEditMode"
+                      />
+                      <B10Button
+                        variant="primary"
+                        icon-start="save"
+                        label="Save"
+                        :disable="!companionDocDirty || companionDocLoading || companionDocSaving || !hasDocsBridge"
+                        :loading="companionDocSaving"
+                        @click="saveActiveCompanionDocument"
+                      />
+                    </div>
+                  </div>
+
+                  <div v-if="companionDocLoading" class="companion-contract-workspace__loading">
+                    Loading document...
+                  </div>
+
+                  <template v-else>
+                    <div v-if="!companionDocEditMode && isGlossaryDocument" class="companion-glossary">
+                      <div class="companion-glossary__toolbar">
+                        <div class="companion-contract-workspace__section-title">Index / Glossary</div>
+                        <q-select
+                          v-model="companionGlossarySourceFilter"
+                          dense
+                          outlined
+                          emit-value
+                          map-options
+                          label="Source"
+                          :options="companionGlossarySourceOptions"
+                          class="companion-glossary__source-filter"
+                        />
+                      </div>
+
+                      <div class="companion-glossary__table-wrap">
+                        <table class="companion-glossary__table">
+                          <thead>
+                            <tr>
+                              <th>Concept</th>
+                              <th>Description</th>
+                              <th>Source</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="entry in filteredCompanionGlossaryEntries" :key="`${entry.Concept}-${entry.Source}`">
+                              <td>{{ entry.Concept }}</td>
+                              <td>{{ entry.Description }}</td>
+                              <td>{{ entry.Source }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div v-else-if="!companionDocEditMode" class="companion-contract-workspace__read">
+                      <pre class="companion-contract-workspace__read-pre">{{ companionDocSavedContent }}</pre>
+                    </div>
+
+                    <div v-else class="companion-contract-editor">
+                      <div class="companion-contract-editor__panel">
+                        <div class="companion-contract-workspace__section-title">Edit</div>
+                        <q-input
+                          v-model="companionDocDraftContent"
+                          type="textarea"
+                          autogrow
+                          outlined
+                          class="companion-contract-editor__input"
+                        />
+                      </div>
+
+                      <div class="companion-contract-editor__panel">
+                        <div class="companion-contract-workspace__section-title">Pending Markup</div>
+                        <div class="companion-contract-diff">
+                          <div
+                            v-for="(line, index) in companionDocDiffLines"
+                            :key="`${index}-${line.type}-${line.text}`"
+                            class="companion-contract-diff__line"
+                            :class="`companion-contract-diff__line--${line.type}`"
+                          >
+                            <span class="companion-contract-diff__marker">{{ companionDiffMarkerFor(line.type) }}</span>
+                            <span class="companion-contract-diff__text">{{ line.text || ' ' }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+
+                  <div v-if="companionDocReview" class="companion-contract-chat">
+                    <div class="companion-contract-chat__eyebrow">Companion Acknowledgment</div>
+                    <div class="companion-contract-chat__bubble">{{ companionDocReview }}</div>
+                  </div>
+                </div>
+
+                <aside class="companion-contract-workspace__menu">
+                  <div class="companion-contract-workspace__section-title">Relevant Contracts</div>
+                  <button
+                    v-for="document in companionDocumentMenu"
+                    :key="document.id"
+                    type="button"
+                    class="companion-contract-menu__item"
+                    :class="{ 'companion-contract-menu__item--active': document.id === activeCompanionDocumentId }"
+                    @click="selectCompanionDocument(document.id)"
+                  >
+                    <span class="companion-contract-menu__label">{{ document.label }}</span>
+                    <span class="companion-contract-menu__meta">{{ document.short }}</span>
+                  </button>
+                </aside>
               </div>
             </q-card-section>
 
@@ -467,6 +578,57 @@ const AVATAR_STORAGE_KEY = 'ecvc.avatarBuilderProfile'
 const LLM_STORAGE_KEY = 'ecvc.avatarLlmProfile'
 const CUSTOM_AVATAR_BUILDS_STORAGE_KEY = 'ecvc.avatarCustomBuilds'
 const showCompanionContractDialog = ref(false)
+const companionDocumentMenu = [
+  {
+    id: 'companion-contract',
+    label: 'Companion Contract',
+    short: 'Main contract',
+    path: 'docs/companion-contract.md',
+    eyebrow: 'Companion Contract',
+    heroTitle: 'Companion',
+  },
+  {
+    id: 'record-architecture',
+    label: 'Record Architecture',
+    short: 'Shell + ownership',
+    path: 'docs/record-architecture-master-plan.md',
+    eyebrow: 'Architecture',
+    heroTitle: 'Record',
+  },
+  {
+    id: 'product-reference',
+    label: 'Product Reference',
+    short: 'Product language',
+    path: 'docs/product-reference-guide.md',
+    eyebrow: 'Reference',
+    heroTitle: 'Reference',
+  },
+  {
+    id: 'workstream-tracker',
+    label: 'Workstream Tracker',
+    short: 'Active direction',
+    path: 'docs/workstream-tracker.md',
+    eyebrow: 'Tracker',
+    heroTitle: 'Tracker',
+  },
+  {
+    id: 'glossary',
+    label: 'Index / Glossary',
+    short: 'Concept index',
+    path: 'docs/language-reference-glossary.md',
+    eyebrow: 'Index / Glossary',
+    heroTitle: 'Glossary',
+  },
+]
+const activeCompanionDocumentId = ref('companion-contract')
+const companionDocLoading = ref(false)
+const companionDocSaving = ref(false)
+const companionDocError = ref('')
+const companionDocSavedContent = ref('')
+const companionDocDraftContent = ref('')
+const companionDocReview = ref('')
+const companionDocEditMode = ref(false)
+const companionGlossarySourceFilter = ref('all')
 
 const avatarArchetypeOptions = [
   { label: 'Guide', value: 'guide' },
@@ -537,6 +699,7 @@ const isElectronRuntime = computed(
 )
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(() => !!bridge.value?.settings?.get && !!bridge.value?.settings?.set)
+const hasDocsBridge = computed(() => !!bridge.value?.docs?.read && !!bridge.value?.docs?.write)
 
 const loading = ref(false)
 const saving = ref(false)
@@ -630,6 +793,34 @@ const activeHeroControlStepLabel = computed(() => {
   const currentIndex = heroControlOrder.indexOf(activeHeroControl.value)
   return `${currentIndex + 1} / ${heroControlOrder.length}`
 })
+const activeCompanionDocument = computed(
+  () => companionDocumentMenu.find((document) => document.id === activeCompanionDocumentId.value) || companionDocumentMenu[0]
+)
+const companionDialogLead = computed(() => {
+  if (activeCompanionDocumentId.value === 'companion-contract') {
+    return 'This companion should be helpful about content, strict about structure, and honest about missing ownership.'
+  }
+
+  if (activeCompanionDocumentId.value === 'glossary') {
+    return 'Use the glossary to keep concepts, contract terms, and their source context aligned while you edit.'
+  }
+
+  return 'Work through the active contract directly, keep changes readable, and preserve the ownership logic underneath it.'
+})
+const companionDocDirty = computed(() => companionDocDraftContent.value !== companionDocSavedContent.value)
+const isGlossaryDocument = computed(() => activeCompanionDocumentId.value === 'glossary')
+const companionGlossaryEntries = computed(() => parseGlossaryMarkdown(companionDocSavedContent.value))
+const companionGlossarySourceOptions = computed(() => {
+  const sources = Array.from(new Set(companionGlossaryEntries.value.map((entry) => entry.Source).filter(Boolean))).sort()
+  return [{ label: 'All Sources', value: 'all' }, ...sources.map((source) => ({ label: source, value: source }))]
+})
+const filteredCompanionGlossaryEntries = computed(() => {
+  if (companionGlossarySourceFilter.value === 'all') return companionGlossaryEntries.value
+  return companionGlossaryEntries.value.filter((entry) => entry.Source === companionGlossarySourceFilter.value)
+})
+const companionDocDiffLines = computed(() =>
+  buildLineDiff(companionDocSavedContent.value, companionDocDraftContent.value)
+)
 
 const avatarSummaryText = computed(
   () => normalizeInput(avatarProfile.value.originStory) || defaultAvatarProfile.originStory
@@ -878,6 +1069,15 @@ watch(
   },
   { deep: true }
 )
+watch(showCompanionContractDialog, (isOpen) => {
+  if (!isOpen) return
+  companionDocEditMode.value = false
+  loadActiveCompanionDocument()
+})
+watch(activeCompanionDocumentId, () => {
+  companionDocEditMode.value = false
+  if (showCompanionContractDialog.value) loadActiveCompanionDocument()
+})
 
 function loadLocalBuilderState() {
   if (typeof window === 'undefined') return
@@ -944,6 +1144,156 @@ function updateHeroDashboardGradientPosition(event) {
 
 function normalizeInput(value) {
   return String(value || '').trim()
+}
+
+function parseGlossaryMarkdown(content) {
+  const lines = String(content || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('|'))
+
+  if (lines.length < 3) return []
+
+  const rows = lines.map((line) =>
+    line
+      .slice(1, -1)
+      .split('|')
+      .map((cell) => cell.trim()),
+  )
+
+  const headers = rows[0]
+  return rows
+    .slice(2)
+    .filter((row) => row.length === headers.length)
+    .map((row) =>
+      headers.reduce((entry, header, index) => {
+        entry[header] = row[index] || ''
+        return entry
+      }, {}),
+    )
+}
+
+function buildLineDiff(before, after) {
+  const a = String(before || '').split('\n')
+  const b = String(after || '').split('\n')
+  const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0))
+
+  for (let i = a.length - 1; i >= 0; i -= 1) {
+    for (let j = b.length - 1; j >= 0; j -= 1) {
+      dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1])
+    }
+  }
+
+  const lines = []
+  let i = 0
+  let j = 0
+
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      lines.push({ type: 'same', text: a[i] })
+      i += 1
+      j += 1
+      continue
+    }
+
+    if (dp[i + 1][j] >= dp[i][j + 1]) {
+      lines.push({ type: 'remove', text: a[i] })
+      i += 1
+    } else {
+      lines.push({ type: 'add', text: b[j] })
+      j += 1
+    }
+  }
+
+  while (i < a.length) {
+    lines.push({ type: 'remove', text: a[i] })
+    i += 1
+  }
+
+  while (j < b.length) {
+    lines.push({ type: 'add', text: b[j] })
+    j += 1
+  }
+
+  return lines
+}
+
+function companionDiffMarkerFor(type) {
+  if (type === 'add') return '+'
+  if (type === 'remove') return '-'
+  return '·'
+}
+
+function createCompanionClarityPass() {
+  const diffLines = companionDocDiffLines.value
+  const additions = diffLines.filter((line) => line.type === 'add').length
+  const removals = diffLines.filter((line) => line.type === 'remove').length
+  const headings = companionDocDraftContent.value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('#')).length
+  const longLines = companionDocDraftContent.value
+    .split('\n')
+    .filter((line) => line.length > 160).length
+
+  const notes = [
+    `${activeCompanionDocument.value?.label || 'Document'} saved with ${additions} additions and ${removals} removals.`,
+    headings > 0 ? `The heading structure is still visible across ${headings} heading line(s).` : 'The heading structure is now missing, so this should be reviewed.',
+    longLines > 0 ? `${longLines} long line(s) may still read densely.` : 'The updated lines look readable at a quick pass.',
+  ]
+
+  return notes.join(' ')
+}
+
+async function loadActiveCompanionDocument() {
+  if (!showCompanionContractDialog.value || !hasDocsBridge.value) return
+
+  companionDocLoading.value = true
+  companionDocError.value = ''
+
+  try {
+    const result = await bridge.value.docs.read(activeCompanionDocument.value.path)
+    companionDocSavedContent.value = String(result?.content || '')
+    companionDocDraftContent.value = companionDocSavedContent.value
+    companionDocReview.value = ''
+    companionGlossarySourceFilter.value = 'all'
+  } catch (errorValue) {
+    companionDocError.value = normalizeIpcErrorMessage(errorValue)
+  } finally {
+    companionDocLoading.value = false
+  }
+}
+
+async function reloadActiveCompanionDocument() {
+  await loadActiveCompanionDocument()
+}
+
+function selectCompanionDocument(documentId) {
+  activeCompanionDocumentId.value = documentId
+}
+
+async function saveActiveCompanionDocument() {
+  if (!hasDocsBridge.value || !companionDocDirty.value) return
+
+  companionDocSaving.value = true
+  companionDocError.value = ''
+
+  try {
+    const reviewMessage = createCompanionClarityPass()
+    await bridge.value.docs.write({
+      relativePath: activeCompanionDocument.value.path,
+      content: companionDocDraftContent.value,
+    })
+    companionDocSavedContent.value = companionDocDraftContent.value
+    companionDocEditMode.value = false
+    companionDocReview.value = reviewMessage
+    $q.notify({ type: 'positive', message: `${activeCompanionDocument.value.label} saved` })
+  } catch (errorValue) {
+    companionDocError.value = normalizeIpcErrorMessage(errorValue)
+    $q.notify({ type: 'negative', message: companionDocError.value })
+  } finally {
+    companionDocSaving.value = false
+  }
 }
 
 function showPreviousHeroControl() {
@@ -1190,7 +1540,8 @@ onMounted(() => {
 }
 
 .companion-contract-dialog {
-  width: min(760px, calc(100vw - 32px));
+  width: min(1240px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 28px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(247, 249, 252, 0.98));
@@ -1226,19 +1577,10 @@ onMounted(() => {
 }
 
 .companion-contract-dialog__body {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
   padding: 22px 28px 28px;
 }
 
-.companion-contract-dialog__section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.companion-contract-dialog__section-title {
+.companion-contract-workspace__section-title {
   color: #0f172a;
   font-family: var(--font-title);
   font-size: 1.1rem;
@@ -1246,16 +1588,245 @@ onMounted(() => {
   line-height: 1;
 }
 
-.companion-contract-dialog__list {
+.companion-contract-dialog__actions {
+  padding: 0 28px 24px;
+}
+
+.companion-contract-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.companion-contract-workspace__main,
+.companion-contract-workspace__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.companion-contract-workspace__toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.companion-contract-workspace__toolbar-copy,
+.companion-contract-workspace__toolbar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.companion-contract-workspace__toolbar-actions {
+  align-items: flex-end;
+}
+
+.companion-contract-workspace__document-title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1.2rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+}
+
+.companion-contract-workspace__document-path {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.companion-contract-workspace__loading,
+.companion-contract-workspace__error,
+.companion-contract-workspace__read,
+.companion-contract-editor__panel,
+.companion-contract-workspace__menu,
+.companion-contract-chat,
+.companion-glossary__table-wrap {
+  padding: 18px 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.companion-contract-workspace__error {
+  color: #991b1b;
+  background: rgba(254, 242, 242, 0.92);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.companion-contract-workspace__read-pre {
   margin: 0;
-  padding-left: 18px;
-  color: #475569;
+  white-space: pre-wrap;
+  color: #334155;
   font-family: var(--font-body);
+  line-height: 1.7;
+}
+
+.companion-contract-editor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.companion-contract-editor__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.companion-contract-editor__input :deep(textarea) {
+  min-height: 420px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  line-height: 1.55;
+}
+
+.companion-contract-diff {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 420px;
+  overflow: auto;
+}
+
+.companion-contract-diff__line {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.companion-contract-diff__line--add {
+  background: rgba(220, 252, 231, 0.8);
+  color: #166534;
+}
+
+.companion-contract-diff__line--remove {
+  background: rgba(254, 226, 226, 0.8);
+  color: #991b1b;
+}
+
+.companion-contract-diff__line--same {
+  background: rgba(241, 245, 249, 0.7);
+  color: #64748b;
+}
+
+.companion-contract-diff__marker {
+  font-weight: 800;
+}
+
+.companion-contract-diff__text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.companion-contract-menu__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.84);
+  text-align: left;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.companion-contract-menu__item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.24);
+}
+
+.companion-contract-menu__item--active {
+  border-color: rgba(37, 99, 235, 0.3);
+  background: rgba(239, 246, 255, 0.92);
+}
+
+.companion-contract-menu__label {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 0.96rem;
+  font-weight: var(--font-weight-black);
+}
+
+.companion-contract-menu__meta {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.companion-contract-chat__eyebrow {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.companion-contract-chat__bubble {
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: 18px 18px 18px 6px;
+  background: linear-gradient(180deg, rgba(239, 246, 255, 0.98), rgba(219, 234, 254, 0.94));
+  color: #0f172a;
   line-height: 1.65;
 }
 
-.companion-contract-dialog__actions {
-  padding: 0 28px 24px;
+.companion-glossary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.companion-glossary__toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.companion-glossary__source-filter {
+  min-width: 220px;
+}
+
+.companion-glossary__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.companion-glossary__table th,
+.companion-glossary__table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  text-align: left;
+  vertical-align: top;
+}
+
+.companion-glossary__table th {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 0.86rem;
+  font-weight: var(--font-weight-black);
+}
+
+.companion-glossary__table td {
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 
 .avatar-preview-inline {
@@ -1690,6 +2261,21 @@ onMounted(() => {
   .avatar-build-card--row .avatar-build-card__body,
   .avatar-build-card--row .avatar-build-card__actions {
     padding: 0 18px 18px;
+  }
+
+  .companion-contract-workspace,
+  .companion-contract-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .companion-contract-workspace__toolbar,
+  .companion-glossary__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .companion-contract-workspace__toolbar-actions {
+    align-items: stretch;
   }
 }
 

@@ -34,6 +34,10 @@ contextBridge.exposeInMainWorld('ecvc', {
     createProjectStructure: (baseDirPath) => ipcRenderer.invoke('project:createStructure', baseDirPath),
     workspaceRoot: () => ipcRenderer.invoke('workspace:getRoot'),
   },
+  docs: {
+    read: (relativePath) => ipcRenderer.invoke('docs:read', { relativePath }),
+    write: ({ relativePath, content } = {}) => ipcRenderer.invoke('docs:write', { relativePath, content }),
+  },
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),
     set: (payload) => ipcRenderer.invoke('settings:set', payload),
