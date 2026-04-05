@@ -397,6 +397,7 @@
                         <q-icon
                           :name="fieldVerificationIcon(fieldEntry.token)"
                           :class="fieldVerificationIconClass(fieldEntry.token)"
+                          :style="fieldVerificationIconStyle(fieldEntry.token)"
                           size="14px"
                         />
                         <q-menu
@@ -413,7 +414,7 @@
                               @click="updateFieldVerificationState(fieldEntry.token, option.value)"
                             >
                               <q-item-section avatar>
-                                <q-icon :name="option.icon" :class="option.iconClass" size="14px" />
+                                <q-icon :name="option.icon" :class="option.iconClass" :style="{ color: option.color }" size="14px" />
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="create-record-shell__verification-menu-label">
@@ -525,6 +526,7 @@
                         <q-icon
                           :name="fieldVerificationIcon(fieldEntry.token)"
                           :class="fieldVerificationIconClass(fieldEntry.token)"
+                          :style="fieldVerificationIconStyle(fieldEntry.token)"
                           size="14px"
                         />
                         <q-menu
@@ -541,7 +543,7 @@
                               @click="updateFieldVerificationState(fieldEntry.token, option.value)"
                             >
                               <q-item-section avatar>
-                                <q-icon :name="option.icon" :class="option.iconClass" size="14px" />
+                                <q-icon :name="option.icon" :class="option.iconClass" :style="{ color: option.color }" size="14px" />
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="create-record-shell__verification-menu-label">
@@ -702,10 +704,10 @@ const artifactContextNote = computed(() => {
 
 const submitLabel = computed(() => 'Save')
 const fieldVerificationActionOptions = [
-  { label: 'Verify field', value: 'verified', icon: 'check_circle', iconClass: 'create-record-shell__verification-icon--verified' },
-  { label: 'Pre-Selected', value: 'default_preselected_unverified', icon: 'auto_awesome', iconClass: 'create-record-shell__verification-icon--default' },
-  { label: 'Suggested', value: 'suggested_unverified', icon: 'lightbulb', iconClass: 'create-record-shell__verification-icon--suggested' },
-  { label: 'Reject field', value: 'rejected', icon: 'cancel', iconClass: 'create-record-shell__verification-icon--rejected' },
+  { label: 'Verify field', value: 'verified', icon: 'check_circle', iconClass: 'create-record-shell__verification-icon--verified', color: 'rgba(35, 92, 26, 0.96)' },
+  { label: 'Pre-Selected', value: 'default_preselected_unverified', icon: 'auto_awesome', iconClass: 'create-record-shell__verification-icon--default', color: 'rgba(64, 121, 210, 0.92)' },
+  { label: 'Suggested', value: 'suggested_unverified', icon: 'lightbulb', iconClass: 'create-record-shell__verification-icon--suggested', color: 'rgba(186, 129, 13, 0.92)' },
+  { label: 'Reject field', value: 'rejected', icon: 'cancel', iconClass: 'create-record-shell__verification-icon--rejected', color: 'rgba(166, 43, 43, 0.92)' },
 ]
 const selectedArtifactCount = computed(() => selectedArtifactIds.value.length)
 const allArtifactsSelected = computed(() =>
@@ -984,6 +986,12 @@ function fieldVerificationIconClass(token) {
   const state = resolvedFieldVerificationState(token)
   const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
   return option?.iconClass || ''
+}
+
+function fieldVerificationIconStyle(token) {
+  const state = resolvedFieldVerificationState(token)
+  const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
+  return option?.color ? { color: option.color } : {}
 }
 
 function fieldActionClass(token) {
