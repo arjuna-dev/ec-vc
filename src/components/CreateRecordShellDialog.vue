@@ -576,15 +576,7 @@ const availableArtifacts = computed(() =>
 const processingArtifacts = computed(() =>
   stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
 )
-const activeFieldLabelWidth = computed(() => {
-  const longestLabelLength = activeFields.value.reduce((max, token) => {
-    const length = String(token?.label || '').trim().length
-    return Math.max(max, length)
-  }, 0)
-
-  const widthInCh = Math.min(Math.max(longestLabelLength, 6), 8)
-  return `${widthInCh}ch`
-})
+const activeFieldLabelWidth = computed(() => '10ch')
 
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
@@ -1779,7 +1771,7 @@ onBeforeUnmount(() => {
 
 .create-record-shell__field {
   display: grid;
-  grid-template-columns: var(--create-record-shell-label-width, 12ch) minmax(0, 1fr);
+  grid-template-columns: var(--create-record-shell-label-width, 10ch) minmax(0, 1fr);
   gap: 10px;
   align-items: center;
 }
@@ -1800,6 +1792,7 @@ onBeforeUnmount(() => {
   gap: 0;
   padding-top: 0;
   justify-self: end;
+  width: var(--create-record-shell-label-width, 10ch);
 }
 
 .create-record-shell__field-label-row {
@@ -1813,6 +1806,7 @@ onBeforeUnmount(() => {
   display: grid;
   justify-items: end;
   gap: 4px;
+  width: 100%;
 }
 
 .create-record-shell__field--wide .create-record-shell__field-copy,
@@ -1853,6 +1847,7 @@ onBeforeUnmount(() => {
   height: 20px;
   min-height: 20px;
   padding: 0;
+  flex: 0 0 auto;
 }
 
 .create-record-shell__field-value-row {
@@ -1860,11 +1855,16 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   min-width: 0;
+  justify-self: start;
+  width: fit-content;
+  max-width: min(100%, 300px);
 }
 
 .create-record-shell__input {
-  width: min(100%, 240px);
-  justify-self: start;
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 132px;
+  max-width: 260px;
   background: rgba(255, 255, 255, 0.92);
 }
 
@@ -1962,6 +1962,9 @@ onBeforeUnmount(() => {
 
 .create-record-shell__input--summary {
   width: 100%;
+  min-width: 0;
+  max-width: none;
+  flex: 1 1 auto;
 }
 
 .create-record-shell__input--summary :deep(.q-field__control) {
