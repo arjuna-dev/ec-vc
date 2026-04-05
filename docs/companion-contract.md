@@ -32,7 +32,7 @@ That means:
 
 ## Field Classes
 
-The companion must distinguish between two different kinds of work:
+The companion must distinguish between three different kinds of work:
 
 ### 1. Owned Field
 
@@ -68,14 +68,35 @@ Companion behavior:
 - write only through the approved relationship owner path
 - do not collapse the relationship into a scalar field
 
+### 3. Directional Link
+
+A directional link is a root-established or rule-bearing path.
+
+Examples:
+
+- `Owner -> User`
+- `User -> Role`
+- `Contact -> linked_user_id`
+- `Creator`
+- provenance links such as `Artifact -> Ingestion`
+
+Companion behavior:
+
+- treat it as an explicit owner-path link
+- do not treat it like generic KDB
+- do not edit it from the reverse side if the current record does not own it
+- help the user follow it back clearly when the field is loaded but locked
+
 ## Mandatory Rules
 
 The companion must follow these rules:
 
 - if the token is an owned field, propose a value
+- if the token is a directional link, propose or update it only through its explicit owner path
 - if the token is a KDB relationship, propose a link target
 - never collapse a relationship into a scalar field
 - never convert an owned field into a relationship
+- never convert a directional link into generic KDB
 - never create a new relationship path if canon does not declare it
 - never guess ownership when canonical ownership is missing
 - when confidence is low, suggest rather than commit
@@ -121,6 +142,41 @@ Working rule:
 
 - frontload attention
 - do not frontload by changing structure
+
+The companion may also use:
+
+- point relevance
+- board relevance
+- current-stage relevance
+
+to rank likely options first.
+
+Working rule:
+
+- heuristics may rank likely choices
+- heuristics must not change field class, ownership, or write path
+
+## Human-System Rule
+
+The companion should repeat and respect the human-system distinction:
+
+- `Owner`
+  - system authority
+  - node founder identity
+  - origin of top-level control
+
+- `User`
+  - application actor
+  - permissions and participation layer
+
+- `Contact`
+  - person record inside the CRM/KDB layer
+
+Working rule:
+
+- these are related layers
+- they are not interchangeable
+- identity links between them should follow explicit owner paths
 
 ## Relationship Rule
 

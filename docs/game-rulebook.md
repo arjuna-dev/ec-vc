@@ -73,6 +73,13 @@ Working rule:
 - score what is most structurally and operationally relevant now
 - do not score everything as if it had equal value
 
+This should also inform ranking and front-loading:
+
+- likely options may be ranked by what is worth the most now
+- the point model can help companions and users see which choices are most relevant
+- this ranking may help order human-facing options and bot-facing suggestions
+- but it must not alter ownership or write-path truth
+
 ## Base-10 Scoring Rule
 
 To keep the scoring language clear, use a base-10 system.
@@ -163,6 +170,8 @@ The Game Master should not:
 - override ownership
 - mark unverified information as settled truth
 
+The `Companion` should be understood as the guide helping the user navigate the game and score points in a useful way.
+
 ## Point Flow
 
 The intended first-pass point flow is:
@@ -247,6 +256,49 @@ Working rule:
 
 - the game layer should surface what matters most now
 - not merely what is easiest to score
+
+## Human-System Relevance
+
+The game layer should repeatedly reinforce the human-system distinction:
+
+- `Owner`
+  - system authority
+  - node founder identity
+  - origin of top-level control
+
+- `User`
+  - application actor
+  - permissions and participation layer
+
+- `Contact`
+  - person record inside the CRM/KDB layer
+
+This matters because not all human links mean the same thing.
+
+Working rule:
+
+- identity and authority links should usually score as higher-order structural work
+- generic social or network links should not automatically outrank root-established human-system links
+
+## Field-Class Scoring Rule
+
+The point system should respect field class.
+
+That means:
+
+- `owned_field`
+  - score by local relevance and correctness
+
+- `directional_link`
+  - score strongly when it establishes identity, authority, provenance, or parentage correctly
+
+- `kdb_relationship`
+  - score by stage relevance and downstream value
+
+Working rule:
+
+- do not reward a low-impact relationship like a high-impact root-established link
+- use the field class, stage, and board objective together when ranking work
 
 ## Pipeline Board Rule
 

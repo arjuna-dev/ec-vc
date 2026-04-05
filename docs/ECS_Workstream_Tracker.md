@@ -24,20 +24,28 @@ This tracker should stay aligned with:
 - keep the underlying structure, ownership, and runtime relationship paths converging cleanly
 - use the `Companion` and the first-pass game layer to surface issues without weakening the contract
 - keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
+- turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
 
 ### Open Activity
 
 - convert the declared-but-not-yet-backed KDB relationship set into real runtime-backed paths
 - keep `Knowledge DB` behavior converging with the normal file-shell contract
 - refine the game layer as a guide on top of the structure pass, not as a replacement for it
+- document and normalize:
+  - `owned_field`
+  - `directional_link`
+  - `kdb_relationship`
 
 ### Top 5 To-Do
 
 1. Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths.
-2. Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships.
-3. Add reverse-read behavior for every newly-backed KDB relationship so both linked `L1`s reflect the same connection.
-4. Define the first relevance maps for major boards so points can reflect what matters most at each stage.
-5. Keep the shared create/edit dialog and shell payloads converging on fully canonical field and ownership behavior.
+2. Define the first generalized field-class layer for `L3` tokens:
+   - `owned_field`
+   - `directional_link`
+   - `kdb_relationship`
+3. Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships.
+4. Add reverse-read behavior for every newly-backed KDB relationship so both linked `L1`s reflect the same connection.
+5. Define the first relevance maps for major boards so points can reflect what matters most at each stage.
 
 ## Front-Loaded
 
@@ -89,6 +97,15 @@ This tracker should stay aligned with:
 - the `Companion` should now be understood as a guide helping the user navigate the game and score points in a useful way
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - the `Game Master` should explain ranking and point changes without overriding verification or ownership
+- the field-class direction is now becoming explicit:
+  - `owned_field`
+  - `directional_link`
+  - `kdb_relationship`
+- root-established directional links are now recognized as a distinct architecture class for:
+  - identity
+  - authority
+  - provenance
+  - parent/root navigation
 - the game layer should now be understood as dynamically relevance-based:
   - score what matters most at the current stage
   - do not score all actions as if they were equal
@@ -118,6 +135,7 @@ This tracker should stay aligned with:
   - `Artifact_*`
   - `Note_*`
   relationships
+- the `Owner / User / Contact` language should now be repeated consistently across contracts, game docs, and future UI help so users and companions understand that these are related but not interchangeable human-system layers
 
 ## Pending
 
@@ -125,6 +143,7 @@ This tracker should stay aligned with:
 - define how provisional points, realized points, deductions, and bonuses should map to actual workflows
 - define how pipeline boards should express required information and expected outcome per stage
 - define the first relevance maps for major boards so points can reflect what matters most at each stage
+- decide which directional links should be visible as explicit field-class context in field surfaces
 - Fix workbook wrapper-token drift so the JSON companion validates cleanly for `Company`, `Funds`, `Markets`, and `Terms`
 - Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths
 - Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships

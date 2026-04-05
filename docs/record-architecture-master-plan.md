@@ -258,6 +258,171 @@ Working rule:
 - existing domain-specific relationship tables may continue where they are already meaningful and approved
 - canon-declared KDB links without that special owner path should use the shared `KDB_Relationships` contract
 - reverse appearance should be maintained through the same shared contract
+
+## Human System Spine
+
+The human system should not be thought of as one flat set of interchangeable cards.
+
+It has three distinct layers:
+
+- `Owner`
+  - system authority
+  - node founder identity
+  - origin of top-level control
+  - should exist at node creation
+
+- `User`
+  - application actor
+  - carries permissions, role assignment, work rights, and system participation
+  - node creation should immediately produce a first `User` with role `Owner`
+
+- `Contact`
+  - person record inside the CRM/KDB layer
+  - may correspond to a `User`
+  - but not every `Contact` is a `User`
+
+Working rule:
+
+- `Owner -> User` is a root-established authority path
+- `User <-> Contact` should be treated as an identity-link path when it represents the same human
+- this identity-link path should not be treated like a loose generic KDB relationship
+
+## Field Class Model
+
+The lasting architecture should not depend on remembered exceptions.
+
+It should depend on explicit token behavior declared at the `L1/L2/L3` structure layer.
+
+That means:
+
+- `L1`
+  - defines entity identity and root contract
+
+- `L2`
+  - defines section purpose such as:
+    - `System`
+    - `General`
+    - `KDB`
+
+- `L3`
+  - defines token behavior
+
+The intended token behavior layer should explicitly declare concepts like:
+
+- `field_class`
+  - `owned_field`
+  - `directional_link`
+  - `kdb_relationship`
+
+- `ownership_mode`
+  - `local`
+  - `root_owned`
+  - `relationship_owned`
+
+- `cardinality`
+  - `one_to_one`
+  - `one_to_many`
+  - `many_to_many`
+
+- `reverse_visibility`
+  - `none`
+  - `visible`
+  - `editable_from_owner_only`
+
+- `write_path`
+  - direct owner field
+  - join-owner contract
+  - generic KDB owner path
+
+Working rule:
+
+- field behavior should be declared by structure
+- the shell should not remember exceptions
+- the shell should render and save from explicit token behavior
+
+### Field Classification Table
+
+| Field Class | Meaning | Directionality | Who Owns It | Reverse Visible? | Editable Where? |
+| --- | --- | --- | --- | --- | --- |
+| `owned_field` | ordinary field value on the current record | local | current record | usually no | current record |
+| `directional_link` | root-established or rule-bearing path such as identity, authority, provenance, or parentage | one-directional | explicit owner path | sometimes, depending on rule | owner side only |
+| `kdb_relationship` | mutual relationship between records | usually bidirectional | relationship owner path | yes | through approved relationship owner path |
+
+### Root-Established Directional Links
+
+Some fields should be treated as a distinct class from generic KDB.
+
+These are:
+
+- identity links
+- authority links
+- provenance links
+- parent/root organization links
+- stage or board anchors when they govern behavior
+
+These links should:
+
+- be established at root or owner level
+- guide navigation and rule enforcement
+- not be editable casually from both sides
+- often render loaded-but-locked in linked views
+
+Examples:
+
+- `Owner -> User`
+- `User -> Role`
+- `Contact -> linked_user_id`
+- `Creator`
+- `Artifact -> Ingestion`
+- `Ingestion -> Created Files`
+
+## Heuristic Guidance Layer
+
+Heuristics are approved as a top-layer guidance tool, not as a structure tool.
+
+Working rule:
+
+- strict structure underneath
+- heuristic help on top
+
+That means heuristics may:
+
+- front-load likely options
+- rank likely targets
+- highlight likely next actions
+- prioritize what is in the user’s line of sight
+- use board relevance and point weighting to rank options
+
+But heuristics must not:
+
+- invent ownership
+- invent undeclared relationships
+- decide write paths
+- override the declared field class
+
+This is especially relevant for:
+
+- linked human-system fields such as `Contact_User`
+- high-context KDB selectors
+- stage-sensitive board work where the point system can rank what matters most now
+
+## Field Visibility Rule
+
+The field behavior model should eventually be visible to the user in field-level context.
+
+That does not mean exposing raw implementation jargon everywhere.
+
+It means the system should be able to show, when needed:
+
+- whether a field is local, directional, or relational
+- whether it is editable here or only through the owner path
+- whether it is reverse-visible only
+- where to follow it back if it is locked here
+
+Working rule:
+
+- the architecture meaning should be inspectable
+- users and companions should not have to guess why a field is editable, locked, or mirrored
 - new `L1`s and `Knowledge DB` `L1`s should inherit this rule instead of inventing their own relationship storage pattern
 
 ## Shared Shell Rule

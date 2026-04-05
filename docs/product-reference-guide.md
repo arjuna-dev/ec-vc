@@ -39,6 +39,32 @@ There is also a `Knowledge DBs` subset inside `Files`.
 
 `Knowledge DB` files are reusable reference files that support other records with shared taxonomies, terms, stages, securities, industries, and similar evolving reference sets.
 
+## Human-System Language
+
+Use the following language repeatedly and consistently:
+
+- `Owner`
+  - system authority
+  - node founder identity
+  - origin of top-level control
+  - should exist at node creation
+
+- `User`
+  - application actor
+  - carries permissions, role assignment, work rights, and system participation
+  - node creation should immediately produce a first `User` with role `Owner`
+
+- `Contact`
+  - person record inside the CRM/KDB layer
+  - may correspond to a `User`
+  - but not every `Contact` is a `User`
+
+Working rule:
+
+- these are related layers of the human system
+- they are not interchangeable cards
+- identity links between them should follow explicit owner paths
+
 ## Precision Language
 
 To stay precise while the codebase is still finishing its naming cleanup, use the following language:
@@ -110,6 +136,43 @@ Working rule:
 - read shell fields through canonical structure first
 - if runtime payload names differ, use explicit canonical alias metadata
 - do not rebuild old per-page field maps in the UI
+
+## Token Behavior Language
+
+Canonical structure should keep moving toward explicit token behavior at the `L3` level.
+
+The intended language is:
+
+- `field_class`
+  - `owned_field`
+  - `directional_link`
+  - `kdb_relationship`
+
+- `ownership_mode`
+  - `local`
+  - `root_owned`
+  - `relationship_owned`
+
+- `cardinality`
+  - `one_to_one`
+  - `one_to_many`
+  - `many_to_many`
+
+- `reverse_visibility`
+  - `none`
+  - `visible`
+  - `editable_from_owner_only`
+
+- `write_path`
+  - direct owner field
+  - join-owner contract
+  - generic KDB owner path
+
+Working rule:
+
+- field behavior should be declared by structure
+- do not rely on remembered one-offs
+- shell behavior should follow declared token behavior
 
 ## File To Record Mapping
 
@@ -206,6 +269,35 @@ It should not preload from:
 - card chips
 - table summaries
 - reduced list-row payloads
+
+If a field is sourced from a linked owner path:
+
+- it should load visibly
+- it should render locked when the current record does not own it
+- the user should be able to follow the field back to the owner record clearly
+
+## Heuristic Guidance Rule
+
+Heuristics should be used to help users move faster without weakening ownership.
+
+That means heuristics may:
+
+- front-load likely options
+- rank likely selections
+- prioritize what matters most at the current stage
+- use board relevance and the point system as ranking inputs
+
+That means heuristics may not:
+
+- invent ownership
+- invent undeclared relationships
+- collapse a relationship into a scalar value
+- override the approved write path
+
+Working rule:
+
+- heuristics guide choice
+- contracts govern truth
 
 ## Standard DB Settings
 
