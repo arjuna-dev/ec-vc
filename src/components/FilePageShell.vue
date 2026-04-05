@@ -849,7 +849,7 @@ const canCreateWithShell = computed(() => {
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
 const createDialogInitialValues = computed(() => {
-  const editRecord = editDialogRecordPayload.value?.record || editDialogRow.value?.raw || null
+  const editRecord = editDialogRecordPayload.value?.record || null
   if (createDialogMode.value !== 'edit' || !editRecord) {
     return createDialogPrefillValues.value
   }
@@ -866,6 +866,16 @@ const createDialogInitialValues = computed(() => {
     ...editValues,
   }
 })
+
+async function loadEditDialogRecordPayload(entityName, recordId) {
+  const normalizedEntityName = String(entityName || '').trim()
+  const normalizedRecordId = String(recordId || '').trim()
+  if (!bridge.value?.databooks?.view || !normalizedEntityName || !normalizedRecordId) return null
+
+  const result = await bridge.value.databooks.view(normalizedEntityName, normalizedRecordId)
+  if (result?.record) return result
+  return null
+}
 const canDeleteSelectedRows = computed(() => {
   if (selectedRows.value.length === 0) return false
   return typeof bridge.value?.[activeSourceKey.value]?.delete === 'function'
@@ -1672,15 +1682,19 @@ async function openEditRecordShell(row) {
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
-  if (bridge.value?.databooks?.view && createDialogDraftEntityName.value) {
-    try {
-      editDialogRecordPayload.value = await bridge.value.databooks.view({
-        tableName: createDialogDraftEntityName.value,
-        recordId: createDialogDraftRecordId.value,
-      })
-    } catch {
-      editDialogRecordPayload.value = null
-    }
+  try {
+    editDialogRecordPayload.value = await loadEditDialogRecordPayload(
+      createDialogDraftEntityName.value,
+      createDialogDraftRecordId.value,
+    )
+  } catch {
+    editDialogRecordPayload.value = null
+  }
+  if (!editDialogRecordPayload.value?.record) {
+    $q.notify({ type: 'negative', message: 'Could not load the true record fields for edit.' })
+    editDialogRow.value = null
+    createDialogMode.value = 'create'
+    return
   }
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
@@ -1697,15 +1711,19 @@ async function openAddRelationShell(row) {
   createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'key-fields'
   createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
-  if (bridge.value?.databooks?.view && createDialogDraftEntityName.value) {
-    try {
-      editDialogRecordPayload.value = await bridge.value.databooks.view({
-        tableName: createDialogDraftEntityName.value,
-        recordId: createDialogDraftRecordId.value,
-      })
-    } catch {
-      editDialogRecordPayload.value = null
-    }
+  try {
+    editDialogRecordPayload.value = await loadEditDialogRecordPayload(
+      createDialogDraftEntityName.value,
+      createDialogDraftRecordId.value,
+    )
+  } catch {
+    editDialogRecordPayload.value = null
+  }
+  if (!editDialogRecordPayload.value?.record) {
+    $q.notify({ type: 'negative', message: 'Could not load the true record fields for edit.' })
+    editDialogRow.value = null
+    createDialogMode.value = 'create'
+    return
   }
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
