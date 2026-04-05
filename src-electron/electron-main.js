@@ -1044,6 +1044,8 @@ function listOpportunities() {
 }
 
 function listContacts() {
+  const database = initDb()
+  ensureOwnerUserProfile(database)
   return dbAll(
     `
     SELECT
@@ -4187,6 +4189,59 @@ function assignUserRole(database, userId, roleId, assignedBy = null) {
     .run(normalizedUserId, normalizedRoleId, normalizeNullableString(assignedBy) || normalizedUserId)
 }
 
+function upsertLinkedContactForUserProfile(
+  database,
+  { userId, name, email, profile = {}, preferredContactId = '' } = {},
+) {
+  const normalizedUserId = normalizeNullableString(userId)
+  const normalizedName = normalizeNullableString(name)
+  const normalizedEmail = normalizeNullableString(email)
+  if (!normalizedUserId || !normalizedName || !normalizedEmail) {
+    throw new Error('User contact bootstrap requires user id, name, and email.')
+  }
+
+  const storedContactId = normalizeNullableString(preferredContactId)
+  const existingContact =
+    (storedContactId &&
+      database.prepare('SELECT id FROM Contacts WHERE id = ? LIMIT 1').get(storedContactId)) ||
+    database.prepare('SELECT id FROM Contacts WHERE linked_user_id = ? LIMIT 1').get(normalizedUserId)
+
+  const contactId = existingContact?.id || `contact:${crypto.randomUUID()}`
+  const personalEmail = normalizeNullableString(profile?.Personal_Email) || normalizedEmail
+  const professionalEmail = normalizeNullableString(profile?.Professional_Email)
+
+  database
+    .prepare(
+      `
+      INSERT INTO Contacts (
+        id, Name, Personal_Email, Professional_Email, Phone, Country_based, LinkedIn, linked_user_id
+      ) VALUES (
+        @id, @Name, @Personal_Email, @Professional_Email, @Phone, @Country_based, @LinkedIn, @linked_user_id
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        Name = excluded.Name,
+        Personal_Email = excluded.Personal_Email,
+        Professional_Email = excluded.Professional_Email,
+        Phone = COALESCE(excluded.Phone, Contacts.Phone),
+        Country_based = COALESCE(excluded.Country_based, Contacts.Country_based),
+        LinkedIn = COALESCE(excluded.LinkedIn, Contacts.LinkedIn),
+        linked_user_id = excluded.linked_user_id
+    `,
+    )
+    .run({
+      id: contactId,
+      Name: normalizedName,
+      Personal_Email: personalEmail,
+      Professional_Email: professionalEmail,
+      Phone: normalizeNullableString(profile?.Phone),
+      Country_based: normalizeNullableString(profile?.Country_based),
+      LinkedIn: normalizeNullableString(profile?.LinkedIn),
+      linked_user_id: normalizedUserId,
+    })
+
+  return contactId
+}
+
 function createOrUpdateUserProfile(database, profile = {}) {
   const name = normalizeNullableString(profile?.Name)
   if (!name) throw new Error('User name is required')
@@ -4229,44 +4284,13 @@ function createOrUpdateUserProfile(database, profile = {}) {
       User_PEmail: email,
     })
 
-  const storedContactId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userContactId))
-  const existingContact =
-    (storedContactId &&
-      database.prepare('SELECT id FROM Contacts WHERE id = ? LIMIT 1').get(storedContactId)) ||
-    database.prepare('SELECT id FROM Contacts WHERE linked_user_id = ? LIMIT 1').get(userId)
-
-  const contactId = existingContact?.id || `contact:${crypto.randomUUID()}`
-  const personalEmail = normalizeNullableString(profile?.Personal_Email) || email
-  const professionalEmail = normalizeNullableString(profile?.Professional_Email)
-
-  database
-    .prepare(
-      `
-      INSERT INTO Contacts (
-        id, Name, Personal_Email, Professional_Email, Phone, Country_based, LinkedIn, linked_user_id
-      ) VALUES (
-        @id, @Name, @Personal_Email, @Professional_Email, @Phone, @Country_based, @LinkedIn, @linked_user_id
-      )
-      ON CONFLICT(id) DO UPDATE SET
-        Name = excluded.Name,
-        Personal_Email = excluded.Personal_Email,
-        Professional_Email = excluded.Professional_Email,
-        Phone = COALESCE(excluded.Phone, Contacts.Phone),
-        Country_based = COALESCE(excluded.Country_based, Contacts.Country_based),
-        LinkedIn = COALESCE(excluded.LinkedIn, Contacts.LinkedIn),
-        linked_user_id = excluded.linked_user_id
-    `,
-    )
-    .run({
-      id: contactId,
-      Name: name,
-      Personal_Email: personalEmail,
-      Professional_Email: professionalEmail,
-      Phone: normalizeNullableString(profile?.Phone),
-      Country_based: normalizeNullableString(profile?.Country_based),
-      LinkedIn: normalizeNullableString(profile?.LinkedIn),
-      linked_user_id: userId,
-    })
+  const contactId = upsertLinkedContactForUserProfile(database, {
+    userId,
+    name,
+    email,
+    profile,
+    preferredContactId: getAppSetting(database, APP_SETTING_KEYS.userContactId),
+  })
 
   setAppSetting(database, APP_SETTING_KEYS.userId, userId)
   setAppSetting(database, APP_SETTING_KEYS.userContactId, contactId)
@@ -4284,6 +4308,17 @@ function ensureOwnerUserProfile(database) {
   const existingUser = storedUserId ? getUserById(database, storedUserId) : null
   if (existingUser) {
     const ownerRoleId = ensureDefaultRoles(database, existingUser.id)
+    const ownerContactId = upsertLinkedContactForUserProfile(database, {
+      userId: existingUser.id,
+      name: existingUser.User_Name,
+      email: existingUser.User_PEmail,
+      profile: {
+        Name: existingUser.User_Name,
+        User_PEmail: existingUser.User_PEmail,
+      },
+      preferredContactId: getAppSetting(database, APP_SETTING_KEYS.userContactId),
+    })
+    setAppSetting(database, APP_SETTING_KEYS.userContactId, ownerContactId)
     ensureOwnerDb(database, existingUser.id)
     ensureUserRoleAssignmentRow(database, existingUser.id, existingUser.id)
     assignUserRole(database, existingUser.id, ownerRoleId, existingUser.id)
