@@ -3326,9 +3326,13 @@ function resolveCompanySummaryValue(option = {}) {
 
 function getFieldDisplayValue(fieldName) {
   const field = fieldByName.value[fieldName]
-  if (!field) return ''
-  if (!editMode.value) return String(field.value || '').trim()
-  return String(draftValues.value[field.key] ?? field.value ?? '').trim()
+  if (field) {
+    if (!editMode.value) return String(field.value || '').trim()
+    return String(draftValues.value[field.key] ?? field.value ?? '').trim()
+  }
+
+  const recordValue = currentView.value?.record?.[fieldName]
+  return recordValue == null ? '' : String(recordValue).trim()
 }
 
 function handleBackNavigation() {
