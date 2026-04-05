@@ -2037,9 +2037,9 @@ onBeforeUnmount(() => {
   gap: 8px;
   min-width: 0;
   justify-self: start;
-  width: calc(100% - 4px);
-  max-width: calc(100% - 4px);
-  margin-left: 4px;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
 }
 
 .create-record-shell__input {
