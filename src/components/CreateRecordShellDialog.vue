@@ -2051,7 +2051,7 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__input :deep(.q-field__control) {
-  min-height: 12px;
+  min-height: calc(0.78rem + 2px);
   padding-top: 0;
   padding-bottom: 0;
   border-radius: 4px;
@@ -2064,7 +2064,7 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-field__input) {
   padding-top: 0;
   padding-bottom: 0;
-  min-height: 12px;
+  min-height: calc(0.78rem + 2px);
 }
 
 .create-record-shell__input :deep(.q-field__native),
