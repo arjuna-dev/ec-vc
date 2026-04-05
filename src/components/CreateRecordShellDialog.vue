@@ -23,12 +23,6 @@
               <div class="create-record-shell__intake-column">
                 <div class="create-record-shell__intake-column-title">Artifacts</div>
                 <div
-                  v-if="artifactContextNote"
-                  class="create-record-shell__artifact-context-note"
-                >
-                  {{ artifactContextNote.detail }}
-                </div>
-                <div
                   class="create-record-shell__artifact-drop"
                   :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
                   @dragover.prevent="artifactDragOver = true"
@@ -326,25 +320,7 @@
                             {{ formatFieldType(token.tokenType) }}
                           </q-tooltip>
                         </div>
-                        <div
-                          v-if="fieldVerificationStatusLabel(token)"
-                          class="create-record-shell__field-status-chip"
-                        >
-                          {{ fieldVerificationStatusLabel(token) }}
-                        </div>
                       </div>
-                      <q-select
-                        v-if="showFieldVerificationAction(token)"
-                        :model-value="fieldVerificationState(token)"
-                        dense
-                        outlined
-                        emit-value
-                        map-options
-                        :options="fieldVerificationActionOptions"
-                        :disable="loading"
-                        class="create-record-shell__field-action"
-                        @update:model-value="updateFieldVerificationState(token, $event)"
-                      />
                       <q-btn
                         v-if="fieldHasParentRecordLink(token)"
                         flat
@@ -359,55 +335,71 @@
                     </div>
                   </div>
 
-                  <q-select
-                    v-if="token.tokenType === 'select_multi'"
-                    :model-value="Array.isArray(formValues[token.key]) ? formValues[token.key] : []"
-                    dense
-                    outlined
-                    use-chips
-                    multiple
-                    emit-value
-                    map-options
-                    :options="token.inputOptions || []"
-                    :disable="loading || isFieldLocked(token)"
-                    class="create-record-shell__input"
-                    :class="[
-                      { 'create-record-shell__input--summary': isSummaryField(token) },
-                      fieldVerificationClass(token),
-                    ]"
-                    @update:model-value="updateField(token.key, $event)"
-                  />
+                  <div class="create-record-shell__field-value-row">
+                    <q-select
+                      v-if="token.tokenType === 'select_multi'"
+                      :model-value="Array.isArray(formValues[token.key]) ? formValues[token.key] : []"
+                      dense
+                      outlined
+                      use-chips
+                      multiple
+                      emit-value
+                      map-options
+                      :options="token.inputOptions || []"
+                      :disable="loading || isFieldLocked(token)"
+                      class="create-record-shell__input"
+                      :class="[
+                        { 'create-record-shell__input--summary': isSummaryField(token) },
+                        fieldVerificationClass(token),
+                      ]"
+                      @update:model-value="updateField(token.key, $event)"
+                    />
 
-                  <q-select
-                    v-else-if="token.tokenType === 'select_single'"
-                    :model-value="selectSingleValue(formValues[token.key])"
-                    dense
-                    outlined
-                    use-chips
-                    emit-value
-                    map-options
-                    :options="token.inputOptions || []"
-                    :disable="loading || isFieldLocked(token)"
-                    class="create-record-shell__input"
-                    :class="fieldVerificationClass(token)"
-                    @update:model-value="updateField(token.key, $event)"
-                  />
+                    <q-select
+                      v-else-if="token.tokenType === 'select_single'"
+                      :model-value="selectSingleValue(formValues[token.key])"
+                      dense
+                      outlined
+                      use-chips
+                      emit-value
+                      map-options
+                      :options="token.inputOptions || []"
+                      :disable="loading || isFieldLocked(token)"
+                      class="create-record-shell__input"
+                      :class="fieldVerificationClass(token)"
+                      @update:model-value="updateField(token.key, $event)"
+                    />
 
-                  <q-input
-                    v-else
-                    :model-value="stringValue(formValues[token.key])"
-                    dense
-                    outlined
-                    :disable="loading || isFieldLocked(token)"
-                    :type="isSummaryField(token) ? 'textarea' : inputTypeForToken(token.tokenType)"
-                    :autogrow="isSummaryField(token)"
-                    class="create-record-shell__input"
-                    :class="[
-                      { 'create-record-shell__input--summary': isSummaryField(token) },
-                      fieldVerificationClass(token),
-                    ]"
-                    @update:model-value="updateField(token.key, $event)"
-                  />
+                    <q-input
+                      v-else
+                      :model-value="stringValue(formValues[token.key])"
+                      dense
+                      outlined
+                      :disable="loading || isFieldLocked(token)"
+                      :type="isSummaryField(token) ? 'textarea' : inputTypeForToken(token.tokenType)"
+                      :autogrow="isSummaryField(token)"
+                      class="create-record-shell__input"
+                      :class="[
+                        { 'create-record-shell__input--summary': isSummaryField(token) },
+                        fieldVerificationClass(token),
+                      ]"
+                      @update:model-value="updateField(token.key, $event)"
+                    />
+
+                    <q-select
+                      v-if="showFieldVerificationAction(token)"
+                      :model-value="fieldVerificationState(token)"
+                      dense
+                      outlined
+                      emit-value
+                      map-options
+                      :options="fieldVerificationActionOptions"
+                      :disable="loading"
+                      class="create-record-shell__field-action"
+                      :class="fieldVerificationClass(token)"
+                      @update:model-value="updateFieldVerificationState(token, $event)"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -634,6 +626,10 @@ function updateField(tokenKey, value) {
     ...formValues.value,
     [tokenKey]: value,
   }
+  fieldVerificationStates.value = {
+    ...fieldVerificationStates.value,
+    [tokenKey]: 'verified',
+  }
   hasUserChanges.value = true
   emit('change', buildDialogSnapshot())
 }
@@ -746,12 +742,7 @@ function fieldHasValue(token) {
   return String(value ?? '').trim().length > 0
 }
 
-function isKdbSectionActive() {
-  return String(activeSection.value?.label || '').trim().toLowerCase() === 'kdb'
-}
-
 function shouldHighlightFieldVerification(token) {
-  if (!isKdbSectionActive()) return false
   if (!fieldHasValue(token)) return false
   const state = fieldVerificationState(token)
   return state !== 'verified'
@@ -767,16 +758,7 @@ function fieldVerificationClass(token) {
 }
 
 function showFieldVerificationAction(token) {
-  if (!isKdbSectionActive()) return false
-  return fieldHasValue(token)
-}
-
-function fieldVerificationStatusLabel(token) {
-  if (!showFieldVerificationAction(token)) return ''
-  const state = fieldVerificationState(token)
-  if (!state) return 'Needs verification'
-  const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
-  return option?.label || state
+  return fieldHasValue(token) && Boolean(fieldVerificationState(token) || getFieldMeta(token)?.verificationState)
 }
 
 function updateFieldVerificationState(token, nextState) {
@@ -793,7 +775,10 @@ function buildVerificationChanges() {
     .flatMap((section) => section.tokens || [])
     .map((token) => {
       const meta = getFieldMeta(token)
-      const nextState = fieldVerificationState(token)
+      const currentValue = formValues.value?.[token.key]
+      const initialValue = props.initialValues?.[token.key]
+      const valueChanged = JSON.stringify(currentValue ?? '') !== JSON.stringify(initialValue ?? '')
+      const nextState = valueChanged ? 'verified' : fieldVerificationState(token)
       const initialState = String(meta?.verificationState || '').trim()
       if (!nextState || nextState === initialState) return null
       return {
@@ -801,7 +786,9 @@ function buildVerificationChanges() {
         fieldName: String(meta?.fieldName || '').trim(),
         tableName: String(meta?.tableName || '').trim(),
         recordId: String(meta?.recordId || '').trim(),
-        source: String(meta?.verificationSource || 'dialog_field_review').trim(),
+        source: valueChanged
+          ? 'direct_user_input'
+          : String(meta?.verificationSource || 'dialog_field_review').trim(),
         state: nextState,
       }
     })

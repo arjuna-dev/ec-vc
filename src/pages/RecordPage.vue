@@ -4703,6 +4703,21 @@ async function applyRecordChanges(changes, { syncDraftFieldNames = [], exitEditM
       actionId: editSessionActionId.value || null,
       actionLabel: 'record_view_edit_session',
     })
+    for (const change of changes) {
+      const tableName = String(change?.table_name || '').trim()
+      const recordId = String(change?.record_id || '').trim()
+      const fieldName = String(change?.field_name || '').trim()
+      if (!tableName || !recordId || !fieldName) continue
+      await bridge.value?.verification?.upsert?.({
+        tableName,
+        recordId,
+        fieldName,
+        state: 'verified',
+        source: 'direct_user_input',
+        actionId: editSessionActionId.value || null,
+        actionLabel: 'record_view_edit_session',
+      })
+    }
     currentView.value = result?.view || currentView.value
     fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : []
     if (editMode.value && syncDraftFieldNames.length) {
