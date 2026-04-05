@@ -25,7 +25,7 @@ const routes = [
       { path: 'notes', name: 'notes', component: () => import('pages/NotesPage.vue') },
       { path: 'tasks', name: 'tasks', component: () => import('pages/TasksPage.vue') },
       { path: 'test-shell', name: 'test-shell', component: () => import('pages/TestShellPage.vue') },
-      { path: 'assistants', name: 'assistants', component: () => import('pages/AssistantsPage.vue') },
+      { path: 'roles', name: 'roles', component: () => import('pages/AssistantsPage.vue') },
       { path: 'records/:tableName/:recordId', name: RECORD_VIEW_ROUTE_NAME, component: () => import('pages/RecordPage.vue') },
       {
         path: 'databooks/:tableName/:recordId',

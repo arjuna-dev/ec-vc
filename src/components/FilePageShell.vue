@@ -697,10 +697,10 @@ const SECTION_LOADERS = {
     resultKey: 'tasks',
     recordIdField: 'id',
   },
-  assistants: {
-    listFn: (bridgeValue) => bridgeValue?.assistants?.list?.(),
-    resultKey: 'assistants',
-    recordIdField: 'assistant_system_prompt_id',
+  roles: {
+    listFn: (bridgeValue) => bridgeValue?.roles?.list?.(),
+    resultKey: 'roles',
+    recordIdField: 'id',
   },
   'artifacts-processed': {
     listFn: (bridgeValue) => bridgeValue?.['artifacts-processed']?.list?.(),

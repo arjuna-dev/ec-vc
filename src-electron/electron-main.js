@@ -1305,19 +1305,17 @@ function listTasksForPage() {
     SELECT DISTINCT
       t.id,
       t.Task_Name,
-      tov.Task_Summary AS Task_Description,
-      tov.Task_Status AS Status,
-      tov.Task_Priority_Rank AS Priority,
-      tov.Task_Due_Date AS Due_Date,
-      NULL AS pipeline_id,
+      tov.Task_Summary,
+      tov.Task_Status,
+      tov.Task_Priority_Rank,
+      tov.Task_Due_Date,
       t.created_at,
       COALESCE(r.Round_Name, f.Fund_Name) AS opportunity_name,
       COALESCE(r.id, f.id) AS opportunity_id,
       owner.Name AS contact_name,
       owner.id AS contact_id,
       co.Company_Name AS company_name,
-      co.id AS company_id,
-      NULL AS pipeline_name
+      co.id AS company_id
     FROM Tasks t
     LEFT JOIN Task_Overview tov ON tov.task_id = t.id
     LEFT JOIN Task_Team tt ON tt.task_id = t.id
@@ -1410,23 +1408,13 @@ function upsertTasks(rows = []) {
   return tx()
 }
 
-function listAssistantPrompts() {
-  return listRoles()
-}
-
 function listRoles() {
   return dbAll(
     `
     SELECT
-      id AS assistant_system_prompt_id,
-      Role_Name AS name,
-      '' AS version,
-      Role_Summary AS description,
-      '' AS system_prompt,
-      '' AS input_contract,
-      '' AS output_contract,
-      '' AS schema_name,
-      'Roles' AS domain,
+      id,
+      Role_Name,
+      Role_Summary,
       created_at
     FROM Roles
     ORDER BY created_at DESC, id DESC
@@ -5782,12 +5770,12 @@ function registerIpc() {
     return result
   })
 
-  ipcMain.handle('assistants:list', async () => {
+  ipcMain.handle('roles:list', async () => {
     initDb()
-    return { assistants: listAssistantPrompts() }
+    return { roles: listRoles() }
   })
 
-  ipcMain.handle('assistants:create', async (_event, payload = {}) => {
+  ipcMain.handle('roles:create', async (_event, payload = {}) => {
     initDb()
     try {
       const result = createRole(payload)
@@ -5798,7 +5786,7 @@ function registerIpc() {
     }
   })
 
-  ipcMain.handle('assistants:delete', async (_event, { roleId } = {}) => {
+  ipcMain.handle('roles:delete', async (_event, { roleId } = {}) => {
     initDb()
     const result = deleteRow('Roles', 'id', String(roleId || ''))
     await syncWorkspaceWorkbooksSafe()

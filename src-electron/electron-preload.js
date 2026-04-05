@@ -140,10 +140,10 @@ contextBridge.exposeInMainWorld('ecvc', {
     upsertMany: (rows) => ipcRenderer.invoke('tasks:upsertMany', { rows }),
     delete: (taskId) => ipcRenderer.invoke('tasks:delete', { taskId }),
   },
-  assistants: {
-    list: () => ipcRenderer.invoke('assistants:list'),
-    create: (payload) => ipcRenderer.invoke('assistants:create', payload),
-    delete: (roleId) => ipcRenderer.invoke('assistants:delete', { roleId }),
+  roles: {
+    list: () => ipcRenderer.invoke('roles:list'),
+    create: (payload) => ipcRenderer.invoke('roles:create', payload),
+    delete: (roleId) => ipcRenderer.invoke('roles:delete', { roleId }),
   },
   artifacts: {
     list: () => ipcRenderer.invoke('artifacts:list'),

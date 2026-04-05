@@ -560,13 +560,13 @@ const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
   { label: 'Owner', to: '/user-settings', exact: true, icon: 'accessibility_new' },
   { label: 'Avatar', to: '/avatar', exact: true, icon: 'smart_toy' },
-  { label: 'Roles', to: '/assistants', exact: true, icon: 'theater_comedy' },
+  { label: 'Roles', to: '/roles', exact: true, icon: 'theater_comedy' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--primary',
   iconSize: '22px',
 }))
-const workspaceFileNavItems = WORKSPACE_FILE_NAV_ITEMS.filter((item) => item.to !== '/assistants')
+const workspaceFileNavItems = WORKSPACE_FILE_NAV_ITEMS.filter((item) => item.to !== '/roles')
 const companiesNavIndex = workspaceFileNavItems.findIndex((item) => item.to === '/companies')
 
 if (companiesNavIndex >= 0) {
@@ -629,7 +629,7 @@ const routeLabelByName = {
   'artifacts-processed': 'Ingestion',
   tasks: 'Tasks',
   'test-shell': 'Live Shell',
-  assistants: 'Roles',
+  roles: 'Roles',
   avatar: 'Avatar',
   'user-settings': 'Owner',
   pipelines: 'Projects',

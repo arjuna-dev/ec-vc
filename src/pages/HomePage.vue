@@ -231,7 +231,7 @@
                       </div>
                     </div>
                     <q-badge outline color="grey-7" text-color="grey-8">
-                      {{ formatDueState(task.Due_Date) }}
+                      {{ formatDueState(task.Task_Due_Date) }}
                     </q-badge>
                   </div>
                 </div>
@@ -384,7 +384,7 @@ const hasBridge = computed(
     !!bridge.value?.artifacts?.list &&
     !!bridge.value?.notes?.list &&
     !!bridge.value?.tasks?.list &&
-    !!bridge.value?.assistants?.list,
+    !!bridge.value?.roles?.list,
 )
 
 const collectionConfigs = [
@@ -467,13 +467,13 @@ const collectionConfigs = [
     load: async () => (await bridge.value.tasks.list())?.tasks || [],
   },
   {
-    key: 'assistants',
-    label: 'Agents',
-    icon: 'smart_toy',
-    to: '/assistants',
+    key: 'roles',
+    label: 'Roles',
+    icon: 'theater_comedy',
+    to: '/roles',
     accent: '#db2777',
-    actionLabel: 'Open agents',
-    load: async () => (await bridge.value.assistants.list())?.assistants || [],
+    actionLabel: 'Open roles',
+    load: async () => (await bridge.value.roles.list())?.roles || [],
   },
 ]
 
@@ -500,7 +500,7 @@ const pipelines = computed(() => collections.value.pipelines || [])
 const artifacts = computed(() => collections.value.artifacts || [])
 const notes = computed(() => collections.value.notes || [])
 const tasks = computed(() => collections.value.tasks || [])
-const assistants = computed(() => collections.value.assistants || [])
+const roles = computed(() => collections.value.roles || [])
 
 const companiesCount = computed(() => companies.value.length)
 const contactsCount = computed(() => contacts.value.length)
@@ -511,7 +511,7 @@ const pipelinesCount = computed(() => pipelines.value.length)
 const artifactsCount = computed(() => artifacts.value.length)
 const notesCount = computed(() => notes.value.length)
 const tasksCount = computed(() => tasks.value.length)
-const assistantsCount = computed(() => assistants.value.length)
+const rolesCount = computed(() => roles.value.length)
 
 const installedPipelinesCount = computed(
   () => pipelines.value.filter((row) => String(row?.install_status || '') === 'installed').length,
@@ -522,7 +522,7 @@ const overdueTasksCount = computed(
   () =>
     tasks.value.filter((row) => {
       if (isTaskCompleted(row)) return false
-      const dueDate = parseDateValue(row?.Due_Date)
+      const dueDate = parseDateValue(row?.Task_Due_Date)
       return !!dueDate && dueDate < startOfToday()
     }).length,
 )
@@ -530,7 +530,7 @@ const dueThisWeekCount = computed(
   () =>
     tasks.value.filter((row) => {
       if (isTaskCompleted(row)) return false
-      const dueDate = parseDateValue(row?.Due_Date)
+      const dueDate = parseDateValue(row?.Task_Due_Date)
       if (!dueDate) return false
       const dayDelta = daysBetween(startOfToday(), dueDate)
       return dayDelta >= 0 && dayDelta <= 6
@@ -559,7 +559,7 @@ const totalRecords = computed(
     artifactsCount.value +
     notesCount.value +
     tasksCount.value +
-    assistantsCount.value,
+    rolesCount.value,
 )
 
 const activityItems = computed(() => [
@@ -591,8 +591,8 @@ const activityItems = computed(() => [
       to: '/opportunities',
     })),
     ...pipelines.value.map((row) => ({
-      key: `pipelines-${row.pipeline_id}`,
-      title: row.name || 'Untitled project',
+      key: `projects-${row.id}`,
+      title: row.Project_Name || 'Untitled project',
       subtitle: row.install_status ? `Project • ${statusLabel(row.install_status)}` : 'Project',
       date: parseDateValue(row.created_at),
       icon: 'schema',
@@ -617,7 +617,7 @@ const activityItems = computed(() => [
     ...tasks.value.map((row) => ({
       key: `tasks-${row.id}`,
       title: row.Task_Name || 'Untitled task',
-      subtitle: row.Status ? `Task • ${row.Status}` : 'Task',
+      subtitle: row.Task_Status ? `Task • ${row.Task_Status}` : 'Task',
       date: parseDateValue(row.created_at),
       icon: 'check_circle',
       to: '/tasks',
@@ -642,8 +642,8 @@ const recentAddsCount = computed(() => {
 
 const upcomingTasks = computed(() =>
   tasks.value
-    .filter((row) => !isTaskCompleted(row) && parseDateValue(row?.Due_Date))
-    .sort((left, right) => parseDateValue(left.Due_Date) - parseDateValue(right.Due_Date))
+    .filter((row) => !isTaskCompleted(row) && parseDateValue(row?.Task_Due_Date))
+    .sort((left, right) => parseDateValue(left.Task_Due_Date) - parseDateValue(right.Task_Due_Date))
     .slice(0, 5),
 )
 
@@ -735,9 +735,9 @@ const summaryCards = computed(() => [
     helper: `${openTasksCount.value} open • ${overdueTasksCount.value} overdue`,
   },
   {
-    ...collectionConfigByKey.assistants,
-    count: assistantsCount.value,
-    helper: assistants.value.length > 0 ? 'Agent configs available' : 'No agent configs yet',
+    ...collectionConfigByKey.roles,
+    count: rolesCount.value,
+    helper: roles.value.length > 0 ? 'Roles available' : 'No roles yet',
   },
 ])
 
@@ -845,7 +845,7 @@ function countWithAnyValue(rows, fields) {
 }
 
 function isTaskCompleted(row) {
-  const status = String(row?.Status || '').trim().toLowerCase()
+  const status = String(row?.Task_Status || row?.Status || '').trim().toLowerCase()
   return ['done', 'completed', 'complete', 'closed', 'resolved'].some((value) =>
     status.includes(value),
   )
