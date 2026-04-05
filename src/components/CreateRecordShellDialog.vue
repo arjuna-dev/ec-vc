@@ -389,11 +389,9 @@
                         v-if="showFieldVerificationAction(fieldEntry.token)"
                         flat
                         dense
-                        round
                         size="sm"
                         :disable="loading"
-                        class="create-record-shell__field-action"
-                        :class="fieldVerificationClass(fieldEntry.token)"
+                        :class="[fieldActionClass(fieldEntry.token), fieldVerificationClass(fieldEntry.token)]"
                         :icon="fieldVerificationIcon(fieldEntry.token)"
                         :icon-class="fieldVerificationIconClass(fieldEntry.token)"
                         :aria-label="`Change verification state for ${fieldEntry.token.label}`"
@@ -516,11 +514,9 @@
                         v-if="showFieldVerificationAction(fieldEntry.token)"
                         flat
                         dense
-                        round
                         size="sm"
                         :disable="loading"
-                        class="create-record-shell__field-action"
-                        :class="fieldVerificationClass(fieldEntry.token)"
+                        :class="[fieldActionClass(fieldEntry.token), fieldVerificationClass(fieldEntry.token)]"
                         :icon="fieldVerificationIcon(fieldEntry.token)"
                         :icon-class="fieldVerificationIconClass(fieldEntry.token)"
                         :aria-label="`Change verification state for ${fieldEntry.token.label}`"
@@ -958,16 +954,28 @@ function showFieldVerificationAction(token) {
   return fieldHasValue(token)
 }
 
+function usesCompactFieldAction(token) {
+  return !isSummaryField(token)
+}
+
 function fieldVerificationIcon(token) {
+  if (usesCompactFieldAction(token)) return 'keyboard_arrow_down'
   const state = resolvedFieldVerificationState(token)
   const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
   return option?.icon || 'help'
 }
 
 function fieldVerificationIconClass(token) {
+  if (usesCompactFieldAction(token)) return 'create-record-shell__field-action-icon--neutral'
   const state = resolvedFieldVerificationState(token)
   const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
   return option?.iconClass || ''
+}
+
+function fieldActionClass(token) {
+  return usesCompactFieldAction(token)
+    ? 'create-record-shell__field-action create-record-shell__field-action--box'
+    : 'create-record-shell__field-action'
 }
 
 function verificationMenuAnchor(column) {
@@ -2029,6 +2037,22 @@ onBeforeUnmount(() => {
   min-height: 20px;
   padding: 0;
   flex: 0 0 auto;
+}
+
+.create-record-shell__field-action--box {
+  width: 22px;
+  min-width: 22px;
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.create-record-shell__field-action-icon--neutral {
+  color: #111111 !important;
 }
 
 .create-record-shell__field-value-row {
