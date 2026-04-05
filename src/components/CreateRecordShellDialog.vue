@@ -1787,7 +1787,7 @@ onBeforeUnmount(() => {
 .create-record-shell__field {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 4px;
+  gap: 0.5px;
   align-items: start;
 }
 
