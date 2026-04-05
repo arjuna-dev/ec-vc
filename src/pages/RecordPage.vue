@@ -3106,6 +3106,7 @@ const companyHeroDocuments = computed(() => companyDocuments.value.slice(0, CONT
 const contactKdbSectionOptions = CONTACT_KDB_SECTION_OPTIONS
 const companyKdbSectionOptions = CONTACT_KDB_SECTION_OPTIONS
 const availableRecordFeedSourceOptions = computed(() => [
+  { id: 'history', label: 'History' },
   { id: 'activity', label: 'Activity Logs' },
   ...CONTACT_KDB_SECTION_OPTIONS.map((option) => ({
     id: option.value,
@@ -3146,7 +3147,12 @@ const recordFeedActivityItems = computed(() => {
   if (recordFeedEvents.value.length) {
     return recordFeedEvents.value.slice(0, 8).map((eventRow, index) => {
       const rawTimestamp =
-        eventRow?.created_at || eventRow?.occurred_at || eventRow?.event_at || eventRow?.timestamp || ''
+        eventRow?.edited_at ||
+        eventRow?.created_at ||
+        eventRow?.occurred_at ||
+        eventRow?.event_at ||
+        eventRow?.timestamp ||
+        ''
       const fieldName = String(eventRow?.field_name || '').trim()
       const fieldLabel = formatRecordFeedFieldLabel(fieldName)
       const editor = String(eventRow?.edited_by_label || eventRow?.user_label || eventRow?.created_by_label || '')
@@ -3164,8 +3170,85 @@ const recordFeedActivityItems = computed(() => {
   }
   return buildRecordFeedFallbackActivity()
 })
+
+function formatRecordFeedActionLabel(actionLabel = '') {
+  const normalized = String(actionLabel || '').trim()
+  if (!normalized) return 'Record change'
+
+  const explicitLabels = {
+    shared_shell_dialog_session: 'Shared Shell Edit Session',
+    record_view_edit_session: 'Record View Edit Session',
+    verification_state_change: 'Verification State Change',
+    record_edit_session: 'Record Edit Session',
+  }
+
+  if (explicitLabels[normalized]) return explicitLabels[normalized]
+  return normalized.replace(/[_-]+/g, ' ').replace(/\b\w/g, (token) => token.toUpperCase())
+}
+
+const recordFeedHistoryItems = computed(() => {
+  if (!recordFeedEvents.value.length) return []
+
+  const groups = new Map()
+  for (const eventRow of recordFeedEvents.value) {
+    const actionId = String(eventRow?.action_id || '').trim()
+    const fallbackId = String(eventRow?.id || '').trim()
+    const groupKey = actionId || fallbackId
+    if (!groupKey) continue
+
+    const currentGroup = groups.get(groupKey) || {
+      id: `history-${groupKey}`,
+      sourceLabel: 'History',
+      actionLabel: String(eventRow?.action_label || '').trim(),
+      editedAt: '',
+      editor: '',
+      fieldLabels: [],
+    }
+
+    const fieldLabel = formatRecordFeedFieldLabel(String(eventRow?.field_name || '').trim())
+    if (fieldLabel && !currentGroup.fieldLabels.includes(fieldLabel)) {
+      currentGroup.fieldLabels.push(fieldLabel)
+    }
+
+    const editedAt = String(
+      eventRow?.edited_at || eventRow?.created_at || eventRow?.occurred_at || eventRow?.timestamp || '',
+    ).trim()
+    if (editedAt && parseDateValue(editedAt) >= parseDateValue(currentGroup.editedAt)) {
+      currentGroup.editedAt = editedAt
+      currentGroup.editor = String(
+        eventRow?.edited_by_label || eventRow?.user_label || eventRow?.created_by_label || '',
+      ).trim()
+      currentGroup.actionLabel = String(eventRow?.action_label || currentGroup.actionLabel || '').trim()
+    }
+
+    groups.set(groupKey, currentGroup)
+  }
+
+  return [...groups.values()]
+    .sort((left, right) => parseDateValue(right.editedAt) - parseDateValue(left.editedAt))
+    .slice(0, 10)
+    .map((group) => {
+      const contentParts = []
+      if (group.editor) contentParts.push(`by ${group.editor}`)
+      if (group.fieldLabels.length) {
+        const visibleLabels = group.fieldLabels.slice(0, 3).join(', ')
+        const overflowCount = Math.max(0, group.fieldLabels.length - 3)
+        contentParts.push(overflowCount ? `${visibleLabels}, +${overflowCount} more` : visibleLabels)
+      }
+
+      return {
+        id: group.id,
+        sourceLabel: 'History',
+        title: formatRecordFeedActionLabel(group.actionLabel),
+        content: contentParts.join(' - '),
+        meta: formatDisplayDateTime(group.editedAt) || 'Recent history',
+      }
+    })
+})
 const recordFeedKdbHighlightItems = computed(() => {
-  const selectedSources = selectedRecordFeedSourceIds.value.filter((sourceId) => sourceId !== 'activity')
+  const selectedSources = selectedRecordFeedSourceIds.value.filter(
+    (sourceId) => !['activity', 'history'].includes(sourceId),
+  )
   const itemsBySection = activeRecordKdbItemsBySection.value || {}
   return selectedSources.flatMap((sourceId) => {
     const sourceLabel = recordFeedSourceLabelById.value[sourceId] || sourceId
@@ -3179,8 +3262,10 @@ const recordFeedKdbHighlightItems = computed(() => {
   })
 })
 const recordFeedItems = computed(() => {
+  const includeHistory = selectedRecordFeedSourceIds.value.includes('history')
   const includeActivity = selectedRecordFeedSourceIds.value.includes('activity')
   const items = []
+  if (includeHistory) items.push(...recordFeedHistoryItems.value)
   if (includeActivity) items.push(...recordFeedActivityItems.value)
   items.push(...recordFeedKdbHighlightItems.value)
   return items.slice(0, 10)
@@ -3579,8 +3664,10 @@ function syncRecordFeedSelection() {
   )
     .slice(0, 4)
     .map((option) => option.value)
-  const fallback = ['activity', ...nonEmptyKdbSections].filter((id, index, ids) => ids.indexOf(id) === index)
-  const finalFallback = fallback.length ? fallback : ['activity']
+  const fallback = ['history', 'activity', ...nonEmptyKdbSections].filter(
+    (id, index, ids) => ids.indexOf(id) === index,
+  )
+  const finalFallback = fallback.length ? fallback : ['history', 'activity']
   selectedRecordFeedSourceIds.value = finalFallback
   saveContactSummarySelection(recordFeedStorageKey.value, finalFallback)
 }
@@ -3700,8 +3787,12 @@ async function loadRecordFeedEvents() {
     })
     const events = Array.isArray(result?.events) ? result.events : []
     recordFeedEvents.value = [...events].sort((left, right) => {
-      const leftTime = parseDateValue(left?.created_at || left?.occurred_at || left?.event_at || left?.timestamp)
-      const rightTime = parseDateValue(right?.created_at || right?.occurred_at || right?.event_at || right?.timestamp)
+      const leftTime = parseDateValue(
+        left?.edited_at || left?.created_at || left?.occurred_at || left?.event_at || left?.timestamp,
+      )
+      const rightTime = parseDateValue(
+        right?.edited_at || right?.created_at || right?.occurred_at || right?.event_at || right?.timestamp,
+      )
       return rightTime - leftTime
     })
   } catch {
