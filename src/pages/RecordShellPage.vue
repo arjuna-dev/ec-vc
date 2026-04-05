@@ -51,62 +51,70 @@
           </figure>
 
           <div class="record-shell__hero-copy">
-            <div class="record-shell__hero-edit-row">
-              <q-btn
-                flat
-                round
-                dense
-                icon="tune"
-                class="record-shell__hero-settings"
-                aria-label="Hero field settings"
-              >
-                <q-menu anchor="bottom right" self="top right">
-                  <div class="record-shell__settings-panel">
-                    <div class="record-shell__settings-title">Hero Fields</div>
-                    <div
-                      v-for="section in selectableSections"
-                      :key="section.key"
-                      class="record-shell__settings-group"
-                    >
-                      <button
-                        type="button"
-                        class="record-shell__settings-heading"
-                        @click="toggleExpandedSection(section.key)"
-                      >
-                        <span>{{ section.label }}</span>
-                        <q-icon :name="isSectionExpanded(section.key) ? 'expand_less' : 'expand_more'" size="14px" />
-                      </button>
+            <div class="record-shell__hero-top-row">
+              <h1 class="record-shell__name">
+                {{ activeRegistryEntry?.singularLabel || 'Record' }} Name
+              </h1>
 
-                      <div v-if="isSectionExpanded(section.key)" class="record-shell__settings-children">
-                        <label
-                          v-for="token in getSectionTokens(section.key)"
-                          :key="token.key"
-                          class="record-shell__settings-row"
+              <div class="record-shell__hero-top-actions">
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="tune"
+                  class="record-shell__hero-settings"
+                  aria-label="Hero field settings"
+                >
+                  <q-tooltip>Hero Fields</q-tooltip>
+                  <q-menu anchor="bottom right" self="top right">
+                    <div class="record-shell__settings-panel">
+                      <div class="record-shell__settings-title">Hero Fields</div>
+                      <div
+                        v-for="section in selectableSections"
+                        :key="section.key"
+                        class="record-shell__settings-group"
+                      >
+                        <button
+                          type="button"
+                          class="record-shell__settings-heading"
+                          @click="toggleExpandedSection(section.key)"
                         >
-                          <q-checkbox
-                            :model-value="isSelectedToken(token.key)"
-                            dense
-                            size="xs"
-                            checked-icon="check_box"
-                            unchecked-icon="check_box_outline_blank"
-                            @update:model-value="setTokenSelected(token.key, $event)"
-                          />
-                          <span>{{ token.label }}</span>
-                        </label>
+                          <span>{{ section.label }}</span>
+                          <q-icon :name="isSectionExpanded(section.key) ? 'expand_less' : 'expand_more'" size="14px" />
+                        </button>
+
+                        <div v-if="isSectionExpanded(section.key)" class="record-shell__settings-children">
+                          <label
+                            v-for="token in getSectionTokens(section.key)"
+                            :key="token.key"
+                            class="record-shell__settings-row"
+                          >
+                            <q-checkbox
+                              :model-value="isSelectedToken(token.key)"
+                              dense
+                              size="xs"
+                              checked-icon="check_box"
+                              unchecked-icon="check_box_outline_blank"
+                              @update:model-value="setTokenSelected(token.key, $event)"
+                            />
+                            <span>{{ token.label }}</span>
+                          </label>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </q-menu>
-              </q-btn>
+                  </q-menu>
+                </q-btn>
 
-              <q-btn no-caps unelevated size="sm" class="record-shell__hero-edit-btn" label="Edit" @click="openCreateDialog" />
+                <q-btn no-caps flat round dense icon="edit" class="record-shell__hero-edit-btn" @click="openCreateDialog">
+                  <q-tooltip>Edit</q-tooltip>
+                </q-btn>
+              </div>
             </div>
 
-            <h1 class="record-shell__name">
-              {{ activeRegistryEntry?.singularLabel || 'Record' }} Name
-            </h1>
-            <div class="record-shell__subtitle">{{ activeRegistryEntry?.label || 'Record Shell' }}</div>
-            <div class="record-shell__secondary">Expanded record-view skeleton for the selected L1 payload.</div>
+            <div class="record-shell__hero-meta">
+              <div class="record-shell__subtitle">{{ activeRegistryEntry?.label || 'Record Shell' }}</div>
+              <div class="record-shell__secondary">Expanded record-view skeleton for the selected L1 payload.</div>
+            </div>
 
             <div class="record-shell__stats">
               <div v-for="stat in heroStats" :key="stat.id" class="record-shell__stat">
@@ -509,9 +517,14 @@ function normalizeListResult(result) {
 .record-shell__portrait-shell { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; padding: 24px; }
 .record-shell__portrait-badge { display:flex; width:clamp(124px,48%,152px); height:clamp(124px,48%,152px); align-items:center; justify-content:center; color:#fff; border-radius:999px; box-shadow:0 18px 40px rgba(17,17,17,.16); font-family:var(--font-title); font-size:clamp(2.2rem,4.2vw,3rem); font-weight:var(--font-weight-black); }
 .record-shell__hero-copy { display:flex; flex-direction:column; gap:10px; min-width:0; padding:16px 18px 14px 14px; }
-.record-shell__hero-edit-row { display:flex; justify-content:flex-end; gap:6px; }
-.record-shell__hero-edit-btn { background:#2647ff; color:#fff; border-radius:3px; }
-.record-shell__name { margin:0; color:#0a0a0a; font-family:var(--font-title); font-size:clamp(1.4rem,2vw,1.7rem); font-weight:var(--font-weight-black); line-height:.96; }
+.record-shell__hero-top-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:start; gap:8px; }
+.record-shell__hero-top-actions { display:contents; }
+.record-shell__hero-edit-btn,
+.record-shell__hero-settings { color:#111; }
+.record-shell__hero-edit-btn :deep(.q-icon),
+.record-shell__hero-settings :deep(.q-icon) { font-size:18px; }
+.record-shell__name { margin:0; color:#0a0a0a; font-family:var(--font-title); font-size:clamp(1.4rem,2vw,1.7rem); font-weight:var(--font-weight-black); line-height:.96; min-width:0; }
+.record-shell__hero-meta { display:grid; gap:4px; }
 .record-shell__subtitle, .record-shell__secondary { color:rgba(17,17,17,.7); font-size:.82rem; line-height:1.35; }
 .record-shell__stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
 .record-shell__stat, .record-shell__summary-box { padding:10px 12px; border:1px solid rgba(17,17,17,.08); border-radius:6px; background:rgba(255,255,255,.8); }
