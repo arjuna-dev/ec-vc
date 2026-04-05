@@ -1982,14 +1982,14 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__input--summary :deep(.q-field__control) {
-  min-height: 120px;
+  min-height: 132px;
   border-radius: 8px;
   align-items: flex-start;
 }
 
 .create-record-shell__input--summary :deep(textarea) {
-  min-height: 102px !important;
-  padding-top: 4px !important;
+  min-height: 108px !important;
+  padding-top: 10px !important;
 }
 
 .create-record-shell__field--summary-sidecar .create-record-shell__input--summary {
