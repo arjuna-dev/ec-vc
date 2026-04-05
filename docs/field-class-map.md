@@ -55,7 +55,7 @@ What is already true in the app now:
 - saving owner profile creates or updates the first real `User`
 - the same flow creates or updates the linked `Contact`
 - that identity link is already backed directly through `Contacts.linked_user_id`
-- the app ensures a `Roles` record named `Owner` exists
+- the app ensures default role records for `Owner`, `Admin`, and `Guest`
 - the app now persists a real `User -> Role` owner path through `Users_Roles`
 - the app now persists a real root owner path through `Owner_DB.owner_user_id`
 

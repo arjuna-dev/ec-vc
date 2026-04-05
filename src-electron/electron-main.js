@@ -1441,6 +1441,8 @@ function upsertTasks(rows = []) {
 }
 
 function listRoles() {
+  const database = initDb()
+  ensureDefaultRoles(database)
   return dbAll(
     `
     SELECT
@@ -3935,26 +3937,48 @@ function getUserById(database, userId) {
   )
 }
 
-function ensureOwnerRole(database, ownerUserId = null) {
-  const existing = database
+function ensureDefaultRoles(database, actorUserId = null) {
+  const defaultRoles = [
+    {
+      id: 'role:owner',
+      name: 'Owner',
+      summary: 'Default owner role for the local workspace.',
+    },
+    {
+      id: 'role:admin',
+      name: 'Admin',
+      summary: 'Administrative role for managing records, structure, and permissions.',
+    },
+    {
+      id: 'role:guest',
+      name: 'Guest',
+      summary: 'Restricted role for view-oriented access with limited editing rights.',
+    },
+  ]
+
+  for (const role of defaultRoles) {
+    const existing = database
+      .prepare('SELECT id FROM Roles WHERE lower(trim(Role_Name)) = lower(trim(?)) LIMIT 1')
+      .get(role.name)
+    if (existing?.id) continue
+
+    database
+      .prepare(
+        `
+        INSERT INTO Roles (
+          id, Role_Name, Role_Summary, created_by, created_at, updated_at
+        ) VALUES (
+          ?, ?, ?, ?, datetime('now'), datetime('now')
+        )
+      `,
+      )
+      .run(role.id, role.name, role.summary, normalizeNullableString(actorUserId))
+  }
+
+  const ownerRow = database
     .prepare("SELECT id FROM Roles WHERE lower(trim(Role_Name)) = 'owner' LIMIT 1")
     .get()
-  if (existing?.id) return existing.id
-
-  const roleId = 'role:owner'
-  database
-    .prepare(
-      `
-      INSERT INTO Roles (
-        id, Role_Name, Role_Summary, created_by, created_at, updated_at
-      ) VALUES (
-        ?, 'Owner', 'Default owner role for the local workspace.', ?, datetime('now'), datetime('now')
-      )
-    `,
-    )
-    .run(roleId, normalizeNullableString(ownerUserId))
-
-  return roleId
+  return normalizeNullableString(ownerRow?.id) || 'role:owner'
 }
 
 function ensureOwnerDb(database, ownerUserId) {
@@ -4104,7 +4128,7 @@ function createOrUpdateUserProfile(database, profile = {}) {
   setAppSetting(database, APP_SETTING_KEYS.userId, userId)
   setAppSetting(database, APP_SETTING_KEYS.userContactId, contactId)
   setAppSetting(database, 'user_label', name)
-  const ownerRoleId = ensureOwnerRole(database, userId)
+  const ownerRoleId = ensureDefaultRoles(database, userId)
   ensureOwnerDb(database, userId)
   ensureUserRoleAssignmentRow(database, userId, userId)
   assignUserRole(database, userId, ownerRoleId, userId)
@@ -4116,7 +4140,7 @@ function ensureOwnerUserProfile(database) {
   const storedUserId = normalizeNullableString(getAppSetting(database, APP_SETTING_KEYS.userId))
   const existingUser = storedUserId ? getUserById(database, storedUserId) : null
   if (existingUser) {
-    const ownerRoleId = ensureOwnerRole(database, existingUser.id)
+    const ownerRoleId = ensureDefaultRoles(database, existingUser.id)
     ensureOwnerDb(database, existingUser.id)
     ensureUserRoleAssignmentRow(database, existingUser.id, existingUser.id)
     assignUserRole(database, existingUser.id, ownerRoleId, existingUser.id)
