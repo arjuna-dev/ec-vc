@@ -375,6 +375,13 @@ That baseline is:
   - `Name`
   - `Summary`
 
+Working order rule:
+
+- `Name` is the first canonical general field
+- `Summary` is the second canonical general field
+- shared edit surfaces should treat `Name` as the first field in the left grid
+- shared edit surfaces should treat `Summary` as the first field in the right grid
+
 This is the default contract for new `Knowledge DB` files such as:
 
 - `Markets`

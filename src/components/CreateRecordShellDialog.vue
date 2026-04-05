@@ -309,7 +309,6 @@
                     class="create-record-shell__field"
                     :class="{
                       'create-record-shell__field--wide': isWideField(fieldEntry.token),
-                      'create-record-shell__field--summary-sidecar': isSummarySidecarField(fieldEntry.token),
                       'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(fieldEntry.token),
                     }"
                   >
@@ -447,7 +446,6 @@
                     class="create-record-shell__field"
                     :class="{
                       'create-record-shell__field--wide': isWideField(fieldEntry.token),
-                      'create-record-shell__field--summary-sidecar': isSummarySidecarField(fieldEntry.token),
                       'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(fieldEntry.token),
                     }"
                   >
@@ -928,10 +926,6 @@ function isNameField(token) {
 
 function isSummaryField(token) {
   return String(token?.label || '').trim().toLowerCase() === 'summary'
-}
-
-function isSummarySidecarField() {
-  return false
 }
 
 function getFieldMeta(token) {

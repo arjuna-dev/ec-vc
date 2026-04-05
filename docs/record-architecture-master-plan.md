@@ -753,6 +753,14 @@ That baseline is:
   - `Name`
   - `Summary`
 
+Working order rule:
+
+- `Name` is canonical field `*.3.1`
+- `Summary` is canonical field `*.3.2`
+- `Name` should anchor the left-side first field position in shared edit surfaces
+- `Summary` should anchor the right-side first field position in shared edit surfaces
+- this is a shared contract rule, not a page-by-page layout choice
+
 If a new DB needs more than that, add it on top of this baseline instead of inventing a one-off structure.
 
 Working rule:

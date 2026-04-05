@@ -202,6 +202,7 @@ This tracker should stay aligned with:
   - page-level record navigation now runs through one shared helper instead of per-page route objects
   - `docs/canonical-structure.json` now carries the active app-readable L1/L2/L3 structure registry
   - canonical `General` now standardizes `Name` at `*.3.1` and `Summary` at `*.3.2`
+  - shared edit dialog ordering now treats `Name` as the first field in the left grid and `Summary` as the first field in the right grid
   - canonical structure now carries explicit DB-field aliases where live row payloads still use older field names such as `Name`, `Company_Name`, or `title`
   - `Opportunities` now exists as a canonical parent structure with shared `System`, `KDB`, `General`, and `Overview`
   - `Funds` and `Rounds` remain subtype-owned where `Economics` and `Controls` diverge structurally
