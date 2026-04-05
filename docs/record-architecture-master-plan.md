@@ -13,6 +13,10 @@ This document is now the primary working reference for:
 
 This document should be treated as the single planning source of truth for the `File -> Card -> Record View` architecture.
 
+Companion behavior and ingestion-side structural discipline should also stay aligned with:
+
+- `docs/companion-contract.md`
+
 When decisions change:
 
 - update this file
@@ -119,6 +123,7 @@ Working rule:
 - the shell should resolve a field through canonical address and canonical token first
 - if the live payload field name differs, that token should declare `db_field_aliases`
 - the UI may read those aliases, but it should not infer them heuristically
+- companion systems should follow the same ownership rule and should not invent field meaning outside canon
 
 ## KDB Relationship Contract
 

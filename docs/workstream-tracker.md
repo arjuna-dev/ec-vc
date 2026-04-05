@@ -36,6 +36,7 @@ This tracker should stay aligned with:
 
 - `RAMP` is now the single architecture source of truth for `File -> Card -> Record View`
 - `Intake Architecture Master Plan` is now the single intake planning source of truth
+- `Companion Contract` is now the working reference for ingestion-side ownership and relationship discipline
 - Excel workbook + canonical JSON workflow is now in place for schema indexing
 - `JSON + app editing` is now the chosen canonical structure direction
 - `docs/canonical-structure.json` is now the app-readable canonical structure registry across the current L1/L2/L3 entity set
@@ -147,7 +148,11 @@ This tracker should stay aligned with:
     - owner path
     - reverse-read path
     - bidirectional appearance
-  - the current runtime-backed set has been separated from the canon-declared-but-still-missing set so future relationship work can stay strict instead of drifting into one-offs
+- the current runtime-backed set has been separated from the canon-declared-but-still-missing set so future relationship work can stay strict instead of drifting into one-offs
+- the companion-side rule is now explicit:
+  - helpful about content
+  - strict about structure
+  - honest about missing ownership
 - current shared goal:
   - get the intake tracker and processing window reliable enough that a user never loses their place
   - keep the structure contract coherent while `Company` remains the main reference entity

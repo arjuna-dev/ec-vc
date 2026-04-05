@@ -12,6 +12,11 @@ It should be treated as the single reference source for:
 - canonical relationship ownership
 - first-order field logic
 - relationship editing rules
+- companion-side ownership discipline
+
+Companion behavior rules now also live in:
+
+- `docs/companion-contract.md`
 
 When these rules change:
 
