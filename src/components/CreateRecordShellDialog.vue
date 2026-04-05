@@ -388,7 +388,7 @@
 
                     <q-select
                       v-if="showFieldVerificationAction(token)"
-                      :model-value="fieldVerificationState(token)"
+                      :model-value="resolvedFieldVerificationState(token)"
                       dense
                       outlined
                       emit-value
@@ -736,6 +736,15 @@ function fieldVerificationState(token) {
   return String(fieldVerificationStates.value?.[token?.key] || '').trim()
 }
 
+function resolvedFieldVerificationState(token) {
+  const explicitState = fieldVerificationState(token)
+  if (explicitState) return explicitState
+  const metaState = String(getFieldMeta(token)?.verificationState || '').trim()
+  if (metaState) return metaState
+  if (!fieldHasValue(token)) return ''
+  return 'suggested_unverified'
+}
+
 function fieldHasValue(token) {
   const value = formValues.value?.[token?.key]
   if (Array.isArray(value)) return value.length > 0
@@ -744,13 +753,13 @@ function fieldHasValue(token) {
 
 function shouldHighlightFieldVerification(token) {
   if (!fieldHasValue(token)) return false
-  const state = fieldVerificationState(token)
+  const state = resolvedFieldVerificationState(token)
   return state !== 'verified'
 }
 
 function fieldVerificationClass(token) {
   if (!shouldHighlightFieldVerification(token)) return ''
-  const state = fieldVerificationState(token)
+  const state = resolvedFieldVerificationState(token)
   if (state === 'default_preselected_unverified') {
     return 'create-record-shell__input--verification-default'
   }
@@ -758,7 +767,7 @@ function fieldVerificationClass(token) {
 }
 
 function showFieldVerificationAction(token) {
-  return fieldHasValue(token) && Boolean(fieldVerificationState(token) || getFieldMeta(token)?.verificationState)
+  return fieldHasValue(token)
 }
 
 function updateFieldVerificationState(token, nextState) {
@@ -778,7 +787,7 @@ function buildVerificationChanges() {
       const currentValue = formValues.value?.[token.key]
       const initialValue = props.initialValues?.[token.key]
       const valueChanged = JSON.stringify(currentValue ?? '') !== JSON.stringify(initialValue ?? '')
-      const nextState = valueChanged ? 'verified' : fieldVerificationState(token)
+      const nextState = valueChanged ? 'verified' : resolvedFieldVerificationState(token)
       const initialState = String(meta?.verificationState || '').trim()
       if (!nextState || nextState === initialState) return null
       return {
@@ -1816,6 +1825,13 @@ onBeforeUnmount(() => {
   min-width: 220px;
 }
 
+.create-record-shell__field-value-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .create-record-shell__input {
   width: min(100%, 240px);
   justify-self: start;
@@ -1842,16 +1858,46 @@ onBeforeUnmount(() => {
   line-height: 1.2;
 }
 
-.create-record-shell__input--verification-default :deep(.q-field__control) {
+.create-record-shell__input--verification-default :deep(.q-chip) {
   background: rgba(232, 249, 224, 0.96);
-  border-color: rgba(71, 147, 57, 0.42);
-  box-shadow: inset 0 0 0 1px rgba(71, 147, 57, 0.18);
+  color: rgba(35, 92, 26, 0.96);
+  border: 1px solid rgba(71, 147, 57, 0.3);
 }
 
-.create-record-shell__input--verification-suggested :deep(.q-field__control) {
+.create-record-shell__input--verification-suggested :deep(.q-chip) {
   background: rgba(255, 246, 214, 0.98);
-  border-color: rgba(186, 129, 13, 0.34);
-  box-shadow: inset 0 0 0 1px rgba(186, 129, 13, 0.16);
+  color: rgba(106, 78, 5, 0.92);
+  border: 1px solid rgba(186, 129, 13, 0.28);
+}
+
+.create-record-shell__input--verification-default :deep(.q-field__native),
+.create-record-shell__input--verification-default :deep(.q-field__input) {
+  color: rgba(35, 92, 26, 0.96);
+  font-weight: 700;
+  background-image: linear-gradient(
+    transparent calc(100% - 0.2em),
+    rgba(145, 210, 129, 0.34) calc(100% - 0.2em)
+  );
+}
+
+.create-record-shell__input--verification-suggested :deep(.q-field__native),
+.create-record-shell__input--verification-suggested :deep(.q-field__input) {
+  color: rgba(106, 78, 5, 0.92);
+  font-weight: 700;
+  background-image: linear-gradient(
+    transparent calc(100% - 0.2em),
+    rgba(240, 205, 104, 0.42) calc(100% - 0.2em)
+  );
+}
+
+.create-record-shell__field-action.create-record-shell__input--verification-default :deep(.q-field__control) {
+  background: rgba(232, 249, 224, 0.96);
+  border-color: rgba(71, 147, 57, 0.32);
+}
+
+.create-record-shell__field-action.create-record-shell__input--verification-suggested :deep(.q-field__control) {
+  background: rgba(255, 246, 214, 0.98);
+  border-color: rgba(186, 129, 13, 0.28);
 }
 
 .create-record-shell__input--summary {
