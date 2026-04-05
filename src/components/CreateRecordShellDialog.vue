@@ -2074,9 +2074,9 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__input--verification-default :deep(.q-chip) {
-  background: rgba(232, 249, 224, 0.96);
-  color: rgba(35, 92, 26, 0.96);
-  border: 1px solid rgba(71, 147, 57, 0.3);
+  background: rgba(225, 239, 255, 0.96);
+  color: rgba(24, 72, 144, 0.96);
+  border: 1px solid rgba(64, 121, 210, 0.3);
 }
 
 .create-record-shell__input--verification-suggested :deep(.q-chip) {
@@ -2087,11 +2087,11 @@ onBeforeUnmount(() => {
 
 .create-record-shell__input--verification-default :deep(.q-field__native),
 .create-record-shell__input--verification-default :deep(.q-field__input) {
-  color: rgba(35, 92, 26, 0.96);
+  color: rgba(24, 72, 144, 0.96);
   font-weight: 700;
   background-image: linear-gradient(
     transparent calc(100% - 0.2em),
-    rgba(145, 210, 129, 0.34) calc(100% - 0.2em)
+    rgba(112, 171, 244, 0.36) calc(100% - 0.2em)
   );
 }
 
@@ -2106,8 +2106,8 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__field-action.create-record-shell__input--verification-default :deep(.q-field__control) {
-  background: rgba(232, 249, 224, 0.96);
-  border-color: rgba(71, 147, 57, 0.32);
+  background: rgba(225, 239, 255, 0.96);
+  border-color: rgba(64, 121, 210, 0.32);
 }
 
 .create-record-shell__field-action.create-record-shell__input--verification-suggested :deep(.q-field__control) {
@@ -2134,7 +2134,7 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__verification-icon--default {
-  color: rgba(71, 147, 57, 0.92);
+  color: rgba(64, 121, 210, 0.92);
 }
 
 .create-record-shell__verification-icon--suggested {
@@ -2199,9 +2199,9 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__footer-status--default {
-  background: rgba(232, 249, 224, 0.96);
-  color: rgba(35, 92, 26, 0.96);
-  border: 1px solid rgba(71, 147, 57, 0.32);
+  background: rgba(225, 239, 255, 0.96);
+  color: rgba(24, 72, 144, 0.96);
+  border: 1px solid rgba(64, 121, 210, 0.32);
 }
 
 .create-record-shell__footer-status--suggested {
