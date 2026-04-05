@@ -8,38 +8,6 @@
     </div>
 
     <div v-else class="record-shell">
-      <section class="record-shell__controls">
-        <div class="record-shell__select-wrap">
-          <q-select
-            ref="sectionSelectRef"
-            v-model="selectedSection"
-            dense
-            dark
-            options-dark
-            borderless
-            hide-bottom-space
-            emit-value
-            map-options
-            hide-dropdown-icon
-            :options="shellSectionOptions"
-            popup-content-class="record-shell__select-menu"
-            class="record-shell__select"
-          >
-            <template #selected-item="scope">
-              <span class="record-shell__select-value">{{ scope.opt.label }}</span>
-            </template>
-            <template #option="scope">
-              <q-item v-bind="scope.itemProps" class="record-shell__select-menu-item">
-                <q-item-section>
-                  <span class="record-shell__select-menu-value">{{ scope.opt.label }}</span>
-                </q-item-section>
-              </q-item>
-            </template>
-          </q-select>
-          <q-icon name="expand_more" class="record-shell__select-chevron" @click.stop="openSectionMenu" />
-        </div>
-      </section>
-
       <section class="record-shell__hero">
         <div class="record-shell__hero-main">
           <figure class="record-shell__portrait">
@@ -251,7 +219,6 @@ import {
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
-const sectionSelectRef = ref(null)
 const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
@@ -260,22 +227,11 @@ const expandedSectionKeys = ref([])
 const activeSectionKey = ref('')
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
-const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
 const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
-
-const selectedSection = computed({
-  get() {
-    const current = String(route.query.section || '').trim().toLowerCase()
-    return shellSectionOptions.some((option) => option.value === current) ? current : fallbackSectionKey
-  },
-  set(value) {
-    const nextValue = String(value || '').trim().toLowerCase()
-    const normalizedValue = shellSectionOptions.some((option) => option.value === nextValue) ? nextValue : fallbackSectionKey
-    router.replace({ query: { ...route.query, section: normalizedValue } })
-  },
+const activeSourceKey = computed(() => {
+  const current = String(route.query.section || '').trim().toLowerCase()
+  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current) ? current : fallbackSectionKey
 })
-
-const activeSourceKey = computed(() => selectedSection.value)
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
 const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
@@ -349,12 +305,6 @@ watch(level2Sections, (sections) => {
 }, { immediate: true })
 
 watch(activeSourceKey, async () => { await ensureLiveOptionsLoaded() }, { immediate: true })
-
-function openSectionMenu() {
-  const select = sectionSelectRef.value
-  if (select?.showPopup) select.showPopup()
-  else if (select?.focus) select.focus()
-}
 
 function isSectionExpanded(sectionKey) { return expandedSectionKeys.value.includes(sectionKey) }
 function toggleExpandedSection(sectionKey) {
@@ -502,14 +452,6 @@ function normalizeListResult(result) {
 
 <style scoped>
 .record-shell { display: flex; flex-direction: column; gap: 20px; }
-.record-shell__controls { display: flex; justify-content: center; }
-.record-shell__select-wrap { position: relative; display: inline-flex; align-items: flex-start; padding-right: 18px; }
-.record-shell__select { width: min(220px, 100%); min-width: 0; }
-.record-shell__select :deep(.q-field__control) { min-height: 40px; padding: 0 4px 0 0; background: transparent; border-radius: 0; box-shadow: none; }
-.record-shell__select :deep(.q-field__native), .record-shell__select :deep(.q-field__marginal) { color: #fff !important; }
-.record-shell__select-value, .record-shell__select-menu-value { display: inline-flex; align-items: center; min-height: 26px; padding: 0 8px; color: #fff; background: #111; box-shadow: 0 0 0 1px rgba(255,255,255,.82); font-family: var(--font-title); font-weight: 800; line-height: .96; }
-.record-shell__select-value { min-height: 32px; padding: 0 10px; font-size: 1rem; letter-spacing: -.04em; text-transform: lowercase; }
-.record-shell__select-chevron { position: absolute; right: -4px; bottom: -2px; color: #111; font-size: 20px; cursor: pointer; }
 .record-shell__hero { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 20px; }
 .record-shell__hero-main, .record-shell__feed { min-height: 420px; border-radius: 14px; overflow: hidden; }
 .record-shell__hero-main { display: grid; grid-template-columns: minmax(0,1fr) 260px; background: linear-gradient(180deg,rgba(255,255,255,.98) 0%,rgba(248,246,240,.98) 100%); border: 1px solid rgba(17,17,17,.08); }
