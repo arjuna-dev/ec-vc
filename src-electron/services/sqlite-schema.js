@@ -48,6 +48,28 @@ CREATE TABLE IF NOT EXISTS databook_snapshots (
 CREATE INDEX IF NOT EXISTS idx_databook_snapshots_record
   ON databook_snapshots(table_name, record_id, created_at);
 
+CREATE TABLE IF NOT EXISTS Field_Verification_Metadata (
+  id TEXT PRIMARY KEY,
+  table_name TEXT NOT NULL,
+  record_id TEXT NOT NULL,
+  field_name TEXT NOT NULL,
+  state TEXT NOT NULL,
+  source TEXT,
+  confidence TEXT,
+  verified_by TEXT,
+  verified_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (table_name, record_id, field_name),
+  FOREIGN KEY (verified_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Field_Verification_Metadata_record
+  ON Field_Verification_Metadata(table_name, record_id);
+
+CREATE INDEX IF NOT EXISTS idx_Field_Verification_Metadata_state
+  ON Field_Verification_Metadata(state, verified_at);
+
 CREATE TABLE IF NOT EXISTS Companies (
   id INTEGER PRIMARY KEY,
   Company_Name TEXT NOT NULL,

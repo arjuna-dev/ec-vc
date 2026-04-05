@@ -148,6 +148,23 @@ Working rule:
 - if the artifact is being created directly inside `Artifacts`, do not add a second page-context assumption
 - when `Ingestion` starts from that artifact, the processed record should point to the linked source artifact instead of creating a second artifact record
 
+## Field Verification Metadata Rule
+
+Field state should be tracked through one shared metadata layer, not through a shadow copy of each field.
+
+The real value remains on the real record field.
+
+The review state belongs in metadata such as:
+
+- `table_name`
+- `record_id`
+- `field_name`
+- `state`
+- `source`
+- `confidence`
+- `verified_by`
+- `verified_at`
+
 ## Canonical Token Contract
 
 Canonical tokens are the app-facing structural descriptors.

@@ -110,6 +110,12 @@ function maybeRecreateDb(dbPath) {
     hasColumn(probe, 'KDB_Relationships', 'source_token') &&
     hasColumn(probe, 'KDB_Relationships', 'target_entity') &&
     hasColumn(probe, 'KDB_Relationships', 'target_record_id') &&
+    hasTable(probe, 'Field_Verification_Metadata') &&
+    hasColumn(probe, 'Field_Verification_Metadata', 'table_name') &&
+    hasColumn(probe, 'Field_Verification_Metadata', 'record_id') &&
+    hasColumn(probe, 'Field_Verification_Metadata', 'field_name') &&
+    hasColumn(probe, 'Field_Verification_Metadata', 'state') &&
+    hasColumn(probe, 'Field_Verification_Metadata', 'source') &&
     hasColumn(probe, 'databook_snapshots', 'table_name') &&
     hasColumn(probe, 'databook_snapshots', 'record_id')
 

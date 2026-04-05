@@ -28,6 +28,7 @@ This tracker should stay aligned with:
 - keep owner authority locked while still allowing owner-only editing of owner profile data
 - finish the setup layer so the first Companion role and first game board can begin on `Ingestion`
 - implement highlighted `default/preselected unverified` context cues so artifact assumptions become verification-ready rather than hidden
+- put the shared field verification metadata layer in place before the first full ingestion board pass
 
 ### Open Activity
 
@@ -108,6 +109,7 @@ This tracker should stay aligned with:
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - artifact context assumptions should now be treated as `default/preselected unverified`
 - ingestion should start from the linked source artifact and should not create a duplicate artifact record at processing start
+- the shared `Field_Verification_Metadata` layer is now the approved place to track preselected, suggested, verified, and rejected field states
 - the `Game Master` should explain ranking and point changes without overriding verification or ownership
 - the field-class direction is now becoming explicit:
   - `owned_field`

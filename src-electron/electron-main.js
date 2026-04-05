@@ -4677,6 +4677,129 @@ function listEvents(filters = {}) {
     .all(...params, limit)
 }
 
+function listFieldVerificationMetadata({ tableName, recordId } = {}) {
+  const database = initDb()
+  const normalizedTableName = normalizeNullableString(tableName)
+  const normalizedRecordId = normalizeNullableString(recordId)
+  if (!normalizedTableName || !normalizedRecordId) {
+    throw new Error('tableName and recordId are required')
+  }
+
+  return database
+    .prepare(
+      `
+      SELECT
+        id,
+        table_name,
+        record_id,
+        field_name,
+        state,
+        source,
+        confidence,
+        verified_by,
+        verified_at,
+        created_at,
+        updated_at
+      FROM Field_Verification_Metadata
+      WHERE table_name = ? AND record_id = ?
+      ORDER BY field_name ASC
+    `,
+    )
+    .all(normalizedTableName, normalizedRecordId)
+}
+
+function upsertFieldVerificationMetadata(payload = {}) {
+  const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
+  const tableName = normalizeNullableString(payload?.tableName)
+  const recordId = normalizeNullableString(payload?.recordId)
+  const fieldName = normalizeNullableString(payload?.fieldName)
+  const state = normalizeNullableString(payload?.state)
+  const source = normalizeNullableString(payload?.source)
+  const confidence = normalizeNullableString(payload?.confidence)
+
+  if (!tableName || !recordId || !fieldName || !state) {
+    throw new Error('tableName, recordId, fieldName, and state are required')
+  }
+
+  const verifiedBy = state === 'verified' ? actor.user_id : null
+  const verifiedAt = state === 'verified' ? new Date().toISOString() : null
+  const existingId = normalizeNullableString(
+    database
+      .prepare(
+        `
+        SELECT id
+        FROM Field_Verification_Metadata
+        WHERE table_name = ? AND record_id = ? AND field_name = ?
+        LIMIT 1
+      `,
+      )
+      .get(tableName, recordId, fieldName)?.id,
+  )
+  const id = existingId || `fieldmeta:${crypto.randomUUID()}`
+
+  database
+    .prepare(
+      `
+      INSERT INTO Field_Verification_Metadata (
+        id,
+        table_name,
+        record_id,
+        field_name,
+        state,
+        source,
+        confidence,
+        verified_by,
+        verified_at,
+        created_at,
+        updated_at
+      ) VALUES (
+        @id,
+        @table_name,
+        @record_id,
+        @field_name,
+        @state,
+        @source,
+        @confidence,
+        @verified_by,
+        @verified_at,
+        datetime('now'),
+        datetime('now')
+      )
+      ON CONFLICT(table_name, record_id, field_name) DO UPDATE SET
+        state = excluded.state,
+        source = excluded.source,
+        confidence = excluded.confidence,
+        verified_by = excluded.verified_by,
+        verified_at = excluded.verified_at,
+        updated_at = datetime('now')
+    `,
+    )
+    .run({
+      id,
+      table_name: tableName,
+      record_id: recordId,
+      field_name: fieldName,
+      state,
+      source,
+      confidence,
+      verified_by: verifiedBy,
+      verified_at: verifiedAt,
+    })
+
+  return {
+    id,
+    table_name: tableName,
+    record_id: recordId,
+    field_name: fieldName,
+    state,
+    source,
+    confidence,
+    verified_by: verifiedBy,
+    verified_at: verifiedAt,
+  }
+}
+
 function applyAuditedChanges(changes = [], { createDatabookSnapshotFor = null } = {}) {
   const database = initDb()
   const normalizedChanges = (Array.isArray(changes) ? changes : [])
@@ -6503,6 +6626,28 @@ function registerIpc() {
       throw new Error(sanitizeDatabookUpdateError(e))
     }
   })
+
+  ipcMain.handle('verification:list', async (_event, { tableName, recordId } = {}) => {
+    initDb()
+    return {
+      fields: listFieldVerificationMetadata({ tableName, recordId }),
+    }
+  })
+
+  ipcMain.handle(
+    'verification:upsert',
+    async (_event, { tableName, recordId, fieldName, state, source, confidence } = {}) => {
+      initDb()
+      return upsertFieldVerificationMetadata({
+        tableName,
+        recordId,
+        fieldName,
+        state,
+        source,
+        confidence,
+      })
+    },
+  )
 
   ipcMain.handle('audit:me', async () => {
     const database = initDb()

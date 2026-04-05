@@ -184,6 +184,32 @@ Working rule:
 - when the artifact is added from the `Artifacts` file itself, no extra parent-page context should be inferred
 - ingestion should begin from the linked source artifact and should not create a second artifact record until a downstream output document is created
 
+## Field Verification Metadata
+
+The app now has one shared field-level verification metadata layer.
+
+Its purpose is to track field state without duplicating the field itself.
+
+The value stays in the real record field.
+
+The status of that value lives in shared metadata such as:
+
+- `table_name`
+- `record_id`
+- `field_name`
+- `state`
+- `source`
+- `confidence`
+- `verified_by`
+- `verified_at`
+
+Working rule:
+
+- do not create shadow tables per field
+- do not duplicate the record value just to track review state
+- store the value once
+- store the verification/preselection state separately in the shared metadata layer
+
 ### Mandatory Relationship Standard
 
 For the current architecture pass, KDB relationships should be understood in three states:

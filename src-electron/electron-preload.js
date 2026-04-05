@@ -103,6 +103,19 @@ contextBridge.exposeInMainWorld('ecvc', {
     update: ({ tableName, recordId, changes } = {}) =>
       ipcRenderer.invoke('databooks:update', { tableName, recordId, changes }),
   },
+  verification: {
+    list: ({ tableName, recordId } = {}) =>
+      ipcRenderer.invoke('verification:list', { tableName, recordId }),
+    upsert: ({ tableName, recordId, fieldName, state, source, confidence } = {}) =>
+      ipcRenderer.invoke('verification:upsert', {
+        tableName,
+        recordId,
+        fieldName,
+        state,
+        source,
+        confidence,
+      }),
+  },
   audit: {
     me: () => ipcRenderer.invoke('audit:me'),
     setUserLabel: (userLabel) => ipcRenderer.invoke('audit:setUserLabel', { userLabel }),

@@ -108,6 +108,7 @@ The companion must follow these rules:
 - never convert a directional link into generic KDB
 - never create a new relationship path if canon does not declare it
 - never guess ownership when canonical ownership is missing
+- when a field needs review state, store that state in shared field verification metadata rather than duplicating the field
 - when confidence is low, suggest rather than commit
 - when confidence is high, still write through the approved owner path only
 
