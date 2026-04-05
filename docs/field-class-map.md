@@ -40,13 +40,34 @@ These are the first cases we should normalize before the broader pass.
 
 | L1 | L2 | L3 Token | Human Meaning | Field Class | Ownership Mode | Cardinality | Reverse Visibility | Write Path | Editable Where | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `Owners` | `System` | `Owner_User` | The root owner should produce the first user of the node | `directional_link` | `root_owned` | `one_to_one` | `visible` | owner bootstrap path | owner/root only | This is authority and bootstrap, not casual KDB |
-| `Users` | `System` | `User_Role` | A user receives a role and permissions | `directional_link` | `root_owned` | `one_to_one` to start | `visible` | role assignment path | owner / admin side | Treat as permissions path, not loose KDB |
+| `Owner_DB` | `System` | `Owner_User` | The node can have only one owner user | `directional_link` | `root_owned` | `one_to_one` | `visible` | current runtime root path: app setting `user_id`; target steady-state path: `Owner_DB.owner_user_id` | owner/root only | This is authority and bootstrap, not casual KDB |
+| `Users` | `System` | `User_Role` | A user receives a role and permissions | `directional_link` | `root_owned` | `one_to_one` to start | `visible` | target path: user-role assignment owner path | owner / admin side | Treat as permissions path, not loose KDB. Current app ensures the `Owner` role record exists, but does not yet persist a real `User -> Role` assignment. |
 | `Contacts` | `KDB` | `Contact_User` | A contact may be the same human as a user | `directional_link` | `root_owned` | `one_to_one` | `visible` | `Contacts.linked_user_id` | owner side only | Already backed directly in the DB |
 | `Users` | `KDB` | `User_Contact` | Reverse-visible identity link from user to contact | `directional_link` | `root_owned` | `one_to_one` | `visible` | reverse of `Contacts.linked_user_id` | follow back to owner side | Should not behave like generic multi-link KDB |
 | `Any L1` | `System` | `*_Creator` | The actor who created the record | `directional_link` | `root_owned` | `one_to_one` | `visible` | creator provenance path | source record only | Loaded but locked in linked views |
 | `Artifacts` | `KDB` or `System` | `Artifact_Ingestion` | Original artifact points to ingestion/provenance flow | `directional_link` | `relationship_owned` | `one_to_many` | `visible` | ingestion provenance owner path | owner/provenance side | Treat as provenance, not casual KDB |
 | `Ingestion` | `KDB` or `System` | `Ingestion_Created_Files` | Ingestion creates downstream files | `directional_link` | `relationship_owned` | `one_to_many` | `visible` | created-files provenance path | ingestion side | Output lineage should remain explicit |
+
+## Current Runtime Check
+
+What is already true in the app now:
+
+- saving owner profile creates or updates the first real `User`
+- the same flow creates or updates the linked `Contact`
+- that identity link is already backed directly through `Contacts.linked_user_id`
+- the app ensures a `Roles` record named `Owner` exists
+
+What is not yet fully true:
+
+- there is not yet a real persisted `User -> Role` assignment path
+- the current root owner path is effectively stored through app settings such as `user_id`, not yet through an explicit `Owner_DB` table/record
+
+Working rule:
+
+- owner bootstrap is partially runtime-backed now
+- the missing next spine links are:
+  - explicit `Owner_DB -> User`
+  - explicit `User -> Role`
 
 ## Review Prompts
 
