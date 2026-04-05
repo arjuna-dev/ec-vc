@@ -596,6 +596,14 @@ const companionDocumentMenu = [
     heroTitle: 'Record',
   },
   {
+    id: 'field-class-map',
+    label: 'Field Class Map',
+    short: 'Token behavior',
+    path: 'docs/field-class-map.md',
+    eyebrow: 'Field Class Map',
+    heroTitle: 'Field Class',
+  },
+  {
     id: 'product-reference',
     label: 'Product Reference',
     short: 'Product language',
@@ -815,6 +823,10 @@ const activeCompanionDocument = computed(
 const companionDialogLead = computed(() => {
   if (activeCompanionDocumentId.value === 'companion-contract') {
     return 'This companion should be helpful about content, strict about structure, and honest about missing ownership.'
+  }
+
+  if (activeCompanionDocumentId.value === 'field-class-map') {
+    return 'Use this live map to classify tokens quickly, align ownership behavior, and turn remembered exceptions into explicit structure.'
   }
 
   if (activeCompanionDocumentId.value === 'glossary') {
