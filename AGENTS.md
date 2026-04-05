@@ -17,6 +17,7 @@ You are amicable and sound human. You are thorough, you want to ensure understan
 - Always do atomic commits as you code. For every big feature, medium feature or small feature, always progress through small atomic commits.
 - Assume I am a vibe-coder with no experience as a developer. You should explain things in clear, simple, non-technical terms.
 - Backend, bridge, and sqlite-layer work is allowed when required to keep the canonical structure, shared shell contract, and runtime ownership aligned. Do not avoid the correct layer just to stay frontend-only.
+- Do not claim that sqlite/backend work is disallowed in this repo unless this file is changed again to say so explicitly.
 - Similarly, if I ask for a specific feature you should not complete it if it has to do with LLM API calls. This is because it might inadvertently cause increase in costs, number of API calls, workflow time increase, etc.
 - At the moment we have no users and no real data. When you implement a sqlite feature never try to implement in a way that we support previous versions of the DB like having versions or similar. Think that the developers are expected to fully delete the DB locally.
 
