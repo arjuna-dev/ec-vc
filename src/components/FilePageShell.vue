@@ -2161,6 +2161,20 @@ function assertNoUnsupportedRelationshipWrites(values = {}, entityName = '') {
   throw new Error(`Relationship save contract is not wired yet for: ${labels.join(', ')}`)
 }
 
+function haveNormalizedDialogValuesChanged(token, nextValue, initialValue) {
+  const normalizedNext = normalizeCreateFieldValue(token, nextValue)
+  const normalizedInitial = normalizeCreateFieldValue(token, initialValue)
+
+  if (Array.isArray(normalizedNext) || Array.isArray(normalizedInitial)) {
+    const nextList = Array.isArray(normalizedNext) ? normalizedNext : []
+    const initialList = Array.isArray(normalizedInitial) ? normalizedInitial : []
+    if (nextList.length !== initialList.length) return true
+    return nextList.some((value, index) => value !== initialList[index])
+  }
+
+  return (normalizedNext || null) !== (normalizedInitial || null)
+}
+
 function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName = '', idColumn = 'id' } = {}) {
   if (!recordId || !entityName) return []
 
@@ -2168,7 +2182,10 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
 
   return allTokens.flatMap((token) => {
     if (isAutomaticCreatorToken(token)) return []
+    if (createDialogFieldMeta.value?.[token.key]?.locked) return []
     const rawValue = values?.[token.key]
+    const initialValue = createDialogPrefillValues.value?.[token.key]
+    if (!haveNormalizedDialogValuesChanged(token, rawValue, initialValue)) return []
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
     if (normalizedValue == null) return []
 
