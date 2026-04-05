@@ -1946,19 +1946,6 @@ function buildCreatePayload(values = {}) {
   return Object.fromEntries(payloadEntries)
 }
 
-function isSplitNameToken(token) {
-  const tokenName = String(token?.tokenName || '').trim()
-  return tokenName === 'User_Name' || tokenName === 'Contact_Name'
-}
-
-function composeSplitNameValue(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
-  const givenNames = String(value.givenNames || '').trim()
-  const lastNames = String(value.lastNames || '').trim()
-  const fullName = [givenNames, lastNames].filter(Boolean).join(' ').trim()
-  return fullName || null
-}
-
 function buildUpdateChanges(payload = {}) {
   const editRow = editDialogRow.value
   if (!editRow?.recordId) return []
@@ -2120,11 +2107,6 @@ async function loadContactArtifactsForRow(row) {
 }
 
 function normalizeCreateFieldValue(token, value) {
-  if (isSplitNameToken(token)) {
-    const normalizedName = composeSplitNameValue(value)
-    return normalizedName ? normalizedName : null
-  }
-
   const tokenType = String(token?.tokenType || '').trim()
   if (tokenType === 'select_multi') {
     const normalized = Array.isArray(value)

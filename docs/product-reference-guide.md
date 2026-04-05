@@ -312,15 +312,6 @@ Examples:
 - artifact title, format, linked opportunity -> first-order `Artifacts`
 - task name, status, due date -> first-order `Tasks`
 
-For person records and profile inputs:
-
-- use `Given Names`
-- use `Last Names`
-
-Current implementation rule:
-
-- the UI captures split name inputs where they apply
-- the current DB still stores the existing combined name field underneath
 
 If a field belongs to a different canonical table, the UI should either:
 

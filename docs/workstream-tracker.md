@@ -45,7 +45,6 @@ This tracker should stay aligned with:
 - the file pages now render through one shared shell source with thin page wrappers, instead of drifting as copied page implementations
 - only the literal `Test Shell` route should switch `L1` through the shell selector; normal file pages should resolve from their own route-owned `L1`
 - owner identity now bootstraps into the `Users` table so the local owner can appear as the first real `User`
-- split-name inputs are now being used where person/profile records are entered, while the current DB still stores the combined full-name field underneath
 - the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points
 - card shell slots are now explicit for `title`, `subtitle`, and `chips`, with `subtitle` = first selected extra field and `chips` = remaining selected extra fields
 - `Knowledge DBs` now behaves as a real left-nav sibling branch under `My Workspace`, and its parent/child rows have been pulled back onto the same styling path as the `Files` navigation family
@@ -115,7 +114,6 @@ This tracker should stay aligned with:
   - `System`, `KDB`, `General`
   - `Name`, `Summary`
   - owner identity now bootstraps into `Users`, and an `Owner` role record is ensured during that flow
-  - person/profile inputs now use `Given Names` and `Last Names` on the UI side while saving back to the current combined-name field
   - the shared create/edit dialog now renders canonical date fields as date inputs
   - stale resolved bug notes were cleaned out of `bugs/`, leaving only the current `Knowledge DBs` nav follow-up notes
 - current shared goal:

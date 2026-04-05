@@ -421,17 +421,6 @@ Important current limit:
 - but there is not yet a dedicated user-to-role relationship contract in the current schema
 - do not fake that relationship in the shell until the structure exists
 
-## Name Input Rule
-
-Where the current product treats a person as a profile, user, or contact, the input surface should split the name into:
-
-- `Given Names`
-- `Last Names`
-
-Current implementation rule:
-
-- the UI captures split name inputs
-- the current DB still stores the combined full-name field underneath
 - the shell and direct forms should compose the stored full name from those two inputs instead of exposing one unsplit name box
 
 ## Current File Card Shell

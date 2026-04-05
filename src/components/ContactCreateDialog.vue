@@ -3,7 +3,7 @@
     <q-card style="width: 900px; max-width: 96vw">
       <q-card-section>
         <div class="text-h6">Create Contact</div>
-        <div class="text-caption text-grey-7">Given names are required.</div>
+        <div class="text-caption text-grey-7">Only name is required.</div>
         <div v-if="props.initialData" class="text-caption text-primary q-mt-xs">
           Reviewing extracted contact details in the existing create flow.
         </div>
@@ -14,14 +14,7 @@
       <q-card-section style="max-height: 70vh; overflow: auto">
         <q-form @submit.prevent="submit" class="q-gutter-md">
           <q-input v-model="form.id" outlined label="ID (optional)" :disable="loading" />
-          <div class="row q-col-gutter-md">
-            <div class="col-12 col-md-6">
-              <q-input v-model="form.Given_Names" autofocus outlined label="Given Names *" :disable="loading" />
-            </div>
-            <div class="col-12 col-md-6">
-              <q-input v-model="form.Last_Names" outlined label="Last Names" :disable="loading" />
-            </div>
-          </div>
+          <q-input v-model="form.Name" autofocus outlined label="Name *" :disable="loading" />
 
           <div v-for="field in fields" :key="field.key" class="col-12 col-md-6">
             <q-input
@@ -76,8 +69,7 @@ const form = ref({})
 function resetForm() {
   form.value = {
     id: '',
-    Given_Names: '',
-    Last_Names: '',
+    Name: '',
     Personal_Email: '',
     Professional_Email: '',
     Phone: '',
@@ -89,8 +81,7 @@ function resetForm() {
   form.value = {
     ...form.value,
     id: initial.id || form.value.id,
-    Given_Names: splitNameParts(initial.Name).givenNames || form.value.Given_Names,
-    Last_Names: splitNameParts(initial.Name).lastNames || form.value.Last_Names,
+    Name: initial.Name || form.value.Name,
     Personal_Email: initial.Personal_Email || form.value.Personal_Email,
     Professional_Email: initial.Professional_Email || form.value.Professional_Email,
     Phone: initial.Phone || form.value.Phone,
@@ -108,7 +99,7 @@ watch(
 
 async function submit() {
   if (!bridge.value?.contacts?.create) return
-  const name = [form.value.Given_Names, form.value.Last_Names].map((value) => String(value || '').trim()).filter(Boolean).join(' ').trim()
+  const name = String(form.value.Name || '').trim()
   if (!name) return
 
   loading.value = true
@@ -118,14 +109,6 @@ async function submit() {
     open.value = false
   } finally {
     loading.value = false
-  }
-}
-
-function splitNameParts(value) {
-  const parts = String(value || '').trim().split(/\s+/).filter(Boolean)
-  return {
-    givenNames: parts.slice(0, -1).join(' ') || parts[0] || '',
-    lastNames: parts.length > 1 ? parts.slice(-1).join(' ') : '',
   }
 }
 </script>
