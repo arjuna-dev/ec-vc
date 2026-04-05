@@ -8,7 +8,13 @@
     </div>
 
     <div v-else class="record-shell">
-      <section class="contact-databook__hero">
+      <section
+        ref="contactHeroRef"
+        class="contact-databook__hero"
+        :style="structuredRecordHeroStyle"
+        @pointerenter="startContactHeroPointerTracking"
+        @pointermove="onContactHeroPointerMove"
+      >
         <div class="contact-databook__hero-main">
           <figure class="contact-databook__portrait contact-databook__portrait--initials-only">
             <div class="contact-databook__portrait-placeholder" aria-hidden="true">
@@ -95,21 +101,21 @@
               {{ heroSecondaryLine }}
             </div>
 
-            <div v-if="genericMiniDashboardStats.length" class="contact-databook__mini-dashboard">
-              <div v-for="stat in genericMiniDashboardStats" :key="stat.id" class="contact-databook__mini-item">
-                <div class="contact-databook__mini-label">{{ stat.label }}</div>
-                <div class="contact-databook__mini-value">{{ stat.displayValue }}</div>
-              </div>
-            </div>
-
-            <div v-if="genericRecordPills.length" class="contact-databook__pill-row">
-              <q-badge
-                v-for="pill in genericRecordPills"
-                :key="pill"
-                class="contact-databook__pill"
+            <div v-if="selectedHeroFieldCards.length" class="record-shell__hero-field-stack">
+              <article
+                v-for="field in selectedHeroFieldCards"
+                :key="field.key"
+                class="record-shell__hero-field-card"
               >
-                {{ pill }}
-              </q-badge>
+                <div class="record-shell__hero-field-top">
+                  <div class="record-shell__hero-field-label">{{ field.label }}</div>
+                  <div class="record-shell__hero-field-description">{{ field.description }}</div>
+                </div>
+                <div class="record-shell__hero-field-bottom">
+                  <div class="record-shell__hero-field-value">{{ field.value }}</div>
+                  <q-icon :name="field.statusIcon" size="15px" class="record-shell__hero-field-status" />
+                </div>
+              </article>
             </div>
 
             <div class="contact-databook__hero-notes-panel">
@@ -225,32 +231,33 @@
         </div>
       </section>
 
-      <section class="record-shell__toolbar">
-        <div class="record-shell__toolbar-left">
-          <button
-            v-for="section in toolbarLeftSections"
-            :key="section.key"
-            type="button"
-            class="record-shell__toolbar-tab"
-            :class="{ 'record-shell__toolbar-tab--active': activeSectionKey === section.key }"
-            @click="activeSectionKey = section.key"
-          >
-            {{ section.label }}
-          </button>
-        </div>
-
-        <div class="record-shell__toolbar-right">
-          <button
-            v-for="section in toolbarRightSections"
-            :key="section.key"
-            type="button"
-            class="record-shell__toolbar-tab"
-            :class="{ 'record-shell__toolbar-tab--active': activeSectionKey === section.key }"
-            @click="activeSectionKey = section.key"
-          >
-            {{ section.label }}
-          </button>
-        </div>
+      <section v-if="recordShellNavItems.length" class="contact-databook__nav" aria-label="Record sections">
+        <button
+          v-for="section in recordShellNavItems"
+          :key="section.value"
+          type="button"
+          class="contact-databook__nav-item"
+          :class="{
+            'contact-databook__nav-item--active': activeSectionKey === section.value,
+            'contact-databook__nav-item--kdb': section.isKdb,
+            'contact-databook__nav-item--system': section.isSystem,
+            'contact-databook__nav-item--push-right': section.pushRight,
+          }"
+          @click="activeSectionKey = section.value"
+        >
+          <span class="contact-databook__nav-item-label">{{ section.title }}</span>
+          <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
+        </button>
+        <q-btn-toggle
+          v-model="recordShellTopNavViewMode"
+          dense
+          unelevated
+          toggle-color="primary"
+          color="grey-3"
+          text-color="grey-8"
+          class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
+          :options="CONTACT_KDB_VIEW_OPTIONS"
+        />
       </section>
 
       <section class="record-shell__panel">
@@ -306,7 +313,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import CreateRecordShellDialog from 'src/components/CreateRecordShellDialog.vue'
@@ -323,14 +330,21 @@ import {
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
+const CONTACT_KDB_VIEW_OPTIONS = [
+  { label: 'Grid', value: 'grid' },
+  { label: 'Row', value: 'row' },
+]
 const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
 const expandedSectionKeys = ref([])
 const activeSectionKey = ref('')
+const contactHeroRef = ref(null)
+const contactHeroGradient = ref({ x: 22, y: 22, size: 58 })
 const genericHeroPanelTab = ref('notes')
 const activeRecordFeedTab = ref('all')
+const recordShellTopNavViewMode = ref('grid')
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
@@ -357,7 +371,9 @@ const selectableTokens = computed(() =>
 const selectedTokenKeys = computed({
   get() {
     const raw = route.query.l3
-    const values = Array.isArray(raw) ? raw : String(raw || '').split(',')
+    const values = raw == null || raw === ''
+      ? getDefaultSelectedTokenKeys()
+      : (Array.isArray(raw) ? raw : String(raw || '').split(','))
     const allowed = new Set(selectableTokens.value.map((token) => token.key))
     return values.map((value) => String(value || '').trim()).filter((value) => value && allowed.has(value))
   },
@@ -389,17 +405,47 @@ const toolbarLeftSections = computed(() => level2Sections.value.filter((section)
 const toolbarRightSections = computed(() => level2Sections.value.filter((section) => ['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
 
 const heroInitials = computed(() => String(activeRegistryEntry.value?.singularLabel || 'Record').slice(0, 2).toUpperCase())
-const heroAvatarColor = computed(() => ({ users: '#2647ff', contacts: '#111111', companies: '#1f8f6a', projects: '#a54b1a', tasks: '#6a44c6', notes: '#7c5b1b', roles: '#8f2f5a', artifacts: '#3a3a3a' }[activeSourceKey.value] || '#2647ff'))
+const structuredRecordThemeMap = {
+  users: { strong: 'rgba(31, 111, 235, 0.2)', soft: 'rgba(31, 111, 235, 0.14)', fade: 'rgba(31, 111, 235, 0.06)' },
+  artifacts: { strong: 'rgba(147, 51, 234, 0.2)', soft: 'rgba(147, 51, 234, 0.14)', fade: 'rgba(147, 51, 234, 0.06)' },
+  opportunities: { strong: 'rgba(249, 115, 22, 0.2)', soft: 'rgba(249, 115, 22, 0.14)', fade: 'rgba(249, 115, 22, 0.06)' },
+  funds: { strong: 'rgba(16, 185, 129, 0.2)', soft: 'rgba(16, 185, 129, 0.14)', fade: 'rgba(16, 185, 129, 0.06)' },
+  rounds: { strong: 'rgba(245, 158, 11, 0.2)', soft: 'rgba(245, 158, 11, 0.14)', fade: 'rgba(245, 158, 11, 0.06)' },
+  projects: { strong: 'rgba(37, 99, 235, 0.2)', soft: 'rgba(37, 99, 235, 0.14)', fade: 'rgba(37, 99, 235, 0.06)' },
+  pipelines: { strong: 'rgba(37, 99, 235, 0.2)', soft: 'rgba(37, 99, 235, 0.14)', fade: 'rgba(37, 99, 235, 0.06)' },
+}
+const structuredRecordHeroStyle = computed(() => {
+  const theme = structuredRecordThemeMap[activeSourceKey.value] || structuredRecordThemeMap.users
+  return {
+    '--contact-hero-blob-x': `${contactHeroGradient.value.x}%`,
+    '--contact-hero-blob-y': `${contactHeroGradient.value.y}%`,
+    '--contact-hero-blob-size': `${contactHeroGradient.value.size}%`,
+    '--contact-hero-blob-strong': theme.strong,
+    '--contact-hero-blob-soft': theme.soft,
+    '--contact-hero-blob-fade': theme.fade,
+  }
+})
+const heroAvatarColor = computed(() => {
+  const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
+  return palette[Math.abs(hashString(`${activeSourceKey.value}:${heroName.value}`)) % palette.length]
+})
 const heroName = computed(() => `${activeRegistryEntry.value?.singularLabel || 'Record'} Name`)
 const heroSubtitle = computed(() => activeRegistryEntry.value?.label || 'Record Shell')
 const heroSecondaryLine = computed(() => 'Expanded record-view skeleton for the selected L1 payload.')
-const heroStats = computed(() => [
-  { id: 'l2', label: 'L2', value: level2Sections.value.length },
-  { id: 'l3', label: 'L3', value: level3Tokens.value.length },
-  { id: 'hero', label: 'Hero Fields', value: selectedHeroTokens.value.length },
-])
-const genericMiniDashboardStats = computed(() => heroStats.value.map((stat) => ({ id: stat.id, label: stat.label, displayValue: String(stat.value) })))
-const genericRecordPills = computed(() => selectedHeroTokens.value.map((token) => token.label))
+const selectedHeroFieldCards = computed(() =>
+  selectedHeroTokens.value.map((token) => {
+    const sectionLabel = level2Sections.value.find((section) => section.key === token.parentKey)?.label || 'Field'
+    const aliases = getCanonicalTokenFieldNames(token)
+    const tokenName = String(token?.tokenName || token?.label || '').trim()
+    return {
+      key: token.key,
+      label: token.label,
+      description: sectionLabel,
+      value: aliases[0] || tokenName || token.label,
+      statusIcon: 'task_alt',
+    }
+  }),
+)
 const genericHeroNotes = computed(() =>
   selectedHeroTokens.value.slice(0, 4).map((token, index) => ({
     id: token.key,
@@ -422,6 +468,19 @@ const feedItems = computed(() => [
 ])
 const recordFeedTabOptions = computed(() => [{ id: 'all', label: 'All' }])
 const displayedRecordFeedItems = computed(() => feedItems.value.filter((item) => item.feedKey === activeRecordFeedTab.value))
+const recordShellNavItems = computed(() => [
+  ...toolbarLeftSections.value.map((section) => ({ value: section.key, title: section.label, isKdb: false, isSystem: false, pushRight: false })),
+  ...toolbarRightSections.value.map((section, index) => {
+    const normalized = String(section.label || '').trim().toLowerCase()
+    return {
+      value: section.key,
+      title: section.label,
+      isKdb: normalized === 'kdb',
+      isSystem: normalized === 'system',
+      pushRight: index === 0,
+    }
+  }),
+])
 
 watch(level2Sections, (sections) => {
   if (!sections.length) {
@@ -434,6 +493,12 @@ watch(level2Sections, (sections) => {
 }, { immediate: true })
 
 watch(activeSourceKey, async () => { await ensureLiveOptionsLoaded() }, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('pointermove', onContactHeroPointerMove)
+  }
+})
 
 function isSectionExpanded(sectionKey) { return expandedSectionKeys.value.includes(sectionKey) }
 function toggleExpandedSection(sectionKey) {
@@ -576,6 +641,50 @@ function normalizeListResult(result) {
   if (!result || typeof result !== 'object') return []
   const firstArray = Object.values(result).find((value) => Array.isArray(value))
   return Array.isArray(firstArray) ? firstArray : []
+}
+
+function getDefaultSelectedTokenKeys() {
+  if (activeSourceKey.value !== 'users') return []
+  return selectableTokens.value
+    .filter((token) => {
+      const aliases = getCanonicalTokenFieldNames(token).map((value) => String(value || '').trim())
+      const tokenName = String(token?.tokenName || '').trim()
+      return aliases.includes('User_PEmail')
+        || aliases.includes('Role_Name')
+        || aliases.includes('id')
+        || tokenName === 'User_Role'
+    })
+    .map((token) => token.key)
+}
+
+function hashString(value = '') {
+  let hash = 0
+  const normalized = String(value || '')
+  for (let index = 0; index < normalized.length; index += 1) {
+    hash = ((hash << 5) - hash) + normalized.charCodeAt(index)
+    hash |= 0
+  }
+  return hash
+}
+
+function onContactHeroPointerMove(event) {
+  const heroElement = contactHeroRef.value
+  if (!heroElement) return
+  const rect = heroElement.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const x = ((event.clientX - rect.left) / rect.width) * 100
+  const y = ((event.clientY - rect.top) / rect.height) * 100
+  contactHeroGradient.value = {
+    x: Math.max(8, Math.min(92, x)),
+    y: Math.max(10, Math.min(90, y)),
+    size: 58,
+  }
+}
+
+function startContactHeroPointerTracking() {
+  if (typeof window === 'undefined') return
+  window.removeEventListener('pointermove', onContactHeroPointerMove)
+  window.addEventListener('pointermove', onContactHeroPointerMove)
 }
 </script>
 
@@ -768,21 +877,56 @@ function normalizeListResult(result) {
   line-height: 20px;
 }
 
-.contact-databook__pill-row {
+.record-shell__hero-field-stack {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
 }
 
-.contact-databook__pill {
-  padding: 7px 10px;
+.record-shell__hero-field-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 10px;
+}
+
+.record-shell__hero-field-top,
+.record-shell__hero-field-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.record-shell__hero-field-label {
   color: #111;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-pill);
   font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-medium);
+  font-size: var(--ds-font-size-sm-medium);
   font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-sm);
+}
+
+.record-shell__hero-field-description {
+  color: #6b6b6b;
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  line-height: var(--ds-line-height-xs);
+  text-align: right;
+}
+
+.record-shell__hero-field-value {
+  color: #111;
+  font-family: var(--ds-font-family-title);
+  font-size: 0.86rem;
+  font-weight: var(--ds-font-weight-black);
+  line-height: 0.96;
+}
+
+.record-shell__hero-field-status {
+  color: #2669ff;
 }
 
 .contact-databook__hero-notes-panel {
