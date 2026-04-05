@@ -572,7 +572,14 @@
             Suggested
           </div>
         </div>
-        <q-btn flat no-caps label="Cancel" :disable="loading" @click="open = false" />
+        <q-btn
+          flat
+          no-caps
+          label="Cancel"
+          :disable="loading"
+          class="create-record-shell__footer-button"
+          @click="open = false"
+        />
         <q-btn
           no-caps
           unelevated
@@ -580,6 +587,7 @@
           :label="submitLabel"
           :loading="loading"
           :disable="submitDisabled"
+          class="create-record-shell__footer-button"
           @click="submit"
         />
       </q-card-actions>
@@ -1895,7 +1903,7 @@ onBeforeUnmount(() => {
   color: #111111;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(17, 17, 17, 0.92);
-  border-radius: 8px;
+  border-radius: 4px;
   font-family: var(--font-title);
   font-size: 0.7rem;
   font-weight: var(--font-weight-black);
@@ -2191,7 +2199,7 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: 4px;
   font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -2208,6 +2216,10 @@ onBeforeUnmount(() => {
   background: rgba(255, 246, 214, 0.98);
   color: rgba(106, 78, 5, 0.92);
   border: 1px solid rgba(186, 129, 13, 0.28);
+}
+
+.create-record-shell__footer-button {
+  border-radius: 4px;
 }
 
 .create-record-shell__resize-handle {
