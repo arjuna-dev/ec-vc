@@ -16,11 +16,11 @@
           />
         </div>
 
-        <div v-if="isTestShellRoute" class="ec-shell-toolbar-center">
+        <div v-if="isShellRoute" class="ec-shell-toolbar-center">
           <div class="ec-shell-test-select-wrap">
             <q-select
               ref="testShellSectionSelectRef"
-              v-model="selectedTestShellSection"
+              v-model="selectedShellSection"
               dense
               dark
               options-dark
@@ -29,7 +29,7 @@
               emit-value
               map-options
               hide-dropdown-icon
-              :options="testShellSectionOptions"
+              :options="shellSectionOptions"
               popup-content-class="ec-shell-test-select-menu"
               class="ec-shell-test-select"
             >
@@ -50,9 +50,78 @@
             <q-icon
               name="expand_more"
               class="ec-shell-test-select__chevron"
-              @click.stop="openTestShellSectionMenu"
+              @click.stop="openShellSectionMenu"
             />
           </div>
+
+          <q-btn
+            v-if="isRecordShellRoute"
+            flat
+            dense
+            no-caps
+            class="ec-shell-record-filter-btn"
+            aria-label="Record shell field options"
+          >
+            <span class="ec-shell-record-filter-btn__label">L3</span>
+            <q-icon name="expand_more" class="ec-shell-record-filter-btn__icon" />
+
+            <q-menu
+              anchor="bottom middle"
+              self="top middle"
+              class="ec-shell-record-filter-menu"
+              content-class="ec-shell-record-filter-menu__content"
+            >
+              <div class="ec-shell-record-filter-panel">
+                <div class="ec-shell-record-filter-panel__title">L3 Options</div>
+
+                <div class="ec-shell-record-filter-panel__rows">
+                  <div
+                    v-for="section in recordShellLevel2Sections"
+                    :key="section.key"
+                    class="ec-shell-record-filter-group"
+                  >
+                    <button
+                      type="button"
+                      class="ec-shell-record-filter-heading"
+                      @click="toggleExpandedRecordShellLevel2(section.key)"
+                    >
+                      <span class="ec-shell-record-filter-heading__label">{{ section.label }}</span>
+                      <q-icon
+                        :name="isRecordShellLevel2Expanded(section.key) ? 'expand_less' : 'expand_more'"
+                        size="14px"
+                        class="ec-shell-record-filter-heading__chevron"
+                      />
+                    </button>
+
+                    <div
+                      v-if="isRecordShellLevel2Expanded(section.key)"
+                      class="ec-shell-record-filter-group__children"
+                    >
+                      <button
+                        v-for="token in getRecordShellSectionTokens(section.key)"
+                        :key="token.key"
+                        type="button"
+                        class="ec-shell-record-filter-child-row"
+                        @click="toggleRecordShellToken(token.key, !isRecordShellTokenSelected(token.key))"
+                      >
+                        <q-checkbox
+                          :model-value="isRecordShellTokenSelected(token.key)"
+                          dense
+                          size="xs"
+                          checked-icon="check_box"
+                          unchecked-icon="check_box_outline_blank"
+                          class="ec-shell-record-filter-child-row__checkbox"
+                          @update:model-value="toggleRecordShellToken(token.key, $event)"
+                          @click.stop
+                        />
+                        <span class="ec-shell-record-filter-child-row__label">{{ token.label }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </q-menu>
+          </q-btn>
         </div>
 
         <q-toolbar-title class="ec-shell-toolbar-title">
@@ -494,6 +563,8 @@ import { useBreadcrumbActionsState } from 'src/utils/breadcrumbActionsState'
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
 import {
   getFilePageRegistryEntry,
+  LEVEL_2_FILE_REGISTRY_BY_KEY,
+  LEVEL_3_FILE_REGISTRY_BY_KEY,
   TEST_SHELL_SECTION_OPTIONS,
   WORKSPACE_FILE_NAV_ITEMS,
 } from 'src/utils/structureRegistry'
@@ -607,7 +678,8 @@ const workspaceNavigationItems = [
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
-  { label: 'Live Shell', to: '/test-shell', exact: true, icon: 'science' },
+  { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
+  { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
 ].map((item) => ({
   ...item,
   itemClass: item.itemClass || 'ec-nav-item--secondary ec-nav-item--workspace-child',
@@ -628,7 +700,8 @@ const routeLabelByName = {
   securities: 'Securities',
   'artifacts-processed': 'Ingestion',
   tasks: 'Tasks',
-  'test-shell': 'Live Shell',
+  'test-shell': 'File Shell',
+  'record-shell': 'Record Shell',
   roles: 'Roles',
   avatar: 'Companion',
   'user-settings': 'Owner',
@@ -743,16 +816,19 @@ const toolbarActions = computed(() => {
 
   return []
 })
-const isTestShellRoute = computed(() => String(route.name || '') === 'test-shell')
-const testShellSectionOptions = TEST_SHELL_SECTION_OPTIONS
-const selectedTestShellSection = computed({
+const expandedRecordShellLevel2Keys = ref([])
+const isFileShellRoute = computed(() => String(route.name || '') === 'test-shell')
+const isRecordShellRoute = computed(() => String(route.name || '') === 'record-shell')
+const isShellRoute = computed(() => isFileShellRoute.value || isRecordShellRoute.value)
+const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
+const selectedShellSection = computed({
   get() {
     const current = String(route.query.section || '').trim().toLowerCase()
-    return testShellSectionOptions.some((option) => option.value === current) ? current : 'tasks'
+    return shellSectionOptions.some((option) => option.value === current) ? current : 'tasks'
   },
   set(value) {
     const nextValue = String(value || '').trim().toLowerCase()
-    const normalizedValue = testShellSectionOptions.some((option) => option.value === nextValue) ? nextValue : 'tasks'
+    const normalizedValue = shellSectionOptions.some((option) => option.value === nextValue) ? nextValue : 'tasks'
     router.replace({
       query: {
         ...route.query,
@@ -762,7 +838,7 @@ const selectedTestShellSection = computed({
   },
 })
 
-function openTestShellSectionMenu() {
+function openShellSectionMenu() {
   const select = testShellSectionSelectRef.value
   if (!select) return
   if (typeof select.showPopup === 'function') {
@@ -772,6 +848,72 @@ function openTestShellSectionMenu() {
   if (typeof select.focus === 'function') {
     select.focus()
   }
+}
+
+const recordShellLevel2Sections = computed(() => {
+  if (!isRecordShellRoute.value) return []
+  return LEVEL_2_FILE_REGISTRY_BY_KEY[selectedShellSection.value] || []
+})
+
+const recordShellLevel3Tokens = computed(() => {
+  if (!isRecordShellRoute.value) return []
+  return (LEVEL_3_FILE_REGISTRY_BY_KEY[selectedShellSection.value] || []).filter((token) => {
+    const label = String(token?.label || '').trim().toLowerCase()
+    return label !== 'name' && label !== 'summary'
+  })
+})
+
+const selectedRecordShellTokenKeys = computed({
+  get() {
+    const rawValue = route.query.l3
+    const rawItems = Array.isArray(rawValue) ? rawValue : String(rawValue || '').split(',')
+    const allowedKeys = new Set(recordShellLevel3Tokens.value.map((token) => token.key))
+    return rawItems
+      .map((value) => String(value || '').trim())
+      .filter((value) => value && allowedKeys.has(value))
+  },
+  set(value) {
+    const normalized = Array.from(
+      new Set(
+        (Array.isArray(value) ? value : [])
+          .map((item) => String(item || '').trim())
+          .filter(Boolean),
+      ),
+    )
+    router.replace({
+      query: {
+        ...route.query,
+        ...(normalized.length ? { l3: normalized.join(',') } : { l3: undefined }),
+      },
+    })
+  },
+})
+
+function isRecordShellLevel2Expanded(sectionKey) {
+  return expandedRecordShellLevel2Keys.value.includes(sectionKey)
+}
+
+function toggleExpandedRecordShellLevel2(sectionKey) {
+  if (isRecordShellLevel2Expanded(sectionKey)) {
+    expandedRecordShellLevel2Keys.value = expandedRecordShellLevel2Keys.value.filter((key) => key !== sectionKey)
+    return
+  }
+  expandedRecordShellLevel2Keys.value = [...expandedRecordShellLevel2Keys.value, sectionKey]
+}
+
+function getRecordShellSectionTokens(sectionKey) {
+  return recordShellLevel3Tokens.value.filter((token) => token.parentKey === sectionKey)
+}
+
+function isRecordShellTokenSelected(tokenKey) {
+  return selectedRecordShellTokenKeys.value.includes(tokenKey)
+}
+
+function toggleRecordShellToken(tokenKey, isEnabled) {
+  const nextKeys = new Set(selectedRecordShellTokenKeys.value)
+  if (isEnabled) nextKeys.add(tokenKey)
+  else nextKeys.delete(tokenKey)
+  selectedRecordShellTokenKeys.value = Array.from(nextKeys)
 }
 
 const quickWidgetStyle = computed(() => ({
@@ -1752,6 +1894,18 @@ watch(
 )
 
 watch(
+  [isRecordShellRoute, recordShellLevel2Sections],
+  ([isRecordShell, sections]) => {
+    if (!isRecordShell) {
+      expandedRecordShellLevel2Keys.value = []
+      return
+    }
+    expandedRecordShellLevel2Keys.value = sections.map((section) => section.key)
+  },
+  { immediate: true },
+)
+
+watch(
   () => intakeDraftCount.value,
   (count) => {
     if (count > 0) draftTrayDismissed.value = false
@@ -1930,7 +2084,9 @@ function goBack() {
 .ec-shell-toolbar-center {
   flex: 1 1 auto;
   display: flex;
+  align-items: flex-start;
   justify-content: center;
+  gap: 10px;
   min-width: 0;
   padding-inline: 12px;
 }
@@ -2040,6 +2196,132 @@ function goBack() {
 .ec-shell-test-select-menu :deep(.q-item--active .q-item__label) {
   background: #000000;
   box-shadow: 0 0 0 1px #ffffff;
+}
+
+.ec-shell-record-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-radius: 2px;
+}
+
+.ec-shell-record-filter-btn__label {
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 0.96;
+}
+
+.ec-shell-record-filter-btn__icon {
+  color: #111111;
+  font-size: 18px;
+}
+
+.ec-shell-record-filter-menu {
+  border-radius: 0;
+}
+
+.ec-shell-record-filter-panel {
+  min-width: 220px;
+  max-width: min(280px, calc(100vw - 24px));
+  padding: 8px;
+  background: rgba(248, 248, 246, 0.98);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 16px 32px rgba(17, 17, 17, 0.12);
+}
+
+.ec-shell-record-filter-panel__title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.84rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  padding: 2px 2px 6px;
+}
+
+.ec-shell-record-filter-panel__rows {
+  display: grid;
+  gap: 8px;
+}
+
+.ec-shell-record-filter-group {
+  display: grid;
+  gap: 4px;
+}
+
+.ec-shell-record-filter-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 2px 2px 4px;
+  background: transparent;
+  border: 0;
+  color: #111111;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.ec-shell-record-filter-heading__label,
+.ec-shell-record-filter-child-row__label {
+  min-width: 0;
+  font-family: var(--ds-font-family-body);
+  font-size: 0.62rem;
+  font-weight: var(--ds-font-weight-light);
+  letter-spacing: 0.01em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.ec-shell-record-filter-heading__label {
+  color: #111111;
+}
+
+.ec-shell-record-filter-heading__chevron {
+  color: #111111;
+}
+
+.ec-shell-record-filter-group__children {
+  display: grid;
+  gap: 5px;
+}
+
+.ec-shell-record-filter-child-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 3px 2px;
+  color: rgba(17, 17, 17, 0.82);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.ec-shell-record-filter-child-row__checkbox {
+  min-height: 12px;
+}
+
+.ec-shell-record-filter-child-row__checkbox :deep(.q-checkbox__inner) {
+  font-size: 12px;
+  color: rgba(17, 17, 17, 0.18) !important;
+}
+
+.ec-shell-record-filter-child-row__checkbox :deep(.q-checkbox__inner--truthy) {
+  color: rgba(17, 17, 17, 0.78) !important;
+}
+
+.ec-shell-record-filter-child-row__checkbox :deep(.q-checkbox__bg) {
+  background: transparent !important;
 }
 
 .ec-breadcrumb-bar {

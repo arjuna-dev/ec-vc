@@ -24,6 +24,26 @@
         :health-segments="healthSegments"
       />
 
+      <div v-if="isRecordShellMode" class="record-shell-launchpad">
+        <div class="record-shell-launchpad__copy">
+          <div class="record-shell-launchpad__eyebrow">Record Shell</div>
+          <div class="record-shell-launchpad__title">Create a {{ activeRegistryEntry?.singularLabel || 'record' }}</div>
+          <div class="record-shell-launchpad__text">
+            Choose the L1 at the top, mark the L3 fields you want included, then open the shared create dialog.
+          </div>
+        </div>
+
+        <q-btn
+          unelevated
+          no-caps
+          color="primary"
+          class="record-shell-launchpad__action"
+          label="Create Record"
+          @click="openCreateRecordShell"
+        />
+      </div>
+
+      <template v-else>
       <FilePageToolbar
         :all-visible-selected="allVisibleSelected"
         :some-visible-selected="someVisibleSelected"
@@ -547,6 +567,7 @@
         @edit="handleSelectedRowsEdit"
         @remove="handleSelectedRowsDelete"
       />
+      </template>
 
       <CreateRecordShellDialog
         :key="createDialogRenderKey"
@@ -601,6 +622,13 @@ import {
 import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipContracts'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
+
+const props = defineProps({
+  shellMode: {
+    type: String,
+    default: 'file',
+  },
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -726,15 +754,20 @@ const fallbackSectionKey =
   TEST_SHELL_SECTION_OPTIONS[0]?.value ||
   'tasks'
 
+const isRecordShellMode = computed(
+  () => String(props.shellMode || '').trim().toLowerCase() === 'record' || String(route.name || '').trim().toLowerCase() === 'record-shell',
+)
+
 const routeDrivenSourceKey = computed(() => {
   const routeName = String(route.name || '').trim().toLowerCase()
   return TEST_SHELL_SECTION_OPTIONS.find((option) => option.value === routeName)?.value || ''
 })
 
-const isLiteralTestShellRoute = computed(() => String(route.name || '').trim().toLowerCase() === 'test-shell')
+const isLiteralFileShellRoute = computed(() => String(route.name || '').trim().toLowerCase() === 'test-shell')
+const isLiteralShellRoute = computed(() => isLiteralFileShellRoute.value || isRecordShellMode.value)
 
 const activeSourceKey = computed(() => {
-  if (isLiteralTestShellRoute.value) {
+  if (isLiteralShellRoute.value) {
     const current = String(route.query.section || '').trim().toLowerCase()
     if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current)) return current
   }
@@ -747,7 +780,8 @@ const activeRegistryEntry = computed(
 )
 const routeRegistryEntry = computed(() => getFilePageRegistryEntryByRouteName(route.name))
 const pageShellLabel = computed(() => {
-  if (isLiteralTestShellRoute.value) return 'Live Shell'
+  if (isRecordShellMode.value) return 'Record Shell'
+  if (isLiteralFileShellRoute.value) return 'File Shell'
   return routeRegistryEntry.value?.label || activeRegistryEntry.value?.label || 'Records'
 })
 
@@ -781,6 +815,24 @@ const canonicalTitleToken = computed(
       (token) => String(token.parentLevel_2) === '3' && String(token.level_3) === '1',
     ) || null,
 )
+const canonicalSummaryToken = computed(
+  () =>
+    level3Tokens.value.find(
+      (token) =>
+        (String(token.parentLevel_2) === '3' && String(token.level_3) === '2')
+        || String(token.label || '').trim().toLowerCase() === 'summary',
+    ) || null,
+)
+const selectedRecordShellLevel3Keys = computed(() => {
+  if (!isRecordShellMode.value) return []
+  const rawValue = route.query.l3
+  const rawItems = Array.isArray(rawValue) ? rawValue : String(rawValue || '').split(',')
+  const allowedKeys = new Set(level3Tokens.value.map((token) => token.key))
+  return rawItems
+    .map((value) => String(value || '').trim())
+    .filter((value) => value && allowedKeys.has(value))
+})
+const selectedRecordShellLevel3KeySet = computed(() => new Set(selectedRecordShellLevel3Keys.value))
 const availableCardItemTokens = computed(() =>
   level3Tokens.value.filter((token) => {
     if (token.key === canonicalTitleToken.value?.key) return false
@@ -799,7 +851,9 @@ const selectedCardItemTokens = computed(() =>
     .filter(Boolean),
 )
 const createKeyFieldTokens = computed(() => {
-  const tokens = [canonicalTitleToken.value, ...selectedCardItemTokens.value].filter(Boolean)
+  const tokens = isRecordShellMode.value
+    ? [canonicalTitleToken.value, canonicalSummaryToken.value].filter(Boolean)
+    : [canonicalTitleToken.value, ...selectedCardItemTokens.value].filter(Boolean)
   const seen = new Set()
   return tokens
     .filter((token) => {
@@ -830,7 +884,8 @@ const createSectionGroups = computed(() => {
           (token) =>
             token.parentKey === section.key &&
             !keyFieldKeys.has(token.key) &&
-            !isAutomaticCreatorToken(token),
+            !isAutomaticCreatorToken(token) &&
+            (!isRecordShellMode.value || selectedRecordShellLevel3KeySet.value.has(token.key)),
         )
         .map((token) => normalizeCreateDialogToken(token)),
     }))
@@ -1255,7 +1310,10 @@ const someVisibleSelected = computed(() => {
 
 const heroTitle = computed(() => pageShellLabel.value || 'Records')
 const heroText = computed(
-  () => 'This is the actual fixed page shell under standardization. The selected L1 source changes the real payload and canonical L2/L3 structure underneath it.',
+  () =>
+    isRecordShellMode.value
+      ? 'This is the shared record-create shell. The selected L1 sets the real source entity, and the selected L3 set defines which extra canonical fields the create dialog includes.'
+      : 'This is the actual fixed page shell under standardization. The selected L1 source changes the real payload and canonical L2/L3 structure underneath it.',
 )
 
 const heroStats = computed(() => [
@@ -1266,9 +1324,9 @@ const heroStats = computed(() => [
     tone: 'neutral',
   },
   {
-    label: 'Rows',
-    value: rawRows.value.length,
-    caption: 'Real rows loaded',
+    label: isRecordShellMode.value ? 'Selected' : 'Rows',
+    value: isRecordShellMode.value ? selectedRecordShellLevel3Keys.value.length : rawRows.value.length,
+    caption: isRecordShellMode.value ? 'Chosen L3 fields' : 'Real rows loaded',
     tone: 'rich',
   },
   {
@@ -2619,6 +2677,50 @@ async function handleSelectedRowsDelete() {
 </script>
 
 <style scoped>
+.record-shell-launchpad {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.record-shell-launchpad__copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.record-shell-launchpad__eyebrow {
+  color: rgba(17, 17, 17, 0.56);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.record-shell-launchpad__title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 1.2rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.record-shell-launchpad__text {
+  color: rgba(17, 17, 17, 0.72);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  max-width: 560px;
+}
+
+.record-shell-launchpad__action {
+  align-self: center;
+}
+
 .test-shell-page,
 .test-shell-body {
   display: flex;
