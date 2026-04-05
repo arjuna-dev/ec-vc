@@ -849,8 +849,7 @@ const canCreateWithShell = computed(() => {
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
 
-function getEditDialogTokenValue(token) {
-  const payload = editDialogRecordPayload.value
+function getEditDialogTokenValueFromPayload(payload, token) {
   if (!payload) return ''
 
   const fieldNames = getCanonicalTokenFieldNames(token)
@@ -883,21 +882,7 @@ function getEditDialogTokenValue(token) {
 }
 
 const createDialogInitialValues = computed(() => {
-  if (createDialogMode.value !== 'edit' || !editDialogRecordPayload.value) {
-    return createDialogPrefillValues.value
-  }
-
-  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
-  const editValues = Object.fromEntries(
-    allTokens.map((token) => {
-      const value = getEditDialogTokenValue(token)
-      return [token.key, normalizeCreateDialogInitialValue(token, value)]
-    }),
-  )
-  return {
-    ...createDialogPrefillValues.value,
-    ...editValues,
-  }
+  return createDialogPrefillValues.value
 })
 
 async function loadEditDialogRecordPayload(entityName, recordId) {
@@ -908,6 +893,16 @@ async function loadEditDialogRecordPayload(entityName, recordId) {
   const result = await bridge.value.databooks.view(normalizedEntityName, normalizedRecordId)
   if (result?.record) return result
   return null
+}
+
+function buildEditDialogInitialValuesFromPayload(payload) {
+  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  return Object.fromEntries(
+    allTokens.map((token) => {
+      const value = getEditDialogTokenValueFromPayload(payload, token)
+      return [token.key, normalizeCreateDialogInitialValue(token, value)]
+    }),
+  )
 }
 const canDeleteSelectedRows = computed(() => {
   if (selectedRows.value.length === 0) return false
@@ -1713,7 +1708,6 @@ async function openEditRecordShell(row) {
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
   createDialogDraftEntityName.value = resolveEditEntityName(row)
   createDialogInitialSectionKey.value = 'key-fields'
-  createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
   try {
     editDialogRecordPayload.value = await loadEditDialogRecordPayload(
@@ -1729,6 +1723,7 @@ async function openEditRecordShell(row) {
     createDialogMode.value = 'create'
     return
   }
+  createDialogPrefillValues.value = buildEditDialogInitialValuesFromPayload(editDialogRecordPayload.value)
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
@@ -1742,7 +1737,6 @@ async function openAddRelationShell(row) {
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
   createDialogDraftEntityName.value = resolveEditEntityName(row)
   createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'key-fields'
-  createDialogPrefillValues.value = {}
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
   try {
     editDialogRecordPayload.value = await loadEditDialogRecordPayload(
@@ -1758,6 +1752,7 @@ async function openAddRelationShell(row) {
     createDialogMode.value = 'create'
     return
   }
+  createDialogPrefillValues.value = buildEditDialogInitialValuesFromPayload(editDialogRecordPayload.value)
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
