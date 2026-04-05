@@ -2130,19 +2130,19 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__verification-icon--verified {
-  color: rgba(35, 92, 26, 0.96);
+  color: rgba(35, 92, 26, 0.96) !important;
 }
 
 .create-record-shell__verification-icon--default {
-  color: rgba(64, 121, 210, 0.92);
+  color: rgba(64, 121, 210, 0.92) !important;
 }
 
 .create-record-shell__verification-icon--suggested {
-  color: rgba(186, 129, 13, 0.92);
+  color: rgba(186, 129, 13, 0.92) !important;
 }
 
 .create-record-shell__verification-icon--rejected {
-  color: rgba(166, 43, 43, 0.92);
+  color: rgba(166, 43, 43, 0.92) !important;
 }
 
 .create-record-shell__input--summary {
