@@ -15,6 +15,11 @@ This layer should improve motivation and prioritization.
 
 It should not replace or weaken the underlying contract system.
 
+Current first board:
+
+- the first game board should be `Ingestion`
+- the first scoring loop should help users and the Companion improve ingestion quality, provenance, verification, and downstream file creation
+
 ## Governing Rule
 
 The game layer must sit above the contract layer.

@@ -26,6 +26,7 @@ This tracker should stay aligned with:
 - keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
 - keep owner authority locked while still allowing owner-only editing of owner profile data
+- finish the setup layer so the first Companion role and first game board can begin on `Ingestion`
 
 ### Open Activity
 
@@ -102,6 +103,7 @@ This tracker should stay aligned with:
 - Tracker-driven restart point for `Company`, `Opportunity`, and `Contacts` first-pass extraction
 - Include `Companion` and `Roles` parameters in the intake control surface so operator behavior can be tuned with the workstream
 - the `Companion` should now be understood as a guide helping the user navigate the game and score points in a useful way
+- the first `Companion` role and first game/file focus should be `Ingestion`
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - the `Game Master` should explain ranking and point changes without overriding verification or ownership
 - the field-class direction is now becoming explicit:

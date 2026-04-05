@@ -1049,15 +1049,22 @@ function listContacts() {
   return dbAll(
     `
     SELECT
-      id,
-      Name,
-      Personal_Email,
-      Professional_Email,
-      Phone,
-      Country_based,
-      LinkedIn
-    FROM Contacts
-    ORDER BY COALESCE(Name, '') ASC, id DESC
+      c.id,
+      c.Name,
+      c.Personal_Email,
+      c.Professional_Email,
+      c.Phone,
+      c.Country_based,
+      c.LinkedIn,
+      c.linked_user_id,
+      u.User_Name AS Linked_User_Name,
+      ur.role_id AS linked_role_id,
+      r.Role_Name AS Linked_User_Role
+    FROM Contacts c
+    LEFT JOIN Users u ON u.id = c.linked_user_id
+    LEFT JOIN Users_Roles ur ON ur.user_id = c.linked_user_id
+    LEFT JOIN Roles r ON r.id = ur.role_id
+    ORDER BY COALESCE(c.Name, '') ASC, c.id DESC
   `,
   )
 }
@@ -3033,6 +3040,117 @@ function buildUserDatabookView(database, recordId) {
   }
 }
 
+function buildContactDatabookView(database, recordId) {
+  const rid = normalizeNullableString(recordId)
+  if (!rid) throw new Error('recordId is required')
+
+  const row =
+    database
+      .prepare(
+        `
+        SELECT
+          c.id,
+          c.Name,
+          c.Personal_Email,
+          c.Professional_Email,
+          c.Phone,
+          c.Country_based,
+          c.LinkedIn,
+          c.linked_user_id,
+          u.User_Name AS Linked_User_Name,
+          ur.role_id AS linked_role_id,
+          r.Role_Name AS Linked_User_Role
+        FROM Contacts c
+        LEFT JOIN Users u ON u.id = c.linked_user_id
+        LEFT JOIN Users_Roles ur ON ur.user_id = c.linked_user_id
+        LEFT JOIN Roles r ON r.id = ur.role_id
+        WHERE c.id = ?
+        LIMIT 1
+      `,
+      )
+      .get(rid) || null
+
+  if (!row) throw new Error(`Contact not found: ${rid}`)
+
+  const actor = getAuditActor(database)
+  const ownerContactId = getOwnerContactId(database)
+  const isOwnerContactRecord = Boolean(ownerContactId && rid === ownerContactId)
+  const canEditOwnerContact = !isOwnerContactRecord || isOwnerActor(database, actor)
+
+  const metadataFieldNames = [
+    'id',
+    'Name',
+    'Personal_Email',
+    'Professional_Email',
+    'Phone',
+    'Country_based',
+    'LinkedIn',
+  ]
+  const metadataFields = metadataFieldNames.map((fieldName) =>
+    createDatabookField({
+      tableName: 'Contacts',
+      recordId: rid,
+      fieldName,
+      value: row?.[fieldName],
+      editable:
+        !new Set(['id']).has(fieldName) &&
+        canEditOwnerContact,
+      idColumn: 'id',
+    }),
+  )
+
+  const linkedRoleField = {
+    key: `Contacts|${rid}|Contact_User_Role`,
+    section: 'System',
+    label: 'Contact User Role',
+    value: normalizeNullableString(row?.Linked_User_Role) || '',
+    editable: false,
+    table_name: 'Users',
+    record_id: normalizeNullableString(row?.linked_user_id),
+    field_name: 'User_Role',
+    id_column: 'id',
+    relationship_ids: normalizeNullableString(row?.linked_role_id)
+      ? [normalizeNullableString(row.linked_role_id)]
+      : [],
+    related_items: normalizeNullableString(row?.linked_role_id)
+      ? [
+          {
+            id: normalizeNullableString(row.linked_role_id),
+            label:
+              normalizeNullableString(row?.Linked_User_Role) ||
+              normalizeNullableString(row.linked_role_id),
+          },
+        ]
+      : [],
+    relationship_target_entity: 'Roles',
+  }
+
+  const relationshipFields = buildKdbRelationshipFields(database, 'Contacts', rid, 'id')
+
+  return {
+    table_name: 'Contacts',
+    record_id: rid,
+    entity_label: 'Contact',
+    entity_name: normalizeNullableString(row.Name) || normalizeNullableString(row.Personal_Email) || rid,
+    record: row,
+    sections: [
+      {
+        id: 'metadata',
+        label: 'Metadata',
+        kind: 'fields',
+        items: metadataFields,
+      },
+      {
+        id: 'kdb-relationships',
+        label: 'KDB',
+        kind: 'relationships',
+        items: relationshipFields,
+      },
+    ],
+    fields: [...metadataFields, { ...linkedRoleField, section: 'Metadata' }, ...relationshipFields],
+  }
+}
+
 function getDatabookView(tableName, recordId) {
   const database = initDb()
   const config = getDatabookTableConfig(tableName)
@@ -3044,6 +3162,9 @@ function getDatabookView(tableName, recordId) {
   }
   if (config.tableName === 'Users') {
     return buildUserDatabookView(database, rid)
+  }
+  if (config.tableName === 'Contacts') {
+    return buildContactDatabookView(database, rid)
   }
 
   const tableMeta = getTableMeta(database, config.tableName)

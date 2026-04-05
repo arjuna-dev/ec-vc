@@ -8,6 +8,12 @@ The goal is not to make the companion maximally creative.
 
 The goal is to make the companion disciplined, predictable, and aligned with canonical ownership.
 
+Current first active direction:
+
+- the first Companion role should center on `Ingestion`
+- the first game/file guidance layer should also begin on `Ingestion`
+- the companion should help surface missing ownership, provenance, verification, and relationship gaps there first
+
 This contract should be used whenever a companion:
 
 - reads source materials
