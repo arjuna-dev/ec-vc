@@ -874,22 +874,54 @@ const cardItemTokenGroups = computed(() =>
     }))
     .filter((group) => group.tokens.length),
 )
+function getSectionGroupValue(section) {
+  const displayGroup = String(section?.displayGroup || '').trim()
+  return displayGroup ? `group:${displayGroup}` : String(section?.key || '').trim()
+}
+const groupedLevel2Sections = computed(() => {
+  const groups = []
+  for (const section of level2Sections.value) {
+    const value = getSectionGroupValue(section)
+    const existing = groups.find((group) => group.value === value)
+    if (existing) {
+      existing.sections.push(section)
+      continue
+    }
+    groups.push({
+      value,
+      title: String(section.displayGroup || section.label || '').trim(),
+      sections: [section],
+    })
+  }
+  return groups
+})
 const createSectionGroups = computed(() => {
   const keyFieldKeys = new Set(createKeyFieldTokens.value.map((token) => token.key))
-  return level2Sections.value
-    .map((section) => ({
-      key: section.key,
-      label: section.label,
-      tokens: level3Tokens.value
-        .filter(
-          (token) =>
-            token.parentKey === section.key &&
-            !keyFieldKeys.has(token.key) &&
-            !isAutomaticCreatorToken(token) &&
-            (!isRecordShellMode.value || selectedRecordShellLevel3KeySet.value.has(token.key)),
-        )
-        .map((token) => normalizeCreateDialogToken(token)),
-    }))
+  return groupedLevel2Sections.value
+    .map((group) => {
+      const subsectionGroups = group.sections
+        .map((section) => ({
+          key: section.key,
+          label: section.label,
+          tokens: level3Tokens.value
+            .filter(
+              (token) =>
+                token.parentKey === section.key &&
+                !keyFieldKeys.has(token.key) &&
+                !isAutomaticCreatorToken(token) &&
+                (!isRecordShellMode.value || selectedRecordShellLevel3KeySet.value.has(token.key)),
+            )
+            .map((token) => normalizeCreateDialogToken(token)),
+        }))
+        .filter((section) => section.tokens.length)
+
+      return {
+        key: group.value,
+        label: group.title,
+        tokens: subsectionGroups.flatMap((section) => section.tokens),
+        subgroups: subsectionGroups.length > 1 ? subsectionGroups : [],
+      }
+    })
     .filter((group) => group.tokens.length)
 })
 const createDialogLeftSections = computed(() =>
