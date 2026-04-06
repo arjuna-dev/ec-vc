@@ -121,7 +121,7 @@
                   </div>
                   <div class="record-shell__hero-field-bottom">
                     <div class="record-shell__hero-field-value">{{ field.value }}</div>
-                    <q-icon :name="field.statusIcon" size="15px" class="record-shell__hero-field-status" />
+                    <q-icon v-if="field.statusIcon" :name="field.statusIcon" size="15px" class="record-shell__hero-field-status" />
                   </div>
                 </article>
               </div>
@@ -138,7 +138,7 @@
                   </div>
                   <div class="record-shell__hero-field-bottom">
                     <div class="record-shell__hero-field-value">{{ heroSummaryValue }}</div>
-                    <q-icon :name="heroSummaryStatusIcon" size="15px" class="record-shell__hero-field-status" />
+                    <q-icon v-if="heroSummaryStatusIcon" :name="heroSummaryStatusIcon" size="15px" class="record-shell__hero-field-status" />
                   </div>
                 </article>
               </div>
@@ -798,7 +798,7 @@ const heroSecondaryLine = computed(() => {
   return 'Expanded record-view skeleton for the selected L1 payload.'
 })
 const heroSummaryValue = computed(() => getTokenDisplayValue(canonicalSummaryToken.value) || 'No summary captured for this record yet.')
-const heroSummaryStatusIcon = computed(() => (getTokenDisplayValue(canonicalSummaryToken.value) ? 'task_alt' : 'schedule'))
+const heroSummaryStatusIcon = computed(() => (tokenHasStoredValue(canonicalSummaryToken.value) ? 'task_alt' : ''))
 const selectedHeroFieldCards = computed(() =>
   selectedHeroTokens.value.map((token) => {
     const sectionLabel = level2Sections.value.find((section) => section.key === token.parentKey)?.label || 'Field'
@@ -807,7 +807,7 @@ const selectedHeroFieldCards = computed(() =>
       label: token.label,
       description: sectionLabel,
       value: getTokenDisplayValue(token),
-      statusIcon: getTokenDisplayValue(token) ? 'task_alt' : 'schedule',
+      statusIcon: tokenHasStoredValue(token) ? 'task_alt' : '',
     }
   }),
 )
@@ -1217,6 +1217,12 @@ function getTokenDialogValue(token) {
   const rawValue = getTokenRawValue(token)
   if (Array.isArray(rawValue)) return rawValue
   return rawValue == null ? '' : String(rawValue)
+}
+
+function tokenHasStoredValue(token) {
+  const rawValue = getTokenRawValue(token)
+  if (Array.isArray(rawValue)) return rawValue.some((item) => String(item || '').trim())
+  return String(rawValue ?? '').trim() !== ''
 }
 
 function normalizeIpcErrorMessage(ipcError) {
