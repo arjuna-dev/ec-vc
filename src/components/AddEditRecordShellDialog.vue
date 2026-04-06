@@ -1138,9 +1138,15 @@ const rightFieldEntries = computed(() => {
   const remainder = activeFieldEntries.value.filter((entry) => entry.column === 'right' && !isSummaryField(entry.token))
   return [...pinned, ...remainder]
 })
+const resolvedDialogHeight = computed(() => {
+  if (!recordDataCollapsed.value) return dialogHeight.value
+  const collapsedHeight = supportResourcesCollapsed.value ? 240 : 430
+  return Math.min(dialogHeight.value, collapsedHeight)
+})
 const dialogStyle = computed(() => ({
   width: `${dialogWidth.value}px`,
-  height: `${dialogHeight.value}px`,
+  height: `${resolvedDialogHeight.value}px`,
+  minHeight: `${resolvedDialogHeight.value}px`,
 }))
 
 function initializeDialogState() {
