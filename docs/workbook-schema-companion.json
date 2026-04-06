@@ -49,7 +49,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "1.1.0"
+              "parent_id": "1.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -535,7 +538,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "3.1.0"
+              "parent_id": "3.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -934,7 +940,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "4.1.0"
+              "parent_id": "4.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -2506,7 +2515,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "5.1.0"
+              "parent_id": "5.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -3058,7 +3070,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "6.1.0"
+              "parent_id": "6.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -3537,7 +3552,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "7.1.0"
+              "parent_id": "7.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -4018,7 +4036,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "8.1.0"
+              "parent_id": "8.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -4410,7 +4431,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "9.1.0"
+              "parent_id": "9.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -4655,7 +4679,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "10.1.0"
+              "parent_id": "10.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -4683,7 +4710,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "10.2.0"
+              "parent_id": "10.2.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -4749,7 +4779,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "10.4.0"
+              "parent_id": "10.4.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -4777,7 +4810,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "10.5.0"
+              "parent_id": "10.5.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -4830,7 +4866,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "11.1.0"
+              "parent_id": "11.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -4858,7 +4897,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "11.2.0"
+              "parent_id": "11.2.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -4924,7 +4966,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "11.4.0"
+              "parent_id": "11.4.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -4952,7 +4997,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "11.5.0"
+              "parent_id": "11.5.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5005,7 +5053,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "12.1.0"
+              "parent_id": "12.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5033,7 +5084,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "12.2.0"
+              "parent_id": "12.2.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5099,7 +5153,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "12.4.0"
+              "parent_id": "12.4.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5127,7 +5184,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "12.5.0"
+              "parent_id": "12.5.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5155,7 +5215,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "12.6.0"
+              "parent_id": "12.6.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5208,7 +5271,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "13.1.0"
+              "parent_id": "13.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5236,7 +5302,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "13.2.0"
+              "parent_id": "13.2.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5302,7 +5371,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "13.4.0"
+              "parent_id": "13.4.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5355,7 +5427,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "14.1.0"
+              "parent_id": "14.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5383,7 +5458,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "14.2.0"
+              "parent_id": "14.2.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5449,7 +5527,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "14.4.0"
+              "parent_id": "14.4.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5502,7 +5583,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "15.1.0"
+              "parent_id": "15.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5611,7 +5695,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "16.1.0"
+              "parent_id": "16.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5720,7 +5807,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "18.1.0"
+              "parent_id": "18.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5764,7 +5854,9 @@
               "address": "18.3.1",
               "token_name": "Financial_Industry_Name",
               "token_type": "text",
-              "db_field_aliases": ["Industry_Name"],
+              "db_field_aliases": [
+                "Industry_Name"
+              ],
               "node_type": "leaf",
               "level": "3",
               "parent_id": "18.3.0"
@@ -5775,7 +5867,9 @@
               "address": "18.3.2",
               "token_name": "Financial_Industry_Summary",
               "token_type": "text",
-              "db_field_aliases": ["Industry_Summary"],
+              "db_field_aliases": [
+                "Industry_Summary"
+              ],
               "node_type": "leaf",
               "level": "3",
               "parent_id": "18.3.0"
@@ -5831,7 +5925,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "19.1.0"
+              "parent_id": "19.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -5940,7 +6037,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "20.1.0"
+              "parent_id": "20.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -6076,7 +6176,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "21.1.0"
+              "parent_id": "21.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
@@ -6120,7 +6223,9 @@
               "address": "21.3.1",
               "token_name": "Role_Name",
               "token_type": "text",
-              "db_field_aliases": ["Role_Name"],
+              "db_field_aliases": [
+                "Role_Name"
+              ],
               "node_type": "leaf",
               "level": "3",
               "parent_id": "21.3.0"
@@ -6131,7 +6236,9 @@
               "address": "21.3.2",
               "token_name": "Role_Summary",
               "token_type": "text",
-              "db_field_aliases": ["Role_Summary"],
+              "db_field_aliases": [
+                "Role_Summary"
+              ],
               "node_type": "leaf",
               "level": "3",
               "parent_id": "21.3.0"

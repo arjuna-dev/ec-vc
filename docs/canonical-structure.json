@@ -32,7 +32,10 @@
             {
               "address": "1.1.1",
               "token_name": "Artifact_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "address": "1.1.2",
@@ -304,7 +307,10 @@
             {
               "address": "3.1.1",
               "token_name": "Contact_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "address": "3.1.2",
@@ -522,7 +528,10 @@
             {
               "address": "4.1.1",
               "token_name": "Company_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "address": "4.1.2",
@@ -1385,7 +1394,10 @@
             {
               "address": "5.1.1",
               "token_name": "Fund_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "address": "5.1.2",
@@ -1675,7 +1687,10 @@
             {
               "address": "6.1.1",
               "token_name": "Round_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "address": "6.1.2",
@@ -1922,7 +1937,10 @@
             {
               "address": "7.1.1",
               "token_name": "Project_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "address": "7.1.2",
@@ -2196,7 +2214,10 @@
             {
               "address": "8.1.1",
               "token_name": "Task_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "address": "8.1.2",
@@ -2416,7 +2437,10 @@
             {
               "address": "9.1.1",
               "token_name": "Note_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "address": "9.1.2",
@@ -2549,7 +2573,10 @@
             {
               "address": "10.1.1",
               "token_name": "Market_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2562,7 +2589,10 @@
             {
               "address": "10.2.1",
               "token_name": "Market_Sector_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2593,7 +2623,10 @@
             {
               "address": "10.4.1",
               "token_name": "Market_Industry_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2606,7 +2639,10 @@
             {
               "address": "10.5.1",
               "token_name": "Market_Niche_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         }
@@ -2632,7 +2668,10 @@
             {
               "address": "11.1.1",
               "token_name": "Location_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2645,7 +2684,10 @@
             {
               "address": "11.2.1",
               "token_name": "Location_Country_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2676,7 +2718,10 @@
             {
               "address": "11.4.1",
               "token_name": "Location_State_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2689,7 +2734,10 @@
             {
               "address": "11.5.1",
               "token_name": "Location_City_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         }
@@ -2715,7 +2763,10 @@
             {
               "address": "12.1.1",
               "token_name": "Term_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2728,7 +2779,10 @@
             {
               "address": "12.2.1",
               "token_name": "Term_Stage_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2759,7 +2813,10 @@
             {
               "address": "12.4.1",
               "token_name": "Term_Entity_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2772,7 +2829,10 @@
             {
               "address": "12.5.1",
               "token_name": "Term_Asset_Type_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2785,7 +2845,10 @@
             {
               "address": "12.6.1",
               "token_name": "Term_Term_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         }
@@ -2811,7 +2874,10 @@
             {
               "address": "13.1.1",
               "token_name": "Academia_Record_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2824,7 +2890,10 @@
             {
               "address": "13.2.1",
               "token_name": "Academia_Institution_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2855,7 +2924,10 @@
             {
               "address": "13.4.1",
               "token_name": "Academia_Degree_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         }
@@ -2881,7 +2953,10 @@
             {
               "address": "14.1.1",
               "token_name": "Employment_Record_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2894,7 +2969,10 @@
             {
               "address": "14.2.1",
               "token_name": "Employment_Company_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -2925,7 +3003,10 @@
             {
               "address": "14.4.1",
               "token_name": "Employment_Role_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         }
@@ -2951,7 +3032,10 @@
             {
               "address": "15.1.1",
               "token_name": "Stage_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -3002,7 +3086,10 @@
             {
               "address": "16.1.1",
               "token_name": "Agent_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -3053,7 +3140,10 @@
             {
               "address": "18.1.1",
               "token_name": "Financial_Industry_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -3074,13 +3164,17 @@
               "address": "18.3.1",
               "token_name": "Financial_Industry_Name",
               "token_type": "text",
-              "db_field_aliases": ["Industry_Name"]
+              "db_field_aliases": [
+                "Industry_Name"
+              ]
             },
             {
               "address": "18.3.2",
               "token_name": "Financial_Industry_Summary",
               "token_type": "text",
-              "db_field_aliases": ["Industry_Summary"]
+              "db_field_aliases": [
+                "Industry_Summary"
+              ]
             }
           ]
         }
@@ -3106,7 +3200,10 @@
             {
               "address": "19.1.1",
               "token_name": "Round_Security_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -3157,7 +3254,10 @@
             {
               "address": "20.1.1",
               "token_name": "Processed_Artifact_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "address": "20.1.2",
@@ -3225,7 +3325,10 @@
             {
               "address": "21.1.1",
               "token_name": "Role_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             }
           ]
         },
@@ -3246,13 +3349,17 @@
               "address": "21.3.1",
               "token_name": "Role_Name",
               "token_type": "text",
-              "db_field_aliases": ["Role_Name"]
+              "db_field_aliases": [
+                "Role_Name"
+              ]
             },
             {
               "address": "21.3.2",
               "token_name": "Role_Summary",
               "token_type": "text",
-              "db_field_aliases": ["Role_Summary"]
+              "db_field_aliases": [
+                "Role_Summary"
+              ]
             }
           ]
         }
