@@ -29,6 +29,7 @@ const routes = [
       { path: 'record-shell', name: 'record-shell', component: () => import('pages/RecordShellPage.vue') },
       { path: 'fork-shell', name: 'fork-shell', component: () => import('pages/ForkShellPage.vue') },
       { path: 'building-blocks', name: 'building-blocks', component: () => import('pages/ComponentsShellPage.vue') },
+      { path: 'bb-shell', name: 'bb-shell', component: () => import('pages/AddEditBbShellPage.vue') },
       { path: 'file-dialog-shell', name: 'file-dialog-shell', component: () => import('pages/FileDialogShellPage.vue') },
       { path: 'dialog-shell', name: 'dialog-shell', component: () => import('pages/DialogShellPage.vue') },
       { path: 'ingestion-shell', name: 'ingestion-shell', component: () => import('pages/IngestionShellPage.vue') },
