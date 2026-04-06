@@ -24,6 +24,7 @@ This tracker should stay aligned with:
 - keep the underlying structure, ownership, and runtime relationship paths converging cleanly
 - use the `Companion` and the first-pass game layer to surface issues without weakening the contract
 - keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
+- adopt `Record Shell` as the shared `Record View` direction
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
 - keep owner authority locked while still allowing owner-only editing of owner profile data
 - finish the setup layer so the first Companion role and first game board can begin on `Ingestion`
@@ -35,6 +36,7 @@ This tracker should stay aligned with:
 
 - convert the declared-but-not-yet-backed KDB relationship set into real runtime-backed paths
 - keep `Knowledge DB` behavior converging with the normal file-shell contract
+- normalize `Record Shell` to the current `User Record View` shell and carry it forward as the shared record-view base
 - refine the game layer as a guide on top of the structure pass, not as a replacement for it
 - document and normalize:
   - `owned_field`
@@ -95,6 +97,12 @@ This tracker should stay aligned with:
 - owner profile data should stay editable only by owner
 - owner and last-human spine records should now be treated as deletion-protected runtime paths
 - the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points
+- `Record Shell` is now the approved shared direction for `Record View`
+- the current shell direction is:
+  - use the `User Record View` hero/dashboard as the base shell
+  - keep icon-only `settings` and `edit` beside `Name`
+  - render selected `L3` rows in the left middle column
+  - render `Summary` as the first row in the right middle column
 - card shell slots are now explicit for `title`, `subtitle`, and `chips`, with `subtitle` = first selected extra field and `chips` = remaining selected extra fields
 - `Knowledge DBs` now behaves as a real left-nav sibling branch under `My Workspace`, and its parent/child rows have been pulled back onto the same styling path as the `Files` navigation family
 - Exporters are now being treated as migration / ingestion utilities, not the permanent architecture backbone

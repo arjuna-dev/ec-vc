@@ -63,6 +63,33 @@ The goal is operational consistency:
 - the same entity should expose the same section logic in payloads
 - the same entity should render predictably in file view and record view
 
+## Record Shell Direction
+
+`Record Shell` is now the approved shared direction for `Record View`.
+
+Working rule:
+
+- do not keep separate record-detail page implementations drifting by entity
+- converge on one shared `Record Shell`
+- route-level record navigation should ultimately resolve into that shell for the selected record
+- the shell should use the selected record as payload input, not as a reason to fork the view layer
+
+The currently approved shell pattern is:
+
+- use the current `User Record View` hero/dashboard as the base shell
+- do not approximate that pattern once the real shell already exists
+- only change explicitly approved shell controls and payload-fed content
+
+The currently approved middle hero contract is:
+
+- `Name` is the top anchor row
+- icon-only `settings` and `edit` controls sit beside `Name`
+- below `Name`, selected `L3` rows begin in the left column
+- `Summary` is the first row in the right column
+- each selected `L3` row renders as:
+  - top row: label + `L2` description
+  - bottom row: current value + status icon
+
 ## Game Layer Constraint
 
 The game layer is now an approved top-layer direction.

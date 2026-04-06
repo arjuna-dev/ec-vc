@@ -429,6 +429,22 @@ The `Record View` is where the user:
 - browses relationships
 - works on that record as a canonical item in the system
 
+Approved direction:
+
+- `Record View` should converge into the shared `Record Shell`
+- record-specific detail pages should not keep diverging once the shared shell is ready
+- the selected record should feed the shell payload underneath
+
+Current approved shell pattern:
+
+- base it on the current `User Record View` hero/dashboard
+- keep icon-only `settings` and `edit` controls beside `Name`
+- render selected `L3` rows in the left middle column
+- render `Summary` as the first row in the right middle column
+- render each selected `L3` row as:
+  - top row: label + `L2` description
+  - bottom row: value + status icon
+
 ## Record View Section Bar
 
 The section bar below the hero/dashboard is part of the `Record View` pattern.

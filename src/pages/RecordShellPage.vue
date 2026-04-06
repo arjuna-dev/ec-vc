@@ -14,6 +14,7 @@
         :style="structuredRecordHeroStyle"
         @pointerenter="startContactHeroPointerTracking"
         @pointermove="onContactHeroPointerMove"
+        @pointerleave="onContactHeroPointerLeave"
       >
         <div class="contact-databook__hero-main">
           <figure class="contact-databook__portrait contact-databook__portrait--initials-only">
@@ -101,21 +102,36 @@
               {{ heroSecondaryLine }}
             </div>
 
-            <div v-if="selectedHeroFieldCards.length" class="record-shell__hero-field-stack">
-              <article
-                v-for="field in selectedHeroFieldCards"
-                :key="field.key"
-                class="record-shell__hero-field-card"
-              >
-                <div class="record-shell__hero-field-top">
-                  <div class="record-shell__hero-field-label">{{ field.label }}</div>
-                  <div class="record-shell__hero-field-description">{{ field.description }}</div>
-                </div>
-                <div class="record-shell__hero-field-bottom">
-                  <div class="record-shell__hero-field-value">{{ field.value }}</div>
-                  <q-icon :name="field.statusIcon" size="15px" class="record-shell__hero-field-status" />
-                </div>
-              </article>
+            <div class="record-shell__hero-field-columns">
+              <div v-if="selectedHeroFieldCards.length" class="record-shell__hero-field-stack">
+                <article
+                  v-for="field in selectedHeroFieldCards"
+                  :key="field.key"
+                  class="record-shell__hero-field-card"
+                >
+                  <div class="record-shell__hero-field-top">
+                    <div class="record-shell__hero-field-label">{{ field.label }}</div>
+                    <div class="record-shell__hero-field-description">{{ field.description }}</div>
+                  </div>
+                  <div class="record-shell__hero-field-bottom">
+                    <div class="record-shell__hero-field-value">{{ field.value }}</div>
+                    <q-icon :name="field.statusIcon" size="15px" class="record-shell__hero-field-status" />
+                  </div>
+                </article>
+              </div>
+
+              <div class="record-shell__hero-field-stack record-shell__hero-field-stack--summary">
+                <article class="record-shell__hero-field-card record-shell__hero-field-card--summary">
+                  <div class="record-shell__hero-field-top">
+                    <div class="record-shell__hero-field-label">Summary</div>
+                    <div class="record-shell__hero-field-description">General</div>
+                  </div>
+                  <div class="record-shell__hero-field-bottom">
+                    <div class="record-shell__hero-field-value">Summary remains pinned as the closing field.</div>
+                    <q-icon name="task_alt" size="15px" class="record-shell__hero-field-status" />
+                  </div>
+                </article>
+              </div>
             </div>
 
             <div class="contact-databook__hero-notes-panel">
@@ -331,8 +347,8 @@ const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
 const CONTACT_KDB_VIEW_OPTIONS = [
-  { label: 'Grid', value: 'grid' },
-  { label: 'Row', value: 'row' },
+  { value: 'grid', icon: 'grid_view' },
+  { value: 'table', icon: 'view_list' },
 ]
 const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
@@ -341,7 +357,7 @@ const liveOptionRowsBySource = ref({})
 const expandedSectionKeys = ref([])
 const activeSectionKey = ref('')
 const contactHeroRef = ref(null)
-const contactHeroGradient = ref({ x: 22, y: 22, size: 58 })
+const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
 const genericHeroPanelTab = ref('notes')
 const activeRecordFeedTab = ref('all')
 const recordShellTopNavViewMode = ref('grid')
@@ -420,6 +436,7 @@ const structuredRecordHeroStyle = computed(() => {
     '--contact-hero-blob-x': `${contactHeroGradient.value.x}%`,
     '--contact-hero-blob-y': `${contactHeroGradient.value.y}%`,
     '--contact-hero-blob-size': `${contactHeroGradient.value.size}%`,
+    '--contact-hero-blob-opacity': String(contactHeroGradient.value.opacity),
     '--contact-hero-blob-strong': theme.strong,
     '--contact-hero-blob-soft': theme.soft,
     '--contact-hero-blob-fade': theme.fade,
@@ -677,7 +694,8 @@ function onContactHeroPointerMove(event) {
   contactHeroGradient.value = {
     x: Math.max(8, Math.min(92, x)),
     y: Math.max(10, Math.min(90, y)),
-    size: 58,
+    size: 60,
+    opacity: 1,
   }
 }
 
@@ -685,6 +703,20 @@ function startContactHeroPointerTracking() {
   if (typeof window === 'undefined') return
   window.removeEventListener('pointermove', onContactHeroPointerMove)
   window.addEventListener('pointermove', onContactHeroPointerMove)
+  contactHeroGradient.value = {
+    ...contactHeroGradient.value,
+    opacity: 1,
+  }
+}
+
+function onContactHeroPointerLeave() {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('pointermove', onContactHeroPointerMove)
+  }
+  contactHeroGradient.value = {
+    ...contactHeroGradient.value,
+    opacity: 0,
+  }
 }
 </script>
 
@@ -697,12 +729,26 @@ function startContactHeroPointerTracking() {
   gap: 0;
   padding: 0;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 22% 22%, rgba(38, 71, 255, 0.2) 0%, rgba(38, 71, 255, 0.14) 22%, rgba(38, 71, 255, 0.06) 38%, transparent 58%),
-    linear-gradient(180deg, #ffffff 0%, #f8f6f2 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 246, 240, 0.98) 100%);
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 24px;
   box-shadow: 0 20px 50px rgba(17, 17, 17, 0.06);
+}
+
+.contact-databook__hero::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: radial-gradient(
+    circle at var(--contact-hero-blob-x) var(--contact-hero-blob-y),
+    var(--contact-hero-blob-strong, rgba(38, 71, 255, 0.2)) 0%,
+    var(--contact-hero-blob-soft, rgba(38, 71, 255, 0.14)) calc(var(--contact-hero-blob-size) * 0.46),
+    var(--contact-hero-blob-fade, rgba(38, 71, 255, 0.06)) calc(var(--contact-hero-blob-size) * 0.7),
+    transparent var(--contact-hero-blob-size)
+  );
+  opacity: var(--contact-hero-blob-opacity, 0);
+  pointer-events: none;
+  transition: opacity 180ms ease;
 }
 
 .contact-databook__hero-main,
@@ -800,10 +846,10 @@ function startContactHeroPointerTracking() {
 }
 
 .record-shell__hero-icon-button--edit {
-  color: #ffffff;
-  background: #2669ff;
-  border-color: #2669ff;
-  box-shadow: 0 10px 24px rgba(38, 105, 255, 0.22);
+  color: #2669ff;
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(38, 105, 255, 0.18);
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.08);
 }
 
 .record-shell__hero-icon-button :deep(.q-icon) {
@@ -877,56 +923,109 @@ function startContactHeroPointerTracking() {
   line-height: 20px;
 }
 
+.record-shell__hero-field-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
 .record-shell__hero-field-stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
+}
+
+.record-shell__hero-field-stack--summary {
+  align-self: start;
 }
 
 .record-shell__hero-field-card {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 9px 10px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 10px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
 
-.record-shell__hero-field-top,
-.record-shell__hero-field-bottom {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+.record-shell__hero-field-top {
+  display: inline-flex;
+  width: fit-content;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
+}
+
+.record-shell__hero-field-bottom {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 2px;
 }
 
 .record-shell__hero-field-label {
-  color: #111;
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-medium);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-sm);
+  display: inline-flex;
+  width: fit-content;
+  justify-self: start;
+  padding: 7px 10px;
+  color: #fff;
+  font-family: var(--font-title);
+  font-size: 0.74rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  background: #111;
+  border: 1px solid #111;
+  border-radius: 4px;
 }
 
 .record-shell__hero-field-description {
-  color: #6b6b6b;
+  display: inline-flex;
+  align-items: flex-end;
+  align-self: end;
+  padding: 0 10px 1px 0;
+  color: #5c5c5c;
   font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  line-height: var(--ds-line-height-xs);
-  text-align: right;
+  font-size: 0.68rem;
+  line-height: 1;
+  text-align: left;
+  justify-self: start;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
 }
 
 .record-shell__hero-field-value {
-  color: #111;
-  font-family: var(--ds-font-family-title);
-  font-size: 0.86rem;
-  font-weight: var(--ds-font-weight-black);
-  line-height: 0.96;
+  display: inline-flex;
+  width: fit-content;
+  margin-left: 10px;
+  padding: 4px 8px;
+  color: rgba(17, 17, 17, 0.66);
+  font-family: var(--ds-font-family-body);
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.35;
+  background: rgba(255, 255, 255, 0.42);
+  border: 0;
+  border-radius: 4px;
+  backdrop-filter: blur(10px);
+}
+
+.record-shell__hero-field-card--summary .record-shell__hero-field-label,
+.record-shell__hero-field-card--summary .record-shell__hero-field-value {
+  border-radius: 4px;
 }
 
 .record-shell__hero-field-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
   color: #2669ff;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
 
 .contact-databook__hero-notes-panel {
@@ -1143,11 +1242,112 @@ function startContactHeroPointerTracking() {
   font-size: var(--ds-font-size-xs-regular);
   line-height: var(--ds-line-height-xs);
 }
-.record-shell__toolbar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; }
-.record-shell__toolbar-left, .record-shell__toolbar-right { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
-.record-shell__toolbar-right { margin-left:auto; justify-content:flex-end; }
-.record-shell__toolbar-tab { min-height:30px; padding:0 11px; color:#111; background:#fdfdfb; border:1px solid #111; border-radius:2px; font-family:var(--font-title); font-size:.76rem; font-weight:var(--font-weight-black); line-height:.96; letter-spacing:.01em; cursor:pointer; }
-.record-shell__toolbar-tab--active { color:#fff; background:#111; }
+.contact-databook__nav {
+  position: sticky;
+  top: 76px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: var(--ds-color-surface-base-88);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-xl);
+  backdrop-filter: blur(14px);
+}
+
+.contact-databook__nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  color: #4f4f4f;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---medium);
+  font-weight: var(--font-weight-medium);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.contact-databook__nav-item-icon {
+  opacity: 0.8;
+}
+
+.contact-databook__nav-item:hover {
+  color: #111;
+  background: rgba(255, 85, 33, 0.08);
+  border-color: rgba(255, 85, 33, 0.2);
+  transform: translateY(-1px);
+}
+
+.contact-databook__nav-item--active {
+  color: #fff;
+  background: #111;
+  border-color: #111;
+}
+
+.contact-databook__nav-item--kdb {
+  border-color: rgba(17, 17, 17, 0.16);
+}
+
+.contact-databook__nav-item--system {
+  border-color: rgba(17, 17, 17, 0.22);
+}
+
+.contact-databook__nav-item--kdb,
+.contact-databook__nav-item--system {
+  height: 26px;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.contact-databook__nav-item--kdb .contact-databook__nav-item-label,
+.contact-databook__nav-item--system .contact-databook__nav-item-label {
+  font-size: calc(var(--text-sm---medium) * 0.72);
+}
+
+.contact-databook__nav-item--kdb .contact-databook__nav-item-icon {
+  font-size: 12px !important;
+}
+
+.contact-databook__nav-item--push-right {
+  margin-left: 0;
+  align-self: center;
+}
+
+.contact-databook__nav-view-toggle {
+  align-self: center;
+  margin-left: 6px;
+  order: 999;
+}
+
+.contact-databook__nav-view-toggle :deep(.q-btn-group) {
+  gap: 0;
+}
+
+.contact-databook__nav-view-toggle :deep(.q-btn) {
+  min-width: 20px;
+  min-height: 20px;
+  padding: 0 2px;
+  border-radius: 5px;
+}
+
+.contact-databook__nav-view-toggle :deep(.q-icon) {
+  font-size: 14px;
+}
+
+.contact-databook__nav-item:not(.contact-databook__nav-item--push-right) + .contact-databook__nav-item--push-right {
+  margin-left: auto;
+}
 .record-shell__panel { display:grid; gap:12px; padding:16px; border:1px solid rgba(17,17,17,.08); border-radius:8px; background:rgba(255,255,255,.96); }
 .record-shell__panel-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
 .record-shell__panel-title { color:#111; font-family:var(--font-title); font-size:.94rem; font-weight:var(--font-weight-black); line-height:.96; }
@@ -1175,6 +1375,9 @@ function startContactHeroPointerTracking() {
     border-right: 0;
     border-bottom: 1px solid rgba(17, 17, 17, 0.08);
     border-radius: 24px 24px 0 0;
+  }
+  .record-shell__hero-field-columns {
+    grid-template-columns: 1fr;
   }
   .record-shell__toolbar { flex-direction:column; align-items:stretch; }
   .record-shell__toolbar-right { margin-left:0; justify-content:flex-start; }
