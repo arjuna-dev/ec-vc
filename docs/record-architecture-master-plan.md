@@ -1653,3 +1653,18 @@ So the approved shell rule is:
 - keep the shared action label for shell/session context
 - let each write create its own audit event id
 - do not treat shell session ids as reusable write ids
+
+## Directional KDB Join Rule
+
+Explicit join-table KDB contracts must preserve join direction.
+
+That means:
+
+- the forward direction may use `from_id -> to_id`
+- but the reverse direction must swap the join columns when the shell is linking from the opposite side
+
+Why:
+
+- many join tables are directional at the SQL layer
+- reusing the same join-column mapping in both directions can put the source record id into the wrong foreign-key column
+- that causes foreign-key failures even when the chosen linked record is valid

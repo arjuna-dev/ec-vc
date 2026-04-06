@@ -304,3 +304,14 @@ Approved rule:
 - keep shared shell context in `actionLabel`
 - let each write create its own audit event id
 - apply this as a shell/action-layer rule, not as an `L1` or record-specific fix
+
+## Shared KDB Direction Correction
+
+Resolved shared-shell correction:
+
+- explicit join-table KDB contracts must swap join columns when the shell is linking from the reverse side of the relationship
+
+Why this matters:
+
+- directional SQL join tables do not use the same foreign-key column ownership in both directions
+- reusing the same `from_id -> to_id` mapping in both directions can send a valid source record id into the wrong foreign-key column and trigger a foreign-key failure

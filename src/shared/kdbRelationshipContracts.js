@@ -106,8 +106,8 @@ function buildDirectionalContract(pair, direction = 'left') {
     sourceToken: fromLeft ? pair.leftToken : pair.rightToken,
     targetEntity: fromLeft ? pair.rightEntity : pair.leftEntity,
     targetToken: fromLeft ? pair.rightToken : pair.leftToken,
-    sourceJoinColumn: 'from_id',
-    targetJoinColumn: 'to_id',
+    sourceJoinColumn: fromLeft ? 'from_id' : 'to_id',
+    targetJoinColumn: fromLeft ? 'to_id' : 'from_id',
   }
 }
 
