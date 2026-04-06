@@ -11,9 +11,9 @@
             <div class="components-shell-page__crumb-row">
               <span class="components-shell-page__crumb-link">Files</span>
               <span class="components-shell-page__crumb-separator">/</span>
-              <span class="components-shell-page__crumb-current">Companies</span>
+              <span class="components-shell-page__crumb-current">Components Shell</span>
             </div>
-            <div class="components-shell-page__page-title">Companies</div>
+            <div class="components-shell-page__page-title">Components Shell</div>
           </div>
         </div>
       </article>
@@ -432,8 +432,10 @@ function openComponentDetail(componentId) {
 }
 
 .components-shell-page__page-title {
-  font-size: 1.55rem;
-  line-height: 0.94;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  line-height: 0.95;
+  letter-spacing: -0.08em;
+  white-space: nowrap;
 }
 
 .components-shell-page__back-button {
