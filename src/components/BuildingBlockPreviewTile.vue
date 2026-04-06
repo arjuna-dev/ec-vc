@@ -217,6 +217,8 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
   align-items: center;
   gap: 6px;
   flex: 0 0 auto;
+  flex-shrink: 0;
+  min-width: max-content;
 }
 
 .building-block-preview-tile__header {
@@ -232,14 +234,17 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
   gap: 6px;
   min-width: 0;
   flex: 1 1 auto;
+  overflow: hidden;
 }
 
 .building-block-preview-tile__label-row {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 4px;
   min-width: 0;
   white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
 }
 
 .building-block-preview-tile__label {
@@ -251,6 +256,9 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
   line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .building-block-preview-tile__collapse-toggle {

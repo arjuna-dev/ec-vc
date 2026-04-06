@@ -255,7 +255,7 @@ export const BUILDING_BLOCK_SIZE_BY_ID = Object.freeze({
   'b10-icon-button': 'md',
   'main-menu-icon': 'md',
   'page-title-crumb': 'title-wide',
-  'page-back-symbol': 'sm',
+  'page-back-symbol': 'md',
   'main-menu-row': 'toolbar-wide',
   'main-menu-subgroup-row': 'toolbar-wide',
   'live-action-l1': 'live-link',
