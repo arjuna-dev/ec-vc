@@ -1,25 +1,51 @@
 <template>
   <q-page class="components-shell-page q-pa-md">
     <section class="components-shell-page__board">
-      <article class="components-shell-page__card">
+      <article
+        v-for="component in componentTiles"
+        :key="component.id"
+        class="components-shell-page__card"
+        :class="`components-shell-page__card--${component.size}`"
+      >
         <div class="components-shell-page__card-stage">
-          <button type="button" class="components-shell-page__plus-icon-button" aria-label="Add">
+          <button
+            v-if="component.kind === 'plus-icon'"
+            type="button"
+            class="components-shell-page__plus-icon-button"
+            aria-label="Add"
+          >
             <q-icon name="add" />
           </button>
-        </div>
-      </article>
 
-      <article class="components-shell-page__card">
-        <div class="components-shell-page__card-stage">
-          <button type="button" class="components-shell-page__plus-label-button">
+          <button
+            v-else-if="component.kind === 'plus-label'"
+            type="button"
+            class="components-shell-page__plus-label-button"
+          >
             <q-icon name="add" />
-            <span>Add</span>
+            <span>{{ component.label }}</span>
           </button>
         </div>
       </article>
     </section>
   </q-page>
 </template>
+
+<script setup>
+const componentTiles = [
+  {
+    id: 'plus-icon',
+    kind: 'plus-icon',
+    size: 'sm',
+  },
+  {
+    id: 'plus-label',
+    kind: 'plus-label',
+    size: 'md',
+    label: 'Add',
+  },
+]
+</script>
 
 <style scoped>
 .components-shell-page {
@@ -28,24 +54,52 @@
 
 .components-shell-page__board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, 120px);
+  grid-auto-rows: 120px;
+  grid-auto-flow: dense;
   gap: 18px;
+  justify-content: start;
   align-items: start;
 }
 
 .components-shell-page__card {
-  min-height: 160px;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  min-width: 0;
+  min-height: 0;
   padding: 20px;
   border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 10px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.9);
+}
+
+.components-shell-page__card--sm {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+.components-shell-page__card--md {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+
+.components-shell-page__card--tall {
+  grid-column: span 1;
+  grid-row: span 2;
+}
+
+.components-shell-page__card--lg {
+  grid-column: span 2;
+  grid-row: span 2;
 }
 
 .components-shell-page__card-stage {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 120px;
+  width: 100%;
+  height: 100%;
 }
 
 .components-shell-page__plus-icon-button,
@@ -83,8 +137,14 @@
 }
 
 @media (max-width: 900px) {
+  .components-shell-page__board {
+    grid-template-columns: repeat(auto-fill, 100px);
+    grid-auto-rows: 100px;
+    gap: 14px;
+  }
+
   .components-shell-page__card {
-    padding: 20px;
+    padding: 16px;
   }
 }
 </style>
