@@ -625,7 +625,7 @@ const workspaceNavigationItems = [
 const testShellNavigationItems = [
   { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
-  { label: 'Add/Edit Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
+  { label: 'Add/Edit Record Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
   { label: 'Ingestion Shell', to: '/ingestion-shell', exact: true, icon: 'hourglass_top' },
   { label: 'Fork Shell', to: '/fork-shell', exact: true, icon: 'call_split' },
 ].map((item) => ({
@@ -651,7 +651,7 @@ const routeLabelByName = {
   'test-shell': 'File Shell',
   'record-shell': 'Record Shell',
   'fork-shell': 'Fork Shell',
-  'dialog-shell': 'Add/Edit Shell',
+  'dialog-shell': 'Add/Edit Record Shell',
   'ingestion-shell': 'Ingestion Shell',
   roles: 'User Roles',
   'companion-roles': 'Companion Roles',

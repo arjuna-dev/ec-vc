@@ -34,7 +34,7 @@ quasar dev -m electron
 
 When you are testing the current shared shell work in Electron, these are the useful routes:
 
-- `#/dialog-shell`: the route-owned `Add/Edit Shell`
+- `#/dialog-shell`: the route-owned `Add/Edit Record Shell`
 - `#/fork-shell`: the route-owned `Fork Shell`
 - `#/test-shell`: the `File Shell` lab surface
 
@@ -43,7 +43,7 @@ Current expected add/edit behavior:
 - add and edit entry points should resolve through the real route-owned `L1`
 - widget buttons should open the shared add/edit shell for routable `L1`s
 - card-view `Add Relation` should open `dialog-shell` for the clicked source record and start in `KDB`
-- branchable create entry points should stop in the independent route-owned `Fork Shell` before continuing into `Add/Edit Shell`
+- branchable create entry points should stop in the independent route-owned `Fork Shell` before continuing into `Add/Edit Record Shell`
 
 ### New L1 bootstrap rule
 
@@ -65,7 +65,12 @@ Required scope:
   - `KDB`
   - `General` when that is part of the current standard
 - apply reciprocal KDB propagation across the other relevant `L1`s
-- ensure `Add/Edit Shell` and add-record flows work immediately
+- ensure `Add/Edit Record Shell` and add-record flows work immediately
+
+Naming rule:
+
+- the current shared dialog shell should be named `Add/Edit Record Shell`
+- `Add/Edit File Shell` is a separate future shell name and should not be used as an alias for the record dialog shell
 - run a validation pass confirming the new `L1` is actually createable/editable
 
 Do not treat a new `L1` as complete if it is only visible in the UI.

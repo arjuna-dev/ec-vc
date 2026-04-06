@@ -716,7 +716,11 @@ So the practical principle is:
 `Use draft-first intake, surface high-value information early, keep extraction and matching interacting, and make unfinished work always resumable.`
 ## Add/Edit Shell Naming Rule
 
-Add/Edit Shell and intake-linked shell flows must follow the same naming contract as the other shared shells:
+`Add/Edit Record Shell` and intake-linked shell flows must follow the same naming contract as the other shared shells:
+
+- the current shared dialog shell is `Add/Edit Record Shell`
+- `Add/Edit File Shell` is a separate reserved shell name for future file-level work
+- do not use `Add/Edit Shell` as an ambiguous label when the record shell is intended
 
 - route keys are for shell navigation
 - canonical entity names are for structural ownership

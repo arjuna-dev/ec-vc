@@ -100,7 +100,7 @@ Current deprecation note:
 
 - `RecordPage.vue` was the earlier shared record surface and has been removed
 - the active shared route target for `Record View` is `RecordShellPage.vue`
-- entity-specific `*CreateDialog.vue` surfaces have been removed in favor of the shared `Add/Edit Shell`
+- entity-specific `*CreateDialog.vue` surfaces have been removed in favor of the shared `Add/Edit Record Shell`
 
 This distinction matters because product language is now cleaner than the remaining older internal implementation language still present in the app.
 
@@ -251,7 +251,7 @@ Fork shell rule:
 
 - `Fork Shell` is an independent shared shell route, not an `Opportunities` page extension
 - a branchable `L1` may supply branch metadata, but it must not replace the `Fork Shell` renderer or shell behavior with entity-specific UI
-- closing `Fork Shell` should leave the user on the blank shell route, the same way closing `Add/Edit Shell` leaves the user on the blank dialog shell route
+- closing `Fork Shell` should leave the user on the blank shell route, the same way closing `Add/Edit Record Shell` leaves the user on the blank dialog shell route
 - `Fork Shell` should use the same shared top-row shell contract as the other shell routes and should only swap explicit branchable `L1` payload underneath it
 
 Branch selector rule:
@@ -763,7 +763,7 @@ Current shared-shell launch rule:
 
 - card-view `Add Relation` should route into `dialog-shell`
 - that launch should carry the source `L1`, clicked record id, and canonical entity name
-- the shared `Add/Edit Shell` should open directly in `KDB`
+- the shared `Add/Edit Record Shell` should open directly in `KDB`
 
 That means if a KDB relationship is declared in canonical structure:
 

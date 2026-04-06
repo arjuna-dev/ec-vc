@@ -225,7 +225,7 @@ Shared dialog shell rule:
 - do not solve drift page by page
 - if the same behavior appears in more than one address, stop and move upward to the shared shell layer
 - entity-specific `*CreateDialog.vue` components are no longer an approved architecture path
-- shared add/edit behavior should now converge only through the approved `Add/Edit Shell`
+- shared add/edit behavior should now converge only through the approved `Add/Edit Record Shell`
 
 Branch selector rule:
 
@@ -239,7 +239,7 @@ Branch selector rule:
 - if the branch choice is exposed as its own route-owned surface, that surface is a shared shell in its own right, not an entity-local helper
 - `Fork Shell` must stay independent from `Opportunities` page behavior
 - `Opportunities` may declare branch metadata, but it must not own the `Fork Shell` renderer, chrome, or route behavior
-- `Fork Shell` should remain mounted as a shell route after close, the same way `Add/Edit Shell` remains mounted after close
+- `Fork Shell` should remain mounted as a shell route after close, the same way `Add/Edit Record Shell` remains mounted after close
 
 Current approved example:
 
@@ -291,7 +291,7 @@ Current shared-shell launch rule:
 
 - card-view `Add Relation` should route into `dialog-shell`
 - that launch should carry the source `L1`, clicked record id, and canonical entity name
-- the shared `Add/Edit Shell` should open directly in `KDB`
+- the shared `Add/Edit Record Shell` should open directly in `KDB`
 
 If a KDB relationship token is declared in canonical structure, the system should assume that relationship is intended to be real and operational.
 
@@ -1150,7 +1150,7 @@ Rules:
 - `Add Relation` lives inside the box, not beside the icon strip
 - it sits at the top-left of the panel
 - it uses the title font treatment
-- clicking it should route to the shared `Add/Edit Shell` for that source record and open in `KDB`
+- clicking it should route to the shared `Add/Edit Record Shell` for that source record and open in `KDB`
 - the panel body below it renders the active relationship content or the empty state
 
 ### File Card Naming Convention
