@@ -12,7 +12,8 @@
 | Shared Middle-Field Selection | The rule that the selected middle fields for a given `L1` are remembered once and reused by both `File Shell` cards and `Record Shell` hero rows. | Product Reference |
 | First-Order KDB | The KDB display family for main operational `L1`s such as `Users`, `Companies`, `Projects`, `Tasks`, `Notes`, `Opportunities`, `Funds`, `Rounds`, `Artifacts`, `Contacts`, and `Roles`. | KDB Audit |
 | Knowledge DB KDB | The KDB display family for reusable reference or processing `L1`s such as `Markets`, `Securities`, and `Ingestion`. | KDB Audit |
-| Overview Display Group | A higher display family that can collect multiple overview-style subsections under one grouped heading without changing their canonical addresses. | KDB Audit |
+| Business Overview | The grouped `L2` used in `Companies` to collect overview-style subsections under one toolbar item while preserving the prior overview subsections as subgroup variants inside the panel. | Record Architecture |
+| Overview Display Group | A higher display family that can collect multiple overview-style subsections under one grouped heading without changing their canonical addresses. Grouping the toolbar does not flatten the subgroup structure in the panel. | KDB Audit |
 | Record View | The eye-opened detailed surface for one selected record. Route-level `record-view` should now resolve into `Record Shell`. | Product Reference |
 | Hero Dashboard | The top shell block for card or record presentation. In `Record Shell`, it is based on the current `User Record View` hero/dashboard pattern. | Record Architecture |
 | L2 Toolbar | The section bar below the hero/dashboard that renders the selected `L1`'s subsection groups. It places normal sections on the left and `KDB` / `System` on the right. | Product Reference |
@@ -20,7 +21,7 @@
 | General | The canonical subsection for the main descriptive record fields. `Name` is standardized as the first general field and `Summary` as the second. | Product Reference |
 | KDB | The subsection for declared record relationships. It is not just another content tab; it changes the interaction model into relationship browsing and linking. | Product Reference |
 | L1 | The entity/file level in canonical structure. Selecting an `L1` chooses the entity payload source for a shell. | Record Architecture |
-| L2 | The subsection grouping level in canonical structure, such as `System`, `General`, `Overview`, or `KDB`. | Record Architecture |
+| L2 | The subsection grouping level in canonical structure, such as `System`, `General`, `Business Overview`, or `KDB`. | Record Architecture |
 | L3 Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
 | Owned Field | A value owned by the current record or its approved owned subtable. It writes through that owner path only. | Companion Contract |
 | Directional Link | A root-established or rule-bearing path such as identity, authority, provenance, or parentage. It should not be treated like generic KDB. | Record Architecture |

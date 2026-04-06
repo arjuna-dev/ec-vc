@@ -1027,7 +1027,7 @@
               "token_type": "textarea"
             }
           ],
-          "display_group": "Overview"
+          "display_group": "Business Overview"
         },
         {
           "level_2": "7",
@@ -1091,7 +1091,7 @@
               "token_type": "textarea"
             }
           ],
-          "display_group": "Overview"
+          "display_group": "Business Overview"
         },
         {
           "level_2": "8",
@@ -1115,7 +1115,7 @@
               "token_type": "textarea"
             }
           ],
-          "display_group": "Overview"
+          "display_group": "Business Overview"
         },
         {
           "level_2": "9",
@@ -1214,7 +1214,7 @@
               "token_type": "file"
             }
           ],
-          "display_group": "Overview"
+          "display_group": "Business Overview"
         },
         {
           "level_2": "10",

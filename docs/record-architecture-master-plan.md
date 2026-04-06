@@ -746,7 +746,7 @@ Current approved interpretation:
   - `System`
   - `KDB`
   - `General`
-  - `Overview`
+  - `Business Overview`
 - subtype-owned deeper sections:
   - `Fund` `Economics`
   - `Fund` `Controls`
@@ -1357,8 +1357,19 @@ Working guidance:
 - `Rounds`: `System`, `Overview`, `Economics`, `Controls`, `KDB`
 - `Projects`: `System`, `Overview`, `Team`, `KDB`
 - `Tasks`: `System`, `Overview`, `Team`, `KDB`
-- `Notes`: `System`, `KDB`
-- `Roles`: `System`, `KDB`
+  - `Notes`: `System`, `KDB`
+  - `Roles`: `System`, `KDB`
+
+Grouped subsection rendering rule:
+
+- a grouped `L2` may collapse multiple canonical subsections into one toolbar item
+- that grouped toolbar item must not flatten those canonical subsection identities in the panel
+- `Companies` should therefore render one `Business Overview` toolbar label while preserving:
+  - `Ops Overview`
+  - `Business Overview`
+  - `Market Overview`
+  - `Results Overview`
+  as subgroup variants inside the panel
 
 ## Execution Plan
 

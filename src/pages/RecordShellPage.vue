@@ -313,6 +313,30 @@
           </div>
         </div>
 
+        <div v-else-if="hasGroupedSectionSubsections" class="record-shell__section-group-stack">
+          <section
+            v-for="group in activeSectionTokenGroups"
+            :key="group.key"
+            class="record-shell__section-group"
+          >
+            <div class="record-shell__section-group-head">
+              <div class="record-shell__section-group-title">{{ group.title }}</div>
+              <div class="record-shell__section-group-meta">{{ group.tokens.length }} fields</div>
+            </div>
+            <div class="record-shell__field-grid">
+              <div
+                v-for="token in group.tokens"
+                :key="token.key"
+                class="record-shell__field-card"
+                :class="{ 'record-shell__field-card--selected': isSelectedToken(token.key) }"
+              >
+                <div class="record-shell__field-label">{{ token.label }}</div>
+                <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
+              </div>
+            </div>
+          </section>
+        </div>
+
         <div v-else class="record-shell__field-grid">
           <div
             v-for="token in activeSectionTokens"
@@ -480,6 +504,16 @@ const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || 
 const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
 const activeSectionTokens = computed(() => selectableTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
 const isKdbSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'kdb'))
+const hasGroupedSectionSubsections = computed(() => !isKdbSectionActive.value && activeSectionEntries.value.length > 1)
+const activeSectionTokenGroups = computed(() =>
+  activeSectionEntries.value
+    .map((section) => ({
+      key: section.key,
+      title: section.label,
+      tokens: selectableTokens.value.filter((token) => token.parentKey === section.key),
+    }))
+    .filter((group) => group.tokens.length),
+)
 const activeKdbTokenGroups = computed(() => {
   if (!isKdbSectionActive.value) return []
   const grouped = [
@@ -1642,6 +1676,11 @@ function onContactHeroPointerLeave() {
 .record-shell__panel-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
 .record-shell__panel-title { color:#111; font-family:var(--font-title); font-size:.94rem; font-weight:var(--font-weight-black); line-height:.96; }
 .record-shell__panel-meta { color:rgba(17,17,17,.54); font-size:.72rem; }
+.record-shell__section-group-stack { display:grid; gap:14px; }
+.record-shell__section-group { display:grid; gap:10px; }
+.record-shell__section-group-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.record-shell__section-group-title { color:#111; font-family:var(--font-title); font-size:.8rem; font-weight:var(--font-weight-black); line-height:.96; }
+.record-shell__section-group-meta { color:rgba(17,17,17,.54); font-size:.7rem; }
 .record-shell__field-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
 .record-shell__kdb-grid { display:grid; gap:14px; }
 .record-shell__kdb-group { display:grid; gap:8px; }
