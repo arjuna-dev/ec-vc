@@ -7,43 +7,26 @@
       </q-banner>
     </div>
 
-    <div v-else class="dialog-shell-page__body">
-      <div class="dialog-shell-page__launchpad">
-        <div class="dialog-shell-page__eyebrow">Add/Edit Dialog Shell</div>
-        <div class="dialog-shell-page__title">Shared dialog shell for {{ activeRegistryEntry?.singularLabel || 'record' }}</div>
-        <div class="dialog-shell-page__text">
-          This route exists to test the shared create/edit dialog directly from the selected L1 shell payload.
-        </div>
-        <q-btn
-          unelevated
-          no-caps
-          color="primary"
-          label="Open Dialog Shell"
-          class="dialog-shell-page__action"
-          @click="openDialogShell"
-        />
-      </div>
-
-      <CreateRecordShellDialog
-        :key="dialogRenderKey"
-        v-model="dialogOpen"
-        mode="create"
-        :source-label="activeRegistryEntry?.label || 'Records'"
-        :singular-label="activeRegistryEntry?.singularLabel || 'record'"
-        :key-field-tokens="createKeyFieldTokens"
-        :left-sections="dialogSectionSplit.leftSections"
-        :right-sections="dialogSectionSplit.rightSections"
-        :loading="dialogLoading"
-        :submit-disabled="!canCreateWithShell"
-        :initial-values="{}"
-        :initial-field-meta="{}"
-        initial-section-key="key-fields"
-        :initial-artifacts="[]"
-        :artifact-context="null"
-        @request-close="dialogOpen = false"
-        @submit="submitCreateRecord"
-      />
-    </div>
+    <CreateRecordShellDialog
+      v-else
+      :key="dialogRenderKey"
+      v-model="dialogOpen"
+      mode="create"
+      :source-label="activeRegistryEntry?.label || 'Records'"
+      :singular-label="activeRegistryEntry?.singularLabel || 'record'"
+      :key-field-tokens="createKeyFieldTokens"
+      :left-sections="dialogSectionSplit.leftSections"
+      :right-sections="dialogSectionSplit.rightSections"
+      :loading="dialogLoading"
+      :submit-disabled="!canCreateWithShell"
+      :initial-values="{}"
+      :initial-field-meta="{}"
+      initial-section-key="key-fields"
+      :initial-artifacts="[]"
+      :artifact-context="null"
+      @request-close="dialogOpen = false"
+      @submit="submitCreateRecord"
+    />
   </q-page>
 </template>
 
@@ -102,6 +85,8 @@ const canCreateWithShell = computed(() => Boolean(bridge.value?.[activeSourceKey
 
 watch(activeSourceKey, async () => {
   await ensureLiveOptionsLoaded()
+  dialogRenderKey.value += 1
+  dialogOpen.value = true
 }, { immediate: true })
 
 function normalizeCreateDialogToken(token) {
@@ -174,11 +159,6 @@ async function ensureLiveOptionsLoaded() {
   }
 }
 
-function openDialogShell() {
-  dialogRenderKey.value += 1
-  dialogOpen.value = true
-}
-
 async function submitCreateRecord({ values } = {}) {
   const payload = Object.fromEntries(
     [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
@@ -214,10 +194,4 @@ async function submitCreateRecord({ values } = {}) {
 </script>
 
 <style scoped>
-.dialog-shell-page__body { display:flex; flex-direction:column; gap:16px; }
-.dialog-shell-page__launchpad { display:grid; gap:8px; padding:18px 20px; border:1px solid rgba(17,17,17,.08); border-radius:14px; background:rgba(255,255,255,.96); }
-.dialog-shell-page__eyebrow { color:rgba(17,17,17,.56); font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; }
-.dialog-shell-page__title { color:#111; font-family:var(--font-title); font-size:1.32rem; font-weight:var(--font-weight-black); line-height:.96; }
-.dialog-shell-page__text { color:rgba(17,17,17,.64); font-size:.86rem; line-height:1.45; max-width:720px; }
-.dialog-shell-page__action { width:max-content; }
 </style>
