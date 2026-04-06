@@ -118,7 +118,7 @@ function normalizeTokens(subsection) {
   return tokens
     .filter((token) => {
       const level = String(token?.level_3 ?? token?.level ?? '').trim()
-      return level !== '0' && level !== '2'
+      return level !== '0'
     })
     .map((token, index) => ({
       ...token,
