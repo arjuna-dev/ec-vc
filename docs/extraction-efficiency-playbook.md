@@ -31,6 +31,26 @@ An extraction pass is more efficient when it:
 - maps more fields correctly on first output
 - reduces manual edits in review surfaces
 
+Efficiency should also be understood through the point system.
+
+That means:
+
+- extraction should favor the shortest path to higher verified score
+- best-case extraction is not just "faster output"
+- best-case extraction is the quickest route to the most relevant correct fields and links
+
+This is similar to a maze-optimization rule:
+
+- do not reward wandering
+- do not reward low-value detours
+- reward the path that reaches the highest-value structurally relevant result sooner
+
+So when tuning for speed and accuracy, the target is:
+
+- shortest path
+- to highest relevant score
+- with correctness preserved
+
 ## Current Pipeline (Baseline)
 
 1. Build prompt + source-file content.
@@ -47,6 +67,14 @@ An extraction pass is more efficient when it:
 3. Avoid asking the model for behavior we do not persist yet.
 4. Keep schema strict; avoid ambiguous optional blocks.
 5. Add status logs for every important stage so failures are visible.
+6. Tune extraction toward the shortest high-score path, not just the broadest field coverage.
+
+Scoring rule for optimization:
+
+- favor fields that unlock identity, authority, provenance, and parent linkage first
+- favor outputs that reduce downstream review work
+- do not spend extraction effort equally on low-value extras when higher-value anchors are still missing
+- use the point system as the guide for "best next extraction target"
 
 ## Prompt Tuning Strategy
 
@@ -72,6 +100,12 @@ For each entity, prioritize these first:
 - `Opportunity`: identity and stage-defining fields first
 
 Secondary fields should not dilute identity extraction quality.
+
+Working interpretation:
+
+- if two possible next extraction targets compete, prefer the one with the higher likely realized score
+- if two targets score similarly, prefer the one with the shorter path to verification
+- the best extraction path is the path that reaches the highest-value verified structure fastest
 
 ## Test Loop
 
