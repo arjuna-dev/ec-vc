@@ -233,7 +233,7 @@ function goBack() {
   padding: 8px 14px;
   background: rgba(18, 24, 37, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
+  border-radius: 4px;
   box-shadow: 0 18px 44px rgba(10, 14, 24, 0.22);
 }
 
@@ -357,7 +357,7 @@ function goBack() {
   padding: 10px 18px 18px;
   background: rgba(249, 249, 247, 0.92);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 12px;
+  border-radius: 4px;
 }
 
 .fork-shell-card__panel-head {
@@ -369,11 +369,20 @@ function goBack() {
 }
 
 .fork-shell-card__panel-title {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
   color: #111111;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(17, 17, 17, 0.92);
+  border-radius: 4px;
   font-family: var(--font-title);
-  font-size: 1rem;
+  font-size: 0.72rem;
   font-weight: var(--font-weight-black);
-  line-height: 0.96;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
 }
 
 .fork-shell-card__panel-meta {
@@ -400,7 +409,7 @@ function goBack() {
   text-align: left;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 10px;
+  border-radius: 4px;
   cursor: pointer;
   transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
@@ -418,9 +427,9 @@ function goBack() {
   justify-content: center;
   width: 48px;
   height: 48px;
-  border-radius: 16px;
-  background: rgba(38, 71, 255, 0.1);
-  color: #2647ff;
+  border-radius: 4px;
+  background: #111111;
+  color: #ffffff;
 }
 
 .fork-shell-card__branch-copy {
@@ -429,11 +438,21 @@ function goBack() {
 }
 
 .fork-shell-card__branch-title {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 26px;
+  padding: 0 8px;
   color: #111111;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(17, 17, 17, 0.92);
+  border-radius: 4px;
   font-family: var(--font-title);
-  font-size: 0.98rem;
+  font-size: 0.82rem;
   font-weight: var(--font-weight-black);
-  line-height: 1.05;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
 }
 
 .fork-shell-card__branch-caption {
