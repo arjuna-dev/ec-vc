@@ -88,13 +88,7 @@
                   class="fork-shell-card__branch"
                   @click="selectBranch(branch)"
                 >
-                  <div class="fork-shell-card__branch-icon">
-                    <q-icon :name="branch.icon || 'call_split'" size="24px" />
-                  </div>
-                  <div class="fork-shell-card__branch-copy">
-                    <div class="fork-shell-card__branch-title">{{ branch.label }}</div>
-                    <div class="fork-shell-card__branch-caption">Open {{ branch.label }} in the shared create flow.</div>
-                  </div>
+                  <span class="fork-shell-card__branch-title">{{ branch.label }}</span>
                 </button>
               </div>
             </div>
@@ -387,71 +381,44 @@ function goBack() {
 }
 
 .fork-shell-card__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .fork-shell-card__branch {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 14px;
+  display: inline-flex;
   align-items: center;
-  min-height: 104px;
-  padding: 18px;
+  gap: 6px;
+  min-height: 0;
+  padding: 8px 14px;
   text-align: left;
-  background: rgba(255, 255, 255, 0.94);
+  color: #4f4f4f;
+  background: transparent;
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 4px;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: var(--text-sm---medium);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .fork-shell-card__branch:hover,
 .fork-shell-card__branch:focus-visible {
-  background: #ffffff;
-  border-color: rgba(38, 71, 255, 0.28);
+  color: #111111;
+  background: rgba(255, 85, 33, 0.08);
+  border-color: rgba(255, 85, 33, 0.2);
   transform: translateY(-1px);
 }
 
-.fork-shell-card__branch-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 4px;
-  background: #111111;
-  color: #ffffff;
-}
-
-.fork-shell-card__branch-copy {
-  display: grid;
-  gap: 4px;
-}
-
 .fork-shell-card__branch-title {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  min-height: 26px;
-  padding: 0 8px;
-  color: #111111;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(17, 17, 17, 0.92);
-  border-radius: 4px;
-  font-family: var(--font-title);
-  font-size: 0.82rem;
-  font-weight: var(--font-weight-black);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-}
-
-.fork-shell-card__branch-caption {
-  color: rgba(17, 17, 17, 0.62);
-  font-size: 0.8rem;
-  line-height: 1.35;
+  font: inherit;
 }
 
 :global(.fork-shell-modal__selector-menu) {
