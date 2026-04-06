@@ -338,11 +338,12 @@ onBeforeUnmount(() => {
 }
 
 .fork-shell-card__grid {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  grid-template-columns: repeat(4, max-content);
   gap: 10px;
-  flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .fork-shell-card__branch {
@@ -432,8 +433,12 @@ onBeforeUnmount(() => {
   }
 
   .fork-shell-card__grid {
+    display: flex;
     align-items: stretch;
     justify-content: flex-start;
+    width: 100%;
+    margin: 0;
+    flex-wrap: wrap;
   }
 }
 </style>
