@@ -276,6 +276,15 @@
 
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
 
+        <div class="avatar-shell__roles-toolbar">
+          <ShellSectionToolbar
+            v-model="activeCompanionRole"
+            :items="companionRoleToolbarItems"
+            :show-view-toggle="false"
+            aria-label="Companion Roles"
+          />
+        </div>
+
         <q-dialog v-model="showCompanionContractDialog">
           <q-card class="companion-contract-dialog">
             <q-card-section class="companion-contract-dialog__head">
@@ -443,6 +452,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
+import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 
 const $q = useQuasar()
 const AVATAR_STORAGE_KEY = 'ecvc.avatarBuilderProfile'
@@ -599,6 +609,7 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const activeHeroControl = ref('shell')
+const activeCompanionRole = ref('master-companion-role')
 const heroControlOrder = ['shell', 'operator', 'keys']
 const openaiApiKey = ref('')
 const geminiApiKey = ref('')
@@ -671,6 +682,12 @@ const activeHeroControlStepLabel = computed(() => {
 const activeCompanionDocument = computed(
   () => companionDocumentMenu.find((document) => document.id === activeCompanionDocumentId.value) || companionDocumentMenu[0]
 )
+const companionRoleToolbarItems = computed(() => [
+  {
+    title: 'Master Companion Role',
+    value: 'master-companion-role',
+  },
+])
 const companionDialogLead = computed(() => {
   if (activeCompanionDocumentId.value === 'companion-contract') {
     return 'This companion should be helpful about content, strict about structure, and honest about missing ownership.'
@@ -1117,6 +1134,15 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.avatar-shell__roles-toolbar {
+  margin-top: -2px;
+}
+
+.avatar-shell__roles-toolbar :deep(.shell-section-toolbar) {
+  position: static;
+  top: auto;
 }
 
 .companion-contract-dialog {
