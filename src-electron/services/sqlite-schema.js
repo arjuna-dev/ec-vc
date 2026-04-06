@@ -1410,6 +1410,36 @@ CREATE TABLE IF NOT EXISTS Roles (
 CREATE INDEX IF NOT EXISTS idx_Roles_created_by
   ON Roles(created_by);
 
+CREATE TABLE IF NOT EXISTS Building_Blocks (
+  id TEXT PRIMARY KEY,
+  Sort_Order INTEGER,
+  Name TEXT NOT NULL,
+  Summary TEXT,
+  Category TEXT,
+  Status TEXT,
+  Used_In TEXT,
+  Use_When TEXT,
+  Avoid_When TEXT,
+  Anatomy TEXT,
+  Required_Parts TEXT,
+  Source_Path TEXT,
+  Owner TEXT,
+  Extraction_Status TEXT,
+  Reconstruction_Notes TEXT,
+  Prompt TEXT,
+  Variants TEXT,
+  created_by TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Building_Blocks_sort_order
+  ON Building_Blocks(Sort_Order);
+
+CREATE INDEX IF NOT EXISTS idx_Building_Blocks_category
+  ON Building_Blocks(Category);
+
 CREATE TABLE IF NOT EXISTS Users_Roles (
   user_id TEXT PRIMARY KEY,
   role_id TEXT,

@@ -9,6 +9,7 @@ const routes = [
       { path: 'avatar', name: 'avatar', component: () => import('pages/SettingsPage.vue') },
       { path: 'settings', redirect: { name: 'avatar' } },
       { path: '', name: 'home', component: () => import('pages/HomePage.vue') },
+      { path: 'bb-file', name: 'bb-file', component: () => import('pages/BbFilePage.vue') },
       { path: 'file-system', name: 'file-system', component: () => import('pages/IndexPage.vue') },
       { path: 'events', name: 'events', component: () => import('pages/EventsPage.vue') },
       { path: 'pipelines', redirect: { name: 'projects' } },

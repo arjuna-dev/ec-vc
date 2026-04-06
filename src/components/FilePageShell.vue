@@ -472,7 +472,7 @@
               </div>
             </q-card-section>
 
-            <q-card-section class="test-shell-card__summary">
+            <q-card-section v-if="hasActiveSourceKdb" class="test-shell-card__summary">
               <div class="test-shell-card__summary-head">
                 <q-btn-toggle
                   :model-value="getRowRelationshipPanel(row)"
@@ -849,6 +849,11 @@ const SECTION_LOADERS = {
     resultKey: 'tasks',
     recordIdField: 'id',
   },
+  'bb-file': {
+    listFn: (bridgeValue) => bridgeValue?.['bb-file']?.list?.(),
+    resultKey: 'buildingBlocks',
+    recordIdField: 'id',
+  },
   roles: {
     listFn: (bridgeValue) => bridgeValue?.roles?.list?.(),
     resultKey: 'roles',
@@ -908,6 +913,9 @@ const hasSupportedBridge = computed(() => {
 })
 const isEventShellMode = computed(() => activeSourceKey.value === 'events' && !isRecordShellMode.value)
 const supportsActiveSourceEditing = computed(() => activeSourceKey.value !== 'events')
+const hasActiveSourceKdb = computed(() =>
+  level2Sections.value.some((section) => String(section?.label || section?.rawLabel || '').trim().toLowerCase() === 'kdb'),
+)
 
 const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])

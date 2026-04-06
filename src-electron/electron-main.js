@@ -27,6 +27,7 @@ import {
   isGenericKdbRelationshipContract,
 } from '../src/shared/kdbRelationshipContracts.js'
 import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
+import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -1466,6 +1467,170 @@ function listRoles() {
   )
 }
 
+function ensureDefaultBuildingBlocks(database) {
+  const existingCount = Number(
+    database.prepare('SELECT COUNT(*) AS count FROM Building_Blocks').get()?.count || 0,
+  )
+  if (existingCount > 0) return
+
+  const insertRow = database.prepare(`
+    INSERT INTO Building_Blocks (
+      id,
+      Sort_Order,
+      Name,
+      Summary,
+      Category,
+      Status,
+      Used_In,
+      Use_When,
+      Avoid_When,
+      Anatomy,
+      Required_Parts,
+      Source_Path,
+      Owner,
+      Extraction_Status,
+      Reconstruction_Notes,
+      Prompt,
+      Variants,
+      created_by,
+      created_at,
+      updated_at
+    ) VALUES (
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
+    )
+  `)
+
+  const actor = getAuditActor(database, { requireUser: false })
+  const fallbackUserId = normalizeNullableString(actor?.user_id)
+
+  const tx = database.transaction(() => {
+    DEFAULT_BUILDING_BLOCK_FILE_ROWS.forEach((row) => {
+      insertRow.run(
+        normalizeNullableString(row?.id) || `bb:${crypto.randomUUID()}`,
+        Number(row?.Sort_Order || 0) || null,
+        normalizeNullableString(row?.Name) || 'Untitled Building Block',
+        normalizeNullableString(row?.Summary),
+        normalizeNullableString(row?.Category),
+        normalizeNullableString(row?.Status),
+        normalizeNullableString(row?.Used_In),
+        normalizeNullableString(row?.Use_When),
+        normalizeNullableString(row?.Avoid_When),
+        normalizeNullableString(row?.Anatomy),
+        normalizeNullableString(row?.Required_Parts),
+        normalizeNullableString(row?.Source_Path),
+        normalizeNullableString(row?.Owner),
+        normalizeNullableString(row?.Extraction_Status),
+        normalizeNullableString(row?.Reconstruction_Notes),
+        normalizeNullableString(row?.Prompt),
+        normalizeNullableString(row?.Variants),
+        fallbackUserId,
+      )
+    })
+  })
+
+  tx()
+}
+
+function listBuildingBlocks() {
+  const database = initDb()
+  ensureDefaultBuildingBlocks(database)
+  return dbAll(
+    `
+    SELECT
+      id,
+      Sort_Order,
+      Name,
+      Summary,
+      Category,
+      Status,
+      Used_In,
+      Use_When,
+      Avoid_When,
+      Anatomy,
+      Required_Parts,
+      Source_Path,
+      Owner,
+      Extraction_Status,
+      Reconstruction_Notes,
+      Prompt,
+      Variants,
+      created_at,
+      updated_at
+    FROM Building_Blocks
+    ORDER BY COALESCE(Sort_Order, 999999), created_at, id
+  `,
+  )
+}
+
+function createBuildingBlock(payload = {}) {
+  const database = initDb()
+  ensureDefaultBuildingBlocks(database)
+  const actor = getAuditActor(database, { requireUser: true })
+  const name =
+    normalizeNullableString(payload?.Name) ||
+    normalizeNullableString(payload?.BB_Name) ||
+    normalizeNullableString(payload?.title)
+
+  if (!name) throw new Error('Building block name is required')
+
+  const id = normalizeNullableString(payload?.id) || `bb:${crypto.randomUUID()}`
+  const existingMaxSortOrder = Number(
+    database.prepare('SELECT COALESCE(MAX(Sort_Order), 0) AS maxSortOrder FROM Building_Blocks').get()?.maxSortOrder || 0,
+  )
+
+  database
+    .prepare(
+      `
+      INSERT INTO Building_Blocks (
+        id,
+        Sort_Order,
+        Name,
+        Summary,
+        Category,
+        Status,
+        Used_In,
+        Use_When,
+        Avoid_When,
+        Anatomy,
+        Required_Parts,
+        Source_Path,
+        Owner,
+        Extraction_Status,
+        Reconstruction_Notes,
+        Prompt,
+        Variants,
+        created_by,
+        created_at,
+        updated_at
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
+      )
+    `,
+    )
+    .run(
+      id,
+      Number(payload?.Sort_Order || 0) || existingMaxSortOrder + 1,
+      name,
+      normalizeNullableString(payload?.Summary) || normalizeNullableString(payload?.BB_Summary),
+      normalizeNullableString(payload?.Category) || normalizeNullableString(payload?.BB_Category) || 'Building Blocks',
+      normalizeNullableString(payload?.Status) || normalizeNullableString(payload?.BB_Status) || 'Extract Next',
+      normalizeNullableString(payload?.Used_In) || normalizeNullableString(payload?.BB_Used_In),
+      normalizeNullableString(payload?.Use_When) || normalizeNullableString(payload?.BB_Use_When),
+      normalizeNullableString(payload?.Avoid_When) || normalizeNullableString(payload?.BB_Avoid_When),
+      normalizeNullableString(payload?.Anatomy) || normalizeNullableString(payload?.BB_Anatomy),
+      normalizeNullableString(payload?.Required_Parts) || normalizeNullableString(payload?.BB_Required_Parts),
+      normalizeNullableString(payload?.Source_Path) || normalizeNullableString(payload?.BB_Source_Path),
+      normalizeNullableString(payload?.Owner) || normalizeNullableString(payload?.BB_Owner) || actor.user_label || 'BB File',
+      normalizeNullableString(payload?.Extraction_Status) || normalizeNullableString(payload?.BB_Extraction_Status),
+      normalizeNullableString(payload?.Reconstruction_Notes) || normalizeNullableString(payload?.BB_Reconstruction_Notes),
+      normalizeNullableString(payload?.Prompt) || normalizeNullableString(payload?.BB_Prompt),
+      normalizeNullableString(payload?.Variants) || normalizeNullableString(payload?.BB_Variants),
+      normalizeNullableString(payload?.created_by) || actor.user_id,
+    )
+
+  return { id }
+}
+
 function createRole(payload = {}) {
   const database = initDb()
   const actor = getAuditActor(database, { requireUser: true })
@@ -2291,6 +2456,12 @@ function getLegacyOpportunityDatabookView(opportunityId) {
 }
 
 const DATABOOK_TABLE_CONFIGS = Object.freeze({
+  Building_Blocks: {
+    tableName: 'Building_Blocks',
+    entityLabel: 'Building Block',
+    displayColumns: ['Name', 'Summary', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
   Companies: {
     tableName: 'Companies',
     entityLabel: 'Company',
@@ -2385,6 +2556,12 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
 })
 
 const DATABOOK_TABLE_ALIASES = Object.freeze({
+  bb_file: 'Building_Blocks',
+  'bb-file': 'Building_Blocks',
+  bb: 'Building_Blocks',
+  building_blocks: 'Building_Blocks',
+  'building blocks': 'Building_Blocks',
+  'building block': 'Building_Blocks',
   companies: 'Companies',
   company: 'Companies',
   contacts: 'Contacts',
@@ -7253,6 +7430,29 @@ function registerIpc() {
   ipcMain.handle('roles:delete', async (_event, { roleId } = {}) => {
     initDb()
     const result = deleteRow('Roles', 'id', String(roleId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('bb-file:list', async () => {
+    initDb()
+    return { buildingBlocks: listBuildingBlocks() }
+  })
+
+  ipcMain.handle('bb-file:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createBuildingBlock(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'bb file'))
+    }
+  })
+
+  ipcMain.handle('bb-file:delete', async (_event, { blockId } = {}) => {
+    initDb()
+    const result = deleteRow('Building_Blocks', 'id', String(blockId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
   })

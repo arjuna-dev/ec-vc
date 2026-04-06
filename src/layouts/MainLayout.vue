@@ -638,6 +638,7 @@ const testShellNavigationItems = [
 }))
 const routeLabelByName = {
   home: 'Home',
+  'bb-file': 'BB File',
   companies: 'Companies',
   contacts: 'Contacts',
   users: 'Users',

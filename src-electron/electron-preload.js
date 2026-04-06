@@ -167,6 +167,11 @@ contextBridge.exposeInMainWorld('ecvc', {
     create: (payload) => ipcRenderer.invoke('roles:create', payload),
     delete: (roleId) => ipcRenderer.invoke('roles:delete', { roleId }),
   },
+  'bb-file': {
+    list: () => ipcRenderer.invoke('bb-file:list'),
+    create: (payload) => ipcRenderer.invoke('bb-file:create', payload),
+    delete: (blockId) => ipcRenderer.invoke('bb-file:delete', { blockId }),
+  },
   artifacts: {
     list: () => ipcRenderer.invoke('artifacts:list'),
     create: (payload) => ipcRenderer.invoke('artifacts:create', payload),

@@ -249,6 +249,51 @@ export const BUILDING_BLOCK_OPTIONS = Object.entries(BUILDING_BLOCK_DETAILS_BY_I
   value,
 }))
 
+const BUILDING_BLOCK_CATEGORY_BY_ID = Object.freeze({
+  'b10-logo': 'Basic Elements',
+  'b10-button': 'Basic Elements',
+  'b10-icon-button': 'Basic Elements',
+  'main-menu-icon': 'Basic Elements',
+  'page-title-crumb': 'Navigation Components',
+  'page-back-symbol': 'Navigation Components',
+  'main-menu-row': 'Navigation Components',
+  'main-menu-subgroup-row': 'Navigation Components',
+  'live-action-l1': 'Navigation Components',
+  'l2-toolbar': 'Navigation Components',
+  'l2-settings-menu': 'Navigation Components',
+  'widget-settings-menu': 'Navigation Components',
+  'toggle-row-icons': 'Navigation Components',
+  'plus-icon': 'Dialog Components',
+  'plus-with-label': 'Dialog Components',
+  'eye-icon': 'Dialog Components',
+  'edit-button': 'Dialog Components',
+  'mini-scrollbar': 'Dialog Components',
+  'home-dashboard': 'File Components',
+  'file-dashboard': 'File Components',
+  'l3-box': 'File Components',
+  'file-toolbar': 'File Components',
+})
+
+export const DEFAULT_BUILDING_BLOCK_FILE_ROWS = Object.entries(BUILDING_BLOCK_DETAILS_BY_ID).map(([blockKey, detail], index) => ({
+  id: `bb:${blockKey}`,
+  Sort_Order: index + 1,
+  Name: detail.title,
+  Summary: detail.summary || '',
+  Category: BUILDING_BLOCK_CATEGORY_BY_ID[blockKey] || 'Building Blocks',
+  Status: detail.statusLabel || detail.status || '',
+  Used_In: Array.isArray(detail.usedIn) ? detail.usedIn.join('\n') : '',
+  Use_When: detail.summary || '',
+  Avoid_When: '',
+  Anatomy: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
+  Required_Parts: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
+  Source_Path: detail.source || '',
+  Owner: 'BB File',
+  Extraction_Status: detail.statusLabel || '',
+  Reconstruction_Notes: Array.isArray(detail.reconstructionNotes) ? detail.reconstructionNotes.join('\n') : '',
+  Prompt: detail.prompt || '',
+  Variants: detail.status === 'canonical' ? 'Canonical Shared' : 'Extract Next',
+}))
+
 export function getBuildingBlockDetail(blockId) {
   return BUILDING_BLOCK_DETAILS_BY_ID[String(blockId || '').trim()] || null
 }

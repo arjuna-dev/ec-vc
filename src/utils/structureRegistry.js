@@ -6,6 +6,82 @@ export const DEFAULT_L1_OPTIONAL_STANDARD_SUBSECTIONS = Object.freeze(['General'
 export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', 'create', 'update', 'delete'])
 
 const FILE_PAGE_ROUTE_META = Object.freeze({
+  Building_Blocks: {
+    key: 'bb-file',
+    label: 'BB File',
+    singularLabel: 'Building Block',
+    routeName: 'bb-file',
+    path: '/bb-file',
+    icon: 'dashboard_customize',
+    showInWorkspaceNav: true,
+    shellGroup: 'system_level',
+    requiredSubsections: ['General', 'Usage', 'Anatomy', 'Source', 'Reconstruction', 'Variants'],
+    optionalStandardSubsections: [],
+    requiredRuntimeCapabilities: ['list', 'create', 'delete'],
+    requiresReciprocalKdb: false,
+    level_1: 'BB',
+    address: 'BB.0.0',
+    structureToken: 'Building_Blocks_File',
+    customSubsections: [
+      {
+        subsection: 'General',
+        subsection_address: 'BB.1.0',
+        structure_token: 'Building_Blocks_General',
+        tokens: [
+          { level_3: '1', address: 'BB.1.1', token_name: 'BB_Name', label: 'Name', db_field_aliases: ['Name'] },
+          { level_3: '2', address: 'BB.1.2', token_name: 'BB_Summary', label: 'Summary', db_field_aliases: ['Summary'] },
+          { level_3: '3', address: 'BB.1.3', token_name: 'BB_Category', label: 'Category', db_field_aliases: ['Category'] },
+          { level_3: '4', address: 'BB.1.4', token_name: 'BB_Status', label: 'Status', db_field_aliases: ['Status'] },
+        ],
+      },
+      {
+        subsection: 'Usage',
+        subsection_address: 'BB.2.0',
+        structure_token: 'Building_Blocks_Usage',
+        tokens: [
+          { level_3: '1', address: 'BB.2.1', token_name: 'BB_Used_In', label: 'Used In', db_field_aliases: ['Used_In'] },
+          { level_3: '2', address: 'BB.2.2', token_name: 'BB_Use_When', label: 'Use When', db_field_aliases: ['Use_When'] },
+          { level_3: '3', address: 'BB.2.3', token_name: 'BB_Avoid_When', label: 'Avoid When', db_field_aliases: ['Avoid_When'] },
+        ],
+      },
+      {
+        subsection: 'Anatomy',
+        subsection_address: 'BB.3.0',
+        structure_token: 'Building_Blocks_Anatomy',
+        tokens: [
+          { level_3: '1', address: 'BB.3.1', token_name: 'BB_Anatomy', label: 'Anatomy', db_field_aliases: ['Anatomy'] },
+          { level_3: '2', address: 'BB.3.2', token_name: 'BB_Required_Parts', label: 'Required Parts', db_field_aliases: ['Required_Parts'] },
+        ],
+      },
+      {
+        subsection: 'Source',
+        subsection_address: 'BB.4.0',
+        structure_token: 'Building_Blocks_Source',
+        tokens: [
+          { level_3: '1', address: 'BB.4.1', token_name: 'BB_Source_Path', label: 'Source Path', db_field_aliases: ['Source_Path'] },
+          { level_3: '2', address: 'BB.4.2', token_name: 'BB_Owner', label: 'Owner', db_field_aliases: ['Owner'] },
+          { level_3: '3', address: 'BB.4.3', token_name: 'BB_Extraction_Status', label: 'Extraction Status', db_field_aliases: ['Extraction_Status'] },
+        ],
+      },
+      {
+        subsection: 'Reconstruction',
+        subsection_address: 'BB.5.0',
+        structure_token: 'Building_Blocks_Reconstruction',
+        tokens: [
+          { level_3: '1', address: 'BB.5.1', token_name: 'BB_Reconstruction_Notes', label: 'Reconstruction Notes', db_field_aliases: ['Reconstruction_Notes'] },
+          { level_3: '2', address: 'BB.5.2', token_name: 'BB_Prompt', label: 'Prompt', db_field_aliases: ['Prompt'] },
+        ],
+      },
+      {
+        subsection: 'Variants',
+        subsection_address: 'BB.6.0',
+        structure_token: 'Building_Blocks_Variants',
+        tokens: [
+          { level_3: '1', address: 'BB.6.1', token_name: 'BB_Variants', label: 'Variants', db_field_aliases: ['Variants'] },
+        ],
+      },
+    ],
+  },
   Events: {
     key: 'events',
     label: 'Events',
@@ -114,7 +190,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   },
 })
 
-const FILE_PAGE_ENTITY_ORDER = ['Events', 'Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Roles', 'Companion_Roles', 'Financial_Industries', 'Round_Securities', 'Artifacts_Processed']
+const FILE_PAGE_ENTITY_ORDER = ['Building_Blocks', 'Events', 'Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Roles', 'Companion_Roles', 'Financial_Industries', 'Round_Securities', 'Artifacts_Processed']
 
 function normalizeSubsections(entity) {
   const subsections = entity?.subsections
@@ -198,9 +274,11 @@ function buildEntityRegistry(entityName) {
   const canonicalEntityName = String(meta.canonicalEntityName || entityName).trim()
   const runtimeEntityName = String(meta.runtimeEntityName || entityName).trim()
   const sourceEntity = canonicalEntitiesByName[canonicalEntityName]
-  if (!sourceEntity) return null
+  const customSubsections = Array.isArray(meta.customSubsections) ? meta.customSubsections : null
+  if (!sourceEntity && !customSubsections) return null
 
-  const subsections = normalizeSubsections(sourceEntity)
+  const sourceSubsections = customSubsections || normalizeSubsections(sourceEntity)
+  const subsections = sourceSubsections
     .map((subsection) => ({
       key: String(subsection?.structure_token || subsection?.subsection || '').trim() || `${entityName}_${subsection?.level_2 || ''}`,
       level_2: String(subsection?.level_2 || resolveAddressPart(subsection?.subsection_address, 1) || '').trim(),
@@ -233,7 +311,7 @@ function buildEntityRegistry(entityName) {
           ? token.subset_shape.map((value) => String(value || '').trim()).filter(Boolean)
           : [],
         relationshipGroup: String(token?.relationship_group || '').trim(),
-        label: formatLabel(String(token?.token_name || '').trim().replace(`${meta.singularLabel}_`, '')),
+        label: formatLabel(String(token?.label || token?.token_name || '').trim().replace(`${meta.singularLabel}_`, '')),
       })),
     }))
     .sort(compareSubsectionDisplayOrder)
@@ -250,9 +328,9 @@ function buildEntityRegistry(entityName) {
       ? meta.requiredRuntimeCapabilities
       : [...DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES],
     requiresReciprocalKdb: meta.requiresReciprocalKdb !== false,
-    level_1: String(sourceEntity?.level_1 || resolveAddressPart(sourceEntity?.entity_address, 0) || '').trim(),
-    address: String(sourceEntity?.entity_address || '').trim(),
-    structureToken: String(sourceEntity?.structure_token?.token_name || sourceEntity?.structure_token || '').trim(),
+    level_1: String(meta.level_1 || sourceEntity?.level_1 || resolveAddressPart(sourceEntity?.entity_address, 0) || '').trim(),
+    address: String(meta.address || sourceEntity?.entity_address || '').trim(),
+    structureToken: String(meta.structureToken || sourceEntity?.structure_token?.token_name || sourceEntity?.structure_token || '').trim(),
     subsections,
   }
 }
@@ -315,7 +393,7 @@ export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
   ),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'roles', 'companion-roles', 'industries', 'securities', 'artifacts-processed']
+const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'roles', 'companion-roles', 'industries', 'securities', 'artifacts-processed']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({
@@ -445,6 +523,12 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     'companion roles': 'Companion_Roles',
     'companion-role': 'Companion_Roles',
     'companion role': 'Companion_Roles',
+    building_blocks: 'Building_Blocks',
+    'building blocks': 'Building_Blocks',
+    'bb file': 'Building_Blocks',
+    'bb-file': 'Building_Blocks',
+    building_block: 'Building_Blocks',
+    'building block': 'Building_Blocks',
     opportunities: 'Opportunities',
     opportunity: 'Opportunities',
     funds: 'Funds',
