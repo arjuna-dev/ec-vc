@@ -12,6 +12,7 @@
       v-model="dialogOpen"
       :shell-selector-value="activeSourceKey"
       :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
+      :can-configure-file-system="canConfigureFileSystem"
       @update:shell-selector-value="updateShellSelector"
       @request-close="dialogOpen = false"
     />
@@ -28,6 +29,7 @@ const route = useRoute()
 const router = useRouter()
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const dialogOpen = ref(false)
+const canConfigureFileSystem = ref(false)
 
 const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
 const activeSourceKey = computed(() => resolveValidShellSection(route.query.section))
@@ -59,7 +61,18 @@ function reopenFileDialogShell() {
   dialogOpen.value = true
 }
 
+async function loadFileSystemOwnership() {
+  try {
+    const bridge = typeof window !== 'undefined' ? window.ecvc : null
+    const result = await bridge?.userSettings?.get?.()
+    canConfigureFileSystem.value = result?.canEditOwnerSettings !== false
+  } catch {
+    canConfigureFileSystem.value = false
+  }
+}
+
 onMounted(() => {
+  loadFileSystemOwnership()
   if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
   window.addEventListener('ecvc:reopen-file-dialog-shell', reopenFileDialogShell)
 })
