@@ -108,13 +108,39 @@
     </q-card>
   </q-dialog>
 
-  <OpportunityCreateDialog v-model="opportunityDialogOpen" @created="onOpportunityCreated" />
+  <AddEditRecordShellDialog
+    :key="opportunityDialogRenderKey"
+    v-model="opportunityDialogOpen"
+    mode="create"
+    source-label="Opportunities"
+    singular-label="Opportunity"
+    :key-field-tokens="opportunityKeyFieldTokens"
+    :left-sections="opportunityDialogSectionSplit.leftSections"
+    :right-sections="opportunityDialogSectionSplit.rightSections"
+    :branch-selector-token-key="opportunityBranchSelectorTokenKey"
+    :loading="loading"
+    :submit-disabled="!canCreateOpportunityWithShell"
+    :initial-values="{}"
+    :initial-field-meta="{}"
+    initial-section-key="key-fields"
+    :initial-artifacts="[]"
+    :artifact-context="null"
+    @request-close="opportunityDialogOpen = false"
+    @submit="submitOpportunityFromShell"
+  />
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import OpportunityCreateDialog from './OpportunityCreateDialog.vue'
+import AddEditRecordShellDialog from './AddEditRecordShellDialog.vue'
+import {
+  CANONICAL_OPTION_LISTS,
+  getCreateBranchTokenName,
+  LEVEL_2_FILE_REGISTRY_BY_KEY,
+  LEVEL_3_FILE_REGISTRY_BY_KEY,
+} from 'src/utils/structureRegistry'
+import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import {
   createIntakeDraft,
   removeIntakeDraft,
@@ -144,7 +170,41 @@ const dragOver = ref(false)
 const opportunities = ref([])
 
 const opportunityDialogOpen = ref(false)
+const opportunityDialogRenderKey = ref(0)
+const liveOptionRowsBySource = ref({})
 const DEFAULT_PIPELINE_ID = 'pipeline_default'
+const opportunityLevel2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY.opportunities || [])
+const opportunityLevel3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY.opportunities || [])
+const opportunityGroupedLevel2Sections = computed(() => groupDialogLevel2Sections(opportunityLevel2Sections.value))
+const opportunityKeyFieldTokens = computed(() => {
+  const branchTokenName = getCreateBranchTokenName('opportunities')
+  const branchToken = branchTokenName
+    ? opportunityLevel3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
+    : null
+  const tokens = opportunityLevel3Tokens.value.filter((token) => String(token.level_3) === '1' || String(token.level_3) === '2')
+  return [...tokens, branchToken]
+    .filter(Boolean)
+    .filter((token, index, list) => list.findIndex((entry) => entry.key === token.key) === index)
+    .map(normalizeOpportunityDialogToken)
+})
+const opportunityKeyFieldKeys = computed(() => new Set(opportunityKeyFieldTokens.value.map((token) => token.key)))
+const opportunitySectionGroups = computed(() =>
+  buildDialogSectionGroups({
+    groupedSections: opportunityGroupedLevel2Sections.value,
+    tokenFilter: (section) =>
+      opportunityLevel3Tokens.value.filter(
+        (token) => token.parentKey === section.key && !opportunityKeyFieldKeys.value.has(token.key),
+      ),
+    mapToken: normalizeOpportunityDialogToken,
+  }),
+)
+const opportunityDialogSectionSplit = computed(() => splitDialogSections(opportunitySectionGroups.value))
+const opportunityBranchSelectorTokenKey = computed(() => {
+  const branchTokenName = getCreateBranchTokenName('opportunities')
+  if (!branchTokenName) return ''
+  return opportunityKeyFieldTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
+})
+const canCreateOpportunityWithShell = computed(() => Boolean(bridge.value?.funds?.create || bridge.value?.rounds?.create))
 const activeDraft = computed(() => {
   const draftId = String(intakeDraftState.activeDraftId || '').trim()
   return draftId ? intakeDraftState.drafts[draftId] || null : null
@@ -209,6 +269,132 @@ async function onOpportunityCreated(result) {
       opportunityId: result.id,
       stage: 'Quick Review Needed',
     })
+  }
+}
+
+function normalizeOpportunityDialogToken(token) {
+  if (!String(token?.tokenType || '').trim().startsWith('select_')) return token
+  return { ...token, inputOptions: getInputOptionsForToken(token) }
+}
+
+function getInputOptionsForToken(token) {
+  const optionSource = String(token?.optionSource || '').trim()
+  const optionList = String(token?.optionList || '').trim()
+  if (optionSource === 'canonical_list' && optionList) return CANONICAL_OPTION_LISTS[optionList] || []
+  if (optionSource === 'live_entity') return getLiveEntityOptionsForToken(token)
+  if (optionSource === 'live_entity_set') return getLiveEntitySetOptionsForToken(token)
+  return Array.isArray(token?.inputOptions) ? token.inputOptions : []
+}
+
+function resolveSourceKeyFromEntityName(entityName) {
+  const normalized = String(entityName || '').trim().toLowerCase()
+  const sourceKeyByEntityName = {
+    companies: 'companies',
+    contacts: 'contacts',
+    users: 'users',
+    funds: 'funds',
+    rounds: 'rounds',
+    projects: 'projects',
+    tasks: 'tasks',
+    notes: 'notes',
+    roles: 'roles',
+    financial_industries: 'industries',
+    round_securities: 'securities',
+    artifacts_processed: 'artifacts-processed',
+    artifacts: 'artifacts',
+  }
+  return sourceKeyByEntityName[normalized] || ''
+}
+
+function buildLiveEntityOptions(sourceKey) {
+  const rows = Array.isArray(liveOptionRowsBySource.value[sourceKey]) ? liveOptionRowsBySource.value[sourceKey] : []
+  const titleToken = (LEVEL_3_FILE_REGISTRY_BY_KEY[sourceKey] || []).find((token) => String(token.level_3) === '1') || null
+  return rows.map((row) => {
+    const value = String(row?.id || row?.artifact_id || '').trim()
+    const labelField = String(titleToken?.dbWriteField || titleToken?.tokenName || '').trim()
+    const label = String(row?.[labelField] || row?.Name || value).trim()
+    return value && label ? { label, value } : null
+  }).filter(Boolean)
+}
+
+function getLiveEntityOptionsForToken(token) {
+  const sourceKey = resolveSourceKeyFromEntityName(token?.optionEntity)
+  return sourceKey ? buildLiveEntityOptions(sourceKey) : []
+}
+
+function getLiveEntitySetOptionsForToken(token) {
+  return (Array.isArray(token?.optionEntities) ? token.optionEntities : [])
+    .map((entityName) => resolveSourceKeyFromEntityName(entityName))
+    .filter(Boolean)
+    .flatMap((sourceKey) => buildLiveEntityOptions(sourceKey))
+}
+
+async function ensureLiveOptionsLoaded() {
+  const sourceKeys = new Set()
+  for (const token of [...opportunityKeyFieldTokens.value, ...opportunitySectionGroups.value.flatMap((section) => section.tokens)]) {
+    const optionSource = String(token?.optionSource || '').trim()
+    if (optionSource === 'live_entity') {
+      const sourceKey = resolveSourceKeyFromEntityName(token.optionEntity)
+      if (sourceKey) sourceKeys.add(sourceKey)
+    }
+    if (optionSource === 'live_entity_set') {
+      for (const entityName of Array.isArray(token?.optionEntities) ? token.optionEntities : []) {
+        const sourceKey = resolveSourceKeyFromEntityName(entityName)
+        if (sourceKey) sourceKeys.add(sourceKey)
+      }
+    }
+  }
+
+  for (const sourceKey of sourceKeys) {
+    if (liveOptionRowsBySource.value[sourceKey]) continue
+    try {
+      const result = await bridge.value?.[sourceKey]?.list?.()
+      const firstArray = Array.isArray(result) ? result : Object.values(result || {}).find((value) => Array.isArray(value))
+      liveOptionRowsBySource.value = {
+        ...liveOptionRowsBySource.value,
+        [sourceKey]: Array.isArray(firstArray) ? firstArray : [],
+      }
+    } catch {
+      liveOptionRowsBySource.value = {
+        ...liveOptionRowsBySource.value,
+        [sourceKey]: [],
+      }
+    }
+  }
+}
+
+async function submitOpportunityFromShell({ values } = {}) {
+  const kind = String(values?.[opportunityBranchSelectorTokenKey.value] || '').trim().toLowerCase()
+  if (kind !== 'fund' && kind !== 'round') {
+    $q.notify({ type: 'negative', message: 'Choose Opportunity Type as Fund or Round before continuing.' })
+    return
+  }
+
+  const payload = Object.fromEntries(
+    [...opportunityKeyFieldTokens.value, ...opportunitySectionGroups.value.flatMap((section) => section.tokens)]
+      .map((token) => {
+        if (opportunityBranchSelectorTokenKey.value && token.key === opportunityBranchSelectorTokenKey.value) return null
+        const value = values?.[token.key]
+        if (Array.isArray(value) && !value.length) return null
+        if (!Array.isArray(value) && String(value ?? '').trim() === '') return null
+        return [String(token?.dbWriteField || token?.tokenName || token?.key || '').trim(), value]
+      })
+      .filter(Boolean),
+  )
+
+  loading.value = true
+  try {
+    const result = kind === 'fund'
+      ? await bridge.value?.funds?.create?.(payload)
+      : await bridge.value?.rounds?.create?.(payload)
+    if (!result?.id) {
+      $q.notify({ type: 'negative', message: 'Could not create the selected opportunity type yet.' })
+      return
+    }
+    opportunityDialogOpen.value = false
+    await onOpportunityCreated(result)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -357,6 +543,12 @@ watch(
     await loadAll()
   },
 )
+
+watch(opportunityDialogOpen, async (isOpen) => {
+  if (!isOpen) return
+  opportunityDialogRenderKey.value += 1
+  await ensureLiveOptionsLoaded()
+})
 
 let offIngestStatus = null
 

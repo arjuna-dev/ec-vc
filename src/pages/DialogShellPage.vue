@@ -17,6 +17,7 @@
       :key-field-tokens="createKeyFieldTokens"
       :left-sections="dialogSectionSplit.leftSections"
       :right-sections="dialogSectionSplit.rightSections"
+      :branch-selector-token-key="branchSelectorTokenKey"
       :loading="dialogLoading"
       :submit-disabled="!canCreateWithShell"
       :initial-values="{}"
@@ -37,6 +38,7 @@ import { useRoute } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import {
   CANONICAL_OPTION_LISTS,
+  getCreateBranchTokenName,
   getFilePageRegistryEntry,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
@@ -63,13 +65,24 @@ const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceK
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
 
-const createKeyFieldTokens = computed(() =>
-  level3Tokens.value
-    .filter((token) => String(token.level_3) === '1' || String(token.level_3) === '2')
-    .map(normalizeCreateDialogToken),
-)
+const createKeyFieldTokens = computed(() => {
+  const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
+  const branchToken = branchTokenName
+    ? level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
+    : null
+  const tokens = level3Tokens.value.filter((token) => String(token.level_3) === '1' || String(token.level_3) === '2')
+  return [...tokens, branchToken]
+    .filter(Boolean)
+    .filter((token, index, list) => list.findIndex((entry) => entry.key === token.key) === index)
+    .map(normalizeCreateDialogToken)
+})
 
 const keyFieldKeys = computed(() => new Set(createKeyFieldTokens.value.map((token) => token.key)))
+const branchSelectorTokenKey = computed(() => {
+  const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
+  if (!branchTokenName) return ''
+  return createKeyFieldTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
+})
 const createSectionGroups = computed(() =>
   buildDialogSectionGroups({
     groupedSections: groupedLevel2Sections.value,
@@ -163,6 +176,7 @@ async function submitCreateRecord({ values } = {}) {
   const payload = Object.fromEntries(
     [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
       .map((token) => {
+        if (branchSelectorTokenKey.value && token.key === branchSelectorTokenKey.value) return null
         const value = values?.[token.key]
         if (Array.isArray(value) && !value.length) return null
         if (!Array.isArray(value) && String(value ?? '').trim() === '') return null
@@ -178,7 +192,18 @@ async function submitCreateRecord({ values } = {}) {
 
   dialogLoading.value = true
   try {
-    const result = await bridge.value?.[activeSourceKey.value]?.create?.(payload)
+    let result = null
+    if (activeSourceKey.value === 'opportunities') {
+      const kind = String(values?.[branchSelectorTokenKey.value] || '').trim().toLowerCase()
+      if (kind === 'fund') result = await bridge.value?.funds?.create?.(payload)
+      else if (kind === 'round') result = await bridge.value?.rounds?.create?.(payload)
+      else {
+        $q.notify({ type: 'negative', message: 'Choose Opportunity Type as Fund or Round before continuing.' })
+        return
+      }
+    } else {
+      result = await bridge.value?.[activeSourceKey.value]?.create?.(payload)
+    }
     if (!result) {
       $q.notify({ type: 'negative', message: 'Create bridge is not available for this record type yet.' })
       return

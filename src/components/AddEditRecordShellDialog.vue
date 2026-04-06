@@ -911,6 +911,7 @@ const props = defineProps({
   initialSectionKey: { type: String, default: 'key-fields' },
   initialArtifacts: { type: Array, default: () => [] },
   artifactContext: { type: Object, default: null },
+  branchSelectorTokenKey: { type: String, default: '' },
 })
 
 const emit = defineEmits(['update:modelValue', 'submit', 'change', 'request-close'])
@@ -951,14 +952,19 @@ const dialogHeight = ref(780)
 const fieldVerificationStates = ref({})
 let removeResizeListeners = null
 
+const branchSelectionSettled = computed(() => {
+  const tokenKey = String(props.branchSelectorTokenKey || '').trim()
+  if (!tokenKey) return true
+  return String(formValues.value?.[tokenKey] ?? '').trim().length > 0
+})
+
 const allSections = computed(() => [
   {
     key: 'key-fields',
     label: 'Key Fields',
     tokens: props.keyFieldTokens,
   },
-  ...props.leftSections,
-  ...props.rightSections,
+  ...(branchSelectionSettled.value ? [...props.leftSections, ...props.rightSections] : []),
 ])
 
 const leftPanelSections = computed(() => [
@@ -967,8 +973,10 @@ const leftPanelSections = computed(() => [
     label: 'Key Fields',
     tokens: props.keyFieldTokens,
   },
-  ...props.leftSections,
+  ...(branchSelectionSettled.value ? props.leftSections : []),
 ])
+
+const rightSections = computed(() => (branchSelectionSettled.value ? props.rightSections : []))
 
 const dialogTitle = computed(() => {
   const normalizedLabel = String(props.singularLabel || 'record').trim()

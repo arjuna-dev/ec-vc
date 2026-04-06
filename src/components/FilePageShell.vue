@@ -578,6 +578,7 @@
         :key-field-tokens="createKeyFieldTokens"
         :left-sections="createDialogLeftSections"
         :right-sections="createDialogRightSections"
+        :branch-selector-token-key="createDialogBranchSelectorTokenKey"
         :loading="createDialogLoading"
         :submit-disabled="!canCreateWithShell"
         :initial-values="createDialogInitialValues"
@@ -609,6 +610,7 @@ import {
 } from 'src/utils/card-kdb-relationships'
 import {
   CANONICAL_OPTION_LISTS,
+  getCreateBranchTokenName,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByRouteName,
   getCanonicalTokenFieldNames,
@@ -854,9 +856,13 @@ const selectedCardItemTokens = computed(() =>
     .filter(Boolean),
 )
 const createKeyFieldTokens = computed(() => {
+  const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
+  const branchToken = branchTokenName
+    ? level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
+    : null
   const tokens = isRecordShellMode.value
     ? [canonicalTitleToken.value, canonicalSummaryToken.value].filter(Boolean)
-    : [canonicalTitleToken.value, ...selectedCardItemTokens.value].filter(Boolean)
+    : [canonicalTitleToken.value, branchToken, ...selectedCardItemTokens.value].filter(Boolean)
   const seen = new Set()
   return tokens
     .filter((token) => {
@@ -894,6 +900,11 @@ const createSectionGroups = computed(() => {
 const createDialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
 const createDialogLeftSections = computed(() => createDialogSectionSplit.value.leftSections)
 const createDialogRightSections = computed(() => createDialogSectionSplit.value.rightSections)
+const createDialogBranchSelectorTokenKey = computed(() => {
+  const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
+  if (!branchTokenName) return ''
+  return createKeyFieldTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
+})
 const createDialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || '',
 )
@@ -1090,6 +1101,12 @@ function isAutomaticCreatorToken(token) {
   const fieldNames = getCanonicalTokenFieldNames(token).map((name) => String(name || '').trim())
   if (fieldNames.includes('created_by') || fieldNames.includes('created_by_label')) return true
   return tokenName.endsWith('_Creator')
+}
+
+function isBranchSelectorToken(token, sourceKey = activeSourceKey.value) {
+  const branchTokenName = getCreateBranchTokenName(sourceKey)
+  if (!branchTokenName) return false
+  return String(token?.tokenName || '').trim() === branchTokenName
 }
 
 function getInputOptionsForToken(token) {
@@ -2263,6 +2280,7 @@ function buildCreatePayload(values = {}) {
 
   allTokens.forEach((token) => {
     if (isAutomaticCreatorToken(token)) return
+    if (isBranchSelectorToken(token)) return
     const rawValue = values?.[token.key]
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
     if (normalizedValue == null) return
@@ -2294,6 +2312,7 @@ function getUnsupportedRelationshipWriteLabels(values = {}, entityName = '') {
   return allTokens
     .filter((token) => {
       if (isAutomaticCreatorToken(token)) return false
+      if (isBranchSelectorToken(token)) return false
       if (!isUnsupportedRelationshipWriteToken(token, entityName)) return false
       const rawValue = values?.[token.key]
       const normalizedValue = normalizeCreateFieldValue(token, rawValue)
@@ -2332,6 +2351,7 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
 
   return allTokens.flatMap((token) => {
     if (isAutomaticCreatorToken(token)) return []
+    if (isBranchSelectorToken(token)) return []
     if (createDialogFieldMeta.value?.[token.key]?.locked) return []
     const rawValue = values?.[token.key]
     const initialValue = createDialogPrefillValues.value?.[token.key]
