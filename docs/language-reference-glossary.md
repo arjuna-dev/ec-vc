@@ -20,6 +20,7 @@
 | Runtime-Backed | A declared path that already has real runtime ownership underneath it. | ECS Workstream Tracker |
 | Declared-But-Missing | A path declared in canon that does not yet have full runtime ownership or reverse-read support. | ECS Workstream Tracker |
 | Live Shell | The strict shared shell surface used to test and exercise contract-driven page behavior. | Record Architecture |
+| Deprecated Record Surface | `RecordPage.vue`, the earlier shared record implementation. It is now legacy and should not be treated as the active shared record route target. | Record Architecture |
 | Knowledge DB | A file surface that may not be golden-tier in product importance, but still behaves like an `L1` in the shell and contract system. | Companion Contract |
 | Top-Layer Mechanism | A tuning layer that may improve speed, ranking, comfort, or prioritization without modifying ownership or the underlying contract. | Companion Contract |
 | Heuristic Guidance | A top-layer ranking and prioritization aid that may front-load likely options, but must not alter structure or ownership. | Product Reference |

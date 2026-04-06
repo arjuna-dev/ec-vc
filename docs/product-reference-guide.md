@@ -96,6 +96,11 @@ To stay precise while the codebase is still finishing its naming cleanup, use th
 - `record-view` when talking about the literal current route name
 - `Databook` only when talking about older internal bridge or class naming that has not been fully cleaned yet
 
+Current deprecation note:
+
+- `RecordPage.vue` is legacy and deprecated
+- the active shared route target for `Record View` is `RecordShellPage.vue`
+
 This distinction matters because product language is now cleaner than the remaining older internal implementation language still present in the app.
 
 ## System Model

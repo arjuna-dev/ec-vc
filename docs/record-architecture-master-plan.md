@@ -1077,7 +1077,9 @@ Section behavior:
 
 ### Payload Rule
 
-`RecordPage.vue` should not invent structure heuristically as the long-term solution.
+`RecordPage.vue` is now a deprecated legacy record surface.
+
+It should not be treated as the long-term shared record solution.
 
 The long-term contract must come from:
 
@@ -1361,7 +1363,7 @@ The split should be explicit, not accidental.
 
 ### Phase 4. Replace Heuristic Record Mapping
 
-Move away from long-term heuristic section ownership in `RecordPage.vue`.
+Move away from long-term heuristic section ownership in the deprecated `RecordPage.vue` path.
 
 Each entity should have workbook-backed token ownership.
 
@@ -1422,7 +1424,9 @@ Recommended order:
 
 ### Overall
 
-- [x] Shared `RecordPage.vue` exists
+- [x] Shared `RecordPage.vue` existed as the earlier shared record surface
+- [x] Shared `record-view` route now resolves into `RecordShellPage.vue`
+- [ ] Remove deprecated `RecordPage.vue` once remaining useful behavior is either migrated or intentionally dropped
 - [x] File/card shell consistency improved across core pages
 - [x] KDB icon strip unified across file cards
 - [x] Card relationship icon affordance added
@@ -1434,6 +1438,25 @@ Recommended order:
 - [ ] Heuristic section mapping fully replaced
 - [ ] Light vs rich payload split documented per entity
 - [ ] Item addressing adopted per entity
+
+## Deprecated / Cleanup Queue
+
+The following are now explicitly legacy and should be cleaned deliberately instead of staying half-active:
+
+- `RecordPage.vue`
+  - deprecated legacy record surface
+  - no longer the shared route target
+
+- internal `Databook` naming
+  - still present in bridge and styling language
+  - should continue migrating to `File`, `Record`, and `Record View`
+
+- `Live Shell` wording
+  - product-facing shell naming has moved to `File Shell`
+  - remaining `Live Shell` references in docs should be cleaned to the current shell language unless they are intentionally historical
+
+- `Test Shell` wording
+  - where it still refers to the shared file shell route or contract test surface, it should be reviewed and normalized to current shell naming
 - [ ] Rich record payloads standardized per entity
 - [ ] Token names normalized to final approved form
 - [ ] Canonical JSON structure contract defined per entity
