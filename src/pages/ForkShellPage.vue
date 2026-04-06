@@ -10,7 +10,6 @@
     <q-dialog
       v-else
       v-model="dialogOpen"
-      @hide="handleDialogHide"
     >
       <div class="fork-shell-modal">
         <div
@@ -117,7 +116,6 @@ const branchableShellOptions = Object.freeze(
 )
 const fallbackSectionKey = branchableShellOptions[0]?.value || ''
 const dialogOpen = ref(true)
-const closingToRoute = ref(false)
 const forkShellSourceKey = ref(resolveValidForkSection(route.query.section))
 const activeSourceKey = computed(() => forkShellSourceKey.value)
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
@@ -169,14 +167,7 @@ function selectBranch(branch) {
   })
 }
 
-function handleDialogHide() {
-  if (closingToRoute.value) return
-  closingToRoute.value = true
-  goBack()
-}
-
 function reopenForkShell() {
-  closingToRoute.value = false
   dialogOpen.value = true
 }
 
@@ -190,20 +181,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('ecvc:reopen-fork-shell', reopenForkShell)
 })
 
-function goBack() {
-  const returnTo = String(route.query.returnTo || '').trim()
-  if (returnTo) {
-    router.push(returnTo)
-    return
-  }
-
-  if (activeRegistryEntry.value?.routeName) {
-    router.push({ name: activeRegistryEntry.value.routeName })
-    return
-  }
-
-  router.push({ name: 'home' })
-}
 </script>
 
 <style scoped>

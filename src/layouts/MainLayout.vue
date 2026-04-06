@@ -55,13 +55,13 @@
             />
           </div>
         </div>
-        <div v-else-if="isDialogShellRoute" class="ec-shell-toolbar-center">
+        <div v-else-if="isDialogShellRoute || isForkShellRoute" class="ec-shell-toolbar-center">
           <button
             type="button"
             class="ec-shell-dialog-open-btn"
-            @click="reopenDialogShellFromHeader"
+            @click="reopenActiveRouteShellFromHeader"
           >
-            Open Dialog
+            {{ isForkShellRoute ? 'Open Fork' : 'Open Dialog' }}
           </button>
         </div>
 
@@ -737,6 +737,7 @@ const toolbarActions = computed(() => {
 })
 const isSelectableShellRoute = computed(() => ['test-shell', 'record-shell'].includes(String(route.name || '')))
 const isDialogShellRoute = computed(() => String(route.name || '') === 'dialog-shell')
+const isForkShellRoute = computed(() => String(route.name || '') === 'fork-shell')
 const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
 const selectedShellSection = computed({
   get() {
@@ -767,8 +768,12 @@ function openShellSectionMenu() {
   }
 }
 
-function reopenDialogShellFromHeader() {
+function reopenActiveRouteShellFromHeader() {
   if (typeof window === 'undefined') return
+  if (isForkShellRoute.value) {
+    window.dispatchEvent(new CustomEvent('ecvc:reopen-fork-shell'))
+    return
+  }
   window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
 }
 
