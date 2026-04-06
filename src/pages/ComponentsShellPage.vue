@@ -69,23 +69,13 @@
           <q-icon :name="isSectionOpen('navigation') ? 'expand_less' : 'expand_more'" size="18px" />
         </button>
         <div v-if="isSectionOpen('navigation')" class="components-shell-page__board">
-      <article class="components-shell-page__card components-shell-page__card--title-wide">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-title-crumb')">
-          <q-icon name="visibility" />
-        </button>
-        <div class="components-shell-page__card-label">Page Title / Crumb</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('page-title-crumb')">{{ componentStatusLabel('page-title-crumb') }}</div>
-        <div class="components-shell-page__card-stage components-shell-page__card-stage--left">
-          <div class="components-shell-page__crumb-shell">
-            <div class="components-shell-page__crumb-row">
-              <span class="components-shell-page__crumb-link">Files</span>
-              <span class="components-shell-page__crumb-separator">/</span>
-              <span class="components-shell-page__crumb-current">Building Blocks</span>
-            </div>
-            <div class="components-shell-page__page-title">Building Blocks</div>
-          </div>
-        </div>
-      </article>
+      <BuildingBlockPreviewTile block-key="page-title-crumb">
+        <template #actions>
+          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-title-crumb')">
+            <q-icon name="visibility" />
+          </button>
+        </template>
+      </BuildingBlockPreviewTile>
 
       <article class="components-shell-page__card components-shell-page__card--sm">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-back-symbol')">
@@ -295,36 +285,21 @@
           <q-icon :name="isSectionOpen('dialog') ? 'expand_less' : 'expand_more'" size="18px" />
         </button>
         <div v-if="isSectionOpen('dialog')" class="components-shell-page__board">
-      <article class="components-shell-page__card components-shell-page__card--sm">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('plus-icon')">
-          <q-icon name="visibility" />
-        </button>
-        <div class="components-shell-page__card-label">Plus Icon</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('plus-icon')">{{ componentStatusLabel('plus-icon') }}</div>
-        <div class="components-shell-page__card-stage">
-          <button type="button" class="components-shell-page__file-add-button-plus components-shell-page__file-add-button-plus--standalone" aria-label="Add">
-            <q-icon name="add" />
+      <BuildingBlockPreviewTile block-key="plus-icon">
+        <template #actions>
+          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('plus-icon')">
+            <q-icon name="visibility" />
           </button>
-        </div>
-      </article>
+        </template>
+      </BuildingBlockPreviewTile>
 
-      <article class="components-shell-page__card components-shell-page__card--md">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('plus-with-label')">
-          <q-icon name="visibility" />
-        </button>
-        <div class="components-shell-page__card-label">Plus With Label</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('plus-with-label')">{{ componentStatusLabel('plus-with-label') }}</div>
-        <div class="components-shell-page__card-stage">
-          <button type="button" class="components-shell-page__file-add-button">
-            <span class="components-shell-page__file-add-button-inner">
-              <span class="components-shell-page__file-add-button-plus">
-                <q-icon name="add" />
-              </span>
-              <span class="components-shell-page__file-add-button-label">Add Record</span>
-            </span>
+      <BuildingBlockPreviewTile block-key="plus-with-label">
+        <template #actions>
+          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('plus-with-label')">
+            <q-icon name="visibility" />
           </button>
-        </div>
-      </article>
+        </template>
+      </BuildingBlockPreviewTile>
 
       <article class="components-shell-page__card components-shell-page__card--sm">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('eye-icon')">
@@ -388,24 +363,13 @@
         </div>
       </article>
 
-      <article class="components-shell-page__card components-shell-page__card--dashboard">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('file-dashboard')">
-          <q-icon name="visibility" />
-        </button>
-        <div class="components-shell-page__card-label">File Dashboard</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('file-dashboard')">{{ componentStatusLabel('file-dashboard') }}</div>
-        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
-          <FilePageHeroDashboard
-            eyebrow="Dashboard"
-            title="Companies"
-            text="Track the live operating picture for this file and move through core workflows from one surface."
-            :stats="fileDashboardStats"
-            health-label="File Health"
-            health-text="Healthy structure with active records and recent updates."
-            :health-segments="fileDashboardHealth"
-          />
-        </div>
-      </article>
+      <BuildingBlockPreviewTile block-key="file-dashboard">
+        <template #actions>
+          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('file-dashboard')">
+            <q-icon name="visibility" />
+          </button>
+        </template>
+      </BuildingBlockPreviewTile>
 
       <article class="components-shell-page__card components-shell-page__card--stat-box">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l3-box')">
@@ -469,9 +433,9 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import lottie from 'lottie-web'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
-import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
+import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
@@ -505,13 +469,6 @@ const toolbarItems = [
   { title: 'System', value: 'system', isSystem: true },
 ]
 
-const fileDashboardStats = [
-  { label: 'Records', value: '128', caption: 'Tracked rows', tone: 'neutral' },
-  { label: 'Updated', value: '12', caption: 'Changed today', tone: 'positive' },
-  { label: 'Open', value: '7', caption: 'Items needing attention', tone: 'warning' },
-  { label: 'Links', value: '93%', caption: 'KDB coverage', tone: 'positive' },
-]
-
 const homeDashboardStats = [
   { label: 'Open tasks', value: '27' },
   { label: 'Recent adds (7d)', value: '41' },
@@ -524,11 +481,6 @@ const homeDashboardSignals = [
   { label: 'Opportunities', value: '74' },
 ]
 
-const fileDashboardHealth = [
-  { tone: 'positive', width: 58 },
-  { tone: 'warning', width: 24 },
-  { tone: 'neutral', width: 18 },
-]
 function componentStatusLabel(componentId) {
   return BUILDING_BLOCK_DETAILS_BY_ID[componentId]?.statusLabel || 'Unknown'
 }

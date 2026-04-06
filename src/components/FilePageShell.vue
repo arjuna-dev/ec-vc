@@ -235,15 +235,12 @@
       </q-banner>
 
       <div v-else-if="viewMode === 'card' && isBbFileSource" class="bb-shell-tiles-grid">
-        <BuildingBlockTile
+        <BuildingBlockPreviewTile
           v-for="row in displayRows"
           :key="row.cardId"
-          label="Building Block"
+          :block-key="getBbTileBlockKey(row)"
           :title="row.titleValue"
           :status-label="getBbTileStatus(row)"
-          :status-tone="getBbTileStatusTone(row)"
-          :summary="getBbTileSummary(row)"
-          :meta-items="getBbTileMeta(row)"
         >
           <template #actions>
             <q-btn
@@ -265,7 +262,7 @@
               @click="openRecordView(row)"
             />
           </template>
-        </BuildingBlockTile>
+        </BuildingBlockPreviewTile>
       </div>
 
       <div v-else-if="viewMode === 'card'" class="row q-col-gutter-md test-shell-cards-grid">
@@ -738,7 +735,7 @@ import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'components/ShellSectionToolbar.vue'
-import BuildingBlockTile from 'components/BuildingBlockTile.vue'
+import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import {
   buildCardRelationshipItems,
@@ -2143,25 +2140,16 @@ function requestCreateRecordShell(options = {}) {
   router.push({ name: route.name, params: route.params, query: nextQuery })
 }
 
-function getBbTileSummary(row) {
-  return stringifyValue(row?.raw?.Summary)
-}
-
 function getBbTileStatus(row) {
   return stringifyValue(row?.raw?.Status || row?.raw?.Extraction_Status)
 }
 
-function getBbTileStatusTone(row) {
-  return getBbTileStatus(row).toLowerCase().includes('canonical') ? 'canonical' : 'extract'
-}
-
-function getBbTileMeta(row) {
-  const entries = [
-    { label: 'Category', value: stringifyValue(row?.raw?.Category) },
-    { label: 'Source', value: stringifyValue(row?.raw?.Source_Path) },
-    { label: 'Variants', value: stringifyValue(row?.raw?.Variants) },
-  ]
-  return entries.filter((entry) => entry.value)
+function getBbTileBlockKey(row) {
+  const rawId = stringifyValue(row?.raw?.id || row?.recordId)
+  if (rawId.startsWith('bb:')) {
+    return rawId.slice(3)
+  }
+  return ''
 }
 
 function requestEditRecordShell(row, options = {}) {
@@ -3236,9 +3224,12 @@ async function handleSelectedRowsDelete() {
 
 .bb-shell-tiles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, 40px);
+  grid-auto-rows: 40px;
+  grid-auto-flow: dense;
   gap: 16px;
-  align-items: stretch;
+  justify-content: start;
+  align-items: start;
 }
 
 .bb-shell-tiles-grid__action {

@@ -249,6 +249,35 @@ export const BUILDING_BLOCK_OPTIONS = Object.entries(BUILDING_BLOCK_DETAILS_BY_I
   value,
 }))
 
+export const BUILDING_BLOCK_SIZE_BY_ID = Object.freeze({
+  'b10-logo': 'sm',
+  'b10-button': 'md',
+  'b10-icon-button': 'md',
+  'main-menu-icon': 'md',
+  'page-title-crumb': 'title-wide',
+  'page-back-symbol': 'sm',
+  'main-menu-row': 'toolbar-wide',
+  'main-menu-subgroup-row': 'toolbar-wide',
+  'live-action-l1': 'live-link',
+  'l2-toolbar': 'lg',
+  'l2-settings-menu': 'settings-menu',
+  'widget-settings-menu': 'widget-settings',
+  'toggle-row-icons': 'md',
+  'plus-icon': 'sm',
+  'plus-with-label': 'md',
+  'eye-icon': 'sm',
+  'edit-button': 'sm',
+  'mini-scrollbar': 'md',
+  'home-dashboard': 'dashboard',
+  'file-dashboard': 'dashboard',
+  'l3-box': 'stat-box',
+  'file-toolbar': 'toolbar-wide',
+})
+
+export function getBuildingBlockTileSize(blockId) {
+  return BUILDING_BLOCK_SIZE_BY_ID[String(blockId || '').trim()] || 'md'
+}
+
 const BUILDING_BLOCK_CATEGORY_BY_ID = Object.freeze({
   'b10-logo': 'Basic Elements',
   'b10-button': 'Basic Elements',
