@@ -55,13 +55,13 @@
             />
           </div>
         </div>
-        <div v-else-if="isDialogShellRoute || isForkShellRoute" class="ec-shell-toolbar-center">
+        <div v-else-if="isFileDialogShellRoute || isDialogShellRoute || isForkShellRoute" class="ec-shell-toolbar-center">
           <button
             type="button"
             class="ec-shell-dialog-open-btn"
             @click="reopenActiveRouteShellFromHeader"
           >
-            {{ isForkShellRoute ? 'Open Fork' : 'Open Dialog' }}
+            {{ isForkShellRoute ? 'Open Fork' : isFileDialogShellRoute ? 'Open File Dialog' : 'Open Dialog' }}
           </button>
         </div>
 
@@ -625,6 +625,7 @@ const workspaceNavigationItems = [
 const testShellNavigationItems = [
   { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
+  { label: 'Add/Edit File Shell', to: '/file-dialog-shell', exact: true, icon: 'web_asset' },
   { label: 'Add/Edit Record Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
   { label: 'Ingestion Shell', to: '/ingestion-shell', exact: true, icon: 'hourglass_top' },
   { label: 'Fork Shell', to: '/fork-shell', exact: true, icon: 'call_split' },
@@ -651,6 +652,7 @@ const routeLabelByName = {
   'test-shell': 'File Shell',
   'record-shell': 'Record Shell',
   'fork-shell': 'Fork Shell',
+  'file-dialog-shell': 'Add/Edit File Shell',
   'dialog-shell': 'Add/Edit Record Shell',
   'ingestion-shell': 'Ingestion Shell',
   roles: 'User Roles',
@@ -781,6 +783,7 @@ const toolbarActions = computed(() => {
   return []
 })
 const isSelectableShellRoute = computed(() => ['test-shell', 'record-shell'].includes(String(route.name || '')))
+const isFileDialogShellRoute = computed(() => String(route.name || '') === 'file-dialog-shell')
 const isDialogShellRoute = computed(() => String(route.name || '') === 'dialog-shell')
 const isForkShellRoute = computed(() => String(route.name || '') === 'fork-shell')
 const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
@@ -817,6 +820,10 @@ function reopenActiveRouteShellFromHeader() {
   if (typeof window === 'undefined') return
   if (isForkShellRoute.value) {
     window.dispatchEvent(new CustomEvent('ecvc:reopen-fork-shell'))
+    return
+  }
+  if (isFileDialogShellRoute.value) {
+    window.dispatchEvent(new CustomEvent('ecvc:reopen-file-dialog-shell'))
     return
   }
   window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
@@ -1909,6 +1916,10 @@ function handleDrawerItemClick(item) {
   const itemTarget = String(item?.to || '').trim()
   const routeName = String(route.name || '').trim()
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return
+  if (itemTarget === '/file-dialog-shell' && routeName === 'file-dialog-shell') {
+    window.dispatchEvent(new CustomEvent('ecvc:reopen-file-dialog-shell'))
+    return
+  }
   if (itemTarget === '/dialog-shell' && routeName === 'dialog-shell') {
     window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
     return
