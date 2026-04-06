@@ -54,7 +54,7 @@
         </button>
         <div class="components-shell-page__card-label">Plus Icon</div>
         <div class="components-shell-page__card-stage">
-          <button type="button" class="components-shell-page__widget-add-button" aria-label="Add">
+          <button type="button" class="components-shell-page__file-add-button-plus components-shell-page__file-add-button-plus--standalone" aria-label="Add">
             <q-icon name="add" />
           </button>
         </div>
@@ -706,26 +706,6 @@ onBeforeUnmount(() => {
   letter-spacing: -1px;
 }
 
-.components-shell-page__widget-add-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
-  color: var(--ds-color-surface-inverse, #ffffff);
-  background: var(--ds-color-text-primary-deep, #2647ff);
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  border-radius: 999px;
-  box-shadow: var(--ds-shadow-fab);
-  cursor: pointer;
-}
-
-.components-shell-page__widget-add-button :deep(.q-icon) {
-  font-size: 20px;
-}
-
 .components-shell-page__file-add-button {
   align-self: center;
   min-width: 36px;
@@ -760,6 +740,17 @@ onBeforeUnmount(() => {
 
 .components-shell-page__file-add-button-plus :deep(.q-icon) {
   font-size: 16px;
+}
+
+.components-shell-page__file-add-button-plus--standalone {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.components-shell-page__file-add-button-plus--standalone :deep(.q-icon) {
+  font-size: 20px;
 }
 
 .components-shell-page__file-add-button-label {
