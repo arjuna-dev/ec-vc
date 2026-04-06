@@ -67,7 +67,6 @@ const dialogInitialSectionKey = ref('key-fields')
 const dialogInitialArtifacts = ref([])
 const dialogRecordId = ref('')
 const dialogEntityName = ref('')
-const dialogSourceRecord = ref(null)
 
 const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section))
@@ -137,16 +136,8 @@ watch(
       : {}
     dialogInitialFieldMeta.value = {}
     dialogInitialArtifacts.value = []
-    dialogSourceRecord.value = pendingRequest.sourceRecord && typeof pendingRequest.sourceRecord === 'object'
-      ? {
-          sourceKey: String(pendingRequest.sourceRecord.sourceKey || activeSourceKey.value || '').trim().toLowerCase(),
-          entityName: String(pendingRequest.sourceRecord.entityName || pendingRequest.entityName || activeRegistryEntry.value?.entityName || '').trim(),
-          recordId: String(pendingRequest.sourceRecord.recordId || pendingRequest.recordId || '').trim(),
-          recordLabel: String(pendingRequest.sourceRecord.recordLabel || '').trim(),
-        }
-      : null
-    dialogRecordId.value = String(dialogSourceRecord.value?.recordId || pendingRequest.recordId || '').trim()
-    dialogEntityName.value = String(dialogSourceRecord.value?.entityName || pendingRequest.entityName || activeRegistryEntry.value?.entityName || '').trim()
+    dialogRecordId.value = String(pendingRequest.recordId || '').trim()
+    dialogEntityName.value = String(pendingRequest.entityName || activeRegistryEntry.value?.entityName || '').trim()
 
     if (dialogMode.value === 'edit' && dialogEntityName.value && dialogRecordId.value) {
       const payload = await loadEditDialogRecordPayload(dialogEntityName.value, dialogRecordId.value)

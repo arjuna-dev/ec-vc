@@ -9,14 +9,6 @@ export function setPendingAddEditShellRequest(request = null) {
         mode: String(request.mode || 'create').trim().toLowerCase() === 'edit' ? 'edit' : 'create',
         entityName: String(request.entityName || '').trim(),
         recordId: String(request.recordId || '').trim(),
-        sourceRecord: request.sourceRecord && typeof request.sourceRecord === 'object'
-          ? {
-              sourceKey: String(request.sourceRecord.sourceKey || '').trim().toLowerCase(),
-              entityName: String(request.sourceRecord.entityName || '').trim(),
-              recordId: String(request.sourceRecord.recordId || '').trim(),
-              recordLabel: String(request.sourceRecord.recordLabel || '').trim(),
-            }
-          : null,
         initialSectionKey: String(request.initialSectionKey || '').trim(),
         initialValues: request.initialValues && typeof request.initialValues === 'object'
           ? { ...request.initialValues }
