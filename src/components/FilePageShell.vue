@@ -234,31 +234,55 @@
         No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
       </q-banner>
 
-      <div v-else-if="viewMode === 'card' && isBbFileSource" class="bb-shell-tiles-grid">
-        <BuildingBlockPreviewTile
-          v-for="row in displayRows"
-          :key="row.cardId"
-          :block-key="getBbTileBlockKey(row)"
-          :title="row.titleValue"
-          :status-label="getBbTileStatus(row)"
+      <div v-else-if="viewMode === 'card' && isBbFileSource" class="bb-shell-tiles-surface">
+        <div class="bb-shell-tiles-toolbar">
+          <button type="button" class="bb-shell-tiles-toolbar__btn" @click="setAllBbTilesCollapsed(true)">
+            Collapse all
+          </button>
+          <button type="button" class="bb-shell-tiles-toolbar__btn" @click="setAllBbTilesCollapsed(false)">
+            Expand all
+          </button>
+        </div>
+
+        <section
+          v-for="group in bbTileGroups"
+          :key="group.key"
+          class="bb-shell-tiles-group"
         >
-          <template #actions>
-            <q-btn
-              flat
-              round
-              dense
-              icon="content_copy"
-              aria-label="Copy record id"
-              :disable="!row.recordId"
-              @click="copyRowRecordId(row)"
-            />
-            <EyeIconButton
-              aria-label="View block tile"
-              :disable="!row.recordId"
-              @click="openRecordView(row)"
-            />
-          </template>
-        </BuildingBlockPreviewTile>
+          <header class="bb-shell-tiles-group__header">
+            <div class="bb-shell-tiles-group__eyebrow">Category</div>
+            <div class="bb-shell-tiles-group__title">{{ group.label }}</div>
+          </header>
+
+          <div class="bb-shell-tiles-grid">
+            <BuildingBlockPreviewTile
+              v-for="row in group.rows"
+              :key="row.cardId"
+              :block-key="getBbTileBlockKey(row)"
+              :title="row.titleValue"
+              :status-label="getBbTileStatus(row)"
+              :collapse-state="bbTileCollapseState"
+              :collapse-version="bbTileCollapseVersion"
+            >
+              <template #actions>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="content_copy"
+                  aria-label="Copy record id"
+                  :disable="!row.recordId"
+                  @click="copyRowRecordId(row)"
+                />
+                <EyeIconButton
+                  aria-label="View block tile"
+                  :disable="!row.recordId"
+                  @click="openRecordView(row)"
+                />
+              </template>
+            </BuildingBlockPreviewTile>
+          </div>
+        </section>
       </div>
 
       <div v-else-if="viewMode === 'card'" class="row q-col-gutter-md test-shell-cards-grid">
@@ -824,12 +848,14 @@ let queuedCreateDialogSnapshot = null
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
+const bbTileCollapseVersion = ref(0)
+const bbTileCollapseState = ref('')
 const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
 const NAME_COLUMN_MIN_WIDTH = 188
-const TABLE_CONTROL_COLUMN_WIDTH = 42
+const TABLE_CONTROL_COLUMN_WIDTH = 30
 
 const SECTION_LOADERS = {
   events: {
@@ -1568,6 +1594,27 @@ const viewOptions = Object.freeze([
 const multiTokenFilterSections = computed(() =>
   level2Sections.value.filter((section) => getFilterSectionTokenCount(section.key) > 1),
 )
+const bbTileGroups = computed(() => {
+  if (!isBbFileSource.value || viewMode.value !== 'card') return []
+
+  const groups = []
+  const groupsByKey = new Map()
+  displayRows.value.forEach((row) => {
+    const rawCategory = String(row?.raw?.Category || '').trim()
+    const label = rawCategory || 'Uncategorized'
+    const key = label.toLowerCase()
+
+    if (!groupsByKey.has(key)) {
+      const group = { key, label, rows: [] }
+      groupsByKey.set(key, group)
+      groups.push(group)
+    }
+
+    groupsByKey.get(key).rows.push(row)
+  })
+
+  return groups
+})
 const tableLeftSections = computed(() =>
   level2Sections.value.filter((section) => {
     const label = String(section.label || '').trim().toLowerCase()
@@ -2194,6 +2241,11 @@ function getBbTileBlockKey(row) {
     return rawId.slice(3)
   }
   return ''
+}
+
+function setAllBbTilesCollapsed(nextCollapsed) {
+  bbTileCollapseState.value = nextCollapsed ? 'collapsed' : 'expanded'
+  bbTileCollapseVersion.value += 1
 }
 
 async function copyRowRecordId(row) {
@@ -3282,6 +3334,75 @@ async function handleSelectedRowsDelete() {
   align-items: stretch;
 }
 
+.bb-shell-tiles-surface {
+  display: grid;
+  gap: 12px;
+}
+
+.bb-shell-tiles-toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bb-shell-tiles-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bb-shell-tiles-group__header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bb-shell-tiles-group__eyebrow {
+  font-family: var(--font-title);
+  font-size: 0.66rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.52);
+}
+
+.bb-shell-tiles-group__title {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: #111111;
+}
+
+.bb-shell-tiles-toolbar__btn {
+  min-height: 28px;
+  padding: 0 10px;
+  color: #111111;
+  background: #fdfdfb;
+  border: 1px solid #111111;
+  border-radius: 2px;
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+
+.bb-shell-tiles-grid :deep(.q-btn[aria-label='Copy record id']) {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+}
+
+.bb-shell-tiles-grid :deep(.q-btn[aria-label='Copy record id'] .q-icon) {
+  font-size: 14px;
+}
+
 .bb-shell-tiles-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 40px);
@@ -3991,7 +4112,7 @@ async function handleSelectedRowsDelete() {
 .test-shell-table__head--name,
 .test-shell-table__cell--name {
   position: sticky;
-  left: 84px;
+  left: 60px;
   z-index: 3;
   min-width: 196px;
   background: rgba(255, 255, 255, 0.98);
@@ -4001,9 +4122,9 @@ async function handleSelectedRowsDelete() {
 .test-shell-table__cell--control {
   position: sticky;
   z-index: 4;
-  width: 42px;
-  min-width: 42px;
-  padding: 8px 6px;
+  width: 30px;
+  min-width: 30px;
+  padding: 8px 2px;
   text-align: center;
   background: rgba(255, 255, 255, 0.98);
 }
@@ -4019,7 +4140,7 @@ async function handleSelectedRowsDelete() {
 
 .test-shell-table__head--control:nth-child(2),
 .test-shell-table__cell--control:nth-child(2) {
-  left: 42px;
+  left: 30px;
 }
 
 .test-shell-table__head--name {
@@ -4281,18 +4402,18 @@ async function handleSelectedRowsDelete() {
   .test-shell-table__head--name,
   .test-shell-table__cell--name {
     min-width: 164px;
-    left: 76px;
+    left: 56px;
   }
 
   .test-shell-table__head--control,
   .test-shell-table__cell--control {
-    min-width: 38px;
-    width: 38px;
+    min-width: 28px;
+    width: 28px;
   }
 
   .test-shell-table__head--control:nth-child(2),
   .test-shell-table__cell--control:nth-child(2) {
-    left: 38px;
+    left: 28px;
   }
 
   .test-shell-table__kdb-list {

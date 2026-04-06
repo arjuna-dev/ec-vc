@@ -13,19 +13,11 @@
             :aria-label="isCollapsed ? 'Expand block tile' : 'Collapse block tile'"
             @click="isCollapsed = !isCollapsed"
           >
-            <q-icon :name="isCollapsed ? 'chevron_right' : 'expand_more'" size="16px" />
+            <q-icon :name="isCollapsed ? 'expand_more' : 'expand_less'" size="16px" />
           </button>
         </div>
 
-        <div
-          v-if="isCollapsed"
-          class="building-block-preview-tile__title building-block-preview-tile__title--inline"
-          :class="{ 'building-block-preview-tile__title--placeholder': !title }"
-        >
-          {{ title || 'Untitled building block' }}
-        </div>
-
-        <div v-else class="building-block-preview-tile__status" :class="statusClass">{{ tileStatusLabel }}</div>
+        <div v-if="!isCollapsed" class="building-block-preview-tile__status" :class="statusClass">{{ tileStatusLabel }}</div>
       </div>
 
       <div v-if="$slots.actions" class="building-block-preview-tile__actions">
@@ -104,9 +96,6 @@
       <template v-else>
         <div class="building-block-preview-tile__placeholder">
           <div class="building-block-preview-tile__placeholder-title">Preview<br>Pending</div>
-          <div class="building-block-preview-tile__placeholder-text">
-            This building block does not have a shared live preview yet.
-          </div>
         </div>
       </template>
     </div>
@@ -114,7 +103,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
@@ -124,6 +113,8 @@ const props = defineProps({
   blockKey: { type: String, required: true },
   title: { type: String, default: '' },
   statusLabel: { type: String, default: '' },
+  collapseState: { type: String, default: '' },
+  collapseVersion: { type: Number, default: 0 },
 })
 
 const detail = computed(() => BUILDING_BLOCK_DETAILS_BY_ID[props.blockKey] || null)
@@ -175,6 +166,14 @@ const fileDashboardHealth = [
 ]
 
 const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Record' : 'Add'))
+
+watch(
+  () => props.collapseVersion,
+  () => {
+    if (props.collapseState === 'collapsed') isCollapsed.value = true
+    if (props.collapseState === 'expanded') isCollapsed.value = false
+  },
+)
 </script>
 
 <style scoped>
@@ -196,21 +195,30 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
   background: rgba(255, 255, 255, 0.94);
 }
 
-.building-block-preview-tile--collapsed {
-  --tile-rows: 2;
-  gap: 8px;
-}
-
 .building-block-preview-tile--sm { --tile-cols: 4; --tile-rows: 4; }
 .building-block-preview-tile--md { --tile-cols: 6; --tile-rows: 4; }
 .building-block-preview-tile--lg { --tile-cols: 9; --tile-rows: 6; }
 .building-block-preview-tile--toolbar-wide { --tile-cols: 14; --tile-rows: 4; }
 .building-block-preview-tile--dashboard { --tile-cols: 16; --tile-rows: 10; }
+.building-block-preview-tile--hero-dashboard { --tile-cols: 18; --tile-rows: 11; }
+.building-block-preview-tile--full-row {
+  --tile-rows: 11;
+  grid-column: 1 / -1;
+}
 .building-block-preview-tile--stat-box { --tile-cols: 6; --tile-rows: 6; }
 .building-block-preview-tile--live-link { --tile-cols: 7; --tile-rows: 4; }
 .building-block-preview-tile--settings-menu { --tile-cols: 8; --tile-rows: 8; }
 .building-block-preview-tile--widget-settings { --tile-cols: 8; --tile-rows: 8; }
 .building-block-preview-tile--title-wide { --tile-cols: 10; --tile-rows: 5; }
+
+.building-block-preview-tile--collapsed {
+  grid-row: span 2;
+  gap: 8px;
+}
+
+.building-block-preview-tile--full-row:not(.building-block-preview-tile--collapsed) {
+  padding: 18px 10px 18px 12px;
+}
 
 .building-block-preview-tile__actions {
   display: inline-flex;
@@ -250,11 +258,11 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
 .building-block-preview-tile__label {
   color: rgba(15, 23, 42, 0.7);
   font-family: var(--font-title);
-  font-size: 0.72rem;
+  font-size: 0.86rem;
   font-weight: var(--font-weight-black);
-  letter-spacing: 0.06em;
+  letter-spacing: -0.02em;
   line-height: 1;
-  text-transform: uppercase;
+  text-transform: none;
   white-space: nowrap;
   min-width: 0;
   overflow: hidden;
@@ -316,16 +324,6 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
   color: rgba(15, 23, 42, 0.45);
 }
 
-.building-block-preview-tile__title--inline {
-  max-width: 100%;
-  font-size: 0.98rem;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .building-block-preview-tile__stage {
   display: flex;
   align-items: center;
@@ -335,12 +333,12 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
 }
 
 .building-block-preview-tile__stage--left {
-  justify-content: flex-start;
+  justify-content: center;
   width: 100%;
 }
 
 .building-block-preview-tile__stage--row {
-  justify-content: flex-start;
+  justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -348,6 +346,16 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
 .building-block-preview-tile__stage--stretch {
   align-items: stretch;
   justify-content: stretch;
+}
+
+.building-block-preview-tile--full-row .building-block-preview-tile__stage--stretch {
+  width: 100%;
+}
+
+.building-block-preview-tile--full-row :deep(.home-dashboard-hero),
+.building-block-preview-tile--full-row :deep(.file-page-hero-dashboard) {
+  width: 100%;
+  max-width: none;
 }
 
 .building-block-preview-tile__crumb-shell {
@@ -451,7 +459,6 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
 
 .building-block-preview-tile__placeholder {
   display: grid;
-  gap: 8px;
   align-content: center;
   justify-items: center;
   width: 100%;
@@ -466,21 +473,20 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
   line-height: 0.95;
 }
 
-.building-block-preview-tile__placeholder-text {
-  color: rgba(15, 23, 42, 0.7);
-  font-family: var(--font-body);
-  font-size: 0.84rem;
-  line-height: 1.35;
-}
-
 @media (max-width: 900px) {
   .building-block-preview-tile--title-wide,
   .building-block-preview-tile--toolbar-wide,
-  .building-block-preview-tile--dashboard {
+  .building-block-preview-tile--dashboard,
+  .building-block-preview-tile--hero-dashboard {
     --tile-cols: 8;
   }
 
-  .building-block-preview-tile--dashboard {
+  .building-block-preview-tile--full-row {
+    --tile-rows: 12;
+  }
+
+  .building-block-preview-tile--dashboard,
+  .building-block-preview-tile--hero-dashboard {
     --tile-rows: 12;
   }
 }
