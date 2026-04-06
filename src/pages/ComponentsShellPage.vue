@@ -49,6 +49,17 @@
           <B10IconButton icon="tune" variant="subtle" aria-label="Settings" />
         </div>
       </article>
+
+      <article class="components-shell-page__card components-shell-page__card--md">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('main-menu-icon')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Main Menu Icon</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('main-menu-icon')">{{ componentStatusLabel('main-menu-icon') }}</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
+          <q-btn flat dense round icon="menu" aria-label="Menu" class="components-shell-page__menu-icon-button" />
+        </div>
+      </article>
         </div>
       </section>
 
@@ -87,6 +98,34 @@
             <q-icon name="west" />
             <span>Back</span>
           </button>
+        </div>
+      </article>
+
+      <article class="components-shell-page__card components-shell-page__card--toolbar-wide">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('main-menu-row')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Main Menu Row</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('main-menu-row')">{{ componentStatusLabel('main-menu-row') }}</div>
+        <div class="components-shell-page__card-stage">
+          <div class="components-shell-page__nav-row">
+            <span class="components-shell-page__nav-row-icon material-icons">folder_open</span>
+            <span class="components-shell-page__nav-row-label">System Files</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="components-shell-page__card components-shell-page__card--toolbar-wide">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('main-menu-subgroup-row')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Main Menu Subgroup Row</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('main-menu-subgroup-row')">{{ componentStatusLabel('main-menu-subgroup-row') }}</div>
+        <div class="components-shell-page__card-stage">
+          <div class="components-shell-page__nav-subgroup">
+            <div class="components-shell-page__nav-subgroup-title">Shells</div>
+            <q-icon name="expand_less" size="18px" class="components-shell-page__nav-subgroup-chevron" />
+          </div>
         </div>
       </article>
 
@@ -306,6 +345,21 @@
         <div class="components-shell-page__card-status" :class="componentStatusClass('edit-button')">{{ componentStatusLabel('edit-button') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
           <q-btn flat dense round icon="edit" class="components-shell-page__edit-button" aria-label="Edit row" />
+        </div>
+      </article>
+
+      <article class="components-shell-page__card components-shell-page__card--md">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('mini-scrollbar')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Mini Scrollbar</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('mini-scrollbar')">{{ componentStatusLabel('mini-scrollbar') }}</div>
+        <div class="components-shell-page__card-stage">
+          <div class="components-shell-page__scrollbar-sample">
+            <div class="components-shell-page__scrollbar-sample-track">
+              <div class="components-shell-page__scrollbar-sample-thumb" />
+            </div>
+          </div>
         </div>
       </article>
         </div>
@@ -624,6 +678,16 @@ const componentDetailsById = {
     summary: 'Use this for canonical icon-only actions that should come from the B10 button system.',
     prompt: 'Render the B10 Icon Button component from Building Blocks using the shared B10IconButton component and its existing variants.',
   },
+  'main-menu-icon': {
+    id: 'cmp-main-menu-icon',
+    title: 'Main Menu Icon',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample from src/layouts/MainLayout.vue header menu button',
+    nextStep: 'Extract the top-left menu trigger so shell headers use one canonical drawer-toggle control.',
+    summary: 'Use this for the compact menu trigger in the top-left shell header.',
+    prompt: 'Render the Main Menu Icon from Building Blocks using the same flat round menu button treatment as the shell header drawer trigger.',
+  },
   'file-dashboard': {
     id: 'cmp-file-dashboard',
     title: 'File Dashboard',
@@ -684,6 +748,26 @@ const componentDetailsById = {
     summary: 'Use this for the floating widget settings panel with grouped rows, checkboxes, and reorder chevrons.',
     prompt: 'Render the Widget Settings Menu from Building Blocks using the same dark floating panel, grouped section toggle, row labels, checkboxes, and reorder chevrons.',
   },
+  'main-menu-row': {
+    id: 'cmp-main-menu-row',
+    title: 'Main Menu Row',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample from src/layouts/MainLayout.vue drawer rows',
+    nextStep: 'Extract the drawer item row so navigation entries share one canonical icon-label row structure.',
+    summary: 'Use this for standard main menu file rows inside the left drawer.',
+    prompt: 'Render the Main Menu Row from Building Blocks using the same left-drawer icon and label treatment as the canonical nav row.',
+  },
+  'main-menu-subgroup-row': {
+    id: 'cmp-main-menu-subgroup-row',
+    title: 'Main Menu Subgroup Row',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample from src/layouts/MainLayout.vue drawer subgroup toggles',
+    nextStep: 'Extract the subgroup toggle row so drawer section headings share one canonical expand-collapse treatment.',
+    summary: 'Use this for grouped left-drawer subsection rows like Shells and workspace groupings.',
+    prompt: 'Render the Main Menu Subgroup Row from Building Blocks using the same subgroup title plus expand-collapse chevron treatment as the canonical drawer subgroup row.',
+  },
   'eye-icon': {
     id: 'cmp-eye-icon',
     title: 'Eye Icon',
@@ -703,6 +787,16 @@ const componentDetailsById = {
     nextStep: 'Extract the compact blue edit control so row and card edit actions use one shared component.',
     summary: 'Use this for compact edit actions in cards and row controls where the blue edit icon treatment is expected.',
     prompt: 'Render the Edit Button from Building Blocks using the same compact blue edit icon treatment as the canonical row-edit control.',
+  },
+  'mini-scrollbar': {
+    id: 'cmp-mini-scrollbar',
+    title: 'Mini Scrollbar',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample matching shell mini-scrollbar treatment',
+    nextStep: 'Extract the narrow black scrollbar styling so dense shells and tables share one overflow control language.',
+    summary: 'Use this for the thin black scrollbar treatment that appears in dense shell panels.',
+    prompt: 'Render the Mini Scrollbar from Building Blocks using the same narrow black track-and-thumb treatment as the canonical shell overflow control.',
   },
   'toggle-row-icons': {
     id: 'cmp-toggle-row-icons',
@@ -1042,6 +1136,62 @@ onBeforeUnmount(() => {
 
 .components-shell-page__back-button :deep(.q-icon) {
   font-size: 1em;
+}
+
+.components-shell-page__menu-icon-button {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  color: #111111;
+}
+
+.components-shell-page__nav-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: min(280px, 100%);
+  min-height: 34px;
+  padding: 0 6px;
+}
+
+.components-shell-page__nav-row-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #111111;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.components-shell-page__nav-row-label {
+  color: #111111;
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  line-height: 1.2;
+}
+
+.components-shell-page__nav-subgroup {
+  display: inline-grid;
+  grid-template-columns: auto 18px;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+}
+
+.components-shell-page__nav-subgroup-title {
+  color: rgba(15, 23, 42, 0.74);
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.components-shell-page__nav-subgroup-chevron {
+  color: rgba(15, 23, 42, 0.92);
 }
 
 .components-shell-page__logo-shell {
@@ -1425,6 +1575,30 @@ onBeforeUnmount(() => {
 
 .components-shell-page__edit-button :deep(.q-icon) {
   font-size: 14px;
+}
+
+.components-shell-page__scrollbar-sample {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(140px, 100%);
+  height: 100%;
+}
+
+.components-shell-page__scrollbar-sample-track {
+  position: relative;
+  width: 3px;
+  height: 74px;
+  background: rgba(17, 17, 17, 0.14);
+}
+
+.components-shell-page__scrollbar-sample-thumb {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  width: 3px;
+  height: 22px;
+  background: #111111;
 }
 
 .components-shell-page__toggle-inline {
