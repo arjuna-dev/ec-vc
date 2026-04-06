@@ -1268,14 +1268,14 @@ function buildAuditEventContent(event = {}, fieldName = '', actionLabel = '') {
   const oldValue = stringifyAuditValue(event?.old_value)
   const newValue = stringifyAuditValue(event?.new_value)
   if (fieldName.endsWith('__verification')) {
-    return newValue ? `Verification state set to ${newValue}.` : 'Verification state updated.'
+    return newValue || 'Verified'
   }
   if (actionLabel.includes('create')) {
-    return newValue ? `Initial value: ${newValue}.` : 'Record created.'
+    return newValue || 'Created'
   }
-  if (!oldValue && newValue) return `Set to ${newValue}.`
-  if (oldValue && !newValue) return `Cleared value previously set to ${oldValue}.`
-  if (oldValue && newValue) return `${oldValue} -> ${newValue}`
+  if (!oldValue && newValue) return newValue
+  if (oldValue && !newValue) return 'Cleared'
+  if (oldValue && newValue) return newValue
   return ''
 }
 
@@ -1329,7 +1329,7 @@ async function loadRecordView() {
       const auditResult = await bridge.value?.audit?.events?.({
         table_name: runtimeTableName.value,
         record_id: recordIdParam.value,
-        limit: 50,
+        limit: 5,
       })
       auditEvents.value = normalizeAuditFeedEvents(auditResult?.events)
     } catch {
