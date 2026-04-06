@@ -314,8 +314,54 @@ export function getFilePageRegistryEntryByEntityName(entityName) {
 }
 
 export function getRuntimeTableNameForEntityName(entityName = '') {
-  const entry = getFilePageRegistryEntryByEntityName(entityName)
-  return String(entry?.key || entityName || '').trim()
+  const normalized = String(entityName || '').trim()
+  if (!normalized) return ''
+
+  const aliasMap = {
+    companies: 'Companies',
+    company: 'Companies',
+    contacts: 'Contacts',
+    contact: 'Contacts',
+    users: 'Users',
+    user: 'Users',
+    industries: 'Industries',
+    industry: 'Industries',
+    markets: 'Industries',
+    market: 'Industries',
+    financial_industries: 'Industries',
+    'financial industries': 'Industries',
+    artifacts: 'Artifacts',
+    artifact: 'Artifacts',
+    roles: 'Roles',
+    role: 'Roles',
+    opportunities: 'Opportunities',
+    opportunity: 'Opportunities',
+    funds: 'Funds',
+    fund: 'Funds',
+    rounds: 'Rounds',
+    round: 'Rounds',
+    projects: 'Projects',
+    project: 'Projects',
+    tasks: 'Tasks',
+    task: 'Tasks',
+    notes: 'Notes',
+    note: 'Notes',
+    securities: 'Round_Securities',
+    security: 'Round_Securities',
+    round_securities: 'Round_Securities',
+    'round securities': 'Round_Securities',
+    artifacts_processed: 'Artifacts_Processed',
+    'artifacts-processed': 'Artifacts_Processed',
+    'processed artifact': 'Artifacts_Processed',
+    'processed artifacts': 'Artifacts_Processed',
+  }
+
+  const normalizedKey = normalized.toLowerCase()
+  if (aliasMap[normalizedKey]) return aliasMap[normalizedKey]
+
+  const entry = getFilePageRegistryEntryByEntityName(normalized)
+  if (entry?.entityName === 'Financial_Industries') return 'Industries'
+  return String(entry?.entityName || normalized).trim()
 }
 
 export function getCreateBranchTokenName(sourceKey = '') {
