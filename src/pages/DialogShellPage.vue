@@ -18,6 +18,9 @@
       :left-sections="dialogSectionSplit.leftSections"
       :right-sections="dialogSectionSplit.rightSections"
       :branch-selector-token-key="branchSelectorTokenKey"
+      :show-shell-selector="true"
+      :shell-selector-value="activeSourceKey"
+      :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
       :loading="dialogLoading"
       :submit-disabled="!canCreateWithShell"
       :initial-values="{}"
@@ -25,6 +28,7 @@
       initial-section-key="key-fields"
       :initial-artifacts="[]"
       :artifact-context="null"
+      @update:shell-selector-value="updateShellSelector"
       @request-close="dialogOpen = false"
       @submit="submitCreateRecord"
     />
@@ -34,7 +38,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import {
   CANONICAL_OPTION_LISTS,
@@ -47,6 +51,7 @@ import {
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 
 const route = useRoute()
+const router = useRouter()
 const $q = useQuasar()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
@@ -101,6 +106,17 @@ watch(activeSourceKey, async () => {
   dialogRenderKey.value += 1
   dialogOpen.value = true
 }, { immediate: true })
+
+function updateShellSelector(nextValue) {
+  const normalized = String(nextValue || '').trim().toLowerCase()
+  const validValue = TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : fallbackSectionKey
+  router.replace({
+    query: {
+      ...route.query,
+      section: validValue,
+    },
+  })
+}
 
 function normalizeCreateDialogToken(token) {
   if (!String(token?.tokenType || '').trim().startsWith('select_')) return token

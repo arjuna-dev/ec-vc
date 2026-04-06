@@ -6,6 +6,36 @@
     >
       <q-card-section class="create-record-shell__header">
         <div class="create-record-shell__header-copy">
+          <div
+            v-if="showShellSelector && shellSelectorOptions.length"
+            class="create-record-shell__shell-selector"
+          >
+            <span class="create-record-shell__shell-selector-label">Live Link</span>
+            <q-select
+              :model-value="shellSelectorValue"
+              dense
+              borderless
+              emit-value
+              map-options
+              hide-bottom-space
+              hide-dropdown-icon
+              :options="shellSelectorOptions"
+              class="create-record-shell__shell-selector-control"
+              @update:model-value="emit('update:shellSelectorValue', $event)"
+            >
+              <template #selected-item="scope">
+                <span class="create-record-shell__shell-selector-value">{{ scope.opt.label }}</span>
+              </template>
+              <template #option="scope">
+                <q-item v-bind="scope.itemProps" class="create-record-shell__shell-selector-option">
+                  <q-item-section>
+                    <span class="create-record-shell__shell-selector-option-label">{{ scope.opt.label }}</span>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+            <q-icon name="expand_more" class="create-record-shell__shell-selector-chevron" />
+          </div>
           <div class="create-record-shell__title">{{ dialogTitle }}</div>
           <div class="create-record-shell__intake-lane">
             <button
@@ -912,9 +942,12 @@ const props = defineProps({
   initialArtifacts: { type: Array, default: () => [] },
   artifactContext: { type: Object, default: null },
   branchSelectorTokenKey: { type: String, default: '' },
+  showShellSelector: { type: Boolean, default: false },
+  shellSelectorValue: { type: String, default: '' },
+  shellSelectorOptions: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['update:modelValue', 'submit', 'change', 'request-close'])
+const emit = defineEmits(['update:modelValue', 'update:shellSelectorValue', 'submit', 'change', 'request-close'])
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const router = useRouter()
 const route = useRoute()
@@ -1705,6 +1738,55 @@ onBeforeUnmount(() => {
   flex: 1 1 auto;
   min-height: 1px;
   min-width: 0;
+}
+
+.create-record-shell__shell-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: 100%;
+  margin-bottom: 10px;
+}
+
+.create-record-shell__shell-selector-label {
+  color: rgba(17, 17, 17, 0.58);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.create-record-shell__shell-selector-control {
+  min-width: 0;
+  width: max-content;
+}
+
+.create-record-shell__shell-selector-control :deep(.q-field__control) {
+  min-height: 22px;
+  padding: 0 2px 0 0;
+}
+
+.create-record-shell__shell-selector-control :deep(.q-field__native),
+.create-record-shell__shell-selector-control :deep(.q-field__marginal) {
+  padding: 0;
+}
+
+.create-record-shell__shell-selector-value {
+  color: #111;
+  font-family: var(--font-title);
+  font-size: 0.96rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.create-record-shell__shell-selector-chevron {
+  color: #111;
+  font-size: 16px;
+}
+
+.create-record-shell__shell-selector-option-label {
+  color: #111;
 }
 
 .create-record-shell__title {
