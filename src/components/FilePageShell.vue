@@ -3441,7 +3441,7 @@ async function handleSelectedRowsDelete() {
   grid-auto-rows: 40px;
   grid-auto-flow: dense;
   column-gap: 10px;
-  row-gap: 5px;
+  row-gap: 0;
   justify-content: start;
   align-items: start;
 }
