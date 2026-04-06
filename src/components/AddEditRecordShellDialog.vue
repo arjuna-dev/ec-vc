@@ -38,7 +38,6 @@
                   </q-item>
                 </template>
               </q-select>
-              <q-icon name="expand_more" class="create-record-shell__shell-selector-chevron" />
             </div>
           </div>
           <div class="create-record-shell__intake-lane">
@@ -1754,13 +1753,11 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__shell-selector {
-  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0;
   width: min(220px, 100%);
   max-width: 100%;
-  padding-right: 18px;
   overflow: visible;
 }
 
@@ -1797,18 +1794,6 @@ onBeforeUnmount(() => {
   padding: 0 10px;
   background: #000;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
-}
-
-.create-record-shell__shell-selector-chevron {
-  position: absolute;
-  right: -4px;
-  bottom: -2px;
-  z-index: 2;
-  color: #111111;
-  font-size: 20px;
-  line-height: 1;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
-  cursor: pointer;
 }
 
 .create-record-shell__shell-selector-option-label {
