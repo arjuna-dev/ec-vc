@@ -296,8 +296,8 @@ function goBack() {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
-  padding: 24px 28px 18px;
+  gap: 12px;
+  padding: 16px 20px 12px;
   border-bottom: 1px solid rgba(17, 17, 17, 0.08);
 }
 
@@ -311,9 +311,9 @@ function goBack() {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 8px;
   min-width: 0;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .fork-shell-card__title {
@@ -327,17 +327,18 @@ function goBack() {
 
 .fork-shell-card__close {
   color: rgba(17, 17, 17, 0.62);
+  margin-top: -2px;
 }
 
 .fork-shell-card__body {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  padding: 18px 28px 24px;
+  padding: 14px 20px 18px;
 }
 
 .fork-shell-card--compact .fork-shell-card__body {
-  padding: 14px 28px 18px;
+  padding: 12px 20px 14px;
 }
 
 .fork-shell-card__grid {
