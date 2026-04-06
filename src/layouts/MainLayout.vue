@@ -812,7 +812,7 @@ const quickWidgetActionCatalog = computed(() => {
       label: 'Opportunities',
       group: 'files',
       icon: 'work',
-      onClick: () => openCreateBranchDialog('opportunities'),
+      onClick: () => openShellCreateFromQuickAction('opportunities'),
     },
     contact: {
       id: 'contact',
@@ -1587,19 +1587,6 @@ function closeQuickActions() {
   quickOpportunityBranchOpen.value = false
   quickActionsOpen.value = false
   playQuickWidgetBack()
-}
-
-function openCreateBranchDialog(parentKey) {
-  closeQuickActions()
-  const entry = getFilePageRegistryEntry(parentKey)
-  if (!Array.isArray(entry?.createBranches) || !entry.createBranches.length) return
-  void router.push({
-    name: 'fork-shell',
-    query: {
-      section: String(parentKey || '').trim(),
-      returnTo: route.fullPath,
-    },
-  })
 }
 
 async function openNoteFromQuickAction() {
