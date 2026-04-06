@@ -74,23 +74,16 @@
               No branchable Live Action L1 entries are available yet.
             </q-banner>
 
-            <div v-else class="fork-shell-card__panel">
-              <div class="fork-shell-card__panel-head">
-                <div class="fork-shell-card__panel-title">Fork Options</div>
-                <div class="fork-shell-card__panel-meta">{{ branchOptions.length }} paths</div>
-              </div>
-
-              <div class="fork-shell-card__grid">
-                <button
-                  v-for="branch in branchOptions"
-                  :key="branch.value"
-                  type="button"
-                  class="fork-shell-card__branch"
-                  @click="selectBranch(branch)"
-                >
-                  <span class="fork-shell-card__branch-title">{{ branch.label }}</span>
-                </button>
-              </div>
+            <div v-else class="fork-shell-card__grid">
+              <button
+                v-for="branch in branchOptions"
+                :key="branch.value"
+                type="button"
+                class="fork-shell-card__branch"
+                @click="selectBranch(branch)"
+              >
+                <span class="fork-shell-card__branch-title">{{ branch.label }}</span>
+              </button>
             </div>
           </q-card-section>
         </q-card>
@@ -332,52 +325,7 @@ function goBack() {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px 18px 18px;
-}
-
-.fork-shell-card__panel {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-height: 0;
-  padding: 10px 18px 18px;
-  background: rgba(249, 249, 247, 0.96);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 4px;
-}
-
-.fork-shell-card__panel-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-start;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.fork-shell-card__panel-title {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 10px;
-  color: #111111;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(17, 17, 17, 0.92);
-  border-radius: 4px;
-  font-family: var(--font-title);
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-black);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-}
-
-.fork-shell-card__panel-meta {
-  color: rgba(17, 17, 17, 0.52);
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  padding: 18px 28px 24px;
 }
 
 .fork-shell-card__grid {
@@ -474,7 +422,7 @@ function goBack() {
   }
 
   .fork-shell-card__grid {
-    grid-template-columns: 1fr;
+    align-items: stretch;
   }
 }
 </style>
