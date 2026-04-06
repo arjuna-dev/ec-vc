@@ -51,6 +51,53 @@
                 class="file-structure-shell__group-toggle-icon"
               />
             </button>
+            <button
+              type="button"
+              class="file-structure-shell__section-picker"
+              @click.stop="sectionPickerOpen = true"
+            >
+              <span class="file-structure-shell__section-picker-label">{{ activeSectionOption.label }}</span>
+              <q-icon name="expand_more" class="file-structure-shell__section-picker-icon" />
+              <q-menu
+                v-model="sectionPickerOpen"
+                anchor="bottom right"
+                self="top right"
+                class="file-structure-shell__section-picker-menu"
+              >
+                <div class="file-structure-shell__section-menu">
+                  <section
+                    v-for="group in sectionOptionGroups"
+                    :key="group.id"
+                    class="file-structure-shell__section-menu-group"
+                  >
+                    <button
+                      type="button"
+                      class="file-structure-shell__section-menu-toggle"
+                      @click.stop="toggleSectionGroup(group.id)"
+                    >
+                      <span class="file-structure-shell__section-menu-title">{{ group.label }}</span>
+                      <q-icon
+                        :name="isSectionGroupOpen(group.id) ? 'expand_less' : 'expand_more'"
+                        class="file-structure-shell__section-menu-chevron"
+                      />
+                    </button>
+
+                    <div v-if="isSectionGroupOpen(group.id)" class="file-structure-shell__section-menu-items">
+                      <button
+                        v-for="option in group.items"
+                        :key="option.value"
+                        type="button"
+                        class="file-structure-shell__section-menu-item"
+                        :class="{ 'file-structure-shell__section-menu-item--active': activeSectionSelection === option.value }"
+                        @click.stop="selectSectionOption(option.value)"
+                      >
+                        {{ option.label }}
+                      </button>
+                    </div>
+                  </section>
+                </div>
+              </q-menu>
+            </button>
 
             <div v-if="!sectionConfigurationCollapsed" class="file-structure-shell__group-body">
               <div class="file-structure-shell__grid">
@@ -116,11 +163,55 @@ const emit = defineEmits(['update:modelValue', 'update:shellSelectorValue', 'req
 
 const sectionConfigurationCollapsed = ref(false)
 const dataStructureCollapsed = ref(false)
+const sectionPickerOpen = ref(false)
+const activeSectionSelection = ref('general')
+const openSectionGroups = ref(['system-created'])
+
+const sectionOptionGroups = [
+  {
+    id: 'system-created',
+    label: 'System Created',
+    items: [
+      { value: 'general', label: 'General' },
+      { value: 'system', label: 'System' },
+      { value: 'kdb', label: 'KDB' },
+    ],
+  },
+  {
+    id: 'user-created',
+    label: 'User Created',
+    items: [
+      { value: 'summary', label: 'Summary' },
+      { value: 'workflow', label: 'Workflow' },
+      { value: 'resources', label: 'Resources' },
+    ],
+  },
+]
 
 const open = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
 })
+
+const activeSectionOption = computed(() =>
+  sectionOptionGroups.flatMap((group) => group.items).find((option) => option.value === activeSectionSelection.value)
+  || sectionOptionGroups[0].items[0],
+)
+
+function isSectionGroupOpen(groupId) {
+  return openSectionGroups.value.includes(groupId)
+}
+
+function toggleSectionGroup(groupId) {
+  openSectionGroups.value = isSectionGroupOpen(groupId)
+    ? openSectionGroups.value.filter((value) => value !== groupId)
+    : [...openSectionGroups.value, groupId]
+}
+
+function selectSectionOption(value) {
+  activeSectionSelection.value = value
+  sectionPickerOpen.value = false
+}
 </script>
 
 <style scoped>
@@ -188,6 +279,7 @@ const open = computed({
 }
 
 .file-structure-shell__group {
+  position: relative;
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.86);
@@ -217,6 +309,95 @@ const open = computed({
 .file-structure-shell__group-toggle-icon {
   margin-left: 2px;
   font-size: 20px;
+}
+
+.file-structure-shell__section-picker {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 10px;
+  color: #fff;
+  background: #111827;
+  border: 1px solid #111827;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.file-structure-shell__section-picker-label {
+  font-family: var(--font-title);
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.file-structure-shell__section-picker-icon {
+  font-size: 16px;
+}
+
+.file-structure-shell__section-menu {
+  min-width: 230px;
+  padding: 10px;
+  background: #111827;
+  border-radius: 14px;
+}
+
+.file-structure-shell__section-menu-group + .file-structure-shell__section-menu-group {
+  margin-top: 8px;
+}
+
+.file-structure-shell__section-menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 4px;
+  color: #fff;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.file-structure-shell__section-menu-title {
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+}
+
+.file-structure-shell__section-menu-chevron {
+  font-size: 16px;
+}
+
+.file-structure-shell__section-menu-items {
+  display: grid;
+  gap: 4px;
+  padding-top: 4px;
+}
+
+.file-structure-shell__section-menu-item {
+  width: 100%;
+  padding: 8px 10px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-family: var(--font-title);
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+}
+
+.file-structure-shell__section-menu-item--active {
+  color: #111827;
+  background: #fff;
+  border-color: #fff;
 }
 
 .file-structure-shell__group-body {
@@ -298,6 +479,11 @@ const open = computed({
   .file-structure-shell__title-row {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .file-structure-shell__section-picker {
+    position: static;
+    margin: 0 22px 14px;
   }
 
   .file-structure-shell__grid {
