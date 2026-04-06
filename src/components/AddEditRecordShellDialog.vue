@@ -1015,7 +1015,7 @@ const leftPanelSections = computed(() => [
 const rightSections = computed(() => (branchSelectionSettled.value ? props.rightSections : []))
 
 const dialogTitle = computed(() => {
-  const normalizedLabel = String(props.sourceLabel || 'Records').trim()
+  const normalizedLabel = String(props.singularLabel || 'record').trim()
   return `Add/Edit ${normalizedLabel}`
 })
 
