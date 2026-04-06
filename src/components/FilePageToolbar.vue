@@ -10,13 +10,42 @@
         class="file-page-toolbar__select-all"
         @update:model-value="$emit('toggle-select-all', $event)"
       />
-      <q-btn no-caps unelevated class="file-page-toolbar__add-button" :disable="loading || addDisabled" @click="$emit('add')">
+      <q-btn
+        no-caps
+        unelevated
+        class="file-page-toolbar__add-button"
+        :disable="loading || addDisabled"
+        @click="handleAddClick"
+      >
         <span class="file-page-toolbar__add-button-inner">
           <span class="file-page-toolbar__add-button-plus">
             <q-icon name="add" />
           </span>
           <span class="file-page-toolbar__add-button-label">{{ addLabel }}</span>
         </span>
+        <q-menu
+          v-if="hasAddOptions"
+          anchor="bottom left"
+          self="top left"
+          class="file-page-toolbar__add-menu"
+          content-class="file-page-toolbar__add-menu-content"
+        >
+          <div class="file-page-toolbar__add-menu-panel">
+            <div class="file-page-toolbar__add-menu-title">{{ addMenuTitle }}</div>
+            <div class="file-page-toolbar__add-menu-list">
+              <q-btn
+                v-for="option in addOptions"
+                :key="option.value"
+                no-caps
+                unelevated
+                class="file-page-toolbar__add-menu-option"
+                :icon="option.icon"
+                :label="option.label"
+                @click="emit('add', { kind: option.value })"
+              />
+            </div>
+          </div>
+        </q-menu>
       </q-btn>
       <slot name="primary-trailing" />
     </div>
@@ -57,13 +86,17 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   allVisibleSelected: { type: Boolean, default: false },
   someVisibleSelected: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   addDisabled: { type: Boolean, default: false },
   addLabel: { type: String, default: 'Add Record' },
+  addOptions: { type: Array, default: () => [] },
+  addMenuTitle: { type: String, default: 'Choose Type' },
   searchQuery: { type: String, default: '' },
   searchPlaceholder: { type: String, default: 'Search [file/Record]' },
   viewMode: { type: String, default: 'card' },
@@ -71,7 +104,14 @@ defineProps({
   showViewToggle: { type: Boolean, default: true },
 })
 
-defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'])
+const emit = defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'])
+
+const hasAddOptions = computed(() => Array.isArray(props.addOptions) && props.addOptions.length > 0)
+
+function handleAddClick() {
+  if (hasAddOptions.value) return
+  emit('add')
+}
 </script>
 
 <style scoped>
@@ -236,6 +276,44 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
   font-weight: var(--font-weight-black);
   line-height: 0.92;
   letter-spacing: 0.01em;
+}
+
+.file-page-toolbar__add-menu {
+  min-width: 220px;
+}
+
+.file-page-toolbar__add-menu-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  background: var(--ds-color-surface-base);
+}
+
+.file-page-toolbar__add-menu-title {
+  color: var(--ds-color-text-muted);
+  font-family: var(--ds-font-family-body);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.file-page-toolbar__add-menu-list {
+  display: grid;
+  gap: 8px;
+}
+
+.file-page-toolbar__add-menu-option {
+  justify-content: flex-start;
+  min-height: 38px;
+  border-radius: 12px;
+  color: #111111;
+  background: #ffffff;
+}
+
+.file-page-toolbar__add-menu-option:hover,
+.file-page-toolbar__add-menu-option:focus-visible {
+  background: #f5f3ee;
 }
 
 @media (max-width: 900px) {
