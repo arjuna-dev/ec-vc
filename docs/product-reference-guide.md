@@ -249,6 +249,16 @@ New `L1` bootstrap rule:
 - if a source is visible in menus but not createable/editable, treat that as incomplete bootstrap work, not as an acceptable intermediate product state
 - future marketplace-delivered `L1`s must pass the same bootstrap contract as local owner-created `L1`s
 
+`BB File` rule:
+
+- `BB File` means `Building Blocks File`
+- it is a special `System-Level File`
+- it is not a standard app-data `L1`
+- it is the canonical registry for reusable UI building blocks, design primitives, shell parts, and reconstruction guidance
+- it conceptually renders before the operational files in `Owner Genesis` because it defines the visible building language of the app
+- it does not inherit the normal `System` / `KDB` subsection treatment used by standard files unless explicitly needed later
+- this is a controlled exception and must not be used to weaken the normal file bootstrap contract
+
 Fork shell rule:
 
 - `Fork Shell` is an independent shared shell route, not an `Opportunities` page extension
@@ -506,6 +516,18 @@ This is the default contract for new `Knowledge DB` files such as:
 - `Ingestion`
 - `Roles`
 
+Controlled exception:
+
+- `BB File` is not part of this standard baseline
+- `BB File` is a `System-Level File`, not a normal app-data `L1`
+- instead of `System` / `KDB`, its approved first-pass `L2` structure is:
+  - `General`
+  - `Usage`
+  - `Anatomy`
+  - `Source`
+  - `Reconstruction`
+  - `Variants`
+
 ## Owner Bootstrapping
 
 The local owner profile should become the first real `User`.
@@ -526,6 +548,7 @@ Current product meaning:
 - the user may skip setup task completion, but those bootstrap project/task records should still be created
 - `Owner Genesis` should also initialize the current approved schema baseline from `src-electron/services/sqlite-schema.js`, using the current table set as-is rather than a reduced temporary subset
 - `Master Companion` should perform sequential genesis file creation, beginning with `L1 Files`, then `Events`, then the current base file set in approved order
+- `BB File` should be treated as the first conceptual file in that sequence because it defines the visible building language before the operational file system is interpreted
 - file creation should happen before the bootstrap records that belong inside those files are created
 
 Current limit:

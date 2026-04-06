@@ -75,6 +75,32 @@ Naming rule:
 
 Do not treat a new `L1` as complete if it is only visible in the UI.
 
+### BB File rule
+
+`BB File` means `Building Blocks File`.
+
+It is a special `System-Level File`, not a standard business `L1`.
+
+Working rule:
+
+- `BB File` is the canonical registry for reusable UI building blocks, design primitives, shell parts, and reconstruction guidance
+- it should not be confused with the normal `L1` bootstrap contract used for app-data files
+- it is a controlled architecture exception, not a precedent for weakening the rest of the file architecture
+- conceptually it renders before the operational files in `Owner Genesis` because it defines the visible building language of the app
+
+`BB File` exclusion rule:
+
+- it does not inherit the normal `System` / `KDB` subsection baseline used by standard files unless explicitly needed later
+
+Approved first-pass `L2` structure for `BB File`:
+
+- `General`
+- `Usage`
+- `Anatomy`
+- `Source`
+- `Reconstruction`
+- `Variants`
+
 To bundle app for mac:
 
 ```javascript

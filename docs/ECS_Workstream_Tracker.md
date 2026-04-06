@@ -122,7 +122,11 @@ This tracker should stay aligned with:
 - the first `Companion` role and first game/file focus should be `Ingestion`
 - `Owner Genesis` should initialize the current approved schema baseline as declared in `src-electron/services/sqlite-schema.js`
 - future marketplace-delivered `L1`s should be required to pass the same canonical bootstrap contract as local owner-created `L1`s
-- `Owner Genesis` should create the base file system sequentially through `Master Companion`, beginning with `L1 Files` and then `Events`
+- `BB File` is now an approved controlled system-level exception:
+  - it should render conceptually before the operational files in `Owner Genesis`
+  - it should not be treated as a normal app-data `L1`
+  - it should use the approved `General / Usage / Anatomy / Source / Reconstruction / Variants` structure instead of the normal `System / KDB` baseline
+- `Owner Genesis` should create the base file system sequentially through `Master Companion`, beginning with `BB File`, then `L1 Files`, then `Events`
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - artifact context assumptions should now be treated as `default/preselected unverified`
 - ingestion should start from the linked source artifact and should not create a duplicate artifact record at processing start
@@ -183,6 +187,7 @@ This tracker should stay aligned with:
   - create `Master Companion Role` as the first base `Companion Role`
   - create the `User Set-up` project and its default tasks
   - allow task completion to be skipped without skipping record/project/task creation
+- Define the first runtime-backed `BB File` contract and decide whether it stays documentation-backed first or becomes a true file source next
 - turn the first-pass game rulebook into a clearer scoring reference per board and per stage
 - define how provisional points, realized points, deductions, and bonuses should map to actual workflows
 - define how pipeline boards should express required information and expected outcome per stage

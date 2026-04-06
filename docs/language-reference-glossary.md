@@ -7,6 +7,7 @@
 | User | The application actor layer that carries permissions, role assignment, work rights, and system participation. | Product Reference |
 | Contact | The person record inside the CRM/KDB layer. It may correspond to a User, but is not the same thing as a User. | Product Reference |
 | File Shell | The shared shell renderer for file-level `L1` collection surfaces. It should stay fixed while route-owned `L1` payloads swap underneath it. | Product Reference |
+| BB File | `Building Blocks File`. A special `System-Level File` that governs reusable UI building blocks, design primitives, shell parts, and reconstruction guidance. It is not a standard app-data `L1` and is a controlled exception to the normal `System` / `KDB` subsection baseline. | Record Architecture |
 | Record Shell | The approved shared shell renderer for `Record View`. It should receive the selected record as payload input instead of forking by entity. | Record Architecture |
 | Fork Shell | The independent route-owned shared shell for branch-choice create flows. It may consume branch metadata from a source `L1`, but it must not collapse into entity-specific page UI or be treated as an `Opportunities` helper. | Record Architecture |
 | Shared Dialog Shell | The rule that the create / edit dialog is itself a shell surface. Any launching shell must pass the same canonical payload contract into it rather than reshaping grouped `L2` structure locally. | Record Architecture |
@@ -34,6 +35,7 @@
 | L0 Events File View | The route-owned `File View` for the `L0` event layer. It uses the same shared `L1` file shell as the other file surfaces, but it is view-oriented and routes rows into the event log surface rather than a normal databook record page. | ECS Workstream Tracker |
 | L1 | The entity/file level in canonical structure. Selecting an `L1` chooses the entity payload source for a shell. | Record Architecture |
 | L1 Bootstrap | The required full implementation scope for a new `L1`: canonical entity, route, registry, shell, navigation, runtime ownership, default subsections, reciprocal KDB propagation, and working add/edit/create flows. A new `L1` is not complete if it is only visible in the UI, and this bootstrap work is `Owner`-only authority. | Record Architecture |
+| System-Level File | A special file that supports the product system itself rather than normal app-data operations. A system-level file may have an intentionally narrower approved subsection contract when the normal operational `L1` baseline would not be useful. | Product Reference |
 | L2 | The subsection grouping level in canonical structure, such as `System`, `General`, `Business Overview`, or `KDB`. | Record Architecture |
 | L3 Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
 | Owned Field | A value owned by the current record or its approved owned subtable. It writes through that owner path only. | Companion Contract |

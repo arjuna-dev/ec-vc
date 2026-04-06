@@ -35,28 +35,36 @@ Genesis operator rule:
 - `Master Companion` should be the acting bootstrap operator during `Owner Genesis`
 - `Master Companion` should create the base files in sequence before file-owned bootstrap records are written into them
 
+System-level exception rule:
+
+- `BB File` (`Building Blocks File`) is the first conceptual file in `Owner Genesis`
+- it is a special `System-Level File`
+- it is not a standard business `L1`
+- it exists to define the visible building language and reusable shell/component canon before the rest of the operational file system is rendered
+
 Owner Genesis file creation order:
 
-1. `L1 Files`
-2. `Events`
-3. `Owner`
-4. `Users`
-5. `Contacts`
-6. `User Roles`
-7. `Companion`
-8. `Companion Roles`
-9. `Projects`
-10. `Tasks`
-11. `Notes`
-12. `Artifacts`
-13. `Ingestion`
-14. `Companies`
-15. `Opportunities`
-16. `Funds`
-17. `Rounds`
-18. `Markets`
-19. `Securities`
-20. remaining current supporting `KDB` / reference files
+1. `BB File`
+2. `L1 Files`
+3. `Events`
+4. `Owner`
+5. `Users`
+6. `Contacts`
+7. `User Roles`
+8. `Companion`
+9. `Companion Roles`
+10. `Projects`
+11. `Tasks`
+12. `Notes`
+13. `Artifacts`
+14. `Ingestion`
+15. `Companies`
+16. `Opportunities`
+17. `Funds`
+18. `Rounds`
+19. `Markets`
+20. `Securities`
+21. remaining current supporting `KDB` / reference files
 
 File-before-record rule:
 
@@ -81,6 +89,7 @@ Working rule:
 - the first guided tasks should help the owner finish the setup of the base spaces and roles that were just created
 - `Owner Genesis` should initialize the current approved schema baseline before those guided tasks begin
 - the current schema baseline means the currently declared table set in `src-electron/services/sqlite-schema.js`, not a reduced temporary subset
+- `BB File` is a controlled system-level exception and should not be treated as a precedent for weakening the standard operational `L1` rules
 
 ## Purpose
 

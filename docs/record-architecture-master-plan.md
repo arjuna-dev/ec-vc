@@ -160,28 +160,37 @@ Working rule:
 - the rest of the current base file system should then be created in approved order
 - file creation should happen before file-owned bootstrap records are created
 
+System-level exception rule:
+
+- `BB File` (`Building Blocks File`) should be treated as a special `System-Level File`
+- it is not a standard operational `L1`
+- it should not be confused with the normal app-data bootstrap contract
+- it renders conceptually before the operational files because it defines the visible building language and component canon of the app
+- this is a controlled exception and must not be used to weaken the normal `L1` bootstrap rule for the rest of the file system
+
 Current approved first-pass genesis file order:
 
-1. `L1 Files`
-2. `Events`
-3. `Owner`
-4. `Users`
-5. `Contacts`
-6. `User Roles`
-7. `Companion`
-8. `Companion Roles`
-9. `Projects`
-10. `Tasks`
-11. `Notes`
-12. `Artifacts`
-13. `Ingestion`
-14. `Companies`
-15. `Opportunities`
-16. `Funds`
-17. `Rounds`
-18. `Markets`
-19. `Securities`
-20. remaining current supporting `KDB` / reference files
+1. `BB File`
+2. `L1 Files`
+3. `Events`
+4. `Owner`
+5. `Users`
+6. `Contacts`
+7. `User Roles`
+8. `Companion`
+9. `Companion Roles`
+10. `Projects`
+11. `Tasks`
+12. `Notes`
+13. `Artifacts`
+14. `Ingestion`
+15. `Companies`
+16. `Opportunities`
+17. `Funds`
+18. `Rounds`
+19. `Markets`
+20. `Securities`
+21. remaining current supporting `KDB` / reference files
 
 Execution rule:
 
@@ -192,9 +201,48 @@ Execution rule:
 
 This matters because:
 
+- `BB File` establishes the visible building language and reconstruction canon before the rest of the product file system is interpreted
 - `L1 Files` is the root file registry and must exist before the rest of the file system can be treated as coherent
 - `Events` should exist before later genesis work is logged
 - later marketplace-delivered `L1`s should plug into this same file-first bootstrap model instead of bypassing it
+
+### BB File Contract
+
+`BB File` means `Building Blocks File`.
+
+It should be treated as a special `System-Level File`.
+
+Role:
+
+- canonical registry for reusable UI building blocks
+- design primitives
+- shell parts
+- reconstruction guidance
+
+Working rule:
+
+- `BB File` is not a standard app-data `L1`
+- it should not inherit the normal `System` / `KDB` subsection baseline used by standard files
+- this exception is intentional because `BB File` governs UI-building canon rather than operational record relationships
+- do not use this exception to weaken the standard contract for operational `L1`s
+
+Approved first-pass `L2` structure for `BB File`:
+
+- `General`
+- `Usage`
+- `Anatomy`
+- `Source`
+- `Reconstruction`
+- `Variants`
+
+Section meanings:
+
+- `General`: name, category, status, purpose
+- `Usage`: where used, when to use, when not to use
+- `Anatomy`: required visual structure and component parts
+- `Source`: canonical shared source path, ownership, extraction status
+- `Reconstruction`: reconstruction notes and reusable prompt
+- `Variants`: approved payload or style variants
 
 ### Marketplace Extension Rule
 
