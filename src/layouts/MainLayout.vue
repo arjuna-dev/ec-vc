@@ -560,7 +560,9 @@ const mainNavigationItems = [
   itemClass: 'ec-nav-item--primary',
   iconSize: '22px',
 }))
-const workspaceFileNavItems = WORKSPACE_FILE_NAV_ITEMS.filter((item) => item.to !== '/roles' && item.to !== '/companion-roles')
+const workspaceFileNavItems = WORKSPACE_FILE_NAV_ITEMS.filter(
+  (item) => item.to !== '/roles' && item.to !== '/companion-roles' && item.to !== '/bb-file',
+)
 const companiesNavIndex = workspaceFileNavItems.findIndex((item) => item.to === '/companies')
 
 if (companiesNavIndex >= 0) {
@@ -613,6 +615,14 @@ const workspaceNavigationItems = [
     to: '/artifacts-processed',
     exact: true,
     icon: 'hub',
+    parentKey: 'knowledge-dbs',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
+  },
+  {
+    label: 'BB File',
+    to: '/bb-file',
+    exact: true,
+    icon: 'dashboard_customize',
     parentKey: 'knowledge-dbs',
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
