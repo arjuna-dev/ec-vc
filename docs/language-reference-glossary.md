@@ -92,3 +92,17 @@ Rule:
 - route keys are for navigation
 - databook table names are for IPC/database actions
 - these must not be treated as interchangeable
+
+## Append-Only Audit Rule
+
+The rule that shared shell actions must not reuse one shell-session `actionId` across repeated writes.
+
+Use:
+- `actionLabel` for shared shell/session context
+
+Do not use:
+- one reused session `actionId` as the write id for multiple field changes
+
+Why:
+- the `events` log is append-only
+- reusable write ids can make a later shell change look like an update to an earlier event instead of a new audit event

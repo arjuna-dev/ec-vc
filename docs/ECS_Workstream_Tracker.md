@@ -287,3 +287,20 @@ Shared shell code must normalize to databook table names before:
 - `databooks:update`
 - `verification:list`
 - `verification:upsert`
+
+## Shared Audit Correction
+
+Resolved shared-shell correction:
+
+- shared shell write paths must not reuse one shell-session `actionId` across repeated databook or verification writes
+
+Why this matters:
+
+- the `events` log is append-only
+- a reused shell-session write id can collide with an existing audit event for the same target field
+
+Approved rule:
+
+- keep shared shell context in `actionLabel`
+- let each write create its own audit event id
+- apply this as a shell/action-layer rule, not as an `L1` or record-specific fix

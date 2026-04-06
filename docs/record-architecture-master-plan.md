@@ -1632,3 +1632,24 @@ Examples:
 - route key `securities` -> databook table name `Round_Securities`
 
 If a shell action is performing a databook write, verification write, or databook snapshot/update flow, it must normalize through the approved databook table-name mapping first.
+
+## Append-Only Audit Rule
+
+Shared shell writes must respect the append-only `events` contract.
+
+That means:
+
+- shared shell save flows may use `actionLabel` to describe the write session
+- but they must not reuse one shell-session `actionId` across repeated field writes
+
+Why:
+
+- the `events` log is append-only
+- reusing the same `actionId` for the same target field causes the backend audit layer to treat the later write like an update to an existing event
+- that conflicts with the append-only rule
+
+So the approved shell rule is:
+
+- keep the shared action label for shell/session context
+- let each write create its own audit event id
+- do not treat shell session ids as reusable write ids
