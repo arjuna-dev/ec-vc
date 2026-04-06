@@ -1,38 +1,12 @@
 <template>
   <q-page class="components-shell-page q-pa-md">
-    <section class="components-shell-page__board">
-      <article class="components-shell-page__card components-shell-page__card--title-wide">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-title-crumb')">
-          <q-icon name="visibility" />
+    <section class="components-shell-page__sections">
+      <section class="components-shell-page__section">
+        <button type="button" class="components-shell-page__section-toggle" @click="toggleSection('basic')">
+          <span class="components-shell-page__section-title">Basic Elements</span>
+          <q-icon :name="isSectionOpen('basic') ? 'expand_less' : 'expand_more'" size="18px" />
         </button>
-        <div class="components-shell-page__card-label">Page Title / Crumb</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('page-title-crumb')">{{ componentStatusLabel('page-title-crumb') }}</div>
-        <div class="components-shell-page__card-stage components-shell-page__card-stage--left">
-          <div class="components-shell-page__crumb-shell">
-            <div class="components-shell-page__crumb-row">
-              <span class="components-shell-page__crumb-link">Files</span>
-              <span class="components-shell-page__crumb-separator">/</span>
-              <span class="components-shell-page__crumb-current">Components Shell</span>
-            </div>
-            <div class="components-shell-page__page-title">Components Shell</div>
-          </div>
-        </div>
-      </article>
-
-      <article class="components-shell-page__card components-shell-page__card--sm">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-back-symbol')">
-          <q-icon name="visibility" />
-        </button>
-        <div class="components-shell-page__card-label">Page Back Symbol</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('page-back-symbol')">{{ componentStatusLabel('page-back-symbol') }}</div>
-        <div class="components-shell-page__card-stage">
-          <button type="button" class="components-shell-page__back-button" aria-label="Back">
-            <q-icon name="west" />
-            <span>Back</span>
-          </button>
-        </div>
-      </article>
-
+        <div v-if="isSectionOpen('basic')" class="components-shell-page__board">
       <article class="components-shell-page__card components-shell-page__card--sm">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('b10-logo')">
           <q-icon name="visibility" />
@@ -51,6 +25,237 @@
         </div>
       </article>
 
+      <article class="components-shell-page__card components-shell-page__card--md">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('b10-button')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">B10 Button</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('b10-button')">{{ componentStatusLabel('b10-button') }}</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
+          <B10Button label="Primary" variant="primary" />
+          <B10Button label="Neutral" variant="neutral" />
+        </div>
+      </article>
+
+      <article class="components-shell-page__card components-shell-page__card--md">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('b10-icon-button')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">B10 Icon Button</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('b10-icon-button')">{{ componentStatusLabel('b10-icon-button') }}</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
+          <B10IconButton icon="arrow_back" variant="neutral" aria-label="Back" />
+          <B10IconButton icon="add" variant="primary" aria-label="Add" />
+          <B10IconButton icon="tune" variant="subtle" aria-label="Settings" />
+        </div>
+      </article>
+        </div>
+      </section>
+
+      <section class="components-shell-page__section">
+        <button type="button" class="components-shell-page__section-toggle" @click="toggleSection('navigation')">
+          <span class="components-shell-page__section-title">Navigation Components</span>
+          <q-icon :name="isSectionOpen('navigation') ? 'expand_less' : 'expand_more'" size="18px" />
+        </button>
+        <div v-if="isSectionOpen('navigation')" class="components-shell-page__board">
+      <article class="components-shell-page__card components-shell-page__card--title-wide">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-title-crumb')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Page Title / Crumb</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('page-title-crumb')">{{ componentStatusLabel('page-title-crumb') }}</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--left">
+          <div class="components-shell-page__crumb-shell">
+            <div class="components-shell-page__crumb-row">
+              <span class="components-shell-page__crumb-link">Files</span>
+              <span class="components-shell-page__crumb-separator">/</span>
+              <span class="components-shell-page__crumb-current">Building Blocks</span>
+            </div>
+            <div class="components-shell-page__page-title">Building Blocks</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="components-shell-page__card components-shell-page__card--sm">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-back-symbol')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Page Back Symbol</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('page-back-symbol')">{{ componentStatusLabel('page-back-symbol') }}</div>
+        <div class="components-shell-page__card-stage">
+          <button type="button" class="components-shell-page__back-button" aria-label="Back">
+            <q-icon name="west" />
+            <span>Back</span>
+          </button>
+        </div>
+      </article>
+
+      <article class="components-shell-page__card components-shell-page__card--live-link">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('live-action-l1')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Live Action L1</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('live-action-l1')">{{ componentStatusLabel('live-action-l1') }}</div>
+        <div class="components-shell-page__card-stage">
+          <div class="components-shell-page__live-link-wrap">
+            <span class="components-shell-page__live-link-label">Live Link</span>
+            <div class="components-shell-page__live-link-value">Companies</div>
+            <q-icon name="expand_more" class="components-shell-page__live-link-chevron" />
+          </div>
+        </div>
+      </article>
+      <article class="components-shell-page__card components-shell-page__card--lg">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l2-toolbar')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">L2 Toolbar</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('l2-toolbar')">{{ componentStatusLabel('l2-toolbar') }}</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
+          <ShellSectionToolbar
+            v-model="activeToolbarSection"
+            :items="toolbarItems"
+            :view-mode="toolbarViewMode"
+            :view-options="viewOptions"
+            :show-view-toggle="true"
+            aria-label="Level 2 Sections"
+            @update:view-mode="toolbarViewMode = $event"
+          />
+        </div>
+      </article>
+      <article class="components-shell-page__card components-shell-page__card--settings-menu">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l2-settings-menu')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">L2 Settings Menu</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('l2-settings-menu')">{{ componentStatusLabel('l2-settings-menu') }}</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
+          <div class="components-shell-page__l2-settings-panel">
+            <div class="components-shell-page__l2-settings-title">Hero Fields</div>
+            <div class="components-shell-page__l2-settings-group">
+              <button type="button" class="components-shell-page__l2-settings-heading">
+                <span>General</span>
+                <q-icon name="expand_less" size="14px" />
+              </button>
+              <label class="components-shell-page__l2-settings-row">
+                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
+                <span class="components-shell-page__l2-settings-row-copy">
+                  <span class="components-shell-page__l2-settings-row-label">Name</span>
+                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
+                </span>
+              </label>
+              <label class="components-shell-page__l2-settings-row">
+                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
+                <span class="components-shell-page__l2-settings-row-copy">
+                  <span class="components-shell-page__l2-settings-row-label">Summary</span>
+                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
+                </span>
+              </label>
+            </div>
+            <div class="components-shell-page__l2-settings-group">
+              <button type="button" class="components-shell-page__l2-settings-heading">
+                <span>System</span>
+                <q-icon name="expand_less" size="14px" />
+              </button>
+              <label class="components-shell-page__l2-settings-row">
+                <q-checkbox model-value="false" dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
+                <span class="components-shell-page__l2-settings-row-copy">
+                  <span class="components-shell-page__l2-settings-row-label">Record ID</span>
+                  <span class="components-shell-page__l2-settings-row-value">Hidden</span>
+                </span>
+              </label>
+              <label class="components-shell-page__l2-settings-row">
+                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
+                <span class="components-shell-page__l2-settings-row-copy">
+                  <span class="components-shell-page__l2-settings-row-label">Updated At</span>
+                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </article>
+      <article class="components-shell-page__card components-shell-page__card--widget-settings">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('widget-settings-menu')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Widget Settings Menu</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('widget-settings-menu')">{{ componentStatusLabel('widget-settings-menu') }}</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
+          <div class="components-shell-page__widget-settings-panel">
+            <div class="components-shell-page__widget-settings-header">
+              <div class="components-shell-page__widget-settings-eyebrow">Widget</div>
+              <div class="components-shell-page__widget-settings-title">Widget Settings</div>
+              <div class="components-shell-page__widget-settings-caption">Show, hide and reorder files</div>
+            </div>
+            <div class="components-shell-page__widget-settings-list">
+              <section class="components-shell-page__widget-settings-section">
+                <button type="button" class="components-shell-page__widget-settings-toggle">
+                  <span class="components-shell-page__widget-settings-section-title">Files</span>
+                  <q-icon name="expand_less" size="16px" class="components-shell-page__widget-settings-section-chevron" />
+                </button>
+                <div class="components-shell-page__widget-settings-row">
+                  <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" class="components-shell-page__widget-settings-checkbox" />
+                  <div class="components-shell-page__widget-settings-row-label">Companies</div>
+                  <div class="components-shell-page__widget-settings-row-actions">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+                      <path d="M7 14L12 9L17 14" />
+                    </svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+                      <path d="M7 10L12 15L17 10" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="components-shell-page__widget-settings-row">
+                  <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" class="components-shell-page__widget-settings-checkbox" />
+                  <div class="components-shell-page__widget-settings-row-label">Users</div>
+                  <div class="components-shell-page__widget-settings-row-actions">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+                      <path d="M7 14L12 9L17 14" />
+                    </svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+                      <path d="M7 10L12 15L17 10" />
+                    </svg>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </article>
+      <article class="components-shell-page__card components-shell-page__card--md">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('toggle-row-icons')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Toggle / Row Icons</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('toggle-row-icons')">{{ componentStatusLabel('toggle-row-icons') }}</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
+          <button type="button" class="components-shell-page__toggle-inline">
+            <span>General</span>
+            <q-icon name="expand_more" />
+          </button>
+          <button type="button" class="components-shell-page__toggle-inline">
+            <span>System</span>
+            <q-icon name="chevron_right" />
+          </button>
+          <div class="components-shell-page__row-chevron-pair">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+              <path d="M7 14L12 9L17 14" />
+            </svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+              <path d="M7 10L12 15L17 10" />
+            </svg>
+          </div>
+        </div>
+      </article>
+        </div>
+      </section>
+
+      <section class="components-shell-page__section">
+        <button type="button" class="components-shell-page__section-toggle" @click="toggleSection('dialog')">
+          <span class="components-shell-page__section-title">Dialog Components</span>
+          <q-icon :name="isSectionOpen('dialog') ? 'expand_less' : 'expand_more'" size="18px" />
+        </button>
+        <div v-if="isSectionOpen('dialog')" class="components-shell-page__board">
       <article class="components-shell-page__card components-shell-page__card--sm">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('plus-icon')">
           <q-icon name="visibility" />
@@ -82,46 +287,36 @@
         </div>
       </article>
 
-      <article class="components-shell-page__card components-shell-page__card--live-link">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('live-action-l1')">
+      <article class="components-shell-page__card components-shell-page__card--sm">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('eye-icon')">
           <q-icon name="visibility" />
         </button>
-        <div class="components-shell-page__card-label">Live Action L1</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('live-action-l1')">{{ componentStatusLabel('live-action-l1') }}</div>
-        <div class="components-shell-page__card-stage">
-          <div class="components-shell-page__live-link-wrap">
-            <span class="components-shell-page__live-link-label">Live Link</span>
-            <div class="components-shell-page__live-link-value">Companies</div>
-            <q-icon name="expand_more" class="components-shell-page__live-link-chevron" />
-          </div>
-        </div>
-      </article>
-
-      <article class="components-shell-page__card components-shell-page__card--md">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('b10-button')">
-          <q-icon name="visibility" />
-        </button>
-        <div class="components-shell-page__card-label">B10 Button</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('b10-button')">{{ componentStatusLabel('b10-button') }}</div>
+        <div class="components-shell-page__card-label">Eye Icon</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('eye-icon')">{{ componentStatusLabel('eye-icon') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
-          <B10Button label="Primary" variant="primary" />
-          <B10Button label="Neutral" variant="neutral" />
+          <q-btn flat dense round icon="visibility" class="components-shell-page__eye-button" aria-label="View row" />
         </div>
       </article>
 
-      <article class="components-shell-page__card components-shell-page__card--md">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('b10-icon-button')">
+      <article class="components-shell-page__card components-shell-page__card--sm">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('edit-button')">
           <q-icon name="visibility" />
         </button>
-        <div class="components-shell-page__card-label">B10 Icon Button</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('b10-icon-button')">{{ componentStatusLabel('b10-icon-button') }}</div>
+        <div class="components-shell-page__card-label">Edit Button</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('edit-button')">{{ componentStatusLabel('edit-button') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
-          <B10IconButton icon="arrow_back" variant="neutral" aria-label="Back" />
-          <B10IconButton icon="add" variant="primary" aria-label="Add" />
-          <B10IconButton icon="tune" variant="subtle" aria-label="Settings" />
+          <q-btn flat dense round icon="edit" class="components-shell-page__edit-button" aria-label="Edit row" />
         </div>
       </article>
+        </div>
+      </section>
 
+      <section class="components-shell-page__section">
+        <button type="button" class="components-shell-page__section-toggle" @click="toggleSection('file')">
+          <span class="components-shell-page__section-title">File Components</span>
+          <q-icon :name="isSectionOpen('file') ? 'expand_less' : 'expand_more'" size="18px" />
+        </button>
+        <div v-if="isSectionOpen('file')" class="components-shell-page__board">
       <article class="components-shell-page__card components-shell-page__card--dashboard">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('home-dashboard')">
           <q-icon name="visibility" />
@@ -192,182 +387,31 @@
           />
         </div>
       </article>
-
-      <article class="components-shell-page__card components-shell-page__card--lg">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l2-toolbar')">
-          <q-icon name="visibility" />
-        </button>
-        <div class="components-shell-page__card-label">L2 Toolbar</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('l2-toolbar')">{{ componentStatusLabel('l2-toolbar') }}</div>
-        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
-          <ShellSectionToolbar
-            v-model="activeToolbarSection"
-            :items="toolbarItems"
-            :view-mode="toolbarViewMode"
-            :view-options="viewOptions"
-            :show-view-toggle="true"
-            aria-label="Level 2 Sections"
-            @update:view-mode="toolbarViewMode = $event"
-          />
         </div>
-      </article>
+      </section>
 
-      <article class="components-shell-page__card components-shell-page__card--settings-menu">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l2-settings-menu')">
-          <q-icon name="visibility" />
+      <section class="components-shell-page__section">
+        <button type="button" class="components-shell-page__section-toggle" @click="toggleSection('record')">
+          <span class="components-shell-page__section-title">Record Components</span>
+          <q-icon :name="isSectionOpen('record') ? 'expand_less' : 'expand_more'" size="18px" />
         </button>
-        <div class="components-shell-page__card-label">L2 Settings Menu</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('l2-settings-menu')">{{ componentStatusLabel('l2-settings-menu') }}</div>
-        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
-          <div class="components-shell-page__l2-settings-panel">
-            <div class="components-shell-page__l2-settings-title">Hero Fields</div>
-            <div class="components-shell-page__l2-settings-group">
-              <button type="button" class="components-shell-page__l2-settings-heading">
-                <span>General</span>
-                <q-icon name="expand_less" size="14px" />
-              </button>
-              <label class="components-shell-page__l2-settings-row">
-                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span class="components-shell-page__l2-settings-row-copy">
-                  <span class="components-shell-page__l2-settings-row-label">Name</span>
-                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
-                </span>
-              </label>
-              <label class="components-shell-page__l2-settings-row">
-                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span class="components-shell-page__l2-settings-row-copy">
-                  <span class="components-shell-page__l2-settings-row-label">Summary</span>
-                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
-                </span>
-              </label>
-            </div>
-            <div class="components-shell-page__l2-settings-group">
-              <button type="button" class="components-shell-page__l2-settings-heading">
-                <span>System</span>
-                <q-icon name="expand_less" size="14px" />
-              </button>
-              <label class="components-shell-page__l2-settings-row">
-                <q-checkbox model-value="false" dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span class="components-shell-page__l2-settings-row-copy">
-                  <span class="components-shell-page__l2-settings-row-label">Record ID</span>
-                  <span class="components-shell-page__l2-settings-row-value">Hidden</span>
-                </span>
-              </label>
-              <label class="components-shell-page__l2-settings-row">
-                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span class="components-shell-page__l2-settings-row-copy">
-                  <span class="components-shell-page__l2-settings-row-label">Updated At</span>
-                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
-                </span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </article>
+        <div v-if="isSectionOpen('record')" class="components-shell-page__board"></div>
+      </section>
 
-      <article class="components-shell-page__card components-shell-page__card--widget-settings">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('widget-settings-menu')">
-          <q-icon name="visibility" />
+      <section class="components-shell-page__section">
+        <button type="button" class="components-shell-page__section-toggle" @click="toggleSection('shell')">
+          <span class="components-shell-page__section-title">Shell Components</span>
+          <q-icon :name="isSectionOpen('shell') ? 'expand_less' : 'expand_more'" size="18px" />
         </button>
-        <div class="components-shell-page__card-label">Widget Settings Menu</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('widget-settings-menu')">{{ componentStatusLabel('widget-settings-menu') }}</div>
-        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
-          <div class="components-shell-page__widget-settings-panel">
-            <div class="components-shell-page__widget-settings-header">
-              <div class="components-shell-page__widget-settings-eyebrow">Widget</div>
-              <div class="components-shell-page__widget-settings-title">Widget Settings</div>
-              <div class="components-shell-page__widget-settings-caption">Show, hide and reorder files</div>
-            </div>
-            <div class="components-shell-page__widget-settings-list">
-              <section class="components-shell-page__widget-settings-section">
-                <button type="button" class="components-shell-page__widget-settings-toggle">
-                  <span class="components-shell-page__widget-settings-section-title">Files</span>
-                  <q-icon name="expand_less" size="16px" class="components-shell-page__widget-settings-section-chevron" />
-                </button>
-                <div class="components-shell-page__widget-settings-row">
-                  <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" class="components-shell-page__widget-settings-checkbox" />
-                  <div class="components-shell-page__widget-settings-row-label">Companies</div>
-                  <div class="components-shell-page__widget-settings-row-actions">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-                      <path d="M7 14L12 9L17 14" />
-                    </svg>
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-                      <path d="M7 10L12 15L17 10" />
-                    </svg>
-                  </div>
-                </div>
-                <div class="components-shell-page__widget-settings-row">
-                  <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" class="components-shell-page__widget-settings-checkbox" />
-                  <div class="components-shell-page__widget-settings-row-label">Users</div>
-                  <div class="components-shell-page__widget-settings-row-actions">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-                      <path d="M7 14L12 9L17 14" />
-                    </svg>
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-                      <path d="M7 10L12 15L17 10" />
-                    </svg>
-                  </div>
-                </div>
-              </section>
-            </div>
-          </div>
-        </div>
-      </article>
-
-      <article class="components-shell-page__card components-shell-page__card--sm">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('eye-icon')">
-          <q-icon name="visibility" />
-        </button>
-        <div class="components-shell-page__card-label">Eye Icon</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('eye-icon')">{{ componentStatusLabel('eye-icon') }}</div>
-        <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
-          <q-btn flat dense round icon="visibility" class="components-shell-page__eye-button" aria-label="View row" />
-        </div>
-      </article>
-
-      <article class="components-shell-page__card components-shell-page__card--sm">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('edit-button')">
-          <q-icon name="visibility" />
-        </button>
-        <div class="components-shell-page__card-label">Edit Button</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('edit-button')">{{ componentStatusLabel('edit-button') }}</div>
-        <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
-          <q-btn flat dense round icon="edit" class="components-shell-page__edit-button" aria-label="Edit row" />
-        </div>
-      </article>
-
-      <article class="components-shell-page__card components-shell-page__card--md">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('toggle-row-icons')">
-          <q-icon name="visibility" />
-        </button>
-        <div class="components-shell-page__card-label">Toggle / Row Icons</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('toggle-row-icons')">{{ componentStatusLabel('toggle-row-icons') }}</div>
-        <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
-          <button type="button" class="components-shell-page__toggle-inline">
-            <span>General</span>
-            <q-icon name="expand_more" />
-          </button>
-          <button type="button" class="components-shell-page__toggle-inline">
-            <span>System</span>
-            <q-icon name="chevron_right" />
-          </button>
-          <div class="components-shell-page__row-chevron-pair">
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-              <path d="M7 14L12 9L17 14" />
-            </svg>
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-              <path d="M7 10L12 15L17 10" />
-            </svg>
-          </div>
-        </div>
-      </article>
+        <div v-if="isSectionOpen('shell')" class="components-shell-page__board"></div>
+      </section>
     </section>
 
     <q-dialog v-model="componentDetailOpen">
       <q-card class="components-shell-page__detail-card">
         <q-card-section class="components-shell-page__detail-head">
           <div>
-            <div class="components-shell-page__detail-eyebrow">Component Details</div>
+            <div class="components-shell-page__detail-eyebrow">Building Block Details</div>
             <div class="components-shell-page__detail-title">{{ selectedComponentDetail?.title || 'Component' }}</div>
           </div>
           <button type="button" class="components-shell-page__detail-close" aria-label="Close details" @click="componentDetailOpen = false">
@@ -439,6 +483,14 @@ const activeToolbarSection = ref('general')
 const toolbarViewMode = ref('card')
 const componentDetailOpen = ref(false)
 const selectedComponentId = ref('page-title-crumb')
+const openSections = ref({
+  basic: true,
+  navigation: true,
+  dialog: true,
+  file: true,
+  record: true,
+  shell: true,
+})
 const logoContainer = ref(null)
 const logoReady = ref(false)
 let logoAnimation = null
@@ -490,7 +542,7 @@ const componentDetailsById = {
     source: 'src/components/HomeDashboardHero.vue',
     nextStep: 'Reuse the shared hero directly and vary only the explicit home-dashboard payload.',
     summary: 'Use this for the live Home dashboard hero surface with overview count, top stats, workspace root, and signal chips.',
-    prompt: 'Render the Home Dashboard component from Components Shell by reusing the shared HomeDashboardHero component directly instead of recreating the hero layout locally.',
+    prompt: 'Render the Home Dashboard component from Building Blocks by reusing the shared HomeDashboardHero component directly instead of recreating the hero layout locally.',
   },
   'page-title-crumb': {
     id: 'cmp-page-title-crumb',
@@ -500,7 +552,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the shared page-title and crumb block so shell pages stop hand-rendering this header.',
     summary: 'Use this for page headers that show the current area plus the main page title.',
-    prompt: 'Render the Page Title / Crumb component from Components Shell with a breadcrumb row above a large page title, using the same typography and spacing as the canonical component.',
+    prompt: 'Render the Page Title / Crumb component from Building Blocks with a breadcrumb row above a large page title, using the same typography and spacing as the canonical component.',
   },
   'page-back-symbol': {
     id: 'cmp-page-back-symbol',
@@ -510,7 +562,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the shared back control so shell headers use one canonical arrow-plus-Back button.',
     summary: 'Use this for compact back navigation inside shell headers and detail surfaces.',
-    prompt: 'Render the Page Back Symbol from Components Shell exactly, using the same circular neutral button treatment and arrow icon.',
+    prompt: 'Render the Page Back Symbol from Building Blocks exactly, using the same circular neutral button treatment and arrow icon.',
   },
   'b10-logo': {
     id: 'cmp-b10-logo',
@@ -520,7 +572,7 @@ const componentDetailsById = {
     source: 'Shared logo asset with local wrapper in src/pages/ComponentsShellPage.vue',
     nextStep: 'Wrap the live header logo treatment into one shared logo component instead of repeating its container markup.',
     summary: 'Use this for compact brand badges or temporary logo placeholders.',
-    prompt: 'Render the B10 Logo from Components Shell exactly as the compact black badge with the same title-font styling.',
+    prompt: 'Render the B10 Logo from Building Blocks exactly as the compact black badge with the same title-font styling.',
   },
   'plus-icon': {
     id: 'cmp-plus-icon',
@@ -530,7 +582,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the electric blue standalone add chip so widget and shell add controls stop drifting.',
     summary: 'Use this for isolated add actions where only the icon should show.',
-    prompt: 'Render the Plus Icon component from Components Shell exactly, using the same electric-blue circular button with white plus icon.',
+    prompt: 'Render the Plus Icon component from Building Blocks exactly, using the same electric-blue circular button with white plus icon.',
   },
   'plus-with-label': {
     id: 'cmp-plus-with-label',
@@ -540,7 +592,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the labeled add control so file-toolbar and shell add buttons can share one component with payload-only label changes.',
     summary: 'Use this for add actions that need icon plus text in one control.',
-    prompt: 'Render the Plus With Label component from Components Shell exactly, using the same electric-blue button, white plus icon, and title-font label treatment.',
+    prompt: 'Render the Plus With Label component from Building Blocks exactly, using the same electric-blue button, white plus icon, and title-font label treatment.',
   },
   'live-action-l1': {
     id: 'cmp-live-action-l1',
@@ -550,7 +602,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the shell header selector so Record Shell, Fork Shell, and future shells use one live-action control.',
     summary: 'Use this for shell-level live source selectors that sit in the top center and switch the active L1 context.',
-    prompt: 'Render the Live Action L1 control from Components Shell exactly, using the same Live Link label, black value chip, and chevron treatment as the canonical shell selector.',
+    prompt: 'Render the Live Action L1 control from Building Blocks exactly, using the same Live Link label, black value chip, and chevron treatment as the canonical shell selector.',
   },
   'b10-button': {
     id: 'cmp-b10-button',
@@ -560,7 +612,7 @@ const componentDetailsById = {
     source: 'src/components/buttons/B10Button.vue',
     nextStep: 'Reuse this component directly and vary only payload props such as label and variant.',
     summary: 'Use this for canonical B10 primary and neutral action buttons.',
-    prompt: 'Render the B10 Button component from Components Shell using the real shared B10Button variants rather than recreating local button styles.',
+    prompt: 'Render the B10 Button component from Building Blocks using the real shared B10Button variants rather than recreating local button styles.',
   },
   'b10-icon-button': {
     id: 'cmp-b10-icon-button',
@@ -570,7 +622,7 @@ const componentDetailsById = {
     source: 'src/components/buttons/B10IconButton.vue',
     nextStep: 'Reuse this component directly and vary only icon and variant props.',
     summary: 'Use this for canonical icon-only actions that should come from the B10 button system.',
-    prompt: 'Render the B10 Icon Button component from Components Shell using the shared B10IconButton component and its existing variants.',
+    prompt: 'Render the B10 Icon Button component from Building Blocks using the shared B10IconButton component and its existing variants.',
   },
   'file-dashboard': {
     id: 'cmp-file-dashboard',
@@ -580,7 +632,7 @@ const componentDetailsById = {
     source: 'src/components/FilePageHeroDashboard.vue',
     nextStep: 'Reuse the shared dashboard component and only swap explicit payload data.',
     summary: 'Use this for file-level hero dashboards showing title, copy, stats, and health.',
-    prompt: 'Render the File Dashboard component from Components Shell using the real FilePageHeroDashboard surface, preserving its hero, stats, and health structure.',
+    prompt: 'Render the File Dashboard component from Building Blocks using the real FilePageHeroDashboard surface, preserving its hero, stats, and health structure.',
   },
   'l3-box': {
     id: 'cmp-l3-box',
@@ -590,7 +642,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the metric card so dashboard stat strips can use one canonical stat-box component.',
     summary: 'Use this for the standalone L3 stat card that appears inside the shell dashboard metrics strip.',
-    prompt: 'Render the L3 Box from Components Shell exactly, using the same compact dashboard stat-card treatment with label, large value, and caption.',
+    prompt: 'Render the L3 Box from Building Blocks exactly, using the same compact dashboard stat-card treatment with label, large value, and caption.',
   },
   'file-toolbar': {
     id: 'cmp-file-toolbar',
@@ -600,7 +652,7 @@ const componentDetailsById = {
     source: 'src/components/FilePageToolbar.vue',
     nextStep: 'Reuse the shared toolbar directly and vary only its explicit props and payload.',
     summary: 'Use this for the top toolbar inside file pages with add, search, and view controls.',
-    prompt: 'Render the File Toolbar component from Components Shell using the real FilePageToolbar component, keeping its existing add, search, and view-toggle layout.',
+    prompt: 'Render the File Toolbar component from Building Blocks using the real FilePageToolbar component, keeping its existing add, search, and view-toggle layout.',
   },
   'l2-toolbar': {
     id: 'cmp-l2-toolbar',
@@ -610,7 +662,7 @@ const componentDetailsById = {
     source: 'src/components/ShellSectionToolbar.vue',
     nextStep: 'Reuse the shared section toolbar directly and vary only section items and selected payload.',
     summary: 'Use this for section switching across General, KDB, System, and similar level-2 groupings.',
-    prompt: 'Render the L2 Toolbar component from Components Shell using the real ShellSectionToolbar component with the same compact section-chip treatment.',
+    prompt: 'Render the L2 Toolbar component from Building Blocks using the real ShellSectionToolbar component with the same compact section-chip treatment.',
   },
   'l2-settings-menu': {
     id: 'cmp-l2-settings-menu',
@@ -620,7 +672,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the compact grouped settings panel so all L2 settings menus stop being page-specific markup.',
     summary: 'Use this for compact shell settings menus like Hero Fields where grouped options can be expanded or collapsed.',
-    prompt: 'Render the L2 Settings Menu from Components Shell using the same compact panel, grouped rows, checkboxes, and expand/collapse treatment as the canonical menu sample.',
+    prompt: 'Render the L2 Settings Menu from Building Blocks using the same compact panel, grouped rows, checkboxes, and expand/collapse treatment as the canonical menu sample.',
   },
   'widget-settings-menu': {
     id: 'cmp-widget-settings-menu',
@@ -630,7 +682,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the widget settings panel so grouped widget menus reuse one floating settings component.',
     summary: 'Use this for the floating widget settings panel with grouped rows, checkboxes, and reorder chevrons.',
-    prompt: 'Render the Widget Settings Menu from Components Shell using the same dark floating panel, grouped section toggle, row labels, checkboxes, and reorder chevrons.',
+    prompt: 'Render the Widget Settings Menu from Building Blocks using the same dark floating panel, grouped section toggle, row labels, checkboxes, and reorder chevrons.',
   },
   'eye-icon': {
     id: 'cmp-eye-icon',
@@ -640,7 +692,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the lightweight view-action icon button so cards and rows stop restyling visibility controls.',
     summary: 'Use this for record/view actions in cards and tables where a lightweight visibility control is needed.',
-    prompt: 'Render the Eye Icon from Components Shell using the same lightweight visibility button treatment as the canonical row-view control.',
+    prompt: 'Render the Eye Icon from Building Blocks using the same lightweight visibility button treatment as the canonical row-view control.',
   },
   'edit-button': {
     id: 'cmp-edit-button',
@@ -650,7 +702,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the compact blue edit control so row and card edit actions use one shared component.',
     summary: 'Use this for compact edit actions in cards and row controls where the blue edit icon treatment is expected.',
-    prompt: 'Render the Edit Button from Components Shell using the same compact blue edit icon treatment as the canonical row-edit control.',
+    prompt: 'Render the Edit Button from Building Blocks using the same compact blue edit icon treatment as the canonical row-edit control.',
   },
   'toggle-row-icons': {
     id: 'cmp-toggle-row-icons',
@@ -660,7 +712,7 @@ const componentDetailsById = {
     source: 'Local sample in src/pages/ComponentsShellPage.vue',
     nextStep: 'Extract the toggle and row-chevron micro-controls so settings lists and shell rows use the same icon language.',
     summary: 'Use this for inline subgroup toggles and row ordering chevrons across shell menus and settings lists.',
-    prompt: 'Render the Toggle / Row Icons from Components Shell using the same inline label-plus-chevron and compact row-chevron treatments as the canonical controls.',
+    prompt: 'Render the Toggle / Row Icons from Building Blocks using the same inline label-plus-chevron and compact row-chevron treatments as the canonical controls.',
   },
 }
 
@@ -674,6 +726,14 @@ function componentStatusClass(componentId) {
   return componentDetailsById[componentId]?.status === 'canonical'
     ? 'components-shell-page__card-status--canonical'
     : 'components-shell-page__card-status--extract'
+}
+
+function isSectionOpen(sectionKey) {
+  return Boolean(openSections.value[sectionKey])
+}
+
+function toggleSection(sectionKey) {
+  openSections.value[sectionKey] = !openSections.value[sectionKey]
 }
 
 function openComponentDetail(componentId) {
@@ -718,6 +778,39 @@ onBeforeUnmount(() => {
 <style scoped>
 .components-shell-page {
   min-height: 100%;
+}
+
+.components-shell-page__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.components-shell-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.components-shell-page__section-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: fit-content;
+  padding: 0;
+  color: #111111;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.components-shell-page__section-title {
+  font-family: var(--font-title);
+  font-size: 0.92rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .components-shell-page__board {
