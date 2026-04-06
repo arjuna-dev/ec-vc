@@ -154,6 +154,121 @@
           />
         </div>
       </article>
+
+      <article class="components-shell-page__card components-shell-page__card--settings-menu">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l2-settings-menu')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">L2 Settings Menu</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
+          <div class="components-shell-page__l2-settings-panel">
+            <div class="components-shell-page__l2-settings-title">Hero Fields</div>
+            <div class="components-shell-page__l2-settings-group">
+              <button type="button" class="components-shell-page__l2-settings-heading">
+                <span>General</span>
+                <q-icon name="expand_less" size="14px" />
+              </button>
+              <label class="components-shell-page__l2-settings-row">
+                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
+                <span>Name</span>
+              </label>
+              <label class="components-shell-page__l2-settings-row">
+                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
+                <span>Summary</span>
+              </label>
+            </div>
+            <div class="components-shell-page__l2-settings-group">
+              <button type="button" class="components-shell-page__l2-settings-heading">
+                <span>System</span>
+                <q-icon name="expand_more" size="14px" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="components-shell-page__card components-shell-page__card--widget-settings">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('widget-settings-menu')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Widget Settings Menu</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
+          <div class="components-shell-page__widget-settings-panel">
+            <div class="components-shell-page__widget-settings-header">
+              <div class="components-shell-page__widget-settings-eyebrow">Widget</div>
+              <div class="components-shell-page__widget-settings-title">Widget Settings</div>
+              <div class="components-shell-page__widget-settings-caption">Show, hide and reorder files</div>
+            </div>
+            <div class="components-shell-page__widget-settings-list">
+              <section class="components-shell-page__widget-settings-section">
+                <button type="button" class="components-shell-page__widget-settings-toggle">
+                  <span class="components-shell-page__widget-settings-section-title">Files</span>
+                  <q-icon name="expand_less" size="16px" class="components-shell-page__widget-settings-section-chevron" />
+                </button>
+                <div class="components-shell-page__widget-settings-row">
+                  <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" class="components-shell-page__widget-settings-checkbox" />
+                  <div class="components-shell-page__widget-settings-row-label">Companies</div>
+                  <div class="components-shell-page__widget-settings-row-actions">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+                      <path d="M7 14L12 9L17 14" />
+                    </svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+                      <path d="M7 10L12 15L17 10" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="components-shell-page__widget-settings-row">
+                  <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" class="components-shell-page__widget-settings-checkbox" />
+                  <div class="components-shell-page__widget-settings-row-label">Users</div>
+                  <div class="components-shell-page__widget-settings-row-actions">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+                      <path d="M7 14L12 9L17 14" />
+                    </svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+                      <path d="M7 10L12 15L17 10" />
+                    </svg>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="components-shell-page__card components-shell-page__card--sm">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('eye-icon')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Eye Icon</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
+          <q-btn flat dense round icon="visibility" class="components-shell-page__eye-button" aria-label="View row" />
+        </div>
+      </article>
+
+      <article class="components-shell-page__card components-shell-page__card--md">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('toggle-row-icons')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Toggle / Row Icons</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
+          <button type="button" class="components-shell-page__toggle-inline">
+            <span>General</span>
+            <q-icon name="expand_more" />
+          </button>
+          <button type="button" class="components-shell-page__toggle-inline">
+            <span>System</span>
+            <q-icon name="chevron_right" />
+          </button>
+          <div class="components-shell-page__row-chevron-pair">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+              <path d="M7 14L12 9L17 14" />
+            </svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
+              <path d="M7 10L12 15L17 10" />
+            </svg>
+          </div>
+        </div>
+      </article>
     </section>
 
     <q-dialog v-model="componentDetailOpen">
@@ -298,6 +413,30 @@ const componentDetailsById = {
     summary: 'Use this for section switching across General, KDB, System, and similar level-2 groupings.',
     prompt: 'Render the L2 Toolbar component from Components Shell using the real ShellSectionToolbar component with the same compact section-chip treatment.',
   },
+  'l2-settings-menu': {
+    id: 'cmp-l2-settings-menu',
+    title: 'L2 Settings Menu',
+    summary: 'Use this for compact shell settings menus like Hero Fields where grouped options can be expanded or collapsed.',
+    prompt: 'Render the L2 Settings Menu from Components Shell using the same compact panel, grouped rows, checkboxes, and expand/collapse treatment as the canonical menu sample.',
+  },
+  'widget-settings-menu': {
+    id: 'cmp-widget-settings-menu',
+    title: 'Widget Settings Menu',
+    summary: 'Use this for the floating widget settings panel with grouped rows, checkboxes, and reorder chevrons.',
+    prompt: 'Render the Widget Settings Menu from Components Shell using the same dark floating panel, grouped section toggle, row labels, checkboxes, and reorder chevrons.',
+  },
+  'eye-icon': {
+    id: 'cmp-eye-icon',
+    title: 'Eye Icon',
+    summary: 'Use this for record/view actions in cards and tables where a lightweight visibility control is needed.',
+    prompt: 'Render the Eye Icon from Components Shell using the same lightweight visibility button treatment as the canonical row-view control.',
+  },
+  'toggle-row-icons': {
+    id: 'cmp-toggle-row-icons',
+    title: 'Toggle / Row Icons',
+    summary: 'Use this for inline subgroup toggles and row ordering chevrons across shell menus and settings lists.',
+    prompt: 'Render the Toggle / Row Icons from Components Shell using the same inline label-plus-chevron and compact row-chevron treatments as the canonical controls.',
+  },
 }
 
 const selectedComponentDetail = computed(() => componentDetailsById[selectedComponentId.value] || null)
@@ -415,6 +554,16 @@ onBeforeUnmount(() => {
 .components-shell-page__card--dashboard {
   grid-column: span 6;
   grid-row: span 4;
+}
+
+.components-shell-page__card--settings-menu {
+  grid-column: span 3;
+  grid-row: span 3;
+}
+
+.components-shell-page__card--widget-settings {
+  grid-column: span 3;
+  grid-row: span 3;
 }
 
 .components-shell-page__card--title-wide {
@@ -622,6 +771,205 @@ onBeforeUnmount(() => {
   letter-spacing: -0.02em;
 }
 
+.components-shell-page__l2-settings-panel {
+  width: min(280px, 100%);
+  padding: 10px;
+  background: rgba(248, 248, 246, 0.98);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 16px 32px rgba(17, 17, 17, 0.12);
+}
+
+.components-shell-page__l2-settings-title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.84rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.components-shell-page__l2-settings-group + .components-shell-page__l2-settings-group {
+  margin-top: 10px;
+}
+
+.components-shell-page__l2-settings-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  color: #111111;
+  background: transparent;
+  border: 0;
+  text-align: left;
+}
+
+.components-shell-page__l2-settings-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 2px 4px;
+}
+
+.components-shell-page__widget-settings-panel {
+  width: min(220px, 100%);
+  padding: 10px;
+  background: rgba(17, 17, 17, 0.96);
+  border-radius: 18px;
+}
+
+.components-shell-page__widget-settings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-bottom: 4px;
+}
+
+.components-shell-page__widget-settings-eyebrow {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.components-shell-page__widget-settings-title {
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.components-shell-page__widget-settings-caption {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.components-shell-page__widget-settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.components-shell-page__widget-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.components-shell-page__widget-settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  width: fit-content;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.components-shell-page__widget-settings-section-title {
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.components-shell-page__widget-settings-section-chevron {
+  color: rgba(255, 255, 255, 0.94);
+  line-height: 1;
+}
+
+.components-shell-page__widget-settings-row {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.components-shell-page__widget-settings-checkbox {
+  min-height: 16px;
+}
+
+.components-shell-page__widget-settings-row-label {
+  min-width: 0;
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 0.64rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.components-shell-page__widget-settings-row-actions {
+  display: grid;
+  grid-template-columns: 14px 14px;
+  align-items: center;
+  gap: 0;
+  justify-content: end;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.components-shell-page__widget-settings-row-chevron {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 1.45;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.components-shell-page__eye-button {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  color: rgba(17, 17, 17, 0.82);
+}
+
+.components-shell-page__eye-button :deep(.q-icon) {
+  font-size: 16px;
+}
+
+.components-shell-page__toggle-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  width: max-content;
+  padding: 0;
+  color: #111111;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+}
+
+.components-shell-page__row-chevron-pair {
+  display: grid;
+  grid-template-columns: 14px 14px;
+  align-items: center;
+  gap: 0;
+  color: rgba(17, 17, 17, 0.58);
+}
+
 .components-shell-page__detail-card {
   width: min(640px, calc(100vw - 32px));
   border-radius: 10px;
@@ -721,6 +1069,8 @@ onBeforeUnmount(() => {
 
   .components-shell-page__card--lg,
   .components-shell-page__card--xl,
+  .components-shell-page__card--settings-menu,
+  .components-shell-page__card--widget-settings,
   .components-shell-page__card--title-wide,
   .components-shell-page__card--toolbar-wide,
   .components-shell-page__card--dashboard {
