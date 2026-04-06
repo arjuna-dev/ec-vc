@@ -242,7 +242,10 @@
               class="contact-databook__summary-feed-entry"
             >
               <div class="contact-databook__summary-feed-entry-top">
-                <div class="contact-databook__summary-feed-entry-source">{{ item.sourceLabel }}</div>
+                <div class="contact-databook__summary-feed-entry-top-left">
+                  <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
+                  <div class="contact-databook__summary-feed-entry-source">{{ item.sourceLabel }}</div>
+                </div>
                 <div class="contact-databook__summary-feed-entry-top-right">
                   <button
                     v-if="item.content"
@@ -251,9 +254,8 @@
                     :aria-label="isFeedItemExpanded(item.id) ? 'Collapse log' : 'Expand log'"
                     @click="toggleFeedItemExpanded(item.id)"
                   >
-                    <q-icon :name="isFeedItemExpanded(item.id) ? 'unfold_less' : 'unfold_more'" size="13px" />
+                    <q-icon name="open_in_new" size="13px" />
                   </button>
-                  <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
                 </div>
               </div>
               <div class="contact-databook__summary-feed-entry-title">{{ item.title }}</div>
@@ -2102,10 +2104,17 @@ function onContactHeroPointerLeave() {
   gap: 10px;
 }
 
+.contact-databook__summary-feed-entry-top-left {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
 .contact-databook__summary-feed-entry-top-right {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0;
 }
 
 .contact-databook__summary-feed-entry-source {
