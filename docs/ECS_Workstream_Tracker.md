@@ -263,3 +263,27 @@ When we make a meaningful change, do one of:
 - move an item from `Active` to `Pending`
 - move an item from `Pending` to `Front-Loaded`
 - add a short note if a workstream is intentionally parked or intentionally reactivated
+## Shared Naming Correction
+
+Resolved architecture correction:
+
+- shared shell update paths must normalize to databook table names before IPC actions
+
+The issue surfaced because several naming layers were being conflated:
+
+- route keys such as `companies`
+- canonical entity names such as `Financial_Industries`
+- databook table names such as `Companies` and `Industries`
+
+The approved rule is now:
+
+- route keys are for navigation
+- canonical entity names are for structure
+- databook table names are for IPC/database actions
+
+Shared shell code must normalize to databook table names before:
+
+- `databooks:view`
+- `databooks:update`
+- `verification:list`
+- `verification:upsert`

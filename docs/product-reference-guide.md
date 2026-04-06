@@ -853,3 +853,19 @@ So the practical principle is:
 `Use File and Record as the product language, treat first-level records as canonical owners, and make linked editing read and write through the real canonical sources of truth.`
 
 
+## Naming Layers
+
+The product currently uses several naming layers that must stay distinct:
+
+- `L1` label:
+  the user-facing section name, such as `Markets`
+- route key:
+  the navigation/shell key, such as `industries`
+- canonical entity name:
+  the structural ownership name, such as `Financial_Industries`
+- databook table name:
+  the IPC/database action name, such as `Industries`
+
+Shared shells may render from canonical structure and route keys, but IPC actions must use databook table names.
+
+Do not assume these names are interchangeable.

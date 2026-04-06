@@ -52,3 +52,43 @@
 | Top-Layer Mechanism | A tuning layer that may improve speed, ranking, comfort, or prioritization without modifying ownership or the underlying contract. | Companion Contract |
 | Heuristic Guidance | A top-layer ranking and prioritization aid that may front-load likely options, but must not alter structure or ownership. | Product Reference |
 | Clarity Pass | A review after editing that checks whether a document change remains readable, structured, and easy to follow before it is treated as settled. | Companion Surface |
+## Canonical Entity Name
+
+The structural entity name used by canon and shell ownership logic. This name is used to define `L1`, `L2`, and `L3` structure, but it is not automatically the same thing as the databook table name or route key.
+
+Example:
+- `Financial_Industries`
+
+## Route Key
+
+The navigation/shell key used in routes and payload switching. Route keys are for shell navigation, not for databook IPC writes.
+
+Examples:
+- `companies`
+- `industries`
+- `securities`
+
+## Databook Table Name
+
+The approved table name used by IPC/database-facing actions such as:
+- `databooks:view`
+- `databooks:update`
+- `verification:list`
+- `verification:upsert`
+
+Databook table names must be used for write and read actions even when they differ from the route key or canonical entity name.
+
+Examples:
+- `Companies`
+- `Industries`
+- `Round_Securities`
+
+## Table Name Normalization
+
+The required shared-shell step that resolves route keys and canonical entity names into databook table names before IPC actions are executed.
+
+Rule:
+- canonical names are for structure
+- route keys are for navigation
+- databook table names are for IPC/database actions
+- these must not be treated as interchangeable

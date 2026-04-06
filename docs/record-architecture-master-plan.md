@@ -1610,3 +1610,25 @@ So the practical principle is:
 `Use the workbook to define and validate the first structure, move canonical ownership into JSON with app editing, keep file views lightweight, make record views rich, and let stable addresses tie the system together.`
 
 
+## Table Naming Contract
+
+When shared shell surfaces perform IPC write actions such as `databooks:update`, they must use the approved databook table name, not the route key and not the canonical entity name when those differ.
+
+The distinction is:
+
+- canonical entity name:
+  used for structure, ownership, and shell contract reasoning
+- route key:
+  used for navigation and shell payload switching
+- databook table name:
+  used for IPC/database-facing actions
+
+These are not interchangeable.
+
+Examples:
+
+- route key `companies` -> databook table name `Companies`
+- canonical entity `Financial_Industries` -> databook table name `Industries`
+- route key `securities` -> databook table name `Round_Securities`
+
+If a shell action is performing a databook write, verification write, or databook snapshot/update flow, it must normalize through the approved databook table-name mapping first.

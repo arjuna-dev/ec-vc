@@ -714,3 +714,12 @@ We are trying to make it feel dependable by staging the work clearly.
 So the practical principle is:
 
 `Use draft-first intake, surface high-value information early, keep extraction and matching interacting, and make unfinished work always resumable.`
+## Add/Edit Shell Naming Rule
+
+Add/Edit Shell and intake-linked shell flows must follow the same naming contract as the other shared shells:
+
+- route keys are for shell navigation
+- canonical entity names are for structural ownership
+- databook table names are for IPC/database actions
+
+If intake or Add/Edit flows perform shared-shell updates, they must normalize to databook table names before calling databook or verification IPC actions.
