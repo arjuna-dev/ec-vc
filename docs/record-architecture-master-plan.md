@@ -1034,7 +1034,7 @@ Current working rule:
   - `Owner Ingestion`
 - owner bootstrap should assign the base `User Roles` set
 - owner bootstrap should assign the base `Companion Roles` set
-- the first base `Companion Role` record should be `Master Companion Role`
+- owner bootstrap should create the `Master Companion Role` record
 - owner bootstrap should create the `User Set-up` project and its base tasks
 - those setup records should still be created even if the user later skips guided task completion
 
