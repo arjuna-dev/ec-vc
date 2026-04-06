@@ -224,15 +224,15 @@ function goBack() {
   justify-self: start;
   min-width: 220px;
   padding: 8px 14px;
-  background: rgba(18, 24, 37, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 246, 244, 0.98) 100%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 4px;
-  box-shadow: 0 18px 44px rgba(10, 14, 24, 0.22);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
 }
 
 .fork-shell-modal__selector-label {
   margin-bottom: 2px;
-  color: rgba(247, 244, 238, 0.72);
+  color: rgba(17, 17, 17, 0.52);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -342,7 +342,7 @@ function goBack() {
   flex-direction: column;
   min-height: 0;
   padding: 10px 18px 18px;
-  background: rgba(249, 249, 247, 0.92);
+  background: rgba(249, 249, 247, 0.96);
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 4px;
 }
