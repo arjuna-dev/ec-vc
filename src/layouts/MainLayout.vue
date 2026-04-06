@@ -487,6 +487,7 @@ import {
   getCreateBranches,
   getFilePageRegistryEntry,
   TEST_SHELL_SECTION_OPTIONS,
+  validateLevel1BootstrapContracts,
   WORKSPACE_FILE_NAV_ITEMS,
 } from 'src/utils/structureRegistry'
 import {
@@ -1816,6 +1817,12 @@ onMounted(() => {
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
   window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
+  if (import.meta.env.DEV && typeof console !== 'undefined') {
+    const bootstrapIssues = validateLevel1BootstrapContracts({ bridgeValue: bridge.value })
+    if (bootstrapIssues.length) {
+      console.warn('[ec-vc] L1 bootstrap contract issues detected', bootstrapIssues)
+    }
+  }
   syncUserNavState()
   loadQuickWidgetActionSettings()
   loadQuickWidgetPosition()

@@ -231,6 +231,21 @@ Shared dialog rule:
 - when the shared dialog is exposed through its own shell route, that route should use the same shared top shell header and `L1` select as the other shell routes
 - the dialog shell route should not add a second page-level selector, launchpad, or top-row control if the shared shell header already provides that contract
 
+New `L1` bootstrap rule:
+
+- a new `L1` must be treated as a full product/runtime/bootstrap task, not as a label or route-only task
+- adding a new `L1` should include:
+  - canonical entity
+  - route
+  - registry
+  - shell
+  - navigation
+  - runtime ownership for `list/create/update/delete`
+  - default `System` / `KDB` / standard `General` subsection setup
+  - reciprocal KDB propagation to the other relevant `L1`s
+- `Add Record` and shared dialog flows should work immediately for the new `L1`
+- if a source is visible in menus but not createable/editable, treat that as incomplete bootstrap work, not as an acceptable intermediate product state
+
 Fork shell rule:
 
 - `Fork Shell` is an independent shared shell route, not an `Opportunities` page extension

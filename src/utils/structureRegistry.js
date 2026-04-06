@@ -1,6 +1,10 @@
 import canonicalStructure from '../../docs/canonical-structure.json'
 import { formatSharedDisplayLabel } from 'src/shared/labelFormatting'
 
+export const DEFAULT_L1_REQUIRED_SUBSECTIONS = Object.freeze(['System', 'KDB'])
+export const DEFAULT_L1_OPTIONAL_STANDARD_SUBSECTIONS = Object.freeze(['General'])
+export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', 'create', 'update', 'delete'])
+
 const FILE_PAGE_ROUTE_META = Object.freeze({
   Events: {
     key: 'events',
@@ -238,6 +242,14 @@ function buildEntityRegistry(entityName) {
     ...meta,
     entityName: runtimeEntityName,
     canonicalEntityName,
+    requiredSubsections: Array.isArray(meta.requiredSubsections) ? meta.requiredSubsections : [...DEFAULT_L1_REQUIRED_SUBSECTIONS],
+    optionalStandardSubsections: Array.isArray(meta.optionalStandardSubsections)
+      ? meta.optionalStandardSubsections
+      : [...DEFAULT_L1_OPTIONAL_STANDARD_SUBSECTIONS],
+    requiredRuntimeCapabilities: Array.isArray(meta.requiredRuntimeCapabilities)
+      ? meta.requiredRuntimeCapabilities
+      : [...DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES],
+    requiresReciprocalKdb: meta.requiresReciprocalKdb !== false,
     level_1: String(sourceEntity?.level_1 || resolveAddressPart(sourceEntity?.entity_address, 0) || '').trim(),
     address: String(sourceEntity?.entity_address || '').trim(),
     structureToken: String(sourceEntity?.structure_token?.token_name || sourceEntity?.structure_token || '').trim(),
@@ -340,6 +352,68 @@ export function getRegistryTitleTokenForSource(sourceKey = '') {
   if (!entry) return null
   const generalSection = entry.subsections.find((section) => String(section.rawLabel || '').trim().toLowerCase() === 'general')
   return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '1') || null
+}
+
+export function validateLevel1BootstrapContracts({ bridgeValue = null, sourceKeys = [] } = {}) {
+  const scopedKeys = Array.isArray(sourceKeys)
+    ? sourceKeys.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
+    : []
+  const entries = scopedKeys.length
+    ? scopedKeys.map((key) => getFilePageRegistryEntry(key)).filter(Boolean)
+    : [...FILE_PAGE_REGISTRY]
+
+  return entries.flatMap((entry) => {
+    const issues = []
+    const subsectionLabels = new Set(
+      (Array.isArray(entry?.subsections) ? entry.subsections : [])
+        .map((section) => String(section?.label || section?.rawLabel || '').trim().toLowerCase())
+        .filter(Boolean),
+    )
+
+    if (!String(entry?.key || '').trim()) issues.push({ severity: 'error', sourceKey: entry?.key || '', issue: 'Missing source key.' })
+    if (!String(entry?.routeName || '').trim()) issues.push({ severity: 'error', sourceKey: entry.key, issue: 'Missing route name.' })
+    if (!String(entry?.path || '').trim()) issues.push({ severity: 'error', sourceKey: entry.key, issue: 'Missing route path.' })
+    if (!String(entry?.canonicalEntityName || '').trim()) issues.push({ severity: 'error', sourceKey: entry.key, issue: 'Missing canonical entity name.' })
+    if (!String(entry?.entityName || '').trim()) issues.push({ severity: 'error', sourceKey: entry.key, issue: 'Missing runtime entity name.' })
+
+    const missingSubsections = (Array.isArray(entry?.requiredSubsections) ? entry.requiredSubsections : [])
+      .map((label) => String(label || '').trim())
+      .filter(Boolean)
+      .filter((label) => !subsectionLabels.has(label.toLowerCase()))
+    missingSubsections.forEach((label) => {
+      issues.push({
+        severity: 'error',
+        sourceKey: entry.key,
+        issue: `Missing required subsection: ${label}.`,
+      })
+    })
+
+    if (bridgeValue) {
+      const bridgeSource = bridgeValue?.[entry.key] || null
+      if (!bridgeSource) {
+        issues.push({
+          severity: 'warn',
+          sourceKey: entry.key,
+          issue: 'Missing runtime bridge source.',
+        })
+      } else {
+        ;(Array.isArray(entry?.requiredRuntimeCapabilities) ? entry.requiredRuntimeCapabilities : [])
+          .map((capability) => String(capability || '').trim())
+          .filter(Boolean)
+          .forEach((capability) => {
+            if (typeof bridgeSource?.[capability] !== 'function') {
+              issues.push({
+                severity: 'warn',
+                sourceKey: entry.key,
+                issue: `Missing runtime capability: ${capability}.`,
+              })
+            }
+          })
+      }
+    }
+
+    return issues
+  })
 }
 
 export function getRuntimeTableNameForEntityName(entityName = '') {

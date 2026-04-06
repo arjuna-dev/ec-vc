@@ -45,6 +45,25 @@ Current expected add/edit behavior:
 - card-view `Add Relation` should open `dialog-shell` for the clicked source record and start in `KDB`
 - branchable create entry points should stop in the independent route-owned `Fork Shell` before continuing into `Add/Edit Shell`
 
+### New L1 bootstrap rule
+
+When creating a new `L1`, treat it as a full architectural bootstrap by default, not a partial frontend/source split.
+
+Required scope:
+
+- add the canonical entity to `docs/canonical-structure.json`
+- add route, registry, shell, and navigation
+- add runtime ownership for `list`, `create`, `update`, and `delete`
+- add the default `L1` subsection baseline:
+  - `System`
+  - `KDB`
+  - `General` when that is part of the current standard
+- apply reciprocal KDB propagation across the other relevant `L1`s
+- ensure `Add/Edit Shell` and add-record flows work immediately
+- run a validation pass confirming the new `L1` is actually createable/editable
+
+Do not treat a new `L1` as complete if it is only visible in the UI.
+
 To bundle app for mac:
 
 ```javascript

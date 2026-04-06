@@ -33,6 +33,7 @@
 | L0 | The provenance/history layer that sits beneath normal record content. It is a strong fit for event-log and origin data such as `Owner created`, and conceptually belongs with the system/knowledge side rather than as another editable business-content layer. | ECS Workstream Tracker |
 | L0 Events File View | The route-owned `File View` for the `L0` event layer. It uses the same shared `L1` file shell as the other file surfaces, but it is view-oriented and routes rows into the event log surface rather than a normal databook record page. | ECS Workstream Tracker |
 | L1 | The entity/file level in canonical structure. Selecting an `L1` chooses the entity payload source for a shell. | Record Architecture |
+| L1 Bootstrap | The required full implementation scope for a new `L1`: canonical entity, route, registry, shell, navigation, runtime ownership, default subsections, reciprocal KDB propagation, and working add/edit/create flows. A new `L1` is not complete if it is only visible in the UI. | Record Architecture |
 | L2 | The subsection grouping level in canonical structure, such as `System`, `General`, `Business Overview`, or `KDB`. | Record Architecture |
 | L3 Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
 | Owned Field | A value owned by the current record or its approved owned subtable. It writes through that owner path only. | Companion Contract |

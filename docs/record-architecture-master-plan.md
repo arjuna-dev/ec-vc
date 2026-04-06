@@ -362,15 +362,39 @@ No relationship should be treated as complete until all three are true.
 
 ### New L1 Rule
 
-When a new `L1` is created, its KDB relationship contract should be created with it.
+When a new `L1` is created, it must be treated as a full architectural bootstrap by default.
 
 That means:
 
+- the new `L1` must be implemented as a real new canonical source/table, not just a route or visible shell option
+- the canonical entity must be added to `docs/canonical-structure.json`
+- route, registry, shell, and navigation must be added together
+- runtime ownership must be added for:
+  - `list`
+  - `create`
+  - `update`
+  - `delete`
+- add/edit/create flows should work immediately once the `L1` is introduced
+- the new `L1` should not be left in a visible-but-nonfunctional state
+- validation should confirm the new `L1` is actually createable/editable before the task is treated as complete
+
+Default subsection baseline:
+
+- every new `L1` should at minimum expose:
+  - `System`
+  - `KDB`
+- `General` should also be created when that is part of the current standard
+
+KDB propagation rule:
+
+- the new `L1`'s KDB relationship contract should be created with it
 - the new `L1` should not declare relationship tokens casually
 - each declared relationship should have an approved owner path
 - each declared relationship should have an approved reverse-read path
 - new connections should follow the same relationship contract as existing ones
 - do not create one-off relationship behavior for a single page, dialog, or record surface
+- reciprocal KDB updates across the other relevant `L1`s are part of the initial implementation, not a later polish pass
+- if the intended product rule is that records should be linkable across the DB set, that propagation must happen during the `L1` bootstrap itself
 
 ### Current Mandatory KDB Set
 
