@@ -37,7 +37,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import {
   CANONICAL_OPTION_LISTS,
@@ -51,7 +51,6 @@ import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSection
 import { normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 
 const route = useRoute()
-const router = useRouter()
 const $q = useQuasar()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
@@ -60,10 +59,8 @@ const dialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
 
 const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
-const activeSourceKey = computed(() => {
-  const current = String(route.query.section || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current) ? current : fallbackSectionKey
-})
+const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section))
+const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
 const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
@@ -100,6 +97,16 @@ const createSectionGroups = computed(() =>
 const dialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
 const canCreateWithShell = computed(() => Boolean(bridge.value?.[activeSourceKey.value]?.create))
 
+watch(
+  () => route.query.section,
+  (nextValue) => {
+    const validValue = resolveValidShellSection(nextValue)
+    if (validValue !== dialogShellSourceKey.value) {
+      dialogShellSourceKey.value = validValue
+    }
+  },
+)
+
 watch(activeSourceKey, async () => {
   await ensureLiveOptionsLoaded()
   if (!dialogOpen.value) dialogOpen.value = true
@@ -120,14 +127,12 @@ onBeforeUnmount(() => {
 })
 
 function updateShellSelector(nextValue) {
-  const normalized = String(nextValue || '').trim().toLowerCase()
-  const validValue = TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : fallbackSectionKey
-  router.replace({
-    query: {
-      ...route.query,
-      section: validValue,
-    },
-  })
+  dialogShellSourceKey.value = resolveValidShellSection(nextValue)
+}
+
+function resolveValidShellSection(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : fallbackSectionKey
 }
 
 function normalizeCreateDialogToken(token) {
