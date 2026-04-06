@@ -616,7 +616,7 @@ const workspaceNavigationItems = [
 const testShellNavigationItems = [
   { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
-  { label: 'Add/Edit Dialog Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
+  { label: 'Add/Edit Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
@@ -639,7 +639,7 @@ const routeLabelByName = {
   tasks: 'Tasks',
   'test-shell': 'File Shell',
   'record-shell': 'Record Shell',
-  'dialog-shell': 'Add/Edit Dialog Shell',
+  'dialog-shell': 'Add/Edit Shell',
   roles: 'Roles',
   avatar: 'Companion',
   'user-settings': 'Owner',
