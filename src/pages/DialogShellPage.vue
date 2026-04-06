@@ -8,7 +8,6 @@
     </div>
 
     <AddEditRecordShellDialog
-      :key="dialogRenderKey"
       v-else
       v-model="dialogOpen"
       :mode="dialogMode"
@@ -61,7 +60,6 @@ const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const dialogOpen = ref(false)
 const dialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
-const dialogRenderKey = ref(0)
 const dialogMode = ref('create')
 const dialogInitialValues = ref({})
 const dialogInitialFieldMeta = ref({})
@@ -164,7 +162,6 @@ watch(
       dialogInitialValues.value = buildEditDialogInitialValuesFromPayload(payload)
     }
 
-    dialogRenderKey.value += 1
     dialogOpen.value = true
   },
   { immediate: true },
