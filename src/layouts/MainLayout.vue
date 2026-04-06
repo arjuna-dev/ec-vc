@@ -717,7 +717,7 @@ const drawerNavigationSections = computed(() => [
         kind: 'toggle',
         label: 'Test Shells',
         itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
-        icon: 'folder',
+        icon: 'egg',
         iconSize: '22px',
         toggleKey: 'test-shells',
       },
