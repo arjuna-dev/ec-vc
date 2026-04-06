@@ -110,6 +110,7 @@ Implementation note:
 
 - route path: `/records/:tableName/:recordId`
 - route name: `record-view`
+- current route target: `RecordShellPage.vue`
 - legacy `databooks/...` links should be treated as compatibility redirects, not canonical product language
 
 ## Structure Ownership
@@ -432,6 +433,7 @@ The `Record View` is where the user:
 Approved direction:
 
 - `Record View` should converge into the shared `Record Shell`
+- route-level `Record View` now resolves into the shared `Record Shell`
 - record-specific detail pages should not keep diverging once the shared shell is ready
 - the selected record should feed the shell payload underneath
 

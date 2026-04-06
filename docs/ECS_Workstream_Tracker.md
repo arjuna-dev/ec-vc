@@ -98,6 +98,7 @@ This tracker should stay aligned with:
 - owner and last-human spine records should now be treated as deletion-protected runtime paths
 - the shared create/edit record dialog shell is now in place and re-used for create, edit, and add-relation entry points
 - `Record Shell` is now the approved shared direction for `Record View`
+- shared `record-view` route now resolves into `RecordShellPage.vue`
 - the current shell direction is:
   - use the `User Record View` hero/dashboard as the base shell
   - keep icon-only `settings` and `edit` beside `Name`

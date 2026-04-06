@@ -27,7 +27,7 @@ const routes = [
       { path: 'test-shell', name: 'test-shell', component: () => import('pages/TestShellPage.vue') },
       { path: 'record-shell', name: 'record-shell', component: () => import('pages/RecordShellPage.vue') },
       { path: 'roles', name: 'roles', component: () => import('pages/AssistantsPage.vue') },
-      { path: 'records/:tableName/:recordId', name: RECORD_VIEW_ROUTE_NAME, component: () => import('pages/RecordPage.vue') },
+      { path: 'records/:tableName/:recordId', name: RECORD_VIEW_ROUTE_NAME, component: () => import('pages/RecordShellPage.vue') },
       {
         path: 'databooks/:tableName/:recordId',
         redirect: (to) => ({

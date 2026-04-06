@@ -74,6 +74,13 @@ Working rule:
 - route-level record navigation should ultimately resolve into that shell for the selected record
 - the shell should use the selected record as payload input, not as a reason to fork the view layer
 
+Current runtime status:
+
+- shared `record-view` route resolution now points at `RecordShellPage.vue`
+- opening a record from an `L1` now lands in the shell route for that selected record
+- the shell now loads the selected record through `databooks.view(tableName, recordId)`
+- the standalone `record-shell` route remains available as the shell payload-testing surface
+
 The currently approved shell pattern is:
 
 - use the current `User Record View` hero/dashboard as the base shell

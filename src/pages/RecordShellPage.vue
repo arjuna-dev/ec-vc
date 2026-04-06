@@ -8,6 +8,10 @@
     </div>
 
     <div v-else class="record-shell">
+      <q-banner v-if="error" class="bg-red-2 text-black" rounded>
+        {{ error }}
+      </q-banner>
+
       <section
         ref="contactHeroRef"
         class="contact-databook__hero"
@@ -127,8 +131,8 @@
                     <div class="record-shell__hero-field-description">General</div>
                   </div>
                   <div class="record-shell__hero-field-bottom">
-                    <div class="record-shell__hero-field-value">Summary remains pinned as the closing field.</div>
-                    <q-icon name="task_alt" size="15px" class="record-shell__hero-field-status" />
+                    <div class="record-shell__hero-field-value">{{ heroSummaryValue }}</div>
+                    <q-icon :name="heroSummaryStatusIcon" size="15px" class="record-shell__hero-field-status" />
                   </div>
                 </article>
               </div>
@@ -285,7 +289,7 @@
         <div v-if="isKdbSectionActive" class="record-shell__kdb-grid">
           <div v-for="token in activeSectionTokens" :key="token.key" class="record-shell__field-card">
             <div class="record-shell__field-label">{{ token.label }}</div>
-            <div class="record-shell__field-value">Relationship lane</div>
+            <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
           </div>
         </div>
 
@@ -297,9 +301,7 @@
             :class="{ 'record-shell__field-card--selected': isSelectedToken(token.key) }"
           >
             <div class="record-shell__field-label">{{ token.label }}</div>
-            <div class="record-shell__field-value">
-              {{ isSelectedToken(token.key) ? 'Selected for hero' : 'Available in skeleton' }}
-            </div>
+            <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
           </div>
         </div>
       </section>
@@ -307,16 +309,16 @@
       <CreateRecordShellDialog
         :key="createDialogRenderKey"
         v-model="createDialogOpen"
-        mode="create"
+        :mode="createDialogMode"
         :source-label="activeRegistryEntry?.label || 'Records'"
         :singular-label="activeRegistryEntry?.singularLabel || 'record'"
         :key-field-tokens="createKeyFieldTokens"
         :left-sections="createDialogLeftSections"
         :right-sections="createDialogRightSections"
         :loading="createDialogLoading"
-        :submit-disabled="false"
-        :initial-values="{}"
-        :initial-field-meta="{}"
+        :submit-disabled="createDialogLoading"
+        :initial-values="dialogInitialValues"
+        :initial-field-meta="dialogInitialFieldMeta"
         initial-section-key="key-fields"
         :initial-artifacts="[]"
         :artifact-context="null"
@@ -363,14 +365,28 @@ const activeRecordFeedTab = ref('all')
 const recordShellTopNavViewMode = ref('grid')
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
+const hasBridge = computed(() => Boolean(bridge.value))
+const loading = ref(false)
+const error = ref('')
+const currentView = ref(null)
+const fields = ref([])
+const tableNameParam = computed(() => String(route.params.tableName || '').trim())
+const recordIdParam = computed(() => String(route.params.recordId || '').trim())
+const isRecordRoute = computed(() => Boolean(tableNameParam.value && recordIdParam.value))
 const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
 const activeSourceKey = computed(() => {
+  if (isRecordRoute.value) {
+    return resolveSourceKeyFromTableName(currentView.value?.table_name || tableNameParam.value) || fallbackSectionKey
+  }
   const current = String(route.query.section || '').trim().toLowerCase()
   return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current) ? current : fallbackSectionKey
 })
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
 const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
+const fieldByName = computed(() =>
+  Object.fromEntries((fields.value || []).map((field) => [String(field?.field_name || '').trim(), field])),
+)
 
 const canonicalNameToken = computed(() => level3Tokens.value.find((token) => String(token.level_3) === '1') || null)
 const canonicalSummaryToken = computed(() =>
@@ -408,7 +424,9 @@ const createSectionGroups = computed(() =>
     .map((section) => ({
       key: section.key,
       label: section.label,
-      tokens: selectableTokens.value.filter((token) => token.parentKey === section.key && selectedTokenKeySet.value.has(token.key)).map(normalizeCreateDialogToken),
+      tokens: selectableTokens.value
+        .filter((token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)))
+        .map(normalizeCreateDialogToken),
     }))
     .filter((section) => section.tokens.length),
 )
@@ -446,20 +464,26 @@ const heroAvatarColor = computed(() => {
   const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
   return palette[Math.abs(hashString(`${activeSourceKey.value}:${heroName.value}`)) % palette.length]
 })
-const heroName = computed(() => `${activeRegistryEntry.value?.singularLabel || 'Record'} Name`)
-const heroSubtitle = computed(() => activeRegistryEntry.value?.label || 'Record Shell')
-const heroSecondaryLine = computed(() => 'Expanded record-view skeleton for the selected L1 payload.')
+const heroName = computed(() => getTokenDisplayValue(canonicalNameToken.value) || `${activeRegistryEntry.value?.singularLabel || 'Record'} Name`)
+const heroSubtitle = computed(() => {
+  if (isRecordRoute.value) return `${activeRegistryEntry.value?.label || currentView.value?.table_name || 'Record'} Record`
+  return activeRegistryEntry.value?.label || 'Record Shell'
+})
+const heroSecondaryLine = computed(() => {
+  if (isRecordRoute.value) return `Record ID ${recordIdParam.value || '-'}`
+  return 'Expanded record-view skeleton for the selected L1 payload.'
+})
+const heroSummaryValue = computed(() => getTokenDisplayValue(canonicalSummaryToken.value) || 'No summary captured for this record yet.')
+const heroSummaryStatusIcon = computed(() => (getTokenDisplayValue(canonicalSummaryToken.value) ? 'task_alt' : 'schedule'))
 const selectedHeroFieldCards = computed(() =>
   selectedHeroTokens.value.map((token) => {
     const sectionLabel = level2Sections.value.find((section) => section.key === token.parentKey)?.label || 'Field'
-    const aliases = getCanonicalTokenFieldNames(token)
-    const tokenName = String(token?.tokenName || token?.label || '').trim()
     return {
       key: token.key,
       label: token.label,
       description: sectionLabel,
-      value: aliases[0] || tokenName || token.label,
-      statusIcon: 'task_alt',
+      value: getTokenDisplayValue(token),
+      statusIcon: getTokenDisplayValue(token) ? 'task_alt' : 'schedule',
     }
   }),
 )
@@ -468,7 +492,7 @@ const genericHeroNotes = computed(() =>
     id: token.key,
     title: token.label,
     created_at: index === 0 ? 'Selected now' : 'Ready',
-    content: 'Included in the Record Shell hero payload.',
+    content: getTokenDisplayValue(token),
   })),
 )
 const genericHeroDocuments = computed(() => [
@@ -476,12 +500,30 @@ const genericHeroDocuments = computed(() => [
     id: 'record-shell-summary',
     title: 'Summary',
     meta: 'Pinned field',
-    content: 'Summary stays anchored as the closing field in the middle block.',
+    content: heroSummaryValue.value,
   },
 ])
 const feedItems = computed(() => [
-  { id: 'feed-1', feedKey: 'all', sourceLabel: 'Record Shell', meta: 'Now', title: 'Template feed lane', content: 'This right-side black box is the dedicated feed surface for the selected L1 record skeleton.' },
-  { id: 'feed-2', feedKey: 'all', sourceLabel: 'Payload', meta: 'Live', title: 'L1-driven structure', content: 'Changing the L1 at the top swaps the canonical record skeleton underneath this template.' },
+  {
+    id: 'feed-1',
+    feedKey: 'all',
+    sourceLabel: isRecordRoute.value ? 'Record' : 'Record Shell',
+    meta: isRecordRoute.value ? `ID ${recordIdParam.value || '-'}` : 'Now',
+    title: isRecordRoute.value ? (currentView.value?.table_name || activeRegistryEntry.value?.label || 'Record') : 'Template feed lane',
+    content: isRecordRoute.value
+      ? `Viewing ${activeRegistryEntry.value?.singularLabel || 'record'} through the shared Record Shell.`
+      : 'This right-side black box is the dedicated feed surface for the selected L1 record skeleton.',
+  },
+  {
+    id: 'feed-2',
+    feedKey: 'all',
+    sourceLabel: 'Payload',
+    meta: getFieldDisplayValue('updated_at') || getFieldDisplayValue('created_at') || 'Live',
+    title: isRecordRoute.value ? 'Shared record payload' : 'L1-driven structure',
+    content: isRecordRoute.value
+      ? `${fields.value.length} fields loaded from databooks.view(${tableNameParam.value}, ${recordIdParam.value}).`
+      : 'Changing the L1 at the top swaps the canonical record skeleton underneath this template.',
+  },
 ])
 const recordFeedTabOptions = computed(() => [{ id: 'all', label: 'All' }])
 const displayedRecordFeedItems = computed(() => feedItems.value.filter((item) => item.feedKey === activeRecordFeedTab.value))
@@ -498,6 +540,14 @@ const recordShellNavItems = computed(() => [
     }
   }),
 ])
+const createDialogMode = computed(() => (isRecordRoute.value ? 'edit' : 'create'))
+const dialogInitialValues = computed(() => {
+  const tokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  return Object.fromEntries(
+    tokens.map((token) => [token.key, getTokenDialogValue(token)]),
+  )
+})
+const dialogInitialFieldMeta = computed(() => ({}))
 
 watch(level2Sections, (sections) => {
   if (!sections.length) {
@@ -510,6 +560,13 @@ watch(level2Sections, (sections) => {
 }, { immediate: true })
 
 watch(activeSourceKey, async () => { await ensureLiveOptionsLoaded() }, { immediate: true })
+watch(
+  () => `${tableNameParam.value}:${recordIdParam.value}`,
+  () => {
+    loadRecordView()
+  },
+  { immediate: true },
+)
 
 onBeforeUnmount(() => {
   if (typeof window !== 'undefined') {
@@ -540,6 +597,10 @@ function handleDialogChange() {}
 function handleDialogClose() { createDialogOpen.value = false }
 
 async function submitCreateRecord({ values } = {}) {
+  if (isRecordRoute.value) {
+    await submitRecordUpdate(values)
+    return
+  }
   const payload = buildCreatePayload(values)
   if (!Object.keys(payload).length) {
     $q.notify({ type: 'negative', message: 'Add at least one field before creating the record.' })
@@ -559,6 +620,69 @@ async function submitCreateRecord({ values } = {}) {
   } finally {
     createDialogLoading.value = false
   }
+}
+
+async function submitRecordUpdate(values = {}) {
+  const changes = buildRecordUpdateChanges(values)
+  if (!changes.length) {
+    createDialogOpen.value = false
+    $q.notify({ type: 'info', message: 'No record changes to save.' })
+    return
+  }
+  createDialogLoading.value = true
+  try {
+    const result = await bridge.value?.databooks?.update?.({
+      tableName: tableNameParam.value,
+      recordId: recordIdParam.value,
+      changes,
+      actionLabel: 'record_shell_edit_session',
+    })
+    for (const change of changes) {
+      await bridge.value?.verification?.upsert?.({
+        tableName: change.table_name,
+        recordId: change.record_id,
+        fieldName: change.field_name,
+        state: 'verified',
+        source: 'direct_user_input',
+        actionLabel: 'record_shell_edit_session',
+      })
+    }
+    currentView.value = result?.view || currentView.value
+    fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : fields.value
+    createDialogOpen.value = false
+    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
+  } catch (submitError) {
+    const message = normalizeIpcErrorMessage(submitError)
+    error.value = message
+    $q.notify({ type: 'negative', message })
+  } finally {
+    createDialogLoading.value = false
+  }
+}
+
+function buildRecordUpdateChanges(values = {}) {
+  const seenFieldNames = new Set()
+  return [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+    .map((token) => {
+      const field = resolveExistingFieldForToken(token)
+      if (!field || !field.editable) return null
+      const fieldName = String(field.field_name || '').trim()
+      if (!fieldName || seenFieldNames.has(fieldName)) return null
+      seenFieldNames.add(fieldName)
+
+      const previousValue = normalizeDialogValue(field.value)
+      const nextValue = normalizeDialogValue(values?.[token.key])
+      if (previousValue === nextValue) return null
+
+      return {
+        table_name: field.table_name,
+        record_id: field.record_id,
+        field_name: field.field_name,
+        id_column: field.id_column,
+        new_value: nextValue,
+      }
+    })
+    .filter(Boolean)
 }
 
 function buildCreatePayload(values = {}) {
@@ -661,17 +785,102 @@ function normalizeListResult(result) {
 }
 
 function getDefaultSelectedTokenKeys() {
-  if (activeSourceKey.value !== 'users') return []
-  return selectableTokens.value
-    .filter((token) => {
-      const aliases = getCanonicalTokenFieldNames(token).map((value) => String(value || '').trim())
-      const tokenName = String(token?.tokenName || '').trim()
-      return aliases.includes('User_PEmail')
-        || aliases.includes('Role_Name')
-        || aliases.includes('id')
-        || tokenName === 'User_Role'
-    })
-    .map((token) => token.key)
+  if (activeSourceKey.value === 'users') {
+    const preferred = selectableTokens.value
+      .filter((token) => {
+        const aliases = getCanonicalTokenFieldNames(token).map((value) => String(value || '').trim())
+        const tokenName = String(token?.tokenName || '').trim()
+        return aliases.includes('User_PEmail')
+          || aliases.includes('Role_Name')
+          || aliases.includes('id')
+          || tokenName === 'User_Role'
+      })
+      .map((token) => token.key)
+    if (preferred.length) return preferred
+  }
+  return selectableTokens.value.slice(0, 3).map((token) => token.key)
+}
+
+function resolveSourceKeyFromTableName(tableName) {
+  const normalized = String(tableName || '').trim().toLowerCase()
+  if (!normalized) return ''
+  const direct = LEVEL_1_FILE_REGISTRY.find((entry) =>
+    [entry.key, entry.routeName, entry.entityName, entry.label].some((value) => String(value || '').trim().toLowerCase() === normalized),
+  )
+  return direct?.key || ''
+}
+
+function resolveExistingFieldForToken(token) {
+  const aliases = getCanonicalTokenFieldNames(token)
+  return aliases.map((alias) => fieldByName.value[alias]).find(Boolean) || null
+}
+
+function getTokenRawValue(token) {
+  if (!token) return ''
+  const aliases = getCanonicalTokenFieldNames(token)
+  for (const alias of aliases) {
+    const field = fieldByName.value[alias]
+    if (field && field.value != null && String(field.value).trim() !== '') return field.value
+    const recordValue = currentView.value?.record?.[alias]
+    if (recordValue != null && String(recordValue).trim() !== '') return recordValue
+  }
+  return ''
+}
+
+function getTokenDisplayValue(token) {
+  const rawValue = getTokenRawValue(token)
+  if (Array.isArray(rawValue)) return rawValue.length ? rawValue.join(', ') : 'No value yet'
+  const normalized = String(rawValue ?? '').trim()
+  return normalized || 'No value yet'
+}
+
+function getTokenDialogValue(token) {
+  const rawValue = getTokenRawValue(token)
+  if (Array.isArray(rawValue)) return rawValue
+  return rawValue == null ? '' : String(rawValue)
+}
+
+function getFieldDisplayValue(fieldName) {
+  const field = fieldByName.value[String(fieldName || '').trim()]
+  if (field) return String(field.value ?? '').trim()
+  const recordValue = currentView.value?.record?.[fieldName]
+  return recordValue == null ? '' : String(recordValue).trim()
+}
+
+function normalizeDialogValue(value) {
+  if (Array.isArray(value)) return value.map((item) => String(item ?? '')).join(', ')
+  return value == null ? '' : String(value)
+}
+
+function normalizeIpcErrorMessage(ipcError) {
+  const raw = String(ipcError?.message || ipcError || '').trim()
+  const prefix = "Error invoking remote method '"
+  if (!raw.startsWith(prefix)) return raw
+  const separatorIndex = raw.indexOf("':")
+  return separatorIndex > -1 ? raw.slice(separatorIndex + 2).trim() : raw
+}
+
+async function loadRecordView() {
+  if (!hasBridge.value || !isRecordRoute.value) {
+    currentView.value = null
+    fields.value = []
+    error.value = ''
+    return
+  }
+
+  loading.value = true
+  error.value = ''
+  try {
+    const result = await bridge.value.databooks.view(tableNameParam.value, recordIdParam.value)
+    currentView.value = result || null
+    fields.value = Array.isArray(result?.fields) ? result.fields : []
+  } catch (loadError) {
+    error.value = normalizeIpcErrorMessage(loadError)
+    currentView.value = null
+    fields.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
 function hashString(value = '') {
