@@ -1584,6 +1584,12 @@ function closeCreateBranchDialog() {
   activeCreateBranchParentKey.value = ''
 }
 
+function handleOpenCreateBranchDialog(event) {
+  const parentKey = String(event?.detail?.parentKey || '').trim()
+  if (!parentKey) return
+  openCreateBranchDialog(parentKey)
+}
+
 function confirmCreateBranch(branchValue) {
   const parentKey = activeCreateBranchParentKey.value
   closeCreateBranchDialog()
@@ -1751,6 +1757,7 @@ function playQuickWidgetOpen() {
 
 onMounted(() => {
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
+  window.addEventListener('ecvc:open-create-branch-dialog', handleOpenCreateBranchDialog)
   window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
   syncUserNavState()
@@ -1763,6 +1770,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
+  window.removeEventListener('ecvc:open-create-branch-dialog', handleOpenCreateBranchDialog)
   window.removeEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.removeEventListener('resize', onQuickWidgetResize)
   window.removeEventListener('pointermove', onQuickWidgetPointerMove)

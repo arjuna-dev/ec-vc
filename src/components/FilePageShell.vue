@@ -148,8 +148,6 @@
         :disabled="false"
         :loading="loading"
         :add-disabled="!canCreateWithShell"
-        :add-options="toolbarCreateBranchOptions"
-        :add-menu-title="toolbarCreateBranchTitle"
         :search-query="searchQuery"
         :search-placeholder="searchPlaceholder"
         :view-mode="viewMode"
@@ -1025,11 +1023,6 @@ const canCreateWithShell = computed(() => {
     return branchEntries.some((branch) => Boolean(bridge.value?.[String(branch?.targetSourceKey || '').trim()]?.create))
   }
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
-})
-const toolbarCreateBranchOptions = computed(() => getCreateBranches(activeSourceKey.value))
-const toolbarCreateBranchTitle = computed(() => {
-  const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || activeRegistryEntry.value?.singularLabel || 'Type').trim()
-  return `Choose ${branchLabel}`
 })
 
 function getEditDialogTokenValueFromPayload(payload, token) {
@@ -2067,6 +2060,14 @@ function requestCreateRecordShell(options = {}) {
   }
 
   const requestedBranch = String(options?.kind || '').trim().toLowerCase()
+  if (!requestedBranch && getCreateBranches(activeSourceKey.value).length) {
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('ecvc:open-create-branch-dialog', {
+        detail: { parentKey: activeSourceKey.value },
+      }))
+    }
+    return
+  }
   if (getCreateBranchEntry(activeSourceKey.value, requestedBranch)) {
     router.push({
       name: 'dialog-shell',
