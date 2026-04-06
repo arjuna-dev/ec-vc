@@ -132,6 +132,20 @@
         </div>
       </article>
 
+      <article class="components-shell-page__card components-shell-page__card--stat-box">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l3-box')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">L3 Box</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
+          <article class="components-shell-page__stat-box components-shell-page__stat-box--sparse">
+            <div class="components-shell-page__stat-box-label">L3</div>
+            <div class="components-shell-page__stat-box-value">128</div>
+            <div class="components-shell-page__stat-box-caption">Canonical tokens</div>
+          </article>
+        </div>
+      </article>
+
       <article class="components-shell-page__card components-shell-page__card--toolbar-wide">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('file-toolbar')">
           <q-icon name="visibility" />
@@ -421,6 +435,12 @@ const componentDetailsById = {
     summary: 'Use this for file-level hero dashboards showing title, copy, stats, and health.',
     prompt: 'Render the File Dashboard component from Components Shell using the real FilePageHeroDashboard surface, preserving its hero, stats, and health structure.',
   },
+  'l3-box': {
+    id: 'cmp-l3-box',
+    title: 'L3 Box',
+    summary: 'Use this for the standalone L3 stat card that appears inside the shell dashboard metrics strip.',
+    prompt: 'Render the L3 Box from Components Shell exactly, using the same compact dashboard stat-card treatment with label, large value, and caption.',
+  },
   'file-toolbar': {
     id: 'cmp-file-toolbar',
     title: 'File Toolbar',
@@ -574,6 +594,11 @@ onBeforeUnmount(() => {
 .components-shell-page__card--dashboard {
   grid-column: span 6;
   grid-row: span 4;
+}
+
+.components-shell-page__card--stat-box {
+  grid-column: span 2;
+  grid-row: span 2;
 }
 
 .components-shell-page__card--live-link {
@@ -785,6 +810,45 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-black);
   line-height: 1;
   letter-spacing: -0.02em;
+}
+
+.components-shell-page__stat-box {
+  display: flex;
+  min-height: 116px;
+  width: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+}
+
+.components-shell-page__stat-box-label {
+  color: var(--ds-color-text-muted, rgba(17, 17, 17, 0.62));
+  font-family: var(--ds-font-family-body, var(--font-body));
+  font-size: var(--ds-font-size-xs-medium, 0.72rem);
+  font-weight: var(--ds-font-weight-medium, 500);
+  line-height: var(--ds-line-height-xs, 1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.components-shell-page__stat-box-value {
+  color: var(--ds-color-text-primary, #111111);
+  font-family: var(--ds-font-family-title, var(--font-title));
+  font-size: clamp(1.8rem, 2vw, 2.4rem);
+  font-weight: var(--ds-font-weight-black, 900);
+  line-height: 0.92;
+}
+
+.components-shell-page__stat-box-caption {
+  color: var(--ds-color-text-secondary, rgba(17, 17, 17, 0.72));
+  font-family: var(--ds-font-family-body, var(--font-body));
+  font-size: var(--ds-font-size-sm-regular, 0.84rem);
+  font-weight: var(--ds-font-weight-regular, 400);
+  line-height: var(--ds-line-height-sm, 1.35);
 }
 
 .components-shell-page__live-link-wrap {
