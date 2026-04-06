@@ -304,6 +304,27 @@ Only the literal `Live Shell` should switch `L1` through the shell selector.
 
 Normal file pages should not inherit the last chosen shell source from `Live Shell`.
 
+## Shared Shell Styling Rule
+
+Shared shell visuals should be fixed at shell level.
+
+That means:
+
+- `L1` should not control shell theme changes
+- `L1` should not control avatar color changes
+- shell styling should come from one shell contract
+
+`L1` is allowed to change only:
+
+- payload
+- labels
+- section/token membership
+- declared capabilities, when explicitly approved
+
+Working rule:
+
+- if switching `L1` changes shell visuals, treat that as contract drift unless it was explicitly approved as a shell capability
+
 ## Game Layer
 
 The product is also moving toward a game-styled guidance layer.

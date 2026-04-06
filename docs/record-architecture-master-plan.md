@@ -208,6 +208,18 @@ Universal shell rule:
 - do not solve these gaps with page-level or record-level one-offs
 - if a token needs runtime mapping, declare it in canon and workbook companion so every shell reads the same contract
 
+Shell styling rule:
+
+- shell styling must stay fixed at shell level
+- do not map `L1` to shell theme changes
+- do not map `L1` to avatar color changes
+- `L1` may change:
+  - payload
+  - labels
+  - section/token membership
+  - declared capabilities, when explicitly approved
+- `L1` should not silently restyle the shell
+
 ## KDB Relationship Contract
 
 KDB relationships must now be treated as real system paths, not as optional UI affordances.
