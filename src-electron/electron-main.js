@@ -4932,6 +4932,138 @@ function listEvents(filters = {}) {
     }))
 }
 
+const EVENT_RELATION_FIELD_BY_ENTITY_LABEL = Object.freeze({
+  User: 'Event_User',
+  Contact: 'Event_Contact',
+  Company: 'Event_Company',
+  Artifact: 'Event_Artifact',
+  Opportunity: 'Event_Opportunity',
+  Fund: 'Event_Fund',
+  Round: 'Event_Round',
+  Project: 'Event_Project',
+  Task: 'Event_Task',
+  Note: 'Event_Note',
+  Role: 'Event_Role',
+  Market: 'Event_Financial_Industry',
+  Security: 'Event_Round_Security',
+  'Processed Artifact': 'Event_Processed_Artifact',
+  Ingestion: 'Event_Processed_Artifact',
+})
+
+function appendUniqueEventRelation(target, fieldName, values) {
+  const normalizedFieldName = normalizeNullableString(fieldName)
+  if (!normalizedFieldName) return
+  const nextValues = Array.isArray(values) ? values : [values]
+  const normalizedValues = nextValues.map((value) => normalizeNullableString(value)).filter(Boolean)
+  if (!normalizedValues.length) return
+  const existing = Array.isArray(target[normalizedFieldName]) ? target[normalizedFieldName] : []
+  target[normalizedFieldName] = Array.from(new Set([...existing, ...normalizedValues]))
+}
+
+function buildEventShellSummary({ actorLabel, recordLabel, fieldLabel, actionLabel, nextValue, previousValue }) {
+  const action = normalizeNullableString(actionLabel)?.toLowerCase() || ''
+  if (action.includes('create')) {
+    return {
+      title: `Created ${recordLabel || 'record'}`,
+      summary: `${actorLabel || 'User'} created ${recordLabel || 'record'}`,
+    }
+  }
+
+  if (action.includes('verification')) {
+    return {
+      title: `Verified ${fieldLabel || 'field'}`,
+      summary: nextValue
+        ? `${actorLabel || 'User'} verified "${nextValue}" as ${fieldLabel || 'field'} for ${recordLabel || 'record'}`
+        : `${actorLabel || 'User'} verified ${fieldLabel || 'field'} for ${recordLabel || 'record'}`,
+    }
+  }
+
+  if (!previousValue && nextValue) {
+    return {
+      title: `Added ${fieldLabel || 'field'}`,
+      summary: `${actorLabel || 'User'} added "${nextValue}" as ${fieldLabel || 'field'} for ${recordLabel || 'record'}`,
+    }
+  }
+
+  if (previousValue && !nextValue) {
+    return {
+      title: `Cleared ${fieldLabel || 'field'}`,
+      summary: `${actorLabel || 'User'} cleared ${fieldLabel || 'field'} for ${recordLabel || 'record'}`,
+    }
+  }
+
+  if (nextValue) {
+    return {
+      title: `Updated ${fieldLabel || 'field'}`,
+      summary: `${actorLabel || 'User'} updated ${fieldLabel || 'field'} to "${nextValue}" for ${recordLabel || 'record'}`,
+    }
+  }
+
+  return {
+    title: `Updated ${fieldLabel || 'record'}`,
+    summary: `${actorLabel || 'User'} updated ${fieldLabel || 'record'} for ${recordLabel || 'record'}`,
+  }
+}
+
+function listEventRows(limit = 200) {
+  const database = initDb()
+  const events = listEvents({ limit })
+  return events.map((event) => {
+    const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {}
+    const actorLabel =
+      normalizeNullableString(payload.actor_label) ||
+      resolveAuditActorDisplayLabel(database, event?.edited_by)
+    const recordLabel =
+      normalizeNullableString(payload.record_label) ||
+      normalizeNullableString(event?.record_id) ||
+      'Record'
+    const entityLabel = normalizeNullableString(payload.entity_label)
+    const fieldLabel =
+      normalizeNullableString(payload.field_label) ||
+      formatDatabookFieldLabel(String(event?.field_name || '').replace(/__verification$/, ''))
+    const nextValue = normalizeNullableString(payload.new_display_value)
+    const previousValue = normalizeNullableString(payload.old_display_value)
+    const { title, summary } = buildEventShellSummary({
+      actorLabel,
+      recordLabel,
+      fieldLabel,
+      actionLabel: event?.action_label,
+      nextValue,
+      previousValue,
+    })
+
+    const row = {
+      id: normalizeNullableString(event?.id),
+      Event_Name: title,
+      Event_Summary: summary,
+      actor_label: actorLabel,
+      field_label: fieldLabel,
+      action_label: normalizeNullableString(event?.action_label),
+      edited_at: normalizeNullableString(event?.edited_at),
+      source_table_name: normalizeNullableString(event?.table_name),
+      source_record_id: normalizeNullableString(event?.record_id),
+      payload_json: normalizeNullableString(event?.payload_json),
+    }
+
+    appendUniqueEventRelation(row, 'Event_User', actorLabel)
+
+    const sourceFieldName = EVENT_RELATION_FIELD_BY_ENTITY_LABEL[entityLabel]
+    if (sourceFieldName) appendUniqueEventRelation(row, sourceFieldName, recordLabel)
+
+    const relationshipTargetLabel = normalizeNullableString(payload.relationship_target_label)
+    const relationshipFieldName = EVENT_RELATION_FIELD_BY_ENTITY_LABEL[relationshipTargetLabel]
+    const impactedValues =
+      Array.isArray(payload.new_display_values) && payload.new_display_values.length
+        ? payload.new_display_values
+        : Array.isArray(payload.old_display_values)
+          ? payload.old_display_values
+          : []
+    if (relationshipFieldName) appendUniqueEventRelation(row, relationshipFieldName, impactedValues)
+
+    return row
+  })
+}
+
 function listFieldVerificationMetadata({ tableName, recordId } = {}) {
   const database = initDb()
   const normalizedTableName = normalizeNullableString(tableName)
@@ -6799,6 +6931,11 @@ function registerIpc() {
     const result = deleteRow('Projects', 'id', pid)
     await syncWorkspaceWorkbooksSafe()
     return result
+  })
+
+  ipcMain.handle('events:list', async (_event, { limit } = {}) => {
+    initDb()
+    return { events: listEventRows(limit) }
   })
 
   ipcMain.handle('companies:list', async () => {

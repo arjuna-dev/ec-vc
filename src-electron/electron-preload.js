@@ -71,6 +71,9 @@ contextBridge.exposeInMainWorld('ecvc', {
     create: (payload) => ipcRenderer.invoke('projects:create', payload),
     delete: (pipelineId) => ipcRenderer.invoke('projects:delete', { projectId: pipelineId }),
   },
+  events: {
+    list: ({ limit } = {}) => ipcRenderer.invoke('events:list', { limit }),
+  },
   companies: {
     list: () => ipcRenderer.invoke('companies:list'),
     create: (payload) => ipcRenderer.invoke('companies:create', payload),

@@ -10,6 +10,7 @@ const routes = [
       { path: 'settings', redirect: { name: 'avatar' } },
       { path: '', name: 'home', component: () => import('pages/HomePage.vue') },
       { path: 'file-system', name: 'file-system', component: () => import('pages/IndexPage.vue') },
+      { path: 'events', name: 'events', component: () => import('pages/EventsPage.vue') },
       { path: 'pipelines', redirect: { name: 'projects' } },
       { path: 'projects', name: 'projects', component: () => import('pages/ProjectsPage.vue') },
       { path: 'opportunities', name: 'opportunities', component: () => import('pages/OpportunitiesPage.vue') },

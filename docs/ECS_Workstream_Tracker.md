@@ -354,3 +354,4 @@ Architectural note:
 - the event log is a strong `L0` candidate because the earliest meaningful operational event can be things like `Owner created`, with later state and verification history building on top of that layer
 - `L0` should be understood as provenance/history, not as another editable business-content layer
 - conceptually this fits best with the second-tier / knowledge-system side of the product, because it explains how a record came into being and changed over time
+- `L0 Events` now also has a route-owned `File View` through the shared `L1` shell so the event layer can be browsed like the other shell sources instead of living only as an embedded feed

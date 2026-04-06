@@ -49,6 +49,7 @@
         :some-visible-selected="someVisibleSelected"
         :disabled="false"
         :loading="loading"
+        :add-disabled="!canCreateWithShell"
         :search-query="searchQuery"
         :search-placeholder="searchPlaceholder"
         :view-mode="viewMode"
@@ -160,7 +161,7 @@
                   dense
                   icon="edit"
                   class="test-shell-card__control-edit"
-                  :disable="!row.recordId"
+                  :disable="!row.recordId || !supportsActiveSourceEditing"
                   @click="openEditRecordShell(row)"
                 />
               </div>
@@ -386,7 +387,7 @@
                   :options="summarySectionShellOptions"
                   @update:model-value="setRowRelationshipPanel(row, $event)"
                 />
-                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" @click="openAddRelationShell(row)">
+                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" :disable="!supportsActiveSourceEditing" @click="openAddRelationShell(row)">
                   <span class="test-shell-card__summary-add-relation-plus">
                     <q-icon name="add" />
                   </span>
@@ -675,6 +676,11 @@ const DEFAULT_COLUMN_MIN_WIDTH = 120
 const NAME_COLUMN_MIN_WIDTH = 188
 
 const SECTION_LOADERS = {
+  events: {
+    listFn: (bridgeValue) => bridgeValue?.events?.list?.(),
+    resultKey: 'events',
+    recordIdField: 'id',
+  },
   users: {
     listFn: (bridgeValue) => bridgeValue?.users?.list?.(),
     resultKey: 'users',
@@ -788,6 +794,7 @@ const hasSupportedBridge = computed(() => {
   if (!activeLoader.value) return false
   return typeof activeLoader.value.listFn(bridge.value) !== 'undefined'
 })
+const supportsActiveSourceEditing = computed(() => activeSourceKey.value !== 'events')
 
 const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
@@ -1849,6 +1856,20 @@ function updateTestShellCardGradientPosition(event) {
 
 function openRecordView(row) {
   if (!row?.recordId || !activeRegistryEntry.value?.entityName) return
+  if (activeSourceKey.value === 'events') {
+    const sourceTableName = String(row?.raw?.source_table_name || '').trim()
+    const sourceRecordId = String(row?.raw?.source_record_id || '').trim()
+    if (!sourceTableName || !sourceRecordId) return
+    router.push({
+      name: 'record-event',
+      params: {
+        tableName: sourceTableName,
+        recordId: sourceRecordId,
+        eventId: row.recordId,
+      },
+    })
+    return
+  }
   const cardFields = selectedCardItemTokens.value.map((token) => String(token?.tokenName || '').trim()).filter(Boolean)
   const location = buildRecordViewLocation({
       tableName: activeRegistryEntry.value.entityName,
@@ -1861,6 +1882,10 @@ function openRecordView(row) {
 }
 
 function openCreateRecordShell(options = {}) {
+  if (!canCreateWithShell.value) {
+    $q.notify({ type: 'negative', message: 'This shell source is view-only.' })
+    return
+  }
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'create'
   editDialogRow.value = null
@@ -1874,6 +1899,7 @@ function openCreateRecordShell(options = {}) {
 }
 
 async function openEditRecordShell(row) {
+  if (!supportsActiveSourceEditing.value) return
   if (!row?.recordId) return
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
@@ -1908,6 +1934,7 @@ async function openEditRecordShell(row) {
 }
 
 async function openAddRelationShell(row) {
+  if (!supportsActiveSourceEditing.value) return
   if (!row?.recordId) return
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'

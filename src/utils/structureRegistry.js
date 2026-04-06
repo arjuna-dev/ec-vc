@@ -1,6 +1,16 @@
 import canonicalStructure from '../../docs/canonical-structure.json'
 
 const FILE_PAGE_ROUTE_META = Object.freeze({
+  Events: {
+    key: 'events',
+    label: 'Events',
+    singularLabel: 'Event',
+    routeName: 'events',
+    path: '/events',
+    icon: 'history',
+    showInWorkspaceNav: true,
+    shellGroup: 'knowledge_db',
+  },
   Users: { key: 'users', label: 'Users', singularLabel: 'User', routeName: 'users', path: '/users', icon: 'badge', showInWorkspaceNav: true, shellGroup: 'first_order' },
   Artifacts: {
     key: 'artifacts',
@@ -87,7 +97,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   },
 })
 
-const FILE_PAGE_ENTITY_ORDER = ['Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Roles', 'Financial_Industries', 'Round_Securities', 'Artifacts_Processed']
+const FILE_PAGE_ENTITY_ORDER = ['Events', 'Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Roles', 'Financial_Industries', 'Round_Securities', 'Artifacts_Processed']
 
 function normalizeSubsections(entity) {
   const subsections = entity?.subsections
@@ -281,7 +291,7 @@ export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
   ),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'roles', 'industries', 'securities', 'artifacts-processed']
+const TEST_SHELL_RENDERABLE_KEYS = ['events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'roles', 'industries', 'securities', 'artifacts-processed']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({
@@ -325,6 +335,8 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
   if (!normalized) return ''
 
   const aliasMap = {
+    events: 'Events',
+    event: 'Events',
     companies: 'Companies',
     company: 'Companies',
     contacts: 'Contacts',

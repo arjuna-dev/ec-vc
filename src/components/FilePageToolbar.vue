@@ -10,7 +10,7 @@
         class="file-page-toolbar__select-all"
         @update:model-value="$emit('toggle-select-all', $event)"
       />
-      <q-btn no-caps unelevated class="file-page-toolbar__add-button" :disable="loading" @click="$emit('add')">
+      <q-btn no-caps unelevated class="file-page-toolbar__add-button" :disable="loading || addDisabled" @click="$emit('add')">
         <span class="file-page-toolbar__add-button-inner">
           <span class="file-page-toolbar__add-button-plus">
             <q-icon name="add" />
@@ -62,6 +62,7 @@ defineProps({
   someVisibleSelected: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
+  addDisabled: { type: Boolean, default: false },
   addLabel: { type: String, default: 'Add Record' },
   searchQuery: { type: String, default: '' },
   searchPlaceholder: { type: String, default: 'Search [file/Record]' },

@@ -13,6 +13,81 @@
   },
   "entities": [
     {
+      "level_1": "0",
+      "entity": "Events",
+      "entity_address": "0.0.0",
+      "subsections": {
+        "0.0.0": {
+          "level_2": "0",
+          "subsection": "na",
+          "subsection_address": "0.0.0",
+          "parent_id": "null",
+          "tokens": [
+            {
+              "index": "",
+              "level_3": "0",
+              "address": "0.0.0",
+              "token_name": "Event",
+              "token_type": "structure",
+              "node_type": "structure",
+              "level": "1",
+              "parent_id": "null"
+            }
+          ]
+        },
+        "0.1.0": {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "0.1.0",
+          "parent_id": "0.1.0",
+          "tokens": [
+            { "index": "", "level_3": "1", "address": "0.1.1", "token_name": "Event_ID", "token_type": "id", "node_type": "leaf", "level": "3", "parent_id": "0.1.0", "db_field_aliases": ["id"] },
+            { "index": "", "level_3": "2", "address": "0.1.2", "token_name": "Event_Actor", "token_type": "text", "node_type": "leaf", "level": "3", "parent_id": "0.1.0", "db_field_aliases": ["actor_label"] },
+            { "index": "", "level_3": "3", "address": "0.1.3", "token_name": "Event_Datetime", "token_type": "datetime", "node_type": "leaf", "level": "3", "parent_id": "0.1.0", "db_field_aliases": ["edited_at"] },
+            { "index": "", "level_3": "4", "address": "0.1.4", "token_name": "Event_Source_Table", "token_type": "text", "node_type": "leaf", "level": "3", "parent_id": "0.1.0", "db_field_aliases": ["source_table_name"] },
+            { "index": "", "level_3": "5", "address": "0.1.5", "token_name": "Event_Source_Record_ID", "token_type": "text", "node_type": "leaf", "level": "3", "parent_id": "0.1.0", "db_field_aliases": ["source_record_id"] },
+            { "index": "", "level_3": "0", "address": "0.1.0", "token_name": "Event_System", "token_type": "structure", "node_type": "structure", "level": "2", "parent_id": "0.0.0" }
+          ]
+        },
+        "0.2.0": {
+          "level_2": "2",
+          "subsection": "KDB",
+          "subsection_address": "0.2.0",
+          "parent_id": "0.2.0",
+          "tokens": [
+            { "index": "", "level_3": "1", "address": "0.2.1", "token_name": "Event_User", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Users", "relationship_group": "first_order" },
+            { "index": "", "level_3": "2", "address": "0.2.2", "token_name": "Event_Contact", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Contacts", "relationship_group": "first_order" },
+            { "index": "", "level_3": "3", "address": "0.2.3", "token_name": "Event_Company", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Companies", "relationship_group": "first_order" },
+            { "index": "", "level_3": "4", "address": "0.2.4", "token_name": "Event_Artifact", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Artifacts", "relationship_group": "first_order" },
+            { "index": "", "level_3": "5", "address": "0.2.5", "token_name": "Event_Opportunity", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Opportunities", "relationship_group": "first_order" },
+            { "index": "", "level_3": "6", "address": "0.2.6", "token_name": "Event_Fund", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Funds", "relationship_group": "first_order" },
+            { "index": "", "level_3": "7", "address": "0.2.7", "token_name": "Event_Round", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Rounds", "relationship_group": "first_order" },
+            { "index": "", "level_3": "8", "address": "0.2.8", "token_name": "Event_Project", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Projects", "relationship_group": "first_order" },
+            { "index": "", "level_3": "9", "address": "0.2.9", "token_name": "Event_Task", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Tasks", "relationship_group": "first_order" },
+            { "index": "", "level_3": "10", "address": "0.2.10", "token_name": "Event_Note", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Notes", "relationship_group": "first_order" },
+            { "index": "", "level_3": "11", "address": "0.2.11", "token_name": "Event_Role", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Roles", "relationship_group": "first_order" },
+            { "index": "", "level_3": "12", "address": "0.2.12", "token_name": "Event_Financial_Industry", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Financial_Industries", "relationship_group": "knowledge_db" },
+            { "index": "", "level_3": "13", "address": "0.2.13", "token_name": "Event_Round_Security", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Round_Securities", "relationship_group": "knowledge_db" },
+            { "index": "", "level_3": "14", "address": "0.2.14", "token_name": "Event_Processed_Artifact", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Artifacts_Processed", "relationship_group": "knowledge_db" },
+            { "index": "", "level_3": "0", "address": "0.2.0", "token_name": "Event_KDB", "token_type": "structure", "node_type": "structure", "level": "2", "parent_id": "0.0.0" }
+          ]
+        },
+        "0.3.0": {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "0.3.0",
+          "parent_id": "0.3.0",
+          "tokens": [
+            { "index": "", "level_3": "1", "address": "0.3.1", "token_name": "Event_Name", "token_type": "text", "node_type": "leaf", "level": "3", "parent_id": "0.3.0", "db_field_aliases": ["Event_Name"] },
+            { "index": "", "level_3": "2", "address": "0.3.2", "token_name": "Event_Summary", "token_type": "text", "node_type": "leaf", "level": "3", "parent_id": "0.3.0", "db_field_aliases": ["Event_Summary"] },
+            { "index": "", "level_3": "3", "address": "0.3.3", "token_name": "Event_Field", "token_type": "text", "node_type": "leaf", "level": "3", "parent_id": "0.3.0", "db_field_aliases": ["field_label"] },
+            { "index": "", "level_3": "4", "address": "0.3.4", "token_name": "Event_Action", "token_type": "text", "node_type": "leaf", "level": "3", "parent_id": "0.3.0", "db_field_aliases": ["action_label"] },
+            { "index": "", "level_3": "0", "address": "0.3.0", "token_name": "Event_General", "token_type": "structure", "node_type": "structure", "level": "2", "parent_id": "0.0.0" }
+          ]
+        }
+      }
+    },
+    {
       "level_1": "1",
       "entity": "Artifacts",
       "entity_address": "1.0.0",
