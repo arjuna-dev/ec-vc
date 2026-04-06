@@ -607,6 +607,7 @@ import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vu
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import {
   CANONICAL_OPTION_LISTS,
+  getCreateBranches,
   getCanonicalTokenFieldNames,
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
@@ -963,6 +964,16 @@ function setTokenSelected(tokenKey, isSelected) {
 }
 
 function openCreateRecordDialog() {
+  if (getCreateBranches(activeSourceKey.value).length) {
+    router.push({
+      name: 'dialog-shell',
+      query: {
+        section: activeSourceKey.value,
+        create: String(Date.now()),
+      },
+    })
+    return
+  }
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }

@@ -710,6 +710,8 @@ import {
 } from 'src/utils/card-kdb-relationships'
 import {
   CANONICAL_OPTION_LISTS,
+  getCreateBranchEntry,
+  getCreateBranches,
   getCreateBranchTokenName,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByRouteName,
@@ -1016,7 +1018,10 @@ const expandedCardSettingsGroups = computed(() => {
   return Array.isArray(existing) ? existing : cardItemTokenGroups.value.map((group) => group.key)
 })
 const canCreateWithShell = computed(() => {
-  if (activeSourceKey.value === 'opportunities') return Boolean(bridge.value?.funds?.create || bridge.value?.rounds?.create)
+  const branchEntries = getCreateBranches(activeSourceKey.value)
+  if (branchEntries.length) {
+    return branchEntries.some((branch) => Boolean(bridge.value?.[String(branch?.targetSourceKey || '').trim()]?.create))
+  }
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
 
@@ -1567,16 +1572,17 @@ watch(
     await preloadCreateDialogOptionSources()
 
     const nextInitialValues = {}
-    if (activeSourceKey.value === 'opportunities') {
-      const requestedKind = String(route.query.kind || '').trim().toLowerCase()
-      const opportunityKindToken =
-        [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
-          (token) => String(token?.tokenName || '').trim() === 'Opportunity_Kind',
+    const requestedBranch = String(route.query.kind || '').trim().toLowerCase()
+    const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
+    const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
+    const branchToken = branchTokenName
+      ? [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+          (token) => String(token?.tokenName || '').trim() === branchTokenName,
         ) || null
+      : null
 
-      if (opportunityKindToken && (requestedKind === 'fund' || requestedKind === 'round')) {
-        nextInitialValues[opportunityKindToken.key] = resolveCreateDialogOptionValue(opportunityKindToken, requestedKind)
-      }
+    if (branchToken && branchEntry) {
+      nextInitialValues[branchToken.key] = resolveCreateDialogOptionValue(branchToken, branchEntry.value)
     }
 
     openCreateRecordShell({ initialValues: nextInitialValues })
@@ -2057,9 +2063,9 @@ function requestCreateRecordShell(options = {}) {
     ...route.query,
     create: String(Date.now()),
   }
-  const requestedKind = String(options?.kind || '').trim().toLowerCase()
-  if (activeSourceKey.value === 'opportunities' && (requestedKind === 'fund' || requestedKind === 'round')) {
-    nextQuery.kind = requestedKind
+  const requestedBranch = String(options?.kind || '').trim().toLowerCase()
+  if (getCreateBranchEntry(activeSourceKey.value, requestedBranch)) {
+    nextQuery.kind = requestedBranch
   } else {
     delete nextQuery.kind
   }
@@ -2234,14 +2240,13 @@ async function submitCreateRecordShell({ values, verification } = {}) {
       const sourceKey = activeSourceKey.value
       let result = null
 
-      if (sourceKey === 'opportunities') {
-        const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
-        if (kind === 'fund') result = await bridge.value?.funds?.create?.(payload)
-        else if (kind === 'round') result = await bridge.value?.rounds?.create?.(payload)
-        else {
-          $q.notify({ type: 'negative', message: 'Choose Opportunity Kind as Fund or Round before creating.' })
-          return
-        }
+      const branchTarget = resolveCreateBranchTarget(payload)
+      if (branchTarget?.targetSourceKey) {
+        result = await bridge.value?.[branchTarget.targetSourceKey]?.create?.(payload)
+      } else if (getCreateBranches(sourceKey).length) {
+        const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Type').trim()
+        $q.notify({ type: 'negative', message: `Choose ${branchLabel} before creating.` })
+        return
       } else {
         result = await bridge.value?.[sourceKey]?.create?.(payload)
       }
@@ -2333,13 +2338,24 @@ function buildCreateDialogAutosaveSignature(payload = {}, recordId = '', entityN
   })
 }
 
+function resolveCreateBranchTarget(payload = {}) {
+  const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
+  const branchEntry = branchTokenName
+    ? getCreateBranchEntry(activeSourceKey.value, payload?.[branchTokenName] || payload?.kind)
+    : null
+  const targetSourceKey = String(branchEntry?.targetSourceKey || '').trim()
+  return targetSourceKey
+    ? {
+        targetSourceKey,
+        entityName: getFilePageRegistryEntry(targetSourceKey)?.entityName || '',
+      }
+    : null
+}
+
 function resolveCreateDialogEntityName(payload = {}) {
   if (createDialogDraftEntityName.value) return createDialogDraftEntityName.value
-  if (activeSourceKey.value === 'opportunities') {
-    const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
-    if (kind === 'fund') return 'Funds'
-    if (kind === 'round') return 'Rounds'
-  }
+  const branchTarget = resolveCreateBranchTarget(payload)
+  if (branchTarget?.entityName) return branchTarget.entityName
   return activeRegistryEntry.value?.entityName || ''
 }
 
@@ -2359,17 +2375,13 @@ async function createRecordFromPayload(payload = {}) {
   let result = null
   let entityName = activeRegistryEntry.value?.entityName || ''
 
-  if (sourceKey === 'opportunities') {
-    const kind = String(payload.Opportunity_Kind || payload.kind || '').trim().toLowerCase()
-    if (kind === 'fund') {
-      result = await bridge.value?.funds?.create?.(payload)
-      entityName = 'Funds'
-    } else if (kind === 'round') {
-      result = await bridge.value?.rounds?.create?.(payload)
-      entityName = 'Rounds'
-    } else {
-      throw new Error('Choose Opportunity Kind as Fund or Round before creating.')
-    }
+  const branchTarget = resolveCreateBranchTarget(payload)
+  if (branchTarget?.targetSourceKey) {
+    result = await bridge.value?.[branchTarget.targetSourceKey]?.create?.(payload)
+    entityName = branchTarget.entityName || entityName
+  } else if (getCreateBranches(sourceKey).length) {
+    const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Type').trim()
+    throw new Error(`Choose ${branchLabel} before creating.`)
   } else {
     result = await bridge.value?.[sourceKey]?.create?.(payload)
   }

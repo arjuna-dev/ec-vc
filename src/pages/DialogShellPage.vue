@@ -42,6 +42,8 @@ import { useRoute } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import {
   CANONICAL_OPTION_LISTS,
+  getCreateBranchEntry,
+  getCreateBranches,
   getCreateBranchTokenName,
   getCanonicalTokenFieldNames,
   getFilePageRegistryEntry,
@@ -105,7 +107,13 @@ const createSectionGroups = computed(() =>
   }),
 )
 const dialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
-const canCreateWithShell = computed(() => Boolean(bridge.value?.[activeSourceKey.value]?.create))
+const canCreateWithShell = computed(() => {
+  const branchEntries = getCreateBranches(activeSourceKey.value)
+  if (branchEntries.length) {
+    return branchEntries.some((branch) => Boolean(bridge.value?.[String(branch?.targetSourceKey || '').trim()]?.create))
+  }
+  return Boolean(bridge.value?.[activeSourceKey.value]?.create)
+})
 const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.databooks?.update))
 const dialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || 'key-fields',
@@ -127,16 +135,17 @@ watch(activeSourceKey, async () => {
 }, { immediate: true })
 
 watch(
-  [activeSourceKey, createKeyFieldTokens, createSectionGroups, () => route.query.edit, () => route.query.entity, () => route.query.editSection],
+  [activeSourceKey, createKeyFieldTokens, createSectionGroups, () => route.query.edit, () => route.query.entity, () => route.query.editSection, () => route.query.kind],
   async ([, , , editRecordId, editEntityName, editSection]) => {
     const normalizedRecordId = String(editRecordId || '').trim()
     if (!normalizedRecordId) {
       dialogMode.value = 'create'
       dialogRecordId.value = ''
       dialogEntityName.value = ''
-      dialogInitialValues.value = {}
+      dialogInitialValues.value = buildCreateDialogInitialValues()
       dialogInitialFieldMeta.value = {}
       dialogInitialSectionKey.value = 'key-fields'
+      dialogRenderKey.value += 1
       return
     }
 
@@ -159,6 +168,24 @@ watch(
   },
   { immediate: true },
 )
+
+function buildCreateDialogInitialValues() {
+  const nextInitialValues = {}
+  const requestedBranch = String(route.query.kind || '').trim().toLowerCase()
+  const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
+  const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
+  const branchToken = branchTokenName
+    ? [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+        (token) => String(token?.tokenName || '').trim() === branchTokenName,
+      ) || null
+    : null
+
+  if (branchToken && branchEntry) {
+    nextInitialValues[branchToken.key] = resolveCreateDialogOptionValue(branchToken, branchEntry.value)
+  }
+
+  return nextInitialValues
+}
 
 function reopenDialogShell() {
   dialogOpen.value = true
@@ -362,14 +389,14 @@ async function submitCreateRecord(values = {}) {
   dialogLoading.value = true
   try {
     let result = null
-    if (activeSourceKey.value === 'opportunities') {
-      const kind = String(values?.[branchSelectorTokenKey.value] || '').trim().toLowerCase()
-      if (kind === 'fund') result = await bridge.value?.funds?.create?.(payload)
-      else if (kind === 'round') result = await bridge.value?.rounds?.create?.(payload)
-      else {
-        $q.notify({ type: 'negative', message: 'Choose Opportunity Type as Fund or Round before continuing.' })
+    const branchEntry = getCreateBranchEntry(activeSourceKey.value, values?.[branchSelectorTokenKey.value])
+    if (branchSelectorTokenKey.value) {
+      const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Type').trim()
+      if (!branchEntry?.targetSourceKey) {
+        $q.notify({ type: 'negative', message: `Choose ${branchLabel} before continuing.` })
         return
       }
+      result = await bridge.value?.[branchEntry.targetSourceKey]?.create?.(payload)
     } else {
       result = await bridge.value?.[activeSourceKey.value]?.create?.(payload)
     }

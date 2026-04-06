@@ -47,8 +47,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     relationshipSourcePrefixes: ['Opportunity', 'Fund', 'Round'],
     shellGroup: 'first_order',
     createBranches: [
-      { value: 'fund', label: 'Fund', icon: 'account_balance_wallet' },
-      { value: 'round', label: 'Round', icon: 'donut_large' },
+      { value: 'fund', label: 'Fund', icon: 'account_balance_wallet', targetSourceKey: 'funds' },
+      { value: 'round', label: 'Round', icon: 'donut_large', targetSourceKey: 'rounds' },
     ],
   },
   Funds: { key: 'funds', label: 'Funds', singularLabel: 'Fund', routeName: 'funds', path: '/funds', icon: 'account_balance', showInWorkspaceNav: false, shellGroup: 'first_order' },
@@ -383,6 +383,16 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
 export function getCreateBranchTokenName(sourceKey = '') {
   const entry = getFilePageRegistryEntry(sourceKey)
   return String(entry?.createBranchTokenName || '').trim()
+}
+
+export function getCreateBranches(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  return Array.isArray(entry?.createBranches) ? entry.createBranches : []
+}
+
+export function getCreateBranchEntry(sourceKey = '', branchValue = '') {
+  const normalizedBranchValue = String(branchValue || '').trim().toLowerCase()
+  return getCreateBranches(sourceKey).find((branch) => String(branch?.value || '').trim().toLowerCase() === normalizedBranchValue) || null
 }
 
 export function getCanonicalTokenFieldNames(token = {}) {
