@@ -70,7 +70,6 @@ The following canonical `L1`s previously lacked `KDB` and now have the basic `Sy
 - `Academia`
 - `Employments`
 - `Stages`
-- `Agents`
 
 ## Company Overview Grouping
 

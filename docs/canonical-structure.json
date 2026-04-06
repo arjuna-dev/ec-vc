@@ -3551,67 +3551,6 @@
       ]
     },
     {
-      "level_1": "16",
-      "entity": "Agents",
-      "entity_label": "Agent",
-      "entity_address": "16.0.0",
-      "structure_token": {
-        "address": "16.0.0",
-        "token_name": "Agent",
-        "token_type": "structure"
-      },
-      "subsections": [
-        {
-          "level_2": "1",
-          "subsection": "System",
-          "subsection_address": "16.1.0",
-          "structure_token": "Agent_System",
-          "tokens": [
-            {
-              "address": "16.1.1",
-              "token_name": "Agent_ID",
-              "token_type": "id",
-              "db_field_aliases": [
-                "id"
-              ]
-            }
-          ]
-        },
-        {
-          "level_2": "2",
-          "subsection": "Overview",
-          "subsection_address": "16.2.0",
-          "structure_token": "Agent_Overview",
-          "tokens": []
-        },
-        {
-          "level_2": "3",
-          "subsection": "General",
-          "subsection_address": "16.3.0",
-          "structure_token": "Agent_General",
-          "tokens": [
-            {
-              "address": "16.3.1",
-              "token_name": "Agent_Name",
-              "token_type": "text"
-            },
-            {
-              "address": "16.3.2",
-              "token_name": "Agent_Summary",
-              "token_type": "text"
-            }
-          ]
-        },
-        {
-          "level_2": "4",
-          "subsection": "KDB",
-          "subsection_address": "16.4.0",
-          "structure_token": "Agent_KDB",
-          "tokens": []
-        }
-      ]
-    },
-    {
       "level_1": "18",
       "entity": "Financial_Industries",
       "entity_label": "Financial Industry",
