@@ -11,7 +11,7 @@
       v-else
       v-model="dialogOpen"
     >
-      <div class="fork-shell-modal">
+      <div class="fork-shell-modal" :class="{ 'fork-shell-modal--compact': compactForkLayout }">
         <div
           v-if="branchableShellOptions.length"
           class="fork-shell-modal__selector"
@@ -192,6 +192,10 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 14px;
   width: min(680px, calc(100vw - 32px));
+}
+
+.fork-shell-modal--compact {
+  width: min(408px, calc(100vw - 32px));
 }
 
 .fork-shell-modal__selector {
