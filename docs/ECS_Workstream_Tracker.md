@@ -271,6 +271,7 @@ This tracker should stay aligned with:
   - shared add/edit entry actions are being normalized so route-owned `L1` pages launch the shared add/edit shell instead of sending widget shortcuts through the old `test-shell` path, while true create forks still stop for user choice first
   - `test-shell` section swapping is being pulled up into `TestShellPage` so the shared `FilePageShell` stops treating route/query swapping as normal ownership behavior
   - card-view `Add Relation` is now being redirected into the dedicated Add/Edit Shell with pending edit state so the current `L1` payload can open directly on the KDB section instead of using only the in-page dialog path
+  - shared shell launch context now starts from the click origin's `L1` plus selected record so later preload rules can build on one explicit source-record contract instead of inferred page context
 
 ## Update Rule
 

@@ -2082,6 +2082,12 @@ function requestEditRecordShell(row, options = {}) {
       mode: 'edit',
       entityName: resolveEditEntityName(row),
       recordId,
+      sourceRecord: {
+        sourceKey: activeSourceKey.value,
+        entityName: resolveEditEntityName(row),
+        recordId,
+        recordLabel: String(row?.titleValue || row?.raw?.Name || row?.raw?.title || '').trim(),
+      },
       initialSectionKey: createDialogKdbSectionKey.value || 'key-fields',
     })
     router.push({
