@@ -22,6 +22,8 @@
       :shell-selector-value="activeSourceKey"
       :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
       :prefer-add-layout="isAddAction"
+      :initial-resources-collapsed="false"
+      :initial-record-data-collapsed="false"
       :loading="dialogLoading"
       :submit-disabled="dialogMode === 'edit' ? !canEditWithShell : !canCreateWithShell"
       :initial-values="dialogInitialValues"
