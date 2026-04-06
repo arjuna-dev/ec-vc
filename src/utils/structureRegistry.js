@@ -313,6 +313,13 @@ export function getFilePageRegistryEntryByEntityName(entityName) {
   return LEVEL_1_FILE_REGISTRY.find((entry) => String(entry.entityName || '').trim() === normalizedEntityName) || null
 }
 
+export function getRegistryTitleTokenForSource(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  if (!entry) return null
+  const generalSection = entry.subsections.find((section) => String(section.rawLabel || '').trim().toLowerCase() === 'general')
+  return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '1') || null
+}
+
 export function getRuntimeTableNameForEntityName(entityName = '') {
   const normalized = String(entityName || '').trim()
   if (!normalized) return ''

@@ -619,7 +619,9 @@ import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vu
 import {
   CANONICAL_OPTION_LISTS,
   getCanonicalTokenFieldNames,
+  getCanonicalTokenValue,
   getFilePageRegistryEntry,
+  getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
   LEVEL_1_FILE_REGISTRY,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
@@ -1118,10 +1120,10 @@ function resolveSourceKeyFromEntityName(entityName) {
 
 function buildLiveEntityOptions(sourceKey) {
   const rows = Array.isArray(liveOptionRowsBySource.value[sourceKey]) ? liveOptionRowsBySource.value[sourceKey] : []
-  const titleToken = (LEVEL_3_FILE_REGISTRY_BY_KEY[sourceKey] || []).find((token) => String(token.level_3) === '1') || null
+  const titleToken = getRegistryTitleTokenForSource(sourceKey)
   return rows.map((row) => {
     const value = String(resolveLiveEntityRecordId(row, sourceKey) || '').trim()
-    const label = String(row?.[resolveWriteField(titleToken || {})] || '').trim() || value
+    const label = String(getCanonicalTokenValue(row, titleToken || {}) || '').trim() || value
     return value && label ? { label, value } : null
   }).filter(Boolean)
 }
