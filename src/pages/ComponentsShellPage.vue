@@ -67,7 +67,7 @@
         </div>
       </article>
 
-      <article class="components-shell-page__card components-shell-page__card--xl">
+      <article class="components-shell-page__card components-shell-page__card--dashboard">
         <div class="components-shell-page__card-label">File Dashboard</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
           <FilePageHeroDashboard
@@ -82,7 +82,7 @@
         </div>
       </article>
 
-      <article class="components-shell-page__card components-shell-page__card--xl">
+      <article class="components-shell-page__card components-shell-page__card--toolbar-wide">
         <div class="components-shell-page__card-label">File Toolbar</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
           <FilePageToolbar
@@ -161,8 +161,8 @@ const fileDashboardHealth = [
 
 .components-shell-page__board {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 120px);
-  grid-auto-rows: 120px;
+  grid-template-columns: repeat(auto-fill, 140px);
+  grid-auto-rows: 140px;
   grid-auto-flow: dense;
   gap: 18px;
   justify-content: start;
@@ -199,6 +199,16 @@ const fileDashboardHealth = [
 .components-shell-page__card--xl {
   grid-column: span 4;
   grid-row: span 3;
+}
+
+.components-shell-page__card--toolbar-wide {
+  grid-column: span 5;
+  grid-row: span 2;
+}
+
+.components-shell-page__card--dashboard {
+  grid-column: span 6;
+  grid-row: span 4;
 }
 
 .components-shell-page__card-label {
@@ -338,8 +348,8 @@ const fileDashboardHealth = [
 
 @media (max-width: 900px) {
   .components-shell-page__board {
-    grid-template-columns: repeat(auto-fill, 100px);
-    grid-auto-rows: 100px;
+    grid-template-columns: repeat(auto-fill, 110px);
+    grid-auto-rows: 110px;
     gap: 14px;
   }
 
@@ -348,8 +358,14 @@ const fileDashboardHealth = [
   }
 
   .components-shell-page__card--lg,
-  .components-shell-page__card--xl {
+  .components-shell-page__card--xl,
+  .components-shell-page__card--toolbar-wide,
+  .components-shell-page__card--dashboard {
     grid-column: span 3;
+  }
+
+  .components-shell-page__card--dashboard {
+    grid-row: span 4;
   }
 }
 </style>
