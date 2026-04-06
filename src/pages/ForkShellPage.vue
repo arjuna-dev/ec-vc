@@ -8,12 +8,8 @@
     </div>
 
     <div v-else class="fork-shell">
-      <q-banner v-if="!activeRegistryEntry" class="bg-red-2 text-black" rounded>
-        This route needs a valid branchable `L1` in <code>section</code>.
-      </q-banner>
-
       <q-banner
-        v-else-if="!branchOptions.length"
+        v-if="!branchOptions.length"
         class="bg-red-2 text-black"
         rounded
       >
@@ -30,35 +26,69 @@
         </button>
 
         <section class="fork-shell__panel">
-        <div class="fork-shell__eyebrow">Fork Shell</div>
-        <h1 class="fork-shell__title">Choose {{ branchLabel }}</h1>
-        <p class="fork-shell__text">
-          Fork rules live here. Pick the branch to continue into the shared Add/Edit Shell with the branch already selected.
-        </p>
-
-        <div class="fork-shell__grid">
-          <button
-            v-for="branch in branchOptions"
-            :key="branch.value"
-            type="button"
-            class="fork-shell__branch-card"
-            @click="selectBranch(branch)"
-          >
-            <div class="fork-shell__branch-icon">
-              <q-icon :name="branch.icon || 'call_split'" size="24px" />
+          <div class="fork-shell__title-row">
+            <div class="fork-shell__title-copy">
+              <div class="fork-shell__eyebrow">Fork Shell</div>
+              <h1 class="fork-shell__title">Choose {{ branchLabel }}</h1>
             </div>
-            <div class="fork-shell__branch-copy">
-              <div class="fork-shell__branch-title">{{ branch.label }}</div>
-              <div class="fork-shell__branch-caption">
-                Continue into {{ activeRegistryEntry.singularLabel || 'record' }} create flow as {{ branch.label }}.
+
+            <div class="fork-shell__shell-selector">
+              <q-select
+                :model-value="activeSourceKey"
+                dense
+                dark
+                options-dark
+                borderless
+                emit-value
+                map-options
+                hide-bottom-space
+                hide-dropdown-icon
+                :options="TEST_SHELL_SECTION_OPTIONS"
+                popup-content-class="fork-shell__shell-selector-menu"
+                class="fork-shell__shell-selector-control"
+                @update:model-value="updateShellSelector"
+              >
+                <template #selected-item="scope">
+                  <span class="fork-shell__shell-selector-value">{{ scope.opt.label }}</span>
+                </template>
+                <template #option="scope">
+                  <q-item v-bind="scope.itemProps" class="fork-shell__shell-selector-option">
+                    <q-item-section>
+                      <span class="fork-shell__shell-selector-option-label">{{ scope.opt.label }}</span>
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
+            </div>
+          </div>
+
+          <p class="fork-shell__text">
+            Fork rules live here. Pick the branch to continue into the shared Add/Edit Shell with the branch already selected.
+          </p>
+
+          <div class="fork-shell__grid">
+            <button
+              v-for="branch in branchOptions"
+              :key="branch.value"
+              type="button"
+              class="fork-shell__branch-card"
+              @click="selectBranch(branch)"
+            >
+              <div class="fork-shell__branch-icon">
+                <q-icon :name="branch.icon || 'call_split'" size="24px" />
               </div>
-            </div>
-          </button>
-        </div>
+              <div class="fork-shell__branch-copy">
+                <div class="fork-shell__branch-title">{{ branch.label }}</div>
+                <div class="fork-shell__branch-caption">
+                  Continue into {{ activeRegistryEntry.singularLabel || 'record' }} create flow as {{ branch.label }}.
+                </div>
+              </div>
+            </button>
+          </div>
 
-        <div class="fork-shell__actions">
-          <q-btn flat no-caps label="Back" @click="goBack" />
-        </div>
+          <div class="fork-shell__actions">
+            <q-btn flat no-caps label="Back" @click="goBack" />
+          </div>
         </section>
       </div>
     </div>
@@ -66,30 +96,58 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getCreateBranchEntry, getCreateBranches, getFilePageRegistryEntry } from 'src/utils/structureRegistry'
+import {
+  getCreateBranchEntry,
+  getCreateBranches,
+  getFilePageRegistryEntry,
+  TEST_SHELL_SECTION_OPTIONS,
+} from 'src/utils/structureRegistry'
 
 const route = useRoute()
 const router = useRouter()
 
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
-const sourceKey = computed(() => String(route.query.section || '').trim().toLowerCase())
-const activeRegistryEntry = computed(() => getFilePageRegistryEntry(sourceKey.value) || null)
-const branchOptions = computed(() => getCreateBranches(sourceKey.value))
+const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
+const forkShellSourceKey = ref(resolveValidShellSection(route.query.section))
+const activeSourceKey = computed(() => forkShellSourceKey.value)
+const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
+const branchOptions = computed(() => getCreateBranches(activeSourceKey.value))
 const branchLabel = computed(() =>
   String(activeRegistryEntry.value?.createBranchLabel || activeRegistryEntry.value?.singularLabel || 'Type').trim(),
 )
 
+watch(
+  () => route.query.section,
+  (nextValue) => {
+    const validValue = resolveValidShellSection(nextValue)
+    if (validValue !== forkShellSourceKey.value) {
+      forkShellSourceKey.value = validValue
+    }
+  },
+)
+
 function selectBranch(branch) {
-  const branchEntry = getCreateBranchEntry(sourceKey.value, branch?.value)
+  const branchEntry = getCreateBranchEntry(activeSourceKey.value, branch?.value)
   if (!branchEntry) return
   router.push({
     name: 'dialog-shell',
     query: {
-      section: sourceKey.value,
+      section: activeSourceKey.value,
       create: String(Date.now()),
       kind: branchEntry.value,
+    },
+  })
+}
+
+function updateShellSelector(nextValue) {
+  const nextSection = resolveValidShellSection(nextValue)
+  forkShellSourceKey.value = nextSection
+  router.replace({
+    query: {
+      ...route.query,
+      section: nextSection,
     },
   })
 }
@@ -113,6 +171,11 @@ function openSourceFile() {
     return
   }
   goBack()
+}
+
+function resolveValidShellSection(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : fallbackSectionKey
 }
 </script>
 
@@ -162,6 +225,19 @@ function openSourceFile() {
   border-radius: 28px;
 }
 
+.fork-shell__title-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.fork-shell__title-copy {
+  display: grid;
+  gap: 10px;
+}
+
 .fork-shell__eyebrow {
   color: rgba(17, 17, 17, 0.55);
   font-family: var(--ds-font-family-body);
@@ -178,6 +254,37 @@ function openSourceFile() {
   font-size: clamp(2rem, 3vw, 3rem);
   font-weight: var(--font-weight-black);
   line-height: 0.96;
+}
+
+.fork-shell__shell-selector {
+  min-width: 200px;
+  padding: 6px 12px;
+  background: #1f2230;
+  border-radius: 999px;
+}
+
+.fork-shell__shell-selector-control :deep(.q-field__control) {
+  min-height: auto;
+  padding: 0;
+}
+
+.fork-shell__shell-selector-control :deep(.q-field__native),
+.fork-shell__shell-selector-control :deep(.q-field__marginal) {
+  color: #f7f4ee;
+}
+
+.fork-shell__shell-selector-value {
+  color: #f7f4ee;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fork-shell__shell-selector-option-label {
+  color: #111111;
+  font-size: 0.88rem;
+  font-weight: 600;
 }
 
 .fork-shell__text {
@@ -248,5 +355,27 @@ function openSourceFile() {
 .fork-shell__actions {
   display: flex;
   justify-content: flex-end;
+}
+
+:global(.fork-shell__shell-selector-menu) {
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:global(.fork-shell__shell-selector-menu .q-item) {
+  min-height: 40px;
+}
+
+:global(.fork-shell__shell-selector-menu .q-item.q-manual-focusable--focused),
+:global(.fork-shell__shell-selector-menu .q-item--active) {
+  background: rgba(38, 71, 255, 0.08);
+}
+
+@media (max-width: 720px) {
+  .fork-shell__shell-selector {
+    width: 100%;
+  }
 }
 </style>
