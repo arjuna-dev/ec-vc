@@ -1324,8 +1324,7 @@ function resolveAuditDisplayValue(fieldName = '', value = null) {
 
 function buildAuditRecordDescriptor() {
   const recordName = String(heroName.value || '').trim() || 'Record'
-  const singularLabel = String(activeRegistryEntry.value?.singularLabel || 'Record').trim()
-  return `${recordName} [${singularLabel}]`
+  return recordName
 }
 
 function buildAuditEventTitle(event = {}, fieldName = '', actionLabel = '') {
@@ -1333,6 +1332,7 @@ function buildAuditEventTitle(event = {}, fieldName = '', actionLabel = '') {
   const normalizedFieldName = String(fieldName || '').replace(/__verification$/, '').trim()
   const fieldLabel = formatAuditFieldLabel(normalizedFieldName)
   const recordDescriptor = buildAuditRecordDescriptor()
+  const verificationValue = resolveAuditDisplayValue(`${normalizedFieldName}__verification`, event?.new_value)
   const nextValue = resolveAuditDisplayValue(normalizedFieldName, event?.new_value)
   const previousValue = resolveAuditDisplayValue(normalizedFieldName, event?.old_value)
 
@@ -1341,7 +1341,7 @@ function buildAuditEventTitle(event = {}, fieldName = '', actionLabel = '') {
   }
 
   if (fieldName.endsWith('__verification') || actionLabel.includes('verification')) {
-    if (nextValue) return `${actorLabel}, verified "${nextValue}" as ${fieldLabel} for ${recordDescriptor}`
+    if (verificationValue) return `${actorLabel}, verified "${verificationValue}" as ${fieldLabel} for ${recordDescriptor}`
     return `${actorLabel}, verified ${fieldLabel} for ${recordDescriptor}`
   }
 
