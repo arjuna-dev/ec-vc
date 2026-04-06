@@ -351,15 +351,19 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   min-height: 0;
-  padding: 8px 14px;
+  padding: 0 12px;
+  min-height: 30px;
   text-align: left;
-  color: #4f4f4f;
-  background: transparent;
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 10px;
-  font-family: var(--font-body);
-  font-size: var(--text-sm---medium);
-  font-weight: var(--font-weight-medium);
+  color: #ffffff;
+  background: #111111;
+  border: 1px solid rgba(17, 17, 17, 0.92);
+  border-radius: 4px;
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
   cursor: pointer;
   transition:
     color 0.2s ease,
@@ -371,8 +375,8 @@ onBeforeUnmount(() => {
 .fork-shell-card__branch:hover,
 .fork-shell-card__branch:focus-visible {
   color: #111111;
-  background: rgba(255, 85, 33, 0.08);
-  border-color: rgba(255, 85, 33, 0.2);
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(17, 17, 17, 0.92);
   transform: translateY(-1px);
 }
 
