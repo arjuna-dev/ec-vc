@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
@@ -106,6 +106,21 @@ watch(activeSourceKey, async () => {
   dialogRenderKey.value += 1
   dialogOpen.value = true
 }, { immediate: true })
+
+function reopenDialogShell() {
+  dialogRenderKey.value += 1
+  dialogOpen.value = true
+}
+
+onMounted(() => {
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
+  window.addEventListener('ecvc:reopen-dialog-shell', reopenDialogShell)
+})
+
+onBeforeUnmount(() => {
+  if (typeof window === 'undefined' || typeof window.removeEventListener !== 'function') return
+  window.removeEventListener('ecvc:reopen-dialog-shell', reopenDialogShell)
+})
 
 function updateShellSelector(nextValue) {
   const normalized = String(nextValue || '').trim().toLowerCase()

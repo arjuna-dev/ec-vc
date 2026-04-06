@@ -169,6 +169,7 @@
                 :exact="item.exact"
                 class="ec-nav-item"
                 :class="item.itemClass"
+                @click="handleDrawerItemClick(item)"
               >
                 <q-item-section avatar>
                   <q-icon
@@ -1813,6 +1814,13 @@ watch(
 function resolveBreadcrumbActionDisabled(action) {
   if (typeof action?.disabled === 'function') return !!action.disabled()
   return !!action?.disabled
+}
+
+function handleDrawerItemClick(item) {
+  if (String(item?.to || '').trim() !== '/dialog-shell') return
+  if (String(route.name || '').trim() !== 'dialog-shell') return
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return
+  window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
 }
 
 function goBack() {
