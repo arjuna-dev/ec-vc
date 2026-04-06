@@ -48,6 +48,7 @@ import {
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 
 const route = useRoute()
 const router = useRouter()
@@ -204,10 +205,9 @@ async function submitCreateRecord({ values } = {}) {
     [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
       .map((token) => {
         if (branchSelectorTokenKey.value && token.key === branchSelectorTokenKey.value) return null
-        const value = values?.[token.key]
-        if (Array.isArray(value) && !value.length) return null
-        if (!Array.isArray(value) && String(value ?? '').trim() === '') return null
-        return [String(token?.dbWriteField || token?.tokenName || token?.key || '').trim(), value]
+        const normalizedValue = normalizeTokenWriteValue(token, values?.[token.key])
+        if (normalizedValue == null) return null
+        return [String(token?.dbWriteField || token?.tokenName || token?.key || '').trim(), normalizedValue]
       })
       .filter(Boolean),
   )
