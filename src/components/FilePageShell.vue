@@ -234,6 +234,40 @@
         No real rows loaded for {{ activeRegistryEntry?.label || 'this section' }}.
       </q-banner>
 
+      <div v-else-if="viewMode === 'card' && isBbFileSource" class="bb-shell-tiles-grid">
+        <BuildingBlockTile
+          v-for="row in displayRows"
+          :key="row.cardId"
+          label="Building Block"
+          :title="row.titleValue"
+          :status-label="getBbTileStatus(row)"
+          :status-tone="getBbTileStatusTone(row)"
+          :summary="getBbTileSummary(row)"
+          :meta-items="getBbTileMeta(row)"
+        >
+          <template #actions>
+            <q-btn
+              flat
+              round
+              dense
+              icon="edit"
+              class="bb-shell-tiles-grid__action"
+              :disable="!row.recordId || !supportsActiveSourceEditing"
+              @click="requestEditRecordShell(row)"
+            />
+            <q-btn
+              flat
+              round
+              dense
+              icon="visibility"
+              class="bb-shell-tiles-grid__action"
+              :disable="!row.recordId"
+              @click="openRecordView(row)"
+            />
+          </template>
+        </BuildingBlockTile>
+      </div>
+
       <div v-else-if="viewMode === 'card'" class="row q-col-gutter-md test-shell-cards-grid">
         <div v-for="row in displayRows" :key="row.cardId" class="col-12 col-sm-6 col-lg-4">
           <q-card
@@ -704,6 +738,7 @@ import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'components/ShellSectionToolbar.vue'
+import BuildingBlockTile from 'components/BuildingBlockTile.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import {
   buildCardRelationshipItems,
@@ -1484,6 +1519,7 @@ const healthSegments = computed(() => [
   { tone: 'sparse', width: 20 },
 ])
 
+const isBbFileSource = computed(() => activeSourceKey.value === 'bb-file')
 const searchPlaceholder = computed(() => `Search ${activeRegistryEntry.value?.label || 'Records'}`)
 const viewOptions = Object.freeze([
   { value: 'card', icon: 'grid_view' },
@@ -2105,6 +2141,27 @@ function requestCreateRecordShell(options = {}) {
   }
   delete nextQuery.kind
   router.push({ name: route.name, params: route.params, query: nextQuery })
+}
+
+function getBbTileSummary(row) {
+  return stringifyValue(row?.raw?.Summary)
+}
+
+function getBbTileStatus(row) {
+  return stringifyValue(row?.raw?.Status || row?.raw?.Extraction_Status)
+}
+
+function getBbTileStatusTone(row) {
+  return getBbTileStatus(row).toLowerCase().includes('canonical') ? 'canonical' : 'extract'
+}
+
+function getBbTileMeta(row) {
+  const entries = [
+    { label: 'Category', value: stringifyValue(row?.raw?.Category) },
+    { label: 'Source', value: stringifyValue(row?.raw?.Source_Path) },
+    { label: 'Variants', value: stringifyValue(row?.raw?.Variants) },
+  ]
+  return entries.filter((entry) => entry.value)
 }
 
 function requestEditRecordShell(row, options = {}) {
@@ -3175,6 +3232,24 @@ async function handleSelectedRowsDelete() {
 
 .test-shell-cards-grid {
   align-items: stretch;
+}
+
+.bb-shell-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.bb-shell-tiles-grid__action {
+  color: rgba(15, 23, 42, 0.72);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+}
+
+.bb-shell-tiles-grid__action :deep(.q-icon) {
+  font-size: 16px;
 }
 
 .test-shell-card {
