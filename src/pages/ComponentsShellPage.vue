@@ -461,70 +461,17 @@
       </section>
     </section>
 
-    <q-dialog v-model="componentDetailOpen">
-      <q-card class="components-shell-page__detail-card">
-        <q-card-section class="components-shell-page__detail-head">
-          <div>
-            <div class="components-shell-page__detail-eyebrow">Building Block Details</div>
-            <div class="components-shell-page__detail-title">{{ selectedComponentDetail?.title || 'Component' }}</div>
-          </div>
-          <button type="button" class="components-shell-page__detail-close" aria-label="Close details" @click="componentDetailOpen = false">
-            <q-icon name="close" />
-          </button>
-        </q-card-section>
-
-        <q-card-section class="components-shell-page__detail-body">
-          <div class="components-shell-page__detail-meta">
-            <div class="components-shell-page__detail-meta-label">ID</div>
-            <div class="components-shell-page__detail-meta-value">{{ selectedComponentDetail?.id || '' }}</div>
-          </div>
-
-          <div class="components-shell-page__detail-meta">
-            <div class="components-shell-page__detail-meta-label">Status</div>
-            <div class="components-shell-page__detail-status-row">
-              <span
-                class="components-shell-page__detail-status"
-                :class="selectedComponentDetail?.status === 'canonical'
-                  ? 'components-shell-page__detail-status--canonical'
-                  : 'components-shell-page__detail-status--extract'"
-              >
-                {{ selectedComponentDetail?.statusLabel || '' }}
-              </span>
-            </div>
-          </div>
-
-          <div v-if="selectedComponentDetail?.source" class="components-shell-page__detail-meta">
-            <div class="components-shell-page__detail-meta-label">Shared Source</div>
-            <div class="components-shell-page__detail-meta-value">{{ selectedComponentDetail?.source }}</div>
-          </div>
-
-          <div v-if="selectedComponentDetail?.nextStep" class="components-shell-page__detail-meta">
-            <div class="components-shell-page__detail-meta-label">Next Step</div>
-            <div class="components-shell-page__detail-meta-copy">{{ selectedComponentDetail?.nextStep }}</div>
-          </div>
-
-          <div class="components-shell-page__detail-meta">
-            <div class="components-shell-page__detail-meta-label">Use</div>
-            <div class="components-shell-page__detail-meta-copy">{{ selectedComponentDetail?.summary || '' }}</div>
-          </div>
-
-          <div class="components-shell-page__detail-meta">
-            <div class="components-shell-page__detail-meta-label">Prompt</div>
-            <textarea
-              readonly
-              class="components-shell-page__detail-prompt"
-              :value="selectedComponentDetail?.prompt || ''"
-            />
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <BuildingBlockDialogShell
+      v-model="componentDetailOpen"
+      :detail="selectedComponentDetail"
+    />
   </q-page>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import lottie from 'lottie-web'
+import BuildingBlockDialogShell from 'src/components/BuildingBlockDialogShell.vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
@@ -587,8 +534,25 @@ const fileDashboardHealth = [
   { tone: 'neutral', width: 18 },
 ]
 
+function defineBuildingBlockDetail(detail) {
+  return {
+    usedIn: detail.usedIn || [
+      detail.source ? `Primary source: ${detail.source}` : 'Primary source not yet extracted.',
+    ],
+    anatomy: detail.anatomy || [
+      'Preserve the same typography, spacing, icon treatment, and interaction state shown in Building Blocks.',
+      'Prefer changing payload and labels before changing the underlying visual structure.',
+    ],
+    reconstructionNotes: detail.reconstructionNotes || [
+      detail.summary,
+      detail.nextStep,
+    ].filter(Boolean),
+    ...detail,
+  }
+}
+
 const componentDetailsById = {
-  'home-dashboard': {
+  'home-dashboard': defineBuildingBlockDetail({
     id: 'cmp-home-dashboard',
     title: 'Home Dashboard',
     status: 'canonical',
@@ -597,8 +561,10 @@ const componentDetailsById = {
     nextStep: 'Reuse the shared hero directly and vary only the explicit home-dashboard payload.',
     summary: 'Use this for the live Home dashboard hero surface with overview count, top stats, workspace root, and signal chips.',
     prompt: 'Render the Home Dashboard component from Building Blocks by reusing the shared HomeDashboardHero component directly instead of recreating the hero layout locally.',
-  },
-  'page-title-crumb': {
+    usedIn: ['Home page hero surface', 'Building Blocks file component catalog'],
+    anatomy: ['Breadcrumb row above the page title when used as a page header counterpart', 'Large overview count', 'Three stat blocks', 'Side panels for root path and active signal chips'],
+  }),
+  'page-title-crumb': defineBuildingBlockDetail({
     id: 'cmp-page-title-crumb',
     title: 'Page Title / Crumb',
     status: 'extract',
@@ -607,8 +573,10 @@ const componentDetailsById = {
     nextStep: 'Extract the shared page-title and crumb block so shell pages stop hand-rendering this header.',
     summary: 'Use this for page headers that show the current area plus the main page title.',
     prompt: 'Render the Page Title / Crumb component from Building Blocks with a breadcrumb row above a large page title, using the same typography and spacing as the canonical component.',
-  },
-  'page-back-symbol': {
+    usedIn: ['Page-level shell headers', 'Any route-mounted page that needs breadcrumb plus title treatment'],
+    anatomy: ['Muted breadcrumb row', 'Large title row', 'Title font with tight tracking'],
+  }),
+  'page-back-symbol': defineBuildingBlockDetail({
     id: 'cmp-page-back-symbol',
     title: 'Page Back Symbol',
     status: 'extract',
@@ -617,8 +585,10 @@ const componentDetailsById = {
     nextStep: 'Extract the shared back control so shell headers use one canonical arrow-plus-Back button.',
     summary: 'Use this for compact back navigation inside shell headers and detail surfaces.',
     prompt: 'Render the Page Back Symbol from Building Blocks exactly, using the same circular neutral button treatment and arrow icon.',
-  },
-  'b10-logo': {
+    usedIn: ['Shell header left cluster', 'Pages with explicit back navigation'],
+    anatomy: ['Left-pointing arrow icon', 'Back label', 'Compact inline spacing'],
+  }),
+  'b10-logo': defineBuildingBlockDetail({
     id: 'cmp-b10-logo',
     title: 'B10 Logo',
     status: 'extract',
@@ -627,8 +597,8 @@ const componentDetailsById = {
     nextStep: 'Wrap the live header logo treatment into one shared logo component instead of repeating its container markup.',
     summary: 'Use this for compact brand badges or temporary logo placeholders.',
     prompt: 'Render the B10 Logo from Building Blocks exactly as the compact black badge with the same title-font styling.',
-  },
-  'plus-icon': {
+  }),
+  'plus-icon': defineBuildingBlockDetail({
     id: 'cmp-plus-icon',
     title: 'Plus Icon',
     status: 'extract',
@@ -637,8 +607,8 @@ const componentDetailsById = {
     nextStep: 'Extract the electric blue standalone add chip so widget and shell add controls stop drifting.',
     summary: 'Use this for isolated add actions where only the icon should show.',
     prompt: 'Render the Plus Icon component from Building Blocks exactly, using the same electric-blue circular button with white plus icon.',
-  },
-  'plus-with-label': {
+  }),
+  'plus-with-label': defineBuildingBlockDetail({
     id: 'cmp-plus-with-label',
     title: 'Plus With Label',
     status: 'extract',
@@ -647,8 +617,8 @@ const componentDetailsById = {
     nextStep: 'Extract the labeled add control so file-toolbar and shell add buttons can share one component with payload-only label changes.',
     summary: 'Use this for add actions that need icon plus text in one control.',
     prompt: 'Render the Plus With Label component from Building Blocks exactly, using the same electric-blue button, white plus icon, and title-font label treatment.',
-  },
-  'live-action-l1': {
+  }),
+  'live-action-l1': defineBuildingBlockDetail({
     id: 'cmp-live-action-l1',
     title: 'Live Action L1',
     status: 'extract',
@@ -657,8 +627,8 @@ const componentDetailsById = {
     nextStep: 'Extract the shell header selector so Record Shell, Fork Shell, and future shells use one live-action control.',
     summary: 'Use this for shell-level live source selectors that sit in the top center and switch the active L1 context.',
     prompt: 'Render the Live Action L1 control from Building Blocks exactly, using the same Live Link label, black value chip, and chevron treatment as the canonical shell selector.',
-  },
-  'b10-button': {
+  }),
+  'b10-button': defineBuildingBlockDetail({
     id: 'cmp-b10-button',
     title: 'B10 Button',
     status: 'canonical',
@@ -667,8 +637,8 @@ const componentDetailsById = {
     nextStep: 'Reuse this component directly and vary only payload props such as label and variant.',
     summary: 'Use this for canonical B10 primary and neutral action buttons.',
     prompt: 'Render the B10 Button component from Building Blocks using the real shared B10Button variants rather than recreating local button styles.',
-  },
-  'b10-icon-button': {
+  }),
+  'b10-icon-button': defineBuildingBlockDetail({
     id: 'cmp-b10-icon-button',
     title: 'B10 Icon Button',
     status: 'canonical',
@@ -677,8 +647,8 @@ const componentDetailsById = {
     nextStep: 'Reuse this component directly and vary only icon and variant props.',
     summary: 'Use this for canonical icon-only actions that should come from the B10 button system.',
     prompt: 'Render the B10 Icon Button component from Building Blocks using the shared B10IconButton component and its existing variants.',
-  },
-  'main-menu-icon': {
+  }),
+  'main-menu-icon': defineBuildingBlockDetail({
     id: 'cmp-main-menu-icon',
     title: 'Main Menu Icon',
     status: 'extract',
@@ -687,8 +657,8 @@ const componentDetailsById = {
     nextStep: 'Extract the top-left menu trigger so shell headers use one canonical drawer-toggle control.',
     summary: 'Use this for the compact menu trigger in the top-left shell header.',
     prompt: 'Render the Main Menu Icon from Building Blocks using the same flat round menu button treatment as the shell header drawer trigger.',
-  },
-  'file-dashboard': {
+  }),
+  'file-dashboard': defineBuildingBlockDetail({
     id: 'cmp-file-dashboard',
     title: 'File Dashboard',
     status: 'canonical',
@@ -697,8 +667,8 @@ const componentDetailsById = {
     nextStep: 'Reuse the shared dashboard component and only swap explicit payload data.',
     summary: 'Use this for file-level hero dashboards showing title, copy, stats, and health.',
     prompt: 'Render the File Dashboard component from Building Blocks using the real FilePageHeroDashboard surface, preserving its hero, stats, and health structure.',
-  },
-  'l3-box': {
+  }),
+  'l3-box': defineBuildingBlockDetail({
     id: 'cmp-l3-box',
     title: 'L3 Box',
     status: 'extract',
@@ -707,8 +677,8 @@ const componentDetailsById = {
     nextStep: 'Extract the metric card so dashboard stat strips can use one canonical stat-box component.',
     summary: 'Use this for the standalone L3 stat card that appears inside the shell dashboard metrics strip.',
     prompt: 'Render the L3 Box from Building Blocks exactly, using the same compact dashboard stat-card treatment with label, large value, and caption.',
-  },
-  'file-toolbar': {
+  }),
+  'file-toolbar': defineBuildingBlockDetail({
     id: 'cmp-file-toolbar',
     title: 'File Toolbar',
     status: 'canonical',
@@ -717,8 +687,8 @@ const componentDetailsById = {
     nextStep: 'Reuse the shared toolbar directly and vary only its explicit props and payload.',
     summary: 'Use this for the top toolbar inside file pages with add, search, and view controls.',
     prompt: 'Render the File Toolbar component from Building Blocks using the real FilePageToolbar component, keeping its existing add, search, and view-toggle layout.',
-  },
-  'l2-toolbar': {
+  }),
+  'l2-toolbar': defineBuildingBlockDetail({
     id: 'cmp-l2-toolbar',
     title: 'L2 Toolbar',
     status: 'canonical',
@@ -727,8 +697,8 @@ const componentDetailsById = {
     nextStep: 'Reuse the shared section toolbar directly and vary only section items and selected payload.',
     summary: 'Use this for section switching across General, KDB, System, and similar level-2 groupings.',
     prompt: 'Render the L2 Toolbar component from Building Blocks using the real ShellSectionToolbar component with the same compact section-chip treatment.',
-  },
-  'l2-settings-menu': {
+  }),
+  'l2-settings-menu': defineBuildingBlockDetail({
     id: 'cmp-l2-settings-menu',
     title: 'L2 Settings Menu',
     status: 'extract',
@@ -737,8 +707,8 @@ const componentDetailsById = {
     nextStep: 'Extract the compact grouped settings panel so all L2 settings menus stop being page-specific markup.',
     summary: 'Use this for compact shell settings menus like Hero Fields where grouped options can be expanded or collapsed.',
     prompt: 'Render the L2 Settings Menu from Building Blocks using the same compact panel, grouped rows, checkboxes, and expand/collapse treatment as the canonical menu sample.',
-  },
-  'widget-settings-menu': {
+  }),
+  'widget-settings-menu': defineBuildingBlockDetail({
     id: 'cmp-widget-settings-menu',
     title: 'Widget Settings Menu',
     status: 'extract',
@@ -747,8 +717,8 @@ const componentDetailsById = {
     nextStep: 'Extract the widget settings panel so grouped widget menus reuse one floating settings component.',
     summary: 'Use this for the floating widget settings panel with grouped rows, checkboxes, and reorder chevrons.',
     prompt: 'Render the Widget Settings Menu from Building Blocks using the same dark floating panel, grouped section toggle, row labels, checkboxes, and reorder chevrons.',
-  },
-  'main-menu-row': {
+  }),
+  'main-menu-row': defineBuildingBlockDetail({
     id: 'cmp-main-menu-row',
     title: 'Main Menu Row',
     status: 'extract',
@@ -757,8 +727,8 @@ const componentDetailsById = {
     nextStep: 'Extract the drawer item row so navigation entries share one canonical icon-label row structure.',
     summary: 'Use this for standard main menu file rows inside the left drawer.',
     prompt: 'Render the Main Menu Row from Building Blocks using the same left-drawer icon and label treatment as the canonical nav row.',
-  },
-  'main-menu-subgroup-row': {
+  }),
+  'main-menu-subgroup-row': defineBuildingBlockDetail({
     id: 'cmp-main-menu-subgroup-row',
     title: 'Main Menu Subgroup Row',
     status: 'extract',
@@ -767,8 +737,8 @@ const componentDetailsById = {
     nextStep: 'Extract the subgroup toggle row so drawer section headings share one canonical expand-collapse treatment.',
     summary: 'Use this for grouped left-drawer subsection rows like Shells and workspace groupings.',
     prompt: 'Render the Main Menu Subgroup Row from Building Blocks using the same subgroup title plus expand-collapse chevron treatment as the canonical drawer subgroup row.',
-  },
-  'eye-icon': {
+  }),
+  'eye-icon': defineBuildingBlockDetail({
     id: 'cmp-eye-icon',
     title: 'Eye Icon',
     status: 'extract',
@@ -777,8 +747,8 @@ const componentDetailsById = {
     nextStep: 'Extract the lightweight view-action icon button so cards and rows stop restyling visibility controls.',
     summary: 'Use this for record/view actions in cards and tables where a lightweight visibility control is needed.',
     prompt: 'Render the Eye Icon from Building Blocks using the same lightweight visibility button treatment as the canonical row-view control.',
-  },
-  'edit-button': {
+  }),
+  'edit-button': defineBuildingBlockDetail({
     id: 'cmp-edit-button',
     title: 'Edit Button',
     status: 'extract',
@@ -787,8 +757,8 @@ const componentDetailsById = {
     nextStep: 'Extract the compact blue edit control so row and card edit actions use one shared component.',
     summary: 'Use this for compact edit actions in cards and row controls where the blue edit icon treatment is expected.',
     prompt: 'Render the Edit Button from Building Blocks using the same compact blue edit icon treatment as the canonical row-edit control.',
-  },
-  'mini-scrollbar': {
+  }),
+  'mini-scrollbar': defineBuildingBlockDetail({
     id: 'cmp-mini-scrollbar',
     title: 'Mini Scrollbar',
     status: 'extract',
@@ -797,8 +767,8 @@ const componentDetailsById = {
     nextStep: 'Extract the narrow black scrollbar styling so dense shells and tables share one overflow control language.',
     summary: 'Use this for the thin black scrollbar treatment that appears in dense shell panels.',
     prompt: 'Render the Mini Scrollbar from Building Blocks using the same narrow black track-and-thumb treatment as the canonical shell overflow control.',
-  },
-  'toggle-row-icons': {
+  }),
+  'toggle-row-icons': defineBuildingBlockDetail({
     id: 'cmp-toggle-row-icons',
     title: 'Toggle / Row Icons',
     status: 'extract',
@@ -807,7 +777,7 @@ const componentDetailsById = {
     nextStep: 'Extract the toggle and row-chevron micro-controls so settings lists and shell rows use the same icon language.',
     summary: 'Use this for inline subgroup toggles and row ordering chevrons across shell menus and settings lists.',
     prompt: 'Render the Toggle / Row Icons from Building Blocks using the same inline label-plus-chevron and compact row-chevron treatments as the canonical controls.',
-  },
+  }),
 }
 
 const selectedComponentDetail = computed(() => componentDetailsById[selectedComponentId.value] || null)
