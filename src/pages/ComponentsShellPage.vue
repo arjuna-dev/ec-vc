@@ -1,7 +1,7 @@
 <template>
   <q-page class="components-shell-page q-pa-md">
     <section class="components-shell-page__board">
-      <article class="components-shell-page__card components-shell-page__card--md">
+      <article class="components-shell-page__card components-shell-page__card--title-wide">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-title-crumb')">
           <q-icon name="visibility" />
         </button>
@@ -364,6 +364,7 @@ onBeforeUnmount(() => {
   min-width: 0;
   min-height: 0;
   padding: 18px;
+  overflow: hidden;
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.94);
@@ -416,6 +417,11 @@ onBeforeUnmount(() => {
   grid-row: span 4;
 }
 
+.components-shell-page__card--title-wide {
+  grid-column: span 4;
+  grid-row: span 2;
+}
+
 .components-shell-page__card-label {
   color: rgba(15, 23, 42, 0.7);
   font-family: var(--font-title);
@@ -436,6 +442,7 @@ onBeforeUnmount(() => {
 
 .components-shell-page__card-stage--left {
   justify-content: flex-start;
+  width: 100%;
 }
 
 .components-shell-page__card-stage--row {
@@ -453,6 +460,8 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
+  width: 100%;
 }
 
 .components-shell-page__crumb-row {
@@ -485,7 +494,9 @@ onBeforeUnmount(() => {
   font-size: clamp(2.4rem, 5vw, 4rem);
   line-height: 0.95;
   letter-spacing: -0.08em;
-  white-space: nowrap;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .components-shell-page__back-button {
@@ -710,6 +721,7 @@ onBeforeUnmount(() => {
 
   .components-shell-page__card--lg,
   .components-shell-page__card--xl,
+  .components-shell-page__card--title-wide,
   .components-shell-page__card--toolbar-wide,
   .components-shell-page__card--dashboard {
     grid-column: span 3;
