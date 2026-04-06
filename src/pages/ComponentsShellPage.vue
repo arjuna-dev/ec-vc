@@ -77,6 +77,20 @@
         </div>
       </article>
 
+      <article class="components-shell-page__card components-shell-page__card--live-link">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('live-action-l1')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Live Action L1</div>
+        <div class="components-shell-page__card-stage">
+          <div class="components-shell-page__live-link-wrap">
+            <span class="components-shell-page__live-link-label">Live Link</span>
+            <div class="components-shell-page__live-link-value">Companies</div>
+            <q-icon name="expand_more" class="components-shell-page__live-link-chevron" />
+          </div>
+        </div>
+      </article>
+
       <article class="components-shell-page__card components-shell-page__card--md">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('b10-button')">
           <q-icon name="visibility" />
@@ -383,6 +397,12 @@ const componentDetailsById = {
     summary: 'Use this for add actions that need icon plus text in one control.',
     prompt: 'Render the Plus With Label component from Components Shell exactly, using the same electric-blue button, white plus icon, and title-font label treatment.',
   },
+  'live-action-l1': {
+    id: 'cmp-live-action-l1',
+    title: 'Live Action L1',
+    summary: 'Use this for shell-level live source selectors that sit in the top center and switch the active L1 context.',
+    prompt: 'Render the Live Action L1 control from Components Shell exactly, using the same Live Link label, black value chip, and chevron treatment as the canonical shell selector.',
+  },
   'b10-button': {
     id: 'cmp-b10-button',
     title: 'B10 Button',
@@ -554,6 +574,11 @@ onBeforeUnmount(() => {
 .components-shell-page__card--dashboard {
   grid-column: span 6;
   grid-row: span 4;
+}
+
+.components-shell-page__card--live-link {
+  grid-column: span 2;
+  grid-row: span 1;
 }
 
 .components-shell-page__card--settings-menu {
@@ -760,6 +785,51 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-black);
   line-height: 1;
   letter-spacing: -0.02em;
+}
+
+.components-shell-page__live-link-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 18px;
+  overflow: visible;
+}
+
+.components-shell-page__live-link-label {
+  color: rgba(15, 23, 42, 0.72);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.components-shell-page__live-link-value {
+  color: #fff;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
+}
+
+.components-shell-page__live-link-chevron {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  z-index: 2;
+  color: #111111;
+  font-size: 20px;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
+  cursor: pointer;
 }
 
 .components-shell-page__l2-settings-panel {
@@ -1060,6 +1130,7 @@ onBeforeUnmount(() => {
 
   .components-shell-page__card--lg,
   .components-shell-page__card--xl,
+  .components-shell-page__card--live-link,
   .components-shell-page__card--settings-menu,
   .components-shell-page__card--widget-settings,
   .components-shell-page__card--title-wide,
