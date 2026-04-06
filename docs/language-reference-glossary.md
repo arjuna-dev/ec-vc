@@ -28,6 +28,7 @@
 | System | The canonical subsection for record identity, provenance, creator, timestamps, and other record-owned system fields. | Product Reference |
 | General | The canonical subsection for the main descriptive record fields. `Name` is standardized as the first general field and `Summary` as the second. | Product Reference |
 | KDB | The subsection for declared record relationships. It is not just another content tab; it changes the interaction model into relationship browsing and linking. | Product Reference |
+| L0 | The provenance/history layer that sits beneath normal record content. It is a strong fit for event-log and origin data such as `Owner created`, and conceptually belongs with the system/knowledge side rather than as another editable business-content layer. | ECS Workstream Tracker |
 | L1 | The entity/file level in canonical structure. Selecting an `L1` chooses the entity payload source for a shell. | Record Architecture |
 | L2 | The subsection grouping level in canonical structure, such as `System`, `General`, `Business Overview`, or `KDB`. | Record Architecture |
 | L3 Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
