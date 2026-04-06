@@ -198,18 +198,38 @@
               </button>
               <label class="components-shell-page__l2-settings-row">
                 <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span>Name</span>
+                <span class="components-shell-page__l2-settings-row-copy">
+                  <span class="components-shell-page__l2-settings-row-label">Name</span>
+                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
+                </span>
               </label>
               <label class="components-shell-page__l2-settings-row">
                 <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span>Summary</span>
+                <span class="components-shell-page__l2-settings-row-copy">
+                  <span class="components-shell-page__l2-settings-row-label">Summary</span>
+                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
+                </span>
               </label>
             </div>
             <div class="components-shell-page__l2-settings-group">
               <button type="button" class="components-shell-page__l2-settings-heading">
                 <span>System</span>
-                <q-icon name="expand_more" size="14px" />
+                <q-icon name="expand_less" size="14px" />
               </button>
+              <label class="components-shell-page__l2-settings-row">
+                <q-checkbox model-value="false" dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
+                <span class="components-shell-page__l2-settings-row-copy">
+                  <span class="components-shell-page__l2-settings-row-label">Record ID</span>
+                  <span class="components-shell-page__l2-settings-row-value">Hidden</span>
+                </span>
+              </label>
+              <label class="components-shell-page__l2-settings-row">
+                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
+                <span class="components-shell-page__l2-settings-row-copy">
+                  <span class="components-shell-page__l2-settings-row-label">Updated At</span>
+                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
+                </span>
+              </label>
             </div>
           </div>
         </div>
@@ -952,6 +972,29 @@ onBeforeUnmount(() => {
   gap: 8px;
   min-height: 28px;
   padding: 2px 4px;
+}
+
+.components-shell-page__l2-settings-row-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.components-shell-page__l2-settings-row-label {
+  color: #111111;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  line-height: 1.15;
+}
+
+.components-shell-page__l2-settings-row-value {
+  color: rgba(17, 17, 17, 0.56);
+  font-family: var(--font-title);
+  font-size: 0.62rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .components-shell-page__widget-settings-panel {
