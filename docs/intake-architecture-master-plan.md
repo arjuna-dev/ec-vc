@@ -68,6 +68,22 @@ So the current goal is not maximum autonomy.
 
 The current goal is a clear and resilient intake operating system.
 
+## Shared Shell Surface Rule
+
+When intake-related shell surfaces are exposed for testing or convergence, they should use the shared shell chrome consistently.
+
+That means:
+
+- the shared top shell header owns the `L1` select menu
+- shell routes should not add a second local selector or launch row when that shared header already exists
+- if a page starts reproducing header-level controls locally, that is a shell-drift warning
+
+This matters because repeated local shell controls make it harder to tell whether behavior differences come from:
+
+- the shared shell contract
+- the payload contract
+- or a one-off page implementation
+
 ## Governing Model
 
 The intake flow should follow this structure:

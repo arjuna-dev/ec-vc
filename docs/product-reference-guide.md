@@ -227,6 +227,8 @@ Shared dialog rule:
 - the launching surface may choose the source `L1` or selected record
 - it should not reinterpret grouped `L2` structure before handing payload into the dialog
 - if the dialog behaves differently between `L1`s because of different shell-side payload shaping, that is a contract bug
+- when the shared dialog is exposed through its own shell route, that route should use the same shared top shell header and `L1` select as the other shell routes
+- the dialog shell route should not add a second page-level selector, launchpad, or top-row control if the shared shell header already provides that contract
 
 Observed evidence rule:
 

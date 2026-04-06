@@ -9,6 +9,8 @@
 | File Shell | The shared shell renderer for file-level `L1` collection surfaces. It should stay fixed while route-owned `L1` payloads swap underneath it. | Product Reference |
 | Record Shell | The approved shared shell renderer for `Record View`. It should receive the selected record as payload input instead of forking by entity. | Record Architecture |
 | Shared Dialog Shell | The rule that the create / edit dialog is itself a shell surface. Any launching shell must pass the same canonical payload contract into it rather than reshaping grouped `L2` structure locally. | Record Architecture |
+| Shared Shell Header | The common top shell row that owns the `L1` select menu for shell routes. Shell pages should use this shared header instead of adding a second local select or launch row underneath it. | Product Reference |
+| Dialog Shell Route | The dedicated shell test route for the shared create / edit dialog. It should rely on the shared shell header for `L1` switching and should not improvise a separate launchpad card when the shell header already exists. | Record Architecture |
 | Fixed Shell Styling | The rule that shell visuals stay fixed at shell level. `L1` may change payload, labels, section membership, and explicitly approved capabilities, but should not silently restyle the shell. | Product Reference |
 | Shared Middle-Field Selection | The rule that the selected middle fields for a given `L1` are remembered once and reused by both `File Shell` cards and `Record Shell` hero rows. | Product Reference |
 | First-Order KDB | The KDB display family for main operational `L1`s such as `Users`, `Companies`, `Projects`, `Tasks`, `Notes`, `Opportunities`, `Funds`, `Rounds`, `Artifacts`, `Contacts`, and `Roles`. | KDB Audit |
