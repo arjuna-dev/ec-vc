@@ -607,7 +607,7 @@ const workspaceNavigationItems = [
     parentKey: 'knowledge-dbs',
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
-  { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
+  { label: 'System Files', to: '/file-system', exact: true, icon: 'folder_open' },
 ].map((item) => ({
   ...item,
   itemClass: item.itemClass || 'ec-nav-item--secondary ec-nav-item--workspace-child',
@@ -648,7 +648,7 @@ const routeLabelByName = {
   avatar: 'Companion',
   'user-settings': 'Owner',
   pipelines: 'Projects',
-  'file-system': 'File System',
+  'file-system': 'System Files',
   [RECORD_VIEW_ROUTE_NAME]: 'Record View',
 }
 const router = useRouter()
