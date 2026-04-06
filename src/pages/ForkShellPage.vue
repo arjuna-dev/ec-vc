@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   TEST_SHELL_SECTION_OPTIONS,
@@ -174,6 +174,21 @@ function handleDialogHide() {
   closingToRoute.value = true
   goBack()
 }
+
+function reopenForkShell() {
+  closingToRoute.value = false
+  dialogOpen.value = true
+}
+
+onMounted(() => {
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
+  window.addEventListener('ecvc:reopen-fork-shell', reopenForkShell)
+})
+
+onBeforeUnmount(() => {
+  if (typeof window === 'undefined' || typeof window.removeEventListener !== 'function') return
+  window.removeEventListener('ecvc:reopen-fork-shell', reopenForkShell)
+})
 
 function goBack() {
   const returnTo = String(route.query.returnTo || '').trim()

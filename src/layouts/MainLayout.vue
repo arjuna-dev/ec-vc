@@ -1774,10 +1774,16 @@ function resolveBreadcrumbActionDisabled(action) {
 }
 
 function handleDrawerItemClick(item) {
-  if (String(item?.to || '').trim() !== '/dialog-shell') return
-  if (String(route.name || '').trim() !== 'dialog-shell') return
+  const itemTarget = String(item?.to || '').trim()
+  const routeName = String(route.name || '').trim()
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return
-  window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
+  if (itemTarget === '/dialog-shell' && routeName === 'dialog-shell') {
+    window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
+    return
+  }
+  if (itemTarget === '/fork-shell' && routeName === 'fork-shell') {
+    window.dispatchEvent(new CustomEvent('ecvc:reopen-fork-shell'))
+  }
 }
 
 function goBack() {
