@@ -1240,6 +1240,16 @@ function stringifyAuditValue(value) {
   return normalized
 }
 
+function parseAuditValue(value) {
+  const normalized = String(value ?? '').trim()
+  if (!normalized) return null
+  try {
+    return JSON.parse(normalized)
+  } catch {
+    return normalized
+  }
+}
+
 function formatAuditFieldLabel(fieldName) {
   const specialWords = {
     id: 'ID',
@@ -1267,27 +1277,85 @@ function formatAuditActorLabel(editedBy) {
   return String(userMatch?.User_Name || userMatch?.Name || '').trim() || 'User'
 }
 
-function buildAuditEventTitle(fieldName, actionLabel = '') {
-  if (fieldName.endsWith('__verification')) return `Verified ${formatAuditFieldLabel(fieldName.replace(/__verification$/, ''))}`
-  if (actionLabel.includes('create')) return `Created ${activeRegistryEntry.value?.singularLabel || 'record'}`
-  if (actionLabel.includes('verification')) return `Reviewed ${formatAuditFieldLabel(fieldName)}`
-  if (fieldName) return `Updated ${formatAuditFieldLabel(fieldName)}`
-  return 'Updated record'
+function getAuditTokenForFieldName(fieldName = '') {
+  const normalizedFieldName = String(fieldName || '').replace(/__verification$/, '').trim()
+  if (!normalizedFieldName) return null
+  return level3Tokens.value.find((token) => {
+    const aliases = getCanonicalTokenFieldNames(token)
+    return aliases.includes(normalizedFieldName)
+  }) || null
 }
 
-function buildAuditEventContent(event = {}, fieldName = '', actionLabel = '') {
-  const oldValue = stringifyAuditValue(event?.old_value)
-  const newValue = stringifyAuditValue(event?.new_value)
+function resolveAuditOptionLabel(token, value) {
+  if (!token || value == null) return ''
+  const normalizedToken = normalizeCreateDialogToken(token)
+  const options = Array.isArray(normalizedToken?.inputOptions) ? normalizedToken.inputOptions : []
+  const normalizedValue = String(value || '').trim()
+  if (!normalizedValue) return ''
+  const matched = options.find((option) => String(option?.value || '').trim() === normalizedValue)
+  return String(matched?.label || '').trim()
+}
+
+function resolveAuditDisplayValue(fieldName = '', value = null) {
+  const token = getAuditTokenForFieldName(fieldName)
+  const parsedValue = parseAuditValue(value)
+
   if (fieldName.endsWith('__verification')) {
-    return newValue || 'Verified'
+    return getTokenDisplayValue(token)
   }
+
+  if (Array.isArray(parsedValue)) {
+    const labels = parsedValue
+      .map((item) => resolveAuditOptionLabel(token, item) || String(item || '').trim())
+      .filter(Boolean)
+    return labels.join(', ')
+  }
+
+  if (parsedValue && typeof parsedValue === 'object') return stringifyAuditValue(value)
+
+  return resolveAuditOptionLabel(token, parsedValue) || stringifyAuditValue(parsedValue)
+}
+
+function buildAuditRecordDescriptor() {
+  const recordName = String(heroName.value || '').trim() || 'Record'
+  const singularLabel = String(activeRegistryEntry.value?.singularLabel || 'Record').trim()
+  return `${recordName} [${singularLabel}]`
+}
+
+function buildAuditEventTitle(event = {}, fieldName = '', actionLabel = '') {
+  const actorLabel = formatAuditActorLabel(event?.edited_by)
+  const normalizedFieldName = String(fieldName || '').replace(/__verification$/, '').trim()
+  const fieldLabel = formatAuditFieldLabel(normalizedFieldName)
+  const recordDescriptor = buildAuditRecordDescriptor()
+  const nextValue = resolveAuditDisplayValue(normalizedFieldName, event?.new_value)
+  const previousValue = resolveAuditDisplayValue(normalizedFieldName, event?.old_value)
+
   if (actionLabel.includes('create')) {
-    return newValue || 'Created'
+    return `${actorLabel}, created ${recordDescriptor}`
   }
-  if (!oldValue && newValue) return newValue
-  if (oldValue && !newValue) return 'Cleared'
-  if (oldValue && newValue) return newValue
-  return ''
+
+  if (fieldName.endsWith('__verification') || actionLabel.includes('verification')) {
+    if (nextValue) return `${actorLabel}, verified "${nextValue}" as ${fieldLabel} for ${recordDescriptor}`
+    return `${actorLabel}, verified ${fieldLabel} for ${recordDescriptor}`
+  }
+
+  if (!previousValue && nextValue) {
+    return `${actorLabel}, added "${nextValue}" as ${fieldLabel} for ${recordDescriptor}`
+  }
+
+  if (previousValue && !nextValue) {
+    return `${actorLabel}, cleared ${fieldLabel} for ${recordDescriptor}`
+  }
+
+  if (nextValue) {
+    return `${actorLabel}, updated ${fieldLabel} to "${nextValue}" for ${recordDescriptor}`
+  }
+
+  if (fieldLabel) {
+    return `${actorLabel}, updated ${fieldLabel} for ${recordDescriptor}`
+  }
+
+  return `${actorLabel}, updated ${recordDescriptor}`
 }
 
 function normalizeAuditFeedEvents(events = []) {
@@ -1295,15 +1363,13 @@ function normalizeAuditFeedEvents(events = []) {
     .map((event) => {
       const fieldName = String(event?.field_name || '').trim()
       const actionLabel = String(event?.action_label || '').trim().toLowerCase()
-      const actorLabel = formatAuditActorLabel(event?.edited_by)
-      const actionTitle = buildAuditEventTitle(fieldName, actionLabel)
       return {
         id: String(event?.id || '').trim() || `audit:${Math.random()}`,
         feedKey: 'all',
-        sourceLabel: actorLabel,
+        sourceLabel: formatAuditActorLabel(event?.edited_by),
         meta: String(event?.edited_at || '').trim() || 'Recent',
-        title: actorLabel ? `${actorLabel} ${actionTitle.charAt(0).toLowerCase()}${actionTitle.slice(1)}` : actionTitle,
-        content: buildAuditEventContent(event, fieldName, actionLabel),
+        title: buildAuditEventTitle(event, fieldName, actionLabel),
+        content: '',
         hasLogPage: true,
       }
     })
