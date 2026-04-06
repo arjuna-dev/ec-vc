@@ -554,7 +554,6 @@ const mainNavigationItems = [
   { label: 'Home', to: '/', exact: true, icon: 'home' },
   { label: 'Owner', to: '/user-settings', exact: true, icon: 'accessibility_new' },
   { label: 'Companion', to: '/avatar', exact: true, icon: 'smart_toy' },
-  { label: 'Roles', to: '/roles', exact: true, icon: 'theater_comedy' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--primary',
@@ -576,6 +575,14 @@ if (companiesNavIndex >= 0) {
 
 const workspaceNavigationItems = [
   ...workspaceFileNavItems,
+  {
+    label: 'User Roles',
+    to: '/roles',
+    exact: true,
+    icon: 'theater_comedy',
+    parentKey: 'knowledge-dbs',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
+  },
   {
     label: 'Markets',
     to: '/industries',
@@ -637,7 +644,7 @@ const routeLabelByName = {
   'fork-shell': 'Fork Shell',
   'dialog-shell': 'Add/Edit Shell',
   'ingestion-shell': 'Ingestion Shell',
-  roles: 'Roles',
+  roles: 'User Roles',
   avatar: 'Companion',
   'user-settings': 'Owner',
   pipelines: 'Projects',

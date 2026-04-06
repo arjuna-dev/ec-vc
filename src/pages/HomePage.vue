@@ -468,11 +468,11 @@ const collectionConfigs = [
   },
   {
     key: 'roles',
-    label: 'Roles',
+    label: 'User Roles',
     icon: 'theater_comedy',
     to: '/roles',
     accent: '#db2777',
-    actionLabel: 'Open roles',
+    actionLabel: 'Open user roles',
     load: async () => (await bridge.value.roles.list())?.roles || [],
   },
 ]
@@ -737,7 +737,7 @@ const summaryCards = computed(() => [
   {
     ...collectionConfigByKey.roles,
     count: rolesCount.value,
-    helper: roles.value.length > 0 ? 'Roles available' : 'No roles yet',
+    helper: roles.value.length > 0 ? 'User roles available' : 'No user roles yet',
   },
 ])
 
