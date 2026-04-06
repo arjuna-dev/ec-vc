@@ -282,7 +282,7 @@
 
       <section class="record-shell__panel">
         <div class="record-shell__panel-head">
-          <div class="record-shell__panel-title">{{ activeSection?.label || 'Section' }}</div>
+          <div class="record-shell__panel-title">{{ activeSectionGroup?.title || activeSection?.label || 'Section' }}</div>
           <div class="record-shell__panel-meta">{{ activeSectionTokens.length }} fields</div>
         </div>
 
@@ -454,9 +454,32 @@ const createSectionGroups = computed(() =>
 )
 const createDialogLeftSections = computed(() => createSectionGroups.value.filter((section) => !['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
 const createDialogRightSections = computed(() => createSectionGroups.value.filter((section) => ['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
-const activeSection = computed(() => level2Sections.value.find((section) => section.key === activeSectionKey.value) || level2Sections.value[0] || null)
-const activeSectionTokens = computed(() => selectableTokens.value.filter((token) => token.parentKey === activeSection.value?.key))
-const isKdbSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'kdb')
+function getSectionGroupValue(section) {
+  const displayGroup = String(section?.displayGroup || '').trim()
+  return displayGroup ? `group:${displayGroup}` : String(section?.key || '').trim()
+}
+const groupedLevel2Sections = computed(() => {
+  const groups = []
+  for (const section of level2Sections.value) {
+    const value = getSectionGroupValue(section)
+    const existing = groups.find((group) => group.value === value)
+    if (existing) {
+      existing.sections.push(section)
+      continue
+    }
+    groups.push({
+      value,
+      title: String(section.displayGroup || section.label || '').trim(),
+      sections: [section],
+    })
+  }
+  return groups
+})
+const activeSectionGroup = computed(() => groupedLevel2Sections.value.find((group) => group.value === activeSectionKey.value) || groupedLevel2Sections.value[0] || null)
+const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || null)
+const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
+const activeSectionTokens = computed(() => selectableTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
+const isKdbSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'kdb'))
 const activeKdbTokenGroups = computed(() => {
   if (!isKdbSectionActive.value) return []
   const grouped = [
@@ -474,8 +497,8 @@ const activeKdbTokenGroups = computed(() => {
   }
   return grouped.filter((group) => group.tokens.length)
 })
-const toolbarLeftSections = computed(() => level2Sections.value.filter((section) => !['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
-const toolbarRightSections = computed(() => level2Sections.value.filter((section) => ['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
+const toolbarLeftSections = computed(() => groupedLevel2Sections.value.filter((group) => !group.sections.some((section) => ['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase()))))
+const toolbarRightSections = computed(() => groupedLevel2Sections.value.filter((group) => group.sections.some((section) => ['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase()))))
 
 const heroInitials = computed(() => String(activeRegistryEntry.value?.singularLabel || 'Record').slice(0, 2).toUpperCase())
 const structuredRecordHeroStyle = computed(() => {
@@ -557,12 +580,18 @@ const feedItems = computed(() => [
 const recordFeedTabOptions = computed(() => [{ id: 'all', label: 'All' }])
 const displayedRecordFeedItems = computed(() => feedItems.value.filter((item) => item.feedKey === activeRecordFeedTab.value))
 const recordShellNavItems = computed(() => [
-  ...toolbarLeftSections.value.map((section) => ({ value: section.key, title: section.label, isKdb: false, isSystem: false, pushRight: false })),
-  ...toolbarRightSections.value.map((section, index) => {
-    const normalized = String(section.label || '').trim().toLowerCase()
+  ...toolbarLeftSections.value.map((group) => ({
+    value: group.value,
+    title: group.title,
+    isKdb: false,
+    isSystem: false,
+    pushRight: false,
+  })),
+  ...toolbarRightSections.value.map((group, index) => {
+    const normalized = String(group.title || '').trim().toLowerCase()
     return {
-      value: section.key,
-      title: section.label,
+      value: group.value,
+      title: group.title,
       isKdb: normalized === 'kdb',
       isSystem: normalized === 'system',
       pushRight: index === 0,
@@ -584,7 +613,8 @@ watch(level2Sections, (sections) => {
     expandedSectionKeys.value = []
     return
   }
-  if (!sections.some((section) => section.key === activeSectionKey.value)) activeSectionKey.value = sections[0].key
+  const groups = groupedLevel2Sections.value
+  if (!groups.some((group) => group.value === activeSectionKey.value)) activeSectionKey.value = groups[0]?.value || ''
   expandedSectionKeys.value = sections.map((section) => section.key)
 }, { immediate: true })
 
