@@ -462,10 +462,6 @@
       </q-card>
     </q-dialog>
 
-    <CompanyCreateDialog v-model="globalCompanyDialogOpen" :initial-data="globalCreateInitialData" />
-    <ContactCreateDialog v-model="globalContactDialogOpen" :initial-data="globalCreateInitialData" />
-    <FundCreateDialog v-model="globalFundDialogOpen" :initial-data="globalCreateInitialData" />
-    <RoundCreateDialog v-model="globalRoundDialogOpen" :initial-data="globalCreateInitialData" />
     <ArtifactAddDialog v-model="artifactDialogOpen" />
   </q-layout>
 </template>
@@ -480,10 +476,6 @@ import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
-import CompanyCreateDialog from 'components/CompanyCreateDialog.vue'
-import ContactCreateDialog from 'components/ContactCreateDialog.vue'
-import FundCreateDialog from 'components/FundCreateDialog.vue'
-import RoundCreateDialog from 'components/RoundCreateDialog.vue'
 import {
   removeIntakeDraft,
   setActiveIntakeDraft,
@@ -503,6 +495,7 @@ import {
   resolveIntakeReviewItem,
   useIntakeReviewQueueState,
 } from 'src/utils/intakeReviewQueueState'
+import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -524,11 +517,6 @@ const quickWidgetSettingsTarget = ref(null)
 const draftTrayDismissed = ref(false)
 const intakeQueueDialogOpen = ref(false)
 const intakeQueueFieldEdits = ref({})
-const globalCompanyDialogOpen = ref(false)
-const globalContactDialogOpen = ref(false)
-const globalFundDialogOpen = ref(false)
-const globalRoundDialogOpen = ref(false)
-const globalCreateInitialData = ref(null)
 const testShellSectionSelectRef = ref(null)
 const drawerSectionOpen = ref({
   main: true,
@@ -1168,26 +1156,30 @@ function confirmActiveIntakeField(fieldKey) {
   consumeActiveFieldBundle([{ ...field, value }], 'resolved')
 }
 
-function closeGlobalCreateDialogs() {
-  globalCompanyDialogOpen.value = false
-  globalContactDialogOpen.value = false
-  globalFundDialogOpen.value = false
-  globalRoundDialogOpen.value = false
-}
-
 function openActiveEntityCreateDialog() {
   const activeItem = activeIntakeQueueItem.value
   if (!activeItem || activeItem.kind !== 'entity-create') return
   const entityTypeName = String(activeItem.payload?.entityType || '').trim().toLowerCase()
-  globalCreateInitialData.value = {
-    entityType: entityTypeName,
-    entity: JSON.parse(JSON.stringify(activeItem.payload?.entity || {})),
+  const routeNameByEntityType = {
+    company: 'companies',
+    contact: 'contacts',
+    fund: 'funds',
+    round: 'rounds',
   }
-  closeGlobalCreateDialogs()
-  if (entityTypeName === 'company') globalCompanyDialogOpen.value = true
-  else if (entityTypeName === 'contact') globalContactDialogOpen.value = true
-  else if (entityTypeName === 'fund') globalFundDialogOpen.value = true
-  else globalRoundDialogOpen.value = true
+  const sourceKeyByEntityType = {
+    company: 'companies',
+    contact: 'contacts',
+    fund: 'funds',
+    round: 'rounds',
+  }
+  const routeName = routeNameByEntityType[entityTypeName]
+  const sourceKey = sourceKeyByEntityType[entityTypeName]
+  if (!routeName || !sourceKey) return
+  setPendingAddEditShellRequest({
+    sourceKey,
+    initialValues: JSON.parse(JSON.stringify(activeItem.payload?.entity || {})),
+  })
+  router.push({ name: routeName, query: { ...route.query, create: '1' } })
   const itemId = String(activeItem.id || '').trim()
   if (itemId) resolveIntakeReviewItem(itemId)
   pendingEntityDialogAdvance = true
@@ -1809,13 +1801,9 @@ watch(
 )
 
 watch(
-  () =>
-    globalCompanyDialogOpen.value ||
-    globalContactDialogOpen.value ||
-    globalFundDialogOpen.value ||
-    globalRoundDialogOpen.value,
-  (isAnyOpen) => {
-    if (isAnyOpen || !pendingEntityDialogAdvance) return
+  () => route.fullPath,
+  () => {
+    if (!pendingEntityDialogAdvance) return
     pendingEntityDialogAdvance = false
     scheduleNextIntakeQueueItem()
   },

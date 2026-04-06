@@ -623,6 +623,7 @@ import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipCo
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
+import { consumePendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 
 const props = defineProps({
@@ -1420,6 +1421,10 @@ watch(
     await preloadCreateDialogOptionSources()
 
     const nextInitialValues = {}
+    const pendingRequest = consumePendingAddEditShellRequest(activeSourceKey.value)
+    if (pendingRequest?.initialValues && typeof pendingRequest.initialValues === 'object') {
+      Object.assign(nextInitialValues, pendingRequest.initialValues)
+    }
     if (activeSourceKey.value === 'opportunities') {
       const requestedKind = String(route.query.kind || '').trim().toLowerCase()
       const opportunityKindToken =

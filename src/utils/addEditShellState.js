@@ -1,0 +1,22 @@
+import { ref } from 'vue'
+
+const pendingAddEditShellRequest = ref(null)
+
+export function setPendingAddEditShellRequest(request = null) {
+  pendingAddEditShellRequest.value = request && typeof request === 'object'
+    ? {
+        sourceKey: String(request.sourceKey || '').trim().toLowerCase(),
+        initialValues: request.initialValues && typeof request.initialValues === 'object'
+          ? { ...request.initialValues }
+          : {},
+      }
+    : null
+}
+
+export function consumePendingAddEditShellRequest(sourceKey = '') {
+  const pending = pendingAddEditShellRequest.value
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  if (!pending || pending.sourceKey !== normalizedSourceKey) return null
+  pendingAddEditShellRequest.value = null
+  return pending
+}
