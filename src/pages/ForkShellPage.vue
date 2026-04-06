@@ -340,6 +340,7 @@ onBeforeUnmount(() => {
 .fork-shell-card__grid {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -432,6 +433,7 @@ onBeforeUnmount(() => {
 
   .fork-shell-card__grid {
     align-items: stretch;
+    justify-content: flex-start;
   }
 }
 </style>
