@@ -659,6 +659,7 @@ const inlineFieldSavingKeys = ref([])
 const error = ref('')
 const currentView = ref(null)
 const fields = ref([])
+const auditEvents = ref([])
 const fieldVerificationStates = ref({})
 const inlineFieldValues = ref({})
 const heroFieldKeysBySource = ref(loadShellFieldSelectionMap())
@@ -818,28 +819,27 @@ const genericHeroDocuments = computed(() => [
     content: heroSummaryValue.value,
   },
 ])
-const feedItems = computed(() => [
-  {
-    id: 'feed-1',
-    feedKey: 'all',
-    sourceLabel: isRecordRoute.value ? 'Record' : 'Record Shell',
-    meta: isRecordRoute.value ? `ID ${recordIdParam.value || '-'}` : 'Now',
-    title: isRecordRoute.value ? (currentView.value?.table_name || activeRegistryEntry.value?.label || 'Record') : 'Template feed lane',
-    content: isRecordRoute.value
-      ? `Viewing ${activeRegistryEntry.value?.singularLabel || 'record'} through the shared Record Shell.`
-      : 'This right-side black box is the dedicated feed surface for the selected L1 record skeleton.',
-  },
-  {
-    id: 'feed-2',
-    feedKey: 'all',
-    sourceLabel: 'Payload',
-    meta: getFieldDisplayValue('updated_at') || getFieldDisplayValue('created_at') || 'Live',
-    title: isRecordRoute.value ? 'Shared record payload' : 'L1-driven structure',
-    content: isRecordRoute.value
-      ? `${fields.value.length} fields loaded from databooks.view(${tableNameParam.value}, ${recordIdParam.value}).`
-      : 'Changing the L1 at the top swaps the canonical record skeleton underneath this template.',
-  },
-])
+const feedItems = computed(() => {
+  if (isRecordRoute.value) return auditEvents.value
+  return [
+    {
+      id: 'feed-template-1',
+      feedKey: 'all',
+      sourceLabel: 'Record Shell',
+      meta: 'Now',
+      title: 'Template feed lane',
+      content: 'This right-side black box is the dedicated feed surface for the selected L1 record skeleton.',
+    },
+    {
+      id: 'feed-template-2',
+      feedKey: 'all',
+      sourceLabel: 'Payload',
+      meta: 'Live',
+      title: 'L1-driven structure',
+      content: 'Changing the L1 at the top swaps the canonical record skeleton underneath this template.',
+    },
+  ]
+})
 const recordFeedTabOptions = computed(() => [{ id: 'all', label: 'All' }])
 const displayedRecordFeedItems = computed(() => feedItems.value.filter((item) => item.feedKey === activeRecordFeedTab.value))
 const recordShellNavItems = computed(() => [
@@ -1209,13 +1209,6 @@ function getTokenDialogValue(token) {
   return rawValue == null ? '' : String(rawValue)
 }
 
-function getFieldDisplayValue(fieldName) {
-  const field = fieldByName.value[String(fieldName || '').trim()]
-  if (field) return String(field.value ?? '').trim()
-  const recordValue = currentView.value?.record?.[fieldName]
-  return recordValue == null ? '' : String(recordValue).trim()
-}
-
 function normalizeIpcErrorMessage(ipcError) {
   const raw = String(ipcError?.message || ipcError || '').trim()
   const prefix = "Error invoking remote method '"
@@ -1224,10 +1217,90 @@ function normalizeIpcErrorMessage(ipcError) {
   return separatorIndex > -1 ? raw.slice(separatorIndex + 2).trim() : raw
 }
 
+function stringifyAuditValue(value) {
+  const normalized = String(value ?? '').trim()
+  if (!normalized) return ''
+  try {
+    const parsed = JSON.parse(normalized)
+    if (Array.isArray(parsed)) return parsed.join(', ')
+    if (parsed && typeof parsed === 'object') return JSON.stringify(parsed)
+  } catch {
+    // keep raw string
+  }
+  return normalized
+}
+
+function formatAuditFieldLabel(fieldName) {
+  const specialWords = {
+    id: 'ID',
+    api: 'API',
+    aum: 'AUM',
+    aums: 'AUMs',
+    llm: 'LLM',
+    rofo: 'ROFO',
+    ror: 'ROR',
+  }
+  return String(fieldName || '')
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map((word) => {
+      const lower = String(word).toLowerCase()
+      if (specialWords[lower]) return specialWords[lower]
+      return lower.charAt(0).toUpperCase() + lower.slice(1)
+    })
+    .join(' ')
+}
+
+function formatAuditActorLabel(editedBy) {
+  const normalized = String(editedBy || '').trim()
+  return normalized ? `User ${normalized}` : 'User'
+}
+
+function buildAuditEventTitle(fieldName, actionLabel = '') {
+  if (fieldName.endsWith('__verification')) return `Verified ${formatAuditFieldLabel(fieldName.replace(/__verification$/, ''))}`
+  if (actionLabel.includes('create')) return `Created ${activeRegistryEntry.value?.singularLabel || 'record'}`
+  if (actionLabel.includes('verification')) return `Reviewed ${formatAuditFieldLabel(fieldName)}`
+  if (fieldName) return `Updated ${formatAuditFieldLabel(fieldName)}`
+  return 'Updated record'
+}
+
+function buildAuditEventContent(event = {}, fieldName = '', actionLabel = '') {
+  const oldValue = stringifyAuditValue(event?.old_value)
+  const newValue = stringifyAuditValue(event?.new_value)
+  if (fieldName.endsWith('__verification')) {
+    return newValue ? `Verification state set to ${newValue}.` : 'Verification state updated.'
+  }
+  if (actionLabel.includes('create')) {
+    return newValue ? `Initial value: ${newValue}.` : 'Record created.'
+  }
+  if (!oldValue && newValue) return `Set to ${newValue}.`
+  if (oldValue && !newValue) return `Cleared value previously set to ${oldValue}.`
+  if (oldValue && newValue) return `${oldValue} -> ${newValue}`
+  return ''
+}
+
+function normalizeAuditFeedEvents(events = []) {
+  return (Array.isArray(events) ? events : [])
+    .map((event) => {
+      const fieldName = String(event?.field_name || '').trim()
+      const actionLabel = String(event?.action_label || '').trim().toLowerCase()
+      return {
+        id: String(event?.id || '').trim() || `audit:${Math.random()}`,
+        feedKey: 'all',
+        sourceLabel: formatAuditActorLabel(event?.edited_by),
+        meta: String(event?.edited_at || '').trim() || 'Recent',
+        title: buildAuditEventTitle(fieldName, actionLabel),
+        content: buildAuditEventContent(event, fieldName, actionLabel),
+      }
+    })
+    .filter((event) => event.title)
+}
+
 async function loadRecordView() {
   if (!hasBridge.value || !isRecordRoute.value) {
     currentView.value = null
     fields.value = []
+    auditEvents.value = []
     error.value = ''
     return
   }
@@ -1252,6 +1325,16 @@ async function loadRecordView() {
     } catch {
       fieldVerificationStates.value = {}
     }
+    try {
+      const auditResult = await bridge.value?.audit?.events?.({
+        table_name: runtimeTableName.value,
+        record_id: recordIdParam.value,
+        limit: 50,
+      })
+      auditEvents.value = normalizeAuditFeedEvents(auditResult?.events)
+    } catch {
+      auditEvents.value = []
+    }
     inlineFieldValues.value = Object.fromEntries(
       [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
         .map((token) => [token.key, getTokenDialogValue(token)]),
@@ -1260,6 +1343,7 @@ async function loadRecordView() {
     error.value = normalizeIpcErrorMessage(loadError)
     currentView.value = null
     fields.value = []
+    auditEvents.value = []
     fieldVerificationStates.value = {}
     inlineFieldValues.value = {}
   } finally {
