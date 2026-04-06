@@ -194,6 +194,14 @@ Working rule:
 - the UI may read those aliases, but it should not infer them heuristically
 - companion systems should follow the same ownership rule and should not invent field meaning outside canon
 
+Universal shell rule:
+
+- this is not an `id`-only exception
+- alias declaration belongs to the `L3` token contract for any token whose runtime payload name differs from its canonical token name
+- the same rule must hold across `File Shell` and `Record Shell`
+- do not solve these gaps with page-level or record-level one-offs
+- if a token needs runtime mapping, declare it in canon and workbook companion so every shell reads the same contract
+
 ## KDB Relationship Contract
 
 KDB relationships must now be treated as real system paths, not as optional UI affordances.

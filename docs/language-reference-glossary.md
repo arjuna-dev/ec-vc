@@ -16,6 +16,7 @@
 | Owner Path | The approved runtime write path for a field or relationship. The shell should never guess this. | Record Architecture |
 | Reverse-Read Path | The approved runtime read path that lets a relationship appear correctly from both linked records. | Record Architecture |
 | Canon | The approved structure declared in the canonical contract files. Canon decides what is allowed. | Product Reference |
+| L3 Alias Contract | The explicit runtime alias mapping declared on an `L3` token when the live payload field name differs from the canonical token name. This is a shell-level agreement, not a page-level patch. | Record Architecture |
 | Runtime-Backed | A declared path that already has real runtime ownership underneath it. | ECS Workstream Tracker |
 | Declared-But-Missing | A path declared in canon that does not yet have full runtime ownership or reverse-read support. | ECS Workstream Tracker |
 | Live Shell | The strict shared shell surface used to test and exercise contract-driven page behavior. | Record Architecture |

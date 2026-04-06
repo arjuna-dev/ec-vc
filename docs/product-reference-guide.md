@@ -198,6 +198,24 @@ Working rule:
 - if runtime payload names differ, use explicit canonical alias metadata
 - do not rebuild old per-page field maps in the UI
 
+This should be treated as a universal shell rule:
+
+- not a `User` rule
+- not an `id` rule
+- not a `Record View`-only rule
+
+If an `L3` token needs runtime mapping, that mapping should be declared once in canon and then shared by:
+
+- `File Shell`
+- `Record Shell`
+- any other shared shell surface
+
+Working rule:
+
+- all agreements should be made at shell level
+- no page-level one-offs
+- no record-level one-offs
+
 ## Token Behavior Language
 
 Canonical structure should keep moving toward explicit token behavior at the `L3` level.
