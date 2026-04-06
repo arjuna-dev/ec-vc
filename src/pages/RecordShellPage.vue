@@ -246,7 +246,15 @@
                 <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
               </div>
               <div class="contact-databook__summary-feed-entry-title">{{ item.title }}</div>
-              <div v-if="item.content" class="contact-databook__summary-feed-entry-content">
+              <button
+                v-if="item.content"
+                type="button"
+                class="contact-databook__summary-feed-entry-toggle"
+                @click="toggleFeedItemExpanded(item.id)"
+              >
+                {{ isFeedItemExpanded(item.id) ? 'Hide log' : 'Show log' }}
+              </button>
+              <div v-if="item.content && isFeedItemExpanded(item.id)" class="contact-databook__summary-feed-entry-content">
                 {{ item.content }}
               </div>
             </div>
@@ -650,6 +658,7 @@ const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
 const genericHeroPanelTab = ref('notes')
 const activeRecordFeedTab = ref('all')
+const expandedFeedItemIds = ref([])
 const recordShellTopNavViewMode = ref('grid')
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
@@ -1253,7 +1262,8 @@ function formatAuditFieldLabel(fieldName) {
 
 function formatAuditActorLabel(editedBy) {
   const normalized = String(editedBy || '').trim()
-  return normalized ? `User ${normalized}` : 'User'
+  const userMatch = liveOptionRowsBySource.value.users?.find((row) => String(row?.id || '').trim() === normalized)
+  return String(userMatch?.User_Name || userMatch?.Name || '').trim() || 'User'
 }
 
 function buildAuditEventTitle(fieldName, actionLabel = '') {
@@ -1284,16 +1294,28 @@ function normalizeAuditFeedEvents(events = []) {
     .map((event) => {
       const fieldName = String(event?.field_name || '').trim()
       const actionLabel = String(event?.action_label || '').trim().toLowerCase()
+      const actorLabel = formatAuditActorLabel(event?.edited_by)
+      const actionTitle = buildAuditEventTitle(fieldName, actionLabel)
       return {
         id: String(event?.id || '').trim() || `audit:${Math.random()}`,
         feedKey: 'all',
-        sourceLabel: formatAuditActorLabel(event?.edited_by),
+        sourceLabel: actorLabel,
         meta: String(event?.edited_at || '').trim() || 'Recent',
-        title: buildAuditEventTitle(fieldName, actionLabel),
+        title: actorLabel ? `${actorLabel} ${actionTitle.charAt(0).toLowerCase()}${actionTitle.slice(1)}` : actionTitle,
         content: buildAuditEventContent(event, fieldName, actionLabel),
       }
     })
     .filter((event) => event.title)
+}
+
+function isFeedItemExpanded(itemId) {
+  return expandedFeedItemIds.value.includes(itemId)
+}
+
+function toggleFeedItemExpanded(itemId) {
+  expandedFeedItemIds.value = isFeedItemExpanded(itemId)
+    ? expandedFeedItemIds.value.filter((value) => value !== itemId)
+    : [...expandedFeedItemIds.value, itemId]
 }
 
 async function loadRecordView() {
@@ -1311,6 +1333,21 @@ async function loadRecordView() {
     const result = await bridge.value.databooks.view(tableNameParam.value, recordIdParam.value)
     currentView.value = result || null
     fields.value = Array.isArray(result?.fields) ? result.fields : []
+    expandedFeedItemIds.value = []
+    if (!Array.isArray(liveOptionRowsBySource.value.users)) {
+      try {
+        const usersResult = await bridge.value?.users?.list?.()
+        liveOptionRowsBySource.value = {
+          ...liveOptionRowsBySource.value,
+          users: normalizeListResult(usersResult),
+        }
+      } catch {
+        liveOptionRowsBySource.value = {
+          ...liveOptionRowsBySource.value,
+          users: [],
+        }
+      }
+    }
     try {
       const verificationResult = await bridge.value?.verification?.list?.({
         tableName: tableNameParam.value,
