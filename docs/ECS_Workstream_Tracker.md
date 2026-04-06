@@ -21,6 +21,7 @@ This tracker should stay aligned with:
 
 ### Current Focus
 
+- make canonical `L1` bootstrap consolidation the top architecture priority
 - keep the underlying structure, ownership, and runtime relationship paths converging cleanly
 - use the `Companion` and the first-pass game layer to surface issues without weakening the contract
 - keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
@@ -47,17 +48,18 @@ This tracker should stay aligned with:
 
 ### Top 5 To-Do
 
-1. Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths.
-2. Define the first generalized field-class layer for `L3` tokens:
+1. Consolidate new `L1` bootstrap into one canonical contract with strict validation, and prove it through `Companion Roles`.
+2. Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths.
+3. Define the first generalized field-class layer for `L3` tokens:
    - `owned_field`
    - `directional_link`
    - `kdb_relationship`
-3. Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships.
-4. Finish reviewing reciprocal KDB readback behavior so every shared relationship path reflects add, remove, and relabel consistently from both sides.
-5. Define the first relevance maps for major boards so points can reflect what matters most at each stage.
+4. Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships.
+5. Finish reviewing reciprocal KDB readback behavior so every shared relationship path reflects add, remove, and relabel consistently from both sides.
 
 ## Front-Loaded
 
+- treat canonical `L1` bootstrap consolidation as the top structural risk and first architecture workflow
 - Keep the shared `FilePageShell` as the one shell source while each file route continues to own its own `L1`
 - Define the first-pass game layer clearly enough that it guides users and companions without pulling focus away from the current structure pass
 - Make the KDB relationship contract explicit in the architecture docs before adding more runtime relationship paths
@@ -118,6 +120,8 @@ This tracker should stay aligned with:
 - Include `Companion` and `Roles` parameters in the intake control surface so operator behavior can be tuned with the workstream
 - the `Companion` should now be understood as a guide helping the user navigate the game and score points in a useful way
 - the first `Companion` role and first game/file focus should be `Ingestion`
+- `Owner Genesis` should initialize the current approved schema baseline as declared in `src-electron/services/sqlite-schema.js`
+- future marketplace-delivered `L1`s should be required to pass the same canonical bootstrap contract as local owner-created `L1`s
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - artifact context assumptions should now be treated as `default/preselected unverified`
 - ingestion should start from the linked source artifact and should not create a duplicate artifact record at processing start

@@ -63,6 +63,109 @@ The goal is operational consistency:
 - the same entity should expose the same section logic in payloads
 - the same entity should render predictably in file view and record view
 
+## Highest Priority
+
+The highest-priority architecture workflow is now:
+
+- consolidate new `L1` bootstrap into one canonical contract
+- derive as much UI/runtime registration as possible from that contract
+- validate anything not yet derived so incomplete `L1`s fail loudly instead of rendering half-wired
+
+Reason:
+
+- shared shells are already converging
+- runtime `L1` bootstrap is still too distributed
+- if a new `L1` requires too many manual touch-points, canon is not yet doing enough work
+- if canon is not driving efficient implementation, the UI will continue to look cleaner than the underlying system really is
+
+The intended steady state is:
+
+- define a new `L1` once
+- derive shell/navigation/runtime expectations from that definition
+- validate the remaining runtime hooks against that definition
+- reject visible-but-nonfunctional `L1`s as architecture failures
+
+This is the best route because it:
+
+- reduces drift
+- lowers implementation cost for future `L1`s
+- keeps shell behavior predictable
+- scales better as record count, relationship count, and payload count increase
+- turns broken UI states into validation failures instead of late discoveries
+
+### Canonical L1 Bootstrap Map
+
+The consolidation map should be:
+
+1. one canonical `L1` contract definition
+2. derived route/registry/navigation/shell labeling
+3. shared runtime owner registration for `list/create/update/delete`
+4. KDB declarations that are runtime-checked against canon
+5. a validator that rejects incomplete `L1` bootstrap
+6. proof-case implementation through one real `L1`
+
+The canonical `L1` contract should carry:
+
+- canonical entity name
+- runtime table name
+- source key
+- route/path
+- nav label/icon/group
+- shell eligibility
+- required subsections
+- runtime capabilities
+- KDB declarations
+- bootstrap defaults
+
+The validator should fail if an `L1` is missing:
+
+- canonical entity
+- runtime table
+- route/path
+- registry/nav presence
+- preload bridge ownership
+- ipc/runtime handlers
+- create/edit shell support
+- required subsections
+- KDB relationship contract
+- reciprocal read behavior
+
+### Genesis Schema Baseline Rule
+
+`Owner Genesis` should initialize the current approved schema baseline exactly as it currently exists in `src-electron/services/sqlite-schema.js`.
+
+That means the app should create and own the current baseline table set as part of node initialization, including:
+
+- system/runtime tables such as `app_settings`, `Owner_DB`, `events`, `databook_snapshots`, and `Field_Verification_Metadata`
+- current first-order `L1` tables such as `Companies`, `Funds`, `Rounds`, `Users`, `Contacts`, `Projects`, `Tasks`, `Notes`, `Roles`, `Artifacts`, and related current working record tables
+- current knowledge/reference tables such as `Industries`, `Round_Securities`, `Regions`, `BusinessModels`, `SectorGroups`, `VerticalIndustries`, `VC_Terms_Glossary`, and related current supporting tables
+- current owned subtables and current relationship/join tables exactly as they are presently declared
+- current linkage/runtime tables such as `Users_Roles`, `Artifacts_Processed`, and `KDB_Relationships`
+
+Working rule:
+
+- `Genesis` should not invent a smaller temporary schema
+- `Genesis` should install the current approved schema baseline as-is
+- later marketplace-delivered `L1`s may extend that baseline, but should not weaken or fork it casually
+
+### Marketplace Extension Rule
+
+When a marketplace exists, it should be able to distribute new `L1` infrastructure between users/nodes.
+
+That means:
+
+- a user should be able to download an approved external `L1`
+- we should also be able to send/install new `L1` tables that complement existing infrastructure
+- marketplace `L1`s must still pass the same canonical bootstrap contract as local owner-created `L1`s
+- marketplace delivery is an extension path, not an exemption path
+- imported `L1`s must declare canon, runtime ownership, shell behavior, KDB behavior, and validation scope before they are treated as live
+
+Proof rule:
+
+- `Companion Roles` should be treated as the first proof-case for this consolidated bootstrap direction
+- do not just patch `Companion Roles`
+- use it to prove the bootstrap contract, runtime owner path, and KDB validation path
+
 ## Record Shell Direction
 
 `Record Shell` is now the approved shared direction for `Record View`.

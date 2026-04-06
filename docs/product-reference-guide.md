@@ -235,6 +235,7 @@ New `L1` bootstrap rule:
 
 - a new `L1` must be treated as a full product/runtime/bootstrap task, not as a label or route-only task
 - new `L1` bootstrap is `Owner`-only authority work, not a normal user create action
+- the highest-priority architecture workflow is to consolidate this bootstrap into one canonical contract with strict validation
 - adding a new `L1` should include:
   - canonical entity
   - route
@@ -246,6 +247,7 @@ New `L1` bootstrap rule:
   - reciprocal KDB propagation to the other relevant `L1`s
 - `Add Record` and shared dialog flows should work immediately for the new `L1`
 - if a source is visible in menus but not createable/editable, treat that as incomplete bootstrap work, not as an acceptable intermediate product state
+- future marketplace-delivered `L1`s must pass the same bootstrap contract as local owner-created `L1`s
 
 Fork shell rule:
 
@@ -522,6 +524,7 @@ Current product meaning:
 - the owner bootstrap should create `Master Companion Role`
 - the owner bootstrap should create a `User Set-up` project and its default setup tasks
 - the user may skip setup task completion, but those bootstrap project/task records should still be created
+- `Owner Genesis` should also initialize the current approved schema baseline from `src-electron/services/sqlite-schema.js`, using the current table set as-is rather than a reduced temporary subset
 
 Current limit:
 

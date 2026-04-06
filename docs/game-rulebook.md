@@ -44,6 +44,8 @@ Working rule:
 - guided completion is optional
 - the first board should know that `Owner Genesis` happens before normal gameplay progression
 - the first guided tasks should help the owner finish the setup of the base spaces and roles that were just created
+- `Owner Genesis` should initialize the current approved schema baseline before those guided tasks begin
+- the current schema baseline means the currently declared table set in `src-electron/services/sqlite-schema.js`, not a reduced temporary subset
 
 ## Purpose
 
