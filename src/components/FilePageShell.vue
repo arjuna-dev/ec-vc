@@ -2204,7 +2204,6 @@ async function applyVerificationChanges(recordId, entityName, verification = {})
       fieldName,
       state,
       source,
-      actionId: createDialogChangeActionId.value || null,
       actionLabel: 'shared_shell_dialog_session',
     })
   }
