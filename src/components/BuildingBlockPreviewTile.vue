@@ -1,14 +1,12 @@
 <template>
   <article
+    ref="tileRef"
     class="building-block-preview-tile"
     :class="[`building-block-preview-tile--${size}`, { 'building-block-preview-tile--collapsed': isCollapsed }]"
+    :style="tileGridStyle"
   >
-    <div v-if="$slots.actions" class="building-block-preview-tile__actions">
-      <slot name="actions" />
-    </div>
-
     <div class="building-block-preview-tile__header">
-      <div class="building-block-preview-tile__header-main">
+      <div ref="headerMainRef" class="building-block-preview-tile__header-main">
         <div class="building-block-preview-tile__label-row">
           <div class="building-block-preview-tile__label">{{ tileTitle }}</div>
           <button
@@ -30,6 +28,10 @@
         </div>
 
         <div v-else class="building-block-preview-tile__status" :class="statusClass">{{ tileStatusLabel }}</div>
+      </div>
+
+      <div v-if="$slots.actions" ref="actionsRef" class="building-block-preview-tile__actions">
+        <slot name="actions" />
       </div>
     </div>
 
@@ -114,7 +116,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
@@ -129,6 +131,9 @@ const props = defineProps({
 const detail = computed(() => BUILDING_BLOCK_DETAILS_BY_ID[props.blockKey] || null)
 const isCollapsed = ref(false)
 const size = computed(() => getBuildingBlockTileSize(props.blockKey))
+const tileRef = ref(null)
+const headerMainRef = ref(null)
+const actionsRef = ref(null)
 const tileTitle = computed(() => props.title || detail.value?.title || 'Building Block')
 const tileStatusLabel = computed(() => props.statusLabel || detail.value?.statusLabel || 'Extract Next')
 const statusClass = computed(() =>
@@ -175,6 +180,60 @@ const fileDashboardHealth = [
 ]
 
 const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Record' : 'Add'))
+
+const baseColsBySize = Object.freeze({
+  sm: 4,
+  md: 6,
+  lg: 9,
+  'toolbar-wide': 14,
+  dashboard: 16,
+  'stat-box': 6,
+  'live-link': 7,
+  'settings-menu': 8,
+  'widget-settings': 8,
+  'title-wide': 10,
+})
+
+const measuredHeaderCols = ref(0)
+let headerResizeObserver = null
+
+const tileGridStyle = computed(() => {
+  const baseCols = baseColsBySize[size.value] || 6
+  const resolvedCols = Math.max(baseCols, measuredHeaderCols.value || 0)
+  return {
+    '--tile-cols': String(resolvedCols),
+  }
+})
+
+function updateMeasuredHeaderCols() {
+  const headerWidth = Math.ceil(headerMainRef.value?.scrollWidth || 0)
+  const actionsWidth = Math.ceil(actionsRef.value?.offsetWidth || 0)
+  const totalWidth = headerWidth + actionsWidth + 52
+  measuredHeaderCols.value = Math.max(0, Math.ceil(totalWidth / 40))
+}
+
+onMounted(async () => {
+  await nextTick()
+  updateMeasuredHeaderCols()
+  if (typeof ResizeObserver !== 'undefined') {
+    headerResizeObserver = new ResizeObserver(() => {
+      updateMeasuredHeaderCols()
+    })
+    if (headerMainRef.value) headerResizeObserver.observe(headerMainRef.value)
+    if (actionsRef.value) headerResizeObserver.observe(actionsRef.value)
+    if (tileRef.value) headerResizeObserver.observe(tileRef.value)
+  }
+})
+
+watch([tileTitle, isCollapsed], async () => {
+  await nextTick()
+  updateMeasuredHeaderCols()
+})
+
+onBeforeUnmount(() => {
+  headerResizeObserver?.disconnect()
+  headerResizeObserver = null
+})
 </script>
 
 <style scoped>
@@ -213,12 +272,10 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
 .building-block-preview-tile--title-wide { --tile-cols: 10; --tile-rows: 5; }
 
 .building-block-preview-tile__actions {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex: 0 0 auto;
 }
 
 .building-block-preview-tile__header {
@@ -226,12 +283,14 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: nowrap;
 }
 
 .building-block-preview-tile__header-main {
   display: grid;
   gap: 6px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .building-block-preview-tile__label-row {
@@ -239,6 +298,7 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
   align-items: center;
   gap: 4px;
   min-width: 0;
+  white-space: nowrap;
 }
 
 .building-block-preview-tile__label {
