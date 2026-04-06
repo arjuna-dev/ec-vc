@@ -90,7 +90,7 @@
                 flat
                 round
                 dense
-                icon="add"
+                icon="edit"
                 class="record-shell__hero-icon-button record-shell__hero-icon-button--create"
                 aria-label="Add record"
                 @click="openCreateRecordDialog"
