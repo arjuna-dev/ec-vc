@@ -308,7 +308,7 @@
         <div class="components-shell-page__card-label">Eye Icon</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('eye-icon')">{{ componentStatusLabel('eye-icon') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
-          <q-btn flat dense round icon="visibility" class="components-shell-page__eye-button" aria-label="View row" />
+          <EyeIconButton aria-label="View row" />
         </div>
       </article>
 
@@ -438,6 +438,7 @@ import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
+import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
 
@@ -1224,18 +1225,6 @@ onBeforeUnmount(() => {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-.components-shell-page__eye-button {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  color: rgba(17, 17, 17, 0.82);
-}
-
-.components-shell-page__eye-button :deep(.q-icon) {
-  font-size: 16px;
 }
 
 .components-shell-page__edit-button {

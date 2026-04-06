@@ -243,12 +243,8 @@
           :status-label="getBbTileStatus(row)"
         >
           <template #actions>
-            <q-btn
-              flat
-              round
-              dense
-              icon="visibility"
-              class="bb-shell-tiles-grid__action"
+            <EyeIconButton
+              aria-label="View block tile"
               :disable="!row.recordId"
               @click="openRecordView(row)"
             />
@@ -745,6 +741,7 @@ import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'components/ShellSectionToolbar.vue'
 import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
+import EyeIconButton from 'components/buttons/EyeIconButton.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import {
   buildCardRelationshipItems,
@@ -3240,17 +3237,6 @@ async function handleSelectedRowsDelete() {
   gap: 16px;
   justify-content: start;
   align-items: start;
-}
-
-.bb-shell-tiles-grid__action {
-  color: rgba(15, 23, 42, 0.72);
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 999px;
-}
-
-.bb-shell-tiles-grid__action :deep(.q-icon) {
-  font-size: 16px;
 }
 
 .test-shell-card {
