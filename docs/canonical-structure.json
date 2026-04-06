@@ -165,7 +165,10 @@
             {
               "address": "2.1.1",
               "token_name": "User_ID",
-              "token_type": "id"
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "address": "2.1.2",

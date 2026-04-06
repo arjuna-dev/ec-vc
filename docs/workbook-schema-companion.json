@@ -289,7 +289,10 @@
               "token_type": "id",
               "node_type": "leaf",
               "level": "3",
-              "parent_id": "2.1.0"
+              "parent_id": "2.1.0",
+              "db_field_aliases": [
+                "id"
+              ]
             },
             {
               "index": "",
