@@ -159,17 +159,19 @@ function formatActorLabel(editedBy) {
   return String(matched?.User_Name || matched?.Name || '').trim() || normalized || 'User'
 }
 
-const eventFieldLabel = computed(() => formatAuditFieldLabel(String(eventRecord.value?.field_name || '').replace(/__verification$/, '')))
+const eventPayload = computed(() => (eventRecord.value?.payload && typeof eventRecord.value.payload === 'object' ? eventRecord.value.payload : {}))
+const eventFieldLabel = computed(() => String(eventPayload.value?.field_label || '').trim() || formatAuditFieldLabel(String(eventRecord.value?.field_name || '').replace(/__verification$/, '')))
 const eventActionLabel = computed(() => String(eventRecord.value?.action_label || '').trim() || 'record_event')
-const eventActor = computed(() => formatActorLabel(eventRecord.value?.edited_by))
+const eventActor = computed(() => String(eventPayload.value?.actor_label || '').trim() || formatActorLabel(eventRecord.value?.edited_by))
 const eventTime = computed(() => String(eventRecord.value?.edited_at || '').trim() || 'Recent')
-const eventOldValue = computed(() => stringifyAuditValue(eventRecord.value?.old_value))
-const eventNewValue = computed(() => stringifyAuditValue(eventRecord.value?.new_value))
+const eventOldValue = computed(() => String(eventPayload.value?.old_display_value || '').trim() || stringifyAuditValue(eventRecord.value?.old_value))
+const eventNewValue = computed(() => String(eventPayload.value?.new_display_value || '').trim() || stringifyAuditValue(eventRecord.value?.new_value))
 const eventTitle = computed(() => {
   const fieldName = String(eventRecord.value?.field_name || '').trim()
-  if (fieldName.endsWith('__verification')) return `${eventActor.value} verified ${eventFieldLabel.value}`
-  if (String(eventRecord.value?.action_label || '').toLowerCase().includes('create')) return `${eventActor.value} created record`
-  return `${eventActor.value} updated ${eventFieldLabel.value || 'record'}`
+  const recordLabel = String(eventPayload.value?.record_label || '').trim() || 'record'
+  if (fieldName.endsWith('__verification')) return `${eventActor.value} verified ${eventFieldLabel.value} for ${recordLabel}`
+  if (String(eventRecord.value?.action_label || '').toLowerCase().includes('create')) return `${eventActor.value} created ${recordLabel}`
+  return `${eventActor.value} updated ${eventFieldLabel.value || 'record'} for ${recordLabel}`
 })
 const rawEventJson = computed(() => {
   if (!eventRecord.value) return ''

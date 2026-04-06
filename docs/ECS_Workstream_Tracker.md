@@ -337,3 +337,18 @@ Why this matters:
 
 - the Record View feed queries events by the active record table plus record id
 - if a relationship event is written under the join table name, the relationship really changes but the record feed cannot see the add/delete event
+
+## Shared Event Payload Direction
+
+Resolved shared-system improvement:
+
+- audit events now have a dedicated `payload_json` context field for event-time labels and display context
+
+Why this matters:
+
+- feeds and event pages should not have to reconstruct all human-readable meaning at render time
+- actor label, source record label, field label, and relationship labels are more stable when captured at the moment of the event
+
+Architectural note:
+
+- the event log is a strong `L0` candidate because the earliest meaningful operational event can be things like `Owner created`, with later state and verification history building on top of that layer

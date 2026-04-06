@@ -4006,6 +4006,166 @@ function stringifyEventValue(value) {
   return String(value)
 }
 
+function stringifyEventPayload(payload) {
+  if (!payload || typeof payload !== 'object') return null
+  return JSON.stringify(payload)
+}
+
+function parseEventPayload(payloadJson) {
+  const normalized = normalizeNullableString(payloadJson)
+  if (!normalized) return null
+  try {
+    return JSON.parse(normalized)
+  } catch {
+    return null
+  }
+}
+
+function resolveAuditActorDisplayLabel(database, userId) {
+  const user = getUserById(database, userId)
+  return (
+    normalizeNullableString(user?.User_Name) ||
+    normalizeNullableString(user?.User_PEmail) ||
+    normalizeNullableString(userId) ||
+    'User'
+  )
+}
+
+function resolveAuditRecordContext(database, tableName, recordId) {
+  try {
+    const config = getDatabookTableConfig(tableName)
+    const tableMeta = getTableMeta(database, config.tableName)
+    const idColumn = tableMeta?.pkColumn
+    if (!idColumn) {
+      return {
+        tableName: normalizeNullableString(tableName),
+        entityLabel: '',
+        recordLabel: normalizeNullableString(recordId) || 'Record',
+        row: null,
+      }
+    }
+
+    const row = database
+      .prepare(
+        `SELECT * FROM ${quoteIdentifier(config.tableName)} WHERE ${quoteIdentifier(idColumn)} = ? LIMIT 1`,
+      )
+      .get(recordId)
+
+    return {
+      tableName: config.tableName,
+      entityLabel: normalizeNullableString(config.entityLabel),
+      recordLabel: resolveDatabookDisplayLabel(row || {}, config, normalizeNullableString(recordId) || 'Record'),
+      row: row || null,
+    }
+  } catch {
+    return {
+      tableName: normalizeNullableString(tableName),
+      entityLabel: '',
+      recordLabel: normalizeNullableString(recordId) || 'Record',
+      row: null,
+    }
+  }
+}
+
+function resolveAuditRelationshipLabels(database, targetEntity, ids = []) {
+  const normalizedIds = Array.isArray(ids) ? ids.map((value) => normalizeNullableString(value)).filter(Boolean) : []
+  if (!normalizedIds.length) return []
+  try {
+    const targetConfig = getDatabookTableConfig(targetEntity)
+    const targetIdColumn = getDatabookPrimaryKeyColumn(database, targetConfig.tableName)
+    const placeholders = normalizedIds.map(() => '?').join(', ')
+    const rows = database
+      .prepare(
+        `SELECT * FROM ${quoteIdentifier(targetConfig.tableName)} WHERE ${quoteIdentifier(targetIdColumn)} IN (${placeholders})`,
+      )
+      .all(...normalizedIds)
+    const labelById = new Map(
+      rows.map((row) => [
+        normalizeNullableString(row?.[targetIdColumn]),
+        resolveDatabookDisplayLabel(row, targetConfig, normalizeNullableString(row?.[targetIdColumn])),
+      ]),
+    )
+    return normalizedIds.map((id) => labelById.get(id) || id)
+  } catch {
+    return normalizedIds
+  }
+}
+
+function resolveAuditCurrentFieldDisplayValue(database, tableName, recordId, fieldName) {
+  const normalizedFieldName = normalizeNullableString(fieldName)
+  if (!normalizedFieldName) return ''
+
+  const relationshipContract = getKdbRelationshipContractForToken(tableName, normalizedFieldName)
+  if (relationshipContract) {
+    return listKdbRelationshipItems(database, relationshipContract, recordId)
+      .map((item) => normalizeNullableString(item?.label))
+      .filter(Boolean)
+      .join(', ')
+  }
+
+  try {
+    const recordContext = resolveAuditRecordContext(database, tableName, recordId)
+    return normalizeNullableString(recordContext?.row?.[normalizedFieldName]) || ''
+  } catch {
+    return ''
+  }
+}
+
+function buildAuditEventPayload(
+  database,
+  {
+    tableName,
+    recordId,
+    fieldName,
+    oldValue,
+    newValue,
+    editedBy,
+    actionLabel = null,
+  } = {},
+) {
+  const normalizedFieldName = normalizeNullableString(String(fieldName || '').replace(/__verification$/, ''))
+  const action = normalizeNullableString(actionLabel)?.toLowerCase() || ''
+  const recordContext = resolveAuditRecordContext(database, tableName, recordId)
+  const payload = {
+    actor_label: resolveAuditActorDisplayLabel(database, editedBy),
+    record_label: recordContext.recordLabel,
+    entity_label: recordContext.entityLabel,
+    field_label: formatDatabookFieldLabel(normalizedFieldName),
+  }
+
+  if (String(fieldName || '').endsWith('__verification') || action.includes('verification')) {
+    const currentDisplay = resolveAuditCurrentFieldDisplayValue(database, tableName, recordId, normalizedFieldName)
+    if (currentDisplay) payload.new_display_value = currentDisplay
+    const nextVerification = parseEventPayload(newValue)
+    if (nextVerification?.state) payload.verification_state = normalizeNullableString(nextVerification.state)
+    if (nextVerification?.source) payload.verification_source = normalizeNullableString(nextVerification.source)
+    return payload
+  }
+
+  const relationshipContract = getKdbRelationshipContractForToken(tableName, normalizedFieldName)
+  if (relationshipContract) {
+    const oldIds = normalizeRelationshipIds(oldValue)
+    const newIds = normalizeRelationshipIds(newValue)
+    const oldLabels = resolveAuditRelationshipLabels(database, relationshipContract.targetEntity, oldIds)
+    const newLabels = resolveAuditRelationshipLabels(database, relationshipContract.targetEntity, newIds)
+    payload.relationship_target_entity = normalizeNullableString(relationshipContract.targetEntity)
+    try {
+      payload.relationship_target_label = normalizeNullableString(getDatabookTableConfig(relationshipContract.targetEntity)?.entityLabel)
+    } catch {
+      payload.relationship_target_label = ''
+    }
+    payload.old_display_values = oldLabels
+    payload.new_display_values = newLabels
+    payload.old_display_value = oldLabels.join(', ')
+    payload.new_display_value = newLabels.join(', ')
+    return payload
+  }
+
+  payload.old_display_value = normalizeNullableString(oldValue) || ''
+  payload.new_display_value = normalizeNullableString(newValue) || ''
+  return payload
+}
+
 function writeAuditEvent(
   database,
   {
@@ -4017,15 +4177,19 @@ function writeAuditEvent(
     editedBy,
     actionId = null,
     actionLabel = null,
+    payload = null,
   } = {},
 ) {
   const normalizedOldValue = stringifyEventValue(oldValue)
   const normalizedNewValue = stringifyEventValue(newValue)
+  const normalizedPayload = stringifyEventPayload(
+    payload || buildAuditEventPayload(database, { tableName, recordId, fieldName, oldValue, newValue, editedBy, actionLabel }),
+  )
   if (actionId) {
     const existingEvent = database
       .prepare(
         `
-        SELECT id, old_value
+        SELECT id, old_value, payload_json
         FROM events
         WHERE action_id = ? AND table_name = ? AND record_id = ? AND field_name = ?
         LIMIT 1
@@ -4042,6 +4206,7 @@ function writeAuditEvent(
             action_label = ?,
             old_value = COALESCE(old_value, ?),
             new_value = ?,
+            payload_json = COALESCE(?, payload_json),
             edited_by = ?,
             edited_at = datetime('now')
           WHERE id = ?
@@ -4051,6 +4216,7 @@ function writeAuditEvent(
           actionLabel,
           normalizedOldValue,
           normalizedNewValue,
+          normalizedPayload,
           editedBy,
           existingEvent.id,
         )
@@ -4064,8 +4230,8 @@ function writeAuditEvent(
       `
       INSERT INTO events (
         id, table_name, record_id, field_name, action_id, action_label, old_value, new_value,
-        edited_by, edited_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        payload_json, edited_by, edited_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `,
     )
     .run(
@@ -4077,6 +4243,7 @@ function writeAuditEvent(
       actionLabel,
       normalizedOldValue,
       normalizedNewValue,
+      normalizedPayload,
       editedBy,
     )
   return eventId
@@ -4749,6 +4916,7 @@ function listEvents(filters = {}) {
         action_label,
         old_value,
         new_value,
+        payload_json,
         edited_by,
         edited_at
       FROM events
@@ -4758,6 +4926,10 @@ function listEvents(filters = {}) {
     `,
     )
     .all(...params, limit)
+    .map((row) => ({
+      ...row,
+      payload: parseEventPayload(row?.payload_json),
+    }))
 }
 
 function listFieldVerificationMetadata({ tableName, recordId } = {}) {

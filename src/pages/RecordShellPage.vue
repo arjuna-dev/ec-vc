@@ -1328,13 +1328,14 @@ function buildAuditRecordDescriptor() {
 }
 
 function buildAuditEventTitle(event = {}, fieldName = '', actionLabel = '') {
-  const actorLabel = formatAuditActorLabel(event?.edited_by)
+  const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {}
+  const actorLabel = String(payload?.actor_label || '').trim() || formatAuditActorLabel(event?.edited_by)
   const normalizedFieldName = String(fieldName || '').replace(/__verification$/, '').trim()
-  const fieldLabel = formatAuditFieldLabel(normalizedFieldName)
-  const recordDescriptor = buildAuditRecordDescriptor()
-  const verificationValue = resolveAuditDisplayValue(`${normalizedFieldName}__verification`, event?.new_value)
-  const nextValue = resolveAuditDisplayValue(normalizedFieldName, event?.new_value)
-  const previousValue = resolveAuditDisplayValue(normalizedFieldName, event?.old_value)
+  const fieldLabel = String(payload?.field_label || '').trim() || formatAuditFieldLabel(normalizedFieldName)
+  const recordDescriptor = String(payload?.record_label || '').trim() || buildAuditRecordDescriptor()
+  const verificationValue = String(payload?.new_display_value || '').trim() || resolveAuditDisplayValue(`${normalizedFieldName}__verification`, event?.new_value)
+  const nextValue = String(payload?.new_display_value || '').trim() || resolveAuditDisplayValue(normalizedFieldName, event?.new_value)
+  const previousValue = String(payload?.old_display_value || '').trim() || resolveAuditDisplayValue(normalizedFieldName, event?.old_value)
 
   if (actionLabel.includes('create')) {
     return `${actorLabel}, created ${recordDescriptor}`

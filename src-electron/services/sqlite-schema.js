@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS events (
   action_label TEXT,
   old_value TEXT,
   new_value TEXT,
+  payload_json TEXT,
   edited_by TEXT NOT NULL,
   edited_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (edited_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE RESTRICT

@@ -21,6 +21,7 @@ export function initDb() {
   db.pragma('synchronous = NORMAL')
   db.pragma('busy_timeout = 5000')
   db.exec(SCHEMA_V1_SQL)
+  ensureColumn(db, 'events', 'payload_json', 'TEXT')
   db.pragma('user_version = 1')
 
   return db
@@ -90,6 +91,7 @@ function maybeRecreateDb(dbPath) {
     hasColumn(probe, 'Owner_DB', 'owner_user_id') &&
     hasColumn(probe, 'events', 'action_id') &&
     hasColumn(probe, 'events', 'action_label') &&
+    hasColumn(probe, 'events', 'payload_json') &&
     hasTable(probe, 'Roles') &&
     hasColumn(probe, 'Roles', 'Role_Name') &&
     hasColumn(probe, 'Roles', 'Role_Summary') &&
@@ -141,4 +143,9 @@ function hasColumn(database, tableName, columnName) {
   if (!hasTable(database, tableName)) return false
   const cols = database.prepare(`PRAGMA table_info(${String(tableName)})`).all()
   return cols.some((c) => c?.name === String(columnName))
+}
+
+function ensureColumn(database, tableName, columnName, columnSql) {
+  if (hasColumn(database, tableName, columnName)) return
+  database.exec(`ALTER TABLE ${String(tableName)} ADD COLUMN ${String(columnName)} ${String(columnSql)}`)
 }
