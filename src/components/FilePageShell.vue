@@ -2061,11 +2061,13 @@ function requestCreateRecordShell(options = {}) {
 
   const requestedBranch = String(options?.kind || '').trim().toLowerCase()
   if (!requestedBranch && getCreateBranches(activeSourceKey.value).length) {
-    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
-      window.dispatchEvent(new CustomEvent('ecvc:open-create-branch-dialog', {
-        detail: { parentKey: activeSourceKey.value },
-      }))
-    }
+    router.push({
+      name: 'fork-shell',
+      query: {
+        section: activeSourceKey.value,
+        returnTo: route.fullPath,
+      },
+    })
     return
   }
   if (getCreateBranchEntry(activeSourceKey.value, requestedBranch)) {

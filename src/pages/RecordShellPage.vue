@@ -966,10 +966,10 @@ function setTokenSelected(tokenKey, isSelected) {
 function openCreateRecordDialog() {
   if (getCreateBranches(activeSourceKey.value).length) {
     router.push({
-      name: 'dialog-shell',
+      name: 'fork-shell',
       query: {
         section: activeSourceKey.value,
-        create: String(Date.now()),
+        returnTo: route.fullPath,
       },
     })
     return

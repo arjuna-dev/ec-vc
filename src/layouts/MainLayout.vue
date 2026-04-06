@@ -385,38 +385,6 @@
         <div ref="quickWidgetIconContainer" class="ec-quick-widget-icon" />
       </q-btn>
     </div>
-    <q-dialog v-model="createBranchDialogOpen" persistent>
-      <q-card style="width: 420px; max-width: 92vw">
-        <q-card-section class="q-px-lg q-pt-lg q-pb-md">
-          <div class="ec-create-branch-dialog-title">{{ createBranchDialogTitle }}</div>
-        </q-card-section>
-
-        <q-card-section class="q-px-lg q-pb-md">
-          <div class="row q-col-gutter-sm">
-            <div
-              v-for="branch in createBranchOptions"
-              :key="branch.value"
-              class="col-12 col-sm-6"
-            >
-              <q-btn
-                class="full-width"
-                :outline="branch !== createBranchOptions[0]"
-                color="black"
-                :icon="branch.icon"
-                :label="branch.label"
-                @click="confirmCreateBranch(branch.value)"
-              />
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-separator />
-
-        <q-card-actions align="right" class="q-px-lg q-py-md">
-          <q-btn flat no-caps label="Close" @click="closeCreateBranchDialog" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
     <q-dialog v-model="intakeQueueDialogOpen" persistent>
       <q-card style="width: 560px; max-width: 94vw">
         <q-card-section class="q-px-lg q-pt-lg q-pb-sm">
@@ -512,8 +480,6 @@ const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
 const quickOpportunityBranchOpen = ref(false)
 const artifactDialogOpen = ref(false)
-const createBranchDialogOpen = ref(false)
-const activeCreateBranchParentKey = ref('')
 const auditUserLabel = ref('')
 const logoContainer = ref(null)
 const logoReady = ref(false)
@@ -615,6 +581,7 @@ const workspaceNavigationItems = [
 const testShellNavigationItems = [
   { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
+  { label: 'Fork Shell', to: '/fork-shell', exact: true, icon: 'call_split' },
   { label: 'Add/Edit Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
 ].map((item) => ({
   ...item,
@@ -638,6 +605,7 @@ const routeLabelByName = {
   tasks: 'Tasks',
   'test-shell': 'File Shell',
   'record-shell': 'Record Shell',
+  'fork-shell': 'Fork Shell',
   'dialog-shell': 'Add/Edit Shell',
   roles: 'Roles',
   avatar: 'Companion',
@@ -881,25 +849,6 @@ const quickWidgetActionCatalog = computed(() => {
   ]
 
   return order.map((id) => actionById[id]).filter(Boolean)
-})
-
-const activeCreateBranchParentEntry = computed(() =>
-  getFilePageRegistryEntry(activeCreateBranchParentKey.value),
-)
-
-const createBranchOptions = computed(() =>
-  Array.isArray(activeCreateBranchParentEntry.value?.createBranches)
-    ? activeCreateBranchParentEntry.value.createBranches
-    : [],
-)
-
-const createBranchDialogTitle = computed(() => {
-  const label = String(
-    activeCreateBranchParentEntry.value?.createBranchLabel ||
-      activeCreateBranchParentEntry.value?.singularLabel ||
-      'Item',
-  ).trim()
-  return `Choose ${label}`
 })
 
 const quickWidgetActions = computed(() =>
@@ -1572,34 +1521,15 @@ function closeQuickActions() {
 
 function openCreateBranchDialog(parentKey) {
   closeQuickActions()
-  activeCreateBranchParentKey.value = String(parentKey || '')
-  if (!createBranchOptions.value.length) {
-    return
-  }
-  createBranchDialogOpen.value = true
-}
-
-function closeCreateBranchDialog() {
-  createBranchDialogOpen.value = false
-  activeCreateBranchParentKey.value = ''
-}
-
-function handleOpenCreateBranchDialog(event) {
-  const parentKey = String(event?.detail?.parentKey || '').trim()
-  if (!parentKey) return
-  openCreateBranchDialog(parentKey)
-}
-
-function confirmCreateBranch(branchValue) {
-  const parentKey = activeCreateBranchParentKey.value
-  closeCreateBranchDialog()
-  if (parentKey === 'opportunities' && branchValue === 'fund') {
-    void openFundFromQuickAction()
-    return
-  }
-  if (parentKey === 'opportunities' && branchValue === 'round') {
-    void openRoundFromQuickAction()
-  }
+  const entry = getFilePageRegistryEntry(parentKey)
+  if (!Array.isArray(entry?.createBranches) || !entry.createBranches.length) return
+  void router.push({
+    name: 'fork-shell',
+    query: {
+      section: String(parentKey || '').trim(),
+      returnTo: route.fullPath,
+    },
+  })
 }
 
 async function openNoteFromQuickAction() {
@@ -1757,7 +1687,6 @@ function playQuickWidgetOpen() {
 
 onMounted(() => {
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
-  window.addEventListener('ecvc:open-create-branch-dialog', handleOpenCreateBranchDialog)
   window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
   syncUserNavState()
@@ -1770,7 +1699,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
-  window.removeEventListener('ecvc:open-create-branch-dialog', handleOpenCreateBranchDialog)
   window.removeEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.removeEventListener('resize', onQuickWidgetResize)
   window.removeEventListener('pointermove', onQuickWidgetPointerMove)

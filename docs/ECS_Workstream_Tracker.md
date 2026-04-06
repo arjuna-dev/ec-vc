@@ -278,7 +278,9 @@ This tracker should stay aligned with:
     - `editSection=kdb` opens the shared add/edit shell directly in `KDB`
   - create forks are now being normalized to the structure registry instead of being hardcoded per surface:
     - if an `L1` declares create branches, the create entry path should stop for that branch first
-    - `Record Shell` create actions should hand branchable creates off to `dialog-shell`
+    - `Fork Shell` should own the branch-choice step as a route-owned shared surface
+    - `Record Shell` and `File Shell` create actions should hand branchable creates off to `Fork Shell`
+    - `Fork Shell` should continue into `Add/Edit Shell` with the selected branch already loaded
     - file-shell and dialog-shell create submit paths should resolve branch targets from the registry instead of special-casing `Opportunities`
   - intermediate pending-state launch experiments were intentionally discarded so the current contract stays route-driven and easier to reason about
 

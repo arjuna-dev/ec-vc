@@ -27,6 +27,7 @@ const routes = [
       { path: 'tasks', name: 'tasks', component: () => import('pages/TasksPage.vue') },
       { path: 'test-shell', name: 'test-shell', component: () => import('pages/TestShellPage.vue') },
       { path: 'record-shell', name: 'record-shell', component: () => import('pages/RecordShellPage.vue') },
+      { path: 'fork-shell', name: 'fork-shell', component: () => import('pages/ForkShellPage.vue') },
       { path: 'dialog-shell', name: 'dialog-shell', component: () => import('pages/DialogShellPage.vue') },
       { path: 'roles', name: 'roles', component: () => import('pages/AssistantsPage.vue') },
       { path: 'records/:tableName/:recordId', name: RECORD_VIEW_ROUTE_NAME, component: () => import('pages/RecordShellPage.vue') },
