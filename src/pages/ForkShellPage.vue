@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md fork-shell-page">
+  <q-page class="fork-shell-page">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
         Fork Shell requires Electron. Run <code>quasar dev -m electron</code> or
@@ -7,91 +7,92 @@
       </q-banner>
     </div>
 
-    <div v-else class="fork-shell">
-      <q-banner
-        v-if="!branchOptions.length"
-        class="bg-red-2 text-black"
-        rounded
-      >
-        {{ activeRegistryEntry.label }} does not declare any create branches yet.
-      </q-banner>
-
-      <div v-else class="fork-shell__frame">
-        <button
-          type="button"
-          class="fork-shell__live-link"
-          @click="openSourceFile"
+    <q-dialog
+      v-else
+      v-model="dialogOpen"
+      @hide="handleDialogHide"
+    >
+      <div class="fork-shell-modal">
+        <div
+          v-if="branchableShellOptions.length"
+          class="fork-shell-modal__selector"
         >
-          {{ activeRegistryEntry.label }}
-        </button>
+          <div class="fork-shell-modal__selector-label">Live Action L1</div>
+          <q-select
+            :model-value="activeSourceKey"
+            dense
+            dark
+            options-dark
+            borderless
+            emit-value
+            map-options
+            hide-bottom-space
+            hide-dropdown-icon
+            :options="branchableShellOptions"
+            popup-content-class="fork-shell-modal__selector-menu"
+            class="fork-shell-modal__selector-control"
+            @update:model-value="updateShellSelector"
+          >
+            <template #selected-item="scope">
+              <span class="fork-shell-modal__selector-value">{{ scope.opt.label }}</span>
+            </template>
+            <template #option="scope">
+              <q-item v-bind="scope.itemProps" class="fork-shell-modal__selector-option">
+                <q-item-section>
+                  <span class="fork-shell-modal__selector-option-label">{{ scope.opt.label }}</span>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
+        </div>
 
-        <section class="fork-shell__panel">
-          <div class="fork-shell__title-row">
-            <div class="fork-shell__title-copy">
-              <div class="fork-shell__eyebrow">Fork Shell</div>
-              <h1 class="fork-shell__title">Choose {{ branchLabel }}</h1>
+        <q-card class="fork-shell-card">
+          <q-card-section class="fork-shell-card__header">
+            <div class="fork-shell-card__header-copy">
+              <div class="fork-shell-card__eyebrow">Fork</div>
+              <h1 class="fork-shell-card__title">{{ headerTitle }}</h1>
             </div>
 
-            <div class="fork-shell__shell-selector">
-              <q-select
-                :model-value="activeSourceKey"
-                dense
-                dark
-                options-dark
-                borderless
-                emit-value
-                map-options
-                hide-bottom-space
-                hide-dropdown-icon
-                :options="TEST_SHELL_SECTION_OPTIONS"
-                popup-content-class="fork-shell__shell-selector-menu"
-                class="fork-shell__shell-selector-control"
-                @update:model-value="updateShellSelector"
-              >
-                <template #selected-item="scope">
-                  <span class="fork-shell__shell-selector-value">{{ scope.opt.label }}</span>
-                </template>
-                <template #option="scope">
-                  <q-item v-bind="scope.itemProps" class="fork-shell__shell-selector-option">
-                    <q-item-section>
-                      <span class="fork-shell__shell-selector-option-label">{{ scope.opt.label }}</span>
-                    </q-item-section>
-                  </q-item>
-                </template>
-              </q-select>
-            </div>
-          </div>
+            <q-btn
+              flat
+              round
+              dense
+              icon="close"
+              aria-label="Close fork shell"
+              class="fork-shell-card__close"
+              @click="dialogOpen = false"
+            />
+          </q-card-section>
 
-          <p class="fork-shell__text">
-            Fork rules live here. Pick the branch to continue into the shared Add/Edit Shell with the branch already selected.
-          </p>
-
-          <div class="fork-shell__grid">
-            <button
-              v-for="branch in branchOptions"
-              :key="branch.value"
-              type="button"
-              class="fork-shell__branch-card"
-              @click="selectBranch(branch)"
+          <q-card-section class="fork-shell-card__body">
+            <q-banner
+              v-if="!branchableShellOptions.length"
+              class="bg-red-2 text-black"
+              rounded
             >
-              <div class="fork-shell__branch-icon">
-                <q-icon :name="branch.icon || 'call_split'" size="24px" />
-              </div>
-              <div class="fork-shell__branch-copy">
-                <div class="fork-shell__branch-title">{{ branch.label }}</div>
-                <div class="fork-shell__branch-caption">
-                  Continue into {{ activeRegistryEntry.singularLabel || 'record' }} create flow as {{ branch.label }}.
-                </div>
-              </div>
-            </button>
-          </div>
+              No branchable Live Action L1 entries are available yet.
+            </q-banner>
 
-          <div class="fork-shell__actions">
-            <q-btn flat no-caps label="Back" @click="goBack" />
-          </div>
-        </section>
+            <div v-else class="fork-shell-card__grid">
+              <button
+                v-for="branch in branchOptions"
+                :key="branch.value"
+                type="button"
+                class="fork-shell-card__branch"
+                @click="selectBranch(branch)"
+              >
+                <div class="fork-shell-card__branch-icon">
+                  <q-icon :name="branch.icon || 'call_split'" size="24px" />
+                </div>
+                <div class="fork-shell-card__branch-copy">
+                  <div class="fork-shell-card__branch-title">{{ branch.label }}</div>
+                </div>
+              </button>
+            </div>
+          </q-card-section>
+        </q-card>
       </div>
-    </div>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -99,34 +100,61 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
+  TEST_SHELL_SECTION_OPTIONS,
   getCreateBranchEntry,
   getCreateBranches,
   getFilePageRegistryEntry,
-  TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
 
 const route = useRoute()
 const router = useRouter()
 
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
-const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
-const forkShellSourceKey = ref(resolveValidShellSection(route.query.section))
+const branchableShellOptions = Object.freeze(
+  TEST_SHELL_SECTION_OPTIONS.filter((option) => getCreateBranches(option.value).length).map((option) => ({
+    label: option.label,
+    value: option.value,
+  })),
+)
+const fallbackSectionKey = branchableShellOptions[0]?.value || ''
+const dialogOpen = ref(true)
+const closingToRoute = ref(false)
+const forkShellSourceKey = ref(resolveValidForkSection(route.query.section))
 const activeSourceKey = computed(() => forkShellSourceKey.value)
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
 const branchOptions = computed(() => getCreateBranches(activeSourceKey.value))
-const branchLabel = computed(() =>
-  String(activeRegistryEntry.value?.createBranchLabel || activeRegistryEntry.value?.singularLabel || 'Type').trim(),
-)
+const headerTitle = computed(() => {
+  const l1Name = String(activeRegistryEntry.value?.label || 'L1').trim()
+  return `${l1Name} Fork`
+})
 
 watch(
   () => route.query.section,
   (nextValue) => {
-    const validValue = resolveValidShellSection(nextValue)
+    const validValue = resolveValidForkSection(nextValue)
     if (validValue !== forkShellSourceKey.value) {
       forkShellSourceKey.value = validValue
     }
   },
 )
+
+function resolveValidForkSection(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (branchableShellOptions.some((option) => option.value === normalized)) return normalized
+  return fallbackSectionKey
+}
+
+function updateShellSelector(nextValue) {
+  const nextSection = resolveValidForkSection(nextValue)
+  if (!nextSection) return
+  forkShellSourceKey.value = nextSection
+  router.replace({
+    query: {
+      ...route.query,
+      section: nextSection,
+    },
+  })
+}
 
 function selectBranch(branch) {
   const branchEntry = getCreateBranchEntry(activeSourceKey.value, branch?.value)
@@ -141,15 +169,10 @@ function selectBranch(branch) {
   })
 }
 
-function updateShellSelector(nextValue) {
-  const nextSection = resolveValidShellSection(nextValue)
-  forkShellSourceKey.value = nextSection
-  router.replace({
-    query: {
-      ...route.query,
-      section: nextSection,
-    },
-  })
+function handleDialogHide() {
+  if (closingToRoute.value) return
+  closingToRoute.value = true
+  goBack()
 }
 
 function goBack() {
@@ -158,224 +181,202 @@ function goBack() {
     router.push(returnTo)
     return
   }
+
   if (activeRegistryEntry.value?.routeName) {
     router.push({ name: activeRegistryEntry.value.routeName })
     return
   }
+
   router.push({ name: 'home' })
-}
-
-function openSourceFile() {
-  if (activeRegistryEntry.value?.routeName) {
-    router.push({ name: activeRegistryEntry.value.routeName })
-    return
-  }
-  goBack()
-}
-
-function resolveValidShellSection(value) {
-  const normalized = String(value || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : fallbackSectionKey
 }
 </script>
 
 <style scoped>
-.fork-shell-page,
-.fork-shell {
+.fork-shell-page {
   min-height: 100%;
 }
 
-.fork-shell {
+.fork-shell-modal {
   display: grid;
+  gap: 14px;
+  width: min(680px, calc(100vw - 32px));
 }
 
-.fork-shell__frame {
-  display: grid;
-  gap: 10px;
-  justify-items: start;
+.fork-shell-modal__selector {
+  justify-self: start;
+  min-width: 220px;
+  padding: 8px 14px;
+  background: rgba(18, 24, 37, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 18px 44px rgba(10, 14, 24, 0.22);
 }
 
-.fork-shell__live-link {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: rgba(17, 17, 17, 0.52);
-  font-family: var(--ds-font-family-body);
-  font-size: 0.76rem;
+.fork-shell-modal__selector-label {
+  margin-bottom: 2px;
+  color: rgba(247, 244, 238, 0.72);
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  cursor: pointer;
 }
 
-.fork-shell__live-link:hover,
-.fork-shell__live-link:focus-visible {
-  color: #2647ff;
-}
-
-.fork-shell__panel {
-  display: grid;
-  gap: 18px;
-  max-width: 920px;
-  padding: 28px;
-  background:
-    radial-gradient(circle at top right, rgba(38, 71, 255, 0.1), transparent 38%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 244, 238, 0.96));
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 28px;
-}
-
-.fork-shell__title-row {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-
-.fork-shell__title-copy {
-  display: grid;
-  gap: 10px;
-}
-
-.fork-shell__eyebrow {
-  color: rgba(17, 17, 17, 0.55);
-  font-family: var(--ds-font-family-body);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.fork-shell__title {
-  margin: 0;
-  color: #111111;
-  font-family: var(--font-title);
-  font-size: clamp(2rem, 3vw, 3rem);
-  font-weight: var(--font-weight-black);
-  line-height: 0.96;
-}
-
-.fork-shell__shell-selector {
-  min-width: 200px;
-  padding: 6px 12px;
-  background: #1f2230;
-  border-radius: 999px;
-}
-
-.fork-shell__shell-selector-control :deep(.q-field__control) {
+.fork-shell-modal__selector-control :deep(.q-field__control) {
   min-height: auto;
   padding: 0;
 }
 
-.fork-shell__shell-selector-control :deep(.q-field__native),
-.fork-shell__shell-selector-control :deep(.q-field__marginal) {
+.fork-shell-modal__selector-control :deep(.q-field__native),
+.fork-shell-modal__selector-control :deep(.q-field__marginal) {
   color: #f7f4ee;
 }
 
-.fork-shell__shell-selector-value {
+.fork-shell-modal__selector-value {
   color: #f7f4ee;
-  font-size: 0.85rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  line-height: 1.2;
 }
 
-.fork-shell__shell-selector-option-label {
+.fork-shell-modal__selector-option-label {
   color: #111111;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
 }
 
-.fork-shell__text {
-  max-width: 640px;
-  margin: 0;
-  color: rgba(17, 17, 17, 0.72);
-  font-size: 1rem;
-  line-height: 1.5;
+.fork-shell-card {
+  width: 100%;
+  padding: 8px;
+  background:
+    radial-gradient(circle at top right, rgba(38, 71, 255, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(247, 244, 238, 0.96));
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 32px;
+  box-shadow: 0 26px 72px rgba(17, 17, 17, 0.18);
 }
 
-.fork-shell__grid {
+.fork-shell-card__header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 18px 8px;
+}
+
+.fork-shell-card__header-copy {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 6px;
+}
+
+.fork-shell-card__eyebrow {
+  color: rgba(17, 17, 17, 0.52);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fork-shell-card__title {
+  margin: 0;
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.fork-shell-card__close {
+  color: rgba(17, 17, 17, 0.62);
+}
+
+.fork-shell-card__body {
+  padding: 8px 18px 18px;
+}
+
+.fork-shell-card__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
 }
 
-.fork-shell__branch-card {
+.fork-shell-card__branch {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 14px;
-  align-items: start;
+  align-items: center;
+  min-height: 96px;
   padding: 18px;
   text-align: left;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 20px;
+  border-radius: 22px;
   cursor: pointer;
   transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
 
-.fork-shell__branch-card:hover,
-.fork-shell__branch-card:focus-visible {
+.fork-shell-card__branch:hover,
+.fork-shell-card__branch:focus-visible {
   background: #ffffff;
   border-color: rgba(38, 71, 255, 0.28);
   transform: translateY(-1px);
 }
 
-.fork-shell__branch-icon {
+.fork-shell-card__branch-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
   background: rgba(38, 71, 255, 0.1);
   color: #2647ff;
 }
 
-.fork-shell__branch-copy {
+.fork-shell-card__branch-copy {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
-.fork-shell__branch-title {
+.fork-shell-card__branch-title {
   color: #111111;
   font-family: var(--font-title);
   font-size: 1rem;
   font-weight: var(--font-weight-black);
-  line-height: 1;
+  line-height: 1.05;
 }
 
-.fork-shell__branch-caption {
-  color: rgba(17, 17, 17, 0.68);
-  font-size: 0.92rem;
-  line-height: 1.45;
-}
-
-.fork-shell__actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-:global(.fork-shell__shell-selector-menu) {
+:global(.fork-shell-modal__selector-menu) {
   background: #ffffff;
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 16px;
   overflow: hidden;
 }
 
-:global(.fork-shell__shell-selector-menu .q-item) {
+:global(.fork-shell-modal__selector-menu .q-item) {
   min-height: 40px;
 }
 
-:global(.fork-shell__shell-selector-menu .q-item.q-manual-focusable--focused),
-:global(.fork-shell__shell-selector-menu .q-item--active) {
+:global(.fork-shell-modal__selector-menu .q-item.q-manual-focusable--focused),
+:global(.fork-shell-modal__selector-menu .q-item--active) {
   background: rgba(38, 71, 255, 0.08);
 }
 
-@media (max-width: 720px) {
-  .fork-shell__shell-selector {
+@media (max-width: 640px) {
+  .fork-shell-modal {
+    width: min(100vw - 20px, 680px);
+  }
+
+  .fork-shell-modal__selector {
+    min-width: 0;
     width: 100%;
+  }
+
+  .fork-shell-card__header {
+    align-items: center;
+  }
+
+  .fork-shell-card__grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
