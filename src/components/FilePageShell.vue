@@ -575,6 +575,14 @@
             <thead>
               <tr>
                 <th
+                  class="test-shell-table__head test-shell-table__head--control"
+                  :style="getTableColumnStyle('select', TABLE_CONTROL_COLUMN_WIDTH)"
+                />
+                <th
+                  class="test-shell-table__head test-shell-table__head--control"
+                  :style="getTableColumnStyle('view', TABLE_CONTROL_COLUMN_WIDTH)"
+                />
+                <th
                   class="test-shell-table__head test-shell-table__head--name"
                   :style="getTableColumnStyle('name', NAME_COLUMN_MIN_WIDTH)"
                 >
@@ -609,28 +617,38 @@
             <tbody>
               <tr v-for="row in displayRows" :key="row.cardId">
                 <td
+                  class="test-shell-table__cell test-shell-table__cell--control"
+                  :style="getTableColumnStyle('select', TABLE_CONTROL_COLUMN_WIDTH)"
+                >
+                  <q-checkbox
+                    :model-value="isRowSelected(row)"
+                    color="dark"
+                    dense
+                    size="xs"
+                    class="test-shell-table__select-box"
+                    @update:model-value="toggleRowSelection(row, $event)"
+                  />
+                </td>
+                <td
+                  class="test-shell-table__cell test-shell-table__cell--control"
+                  :style="getTableColumnStyle('view', TABLE_CONTROL_COLUMN_WIDTH)"
+                >
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    size="8px"
+                    icon="visibility"
+                    class="test-shell-table__eye"
+                    :disable="!row.recordId"
+                    @click="openRecordView(row)"
+                  />
+                </td>
+                <td
                   class="test-shell-table__cell test-shell-table__cell--name"
                   :style="getTableColumnStyle('name', NAME_COLUMN_MIN_WIDTH)"
                 >
                   <div class="test-shell-table__name-row">
-                    <q-checkbox
-                      :model-value="isRowSelected(row)"
-                      color="dark"
-                      dense
-                      size="xs"
-                      class="test-shell-table__select-box"
-                      @update:model-value="toggleRowSelection(row, $event)"
-                    />
-                    <q-btn
-                      flat
-                      round
-                      dense
-                      size="8px"
-                      icon="visibility"
-                      class="test-shell-table__eye"
-                      :disable="!row.recordId"
-                      @click="openRecordView(row)"
-                    />
                     <div
                       class="test-shell-table__name"
                       :class="{ 'test-shell-card__value--placeholder': !row.titleValue }"
@@ -805,6 +823,7 @@ const liveOptionRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
 const NAME_COLUMN_MIN_WIDTH = 188
+const TABLE_CONTROL_COLUMN_WIDTH = 42
 
 const SECTION_LOADERS = {
   events: {
@@ -3933,14 +3952,39 @@ async function handleSelectedRowsDelete() {
 .test-shell-table__head--name,
 .test-shell-table__cell--name {
   position: sticky;
-  left: 0;
+  left: 84px;
   z-index: 3;
   min-width: 196px;
   background: rgba(255, 255, 255, 0.98);
 }
 
-.test-shell-table__head--name {
+.test-shell-table__head--control,
+.test-shell-table__cell--control {
+  position: sticky;
   z-index: 4;
+  width: 42px;
+  min-width: 42px;
+  padding: 8px 6px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.test-shell-table__head--control {
+  background: #eef0f2;
+}
+
+.test-shell-table__head--control:first-child,
+.test-shell-table__cell--control:first-child {
+  left: 0;
+}
+
+.test-shell-table__head--control:nth-child(2),
+.test-shell-table__cell--control:nth-child(2) {
+  left: 42px;
+}
+
+.test-shell-table__head--name {
+  z-index: 5;
   background: #eef0f2;
 }
 
@@ -3952,19 +3996,13 @@ async function handleSelectedRowsDelete() {
 }
 
 .test-shell-table__name-row {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.test-shell-table__select-box,
-.test-shell-table__eye {
-  flex: 0 0 auto;
+  gap: 0;
 }
 
 .test-shell-table__eye {
-  justify-self: start;
+  justify-self: center;
 }
 
 .test-shell-table__kdb-list {
@@ -4204,6 +4242,18 @@ async function handleSelectedRowsDelete() {
   .test-shell-table__head--name,
   .test-shell-table__cell--name {
     min-width: 164px;
+    left: 76px;
+  }
+
+  .test-shell-table__head--control,
+  .test-shell-table__cell--control {
+    min-width: 38px;
+    width: 38px;
+  }
+
+  .test-shell-table__head--control:nth-child(2),
+  .test-shell-table__cell--control:nth-child(2) {
+    left: 38px;
   }
 
   .test-shell-table__kdb-list {
