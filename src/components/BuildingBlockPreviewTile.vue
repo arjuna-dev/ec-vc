@@ -93,6 +93,16 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'l2-toolbar'">
+        <ShellSectionToolbar
+          model-value="general"
+          :items="l2ToolbarItems"
+          view-mode="card"
+          :view-options="viewOptions"
+          :show-view-toggle="true"
+        />
+      </template>
+
       <template v-else>
         <div class="building-block-preview-tile__placeholder">
           <div class="building-block-preview-tile__placeholder-title">Preview<br>Pending</div>
@@ -107,6 +117,7 @@ import { computed, ref, watch } from 'vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
+import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 
 const props = defineProps({
@@ -128,7 +139,7 @@ const statusClass = computed(() =>
     : 'building-block-preview-tile__status--extract',
 )
 const stageClass = computed(() =>
-  ['file-dashboard', 'home-dashboard', 'file-toolbar'].includes(props.blockKey)
+  ['file-dashboard', 'home-dashboard', 'file-toolbar', 'l2-toolbar'].includes(props.blockKey)
     ? 'building-block-preview-tile__stage--stretch'
     : props.blockKey === 'page-title-crumb'
       ? 'building-block-preview-tile__stage--left'
@@ -157,6 +168,14 @@ const homeDashboardSignals = [
   { label: 'Companies', value: '412' },
   { label: 'Tasks', value: '183' },
   { label: 'Opportunities', value: '74' },
+]
+
+const l2ToolbarItems = [
+  { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'resources', title: 'Resources', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'record-data', title: 'Record Data', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'kdb', title: 'KDB', isKdb: true, isSystem: false, pushRight: true },
+  { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
 ]
 
 const fileDashboardHealth = [
@@ -353,7 +372,9 @@ watch(
 }
 
 .building-block-preview-tile--full-row :deep(.home-dashboard-hero),
-.building-block-preview-tile--full-row :deep(.file-page-hero-dashboard) {
+.building-block-preview-tile--full-row :deep(.file-page-hero-dashboard),
+.building-block-preview-tile--full-row :deep(.file-page-toolbar),
+.building-block-preview-tile--full-row :deep(.shell-section-toolbar) {
   width: 100%;
   max-width: none;
 }

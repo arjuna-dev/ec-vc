@@ -271,7 +271,7 @@ export const BUILDING_BLOCK_SIZE_BY_ID = Object.freeze({
   'main-menu-row': 'toolbar-wide',
   'main-menu-subgroup-row': 'toolbar-wide',
   'live-action-l1': 'live-link',
-  'l2-toolbar': 'lg',
+  'l2-toolbar': 'full-row',
   'l2-settings-menu': 'settings-menu',
   'widget-settings-menu': 'widget-settings',
   'toggle-row-icons': 'md',
@@ -284,7 +284,7 @@ export const BUILDING_BLOCK_SIZE_BY_ID = Object.freeze({
   'home-dashboard': 'full-row',
   'file-dashboard': 'full-row',
   'l3-box': 'stat-box',
-  'file-toolbar': 'toolbar-wide',
+  'file-toolbar': 'full-row',
 })
 
 export function getBuildingBlockTileSize(blockId) {
