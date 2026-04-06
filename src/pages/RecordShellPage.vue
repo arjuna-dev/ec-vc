@@ -112,6 +112,8 @@
                   v-for="field in selectedHeroFieldCards"
                   :key="field.key"
                   class="record-shell__hero-field-card"
+                  :class="{ 'record-shell__hero-field-card--interactive': isRecordRoute }"
+                  @click="openRecordFieldDialog"
                 >
                   <div class="record-shell__hero-field-top">
                     <div class="record-shell__hero-field-label">{{ field.label }}</div>
@@ -125,7 +127,11 @@
               </div>
 
               <div class="record-shell__hero-field-stack record-shell__hero-field-stack--summary">
-                <article class="record-shell__hero-field-card record-shell__hero-field-card--summary">
+                <article
+                  class="record-shell__hero-field-card record-shell__hero-field-card--summary"
+                  :class="{ 'record-shell__hero-field-card--interactive': isRecordRoute }"
+                  @click="openRecordFieldDialog"
+                >
                   <div class="record-shell__hero-field-top">
                     <div class="record-shell__hero-field-label">Summary</div>
                     <div class="record-shell__hero-field-description">General</div>
@@ -305,7 +311,16 @@
               <span class="record-shell__kdb-group-title">{{ group.label }}</span>
             </button>
             <div v-if="isKdbGroupExpanded(group.key)" class="record-shell__kdb-group-grid">
-              <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
+              <div
+                v-for="token in group.tokens"
+                :key="token.key"
+                class="record-shell__field-card"
+                :class="{
+                  'record-shell__field-card--selected': isSelectedToken(token.key),
+                  'record-shell__field-card--interactive': isRecordRoute,
+                }"
+                @click="openRecordFieldDialog"
+              >
                 <div class="record-shell__field-label">{{ token.label }}</div>
                 <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
               </div>
@@ -351,7 +366,11 @@
             v-for="token in activeSectionTokens"
             :key="token.key"
             class="record-shell__field-card"
-            :class="{ 'record-shell__field-card--selected': isSelectedToken(token.key) }"
+            :class="{
+              'record-shell__field-card--selected': isSelectedToken(token.key),
+              'record-shell__field-card--interactive': isRecordRoute,
+            }"
+            @click="openRecordFieldDialog"
           >
             <div class="record-shell__field-label">{{ token.label }}</div>
             <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
@@ -746,7 +765,11 @@ function setTokenSelected(tokenKey, isSelected) {
 }
 
 function openCreateRecordDialog() {
-  createDialogMode.value = 'create'
+  createDialogRenderKey.value += 1
+  createDialogOpen.value = true
+}
+function openRecordFieldDialog() {
+  if (!isRecordRoute.value) return
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
@@ -1716,6 +1739,8 @@ function onContactHeroPointerLeave() {
 .record-shell__kdb-group-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
 .record-shell__field-card { padding:10px 12px; border:1px solid rgba(17,17,17,.08); border-radius:6px; background:rgba(17,17,17,.02); }
 .record-shell__field-card--selected { border-color:rgba(38,71,255,.3); background:rgba(38,71,255,.05); }
+.record-shell__field-card--interactive { cursor:pointer; transition:border-color .18s ease, background-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+.record-shell__field-card--interactive:hover { border-color:rgba(38,71,255,.22); background:rgba(38,71,255,.04); box-shadow:0 8px 20px rgba(17,17,17,.05); transform:translateY(-1px); }
 .record-shell__field-label { color:#111; font-size:.8rem; font-weight:600; line-height:1.3; }
 .record-shell__field-value { margin-top:4px; color:rgba(17,17,17,.58); font-size:.72rem; line-height:1.4; }
 .record-shell__settings-panel { width:min(280px,calc(100vw - 24px)); padding:10px; background:rgba(248,248,246,.98); border:1px solid rgba(17,17,17,.08); box-shadow:0 16px 32px rgba(17,17,17,.12); }
