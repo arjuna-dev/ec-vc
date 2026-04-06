@@ -726,7 +726,7 @@ import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipCo
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
-import { consumePendingAddEditShellRequest, setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
+import { consumePendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 
 const props = defineProps({
@@ -2075,23 +2075,6 @@ function requestEditRecordShell(row, options = {}) {
   if (!supportsActiveSourceEditing.value) return
   const recordId = String(row?.recordId || '').trim()
   if (!recordId) return
-
-  if (String(options?.sectionKey || '').trim().toLowerCase() === 'kdb') {
-    setPendingAddEditShellRequest({
-      sourceKey: activeSourceKey.value,
-      mode: 'edit',
-      entityName: resolveEditEntityName(row),
-      recordId,
-      initialSectionKey: createDialogKdbSectionKey.value || 'key-fields',
-    })
-    router.push({
-      name: 'dialog-shell',
-      query: {
-        section: activeSourceKey.value,
-      },
-    })
-    return
-  }
 
   const nextQuery = {
     ...route.query,

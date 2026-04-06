@@ -10,26 +10,26 @@
     <AddEditRecordShellDialog
       v-else
       v-model="dialogOpen"
-      :mode="dialogMode"
+      mode="create"
       :source-label="activeRegistryEntry?.label || 'Records'"
       :singular-label="activeRegistryEntry?.singularLabel || 'record'"
       :key-field-tokens="createKeyFieldTokens"
       :left-sections="dialogSectionSplit.leftSections"
       :right-sections="dialogSectionSplit.rightSections"
       :branch-selector-token-key="branchSelectorTokenKey"
-      :show-shell-selector="dialogMode !== 'edit'"
+      :show-shell-selector="true"
       :shell-selector-value="activeSourceKey"
       :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
       :loading="dialogLoading"
-      :submit-disabled="dialogMode === 'edit' ? !canEditWithShell : !canCreateWithShell"
-      :initial-values="dialogInitialValues"
-      :initial-field-meta="dialogInitialFieldMeta"
-      :initial-section-key="dialogInitialSectionKey"
-      :initial-artifacts="dialogInitialArtifacts"
+      :submit-disabled="!canCreateWithShell"
+      :initial-values="{}"
+      :initial-field-meta="{}"
+      initial-section-key="key-fields"
+      :initial-artifacts="[]"
       :artifact-context="null"
       @update:shell-selector-value="updateShellSelector"
       @request-close="dialogOpen = false"
-      @submit="submitDialogRecord"
+      @submit="submitCreateRecord"
     />
   </q-page>
 </template>
@@ -42,16 +42,13 @@ import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vu
 import {
   CANONICAL_OPTION_LISTS,
   getCreateBranchTokenName,
-  getCanonicalTokenFieldNames,
   getFilePageRegistryEntry,
-  getRuntimeTableNameForEntityName,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
-import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
-import { consumePendingAddEditShellRequest } from 'src/utils/addEditShellState'
+import { normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 
 const route = useRoute()
 const $q = useQuasar()
@@ -60,13 +57,6 @@ const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const dialogOpen = ref(false)
 const dialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
-const dialogMode = ref('create')
-const dialogInitialValues = ref({})
-const dialogInitialFieldMeta = ref({})
-const dialogInitialSectionKey = ref('key-fields')
-const dialogInitialArtifacts = ref([])
-const dialogRecordId = ref('')
-const dialogEntityName = ref('')
 
 const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section))
@@ -106,7 +96,6 @@ const createSectionGroups = computed(() =>
 )
 const dialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
 const canCreateWithShell = computed(() => Boolean(bridge.value?.[activeSourceKey.value]?.create))
-const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.databooks?.update))
 
 watch(
   () => route.query.section,
@@ -122,41 +111,6 @@ watch(activeSourceKey, async () => {
   await ensureLiveOptionsLoaded()
   if (!dialogOpen.value) dialogOpen.value = true
 }, { immediate: true })
-
-watch(
-  [activeSourceKey, createKeyFieldTokens, createSectionGroups],
-  async () => {
-    const pendingRequest = consumePendingAddEditShellRequest(activeSourceKey.value)
-    if (!pendingRequest) return
-
-    dialogMode.value = pendingRequest.mode === 'edit' ? 'edit' : 'create'
-    dialogInitialSectionKey.value = String(pendingRequest.initialSectionKey || '').trim() || 'key-fields'
-    dialogInitialValues.value = pendingRequest.initialValues && typeof pendingRequest.initialValues === 'object'
-      ? { ...pendingRequest.initialValues }
-      : {}
-    dialogInitialFieldMeta.value = {}
-    dialogInitialArtifacts.value = []
-    dialogRecordId.value = String(pendingRequest.recordId || '').trim()
-    dialogEntityName.value = String(pendingRequest.entityName || activeRegistryEntry.value?.entityName || '').trim()
-
-    if (dialogMode.value === 'edit' && dialogEntityName.value && dialogRecordId.value) {
-      const payload = await loadEditDialogRecordPayload(dialogEntityName.value, dialogRecordId.value)
-      if (!payload?.record) {
-        $q.notify({ type: 'negative', message: 'Could not load the true record fields for edit.' })
-        dialogMode.value = 'create'
-        dialogInitialSectionKey.value = 'key-fields'
-        dialogInitialValues.value = {}
-        dialogRecordId.value = ''
-        dialogEntityName.value = ''
-        return
-      }
-      dialogInitialValues.value = buildEditDialogInitialValuesFromPayload(payload)
-    }
-
-    dialogOpen.value = true
-  },
-  { immediate: true },
-)
 
 function reopenDialogShell() {
   dialogOpen.value = true
@@ -224,87 +178,6 @@ function buildLiveEntityOptions(sourceKey) {
   }).filter(Boolean)
 }
 
-function resolveCreateDialogOptionValue(token, rawValue) {
-  if (rawValue == null) return ''
-  const normalized = String(rawValue || '').trim()
-  if (!normalized) return ''
-  const options = Array.isArray(token?.inputOptions) ? token.inputOptions : getInputOptionsForToken(token)
-  const matchedOption = options.find((option) => {
-    const optionValue = String(option?.value ?? '').trim()
-    const optionLabel = String(option?.label ?? '').trim()
-    return normalized === optionValue || normalized === optionLabel
-  })
-  return matchedOption ? matchedOption.value : normalized
-}
-
-function normalizeCreateDialogInitialValue(token, value) {
-  const tokenType = String(token?.tokenType || '').trim()
-
-  if (tokenType === 'select_multi') {
-    const values = Array.isArray(value)
-      ? value
-      : String(value || '')
-          .split(',')
-          .map((item) => item.trim())
-          .filter(Boolean)
-
-    return values.map((item) => resolveCreateDialogOptionValue(token, item)).filter(Boolean)
-  }
-
-  if (tokenType === 'select_single') {
-    return resolveCreateDialogOptionValue(token, value)
-  }
-
-  return value == null ? '' : String(value)
-}
-
-function getEditDialogTokenValueFromPayload(payload, token) {
-  if (!payload) return ''
-
-  const fieldNames = getCanonicalTokenFieldNames(token)
-  const payloadFields = Array.isArray(payload.fields) ? payload.fields : []
-
-  for (const fieldName of fieldNames) {
-    const matchingField = payloadFields.find((field) => String(field?.field_name || '').trim() === fieldName)
-    if (!matchingField) continue
-    const relationshipIds = Array.isArray(matchingField?.relationship_ids)
-      ? matchingField.relationship_ids.map((value) => String(value || '').trim()).filter(Boolean)
-      : []
-    if (relationshipIds.length) return relationshipIds
-
-    const fieldValue = matchingField?.value
-    if (fieldValue != null && !(typeof fieldValue === 'string' && !fieldValue.trim())) {
-      return fieldValue
-    }
-  }
-
-  for (const fieldName of fieldNames) {
-    const recordValue = payload.record?.[fieldName]
-    if (recordValue != null && !(typeof recordValue === 'string' && !recordValue.trim())) {
-      return recordValue
-    }
-  }
-
-  return ''
-}
-
-async function loadEditDialogRecordPayload(entityName, recordId) {
-  const normalizedEntityName = String(entityName || '').trim()
-  const normalizedRecordId = String(recordId || '').trim()
-  if (!bridge.value?.databooks?.view || !normalizedEntityName || !normalizedRecordId) return null
-  return await bridge.value.databooks.view(normalizedEntityName, normalizedRecordId)
-}
-
-function buildEditDialogInitialValuesFromPayload(payload) {
-  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
-  return Object.fromEntries(
-    allTokens.map((token) => {
-      const value = getEditDialogTokenValueFromPayload(payload, token)
-      return [token.key, normalizeCreateDialogInitialValue(token, value)]
-    }),
-  )
-}
-
 async function ensureLiveOptionsLoaded() {
   const sourceKeys = new Set()
   for (const token of [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]) {
@@ -332,15 +205,7 @@ async function ensureLiveOptionsLoaded() {
   }
 }
 
-async function submitDialogRecord({ values } = {}) {
-  if (dialogMode.value === 'edit') {
-    await submitEditRecord(values)
-    return
-  }
-  await submitCreateRecord(values)
-}
-
-async function submitCreateRecord(values = {}) {
+async function submitCreateRecord({ values } = {}) {
   const payload = Object.fromEntries(
     [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
       .map((token) => {
@@ -377,45 +242,6 @@ async function submitCreateRecord(values = {}) {
     }
     dialogOpen.value = false
     $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
-  } catch (error) {
-    $q.notify({ type: 'negative', message: error?.message || String(error) })
-  } finally {
-    dialogLoading.value = false
-  }
-}
-
-async function submitEditRecord(values = {}) {
-  if (!dialogRecordId.value || !dialogEntityName.value) {
-    $q.notify({ type: 'negative', message: 'This record cannot be edited from the shared shell yet.' })
-    return
-  }
-
-  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
-  const changes = allTokens.flatMap((token) =>
-    buildTokenUpdateChanges(token, {
-      nextValue: values?.[token.key],
-      initialValue: dialogInitialValues.value?.[token.key],
-      recordId: dialogRecordId.value,
-      entityName: dialogEntityName.value,
-      tableName: getRuntimeTableNameForEntityName(dialogEntityName.value),
-    }),
-  )
-
-  if (!changes.length) {
-    dialogOpen.value = false
-    return
-  }
-
-  dialogLoading.value = true
-  try {
-    await bridge.value?.databooks?.update?.({
-      tableName: getRuntimeTableNameForEntityName(dialogEntityName.value),
-      recordId: dialogRecordId.value,
-      changes,
-      actionLabel: 'shared_dialog_shell_edit',
-    })
-    dialogOpen.value = false
-    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
   } catch (error) {
     $q.notify({ type: 'negative', message: error?.message || String(error) })
   } finally {
