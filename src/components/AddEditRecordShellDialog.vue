@@ -1927,8 +1927,8 @@ onBeforeUnmount(() => {
 .create-record-shell__record-data-toggle {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 4px;
   width: 100%;
   padding: 0;
   border: 0;
@@ -1960,8 +1960,8 @@ onBeforeUnmount(() => {
 .create-record-shell__intake-toggle {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 4px;
   width: 100%;
   padding: 0;
   border: 0;
