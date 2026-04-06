@@ -287,7 +287,7 @@ export const DEFAULT_BUILDING_BLOCK_FILE_ROWS = Object.entries(BUILDING_BLOCK_DE
   Anatomy: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
   Required_Parts: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
   Source_Path: detail.source || '',
-  Owner: 'BB File',
+  Owner: 'BB Shell',
   Extraction_Status: detail.statusLabel || '',
   Reconstruction_Notes: Array.isArray(detail.reconstructionNotes) ? detail.reconstructionNotes.join('\n') : '',
   Prompt: detail.prompt || '',

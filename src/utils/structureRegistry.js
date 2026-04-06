@@ -8,7 +8,7 @@ export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', '
 const FILE_PAGE_ROUTE_META = Object.freeze({
   Building_Blocks: {
     key: 'bb-file',
-    label: 'BB File',
+    label: 'BB Shell',
     singularLabel: 'Building Block',
     routeName: 'bb-file',
     path: '/bb-file',

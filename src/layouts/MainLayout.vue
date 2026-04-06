@@ -619,20 +619,14 @@ const workspaceNavigationItems = [
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
   {
-    label: 'BB File',
-    to: '/bb-file',
-    exact: true,
-    icon: 'dashboard_customize',
-    parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-  },
-  { label: 'System Files', to: '/file-system', exact: true, icon: 'folder_open' },
+    label: 'System Files', to: '/file-system', exact: true, icon: 'folder_open' },
 ].map((item) => ({
   ...item,
   itemClass: item.itemClass || 'ec-nav-item--secondary ec-nav-item--workspace-child',
   iconSize: item.iconSize || '18px',
 }))
 const testShellNavigationItems = [
+  { label: 'BB Shell', to: '/bb-file', exact: true, icon: 'dashboard_customize' },
   { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
   { label: 'Add/Edit File Shell', to: '/file-dialog-shell', exact: true, icon: 'web_asset' },
@@ -648,7 +642,7 @@ const testShellNavigationItems = [
 }))
 const routeLabelByName = {
   home: 'Home',
-  'bb-file': 'BB File',
+  'bb-file': 'BB Shell',
   companies: 'Companies',
   contacts: 'Contacts',
   users: 'Users',
