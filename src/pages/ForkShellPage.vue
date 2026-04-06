@@ -46,7 +46,10 @@
           </q-select>
         </div>
 
-        <q-card class="fork-shell-card">
+        <q-card
+          class="fork-shell-card"
+          :class="{ 'fork-shell-card--compact': compactForkLayout }"
+        >
           <q-card-section class="fork-shell-card__header">
             <div class="fork-shell-card__header-copy">
               <div class="fork-shell-card__title-row">
@@ -119,6 +122,7 @@ const forkShellSourceKey = ref(resolveValidForkSection(route.query.section))
 const activeSourceKey = computed(() => forkShellSourceKey.value)
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
 const branchOptions = computed(() => getCreateBranches(activeSourceKey.value))
+const compactForkLayout = computed(() => branchOptions.value.length <= 2)
 const headerTitle = computed(() => {
   const l1Name = String(activeRegistryEntry.value?.label || 'L1').trim()
   return `${l1Name} Fork`
@@ -284,6 +288,10 @@ function goBack() {
   overflow: hidden;
 }
 
+.fork-shell-card--compact {
+  min-height: 0;
+}
+
 .fork-shell-card__header {
   display: flex;
   align-items: flex-start;
@@ -326,6 +334,10 @@ function goBack() {
   flex: 1 1 auto;
   flex-direction: column;
   padding: 18px 28px 24px;
+}
+
+.fork-shell-card--compact .fork-shell-card__body {
+  padding: 14px 28px 18px;
 }
 
 .fork-shell-card__grid {
