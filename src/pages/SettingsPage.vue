@@ -276,53 +276,6 @@
 
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
 
-        <div class="avatar-surface">
-          <q-banner
-            v-if="avatarBuildDeck.length === 0"
-            class="avatar-empty-state bg-grey-1 text-black"
-            rounded
-          >
-            <div class="row items-center justify-between">
-              <div>No companion builds found.</div>
-            </div>
-          </q-banner>
-
-          <div v-else class="avatar-builds-inline">
-            <q-card
-              v-for="build in avatarBuildDeck"
-              :key="build.id"
-              flat
-              bordered
-              class="avatar-build-card"
-              clickable
-              @click="applyBuildPreset(build)"
-            >
-              <q-card-section class="avatar-build-card__header">
-                <div class="avatar-build-card__badge" :style="build.previewStyle">
-                  <q-icon name="smart_toy" class="avatar-build-card__icon" />
-                </div>
-                <div>
-                  <div class="avatar-build-card__title">{{ build.name }}</div>
-                  <div class="avatar-build-card__meta">
-                    {{ build.archetypeLabel }} / {{ build.colorLabel }} / {{ build.temperamentLabel }}
-                  </div>
-                </div>
-              </q-card-section>
-              <q-card-section class="avatar-build-card__body">
-                <div class="avatar-build-card__summary">{{ build.summary }}</div>
-              </q-card-section>
-              <q-card-actions align="right" class="avatar-build-card__actions">
-                <B10Button
-                  variant="subtle"
-                  icon-start="download"
-                  label="Load"
-                  @click.stop="applyBuildPreset(build)"
-                />
-              </q-card-actions>
-            </q-card>
-          </div>
-        </div>
-
         <q-dialog v-model="showCompanionContractDialog">
           <q-card class="companion-contract-dialog">
             <q-card-section class="companion-contract-dialog__head">
@@ -494,7 +447,6 @@ import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 const $q = useQuasar()
 const AVATAR_STORAGE_KEY = 'ecvc.avatarBuilderProfile'
 const LLM_STORAGE_KEY = 'ecvc.avatarLlmProfile'
-const CUSTOM_AVATAR_BUILDS_STORAGE_KEY = 'ecvc.avatarCustomBuilds'
 const showCompanionContractDialog = ref(false)
 const companionDocumentMenu = [
   {
@@ -654,7 +606,6 @@ const showOpenaiApiKey = ref(false)
 const showGeminiApiKey = ref(false)
 const avatarProfile = ref({ ...defaultAvatarProfile })
 const llmProfile = ref({ ...defaultLlmProfile })
-const customAvatarBuilds = ref([])
 
 const avatarThemeMap = {
   'aurora-blue': {
@@ -695,15 +646,6 @@ const avatarColorLabel = computed(
 )
 const avatarTemperamentLabel = computed(
   () => avatarTemperamentOptions.find((option) => option.value === avatarProfile.value.temperament)?.label || 'Calm'
-)
-const llmProviderLabel = computed(
-  () => providerOptions.find((option) => option.value === llmProfile.value.provider)?.label || 'Hybrid'
-)
-const llmModelLabel = computed(
-  () => modelOptions.find((option) => option.value === llmProfile.value.model)?.label || 'Balanced default'
-)
-const autonomyLabel = computed(
-  () => autonomyOptions.find((option) => option.value === llmProfile.value.autonomy)?.label || 'Balanced'
 )
 const activeHeroControlEyebrow = computed(() => {
   if (activeHeroControl.value === 'shell') return 'Tune Shell'
@@ -762,14 +704,6 @@ const companionDocDiffLines = computed(() =>
 const avatarSummaryText = computed(
   () => normalizeInput(avatarProfile.value.originStory) || defaultAvatarProfile.originStory
 )
-const avatarThemeFor = (colorway) => avatarThemeMap[colorway] || avatarThemeMap['aurora-blue']
-const createPreviewStyle = (colorway) => {
-  const theme = avatarThemeFor(colorway)
-  return {
-    '--avatar-build-main': theme.botMain,
-    '--avatar-build-glow': theme.botGlow,
-  }
-}
 const avatarHeroStyle = computed(() => {
   const theme = avatarThemeMap[avatarProfile.value.colorway] || avatarThemeMap['aurora-blue']
   return { '--avatar-hero-soft': theme.soft, '--avatar-hero-shadow': theme.shadow }
@@ -782,154 +716,6 @@ const avatarBotStyle = computed(() => {
     '--avatar-bot-eye': theme.botEye,
   }
 })
-const avatarBuildDeck = computed(() => [
-  {
-    id: 'current-build',
-    name: avatarProfile.value.name || 'Mini-Me',
-    archetype: avatarProfile.value.archetype,
-    colorway: avatarProfile.value.colorway,
-    temperament: avatarProfile.value.temperament,
-    voice: avatarProfile.value.voice,
-    originStory: avatarProfile.value.originStory,
-    provider: llmProfile.value.provider,
-    model: llmProfile.value.model,
-    responseStyle: llmProfile.value.responseStyle,
-    autonomy: llmProfile.value.autonomy,
-    temperature: llmProfile.value.temperature,
-    systemNotes: llmProfile.value.systemNotes,
-    archetypeLabel: avatarArchetypeLabel.value,
-    colorLabel: avatarColorLabel.value,
-    temperamentLabel: avatarTemperamentLabel.value,
-    providerLabel: llmProviderLabel.value,
-    modelLabel: llmModelLabel.value,
-    autonomyLabel: autonomyLabel.value,
-    summary: avatarSummaryText.value,
-    previewStyle: createPreviewStyle(avatarProfile.value.colorway),
-  },
-  {
-    id: 'boardroom-keeper',
-    name: 'Boardroom Keeper',
-    archetype: 'guardian',
-    colorway: 'forest-mint',
-    temperament: 'warm',
-    voice: 'executive-strategist',
-    originStory: 'A calm room-holder built for sensitive partner updates and trust-heavy threads.',
-    provider: 'hybrid',
-    model: 'deep-reasoning',
-    responseStyle: 'analytical',
-    autonomy: 'guard-railed',
-    temperature: 0.5,
-    systemNotes: 'Stay measured, organized, and protective of context.',
-    archetypeLabel: 'Guardian',
-    colorLabel: 'Forest Mint',
-    temperamentLabel: 'Warm',
-    providerLabel: 'Hybrid',
-    modelLabel: 'Deep reasoning',
-    autonomyLabel: 'Guard-railed',
-    summary: 'A calm room-holder built for sensitive partner updates and trust-heavy threads.',
-    previewStyle: createPreviewStyle('forest-mint'),
-  },
-  {
-    id: 'deal-scout',
-    name: 'Deal Scout',
-    archetype: 'scout',
-    colorway: 'signal-coral',
-    temperament: 'sharp',
-    voice: 'concise-operator',
-    originStory: 'A quick pattern finder for intake, triage, and first-pass sorting.',
-    provider: 'openai',
-    model: 'fast-model',
-    responseStyle: 'practical',
-    autonomy: 'proactive',
-    temperature: 0.6,
-    systemNotes: 'Keep momentum high and summarize fast.',
-    archetypeLabel: 'Scout',
-    colorLabel: 'Signal Coral',
-    temperamentLabel: 'Sharp',
-    providerLabel: 'OpenAI',
-    modelLabel: 'Fast model',
-    autonomyLabel: 'Proactive',
-    summary: 'A quick pattern finder for intake, triage, and first-pass sorting.',
-    previewStyle: createPreviewStyle('signal-coral'),
-  },
-  {
-    id: 'founder-guide',
-    name: 'Founder Guide',
-    archetype: 'guide',
-    colorway: 'solar-gold',
-    temperament: 'bold',
-    voice: 'playful-guide',
-    originStory: 'A brighter coaching build for brainstorming, motivation, and narrative work.',
-    provider: 'gemini',
-    model: 'balanced-default',
-    responseStyle: 'creative',
-    autonomy: 'balanced',
-    temperature: 1.0,
-    systemNotes: 'Be encouraging, flexible, and imagination-friendly.',
-    archetypeLabel: 'Guide',
-    colorLabel: 'Solar Gold',
-    temperamentLabel: 'Bold',
-    providerLabel: 'Gemini',
-    modelLabel: 'Balanced default',
-    autonomyLabel: 'Balanced',
-    summary: 'A brighter coaching build for brainstorming, motivation, and narrative work.',
-    previewStyle: createPreviewStyle('solar-gold'),
-  },
-  ...customAvatarBuilds.value,
-])
-
-function getOptionLabel(options, value, fallback) {
-  return options.find((option) => option.value === value)?.label || fallback
-}
-
-function slugifyBuildId(value, fallback = 'avatar-build') {
-  const normalized = String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-  return normalized || fallback
-}
-
-function createAvatarBuildRecord(raw = {}, fallbackId = 'avatar-build') {
-  const name = normalizeInput(raw.name) || 'Imported Build'
-  const archetype = normalizeInput(raw.archetype) || defaultAvatarProfile.archetype
-  const colorway = normalizeInput(raw.colorway) || defaultAvatarProfile.colorway
-  const temperament = normalizeInput(raw.temperament) || defaultAvatarProfile.temperament
-  const voice = normalizeInput(raw.voice) || defaultAvatarProfile.voice
-  const originStory = normalizeInput(raw.originStory) || defaultAvatarProfile.originStory
-  const provider = normalizeInput(raw.provider) || defaultLlmProfile.provider
-  const model = normalizeInput(raw.model) || defaultLlmProfile.model
-  const responseStyle = normalizeInput(raw.responseStyle) || defaultLlmProfile.responseStyle
-  const autonomy = normalizeInput(raw.autonomy) || defaultLlmProfile.autonomy
-  const parsedTemperature = Number.parseFloat(raw.temperature)
-  const temperature = Number.isFinite(parsedTemperature) ? parsedTemperature : defaultLlmProfile.temperature
-  const systemNotes = normalizeInput(raw.systemNotes) || defaultLlmProfile.systemNotes
-
-  return {
-    id: slugifyBuildId(raw.id || name, fallbackId),
-    name,
-    archetype,
-    colorway,
-    temperament,
-    voice,
-    originStory,
-    provider,
-    model,
-    responseStyle,
-    autonomy,
-    temperature,
-    systemNotes,
-    archetypeLabel: getOptionLabel(avatarArchetypeOptions, archetype, 'Strategist'),
-    colorLabel: getOptionLabel(avatarColorOptions, colorway, 'Aurora Blue'),
-    temperamentLabel: getOptionLabel(avatarTemperamentOptions, temperament, 'Calm'),
-    providerLabel: getOptionLabel(providerOptions, provider, 'Hybrid'),
-    modelLabel: getOptionLabel(modelOptions, model, 'Balanced default'),
-    autonomyLabel: getOptionLabel(autonomyOptions, autonomy, 'Balanced'),
-    summary: originStory,
-    previewStyle: createPreviewStyle(colorway),
-  }
-}
 
 watch(
   avatarProfile,
@@ -945,15 +731,6 @@ watch(
   (value) => {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(LLM_STORAGE_KEY, JSON.stringify(value))
-    }
-  },
-  { deep: true }
-)
-watch(
-  customAvatarBuilds,
-  (value) => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(CUSTOM_AVATAR_BUILDS_STORAGE_KEY, JSON.stringify(value))
     }
   },
   { deep: true }
@@ -989,17 +766,6 @@ function loadLocalBuilderState() {
     llmProfile.value = { ...defaultLlmProfile }
   }
 
-  try {
-    const storedBuilds = window.localStorage.getItem(CUSTOM_AVATAR_BUILDS_STORAGE_KEY)
-    if (storedBuilds) {
-      const parsedBuilds = JSON.parse(storedBuilds)
-      customAvatarBuilds.value = Array.isArray(parsedBuilds)
-        ? parsedBuilds.map((build, index) => createAvatarBuildRecord(build, `imported-build-${index + 1}`))
-        : []
-    }
-  } catch {
-    customAvatarBuilds.value = []
-  }
 }
 
 function onHeroDashboardPointerEnter(event) {
@@ -1195,26 +961,6 @@ function showNextHeroControl() {
   const currentIndex = heroControlOrder.indexOf(activeHeroControl.value)
   const nextIndex = (currentIndex + 1) % heroControlOrder.length
   activeHeroControl.value = heroControlOrder[nextIndex]
-}
-
-function applyBuildPreset(build) {
-  avatarProfile.value = {
-    name: build.name,
-    archetype: build.archetype,
-    colorway: build.colorway,
-    temperament: build.temperament,
-    voice: build.voice,
-    originStory: build.originStory,
-  }
-  llmProfile.value = {
-    provider: build.provider,
-    model: build.model,
-    responseStyle: build.responseStyle,
-    autonomy: build.autonomy,
-    temperature: build.temperature,
-    systemNotes: build.systemNotes,
-  }
-  $q.notify({ type: 'positive', message: `${build.name} loaded` })
 }
 
 function normalizeIpcErrorMessage(errorValue) {
@@ -1822,95 +1568,8 @@ onMounted(() => {
   line-height: 1.25;
 }
 
-.avatar-build-card {
-  border-color: rgba(15, 23, 42, 0.08);
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
-  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease;
-}
-
-.avatar-build-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(37, 99, 235, 0.24);
-  box-shadow: 0 20px 38px rgba(15, 23, 42, 0.1);
-}
-
-.avatar-build-card__header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px 18px 12px;
-}
-
-.avatar-build-card__badge {
-  display: flex;
-  width: 62px;
-  height: 72px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.52);
-  border-radius: 24px 24px 20px 20px;
-  background: var(--avatar-build-main);
-  box-shadow:
-    0 16px 28px var(--avatar-build-glow),
-    0 8px 18px rgba(15, 23, 42, 0.1);
-}
-
-.avatar-build-card__icon {
-  color: rgba(255, 255, 255, 0.96);
-  font-size: 34px;
-}
-
-.avatar-build-card__title {
-  color: #0f172a;
-  font-family: var(--font-title);
-  font-size: 1rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1.1;
-}
-
-.avatar-build-card__meta {
-  margin-top: 6px;
-  color: #64748b;
-  font-size: 0.84rem;
-  font-weight: 600;
-  line-height: 1.5;
-}
-
-.avatar-build-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 0 18px 16px;
-}
-
-.avatar-build-card__summary {
-  color: #475569;
-  font-size: 0.92rem;
-  line-height: 1.6;
-}
-
-.avatar-build-card__actions {
-  padding: 0 12px 12px;
-}
-
-.avatar-surface {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.avatar-empty-state {
-  padding: 24px;
-}
-
 @media (max-width: 1200px) {
-  .avatar-shell__hero,
-  .avatar-builds-inline {
+  .avatar-shell__hero {
     grid-template-columns: 1fr;
   }
 
