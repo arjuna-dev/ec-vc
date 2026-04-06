@@ -291,7 +291,7 @@ onBeforeUnmount(() => {
 
 .fork-shell-card__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 16px 20px 12px;
@@ -306,7 +306,7 @@ onBeforeUnmount(() => {
 
 .fork-shell-card__title-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
   min-width: 0;
@@ -324,7 +324,6 @@ onBeforeUnmount(() => {
 
 .fork-shell-card__close {
   color: rgba(17, 17, 17, 0.62);
-  margin-top: -2px;
 }
 
 .fork-shell-card__body {
