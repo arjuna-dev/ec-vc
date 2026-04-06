@@ -463,12 +463,18 @@ Approved direction:
 Current approved shell pattern:
 
 - base it on the current `User Record View` hero/dashboard
-- keep icon-only `settings` and `edit` controls beside `Name`
+- keep icon-only `settings` and `add record` controls beside `Name`
 - render selected `L3` rows in the left middle column
 - render `Summary` as the first row in the right middle column
 - render each selected `L3` row as:
   - top row: label + `L2` description
   - bottom row: value + status icon
+
+Interaction direction:
+
+- `Record View` should become live inside the shell
+- fields should move toward direct in-place editing
+- the plus action should be used to add a new record, not to enter an edit dialog for the current record
 
 ## Record View Section Bar
 

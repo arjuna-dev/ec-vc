@@ -90,12 +90,12 @@
                 flat
                 round
                 dense
-                icon="edit"
-                class="record-shell__hero-icon-button record-shell__hero-icon-button--edit"
-                aria-label="Edit record"
-                @click="openCreateDialog"
+                icon="add"
+                class="record-shell__hero-icon-button record-shell__hero-icon-button--create"
+                aria-label="Add record"
+                @click="openCreateRecordDialog"
               >
-                <q-tooltip>Edit</q-tooltip>
+                <q-tooltip>Add Record</q-tooltip>
               </q-btn>
             </div>
 
@@ -589,7 +589,8 @@ function setTokenSelected(tokenKey, isSelected) {
   selectedTokenKeys.value = Array.from(next)
 }
 
-function openCreateDialog() {
+function openCreateRecordDialog() {
+  createDialogMode.value = 'create'
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
@@ -1054,7 +1055,7 @@ function onContactHeroPointerLeave() {
   border-radius: 999px;
 }
 
-.record-shell__hero-icon-button--edit {
+.record-shell__hero-icon-button--create {
   color: #2669ff;
   background: rgba(255, 255, 255, 0.96);
   border-color: rgba(38, 105, 255, 0.18);

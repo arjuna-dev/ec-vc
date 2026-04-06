@@ -90,12 +90,18 @@ The currently approved shell pattern is:
 The currently approved middle hero contract is:
 
 - `Name` is the top anchor row
-- icon-only `settings` and `edit` controls sit beside `Name`
+- icon-only `settings` and `add record` controls sit beside `Name`
 - below `Name`, selected `L3` rows begin in the left column
 - `Summary` is the first row in the right column
 - each selected `L3` row renders as:
   - top row: label + `L2` description
   - bottom row: current value + status icon
+
+Working interaction rule:
+
+- `Record View` should move toward live editing inside the shell itself
+- the old dedicated edit button is not the long-term interaction model
+- the plus action is for creating another record
 
 ## Game Layer Constraint
 
