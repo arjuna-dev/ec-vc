@@ -28,9 +28,9 @@
         >
           {{ title || 'Untitled building block' }}
         </div>
-      </div>
 
-      <div v-if="!isCollapsed" class="building-block-preview-tile__status" :class="statusClass">{{ tileStatusLabel }}</div>
+        <div v-else class="building-block-preview-tile__status" :class="statusClass">{{ tileStatusLabel }}</div>
+      </div>
     </div>
 
     <div v-if="!isCollapsed" class="building-block-preview-tile__stage" :class="stageClass">
