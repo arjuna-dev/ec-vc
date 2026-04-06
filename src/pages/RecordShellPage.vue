@@ -692,11 +692,12 @@ const selectableTokens = computed(() =>
     return label !== 'name' && label !== 'summary'
   }),
 )
+const normalizedSelectableTokens = computed(() => selectableTokens.value.map((token) => normalizeCreateDialogToken(token)))
 
 const selectedTokenKeys = computed({
   get() {
     const values = Array.isArray(heroFieldKeysBySource.value[activeSourceKey.value]) ? heroFieldKeysBySource.value[activeSourceKey.value] : []
-    const allowed = new Set(selectableTokens.value.map((token) => token.key))
+    const allowed = new Set(normalizedSelectableTokens.value.map((token) => token.key))
     return values.map((value) => String(value || '').trim()).filter((value) => value && allowed.has(value))
   },
   set(value) {
@@ -709,14 +710,14 @@ const selectedTokenKeys = computed({
 })
 
 const selectedTokenKeySet = computed(() => new Set(selectedTokenKeys.value))
-const selectableSections = computed(() => level2Sections.value.filter((section) => selectableTokens.value.some((token) => token.parentKey === section.key)))
-const selectedHeroTokens = computed(() => selectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)))
+const selectableSections = computed(() => level2Sections.value.filter((section) => normalizedSelectableTokens.value.some((token) => token.parentKey === section.key)))
+const selectedHeroTokens = computed(() => normalizedSelectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)))
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
 const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
 const createSectionGroups = computed(() =>
   buildDialogSectionGroups({
     groupedSections: groupedLevel2Sections.value,
-    tokenFilter: (section) => selectableTokens.value.filter(
+    tokenFilter: (section) => normalizedSelectableTokens.value.filter(
       (token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)),
     ),
     mapToken: normalizeCreateDialogToken,
@@ -728,7 +729,7 @@ const createDialogRightSections = computed(() => createDialogSectionSplit.value.
 const activeSectionGroup = computed(() => groupedLevel2Sections.value.find((group) => group.value === activeSectionKey.value) || groupedLevel2Sections.value[0] || null)
 const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || null)
 const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
-const activeSectionTokens = computed(() => selectableTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
+const activeSectionTokens = computed(() => normalizedSelectableTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
 const isKdbSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'kdb'))
 const hasGroupedSectionSubsections = computed(() => !isKdbSectionActive.value && activeSectionEntries.value.length > 1)
 const activeSectionTokenGroups = computed(() =>
@@ -736,7 +737,7 @@ const activeSectionTokenGroups = computed(() =>
     .map((section) => ({
       key: section.key,
       title: section.label,
-      tokens: selectableTokens.value.filter((token) => token.parentKey === section.key),
+      tokens: normalizedSelectableTokens.value.filter((token) => token.parentKey === section.key),
     }))
     .filter((group) => group.tokens.length),
 )
@@ -898,7 +899,7 @@ watch(
   [activeSourceKey, selectableTokens],
   () => {
     const sourceKey = activeSourceKey.value
-    const allowedKeys = new Set(selectableTokens.value.map((token) => token.key))
+    const allowedKeys = new Set(normalizedSelectableTokens.value.map((token) => token.key))
     const existing = Array.isArray(heroFieldKeysBySource.value[sourceKey]) ? heroFieldKeysBySource.value[sourceKey] : []
     const normalized = existing.filter((key) => allowedKeys.has(key))
 
@@ -914,7 +915,7 @@ watch(
 
     heroFieldKeysBySource.value = {
       ...heroFieldKeysBySource.value,
-      [sourceKey]: selectableTokens.value.slice(0, 4).map((token) => token.key),
+      [sourceKey]: normalizedSelectableTokens.value.slice(0, 4).map((token) => token.key),
     }
   },
   { immediate: true },
