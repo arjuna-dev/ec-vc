@@ -268,6 +268,7 @@ This tracker should stay aligned with:
 - schema alignment work is still important, but intake continuity, JSON structure ownership, and structure-contract cleanup are the active operational threads
 - as of April 6, 2026:
   - shared record-shell presentation naming is being normalized away from leftover `contact-databook` class language so the shell reads as a generic `Record Shell` surface instead of a contact-specific carryover
+  - shared add/edit entry actions are being normalized so route-owned `L1` pages launch the shared add/edit shell instead of sending widget shortcuts through the old `test-shell` path, while true create forks still stop for user choice first
 
 ## Update Rule
 

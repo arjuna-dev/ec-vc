@@ -39,7 +39,7 @@
           color="primary"
           class="record-shell-launchpad__action"
           label="Create Record"
-          @click="openCreateRecordShell"
+          @click="requestCreateRecordShell"
         />
       </div>
 
@@ -154,7 +154,7 @@
         :view-options="viewOptions"
         :show-view-toggle="true"
         @toggle-select-all="toggleSelectAllVisible"
-        @add="openCreateRecordShell"
+        @add="requestCreateRecordShell"
         @update:search-query="searchQuery = $event"
         @update:view-mode="viewMode = $event"
       >
@@ -260,7 +260,7 @@
                   icon="edit"
                   class="test-shell-card__control-edit"
                   :disable="!row.recordId || !supportsActiveSourceEditing"
-                  @click="openEditRecordShell(row)"
+                  @click="requestEditRecordShell(row)"
                 />
               </div>
               <div class="test-shell-card__control-actions">
@@ -485,7 +485,7 @@
                   :options="summarySectionShellOptions"
                   @update:model-value="setRowRelationshipPanel(row, $event)"
                 />
-                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" :disable="!supportsActiveSourceEditing" @click="openAddRelationShell(row)">
+                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" :disable="!supportsActiveSourceEditing" @click="requestEditRecordShell(row, { sectionKey: 'kdb' })">
                   <span class="test-shell-card__summary-add-relation-plus">
                     <q-icon name="add" />
                   </span>
@@ -1014,7 +1014,6 @@ const expandedCardSettingsGroups = computed(() => {
   return Array.isArray(existing) ? existing : cardItemTokenGroups.value.map((group) => group.key)
 })
 const canCreateWithShell = computed(() => {
-  if (activeSourceKey.value === 'artifacts') return false
   if (activeSourceKey.value === 'opportunities') return Boolean(bridge.value?.funds?.create || bridge.value?.rounds?.create)
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
@@ -1595,6 +1594,31 @@ watch(
 )
 
 watch(
+  [() => route.name, () => route.query.edit, () => route.query.editSection, displayRows],
+  async ([, editRecordId, editSection]) => {
+    const normalizedRecordId = String(editRecordId || '').trim()
+    if (!normalizedRecordId) return
+
+    const row = displayRows.value.find((entry) => String(entry?.recordId || '').trim() === normalizedRecordId) || null
+    if (!row) return
+
+    if (String(editSection || '').trim().toLowerCase() === 'kdb') {
+      await openAddRelationShell(row)
+    } else {
+      await openEditRecordShell(row)
+    }
+
+    const nextQuery = {
+      ...route.query,
+    }
+    delete nextQuery.edit
+    delete nextQuery.editSection
+    router.replace({ query: nextQuery })
+  },
+  { immediate: true },
+)
+
+watch(
   [activeSourceKey, availableCardItemTokens],
   () => {
     const sourceKey = activeSourceKey.value
@@ -2023,6 +2047,42 @@ function openRecordView(row) {
     })
   if (!location) return
   router.push(location)
+}
+
+function requestCreateRecordShell(options = {}) {
+  if (!canCreateWithShell.value) {
+    $q.notify({ type: 'negative', message: 'This shell source is view-only.' })
+    return
+  }
+
+  const nextQuery = {
+    ...route.query,
+    create: String(Date.now()),
+  }
+  const requestedKind = String(options?.kind || '').trim().toLowerCase()
+  if (activeSourceKey.value === 'opportunities' && (requestedKind === 'fund' || requestedKind === 'round')) {
+    nextQuery.kind = requestedKind
+  } else {
+    delete nextQuery.kind
+  }
+  router.push({ name: route.name, params: route.params, query: nextQuery })
+}
+
+function requestEditRecordShell(row, options = {}) {
+  if (!supportsActiveSourceEditing.value) return
+  const recordId = String(row?.recordId || '').trim()
+  if (!recordId) return
+
+  const nextQuery = {
+    ...route.query,
+    edit: recordId,
+  }
+  if (String(options?.sectionKey || '').trim().toLowerCase() === 'kdb') {
+    nextQuery.editSection = 'kdb'
+  } else {
+    delete nextQuery.editSection
+  }
+  router.push({ name: route.name, params: route.params, query: nextQuery })
 }
 
 function openCreateRecordShell(options = {}) {
