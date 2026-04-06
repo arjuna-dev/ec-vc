@@ -148,7 +148,6 @@
         :disabled="false"
         :loading="loading"
         :add-disabled="!canCreateWithShell"
-        :add-label="toolbarAddLabel"
         :search-query="searchQuery"
         :search-placeholder="searchPlaceholder"
         :view-mode="viewMode"
@@ -270,7 +269,7 @@
                   round
                   icon="tune"
                   class="test-shell-card__control-settings"
-                  :aria-label="cardSettingsButtonLabel"
+                  aria-label="Card settings"
                 >
                   <q-menu
                     anchor="bottom right"
@@ -279,9 +278,9 @@
                     content-class="test-shell-card-settings-menu__content"
                   >
                     <div class="test-shell-card-settings-panel">
-                      <div class="test-shell-card-settings-panel__title">{{ cardSettingsPanelTitle }}</div>
+                      <div class="test-shell-card-settings-panel__title">Card Settings</div>
                       <div class="test-shell-card-settings-panel__caption">
-                        {{ cardSettingsPanelCaption }}
+                        Name stays fixed. Choose and order the extra fields shown on the card.
                       </div>
 
                       <div class="test-shell-card-settings-panel__list">
@@ -1485,21 +1484,7 @@ const healthSegments = computed(() => [
   { tone: 'sparse', width: 20 },
 ])
 
-const isBbFileSource = computed(() => activeSourceKey.value === 'bb-file')
-const toolbarAddLabel = computed(() => {
-  if (!supportsActiveSourceEditing.value) return 'View only'
-  return isBbFileSource.value ? 'Add Block Tile' : 'Add Record'
-})
-const searchPlaceholder = computed(() =>
-  isBbFileSource.value ? 'Search Block Tiles' : `Search ${activeRegistryEntry.value?.label || 'Records'}`,
-)
-const cardSettingsButtonLabel = computed(() => (isBbFileSource.value ? 'Block tile settings' : 'Card settings'))
-const cardSettingsPanelTitle = computed(() => (isBbFileSource.value ? 'Block Tile Settings' : 'Card Settings'))
-const cardSettingsPanelCaption = computed(() =>
-  isBbFileSource.value
-    ? 'Name stays fixed. Choose and order the extra fields shown on the block tile.'
-    : 'Name stays fixed. Choose and order the extra fields shown on the card.',
-)
+const searchPlaceholder = computed(() => `Search ${activeRegistryEntry.value?.label || 'Records'}`)
 const viewOptions = Object.freeze([
   { value: 'card', icon: 'grid_view' },
   { value: 'table', icon: 'view_list' },
