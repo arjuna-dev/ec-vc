@@ -2066,16 +2066,24 @@ function requestCreateRecordShell(options = {}) {
     return
   }
 
+  const requestedBranch = String(options?.kind || '').trim().toLowerCase()
+  if (getCreateBranchEntry(activeSourceKey.value, requestedBranch)) {
+    router.push({
+      name: 'dialog-shell',
+      query: {
+        section: activeSourceKey.value,
+        create: String(Date.now()),
+        kind: requestedBranch,
+      },
+    })
+    return
+  }
+
   const nextQuery = {
     ...route.query,
     create: String(Date.now()),
   }
-  const requestedBranch = String(options?.kind || '').trim().toLowerCase()
-  if (getCreateBranchEntry(activeSourceKey.value, requestedBranch)) {
-    nextQuery.kind = requestedBranch
-  } else {
-    delete nextQuery.kind
-  }
+  delete nextQuery.kind
   router.push({ name: route.name, params: route.params, query: nextQuery })
 }
 
