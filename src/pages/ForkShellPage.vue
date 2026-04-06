@@ -281,7 +281,7 @@ onBeforeUnmount(() => {
   width: 100%;
   min-height: min(46vh, 420px);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 246, 244, 0.98) 100%);
-  border-radius: 18px;
+  border-radius: 4px;
   overflow: hidden;
 }
 
