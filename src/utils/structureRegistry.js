@@ -1,4 +1,5 @@
 import canonicalStructure from '../../docs/canonical-structure.json'
+import { formatSharedDisplayLabel } from 'src/shared/labelFormatting'
 
 const FILE_PAGE_ROUTE_META = Object.freeze({
   Events: {
@@ -151,11 +152,7 @@ function normalizeOptionItems(items) {
 }
 
 function formatLabel(value) {
-  return String(value || '')
-    .split('_')
-    .filter(Boolean)
-    .map((part) => part[0]?.toUpperCase() + part.slice(1).toLowerCase())
-    .join(' ')
+  return formatSharedDisplayLabel(value)
 }
 
 function getSubsectionDisplayRank(subsection) {

@@ -318,7 +318,7 @@ Examples of current `Knowledge DB` files:
 
 - `Stages File` -> `Stage Record`
 - `Locations File` -> `Location Record`
-- `Financial Industries File` -> `Financial Industry Record`
+- `Markets File` -> `Market Record`
 - `Round Securities File` -> `Round Security Record`
 - `Ingestion File` -> `Ingestion Record`
 
@@ -869,3 +869,19 @@ The product currently uses several naming layers that must stay distinct:
 Shared shells may render from canonical structure and route keys, but IPC actions must use databook table names.
 
 Do not assume these names are interchangeable.
+
+## Shared Label Normalization
+
+Surfaced shell labels should use current product language even when older canonical or DB names still exist underneath.
+
+Approved examples:
+
+- `BEmail` -> `Business Email`
+- `PEmail` -> `Personal Email`
+- `Financial Industry` / `Financial Industries` -> `Markets`
+
+Working rule:
+
+- canonical names may remain structural
+- databook names may remain operational
+- surfaced labels should normalize to approved product wording in the shared label layer

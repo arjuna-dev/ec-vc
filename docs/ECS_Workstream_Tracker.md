@@ -299,6 +299,16 @@ Shared shell code must normalize to databook table names before:
 - `verification:list`
 - `verification:upsert`
 
+Additional shared-shell correction:
+
+- surfaced labels must normalize deprecated wording into current product language through one shared label layer
+
+Current approved examples:
+
+- `BEmail` -> `Business Email`
+- `PEmail` -> `Personal Email`
+- `Financial Industry` / `Financial Industries` -> `Markets`
+
 ## Shared Audit Correction
 
 Resolved shared-shell correction:

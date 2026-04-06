@@ -26,6 +26,7 @@ import {
   isDirectKdbRelationshipContract,
   isGenericKdbRelationshipContract,
 } from '../src/shared/kdbRelationshipContracts.js'
+import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -2565,25 +2566,7 @@ function normalizeRelationshipIds(rawValue) {
 }
 
 function formatDatabookFieldLabel(fieldName) {
-  const specialWords = {
-    id: 'ID',
-    api: 'API',
-    aum: 'AUM',
-    aums: 'AUMs',
-    llm: 'LLM',
-    rofo: 'ROFO',
-    ror: 'ROR',
-  }
-
-  return String(fieldName || '')
-    .split(/[_\s]+/)
-    .filter(Boolean)
-    .map((word) => {
-      const lower = String(word).toLowerCase()
-      if (specialWords[lower]) return specialWords[lower]
-      return lower.charAt(0).toUpperCase() + lower.slice(1)
-    })
-    .join(' ')
+  return formatSharedDisplayLabel(fieldName)
 }
 
 function resolveDatabookEntityName(record, config, recordId) {

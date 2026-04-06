@@ -95,6 +95,16 @@ Rule:
 - databook table names are for IPC/database actions
 - these must not be treated as interchangeable
 
+## Shared Label Normalization
+
+The required shared-shell naming step that converts deprecated surfaced labels into current product wording without changing the underlying structural or databook name.
+
+Examples:
+
+- `BEmail` -> `Business Email`
+- `PEmail` -> `Personal Email`
+- `Financial Industry` / `Financial Industries` -> `Markets`
+
 ## Append-Only Audit Rule
 
 The rule that shared shell actions must not reuse one shell-session `actionId` across repeated writes.
