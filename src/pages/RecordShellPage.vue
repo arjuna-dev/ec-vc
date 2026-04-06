@@ -242,10 +242,7 @@
               class="contact-databook__summary-feed-entry"
             >
               <div class="contact-databook__summary-feed-entry-top">
-                <div class="contact-databook__summary-feed-entry-top-left">
-                  <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
-                  <div class="contact-databook__summary-feed-entry-source">{{ item.sourceLabel }}</div>
-                </div>
+                <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
                 <div class="contact-databook__summary-feed-entry-top-right">
                   <button
                     v-if="item.hasLogPage"
@@ -2100,16 +2097,9 @@ function onContactHeroPointerLeave() {
 
 .contact-databook__summary-feed-entry-top {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
-}
-
-.contact-databook__summary-feed-entry-top-left {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
 }
 
 .contact-databook__summary-feed-entry-top-right {
