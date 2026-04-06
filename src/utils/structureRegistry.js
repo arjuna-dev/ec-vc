@@ -28,6 +28,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     label: 'Opportunities',
     singularLabel: 'Opportunity',
     createBranchLabel: 'Opportunity Type',
+    createBranchTokenName: 'Opportunity_Kind',
     routeName: 'opportunities',
     path: '/opportunities',
     icon: 'work',
@@ -305,6 +306,11 @@ export function getFilePageRegistryEntry(key) {
 export function getFilePageRegistryEntryByRouteName(routeName) {
   const normalizedRouteName = String(routeName || '').trim().toLowerCase()
   return LEVEL_1_FILE_REGISTRY.find((entry) => entry.routeName === normalizedRouteName) || null
+}
+
+export function getCreateBranchTokenName(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  return String(entry?.createBranchTokenName || '').trim()
 }
 
 export function getCanonicalTokenFieldNames(token = {}) {

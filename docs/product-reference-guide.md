@@ -230,6 +230,19 @@ Shared dialog rule:
 - when the shared dialog is exposed through its own shell route, that route should use the same shared top shell header and `L1` select as the other shell routes
 - the dialog shell route should not add a second page-level selector, launchpad, or top-row control if the shared shell header already provides that contract
 
+Branch selector rule:
+
+- some create flows need a structural selector before the rest of the form should appear
+- that selector is not a normal saved field
+- it decides which subtype payload should load next
+- subtype-owned sections should stay hidden until that selector is chosen
+
+Current approved example:
+
+- `Opportunity Type` is a branch selector
+- choosing `Fund` or `Round` decides whether the create flow should continue as `Funds` or `Rounds`
+- the selector should steer structure first and should not later be written back as if it were a normal field on the subtype record
+
 Observed evidence rule:
 
 - when documenting shell drift, keep the observed behavior separate from the hypothesized cause

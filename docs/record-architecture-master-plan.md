@@ -222,6 +222,23 @@ Shared dialog shell rule:
 - if one surface sends grouped subsection payloads and another sends flat section payloads, that is shell drift, not an acceptable variation
 - page-level payload shaping for the shared dialog should be treated as architectural debt unless it is identical across shell surfaces
 
+Branch selector rule:
+
+- if a create flow contains a selector whose job is to choose a subtype path, treat it as structural shell control
+- do not treat that selector as a normal saved field
+- do not render subtype-owned sections until the branch selector has a settled value
+- once selected, the branch selector should determine:
+  - which subtype payload is shown
+  - which create bridge is used
+  - which write contract applies
+
+Current approved example:
+
+- `Opportunity_Kind` is the branch selector for the `Opportunities` create flow
+- it exists to choose `Fund` or `Round`
+- that choice should happen before overview and subtype-owned sections appear
+- if the shell later tries to write `Opportunity_Kind` into `Funds` or `Rounds` as if it were a normal field, that is a contract bug
+
 Correct evidence statement:
 
 - the observed evidence was that the shared edit dialog behaved differently depending on which `L1` source launched it
