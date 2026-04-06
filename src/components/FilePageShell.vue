@@ -686,6 +686,8 @@
         :initial-artifacts="createDialogInitialArtifacts"
         :artifact-context="createDialogArtifactContext"
         :prefer-add-layout="createDialogPreferAddLayout"
+        :initial-resources-collapsed="createDialogMode === 'edit'"
+        :initial-record-data-collapsed="false"
         @change="handleCreateDialogChange"
         @request-close="handleCreateDialogClose"
         @submit="submitCreateRecordShell"

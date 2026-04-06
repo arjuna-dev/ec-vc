@@ -591,6 +591,8 @@
         initial-section-key="key-fields"
         :initial-artifacts="[]"
         :artifact-context="null"
+        :initial-resources-collapsed="createDialogMode === 'edit'"
+        :initial-record-data-collapsed="false"
         @change="handleDialogChange"
         @request-close="handleDialogClose"
         @submit="submitCreateRecord"
