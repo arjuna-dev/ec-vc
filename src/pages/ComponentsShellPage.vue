@@ -461,7 +461,7 @@
       </section>
     </section>
 
-    <BuildingBlockDialogShell
+    <AddEditBbShell
       v-model="componentDetailOpen"
       :detail="selectedComponentDetail"
     />
@@ -471,7 +471,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import lottie from 'lottie-web'
-import BuildingBlockDialogShell from 'src/components/BuildingBlockDialogShell.vue'
+import AddEditBbShell from 'src/components/AddEditBbShell.vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
