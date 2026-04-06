@@ -37,7 +37,14 @@
         </button>
         <div class="components-shell-page__card-label">B10 Logo</div>
         <div class="components-shell-page__card-stage">
-          <div class="components-shell-page__logo-badge">B10</div>
+          <div class="components-shell-page__logo-shell">
+            <div v-if="!logoReady" class="components-shell-page__logo-fallback">B10</div>
+            <div
+              ref="logoContainer"
+              class="components-shell-page__logo-lottie"
+              :class="{ 'components-shell-page__logo-lottie--hidden': !logoReady }"
+            />
+          </div>
         </div>
       </article>
 
@@ -183,17 +190,22 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import lottie from 'lottie-web'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
+import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 
 const activeToolbarSection = ref('general')
 const toolbarViewMode = ref('card')
 const componentDetailOpen = ref(false)
 const selectedComponentId = ref('page-title-crumb')
+const logoContainer = ref(null)
+const logoReady = ref(false)
+let logoAnimation = null
 
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
@@ -290,6 +302,39 @@ function openComponentDetail(componentId) {
   selectedComponentId.value = componentId
   componentDetailOpen.value = true
 }
+
+function initLogoAnimation() {
+  if (!logoContainer.value) return
+  logoReady.value = false
+
+  logoAnimation?.destroy()
+  logoAnimation = lottie.loadAnimation({
+    container: logoContainer.value,
+    renderer: 'svg',
+    loop: true,
+    autoplay: true,
+    animationData: logoAnimationData,
+    rendererSettings: {
+      preserveAspectRatio: 'xMaxYMid meet',
+    },
+  })
+
+  logoAnimation.addEventListener('DOMLoaded', () => {
+    logoReady.value = true
+  })
+  logoAnimation.addEventListener('data_failed', () => {
+    logoReady.value = false
+  })
+}
+
+onMounted(() => {
+  initLogoAnimation()
+})
+
+onBeforeUnmount(() => {
+  logoAnimation?.destroy()
+  logoAnimation = null
+})
 </script>
 
 <style scoped>
@@ -464,21 +509,37 @@ function openComponentDetail(componentId) {
   font-size: 1em;
 }
 
-.components-shell-page__logo-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 50px;
-  min-height: 28px;
-  padding: 0 10px;
-  color: #ffffff;
-  background: #111111;
-  border-radius: 999px;
-  font-family: var(--font-title);
-  font-size: 0.8rem;
+.components-shell-page__logo-shell {
+  width: 120px;
+  height: 51px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.components-shell-page__logo-lottie {
+  display: block;
+  width: 120px;
+  max-width: 100%;
+  height: 51px;
+}
+
+.components-shell-page__logo-lottie--hidden {
+  opacity: 0;
+}
+
+.components-shell-page__logo-lottie :deep(svg) {
+  width: 100%;
+  height: 100%;
+}
+
+.components-shell-page__logo-fallback {
+  font-family: var(--font-body);
+  font-size: var(--text-2xl---black);
   font-weight: var(--font-weight-black);
   line-height: 1;
-  letter-spacing: 0.08em;
+  letter-spacing: -1px;
 }
 
 .components-shell-page__plus-icon-button,
