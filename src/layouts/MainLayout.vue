@@ -583,6 +583,7 @@ const testShellNavigationItems = [
   { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
   { label: 'Fork Shell', to: '/fork-shell', exact: true, icon: 'call_split' },
   { label: 'Add/Edit Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
+  { label: 'Ingestion Shell', to: '/ingestion-shell', exact: true, icon: 'hourglass_top' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
@@ -607,6 +608,7 @@ const routeLabelByName = {
   'record-shell': 'Record Shell',
   'fork-shell': 'Fork Shell',
   'dialog-shell': 'Add/Edit Shell',
+  'ingestion-shell': 'Ingestion Shell',
   roles: 'Roles',
   avatar: 'Companion',
   'user-settings': 'Owner',

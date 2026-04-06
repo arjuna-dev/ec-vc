@@ -29,6 +29,7 @@ const routes = [
       { path: 'record-shell', name: 'record-shell', component: () => import('pages/RecordShellPage.vue') },
       { path: 'fork-shell', name: 'fork-shell', component: () => import('pages/ForkShellPage.vue') },
       { path: 'dialog-shell', name: 'dialog-shell', component: () => import('pages/DialogShellPage.vue') },
+      { path: 'ingestion-shell', name: 'ingestion-shell', component: () => import('pages/IngestionShellPage.vue') },
       { path: 'roles', name: 'roles', component: () => import('pages/AssistantsPage.vue') },
       { path: 'records/:tableName/:recordId', name: RECORD_VIEW_ROUTE_NAME, component: () => import('pages/RecordShellPage.vue') },
       { path: 'records/:tableName/:recordId/events/:eventId', name: 'record-event', component: () => import('pages/RecordEventPage.vue') },

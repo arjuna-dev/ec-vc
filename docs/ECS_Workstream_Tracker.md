@@ -282,6 +282,7 @@ This tracker should stay aligned with:
     - `Record Shell` and `File Shell` create actions should hand branchable creates off to `Fork Shell`
     - `Fork Shell` should continue into `Add/Edit Shell` with the selected branch already loaded
     - file-shell and dialog-shell create submit paths should resolve branch targets from the registry instead of special-casing `Opportunities`
+  - a separate `Ingestion Shell` is now being scaffolded from the current `Add/Edit Shell` contract so artifact-processing review can become its own shared shell instead of staying trapped inside the add/edit dialog lane
   - intermediate pending-state launch experiments were intentionally discarded so the current contract stays route-driven and easier to reason about
 
 ## Update Rule

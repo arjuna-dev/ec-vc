@@ -8,15 +8,6 @@
         <div class="create-record-shell__header-copy">
           <div class="create-record-shell__title-row">
             <div class="create-record-shell__title">{{ dialogTitle }}</div>
-            <q-btn
-              v-if="canOpenIngestionShell"
-              flat
-              no-caps
-              dense
-              class="create-record-shell__header-link"
-              label="Open Ingestion Shell"
-              @click="openIngestionShell"
-            />
             <div
               v-if="showShellSelector && shellSelectorOptions.length"
               class="create-record-shell__shell-selector"
@@ -937,7 +928,6 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
-import { setPendingIngestionShellRequest } from 'src/utils/ingestionShellState'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -1024,10 +1014,7 @@ const leftPanelSections = computed(() => [
 
 const rightSections = computed(() => (branchSelectionSettled.value ? props.rightSections : []))
 
-const dialogTitle = computed(() => {
-  const normalizedLabel = String(props.singularLabel || 'record').trim()
-  return `Add/Edit ${normalizedLabel}`
-})
+const dialogTitle = computed(() => 'Ingestion Shell')
 
 const artifactContextNote = computed(() => {
   const entityLabel = String(props.artifactContext?.entityLabel || '').trim()
@@ -1041,7 +1028,7 @@ const artifactContextNote = computed(() => {
   }
 })
 
-const submitLabel = computed(() => 'Save')
+const submitLabel = computed(() => 'Save Ingestion')
 const fieldVerificationActionOptions = [
   { label: 'Verify field', value: 'verified', icon: 'check_circle', iconClass: 'create-record-shell__verification-icon--verified', color: 'rgba(35, 92, 26, 0.96)' },
   { label: 'Pre-Selected', value: 'default_preselected_unverified', icon: 'auto_awesome', iconClass: 'create-record-shell__verification-icon--default', color: 'rgba(64, 121, 210, 0.92)' },
@@ -1058,7 +1045,6 @@ const availableArtifacts = computed(() =>
 const processingArtifacts = computed(() =>
   stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
 )
-const canOpenIngestionShell = computed(() => stagedArtifacts.value.length > 0 || processingArtifacts.value.length > 0)
 const activeFieldLabelWidth = computed(() => '10ch')
 
 const activeSection = computed(
@@ -1147,7 +1133,9 @@ function initializeDialogState() {
   activeSectionKey.value = String(props.initialSectionKey || '').trim() || 'key-fields'
   artifactDragOver.value = false
   stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
-  selectedArtifactIds.value = []
+  selectedArtifactIds.value = stagedArtifacts.value
+    .filter((artifact) => String(artifact?.processedArtifactId || '').trim())
+    .map((artifact) => artifact.id)
   autoProcessArtifacts.value = false
   companionUrl.value = ''
   companionBlurb.value = ''
@@ -1568,21 +1556,6 @@ function artifactPreviewIcon(artifact) {
   return 'insert_drive_file'
 }
 
-function openIngestionShell() {
-  setPendingIngestionShellRequest({
-    initialArtifacts: stagedArtifacts.value,
-    artifactContext: props.artifactContext,
-  })
-  router.push({
-    name: 'ingestion-shell',
-    query: {
-      section: 'artifacts-processed',
-      open: String(Date.now()),
-      returnTo: route.fullPath,
-    },
-  })
-}
-
 async function persistDroppedArtifact(artifact) {
   if (!artifact?.path || !bridge.value?.artifacts?.create) return artifact
   try {
@@ -1786,19 +1759,6 @@ onBeforeUnmount(() => {
   gap: 16px;
   min-width: 0;
   margin-bottom: 12px;
-}
-
-.create-record-shell__header-link {
-  margin-left: auto;
-  color: rgba(255, 255, 255, 0.78);
-  font-family: var(--ds-font-family-body);
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.create-record-shell__header-link:hover,
-.create-record-shell__header-link:focus-visible {
-  color: #ffffff;
 }
 
 .create-record-shell__shell-selector {
