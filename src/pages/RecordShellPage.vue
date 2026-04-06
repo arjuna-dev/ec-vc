@@ -1018,7 +1018,7 @@ async function submitRecordUpdate(values = {}) {
       changes,
       actionLabel: 'record_shell_edit_session',
     })
-    for (const change of changes) {
+    for (const change of changes.filter((entry) => entry.review_tracked)) {
       await bridge.value?.verification?.upsert?.({
         tableName: change.table_name,
         recordId: change.record_id,
@@ -1053,7 +1053,10 @@ function buildRecordUpdateChanges(values = {}) {
         recordId: recordIdParam.value,
         entityName: activeRegistryEntry.value?.entityName || tableNameParam.value,
         idColumn: String(field?.id_column || 'id').trim() || 'id',
-      })
+      }).map((change) => ({
+        ...change,
+        review_tracked: isInlineReviewTrackedField(token),
+      }))
       return changes.filter((change) => {
         const changeKey = [
           String(change?.change_kind || 'field').trim(),
@@ -1315,6 +1318,15 @@ function inlineFieldHasValue(token) {
   return String(value ?? '').trim().length > 0
 }
 
+function isInlineReviewTrackedField(token) {
+  const field = resolveExistingFieldForToken(token)
+  const aliases = [
+    String(field?.field_name || '').trim(),
+    ...getCanonicalTokenFieldNames(token),
+  ].filter(Boolean)
+  return aliases.some((alias) => String(fieldVerificationStates.value?.[alias] || '').trim())
+}
+
 function resolvedInlineFieldVerificationState(token) {
   const field = resolveExistingFieldForToken(token)
   const aliases = [
@@ -1325,11 +1337,11 @@ function resolvedInlineFieldVerificationState(token) {
     const state = String(fieldVerificationStates.value?.[alias] || '').trim()
     if (state) return state
   }
-  return inlineFieldHasValue(token) ? 'verified' : ''
+  return ''
 }
 
 function showInlineFieldVerificationAction(token) {
-  return inlineFieldHasValue(token)
+  return isInlineReviewTrackedField(token) && inlineFieldHasValue(token)
 }
 
 function inlineFieldVerificationIcon(token) {
@@ -1353,6 +1365,7 @@ async function commitInlineFieldValue(token, explicitValue) {
   if (!isRecordRoute.value) return
   const field = resolveExistingFieldForToken(token)
   if (field && !field.editable) return
+  const reviewTracked = isInlineReviewTrackedField(token)
 
   const nextValue = explicitValue === undefined ? inlineRawValue(token) : explicitValue
   const changes = buildTokenUpdateChanges(token, {
@@ -1376,7 +1389,7 @@ async function commitInlineFieldValue(token, explicitValue) {
       changes,
       actionLabel: 'record_shell_field_edit',
     })
-    if (verificationFieldName) {
+    if (reviewTracked && verificationFieldName) {
       await bridge.value?.verification?.upsert?.({
         tableName: String(field?.table_name || runtimeTableName.value).trim(),
         recordId: String(field?.record_id || recordIdParam.value).trim(),

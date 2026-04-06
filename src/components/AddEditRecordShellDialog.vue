@@ -1186,13 +1186,16 @@ watch(activeSectionSubgroups, (groups) => {
 }, { immediate: true })
 
 function updateField(tokenKey, value) {
+  const token = allSections.value.flatMap((section) => section.tokens || []).find((entry) => entry.key === tokenKey) || null
   formValues.value = {
     ...formValues.value,
     [tokenKey]: value,
   }
-  fieldVerificationStates.value = {
-    ...fieldVerificationStates.value,
-    [tokenKey]: 'verified',
+  if (token && isReviewTrackedField(token)) {
+    fieldVerificationStates.value = {
+      ...fieldVerificationStates.value,
+      [tokenKey]: 'verified',
+    }
   }
   hasUserChanges.value = true
   emit('change', buildDialogSnapshot())
@@ -1315,13 +1318,20 @@ function fieldVerificationState(token) {
   return String(fieldVerificationStates.value?.[token?.key] || '').trim()
 }
 
+function isReviewTrackedField(token) {
+  const meta = getFieldMeta(token)
+  return Boolean(
+    String(meta?.verificationState || '').trim() ||
+    String(meta?.verificationSource || '').trim(),
+  )
+}
+
 function resolvedFieldVerificationState(token) {
   const explicitState = fieldVerificationState(token)
   if (explicitState) return explicitState
   const metaState = String(getFieldMeta(token)?.verificationState || '').trim()
   if (metaState) return metaState
-  if (!fieldHasValue(token)) return ''
-  return 'suggested_unverified'
+  return ''
 }
 
 function fieldHasValue(token) {
@@ -1331,7 +1341,7 @@ function fieldHasValue(token) {
 }
 
 function shouldHighlightFieldVerification(token) {
-  if (!fieldHasValue(token)) return false
+  if (!isReviewTrackedField(token) || !fieldHasValue(token)) return false
   const state = resolvedFieldVerificationState(token)
   return state !== 'verified'
 }
@@ -1346,7 +1356,7 @@ function fieldVerificationClass(token) {
 }
 
 function showFieldVerificationAction(token) {
-  return fieldHasValue(token)
+  return isReviewTrackedField(token) && fieldHasValue(token)
 }
 
 function usesCompactFieldAction(token) {
@@ -1399,11 +1409,12 @@ function buildVerificationChanges() {
     .flatMap((section) => section.tokens || [])
     .map((token) => {
       const meta = getFieldMeta(token)
+      const initialState = String(meta?.verificationState || '').trim()
+      if (!initialState) return null
       const currentValue = formValues.value?.[token.key]
       const initialValue = props.initialValues?.[token.key]
       const valueChanged = JSON.stringify(currentValue ?? '') !== JSON.stringify(initialValue ?? '')
       const nextState = valueChanged ? 'verified' : resolvedFieldVerificationState(token)
-      const initialState = String(meta?.verificationState || '').trim()
       if (!nextState || nextState === initialState) return null
       return {
         tokenKey: token.key,
