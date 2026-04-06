@@ -3440,7 +3440,7 @@ async function handleSelectedRowsDelete() {
   grid-template-columns: repeat(auto-fill, 40px);
   grid-auto-rows: 40px;
   grid-auto-flow: dense;
-  gap: 16px;
+  gap: 20px;
   justify-content: start;
   align-items: start;
 }
