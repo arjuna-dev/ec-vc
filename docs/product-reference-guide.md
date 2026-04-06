@@ -98,8 +98,9 @@ To stay precise while the codebase is still finishing its naming cleanup, use th
 
 Current deprecation note:
 
-- `RecordPage.vue` is legacy and deprecated
+- `RecordPage.vue` has been removed
 - the active shared route target for `Record View` is `RecordShellPage.vue`
+- entity-specific `*CreateDialog.vue` surfaces have been removed in favor of the shared `Add/Edit Shell`
 
 This distinction matters because product language is now cleaner than the remaining older internal implementation language still present in the app.
 

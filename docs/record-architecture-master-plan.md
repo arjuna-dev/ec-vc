@@ -80,6 +80,7 @@ Current runtime status:
 - opening a record from an `L1` now lands in the shell route for that selected record
 - the shell now loads the selected record through `databooks.view(tableName, recordId)`
 - the standalone `record-shell` route remains available as the shell payload-testing surface
+- the old `RecordPage.vue` surface has now been removed
 
 The currently approved shell pattern is:
 
@@ -221,6 +222,8 @@ Shared dialog shell rule:
 - `File Shell`, `Record Shell`, and any future shared shell surface must not pre-interpret grouped `L2` structure differently before opening the dialog
 - if one surface sends grouped subsection payloads and another sends flat section payloads, that is shell drift, not an acceptable variation
 - page-level payload shaping for the shared dialog should be treated as architectural debt unless it is identical across shell surfaces
+- entity-specific `*CreateDialog.vue` components are no longer an approved architecture path
+- shared add/edit behavior should now converge only through the approved `Add/Edit Shell`
 
 Branch selector rule:
 
