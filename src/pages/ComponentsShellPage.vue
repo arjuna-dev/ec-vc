@@ -6,6 +6,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Page Title / Crumb</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('page-title-crumb')">{{ componentStatusLabel('page-title-crumb') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--left">
           <div class="components-shell-page__crumb-shell">
             <div class="components-shell-page__crumb-row">
@@ -23,6 +24,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Page Back Symbol</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('page-back-symbol')">{{ componentStatusLabel('page-back-symbol') }}</div>
         <div class="components-shell-page__card-stage">
           <button type="button" class="components-shell-page__back-button" aria-label="Back">
             <q-icon name="west" />
@@ -36,6 +38,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">B10 Logo</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('b10-logo')">{{ componentStatusLabel('b10-logo') }}</div>
         <div class="components-shell-page__card-stage">
           <div class="components-shell-page__logo-shell">
             <div v-if="!logoReady" class="components-shell-page__logo-fallback">B10</div>
@@ -53,6 +56,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Plus Icon</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('plus-icon')">{{ componentStatusLabel('plus-icon') }}</div>
         <div class="components-shell-page__card-stage">
           <button type="button" class="components-shell-page__file-add-button-plus components-shell-page__file-add-button-plus--standalone" aria-label="Add">
             <q-icon name="add" />
@@ -65,6 +69,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Plus With Label</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('plus-with-label')">{{ componentStatusLabel('plus-with-label') }}</div>
         <div class="components-shell-page__card-stage">
           <button type="button" class="components-shell-page__file-add-button">
             <span class="components-shell-page__file-add-button-inner">
@@ -82,6 +87,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Live Action L1</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('live-action-l1')">{{ componentStatusLabel('live-action-l1') }}</div>
         <div class="components-shell-page__card-stage">
           <div class="components-shell-page__live-link-wrap">
             <span class="components-shell-page__live-link-label">Live Link</span>
@@ -96,6 +102,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">B10 Button</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('b10-button')">{{ componentStatusLabel('b10-button') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
           <B10Button label="Primary" variant="primary" />
           <B10Button label="Neutral" variant="neutral" />
@@ -107,6 +114,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">B10 Icon Button</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('b10-icon-button')">{{ componentStatusLabel('b10-icon-button') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
           <B10IconButton icon="arrow_back" variant="neutral" aria-label="Back" />
           <B10IconButton icon="add" variant="primary" aria-label="Add" />
@@ -119,6 +127,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">File Dashboard</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('file-dashboard')">{{ componentStatusLabel('file-dashboard') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
           <FilePageHeroDashboard
             eyebrow="Dashboard"
@@ -137,6 +146,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">L3 Box</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('l3-box')">{{ componentStatusLabel('l3-box') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
           <article class="components-shell-page__stat-box components-shell-page__stat-box--sparse">
             <div class="components-shell-page__stat-box-label">L3</div>
@@ -151,6 +161,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">File Toolbar</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('file-toolbar')">{{ componentStatusLabel('file-toolbar') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
           <FilePageToolbar
             :all-visible-selected="false"
@@ -170,6 +181,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">L2 Toolbar</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('l2-toolbar')">{{ componentStatusLabel('l2-toolbar') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
           <ShellSectionToolbar
             v-model="activeToolbarSection"
@@ -188,6 +200,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">L2 Settings Menu</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('l2-settings-menu')">{{ componentStatusLabel('l2-settings-menu') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
           <div class="components-shell-page__l2-settings-panel">
             <div class="components-shell-page__l2-settings-title">Hero Fields</div>
@@ -240,6 +253,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Widget Settings Menu</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('widget-settings-menu')">{{ componentStatusLabel('widget-settings-menu') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
           <div class="components-shell-page__widget-settings-panel">
             <div class="components-shell-page__widget-settings-header">
@@ -288,6 +302,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Eye Icon</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('eye-icon')">{{ componentStatusLabel('eye-icon') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
           <q-btn flat dense round icon="visibility" class="components-shell-page__eye-button" aria-label="View row" />
         </div>
@@ -298,6 +313,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Edit Button</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('edit-button')">{{ componentStatusLabel('edit-button') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
           <q-btn flat dense round icon="edit" class="components-shell-page__edit-button" aria-label="Edit row" />
         </div>
@@ -308,6 +324,7 @@
           <q-icon name="visibility" />
         </button>
         <div class="components-shell-page__card-label">Toggle / Row Icons</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('toggle-row-icons')">{{ componentStatusLabel('toggle-row-icons') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
           <button type="button" class="components-shell-page__toggle-inline">
             <span>General</span>
@@ -345,6 +362,30 @@
           <div class="components-shell-page__detail-meta">
             <div class="components-shell-page__detail-meta-label">ID</div>
             <div class="components-shell-page__detail-meta-value">{{ selectedComponentDetail?.id || '' }}</div>
+          </div>
+
+          <div class="components-shell-page__detail-meta">
+            <div class="components-shell-page__detail-meta-label">Status</div>
+            <div class="components-shell-page__detail-status-row">
+              <span
+                class="components-shell-page__detail-status"
+                :class="selectedComponentDetail?.status === 'canonical'
+                  ? 'components-shell-page__detail-status--canonical'
+                  : 'components-shell-page__detail-status--extract'"
+              >
+                {{ selectedComponentDetail?.statusLabel || '' }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="selectedComponentDetail?.source" class="components-shell-page__detail-meta">
+            <div class="components-shell-page__detail-meta-label">Shared Source</div>
+            <div class="components-shell-page__detail-meta-value">{{ selectedComponentDetail?.source }}</div>
+          </div>
+
+          <div v-if="selectedComponentDetail?.nextStep" class="components-shell-page__detail-meta">
+            <div class="components-shell-page__detail-meta-label">Next Step</div>
+            <div class="components-shell-page__detail-meta-copy">{{ selectedComponentDetail?.nextStep }}</div>
           </div>
 
           <div class="components-shell-page__detail-meta">
@@ -414,108 +455,186 @@ const componentDetailsById = {
   'page-title-crumb': {
     id: 'cmp-page-title-crumb',
     title: 'Page Title / Crumb',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the shared page-title and crumb block so shell pages stop hand-rendering this header.',
     summary: 'Use this for page headers that show the current area plus the main page title.',
     prompt: 'Render the Page Title / Crumb component from Components Shell with a breadcrumb row above a large page title, using the same typography and spacing as the canonical component.',
   },
   'page-back-symbol': {
     id: 'cmp-page-back-symbol',
     title: 'Page Back Symbol',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the shared back control so shell headers use one canonical arrow-plus-Back button.',
     summary: 'Use this for compact back navigation inside shell headers and detail surfaces.',
     prompt: 'Render the Page Back Symbol from Components Shell exactly, using the same circular neutral button treatment and arrow icon.',
   },
   'b10-logo': {
     id: 'cmp-b10-logo',
     title: 'B10 Logo',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Shared logo asset with local wrapper in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Wrap the live header logo treatment into one shared logo component instead of repeating its container markup.',
     summary: 'Use this for compact brand badges or temporary logo placeholders.',
     prompt: 'Render the B10 Logo from Components Shell exactly as the compact black badge with the same title-font styling.',
   },
   'plus-icon': {
     id: 'cmp-plus-icon',
     title: 'Plus Icon',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the electric blue standalone add chip so widget and shell add controls stop drifting.',
     summary: 'Use this for isolated add actions where only the icon should show.',
     prompt: 'Render the Plus Icon component from Components Shell exactly, using the same electric-blue circular button with white plus icon.',
   },
   'plus-with-label': {
     id: 'cmp-plus-with-label',
     title: 'Plus With Label',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the labeled add control so file-toolbar and shell add buttons can share one component with payload-only label changes.',
     summary: 'Use this for add actions that need icon plus text in one control.',
     prompt: 'Render the Plus With Label component from Components Shell exactly, using the same electric-blue button, white plus icon, and title-font label treatment.',
   },
   'live-action-l1': {
     id: 'cmp-live-action-l1',
     title: 'Live Action L1',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the shell header selector so Record Shell, Fork Shell, and future shells use one live-action control.',
     summary: 'Use this for shell-level live source selectors that sit in the top center and switch the active L1 context.',
     prompt: 'Render the Live Action L1 control from Components Shell exactly, using the same Live Link label, black value chip, and chevron treatment as the canonical shell selector.',
   },
   'b10-button': {
     id: 'cmp-b10-button',
     title: 'B10 Button',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
+    source: 'src/components/buttons/B10Button.vue',
+    nextStep: 'Reuse this component directly and vary only payload props such as label and variant.',
     summary: 'Use this for canonical B10 primary and neutral action buttons.',
     prompt: 'Render the B10 Button component from Components Shell using the real shared B10Button variants rather than recreating local button styles.',
   },
   'b10-icon-button': {
     id: 'cmp-b10-icon-button',
     title: 'B10 Icon Button',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
+    source: 'src/components/buttons/B10IconButton.vue',
+    nextStep: 'Reuse this component directly and vary only icon and variant props.',
     summary: 'Use this for canonical icon-only actions that should come from the B10 button system.',
     prompt: 'Render the B10 Icon Button component from Components Shell using the shared B10IconButton component and its existing variants.',
   },
   'file-dashboard': {
     id: 'cmp-file-dashboard',
     title: 'File Dashboard',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
+    source: 'src/components/FilePageHeroDashboard.vue',
+    nextStep: 'Reuse the shared dashboard component and only swap explicit payload data.',
     summary: 'Use this for file-level hero dashboards showing title, copy, stats, and health.',
     prompt: 'Render the File Dashboard component from Components Shell using the real FilePageHeroDashboard surface, preserving its hero, stats, and health structure.',
   },
   'l3-box': {
     id: 'cmp-l3-box',
     title: 'L3 Box',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the metric card so dashboard stat strips can use one canonical stat-box component.',
     summary: 'Use this for the standalone L3 stat card that appears inside the shell dashboard metrics strip.',
     prompt: 'Render the L3 Box from Components Shell exactly, using the same compact dashboard stat-card treatment with label, large value, and caption.',
   },
   'file-toolbar': {
     id: 'cmp-file-toolbar',
     title: 'File Toolbar',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
+    source: 'src/components/FilePageToolbar.vue',
+    nextStep: 'Reuse the shared toolbar directly and vary only its explicit props and payload.',
     summary: 'Use this for the top toolbar inside file pages with add, search, and view controls.',
     prompt: 'Render the File Toolbar component from Components Shell using the real FilePageToolbar component, keeping its existing add, search, and view-toggle layout.',
   },
   'l2-toolbar': {
     id: 'cmp-l2-toolbar',
     title: 'L2 Toolbar',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
+    source: 'src/components/ShellSectionToolbar.vue',
+    nextStep: 'Reuse the shared section toolbar directly and vary only section items and selected payload.',
     summary: 'Use this for section switching across General, KDB, System, and similar level-2 groupings.',
     prompt: 'Render the L2 Toolbar component from Components Shell using the real ShellSectionToolbar component with the same compact section-chip treatment.',
   },
   'l2-settings-menu': {
     id: 'cmp-l2-settings-menu',
     title: 'L2 Settings Menu',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the compact grouped settings panel so all L2 settings menus stop being page-specific markup.',
     summary: 'Use this for compact shell settings menus like Hero Fields where grouped options can be expanded or collapsed.',
     prompt: 'Render the L2 Settings Menu from Components Shell using the same compact panel, grouped rows, checkboxes, and expand/collapse treatment as the canonical menu sample.',
   },
   'widget-settings-menu': {
     id: 'cmp-widget-settings-menu',
     title: 'Widget Settings Menu',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the widget settings panel so grouped widget menus reuse one floating settings component.',
     summary: 'Use this for the floating widget settings panel with grouped rows, checkboxes, and reorder chevrons.',
     prompt: 'Render the Widget Settings Menu from Components Shell using the same dark floating panel, grouped section toggle, row labels, checkboxes, and reorder chevrons.',
   },
   'eye-icon': {
     id: 'cmp-eye-icon',
     title: 'Eye Icon',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the lightweight view-action icon button so cards and rows stop restyling visibility controls.',
     summary: 'Use this for record/view actions in cards and tables where a lightweight visibility control is needed.',
     prompt: 'Render the Eye Icon from Components Shell using the same lightweight visibility button treatment as the canonical row-view control.',
   },
   'edit-button': {
     id: 'cmp-edit-button',
     title: 'Edit Button',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the compact blue edit control so row and card edit actions use one shared component.',
     summary: 'Use this for compact edit actions in cards and row controls where the blue edit icon treatment is expected.',
     prompt: 'Render the Edit Button from Components Shell using the same compact blue edit icon treatment as the canonical row-edit control.',
   },
   'toggle-row-icons': {
     id: 'cmp-toggle-row-icons',
     title: 'Toggle / Row Icons',
+    status: 'extract',
+    statusLabel: 'Extract Next',
+    source: 'Local sample in src/pages/ComponentsShellPage.vue',
+    nextStep: 'Extract the toggle and row-chevron micro-controls so settings lists and shell rows use the same icon language.',
     summary: 'Use this for inline subgroup toggles and row ordering chevrons across shell menus and settings lists.',
     prompt: 'Render the Toggle / Row Icons from Components Shell using the same inline label-plus-chevron and compact row-chevron treatments as the canonical controls.',
   },
 }
 
 const selectedComponentDetail = computed(() => componentDetailsById[selectedComponentId.value] || null)
+
+function componentStatusLabel(componentId) {
+  return componentDetailsById[componentId]?.statusLabel || 'Unknown'
+}
+
+function componentStatusClass(componentId) {
+  return componentDetailsById[componentId]?.status === 'canonical'
+    ? 'components-shell-page__card-status--canonical'
+    : 'components-shell-page__card-status--extract'
+}
 
 function openComponentDetail(componentId) {
   selectedComponentId.value = componentId
@@ -666,6 +785,34 @@ onBeforeUnmount(() => {
   line-height: 1;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.components-shell-page__card-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 20px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  font-family: var(--font-title);
+  font-size: 0.58rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.components-shell-page__card-status--canonical {
+  color: #ffffff;
+  background: #111111;
+  border-color: #111111;
+}
+
+.components-shell-page__card-status--extract {
+  color: #111111;
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.18);
 }
 
 .components-shell-page__card-stage {
@@ -1237,6 +1384,37 @@ onBeforeUnmount(() => {
   font-family: var(--font-body);
   font-size: 0.94rem;
   line-height: 1.5;
+}
+
+.components-shell-page__detail-status-row {
+  display: flex;
+  align-items: center;
+}
+
+.components-shell-page__detail-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  font-family: var(--font-title);
+  font-size: 0.66rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.components-shell-page__detail-status--canonical {
+  color: #ffffff;
+  background: #111111;
+  border-color: #111111;
+}
+
+.components-shell-page__detail-status--extract {
+  color: #111111;
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.16);
 }
 
 .components-shell-page__detail-prompt {
