@@ -54,14 +54,15 @@ export function buildTokenUpdateChanges(token, {
   if (!recordId || !entityName || !haveNormalizedTokenValuesChanged(token, nextValue, initialValue)) return []
 
   const normalizedValue = normalizeTokenWriteValue(token, nextValue)
-  if (normalizedValue == null) return []
   const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
 
   const relationshipContract = getKdbRelationshipContractForToken(entityName, token?.tokenName)
   if (relationshipContract) {
     const relationshipIds = Array.isArray(normalizedValue)
       ? normalizedValue.map((value) => String(value || '').trim()).filter(Boolean)
-      : [String(normalizedValue || '').trim()].filter(Boolean)
+      : normalizedValue == null
+        ? []
+        : [String(normalizedValue || '').trim()].filter(Boolean)
     return [
       {
         change_kind: 'relationship',
@@ -83,7 +84,12 @@ export function buildTokenUpdateChanges(token, {
       record_id: recordId,
       field_name: writeTarget.fieldName,
       id_column: writeTarget.idColumn,
-      new_value: Array.isArray(normalizedValue) ? JSON.stringify(normalizedValue) : String(normalizedValue ?? ''),
+      new_value:
+        normalizedValue == null
+          ? null
+          : Array.isArray(normalizedValue)
+            ? JSON.stringify(normalizedValue)
+            : String(normalizedValue ?? ''),
     },
   ]
 }

@@ -2348,13 +2348,14 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
     const initialValue = createDialogPrefillValues.value?.[token.key]
     if (!haveNormalizedDialogValuesChanged(token, rawValue, initialValue)) return []
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
-    if (normalizedValue == null) return []
 
     const relationshipContract = getKdbRelationshipContractForToken(entityName, token?.tokenName)
     if (relationshipContract) {
       const relationshipIds = Array.isArray(normalizedValue)
         ? normalizedValue.map((value) => String(value || '').trim()).filter(Boolean)
-        : [String(normalizedValue || '').trim()].filter(Boolean)
+        : normalizedValue == null
+          ? []
+          : [String(normalizedValue || '').trim()].filter(Boolean)
       return [
         {
           change_kind: 'relationship',
@@ -2378,7 +2379,12 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
         record_id: recordId,
         field_name: writeTarget.fieldName,
         id_column: writeTarget.idColumn,
-        new_value: Array.isArray(normalizedValue) ? JSON.stringify(normalizedValue) : String(normalizedValue ?? ''),
+        new_value:
+          normalizedValue == null
+            ? null
+            : Array.isArray(normalizedValue)
+              ? JSON.stringify(normalizedValue)
+              : String(normalizedValue ?? ''),
       },
     ]
   })
