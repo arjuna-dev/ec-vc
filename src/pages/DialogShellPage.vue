@@ -9,7 +9,6 @@
 
     <AddEditRecordShellDialog
       v-else
-      :key="dialogRenderKey"
       v-model="dialogOpen"
       mode="create"
       :source-label="activeRegistryEntry?.label || 'Records'"
@@ -56,7 +55,6 @@ const $q = useQuasar()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const dialogOpen = ref(false)
-const dialogRenderKey = ref(0)
 const dialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
 
@@ -103,12 +101,10 @@ const canCreateWithShell = computed(() => Boolean(bridge.value?.[activeSourceKey
 
 watch(activeSourceKey, async () => {
   await ensureLiveOptionsLoaded()
-  dialogRenderKey.value += 1
-  dialogOpen.value = true
+  if (!dialogOpen.value) dialogOpen.value = true
 }, { immediate: true })
 
 function reopenDialogShell() {
-  dialogRenderKey.value += 1
   dialogOpen.value = true
 }
 

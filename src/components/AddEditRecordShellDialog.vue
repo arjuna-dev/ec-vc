@@ -6,37 +6,42 @@
     >
       <q-card-section class="create-record-shell__header">
         <div class="create-record-shell__header-copy">
-          <div
-            v-if="showShellSelector && shellSelectorOptions.length"
-            class="create-record-shell__shell-selector"
-          >
-            <span class="create-record-shell__shell-selector-label">Live Link</span>
-            <q-select
-              :model-value="shellSelectorValue"
-              dense
-              borderless
-              emit-value
-              map-options
-              hide-bottom-space
-              hide-dropdown-icon
-              :options="shellSelectorOptions"
-              class="create-record-shell__shell-selector-control"
-              @update:model-value="emit('update:shellSelectorValue', $event)"
+          <div class="create-record-shell__title-row">
+            <div class="create-record-shell__title">{{ dialogTitle }}</div>
+            <div
+              v-if="showShellSelector && shellSelectorOptions.length"
+              class="create-record-shell__shell-selector"
             >
-              <template #selected-item="scope">
-                <span class="create-record-shell__shell-selector-value">{{ scope.opt.label }}</span>
-              </template>
-              <template #option="scope">
-                <q-item v-bind="scope.itemProps" class="create-record-shell__shell-selector-option">
-                  <q-item-section>
-                    <span class="create-record-shell__shell-selector-option-label">{{ scope.opt.label }}</span>
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-            <q-icon name="expand_more" class="create-record-shell__shell-selector-chevron" />
+              <span class="create-record-shell__shell-selector-label">Live Link</span>
+              <q-select
+                :model-value="shellSelectorValue"
+                dense
+                dark
+                options-dark
+                borderless
+                emit-value
+                map-options
+                hide-bottom-space
+                hide-dropdown-icon
+                :options="shellSelectorOptions"
+                popup-content-class="create-record-shell__shell-selector-menu"
+                class="create-record-shell__shell-selector-control"
+                @update:model-value="emit('update:shellSelectorValue', $event)"
+              >
+                <template #selected-item="scope">
+                  <span class="create-record-shell__shell-selector-value">{{ scope.opt.label }}</span>
+                </template>
+                <template #option="scope">
+                  <q-item v-bind="scope.itemProps" class="create-record-shell__shell-selector-option">
+                    <q-item-section>
+                      <span class="create-record-shell__shell-selector-option-label">{{ scope.opt.label }}</span>
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
+              <q-icon name="expand_more" class="create-record-shell__shell-selector-chevron" />
+            </div>
           </div>
-          <div class="create-record-shell__title">{{ dialogTitle }}</div>
           <div class="create-record-shell__intake-lane">
             <button
               type="button"
@@ -1740,17 +1745,29 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
+.create-record-shell__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  margin-bottom: 12px;
+}
+
 .create-record-shell__shell-selector {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   width: max-content;
   max-width: 100%;
-  margin-bottom: 10px;
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #111;
 }
 
 .create-record-shell__shell-selector-label {
-  color: rgba(17, 17, 17, 0.58);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1767,26 +1784,40 @@ onBeforeUnmount(() => {
   padding: 0 2px 0 0;
 }
 
+.create-record-shell__shell-selector-control :deep(.q-field__native) {
+  color: #fff;
+}
+
 .create-record-shell__shell-selector-control :deep(.q-field__native),
 .create-record-shell__shell-selector-control :deep(.q-field__marginal) {
   padding: 0;
 }
 
 .create-record-shell__shell-selector-value {
-  color: #111;
+  color: #fff;
   font-family: var(--font-title);
-  font-size: 0.96rem;
+  font-size: 0.94rem;
   font-weight: 800;
   line-height: 1;
 }
 
 .create-record-shell__shell-selector-chevron {
-  color: #111;
+  color: #fff;
   font-size: 16px;
 }
 
 .create-record-shell__shell-selector-option-label {
-  color: #111;
+  color: #fff;
+}
+
+:global(.create-record-shell__shell-selector-menu) {
+  background: #111;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:global(.create-record-shell__shell-selector-menu .q-item) {
+  min-height: 28px;
 }
 
 .create-record-shell__title {
@@ -1795,7 +1826,7 @@ onBeforeUnmount(() => {
   font-size: 1.46rem;
   font-weight: var(--font-weight-black);
   line-height: 0.94;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .create-record-shell__header-actions {
