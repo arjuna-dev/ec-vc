@@ -25,7 +25,8 @@
         <div class="components-shell-page__card-label">Page Back Symbol</div>
         <div class="components-shell-page__card-stage">
           <button type="button" class="components-shell-page__back-button" aria-label="Back">
-            <q-icon name="arrow_back" />
+            <q-icon name="west" />
+            <span>Back</span>
           </button>
         </div>
       </article>
@@ -442,14 +443,25 @@ function openComponentDetail(componentId) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 6px;
   color: #111111;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(17, 17, 17, 0.1);
-  border-radius: 999px;
+  background: transparent;
+  border: 0;
   cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.components-shell-page__back-button span {
+  font-family: var(--font-body);
+}
+
+.components-shell-page__back-button :deep(.q-icon) {
+  font-size: 1em;
 }
 
 .components-shell-page__logo-badge {
