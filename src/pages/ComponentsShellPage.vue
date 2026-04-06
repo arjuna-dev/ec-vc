@@ -543,7 +543,7 @@ onBeforeUnmount(() => {
 
 .components-shell-page__board {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 140px);
+  grid-template-columns: repeat(auto-fill, 168px);
   grid-auto-rows: 140px;
   grid-auto-flow: dense;
   gap: 18px;
@@ -645,6 +645,7 @@ onBeforeUnmount(() => {
   letter-spacing: 0.06em;
   line-height: 1;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .components-shell-page__card-stage {
@@ -1211,7 +1212,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 900px) {
   .components-shell-page__board {
-    grid-template-columns: repeat(auto-fill, 110px);
+    grid-template-columns: repeat(auto-fill, 140px);
     grid-auto-rows: 110px;
     gap: 14px;
   }
