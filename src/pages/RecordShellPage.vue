@@ -620,6 +620,7 @@ import {
   CANONICAL_OPTION_LISTS,
   getCanonicalTokenFieldNames,
   getFilePageRegistryEntry,
+  getRuntimeTableNameForEntityName,
   LEVEL_1_FILE_REGISTRY,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
@@ -675,6 +676,9 @@ const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceK
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const fieldByName = computed(() =>
   Object.fromEntries((fields.value || []).map((field) => [String(field?.field_name || '').trim(), field])),
+)
+const runtimeTableName = computed(() =>
+  String(getRuntimeTableNameForEntityName(activeRegistryEntry.value?.entityName || tableNameParam.value) || tableNameParam.value || '').trim(),
 )
 
 const canonicalNameToken = computed(() => level3Tokens.value.find((token) => String(token.level_3) === '1') || null)
@@ -1006,7 +1010,7 @@ async function submitRecordUpdate(values = {}) {
   createDialogLoading.value = true
   try {
     const result = await bridge.value?.databooks?.update?.({
-      tableName: tableNameParam.value,
+      tableName: runtimeTableName.value,
       recordId: recordIdParam.value,
       changes,
       actionLabel: 'record_shell_edit_session',
@@ -1364,14 +1368,14 @@ async function commitInlineFieldValue(token, explicitValue) {
 
   try {
     const result = await bridge.value?.databooks?.update?.({
-      tableName: tableNameParam.value,
+      tableName: runtimeTableName.value,
       recordId: recordIdParam.value,
       changes,
       actionLabel: 'record_shell_field_edit',
     })
     if (verificationFieldName) {
       await bridge.value?.verification?.upsert?.({
-        tableName: String(field?.table_name || tableNameParam.value).trim(),
+        tableName: String(field?.table_name || runtimeTableName.value).trim(),
         recordId: String(field?.record_id || recordIdParam.value).trim(),
         fieldName: verificationFieldName,
         state: 'verified',
