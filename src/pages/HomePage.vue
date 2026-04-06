@@ -15,66 +15,13 @@
         Some dashboard sections could not load: {{ failedSectionLabels }}. Refresh to try again.
       </q-banner>
 
-      <q-card flat bordered class="home-dashboard__hero">
-        <q-card-section class="home-dashboard__hero-content">
-          <div class="home-dashboard__hero-main">
-            <div class="home-dashboard__hero-kicker">Live overview</div>
-            <div class="home-dashboard__hero-count">
-              {{ hasLoadedOnce ? formatCompact(totalRecords) : '...' }}
-            </div>
-            <div class="home-dashboard__hero-text">records tracked across the workspace</div>
-
-            <div class="home-dashboard__hero-stats">
-              <div class="home-dashboard__hero-stat">
-                <span class="home-dashboard__hero-stat-label">Open tasks</span>
-                <strong>{{ hasLoadedOnce ? formatCompact(openTasksCount) : '...' }}</strong>
-              </div>
-              <div class="home-dashboard__hero-stat">
-                <span class="home-dashboard__hero-stat-label">Recent adds (7d)</span>
-                <strong>{{ hasLoadedOnce ? formatCompact(recentAddsCount) : '...' }}</strong>
-              </div>
-              <div class="home-dashboard__hero-stat">
-                <span class="home-dashboard__hero-stat-label">Projects active</span>
-                <strong
-                  >{{ hasLoadedOnce ? formatCompact(installedPipelinesCount) : '...' }}/{{
-                    hasLoadedOnce ? formatCompact(pipelinesCount) : '...'
-                  }}</strong
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="home-dashboard__hero-side">
-            <div class="home-dashboard__hero-panel">
-              <div class="home-dashboard__hero-panel-label">Workspace root</div>
-              <div class="home-dashboard__hero-panel-value">
-                {{ workspaceRoot ? shortenPath(workspaceRoot) : 'Not available' }}
-              </div>
-            </div>
-
-            <div class="home-dashboard__hero-panel">
-              <div class="home-dashboard__hero-panel-label">Most active signals</div>
-              <div class="home-dashboard__hero-chip-group">
-                <q-chip
-                  v-for="signal in topWorkspaceSignals"
-                  :key="signal.label"
-                  dense
-                  color="white"
-                  text-color="black"
-                  class="home-dashboard__hero-chip"
-                >
-                  {{ signal.label }}
-                  <span class="home-dashboard__hero-chip-value">{{ signal.value }}</span>
-                </q-chip>
-
-                <span v-if="topWorkspaceSignals.length === 0" class="home-dashboard__hero-muted">
-                  Add records to see live signals here.
-                </span>
-              </div>
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
+      <HomeDashboardHero
+        :count="hasLoadedOnce ? formatCompact(totalRecords) : '...'"
+        text="records tracked across the workspace"
+        :stats="homeHeroStats"
+        :workspace-root-value="workspaceRoot ? shortenPath(workspaceRoot) : 'Not available'"
+        :signals="topWorkspaceSignals"
+      />
 
       <div class="row q-col-gutter-md">
         <div
@@ -366,6 +313,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
+import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import { clearBreadcrumbActions, setBreadcrumbActions } from 'src/utils/breadcrumbActionsState'
 
 const isElectronRuntime = computed(() => {
@@ -738,6 +686,23 @@ const summaryCards = computed(() => [
     ...collectionConfigByKey.roles,
     count: rolesCount.value,
     helper: roles.value.length > 0 ? 'User roles available' : 'No user roles yet',
+  },
+])
+
+const homeHeroStats = computed(() => [
+  {
+    label: 'Open tasks',
+    value: hasLoadedOnce.value ? formatCompact(openTasksCount.value) : '...',
+  },
+  {
+    label: 'Recent adds (7d)',
+    value: hasLoadedOnce.value ? formatCompact(recentAddsCount.value) : '...',
+  },
+  {
+    label: 'Projects active',
+    value: hasLoadedOnce.value
+      ? `${formatCompact(installedPipelinesCount.value)}/${formatCompact(pipelinesCount.value)}`
+      : '.../...',
   },
 ])
 

@@ -123,6 +123,23 @@
       </article>
 
       <article class="components-shell-page__card components-shell-page__card--dashboard">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('home-dashboard')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Home Dashboard</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('home-dashboard')">{{ componentStatusLabel('home-dashboard') }}</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
+          <HomeDashboardHero
+            count="2.4k"
+            text="records tracked across the workspace"
+            :stats="homeDashboardStats"
+            workspace-root-value="C:\\Workspace\\B10"
+            :signals="homeDashboardSignals"
+          />
+        </div>
+      </article>
+
+      <article class="components-shell-page__card components-shell-page__card--dashboard">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('file-dashboard')">
           <q-icon name="visibility" />
         </button>
@@ -410,6 +427,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import lottie from 'lottie-web'
+import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
@@ -445,6 +463,18 @@ const fileDashboardStats = [
   { label: 'Links', value: '93%', caption: 'KDB coverage', tone: 'positive' },
 ]
 
+const homeDashboardStats = [
+  { label: 'Open tasks', value: '27' },
+  { label: 'Recent adds (7d)', value: '41' },
+  { label: 'Projects active', value: '12/16' },
+]
+
+const homeDashboardSignals = [
+  { label: 'Companies', value: '412' },
+  { label: 'Tasks', value: '183' },
+  { label: 'Opportunities', value: '74' },
+]
+
 const fileDashboardHealth = [
   { tone: 'positive', width: 58 },
   { tone: 'warning', width: 24 },
@@ -452,6 +482,16 @@ const fileDashboardHealth = [
 ]
 
 const componentDetailsById = {
+  'home-dashboard': {
+    id: 'cmp-home-dashboard',
+    title: 'Home Dashboard',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
+    source: 'src/components/HomeDashboardHero.vue',
+    nextStep: 'Reuse the shared hero directly and vary only the explicit home-dashboard payload.',
+    summary: 'Use this for the live Home dashboard hero surface with overview count, top stats, workspace root, and signal chips.',
+    prompt: 'Render the Home Dashboard component from Components Shell by reusing the shared HomeDashboardHero component directly instead of recreating the hero layout locally.',
+  },
   'page-title-crumb': {
     id: 'cmp-page-title-crumb',
     title: 'Page Title / Crumb',
