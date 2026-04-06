@@ -1142,7 +1142,7 @@ const rightFieldEntries = computed(() => {
 })
 const resolvedDialogHeight = computed(() => {
   if (!recordDataCollapsed.value) return dialogHeight.value
-  const collapsedHeight = supportResourcesCollapsed.value ? 240 : 430
+  const collapsedHeight = supportResourcesCollapsed.value ? 240 : 500
   return Math.min(dialogHeight.value, collapsedHeight)
 })
 const dialogStyle = computed(() => ({
