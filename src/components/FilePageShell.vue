@@ -2071,7 +2071,9 @@ function requestEditRecordShell(row, options = {}) {
   const recordId = String(row?.recordId || '').trim()
   if (!recordId) return
 
-  if (String(options?.sectionKey || '').trim().toLowerCase() === 'kdb') {
+  const normalizedSectionKey = String(options?.sectionKey || '').trim().toLowerCase()
+
+  if (normalizedSectionKey === 'kdb') {
     router.push({
       name: 'dialog-shell',
       query: {
@@ -2088,11 +2090,7 @@ function requestEditRecordShell(row, options = {}) {
     ...route.query,
     edit: recordId,
   }
-  if (String(options?.sectionKey || '').trim().toLowerCase() === 'kdb') {
-    nextQuery.editSection = 'kdb'
-  } else {
-    delete nextQuery.editSection
-  }
+  delete nextQuery.editSection
   router.push({ name: route.name, params: route.params, query: nextQuery })
 }
 

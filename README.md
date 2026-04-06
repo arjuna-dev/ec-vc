@@ -30,6 +30,19 @@ To run desktop electron app do:
 quasar dev -m electron
 ```
 
+### Shared shell dev routes
+
+When you are testing the current shared shell work in Electron, these are the useful routes:
+
+- `#/dialog-shell`: the route-owned `Add/Edit Shell`
+- `#/test-shell`: the `File Shell` lab surface
+
+Current expected add/edit behavior:
+
+- add and edit entry points should resolve through the real route-owned `L1`
+- widget buttons should open the shared add/edit shell for routable `L1`s
+- card-view `Add Relation` should open `dialog-shell` for the clicked source record and start in `KDB`
+
 To bundle app for mac:
 
 ```javascript
