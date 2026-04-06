@@ -1307,7 +1307,7 @@ function resolveAuditDisplayValue(fieldName = '', value = null) {
   const parsedValue = parseAuditValue(value)
 
   if (fieldName.endsWith('__verification')) {
-    return getTokenDisplayValue(token)
+    return tokenHasStoredValue(token) ? getTokenDisplayValue(token) : ''
   }
 
   if (Array.isArray(parsedValue)) {

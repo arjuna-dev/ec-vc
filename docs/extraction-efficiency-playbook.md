@@ -20,7 +20,9 @@ This playbook applies to:
 - extraction prompt wording and ordering
 - extraction status telemetry
 
-This does **not** change DB structure.
+This playbook is primarily about extraction behavior and review efficiency.
+
+If a future extraction improvement requires bridge/sqlite-layer alignment, that work is allowed when it is the correct canonical layer.
 
 ## Efficiency Definition
 
