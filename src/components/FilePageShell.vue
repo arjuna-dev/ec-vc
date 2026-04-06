@@ -803,6 +803,7 @@ import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSection
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
+import { getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 
 const props = defineProps({
   shellMode: {
@@ -1594,6 +1595,27 @@ const viewOptions = Object.freeze([
 const multiTokenFilterSections = computed(() =>
   level2Sections.value.filter((section) => getFilterSectionTokenCount(section.key) > 1),
 )
+
+const BB_TILE_SIZE_PRIORITY = Object.freeze({
+  'full-row': 100,
+  'hero-dashboard': 90,
+  dashboard: 80,
+  'toolbar-wide': 70,
+  'title-wide': 60,
+  'widget-settings': 55,
+  'settings-menu': 50,
+  lg: 40,
+  'live-link': 35,
+  'stat-box': 30,
+  md: 20,
+  sm: 10,
+})
+
+function getBbTilePriority(row) {
+  const sizeToken = getBuildingBlockTileSize(getBbTileBlockKey(row))
+  return BB_TILE_SIZE_PRIORITY[sizeToken] || 0
+}
+
 const bbTileGroups = computed(() => {
   if (!isBbFileSource.value || viewMode.value !== 'card') return []
 
@@ -1611,6 +1633,16 @@ const bbTileGroups = computed(() => {
     }
 
     groupsByKey.get(key).rows.push(row)
+  })
+
+  groups.forEach((group) => {
+    group.rows.sort((left, right) => {
+      const priorityDelta = getBbTilePriority(right) - getBbTilePriority(left)
+      if (priorityDelta !== 0) return priorityDelta
+
+      return String(left?.titleValue || '')
+        .localeCompare(String(right?.titleValue || ''), undefined, { sensitivity: 'base' })
+    })
   })
 
   return groups
