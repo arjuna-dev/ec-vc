@@ -632,7 +632,7 @@ const testShellNavigationItems = [
   { label: 'Components Shell', to: '/components-shell', exact: true, icon: 'widgets' },
 ].map((item) => ({
   ...item,
-  itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
+  itemClass: 'ec-nav-item--secondary ec-nav-item--shell-child',
   iconSize: '18px',
 }))
 const routeLabelByName = {
@@ -2379,6 +2379,24 @@ function goBack() {
 
 .ec-nav-item--workspace-child {
   min-height: 28px;
+}
+
+.ec-nav-item--shell-child {
+  min-height: 32px;
+  margin-left: 24px;
+}
+
+.ec-nav-item--shell-child + .ec-nav-item--shell-child {
+  margin-top: 4px;
+}
+
+.ec-nav-item--shell-child :deep(.q-item__section) {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.ec-nav-item--shell-child :deep(.q-item__section--avatar) {
+  justify-content: flex-start;
 }
 
 .ec-nav-item--workspace-group {
