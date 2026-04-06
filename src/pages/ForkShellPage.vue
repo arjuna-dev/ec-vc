@@ -52,7 +52,6 @@
               <div class="fork-shell-card__title-row">
                 <div class="fork-shell-card__title">{{ headerTitle }}</div>
               </div>
-              <div class="fork-shell-card__eyebrow">Choose the branch path to continue into Add/Edit Shell</div>
             </div>
 
             <q-btn
@@ -320,12 +319,6 @@ function goBack() {
   gap: 16px;
   min-width: 0;
   margin-bottom: 12px;
-}
-
-.fork-shell-card__eyebrow {
-  color: rgba(17, 17, 17, 0.52);
-  font-size: 0.78rem;
-  line-height: 1.35;
 }
 
 .fork-shell-card__title {
