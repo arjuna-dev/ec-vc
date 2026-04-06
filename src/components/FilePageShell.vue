@@ -620,6 +620,7 @@ import {
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
 import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipContracts'
+import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
@@ -874,68 +875,24 @@ const cardItemTokenGroups = computed(() =>
     }))
     .filter((group) => group.tokens.length),
 )
-function getSectionGroupValue(section) {
-  const displayGroup = String(section?.displayGroup || '').trim()
-  return displayGroup ? `group:${displayGroup}` : String(section?.key || '').trim()
-}
-const groupedLevel2Sections = computed(() => {
-  const groups = []
-  for (const section of level2Sections.value) {
-    const value = getSectionGroupValue(section)
-    const existing = groups.find((group) => group.value === value)
-    if (existing) {
-      existing.sections.push(section)
-      continue
-    }
-    groups.push({
-      value,
-      title: String(section.displayGroup || section.label || '').trim(),
-      sections: [section],
-    })
-  }
-  return groups
-})
+const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
 const createSectionGroups = computed(() => {
   const keyFieldKeys = new Set(createKeyFieldTokens.value.map((token) => token.key))
-  return groupedLevel2Sections.value
-    .map((group) => {
-      const subsectionGroups = group.sections
-        .map((section) => ({
-          key: section.key,
-          label: section.label,
-          tokens: level3Tokens.value
-            .filter(
-              (token) =>
-                token.parentKey === section.key &&
-                !keyFieldKeys.has(token.key) &&
-                !isAutomaticCreatorToken(token) &&
-                (!isRecordShellMode.value || selectedRecordShellLevel3KeySet.value.has(token.key)),
-            )
-            .map((token) => normalizeCreateDialogToken(token)),
-        }))
-        .filter((section) => section.tokens.length)
-
-      return {
-        key: group.value,
-        label: group.title,
-        tokens: subsectionGroups.flatMap((section) => section.tokens),
-        subgroups: subsectionGroups.length > 1 ? subsectionGroups : [],
-      }
-    })
-    .filter((group) => group.tokens.length)
+  return buildDialogSectionGroups({
+    groupedSections: groupedLevel2Sections.value,
+    tokenFilter: (section) => level3Tokens.value.filter(
+      (token) =>
+        token.parentKey === section.key &&
+        !keyFieldKeys.has(token.key) &&
+        !isAutomaticCreatorToken(token) &&
+        (!isRecordShellMode.value || selectedRecordShellLevel3KeySet.value.has(token.key)),
+    ),
+    mapToken: normalizeCreateDialogToken,
+  })
 })
-const createDialogLeftSections = computed(() =>
-  createSectionGroups.value.filter((section) => {
-    const normalized = String(section.label || '').trim().toLowerCase()
-    return normalized !== 'kdb' && normalized !== 'system'
-  }),
-)
-const createDialogRightSections = computed(() =>
-  createSectionGroups.value.filter((section) => {
-    const normalized = String(section.label || '').trim().toLowerCase()
-    return normalized === 'kdb' || normalized === 'system'
-  }),
-)
+const createDialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
+const createDialogLeftSections = computed(() => createDialogSectionSplit.value.leftSections)
+const createDialogRightSections = computed(() => createDialogSectionSplit.value.rightSections)
 const createDialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || '',
 )

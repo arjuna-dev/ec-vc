@@ -625,6 +625,7 @@ import {
   LEVEL_3_FILE_REGISTRY_BY_KEY,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
+import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 
 const route = useRoute()
@@ -706,51 +707,19 @@ const selectedTokenKeySet = computed(() => new Set(selectedTokenKeys.value))
 const selectableSections = computed(() => level2Sections.value.filter((section) => selectableTokens.value.some((token) => token.parentKey === section.key)))
 const selectedHeroTokens = computed(() => selectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)))
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
+const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
 const createSectionGroups = computed(() =>
-  groupedLevel2Sections.value
-    .map((group) => {
-      const subsectionGroups = group.sections
-        .map((section) => ({
-          key: section.key,
-          label: section.label,
-          tokens: selectableTokens.value
-            .filter((token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)))
-            .map(normalizeCreateDialogToken),
-        }))
-        .filter((section) => section.tokens.length)
-
-      return {
-        key: group.value,
-        label: group.title,
-        tokens: subsectionGroups.flatMap((section) => section.tokens),
-        subgroups: subsectionGroups.length > 1 ? subsectionGroups : [],
-      }
-    })
-    .filter((section) => section.tokens.length),
+  buildDialogSectionGroups({
+    groupedSections: groupedLevel2Sections.value,
+    tokenFilter: (section) => selectableTokens.value.filter(
+      (token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)),
+    ),
+    mapToken: normalizeCreateDialogToken,
+  }),
 )
-const createDialogLeftSections = computed(() => createSectionGroups.value.filter((section) => !['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
-const createDialogRightSections = computed(() => createSectionGroups.value.filter((section) => ['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
-function getSectionGroupValue(section) {
-  const displayGroup = String(section?.displayGroup || '').trim()
-  return displayGroup ? `group:${displayGroup}` : String(section?.key || '').trim()
-}
-const groupedLevel2Sections = computed(() => {
-  const groups = []
-  for (const section of level2Sections.value) {
-    const value = getSectionGroupValue(section)
-    const existing = groups.find((group) => group.value === value)
-    if (existing) {
-      existing.sections.push(section)
-      continue
-    }
-    groups.push({
-      value,
-      title: String(section.displayGroup || section.label || '').trim(),
-      sections: [section],
-    })
-  }
-  return groups
-})
+const createDialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
+const createDialogLeftSections = computed(() => createDialogSectionSplit.value.leftSections)
+const createDialogRightSections = computed(() => createDialogSectionSplit.value.rightSections)
 const activeSectionGroup = computed(() => groupedLevel2Sections.value.find((group) => group.value === activeSectionKey.value) || groupedLevel2Sections.value[0] || null)
 const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || null)
 const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
