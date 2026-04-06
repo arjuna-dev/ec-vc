@@ -279,8 +279,10 @@ This tracker should stay aligned with:
   - create forks are now being normalized to the structure registry instead of being hardcoded per surface:
     - if an `L1` declares create branches, the create entry path should stop for that branch first
     - `Fork Shell` should own the branch-choice step as a route-owned shared surface
+    - `Fork Shell` should remain independent from `Opportunities` page UI even when `Opportunities` supplies the branch metadata
     - `Record Shell` and `File Shell` create actions should hand branchable creates off to `Fork Shell`
     - `Fork Shell` should continue into `Add/Edit Shell` with the selected branch already loaded
+    - closing `Fork Shell` should keep the blank fork shell route mounted, matching the blank route behavior of `Add/Edit Shell`
     - file-shell and dialog-shell create submit paths should resolve branch targets from the registry instead of special-casing `Opportunities`
   - a separate `Ingestion Shell` is now being scaffolded from the current `Add/Edit Shell` contract so artifact-processing review can become its own shared shell instead of staying trapped inside the add/edit dialog lane
   - intermediate pending-state launch experiments were intentionally discarded so the current contract stays route-driven and easier to reason about

@@ -236,6 +236,10 @@ Branch selector rule:
   - which subtype payload is shown
   - which create bridge is used
   - which write contract applies
+- if the branch choice is exposed as its own route-owned surface, that surface is a shared shell in its own right, not an entity-local helper
+- `Fork Shell` must stay independent from `Opportunities` page behavior
+- `Opportunities` may declare branch metadata, but it must not own the `Fork Shell` renderer, chrome, or route behavior
+- `Fork Shell` should remain mounted as a shell route after close, the same way `Add/Edit Shell` remains mounted after close
 
 Current approved example:
 
@@ -793,10 +797,17 @@ Current canonical file:
 
 That means:
 
-- `Opportunities` owns the shared shell-facing contract
+- `Opportunities` owns the opportunity-lane data contract
 - `Funds` and `Rounds` are subtype branches under that parent
 - shared sections should stay at the `Opportunity` level when they are truly shared
 - subtype-specific sections should remain subtype-owned when their internal structures diverge
+
+It does not mean:
+
+- `Opportunities` does not own `Fork Shell`
+- `Opportunities` does not own branch-choice shell chrome
+- `Opportunities` does not get to replace the independent shared-shell contract with opportunity-specific UI treatment
+- branchable create metadata may come from `Opportunities`, but the route-owned branch-choice surface must still be `Fork Shell`
 
 Current approved interpretation:
 
@@ -815,6 +826,7 @@ Create rule:
 
 - if an `L1` owns subtype branches, create/add-record should first ask which route to take
 - that route-choice step is canonical behavior, not a widget-only special case
+- that route-choice step should resolve through the independent `Fork Shell`
 - example: `Opportunities` should ask whether the new record should follow the `Fund` route or the `Round` route
 
 Working rule:

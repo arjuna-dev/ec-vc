@@ -231,18 +231,27 @@ Shared dialog rule:
 - when the shared dialog is exposed through its own shell route, that route should use the same shared top shell header and `L1` select as the other shell routes
 - the dialog shell route should not add a second page-level selector, launchpad, or top-row control if the shared shell header already provides that contract
 
+Fork shell rule:
+
+- `Fork Shell` is an independent shared shell route, not an `Opportunities` page extension
+- a branchable `L1` may supply branch metadata, but it must not replace the `Fork Shell` renderer or shell behavior with entity-specific UI
+- closing `Fork Shell` should leave the user on the blank shell route, the same way closing `Add/Edit Shell` leaves the user on the blank dialog shell route
+- `Fork Shell` should use the same shared top-row shell contract as the other shell routes and should only swap explicit branchable `L1` payload underneath it
+
 Branch selector rule:
 
 - some create flows need a structural selector before the rest of the form should appear
 - that selector is not a normal saved field
 - it decides which subtype payload should load next
 - subtype-owned sections should stay hidden until that selector is chosen
+- if that selector is surfaced before the add/edit form opens, it should live in `Fork Shell`, not as a copied widget inside one entity page
 
 Current approved example:
 
 - `Opportunity Type` is a branch selector
 - choosing `Fund` or `Round` decides whether the create flow should continue as `Funds` or `Rounds`
 - the selector should steer structure first and should not later be written back as if it were a normal field on the subtype record
+- `Opportunities` may declare the available branch routes, but the route-owned branch-choice surface is still `Fork Shell`
 
 Observed evidence rule:
 
