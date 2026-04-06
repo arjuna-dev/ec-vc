@@ -324,7 +324,7 @@ function goBack() {
 .fork-shell-card__title {
   color: #111111;
   font-family: var(--font-title);
-  font-size: 1.46rem;
+  font-size: 1.1rem;
   font-weight: var(--font-weight-black);
   line-height: 0.96;
   margin-bottom: 0;
