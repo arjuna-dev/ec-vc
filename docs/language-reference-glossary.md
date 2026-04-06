@@ -6,6 +6,17 @@
 | Owner | The system authority and node founder identity. It is the origin of top-level control. | Product Reference |
 | User | The application actor layer that carries permissions, role assignment, work rights, and system participation. | Product Reference |
 | Contact | The person record inside the CRM/KDB layer. It may correspond to a User, but is not the same thing as a User. | Product Reference |
+| File Shell | The shared shell renderer for file-level `L1` collection surfaces. It should stay fixed while route-owned `L1` payloads swap underneath it. | Product Reference |
+| Record Shell | The approved shared shell renderer for `Record View`. It should receive the selected record as payload input instead of forking by entity. | Record Architecture |
+| Record View | The eye-opened detailed surface for one selected record. Route-level `record-view` should now resolve into `Record Shell`. | Product Reference |
+| Hero Dashboard | The top shell block for card or record presentation. In `Record Shell`, it is based on the current `User Record View` hero/dashboard pattern. | Record Architecture |
+| L2 Toolbar | The section bar below the hero/dashboard that renders the selected `L1`'s subsection groups. It places normal sections on the left and `KDB` / `System` on the right. | Product Reference |
+| System | The canonical subsection for record identity, provenance, creator, timestamps, and other record-owned system fields. | Product Reference |
+| General | The canonical subsection for the main descriptive record fields. `Name` is standardized as the first general field and `Summary` as the second. | Product Reference |
+| KDB | The subsection for declared record relationships. It is not just another content tab; it changes the interaction model into relationship browsing and linking. | Product Reference |
+| L1 | The entity/file level in canonical structure. Selecting an `L1` chooses the entity payload source for a shell. | Record Architecture |
+| L2 | The subsection grouping level in canonical structure, such as `System`, `General`, `Overview`, or `KDB`. | Record Architecture |
+| L3 Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
 | Owned Field | A value owned by the current record or its approved owned subtable. It writes through that owner path only. | Companion Contract |
 | Directional Link | A root-established or rule-bearing path such as identity, authority, provenance, or parentage. It should not be treated like generic KDB. | Record Architecture |
 | KDB Relationship | A link between records that must have a declared relationship path, owner path, reverse-read path, and bidirectional visibility. | Companion Contract |
@@ -22,6 +33,8 @@
 | Live Shell | The strict shared shell surface used to test and exercise contract-driven page behavior. | Record Architecture |
 | Deprecated Record Surface | `RecordPage.vue`, the earlier shared record implementation. It is now legacy and should not be treated as the active shared record route target. | Record Architecture |
 | Knowledge DB | A file surface that may not be golden-tier in product importance, but still behaves like an `L1` in the shell and contract system. | Companion Contract |
+| Field Label Row | The top row of a field block that carries the field label and any adjacent guidance or action control. | Working UI Language |
+| Field Control Shell | The visible value/input box under a field label. It is the rendered shell around the actual field content, not the field contract itself. | Working UI Language |
 | Top-Layer Mechanism | A tuning layer that may improve speed, ranking, comfort, or prioritization without modifying ownership or the underlying contract. | Companion Contract |
 | Heuristic Guidance | A top-layer ranking and prioritization aid that may front-load likely options, but must not alter structure or ownership. | Product Reference |
 | Clarity Pass | A review after editing that checks whether a document change remains readable, structured, and easy to follow before it is treated as settled. | Companion Surface |
