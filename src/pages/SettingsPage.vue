@@ -276,77 +276,9 @@
 
         <q-banner v-if="error" class="bg-red-2 text-black" rounded>{{ error }}</q-banner>
 
-        <div class="avatar-toolbar">
-          <div class="avatar-toolbar__block avatar-toolbar__block--view">
-            <q-btn-toggle
-              v-model="avatarBuildView"
-              dense
-              unelevated
-              toggle-color="primary"
-              color="grey-3"
-              text-color="grey-8"
-              class="avatar-toolbar__toggle avatar-toolbar__view-toggle"
-              :options="viewOptions"
-            />
-          </div>
-
-          <div class="avatar-toolbar__block avatar-toolbar__block--kind">
-            <q-btn-toggle
-              v-model="buildFilter"
-              dense
-              no-caps
-              unelevated
-              toggle-color="dark"
-              color="white"
-              text-color="grey-8"
-              class="avatar-toolbar__toggle avatar-toolbar__kind-toggle"
-              :options="buildFilterOptions"
-            />
-          </div>
-
-          <div class="avatar-toolbar__block avatar-toolbar__block--search">
-            <q-icon name="tune" size="18px" class="avatar-toolbar__filters-icon" />
-            <q-input
-              v-model="buildSearchQuery"
-              dense
-              outlined
-              borderless
-              class="avatar-toolbar__search"
-              placeholder="Search companion builds..."
-            >
-              <template #prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn
-              dense
-              flat
-              round
-              icon="download"
-              color="grey-6"
-              class="avatar-toolbar__icon-button"
-              @click="pickAvatarBuildImportFile"
-            >
-              <q-tooltip>Import CSV</q-tooltip>
-            </q-btn>
-            <q-btn
-              dense
-              flat
-              round
-              icon="upload"
-              color="grey-6"
-              class="avatar-toolbar__icon-button"
-              :disable="filteredAvatarBuildDeck.length === 0"
-              @click="exportAvatarBuildsCsv"
-            >
-              <q-tooltip>Export CSV</q-tooltip>
-            </q-btn>
-          </div>
-        </div>
-
         <div class="avatar-surface">
           <q-banner
-            v-if="filteredAvatarBuildDeck.length === 0"
+            v-if="avatarBuildDeck.length === 0"
             class="avatar-empty-state bg-grey-1 text-black"
             rounded
           >
@@ -355,18 +287,13 @@
             </div>
           </q-banner>
 
-          <div
-            v-else
-            class="avatar-builds-inline"
-            :class="{ 'avatar-builds-inline--row': avatarBuildView === 'row' }"
-          >
+          <div v-else class="avatar-builds-inline">
             <q-card
-              v-for="build in filteredAvatarBuildDeck"
+              v-for="build in avatarBuildDeck"
               :key="build.id"
               flat
               bordered
               class="avatar-build-card"
-              :class="{ 'avatar-build-card--row': avatarBuildView === 'row' }"
               clickable
               @click="applyBuildPreset(build)"
             >
@@ -394,14 +321,6 @@
               </q-card-actions>
             </q-card>
           </div>
-
-          <input
-            ref="avatarBuildImportInput"
-            type="file"
-            accept=".csv,text/csv"
-            style="display: none"
-            @change="importAvatarBuilds"
-          />
         </div>
 
         <q-dialog v-model="showCompanionContractDialog">
@@ -568,10 +487,9 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { exportFile, useQuasar } from 'quasar'
+import { useQuasar } from 'quasar'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
-import { csvToRows, rowsToCsv } from 'src/utils/csv'
 
 const $q = useQuasar()
 const AVATAR_STORAGE_KEY = 'ecvc.avatarBuilderProfile'
@@ -730,10 +648,6 @@ const saving = ref(false)
 const error = ref('')
 const activeHeroControl = ref('shell')
 const heroControlOrder = ['shell', 'operator', 'keys']
-const avatarBuildView = ref('grid')
-const buildFilter = ref('all')
-const buildSearchQuery = ref('')
-const avatarBuildImportInput = ref(null)
 const openaiApiKey = ref('')
 const geminiApiKey = ref('')
 const showOpenaiApiKey = ref(false)
@@ -741,11 +655,6 @@ const showGeminiApiKey = ref(false)
 const avatarProfile = ref({ ...defaultAvatarProfile })
 const llmProfile = ref({ ...defaultLlmProfile })
 const customAvatarBuilds = ref([])
-
-const viewOptions = [
-  { value: 'grid', icon: 'grid_view' },
-  { value: 'row', icon: 'view_list' },
-]
 
 const avatarThemeMap = {
   'aurora-blue': {
@@ -968,54 +877,6 @@ const avatarBuildDeck = computed(() => [
   },
   ...customAvatarBuilds.value,
 ])
-const buildFilterOptions = [
-  { label: 'All', value: 'all' },
-  { label: 'Live Build', value: 'live' },
-  { label: 'Alternates', value: 'alternate' },
-]
-const avatarBuildCsvHeaders = [
-  'id',
-  'name',
-  'archetype',
-  'colorway',
-  'temperament',
-  'voice',
-  'originStory',
-  'provider',
-  'model',
-  'responseStyle',
-  'autonomy',
-  'temperature',
-  'systemNotes',
-]
-const filteredAvatarBuildDeck = computed(() => {
-  const query = normalizeInput(buildSearchQuery.value).toLowerCase()
-  let items = [...avatarBuildDeck.value]
-
-  if (buildFilter.value === 'live') {
-    items = items.filter((build) => build.id === 'current-build')
-  } else if (buildFilter.value === 'alternate') {
-    items = items.filter((build) => build.id !== 'current-build')
-  }
-
-  if (query) {
-    items = items.filter((build) =>
-      [
-        build.name,
-        build.summary,
-        build.archetypeLabel,
-        build.colorLabel,
-        build.temperamentLabel,
-        build.providerLabel,
-        build.modelLabel,
-      ]
-        .map((value) => String(value || '').toLowerCase())
-        .some((value) => value.includes(query)),
-    )
-  }
-
-  return items
-})
 
 function getOptionLabel(options, value, fallback) {
   return options.find((option) => option.value === value)?.label || fallback
@@ -1354,61 +1215,6 @@ function applyBuildPreset(build) {
     systemNotes: build.systemNotes,
   }
   $q.notify({ type: 'positive', message: `${build.name} loaded` })
-}
-
-function exportAvatarBuildsCsv() {
-  const rows = filteredAvatarBuildDeck.value.map((build) => ({
-    id: build.id,
-    name: build.name,
-    archetype: build.archetype,
-    colorway: build.colorway,
-    temperament: build.temperament,
-    voice: build.voice,
-    originStory: build.originStory,
-    provider: build.provider,
-    model: build.model,
-    responseStyle: build.responseStyle,
-    autonomy: build.autonomy,
-    temperature: build.temperature,
-    systemNotes: build.systemNotes,
-  }))
-  const csv = rowsToCsv(avatarBuildCsvHeaders, rows)
-  const ok = exportFile('companion-builds.csv', csv, 'text/csv')
-  if (ok !== true) {
-    $q.notify({ type: 'negative', message: 'Browser denied file download.' })
-  }
-}
-
-function pickAvatarBuildImportFile() {
-  avatarBuildImportInput.value?.click?.()
-}
-
-async function importAvatarBuilds(event) {
-  const file = event?.target?.files?.[0]
-  if (!file) return
-
-  try {
-    const text = await file.text()
-    const parsed = csvToRows(text)
-    const importedBuilds = parsed.rows
-      .map((row, index) => createAvatarBuildRecord(row, `imported-build-${index + 1}`))
-      .filter((build) => build.id !== 'current-build')
-
-    if (!importedBuilds.length) {
-      throw new Error('No companion builds found in that CSV.')
-    }
-
-    const mergedBuilds = new Map(customAvatarBuilds.value.map((build) => [build.id, build]))
-    for (const build of importedBuilds) {
-      mergedBuilds.set(build.id, build)
-    }
-    customAvatarBuilds.value = Array.from(mergedBuilds.values())
-    $q.notify({ type: 'positive', message: `Imported ${importedBuilds.length} companion build(s).` })
-  } catch (errorValue) {
-    $q.notify({ type: 'negative', message: errorValue?.message || String(errorValue) })
-  } finally {
-    if (avatarBuildImportInput.value) avatarBuildImportInput.value.value = ''
-  }
 }
 
 function normalizeIpcErrorMessage(errorValue) {
@@ -1991,10 +1797,6 @@ onMounted(() => {
   gap: 14px;
 }
 
-.avatar-builds-inline--row {
-  grid-template-columns: 1fr;
-}
-
 .avatar-slider {
   display: flex;
   flex-direction: column;
@@ -2037,21 +1839,11 @@ onMounted(() => {
   box-shadow: 0 20px 38px rgba(15, 23, 42, 0.1);
 }
 
-.avatar-build-card--row {
-  display: grid;
-  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1fr) auto;
-  align-items: center;
-}
-
 .avatar-build-card__header {
   display: flex;
   align-items: center;
   gap: 14px;
   padding: 18px 18px 12px;
-}
-
-.avatar-build-card--row .avatar-build-card__header {
-  padding: 18px;
 }
 
 .avatar-build-card__badge {
@@ -2096,10 +1888,6 @@ onMounted(() => {
   padding: 0 18px 16px;
 }
 
-.avatar-build-card--row .avatar-build-card__body {
-  padding: 18px 18px 18px 0;
-}
-
 .avatar-build-card__summary {
   color: #475569;
   font-size: 0.92rem;
@@ -2108,135 +1896,6 @@ onMounted(() => {
 
 .avatar-build-card__actions {
   padding: 0 12px 12px;
-}
-
-.avatar-build-card--row .avatar-build-card__actions {
-  padding: 18px;
-}
-
-.avatar-toolbar {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1.15fr) minmax(260px, 0.7fr);
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  padding: 24px;
-  background: var(--ds-color-surface-base);
-  border: 1px solid var(--ds-color-border-soft);
-  border-radius: var(--ds-radius-lg);
-}
-
-.avatar-toolbar__block {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.avatar-toolbar__block--view {
-  padding-top: 2px;
-  margin-right: 18px;
-}
-
-.avatar-toolbar__block--kind {
-  padding-top: 2px;
-}
-
-.avatar-toolbar__block--search {
-  grid-column: -2 / -1;
-  align-items: center;
-  justify-content: flex-end;
-  margin-left: auto;
-}
-
-.avatar-toolbar__filters-icon {
-  align-self: center;
-  color: var(--ds-color-text-muted);
-  flex: 0 0 auto;
-}
-
-.avatar-toolbar__toggle {
-  display: flex;
-  align-items: center;
-  align-self: center;
-  flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  border-radius: var(--ds-control-radius);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
-  line-height: var(--ds-line-height-xs);
-}
-
-.avatar-toolbar__toggle :deep(.q-btn-group) {
-  background: transparent;
-  box-shadow: none;
-  border: 0;
-}
-
-.avatar-toolbar__toggle :deep(.q-btn) {
-  background: transparent;
-  border: 1px solid var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: none;
-}
-
-.avatar-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 26px;
-  min-height: 26px;
-  height: 26px;
-  padding-inline: 4px;
-}
-
-.avatar-toolbar__view-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 6px;
-}
-
-.avatar-toolbar__view-toggle :deep(.q-icon) {
-  font-size: 18px;
-}
-
-.avatar-toolbar__kind-toggle :deep(.q-btn) {
-  min-width: 84px;
-  padding-inline: 18px;
-}
-
-.avatar-toolbar__kind-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 6px;
-}
-
-.avatar-toolbar__icon-button {
-  align-self: center;
-  width: 26px;
-  height: 26px;
-  min-width: 26px;
-  min-height: 26px;
-  padding: 0;
-}
-
-.avatar-toolbar__icon-button :deep(.q-icon) {
-  font-size: 18px;
-}
-
-.avatar-toolbar__search {
-  width: min(100%, 300px);
-  min-width: min(100%, 300px);
-  flex: 0 0 min(100%, 300px);
-  background: var(--ds-control-surface);
-  border: 1px solid var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
-}
-
-.avatar-toolbar__search :deep(.q-field__control),
-.avatar-toolbar__search :deep(.q-field__native),
-.avatar-toolbar__search :deep(.q-field__input) {
-  min-height: var(--ds-control-height-md);
-  height: var(--ds-control-height-md);
-}
-
-.avatar-toolbar__search :deep(.q-field__control) {
-  padding: 0 var(--ds-control-inline-padding);
 }
 
 .avatar-surface {
@@ -2255,12 +1914,6 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
-  .avatar-toolbar {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-    padding: 20px;
-  }
-
   .avatar-card__header,
   .avatar-sidecar__header {
     flex-direction: column;
@@ -2269,26 +1922,6 @@ onMounted(() => {
 
   .avatar-card__header-actions {
     align-items: flex-start;
-  }
-
-  .avatar-toolbar__block {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .avatar-toolbar__search,
-  .avatar-toolbar__toggle {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .avatar-build-card--row {
-    grid-template-columns: 1fr;
-  }
-
-  .avatar-build-card--row .avatar-build-card__body,
-  .avatar-build-card--row .avatar-build-card__actions {
-    padding: 0 18px 18px;
   }
 
   .companion-contract-workspace,
