@@ -513,6 +513,14 @@ Current product meaning:
 - owner settings should not live only in a separate profile surface
 - if owner identity exists, it should also appear in the `Users` file
 - the system should also ensure an `Owner` role record exists
+- the linked `Contact` should also exist immediately
+- the owner bootstrap should assign a base `Companion`
+- the owner bootstrap should assign a base `Owner Opportunities Project Space`
+- the owner bootstrap should assign a base `Owner Ingestion Project Space`
+- the owner bootstrap should assign a base set of `User Roles`
+- the owner bootstrap should assign a base set of `Companion Roles`
+- the owner bootstrap should create a `User Set-up` project and its default setup tasks
+- the user may skip setup task completion, but those bootstrap project/task records should still be created
 
 Current limit:
 

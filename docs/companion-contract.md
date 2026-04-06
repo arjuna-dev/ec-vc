@@ -200,6 +200,13 @@ Working rule:
 - they are not interchangeable
 - identity links between them should follow explicit owner paths
 
+Owner Genesis alignment:
+
+- the companion should treat `Owner Genesis` as the root bootstrap sequence for a new node
+- the first base companion assignment belongs inside that bootstrap
+- the first guided tasks should help the owner finish setup of the base spaces, roles, and ingestion direction created during bootstrap
+- if the user skips guided task completion, the bootstrap records should still be treated as created and real
+
 ## Relationship Rule
 
 If the companion proposes a KDB relationship, it should assume the relationship is only valid when all of these are true:

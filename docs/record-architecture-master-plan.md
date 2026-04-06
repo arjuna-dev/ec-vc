@@ -1027,6 +1027,15 @@ Current working rule:
 - owner settings are not just local decoration
 - owner identity should bootstrap into the `Users` table
 - the owner bootstrap should also ensure an `Owner` role exists in `Roles`
+- owner bootstrap should also create the linked `Contact`
+- owner bootstrap should assign a base `Companion`
+- owner bootstrap should create the base owner project spaces for:
+  - `Owner Opportunities`
+  - `Owner Ingestion`
+- owner bootstrap should assign the base `User Roles` set
+- owner bootstrap should assign the base `Companion Roles` set
+- owner bootstrap should create the `User Set-up` project and its base tasks
+- those setup records should still be created even if the user later skips guided task completion
 
 Important current limit:
 

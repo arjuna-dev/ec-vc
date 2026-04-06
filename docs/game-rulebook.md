@@ -1,5 +1,49 @@
 # Game Rulebook
 
+## Owner Genesis
+
+`Owner Genesis` is the root setup sequence for a new node.
+
+It should be the first guided rulebook sequence the product understands and the first guided setup path a new owner experiences.
+
+Authority rule:
+
+- `Owner Genesis` is owner-only bootstrap authority
+- it is not normal record creation
+- it is not an optional convenience flow
+- if it is incomplete, the node is not yet fully initialized
+
+Base creation rule:
+
+Creating a new `Owner` should immediately create and relate the first base records and spaces.
+
+That means:
+
+- create the root `Owner` identity
+- create the first real `User`
+- create the linked `Contact`
+- establish their required owner-path relationships immediately
+- assign the owner a base `Companion`
+- assign the owner a base `Owner Opportunities Project Space`
+- assign the owner a base `Owner Ingestion Project Space`
+- assign the owner a base set of `User Roles`
+- assign the owner a base set of `Companion Roles`
+
+User setup rule:
+
+- create a first project called `User Set-up`
+- create the default setup tasks inside that project
+- treat `User Set-up` as the first project that should be mapped and flowed end to end
+- render those setup tasks as the first guided work sequence for the user
+- the user may skip task completion, but the `User Set-up` project and its base tasks should still be created
+
+Working rule:
+
+- bootstrap artifacts are always created
+- guided completion is optional
+- the first board should know that `Owner Genesis` happens before normal gameplay progression
+- the first guided tasks should help the owner finish the setup of the base spaces and roles that were just created
+
 ## Purpose
 
 This document defines the first-pass game layer that sits on top of the contract system.
