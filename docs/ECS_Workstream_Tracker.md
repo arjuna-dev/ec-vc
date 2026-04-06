@@ -326,3 +326,14 @@ Why this matters:
 
 - directional SQL join tables do not use the same foreign-key column ownership in both directions
 - reusing the same `from_id -> to_id` mapping in both directions can send a valid source record id into the wrong foreign-key column and trigger a foreign-key failure
+
+## Shared Record Feed Correction
+
+Resolved shared-shell correction:
+
+- relationship add/remove audit events must log against the source record table, not the relationship join table
+
+Why this matters:
+
+- the Record View feed queries events by the active record table plus record id
+- if a relationship event is written under the join table name, the relationship really changes but the record feed cannot see the add/delete event

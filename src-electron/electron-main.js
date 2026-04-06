@@ -5189,7 +5189,7 @@ function applyAuditedChanges(
         if (toInsert.length || toDelete.length) {
           updated += 1
           writeAuditEvent(database, {
-            tableName: relationshipContract.joinTable,
+            tableName: change.table_name,
             recordId: change.record_id,
             fieldName: change.relationship_token,
             actionId,
