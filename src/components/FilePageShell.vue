@@ -243,6 +243,15 @@
           :status-label="getBbTileStatus(row)"
         >
           <template #actions>
+            <q-btn
+              flat
+              round
+              dense
+              icon="content_copy"
+              aria-label="Copy record id"
+              :disable="!row.recordId"
+              @click="copyRowRecordId(row)"
+            />
             <EyeIconButton
               aria-label="View block tile"
               :disable="!row.recordId"
@@ -974,19 +983,45 @@ const activeSectionTokens = computed(() => {
   return level3Tokens.value.filter((token) => token.parentKey === activeSection.value.key)
 })
 
+function isTokenNamed(token, names = []) {
+  const normalizedNames = names.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
+  if (!normalizedNames.length) return false
+  const candidates = [
+    token?.label,
+    token?.rawLabel,
+    token?.tokenName,
+    ...(Array.isArray(token?.dbFieldAliases) ? token.dbFieldAliases : []),
+  ]
+    .map((value) => String(value || '').trim().toLowerCase())
+    .filter(Boolean)
+  return candidates.some((candidate) => normalizedNames.includes(candidate))
+}
+
 const canonicalTitleToken = computed(
-  () =>
-    level3Tokens.value.find(
-      (token) => String(token.parentLevel_2) === '3' && String(token.level_3) === '1',
-    ) || null,
+  () => {
+    if (isBbFileSource.value) {
+      return level3Tokens.value.find((token) => isTokenNamed(token, ['name', 'bb_name'])) || null
+    }
+    return (
+      level3Tokens.value.find(
+        (token) => String(token.parentLevel_2) === '3' && String(token.level_3) === '1',
+      ) || null
+    )
+  },
 )
 const canonicalSummaryToken = computed(
-  () =>
-    level3Tokens.value.find(
-      (token) =>
-        (String(token.parentLevel_2) === '3' && String(token.level_3) === '2')
-        || String(token.label || '').trim().toLowerCase() === 'summary',
-    ) || null,
+  () => {
+    if (isBbFileSource.value) {
+      return level3Tokens.value.find((token) => isTokenNamed(token, ['summary', 'bb_summary'])) || null
+    }
+    return (
+      level3Tokens.value.find(
+        (token) =>
+          (String(token.parentLevel_2) === '3' && String(token.level_3) === '2')
+          || String(token.label || '').trim().toLowerCase() === 'summary',
+      ) || null
+    )
+  },
 )
 const selectedRecordShellLevel3Keys = computed(() => {
   if (!isRecordShellMode.value) return []
@@ -1868,7 +1903,9 @@ async function loadRows() {
 function buildShellRow(row, index) {
   const recordIdField = activeLoader.value?.recordIdField || ''
   const recordId = String(row?.[recordIdField] || '').trim()
-  const titleValue = stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
+  const titleValue =
+    (isBbFileSource.value ? stringifyValue(row?.Name) : '')
+    || stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
   const sourcePrefixes = (
     activeRegistryEntry.value?.relationshipSourcePrefixes?.length
       ? activeRegistryEntry.value.relationshipSourcePrefixes
@@ -2157,6 +2194,22 @@ function getBbTileBlockKey(row) {
     return rawId.slice(3)
   }
   return ''
+}
+
+async function copyRowRecordId(row) {
+  const recordId = String(row?.recordId || '').trim()
+  if (!recordId) return
+
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(recordId)
+      $q.notify({ type: 'positive', message: `Copied Record ID ${recordId}` })
+      return
+    }
+    throw new Error('Clipboard API unavailable')
+  } catch {
+    $q.notify({ type: 'negative', message: 'Could not copy Record ID.' })
+  }
 }
 
 function requestEditRecordShell(row, options = {}) {
