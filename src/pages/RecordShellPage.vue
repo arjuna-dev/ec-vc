@@ -495,14 +495,25 @@ const selectableSections = computed(() => level2Sections.value.filter((section) 
 const selectedHeroTokens = computed(() => selectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)))
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
 const createSectionGroups = computed(() =>
-  selectableSections.value
-    .map((section) => ({
-      key: section.key,
-      label: section.label,
-      tokens: selectableTokens.value
-        .filter((token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)))
-        .map(normalizeCreateDialogToken),
-    }))
+  groupedLevel2Sections.value
+    .map((group) => {
+      const subsectionGroups = group.sections
+        .map((section) => ({
+          key: section.key,
+          label: section.label,
+          tokens: selectableTokens.value
+            .filter((token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)))
+            .map(normalizeCreateDialogToken),
+        }))
+        .filter((section) => section.tokens.length)
+
+      return {
+        key: group.value,
+        label: group.title,
+        tokens: subsectionGroups.flatMap((section) => section.tokens),
+        subgroups: subsectionGroups.length > 1 ? subsectionGroups : [],
+      }
+    })
     .filter((section) => section.tokens.length),
 )
 const createDialogLeftSections = computed(() => createSectionGroups.value.filter((section) => !['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
