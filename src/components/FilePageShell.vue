@@ -734,6 +734,10 @@ const props = defineProps({
     type: String,
     default: 'file',
   },
+  sourceKey: {
+    type: String,
+    default: '',
+  },
 })
 
 const route = useRoute()
@@ -860,20 +864,19 @@ const fallbackSectionKey =
 const isRecordShellMode = computed(
   () => String(props.shellMode || '').trim().toLowerCase() === 'record' || String(route.name || '').trim().toLowerCase() === 'record-shell',
 )
+const isFileShellLabMode = computed(() => String(props.shellMode || '').trim().toLowerCase() === 'file-lab')
 
 const routeDrivenSourceKey = computed(() => {
   const routeName = String(route.name || '').trim().toLowerCase()
   return TEST_SHELL_SECTION_OPTIONS.find((option) => option.value === routeName)?.value || ''
 })
-
-const isLiteralFileShellRoute = computed(() => String(route.name || '').trim().toLowerCase() === 'test-shell')
-const isLiteralShellRoute = computed(() => isLiteralFileShellRoute.value || isRecordShellMode.value)
+const propDrivenSourceKey = computed(() => {
+  const normalized = String(props.sourceKey || '').trim().toLowerCase()
+  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : ''
+})
 
 const activeSourceKey = computed(() => {
-  if (isLiteralShellRoute.value) {
-    const current = String(route.query.section || '').trim().toLowerCase()
-    if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current)) return current
-  }
+  if (propDrivenSourceKey.value) return propDrivenSourceKey.value
   if (routeDrivenSourceKey.value) return routeDrivenSourceKey.value
   return fallbackSectionKey
 })
@@ -884,7 +887,7 @@ const activeRegistryEntry = computed(
 const routeRegistryEntry = computed(() => getFilePageRegistryEntryByRouteName(route.name))
 const pageShellLabel = computed(() => {
   if (isRecordShellMode.value) return 'Record Shell'
-  if (isLiteralFileShellRoute.value) return 'File Shell'
+  if (isFileShellLabMode.value) return 'File Shell'
   return routeRegistryEntry.value?.label || activeRegistryEntry.value?.label || 'Records'
 })
 

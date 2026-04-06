@@ -269,6 +269,7 @@ This tracker should stay aligned with:
 - as of April 6, 2026:
   - shared record-shell presentation naming is being normalized away from leftover `contact-databook` class language so the shell reads as a generic `Record Shell` surface instead of a contact-specific carryover
   - shared add/edit entry actions are being normalized so route-owned `L1` pages launch the shared add/edit shell instead of sending widget shortcuts through the old `test-shell` path, while true create forks still stop for user choice first
+  - `test-shell` section swapping is being pulled up into `TestShellPage` so the shared `FilePageShell` stops treating route/query swapping as normal ownership behavior
 
 ## Update Rule
 

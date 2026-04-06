@@ -1636,20 +1636,12 @@ async function openShellCreateFromQuickAction(section, extraQuery = {}) {
   closeQuickActions()
   const targetEntry = getFilePageRegistryEntry(section)
   const targetRouteName = String(targetEntry?.routeName || '').trim()
-  if (targetRouteName) {
-    await router.push({
-      name: targetRouteName,
-      query: {
-        create: String(Date.now()),
-        ...extraQuery,
-      },
-    })
+  if (!targetRouteName) {
     return
   }
   await router.push({
-    name: 'test-shell',
+    name: targetRouteName,
     query: {
-      section,
       create: String(Date.now()),
       ...extraQuery,
     },
