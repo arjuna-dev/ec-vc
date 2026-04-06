@@ -49,8 +49,10 @@
         <q-card class="fork-shell-card">
           <q-card-section class="fork-shell-card__header">
             <div class="fork-shell-card__header-copy">
-              <div class="fork-shell-card__eyebrow">Fork</div>
-              <h1 class="fork-shell-card__title">{{ headerTitle }}</h1>
+              <div class="fork-shell-card__title-row">
+                <div class="fork-shell-card__title">{{ headerTitle }}</div>
+              </div>
+              <div class="fork-shell-card__eyebrow">Choose the branch path to continue into Add/Edit Shell</div>
             </div>
 
             <q-btn
@@ -73,21 +75,29 @@
               No branchable Live Action L1 entries are available yet.
             </q-banner>
 
-            <div v-else class="fork-shell-card__grid">
-              <button
-                v-for="branch in branchOptions"
-                :key="branch.value"
-                type="button"
-                class="fork-shell-card__branch"
-                @click="selectBranch(branch)"
-              >
-                <div class="fork-shell-card__branch-icon">
-                  <q-icon :name="branch.icon || 'call_split'" size="24px" />
-                </div>
-                <div class="fork-shell-card__branch-copy">
-                  <div class="fork-shell-card__branch-title">{{ branch.label }}</div>
-                </div>
-              </button>
+            <div v-else class="fork-shell-card__panel">
+              <div class="fork-shell-card__panel-head">
+                <div class="fork-shell-card__panel-title">Fork Options</div>
+                <div class="fork-shell-card__panel-meta">{{ branchOptions.length }} paths</div>
+              </div>
+
+              <div class="fork-shell-card__grid">
+                <button
+                  v-for="branch in branchOptions"
+                  :key="branch.value"
+                  type="button"
+                  class="fork-shell-card__branch"
+                  @click="selectBranch(branch)"
+                >
+                  <div class="fork-shell-card__branch-icon">
+                    <q-icon :name="branch.icon || 'call_split'" size="24px" />
+                  </div>
+                  <div class="fork-shell-card__branch-copy">
+                    <div class="fork-shell-card__branch-title">{{ branch.label }}</div>
+                    <div class="fork-shell-card__branch-caption">Open {{ branch.label }} in the shared create flow.</div>
+                  </div>
+                </button>
+              </div>
             </div>
           </q-card-section>
         </q-card>
@@ -248,56 +258,83 @@ function goBack() {
 
 .fork-shell-modal__selector-value {
   color: #f7f4ee;
-  font-size: 0.92rem;
-  font-weight: 700;
-  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  background: #000000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
 }
 
 .fork-shell-modal__selector-option-label {
-  color: #111111;
-  font-size: 0.9rem;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 8px;
+  color: #ffffff;
+  background: #111111;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
+  font-family: var(--font-title);
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: -0.03em;
 }
 
 .fork-shell-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  padding: 8px;
-  background:
-    radial-gradient(circle at top right, rgba(38, 71, 255, 0.12), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(247, 244, 238, 0.96));
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 32px;
-  box-shadow: 0 26px 72px rgba(17, 17, 17, 0.18);
+  min-height: min(46vh, 420px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 246, 244, 0.98) 100%);
+  border-radius: 18px;
+  overflow: hidden;
 }
 
 .fork-shell-card__header {
   display: flex;
-  gap: 16px;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 18px 18px 8px;
+  gap: 24px;
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.08);
 }
 
 .fork-shell-card__header-copy {
-  display: grid;
-  gap: 6px;
+  flex: 1 1 auto;
+  min-height: 1px;
+  min-width: 0;
+}
+
+.fork-shell-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  margin-bottom: 12px;
 }
 
 .fork-shell-card__eyebrow {
   color: rgba(17, 17, 17, 0.52);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .fork-shell-card__title {
-  margin: 0;
   color: #111111;
   font-family: var(--font-title);
-  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-size: 1.46rem;
   font-weight: var(--font-weight-black);
   line-height: 0.96;
+  margin-bottom: 0;
 }
 
 .fork-shell-card__close {
@@ -305,7 +342,46 @@ function goBack() {
 }
 
 .fork-shell-card__body {
-  padding: 8px 18px 18px;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 18px 18px;
+}
+
+.fork-shell-card__panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 10px 18px 18px;
+  background: rgba(249, 249, 247, 0.92);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 12px;
+}
+
+.fork-shell-card__panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.fork-shell-card__panel-title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.fork-shell-card__panel-meta {
+  color: rgba(17, 17, 17, 0.52);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .fork-shell-card__grid {
@@ -319,12 +395,12 @@ function goBack() {
   grid-template-columns: auto 1fr;
   gap: 14px;
   align-items: center;
-  min-height: 96px;
+  min-height: 104px;
   padding: 18px;
   text-align: left;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 22px;
+  border-radius: 10px;
   cursor: pointer;
   transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
@@ -355,30 +431,58 @@ function goBack() {
 .fork-shell-card__branch-title {
   color: #111111;
   font-family: var(--font-title);
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: var(--font-weight-black);
   line-height: 1.05;
 }
 
+.fork-shell-card__branch-caption {
+  color: rgba(17, 17, 17, 0.62);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
 :global(.fork-shell-modal__selector-menu) {
-  background: #ffffff;
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 16px;
-  overflow: hidden;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14) !important;
+  border: 1px solid rgba(17, 17, 17, 0.08) !important;
+}
+
+:global(.fork-shell-modal__selector-menu .q-virtual-scroll__content),
+:global(.fork-shell-modal__selector-menu .q-menu),
+:global(.fork-shell-modal__selector-menu .q-list) {
+  background: #ffffff !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0;
 }
 
 :global(.fork-shell-modal__selector-menu .q-item) {
-  min-height: 40px;
+  min-height: 34px;
+  padding: 4px 6px;
+  color: #ffffff;
+  background: transparent;
 }
 
 :global(.fork-shell-modal__selector-menu .q-item.q-manual-focusable--focused),
 :global(.fork-shell-modal__selector-menu .q-item--active) {
-  background: rgba(38, 71, 255, 0.08);
+  background: transparent;
 }
 
-@media (max-width: 640px) {
+:global(.fork-shell-modal__selector-menu .q-item.q-manual-focusable--focused .fork-shell-modal__selector-option-label),
+:global(.fork-shell-modal__selector-menu .q-item--active .fork-shell-modal__selector-option-label) {
+  background: #000000;
+  box-shadow: 0 0 0 1px #ffffff;
+}
+
+@media (max-width: 900px) {
   .fork-shell-modal {
     width: min(100vw - 20px, 680px);
+  }
+
+  .fork-shell-card {
+    min-height: calc(100vh - 20px);
+    max-height: calc(100vh - 20px);
   }
 
   .fork-shell-modal__selector {
@@ -387,7 +491,7 @@ function goBack() {
   }
 
   .fork-shell-card__header {
-    align-items: center;
+    flex-direction: column;
   }
 
   .fork-shell-card__grid {
