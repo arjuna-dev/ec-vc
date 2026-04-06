@@ -319,11 +319,20 @@
             :key="group.key"
             class="record-shell__section-group"
           >
-            <div class="record-shell__section-group-head">
-              <div class="record-shell__section-group-title">{{ group.title }}</div>
-              <div class="record-shell__section-group-meta">{{ group.tokens.length }} fields</div>
-            </div>
-            <div class="record-shell__field-grid">
+            <button
+              type="button"
+              class="record-shell__section-group-toggle"
+              @click="toggleSectionSubgroup(group.key)"
+            >
+              <q-icon
+                :name="isSectionSubgroupExpanded(group.key) ? 'expand_more' : 'chevron_right'"
+                size="14px"
+                class="record-shell__section-group-toggle-icon"
+              />
+              <span class="record-shell__section-group-title">{{ group.title }}</span>
+              <span class="record-shell__section-group-meta">{{ group.tokens.length }} fields</span>
+            </button>
+            <div v-if="isSectionSubgroupExpanded(group.key)" class="record-shell__field-grid">
               <div
                 v-for="token in group.tokens"
                 :key="token.key"
@@ -402,6 +411,7 @@ const createDialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
 const expandedSectionKeys = ref([])
 const expandedKdbGroupKeys = ref(['first_order', 'knowledge_db', 'other'])
+const expandedSectionSubgroupKeys = ref([])
 const activeSectionKey = ref('')
 const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
@@ -645,11 +655,20 @@ watch(level2Sections, (sections) => {
   if (!sections.length) {
     activeSectionKey.value = ''
     expandedSectionKeys.value = []
+    expandedSectionSubgroupKeys.value = []
     return
   }
   const groups = groupedLevel2Sections.value
   if (!groups.some((group) => group.value === activeSectionKey.value)) activeSectionKey.value = groups[0]?.value || ''
   expandedSectionKeys.value = sections.map((section) => section.key)
+}, { immediate: true })
+
+watch(activeSectionTokenGroups, (groups) => {
+  const nextKeys = groups.map((group) => group.key)
+  expandedSectionSubgroupKeys.value = nextKeys.filter((key) => expandedSectionSubgroupKeys.value.includes(key))
+  if (!expandedSectionSubgroupKeys.value.length && nextKeys.length) {
+    expandedSectionSubgroupKeys.value = [...nextKeys]
+  }
 }, { immediate: true })
 
 watch(activeSourceKey, async () => { await ensureLiveOptionsLoaded() }, { immediate: true })
@@ -701,6 +720,7 @@ onBeforeUnmount(() => {
 
 function isSectionExpanded(sectionKey) { return expandedSectionKeys.value.includes(sectionKey) }
 function isKdbGroupExpanded(groupKey) { return expandedKdbGroupKeys.value.includes(groupKey) }
+function isSectionSubgroupExpanded(groupKey) { return expandedSectionSubgroupKeys.value.includes(groupKey) }
 function toggleExpandedSection(sectionKey) {
   expandedSectionKeys.value = isSectionExpanded(sectionKey)
     ? expandedSectionKeys.value.filter((key) => key !== sectionKey)
@@ -710,6 +730,11 @@ function toggleKdbGroup(groupKey) {
   expandedKdbGroupKeys.value = isKdbGroupExpanded(groupKey)
     ? expandedKdbGroupKeys.value.filter((key) => key !== groupKey)
     : [...expandedKdbGroupKeys.value, groupKey]
+}
+function toggleSectionSubgroup(groupKey) {
+  expandedSectionSubgroupKeys.value = isSectionSubgroupExpanded(groupKey)
+    ? expandedSectionSubgroupKeys.value.filter((key) => key !== groupKey)
+    : [...expandedSectionSubgroupKeys.value, groupKey]
 }
 function getSectionTokens(sectionKey) { return selectableTokens.value.filter((token) => token.parentKey === sectionKey) }
 function isSelectedToken(tokenKey) { return selectedTokenKeySet.value.has(tokenKey) }
@@ -1677,10 +1702,11 @@ function onContactHeroPointerLeave() {
 .record-shell__panel-title { color:#111; font-family:var(--font-title); font-size:.94rem; font-weight:var(--font-weight-black); line-height:.96; }
 .record-shell__panel-meta { color:rgba(17,17,17,.54); font-size:.72rem; }
 .record-shell__section-group-stack { display:grid; gap:14px; }
-.record-shell__section-group { display:grid; gap:10px; }
-.record-shell__section-group-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.record-shell__section-group { display:grid; gap:8px; }
+.record-shell__section-group-toggle { display:inline-flex; align-items:center; justify-content:flex-start; gap:2px; width:max-content; padding:0; color:#111; background:transparent; border:0; text-align:left; cursor:pointer; }
+.record-shell__section-group-toggle-icon { color:#111; }
 .record-shell__section-group-title { color:#111; font-family:var(--font-title); font-size:.8rem; font-weight:var(--font-weight-black); line-height:.96; }
-.record-shell__section-group-meta { color:rgba(17,17,17,.54); font-size:.7rem; }
+.record-shell__section-group-meta { margin-left:6px; color:rgba(17,17,17,.54); font-size:.7rem; }
 .record-shell__field-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
 .record-shell__kdb-grid { display:grid; gap:14px; }
 .record-shell__kdb-group { display:grid; gap:8px; }

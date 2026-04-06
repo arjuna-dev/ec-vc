@@ -13,6 +13,7 @@
 | First-Order KDB | The KDB display family for main operational `L1`s such as `Users`, `Companies`, `Projects`, `Tasks`, `Notes`, `Opportunities`, `Funds`, `Rounds`, `Artifacts`, `Contacts`, and `Roles`. | KDB Audit |
 | Knowledge DB KDB | The KDB display family for reusable reference or processing `L1`s such as `Markets`, `Securities`, and `Ingestion`. | KDB Audit |
 | Business Overview | The grouped `L2` used in `Companies` to collect overview-style subsections under one toolbar item while preserving the prior overview subsections as subgroup variants inside the panel. | Record Architecture |
+| Grouped Subsection | A preserved canonical subsection rendered inside a grouped `L2` panel. Grouped subsections should keep their own title and should be individually collapsible. | Record Architecture |
 | Overview Display Group | A higher display family that can collect multiple overview-style subsections under one grouped heading without changing their canonical addresses. Grouping the toolbar does not flatten the subgroup structure in the panel. | KDB Audit |
 | Record View | The eye-opened detailed surface for one selected record. Route-level `record-view` should now resolve into `Record Shell`. | Product Reference |
 | Hero Dashboard | The top shell block for card or record presentation. In `Record Shell`, it is based on the current `User Record View` hero/dashboard pattern. | Record Architecture |

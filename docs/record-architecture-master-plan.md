@@ -1364,6 +1364,7 @@ Grouped subsection rendering rule:
 
 - a grouped `L2` may collapse multiple canonical subsections into one toolbar item
 - that grouped toolbar item must not flatten those canonical subsection identities in the panel
+- when grouped subsection blocks render in the panel, each subgroup must have its own collapse / expand control
 - `Companies` should therefore render one `Business Overview` toolbar label while preserving:
   - `Ops Overview`
   - `Business Overview`
