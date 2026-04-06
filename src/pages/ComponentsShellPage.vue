@@ -273,6 +273,16 @@
         </div>
       </article>
 
+      <article class="components-shell-page__card components-shell-page__card--sm">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('edit-button')">
+          <q-icon name="visibility" />
+        </button>
+        <div class="components-shell-page__card-label">Edit Button</div>
+        <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
+          <q-btn flat dense round icon="edit" class="components-shell-page__edit-button" aria-label="Edit row" />
+        </div>
+      </article>
+
       <article class="components-shell-page__card components-shell-page__card--md">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('toggle-row-icons')">
           <q-icon name="visibility" />
@@ -470,6 +480,12 @@ const componentDetailsById = {
     title: 'Eye Icon',
     summary: 'Use this for record/view actions in cards and tables where a lightweight visibility control is needed.',
     prompt: 'Render the Eye Icon from Components Shell using the same lightweight visibility button treatment as the canonical row-view control.',
+  },
+  'edit-button': {
+    id: 'cmp-edit-button',
+    title: 'Edit Button',
+    summary: 'Use this for compact edit actions in cards and row controls where the blue edit icon treatment is expected.',
+    prompt: 'Render the Edit Button from Components Shell using the same compact blue edit icon treatment as the canonical row-edit control.',
   },
   'toggle-row-icons': {
     id: 'cmp-toggle-row-icons',
@@ -1069,6 +1085,18 @@ onBeforeUnmount(() => {
 
 .components-shell-page__eye-button :deep(.q-icon) {
   font-size: 16px;
+}
+
+.components-shell-page__edit-button {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  color: #2647ff;
+}
+
+.components-shell-page__edit-button :deep(.q-icon) {
+  font-size: 14px;
 }
 
 .components-shell-page__toggle-inline {
