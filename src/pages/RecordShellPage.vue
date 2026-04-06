@@ -311,18 +311,85 @@
               <span class="record-shell__kdb-group-title">{{ group.label }}</span>
             </button>
             <div v-if="isKdbGroupExpanded(group.key)" class="record-shell__kdb-group-grid">
-              <div
-                v-for="token in group.tokens"
-                :key="token.key"
-                class="record-shell__field-card"
-                :class="{
-                  'record-shell__field-card--selected': isSelectedToken(token.key),
-                  'record-shell__field-card--interactive': isRecordRoute,
-                }"
-                @click="openRecordFieldDialog"
-              >
+              <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
                 <div class="record-shell__field-label">{{ token.label }}</div>
-                <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
+                <div v-if="isRecordRoute" class="record-shell__field-value-row">
+                  <q-select
+                    v-if="token.tokenType === 'select_multi'"
+                    :model-value="inlineMultiValue(token)"
+                    dense
+                    outlined
+                    use-chips
+                    multiple
+                    emit-value
+                    map-options
+                    :options="token.inputOptions || []"
+                    :disable="loading || !isInlineFieldEditable(token)"
+                    class="record-shell__field-input"
+                    @update:model-value="updateInlineFieldValue(token, $event)"
+                    @blur="commitInlineFieldValue(token)"
+                  />
+                  <q-select
+                    v-else-if="token.tokenType === 'select_single'"
+                    :model-value="inlineSingleValue(token)"
+                    dense
+                    outlined
+                    use-chips
+                    emit-value
+                    map-options
+                    :options="token.inputOptions || []"
+                    :disable="loading || !isInlineFieldEditable(token)"
+                    class="record-shell__field-input"
+                    @update:model-value="commitInlineFieldValue(token, $event)"
+                  />
+                  <q-input
+                    v-else
+                    :model-value="inlineStringValue(token)"
+                    dense
+                    outlined
+                    :disable="loading || !isInlineFieldEditable(token)"
+                    :type="inlineInputType(token)"
+                    class="record-shell__field-input"
+                    @update:model-value="updateInlineFieldValue(token, $event)"
+                    @blur="commitInlineFieldValue(token)"
+                    @keydown.enter.stop.prevent="commitInlineFieldValue(token)"
+                  />
+                  <q-btn
+                    v-if="showInlineFieldVerificationAction(token)"
+                    flat
+                    dense
+                    size="sm"
+                    :disable="loading"
+                    class="record-shell__field-action"
+                  >
+                    <q-icon
+                      :name="inlineFieldVerificationIcon(token)"
+                      :class="inlineFieldVerificationIconClass(token)"
+                      :style="inlineFieldVerificationIconStyle(token)"
+                      size="14px"
+                    />
+                    <q-menu anchor="bottom right" self="top left">
+                      <q-list dense class="record-shell__verification-menu">
+                        <q-item
+                          v-for="option in fieldVerificationActionOptions"
+                          :key="option.value"
+                          clickable
+                          v-close-popup
+                          class="record-shell__verification-menu-item"
+                          @click="updateInlineFieldVerificationState(token, option.value)"
+                        >
+                          <q-item-section avatar>
+                            <q-icon :name="option.icon" :style="{ color: option.color }" size="14px" />
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="record-shell__verification-menu-label">{{ option.label }}</q-item-label>
+                          </q-item-section>
+                        </q-item>
+                      </q-list>
+                    </q-menu>
+                  </q-btn>
+                </div>
+                <div v-else class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
               </div>
             </div>
           </div>
@@ -348,14 +415,85 @@
               <span class="record-shell__section-group-meta">{{ group.tokens.length }} fields</span>
             </button>
             <div v-if="isSectionSubgroupExpanded(group.key)" class="record-shell__field-grid">
-              <div
-                v-for="token in group.tokens"
-                :key="token.key"
-                class="record-shell__field-card"
-                :class="{ 'record-shell__field-card--selected': isSelectedToken(token.key) }"
-              >
+              <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
                 <div class="record-shell__field-label">{{ token.label }}</div>
-                <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
+                <div v-if="isRecordRoute" class="record-shell__field-value-row">
+                  <q-select
+                    v-if="token.tokenType === 'select_multi'"
+                    :model-value="inlineMultiValue(token)"
+                    dense
+                    outlined
+                    use-chips
+                    multiple
+                    emit-value
+                    map-options
+                    :options="token.inputOptions || []"
+                    :disable="loading || !isInlineFieldEditable(token)"
+                    class="record-shell__field-input"
+                    @update:model-value="updateInlineFieldValue(token, $event)"
+                    @blur="commitInlineFieldValue(token)"
+                  />
+                  <q-select
+                    v-else-if="token.tokenType === 'select_single'"
+                    :model-value="inlineSingleValue(token)"
+                    dense
+                    outlined
+                    use-chips
+                    emit-value
+                    map-options
+                    :options="token.inputOptions || []"
+                    :disable="loading || !isInlineFieldEditable(token)"
+                    class="record-shell__field-input"
+                    @update:model-value="commitInlineFieldValue(token, $event)"
+                  />
+                  <q-input
+                    v-else
+                    :model-value="inlineStringValue(token)"
+                    dense
+                    outlined
+                    :disable="loading || !isInlineFieldEditable(token)"
+                    :type="inlineInputType(token)"
+                    class="record-shell__field-input"
+                    @update:model-value="updateInlineFieldValue(token, $event)"
+                    @blur="commitInlineFieldValue(token)"
+                    @keydown.enter.stop.prevent="commitInlineFieldValue(token)"
+                  />
+                  <q-btn
+                    v-if="showInlineFieldVerificationAction(token)"
+                    flat
+                    dense
+                    size="sm"
+                    :disable="loading"
+                    class="record-shell__field-action"
+                  >
+                    <q-icon
+                      :name="inlineFieldVerificationIcon(token)"
+                      :class="inlineFieldVerificationIconClass(token)"
+                      :style="inlineFieldVerificationIconStyle(token)"
+                      size="14px"
+                    />
+                    <q-menu anchor="bottom right" self="top left">
+                      <q-list dense class="record-shell__verification-menu">
+                        <q-item
+                          v-for="option in fieldVerificationActionOptions"
+                          :key="option.value"
+                          clickable
+                          v-close-popup
+                          class="record-shell__verification-menu-item"
+                          @click="updateInlineFieldVerificationState(token, option.value)"
+                        >
+                          <q-item-section avatar>
+                            <q-icon :name="option.icon" :style="{ color: option.color }" size="14px" />
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="record-shell__verification-menu-label">{{ option.label }}</q-item-label>
+                          </q-item-section>
+                        </q-item>
+                      </q-list>
+                    </q-menu>
+                  </q-btn>
+                </div>
+                <div v-else class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
               </div>
             </div>
           </section>
@@ -366,14 +504,85 @@
             v-for="token in activeSectionTokens"
             :key="token.key"
             class="record-shell__field-card"
-            :class="{
-              'record-shell__field-card--selected': isSelectedToken(token.key),
-              'record-shell__field-card--interactive': isRecordRoute,
-            }"
-            @click="openRecordFieldDialog"
           >
             <div class="record-shell__field-label">{{ token.label }}</div>
-            <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
+            <div v-if="isRecordRoute" class="record-shell__field-value-row">
+              <q-select
+                v-if="token.tokenType === 'select_multi'"
+                :model-value="inlineMultiValue(token)"
+                dense
+                outlined
+                use-chips
+                multiple
+                emit-value
+                map-options
+                :options="token.inputOptions || []"
+                :disable="loading || !isInlineFieldEditable(token)"
+                class="record-shell__field-input"
+                @update:model-value="updateInlineFieldValue(token, $event)"
+                @blur="commitInlineFieldValue(token)"
+              />
+              <q-select
+                v-else-if="token.tokenType === 'select_single'"
+                :model-value="inlineSingleValue(token)"
+                dense
+                outlined
+                use-chips
+                emit-value
+                map-options
+                :options="token.inputOptions || []"
+                :disable="loading || !isInlineFieldEditable(token)"
+                class="record-shell__field-input"
+                @update:model-value="commitInlineFieldValue(token, $event)"
+              />
+              <q-input
+                v-else
+                :model-value="inlineStringValue(token)"
+                dense
+                outlined
+                :disable="loading || !isInlineFieldEditable(token)"
+                :type="inlineInputType(token)"
+                class="record-shell__field-input"
+                @update:model-value="updateInlineFieldValue(token, $event)"
+                @blur="commitInlineFieldValue(token)"
+                @keydown.enter.stop.prevent="commitInlineFieldValue(token)"
+              />
+              <q-btn
+                v-if="showInlineFieldVerificationAction(token)"
+                flat
+                dense
+                size="sm"
+                :disable="loading"
+                class="record-shell__field-action"
+              >
+                <q-icon
+                  :name="inlineFieldVerificationIcon(token)"
+                  :class="inlineFieldVerificationIconClass(token)"
+                  :style="inlineFieldVerificationIconStyle(token)"
+                  size="14px"
+                />
+                <q-menu anchor="bottom right" self="top left">
+                  <q-list dense class="record-shell__verification-menu">
+                    <q-item
+                      v-for="option in fieldVerificationActionOptions"
+                      :key="option.value"
+                      clickable
+                      v-close-popup
+                      class="record-shell__verification-menu-item"
+                      @click="updateInlineFieldVerificationState(token, option.value)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon :name="option.icon" :style="{ color: option.color }" size="14px" />
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label class="record-shell__verification-menu-label">{{ option.label }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+            </div>
+            <div v-else class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
           </div>
         </div>
       </section>
@@ -441,9 +650,12 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const hasBridge = computed(() => Boolean(bridge.value))
 const loading = ref(false)
+const inlineFieldSavingKeys = ref([])
 const error = ref('')
 const currentView = ref(null)
 const fields = ref([])
+const fieldVerificationStates = ref({})
+const inlineFieldValues = ref({})
 const heroFieldKeysBySource = ref(loadShellFieldSelectionMap())
 const tableNameParam = computed(() => String(route.params.tableName || '').trim())
 const recordIdParam = computed(() => String(route.params.recordId || '').trim())
@@ -673,6 +885,12 @@ const recordShellNavItems = computed(() => [
   }),
 ])
 const createDialogMode = computed(() => (isRecordRoute.value ? 'edit' : 'create'))
+const fieldVerificationActionOptions = [
+  { label: 'Verify field', value: 'verified', icon: 'check_circle', color: 'rgba(35, 92, 26, 0.96)' },
+  { label: 'Pre-Selected', value: 'default_preselected_unverified', icon: 'auto_awesome', color: 'rgba(64, 121, 210, 0.92)' },
+  { label: 'Suggested', value: 'suggested_unverified', icon: 'lightbulb', color: 'rgba(186, 129, 13, 0.92)' },
+  { label: 'Reject field', value: 'rejected', icon: 'cancel', color: 'rgba(166, 43, 43, 0.92)' },
+]
 const dialogInitialValues = computed(() => {
   const tokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
@@ -776,11 +994,6 @@ function setTokenSelected(tokenKey, isSelected) {
 }
 
 function openCreateRecordDialog() {
-  createDialogRenderKey.value += 1
-  createDialogOpen.value = true
-}
-function openRecordFieldDialog() {
-  if (!isRecordRoute.value) return
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
@@ -1048,12 +1261,193 @@ async function loadRecordView() {
     const result = await bridge.value.databooks.view(tableNameParam.value, recordIdParam.value)
     currentView.value = result || null
     fields.value = Array.isArray(result?.fields) ? result.fields : []
+    try {
+      const verificationResult = await bridge.value?.verification?.list?.({
+        tableName: tableNameParam.value,
+        recordId: recordIdParam.value,
+      })
+      fieldVerificationStates.value = Object.fromEntries(
+        (Array.isArray(verificationResult?.fields) ? verificationResult.fields : []).map((field) => [
+          String(field?.field_name || '').trim(),
+          String(field?.state || '').trim(),
+        ]),
+      )
+    } catch {
+      fieldVerificationStates.value = {}
+    }
+    inlineFieldValues.value = Object.fromEntries(
+      [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+        .map((token) => [token.key, getTokenDialogValue(token)]),
+    )
   } catch (loadError) {
     error.value = normalizeIpcErrorMessage(loadError)
     currentView.value = null
     fields.value = []
+    fieldVerificationStates.value = {}
+    inlineFieldValues.value = {}
   } finally {
     loading.value = false
+  }
+}
+
+function inlineInputType(token) {
+  const normalizedType = String(token?.tokenType || '').trim().toLowerCase()
+  if (normalizedType === 'email') return 'email'
+  if (normalizedType === 'phone') return 'tel'
+  if (normalizedType === 'url') return 'url'
+  if (normalizedType === 'date') return 'date'
+  if (normalizedType === 'datetime') return 'datetime-local'
+  return 'text'
+}
+
+function inlineRawValue(token) {
+  const explicitValue = inlineFieldValues.value?.[token?.key]
+  if (explicitValue != null && (Array.isArray(explicitValue) || String(explicitValue).trim() !== '')) return explicitValue
+  return getTokenDialogValue(token)
+}
+
+function inlineStringValue(token) {
+  const rawValue = inlineRawValue(token)
+  return rawValue == null ? '' : String(rawValue)
+}
+
+function inlineSingleValue(token) {
+  const rawValue = inlineRawValue(token)
+  return rawValue == null ? '' : rawValue
+}
+
+function inlineMultiValue(token) {
+  const rawValue = inlineRawValue(token)
+  if (Array.isArray(rawValue)) return rawValue
+  return String(rawValue || '').split(',').map((item) => item.trim()).filter(Boolean)
+}
+
+function updateInlineFieldValue(token, nextValue) {
+  inlineFieldValues.value = {
+    ...inlineFieldValues.value,
+    [token.key]: nextValue,
+  }
+}
+
+function isInlineFieldEditable(token) {
+  const field = resolveExistingFieldForToken(token)
+  return Boolean(field?.editable)
+}
+
+function inlineFieldHasValue(token) {
+  const value = inlineRawValue(token)
+  if (Array.isArray(value)) return value.length > 0
+  return String(value ?? '').trim().length > 0
+}
+
+function resolvedInlineFieldVerificationState(token) {
+  const field = resolveExistingFieldForToken(token)
+  const aliases = [
+    String(field?.field_name || '').trim(),
+    ...getCanonicalTokenFieldNames(token),
+  ].filter(Boolean)
+  for (const alias of aliases) {
+    const state = String(fieldVerificationStates.value?.[alias] || '').trim()
+    if (state) return state
+  }
+  return inlineFieldHasValue(token) ? 'verified' : ''
+}
+
+function showInlineFieldVerificationAction(token) {
+  return inlineFieldHasValue(token)
+}
+
+function inlineFieldVerificationIcon(token) {
+  const state = resolvedInlineFieldVerificationState(token)
+  const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
+  return option?.icon || 'help'
+}
+
+function inlineFieldVerificationIconClass(token) {
+  const state = resolvedInlineFieldVerificationState(token)
+  return state ? `record-shell__verification-icon--${state}` : ''
+}
+
+function inlineFieldVerificationIconStyle(token) {
+  const state = resolvedInlineFieldVerificationState(token)
+  const option = fieldVerificationActionOptions.find((entry) => entry.value === state)
+  return option?.color ? { color: option.color } : {}
+}
+
+async function commitInlineFieldValue(token, explicitValue) {
+  if (!isRecordRoute.value) return
+  const field = resolveExistingFieldForToken(token)
+  if (!field || !field.editable) return
+
+  const nextValue = explicitValue === undefined ? inlineRawValue(token) : explicitValue
+  const previousValue = field.value
+  if (normalizeDialogValue(previousValue) === normalizeDialogValue(nextValue)) return
+
+  const saveKey = `${token.key}:${field.field_name}`
+  if (inlineFieldSavingKeys.value.includes(saveKey)) return
+  inlineFieldSavingKeys.value = [...inlineFieldSavingKeys.value, saveKey]
+
+  try {
+    const result = await bridge.value?.databooks?.update?.({
+      tableName: tableNameParam.value,
+      recordId: recordIdParam.value,
+      changes: [{
+        table_name: field.table_name,
+        record_id: field.record_id,
+        field_name: field.field_name,
+        id_column: field.id_column,
+        new_value: normalizeDialogValue(nextValue),
+      }],
+      actionLabel: 'record_shell_field_edit',
+    })
+    await bridge.value?.verification?.upsert?.({
+      tableName: field.table_name,
+      recordId: field.record_id,
+      fieldName: field.field_name,
+      state: 'verified',
+      source: 'direct_user_input',
+      actionLabel: 'record_shell_field_edit',
+    })
+    fieldVerificationStates.value = {
+      ...fieldVerificationStates.value,
+      [String(field.field_name || '').trim()]: 'verified',
+    }
+    currentView.value = result?.view || currentView.value
+    fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : fields.value
+    inlineFieldValues.value = {
+      ...inlineFieldValues.value,
+      [token.key]: nextValue,
+    }
+  } catch (submitError) {
+    const message = normalizeIpcErrorMessage(submitError)
+    error.value = message
+    $q.notify({ type: 'negative', message })
+  } finally {
+    inlineFieldSavingKeys.value = inlineFieldSavingKeys.value.filter((key) => key !== saveKey)
+  }
+}
+
+async function updateInlineFieldVerificationState(token, nextState) {
+  if (!isRecordRoute.value || !inlineFieldHasValue(token)) return
+  const field = resolveExistingFieldForToken(token)
+  if (!field) return
+  try {
+    await bridge.value?.verification?.upsert?.({
+      tableName: field.table_name,
+      recordId: field.record_id,
+      fieldName: field.field_name,
+      state: String(nextState || '').trim(),
+      source: 'record_shell_field_review',
+      actionLabel: 'record_shell_field_verification',
+    })
+    fieldVerificationStates.value = {
+      ...fieldVerificationStates.value,
+      [String(field.field_name || '').trim()]: String(nextState || '').trim(),
+    }
+  } catch (submitError) {
+    const message = normalizeIpcErrorMessage(submitError)
+    error.value = message
+    $q.notify({ type: 'negative', message })
   }
 }
 
@@ -1750,10 +2144,17 @@ function onContactHeroPointerLeave() {
 .record-shell__kdb-group-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
 .record-shell__field-card { padding:10px 12px; border:1px solid rgba(17,17,17,.08); border-radius:6px; background:rgba(17,17,17,.02); }
 .record-shell__field-card--selected { border-color:rgba(38,71,255,.3); background:rgba(38,71,255,.05); }
-.record-shell__field-card--interactive { cursor:pointer; transition:border-color .18s ease, background-color .18s ease, transform .18s ease, box-shadow .18s ease; }
-.record-shell__field-card--interactive:hover { border-color:rgba(38,71,255,.22); background:rgba(38,71,255,.04); box-shadow:0 8px 20px rgba(17,17,17,.05); transform:translateY(-1px); }
 .record-shell__field-label { color:#111; font-size:.8rem; font-weight:600; line-height:1.3; }
 .record-shell__field-value { margin-top:4px; color:rgba(17,17,17,.58); font-size:.72rem; line-height:1.4; }
+.record-shell__field-value-row { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; margin-top:6px; }
+.record-shell__field-input { min-width:0; }
+.record-shell__field-input :deep(.q-field__control) { min-height:24px; border-radius:4px; background:rgba(255,255,255,.72); }
+.record-shell__field-input :deep(.q-field__native),
+.record-shell__field-input :deep(.q-field__input) { color:rgba(17,17,17,.62); font-size:.74rem; font-weight:400; line-height:1.15; }
+.record-shell__field-action { color:#111; padding:0; min-height:20px; }
+.record-shell__verification-menu { min-width:max-content; }
+.record-shell__verification-menu-item { min-height:22px; padding:0 6px; }
+.record-shell__verification-menu-label { font-size:.72rem; line-height:1.1; }
 .record-shell__settings-panel { width:min(280px,calc(100vw - 24px)); padding:10px; background:rgba(248,248,246,.98); border:1px solid rgba(17,17,17,.08); box-shadow:0 16px 32px rgba(17,17,17,.12); }
 .record-shell__settings-title { color:#111; font-family:var(--font-title); font-size:.84rem; font-weight:var(--font-weight-black); line-height:.96; }
 .record-shell__settings-group + .record-shell__settings-group { margin-top:10px; }
