@@ -54,7 +54,7 @@
         </button>
         <div class="components-shell-page__card-label">Plus Icon</div>
         <div class="components-shell-page__card-stage">
-          <button type="button" class="components-shell-page__plus-icon-button" aria-label="Add">
+          <button type="button" class="components-shell-page__widget-add-button" aria-label="Add">
             <q-icon name="add" />
           </button>
         </div>
@@ -66,9 +66,13 @@
         </button>
         <div class="components-shell-page__card-label">Plus With Label</div>
         <div class="components-shell-page__card-stage">
-          <button type="button" class="components-shell-page__plus-label-button">
-            <q-icon name="add" />
-            <span>Add</span>
+          <button type="button" class="components-shell-page__file-add-button">
+            <span class="components-shell-page__file-add-button-inner">
+              <span class="components-shell-page__file-add-button-plus">
+                <q-icon name="add" />
+              </span>
+              <span class="components-shell-page__file-add-button-label">Add Record</span>
+            </span>
           </button>
         </div>
       </article>
@@ -542,38 +546,69 @@ onBeforeUnmount(() => {
   letter-spacing: -1px;
 }
 
-.components-shell-page__plus-icon-button,
-.components-shell-page__plus-label-button {
+.components-shell-page__widget-add-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 14px;
-  color: #ffffff;
-  background: #2f6bff;
-  border: 1px solid #2f6bff;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  color: var(--ds-color-surface-inverse, #ffffff);
+  background: var(--ds-color-text-primary-deep, #2647ff);
+  border: 1px solid rgba(255, 255, 255, 0.92);
   border-radius: 999px;
-  box-shadow: 0 10px 24px rgba(47, 107, 255, 0.28);
+  box-shadow: var(--ds-shadow-fab);
   cursor: pointer;
 }
 
-.components-shell-page__plus-icon-button {
-  width: 36px;
-  padding: 0;
+.components-shell-page__widget-add-button :deep(.q-icon) {
+  font-size: 20px;
 }
 
-.components-shell-page__plus-icon-button :deep(.q-icon),
-.components-shell-page__plus-label-button :deep(.q-icon) {
+.components-shell-page__file-add-button {
+  align-self: center;
+  min-width: 36px;
+  min-height: 36px;
+  height: 36px;
+  padding: 0 14px 0 8px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.components-shell-page__file-add-button-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.components-shell-page__file-add-button-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: #ffffff;
+  background: #2647ff;
+  border-radius: 999px;
+}
+
+.components-shell-page__file-add-button-plus :deep(.q-icon) {
   font-size: 16px;
 }
 
-.components-shell-page__plus-label-button span {
+.components-shell-page__file-add-button-label {
+  color: #111111;
   font-family: var(--font-title);
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: var(--font-weight-black);
   line-height: 1;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.02em;
 }
 
 .components-shell-page__detail-card {
