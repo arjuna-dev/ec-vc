@@ -519,6 +519,7 @@ Current product meaning:
 - the owner bootstrap should assign a base `Owner Ingestion Project Space`
 - the owner bootstrap should assign a base set of `User Roles`
 - the owner bootstrap should assign a base set of `Companion Roles`
+- the first base `Companion Role` should be `Master Companion Role`
 - the owner bootstrap should create a `User Set-up` project and its default setup tasks
 - the user may skip setup task completion, but those bootstrap project/task records should still be created
 

@@ -175,6 +175,7 @@ This tracker should stay aligned with:
   - create the base `Owner Ingestion` project space
   - create the base `User Roles` set
   - create the base `Companion Roles` set
+  - create `Master Companion Role` as the first base `Companion Role`
   - create the `User Set-up` project and its default tasks
   - allow task completion to be skipped without skipping record/project/task creation
 - turn the first-pass game rulebook into a clearer scoring reference per board and per stage

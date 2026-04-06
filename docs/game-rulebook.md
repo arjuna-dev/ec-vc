@@ -28,6 +28,7 @@ That means:
 - assign the owner a base `Owner Ingestion Project Space`
 - assign the owner a base set of `User Roles`
 - assign the owner a base set of `Companion Roles`
+- the first `Companion Role` created in that base set should be `Master Companion Role`
 
 User setup rule:
 
