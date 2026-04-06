@@ -46,8 +46,8 @@
 | L3 Alias Contract | The explicit runtime alias mapping declared on an `L3` token when the live payload field name differs from the canonical token name. This is a shell-level agreement, not a page-level patch. | Record Architecture |
 | Runtime-Backed | A declared path that already has real runtime ownership underneath it. | ECS Workstream Tracker |
 | Declared-But-Missing | A path declared in canon that does not yet have full runtime ownership or reverse-read support. | ECS Workstream Tracker |
-| Live Shell | The strict shared shell surface used to test and exercise contract-driven page behavior. | Record Architecture |
-| Deprecated Record Surface | `RecordPage.vue`, the earlier shared record implementation. It is now legacy and should not be treated as the active shared record route target. | Record Architecture |
+| File Shell Lab | The strict shared file shell route used to test and exercise contract-driven page behavior. | Record Architecture |
+| Deprecated Record Surface | `RecordPage.vue`, the earlier shared record implementation. It is now a historical legacy surface and not the active shared record route target. | Record Architecture |
 | Knowledge DB | A file surface that may not be golden-tier in product importance, but still behaves like an `L1` in the shell and contract system. | Companion Contract |
 | Field Label Row | The top row of a field block that carries the field label and any adjacent guidance or action control. | Working UI Language |
 | Field Control Shell | The visible value/input box under a field label. It is the rendered shell around the actual field content, not the field contract itself. | Working UI Language |

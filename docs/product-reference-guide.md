@@ -98,7 +98,7 @@ To stay precise while the codebase is still finishing its naming cleanup, use th
 
 Current deprecation note:
 
-- `RecordPage.vue` has been removed
+- `RecordPage.vue` was the earlier shared record surface and has been removed
 - the active shared route target for `Record View` is `RecordShellPage.vue`
 - entity-specific `*CreateDialog.vue` surfaces have been removed in favor of the shared `Add/Edit Shell`
 
@@ -345,9 +345,9 @@ That means:
 - `Securities` should load `Securities`
 - `Ingestion` should load `Ingestion`
 
-Only the literal `Live Shell` should switch `L1` through the shell selector.
+Only the literal `File Shell` lab route should switch `L1` through the shell selector.
 
-Normal file pages should not inherit the last chosen shell source from `Live Shell`.
+Normal file pages should not inherit the last chosen shell source from the `File Shell` lab.
 
 ## Shared Shell Styling Rule
 

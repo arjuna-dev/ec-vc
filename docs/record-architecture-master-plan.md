@@ -663,13 +663,13 @@ Route ownership should still stay explicit:
 
 - each file page owns its own route
 - each file page should load its own route-owned `L1`
-- only the literal `Live Shell` route should switch source from the shell selector
+- only the literal `File Shell` lab route should switch source from the shell selector
 
 Working rule:
 
 - shared shell behavior changes once
 - page wrappers stay thin
-- route-owned `L1` loading should not be overridden by the last selected `Live Shell` source
+- route-owned `L1` loading should not be overridden by the last selected `File Shell` lab source
 
 ## Canonical Input Rules
 
@@ -957,7 +957,7 @@ This means provenance should be visible from either direction:
 
 Current frontend preparation rule:
 
-- new `Knowledge DB` files should reuse the same shared file shell path as `Test Shell`
+- new `Knowledge DB` files should reuse the same shared file shell path as the `File Shell` lab
 - frontend work may prepare canonical registry entries, routes, and navigation before runtime source wiring is complete
 - do not create a separate placeholder UI path once the intended final surface is the shared shell
 
@@ -1174,7 +1174,7 @@ Section behavior:
 
 ### Payload Rule
 
-`RecordPage.vue` is now a deprecated legacy record surface.
+`RecordPage.vue` was the earlier shared record surface and is now removed.
 
 It should not be treated as the long-term shared record solution.
 
@@ -1536,7 +1536,7 @@ Recommended order:
 
 - [x] Shared `RecordPage.vue` existed as the earlier shared record surface
 - [x] Shared `record-view` route now resolves into `RecordShellPage.vue`
-- [ ] Remove deprecated `RecordPage.vue` once remaining useful behavior is either migrated or intentionally dropped
+- [x] Remove legacy `RecordPage.vue` after route ownership moved to `RecordShellPage.vue`
 - [x] File/card shell consistency improved across core pages
 - [x] KDB icon strip unified across file cards
 - [x] Card relationship icon affordance added
@@ -1554,8 +1554,8 @@ Recommended order:
 The following are now explicitly legacy and should be cleaned deliberately instead of staying half-active:
 
 - `RecordPage.vue`
-  - deprecated legacy record surface
-  - no longer the shared route target
+  - historical legacy record surface
+  - removed from the active route set
 
 - internal `Databook` naming
   - still present in bridge and styling language
@@ -1563,10 +1563,10 @@ The following are now explicitly legacy and should be cleaned deliberately inste
 
 - `Live Shell` wording
   - product-facing shell naming has moved to `File Shell`
-  - remaining `Live Shell` references in docs should be cleaned to the current shell language unless they are intentionally historical
+  - remaining `Live Shell` references in docs should be cleaned to `File Shell` or `File Shell` lab unless they are intentionally historical
 
 - `Test Shell` wording
-  - where it still refers to the shared file shell route or contract test surface, it should be reviewed and normalized to current shell naming
+  - where it refers to the contract route, it should be normalized to `File Shell` lab language
 - [ ] Rich record payloads standardized per entity
 - [ ] Token names normalized to final approved form
 - [ ] Canonical JSON structure contract defined per entity
