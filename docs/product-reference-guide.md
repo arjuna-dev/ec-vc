@@ -221,6 +221,13 @@ Working rule:
 - no page-level one-offs
 - no record-level one-offs
 
+Shared dialog rule:
+
+- opening `Add Record` or `Edit Record` from any `L1` should resolve into the same shared dialog shell behavior
+- the launching surface may choose the source `L1` or selected record
+- it should not reinterpret grouped `L2` structure before handing payload into the dialog
+- if the dialog behaves differently between `L1`s because of different shell-side payload shaping, that is a contract bug
+
 ## Token Behavior Language
 
 Canonical structure should keep moving toward explicit token behavior at the `L3` level.

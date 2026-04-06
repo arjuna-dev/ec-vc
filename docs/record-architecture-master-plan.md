@@ -215,6 +215,13 @@ Universal shell rule:
 - do not solve these gaps with page-level or record-level one-offs
 - if a token needs runtime mapping, declare it in canon and workbook companion so every shell reads the same contract
 
+Shared dialog shell rule:
+
+- the shared create / edit dialog is only a true shell if every launching surface passes the same canonical payload contract
+- `File Shell`, `Record Shell`, and any future shared shell surface must not pre-interpret grouped `L2` structure differently before opening the dialog
+- if one surface sends grouped subsection payloads and another sends flat section payloads, that is shell drift, not an acceptable variation
+- page-level payload shaping for the shared dialog should be treated as architectural debt unless it is identical across shell surfaces
+
 Shell styling rule:
 
 - shell styling must stay fixed at shell level
