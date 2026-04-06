@@ -1,0 +1,87 @@
+import { getCanonicalTokenWriteTarget } from 'src/utils/structureRegistry'
+import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipContracts'
+
+export function normalizeTokenWriteValue(token, value) {
+  const tokenType = String(token?.tokenType || '').trim()
+  if (tokenType === 'select_multi') {
+    const normalized = Array.isArray(value)
+      ? value.map((item) => String(item || '').trim()).filter(Boolean)
+      : String(value || '')
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean)
+    return normalized.length ? normalized : null
+  }
+
+  const normalized = String(value || '').trim()
+  return normalized ? normalized : null
+}
+
+export function tokenHasDirectWriteTarget(token) {
+  return Boolean(String(token?.dbWriteField || '').trim())
+}
+
+export function tokenHasRelationshipWriteContract(token, entityName = '') {
+  return Boolean(getKdbRelationshipContractForToken(entityName, token?.tokenName))
+}
+
+export function tokenSupportsRecordUpdate(token, entityName = '') {
+  return tokenHasRelationshipWriteContract(token, entityName) || tokenHasDirectWriteTarget(token)
+}
+
+export function haveNormalizedTokenValuesChanged(token, nextValue, initialValue) {
+  const normalizedNext = normalizeTokenWriteValue(token, nextValue)
+  const normalizedInitial = normalizeTokenWriteValue(token, initialValue)
+
+  if (Array.isArray(normalizedNext) || Array.isArray(normalizedInitial)) {
+    const nextList = Array.isArray(normalizedNext) ? normalizedNext : []
+    const initialList = Array.isArray(normalizedInitial) ? normalizedInitial : []
+    if (nextList.length !== initialList.length) return true
+    return nextList.some((value, index) => value !== initialList[index])
+  }
+
+  return (normalizedNext || null) !== (normalizedInitial || null)
+}
+
+export function buildTokenUpdateChanges(token, {
+  nextValue,
+  initialValue,
+  recordId = '',
+  entityName = '',
+  idColumn = 'id',
+} = {}) {
+  if (!recordId || !entityName || !haveNormalizedTokenValuesChanged(token, nextValue, initialValue)) return []
+
+  const normalizedValue = normalizeTokenWriteValue(token, nextValue)
+  if (normalizedValue == null) return []
+
+  const relationshipContract = getKdbRelationshipContractForToken(entityName, token?.tokenName)
+  if (relationshipContract) {
+    const relationshipIds = Array.isArray(normalizedValue)
+      ? normalizedValue.map((value) => String(value || '').trim()).filter(Boolean)
+      : [String(normalizedValue || '').trim()].filter(Boolean)
+    return [
+      {
+        change_kind: 'relationship',
+        table_name: entityName,
+        record_id: recordId,
+        field_name: String(token?.tokenName || '').trim(),
+        relationship_token: String(token?.tokenName || '').trim(),
+        new_value: JSON.stringify(relationshipIds),
+      },
+    ]
+  }
+
+  const writeTarget = getCanonicalTokenWriteTarget(token, entityName, idColumn)
+  if (!writeTarget?.tableName || !writeTarget?.fieldName) return []
+
+  return [
+    {
+      table_name: writeTarget.tableName,
+      record_id: recordId,
+      field_name: writeTarget.fieldName,
+      id_column: writeTarget.idColumn,
+      new_value: Array.isArray(normalizedValue) ? JSON.stringify(normalizedValue) : String(normalizedValue ?? ''),
+    },
+  ]
+}

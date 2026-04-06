@@ -627,6 +627,7 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
+import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/tokenWriteChanges'
 
 const route = useRoute()
 const $q = useQuasar()
@@ -1034,28 +1035,30 @@ async function submitRecordUpdate(values = {}) {
 }
 
 function buildRecordUpdateChanges(values = {}) {
-  const seenFieldNames = new Set()
+  const seenChangeKeys = new Set()
   return [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
-    .map((token) => {
+    .flatMap((token) => {
       const field = resolveExistingFieldForToken(token)
-      if (!field || !field.editable) return null
-      const fieldName = String(field.field_name || '').trim()
-      if (!fieldName || seenFieldNames.has(fieldName)) return null
-      seenFieldNames.add(fieldName)
-
-      const previousValue = normalizeDialogValue(field.value)
-      const nextValue = normalizeDialogValue(values?.[token.key])
-      if (previousValue === nextValue) return null
-
-      return {
-        table_name: field.table_name,
-        record_id: field.record_id,
-        field_name: field.field_name,
-        id_column: field.id_column,
-        new_value: nextValue,
-      }
+      if (field && !field.editable) return []
+      const changes = buildTokenUpdateChanges(token, {
+        nextValue: values?.[token.key],
+        initialValue: field ? field.value : getTokenDialogValue(token),
+        recordId: recordIdParam.value,
+        entityName: activeRegistryEntry.value?.entityName || tableNameParam.value,
+        idColumn: String(field?.id_column || 'id').trim() || 'id',
+      })
+      return changes.filter((change) => {
+        const changeKey = [
+          String(change?.change_kind || 'field').trim(),
+          String(change?.table_name || '').trim(),
+          String(change?.field_name || '').trim(),
+          String(change?.relationship_token || '').trim(),
+        ].join(':')
+        if (!change?.field_name || seenChangeKeys.has(changeKey)) return false
+        seenChangeKeys.add(changeKey)
+        return true
+      })
     })
-    .filter(Boolean)
 }
 
 function buildCreatePayload(values = {}) {
@@ -1203,11 +1206,6 @@ function getFieldDisplayValue(fieldName) {
   return recordValue == null ? '' : String(recordValue).trim()
 }
 
-function normalizeDialogValue(value) {
-  if (Array.isArray(value)) return value.map((item) => String(item ?? '')).join(', ')
-  return value == null ? '' : String(value)
-}
-
 function normalizeIpcErrorMessage(ipcError) {
   const raw = String(ipcError?.message || ipcError || '').trim()
   const prefix = "Error invoking remote method '"
@@ -1300,7 +1298,8 @@ function updateInlineFieldValue(token, nextValue) {
 
 function isInlineFieldEditable(token) {
   const field = resolveExistingFieldForToken(token)
-  return Boolean(field?.editable)
+  if (field) return Boolean(field.editable)
+  return tokenSupportsRecordUpdate(token, activeRegistryEntry.value?.entityName || tableNameParam.value)
 }
 
 function inlineFieldHasValue(token) {
@@ -1346,13 +1345,20 @@ function inlineFieldVerificationIconStyle(token) {
 async function commitInlineFieldValue(token, explicitValue) {
   if (!isRecordRoute.value) return
   const field = resolveExistingFieldForToken(token)
-  if (!field || !field.editable) return
+  if (field && !field.editable) return
 
   const nextValue = explicitValue === undefined ? inlineRawValue(token) : explicitValue
-  const previousValue = field.value
-  if (normalizeDialogValue(previousValue) === normalizeDialogValue(nextValue)) return
+  const changes = buildTokenUpdateChanges(token, {
+    nextValue,
+    initialValue: field ? field.value : getTokenDialogValue(token),
+    recordId: recordIdParam.value,
+    entityName: activeRegistryEntry.value?.entityName || tableNameParam.value,
+    idColumn: String(field?.id_column || 'id').trim() || 'id',
+  })
+  if (!changes.length) return
 
-  const saveKey = `${token.key}:${field.field_name}`
+  const verificationFieldName = String(field?.field_name || token?.tokenName || '').trim()
+  const saveKey = `${token.key}:${verificationFieldName || 'write'}`
   if (inlineFieldSavingKeys.value.includes(saveKey)) return
   inlineFieldSavingKeys.value = [...inlineFieldSavingKeys.value, saveKey]
 
@@ -1360,26 +1366,22 @@ async function commitInlineFieldValue(token, explicitValue) {
     const result = await bridge.value?.databooks?.update?.({
       tableName: tableNameParam.value,
       recordId: recordIdParam.value,
-      changes: [{
-        table_name: field.table_name,
-        record_id: field.record_id,
-        field_name: field.field_name,
-        id_column: field.id_column,
-        new_value: normalizeDialogValue(nextValue),
-      }],
+      changes,
       actionLabel: 'record_shell_field_edit',
     })
-    await bridge.value?.verification?.upsert?.({
-      tableName: field.table_name,
-      recordId: field.record_id,
-      fieldName: field.field_name,
-      state: 'verified',
-      source: 'direct_user_input',
-      actionLabel: 'record_shell_field_edit',
-    })
-    fieldVerificationStates.value = {
-      ...fieldVerificationStates.value,
-      [String(field.field_name || '').trim()]: 'verified',
+    if (verificationFieldName) {
+      await bridge.value?.verification?.upsert?.({
+        tableName: String(field?.table_name || tableNameParam.value).trim(),
+        recordId: String(field?.record_id || recordIdParam.value).trim(),
+        fieldName: verificationFieldName,
+        state: 'verified',
+        source: 'direct_user_input',
+        actionLabel: 'record_shell_field_edit',
+      })
+      fieldVerificationStates.value = {
+        ...fieldVerificationStates.value,
+        [verificationFieldName]: 'verified',
+      }
     }
     currentView.value = result?.view || currentView.value
     fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : fields.value
