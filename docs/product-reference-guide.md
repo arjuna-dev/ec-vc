@@ -228,6 +228,28 @@ Shared dialog rule:
 - it should not reinterpret grouped `L2` structure before handing payload into the dialog
 - if the dialog behaves differently between `L1`s because of different shell-side payload shaping, that is a contract bug
 
+Observed evidence rule:
+
+- when documenting shell drift, keep the observed behavior separate from the hypothesized cause
+- in this case, the direct observation was:
+  - the shared edit dialog rendered different subgroup behavior depending on the `L1` source it was launched from
+- that observation should be treated as evidence
+- the explanation of why it happened should only be promoted to fact after the payload path is verified
+
+Why a shared payload builder matters:
+
+- the app already has canonical `L1-L2-L3` structure, but shells still need one shared translation layer that turns that structure into the exact payload consumed by the shell
+- centralizing that translation improves:
+  - consistency
+  - speed of change
+  - lower break risk
+  - cleaner action handling at scale
+- it also reduces:
+  - repeated local transforms
+  - hidden grouping drift
+  - ownership drift
+  - write/read drift between surfaces
+
 ## Token Behavior Language
 
 Canonical structure should keep moving toward explicit token behavior at the `L3` level.

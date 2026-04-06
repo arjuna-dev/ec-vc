@@ -301,6 +301,79 @@ Instead:
 
 The intake state should be shared above individual dialogs.
 
+Shared shell payload relevance:
+
+- as shared intake and create flows grow, shell payload translation should happen once instead of being repeated in page-local launch paths
+- the practical long-term benefit is:
+  - consistency
+  - speed of change
+  - lower break risk
+  - cleaner action handling at scale
+
+More concretely:
+
+1. Less drift as the app grows
+
+- if many `L1`s, many `L2`s, and many actions all use one payload builder:
+  - new entities behave predictably
+  - grouped sections behave the same everywhere
+  - the app does not keep re-solving the same rendering problem
+
+2. Better performance discipline
+
+- when translation from canon into shell payload happens in one place:
+  - that path can be optimized once
+  - cached once
+  - normalized once
+  - and not repeated across multiple shell surfaces
+
+3. Safer action systems
+
+- for edit
+- verify
+- copy
+- relationship actions
+- history logging
+
+- one shared payload builder keeps all shells acting on:
+  - the same addresses
+  - the same field definitions
+  - the same ownership and write targets
+
+4. Easier debugging
+
+- with large data systems, centralized payload building lets the team ask:
+  - did canon define it wrong
+  - did the builder translate it wrong
+  - or did the renderer display it wrong
+
+5. Faster future feature work
+
+- later features such as:
+  - permissions
+  - bulk editing
+  - richer verification
+  - action logs
+  - companion guidance
+  - ingestion overlays
+  can be attached to one payload contract instead of being retrofitted into many surfaces
+
+6. More trustworthy database-facing behavior
+
+- if shells locally reinterpret structure over time:
+  - writes drift
+  - reads drift
+  - grouping drift appears
+  - ownership assumptions drift
+
+- one shared payload builder helps preserve:
+  - one read shape
+  - one write shape
+  - one interaction shape
+
+- at scale, this is not just cleaner code
+- it is a more stable operational system with fewer hidden inconsistencies and lower risk that interaction logic collapses under growth
+
 ### Shared Owner
 
 Recommended owner:

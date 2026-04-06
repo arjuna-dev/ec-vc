@@ -222,6 +222,29 @@ Shared dialog shell rule:
 - if one surface sends grouped subsection payloads and another sends flat section payloads, that is shell drift, not an acceptable variation
 - page-level payload shaping for the shared dialog should be treated as architectural debt unless it is identical across shell surfaces
 
+Correct evidence statement:
+
+- the observed evidence was that the shared edit dialog behaved differently depending on which `L1` source launched it
+- that observation should be kept separate from any later hypothesis about which shell path caused the drift
+- architectural conclusions should only be stated as fact after the payload path is actually traced
+
+Payload builder relevance:
+
+- a shared payload builder matters because canonical `L1-L2-L3` structure alone does not automatically guarantee one shell-ready render shape
+- the builder is the last-mile translation from canon into the exact shell payload
+- long-term, that improves:
+  - consistency
+  - speed of change
+  - lower break risk
+  - cleaner action handling at scale
+- it also gives the app:
+  - less drift as more `L1`s and actions are added
+  - better performance discipline by centralizing transformation
+  - safer action systems through shared addresses and write targets
+  - easier debugging
+  - faster future feature work
+  - more trustworthy database-facing behavior
+
 Shell styling rule:
 
 - shell styling must stay fixed at shell level
