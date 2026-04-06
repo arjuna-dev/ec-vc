@@ -629,12 +629,12 @@ const testShellNavigationItems = [
   { label: 'BB Shell', to: '/bb-file', exact: true, icon: 'dashboard_customize' },
   { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
   { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
+  { label: 'Add/Edit BB Shell', to: '/bb-shell', exact: true, icon: 'dashboard_customize' },
   { label: 'Add/Edit File Shell', to: '/file-dialog-shell', exact: true, icon: 'web_asset' },
   { label: 'Add/Edit Record Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
   { label: 'Ingestion Shell', to: '/ingestion-shell', exact: true, icon: 'hourglass_top' },
   { label: 'Fork Shell', to: '/fork-shell', exact: true, icon: 'call_split' },
   { label: 'Building Blocks', to: '/building-blocks', exact: true, icon: 'widgets' },
-  { label: 'Add/Edit BB Shell', to: '/bb-shell', exact: true, icon: 'dashboard_customize' },
 ].map((item) => ({
   ...item,
   itemClass: 'ec-nav-item--secondary ec-nav-item--shell-child',
