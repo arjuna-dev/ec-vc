@@ -43,6 +43,104 @@
         />
       </div>
 
+      <template v-else-if="isEventShellMode">
+      <ShellSectionToolbar
+        v-if="eventShellNavItems.length"
+        v-model="activeSectionKeyForCards"
+        aria-label="Event sections"
+        :items="eventShellNavItems"
+        :view-mode="viewMode"
+        :view-options="viewOptions"
+        @update:view-mode="viewMode = $event"
+      />
+
+      <q-banner v-if="error" class="bg-red-2 text-black" rounded>
+        {{ error }}
+      </q-banner>
+
+      <q-banner
+        v-if="!loading && displayRows.length === 0"
+        class="test-shell-empty-state bg-grey-1 text-black"
+        rounded
+      >
+        No events yet.
+      </q-banner>
+
+      <section v-else class="event-shell__panel">
+        <div class="event-shell__panel-head">
+          <div class="event-shell__panel-title">{{ activeSection?.label || 'General' }}</div>
+          <div class="event-shell__panel-meta">{{ activeSectionTokens.length }} fields</div>
+        </div>
+
+        <div v-if="!activeSectionTokens.length" class="event-shell__empty">
+          No fields declared for this section.
+        </div>
+
+        <div v-else-if="viewMode === 'card'" class="event-shell__grid">
+          <article v-for="row in displayRows" :key="row.cardId" class="event-shell__card">
+            <div class="event-shell__card-top">
+              <div class="event-shell__card-title">{{ row.titleValue || 'Event' }}</div>
+              <button type="button" class="event-shell__card-open" aria-label="Open event" @click="openRecordView(row)">
+                <q-icon name="open_in_new" size="13px" />
+              </button>
+            </div>
+
+            <div class="event-shell__card-meta">{{ row.raw?.edited_at || 'Recent' }}</div>
+
+            <div class="event-shell__field-grid">
+              <div v-for="token in activeSectionTokens" :key="`${row.cardId}:${token.key}`" class="event-shell__field-card">
+                <div class="event-shell__field-label">{{ token.label }}</div>
+                <div v-if="eventTokenItems(row, token).length" class="event-shell__chip-list">
+                  <span
+                    v-for="item in eventTokenItems(row, token)"
+                    :key="`${row.cardId}:${token.key}:${item}`"
+                    class="event-shell__chip"
+                  >
+                    {{ item }}
+                  </span>
+                </div>
+                <div v-else class="event-shell__field-value" :class="{ 'event-shell__field-value--empty': !eventTokenDisplayValue(row, token) }">
+                  {{ eventTokenDisplayValue(row, token) || 'No value yet' }}
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div v-else class="event-shell__list">
+          <article v-for="row in displayRows" :key="row.cardId" class="event-shell__list-row">
+            <div class="event-shell__list-row-head">
+              <div class="event-shell__card-title">{{ row.titleValue || 'Event' }}</div>
+              <div class="event-shell__list-row-actions">
+                <div class="event-shell__card-meta">{{ row.raw?.edited_at || 'Recent' }}</div>
+                <button type="button" class="event-shell__card-open" aria-label="Open event" @click="openRecordView(row)">
+                  <q-icon name="open_in_new" size="13px" />
+                </button>
+              </div>
+            </div>
+
+            <div class="event-shell__field-grid event-shell__field-grid--list">
+              <div v-for="token in activeSectionTokens" :key="`${row.cardId}:${token.key}`" class="event-shell__field-card">
+                <div class="event-shell__field-label">{{ token.label }}</div>
+                <div v-if="eventTokenItems(row, token).length" class="event-shell__chip-list">
+                  <span
+                    v-for="item in eventTokenItems(row, token)"
+                    :key="`${row.cardId}:${token.key}:${item}`"
+                    class="event-shell__chip"
+                  >
+                    {{ item }}
+                  </span>
+                </div>
+                <div v-else class="event-shell__field-value" :class="{ 'event-shell__field-value--empty': !eventTokenDisplayValue(row, token) }">
+                  {{ eventTokenDisplayValue(row, token) || 'No value yet' }}
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+      </template>
+
       <template v-else>
       <FilePageToolbar
         :all-visible-selected="allVisibleSelected"
@@ -602,6 +700,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
+import ShellSectionToolbar from 'components/ShellSectionToolbar.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
 import {
   buildCardRelationshipItems,
@@ -794,6 +893,7 @@ const hasSupportedBridge = computed(() => {
   if (!activeLoader.value) return false
   return typeof activeLoader.value.listFn(bridge.value) !== 'undefined'
 })
+const isEventShellMode = computed(() => activeSourceKey.value === 'events' && !isRecordShellMode.value)
 const supportsActiveSourceEditing = computed(() => activeSourceKey.value !== 'events')
 
 const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
@@ -1382,7 +1482,35 @@ const tableRightSections = computed(() =>
     return label === 'kdb' || label === 'system'
   }),
 )
+const eventShellNavItems = computed(() => [
+  ...tableLeftSections.value.map((section) => ({
+    value: section.key,
+    title: section.label,
+    isKdb: false,
+    isSystem: false,
+    pushRight: false,
+  })),
+  ...tableRightSections.value.map((section, index) => {
+    const normalized = String(section.label || '').trim().toLowerCase()
+    return {
+      value: section.key,
+      title: section.label,
+      isKdb: normalized === 'kdb',
+      isSystem: normalized === 'system',
+      pushRight: index === 0,
+    }
+  }),
+])
 const summarySectionShellOptions = Object.freeze(buildCardRelationshipOptions())
+
+function getDefaultActiveSectionKey(sections = []) {
+  const normalizedSections = Array.isArray(sections) ? sections : []
+  if (activeSourceKey.value === 'events') {
+    const generalSection = normalizedSections.find((section) => String(section?.label || '').trim().toLowerCase() === 'general')
+    if (generalSection?.key) return generalSection.key
+  }
+  return normalizedSections[0]?.key || ''
+}
 
 watch(
   activeSourceKey,
@@ -1392,7 +1520,7 @@ watch(
     activeFilterTokenKey.value = ''
     expandedFilterSectionKey.value = ''
     await loadRows()
-    activeSectionKeyForCards.value = level2Sections.value[0]?.key || ''
+    activeSectionKeyForCards.value = getDefaultActiveSectionKey(level2Sections.value)
   },
   { immediate: true },
 )
@@ -1401,7 +1529,7 @@ watch(
   level2Sections,
   (sections) => {
     if (!sections.some((section) => section.key === activeSectionKeyForCards.value)) {
-      activeSectionKeyForCards.value = sections[0]?.key || ''
+      activeSectionKeyForCards.value = getDefaultActiveSectionKey(sections)
     }
   },
   { immediate: true },
@@ -1779,6 +1907,22 @@ function getKdbDisplayItems(tokenRow) {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
+}
+
+function getEventTokenRawValue(row, token) {
+  return getCanonicalTokenValue(row?.raw || {}, token || {})
+}
+
+function eventTokenItems(row, token) {
+  const rawValue = getEventTokenRawValue(row, token)
+  if (Array.isArray(rawValue)) return rawValue.map((item) => stringifyValue(item)).filter(Boolean)
+  return []
+}
+
+function eventTokenDisplayValue(row, token) {
+  const rawValue = getEventTokenRawValue(row, token)
+  if (Array.isArray(rawValue)) return rawValue.map((item) => stringifyValue(item)).filter(Boolean).join(', ')
+  return stringifyValue(rawValue)
 }
 
 function getActiveRelationshipItems(row) {
@@ -3718,6 +3862,155 @@ async function handleSelectedRowsDelete() {
   margin-top: 6px;
   color: var(--ds-color-text-secondary);
   font-size: 0.78rem;
+}
+
+.event-shell__panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.event-shell__panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.event-shell__panel-title {
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 0.94rem;
+  font-weight: var(--font-weight-black);
+  line-height: 0.96;
+}
+
+.event-shell__panel-meta,
+.event-shell__card-meta {
+  color: rgba(17, 17, 17, 0.54);
+  font-size: 0.72rem;
+}
+
+.event-shell__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.event-shell__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-shell__card,
+.event-shell__list-row {
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.event-shell__card-top,
+.event-shell__list-row-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.event-shell__list-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.event-shell__card-title {
+  font-weight: 700;
+  color: #111111;
+  line-height: 1.2;
+}
+
+.event-shell__card-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #111111;
+  cursor: pointer;
+}
+
+.event-shell__card-open:hover {
+  background: rgba(17, 17, 17, 0.06);
+}
+
+.event-shell__field-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.event-shell__field-grid--list {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.event-shell__field-card {
+  padding: 10px 12px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 10px;
+  background: rgba(17, 17, 17, 0.02);
+}
+
+.event-shell__field-label {
+  color: #6f6f6f;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.event-shell__field-value {
+  margin-top: 6px;
+  color: #1c1c1c;
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.event-shell__field-value--empty {
+  color: #8a8a8a;
+}
+
+.event-shell__chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.event-shell__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.06);
+  color: #1c1c1c;
+  font-size: 0.82rem;
+}
+
+.event-shell__empty {
+  padding: 18px;
+  border: 1px dashed rgba(17, 17, 17, 0.16);
+  border-radius: 18px;
+  color: #777777;
+  background: rgba(255, 255, 255, 0.72);
 }
 
 @media (max-width: 900px) {

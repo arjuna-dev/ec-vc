@@ -264,34 +264,15 @@
         </div>
       </section>
 
-      <section v-if="recordShellNavItems.length" class="contact-databook__nav" aria-label="Record sections">
-        <button
-          v-for="section in recordShellNavItems"
-          :key="section.value"
-          type="button"
-          class="contact-databook__nav-item"
-          :class="{
-            'contact-databook__nav-item--active': activeSectionKey === section.value,
-            'contact-databook__nav-item--kdb': section.isKdb,
-            'contact-databook__nav-item--system': section.isSystem,
-            'contact-databook__nav-item--push-right': section.pushRight,
-          }"
-          @click="activeSectionKey = section.value"
-        >
-          <span class="contact-databook__nav-item-label">{{ section.title }}</span>
-          <q-icon v-if="section.isKdb" name="share" size="14px" class="contact-databook__nav-item-icon" />
-        </button>
-        <q-btn-toggle
-          v-model="recordShellTopNavViewMode"
-          dense
-          unelevated
-          toggle-color="primary"
-          color="grey-3"
-          text-color="grey-8"
-          class="contact-section-card__view-toggle contact-databook__nav-view-toggle"
-          :options="CONTACT_KDB_VIEW_OPTIONS"
-        />
-      </section>
+      <ShellSectionToolbar
+        v-if="recordShellNavItems.length"
+        v-model="activeSectionKey"
+        aria-label="Record sections"
+        :items="recordShellNavItems"
+        :view-mode="recordShellTopNavViewMode"
+        :view-options="CONTACT_KDB_VIEW_OPTIONS"
+        @update:view-mode="recordShellTopNavViewMode = $event"
+      />
 
       <section class="record-shell__panel">
         <div class="record-shell__panel-head">
@@ -623,6 +604,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
+import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import {
   CANONICAL_OPTION_LISTS,
   getCanonicalTokenFieldNames,
@@ -2231,112 +2213,6 @@ function onContactHeroPointerLeave() {
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-regular);
   line-height: var(--ds-line-height-xs);
-}
-.contact-databook__nav {
-  position: sticky;
-  top: 76px;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 12px;
-  background: var(--ds-color-surface-base-88);
-  border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-xl);
-  backdrop-filter: blur(14px);
-}
-
-.contact-databook__nav-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  color: #4f4f4f;
-  cursor: pointer;
-  background: transparent;
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 10px;
-  font-family: var(--font-body);
-  font-size: var(--text-sm---medium);
-  font-weight: var(--font-weight-medium);
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.contact-databook__nav-item-icon {
-  opacity: 0.8;
-}
-
-.contact-databook__nav-item:hover {
-  color: #111;
-  background: rgba(255, 85, 33, 0.08);
-  border-color: rgba(255, 85, 33, 0.2);
-  transform: translateY(-1px);
-}
-
-.contact-databook__nav-item--active {
-  color: #fff;
-  background: #111;
-  border-color: #111;
-}
-
-.contact-databook__nav-item--kdb {
-  border-color: rgba(17, 17, 17, 0.16);
-}
-
-.contact-databook__nav-item--system {
-  border-color: rgba(17, 17, 17, 0.22);
-}
-
-.contact-databook__nav-item--kdb,
-.contact-databook__nav-item--system {
-  height: 26px;
-  min-height: 26px;
-  padding: 0 10px;
-  border-radius: 8px;
-}
-
-.contact-databook__nav-item--kdb .contact-databook__nav-item-label,
-.contact-databook__nav-item--system .contact-databook__nav-item-label {
-  font-size: calc(var(--text-sm---medium) * 0.72);
-}
-
-.contact-databook__nav-item--kdb .contact-databook__nav-item-icon {
-  font-size: 12px !important;
-}
-
-.contact-databook__nav-item--push-right {
-  margin-left: 0;
-  align-self: center;
-}
-
-.contact-databook__nav-view-toggle {
-  align-self: center;
-  margin-left: 6px;
-  order: 999;
-}
-
-.contact-databook__nav-view-toggle :deep(.q-btn-group) {
-  gap: 0;
-}
-
-.contact-databook__nav-view-toggle :deep(.q-btn) {
-  min-width: 20px;
-  min-height: 20px;
-  padding: 0 2px;
-  border-radius: 5px;
-}
-
-.contact-databook__nav-view-toggle :deep(.q-icon) {
-  font-size: 14px;
-}
-
-.contact-databook__nav-item:not(.contact-databook__nav-item--push-right) + .contact-databook__nav-item--push-right {
-  margin-left: auto;
 }
 .record-shell__panel { display:grid; gap:12px; padding:16px; border:1px solid rgba(17,17,17,.08); border-radius:8px; background:rgba(255,255,255,.96); }
 .record-shell__panel-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
