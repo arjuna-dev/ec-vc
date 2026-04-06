@@ -559,7 +559,7 @@ const mainNavigationItems = [
   itemClass: 'ec-nav-item--primary',
   iconSize: '22px',
 }))
-const workspaceFileNavItems = WORKSPACE_FILE_NAV_ITEMS.filter((item) => item.to !== '/roles')
+const workspaceFileNavItems = WORKSPACE_FILE_NAV_ITEMS.filter((item) => item.to !== '/roles' && item.to !== '/companion-roles')
 const companiesNavIndex = workspaceFileNavItems.findIndex((item) => item.to === '/companies')
 
 if (companiesNavIndex >= 0) {
@@ -580,6 +580,14 @@ const workspaceNavigationItems = [
     to: '/roles',
     exact: true,
     icon: 'theater_comedy',
+    parentKey: 'knowledge-dbs',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
+  },
+  {
+    label: 'Companion Roles',
+    to: '/companion-roles',
+    exact: true,
+    icon: 'smart_toy',
     parentKey: 'knowledge-dbs',
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
@@ -645,6 +653,7 @@ const routeLabelByName = {
   'dialog-shell': 'Add/Edit Shell',
   'ingestion-shell': 'Ingestion Shell',
   roles: 'User Roles',
+  'companion-roles': 'Companion Roles',
   avatar: 'Companion',
   'user-settings': 'Owner',
   pipelines: 'Projects',

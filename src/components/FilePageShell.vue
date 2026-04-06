@@ -854,6 +854,11 @@ const SECTION_LOADERS = {
     resultKey: 'roles',
     recordIdField: 'id',
   },
+  'companion-roles': {
+    listFn: (bridgeValue) => bridgeValue?.['companion-roles']?.list?.() ?? { companionRoles: [] },
+    resultKey: 'companionRoles',
+    recordIdField: 'id',
+  },
   'artifacts-processed': {
     listFn: (bridgeValue) => bridgeValue?.['artifacts-processed']?.list?.(),
     resultKey: 'artifactsProcessed',

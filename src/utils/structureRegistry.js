@@ -66,6 +66,18 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     shellGroup: 'knowledge_db',
   },
+  Companion_Roles: {
+    key: 'companion-roles',
+    label: 'Companion Roles',
+    singularLabel: 'Companion Role',
+    routeName: 'companion-roles',
+    path: '/companion-roles',
+    icon: 'smart_toy',
+    showInWorkspaceNav: true,
+    shellGroup: 'knowledge_db',
+    canonicalEntityName: 'Roles',
+    runtimeEntityName: 'Companion_Roles',
+  },
   Financial_Industries: {
     key: 'industries',
     label: 'Markets',
@@ -98,7 +110,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   },
 })
 
-const FILE_PAGE_ENTITY_ORDER = ['Events', 'Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Roles', 'Financial_Industries', 'Round_Securities', 'Artifacts_Processed']
+const FILE_PAGE_ENTITY_ORDER = ['Events', 'Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Roles', 'Companion_Roles', 'Financial_Industries', 'Round_Securities', 'Artifacts_Processed']
 
 function normalizeSubsections(entity) {
   const subsections = entity?.subsections
@@ -179,7 +191,9 @@ function buildEntityRegistry(entityName) {
   const meta = FILE_PAGE_ROUTE_META[entityName]
   if (!meta) return null
 
-  const sourceEntity = canonicalEntitiesByName[entityName]
+  const canonicalEntityName = String(meta.canonicalEntityName || entityName).trim()
+  const runtimeEntityName = String(meta.runtimeEntityName || entityName).trim()
+  const sourceEntity = canonicalEntitiesByName[canonicalEntityName]
   if (!sourceEntity) return null
 
   const subsections = normalizeSubsections(sourceEntity)
@@ -222,7 +236,8 @@ function buildEntityRegistry(entityName) {
 
   return {
     ...meta,
-    entityName,
+    entityName: runtimeEntityName,
+    canonicalEntityName,
     level_1: String(sourceEntity?.level_1 || resolveAddressPart(sourceEntity?.entity_address, 0) || '').trim(),
     address: String(sourceEntity?.entity_address || '').trim(),
     structureToken: String(sourceEntity?.structure_token?.token_name || sourceEntity?.structure_token || '').trim(),
@@ -288,7 +303,7 @@ export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
   ),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'roles', 'industries', 'securities', 'artifacts-processed']
+const TEST_SHELL_RENDERABLE_KEYS = ['events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'roles', 'companion-roles', 'industries', 'securities', 'artifacts-processed']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({
@@ -348,8 +363,14 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     'financial industries': 'Industries',
     artifacts: 'Artifacts',
     artifact: 'Artifacts',
-    roles: 'User Roles',
-    role: 'User Roles',
+    roles: 'Roles',
+    role: 'Roles',
+    user_roles: 'Roles',
+    'user roles': 'Roles',
+    companion_roles: 'Companion_Roles',
+    'companion roles': 'Companion_Roles',
+    'companion-role': 'Companion_Roles',
+    'companion role': 'Companion_Roles',
     opportunities: 'Opportunities',
     opportunity: 'Opportunities',
     funds: 'Funds',
