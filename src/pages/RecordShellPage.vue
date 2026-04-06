@@ -333,7 +333,7 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import CreateRecordShellDialog from 'src/components/CreateRecordShellDialog.vue'
 import {
   CANONICAL_OPTION_LISTS,
@@ -344,9 +344,9 @@ import {
   LEVEL_3_FILE_REGISTRY_BY_KEY,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
+import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 
 const route = useRoute()
-const router = useRouter()
 const $q = useQuasar()
 const CONTACT_KDB_VIEW_OPTIONS = [
   { value: 'grid', icon: 'grid_view' },
@@ -370,6 +370,7 @@ const loading = ref(false)
 const error = ref('')
 const currentView = ref(null)
 const fields = ref([])
+const heroFieldKeysBySource = ref(loadShellFieldSelectionMap())
 const tableNameParam = computed(() => String(route.params.tableName || '').trim())
 const recordIdParam = computed(() => String(route.params.recordId || '').trim())
 const isRecordRoute = computed(() => Boolean(tableNameParam.value && recordIdParam.value))
@@ -402,16 +403,16 @@ const selectableTokens = computed(() =>
 
 const selectedTokenKeys = computed({
   get() {
-    const raw = route.query.l3
-    const values = raw == null || raw === ''
-      ? getDefaultSelectedTokenKeys()
-      : (Array.isArray(raw) ? raw : String(raw || '').split(','))
+    const values = Array.isArray(heroFieldKeysBySource.value[activeSourceKey.value]) ? heroFieldKeysBySource.value[activeSourceKey.value] : []
     const allowed = new Set(selectableTokens.value.map((token) => token.key))
     return values.map((value) => String(value || '').trim()).filter((value) => value && allowed.has(value))
   },
   set(value) {
     const normalized = Array.from(new Set((Array.isArray(value) ? value : []).map((item) => String(item || '').trim()).filter(Boolean)))
-    router.replace({ query: { ...route.query, section: activeSourceKey.value, ...(normalized.length ? { l3: normalized.join(',') } : { l3: undefined }) } })
+    heroFieldKeysBySource.value = {
+      ...heroFieldKeysBySource.value,
+      [activeSourceKey.value]: normalized,
+    }
   },
 })
 
@@ -439,30 +440,20 @@ const toolbarLeftSections = computed(() => level2Sections.value.filter((section)
 const toolbarRightSections = computed(() => level2Sections.value.filter((section) => ['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
 
 const heroInitials = computed(() => String(activeRegistryEntry.value?.singularLabel || 'Record').slice(0, 2).toUpperCase())
-const structuredRecordThemeMap = {
-  users: { strong: 'rgba(31, 111, 235, 0.2)', soft: 'rgba(31, 111, 235, 0.14)', fade: 'rgba(31, 111, 235, 0.06)' },
-  artifacts: { strong: 'rgba(147, 51, 234, 0.2)', soft: 'rgba(147, 51, 234, 0.14)', fade: 'rgba(147, 51, 234, 0.06)' },
-  opportunities: { strong: 'rgba(249, 115, 22, 0.2)', soft: 'rgba(249, 115, 22, 0.14)', fade: 'rgba(249, 115, 22, 0.06)' },
-  funds: { strong: 'rgba(16, 185, 129, 0.2)', soft: 'rgba(16, 185, 129, 0.14)', fade: 'rgba(16, 185, 129, 0.06)' },
-  rounds: { strong: 'rgba(245, 158, 11, 0.2)', soft: 'rgba(245, 158, 11, 0.14)', fade: 'rgba(245, 158, 11, 0.06)' },
-  projects: { strong: 'rgba(37, 99, 235, 0.2)', soft: 'rgba(37, 99, 235, 0.14)', fade: 'rgba(37, 99, 235, 0.06)' },
-  pipelines: { strong: 'rgba(37, 99, 235, 0.2)', soft: 'rgba(37, 99, 235, 0.14)', fade: 'rgba(37, 99, 235, 0.06)' },
-}
 const structuredRecordHeroStyle = computed(() => {
-  const theme = structuredRecordThemeMap[activeSourceKey.value] || structuredRecordThemeMap.users
   return {
     '--contact-hero-blob-x': `${contactHeroGradient.value.x}%`,
     '--contact-hero-blob-y': `${contactHeroGradient.value.y}%`,
     '--contact-hero-blob-size': `${contactHeroGradient.value.size}%`,
     '--contact-hero-blob-opacity': String(contactHeroGradient.value.opacity),
-    '--contact-hero-blob-strong': theme.strong,
-    '--contact-hero-blob-soft': theme.soft,
-    '--contact-hero-blob-fade': theme.fade,
+    '--contact-hero-blob-strong': 'rgba(38, 71, 255, 0.2)',
+    '--contact-hero-blob-soft': 'rgba(38, 71, 255, 0.14)',
+    '--contact-hero-blob-fade': 'rgba(38, 71, 255, 0.06)',
   }
 })
 const heroAvatarColor = computed(() => {
   const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
-  return palette[Math.abs(hashString(`${activeSourceKey.value}:${heroName.value}`)) % palette.length]
+  return palette[Math.abs(hashString(heroName.value)) % palette.length]
 })
 const heroName = computed(() => getTokenDisplayValue(canonicalNameToken.value) || `${activeRegistryEntry.value?.singularLabel || 'Record'} Name`)
 const heroSubtitle = computed(() => {
@@ -560,6 +551,38 @@ watch(level2Sections, (sections) => {
 }, { immediate: true })
 
 watch(activeSourceKey, async () => { await ensureLiveOptionsLoaded() }, { immediate: true })
+watch(
+  [activeSourceKey, selectableTokens],
+  () => {
+    const sourceKey = activeSourceKey.value
+    const allowedKeys = new Set(selectableTokens.value.map((token) => token.key))
+    const existing = Array.isArray(heroFieldKeysBySource.value[sourceKey]) ? heroFieldKeysBySource.value[sourceKey] : []
+    const normalized = existing.filter((key) => allowedKeys.has(key))
+
+    if (normalized.length) {
+      if (normalized.length !== existing.length) {
+        heroFieldKeysBySource.value = {
+          ...heroFieldKeysBySource.value,
+          [sourceKey]: normalized,
+        }
+      }
+      return
+    }
+
+    heroFieldKeysBySource.value = {
+      ...heroFieldKeysBySource.value,
+      [sourceKey]: selectableTokens.value.slice(0, 4).map((token) => token.key),
+    }
+  },
+  { immediate: true },
+)
+watch(
+  heroFieldKeysBySource,
+  (value) => {
+    persistShellFieldSelectionMap(value)
+  },
+  { deep: true },
+)
 watch(
   () => `${tableNameParam.value}:${recordIdParam.value}`,
   () => {
@@ -783,23 +806,6 @@ function normalizeListResult(result) {
   if (!result || typeof result !== 'object') return []
   const firstArray = Object.values(result).find((value) => Array.isArray(value))
   return Array.isArray(firstArray) ? firstArray : []
-}
-
-function getDefaultSelectedTokenKeys() {
-  if (activeSourceKey.value === 'users') {
-    const preferred = selectableTokens.value
-      .filter((token) => {
-        const aliases = getCanonicalTokenFieldNames(token).map((value) => String(value || '').trim())
-        const tokenName = String(token?.tokenName || '').trim()
-        return aliases.includes('User_PEmail')
-          || aliases.includes('Role_Name')
-          || aliases.includes('id')
-          || tokenName === 'User_Role'
-      })
-      .map((token) => token.key)
-    if (preferred.length) return preferred
-  }
-  return selectableTokens.value.slice(0, 3).map((token) => token.key)
 }
 
 function resolveSourceKeyFromTableName(tableName) {

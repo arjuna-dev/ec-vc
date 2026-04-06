@@ -97,6 +97,13 @@ The currently approved middle hero contract is:
   - top row: label + `L2` description
   - bottom row: current value + status icon
 
+Shared selection rule:
+
+- the selected middle-field set belongs to the shared shell contract
+- `File Shell` card settings and `Record Shell` hero settings should read the same per-`L1` field-selection state
+- changing the selected middle fields in one shell should be reflected in the other
+- do not maintain separate card-only and record-only field-selection memories
+
 Working interaction rule:
 
 - `Record View` should move toward live editing inside the shell itself

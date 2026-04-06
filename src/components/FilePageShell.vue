@@ -622,6 +622,7 @@ import {
 import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipContracts'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
+import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 
 const props = defineProps({
   shellMode: {
@@ -663,7 +664,7 @@ let queuedCreateDialogSnapshot = null
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
-const cardItemKeysBySource = ref({})
+const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
@@ -1478,6 +1479,14 @@ watch(
     }
   },
   { immediate: true },
+)
+
+watch(
+  cardItemKeysBySource,
+  (value) => {
+    persistShellFieldSelectionMap(value)
+  },
+  { deep: true },
 )
 
 watch(

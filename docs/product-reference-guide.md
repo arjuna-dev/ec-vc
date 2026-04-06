@@ -497,6 +497,12 @@ Interaction direction:
 - fields should move toward direct in-place editing
 - the plus action should be used to add a new record, not to enter an edit dialog for the current record
 
+Shared middle-field rule:
+
+- the selected middle fields should be remembered per `L1`
+- that remembered selection should be shared between `File Shell` card settings and `Record Shell` hero settings
+- both shells should show the same chosen middle-field set for the same `L1`
+
 ## Record View Section Bar
 
 The section bar below the hero/dashboard is part of the `Record View` pattern.
