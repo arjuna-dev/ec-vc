@@ -958,6 +958,7 @@ const props = defineProps({
   showShellSelector: { type: Boolean, default: false },
   shellSelectorValue: { type: String, default: '' },
   shellSelectorOptions: { type: Array, default: () => [] },
+  preferAddLayout: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:modelValue', 'update:shellSelectorValue', 'submit', 'change', 'request-close'])
@@ -1156,6 +1157,8 @@ function initializeDialogState() {
   selectedUrlEntryIds.value = []
   selectedBlurbEntryIds.value = []
   expandedEntryIds.value = []
+  supportResourcesCollapsed.value = !props.preferAddLayout
+  recordDataCollapsed.value = Boolean(props.preferAddLayout)
   dialogWidth.value = 760
   dialogHeight.value = 780
   formValues.value = Object.fromEntries(

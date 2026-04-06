@@ -685,6 +685,7 @@
         :initial-section-key="createDialogInitialSectionKey"
         :initial-artifacts="createDialogInitialArtifacts"
         :artifact-context="createDialogArtifactContext"
+        :prefer-add-layout="createDialogPreferAddLayout"
         @change="handleCreateDialogChange"
         @request-close="handleCreateDialogClose"
         @submit="submitCreateRecordShell"
@@ -756,6 +757,7 @@ const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
 const createDialogMode = ref('create')
+const createDialogPreferAddLayout = ref(false)
 const editDialogRow = ref(null)
 const editDialogRecordPayload = ref(null)
 const createDialogDraftRecordId = ref('')
@@ -2125,6 +2127,7 @@ function openCreateRecordShell(options = {}) {
   }
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'create'
+  createDialogPreferAddLayout.value = true
   editDialogRow.value = null
   editDialogRecordPayload.value = null
   createDialogInitialSectionKey.value = 'key-fields'
@@ -2140,6 +2143,7 @@ async function openEditRecordShell(row) {
   if (!row?.recordId) return
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
+  createDialogPreferAddLayout.value = false
   editDialogRow.value = row
   editDialogRecordPayload.value = null
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
@@ -2175,6 +2179,7 @@ async function openAddRelationShell(row) {
   if (!row?.recordId) return
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
+  createDialogPreferAddLayout.value = false
   editDialogRow.value = row
   editDialogRecordPayload.value = null
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
@@ -2314,6 +2319,7 @@ async function handleCreateDialogClose(snapshot) {
   await flushCreateDialogAutosave(snapshot, { immediate: true, reloadRows: true })
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'create'
+  createDialogPreferAddLayout.value = false
   editDialogRow.value = null
   editDialogRecordPayload.value = null
   createDialogInitialSectionKey.value = 'key-fields'

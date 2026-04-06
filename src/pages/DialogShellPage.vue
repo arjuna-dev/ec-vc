@@ -21,6 +21,7 @@
       :show-shell-selector="dialogMode !== 'edit'"
       :shell-selector-value="activeSourceKey"
       :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
+      :prefer-add-layout="isAddAction"
       :loading="dialogLoading"
       :submit-disabled="dialogMode === 'edit' ? !canEditWithShell : !canCreateWithShell"
       :initial-values="dialogInitialValues"
@@ -69,6 +70,7 @@ const dialogInitialFieldMeta = ref({})
 const dialogInitialSectionKey = ref('key-fields')
 const dialogRecordId = ref('')
 const dialogEntityName = ref('')
+const isAddAction = computed(() => dialogMode.value === 'create' && Boolean(String(route.query.create || '').trim()))
 
 const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section))
