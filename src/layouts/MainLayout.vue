@@ -16,7 +16,7 @@
           />
         </div>
 
-        <div v-if="isShellRoute" class="ec-shell-toolbar-center">
+        <div v-if="isSelectableShellRoute" class="ec-shell-toolbar-center">
           <div class="ec-shell-test-select-wrap">
             <span class="ec-shell-test-select__label">Live Link</span>
             <q-select
@@ -54,6 +54,15 @@
               @click.stop="openShellSectionMenu"
             />
           </div>
+        </div>
+        <div v-else-if="isDialogShellRoute" class="ec-shell-toolbar-center">
+          <button
+            type="button"
+            class="ec-shell-dialog-open-btn"
+            @click="reopenDialogShellFromHeader"
+          >
+            Open Dialog
+          </button>
         </div>
 
         <q-toolbar-title class="ec-shell-toolbar-title">
@@ -756,7 +765,8 @@ const toolbarActions = computed(() => {
 
   return []
 })
-const isShellRoute = computed(() => ['test-shell', 'record-shell', 'dialog-shell'].includes(String(route.name || '')))
+const isSelectableShellRoute = computed(() => ['test-shell', 'record-shell'].includes(String(route.name || '')))
+const isDialogShellRoute = computed(() => String(route.name || '') === 'dialog-shell')
 const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
 const selectedShellSection = computed({
   get() {
@@ -785,6 +795,11 @@ function openShellSectionMenu() {
   if (typeof select.focus === 'function') {
     select.focus()
   }
+}
+
+function reopenDialogShellFromHeader() {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
 }
 
 const quickWidgetStyle = computed(() => ({
@@ -1954,6 +1969,30 @@ function goBack() {
   justify-content: center;
   min-width: 0;
   padding-inline: 12px;
+}
+
+.ec-shell-dialog-open-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
+  color: #fff;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  cursor: pointer;
+}
+
+.ec-shell-dialog-open-btn:hover,
+.ec-shell-dialog-open-btn:focus-visible {
+  background: #111;
+  box-shadow: 0 0 0 1px #ffffff;
+  outline: none;
 }
 
 .ec-shell-test-select {

@@ -12,7 +12,6 @@
               v-if="showShellSelector && shellSelectorOptions.length"
               class="create-record-shell__shell-selector"
             >
-              <span class="create-record-shell__shell-selector-label">Live Link</span>
               <q-select
                 :model-value="shellSelectorValue"
                 dense
@@ -1755,33 +1754,24 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__shell-selector {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  width: max-content;
+  gap: 0;
+  width: min(220px, 100%);
   max-width: 100%;
-  flex: 0 0 auto;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #111;
-}
-
-.create-record-shell__shell-selector-label {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  padding-right: 18px;
+  overflow: visible;
 }
 
 .create-record-shell__shell-selector-control {
+  width: min(220px, 100%);
   min-width: 0;
-  width: max-content;
 }
 
 .create-record-shell__shell-selector-control :deep(.q-field__control) {
-  min-height: 22px;
-  padding: 0 2px 0 0;
+  min-height: 32px;
+  padding: 0;
 }
 
 .create-record-shell__shell-selector-control :deep(.q-field__native) {
@@ -1796,28 +1786,77 @@ onBeforeUnmount(() => {
 .create-record-shell__shell-selector-value {
   color: #fff;
   font-family: var(--font-title);
-  font-size: 0.94rem;
+  font-size: 1rem;
   font-weight: 800;
   line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
 }
 
 .create-record-shell__shell-selector-chevron {
-  color: #fff;
-  font-size: 16px;
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  z-index: 2;
+  color: #111111;
+  font-size: 20px;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
+  cursor: pointer;
 }
 
 .create-record-shell__shell-selector-option-label {
-  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 8px;
+  color: #ffffff;
+  background: #111111;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
+  font-family: var(--font-title);
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: -0.03em;
 }
 
 :global(.create-record-shell__shell-selector-menu) {
-  background: #111;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14) !important;
+  border: 1px solid rgba(17, 17, 17, 0.08) !important;
+}
+
+:global(.create-record-shell__shell-selector-menu .q-virtual-scroll__content),
+:global(.create-record-shell__shell-selector-menu .q-menu),
+:global(.create-record-shell__shell-selector-menu .q-list) {
+  background: #ffffff !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0;
 }
 
 :global(.create-record-shell__shell-selector-menu .q-item) {
-  min-height: 28px;
+  min-height: 34px;
+  padding: 4px 6px;
+  color: #ffffff;
+  background: transparent;
+}
+
+:global(.create-record-shell__shell-selector-menu .q-item.q-manual-focusable--focused),
+:global(.create-record-shell__shell-selector-menu .q-item--active) {
+  background: transparent;
+}
+
+:global(.create-record-shell__shell-selector-menu .q-item.q-manual-focusable--focused .create-record-shell__shell-selector-option-label),
+:global(.create-record-shell__shell-selector-menu .q-item--active .create-record-shell__shell-selector-option-label) {
+  background: #000000;
+  box-shadow: 0 0 0 1px #ffffff;
 }
 
 .create-record-shell__title {
