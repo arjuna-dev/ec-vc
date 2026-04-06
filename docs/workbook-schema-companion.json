@@ -218,19 +218,6 @@
             },
             {
               "index": "",
-              "level_3": "10",
-              "address": "1.2.10",
-              "token_name": "Artifact_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "1.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
               "level_3": "11",
               "address": "1.2.11",
               "token_name": "Artifact_Role",
@@ -548,19 +535,6 @@
               "parent_id": "2.2.0",
               "option_source": "live_entity",
               "option_entity": "Users",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
-              "level_3": "10",
-              "address": "2.2.10",
-              "token_name": "User_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "2.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -1000,19 +974,6 @@
             },
             {
               "index": "",
-              "level_3": "10",
-              "address": "3.4.10",
-              "token_name": "Contact_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "3.4.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
               "level_3": "11",
               "address": "3.4.11",
               "token_name": "Contact_Role",
@@ -1389,19 +1350,6 @@
               "parent_id": "4.2.0",
               "option_source": "live_entity",
               "option_entity": "Notes",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
-              "level_3": "10",
-              "address": "4.2.10",
-              "token_name": "Company_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "4.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -2645,19 +2593,6 @@
             },
             {
               "index": "",
-              "level_3": "10",
-              "address": "17.2.10",
-              "token_name": "Opportunity_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "17.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
               "level_3": "11",
               "address": "17.2.11",
               "token_name": "Opportunity_Role",
@@ -3084,19 +3019,6 @@
               "parent_id": "5.2.0",
               "option_source": "live_entity",
               "option_entity": "Notes",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
-              "level_3": "10",
-              "address": "5.2.10",
-              "token_name": "Fund_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "5.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -3704,19 +3626,6 @@
             },
             {
               "index": "",
-              "level_3": "9",
-              "address": "6.2.9",
-              "token_name": "Round_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "6.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
               "level_3": "10",
               "address": "6.2.10",
               "token_name": "Round_Round",
@@ -4285,19 +4194,6 @@
             },
             {
               "index": "",
-              "level_3": "10",
-              "address": "7.2.10",
-              "token_name": "Project_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "7.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
               "level_3": "11",
               "address": "7.2.11",
               "token_name": "Project_Role",
@@ -4843,19 +4739,6 @@
             },
             {
               "index": "",
-              "level_3": "10",
-              "address": "8.2.10",
-              "token_name": "Task_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "8.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
               "level_3": "11",
               "address": "8.2.11",
               "token_name": "Task_Role",
@@ -5308,19 +5191,6 @@
               "parent_id": "9.2.0",
               "option_source": "live_entity",
               "option_entity": "Notes",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
-              "level_3": "10",
-              "address": "9.2.10",
-              "token_name": "Note_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "9.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -6802,19 +6672,6 @@
             },
             {
               "index": "",
-              "level_3": "5",
-              "address": "18.2.5",
-              "token_name": "Financial_Industry_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "18.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
               "level_3": "6",
               "address": "18.2.6",
               "token_name": "Financial_Industry_Fund",
@@ -7098,19 +6955,6 @@
               "parent_id": "19.2.0",
               "option_source": "live_entity",
               "option_entity": "Companies",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
-              "level_3": "5",
-              "address": "19.2.5",
-              "token_name": "Round_Security_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "19.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -7423,19 +7267,6 @@
             },
             {
               "index": "",
-              "level_3": "5",
-              "address": "20.2.5",
-              "token_name": "Processed_Artifact_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "20.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
               "level_3": "6",
               "address": "20.2.6",
               "token_name": "Processed_Artifact_Fund",
@@ -7713,19 +7544,6 @@
               "parent_id": "21.2.0",
               "option_source": "live_entity",
               "option_entity": "Companies",
-              "relationship_group": "first_order"
-            },
-            {
-              "index": "",
-              "level_3": "5",
-              "address": "21.2.5",
-              "token_name": "Role_Opportunity",
-              "token_type": "select_multi",
-              "node_type": "leaf",
-              "level": "3",
-              "parent_id": "21.2.0",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {

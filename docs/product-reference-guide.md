@@ -591,6 +591,7 @@ For the opportunity lane:
 - shared fields should be owned by `Opportunities`
 - diverging `Economics` and `Controls` structures should remain subtype-owned instead of being forced into one fake shared section
 - create/add-record should ask the user which subtype route to take before opening the shared record dialog
+- while this parent contract remains abstract in runtime record snapshots, direct live KDB links should target `Funds` and `Rounds`, not `Opportunities`
 
 For every first-level canonical table:
 

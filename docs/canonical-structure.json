@@ -135,14 +135,6 @@
               "relationship_group": "first_order"
             },
             {
-              "address": "1.2.10",
-              "token_name": "Artifact_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
               "address": "1.2.11",
               "token_name": "Artifact_Role",
               "token_type": "select_multi",
@@ -329,14 +321,6 @@
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Users",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "2.2.10",
-              "token_name": "User_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -593,14 +577,6 @@
               "relationship_group": "first_order"
             },
             {
-              "address": "3.4.10",
-              "token_name": "Contact_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
               "address": "3.4.11",
               "token_name": "Contact_Role",
               "token_type": "select_multi",
@@ -807,14 +783,6 @@
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Notes",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "4.2.10",
-              "token_name": "Company_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -1500,14 +1468,6 @@
               "relationship_group": "first_order"
             },
             {
-              "address": "17.2.10",
-              "token_name": "Opportunity_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
               "address": "17.2.11",
               "token_name": "Opportunity_Role",
               "token_type": "select_multi",
@@ -1758,14 +1718,6 @@
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Notes",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "5.2.10",
-              "token_name": "Fund_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -2095,14 +2047,6 @@
               "relationship_group": "first_order"
             },
             {
-              "address": "6.2.9",
-              "token_name": "Round_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
               "address": "6.2.10",
               "token_name": "Round_Round",
               "token_type": "select_multi",
@@ -2406,14 +2350,6 @@
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Notes",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "7.2.10",
-              "token_name": "Project_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -2735,14 +2671,6 @@
               "relationship_group": "first_order"
             },
             {
-              "address": "8.2.10",
-              "token_name": "Task_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
               "address": "8.2.11",
               "token_name": "Task_Role",
               "token_type": "select_multi",
@@ -3004,14 +2932,6 @@
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Notes",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "9.2.10",
-              "token_name": "Note_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -3757,14 +3677,6 @@
               "relationship_group": "first_order"
             },
             {
-              "address": "18.2.5",
-              "token_name": "Financial_Industry_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
               "address": "18.2.6",
               "token_name": "Financial_Industry_Fund",
               "token_type": "select_multi",
@@ -3927,14 +3839,6 @@
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Companies",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "19.2.5",
-              "token_name": "Round_Security_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {
@@ -4114,14 +4018,6 @@
               "relationship_group": "first_order"
             },
             {
-              "address": "20.2.5",
-              "token_name": "Processed_Artifact_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
-              "relationship_group": "first_order"
-            },
-            {
               "address": "20.2.6",
               "token_name": "Processed_Artifact_Fund",
               "token_type": "select_multi",
@@ -4278,14 +4174,6 @@
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Companies",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "21.2.5",
-              "token_name": "Role_Opportunity",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Opportunities",
               "relationship_group": "first_order"
             },
             {

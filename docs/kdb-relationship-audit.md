@@ -39,7 +39,6 @@ The current visible shared interlinked set is:
 - `Artifacts`
 - `Contacts`
 - `Companies`
-- `Opportunities`
 - `Funds`
 - `Rounds`
 - `Projects`
@@ -55,6 +54,11 @@ Current canon status:
 - all of the above now have `System`
 - all of the above now have `KDB`
 - all of the above now declare KDB links to the full visible shared interlinked set
+
+Current exception:
+
+- `Opportunities` remains a parent shell concept over `Funds` and `Rounds`
+- it should not currently be treated as a direct live KDB target until it has a true runtime-backed table/view contract in record snapshots
 
 ### Basic Structure Baseline
 

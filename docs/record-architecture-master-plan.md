@@ -317,6 +317,12 @@ The currently approved KDB direction is:
 - every first-level working `L1` should be able to relate through KDB to the other first-level working `L1`s where that connection is canonically declared
 - those relationships should be visible from either side once they are truly backed
 
+Current parent-shell exception:
+
+- `Opportunities` is still the parent shell concept over `Funds` and `Rounds`
+- until it has a true runtime-backed record table/view contract, it should not be treated as a direct live KDB target
+- use `Funds` and `Rounds` as the concrete opportunity-side KDB targets for now
+
 KDB display grouping rule:
 
 - KDB should now support two display families inside the shared shell:
