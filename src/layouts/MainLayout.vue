@@ -276,7 +276,7 @@
           ]"
           :icon="action.icon"
           :aria-label="action.label"
-          @click.stop="action.onClick"
+          @click.stop="action.onClick($event)"
         />
         <div class="ec-quick-widget-action-label">{{ action.label }}</div>
       </div>
@@ -947,7 +947,8 @@ const quickWidgetRingActions = computed(() =>
     action.id === 'settings'
       ? {
           ...action,
-          onClick: () => {
+          onClick: (evt) => {
+            setQuickWidgetSettingsTarget(evt?.currentTarget ?? evt?.target ?? null)
             quickWidgetSettingsOpen.value = !quickWidgetSettingsOpen.value
           },
         }
