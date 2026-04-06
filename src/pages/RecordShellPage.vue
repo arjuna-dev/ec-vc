@@ -243,17 +243,20 @@
             >
               <div class="contact-databook__summary-feed-entry-top">
                 <div class="contact-databook__summary-feed-entry-source">{{ item.sourceLabel }}</div>
-                <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
+                <div class="contact-databook__summary-feed-entry-top-right">
+                  <button
+                    v-if="item.content"
+                    type="button"
+                    class="contact-databook__summary-feed-entry-toggle"
+                    :aria-label="isFeedItemExpanded(item.id) ? 'Collapse log' : 'Expand log'"
+                    @click="toggleFeedItemExpanded(item.id)"
+                  >
+                    <q-icon :name="isFeedItemExpanded(item.id) ? 'unfold_less' : 'unfold_more'" size="13px" />
+                  </button>
+                  <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
+                </div>
               </div>
               <div class="contact-databook__summary-feed-entry-title">{{ item.title }}</div>
-              <button
-                v-if="item.content"
-                type="button"
-                class="contact-databook__summary-feed-entry-toggle"
-                @click="toggleFeedItemExpanded(item.id)"
-              >
-                {{ isFeedItemExpanded(item.id) ? 'Hide log' : 'Show log' }}
-              </button>
               <div v-if="item.content && isFeedItemExpanded(item.id)" class="contact-databook__summary-feed-entry-content">
                 {{ item.content }}
               </div>
@@ -2099,6 +2102,12 @@ function onContactHeroPointerLeave() {
   gap: 10px;
 }
 
+.contact-databook__summary-feed-entry-top-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .contact-databook__summary-feed-entry-source {
   color: rgba(255, 255, 255, 0.78);
   font-family: var(--ds-font-family-body);
@@ -2122,6 +2131,25 @@ function onContactHeroPointerLeave() {
   font-size: var(--ds-font-size-sm-medium);
   font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-sm);
+}
+
+.contact-databook__summary-feed-entry-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.72);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.contact-databook__summary-feed-entry-toggle:hover {
+  color: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .contact-databook__summary-feed-entry-content {
