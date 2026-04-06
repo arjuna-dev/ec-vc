@@ -292,8 +292,19 @@
             :key="group.key"
             class="record-shell__kdb-group"
           >
-            <div class="record-shell__kdb-group-title">{{ group.label }}</div>
-            <div class="record-shell__kdb-group-grid">
+            <button
+              type="button"
+              class="record-shell__kdb-group-toggle"
+              @click="toggleKdbGroup(group.key)"
+            >
+              <q-icon
+                :name="isKdbGroupExpanded(group.key) ? 'expand_more' : 'chevron_right'"
+                size="14px"
+                class="record-shell__kdb-group-toggle-icon"
+              />
+              <span class="record-shell__kdb-group-title">{{ group.label }}</span>
+            </button>
+            <div v-if="isKdbGroupExpanded(group.key)" class="record-shell__kdb-group-grid">
               <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
                 <div class="record-shell__field-label">{{ token.label }}</div>
                 <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
@@ -366,6 +377,7 @@ const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
 const expandedSectionKeys = ref([])
+const expandedKdbGroupKeys = ref(['first_order', 'knowledge_db', 'other'])
 const activeSectionKey = ref('')
 const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
@@ -624,10 +636,16 @@ onBeforeUnmount(() => {
 })
 
 function isSectionExpanded(sectionKey) { return expandedSectionKeys.value.includes(sectionKey) }
+function isKdbGroupExpanded(groupKey) { return expandedKdbGroupKeys.value.includes(groupKey) }
 function toggleExpandedSection(sectionKey) {
   expandedSectionKeys.value = isSectionExpanded(sectionKey)
     ? expandedSectionKeys.value.filter((key) => key !== sectionKey)
     : [...expandedSectionKeys.value, sectionKey]
+}
+function toggleKdbGroup(groupKey) {
+  expandedKdbGroupKeys.value = isKdbGroupExpanded(groupKey)
+    ? expandedKdbGroupKeys.value.filter((key) => key !== groupKey)
+    : [...expandedKdbGroupKeys.value, groupKey]
 }
 function getSectionTokens(sectionKey) { return selectableTokens.value.filter((token) => token.parentKey === sectionKey) }
 function isSelectedToken(tokenKey) { return selectedTokenKeySet.value.has(tokenKey) }
@@ -1597,6 +1615,8 @@ function onContactHeroPointerLeave() {
 .record-shell__field-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
 .record-shell__kdb-grid { display:grid; gap:14px; }
 .record-shell__kdb-group { display:grid; gap:8px; }
+.record-shell__kdb-group-toggle { display:inline-flex; align-items:center; justify-content:flex-start; gap:2px; width:max-content; padding:0; color:#111; background:transparent; border:0; text-align:left; cursor:pointer; }
+.record-shell__kdb-group-toggle-icon { color:#111; }
 .record-shell__kdb-group-title { color:rgba(17,17,17,.54); font-family:var(--font-title); font-size:.72rem; font-weight:var(--font-weight-black); line-height:.96; text-transform:uppercase; letter-spacing:.03em; }
 .record-shell__kdb-group-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
 .record-shell__field-card { padding:10px 12px; border:1px solid rgba(17,17,17,.08); border-radius:6px; background:rgba(17,17,17,.02); }
