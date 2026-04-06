@@ -587,7 +587,7 @@
         </div>
       </section>
 
-      <CreateRecordShellDialog
+      <AddEditRecordShellDialog
         :key="createDialogRenderKey"
         v-model="createDialogOpen"
         :mode="createDialogMode"
@@ -615,7 +615,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
-import CreateRecordShellDialog from 'src/components/CreateRecordShellDialog.vue'
+import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import {
   CANONICAL_OPTION_LISTS,
   getCanonicalTokenFieldNames,

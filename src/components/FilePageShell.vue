@@ -569,7 +569,7 @@
       />
       </template>
 
-      <CreateRecordShellDialog
+      <AddEditRecordShellDialog
         :key="createDialogRenderKey"
         v-model="createDialogOpen"
         :mode="createDialogMode"
@@ -597,7 +597,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
-import CreateRecordShellDialog from 'components/CreateRecordShellDialog.vue'
+import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import SelectionActionBar from 'components/SelectionActionBar.vue'
