@@ -304,52 +304,58 @@
             </div>
 
             <div class="ec-quick-widget-settings-panel__list">
-              <div
-                v-for="(settingsAction, settingsIndex) in quickWidgetActionCatalog"
-                :key="settingsAction.id"
-                class="ec-quick-widget-settings-row"
+              <section
+                v-for="settingsSection in quickWidgetSettingsSections"
+                :key="settingsSection.id"
+                class="ec-quick-widget-settings-section"
               >
-                <q-checkbox
-                  v-if="settingsAction.id !== 'settings'"
-                  :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
-                  dense
-                  size="xs"
-                  checked-icon="check_box"
-                  unchecked-icon="check_box_outline_blank"
-                  class="ec-quick-widget-settings-row__checkbox"
-                  @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
-                />
-                <div v-else class="ec-quick-widget-settings-row__toggle-spacer" />
+                <div class="ec-quick-widget-settings-section__title">{{ settingsSection.label }}</div>
 
-                <div class="ec-quick-widget-settings-row__copy">
-                  <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
-                </div>
+                <div
+                  v-for="settingsAction in settingsSection.actions"
+                  :key="settingsAction.id"
+                  class="ec-quick-widget-settings-row"
+                >
+                  <q-checkbox
+                    :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
+                    dense
+                    size="xs"
+                    checked-icon="check_box"
+                    unchecked-icon="check_box_outline_blank"
+                    class="ec-quick-widget-settings-row__checkbox"
+                    @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
+                  />
 
-                <div class="ec-quick-widget-settings-row__actions">
-                  <q-btn
-                    flat
-                    dense
-                    round
-                    :disable="settingsIndex === 0"
-                    @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="ec-quick-widget-settings-row__chevron">
-                      <path d="M7 14L12 9L17 14" />
-                    </svg>
-                  </q-btn>
-                  <q-btn
-                    flat
-                    dense
-                    round
-                    :disable="settingsIndex === quickWidgetActionCatalog.length - 1"
-                    @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="ec-quick-widget-settings-row__chevron">
-                      <path d="M7 10L12 15L17 10" />
-                    </svg>
-                  </q-btn>
+                  <div class="ec-quick-widget-settings-row__copy">
+                    <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
+                  </div>
+
+                  <div class="ec-quick-widget-settings-row__actions">
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      :disable="settingsAction.orderIndex === 0"
+                      @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true" class="ec-quick-widget-settings-row__chevron">
+                        <path d="M7 14L12 9L17 14" />
+                      </svg>
+                    </q-btn>
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      :disable="settingsAction.orderIndex === quickWidgetSettingsActionCount - 1"
+                      @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true" class="ec-quick-widget-settings-row__chevron">
+                        <path d="M7 10L12 15L17 10" />
+                      </svg>
+                    </q-btn>
+                  </div>
                 </div>
-              </div>
+              </section>
             </div>
           </div>
         </div>
@@ -520,6 +526,9 @@ const DEFAULT_QUICK_WIDGET_ACTION_ORDER = [
   'project',
   'note',
   'task',
+  'industries',
+  'securities',
+  'artifacts-processed',
   'settings',
 ]
 const mainNavigationItems = [
@@ -792,54 +801,84 @@ const quickWidgetActionCatalog = computed(() => {
     users: {
       id: 'users',
       label: 'Users',
+      group: 'files',
       icon: 'badge',
       onClick: openUserFromQuickAction,
     },
     opportunity: {
       id: 'opportunity',
-      label: 'Opportunity',
+      label: 'Opportunities',
+      group: 'files',
       icon: 'work',
       onClick: () => openCreateBranchDialog('opportunities'),
     },
     contact: {
       id: 'contact',
       label: 'Contact',
+      group: 'files',
       icon: 'people',
       onClick: openContactFromQuickAction,
     },
     company: {
       id: 'company',
       label: 'Company',
+      group: 'files',
       icon: 'apartment',
       onClick: openCompanyFromQuickAction,
     },
     project: {
       id: 'project',
       label: 'Project',
+      group: 'files',
       icon: 'schema',
       onClick: openProjectFromQuickAction,
     },
     note: {
       id: 'note',
       label: 'Note',
+      group: 'files',
       icon: 'note',
       onClick: openNoteFromQuickAction,
     },
     task: {
       id: 'task',
       label: 'Task',
+      group: 'files',
       icon: 'check_circle',
       onClick: openTaskFromQuickAction,
     },
     artifact: {
       id: 'artifact',
       label: intakeDraftCount.value > 0 ? `Artifact (${intakeDraftCount.value})` : 'Artifact',
+      group: 'files',
       icon: 'attach_file',
       onClick: openArtifactFromQuickAction,
+    },
+    industries: {
+      id: 'industries',
+      label: 'Markets',
+      group: 'knowledge-dbs',
+      icon: 'category',
+      onClick: () => openShellCreateFromQuickAction('industries'),
+    },
+    securities: {
+      id: 'securities',
+      label: 'Securities',
+      group: 'knowledge-dbs',
+      icon: 'receipt_long',
+      onClick: () => openShellCreateFromQuickAction('securities'),
+    },
+    'artifacts-processed': {
+      id: 'artifacts-processed',
+      label: 'Ingestion',
+      group: 'knowledge-dbs',
+      icon: 'hub',
+      onClick: () => openShellCreateFromQuickAction('artifacts-processed'),
     },
     settings: {
       id: 'settings',
       label: 'Settings',
+      group: 'system',
       icon: 'tune',
       onClick: () => {
         quickWidgetSettingsOpen.value = true
@@ -856,6 +895,28 @@ const quickWidgetActionCatalog = computed(() => {
   ]
 
   return order.map((id) => actionById[id]).filter(Boolean)
+})
+
+const quickWidgetSettingsActions = computed(() =>
+  quickWidgetActionCatalog.value
+    .filter((action) => action.id !== 'settings')
+    .map((action, orderIndex) => ({ ...action, orderIndex })),
+)
+
+const quickWidgetSettingsActionCount = computed(() => quickWidgetSettingsActions.value.length)
+
+const quickWidgetSettingsSections = computed(() => {
+  const sectionDefs = [
+    { id: 'files', label: 'Files' },
+    { id: 'knowledge-dbs', label: 'Knowledge DBs' },
+  ]
+
+  return sectionDefs
+    .map((section) => ({
+      ...section,
+      actions: quickWidgetSettingsActions.value.filter((action) => action.group === section.id),
+    }))
+    .filter((section) => section.actions.length)
 })
 
 const quickWidgetActions = computed(() =>
@@ -2319,7 +2380,22 @@ function goBack() {
 .ec-quick-widget-settings-panel__list {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.ec-quick-widget-settings-section {
+  display: flex;
+  flex-direction: column;
   gap: 3px;
+}
+
+.ec-quick-widget-settings-section__title {
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .ec-quick-widget-settings-row {
