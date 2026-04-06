@@ -96,7 +96,7 @@
           </article>
         </div>
 
-        <div v-else class="events-page__list">
+        <div v-else-if="viewMode === 'table'" class="events-page__list">
           <article v-for="row in rows" :key="row.id" class="events-page__list-row">
             <div class="events-page__list-row-head">
               <div class="events-page__card-title">{{ row.Event_Name || 'Event' }}</div>
@@ -121,6 +121,10 @@
               </div>
             </div>
           </article>
+        </div>
+
+        <div v-else class="events-page__empty">
+          Choose a supported event view.
         </div>
       </section>
     </div>
@@ -402,6 +406,12 @@ function openEvent(row) {
   gap: 14px;
 }
 
+.events-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .events-page__card,
 .events-page__list-row {
   border: 1px solid rgba(17, 17, 17, 0.08);
@@ -452,6 +462,10 @@ function openEvent(row) {
   display: grid;
   gap: 10px;
   margin-top: 12px;
+}
+
+.events-page__list-row-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .events-page__field {
