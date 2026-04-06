@@ -10,7 +10,7 @@
 | Record Shell | The approved shared shell renderer for `Record View`. It should receive the selected record as payload input instead of forking by entity. | Record Architecture |
 | Shared Dialog Shell | The rule that the create / edit dialog is itself a shell surface. Any launching shell must pass the same canonical payload contract into it rather than reshaping grouped `L2` structure locally. | Record Architecture |
 | Shared Shell Header | The common top shell row that owns the `L1` select menu for shell routes. Shell pages should use this shared header instead of adding a second local select or launch row underneath it. | Product Reference |
-| Dialog Shell Route | The dedicated shell test route for the shared create / edit dialog. It should rely on the shared shell header for `L1` switching and should not improvise a separate launchpad card when the shell header already exists. | Record Architecture |
+| Dialog Shell Route | The dedicated route-owned surface for the shared create / edit shell. It may switch `L1` intentionally, but normal add/edit launches should route into it with explicit source context instead of improvising page-local dialog flows. | Record Architecture |
 | Branch Selector | A selector that decides which subtype contract should load next. It is a structural control, not a normal saved field, and subtype-owned sections should remain hidden until a branch is chosen. | Record Architecture |
 | Opportunity Type | The current branch selector for the `Opportunities` create flow. Choosing `Fund` or `Round` decides which subtype payload should appear and where the record will be created. | Product Reference |
 | Legacy Surface | A frontend page or dialog that is no longer route-mounted or no longer part of the approved shared shell set. Once proven unused, it should be removed rather than kept as silent drift. | Legacy Surface Audit |
@@ -35,7 +35,7 @@
 | L3 Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
 | Owned Field | A value owned by the current record or its approved owned subtable. It writes through that owner path only. | Companion Contract |
 | Directional Link | A root-established or rule-bearing path such as identity, authority, provenance, or parentage. It should not be treated like generic KDB. | Record Architecture |
-| KDB Relationship | A link between records that must have a declared relationship path, owner path, reverse-read path, and bidirectional visibility. | Companion Contract |
+| KDB Relationship | A link between records that must have a declared relationship path, owner path, reverse-read path, and bidirectional visibility. In the current shared-shell flow, relation editing should open the shared `Add/Edit Shell` in `KDB` with the clicked source record context. | Companion Contract |
 | Field Class | The behavior class declared at the token level, such as `owned_field`, `directional_link`, or `kdb_relationship`. | Record Architecture |
 | Ownership Mode | The declared ownership mode for a token, such as `local`, `root_owned`, or `relationship_owned`. | Product Reference |
 | Cardinality | The declared relationship size rule such as `one_to_one`, `one_to_many`, or `many_to_many`. | Product Reference |
@@ -48,7 +48,7 @@
 | Declared-But-Missing | A path declared in canon that does not yet have full runtime ownership or reverse-read support. | ECS Workstream Tracker |
 | File Shell Lab | The strict shared file shell route used to test and exercise contract-driven page behavior. | Record Architecture |
 | Deprecated Record Surface | `RecordPage.vue`, the earlier shared record implementation. It is now a historical legacy surface and not the active shared record route target. | Record Architecture |
-| Knowledge DB | A file surface that may not be golden-tier in product importance, but still behaves like an `L1` in the shell and contract system. | Companion Contract |
+| Knowledge DB | A reusable reference or processing file surface that may not be golden-tier in product importance, but still behaves like an `L1` in the shell and contract system. | Companion Contract |
 | Field Label Row | The top row of a field block that carries the field label and any adjacent guidance or action control. | Working UI Language |
 | Field Control Shell | The visible value/input box under a field label. It is the rendered shell around the actual field content, not the field contract itself. | Working UI Language |
 | Top-Layer Mechanism | A tuning layer that may improve speed, ranking, comfort, or prioritization without modifying ownership or the underlying contract. | Companion Contract |

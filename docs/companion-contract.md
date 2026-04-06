@@ -70,6 +70,12 @@ Companion behavior:
 
 A KDB relationship is a link between records.
 
+Current UI rule:
+
+- if the user launches relation editing from card-view `Add Relation`, the system should route into the shared `Add/Edit Shell`
+- that launch should stay anchored to the clicked source record
+- the shell should open directly in `KDB`
+
 Examples:
 
 - `Contact_Project`

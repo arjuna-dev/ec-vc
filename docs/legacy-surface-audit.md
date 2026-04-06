@@ -20,6 +20,8 @@ This audit exists to keep the UI system manageable before heavier data loads and
   - `src/components/AddEditRecordShellDialog.vue`
 - `Add/Edit Shell Route`
   - `src/pages/DialogShellPage.vue`
+- `File Shell Lab Route`
+  - `src/pages/TestShellPage.vue`
 
 ## Live Route-Mounted Pages
 
@@ -38,7 +40,6 @@ These are still mounted by `src/router/routes.js`:
 - `IngestionPage.vue`
 - `NotesPage.vue`
 - `TasksPage.vue`
-- `TestShellPage.vue`
 - `RecordShellPage.vue`
 - `DialogShellPage.vue`
 - `AssistantsPage.vue`

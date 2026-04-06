@@ -725,6 +725,12 @@ KDB relationships are not optional UI conveniences.
 
 They are intended to be real information pipelines between linked `L1`s.
 
+Current shared-shell launch rule:
+
+- card-view `Add Relation` should route into `dialog-shell`
+- that launch should carry the source `L1`, clicked record id, and canonical entity name
+- the shared `Add/Edit Shell` should open directly in `KDB`
+
 That means if a KDB relationship is declared in canonical structure:
 
 - it should have a real owner path
