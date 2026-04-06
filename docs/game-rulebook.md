@@ -30,6 +30,41 @@ That means:
 - assign the owner a base set of `Companion Roles`
 - create `Master Companion Role` during `Owner Genesis`
 
+Genesis operator rule:
+
+- `Master Companion` should be the acting bootstrap operator during `Owner Genesis`
+- `Master Companion` should create the base files in sequence before file-owned bootstrap records are written into them
+
+Owner Genesis file creation order:
+
+1. `L1 Files`
+2. `Events`
+3. `Owner`
+4. `Users`
+5. `Contacts`
+6. `User Roles`
+7. `Companion`
+8. `Companion Roles`
+9. `Projects`
+10. `Tasks`
+11. `Notes`
+12. `Artifacts`
+13. `Ingestion`
+14. `Companies`
+15. `Opportunities`
+16. `Funds`
+17. `Rounds`
+18. `Markets`
+19. `Securities`
+20. remaining current supporting `KDB` / reference files
+
+File-before-record rule:
+
+- create the file first
+- then create that file's base genesis records
+- then create required relations
+- then log the event into `Events`
+
 User setup rule:
 
 - create a first project called `User Set-up`

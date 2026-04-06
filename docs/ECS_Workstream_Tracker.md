@@ -122,6 +122,7 @@ This tracker should stay aligned with:
 - the first `Companion` role and first game/file focus should be `Ingestion`
 - `Owner Genesis` should initialize the current approved schema baseline as declared in `src-electron/services/sqlite-schema.js`
 - future marketplace-delivered `L1`s should be required to pass the same canonical bootstrap contract as local owner-created `L1`s
+- `Owner Genesis` should create the base file system sequentially through `Master Companion`, beginning with `L1 Files` and then `Events`
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - artifact context assumptions should now be treated as `default/preselected unverified`
 - ingestion should start from the linked source artifact and should not create a duplicate artifact record at processing start

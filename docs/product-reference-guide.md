@@ -525,6 +525,8 @@ Current product meaning:
 - the owner bootstrap should create a `User Set-up` project and its default setup tasks
 - the user may skip setup task completion, but those bootstrap project/task records should still be created
 - `Owner Genesis` should also initialize the current approved schema baseline from `src-electron/services/sqlite-schema.js`, using the current table set as-is rather than a reduced temporary subset
+- `Master Companion` should perform sequential genesis file creation, beginning with `L1 Files`, then `Events`, then the current base file set in approved order
+- file creation should happen before the bootstrap records that belong inside those files are created
 
 Current limit:
 

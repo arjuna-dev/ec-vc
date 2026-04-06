@@ -148,6 +148,54 @@ Working rule:
 - `Genesis` should install the current approved schema baseline as-is
 - later marketplace-delivered `L1`s may extend that baseline, but should not weaken or fork it casually
 
+### Owner Genesis File Order Rule
+
+`Owner Genesis` should not only initialize schema. It should also create the first file system in sequence.
+
+Working rule:
+
+- `Master Companion` is the acting bootstrap operator for sequential genesis creation
+- the first file created should be `L1 Files`
+- the second file created should be `Events`
+- the rest of the current base file system should then be created in approved order
+- file creation should happen before file-owned bootstrap records are created
+
+Current approved first-pass genesis file order:
+
+1. `L1 Files`
+2. `Events`
+3. `Owner`
+4. `Users`
+5. `Contacts`
+6. `User Roles`
+7. `Companion`
+8. `Companion Roles`
+9. `Projects`
+10. `Tasks`
+11. `Notes`
+12. `Artifacts`
+13. `Ingestion`
+14. `Companies`
+15. `Opportunities`
+16. `Funds`
+17. `Rounds`
+18. `Markets`
+19. `Securities`
+20. remaining current supporting `KDB` / reference files
+
+Execution rule:
+
+- create the file
+- create the base genesis records inside that file
+- create the required relations
+- log the creation into `Events`
+
+This matters because:
+
+- `L1 Files` is the root file registry and must exist before the rest of the file system can be treated as coherent
+- `Events` should exist before later genesis work is logged
+- later marketplace-delivered `L1`s should plug into this same file-first bootstrap model instead of bypassing it
+
 ### Marketplace Extension Rule
 
 When a marketplace exists, it should be able to distribute new `L1` infrastructure between users/nodes.
