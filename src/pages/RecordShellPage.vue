@@ -248,20 +248,17 @@
                 </div>
                 <div class="contact-databook__summary-feed-entry-top-right">
                   <button
-                    v-if="item.content"
+                    v-if="item.hasLogPage"
                     type="button"
                     class="contact-databook__summary-feed-entry-toggle"
-                    :aria-label="isFeedItemExpanded(item.id) ? 'Collapse log' : 'Expand log'"
-                    @click="toggleFeedItemExpanded(item.id)"
+                    aria-label="Open event log"
+                    @click="openFeedItemLog(item.id)"
                   >
                     <q-icon name="open_in_new" size="13px" />
                   </button>
                 </div>
               </div>
               <div class="contact-databook__summary-feed-entry-title">{{ item.title }}</div>
-              <div v-if="item.content && isFeedItemExpanded(item.id)" class="contact-databook__summary-feed-entry-content">
-                {{ item.content }}
-              </div>
             </div>
           </div>
           <div v-else class="contact-databook__summary-feed-state">
@@ -627,7 +624,7 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import {
   CANONICAL_OPTION_LISTS,
@@ -646,6 +643,7 @@ import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/u
 import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/tokenWriteChanges'
 
 const route = useRoute()
+const router = useRouter()
 const $q = useQuasar()
 const CONTACT_KDB_VIEW_OPTIONS = [
   { value: 'grid', icon: 'grid_view' },
@@ -663,7 +661,6 @@ const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
 const genericHeroPanelTab = ref('notes')
 const activeRecordFeedTab = ref('all')
-const expandedFeedItemIds = ref([])
 const recordShellTopNavViewMode = ref('grid')
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
@@ -843,6 +840,7 @@ const feedItems = computed(() => {
       meta: 'Now',
       title: 'Template feed lane',
       content: 'This right-side black box is the dedicated feed surface for the selected L1 record skeleton.',
+      hasLogPage: false,
     },
     {
       id: 'feed-template-2',
@@ -851,6 +849,7 @@ const feedItems = computed(() => {
       meta: 'Live',
       title: 'L1-driven structure',
       content: 'Changing the L1 at the top swaps the canonical record skeleton underneath this template.',
+      hasLogPage: false,
     },
   ]
 })
@@ -1308,19 +1307,22 @@ function normalizeAuditFeedEvents(events = []) {
         meta: String(event?.edited_at || '').trim() || 'Recent',
         title: actorLabel ? `${actorLabel} ${actionTitle.charAt(0).toLowerCase()}${actionTitle.slice(1)}` : actionTitle,
         content: buildAuditEventContent(event, fieldName, actionLabel),
+        hasLogPage: true,
       }
     })
     .filter((event) => event.title)
 }
 
-function isFeedItemExpanded(itemId) {
-  return expandedFeedItemIds.value.includes(itemId)
-}
-
-function toggleFeedItemExpanded(itemId) {
-  expandedFeedItemIds.value = isFeedItemExpanded(itemId)
-    ? expandedFeedItemIds.value.filter((value) => value !== itemId)
-    : [...expandedFeedItemIds.value, itemId]
+function openFeedItemLog(eventId) {
+  if (!isRecordRoute.value || !eventId) return
+  router.push({
+    name: 'record-event',
+    params: {
+      tableName: tableNameParam.value,
+      recordId: recordIdParam.value,
+      eventId,
+    },
+  })
 }
 
 async function loadRecordView() {
@@ -1338,7 +1340,6 @@ async function loadRecordView() {
     const result = await bridge.value.databooks.view(tableNameParam.value, recordIdParam.value)
     currentView.value = result || null
     fields.value = Array.isArray(result?.fields) ? result.fields : []
-    expandedFeedItemIds.value = []
     if (!Array.isArray(liveOptionRowsBySource.value.users)) {
       try {
         const usersResult = await bridge.value?.users?.list?.()
