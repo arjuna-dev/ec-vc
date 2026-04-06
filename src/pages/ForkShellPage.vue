@@ -20,7 +20,16 @@
         {{ activeRegistryEntry.label }} does not declare any create branches yet.
       </q-banner>
 
-      <section v-else class="fork-shell__panel">
+      <div v-else class="fork-shell__frame">
+        <button
+          type="button"
+          class="fork-shell__live-link"
+          @click="openSourceFile"
+        >
+          {{ activeRegistryEntry.label }}
+        </button>
+
+        <section class="fork-shell__panel">
         <div class="fork-shell__eyebrow">Fork Shell</div>
         <h1 class="fork-shell__title">Choose {{ branchLabel }}</h1>
         <p class="fork-shell__text">
@@ -50,7 +59,8 @@
         <div class="fork-shell__actions">
           <q-btn flat no-caps label="Back" @click="goBack" />
         </div>
-      </section>
+        </section>
+      </div>
     </div>
   </q-page>
 </template>
@@ -96,6 +106,14 @@ function goBack() {
   }
   router.push({ name: 'home' })
 }
+
+function openSourceFile() {
+  if (activeRegistryEntry.value?.routeName) {
+    router.push({ name: activeRegistryEntry.value.routeName })
+    return
+  }
+  goBack()
+}
 </script>
 
 <style scoped>
@@ -106,6 +124,30 @@ function goBack() {
 
 .fork-shell {
   display: grid;
+}
+
+.fork-shell__frame {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.fork-shell__live-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(17, 17, 17, 0.52);
+  font-family: var(--ds-font-family-body);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.fork-shell__live-link:hover,
+.fork-shell__live-link:focus-visible {
+  color: #2647ff;
 }
 
 .fork-shell__panel {
