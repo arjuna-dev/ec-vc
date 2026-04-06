@@ -169,6 +169,14 @@ This tracker should stay aligned with:
 
 ## Pending
 
+- Implement the runtime `Owner Genesis` bootstrap sequence end to end:
+  - assign the base `Companion`
+  - create the base `Owner Opportunities` project space
+  - create the base `Owner Ingestion` project space
+  - create the base `User Roles` set
+  - create the base `Companion Roles` set
+  - create the `User Set-up` project and its default tasks
+  - allow task completion to be skipped without skipping record/project/task creation
 - turn the first-pass game rulebook into a clearer scoring reference per board and per stage
 - define how provisional points, realized points, deductions, and bonuses should map to actual workflows
 - define how pipeline boards should express required information and expected outcome per stage
