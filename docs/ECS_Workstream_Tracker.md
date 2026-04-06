@@ -24,6 +24,7 @@ This tracker should stay aligned with:
 - keep the underlying structure, ownership, and runtime relationship paths converging cleanly
 - use the `Companion` and the first-pass game layer to surface issues without weakening the contract
 - keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
+- keep KDB linking, unlinking, and selector labels working through shared shell contracts instead of per-entity fixes
 - adopt `Record Shell` as the shared `Record View` direction
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
 - keep owner authority locked while still allowing owner-only editing of owner profile data
@@ -36,6 +37,7 @@ This tracker should stay aligned with:
 
 - convert the declared-but-not-yet-backed KDB relationship set into real runtime-backed paths
 - keep `Knowledge DB` behavior converging with the normal file-shell contract
+- keep record-view and dialog-shell KDB selectors on the same shared option-label and option-loading rules
 - normalize `Record Shell` to the current `User Record View` shell and carry it forward as the shared record-view base
 - refine the game layer as a guide on top of the structure pass, not as a replacement for it
 - document and normalize:
@@ -51,7 +53,7 @@ This tracker should stay aligned with:
    - `directional_link`
    - `kdb_relationship`
 3. Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships.
-4. Add reverse-read behavior for every newly-backed KDB relationship so both linked `L1`s reflect the same connection.
+4. Finish reviewing reciprocal KDB readback behavior so every shared relationship path reflects add, remove, and relabel consistently from both sides.
 5. Define the first relevance maps for major boards so points can reflect what matters most at each stage.
 
 ## Front-Loaded
@@ -146,6 +148,9 @@ This tracker should stay aligned with:
   - bidirectionally visible from both linked `L1`s
 - the shared fallback owner path for canon-declared KDB links without a special join table is now `KDB_Relationships`
 - relationship tokens should no longer be thought of as ordinary writable columns
+- shared shell relationship clearing now writes explicit empty relationship payloads instead of silently dropping the delete
+- shared explicit KDB join-table contracts now preserve reverse direction correctly instead of reusing the same join-column mapping both ways
+- shared shell option labels are now being normalized toward the canonical `General -> *.3.1` title token instead of drifting to `id`
 - new `L1` relationships should follow the same owner-path and reverse-read contract instead of being introduced ad hoc
 - the currently runtime-backed relationship set is centered on:
   - `Company`
@@ -234,6 +239,12 @@ This tracker should stay aligned with:
     - owner path
     - reverse-read path
     - bidirectional appearance
+- shared shell update paths now normalize to approved databook table names before IPC writes
+- shared shell writes now keep session context in `actionLabel` without reusing one shell-session `actionId` across repeated writes
+- reverse explicit KDB join-table contracts now swap join columns correctly when the shell links from the opposite side
+- shared relationship write builders now treat clearing the last linked value as a real delete instead of "no change"
+- record-shell panel selects now normalize tokens the same way the shared dialog does, so live option lists load in the panel too
+- record-shell live entity selectors now resolve labels from the canonical title token in the `General` section instead of drifting to system ids
 - the current runtime-backed set has been separated from the canon-declared-but-still-missing set so future relationship work can stay strict instead of drifting into one-offs
 - the companion-side rule is now explicit:
   - helpful about content
