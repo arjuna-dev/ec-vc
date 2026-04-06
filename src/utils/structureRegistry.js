@@ -1,7 +1,7 @@
 import canonicalStructure from '../../docs/canonical-structure.json'
 
 const FILE_PAGE_ROUTE_META = Object.freeze({
-  Users: { key: 'users', label: 'Users', singularLabel: 'User', routeName: 'users', path: '/users', icon: 'badge', showInWorkspaceNav: true },
+  Users: { key: 'users', label: 'Users', singularLabel: 'User', routeName: 'users', path: '/users', icon: 'badge', showInWorkspaceNav: true, shellGroup: 'first_order' },
   Artifacts: {
     key: 'artifacts',
     label: 'Artifacts',
@@ -10,8 +10,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/artifacts',
     icon: 'attach_file',
     showInWorkspaceNav: true,
+    shellGroup: 'first_order',
   },
-  Contacts: { key: 'contacts', label: 'Contacts', singularLabel: 'Contact', routeName: 'contacts', path: '/contacts', icon: 'people', showInWorkspaceNav: true },
+  Contacts: { key: 'contacts', label: 'Contacts', singularLabel: 'Contact', routeName: 'contacts', path: '/contacts', icon: 'people', showInWorkspaceNav: true, shellGroup: 'first_order' },
   Companies: {
     key: 'companies',
     label: 'Companies',
@@ -20,6 +21,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/companies',
     icon: 'apartment',
     showInWorkspaceNav: true,
+    shellGroup: 'first_order',
   },
   Opportunities: {
     key: 'opportunities',
@@ -31,16 +33,17 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     icon: 'work',
     showInWorkspaceNav: false,
     relationshipSourcePrefixes: ['Opportunity', 'Fund', 'Round'],
+    shellGroup: 'first_order',
     createBranches: [
       { value: 'fund', label: 'Fund', icon: 'account_balance_wallet' },
       { value: 'round', label: 'Round', icon: 'donut_large' },
     ],
   },
-  Funds: { key: 'funds', label: 'Funds', singularLabel: 'Fund', routeName: 'funds', path: '/funds', icon: 'account_balance', showInWorkspaceNav: false },
-  Rounds: { key: 'rounds', label: 'Rounds', singularLabel: 'Round', routeName: 'rounds', path: '/rounds', icon: 'toll', showInWorkspaceNav: false },
-  Projects: { key: 'projects', label: 'Projects', singularLabel: 'Project', routeName: 'projects', path: '/projects', icon: 'schema', showInWorkspaceNav: true },
-  Tasks: { key: 'tasks', label: 'Tasks', singularLabel: 'Task', routeName: 'tasks', path: '/tasks', icon: 'check_circle', showInWorkspaceNav: true },
-  Notes: { key: 'notes', label: 'Notes', singularLabel: 'Note', routeName: 'notes', path: '/notes', icon: 'note', showInWorkspaceNav: true },
+  Funds: { key: 'funds', label: 'Funds', singularLabel: 'Fund', routeName: 'funds', path: '/funds', icon: 'account_balance', showInWorkspaceNav: false, shellGroup: 'first_order' },
+  Rounds: { key: 'rounds', label: 'Rounds', singularLabel: 'Round', routeName: 'rounds', path: '/rounds', icon: 'toll', showInWorkspaceNav: false, shellGroup: 'first_order' },
+  Projects: { key: 'projects', label: 'Projects', singularLabel: 'Project', routeName: 'projects', path: '/projects', icon: 'schema', showInWorkspaceNav: true, shellGroup: 'first_order' },
+  Tasks: { key: 'tasks', label: 'Tasks', singularLabel: 'Task', routeName: 'tasks', path: '/tasks', icon: 'check_circle', showInWorkspaceNav: true, shellGroup: 'first_order' },
+  Notes: { key: 'notes', label: 'Notes', singularLabel: 'Note', routeName: 'notes', path: '/notes', icon: 'note', showInWorkspaceNav: true, shellGroup: 'first_order' },
   Roles: {
     key: 'roles',
     label: 'Roles',
@@ -49,6 +52,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/roles',
     icon: 'theater_comedy',
     showInWorkspaceNav: true,
+    shellGroup: 'first_order',
   },
   Financial_Industries: {
     key: 'industries',
@@ -58,6 +62,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/industries',
     icon: 'category',
     showInWorkspaceNav: false,
+    shellGroup: 'knowledge_db',
   },
   Round_Securities: {
     key: 'securities',
@@ -67,6 +72,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/securities',
     icon: 'receipt_long',
     showInWorkspaceNav: false,
+    shellGroup: 'knowledge_db',
   },
   Artifacts_Processed: {
     key: 'artifacts-processed',
@@ -76,6 +82,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/artifacts-processed',
     icon: 'hub',
     showInWorkspaceNav: false,
+    shellGroup: 'knowledge_db',
   },
 })
 
@@ -175,6 +182,7 @@ function buildEntityRegistry(entityName) {
       label: formatLabel(subsection?.subsection),
       rawLabel: String(subsection?.subsection || '').trim(),
       structureToken: String(subsection?.structure_token || '').trim(),
+      displayGroup: String(subsection?.display_group || '').trim(),
       tokens: normalizeTokens(subsection).map((token) => ({
         key: String(token?.token_name || token?.address || '').trim(),
         level_3: String(token?.level_3 || '').trim(),
@@ -198,6 +206,7 @@ function buildEntityRegistry(entityName) {
         subsetShape: Array.isArray(token?.subset_shape)
           ? token.subset_shape.map((value) => String(value || '').trim()).filter(Boolean)
           : [],
+        relationshipGroup: String(token?.relationship_group || '').trim(),
         label: formatLabel(String(token?.token_name || '').trim().replace(`${meta.singularLabel}_`, '')),
       })),
     }))
@@ -234,6 +243,7 @@ export const LEVEL_1_FILE_REGISTRY = Object.freeze(
     path: entry.path,
     icon: entry.icon,
     relationshipSourcePrefixes: Array.isArray(entry.relationshipSourcePrefixes) ? entry.relationshipSourcePrefixes : [],
+    shellGroup: String(entry.shellGroup || '').trim(),
   })),
 )
 
@@ -248,6 +258,7 @@ export const LEVEL_2_FILE_REGISTRY_BY_KEY = Object.freeze(
         label: subsection.label,
         rawLabel: subsection.rawLabel,
         structureToken: subsection.structureToken,
+        displayGroup: subsection.displayGroup,
       })),
     ]),
   ),

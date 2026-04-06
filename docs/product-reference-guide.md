@@ -518,6 +518,7 @@ It should follow these rules:
 When the user opens `KDB`, that section can support:
 
 - labels
+- grouped relationship families
 - filters
 - grid/row toggles
 - relationship browsing
@@ -525,6 +526,14 @@ When the user opens `KDB`, that section can support:
 So `KDB` is not just another content tab.
 
 It is a special section with its own browsing mode and should stay anchored on the far right.
+
+Current grouping rule:
+
+- `KDB` should group relationship tokens into:
+  - `First-Order`
+  - `Knowledge DB`
+
+This is a browsing/display rule, not a reduction of the underlying relationship declarations.
 
 ## Design Intent
 

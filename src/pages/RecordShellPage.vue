@@ -287,9 +287,18 @@
         </div>
 
         <div v-if="isKdbSectionActive" class="record-shell__kdb-grid">
-          <div v-for="token in activeSectionTokens" :key="token.key" class="record-shell__field-card">
-            <div class="record-shell__field-label">{{ token.label }}</div>
-            <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
+          <div
+            v-for="group in activeKdbTokenGroups"
+            :key="group.key"
+            class="record-shell__kdb-group"
+          >
+            <div class="record-shell__kdb-group-title">{{ group.label }}</div>
+            <div class="record-shell__kdb-group-grid">
+              <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
+                <div class="record-shell__field-label">{{ token.label }}</div>
+                <div class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -436,6 +445,23 @@ const createDialogRightSections = computed(() => createSectionGroups.value.filte
 const activeSection = computed(() => level2Sections.value.find((section) => section.key === activeSectionKey.value) || level2Sections.value[0] || null)
 const activeSectionTokens = computed(() => selectableTokens.value.filter((token) => token.parentKey === activeSection.value?.key))
 const isKdbSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'kdb')
+const activeKdbTokenGroups = computed(() => {
+  if (!isKdbSectionActive.value) return []
+  const grouped = [
+    { key: 'first_order', label: 'First-Order', tokens: [] },
+    { key: 'knowledge_db', label: 'Knowledge DB', tokens: [] },
+    { key: 'other', label: 'Other', tokens: [] },
+  ]
+  for (const token of activeSectionTokens.value) {
+    const explicitGroup = String(token.relationshipGroup || '').trim().toLowerCase()
+    const targetEntry = LEVEL_1_FILE_REGISTRY.find((entry) => entry.entityName === token.optionEntity)
+    const fallbackGroup = String(targetEntry?.shellGroup || '').trim().toLowerCase()
+    const groupKey = explicitGroup || fallbackGroup || 'other'
+    const targetGroup = grouped.find((group) => group.key === groupKey) || grouped[2]
+    targetGroup.tokens.push(token)
+  }
+  return grouped.filter((group) => group.tokens.length)
+})
 const toolbarLeftSections = computed(() => level2Sections.value.filter((section) => !['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
 const toolbarRightSections = computed(() => level2Sections.value.filter((section) => ['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase())))
 
@@ -1568,7 +1594,11 @@ function onContactHeroPointerLeave() {
 .record-shell__panel-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
 .record-shell__panel-title { color:#111; font-family:var(--font-title); font-size:.94rem; font-weight:var(--font-weight-black); line-height:.96; }
 .record-shell__panel-meta { color:rgba(17,17,17,.54); font-size:.72rem; }
-.record-shell__field-grid, .record-shell__kdb-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+.record-shell__field-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+.record-shell__kdb-grid { display:grid; gap:14px; }
+.record-shell__kdb-group { display:grid; gap:8px; }
+.record-shell__kdb-group-title { color:rgba(17,17,17,.54); font-family:var(--font-title); font-size:.72rem; font-weight:var(--font-weight-black); line-height:.96; text-transform:uppercase; letter-spacing:.03em; }
+.record-shell__kdb-group-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
 .record-shell__field-card { padding:10px 12px; border:1px solid rgba(17,17,17,.08); border-radius:6px; background:rgba(17,17,17,.02); }
 .record-shell__field-card--selected { border-color:rgba(38,71,255,.3); background:rgba(38,71,255,.05); }
 .record-shell__field-label { color:#111; font-size:.8rem; font-weight:600; line-height:1.3; }

@@ -317,6 +317,20 @@ The currently approved KDB direction is:
 - every first-level working `L1` should be able to relate through KDB to the other first-level working `L1`s where that connection is canonically declared
 - those relationships should be visible from either side once they are truly backed
 
+KDB display grouping rule:
+
+- KDB should now support two display families inside the shared shell:
+  - `First-Order`
+  - `Knowledge DB`
+- these are grouping contracts for browsing clarity
+- they do not replace the underlying token declarations
+
+Basic `L1` structure rule:
+
+- every `L1` should at minimum expose:
+  - `System`
+  - `KDB`
+
 ## Owner Spine Rule
 
 The `Owner` spine should now be treated as a protected root path.
