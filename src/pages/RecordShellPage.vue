@@ -14,17 +14,17 @@
 
       <section
         ref="contactHeroRef"
-        class="contact-databook__hero"
+        class="record-shell__hero"
         :style="structuredRecordHeroStyle"
         @pointerenter="startContactHeroPointerTracking"
         @pointermove="onContactHeroPointerMove"
         @pointerleave="onContactHeroPointerLeave"
       >
-        <div class="contact-databook__hero-main">
-          <figure class="contact-databook__portrait contact-databook__portrait--initials-only">
-            <div class="contact-databook__portrait-placeholder" aria-hidden="true">
+        <div class="record-shell__hero-main">
+          <figure class="record-shell__portrait record-shell__portrait--initials-only">
+            <div class="record-shell__portrait-placeholder" aria-hidden="true">
               <div
-                class="contact-databook__portrait-placeholder-initials"
+                class="record-shell__portrait-placeholder-initials"
                 :style="{ backgroundColor: heroAvatarColor }"
               >
                 {{ heroInitials }}
@@ -32,9 +32,9 @@
             </div>
           </figure>
 
-          <div class="contact-databook__hero-copy">
+          <div class="record-shell__hero-copy">
             <div class="record-shell__hero-name-row">
-              <h1 class="contact-databook__name">
+              <h1 class="record-shell__name">
                 {{ heroName }}
               </h1>
 
@@ -99,10 +99,10 @@
               </q-btn>
             </div>
 
-            <div class="contact-databook__role">
+            <div class="record-shell__subtitle">
               {{ heroSubtitle }}
             </div>
-            <div class="contact-databook__role contact-databook__role--location">
+            <div class="record-shell__subtitle record-shell__subtitle--secondary">
               {{ heroSecondaryLine }}
             </div>
 
@@ -144,20 +144,20 @@
               </div>
             </div>
 
-            <div class="contact-databook__hero-notes-panel">
-              <div class="contact-databook__hero-tabs" role="tablist" :aria-label="`${activeRegistryEntry?.label || 'Record'} context`">
+            <div class="record-shell__context-panel">
+              <div class="record-shell__context-tabs" role="tablist" :aria-label="`${activeRegistryEntry?.label || 'Record'} context`">
                 <button
                   type="button"
-                  class="contact-databook__hero-tab"
-                  :class="{ 'contact-databook__hero-tab--active': genericHeroPanelTab === 'notes' }"
+                  class="record-shell__context-tab"
+                  :class="{ 'record-shell__context-tab--active': genericHeroPanelTab === 'notes' }"
                   @click="genericHeroPanelTab = 'notes'"
                 >
                   Latest notes
                 </button>
                 <button
                   type="button"
-                  class="contact-databook__hero-tab"
-                  :class="{ 'contact-databook__hero-tab--active': genericHeroPanelTab === 'documents' }"
+                  class="record-shell__context-tab"
+                  :class="{ 'record-shell__context-tab--active': genericHeroPanelTab === 'documents' }"
                   @click="genericHeroPanelTab = 'documents'"
                 >
                   Related artifacts
@@ -166,50 +166,50 @@
 
               <ul
                 v-if="genericHeroPanelTab === 'notes' && genericHeroNotes.length"
-                class="contact-databook__hero-notes"
+                class="record-shell__context-list"
               >
                 <li
                   v-for="note in genericHeroNotes"
                   :key="note.id"
-                  class="contact-databook__hero-note"
+                  class="record-shell__context-item"
                 >
-                  <div class="contact-databook__notes-row">
-                    <div class="contact-databook__notes-title">{{ note.title }}</div>
-                    <div class="contact-databook__notes-meta">{{ note.created_at }}</div>
+                  <div class="record-shell__context-row">
+                    <div class="record-shell__context-title">{{ note.title }}</div>
+                    <div class="record-shell__context-meta">{{ note.created_at }}</div>
                   </div>
-                  <div v-if="note.content" class="contact-databook__notes-content">
+                  <div v-if="note.content" class="record-shell__context-content">
                     {{ note.content }}
                   </div>
                 </li>
               </ul>
               <div
                 v-else-if="genericHeroPanelTab === 'notes'"
-                class="contact-databook__hero-panel-empty"
+                class="record-shell__context-empty"
               >
                 No notes yet for this {{ (activeRegistryEntry?.singularLabel || 'record').toLowerCase() }}.
               </div>
 
               <ul
                 v-if="genericHeroPanelTab === 'documents' && genericHeroDocuments.length"
-                class="contact-databook__hero-documents"
+                class="record-shell__context-list"
               >
                 <li
                   v-for="document in genericHeroDocuments"
                   :key="document.id"
-                  class="contact-databook__hero-document"
+                  class="record-shell__context-item"
                 >
-                  <div class="contact-databook__notes-row">
-                    <div class="contact-databook__notes-title">{{ document.title }}</div>
-                    <div class="contact-databook__notes-meta">{{ document.meta }}</div>
+                  <div class="record-shell__context-row">
+                    <div class="record-shell__context-title">{{ document.title }}</div>
+                    <div class="record-shell__context-meta">{{ document.meta }}</div>
                   </div>
-                  <div v-if="document.content" class="contact-databook__notes-content">
+                  <div v-if="document.content" class="record-shell__context-content">
                     {{ document.content }}
                   </div>
                 </li>
               </ul>
               <div
                 v-else-if="genericHeroPanelTab === 'documents'"
-                class="contact-databook__hero-panel-empty"
+                class="record-shell__context-empty"
               >
                 No related artifacts yet for this {{ (activeRegistryEntry?.singularLabel || 'record').toLowerCase() }}.
               </div>
@@ -217,37 +217,37 @@
           </div>
         </div>
 
-        <div class="contact-databook__summary">
-          <div class="contact-databook__summary-header contact-databook__summary-header--feed">
-            <div class="contact-databook__summary-label">Record Feed</div>
+        <div class="record-shell__feed">
+          <div class="record-shell__feed-header record-shell__feed-header--main">
+            <div class="record-shell__feed-label">Record Feed</div>
           </div>
 
-          <div v-if="recordFeedTabOptions.length" class="contact-databook__summary-feed-tabs">
+          <div v-if="recordFeedTabOptions.length" class="record-shell__feed-tabs">
             <button
               v-for="tab in recordFeedTabOptions"
               :key="tab.id"
               type="button"
-              class="contact-databook__summary-feed-tab"
-              :class="{ 'contact-databook__summary-feed-tab--active': activeRecordFeedTab === tab.id }"
+              class="record-shell__feed-tab"
+              :class="{ 'record-shell__feed-tab--active': activeRecordFeedTab === tab.id }"
               @click="activeRecordFeedTab = tab.id"
             >
               {{ tab.label }}
             </button>
           </div>
 
-          <div v-if="displayedRecordFeedItems.length" class="contact-databook__summary-feed-list">
+          <div v-if="displayedRecordFeedItems.length" class="record-shell__feed-list">
             <div
               v-for="item in displayedRecordFeedItems"
               :key="item.id"
-              class="contact-databook__summary-feed-entry"
+              class="record-shell__feed-entry"
             >
-              <div class="contact-databook__summary-feed-entry-top">
-                <div class="contact-databook__summary-feed-entry-time">{{ item.meta }}</div>
-                <div class="contact-databook__summary-feed-entry-top-right">
+              <div class="record-shell__feed-entry-top">
+                <div class="record-shell__feed-entry-time">{{ item.meta }}</div>
+                <div class="record-shell__feed-entry-top-right">
                   <button
                     v-if="item.hasLogPage"
                     type="button"
-                    class="contact-databook__summary-feed-entry-toggle"
+                    class="record-shell__feed-entry-toggle"
                     aria-label="Open event log"
                     @click="openFeedItemLog(item.id)"
                   >
@@ -255,10 +255,10 @@
                   </button>
                 </div>
               </div>
-              <div class="contact-databook__summary-feed-entry-title">{{ item.title }}</div>
+              <div class="record-shell__feed-entry-title">{{ item.title }}</div>
             </div>
           </div>
-          <div v-else class="contact-databook__summary-feed-state">
+          <div v-else class="record-shell__feed-state">
             No feed items yet for this record.
           </div>
         </div>
@@ -1669,7 +1669,7 @@ function onContactHeroPointerLeave() {
 
 <style scoped>
 .record-shell { display: flex; flex-direction: column; gap: 20px; }
-.contact-databook__hero {
+.record-shell__hero {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.88fr);
@@ -1682,7 +1682,7 @@ function onContactHeroPointerLeave() {
   box-shadow: 0 20px 50px rgba(17, 17, 17, 0.06);
 }
 
-.contact-databook__hero::before {
+.record-shell__hero::before {
   position: absolute;
   inset: 0;
   content: '';
@@ -1698,13 +1698,13 @@ function onContactHeroPointerLeave() {
   transition: opacity 180ms ease;
 }
 
-.contact-databook__hero-main,
-.contact-databook__summary {
+.record-shell__hero-main,
+.record-shell__feed {
   position: relative;
   z-index: 1;
 }
 
-.contact-databook__hero-main {
+.record-shell__hero-main {
   display: flex;
   gap: 0;
   align-items: stretch;
@@ -1712,7 +1712,7 @@ function onContactHeroPointerLeave() {
   min-height: 420px;
 }
 
-.contact-databook__portrait {
+.record-shell__portrait {
   position: relative;
   flex: 0 0 clamp(280px, 26vw, 370px);
   width: clamp(280px, 26vw, 370px);
@@ -1725,7 +1725,7 @@ function onContactHeroPointerLeave() {
   box-shadow: none;
 }
 
-.contact-databook__portrait::after {
+.record-shell__portrait::after {
   position: absolute;
   inset: 0;
   content: '';
@@ -1733,15 +1733,15 @@ function onContactHeroPointerLeave() {
   pointer-events: none;
 }
 
-.contact-databook__portrait--initials-only {
+.record-shell__portrait--initials-only {
   background: transparent;
 }
 
-.contact-databook__portrait--initials-only::after {
+.record-shell__portrait--initials-only::after {
   display: none;
 }
 
-.contact-databook__portrait-placeholder {
+.record-shell__portrait-placeholder {
   display: flex;
   width: 100%;
   height: 100%;
@@ -1750,7 +1750,7 @@ function onContactHeroPointerLeave() {
   background: transparent;
 }
 
-.contact-databook__portrait-placeholder-initials {
+.record-shell__portrait-placeholder-initials {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1768,7 +1768,7 @@ function onContactHeroPointerLeave() {
   letter-spacing: 0.04em;
 }
 
-.contact-databook__hero-copy {
+.record-shell__hero-copy {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -1803,7 +1803,7 @@ function onContactHeroPointerLeave() {
   font-size: 16px;
 }
 
-.contact-databook__summary-label {
+.record-shell__feed-label {
   color: var(--ds-color-text-muted-alt);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-medium);
@@ -1813,7 +1813,7 @@ function onContactHeroPointerLeave() {
   text-transform: uppercase;
 }
 
-.contact-databook__name {
+.record-shell__name {
   margin: 0;
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-title);
@@ -1822,21 +1822,21 @@ function onContactHeroPointerLeave() {
   line-height: 0.95;
 }
 
-.contact-databook__mini-dashboard {
+.record-shell__mini-dashboard {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-top: 2px;
 }
 
-.contact-databook__mini-item {
+.record-shell__mini-item {
   padding: 8px 10px;
   background: rgba(255, 255, 255, 0.64);
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 9px;
 }
 
-.contact-databook__mini-label {
+.record-shell__mini-label {
   color: #6f6f6f;
   font-family: var(--ds-font-family-body);
   font-size: 10px;
@@ -1846,7 +1846,7 @@ function onContactHeroPointerLeave() {
   text-transform: uppercase;
 }
 
-.contact-databook__mini-value {
+.record-shell__mini-value {
   margin-top: 3px;
   color: #111;
   font-family: var(--ds-font-family-body);
@@ -1856,7 +1856,7 @@ function onContactHeroPointerLeave() {
   word-break: break-word;
 }
 
-.contact-databook__role {
+.record-shell__subtitle {
   color: #454545;
   font-family: var(--font-body);
   font-size: var(--text-lg---regular);
@@ -1864,7 +1864,7 @@ function onContactHeroPointerLeave() {
   line-height: 24px;
 }
 
-.contact-databook__role--location {
+.record-shell__subtitle--secondary {
   color: #6b6b6b;
   font-size: var(--text-sm---regular);
   line-height: 20px;
@@ -1975,11 +1975,11 @@ function onContactHeroPointerLeave() {
   border-radius: 0;
 }
 
-.contact-databook__hero-notes-panel {
+.record-shell__context-panel {
   display: none;
 }
 
-.contact-databook__hero-tabs {
+.record-shell__context-tabs {
   display: inline-flex;
   gap: 6px;
   align-self: flex-start;
@@ -1988,7 +1988,7 @@ function onContactHeroPointerLeave() {
   border-radius: 999px;
 }
 
-.contact-databook__hero-tab {
+.record-shell__context-tab {
   padding: 7px 12px;
   color: var(--ds-color-text-muted-alt);
   background: transparent;
@@ -2003,14 +2003,13 @@ function onContactHeroPointerLeave() {
   cursor: pointer;
 }
 
-.contact-databook__hero-tab--active {
+.record-shell__context-tab--active {
   color: #111;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 8px 18px rgba(17, 17, 17, 0.08);
 }
 
-.contact-databook__hero-notes,
-.contact-databook__hero-documents {
+.record-shell__context-list {
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-12);
@@ -2019,14 +2018,12 @@ function onContactHeroPointerLeave() {
   list-style: none;
 }
 
-.contact-databook__hero-note,
-.contact-databook__hero-document {
+.record-shell__context-item {
   position: relative;
   padding-left: 18px;
 }
 
-.contact-databook__hero-note::before,
-.contact-databook__hero-document::before {
+.record-shell__context-item::before {
   position: absolute;
   top: 8px;
   left: 0;
@@ -2037,21 +2034,21 @@ function onContactHeroPointerLeave() {
   background: rgba(17, 17, 17, 0.3);
 }
 
-.contact-databook__notes-row {
+.record-shell__context-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--ds-space-12);
 }
 
-.contact-databook__notes-title {
+.record-shell__context-title {
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-sm-medium);
   font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-sm);
 }
 
-.contact-databook__notes-content {
+.record-shell__context-content {
   margin-top: 4px;
   white-space: pre-wrap;
   word-break: break-word;
@@ -2060,7 +2057,7 @@ function onContactHeroPointerLeave() {
   line-height: var(--ds-line-height-sm);
 }
 
-.contact-databook__notes-meta {
+.record-shell__context-meta {
   flex: 0 0 auto;
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-regular);
@@ -2068,7 +2065,7 @@ function onContactHeroPointerLeave() {
   white-space: nowrap;
 }
 
-.contact-databook__hero-panel-empty {
+.record-shell__context-empty {
   margin-top: 10px;
   color: #6f6f6f;
   font-family: var(--font-body);
@@ -2076,7 +2073,7 @@ function onContactHeroPointerLeave() {
   line-height: 20px;
 }
 
-.contact-databook__summary {
+.record-shell__feed {
   align-self: stretch;
   display: flex;
   flex-direction: column;
@@ -2088,19 +2085,19 @@ function onContactHeroPointerLeave() {
   color: #fff;
 }
 
-.contact-databook__summary-header {
+.record-shell__feed-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-12);
 }
 
-.contact-databook__summary-header--feed {
+.record-shell__feed-header--main {
   justify-content: flex-start;
   gap: 20px;
 }
 
-.contact-databook__summary-feed-state {
+.record-shell__feed-state {
   margin-top: 18px;
   color: rgba(255, 255, 255, 0.62);
   font-family: var(--ds-font-family-body);
@@ -2108,21 +2105,21 @@ function onContactHeroPointerLeave() {
   line-height: var(--ds-line-height-sm);
 }
 
-.contact-databook__summary-feed-list {
+.record-shell__feed-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-top: 14px;
 }
 
-.contact-databook__summary-feed-tabs {
+.record-shell__feed-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 12px;
 }
 
-.contact-databook__summary-feed-tab {
+.record-shell__feed-tab {
   min-height: 24px;
   padding: 0 9px;
   color: rgba(255, 255, 255, 0.72);
@@ -2137,33 +2134,33 @@ function onContactHeroPointerLeave() {
   cursor: pointer;
 }
 
-.contact-databook__summary-feed-tab--active {
+.record-shell__feed-tab--active {
   color: #111;
   background: rgba(255, 255, 255, 0.94);
   border-color: rgba(255, 255, 255, 0.94);
 }
 
-.contact-databook__summary-feed-entry {
+.record-shell__feed-entry {
   padding: 9px 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
 }
 
-.contact-databook__summary-feed-entry-top {
+.record-shell__feed-entry-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
-.contact-databook__summary-feed-entry-top-right {
+.record-shell__feed-entry-top-right {
   display: flex;
   align-items: center;
   gap: 0;
 }
 
-.contact-databook__summary-feed-entry-source {
+.record-shell__feed-entry-source {
   color: rgba(255, 255, 255, 0.78);
   font-family: var(--ds-font-family-body);
   font-size: 10px;
@@ -2172,14 +2169,14 @@ function onContactHeroPointerLeave() {
   text-transform: uppercase;
 }
 
-.contact-databook__summary-feed-entry-time {
+.record-shell__feed-entry-time {
   color: rgba(255, 255, 255, 0.54);
   font-family: var(--ds-font-family-body);
   font-size: 10px;
   line-height: 1.3;
 }
 
-.contact-databook__summary-feed-entry-title {
+.record-shell__feed-entry-title {
   margin-top: 4px;
   color: #ffffff;
   font-family: var(--ds-font-family-body);
@@ -2188,7 +2185,7 @@ function onContactHeroPointerLeave() {
   line-height: var(--ds-line-height-sm);
 }
 
-.contact-databook__summary-feed-entry-toggle {
+.record-shell__feed-entry-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2202,12 +2199,12 @@ function onContactHeroPointerLeave() {
   cursor: pointer;
 }
 
-.contact-databook__summary-feed-entry-toggle:hover {
+.record-shell__feed-entry-toggle:hover {
   color: rgba(255, 255, 255, 0.94);
   background: rgba(255, 255, 255, 0.08);
 }
 
-.contact-databook__summary-feed-entry-content {
+.record-shell__feed-entry-content {
   margin-top: 2px;
   color: rgba(255, 255, 255, 0.74);
   font-family: var(--ds-font-family-body);
@@ -2251,11 +2248,11 @@ function onContactHeroPointerLeave() {
 .record-shell__settings-children { display:grid; gap:4px; margin-top:4px; }
 .record-shell__settings-row { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:8px; min-height:28px; padding:2px 4px; }
 @media (max-width: 1180px) {
-  .contact-databook__hero { grid-template-columns: 1fr; }
+  .record-shell__hero { grid-template-columns: 1fr; }
 }
 @media (max-width: 900px) {
-  .contact-databook__hero-main { flex-direction: column; }
-  .contact-databook__portrait {
+  .record-shell__hero-main { flex-direction: column; }
+  .record-shell__portrait {
     width: 100%;
     flex-basis: auto;
     min-height: 240px;

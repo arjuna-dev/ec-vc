@@ -266,6 +266,8 @@ This tracker should stay aligned with:
   - keep `File/Card` views lightweight
   - make `Record View` richer and workbook-aligned
 - schema alignment work is still important, but intake continuity, JSON structure ownership, and structure-contract cleanup are the active operational threads
+- as of April 6, 2026:
+  - shared record-shell presentation naming is being normalized away from leftover `contact-databook` class language so the shell reads as a generic `Record Shell` surface instead of a contact-specific carryover
 
 ## Update Rule
 
