@@ -535,6 +535,7 @@ const drawerSectionOpen = ref({
   radars: true,
   workspace: true,
   'knowledge-dbs': false,
+  'test-shells': false,
 })
 
 const QUICK_WIDGET_TRIGGER_SIZE = 112
@@ -607,12 +608,19 @@ const workspaceNavigationItems = [
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
   { label: 'File System', to: '/file-system', exact: true, icon: 'folder_open' },
-  { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
-  { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
 ].map((item) => ({
   ...item,
   itemClass: item.itemClass || 'ec-nav-item--secondary ec-nav-item--workspace-child',
   iconSize: item.iconSize || '18px',
+}))
+const testShellNavigationItems = [
+  { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
+  { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
+  { label: 'Add/Edit Dialog Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
+].map((item) => ({
+  ...item,
+  itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
+  iconSize: '18px',
 }))
 const routeLabelByName = {
   home: 'Home',
@@ -631,6 +639,7 @@ const routeLabelByName = {
   tasks: 'Tasks',
   'test-shell': 'File Shell',
   'record-shell': 'Record Shell',
+  'dialog-shell': 'Add/Edit Dialog Shell',
   roles: 'Roles',
   avatar: 'Companion',
   'user-settings': 'Owner',
@@ -704,6 +713,18 @@ const drawerNavigationSections = computed(() => [
           ...item,
           parentKey: 'knowledge-dbs',
         })),
+      {
+        kind: 'toggle',
+        label: 'Test Shells',
+        itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
+        icon: 'folder',
+        iconSize: '22px',
+        toggleKey: 'test-shells',
+      },
+      ...testShellNavigationItems.map((item) => ({
+        ...item,
+        parentKey: 'test-shells',
+      })),
     ],
   },
 ])
@@ -745,8 +766,7 @@ const toolbarActions = computed(() => {
 
   return []
 })
-const isFileShellRoute = computed(() => String(route.name || '') === 'test-shell')
-const isShellRoute = computed(() => isFileShellRoute.value || String(route.name || '') === 'record-shell')
+const isShellRoute = computed(() => ['test-shell', 'record-shell', 'dialog-shell'].includes(String(route.name || '')))
 const shellSectionOptions = TEST_SHELL_SECTION_OPTIONS
 const selectedShellSection = computed({
   get() {
