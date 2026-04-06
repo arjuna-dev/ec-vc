@@ -364,6 +364,13 @@ No relationship should be treated as complete until all three are true.
 
 When a new `L1` is created, it must be treated as a full architectural bootstrap by default.
 
+Authority rule:
+
+- new `L1` bootstrap is `Owner`-only authority work
+- it is not a normal shared-shell create action
+- it is not a normal file-page add-record action
+- non-owner users/roles should not be able to trigger new `L1` creation from the product UI
+
 That means:
 
 - the new `L1` must be implemented as a real new canonical source/table, not just a route or visible shell option

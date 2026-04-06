@@ -234,6 +234,7 @@ Shared dialog rule:
 New `L1` bootstrap rule:
 
 - a new `L1` must be treated as a full product/runtime/bootstrap task, not as a label or route-only task
+- new `L1` bootstrap is `Owner`-only authority work, not a normal user create action
 - adding a new `L1` should include:
   - canonical entity
   - route

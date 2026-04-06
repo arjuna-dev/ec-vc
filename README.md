@@ -49,6 +49,12 @@ Current expected add/edit behavior:
 
 When creating a new `L1`, treat it as a full architectural bootstrap by default, not a partial frontend/source split.
 
+Authority rule:
+
+- new `L1` bootstrap is `Owner`-only work
+- it is structural system authority, not normal in-app record creation
+- non-owner users/roles should not be able to trigger new `L1` creation from product UI
+
 Required scope:
 
 - add the canonical entity to `docs/canonical-structure.json`
