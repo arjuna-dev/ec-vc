@@ -103,7 +103,7 @@
 
       <template v-else>
         <div class="building-block-preview-tile__placeholder">
-          <div class="building-block-preview-tile__placeholder-title">Preview Pending</div>
+          <div class="building-block-preview-tile__placeholder-title">Preview<br>Pending</div>
           <div class="building-block-preview-tile__placeholder-text">
             This building block does not have a shared live preview yet.
           </div>
@@ -445,7 +445,9 @@ const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Rec
   display: grid;
   gap: 8px;
   align-content: center;
+  justify-items: center;
   width: 100%;
+  text-align: center;
 }
 
 .building-block-preview-tile__placeholder-title {
