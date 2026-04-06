@@ -682,18 +682,22 @@ onBeforeUnmount(() => {
 
 .components-shell-page__board {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 168px);
-  grid-auto-rows: 140px;
+  grid-template-columns: repeat(auto-fill, 40px);
+  grid-auto-rows: 40px;
   grid-auto-flow: dense;
-  gap: 18px;
+  gap: 16px;
   justify-content: start;
   align-items: start;
 }
 
 .components-shell-page__card {
+  --components-card-cols: 4;
+  --components-card-rows: 4;
   position: relative;
   display: flex;
   flex-direction: column;
+  grid-column: span var(--components-card-cols);
+  grid-row: span var(--components-card-rows);
   gap: 10px;
   min-width: 0;
   min-height: 0;
@@ -722,58 +726,58 @@ onBeforeUnmount(() => {
 }
 
 .components-shell-page__card--sm {
-  grid-column: span 1;
-  grid-row: span 1;
+  --components-card-cols: 4;
+  --components-card-rows: 4;
 }
 
 .components-shell-page__card--md {
-  grid-column: span 2;
-  grid-row: span 1;
+  --components-card-cols: 6;
+  --components-card-rows: 4;
 }
 
 .components-shell-page__card--lg {
-  grid-column: span 3;
-  grid-row: span 2;
+  --components-card-cols: 9;
+  --components-card-rows: 6;
 }
 
 .components-shell-page__card--xl {
-  grid-column: span 4;
-  grid-row: span 3;
+  --components-card-cols: 11;
+  --components-card-rows: 8;
 }
 
 .components-shell-page__card--toolbar-wide {
-  grid-column: span 5;
-  grid-row: span 2;
+  --components-card-cols: 14;
+  --components-card-rows: 4;
 }
 
 .components-shell-page__card--dashboard {
-  grid-column: span 6;
-  grid-row: span 4;
+  --components-card-cols: 16;
+  --components-card-rows: 10;
 }
 
 .components-shell-page__card--stat-box {
-  grid-column: span 2;
-  grid-row: span 2;
+  --components-card-cols: 6;
+  --components-card-rows: 6;
 }
 
 .components-shell-page__card--live-link {
-  grid-column: span 2;
-  grid-row: span 1;
+  --components-card-cols: 7;
+  --components-card-rows: 4;
 }
 
 .components-shell-page__card--settings-menu {
-  grid-column: span 3;
-  grid-row: span 3;
+  --components-card-cols: 8;
+  --components-card-rows: 8;
 }
 
 .components-shell-page__card--widget-settings {
-  grid-column: span 3;
-  grid-row: span 3;
+  --components-card-cols: 8;
+  --components-card-rows: 8;
 }
 
 .components-shell-page__card--title-wide {
-  grid-column: span 4;
-  grid-row: span 2;
+  --components-card-cols: 10;
+  --components-card-rows: 5;
 }
 
 .components-shell-page__card-label {
@@ -1433,8 +1437,8 @@ onBeforeUnmount(() => {
 
 @media (max-width: 900px) {
   .components-shell-page__board {
-    grid-template-columns: repeat(auto-fill, 140px);
-    grid-auto-rows: 110px;
+    grid-template-columns: repeat(auto-fill, 32px);
+    grid-auto-rows: 32px;
     gap: 14px;
   }
 
@@ -1450,11 +1454,21 @@ onBeforeUnmount(() => {
   .components-shell-page__card--title-wide,
   .components-shell-page__card--toolbar-wide,
   .components-shell-page__card--dashboard {
-    grid-column: span 3;
+    --components-card-cols: 9;
   }
 
   .components-shell-page__card--dashboard {
-    grid-row: span 4;
+    --components-card-rows: 10;
+  }
+
+  .components-shell-page__card--settings-menu,
+  .components-shell-page__card--widget-settings {
+    --components-card-rows: 9;
+  }
+
+  .components-shell-page__card--title-wide,
+  .components-shell-page__card--toolbar-wide {
+    --components-card-rows: 5;
   }
 }
 </style>
