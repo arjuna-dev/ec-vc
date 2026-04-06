@@ -247,15 +247,6 @@
               flat
               round
               dense
-              icon="edit"
-              class="bb-shell-tiles-grid__action"
-              :disable="!row.recordId || !supportsActiveSourceEditing"
-              @click="requestEditRecordShell(row)"
-            />
-            <q-btn
-              flat
-              round
-              dense
               icon="visibility"
               class="bb-shell-tiles-grid__action"
               :disable="!row.recordId"
