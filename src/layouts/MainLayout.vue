@@ -470,6 +470,8 @@ import {
 import { useBreadcrumbActionsState } from 'src/utils/breadcrumbActionsState'
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
 import {
+  getCreateBranchEntry,
+  getCreateBranches,
   getFilePageRegistryEntry,
   TEST_SHELL_SECTION_OPTIONS,
   WORKSPACE_FILE_NAV_ITEMS,
@@ -1638,9 +1640,32 @@ async function openRoundFromQuickAction() {
 
 async function openShellCreateFromQuickAction(section, extraQuery = {}) {
   closeQuickActions()
-  const targetEntry = getFilePageRegistryEntry(section)
+  const sourceKey = String(section || '').trim().toLowerCase()
+  const requestedBranch = String(extraQuery?.kind || '').trim().toLowerCase()
+  const targetEntry = getFilePageRegistryEntry(sourceKey)
   const targetRouteName = String(targetEntry?.routeName || '').trim()
   if (!targetRouteName) {
+    return
+  }
+  if (!requestedBranch && getCreateBranches(sourceKey).length) {
+    await router.push({
+      name: 'fork-shell',
+      query: {
+        section: sourceKey,
+        returnTo: route.fullPath,
+      },
+    })
+    return
+  }
+  if (requestedBranch && getCreateBranchEntry(sourceKey, requestedBranch)) {
+    await router.push({
+      name: 'dialog-shell',
+      query: {
+        section: sourceKey,
+        create: String(Date.now()),
+        kind: requestedBranch,
+      },
+    })
     return
   }
   await router.push({
