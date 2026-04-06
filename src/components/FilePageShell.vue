@@ -613,6 +613,7 @@ import {
   getCreateBranchTokenName,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByRouteName,
+  getRuntimeTableNameForEntityName,
   getCanonicalTokenFieldNames,
   getCanonicalTokenWriteFieldName,
   getCanonicalTokenWriteTarget,
@@ -2165,16 +2166,18 @@ async function updateRecordFromPayload(recordId, entityName, payload = {}) {
   if (!recordId || !entityName) {
     throw new Error('This record cannot be edited from the shared shell yet.')
   }
+  const tableName = getRuntimeTableNameForEntityName(entityName)
 
   const changes = buildUpdateChangesFromValues(payload, {
     recordId,
     entityName,
+    tableName,
     idColumn: activeLoader.value?.recordIdField || 'id',
   })
   if (!changes.length) return
 
   await bridge.value?.databooks?.update?.({
-    tableName: entityName,
+    tableName,
     recordId,
     changes,
     actionId: createDialogChangeActionId.value || null,
@@ -2185,9 +2188,10 @@ async function updateRecordFromPayload(recordId, entityName, payload = {}) {
 async function applyVerificationChanges(recordId, entityName, verification = {}) {
   const changes = Array.isArray(verification?.changes) ? verification.changes : []
   if (!changes.length) return
+  const tableName = getRuntimeTableNameForEntityName(entityName)
 
   for (const change of changes) {
-    const targetTableName = String(change?.tableName || entityName || '').trim()
+    const targetTableName = String(change?.tableName || tableName || '').trim()
     const targetRecordId = String(change?.recordId || recordId || '').trim()
     const fieldName = String(change?.fieldName || '').trim()
     const state = String(change?.state || '').trim()
@@ -2344,8 +2348,9 @@ function haveNormalizedDialogValuesChanged(token, nextValue, initialValue) {
   return (normalizedNext || null) !== (normalizedInitial || null)
 }
 
-function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName = '', idColumn = 'id' } = {}) {
+function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName = '', tableName = '', idColumn = 'id' } = {}) {
   if (!recordId || !entityName) return []
+  const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
 
   const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
 
@@ -2367,7 +2372,7 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
       return [
         {
           change_kind: 'relationship',
-          table_name: entityName,
+          table_name: resolvedTableName,
           record_id: recordId,
           field_name: token.tokenName,
           relationship_token: token.tokenName,
@@ -2378,7 +2383,7 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
 
     if (isUnsupportedRelationshipWriteToken(token, entityName)) return []
 
-    const writeTarget = getCanonicalTokenWriteTarget(token, entityName, idColumn)
+    const writeTarget = getCanonicalTokenWriteTarget(token, resolvedTableName, idColumn)
     if (!writeTarget?.tableName || !writeTarget?.fieldName) return []
 
     return [

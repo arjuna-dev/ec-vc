@@ -308,6 +308,16 @@ export function getFilePageRegistryEntryByRouteName(routeName) {
   return LEVEL_1_FILE_REGISTRY.find((entry) => entry.routeName === normalizedRouteName) || null
 }
 
+export function getFilePageRegistryEntryByEntityName(entityName) {
+  const normalizedEntityName = String(entityName || '').trim()
+  return LEVEL_1_FILE_REGISTRY.find((entry) => String(entry.entityName || '').trim() === normalizedEntityName) || null
+}
+
+export function getRuntimeTableNameForEntityName(entityName = '') {
+  const entry = getFilePageRegistryEntryByEntityName(entityName)
+  return String(entry?.key || entityName || '').trim()
+}
+
 export function getCreateBranchTokenName(sourceKey = '') {
   const entry = getFilePageRegistryEntry(sourceKey)
   return String(entry?.createBranchTokenName || '').trim()

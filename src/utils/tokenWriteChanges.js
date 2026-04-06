@@ -1,4 +1,4 @@
-import { getCanonicalTokenWriteTarget } from 'src/utils/structureRegistry'
+import { getCanonicalTokenWriteTarget, getRuntimeTableNameForEntityName } from 'src/utils/structureRegistry'
 import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipContracts'
 
 export function normalizeTokenWriteValue(token, value) {
@@ -48,12 +48,14 @@ export function buildTokenUpdateChanges(token, {
   initialValue,
   recordId = '',
   entityName = '',
+  tableName = '',
   idColumn = 'id',
 } = {}) {
   if (!recordId || !entityName || !haveNormalizedTokenValuesChanged(token, nextValue, initialValue)) return []
 
   const normalizedValue = normalizeTokenWriteValue(token, nextValue)
   if (normalizedValue == null) return []
+  const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
 
   const relationshipContract = getKdbRelationshipContractForToken(entityName, token?.tokenName)
   if (relationshipContract) {
@@ -63,7 +65,7 @@ export function buildTokenUpdateChanges(token, {
     return [
       {
         change_kind: 'relationship',
-        table_name: entityName,
+        table_name: resolvedTableName,
         record_id: recordId,
         field_name: String(token?.tokenName || '').trim(),
         relationship_token: String(token?.tokenName || '').trim(),
@@ -72,7 +74,7 @@ export function buildTokenUpdateChanges(token, {
     ]
   }
 
-  const writeTarget = getCanonicalTokenWriteTarget(token, entityName, idColumn)
+  const writeTarget = getCanonicalTokenWriteTarget(token, resolvedTableName, idColumn)
   if (!writeTarget?.tableName || !writeTarget?.fieldName) return []
 
   return [
