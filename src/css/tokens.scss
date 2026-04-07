@@ -47,18 +47,22 @@
   --ds-radius-round: 50%;
   --ds-radius-pill: 999px;
 
-  --ds-color-text-primary: #0a0a0a;
   --ds-color-brand-blue: #2647ff;
-  --ds-color-text-header: #0f172a;
+  --ds-color-brand-black: #0a0a0a;
+  --ds-color-brand-dark-grey: #737373;
+  --ds-color-brand-light-grey: #e5e5e5;
+  --ds-color-brand-white: #fff;
+  --ds-color-text-primary: var(--ds-color-brand-black);
+  --ds-color-text-header: var(--ds-color-brand-black);
   --ds-color-text-navigation: #64748b;
   --ds-color-text-primary-deep: #1b1b1d;
-  --ds-color-text-muted: #737373;
+  --ds-color-text-muted: var(--ds-color-brand-dark-grey);
   --ds-color-text-secondary: #5d5a54;
   --ds-color-text-subtle: #4b4b4b;
   --ds-color-text-muted-alt: #6f6f6f;
   --ds-color-text-caption: #707070;
   --ds-color-text-body-strong: #171717;
-  --ds-color-surface-base: #fff;
+  --ds-color-surface-base: var(--ds-color-brand-white);
   --ds-color-surface-base-88: rgba(255, 255, 255, 0.88);
   --ds-color-surface-subtle: #f8fafc;
   --ds-color-surface-subtle-alt: #fbfbfb;
@@ -67,7 +71,7 @@
   --ds-color-surface-overlay-84: rgba(255, 255, 255, 0.84);
   --ds-color-surface-overlay-96: rgba(255, 255, 255, 0.96);
   --ds-color-surface-inverse: #ffffff;
-  --ds-color-border-soft: #e5e5e5;
+  --ds-color-border-soft: var(--ds-color-brand-light-grey);
   --ds-color-border-soft-alt: #e5e7eb;
   --ds-color-border-default: rgba(17, 17, 17, 0.08);
   --ds-color-border-strong: rgba(17, 17, 17, 0.1);

@@ -30,12 +30,11 @@ export const GENERAL_SETTINGS_FONT_WEIGHT_SAMPLES = Object.freeze([
 ])
 
 export const GENERAL_SETTINGS_COLOR_SWATCHES = Object.freeze([
-  { key: 'brand', label: 'Brand Blue', token: '--ds-color-brand-blue', color: 'var(--ds-color-brand-blue)' },
-  { key: 'text-primary', label: 'Text Primary', token: '--ds-color-text-primary', color: 'var(--ds-color-text-primary)' },
-  { key: 'text-header', label: 'Text Header', token: '--ds-color-text-header', color: 'var(--ds-color-text-header)' },
-  { key: 'text-muted', label: 'Text Muted', token: '--ds-color-text-muted', color: 'var(--ds-color-text-muted)' },
-  { key: 'surface', label: 'Surface Base', token: '--ds-color-surface-base', color: 'var(--ds-color-surface-base)' },
-  { key: 'border', label: 'Border Soft', token: '--ds-color-border-soft', color: 'var(--ds-color-border-soft)' },
+  { key: 'brand-blue', label: 'Brand Blue', token: '--ds-color-brand-blue', color: 'var(--ds-color-brand-blue)' },
+  { key: 'brand-black', label: 'Brand Black', token: '--ds-color-brand-black', color: 'var(--ds-color-brand-black)' },
+  { key: 'brand-dark-grey', label: 'Brand Dark_Grey', token: '--ds-color-brand-dark-grey', color: 'var(--ds-color-brand-dark-grey)' },
+  { key: 'brand-white', label: 'Brand White', token: '--ds-color-brand-white', color: 'var(--ds-color-brand-white)' },
+  { key: 'brand-light-grey', label: 'Brand Light_Grey', token: '--ds-color-brand-light-grey', color: 'var(--ds-color-brand-light-grey)' },
 ])
 
 export const GENERAL_SETTINGS_SURFACE_SAMPLES = Object.freeze([

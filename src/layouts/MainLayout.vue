@@ -1985,7 +1985,7 @@ function goBack() {
 }
 
 .ec-create-branch-dialog-title {
-  color: var(--ds-color-text-header);
+  color: var(--ds-color-text-primary);
   font-family: var(--font-title);
   font-size: 1rem;
   font-weight: 800;
@@ -2003,7 +2003,7 @@ function goBack() {
 }
 
 .ec-shell-page-title {
-  color: var(--ds-color-text-header);
+  color: var(--ds-color-text-primary);
   font-family: var(--font-title);
   font-size: clamp(2.4rem, 5vw, 4rem);
   font-weight: 900;
@@ -2015,7 +2015,7 @@ function goBack() {
 .ec-shell-back-btn {
   align-self: flex-end;
   padding: 0 6px;
-  color: var(--ds-color-text-header);
+  color: var(--ds-color-text-primary);
   font-size: var(--ds-font-size-sm);
   font-weight: 800;
   line-height: 1;
@@ -2260,7 +2260,7 @@ function goBack() {
 }
 
 .ec-breadcrumbs__current {
-  color: var(--ds-color-text-header) !important;
+  color: var(--ds-color-text-primary) !important;
   font-weight: var(--ds-font-weight-medium) !important;
   pointer-events: none;
 }
