@@ -4,6 +4,7 @@
     unelevated
     :ripple="false"
     :class="buttonClasses"
+    :style="buttonStyle"
     :icon="icon"
     :disable="isDisabled"
     :loading="loading"
@@ -48,6 +49,14 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  color: {
+    type: String,
+    default: '',
+  },
+  inheritColor: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 defineEmits(['click'])
@@ -68,7 +77,14 @@ const buttonClasses = computed(() => [
   `b10-icon-btn--${props.variant}`,
   `b10-icon-btn--${props.size}`,
   `b10-icon-btn--state-${effectiveState.value}`,
+  { 'b10-icon-btn--inherit-color': props.inheritColor },
 ])
+
+const buttonStyle = computed(() => (
+  props.color
+    ? { color: props.color }
+    : null
+))
 </script>
 
 <style scoped lang="scss">
@@ -148,6 +164,17 @@ const buttonClasses = computed(() => [
   background: var(--ds-button-icon-subtle-bg-hover);
   border-color: transparent;
   color: var(--ds-button-icon-subtle-text);
+}
+
+.b10-icon-btn--subtle.b10-icon-btn--inherit-color.b10-icon-btn--state-default,
+.b10-icon-btn--subtle.b10-icon-btn--inherit-color.b10-icon-btn--state-default:not(.q-btn--disabled):hover,
+.b10-icon-btn--subtle.b10-icon-btn--inherit-color.b10-icon-btn--state-hover:not(.q-btn--disabled) {
+  color: inherit;
+}
+
+.b10-icon-btn--inherit-color :deep(.q-btn__content),
+.b10-icon-btn--inherit-color :deep(.q-icon) {
+  color: inherit !important;
 }
 
 .b10-icon-btn--state-disabled,

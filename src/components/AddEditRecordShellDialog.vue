@@ -336,7 +336,7 @@
               </div>
             </div>
 
-            <div class="create-record-shell__panel">
+            <div class="create-record-shell__panel ds-mini-scrollbar">
               <div class="create-record-shell__panel-head">
                 <div class="create-record-shell__panel-meta">{{ activeFields.length }} fields</div>
               </div>
@@ -2490,21 +2490,6 @@ onBeforeUnmount(() => {
   background: rgba(249, 249, 247, 0.92);
   border: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 12px;
-  scrollbar-width: thin;
-  scrollbar-color: #111111 transparent;
-}
-
-.create-record-shell__panel::-webkit-scrollbar {
-  width: 6px;
-}
-
-.create-record-shell__panel::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.create-record-shell__panel::-webkit-scrollbar-thumb {
-  background: #111111;
-  border-radius: 999px;
 }
 
 .create-record-shell__panel-head {

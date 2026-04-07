@@ -72,6 +72,10 @@
         <EyeIconButton aria-label="View item" />
       </template>
 
+      <template v-else-if="blockKey === 'edit-button'">
+        <EditButton aria-label="Edit row" />
+      </template>
+
       <template v-else-if="blockKey === 'main-menu-icon'">
         <MainMenuIconButton />
       </template>
@@ -485,6 +489,14 @@
         </div>
       </template>
 
+      <template v-else-if="blockKey === 'mini-scrollbar'">
+        <div class="building-block-preview-tile__scrollbar-sample">
+          <div class="building-block-preview-tile__scrollbar-track ds-mini-scrollbar">
+            <div class="building-block-preview-tile__scrollbar-content" />
+          </div>
+        </div>
+      </template>
+
       <template v-else-if="blockKey === 'record-shell-launchpad'">
         <div class="building-block-preview-tile__launchpad">
           <div class="building-block-preview-tile__launchpad-copy">
@@ -699,6 +711,7 @@ import WestIcon from 'src/components/WestIcon.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
+import EditButton from 'src/components/EditButton.vue'
 import DropdownChevron from 'src/components/DropdownChevron.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
@@ -1165,6 +1178,27 @@ onBeforeUnmount(() => {
   min-height: 28px;
   padding: 0 8px;
   background: var(--ds-color-brand-black);
+}
+
+.building-block-preview-tile__scrollbar-sample {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(140px, 100%);
+  height: 100%;
+}
+
+.building-block-preview-tile__scrollbar-track {
+  width: 10px;
+  height: 88px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+}
+
+.building-block-preview-tile__scrollbar-content {
+  width: 1px;
+  height: 240px;
 }
 
 .building-block-preview-tile__foundation-stack {

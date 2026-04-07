@@ -65,7 +65,7 @@
               </div>
               <div class="file-structure-shell__table-shell">
                 <div
-                  class="file-structure-shell__table-wrap"
+                  class="file-structure-shell__table-wrap ds-mini-scrollbar"
                 >
                   <table class="file-structure-shell__table">
                   <thead>
@@ -608,22 +608,6 @@ function removeSectionConfigurationRow(rowKey) {
   max-width: 100%;
   max-height: 320px;
   overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #111111 transparent;
-}
-
-.file-structure-shell__table-wrap::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.file-structure-shell__table-wrap::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.file-structure-shell__table-wrap::-webkit-scrollbar-thumb {
-  background: #111111;
-  border-radius: 999px;
 }
 
 .file-structure-shell__owner-note {

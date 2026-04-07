@@ -829,3 +829,22 @@ body.body--light .q-drawer.q-drawer--left .q-separator {
 .page-title-section .text-h6 {
   letter-spacing: 0.03em;
 }
+
+.ds-mini-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ds-color-brand-black) transparent;
+}
+
+.ds-mini-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.ds-mini-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ds-mini-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--ds-color-brand-black);
+  border-radius: var(--ds-radius-pill);
+}

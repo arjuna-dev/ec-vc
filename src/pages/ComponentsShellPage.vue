@@ -219,7 +219,7 @@
         <div class="components-shell-page__card-label">Edit Button</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('edit-button')">{{ componentStatusLabel('edit-button') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
-          <q-btn flat dense round icon="edit" class="components-shell-page__edit-button" aria-label="Edit row" />
+          <EditButton aria-label="Edit row" />
         </div>
       </article>
 
@@ -231,8 +231,8 @@
         <div class="components-shell-page__card-status" :class="componentStatusClass('mini-scrollbar')">{{ componentStatusLabel('mini-scrollbar') }}</div>
         <div class="components-shell-page__card-stage">
           <div class="components-shell-page__scrollbar-sample">
-            <div class="components-shell-page__scrollbar-sample-track">
-              <div class="components-shell-page__scrollbar-sample-thumb" />
+            <div class="components-shell-page__scrollbar-sample-track ds-mini-scrollbar">
+              <div class="components-shell-page__scrollbar-sample-content" />
             </div>
           </div>
         </div>
@@ -336,6 +336,7 @@ import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vu
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
+import EditButton from 'src/components/EditButton.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
@@ -988,18 +989,6 @@ onBeforeUnmount(() => {
   stroke-linejoin: round;
 }
 
-.components-shell-page__edit-button {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  color: #2647ff;
-}
-
-.components-shell-page__edit-button :deep(.q-icon) {
-  font-size: 14px;
-}
-
 .components-shell-page__scrollbar-sample {
   display: flex;
   align-items: center;
@@ -1009,19 +998,16 @@ onBeforeUnmount(() => {
 }
 
 .components-shell-page__scrollbar-sample-track {
-  position: relative;
-  width: 3px;
-  height: 74px;
-  background: rgba(17, 17, 17, 0.14);
+  width: 10px;
+  height: 88px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
 }
 
-.components-shell-page__scrollbar-sample-thumb {
-  position: absolute;
-  top: 14px;
-  left: 0;
-  width: 3px;
-  height: 22px;
-  background: #111111;
+.components-shell-page__scrollbar-sample-content {
+  width: 1px;
+  height: 240px;
 }
 
 .components-shell-page__detail-card {
