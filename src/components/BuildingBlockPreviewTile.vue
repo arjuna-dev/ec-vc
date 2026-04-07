@@ -395,6 +395,12 @@
           :show-view-toggle="true"
         />
       </template>
+      <template v-else-if="blockKey === 'filter-list-icon'">
+        <FilterListIcon />
+      </template>
+      <template v-else-if="blockKey === 'search-bar-input'">
+        <SearchBarInput model-value="" placeholder="Search Companies" />
+      </template>
 
       <template v-else-if="blockKey === 'record-shell-launchpad'">
         <div class="building-block-preview-tile__launchpad">
@@ -593,9 +599,11 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
+import FilterListIcon from 'src/components/FilterListIcon.vue'
 import L3Box from 'src/components/L3Box.vue'
 import PlusIconChip from 'src/components/PlusIconChip.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
+import SearchBarInput from 'src/components/SearchBarInput.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'

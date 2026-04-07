@@ -16,22 +16,15 @@
 
     <div class="file-page-toolbar__block file-page-toolbar__block--actions">
       <slot name="filters">
-        <q-icon name="tune" :size="'var(--ds-icon-size-md)'" class="file-page-toolbar__filters-icon" />
+        <FilterListIcon class="file-page-toolbar__filters-icon" :disable="loading" />
       </slot>
-      <q-input
+      <SearchBarInput
         :model-value="searchQuery"
-        dense
-        outlined
-        borderless
         class="file-page-toolbar__search"
         :placeholder="searchPlaceholder"
         :disable="loading"
         @update:model-value="$emit('update:searchQuery', $event)"
-      >
-        <template #prepend>
-          <q-icon name="search" />
-        </template>
-      </q-input>
+      />
       <ViewModeToggle
         v-if="showViewToggle"
         :model-value="viewMode"
@@ -45,7 +38,9 @@
 </template>
 
 <script setup>
+import FilterListIcon from 'src/components/FilterListIcon.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
+import SearchBarInput from 'src/components/SearchBarInput.vue'
 import ViewModeToggle from 'src/components/ViewModeToggle.vue'
 
 defineProps({
@@ -109,24 +104,7 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
 }
 
 .file-page-toolbar__search {
-  width: min(100%, var(--ds-toolbar-search-width));
-  min-width: min(100%, var(--ds-toolbar-search-width));
-  flex: 0 0 min(100%, var(--ds-toolbar-search-width));
-  background: var(--ds-control-surface);
-  border: 1px solid var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: var(--ds-control-shadow);
-}
-
-.file-page-toolbar__search :deep(.q-field__control),
-.file-page-toolbar__search :deep(.q-field__native),
-.file-page-toolbar__search :deep(.q-field__input) {
-  min-height: var(--ds-control-height-md);
-  height: var(--ds-control-height-md);
-}
-
-.file-page-toolbar__search :deep(.q-field__control) {
-  padding: 0 var(--ds-control-inline-padding);
+  flex: 0 0 auto;
 }
 
 .file-page-toolbar__view-toggle {
