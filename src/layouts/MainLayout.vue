@@ -3,7 +3,7 @@
     <q-header :height-hint="108" class="ec-shell-header">
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <div class="ec-shell-toolbar-heading">
-          <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
+          <MainMenuIconButton @click="toggleLeftDrawer" />
           <div class="ec-shell-page-title">{{ currentHeaderTitle }}</div>
           <q-btn
             flat
@@ -472,6 +472,7 @@ import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
 import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
+import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import {

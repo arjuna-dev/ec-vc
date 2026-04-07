@@ -57,7 +57,7 @@
         <div class="components-shell-page__card-label">Main Menu Icon</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('main-menu-icon')">{{ componentStatusLabel('main-menu-icon') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
-          <q-btn flat dense round icon="menu" aria-label="Menu" class="components-shell-page__menu-icon-button" />
+          <MainMenuIconButton />
         </div>
       </article>
         </div>
@@ -436,6 +436,7 @@ import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vu
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
+import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
@@ -783,14 +784,6 @@ onBeforeUnmount(() => {
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
-}
-
-.components-shell-page__menu-icon-button {
-  width: 30px;
-  height: 30px;
-  min-width: 30px;
-  min-height: 30px;
-  color: #111111;
 }
 
 .components-shell-page__nav-row {

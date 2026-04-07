@@ -44,7 +44,7 @@
       </template>
 
       <template v-else-if="blockKey === 'main-menu-icon'">
-        <q-btn flat dense round icon="menu" aria-label="Menu" class="building-block-preview-tile__menu-icon-button" />
+        <MainMenuIconButton />
       </template>
 
       <template v-else-if="blockKey === 'fonts'">
@@ -480,6 +480,7 @@ import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
+import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,
@@ -790,10 +791,6 @@ onBeforeUnmount(() => {
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
-}
-
-.building-block-preview-tile__menu-icon-button {
-  color: #111111;
 }
 
 .building-block-preview-tile__file-add-button {
