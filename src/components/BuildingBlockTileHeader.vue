@@ -4,6 +4,7 @@
       <div class="building-block-tile-header__label-row">
         <div class="building-block-tile-header__label">{{ title }}</div>
         <div v-if="graphLabel" class="building-block-tile-header__graph">{{ graphLabel }}</div>
+        <div v-if="shellsLabel" class="building-block-tile-header__shells">{{ shellsLabel }}</div>
         <button
           type="button"
           class="building-block-tile-header__collapse-toggle"
@@ -27,6 +28,7 @@
 defineProps({
   title: { type: String, default: '' },
   graphLabel: { type: String, default: '' },
+  shellsLabel: { type: String, default: '' },
   statusLabel: { type: String, default: '' },
   statusClass: { type: [String, Array, Object], default: '' },
   collapsed: { type: Boolean, default: false },
@@ -90,6 +92,17 @@ defineEmits(['toggle-collapse'])
 }
 
 .building-block-tile-header__graph {
+  color: rgba(15, 23, 42, 0.52);
+  font-family: var(--font-title);
+  font-size: 0.62rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.building-block-tile-header__shells {
   color: rgba(15, 23, 42, 0.52);
   font-family: var(--font-title);
   font-size: 0.62rem;

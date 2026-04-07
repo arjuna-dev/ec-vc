@@ -6,6 +6,7 @@
     <BuildingBlockTileHeader
       :title="tileTitle"
       :graph-label="tileGraphLabel"
+      :shells-label="tileShellsLabel"
       :status-label="tileStatusLabel"
       :status-class="statusClass"
       :collapsed="isCollapsed"
@@ -321,6 +322,7 @@ const size = computed(() => getBuildingBlockTileSize(props.blockKey))
 const tileTitle = computed(() => props.title || detail.value?.title || 'Building Block')
 const tileGraphCounts = computed(() => getBuildingBlockGraphCounts(props.blockKey))
 const tileGraphLabel = computed(() => `[${tileGraphCounts.value.parentCount}/${tileGraphCounts.value.childCount}]`)
+const tileShellsLabel = computed(() => `Shells: ${(detail.value?.usedInShells || []).length}`)
 const tileStatusLabel = computed(() => props.statusLabel || detail.value?.statusLabel || 'Extract Next')
 const statusClass = computed(() =>
   (detail.value?.status || '').trim() === 'canonical'
