@@ -611,21 +611,11 @@
       </template>
 
       <template v-else-if="blockKey === 'file-filter-menu'">
-        <div class="building-block-preview-tile__filter-menu">
-          <div class="building-block-preview-tile__filter-menu-title">File Filter</div>
-          <div class="building-block-preview-tile__filter-group">
-            <div class="building-block-preview-tile__filter-heading">
-              <span>General</span>
-              <span class="building-block-preview-tile__filter-count">3</span>
-            </div>
-            <div class="building-block-preview-tile__filter-rows">
-              <label v-for="item in filterMenuItems" :key="item" class="building-block-preview-tile__filter-row">
-                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span>{{ item }}</span>
-              </label>
-            </div>
-          </div>
-        </div>
+        <FileFilterMenu
+          title="File Filter"
+          :sections="fileFilterMenuSampleSections"
+          expanded-section-key="general"
+        />
       </template>
 
       <template v-else>
@@ -647,6 +637,7 @@ import L3Box from 'src/components/L3Box.vue'
 import PlusIconChip from 'src/components/PlusIconChip.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import SearchBarInput from 'src/components/SearchBarInput.vue'
+import FileFilterMenu from 'src/components/FileFilterMenu.vue'
 import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
@@ -770,6 +761,27 @@ const viewOptions = [
 const viewModeToggleOptions = viewOptions
 
 const activeLiveActionL1 = ref('companies')
+const fileFilterMenuSampleSections = [
+  {
+    key: 'general',
+    label: 'General',
+    count: 3,
+    items: [
+      { key: 'name', label: 'Name', selected: true },
+      { key: 'owner', label: 'Owner', selected: false },
+      { key: 'type', label: 'Type', selected: false },
+    ],
+  },
+  {
+    key: 'system',
+    label: 'System',
+    count: 2,
+    items: [
+      { key: 'status', label: 'Status', selected: false },
+      { key: 'updated-at', label: 'Updated At', selected: false },
+    ],
+  },
+]
 const liveActionOptions = [
   { label: 'Companies', value: 'companies' },
   { label: 'Projects', value: 'projects' },
@@ -805,7 +817,6 @@ const recordFeedItems = [
   { title: 'Summary updated', meta: 'Yesterday' },
 ]
 
-const filterMenuItems = ['Status', 'Owner', 'Summary']
 
 const l2ToolbarItems = [
   { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
