@@ -2,6 +2,7 @@
   <div class="main-menu-subgroup-row">
     <span class="main-menu-subgroup-row__label">{{ label }}</span>
     <ToggleRowIcons
+      label=""
       :expanded="expanded"
       tone="muted"
     />
@@ -46,5 +47,9 @@ defineProps({
   letter-spacing: 0.06em;
   line-height: 1;
   text-transform: uppercase;
+}
+
+.main-menu-subgroup-row :deep(.toggle-row-icons) {
+  color: rgb(255 255 255 / 0.78);
 }
 </style>

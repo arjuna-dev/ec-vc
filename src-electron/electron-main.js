@@ -1520,6 +1520,31 @@ function ensureDefaultBuildingBlocks(database) {
     WHERE id = ?
       AND COALESCE(TRIM(Convergence_Rule), '') = ''
   `)
+  const syncCanonicalRow = database.prepare(`
+    UPDATE Building_Blocks
+    SET
+      Sort_Order = ?,
+      Name = ?,
+      Summary = ?,
+      Category = ?,
+      Status = ?,
+      Used_In = ?,
+      Used_In_Shells = ?,
+      Use_When = ?,
+      Avoid_When = ?,
+      Built_From_BBs = ?,
+      Anatomy = ?,
+      Required_Parts = ?,
+      Source_Path = ?,
+      Owner = ?,
+      Extraction_Status = ?,
+      Reconstruction_Notes = ?,
+      Convergence_Rule = ?,
+      Prompt = ?,
+      Variants = ?,
+      updated_at = datetime('now')
+    WHERE id = ?
+  `)
 
   const actor = getAuditActor(database, { requireUser: false })
   const fallbackUserId = normalizeNullableString(actor?.user_id)
@@ -1564,6 +1589,28 @@ function ensureDefaultBuildingBlocks(database) {
     DEFAULT_BUILDING_BLOCK_FILE_ROWS.forEach((row) => {
       const normalizedId = normalizeNullableString(row?.id)
       if (!normalizedId) return
+      syncCanonicalRow.run(
+        Number(row?.Sort_Order || 0) || null,
+        normalizeNullableString(row?.Name) || 'Untitled Building Block',
+        normalizeNullableString(row?.Summary),
+        normalizeNullableString(row?.Category),
+        normalizeNullableString(row?.Status),
+        normalizeNullableString(row?.Used_In),
+        normalizeNullableString(row?.Used_In_Shells),
+        normalizeNullableString(row?.Use_When),
+        normalizeNullableString(row?.Avoid_When),
+        normalizeNullableString(row?.Built_From_BBs),
+        normalizeNullableString(row?.Anatomy),
+        normalizeNullableString(row?.Required_Parts),
+        normalizeNullableString(row?.Source_Path),
+        normalizeNullableString(row?.Owner),
+        normalizeNullableString(row?.Extraction_Status),
+        normalizeNullableString(row?.Reconstruction_Notes),
+        normalizeNullableString(row?.Convergence_Rule),
+        normalizeNullableString(row?.Prompt),
+        normalizeNullableString(row?.Variants),
+        normalizedId,
+      )
       backfillShellUsage.run(
         normalizeNullableString(row?.Used_In_Shells),
         normalizedId,

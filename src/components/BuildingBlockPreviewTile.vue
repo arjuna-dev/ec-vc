@@ -57,11 +57,15 @@
       </template>
 
       <template v-else-if="blockKey === 'main-menu-row'">
-        <MainMenuRow label="System Files" icon="folder_open" />
+        <div class="building-block-preview-tile__drawer-row-context">
+          <MainMenuRow label="System Files" icon="folder_open" />
+        </div>
       </template>
 
       <template v-else-if="blockKey === 'main-menu-subgroup-row'">
-        <MainMenuSubgroupRow label="Shells" :expanded="true" />
+        <div class="building-block-preview-tile__drawer-row-context">
+          <MainMenuSubgroupRow label="Shells" :expanded="true" />
+        </div>
       </template>
 
       <template v-else-if="blockKey === 'value-chip'">
@@ -853,6 +857,15 @@ onBeforeUnmount(() => {
   gap: var(--ds-space-12);
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.building-block-preview-tile__drawer-row-context {
+  display: flex;
+  align-items: center;
+  width: min(240px, 100%);
+  min-height: 28px;
+  padding: 0 8px;
+  background: var(--ds-color-brand-black);
 }
 
 .building-block-preview-tile__foundation-stack {
