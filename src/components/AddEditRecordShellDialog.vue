@@ -896,31 +896,14 @@
       </q-card-section>
 
       <q-card-actions align="right" class="create-record-shell__footer">
-        <div class="create-record-shell__footer-legend">
-          <div class="create-record-shell__footer-status create-record-shell__footer-status--default">
-            Pre-Selected
-          </div>
-          <div class="create-record-shell__footer-status create-record-shell__footer-status--suggested">
-            Suggested
-          </div>
-        </div>
-        <q-btn
-          flat
-          no-caps
-          label="Cancel"
-          :disable="loading"
-          class="create-record-shell__footer-button"
-          @click="open = false"
-        />
-        <q-btn
-          no-caps
-          unelevated
-          color="dark"
-          :label="submitLabel"
+        <DialogShellFooter
+          :legend-items="dialogFooterLegendItems"
+          :cancel-disabled="loading"
+          :save-disabled="submitDisabled"
           :loading="loading"
-          :disable="submitDisabled"
-          class="create-record-shell__footer-button"
-          @click="submit"
+          :save-label="submitLabel"
+          @cancel="open = false"
+          @save="submit"
         />
       </q-card-actions>
 
@@ -937,6 +920,7 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import DialogShellFooter from 'src/components/DialogShellFooter.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { setPendingIngestionShellRequest } from 'src/utils/ingestionShellState'
@@ -1047,6 +1031,10 @@ const artifactContextNote = computed(() => {
 })
 
 const submitLabel = computed(() => 'Save')
+const dialogFooterLegendItems = [
+  { label: 'Pre-Selected', tone: 'default' },
+  { label: 'Suggested', tone: 'suggested' },
+]
 const fieldVerificationActionOptions = [
   { label: 'Verify field', value: 'verified', icon: 'check_circle', iconClass: 'create-record-shell__verification-icon--verified', color: 'rgba(35, 92, 26, 0.96)' },
   { label: 'Pre-Selected', value: 'default_preselected_unverified', icon: 'auto_awesome', iconClass: 'create-record-shell__verification-icon--default', color: 'rgba(64, 121, 210, 0.92)' },

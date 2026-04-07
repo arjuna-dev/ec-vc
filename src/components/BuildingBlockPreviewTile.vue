@@ -107,6 +107,13 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'dialog-shell-footer'">
+        <DialogShellFooter
+          :legend-items="dialogFooterLegendItems"
+          save-label="Save"
+        />
+      </template>
+
       <template v-else-if="blockKey === 'shell-title-row'">
         <FileShellTitleRow
           v-model="activeLiveActionL1"
@@ -582,6 +589,7 @@ import ValueChip from 'src/components/ValueChip.vue'
 import ValueChipLabel from 'src/components/ValueChipLabel.vue'
 import ValueChipSurface from 'src/components/ValueChipSurface.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
+import DialogShellFooter from 'src/components/DialogShellFooter.vue'
 const l2SettingsSampleGroups = [
   {
     key: 'general',
@@ -615,6 +623,10 @@ const widgetSettingsSampleSections = [
 ]
 
 const widgetSettingsOpenSectionIds = ['files']
+const dialogFooterLegendItems = [
+  { label: 'Pre-Selected', tone: 'default' },
+  { label: 'Suggested', tone: 'suggested' },
+]
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,

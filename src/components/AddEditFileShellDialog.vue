@@ -244,8 +244,10 @@
       </q-card-section>
 
       <q-card-actions align="right" class="file-structure-shell__actions">
-        <q-btn flat no-caps class="file-structure-shell__action file-structure-shell__action--cancel" label="Cancel" @click="emit('requestClose')" />
-        <q-btn unelevated no-caps disable class="file-structure-shell__action file-structure-shell__action--save" label="Save" />
+        <DialogShellFooter
+          :save-disabled="true"
+          @cancel="emit('requestClose')"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -253,6 +255,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import DialogShellFooter from 'src/components/DialogShellFooter.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
