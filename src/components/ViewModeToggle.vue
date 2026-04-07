@@ -38,15 +38,17 @@ defineEmits(['update:modelValue'])
   align-items: center;
   align-self: center;
   flex: 0 0 auto;
-  height: var(--ds-control-height-md);
+  min-height: var(--ds-toolbar-toggle-button-size);
   border-radius: var(--ds-control-radius);
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-xs);
+  line-height: 1;
 }
 
 .view-mode-toggle :deep(.q-btn-group) {
+  display: inline-flex;
+  align-items: center;
   background: transparent;
   box-shadow: none;
   border: 0;

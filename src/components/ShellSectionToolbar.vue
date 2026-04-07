@@ -121,13 +121,13 @@ defineEmits(['update:modelValue', 'update:viewMode'])
 }
 
 .shell-section-toolbar__item--push-right {
-  margin-left: 0;
+  margin-left: auto;
   align-self: center;
 }
 
 .shell-section-toolbar__view-toggle {
   align-self: center;
-  margin-left: 6px;
+  margin-left: 0;
   order: 999;
 }
 
@@ -139,4 +139,5 @@ defineEmits(['update:modelValue', 'update:viewMode'])
 .shell-section-toolbar__item:not(.shell-section-toolbar__item--push-right) + .shell-section-toolbar__item--push-right {
   margin-left: auto;
 }
+
 </style>
