@@ -608,7 +608,7 @@
           </div>
         </div>
 
-        <div class="test-shell-table-scroll">
+        <div ref="tableScrollRef" class="test-shell-table-scroll">
           <table class="test-shell-table">
             <thead>
               <tr>
@@ -775,7 +775,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
@@ -858,6 +858,7 @@ let queuedCreateDialogSnapshot = null
 const cardRelationshipPanelById = ref({})
 const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
+const tableScrollRef = ref(null)
 const bbTileCollapseVersion = ref(0)
 const bbTileCollapseState = ref('')
 const bbTileGroupOpenState = ref({})
@@ -1870,6 +1871,22 @@ watch(
   { immediate: true },
 )
 
+watch(
+  [
+    () => viewMode.value,
+    () => activeSourceKey.value,
+    () => activeSectionKeyForCards.value,
+    () => tableSectionTokens.value.map((token) => token.key).join('|'),
+    () => displayRows.value.length,
+  ],
+  async () => {
+    if (viewMode.value === 'card') return
+    await nextTick()
+    initializeTableColumnWidths()
+  },
+  { immediate: true },
+)
+
 let removeColumnResizeListeners = null
 
 function getColumnWidth(columnKey, fallbackWidth) {
@@ -1884,6 +1901,48 @@ function getTableColumnStyle(columnKey, fallbackWidth) {
     minWidth: `${width}px`,
     maxWidth: `${width}px`,
   }
+}
+
+function getInitialTableColumns() {
+  return [
+    { key: 'name', defaultWidth: NAME_COLUMN_DEFAULT_WIDTH },
+    ...tableSectionTokens.value.map((token) => ({
+      key: token.key,
+      defaultWidth: DEFAULT_COLUMN_MIN_WIDTH,
+    })),
+  ]
+}
+
+function initializeTableColumnWidths() {
+  const scrollElement = tableScrollRef.value
+  if (!scrollElement) return
+
+  const columns = getInitialTableColumns()
+  if (!columns.length) return
+
+  const currentWidths = { ...tableColumnWidths.value }
+  const missingColumns = columns.filter((column) => {
+    const storedWidth = Number(currentWidths[column.key])
+    return !(Number.isFinite(storedWidth) && storedWidth > 0)
+  })
+
+  if (!missingColumns.length) return
+
+  const fixedControlWidth = TABLE_CONTROL_COLUMN_WIDTH * 2
+  const assignedWidth = columns.reduce((sum, column) => {
+    const storedWidth = Number(currentWidths[column.key])
+    return Number.isFinite(storedWidth) && storedWidth > 0 ? sum + storedWidth : sum
+  }, 0)
+  const missingDefaultWidth = missingColumns.reduce((sum, column) => sum + column.defaultWidth, 0)
+  const availableWidth = Math.max(0, Math.floor(scrollElement.clientWidth) - fixedControlWidth)
+  const extraWidth = Math.max(0, availableWidth - assignedWidth - missingDefaultWidth)
+  const extraPerMissingColumn = missingColumns.length ? Math.floor(extraWidth / missingColumns.length) : 0
+
+  missingColumns.forEach((column) => {
+    currentWidths[column.key] = column.defaultWidth + extraPerMissingColumn
+  })
+
+  tableColumnWidths.value = currentWidths
 }
 
 function isCardItemEnabled(tokenKey) {
