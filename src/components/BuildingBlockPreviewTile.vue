@@ -278,6 +278,95 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'fork-selector-surface'">
+        <div class="building-block-preview-tile__fork-selector">
+          <div class="building-block-preview-tile__fork-selector-label">Live Action L1</div>
+          <div class="building-block-preview-tile__fork-selector-value">Opportunities</div>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'fork-branch-card'">
+        <button type="button" class="building-block-preview-tile__fork-branch-card">
+          <span class="building-block-preview-tile__fork-branch-title">Fund</span>
+        </button>
+      </template>
+
+      <template v-else-if="blockKey === 'record-hero-field-card'">
+        <article class="building-block-preview-tile__record-field-card">
+          <div class="building-block-preview-tile__record-field-top">
+            <div class="building-block-preview-tile__record-field-label">Industry</div>
+            <div class="building-block-preview-tile__record-field-description">General</div>
+          </div>
+          <div class="building-block-preview-tile__record-field-bottom">
+            <div class="building-block-preview-tile__record-field-value">Enterprise SaaS</div>
+            <q-icon name="task_alt" size="15px" class="building-block-preview-tile__record-field-status" />
+          </div>
+        </article>
+      </template>
+
+      <template v-else-if="blockKey === 'record-context-panel'">
+        <div class="building-block-preview-tile__record-panel">
+          <div class="building-block-preview-tile__record-panel-tabs">
+            <button type="button" class="building-block-preview-tile__record-panel-tab building-block-preview-tile__record-panel-tab--active">
+              Latest notes
+            </button>
+            <button type="button" class="building-block-preview-tile__record-panel-tab">
+              Related artifacts
+            </button>
+          </div>
+          <div class="building-block-preview-tile__record-panel-list">
+            <article v-for="item in recordContextItems" :key="item.title" class="building-block-preview-tile__record-panel-item">
+              <div class="building-block-preview-tile__record-panel-row">
+                <div class="building-block-preview-tile__record-panel-title">{{ item.title }}</div>
+                <div class="building-block-preview-tile__record-panel-meta">{{ item.meta }}</div>
+              </div>
+              <div class="building-block-preview-tile__record-panel-content">{{ item.content }}</div>
+            </article>
+          </div>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'record-feed-panel'">
+        <div class="building-block-preview-tile__record-panel">
+          <div class="building-block-preview-tile__record-feed-header">Record Feed</div>
+          <div class="building-block-preview-tile__record-panel-tabs">
+            <button type="button" class="building-block-preview-tile__record-panel-tab building-block-preview-tile__record-panel-tab--active">
+              Activity
+            </button>
+            <button type="button" class="building-block-preview-tile__record-panel-tab">
+              Events
+            </button>
+          </div>
+          <div class="building-block-preview-tile__record-panel-list">
+            <article v-for="item in recordFeedItems" :key="item.title" class="building-block-preview-tile__record-panel-item">
+              <div class="building-block-preview-tile__record-panel-row">
+                <div class="building-block-preview-tile__record-panel-meta">{{ item.meta }}</div>
+                <q-icon name="open_in_new" size="13px" class="building-block-preview-tile__record-feed-icon" />
+              </div>
+              <div class="building-block-preview-tile__record-panel-title">{{ item.title }}</div>
+            </article>
+          </div>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'file-filter-menu'">
+        <div class="building-block-preview-tile__filter-menu">
+          <div class="building-block-preview-tile__filter-menu-title">File Filter</div>
+          <div class="building-block-preview-tile__filter-group">
+            <div class="building-block-preview-tile__filter-heading">
+              <span>General</span>
+              <span class="building-block-preview-tile__filter-count">3</span>
+            </div>
+            <div class="building-block-preview-tile__filter-rows">
+              <label v-for="item in filterMenuItems" :key="item" class="building-block-preview-tile__filter-row">
+                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
+                <span>{{ item }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <template v-else>
         <div class="building-block-preview-tile__placeholder">
           <div class="building-block-preview-tile__placeholder-title">Preview<br>Pending</div>
@@ -365,6 +454,18 @@ const homeDashboardSignals = [
   { label: 'Tasks', value: '183' },
   { label: 'Opportunities', value: '74' },
 ]
+
+const recordContextItems = [
+  { title: 'Partner intro captured', meta: 'Today', content: 'Founder meeting notes aligned with the current sourcing thread.' },
+  { title: 'Deck reviewed', meta: 'Yesterday', content: 'Artifacts linked and first-pass summary completed.' },
+]
+
+const recordFeedItems = [
+  { title: 'Artifact linked to record', meta: '09:42' },
+  { title: 'Summary updated', meta: 'Yesterday' },
+]
+
+const filterMenuItems = ['Status', 'Owner', 'Summary']
 
 const l2ToolbarItems = [
   { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
@@ -791,6 +892,180 @@ onBeforeUnmount(() => {
     linear-gradient(135deg, rgba(38, 71, 255, 0.18), rgba(17, 17, 17, 0.08)),
     var(--ds-color-surface-subtle);
   border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.building-block-preview-tile__fork-selector {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
+.building-block-preview-tile__fork-selector-label {
+  color: rgba(17, 17, 17, 0.58);
+  font-family: var(--font-title);
+  font-size: 0.62rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.building-block-preview-tile__fork-selector-value {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  color: #f7f4ee;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+}
+
+.building-block-preview-tile__fork-branch-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  min-height: 86px;
+  padding: 12px 16px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.building-block-preview-tile__fork-branch-title {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+}
+
+.building-block-preview-tile__record-field-card,
+.building-block-preview-tile__record-panel,
+.building-block-preview-tile__filter-menu {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
+}
+
+.building-block-preview-tile__record-field-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.building-block-preview-tile__record-field-top,
+.building-block-preview-tile__record-field-bottom,
+.building-block-preview-tile__record-panel-row,
+.building-block-preview-tile__filter-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.building-block-preview-tile__record-field-label,
+.building-block-preview-tile__record-feed-header,
+.building-block-preview-tile__filter-menu-title {
+  color: rgba(15, 23, 42, 0.72);
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.building-block-preview-tile__record-field-description,
+.building-block-preview-tile__record-panel-meta,
+.building-block-preview-tile__filter-count {
+  color: rgba(15, 23, 42, 0.58);
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+}
+
+.building-block-preview-tile__record-field-value,
+.building-block-preview-tile__record-panel-title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: -0.02em;
+}
+
+.building-block-preview-tile__record-field-status,
+.building-block-preview-tile__record-feed-icon {
+  color: #2647ff;
+}
+
+.building-block-preview-tile__record-panel,
+.building-block-preview-tile__filter-menu {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.building-block-preview-tile__record-panel-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.building-block-preview-tile__record-panel-tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  color: rgba(15, 23, 42, 0.68);
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-black);
+}
+
+.building-block-preview-tile__record-panel-tab--active {
+  color: #fff;
+  background: #111;
+  border-color: #111;
+}
+
+.building-block-preview-tile__record-panel-list,
+.building-block-preview-tile__filter-rows {
+  display: grid;
+  gap: 8px;
+}
+
+.building-block-preview-tile__record-panel-item {
+  display: grid;
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.building-block-preview-tile__record-panel-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.building-block-preview-tile__record-panel-content {
+  color: rgba(15, 23, 42, 0.72);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.building-block-preview-tile__filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f172a;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
 }
 
 .building-block-preview-tile__placeholder {
