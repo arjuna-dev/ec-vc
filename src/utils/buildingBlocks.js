@@ -676,3 +676,36 @@ export function getBuildingBlockGraphCounts(blockId) {
 
   return { parentCount, childCount }
 }
+
+export function getBuildingBlockGraphLinks(blockId) {
+  const normalizedBlockId = String(blockId || '').trim()
+  const detail = getBuildingBlockDetail(normalizedBlockId)
+  if (!detail) {
+    return { parents: [], children: [] }
+  }
+
+  const matchValues = getDependencyMatchValues(normalizedBlockId, detail)
+  const children = (Array.isArray(detail.builtFromBbs) ? detail.builtFromBbs : [])
+    .map((dependency) => {
+      const normalizedDependency = String(dependency || '').trim()
+      const childDetail = getBuildingBlockDetail(normalizedDependency)
+      if (!normalizedDependency) return null
+      return {
+        blockKey: normalizedDependency,
+        title: childDetail?.title || normalizedDependency,
+      }
+    })
+    .filter(Boolean)
+
+  const parents = Object.entries(BUILDING_BLOCK_DETAILS_BY_ID)
+    .filter(([, candidateDetail]) => {
+      const dependencies = Array.isArray(candidateDetail?.builtFromBbs) ? candidateDetail.builtFromBbs : []
+      return dependencies.some((dependency) => matchValues.has(String(dependency || '').trim()))
+    })
+    .map(([candidateKey, candidateDetail]) => ({
+      blockKey: candidateKey,
+      title: candidateDetail?.title || candidateKey,
+    }))
+
+  return { parents, children }
+}

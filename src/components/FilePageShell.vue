@@ -812,7 +812,7 @@ import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSection
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
-import { getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
+import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 
 const props = defineProps({
   shellMode: {
@@ -1298,9 +1298,20 @@ const canDeleteSelectedRows = computed(() => {
   if (selectedRows.value.length === 0) return false
   return typeof bridge.value?.[activeSourceKey.value]?.delete === 'function'
 })
-const tableSectionTokens = computed(() =>
-  activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
-)
+const bbGraphRowColumns = computed(() => {
+  if (!isBbFileSource.value) return []
+  return [
+    { key: '__bb_used_in_shells__', tokenName: '__bb_used_in_shells__', label: 'Used In Shells' },
+    { key: '__bb_built_from__', tokenName: '__bb_built_from__', label: 'Built From BBs' },
+    { key: '__bb_parents__', tokenName: '__bb_parents__', label: 'Parents' },
+    { key: '__bb_children__', tokenName: '__bb_children__', label: 'Children' },
+  ]
+})
+const tableSectionTokens = computed(() => {
+  const baseTokens = activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key)
+  if (!isBbFileSource.value) return baseTokens
+  return [...bbGraphRowColumns.value, ...baseTokens]
+})
 
 const displayRows = computed(() => {
   const query = String(searchQuery.value || '').trim().toLowerCase()
@@ -2077,6 +2088,9 @@ async function loadRows() {
 function buildShellRow(row, index) {
   const recordIdField = activeLoader.value?.recordIdField || ''
   const recordId = String(row?.[recordIdField] || '').trim()
+  const bbBlockKey = isBbFileSource.value ? getBbTileBlockKey({ raw: row, recordId }) : ''
+  const bbGraphCounts = bbBlockKey ? getBuildingBlockGraphCounts(bbBlockKey) : { parentCount: 0, childCount: 0 }
+  const bbGraphLinks = bbBlockKey ? getBuildingBlockGraphLinks(bbBlockKey) : { parents: [], children: [] }
   const titleValue =
     (isBbFileSource.value ? stringifyValue(row?.Name) : '')
     || stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
@@ -2099,6 +2113,16 @@ function buildShellRow(row, index) {
     ]),
   )
   const tokenRows = tableSectionTokens.value.map((token) => {
+    if (isBbFileSource.value && String(token.tokenName || '').startsWith('__bb_')) {
+      const value = getBbRowColumnValue(token.tokenName, row, bbGraphCounts, bbGraphLinks)
+      return {
+        key: `${recordId || index}:${token.key}`,
+        tokenName: token.tokenName,
+        label: token.label,
+        rawValue: value,
+        value,
+      }
+    }
     const rawValue = getCanonicalTokenValue(row, token)
     const value = stringifyValue(rawValue)
     return {
@@ -3289,6 +3313,25 @@ async function handleSelectedRowsDelete() {
       loading.value = false
     }
   })
+}
+
+function getBbRowColumnValue(tokenName, row, bbGraphCounts, bbGraphLinks) {
+  const normalizedTokenName = String(tokenName || '').trim()
+  if (normalizedTokenName === '__bb_used_in_shells__') {
+    return stringifyValue(row?.Used_In_Shells || row?.raw?.Used_In_Shells)
+  }
+  if (normalizedTokenName === '__bb_built_from__') {
+    return stringifyValue(row?.Built_From_BBs || row?.raw?.Built_From_BBs)
+  }
+  if (normalizedTokenName === '__bb_parents__') {
+    if (!bbGraphLinks.parents.length) return ''
+    return `${bbGraphCounts.parentCount}: ${bbGraphLinks.parents.map((item) => item.title).join(', ')}`
+  }
+  if (normalizedTokenName === '__bb_children__') {
+    if (!bbGraphLinks.children.length) return ''
+    return `${bbGraphCounts.childCount}: ${bbGraphLinks.children.map((item) => item.title).join(', ')}`
+  }
+  return ''
 }
 
 </script>
