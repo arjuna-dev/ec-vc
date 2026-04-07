@@ -10,12 +10,7 @@
         class="file-page-toolbar__select-all"
         @update:model-value="$emit('toggle-select-all', $event)"
       />
-      <q-btn no-caps unelevated class="file-page-toolbar__add-button" :disable="loading || addDisabled" @click="$emit('add')">
-        <span class="file-page-toolbar__add-button-inner">
-          <PlusIconChip class="file-page-toolbar__add-button-plus" />
-          <span class="file-page-toolbar__add-button-label">{{ addLabel }}</span>
-        </span>
-      </q-btn>
+      <PlusWithLabelButton :label="addLabel" :disable="loading || addDisabled" @click="$emit('add')" />
       <slot name="primary-trailing" />
     </div>
 
@@ -55,7 +50,7 @@
 </template>
 
 <script setup>
-import PlusIconChip from 'src/components/PlusIconChip.vue'
+import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 
 defineProps({
   allVisibleSelected: { type: Boolean, default: false },
@@ -180,49 +175,6 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
 
 .file-page-toolbar__view-toggle :deep(.q-icon) {
   font-size: 16.2px;
-}
-
-.file-page-toolbar__add-button {
-  align-self: center;
-  min-height: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
-  padding: 0 14px 0 8px;
-  color: #111111;
-  background: #ffffff;
-  border: 0;
-  border-radius: 999px;
-  box-shadow: none;
-  white-space: nowrap;
-}
-
-.file-page-toolbar__add-button:hover,
-.file-page-toolbar__add-button:focus-visible {
-  background: #f5f3ee;
-}
-
-.file-page-toolbar__add-button :deep(.q-btn__content) {
-  padding: 0;
-}
-
-.file-page-toolbar__add-button-inner {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.file-page-toolbar__add-button-plus {
-  flex: 0 0 auto;
-}
-
-.file-page-toolbar__add-button-label {
-  color: inherit;
-  font-family: var(--ds-font-title);
-  font-size: 0.95rem;
-  font-weight: var(--ds-font-weight-bold);
-  line-height: 0.92;
-  letter-spacing: 0.01em;
 }
 
 @media (max-width: 900px) {

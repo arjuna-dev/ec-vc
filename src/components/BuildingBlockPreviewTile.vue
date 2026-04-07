@@ -235,12 +235,7 @@
       </template>
 
       <template v-else-if="blockKey === 'plus-with-label'">
-        <button type="button" class="building-block-preview-tile__file-add-button">
-          <span class="building-block-preview-tile__file-add-button-inner">
-            <PlusIconChip class="building-block-preview-tile__file-add-button-plus" />
-            <span class="building-block-preview-tile__file-add-button-label">{{ addLabel }}</span>
-          </span>
-        </button>
+        <PlusWithLabelButton :label="addLabel" />
       </template>
 
       <template v-else-if="blockKey === 'file-dashboard'">
@@ -476,6 +471,7 @@ import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import PlusIconChip from 'src/components/PlusIconChip.vue'
+import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
@@ -793,44 +789,10 @@ onBeforeUnmount(() => {
   overflow-wrap: anywhere;
 }
 
-.building-block-preview-tile__file-add-button {
-  align-self: center;
-  min-width: 36px;
-  min-height: 36px;
-  height: 36px;
-  padding: 0 14px 0 8px;
-  color: #111111;
-  background: #ffffff;
-  border: 0;
-  border-radius: 999px;
-  box-shadow: none;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.building-block-preview-tile__file-add-button-inner {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.building-block-preview-tile__file-add-button-plus {
-  flex: 0 0 auto;
-}
-
 .building-block-preview-tile__plus-icon-compare {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.building-block-preview-tile__file-add-button-label {
-  color: #111111;
-  font-family: var(--ds-font-title);
-  font-size: 0.9rem;
-  font-weight: var(--ds-font-weight-bold);
-  line-height: 1;
-  letter-spacing: -0.02em;
 }
 
 .building-block-preview-tile__foundation-stack {
