@@ -229,13 +229,9 @@
       </template>
 
       <template v-else-if="blockKey === 'plus-icon'">
-        <button
-          type="button"
-          class="building-block-preview-tile__file-add-button-plus building-block-preview-tile__file-add-button-plus--standalone"
-          aria-label="Add"
-        >
-          <PlusIconChip />
-        </button>
+        <div class="building-block-preview-tile__plus-icon-compare">
+          <PlusIconChip size="compare" />
+        </div>
       </template>
 
       <template v-else-if="blockKey === 'plus-with-label'">
@@ -825,19 +821,10 @@ onBeforeUnmount(() => {
   flex: 0 0 auto;
 }
 
-.building-block-preview-tile__file-add-button-plus--standalone {
+.building-block-preview-tile__plus-icon-compare {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: auto;
-  height: auto;
-  min-width: 0;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  appearance: none;
 }
 
 .building-block-preview-tile__file-add-button-label {
