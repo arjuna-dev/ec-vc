@@ -701,7 +701,21 @@
                   class="test-shell-table__cell"
                   :style="getTableColumnStyle(tokenRow.tokenName, DEFAULT_COLUMN_MIN_WIDTH)"
                 >
-                  <template v-if="isKdbSectionActive">
+                  <template v-if="isBbGraphLinkToken(tokenRow)">
+                    <div v-if="tokenRow.links?.length" class="test-shell-table__bb-links">
+                      <button
+                        v-for="item in tokenRow.links"
+                        :key="`${tokenRow.key}:${item.blockKey}`"
+                        type="button"
+                        class="test-shell-table__bb-link"
+                        @click="openBbShellByBlockKey(item.blockKey)"
+                      >
+                        {{ item.title }}
+                      </button>
+                    </div>
+                    <span v-else class="test-shell-card__value--placeholder">No explicit value</span>
+                  </template>
+                  <template v-else-if="isKdbSectionActive">
                     <div v-if="getKdbDisplayItems(tokenRow).length" class="test-shell-table__kdb-list">
                       <div
                         v-for="item in getKdbDisplayItems(tokenRow)"
@@ -2114,13 +2128,14 @@ function buildShellRow(row, index) {
   )
   const tokenRows = tableSectionTokens.value.map((token) => {
     if (isBbFileSource.value && String(token.tokenName || '').startsWith('__bb_')) {
-      const value = getBbRowColumnValue(token.tokenName, row, bbGraphCounts, bbGraphLinks)
+      const { value, links } = getBbRowColumnValue(token.tokenName, row, bbGraphCounts, bbGraphLinks)
       return {
         key: `${recordId || index}:${token.key}`,
         tokenName: token.tokenName,
         label: token.label,
         rawValue: value,
         value,
+        links,
       }
     }
     const rawValue = getCanonicalTokenValue(row, token)
@@ -2348,10 +2363,16 @@ function openRecordView(row) {
 function openBbShell(row) {
   const blockKey = getBbTileBlockKey(row)
   if (!blockKey) return
+  openBbShellByBlockKey(blockKey)
+}
+
+function openBbShellByBlockKey(blockKey) {
+  const normalizedBlockKey = String(blockKey || '').trim()
+  if (!normalizedBlockKey) return
   router.push({
     name: 'bb-shell',
     query: {
-      block: blockKey,
+      block: normalizedBlockKey,
     },
   })
 }
@@ -3318,20 +3339,38 @@ async function handleSelectedRowsDelete() {
 function getBbRowColumnValue(tokenName, row, bbGraphCounts, bbGraphLinks) {
   const normalizedTokenName = String(tokenName || '').trim()
   if (normalizedTokenName === '__bb_used_in_shells__') {
-    return stringifyValue(row?.Used_In_Shells || row?.raw?.Used_In_Shells)
+    return {
+      value: stringifyValue(row?.Used_In_Shells || row?.raw?.Used_In_Shells),
+      links: [],
+    }
   }
   if (normalizedTokenName === '__bb_built_from__') {
-    return stringifyValue(row?.Built_From_BBs || row?.raw?.Built_From_BBs)
+    return {
+      value: stringifyValue(row?.Built_From_BBs || row?.raw?.Built_From_BBs),
+      links: [],
+    }
   }
   if (normalizedTokenName === '__bb_parents__') {
-    if (!bbGraphLinks.parents.length) return ''
-    return `${bbGraphCounts.parentCount}: ${bbGraphLinks.parents.map((item) => item.title).join(', ')}`
+    return {
+      value: `${bbGraphCounts.parentCount}`,
+      links: bbGraphLinks.parents,
+    }
   }
   if (normalizedTokenName === '__bb_children__') {
-    if (!bbGraphLinks.children.length) return ''
-    return `${bbGraphCounts.childCount}: ${bbGraphLinks.children.map((item) => item.title).join(', ')}`
+    return {
+      value: `${bbGraphCounts.childCount}`,
+      links: bbGraphLinks.children,
+    }
   }
-  return ''
+  return {
+    value: '',
+    links: [],
+  }
+}
+
+function isBbGraphLinkToken(tokenRow) {
+  const tokenName = String(tokenRow?.tokenName || '').trim()
+  return tokenName === '__bb_parents__' || tokenName === '__bb_children__'
 }
 
 </script>
@@ -4359,6 +4398,35 @@ function getBbRowColumnValue(tokenName, row, bbGraphCounts, bbGraphLinks) {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
+}
+
+.test-shell-table__bb-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.test-shell-table__bb-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  color: #111111;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 999px;
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.03em;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.test-shell-table__bb-link:hover {
+  border-color: rgba(15, 23, 42, 0.26);
+  background: rgba(248, 250, 252, 1);
 }
 
 .test-shell-table__kdb-item {
