@@ -1,16 +1,18 @@
 <template>
   <div class="main-menu-row">
-    <q-icon
-      :name="icon"
-      :size="iconSize"
-      class="main-menu-row__icon"
-      :class="iconClass"
+    <MainMenuRowIcon
+      :icon="icon"
+      :icon-size="iconSize"
+      :icon-class="iconClass"
     />
-    <span class="main-menu-row__label">{{ label }}</span>
+    <MainMenuRowLabel :label="label" />
   </div>
 </template>
 
 <script setup>
+import MainMenuRowIcon from 'src/components/MainMenuRowIcon.vue'
+import MainMenuRowLabel from 'src/components/MainMenuRowLabel.vue'
+
 defineProps({
   icon: {
     type: String,
@@ -44,22 +46,5 @@ defineProps({
   background: var(--ds-color-brand-black);
   border: 0;
   border-radius: var(--ds-radius-sm);
-}
-
-.main-menu-row__icon {
-  flex: 0 0 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: inherit;
-}
-
-.main-menu-row__label {
-  flex: 1 1 auto;
-  color: inherit;
-  font-family: var(--ds-font-body);
-  font-size: 13px;
-  font-weight: var(--ds-font-weight-light);
-  line-height: 1.2;
 }
 </style>

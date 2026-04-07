@@ -36,6 +36,14 @@
         <MainMenuIconButton />
       </template>
 
+      <template v-else-if="blockKey === 'main-menu-row-icon'">
+        <MainMenuRowIcon icon="folder_open" />
+      </template>
+
+      <template v-else-if="blockKey === 'main-menu-row-label'">
+        <MainMenuRowLabel label="System Files" />
+      </template>
+
       <template v-else-if="blockKey === 'main-menu-row'">
         <MainMenuRow label="System Files" icon="folder_open" />
       </template>
@@ -506,6 +514,8 @@ import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import DropdownChevron from 'src/components/DropdownChevron.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
+import MainMenuRowIcon from 'src/components/MainMenuRowIcon.vue'
+import MainMenuRowLabel from 'src/components/MainMenuRowLabel.vue'
 import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
