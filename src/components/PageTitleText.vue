@@ -14,9 +14,9 @@ defineProps({
 <style scoped>
 .page-title-text {
   color: var(--ds-color-text-primary);
-  font-family: var(--font-title);
-  font-size: clamp(2.4rem, 5vw, 4rem);
-  font-weight: 900;
+  font-family: var(--ds-font-title);
+  font-size: var(--ds-font-size-page-title);
+  font-weight: var(--ds-font-weight-bold);
   line-height: 0.95;
   letter-spacing: -0.08em;
   white-space: nowrap;
