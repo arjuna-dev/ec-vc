@@ -36,6 +36,14 @@
         <MainMenuIconButton />
       </template>
 
+      <template v-else-if="blockKey === 'value-chip'">
+        <span class="building-block-preview-tile__live-link-value">Companies</span>
+      </template>
+
+      <template v-else-if="blockKey === 'dropdown-chevron'">
+        <q-icon name="expand_more" class="building-block-preview-tile__live-link-chevron" />
+      </template>
+
       <template v-else-if="blockKey === 'fonts'">
         <div class="building-block-preview-tile__foundation-stack">
           <article
@@ -738,6 +746,29 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.building-block-preview-tile__live-link-value {
+  color: #fff;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
+}
+
+.building-block-preview-tile__live-link-chevron {
+  color: #111111;
+  font-size: 20px;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
 }
 
 .building-block-preview-tile__foundation-stack {

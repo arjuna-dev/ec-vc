@@ -124,7 +124,6 @@
         <div class="components-shell-page__card-status" :class="componentStatusClass('live-action-l1')">{{ componentStatusLabel('live-action-l1') }}</div>
         <div class="components-shell-page__card-stage">
           <div class="components-shell-page__live-link-wrap">
-            <span class="components-shell-page__live-link-label">Live Link</span>
             <div class="components-shell-page__live-link-value">Companies</div>
             <q-icon name="expand_more" class="components-shell-page__live-link-chevron" />
           </div>
@@ -969,14 +968,6 @@ onBeforeUnmount(() => {
   gap: 8px;
   padding-right: 18px;
   overflow: visible;
-}
-
-.components-shell-page__live-link-label {
-  color: rgba(15, 23, 42, 0.72);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .components-shell-page__live-link-value {

@@ -18,7 +18,6 @@
 
         <div v-if="isSelectableShellRoute" class="ec-shell-toolbar-center">
           <div class="ec-shell-test-select-wrap">
-            <span class="ec-shell-test-select__label">Live Link</span>
             <q-select
               ref="testShellSectionSelectRef"
               v-model="selectedShellSection"
@@ -2119,14 +2118,6 @@ function goBack() {
   gap: 8px;
   padding-right: 18px;
   overflow: visible;
-}
-
-.ec-shell-test-select__label {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .ec-shell-test-select__value {
