@@ -24,6 +24,10 @@
         <PageTitleText title="BB Shell" />
       </template>
 
+      <template v-else-if="blockKey === 'record-title'">
+        <RecordTitle title="Record Title" />
+      </template>
+
       <template v-else-if="blockKey === 'bb-tile-header'">
         <div class="building-block-preview-tile__header-preview">
           <BuildingBlockTileHeader
@@ -519,74 +523,51 @@
       </template>
 
       <template v-else-if="blockKey === 'record-dashboard'">
-        <div class="building-block-preview-tile__record-dashboard">
-          <div class="building-block-preview-tile__record-dashboard-main">
-            <div class="building-block-preview-tile__record-dashboard-header">
-              <div class="building-block-preview-tile__record-dashboard-title-stack">
-                <div class="building-block-preview-tile__record-dashboard-eyebrow">Files / Companies</div>
-                <div class="building-block-preview-tile__record-dashboard-title">Acme Inc.</div>
-              </div>
-              <div class="building-block-preview-tile__record-dashboard-actions">
-                <button type="button" class="building-block-preview-tile__record-dashboard-action-chip">Hero Fields</button>
-                <button type="button" class="building-block-preview-tile__record-dashboard-action-chip building-block-preview-tile__record-dashboard-action-chip--primary">Add Record</button>
-              </div>
+        <RecordDashboard
+          :title="'Acme Inc.'"
+          :subtitle="'Founder / CEO'"
+          :secondary-subtitle="'Series A, enterprise workflow infrastructure'"
+          :settings-groups="recordDashboardSettingsGroups"
+          :field-cards="recordDashboardFieldCards"
+          summary-value="High-conviction company with strong operator references."
+          summary-status-icon="task_alt"
+          :interactive="true"
+          :feed-tab="activeRecordFeedTabPreview"
+          :feed-tabs="recordFeedTabOptions"
+          :feed-items="recordFeedItems"
+          feed-empty-message="No feed items yet for this record."
+          @update:feed-tab="activeRecordFeedTabPreview = $event"
+        >
+          <template #portrait>
+            <div class="building-block-preview-tile__record-dashboard-portrait">
+              <div class="building-block-preview-tile__record-dashboard-portrait-initials">AI</div>
             </div>
+          </template>
+        </RecordDashboard>
+      </template>
 
-            <div class="building-block-preview-tile__record-dashboard-grid">
-              <article class="building-block-preview-tile__record-field-card">
-                <div class="building-block-preview-tile__record-field-top">
-                  <div class="building-block-preview-tile__record-field-label">Industry</div>
-                  <div class="building-block-preview-tile__record-field-description">General</div>
-                </div>
-                <div class="building-block-preview-tile__record-field-bottom">
-                  <div class="building-block-preview-tile__record-field-value">Enterprise SaaS</div>
-                  <q-icon name="task_alt" size="15px" class="building-block-preview-tile__record-field-status" />
-                </div>
-              </article>
+      <template v-else-if="blockKey === 'record-hero'">
+        <HeroSandbox />
+      </template>
 
-              <div class="building-block-preview-tile__record-panel">
-                <div class="building-block-preview-tile__record-panel-tabs">
-                  <button type="button" class="building-block-preview-tile__record-panel-tab building-block-preview-tile__record-panel-tab--active">
-                    Latest notes
-                  </button>
-                  <button type="button" class="building-block-preview-tile__record-panel-tab">
-                    Related artifacts
-                  </button>
-                </div>
-                <div class="building-block-preview-tile__record-panel-list">
-                  <article v-for="item in recordContextItems" :key="`dashboard-context:${item.title}`" class="building-block-preview-tile__record-panel-item">
-                    <div class="building-block-preview-tile__record-panel-row">
-                      <div class="building-block-preview-tile__record-panel-title">{{ item.title }}</div>
-                      <div class="building-block-preview-tile__record-panel-meta">{{ item.meta }}</div>
-                    </div>
-                    <div class="building-block-preview-tile__record-panel-content">{{ item.content }}</div>
-                  </article>
-                </div>
-              </div>
+      <template v-else-if="blockKey === 'hero-sandbox-surface'">
+        <HeroSandboxSurface />
+      </template>
 
-              <div class="building-block-preview-tile__record-panel">
-                <div class="building-block-preview-tile__record-feed-header">Record Feed</div>
-                <div class="building-block-preview-tile__record-panel-tabs">
-                  <button type="button" class="building-block-preview-tile__record-panel-tab building-block-preview-tile__record-panel-tab--active">
-                    Activity
-                  </button>
-                  <button type="button" class="building-block-preview-tile__record-panel-tab">
-                    Events
-                  </button>
-                </div>
-                <div class="building-block-preview-tile__record-panel-list">
-                  <article v-for="item in recordFeedItems" :key="`dashboard-feed:${item.title}`" class="building-block-preview-tile__record-panel-item">
-                    <div class="building-block-preview-tile__record-panel-row">
-                      <div class="building-block-preview-tile__record-panel-meta">{{ item.meta }}</div>
-                      <q-icon name="open_in_new" size="13px" class="building-block-preview-tile__record-feed-icon" />
-                    </div>
-                    <div class="building-block-preview-tile__record-panel-title">{{ item.title }}</div>
-                  </article>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <template v-else-if="blockKey === 'hero-3col-overlay'">
+        <HeroSandboxSurface>
+          <HeroSandboxOverlay />
+        </HeroSandboxSurface>
+      </template>
+
+      <template v-else-if="blockKey === 'hero-2col-overlay'">
+        <HeroSandboxSurface>
+          <Hero2ColOverlay />
+        </HeroSandboxSurface>
+      </template>
+
+      <template v-else-if="blockKey === 'file-hero'">
+        <FileHeroSandbox />
       </template>
 
       <template v-else-if="blockKey === 'l2-toolbar'">
@@ -622,6 +603,14 @@
 
       <template v-else-if="blockKey === 'record-field-value'">
         <RecordFieldValue value="Enterprise SaaS" />
+      </template>
+
+      <template v-else-if="blockKey === 'record-fields-box'">
+        <RecordFieldsBox />
+      </template>
+
+      <template v-else-if="blockKey === 'record-summary-box'">
+        <RecordSummaryBox />
       </template>
 
       <template v-else-if="blockKey === 'record-hero-field-card'">
@@ -709,7 +698,12 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import FileHeroSandbox from 'src/components/FileHeroSandbox.vue'
+import Hero2ColOverlay from 'src/components/Hero2ColOverlay.vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
+import HeroSandbox from 'src/components/HeroSandbox.vue'
+import HeroSandboxOverlay from 'src/components/HeroSandboxOverlay.vue'
+import HeroSandboxSurface from 'src/components/HeroSandboxSurface.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import FilterListIcon from 'src/components/FilterListIcon.vue'
@@ -728,11 +722,13 @@ import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
+import RecordTitle from 'src/components/RecordTitle.vue'
 import PageBackLabel from 'src/components/PageBackLabel.vue'
 import ButtonLabel from 'src/components/ButtonLabel.vue'
 import B10Logo from 'src/components/B10Logo.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import RecordContextPanel from 'src/components/RecordContextPanel.vue'
+import RecordDashboard from 'src/components/RecordDashboard.vue'
 import RecordFeedEmpty from 'src/components/RecordFeedEmpty.vue'
 import RecordFeedEntrySurface from 'src/components/RecordFeedEntrySurface.vue'
 import RecordFeedEntryTitle from 'src/components/RecordFeedEntryTitle.vue'
@@ -745,6 +741,8 @@ import RecordFieldDescription from 'src/components/RecordFieldDescription.vue'
 import RecordFieldLabel from 'src/components/RecordFieldLabel.vue'
 import RecordFieldStatusIcon from 'src/components/RecordFieldStatusIcon.vue'
 import RecordFieldValue from 'src/components/RecordFieldValue.vue'
+import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
+import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 import WestIcon from 'src/components/WestIcon.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
@@ -933,6 +931,28 @@ const recordFeedTabOptions = [
 const recordFeedItems = [
   { id: 'feed-1', feedKey: 'all', title: 'Artifact linked to record', meta: '09:42', hasLogPage: true },
   { id: 'feed-2', feedKey: 'events', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
+]
+
+const recordDashboardSettingsGroups = [
+  {
+    key: 'general',
+    label: 'General',
+    expanded: true,
+    items: [
+      { key: 'industry', label: 'Industry', checked: true },
+      { key: 'summary', label: 'Summary', checked: true },
+    ],
+  },
+]
+
+const recordDashboardFieldCards = [
+  {
+    key: 'industry',
+    label: 'Industry',
+    description: 'General',
+    value: 'Enterprise SaaS',
+    statusIcon: 'task_alt',
+  },
 ]
 
 
@@ -1713,6 +1733,32 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.building-block-preview-tile__record-dashboard-portrait {
+  display: flex;
+  flex: 0 0 clamp(180px, 20vw, 240px);
+  width: clamp(180px, 20vw, 240px);
+  min-height: 100%;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(216, 212, 202, 0.92) 0%, rgba(204, 198, 188, 0.98) 100%);
+  border-right: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.building-block-preview-tile__record-dashboard-portrait-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: var(--ds-radius-round);
+  background: var(--ds-color-brand-blue);
+  color: var(--ds-color-brand-white);
+  font-family: var(--ds-font-title);
+  font-size: 2rem;
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: 0.04em;
 }
 
 @media (max-width: 900px) {

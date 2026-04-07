@@ -106,7 +106,10 @@ const displayedItems = computed(() => {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  margin: 28px;
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  margin: 10px;
   padding: var(--ds-panel-padding-md);
   background: rgba(17, 17, 17, 0.94);
   border-radius: var(--ds-radius-lg);
