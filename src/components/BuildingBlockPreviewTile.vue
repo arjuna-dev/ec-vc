@@ -401,6 +401,16 @@
       <template v-else-if="blockKey === 'search-bar-input'">
         <SearchBarInput model-value="" placeholder="Search Companies" />
       </template>
+      <template v-else-if="blockKey === 'settings-checkbox'">
+        <div class="building-block-preview-tile__button-row">
+          <SettingsCheckbox :model-value="false" tone="light" />
+          <SettingsCheckbox :model-value="true" tone="light" />
+          <div class="building-block-preview-tile__chevron-swatch building-block-preview-tile__chevron-swatch--dark">
+            <SettingsCheckbox :model-value="false" tone="dark" />
+            <SettingsCheckbox :model-value="true" tone="dark" />
+          </div>
+        </div>
+      </template>
 
       <template v-else-if="blockKey === 'record-shell-launchpad'">
         <div class="building-block-preview-tile__launchpad">
@@ -604,6 +614,7 @@ import L3Box from 'src/components/L3Box.vue'
 import PlusIconChip from 'src/components/PlusIconChip.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import SearchBarInput from 'src/components/SearchBarInput.vue'
+import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'

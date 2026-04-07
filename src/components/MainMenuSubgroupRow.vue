@@ -31,7 +31,7 @@ defineProps({
   justify-content: space-between;
   gap: var(--ds-space-8);
   width: 100%;
-  min-height: 24px;
+  min-height: var(--ds-control-height-sm);
   padding: 0;
   color: var(--ds-color-brand-white);
   border: 0;
@@ -42,10 +42,10 @@ defineProps({
   flex: 1 1 auto;
   color: inherit;
   font-family: var(--ds-font-title);
-  font-size: 0.72rem;
+  font-size: var(--ds-nav-subgroup-font-size);
   font-weight: var(--ds-font-weight-light);
-  letter-spacing: 0.06em;
-  line-height: 1;
+  letter-spacing: var(--ds-nav-subgroup-letter-spacing);
+  line-height: var(--ds-line-height-xs);
   text-transform: uppercase;
 }
 

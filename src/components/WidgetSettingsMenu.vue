@@ -31,13 +31,10 @@
             :key="action.id"
             class="widget-settings-menu__row"
           >
-            <q-checkbox
+            <SettingsCheckbox
               :model-value="action.enabled"
-              dense
-              size="xs"
-              checked-icon="check_box"
-              unchecked-icon="check_box_outline_blank"
               class="widget-settings-menu__checkbox"
+              tone="dark"
               @update:model-value="$emit('set-enabled', action.id, $event)"
             />
 
@@ -77,6 +74,7 @@
 </template>
 
 <script setup>
+import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 
 const props = defineProps({
@@ -107,11 +105,11 @@ function isSectionOpen(sectionId) {
 
 <style scoped>
 .widget-settings-menu {
-  width: 200px;
-  max-width: min(200px, calc(100vw - 16px));
+  width: var(--ds-widget-settings-width);
+  max-width: min(var(--ds-widget-settings-width), calc(100vw - 16px));
   padding: var(--ds-space-4);
   background: rgba(17, 17, 17, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--ds-widget-settings-border);
   border-radius: var(--ds-radius-md);
   box-shadow: var(--ds-shadow-control);
   backdrop-filter: blur(18px);
@@ -120,7 +118,7 @@ function isSectionOpen(sectionId) {
 .widget-settings-menu__header {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--ds-space-2);
   padding-bottom: var(--ds-space-4);
 }
 
@@ -133,10 +131,10 @@ function isSectionOpen(sectionId) {
 }
 
 .widget-settings-menu__caption {
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--ds-widget-settings-caption-color);
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-xs);
-  line-height: 1.2;
+  line-height: var(--ds-line-height-xs);
 }
 
 .widget-settings-menu__list {
@@ -148,7 +146,7 @@ function isSectionOpen(sectionId) {
 .widget-settings-menu__section {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--ds-space-4);
 }
 
 .widget-settings-menu__toggle {
@@ -165,7 +163,7 @@ function isSectionOpen(sectionId) {
 }
 
 .widget-settings-menu__section-title {
-  color: rgba(255, 255, 255, 0.54);
+  color: var(--ds-widget-settings-section-title-color);
   font-family: var(--ds-font-title);
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-bold);
@@ -175,7 +173,7 @@ function isSectionOpen(sectionId) {
 }
 
 .widget-settings-menu__toggle :deep(.toggle-row-icons) {
-  color: rgba(255, 255, 255, 0.54);
+  color: var(--ds-widget-settings-section-title-color);
 }
 
 .widget-settings-menu__row {
@@ -183,29 +181,7 @@ function isSectionOpen(sectionId) {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--ds-space-8);
-  min-height: 28px;
-}
-
-.widget-settings-menu__checkbox {
-  color: var(--ds-color-brand-white);
-}
-
-.widget-settings-menu__checkbox :deep(.q-checkbox__inner) {
-  color: var(--ds-color-brand-white);
-}
-
-.widget-settings-menu__checkbox :deep(.q-checkbox__bg) {
-  border-color: rgba(255, 255, 255, 0.92);
-  background: transparent;
-}
-
-.widget-settings-menu__checkbox :deep(.q-checkbox__inner--truthy .q-checkbox__bg) {
-  border-color: var(--ds-color-brand-white);
-  background: var(--ds-color-brand-white);
-}
-
-.widget-settings-menu__checkbox :deep(.q-checkbox__svg) {
-  color: var(--ds-color-brand-black);
+  min-height: var(--ds-settings-menu-row-height);
 }
 
 .widget-settings-menu__row-label {
@@ -226,11 +202,11 @@ function isSectionOpen(sectionId) {
   min-width: 20px;
   min-height: 20px;
   padding: 0;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--ds-widget-settings-button-color);
 }
 
 .widget-settings-menu__move-button[disabled] {
-  opacity: 0.28;
+  opacity: var(--ds-widget-settings-button-disabled-opacity);
 }
 
 .widget-settings-menu__row-chevron {

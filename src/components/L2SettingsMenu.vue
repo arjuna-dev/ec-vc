@@ -28,12 +28,9 @@
           :key="item.key"
           class="l2-settings-menu__row"
         >
-          <q-checkbox
+          <SettingsCheckbox
             :model-value="item.checked"
-            dense
-            size="xs"
-            checked-icon="check_box"
-            unchecked-icon="check_box_outline_blank"
+            tone="light"
             @update:model-value="$emit('toggle-item', item.key, $event)"
           />
 
@@ -45,6 +42,7 @@
 </template>
 
 <script setup>
+import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 
 defineProps({
@@ -63,20 +61,21 @@ defineEmits(['toggle-group', 'toggle-item'])
 
 <style scoped>
 .l2-settings-menu {
-  width: min(280px, 100%);
+  width: min(var(--ds-settings-menu-width), 100%);
   padding: var(--ds-space-10);
-  background: color-mix(in srgb, var(--ds-color-surface-base) 96%, #f8f8f6 4%);
+  background: var(--ds-color-surface-overlay-strong);
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-sm);
-  box-shadow: var(--ds-shadow-card);
+  box-shadow: var(--ds-shadow-card-soft);
 }
 
 .l2-settings-menu__title {
   color: var(--ds-color-brand-black);
   font-family: var(--ds-font-title);
-  font-size: 0.84rem;
+  font-size: var(--ds-settings-menu-title-size);
   font-weight: var(--ds-font-weight-bold);
-  line-height: 0.96;
+  line-height: var(--ds-line-height-xs);
+  margin-bottom: var(--ds-space-10);
 }
 
 .l2-settings-menu__group + .l2-settings-menu__group {
@@ -106,16 +105,17 @@ defineEmits(['toggle-group', 'toggle-item'])
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--ds-space-8);
-  min-height: 28px;
-  padding: 2px 4px;
+  min-height: var(--ds-settings-menu-row-height);
+  padding: var(--ds-space-2) var(--ds-space-4);
 }
 
 .l2-settings-menu__row-label {
   min-width: 0;
   color: var(--ds-color-brand-black);
   font-family: var(--ds-font-body);
-  font-size: 0.76rem;
+  font-size: var(--ds-settings-menu-row-label-size);
   font-weight: var(--ds-font-weight-medium);
-  line-height: 1.15;
+  line-height: var(--ds-line-height-sm);
 }
+
 </style>

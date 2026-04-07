@@ -145,6 +145,18 @@
   --ds-toolbar-chip-toggle-size: 20px;
   --ds-toolbar-chip-toggle-icon-size: 14px;
   --ds-toolbar-kdb-icon-size: 12px;
+  --ds-settings-menu-width: 280px;
+  --ds-settings-menu-title-size: var(--ds-font-size-kicker);
+  --ds-settings-menu-row-label-size: 0.76rem;
+  --ds-settings-menu-row-height: 28px;
+  --ds-widget-settings-width: 200px;
+  --ds-widget-settings-caption-color: rgba(255, 255, 255, 0.68);
+  --ds-widget-settings-section-title-color: rgba(255, 255, 255, 0.54);
+  --ds-widget-settings-border: rgba(255, 255, 255, 0.08);
+  --ds-widget-settings-button-color: rgba(255, 255, 255, 0.7);
+  --ds-widget-settings-button-disabled-opacity: 0.28;
+  --ds-nav-subgroup-font-size: var(--ds-font-size-xs);
+  --ds-nav-subgroup-letter-spacing: 0.06em;
 
   --ds-button-primary-bg: var(--b10-color-bg-brand-default);
   --ds-button-primary-bg-hover: var(--b10-color-bg-brand-hover);
