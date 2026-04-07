@@ -1,7 +1,6 @@
 <template>
   <div class="dialog-shell-title-row" :class="toneClass">
     <div class="dialog-shell-title-row__copy">
-      <div v-if="eyebrow" class="dialog-shell-title-row__eyebrow">{{ eyebrow }}</div>
       <div class="dialog-shell-title-row__title">{{ title }}</div>
     </div>
 
@@ -25,7 +24,6 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  eyebrow: { type: String, default: '' },
   title: { type: String, default: '' },
   closable: { type: Boolean, default: false },
   closeLabel: { type: String, default: 'Close dialog' },
@@ -42,7 +40,7 @@ const toneClass = computed(() => `dialog-shell-title-row--${String(props.tone ||
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--ds-space-16);
   min-width: 0;
 }
 
@@ -51,37 +49,20 @@ const toneClass = computed(() => `dialog-shell-title-row--${String(props.tone ||
   flex: 1 1 auto;
 }
 
-.dialog-shell-title-row__eyebrow {
-  color: rgba(15, 23, 42, 0.58);
-  font-family: var(--ds-font-title);
-  font-size: 0.72rem;
-  font-weight: var(--ds-font-weight-bold);
-  letter-spacing: 0.06em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
 .dialog-shell-title-row__title {
-  color: #111111;
+  color: var(--ds-color-text-primary);
   font-family: var(--ds-font-title);
-  font-size: 1.46rem;
+  font-size: var(--ds-font-size-dialog-title);
   font-weight: var(--ds-font-weight-bold);
   line-height: 0.94;
   margin: 0;
-}
-
-.dialog-shell-title-row__eyebrow + .dialog-shell-title-row__title {
-  margin-top: 8px;
-  font-size: 1.35rem;
-  line-height: 0.96;
-  color: #0f172a;
 }
 
 .dialog-shell-title-row__actions {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: var(--ds-space-12);
   min-width: 0;
   flex: 0 1 auto;
 }
@@ -93,26 +74,18 @@ const toneClass = computed(() => `dialog-shell-title-row--${String(props.tone ||
   width: 28px;
   height: 28px;
   padding: 0;
-  color: #111111;
+  color: var(--ds-color-text-primary);
   background: transparent;
   border: 0;
   cursor: pointer;
   flex: 0 0 auto;
 }
 
-.dialog-shell-title-row--inverse .dialog-shell-title-row__eyebrow {
-  color: rgba(255, 255, 255, 0.62);
-}
-
 .dialog-shell-title-row--inverse .dialog-shell-title-row__title {
-  color: #ffffff;
-}
-
-.dialog-shell-title-row--inverse .dialog-shell-title-row__eyebrow + .dialog-shell-title-row__title {
-  color: #ffffff;
+  color: var(--ds-color-brand-white);
 }
 
 .dialog-shell-title-row--inverse .dialog-shell-title-row__close {
-  color: #ffffff;
+  color: var(--ds-color-brand-white);
 }
 </style>

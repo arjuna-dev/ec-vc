@@ -3,7 +3,6 @@
     <q-card class="add-edit-bb-shell">
       <q-card-section class="add-edit-bb-shell__head">
         <DialogShellTitleRow
-          eyebrow="Add/Edit BB Shell"
           :title="detail?.title || 'Building Block'"
           :closable="true"
           close-label="Close details"
