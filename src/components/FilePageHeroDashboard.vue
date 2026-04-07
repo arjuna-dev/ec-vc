@@ -204,7 +204,7 @@ function updateGradientPosition(event) {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: var(--ds-space-14);
+  gap: var(--ds-space-12);
 }
 
 .file-page-hero__stats {
@@ -218,7 +218,7 @@ function updateGradientPosition(event) {
   min-height: 116px;
   flex-direction: column;
   justify-content: space-between;
-  gap: var(--ds-space-6);
+  gap: var(--ds-space-8);
   padding: var(--ds-space-16);
   background: var(--ds-color-surface-overlay-84);
   border: 1px solid var(--ds-color-border-default);
@@ -259,7 +259,7 @@ function updateGradientPosition(event) {
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-12);
-  padding: var(--ds-space-16) var(--ds-space-18);
+  padding: var(--ds-space-16);
   background: var(--ds-color-surface-overlay-78);
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-xl);

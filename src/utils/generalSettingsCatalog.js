@@ -71,7 +71,6 @@ export const GENERAL_SETTINGS_SPACING_SAMPLES = Object.freeze([
   { key: 'space-8', label: '8', token: '--ds-space-8', width: 'var(--ds-space-8)' },
   { key: 'space-12', label: '12', token: '--ds-space-12', width: 'var(--ds-space-12)' },
   { key: 'space-16', label: '16', token: '--ds-space-16', width: 'var(--ds-space-16)' },
-  { key: 'space-20', label: '20', token: '--ds-space-20', width: 'var(--ds-space-20)' },
   { key: 'space-24', label: '24', token: '--ds-space-24', width: 'var(--ds-space-24)' },
   { key: 'space-32', label: '32', token: '--ds-space-32', width: 'var(--ds-space-32)' },
 ])

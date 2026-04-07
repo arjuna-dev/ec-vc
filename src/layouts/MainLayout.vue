@@ -1997,7 +1997,7 @@ function goBack() {
 .ec-shell-toolbar-heading {
   display: flex;
   align-items: flex-end;
-  gap: var(--ds-space-10);
+  gap: var(--ds-space-8);
   min-width: 0;
   flex: 0 1 auto;
 }
@@ -2033,7 +2033,7 @@ function goBack() {
 .ec-shell-toolbar-actions {
   display: flex;
   align-items: flex-end;
-  gap: var(--ds-space-10);
+  gap: var(--ds-space-8);
 }
 
 .ec-shell-toolbar-status {
@@ -2803,7 +2803,7 @@ function goBack() {
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: var(--ds-radius-sm);
-  padding: var(--ds-space-2) var(--ds-space-6);
+  padding: var(--ds-space-4) var(--ds-space-8);
   box-shadow: var(--ds-shadow-floating-label);
   opacity: 0;
   transform: translate(-50%, 4px);
