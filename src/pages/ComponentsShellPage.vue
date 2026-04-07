@@ -251,22 +251,9 @@
         <div class="components-shell-page__card-label">Toggle / Row Icons</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('toggle-row-icons')">{{ componentStatusLabel('toggle-row-icons') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--row">
-          <button type="button" class="components-shell-page__toggle-inline">
-            <span>General</span>
-            <q-icon name="expand_more" />
-          </button>
-          <button type="button" class="components-shell-page__toggle-inline">
-            <span>System</span>
-            <q-icon name="chevron_right" />
-          </button>
-          <div class="components-shell-page__row-chevron-pair">
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-              <path d="M7 14L12 9L17 14" />
-            </svg>
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-              <path d="M7 10L12 15L17 10" />
-            </svg>
-          </div>
+          <ToggleRowIcons label="General" :expanded="true" />
+          <ToggleRowIcons label="System" direction="right" />
+          <ToggleRowIcons variant="row-chevron-pair" />
         </div>
       </article>
         </div>
@@ -435,6 +422,7 @@ import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
+import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
 
@@ -1143,30 +1131,6 @@ onBeforeUnmount(() => {
   width: 3px;
   height: 22px;
   background: #111111;
-}
-
-.components-shell-page__toggle-inline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 2px;
-  width: max-content;
-  padding: 0;
-  color: #111111;
-  background: transparent;
-  border: 0;
-  text-align: left;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.82rem;
-}
-
-.components-shell-page__row-chevron-pair {
-  display: grid;
-  grid-template-columns: 14px 14px;
-  align-items: center;
-  gap: 0;
-  color: rgba(17, 17, 17, 0.58);
 }
 
 .components-shell-page__detail-card {

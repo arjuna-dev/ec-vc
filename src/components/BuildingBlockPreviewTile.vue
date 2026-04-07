@@ -44,6 +44,14 @@
         <DropdownChevron />
       </template>
 
+      <template v-else-if="blockKey === 'toggle-row-icons'">
+        <div class="building-block-preview-tile__toggle-row-icons">
+          <ToggleRowIcons label="General" :expanded="true" />
+          <ToggleRowIcons label="System" direction="right" />
+          <ToggleRowIcons variant="row-chevron-pair" />
+        </div>
+      </template>
+
       <template v-else-if="blockKey === 'live-action-l1'">
         <LiveActionL1 v-model="activeLiveActionL1" :options="liveActionOptions" />
       </template>
@@ -482,6 +490,7 @@ import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import DropdownChevron from 'src/components/DropdownChevron.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
+import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import ValueChip from 'src/components/ValueChip.vue'
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 import {
@@ -760,6 +769,14 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__plus-icon-compare {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+}
+
+.building-block-preview-tile__toggle-row-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-12);
+  flex-wrap: wrap;
   justify-content: center;
 }
 
