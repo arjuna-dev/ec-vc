@@ -612,17 +612,34 @@
         </button>
       </template>
 
+      <template v-else-if="blockKey === 'record-field-label'">
+        <RecordFieldLabel label="Industry" />
+      </template>
+
+      <template v-else-if="blockKey === 'record-field-description'">
+        <RecordFieldDescription description="General" />
+      </template>
+
+      <template v-else-if="blockKey === 'record-field-value'">
+        <RecordFieldValue value="Enterprise SaaS" />
+      </template>
+
       <template v-else-if="blockKey === 'record-hero-field-card'">
-        <article class="building-block-preview-tile__record-field-card">
-          <div class="building-block-preview-tile__record-field-top">
-            <div class="building-block-preview-tile__record-field-label">Industry</div>
-            <div class="building-block-preview-tile__record-field-description">General</div>
-          </div>
-          <div class="building-block-preview-tile__record-field-bottom">
-            <div class="building-block-preview-tile__record-field-value">Enterprise SaaS</div>
-            <q-icon name="task_alt" size="15px" class="building-block-preview-tile__record-field-status" />
-          </div>
-        </article>
+        <RecordHeroFieldCard
+          label="Industry"
+          description="General"
+          value="Enterprise SaaS"
+          status-icon="task_alt"
+        />
+      </template>
+
+      <template v-else-if="blockKey === 'record-field-status-icon'">
+        <div class="building-block-preview-tile__button-row">
+          <RecordFieldStatusIcon state="verified" />
+          <RecordFieldStatusIcon state="default_preselected_unverified" />
+          <RecordFieldStatusIcon state="suggested_unverified" />
+          <RecordFieldStatusIcon state="rejected" />
+        </div>
       </template>
 
       <template v-else-if="blockKey === 'record-context-panel'">
@@ -712,6 +729,11 @@ import PageBackLabel from 'src/components/PageBackLabel.vue'
 import ButtonLabel from 'src/components/ButtonLabel.vue'
 import B10Logo from 'src/components/B10Logo.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
+import RecordHeroFieldCard from 'src/components/RecordHeroFieldCard.vue'
+import RecordFieldDescription from 'src/components/RecordFieldDescription.vue'
+import RecordFieldLabel from 'src/components/RecordFieldLabel.vue'
+import RecordFieldStatusIcon from 'src/components/RecordFieldStatusIcon.vue'
+import RecordFieldValue from 'src/components/RecordFieldValue.vue'
 import WestIcon from 'src/components/WestIcon.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'

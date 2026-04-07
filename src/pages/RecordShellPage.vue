@@ -79,39 +79,28 @@
 
             <div class="record-shell__hero-field-columns">
               <div v-if="selectedHeroFieldCards.length" class="record-shell__hero-field-stack">
-                <article
+                <RecordHeroFieldCard
                   v-for="field in selectedHeroFieldCards"
                   :key="field.key"
-                  class="record-shell__hero-field-card"
-                  :class="{ 'record-shell__hero-field-card--interactive': isRecordRoute }"
+                  :label="field.label"
+                  :description="field.description"
+                  :value="field.value"
+                  :status-icon="field.statusIcon"
+                  :interactive="isRecordRoute"
                   @click="openRecordFieldDialog"
-                >
-                  <div class="record-shell__hero-field-top">
-                    <div class="record-shell__hero-field-label">{{ field.label }}</div>
-                    <div class="record-shell__hero-field-description">{{ field.description }}</div>
-                  </div>
-                  <div class="record-shell__hero-field-bottom">
-                    <div class="record-shell__hero-field-value">{{ field.value }}</div>
-                    <q-icon v-if="field.statusIcon" :name="field.statusIcon" size="15px" class="record-shell__hero-field-status" />
-                  </div>
-                </article>
+                />
               </div>
 
               <div class="record-shell__hero-field-stack record-shell__hero-field-stack--summary">
-                <article
-                  class="record-shell__hero-field-card record-shell__hero-field-card--summary"
-                  :class="{ 'record-shell__hero-field-card--interactive': isRecordRoute }"
+                <RecordHeroFieldCard
+                  label="Summary"
+                  description="General"
+                  :value="heroSummaryValue"
+                  :status-icon="heroSummaryStatusIcon"
+                  :interactive="isRecordRoute"
+                  :summary="true"
                   @click="openRecordFieldDialog"
-                >
-                  <div class="record-shell__hero-field-top">
-                    <div class="record-shell__hero-field-label">Summary</div>
-                    <div class="record-shell__hero-field-description">General</div>
-                  </div>
-                  <div class="record-shell__hero-field-bottom">
-                    <div class="record-shell__hero-field-value">{{ heroSummaryValue }}</div>
-                    <q-icon v-if="heroSummaryStatusIcon" :name="heroSummaryStatusIcon" size="15px" class="record-shell__hero-field-status" />
-                  </div>
-                </article>
+                />
               </div>
             </div>
 
@@ -578,6 +567,7 @@ import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
+import RecordHeroFieldCard from 'src/components/RecordHeroFieldCard.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import {
   CANONICAL_OPTION_LISTS,
