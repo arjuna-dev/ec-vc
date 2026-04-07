@@ -12,38 +12,11 @@
       v-model="dialogOpen"
     >
       <div class="fork-shell-modal" :class="{ 'fork-shell-modal--compact': compactForkLayout }">
-        <div
-          v-if="branchableShellOptions.length"
-          class="fork-shell-modal__selector"
-          data-hover-label="Live Action L1"
-        >
-          <q-select
-            :model-value="activeSourceKey"
-            dense
-            dark
-            options-dark
-            borderless
-            emit-value
-            map-options
-            hide-bottom-space
-            hide-dropdown-icon
-            :options="branchableShellOptions"
-            popup-content-class="fork-shell-modal__selector-menu"
-            class="fork-shell-modal__selector-control"
-            @update:model-value="updateShellSelector"
-          >
-            <template #selected-item="scope">
-              <span class="fork-shell-modal__selector-value">{{ scope.opt.label }}</span>
-            </template>
-            <template #option="scope">
-              <q-item v-bind="scope.itemProps" class="fork-shell-modal__selector-option">
-                <q-item-section>
-                  <span class="fork-shell-modal__selector-option-label">{{ scope.opt.label }}</span>
-                </q-item-section>
-              </q-item>
-            </template>
-          </q-select>
-        </div>
+        <ForkSelectorSurface
+          :model-value="activeSourceKey"
+          :options="branchableShellOptions"
+          @update:model-value="updateShellSelector"
+        />
 
         <q-card
           class="fork-shell-card"
@@ -97,6 +70,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'
 import {
   TEST_SHELL_SECTION_OPTIONS,
   getCreateBranchEntry,
@@ -196,86 +170,6 @@ onBeforeUnmount(() => {
 
 .fork-shell-modal--compact {
   width: min(408px, calc(100vw - 32px));
-}
-
-.fork-shell-modal__selector {
-  position: relative;
-  justify-self: start;
-  min-width: 0;
-}
-
-.fork-shell-modal__selector::before {
-  content: attr(data-hover-label);
-  position: absolute;
-  left: 0;
-  bottom: calc(100% + 6px);
-  padding: 3px 6px;
-  color: rgba(17, 17, 17, 0.62);
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 4px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(2px);
-  transition: opacity 120ms ease, transform 120ms ease;
-}
-
-.fork-shell-modal__selector:hover::before,
-.fork-shell-modal__selector:focus-within::before {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.fork-shell-modal__selector-control {
-  width: fit-content;
-  min-width: 0;
-}
-
-.fork-shell-modal__selector-control :deep(.q-field__control) {
-  min-height: auto;
-  padding: 0;
-}
-
-.fork-shell-modal__selector-control :deep(.q-field__native),
-.fork-shell-modal__selector-control :deep(.q-field__marginal) {
-  color: #111111;
-}
-
-.fork-shell-modal__selector-value {
-  color: #f7f4ee;
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 10px;
-  background: #000000;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
-  font-family: var(--font-title);
-  font-size: 1rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  text-transform: lowercase;
-}
-
-.fork-shell-modal__selector-option-label {
-  display: inline-flex;
-  align-items: center;
-  min-height: 26px;
-  padding: 0 8px;
-  color: #ffffff;
-  background: #111111;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
-  font-family: var(--font-title);
-  font-size: 0.88rem;
-  font-weight: 800;
-  line-height: 0.96;
-  letter-spacing: -0.03em;
 }
 
 .fork-shell-card {
@@ -388,39 +282,6 @@ onBeforeUnmount(() => {
   font: inherit;
 }
 
-:global(.fork-shell-modal__selector-menu) {
-  background: #ffffff !important;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14) !important;
-  border: 1px solid rgba(17, 17, 17, 0.08) !important;
-}
-
-:global(.fork-shell-modal__selector-menu .q-virtual-scroll__content),
-:global(.fork-shell-modal__selector-menu .q-menu),
-:global(.fork-shell-modal__selector-menu .q-list) {
-  background: #ffffff !important;
-  box-shadow: none !important;
-  border: 0 !important;
-  border-radius: 0;
-}
-
-:global(.fork-shell-modal__selector-menu .q-item) {
-  min-height: 34px;
-  padding: 4px 6px;
-  color: #ffffff;
-  background: transparent;
-}
-
-:global(.fork-shell-modal__selector-menu .q-item.q-manual-focusable--focused),
-:global(.fork-shell-modal__selector-menu .q-item--active) {
-  background: transparent;
-}
-
-:global(.fork-shell-modal__selector-menu .q-item.q-manual-focusable--focused .fork-shell-modal__selector-option-label),
-:global(.fork-shell-modal__selector-menu .q-item--active .fork-shell-modal__selector-option-label) {
-  background: #000000;
-  box-shadow: 0 0 0 1px #ffffff;
-}
-
 @media (max-width: 900px) {
   .fork-shell-modal {
     width: min(100vw - 20px, 680px);
@@ -431,7 +292,7 @@ onBeforeUnmount(() => {
     max-height: calc(100vh - 20px);
   }
 
-  .fork-shell-modal__selector {
+  :deep(.fork-selector-surface) {
     width: fit-content;
     max-width: 100%;
   }

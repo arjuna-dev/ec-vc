@@ -369,10 +369,10 @@
       </template>
 
       <template v-else-if="blockKey === 'fork-selector-surface'">
-        <div class="building-block-preview-tile__fork-selector">
-          <div class="building-block-preview-tile__fork-selector-label">Live Action L1</div>
-          <div class="building-block-preview-tile__fork-selector-value">Opportunities</div>
-        </div>
+        <ForkSelectorSurface
+          v-model="activeLiveActionL1"
+          :options="liveActionOptions"
+        />
       </template>
 
       <template v-else-if="blockKey === 'fork-branch-card'">
@@ -475,6 +475,7 @@ import PlusIconChip from 'src/components/PlusIconChip.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
+import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
@@ -909,35 +910,6 @@ onBeforeUnmount(() => {
     linear-gradient(135deg, rgba(38, 71, 255, 0.18), rgba(17, 17, 17, 0.08)),
     var(--ds-color-surface-subtle);
   border: 1px solid rgba(17, 17, 17, 0.08);
-}
-
-.building-block-preview-tile__fork-selector {
-  display: grid;
-  gap: 6px;
-  justify-items: start;
-}
-
-.building-block-preview-tile__fork-selector-label {
-  color: rgba(17, 17, 17, 0.58);
-  font-family: var(--ds-font-title);
-  font-size: 0.62rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.building-block-preview-tile__fork-selector-value {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 10px;
-  color: #f7f4ee;
-  background: #000;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
-  font-family: var(--ds-font-title);
-  font-size: 1rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1;
 }
 
 .building-block-preview-tile__fork-branch-card {
