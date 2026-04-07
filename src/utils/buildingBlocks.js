@@ -638,3 +638,31 @@ export const DEFAULT_BUILDING_BLOCK_FILE_ROWS = Object.entries(BUILDING_BLOCK_DE
 export function getBuildingBlockDetail(blockId) {
   return BUILDING_BLOCK_DETAILS_BY_ID[String(blockId || '').trim()] || null
 }
+
+function getDependencyMatchValues(blockKey, detail) {
+  return new Set(
+    [String(blockKey || '').trim(), detail?.id, detail?.title]
+      .map((value) => String(value || '').trim())
+      .filter(Boolean),
+  )
+}
+
+export function getBuildingBlockGraphCounts(blockId) {
+  const normalizedBlockId = String(blockId || '').trim()
+  const detail = getBuildingBlockDetail(normalizedBlockId)
+  if (!detail) {
+    return { parentCount: 0, childCount: 0 }
+  }
+
+  const matchValues = getDependencyMatchValues(normalizedBlockId, detail)
+  const childCount = Array.isArray(detail.builtFromBbs) ? detail.builtFromBbs.filter(Boolean).length : 0
+
+  const parentCount = Object.entries(BUILDING_BLOCK_DETAILS_BY_ID).reduce((count, [, candidateDetail]) => {
+    const dependencies = Array.isArray(candidateDetail?.builtFromBbs) ? candidateDetail.builtFromBbs : []
+    return dependencies.some((dependency) => matchValues.has(String(dependency || '').trim()))
+      ? count + 1
+      : count
+  }, 0)
+
+  return { parentCount, childCount }
+}

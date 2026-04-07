@@ -5,6 +5,7 @@
   >
     <BuildingBlockTileHeader
       :title="tileTitle"
+      :graph-label="tileGraphLabel"
       :status-label="tileStatusLabel"
       :status-class="statusClass"
       :collapsed="isCollapsed"
@@ -290,7 +291,7 @@ import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
-import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
+import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,
   GENERAL_SETTINGS_COLOR_SWATCHES,
@@ -318,6 +319,8 @@ const detail = computed(() => BUILDING_BLOCK_DETAILS_BY_ID[props.blockKey] || nu
 const isCollapsed = ref(false)
 const size = computed(() => getBuildingBlockTileSize(props.blockKey))
 const tileTitle = computed(() => props.title || detail.value?.title || 'Building Block')
+const tileGraphCounts = computed(() => getBuildingBlockGraphCounts(props.blockKey))
+const tileGraphLabel = computed(() => `[${tileGraphCounts.value.parentCount}/${tileGraphCounts.value.childCount}]`)
 const tileStatusLabel = computed(() => props.statusLabel || detail.value?.statusLabel || 'Extract Next')
 const statusClass = computed(() =>
   (detail.value?.status || '').trim() === 'canonical'
