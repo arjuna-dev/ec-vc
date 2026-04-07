@@ -28,7 +28,7 @@
       </template>
     </q-select>
     <button type="button" class="live-action-l1__chevron-button" aria-label="Open selector" @click.stop="openMenu">
-      <DropdownChevron :tone="tone === 'inverse' ? 'light' : 'dark'" class="live-action-l1__chevron" />
+      <DropdownChevron :tone="tone === 'inverse' ? 'dark' : 'dark'" class="live-action-l1__chevron" />
     </button>
   </div>
 </template>

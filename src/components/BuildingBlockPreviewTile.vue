@@ -172,12 +172,15 @@
       </template>
 
       <template v-else-if="blockKey === 'shell-title-row'">
-        <FileShellTitleRow
-          v-model="activeLiveActionL1"
-          title="BB Shell"
-          :show-selector="true"
-          :options="liveActionOptions"
-        />
+        <div class="building-block-preview-tile__shell-title-row-context">
+          <FileShellTitleRow
+            v-model="activeLiveActionL1"
+            title="BB Shell"
+            :show-selector="true"
+            :options="liveActionOptions"
+            tone="inverse"
+          />
+        </div>
       </template>
 
       <template v-else-if="blockKey === 'toggle-row-icons'">
@@ -451,6 +454,10 @@
         </div>
       </template>
 
+      <template v-else-if="blockKey === 'shell-open-dialog-button'">
+        <ShellOpenDialogButton kind="record" />
+      </template>
+
       <template v-else-if="blockKey === 'record-dashboard'">
         <div class="building-block-preview-tile__record-dashboard">
           <div class="building-block-preview-tile__record-dashboard-main">
@@ -641,6 +648,7 @@ import PlusIconChip from 'src/components/PlusIconChip.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import SearchBarInput from 'src/components/SearchBarInput.vue'
 import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
+import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'
@@ -1024,6 +1032,13 @@ onBeforeUnmount(() => {
   min-height: 120px;
   border-radius: var(--ds-radius-mini);
   background: color-mix(in srgb, var(--ds-color-brand-light-grey) 58%, white);
+}
+
+.building-block-preview-tile__shell-title-row-context {
+  width: 100%;
+  padding: var(--ds-space-16);
+  border-radius: var(--ds-radius-mini);
+  background: var(--ds-color-brand-black);
 }
 
 .building-block-preview-tile__chevron-row {

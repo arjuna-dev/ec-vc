@@ -15,13 +15,10 @@
         </div>
 
         <div v-if="isFileDialogShellRoute || isDialogShellRoute || isForkShellRoute || isBbShellRoute" class="ec-shell-toolbar-center">
-          <button
-            type="button"
-            class="ec-shell-dialog-open-btn"
+          <ShellOpenDialogButton
+            :kind="isForkShellRoute ? 'fork' : isFileDialogShellRoute ? 'file' : isBbShellRoute ? 'bb' : 'record'"
             @click="reopenActiveRouteShellFromHeader"
-          >
-            {{ isForkShellRoute ? 'Open Fork' : isFileDialogShellRoute ? 'Open File Dialog' : isBbShellRoute ? 'Open BB Shell' : 'Open Dialog' }}
-          </button>
+          />
         </div>
 
         <q-toolbar-title class="ec-shell-toolbar-title">
@@ -362,6 +359,7 @@ import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
+import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 

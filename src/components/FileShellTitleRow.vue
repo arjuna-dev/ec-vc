@@ -67,8 +67,8 @@ defineEmits(['back', 'update:modelValue'])
 <style scoped>
 .file-shell-title-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: flex-start;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: flex-end;
   gap: var(--ds-space-12);
   min-width: 0;
   width: 100%;
@@ -85,7 +85,7 @@ defineEmits(['back', 'update:modelValue'])
 
 .file-shell-title-row__selector {
   grid-column: 2;
-  align-self: flex-start;
+  align-self: flex-end;
   justify-self: center;
 }
 </style>
