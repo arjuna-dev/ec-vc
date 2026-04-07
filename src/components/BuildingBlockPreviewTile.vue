@@ -52,6 +52,13 @@
         <DropdownChevron />
       </template>
 
+      <template v-else-if="blockKey === 'l2-settings-menu'">
+        <L2SettingsMenu
+          title="Hero Fields"
+          :groups="l2SettingsSampleGroups"
+        />
+      </template>
+
       <template v-else-if="blockKey === 'toggle-row-icons'">
         <div class="building-block-preview-tile__toggle-row-icons">
           <ToggleRowIcons label="General" :expanded="true" />
@@ -492,6 +499,7 @@ import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'
+import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
@@ -502,6 +510,26 @@ import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import ValueChip from 'src/components/ValueChip.vue'
+const l2SettingsSampleGroups = [
+  {
+    key: 'general',
+    label: 'General',
+    expanded: true,
+    items: [
+      { key: 'name', label: 'Name', checked: true },
+      { key: 'summary', label: 'Summary', checked: true },
+    ],
+  },
+  {
+    key: 'system',
+    label: 'System',
+    expanded: true,
+    items: [
+      { key: 'record-id', label: 'Record ID', checked: false },
+      { key: 'updated-at', label: 'Updated At', checked: true },
+    ],
+  },
+]
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,

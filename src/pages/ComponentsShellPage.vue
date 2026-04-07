@@ -145,49 +145,10 @@
         <div class="components-shell-page__card-label">L2 Settings Menu</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('l2-settings-menu')">{{ componentStatusLabel('l2-settings-menu') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
-          <div class="components-shell-page__l2-settings-panel">
-            <div class="components-shell-page__l2-settings-title">Hero Fields</div>
-            <div class="components-shell-page__l2-settings-group">
-              <button type="button" class="components-shell-page__l2-settings-heading">
-                <span>General</span>
-                <q-icon name="expand_less" size="14px" />
-              </button>
-              <label class="components-shell-page__l2-settings-row">
-                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span class="components-shell-page__l2-settings-row-copy">
-                  <span class="components-shell-page__l2-settings-row-label">Name</span>
-                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
-                </span>
-              </label>
-              <label class="components-shell-page__l2-settings-row">
-                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span class="components-shell-page__l2-settings-row-copy">
-                  <span class="components-shell-page__l2-settings-row-label">Summary</span>
-                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
-                </span>
-              </label>
-            </div>
-            <div class="components-shell-page__l2-settings-group">
-              <button type="button" class="components-shell-page__l2-settings-heading">
-                <span>System</span>
-                <q-icon name="expand_less" size="14px" />
-              </button>
-              <label class="components-shell-page__l2-settings-row">
-                <q-checkbox model-value="false" dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span class="components-shell-page__l2-settings-row-copy">
-                  <span class="components-shell-page__l2-settings-row-label">Record ID</span>
-                  <span class="components-shell-page__l2-settings-row-value">Hidden</span>
-                </span>
-              </label>
-              <label class="components-shell-page__l2-settings-row">
-                <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" />
-                <span class="components-shell-page__l2-settings-row-copy">
-                  <span class="components-shell-page__l2-settings-row-label">Updated At</span>
-                  <span class="components-shell-page__l2-settings-row-value">Shown</span>
-                </span>
-              </label>
-            </div>
-          </div>
+          <L2SettingsMenu
+            title="Hero Fields"
+            :groups="l2SettingsSampleGroups"
+          />
         </div>
       </article>
       <article class="components-shell-page__card components-shell-page__card--widget-settings">
@@ -413,6 +374,7 @@ import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vu
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
+import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import MainMenuRow from 'src/components/MainMenuRow.vue'
@@ -425,6 +387,26 @@ import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
 const activeToolbarSection = ref('general')
 const toolbarViewMode = ref('card')
 const activeLiveActionL1 = ref('companies')
+const l2SettingsSampleGroups = [
+  {
+    key: 'general',
+    label: 'General',
+    expanded: true,
+    items: [
+      { key: 'name', label: 'Name', checked: true },
+      { key: 'summary', label: 'Summary', checked: true },
+    ],
+  },
+  {
+    key: 'system',
+    label: 'System',
+    expanded: true,
+    items: [
+      { key: 'record-id', label: 'Record ID', checked: false },
+      { key: 'updated-at', label: 'Updated At', checked: true },
+    ],
+  },
+]
 const openSections = ref({
   basic: true,
   navigation: true,

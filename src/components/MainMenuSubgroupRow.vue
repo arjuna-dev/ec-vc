@@ -30,7 +30,7 @@ defineProps({
   justify-content: space-between;
   gap: var(--ds-space-8);
   width: 100%;
-  min-height: 26px;
+  min-height: 24px;
   padding: 0 var(--ds-space-8);
   color: var(--ds-color-brand-white);
   background: var(--ds-color-brand-black);
@@ -43,7 +43,7 @@ defineProps({
   color: inherit;
   font-family: var(--ds-font-title);
   font-size: 0.72rem;
-  font-weight: var(--ds-font-weight-bold);
+  font-weight: var(--ds-font-weight-light);
   letter-spacing: 0.06em;
   line-height: 1;
   text-transform: uppercase;

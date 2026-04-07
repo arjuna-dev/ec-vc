@@ -48,41 +48,12 @@
               >
                 <q-tooltip>Hero Fields</q-tooltip>
                 <q-menu anchor="bottom right" self="top right">
-                  <div class="record-shell__settings-panel">
-                    <div class="record-shell__settings-title">Hero Fields</div>
-                    <div
-                      v-for="section in selectableSections"
-                      :key="section.key"
-                      class="record-shell__settings-group"
-                    >
-                      <button
-                        type="button"
-                        class="record-shell__settings-heading"
-                        @click="toggleExpandedSection(section.key)"
-                      >
-                        <span>{{ section.label }}</span>
-                        <q-icon :name="isSectionExpanded(section.key) ? 'expand_less' : 'expand_more'" size="14px" />
-                      </button>
-
-                      <div v-if="isSectionExpanded(section.key)" class="record-shell__settings-children">
-                        <label
-                          v-for="token in getSectionTokens(section.key)"
-                          :key="token.key"
-                          class="record-shell__settings-row"
-                        >
-                          <q-checkbox
-                            :model-value="isSelectedToken(token.key)"
-                            dense
-                            size="xs"
-                            checked-icon="check_box"
-                            unchecked-icon="check_box_outline_blank"
-                            @update:model-value="setTokenSelected(token.key, $event)"
-                          />
-                          <span>{{ token.label }}</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+                  <L2SettingsMenu
+                    title="Hero Fields"
+                    :groups="heroSettingsGroups"
+                    @toggle-group="toggleExpandedSection"
+                    @toggle-item="setTokenSelected"
+                  />
                 </q-menu>
               </q-btn>
 
@@ -606,6 +577,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
+import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import {
   CANONICAL_OPTION_LISTS,
@@ -870,6 +842,16 @@ const dialogInitialValues = computed(() => {
   )
 })
 const dialogInitialFieldMeta = computed(() => ({}))
+const heroSettingsGroups = computed(() => selectableSections.value.map((section) => ({
+  key: section.key,
+  label: section.label,
+  expanded: isSectionExpanded(section.key),
+  items: getSectionTokens(section.key).map((token) => ({
+    key: token.key,
+    label: token.label,
+    checked: isSelectedToken(token.key),
+  })),
+})))
 
 watch(level2Sections, (sections) => {
   if (!sections.length) {

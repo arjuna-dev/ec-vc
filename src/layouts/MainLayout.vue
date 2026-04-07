@@ -2191,7 +2191,12 @@ function goBack() {
 }
 
 .ec-nav-item--primary {
-  min-height: 28px;
+  min-height: 26px;
+}
+
+.ec-nav-item--primary :deep(.q-item__section) {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .ec-nav-icon--widget-blue {
@@ -2221,11 +2226,11 @@ function goBack() {
 }
 
 .ec-nav-item--workspace-child {
-  min-height: 28px;
+  min-height: 26px;
 }
 
 .ec-nav-item--shell-child {
-  min-height: 32px;
+  min-height: 28px;
   margin-left: 24px;
 }
 
