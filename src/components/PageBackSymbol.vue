@@ -63,6 +63,6 @@ defineProps({
 
 .page-back-symbol__icon {
   flex: 0 0 auto;
-  font-size: 16px;
+  font-size: var(--ds-icon-size-sm);
 }
 </style>
