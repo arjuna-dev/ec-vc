@@ -7,14 +7,15 @@
         <div class="home-dashboard-hero__text">{{ text }}</div>
 
         <div class="home-dashboard-hero__stats">
-          <div
+          <L3Box
             v-for="stat in stats"
             :key="stat.label"
+            :label="stat.label"
+            :value="stat.value"
+            :caption="stat.caption || ''"
+            tone="inverse"
             class="home-dashboard-hero__stat"
-          >
-            <span class="home-dashboard-hero__stat-label">{{ stat.label }}</span>
-            <strong>{{ stat.value }}</strong>
-          </div>
+          />
         </div>
       </div>
 
@@ -50,6 +51,8 @@
 </template>
 
 <script setup>
+import L3Box from 'src/components/L3Box.vue'
+
 defineProps({
   kicker: { type: String, default: 'Live overview' },
   count: { type: String, default: '...' },
@@ -133,12 +136,12 @@ defineProps({
 }
 
 .home-dashboard-hero__stat {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  backdrop-filter: none;
 }
 
-.home-dashboard-hero__stat-label,
 .home-dashboard-hero__panel-label {
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.78rem;
@@ -146,7 +149,6 @@ defineProps({
   text-transform: uppercase;
 }
 
-.home-dashboard-hero__stat strong,
 .home-dashboard-hero__panel-value {
   font-size: 1.2rem;
   line-height: 1.2;

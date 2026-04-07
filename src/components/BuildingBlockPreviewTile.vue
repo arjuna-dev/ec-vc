@@ -312,6 +312,10 @@
         <PlusWithLabelButton :label="addLabel" />
       </template>
 
+      <template v-else-if="blockKey === 'l3-box'">
+        <L3Box label="L3" value="128" caption="Canonical tokens" />
+      </template>
+
       <template v-else-if="blockKey === 'file-dashboard'">
         <FilePageHeroDashboard
           eyebrow="Dashboard"
@@ -544,6 +548,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
+import L3Box from 'src/components/L3Box.vue'
 import PlusIconChip from 'src/components/PlusIconChip.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
