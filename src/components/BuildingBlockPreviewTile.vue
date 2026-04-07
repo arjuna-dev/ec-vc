@@ -36,10 +36,7 @@
       </template>
 
       <template v-else-if="blockKey === 'page-back-symbol'">
-        <button type="button" class="building-block-preview-tile__back-button" aria-label="Back">
-          <q-icon name="west" />
-          <span>Back</span>
-        </button>
+        <PageBackSymbol />
       </template>
 
       <template v-else-if="blockKey === 'eye-icon'">
@@ -486,6 +483,7 @@ import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
+import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 import {
@@ -797,30 +795,6 @@ onBeforeUnmount(() => {
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
-}
-
-.building-block-preview-tile__back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #111111;
-  cursor: pointer;
-  font-family: var(--ds-font-title);
-  font-size: 0.84rem;
-  font-weight: var(--ds-font-weight-bold);
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-.building-block-preview-tile__back-button span {
-  white-space: nowrap;
-}
-
-.building-block-preview-tile__back-button :deep(.q-icon) {
-  font-size: 18px;
 }
 
 .building-block-preview-tile__menu-icon-button {

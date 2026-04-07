@@ -84,10 +84,7 @@
         <div class="components-shell-page__card-label">Page Back Symbol</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('page-back-symbol')">{{ componentStatusLabel('page-back-symbol') }}</div>
         <div class="components-shell-page__card-stage">
-          <button type="button" class="components-shell-page__back-button" aria-label="Back">
-            <q-icon name="west" />
-            <span>Back</span>
-          </button>
+          <PageBackSymbol />
         </div>
       </article>
 
@@ -439,6 +436,7 @@ import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vu
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
+import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
 
@@ -785,31 +783,6 @@ onBeforeUnmount(() => {
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
-}
-
-.components-shell-page__back-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 28px;
-  padding: 0 6px;
-  color: #111111;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  font-size: 0.84rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.01em;
-}
-
-.components-shell-page__back-button span {
-  font-family: var(--font-body);
-}
-
-.components-shell-page__back-button :deep(.q-icon) {
-  font-size: 1em;
 }
 
 .components-shell-page__menu-icon-button {

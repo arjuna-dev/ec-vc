@@ -12,7 +12,7 @@
       </q-banner>
 
       <div class="record-event-page__header">
-        <q-btn flat no-caps icon="arrow_back" label="Back to Record" @click="goBackToRecord" />
+        <PageBackSymbol label="Back to Record" aria-label="Back to Record" icon="arrow_back" @click="goBackToRecord" />
       </div>
 
       <q-card flat bordered class="record-event-page__card">
@@ -57,6 +57,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
 
 const route = useRoute()
