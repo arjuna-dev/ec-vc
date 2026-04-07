@@ -59,8 +59,7 @@ export const GENERAL_SETTINGS_RADIUS_SAMPLES = Object.freeze([
 
 export const GENERAL_SETTINGS_SHADOW_SAMPLES = Object.freeze([
   { key: 'label', label: 'Floating Label', token: '--ds-shadow-floating-label', shadow: 'var(--ds-shadow-floating-label)' },
-  { key: 'card-soft', label: 'Card Soft', token: '--ds-shadow-card-soft', shadow: 'var(--ds-shadow-card-soft)' },
-  { key: 'card-medium', label: 'Card Medium', token: '--ds-shadow-card-medium', shadow: 'var(--ds-shadow-card-medium)' },
+  { key: 'card', label: 'Card', token: '--ds-shadow-card-soft', shadow: 'var(--ds-shadow-card-soft)' },
   { key: 'control', label: 'Control', token: '--ds-control-shadow', shadow: 'var(--ds-control-shadow)' },
 ])
 

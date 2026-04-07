@@ -156,6 +156,10 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the canonical shadow/elevation system across labels, cards, and controls.',
     prompt: 'Render the Shadows building block from BB Shell using the live General Settings shadow tokens.',
     usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    convergenceRule: [
+      '--ds-shadow-card-medium -> --ds-shadow-card-soft',
+      'Card Soft + Card Medium -> Card',
+    ],
   }),
   spacing: defineBuildingBlockDetail({
     id: 'cmp-foundation-spacing',
