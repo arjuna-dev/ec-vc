@@ -111,11 +111,10 @@ defineEmits(['toggle-section', 'toggle-item', 'toggle-item-checkbox'])
 }
 
 .file-filter-menu__heading-label {
-  font-family: var(--ds-font-title);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-sm);
   font-weight: var(--ds-font-weight-medium);
-  line-height: 1;
-  text-transform: uppercase;
+  line-height: var(--ds-line-height-sm);
 }
 
 .file-filter-menu__heading-meta {
@@ -161,7 +160,7 @@ defineEmits(['toggle-section', 'toggle-item', 'toggle-item-checkbox'])
 .file-filter-menu__child-label {
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-sm);
-  font-weight: var(--ds-font-weight-medium);
+  font-weight: var(--ds-font-weight-light);
   line-height: 1.2;
 }
 </style>

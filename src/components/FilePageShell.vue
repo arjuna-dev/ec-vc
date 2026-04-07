@@ -221,128 +221,14 @@
               class="test-shell-filters-menu"
               content-class="test-shell-filters-menu__content"
             >
-              <div v-if="isBbFileSource" class="test-shell-filters-panel test-shell-filters-panel--bb">
-                <div class="test-shell-filters-panel__title">Building Block Filter</div>
-
-                <div class="test-shell-filters-panel__rows test-shell-filters-panel__rows--bb">
-                  <div
-                    v-for="group in bbFilterGroups"
-                    :key="group.key"
-                    class="test-shell-filter-group"
-                  >
-                    <button
-                      type="button"
-                      class="test-shell-filter-heading"
-                      @click="toggleExpandedBbFilterCategory(group.key)"
-                    >
-                      <span class="test-shell-filter-heading__label">{{ group.label }}</span>
-                      <span class="test-shell-filter-heading__meta">{{ group.blocks.length }}</span>
-                      <q-icon
-                        :name="expandedBbFilterCategoryKey === group.key ? 'expand_less' : 'expand_more'"
-                        size="14px"
-                        class="test-shell-filter-heading__chevron"
-                      />
-                    </button>
-
-                    <div
-                      v-if="expandedBbFilterCategoryKey === group.key"
-                      class="test-shell-filter-group__children"
-                    >
-                      <button
-                        type="button"
-                        class="test-shell-filter-child-row"
-                        :class="{ 'test-shell-filter-child-row--selected': activeBbCategoryKey === group.key && !activeBbBlockKey }"
-                        @click="applyBbFilterSelection(`category:${group.key}`)"
-                      >
-                        <q-checkbox
-                          :model-value="activeBbCategoryKey === group.key && !activeBbBlockKey"
-                          dense
-                          size="xs"
-                          checked-icon="check_box"
-                          unchecked-icon="check_box_outline_blank"
-                          class="test-shell-filter-child-row__checkbox"
-                          @update:model-value="toggleBbCategoryFilter(group.key, $event)"
-                          @click.stop
-                        />
-                        <span class="test-shell-filter-child-row__label">{{ group.label }}</span>
-                      </button>
-
-                      <button
-                        v-for="block in group.blocks"
-                        :key="block.key"
-                        type="button"
-                        class="test-shell-filter-child-row"
-                        :class="{ 'test-shell-filter-child-row--selected': block.key === activeBbBlockKey }"
-                        @click="applyBbFilterSelection(`block:${block.key}`)"
-                      >
-                        <q-checkbox
-                          :model-value="block.key === activeBbBlockKey"
-                          dense
-                          size="xs"
-                          checked-icon="check_box"
-                          unchecked-icon="check_box_outline_blank"
-                          class="test-shell-filter-child-row__checkbox"
-                          @update:model-value="toggleBbBlockFilter(block.key, $event)"
-                          @click.stop
-                        />
-                        <span class="test-shell-filter-child-row__label">{{ block.label }}</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div v-else class="test-shell-filters-panel">
-                <div class="test-shell-filters-panel__title">File Filter</div>
-
-                <div class="test-shell-filters-panel__rows">
-                  <div
-                    v-for="section in multiTokenFilterSections"
-                    :key="section.key"
-                    class="test-shell-filter-group"
-                  >
-                    <button
-                      type="button"
-                      class="test-shell-filter-heading"
-                      @click="toggleExpandedFilterSection(section.key)"
-                    >
-                      <span class="test-shell-filter-heading__label">{{ section.label }}</span>
-                      <span class="test-shell-filter-heading__meta">{{ getFilterSectionTokenCount(section.key) }}</span>
-                      <q-icon
-                        :name="expandedFilterSectionKey === section.key ? 'expand_less' : 'expand_more'"
-                        size="14px"
-                        class="test-shell-filter-heading__chevron"
-                      />
-                    </button>
-
-                    <div
-                      v-if="expandedFilterSectionKey === section.key"
-                      class="test-shell-filter-group__children"
-                    >
-                      <button
-                        v-for="token in getSectionTokens(section.key)"
-                        :key="token.key"
-                        type="button"
-                        class="test-shell-filter-child-row"
-                        :class="{ 'test-shell-filter-child-row--selected': token.key === activeFilterTokenKey }"
-                        @click="applyFilterSelection(`token:${token.key}`)"
-                      >
-                        <q-checkbox
-                          :model-value="token.key === activeFilterTokenKey"
-                          dense
-                          size="xs"
-                          checked-icon="check_box"
-                          unchecked-icon="check_box_outline_blank"
-                          class="test-shell-filter-child-row__checkbox"
-                          @update:model-value="toggleFilterToken(token.key, $event)"
-                          @click.stop
-                        />
-                        <span class="test-shell-filter-child-row__label">{{ token.label }}</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <FileFilterMenu
+                :title="isBbFileSource ? 'Building Block Filter' : 'File Filter'"
+                :sections="fileFilterMenuSections"
+                :expanded-section-key="isBbFileSource ? expandedBbFilterCategoryKey : expandedFilterSectionKey"
+                @toggle-section="handleFileFilterToggleSection"
+                @toggle-item="handleFileFilterToggleItem"
+                @toggle-item-checkbox="handleFileFilterToggleItemCheckbox"
+              />
             </q-menu>
           </q-btn>
         </template>
@@ -919,6 +805,7 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
+import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'components/ShellSectionToolbar.vue'
@@ -1800,6 +1687,39 @@ const bbFilterGroups = computed(() => {
   })
 
   return groups
+})
+
+const fileFilterMenuSections = computed(() => {
+  if (isBbFileSource.value) {
+    return bbFilterGroups.value.map((group) => ({
+      key: group.key,
+      label: group.label,
+      count: group.blocks.length,
+      items: [
+        {
+          key: `category:${group.key}`,
+          label: group.label,
+          selected: activeBbCategoryKey.value === group.key && !activeBbBlockKey.value,
+        },
+        ...group.blocks.map((block) => ({
+          key: `block:${block.key}`,
+          label: block.label,
+          selected: block.key === activeBbBlockKey.value,
+        })),
+      ],
+    }))
+  }
+
+  return multiTokenFilterSections.value.map((section) => ({
+    key: section.key,
+    label: section.label,
+    count: getFilterSectionTokenCount(section.key),
+    items: getSectionTokens(section.key).map((token) => ({
+      key: `token:${token.key}`,
+      label: token.label,
+      selected: token.key === activeFilterTokenKey.value,
+    })),
+  }))
 })
 
 const activeBbFilterGroup = computed(() =>
@@ -3469,6 +3389,43 @@ function applyFilterSelection(value) {
     setActiveFilterToken(tokenKey)
     const token = level3Tokens.value.find((entry) => entry.key === tokenKey)
     expandedFilterSectionKey.value = token?.parentKey || ''
+  }
+}
+
+function handleFileFilterToggleSection(sectionKey) {
+  if (isBbFileSource.value) {
+    toggleExpandedBbFilterCategory(sectionKey)
+    return
+  }
+  toggleExpandedFilterSection(sectionKey)
+}
+
+function handleFileFilterToggleItem(itemKey) {
+  if (isBbFileSource.value) {
+    applyBbFilterSelection(itemKey)
+    return
+  }
+  applyFilterSelection(itemKey)
+}
+
+function handleFileFilterToggleItemCheckbox(payload) {
+  const itemKey = String(payload?.key || '').trim()
+  const nextValue = payload?.value
+  if (!itemKey) return
+
+  if (isBbFileSource.value) {
+    if (itemKey.startsWith('category:')) {
+      toggleBbCategoryFilter(itemKey.slice('category:'.length), nextValue)
+      return
+    }
+    if (itemKey.startsWith('block:')) {
+      toggleBbBlockFilter(itemKey.slice('block:'.length), nextValue)
+    }
+    return
+  }
+
+  if (itemKey.startsWith('token:')) {
+    toggleFilterToken(itemKey.slice('token:'.length), nextValue)
   }
 }
 

@@ -110,7 +110,7 @@ function isSectionOpen(sectionId) {
   padding: var(--ds-space-4);
   background: var(--ds-widget-settings-surface);
   border: 1px solid var(--ds-widget-settings-border);
-  border-radius: var(--ds-radius-md);
+  border-radius: var(--ds-radius-micro);
   box-shadow: var(--ds-shadow-control);
   backdrop-filter: var(--ds-panel-blur-md);
 }

@@ -101,16 +101,29 @@
       </template>
 
       <template v-else-if="blockKey === 'value-chip-surface'">
-        <div class="building-block-preview-tile__button-row">
-          <ValueChipSurface tone="default">
-            <span style="width: 44px; height: 1px;" />
-          </ValueChipSurface>
-          <ValueChipSurface tone="menu">
-            <span style="width: 30px; height: 1px;" />
-          </ValueChipSurface>
-          <ValueChipSurface tone="button-neutral" size="small">
-            <span style="width: 30px; height: 1px;" />
-          </ValueChipSurface>
+        <div class="building-block-preview-tile__comparison-row">
+          <div class="building-block-preview-tile__comparison-panel">
+            <div class="building-block-preview-tile__comparison-label">Light</div>
+            <div class="building-block-preview-tile__button-row">
+              <ValueChipSurface tone="default">
+                <span style="width: 44px; height: 1px;" />
+              </ValueChipSurface>
+              <ValueChipSurface tone="menu">
+                <span style="width: 30px; height: 1px;" />
+              </ValueChipSurface>
+              <ValueChipSurface tone="button-neutral" size="small">
+                <span style="width: 30px; height: 1px;" />
+              </ValueChipSurface>
+            </div>
+          </div>
+          <div class="building-block-preview-tile__comparison-panel building-block-preview-tile__comparison-panel--dark">
+            <div class="building-block-preview-tile__comparison-label">Dark</div>
+            <div class="building-block-preview-tile__button-row">
+              <ValueChipSurface tone="inverse">
+                <span style="width: 44px; height: 1px;" />
+              </ValueChipSurface>
+            </div>
+          </div>
         </div>
       </template>
 
@@ -119,12 +132,22 @@
       </template>
 
       <template v-else-if="blockKey === 'dropdown-chevron'">
-        <div class="building-block-preview-tile__chevron-row">
-          <div class="building-block-preview-tile__chevron-swatch">
-            <DropdownChevron tone="dark" />
+        <div class="building-block-preview-tile__comparison-row">
+          <div class="building-block-preview-tile__comparison-panel">
+            <div class="building-block-preview-tile__comparison-label">Light</div>
+            <div class="building-block-preview-tile__chevron-row">
+              <div class="building-block-preview-tile__chevron-swatch">
+                <DropdownChevron tone="dark" />
+              </div>
+            </div>
           </div>
-          <div class="building-block-preview-tile__chevron-swatch building-block-preview-tile__chevron-swatch--dark">
-            <DropdownChevron tone="light" />
+          <div class="building-block-preview-tile__comparison-panel building-block-preview-tile__comparison-panel--dark">
+            <div class="building-block-preview-tile__comparison-label">Dark</div>
+            <div class="building-block-preview-tile__chevron-row">
+              <div class="building-block-preview-tile__chevron-swatch building-block-preview-tile__chevron-swatch--dark">
+                <DropdownChevron tone="light" />
+              </div>
+            </div>
           </div>
         </div>
       </template>
@@ -192,7 +215,16 @@
       </template>
 
       <template v-else-if="blockKey === 'live-action-l1'">
-        <LiveActionL1 v-model="activeLiveActionL1" :options="liveActionOptions" />
+        <div class="building-block-preview-tile__comparison-row">
+          <div class="building-block-preview-tile__comparison-panel">
+            <div class="building-block-preview-tile__comparison-label">Light</div>
+            <LiveActionL1 v-model="activeLiveActionL1" :options="liveActionOptions" />
+          </div>
+          <div class="building-block-preview-tile__comparison-panel building-block-preview-tile__comparison-panel--dark">
+            <div class="building-block-preview-tile__comparison-label">Dark</div>
+            <LiveActionL1 v-model="activeLiveActionL1" :options="liveActionOptions" tone="inverse" />
+          </div>
+        </div>
       </template>
 
       <template v-else-if="blockKey === 'fonts'">
@@ -431,12 +463,24 @@
         <SearchBarInput model-value="" placeholder="Search Companies" />
       </template>
       <template v-else-if="blockKey === 'settings-checkbox'">
-        <div class="building-block-preview-tile__button-row">
-          <SettingsCheckbox :model-value="false" tone="light" />
-          <SettingsCheckbox :model-value="true" tone="light" />
-          <div class="building-block-preview-tile__chevron-swatch building-block-preview-tile__chevron-swatch--dark">
-            <SettingsCheckbox :model-value="false" tone="dark" />
-            <SettingsCheckbox :model-value="true" tone="dark" />
+        <div class="building-block-preview-tile__comparison-row">
+          <div class="building-block-preview-tile__comparison-panel">
+            <div class="building-block-preview-tile__comparison-label">Light</div>
+            <div class="building-block-preview-tile__button-row">
+              <SettingsCheckbox :model-value="false" tone="light" />
+              <SettingsCheckbox :model-value="true" tone="light" />
+            </div>
+          </div>
+          <div class="building-block-preview-tile__comparison-panel building-block-preview-tile__comparison-panel--dark">
+            <div class="building-block-preview-tile__comparison-label">Dark</div>
+            <div class="building-block-preview-tile__button-row">
+              <div class="building-block-preview-tile__chevron-swatch building-block-preview-tile__chevron-swatch--dark">
+                <SettingsCheckbox :model-value="false" tone="dark" />
+              </div>
+              <div class="building-block-preview-tile__chevron-swatch building-block-preview-tile__chevron-swatch--dark">
+                <SettingsCheckbox :model-value="true" tone="dark" />
+              </div>
+            </div>
           </div>
         </div>
       </template>
@@ -1050,6 +1094,42 @@ onBeforeUnmount(() => {
   padding: var(--ds-space-16);
   border-radius: var(--ds-radius-mini);
   background: var(--ds-color-brand-black);
+}
+
+.building-block-preview-tile__comparison-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-space-12);
+  width: 100%;
+}
+
+.building-block-preview-tile__comparison-panel {
+  display: grid;
+  gap: var(--ds-space-8);
+  justify-items: center;
+  padding: var(--ds-space-12);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-mini);
+  background: var(--ds-color-surface-subtle);
+}
+
+.building-block-preview-tile__comparison-panel--dark {
+  color: var(--ds-color-brand-white);
+  border-color: transparent;
+  border-radius: var(--ds-radius-mini);
+  background: var(--ds-color-brand-black);
+}
+
+.building-block-preview-tile__comparison-label {
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-xs);
+}
+
+.building-block-preview-tile__comparison-panel--dark .building-block-preview-tile__comparison-label {
+  color: color-mix(in srgb, var(--ds-color-brand-white) 72%, transparent);
 }
 
 .building-block-preview-tile__chevron-row {
