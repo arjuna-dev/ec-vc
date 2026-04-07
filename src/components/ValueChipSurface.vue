@@ -31,7 +31,7 @@ defineProps({
 }
 
 .value-chip-surface--menu {
-  min-height: 26px;
+  min-height: calc(var(--ds-control-height-sm) + var(--ds-space-2));
   padding: 0 var(--ds-space-8);
 }
 </style>

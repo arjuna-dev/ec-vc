@@ -74,18 +74,18 @@ function openMenu() {
   position: relative;
   display: inline-flex;
   align-items: center;
-  padding-right: 18px;
+  padding-right: var(--ds-live-action-padding-right);
   overflow: visible;
 }
 
 .live-action-l1__select {
-  width: min(220px, 100%);
+  width: min(var(--ds-live-action-width), 100%);
   min-width: 0;
 }
 
 .live-action-l1__select :deep(.q-field__control) {
-  min-height: 40px;
-  padding: 0 4px 0 0;
+  min-height: var(--ds-control-height-xl);
+  padding: 0 var(--ds-space-4) 0 0;
   background: transparent;
   border-radius: 0;
   box-shadow: none;
@@ -93,27 +93,27 @@ function openMenu() {
 
 .live-action-l1__select :deep(.q-field__native),
 .live-action-l1__select :deep(.q-field__marginal) {
-  color: #fff !important;
+  color: var(--ds-color-brand-white) !important;
 }
 
 .live-action-l1__chevron {
   position: absolute;
-  right: -4px;
-  bottom: -2px;
+  right: var(--ds-live-action-menu-offset-x);
+  bottom: var(--ds-live-action-menu-offset-y);
   z-index: 2;
   cursor: pointer;
 }
 
 .live-action-l1__menu {
-  background: #ffffff !important;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14) !important;
-  border: 1px solid rgba(17, 17, 17, 0.08) !important;
+  background: var(--ds-color-surface-base) !important;
+  box-shadow: var(--ds-shadow-card-soft) !important;
+  border: 1px solid var(--ds-color-border-default) !important;
 }
 
 .live-action-l1__menu :deep(.q-virtual-scroll__content),
 .live-action-l1__menu :deep(.q-menu),
 .live-action-l1__menu :deep(.q-list) {
-  background: #ffffff !important;
+  background: var(--ds-color-surface-base) !important;
   box-shadow: none !important;
   border: 0 !important;
   border-radius: 0;
@@ -121,9 +121,9 @@ function openMenu() {
 
 .live-action-l1__menu-item,
 .live-action-l1__menu :deep(.q-item) {
-  min-height: 34px;
-  padding: 4px 6px;
-  color: #ffffff;
+  min-height: calc(var(--ds-control-height-md) + var(--ds-space-2));
+  padding: var(--ds-space-4) calc(var(--ds-space-4) + var(--ds-space-2));
+  color: var(--ds-color-brand-white);
   background: transparent;
 }
 
