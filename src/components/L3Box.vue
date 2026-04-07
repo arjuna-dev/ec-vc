@@ -30,7 +30,7 @@ defineProps({
 <style scoped>
 .l3-box {
   display: flex;
-  min-height: 116px;
+  min-height: var(--ds-card-min-height-lg);
   width: 100%;
   flex-direction: column;
   justify-content: space-between;
@@ -41,13 +41,13 @@ defineProps({
 }
 
 .l3-box--default {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
+  background: var(--ds-color-surface-stat-default);
 }
 
 .l3-box--inverse {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(14px);
+  background: var(--ds-color-surface-stat-inverse);
+  border-color: var(--ds-color-border-inverse-soft);
+  backdrop-filter: var(--ds-panel-blur-md);
 }
 
 .l3-box__label {
@@ -63,7 +63,7 @@ defineProps({
 .l3-box__value {
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-title);
-  font-size: clamp(1.8rem, 2vw, 2.4rem);
+  font-size: var(--ds-font-size-stat-value);
   font-weight: var(--ds-font-weight-bold);
   line-height: 0.92;
 }
@@ -77,7 +77,7 @@ defineProps({
 }
 
 .l3-box--inverse .l3-box__label {
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--ds-color-text-inverse-muted);
 }
 
 .l3-box--inverse .l3-box__value,

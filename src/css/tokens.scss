@@ -161,9 +161,16 @@
   --ds-heading-eyebrow-spacing: 0.14em;
   --ds-card-padding-md: var(--ds-space-16);
   --ds-card-padding-lg: 22px;
+  --ds-card-min-height-lg: 116px;
   --ds-field-padding: 14px 16px;
   --ds-panel-padding-sm: 14px;
   --ds-panel-padding-md: var(--ds-space-16);
+  --ds-panel-blur-md: blur(14px);
+  --ds-font-size-stat-value: clamp(1.8rem, 2vw, 2.4rem);
+  --ds-color-surface-stat-default: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
+  --ds-color-surface-stat-inverse: rgba(255, 255, 255, 0.08);
+  --ds-color-border-inverse-soft: rgba(255, 255, 255, 0.18);
+  --ds-color-text-inverse-muted: rgba(255, 255, 255, 0.72);
 
   --ds-shadow-floating-label: 0 1px 4px rgba(0, 0, 0, 0.15);
   --ds-shadow-fab: 0 2px 6px rgba(0, 0, 0, 0.25);
