@@ -131,6 +131,7 @@ This tracker should stay aligned with:
   - it should render conceptually before the operational files in `Owner Genesis`
   - it should not be treated as a normal app-data `L1`
   - it should use the approved `General / Usage / Anatomy / Source / Reconstruction / Variants` structure instead of the normal `System / KDB` baseline
+- the BB dependency map now matters architecturally because `Building Blocks` are the layer intended to carry backend architecture, runtime ownership, and shell composition through to final UI/UX
 - `Owner Genesis` should create the base file system sequentially through `Master Companion`, beginning with `BB File`, then `L1 Files`, then `Events`
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - artifact context assumptions should now be treated as `default/preselected unverified`
@@ -217,6 +218,12 @@ This tracker should stay aligned with:
     - route-owned shell surfaces
     - live app pages
   - Success condition: changing one shared component or design token updates every consuming surface automatically
+  - Structural rule: keep populating `Built From BBs` so the BB catalog can classify:
+    - `Leaf / Elementary`
+    - `Parent`
+    - `Root / Top-Level`
+    - `Child`
+  - Architectural reason: this turns the BB catalog into the bridge from backend structure to shell assembly to UI/UX
 
 - Implement the runtime `Owner Genesis` bootstrap sequence end to end:
   - assign the base `Companion`

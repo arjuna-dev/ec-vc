@@ -259,6 +259,19 @@ New `L1` bootstrap rule:
 - it does not inherit the normal `System` / `KDB` subsection treatment used by standard files unless explicitly needed later
 - this is a controlled exception and must not be used to weaken the normal file bootstrap contract
 
+`BB File` dependency rule:
+
+- `Built From BBs` is the explicit field used to declare BB-to-BB composition
+- no BB element should depend on unnamed or untracked reusable child elements
+- if a BB element is composed from other reusable BBs, those children should be listed explicitly
+- this matters because building blocks are the layer that should carry backend architecture, runtime ownership, and shell structure all the way through to visible UI/UX
+- this allows the product to classify BBs as:
+  - `Leaf` / `Elementary`
+  - `Parent`
+  - `Root`
+  - `Child`
+- this turns the BB catalog from a list into a graph and makes shell assembly more reliable
+
 Building Blocks migration rule:
 
 - `BB Shell` should be treated as the single working surface for building block migration

@@ -246,6 +246,57 @@ Purpose:
 - move shell placeholders onto explicit shared building block and shell payload contracts
 - keep `BB Shell` as the single working surface for component review and migration
 
+### BB Graph Rule
+
+`BB File` should not be treated as a flat list only.
+
+Once `Built From BBs` exists, the catalog should also be treated as a structural graph.
+
+This matters because `Building Blocks` are not only a UI catalog. They are the compositional layer that should carry backend architecture, runtime ownership, shell contracts, and final UI/UX through one continuous system.
+
+That means `BB File` should support these structural classifications:
+
+- `Elementary` / `Leaf Blocks`
+  - blocks that have no child BB dependencies
+  - they are built from nothing lower in the BB system
+  - these are typically base buttons, icons, tokens, and other small controls
+
+- `Parent Blocks`
+  - blocks that are built from other BBs
+  - these are typically title rows, dialog rows, dashboards, toolbars, and other composite shell structures
+
+- `Root` / `Top-Level Blocks`
+  - blocks that are not children of any other BB
+  - they sit at the top of the composition tree
+
+- `Child Blocks`
+  - blocks that are used inside other BBs
+
+Architectural value unlocked by one explicit dependency field:
+
+- leaf detection
+- parent detection
+- root detection
+- child detection
+- full composition trees
+
+This matters because the product should be able to ask:
+
+- what are the true elementary primitives?
+- what can be reused safely everywhere?
+- which blocks are composite?
+- which top-level blocks are ready to assemble shells?
+
+Working rule:
+
+- no BB element should visually depend on unnamed or untracked reusable sub-elements
+- if a BB element uses another reusable element, that dependency should be explicitly tagged in `Built From BBs`
+- the BB catalog should therefore function as:
+  - inventory
+  - usage map
+  - dependency map
+- this dependency map is what lets backend structure drive cleanly through shell composition into visible UI/UX
+
 Required migration sequence:
 
 1. Finish foundational mapping:
