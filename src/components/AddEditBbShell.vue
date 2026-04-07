@@ -53,6 +53,13 @@
           </ul>
         </div>
 
+        <div v-if="(detail?.usedInShells || []).length" class="add-edit-bb-shell__meta">
+          <div class="add-edit-bb-shell__label">Used In Shells</div>
+          <ul class="add-edit-bb-shell__list">
+            <li v-for="item in detail?.usedInShells || []" :key="item">{{ item }}</li>
+          </ul>
+        </div>
+
         <div class="add-edit-bb-shell__meta">
           <div class="add-edit-bb-shell__label">Anatomy</div>
           <ul class="add-edit-bb-shell__list">

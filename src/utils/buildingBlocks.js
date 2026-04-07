@@ -1,5 +1,6 @@
 function defineBuildingBlockDetail(detail) {
   return {
+    usedInShells: detail.usedInShells || [],
     usedIn: detail.usedIn || [
       detail.source ? `Primary source: ${detail.source}` : 'Primary source not yet extracted.',
     ],
@@ -26,6 +27,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the canonical font-family system that separates title and body roles.',
     prompt: 'Render the Fonts building block from BB Shell using the General Settings token source and the live title/body font pair.',
     anatomy: ['Title font sample', 'Body font sample', 'Explicit token labels'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   'type-scale': defineBuildingBlockDetail({
     id: 'cmp-foundation-type-scale',
@@ -36,6 +38,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for shell type sizing instead of page-local size literals.',
     summary: 'Use this for the canonical type-size ladder across hero, body, and utility text.',
     prompt: 'Render the Type Scale building block from BB Shell using the live General Settings size tokens.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   'font-weights': defineBuildingBlockDetail({
     id: 'cmp-foundation-font-weights',
@@ -46,6 +49,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for weight changes instead of hardcoded numeric values in local components.',
     summary: 'Use this for the canonical weight ladder from light through black.',
     prompt: 'Render the Font Weights building block from BB Shell using the live General Settings weight tokens.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   colors: defineBuildingBlockDetail({
     id: 'cmp-foundation-colors',
@@ -56,6 +60,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for shell and component colors instead of drifting local hex values.',
     summary: 'Use this for the canonical text, brand, surface, and border color family.',
     prompt: 'Render the Colors building block from BB Shell using the live General Settings color tokens.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   surfaces: defineBuildingBlockDetail({
     id: 'cmp-foundation-surfaces',
@@ -66,6 +71,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for surface backgrounds and overlay states.',
     summary: 'Use this for the canonical surface family that shells and cards sit on top of.',
     prompt: 'Render the Surfaces building block from BB Shell using the live General Settings surface tokens.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   borders: defineBuildingBlockDetail({
     id: 'cmp-foundation-borders',
@@ -76,6 +82,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for shell and control border treatment.',
     summary: 'Use this for the canonical border language across cards, controls, and panels.',
     prompt: 'Render the Borders building block from BB Shell using the live General Settings border tokens.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   radius: defineBuildingBlockDetail({
     id: 'cmp-foundation-radius',
@@ -86,6 +93,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for corner treatments instead of per-page radius literals.',
     summary: 'Use this for the canonical corner-radius ladder from sharp shells to pill controls.',
     prompt: 'Render the Radius building block from BB Shell using the live General Settings radius tokens.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   shadows: defineBuildingBlockDetail({
     id: 'cmp-foundation-shadows',
@@ -96,6 +104,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for elevation and focus shadows.',
     summary: 'Use this for the canonical shadow/elevation system across labels, cards, and controls.',
     prompt: 'Render the Shadows building block from BB Shell using the live General Settings shadow tokens.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   spacing: defineBuildingBlockDetail({
     id: 'cmp-foundation-spacing',
@@ -106,6 +115,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for spacing rhythm instead of arbitrary pixel values.',
     summary: 'Use this for the canonical spacing ladder that controls shell rhythm and component density.',
     prompt: 'Render the Spacing building block from BB Shell using the live General Settings spacing tokens.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   'icon-sizing': defineBuildingBlockDetail({
     id: 'cmp-foundation-icon-sizing',
@@ -116,6 +126,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for icon sizes across buttons, chips, and shell controls.',
     summary: 'Use this for the canonical icon-size ladder.',
     prompt: 'Render the Icon Sizing building block from BB Shell using the live General Settings icon size tokens.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   'formatting-rules': defineBuildingBlockDetail({
     id: 'cmp-foundation-formatting-rules',
@@ -126,6 +137,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Promote number/date formatting into General Settings ownership instead of leaving formatting examples implied.',
     summary: 'Use this for the current number, currency, percent, date, and time formatting language.',
     prompt: 'Render the Formatting Rules building block from BB Shell using the canonical number/date formatting examples.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   'motion-rules': defineBuildingBlockDetail({
     id: 'cmp-foundation-motion-rules',
@@ -136,6 +148,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Keep shell motion purposeful and token-driven instead of page-local animation timing guesses.',
     summary: 'Use this for the current motion timing language across quick, standard, and emphasis interactions.',
     prompt: 'Render the Motion Rules building block from BB Shell using the canonical motion timing samples.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   'home-dashboard': defineBuildingBlockDetail({
     id: 'cmp-home-dashboard',
@@ -147,6 +160,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the live Home dashboard hero surface with overview count, top stats, workspace root, and signal chips.',
     prompt: 'Render the Home Dashboard component from Building Blocks by reusing the shared HomeDashboardHero component directly instead of recreating the hero layout locally.',
     usedIn: ['Home page hero surface', 'Building Blocks file component catalog'],
+    usedInShells: ['BB Shell'],
     anatomy: ['Breadcrumb row above the page title when used as a page header counterpart', 'Large overview count', 'Three stat blocks', 'Side panels for root path and active signal chips'],
   }),
   'page-title-crumb': defineBuildingBlockDetail({
@@ -159,6 +173,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for page headers that show the current area plus the main page title.',
     prompt: 'Render the Page Title / Crumb component from Building Blocks with a breadcrumb row above a large page title, using the same typography and spacing as the canonical component.',
     usedIn: ['Page-level shell headers', 'Any route-mounted page that needs breadcrumb plus title treatment'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
     anatomy: ['Muted breadcrumb row', 'Large title row', 'Title font with tight tracking'],
   }),
   'page-back-symbol': defineBuildingBlockDetail({
@@ -171,6 +186,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for compact back navigation inside shell headers and detail surfaces.',
     prompt: 'Render the Page Back Symbol from Building Blocks exactly, using the same circular neutral button treatment and arrow icon.',
     usedIn: ['Shell header left cluster', 'Pages with explicit back navigation'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
     anatomy: ['Left-pointing arrow icon', 'Back label', 'Compact inline spacing'],
   }),
   'b10-logo': defineBuildingBlockDetail({
@@ -182,6 +198,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Wrap the live header logo treatment into one shared logo component instead of repeating its container markup.',
     summary: 'Use this for compact brand badges or temporary logo placeholders.',
     prompt: 'Render the B10 Logo from Building Blocks exactly as the compact black badge with the same title-font styling.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   'plus-icon': defineBuildingBlockDetail({
     id: 'cmp-plus-icon',
@@ -192,6 +209,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the electric blue standalone add chip so widget and shell add controls stop drifting.',
     summary: 'Use this for isolated add actions where only the icon should show.',
     prompt: 'Render the Plus Icon component from Building Blocks exactly, using the same electric-blue circular button with white plus icon.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell'],
   }),
   'plus-with-label': defineBuildingBlockDetail({
     id: 'cmp-plus-with-label',
@@ -202,6 +220,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the labeled add control so file-toolbar and shell add buttons can share one component with payload-only label changes.',
     summary: 'Use this for add actions that need icon plus text in one control.',
     prompt: 'Render the Plus With Label component from Building Blocks exactly, using the same electric-blue button, white plus icon, and title-font label treatment.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'File Shell', 'Record Shell'],
   }),
   'bb-tile-header': defineBuildingBlockDetail({
     id: 'cmp-bb-tile-header',
@@ -213,6 +232,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the top row of BB tiles with title, collapse arrow, copy action, and view action.',
     prompt: 'Render the BB Tile Header from Building Blocks using the same cool title type, collapse arrow, copy action, and eye action aligned in one compact top row.',
     usedIn: ['BB Shell tile top row', 'Building Blocks tile top row'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell'],
     anatomy: ['Strong title-style text on the left', 'Collapse / expand arrow inline with the title', 'Copy icon action', 'Eye icon action'],
   }),
   'live-action-l1': defineBuildingBlockDetail({
@@ -224,6 +244,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the shell header selector so Record Shell, Fork Shell, and future shells use one live-action control.',
     summary: 'Use this for shell-level live source selectors that sit in the top center and switch the active L1 context.',
     prompt: 'Render the Live Action L1 control from Building Blocks exactly, using the same Live Link label, black value chip, and chevron treatment as the canonical shell selector.',
+    usedInShells: ['Record Shell', 'Fork Shell'],
   }),
   'b10-button': defineBuildingBlockDetail({
     id: 'cmp-b10-button',
@@ -234,6 +255,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse this component directly and vary only payload props such as label and variant.',
     summary: 'Use this for canonical B10 primary and neutral action buttons.',
     prompt: 'Render the B10 Button component from Building Blocks using the real shared B10Button variants rather than recreating local button styles.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   'b10-icon-button': defineBuildingBlockDetail({
     id: 'cmp-b10-icon-button',
@@ -244,6 +266,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse this component directly and vary only icon and variant props.',
     summary: 'Use this for canonical icon-only actions that should come from the B10 button system.',
     prompt: 'Render the B10 Icon Button component from Building Blocks using the shared B10IconButton component and its existing variants.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
   }),
   'main-menu-icon': defineBuildingBlockDetail({
     id: 'cmp-main-menu-icon',
@@ -254,6 +277,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the top-left menu trigger so shell headers use one canonical drawer-toggle control.',
     summary: 'Use this for the compact menu trigger in the top-left shell header.',
     prompt: 'Render the Main Menu Icon from Building Blocks using the same flat round menu button treatment as the shell header drawer trigger.',
+    usedInShells: ['Main Layout'],
   }),
   'file-dashboard': defineBuildingBlockDetail({
     id: 'cmp-file-dashboard',
@@ -264,6 +288,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse the shared dashboard component and only swap explicit payload data.',
     summary: 'Use this for file-level hero dashboards showing title, copy, stats, and health.',
     prompt: 'Render the File Dashboard component from Building Blocks using the real FilePageHeroDashboard surface, preserving its hero, stats, and health structure.',
+    usedInShells: ['BB Shell', 'File Shell'],
   }),
   'l3-box': defineBuildingBlockDetail({
     id: 'cmp-l3-box',
@@ -274,6 +299,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the metric card so dashboard stat strips can use one canonical stat-box component.',
     summary: 'Use this for the standalone L3 stat card that appears inside the shell dashboard metrics strip.',
     prompt: 'Render the L3 Box from Building Blocks exactly, using the same compact dashboard stat-card treatment with label, large value, and caption.',
+    usedInShells: ['BB Shell', 'File Shell', 'Record Shell'],
   }),
   'file-toolbar': defineBuildingBlockDetail({
     id: 'cmp-file-toolbar',
@@ -284,6 +310,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse the shared toolbar directly and vary only its explicit props and payload.',
     summary: 'Use this for the top toolbar inside file pages with add, search, and view controls.',
     prompt: 'Render the File Toolbar component from Building Blocks using the real FilePageToolbar component, keeping its existing add, search, and view-toggle layout.',
+    usedInShells: ['BB Shell', 'File Shell'],
   }),
   'l2-toolbar': defineBuildingBlockDetail({
     id: 'cmp-l2-toolbar',
@@ -294,6 +321,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse the shared section toolbar directly and vary only section items and selected payload.',
     summary: 'Use this for section switching across General, KDB, System, and similar level-2 groupings.',
     prompt: 'Render the L2 Toolbar component from Building Blocks using the real ShellSectionToolbar component with the same compact section-chip treatment.',
+    usedInShells: ['BB Shell', 'File Shell', 'Record Shell'],
   }),
   'l2-settings-menu': defineBuildingBlockDetail({
     id: 'cmp-l2-settings-menu',
@@ -304,6 +332,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the compact grouped settings panel so all L2 settings menus stop being page-specific markup.',
     summary: 'Use this for compact shell settings menus like Hero Fields where grouped options can be expanded or collapsed.',
     prompt: 'Render the L2 Settings Menu from Building Blocks using the same compact panel, grouped rows, checkboxes, and expand/collapse treatment as the canonical menu sample.',
+    usedInShells: ['BB Shell', 'File Shell', 'Record Shell'],
   }),
   'widget-settings-menu': defineBuildingBlockDetail({
     id: 'cmp-widget-settings-menu',
@@ -314,6 +343,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the widget settings panel so grouped widget menus reuse one floating settings component.',
     summary: 'Use this for the floating widget settings panel with grouped rows, checkboxes, and reorder chevrons.',
     prompt: 'Render the Widget Settings Menu from Building Blocks using the same dark floating panel, grouped section toggle, row labels, checkboxes, and reorder chevrons.',
+    usedInShells: ['BB Shell', 'File Shell', 'Record Shell'],
   }),
   'main-menu-row': defineBuildingBlockDetail({
     id: 'cmp-main-menu-row',
@@ -324,6 +354,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the drawer item row so navigation entries share one canonical icon-label row structure.',
     summary: 'Use this for standard main menu file rows inside the left drawer.',
     prompt: 'Render the Main Menu Row from Building Blocks using the same left-drawer icon and label treatment as the canonical nav row.',
+    usedInShells: ['Main Layout'],
   }),
   'main-menu-subgroup-row': defineBuildingBlockDetail({
     id: 'cmp-main-menu-subgroup-row',
@@ -334,6 +365,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the subgroup toggle row so drawer section headings share one canonical expand-collapse treatment.',
     summary: 'Use this for grouped left-drawer subsection rows like Shells and workspace groupings.',
     prompt: 'Render the Main Menu Subgroup Row from Building Blocks using the same subgroup title plus expand-collapse chevron treatment as the canonical drawer subgroup row.',
+    usedInShells: ['Main Layout'],
   }),
   'eye-icon': defineBuildingBlockDetail({
     id: 'cmp-eye-icon',
@@ -344,6 +376,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the lightweight view-action icon button so cards and rows stop restyling visibility controls.',
     summary: 'Use this for record/view actions in cards and tables where a lightweight visibility control is needed.',
     prompt: 'Render the Eye Icon from Building Blocks using the same lightweight visibility button treatment as the canonical row-view control.',
+    usedInShells: ['BB Shell', 'File Shell', 'Record Shell'],
   }),
   'edit-button': defineBuildingBlockDetail({
     id: 'cmp-edit-button',
@@ -354,6 +387,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the compact blue edit control so row and card edit actions use one shared component.',
     summary: 'Use this for compact edit actions in cards and row controls where the blue edit icon treatment is expected.',
     prompt: 'Render the Edit Button from Building Blocks using the same compact blue edit icon treatment as the canonical row-edit control.',
+    usedInShells: ['BB Shell', 'File Shell', 'Record Shell'],
   }),
   'mini-scrollbar': defineBuildingBlockDetail({
     id: 'cmp-mini-scrollbar',
@@ -364,6 +398,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the narrow black scrollbar styling so dense shells and tables share one overflow control language.',
     summary: 'Use this for the thin black scrollbar treatment that appears in dense shell panels.',
     prompt: 'Render the Mini Scrollbar from Building Blocks using the same narrow black track-and-thumb treatment as the canonical shell overflow control.',
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'File Shell'],
   }),
   'toggle-row-icons': defineBuildingBlockDetail({
     id: 'cmp-toggle-row-icons',
@@ -374,6 +409,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Extract the toggle and row-chevron micro-controls so settings lists and shell rows use the same icon language.',
     summary: 'Use this for inline subgroup toggles and row ordering chevrons across shell menus and settings lists.',
     prompt: 'Render the Toggle / Row Icons from Building Blocks using the same inline label-plus-chevron and compact row-chevron treatments as the canonical controls.',
+    usedInShells: ['BB Shell', 'File Shell', 'Record Shell'],
   }),
 }
 
@@ -470,6 +506,7 @@ export const DEFAULT_BUILDING_BLOCK_FILE_ROWS = Object.entries(BUILDING_BLOCK_DE
   Category: BUILDING_BLOCK_CATEGORY_BY_ID[blockKey] || 'Building Blocks',
   Status: detail.statusLabel || detail.status || '',
   Used_In: Array.isArray(detail.usedIn) ? detail.usedIn.join('\n') : '',
+  Used_In_Shells: Array.isArray(detail.usedInShells) ? detail.usedInShells.join('\n') : '',
   Use_When: detail.summary || '',
   Avoid_When: '',
   Anatomy: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',

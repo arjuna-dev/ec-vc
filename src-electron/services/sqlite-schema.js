@@ -1418,6 +1418,7 @@ CREATE TABLE IF NOT EXISTS Building_Blocks (
   Category TEXT,
   Status TEXT,
   Used_In TEXT,
+  Used_In_Shells TEXT,
   Use_When TEXT,
   Avoid_When TEXT,
   Anatomy TEXT,

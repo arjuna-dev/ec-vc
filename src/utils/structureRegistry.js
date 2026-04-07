@@ -40,8 +40,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         structure_token: 'Building_Blocks_Usage',
         tokens: [
           { level_3: '1', address: 'BB.2.1', token_name: 'BB_Used_In', label: 'Used In', db_field_aliases: ['Used_In'] },
-          { level_3: '2', address: 'BB.2.2', token_name: 'BB_Use_When', label: 'Use When', db_field_aliases: ['Use_When'] },
-          { level_3: '3', address: 'BB.2.3', token_name: 'BB_Avoid_When', label: 'Avoid When', db_field_aliases: ['Avoid_When'] },
+          { level_3: '2', address: 'BB.2.2', token_name: 'BB_Used_In_Shells', label: 'Used In Shells', db_field_aliases: ['Used_In_Shells'] },
+          { level_3: '3', address: 'BB.2.3', token_name: 'BB_Use_When', label: 'Use When', db_field_aliases: ['Use_When'] },
+          { level_3: '4', address: 'BB.2.4', token_name: 'BB_Avoid_When', label: 'Avoid When', db_field_aliases: ['Avoid_When'] },
         ],
       },
       {
