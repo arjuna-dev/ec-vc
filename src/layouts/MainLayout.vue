@@ -120,12 +120,9 @@
                   />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label>{{ item.label }}</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-icon
-                    :name="isDrawerSectionOpen(item.toggleKey) ? 'expand_less' : 'expand_more'"
-                    size="18px"
+                  <MainMenuSubgroupRow
+                    :label="item.label"
+                    :expanded="isDrawerSectionOpen(item.toggleKey)"
                   />
                 </q-item-section>
               </q-item>
@@ -441,6 +438,7 @@ import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
 import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
+import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
 

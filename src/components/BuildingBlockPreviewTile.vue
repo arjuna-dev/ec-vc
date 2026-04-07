@@ -36,6 +36,10 @@
         <MainMenuIconButton />
       </template>
 
+      <template v-else-if="blockKey === 'main-menu-subgroup-row'">
+        <MainMenuSubgroupRow label="Shells" :expanded="true" />
+      </template>
+
       <template v-else-if="blockKey === 'value-chip'">
         <ValueChip label="Companies" tone="default" />
       </template>
@@ -490,6 +494,7 @@ import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import DropdownChevron from 'src/components/DropdownChevron.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
+import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import ValueChip from 'src/components/ValueChip.vue'
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'

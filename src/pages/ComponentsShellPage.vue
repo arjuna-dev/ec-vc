@@ -109,10 +109,7 @@
         <div class="components-shell-page__card-label">Main Menu Subgroup Row</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('main-menu-subgroup-row')">{{ componentStatusLabel('main-menu-subgroup-row') }}</div>
         <div class="components-shell-page__card-stage">
-          <div class="components-shell-page__nav-subgroup">
-            <div class="components-shell-page__nav-subgroup-title">Shells</div>
-            <q-icon name="expand_less" size="18px" class="components-shell-page__nav-subgroup-chevron" />
-          </div>
+          <MainMenuSubgroupRow label="Shells" :expanded="true" />
         </div>
       </article>
 
@@ -421,6 +418,7 @@ import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
+import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
@@ -759,28 +757,6 @@ onBeforeUnmount(() => {
   font-family: var(--font-body);
   font-size: 0.84rem;
   line-height: 1.2;
-}
-
-.components-shell-page__nav-subgroup {
-  display: inline-grid;
-  grid-template-columns: auto 18px;
-  align-items: center;
-  gap: 6px;
-  min-height: 28px;
-}
-
-.components-shell-page__nav-subgroup-title {
-  color: rgba(15, 23, 42, 0.74);
-  font-family: var(--font-title);
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.06em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.components-shell-page__nav-subgroup-chevron {
-  color: rgba(15, 23, 42, 0.92);
 }
 
 .components-shell-page__logo-shell {

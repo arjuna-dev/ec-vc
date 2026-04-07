@@ -713,9 +713,9 @@ b,
 
 body.body--light .q-drawer.q-drawer--left,
 body.body--light .q-drawer.q-drawer--left .q-drawer__content {
-  background: #1d1d1b;
-  border-right: 1px solid #1d1d1b;
-  color: #fff1ed;
+  background: var(--ds-color-brand-black);
+  border-right: 1px solid var(--ds-color-brand-black);
+  color: var(--ds-color-brand-white);
 }
 
 body.body--light .q-drawer.q-drawer--left .ec-nav-label,
@@ -724,7 +724,7 @@ body.body--light .q-drawer.q-drawer--left .ec-nav-item .q-item__label,
 body.body--light .q-drawer.q-drawer--left .ec-nav-item .q-icon,
 body.body--light .q-drawer.q-drawer--left .text-grey-7,
 body.body--light .q-drawer.q-drawer--left .q-item__label--caption {
-  color: #fff1ed !important;
+  color: var(--ds-color-brand-white) !important;
 }
 
 .ec-nav-label {
@@ -753,7 +753,7 @@ body.body--light .q-drawer.q-drawer--left .q-item__label--caption {
 }
 
 .ec-drawer-settings {
-  border-top: 1px solid rgb(255 241 237 / 0.35);
+  border-top: 1px solid rgb(255 255 255 / 0.35);
   flex: 0 0 auto;
   padding: 8px 0;
 }
@@ -761,7 +761,7 @@ body.body--light .q-drawer.q-drawer--left .q-item__label--caption {
 body.body--light .q-drawer.q-drawer--left .ec-nav-item.ec-nav-item--settings:hover,
 body.body--light .q-drawer.q-drawer--left .ec-nav-item.ec-nav-item--settings.q-router-link--active,
 body.body--light .q-drawer.q-drawer--left .ec-nav-item.ec-nav-item--settings.ec-nav-item--selected {
-  background: #1d1d1b;
+  background: var(--ds-color-brand-black);
 }
 
 body.body--light .q-drawer.q-drawer--left .ec-nav-item.ec-nav-item--profile:hover,
@@ -804,7 +804,7 @@ body.body--light .q-drawer.q-drawer--left .ec-nav-item.ec-nav-item--profile.ec-n
 }
 
 .ec-nav-item.ec-nav-item--settings {
-  background: #1d1d1b;
+  background: var(--ds-color-brand-black);
   margin: 0 8px;
 }
 
@@ -815,11 +815,11 @@ body.body--light .q-drawer.q-drawer--left .ec-nav-item:hover {
 body.body--light .q-drawer.q-drawer--left .ec-nav-item.q-router-link--active,
 body.body--light .q-drawer.q-drawer--left .ec-nav-item--selected {
   background: rgb(255 255 255 / 0.22);
-  color: #fff1ed;
+  color: var(--ds-color-brand-white);
 }
 
 body.body--light .q-drawer.q-drawer--left .q-separator {
-  background: rgb(255 241 237 / 0.35);
+  background: rgb(255 255 255 / 0.35);
 }
 
 .page-title-section {
