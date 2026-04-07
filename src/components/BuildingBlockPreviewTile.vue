@@ -234,16 +234,14 @@
           class="building-block-preview-tile__file-add-button-plus building-block-preview-tile__file-add-button-plus--standalone"
           aria-label="Add"
         >
-          <q-icon name="add" />
+          <PlusIconChip />
         </button>
       </template>
 
       <template v-else-if="blockKey === 'plus-with-label'">
         <button type="button" class="building-block-preview-tile__file-add-button">
           <span class="building-block-preview-tile__file-add-button-inner">
-            <span class="building-block-preview-tile__file-add-button-plus">
-              <q-icon name="add" />
-            </span>
+            <PlusIconChip class="building-block-preview-tile__file-add-button-plus" />
             <span class="building-block-preview-tile__file-add-button-label">{{ addLabel }}</span>
           </span>
         </button>
@@ -481,6 +479,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
+import PlusIconChip from 'src/components/PlusIconChip.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
@@ -823,29 +822,22 @@ onBeforeUnmount(() => {
 }
 
 .building-block-preview-tile__file-add-button-plus {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  color: #ffffff;
-  background: #2647ff;
-  border-radius: 999px;
-}
-
-.building-block-preview-tile__file-add-button-plus :deep(.q-icon) {
-  font-size: 16px;
+  flex: 0 0 auto;
 }
 
 .building-block-preview-tile__file-add-button-plus--standalone {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
-}
-
-.building-block-preview-tile__file-add-button-plus--standalone :deep(.q-icon) {
-  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  appearance: none;
 }
 
 .building-block-preview-tile__file-add-button-label {

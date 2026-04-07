@@ -12,9 +12,7 @@
       />
       <q-btn no-caps unelevated class="file-page-toolbar__add-button" :disable="loading || addDisabled" @click="$emit('add')">
         <span class="file-page-toolbar__add-button-inner">
-          <span class="file-page-toolbar__add-button-plus">
-            <q-icon name="add" />
-          </span>
+          <PlusIconChip class="file-page-toolbar__add-button-plus" />
           <span class="file-page-toolbar__add-button-label">{{ addLabel }}</span>
         </span>
       </q-btn>
@@ -57,6 +55,8 @@
 </template>
 
 <script setup>
+import PlusIconChip from 'src/components/PlusIconChip.vue'
+
 defineProps({
   allVisibleSelected: { type: Boolean, default: false },
   someVisibleSelected: { type: Boolean, default: false },
@@ -213,20 +213,7 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
 }
 
 .file-page-toolbar__add-button-plus {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
-  border-radius: 999px;
-  background: #2647ff;
-  color: #ffffff;
-}
-
-.file-page-toolbar__add-button-plus :deep(.q-icon) {
-  font-size: 18px;
+  flex: 0 0 auto;
 }
 
 .file-page-toolbar__add-button-label {

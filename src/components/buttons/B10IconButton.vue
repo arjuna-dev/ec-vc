@@ -72,17 +72,42 @@ const buttonClasses = computed(() => [
 <style scoped lang="scss">
 .b10-icon-btn {
   border: 1px solid transparent;
-  border-radius: var(--ds-icon-button-radius);
+  border-radius: 50%;
   min-height: 0;
   min-width: 0;
 
   :deep(.q-btn__content) {
+    width: 100%;
+    height: 100%;
+    display: inline-flex;
     line-height: 1;
+    align-items: center;
+    justify-content: center;
   }
 
   :deep(.q-icon) {
+    display: block;
     font-size: var(--ds-icon-size-md);
+    transform: translateY(0.5px);
   }
+}
+
+.b10-icon-btn--small {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+
+  :deep(.q-icon) {
+    font-size: var(--ds-icon-size-sm);
+  }
+}
+
+.b10-icon-btn--medium {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .b10-icon-btn--primary.b10-icon-btn--state-default {
