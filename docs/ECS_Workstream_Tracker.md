@@ -132,6 +132,10 @@ This tracker should stay aligned with:
   - it should not be treated as a normal app-data `L1`
   - it should use the approved `General / Usage / Anatomy / Source / Reconstruction / Variants` structure instead of the normal `System / KDB` baseline
 - the BB dependency map now matters architecturally because `Building Blocks` are the layer intended to carry backend architecture, runtime ownership, and shell composition through to final UI/UX
+- keep the BB system lean while it converges:
+  - `Built From BBs` is permanent architecture
+  - `Convergence Rule` is temporary migration scaffolding only
+  - once a primitive family is fully stabilized, `Convergence Rule` should be cleared, hidden, or removed instead of becoming permanent metadata
 - `Owner Genesis` should create the base file system sequentially through `Master Companion`, beginning with `BB File`, then `L1 Files`, then `Events`
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - artifact context assumptions should now be treated as `default/preselected unverified`

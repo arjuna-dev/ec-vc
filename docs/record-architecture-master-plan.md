@@ -254,6 +254,15 @@ Once `Built From BBs` exists, the catalog should also be treated as a structural
 
 This matters because `Building Blocks` are not only a UI catalog. They are the compositional layer that should carry backend architecture, runtime ownership, shell contracts, and final UI/UX through one continuous system.
 
+Graph field rule:
+
+- `Built From BBs` is a permanent architecture field
+- it should stay in the BB contract because it defines real composition and dependency structure
+- `Convergence Rule` is not the same kind of field
+- `Convergence Rule` is temporary migration scaffolding used only while a primitive or shared element is still converging
+- once a token family or building block is fully stabilized and migrated, `Convergence Rule` should be cleared, hidden, or removed rather than treated as permanent structural weight
+- the BB system should stay lean over time, so migration governance must not be allowed to harden into unnecessary permanent metadata
+
 That means `BB File` should support these structural classifications:
 
 - `Elementary` / `Leaf Blocks`

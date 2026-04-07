@@ -1446,7 +1446,7 @@ const bbGraphRowColumns = computed(() => {
   return [
     { key: '__bb_used_in_shells__', tokenName: '__bb_used_in_shells__', label: 'Used In Shells' },
     { key: '__bb_built_from__', tokenName: '__bb_built_from__', label: 'Built From BBs' },
-    { key: '__bb_convergence_rule__', tokenName: '__bb_convergence_rule__', label: 'Convergence Rule' },
+    { key: '__bb_convergence_rule__', tokenName: '__bb_convergence_rule__', label: 'Convergence Rule (Temp)' },
     { key: '__bb_parents__', tokenName: '__bb_parents__', label: 'Parents' },
     { key: '__bb_children__', tokenName: '__bb_children__', label: 'Children' },
   ]

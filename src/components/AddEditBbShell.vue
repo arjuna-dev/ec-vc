@@ -77,7 +77,7 @@
         </div>
 
         <div v-if="(detail?.convergenceRule || []).length" class="add-edit-bb-shell__meta">
-          <div class="add-edit-bb-shell__label">Convergence Rule</div>
+          <div class="add-edit-bb-shell__label">Convergence Rule (Temporary)</div>
           <ul class="add-edit-bb-shell__list">
             <li v-for="item in detail?.convergenceRule || []" :key="item">{{ item }}</li>
           </ul>

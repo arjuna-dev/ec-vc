@@ -271,6 +271,9 @@ New `L1` bootstrap rule:
   - `Root`
   - `Child`
 - this turns the BB catalog from a list into a graph and makes shell assembly more reliable
+- `Convergence Rule` is not the same kind of field
+- `Convergence Rule` is temporary migration scaffolding used while a token family or BB is still converging
+- once that convergence is complete, the field should be cleared, hidden, or removed instead of becoming permanent catalog weight
 
 Building Blocks migration rule:
 
