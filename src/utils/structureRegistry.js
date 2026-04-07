@@ -71,7 +71,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         structure_token: 'Building_Blocks_Reconstruction',
         tokens: [
           { level_3: '1', address: 'BB.5.1', token_name: 'BB_Reconstruction_Notes', label: 'Reconstruction Notes', db_field_aliases: ['Reconstruction_Notes'] },
-          { level_3: '2', address: 'BB.5.2', token_name: 'BB_Prompt', label: 'Prompt', db_field_aliases: ['Prompt'] },
+          { level_3: '2', address: 'BB.5.2', token_name: 'BB_Convergence_Rule', label: 'Convergence Rule', db_field_aliases: ['Convergence_Rule'] },
+          { level_3: '3', address: 'BB.5.3', token_name: 'BB_Prompt', label: 'Prompt', db_field_aliases: ['Prompt'] },
         ],
       },
       {

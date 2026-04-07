@@ -1446,6 +1446,7 @@ const bbGraphRowColumns = computed(() => {
   return [
     { key: '__bb_used_in_shells__', tokenName: '__bb_used_in_shells__', label: 'Used In Shells' },
     { key: '__bb_built_from__', tokenName: '__bb_built_from__', label: 'Built From BBs' },
+    { key: '__bb_convergence_rule__', tokenName: '__bb_convergence_rule__', label: 'Convergence Rule' },
     { key: '__bb_parents__', tokenName: '__bb_parents__', label: 'Parents' },
     { key: '__bb_children__', tokenName: '__bb_children__', label: 'Children' },
   ]
@@ -3627,6 +3628,12 @@ function getBbRowColumnValue(tokenName, row, bbGraphCounts, bbGraphLinks) {
   if (normalizedTokenName === '__bb_built_from__') {
     return {
       value: stringifyValue(row?.Built_From_BBs || row?.raw?.Built_From_BBs),
+      links: [],
+    }
+  }
+  if (normalizedTokenName === '__bb_convergence_rule__') {
+    return {
+      value: stringifyValue(row?.Convergence_Rule || row?.raw?.Convergence_Rule),
       links: [],
     }
   }

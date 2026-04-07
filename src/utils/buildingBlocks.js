@@ -1,6 +1,7 @@
 function defineBuildingBlockDetail(detail) {
   return {
     builtFromBbs: detail.builtFromBbs || [],
+    convergenceRule: detail.convergenceRule || [],
     usedInShells: detail.usedInShells || [],
     usedIn: detail.usedIn || [
       detail.source ? `Primary source: ${detail.source}` : 'Primary source not yet extracted.',
@@ -48,9 +49,17 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     statusLabel: 'Canonical Shared',
     source: 'src/css/tokens.scss + src/utils/generalSettingsCatalog.js',
     nextStep: 'Use the General Settings token layer for weight changes instead of hardcoded numeric values in local components.',
-    summary: 'Use this for the canonical weight ladder from light through black.',
+    summary: 'Use this for the canonical weight ladder from light through bold.',
     prompt: 'Render the Font Weights building block from BB Shell using the live General Settings weight tokens.',
     usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    convergenceRule: [
+      'regular -> medium',
+      'black -> bold',
+      '400 -> medium',
+      '700 -> bold',
+      '800 -> bold',
+      '900 -> bold',
+    ],
   }),
   colors: defineBuildingBlockDetail({
     id: 'cmp-foundation-colors',
@@ -62,6 +71,13 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the canonical text, brand, surface, and border color family.',
     prompt: 'Render the Colors building block from BB Shell using the live General Settings color tokens.',
     usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    convergenceRule: [
+      'Text Primary -> Brand Black',
+      'Text Muted -> Brand Dark_Grey',
+      'Border Soft -> Brand Light_Grey',
+      'Surface Base -> Brand White',
+      '--ds-color-text-header -> --ds-color-brand-black',
+    ],
   }),
   surfaces: defineBuildingBlockDetail({
     id: 'cmp-foundation-surfaces',
@@ -73,6 +89,15 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the canonical surface family that shells and cards sit on top of.',
     prompt: 'Render the Surfaces building block from BB Shell using the live General Settings surface tokens.',
     usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    convergenceRule: [
+      'base-88 -> overlay-light',
+      'subtle-alt -> subtle',
+      'overlay-72 -> overlay-light',
+      'overlay-78 -> overlay-light',
+      'overlay-84 -> overlay-light',
+      'overlay-96 -> overlay-strong',
+      'inverse -> base',
+    ],
   }),
   borders: defineBuildingBlockDetail({
     id: 'cmp-foundation-borders',
@@ -84,6 +109,11 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the canonical border language across cards, controls, and panels.',
     prompt: 'Render the Borders building block from BB Shell using the live General Settings border tokens.',
     usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    convergenceRule: [
+      'soft -> default',
+      'soft-alt -> default',
+      'strong -> default',
+    ],
   }),
   radius: defineBuildingBlockDetail({
     id: 'cmp-foundation-radius',
@@ -95,6 +125,12 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the canonical corner-radius ladder from sharp shells to pill controls.',
     prompt: 'Render the Radius building block from BB Shell using the live General Settings radius tokens.',
     usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    convergenceRule: [
+      '16 -> 12',
+      '18 -> 12',
+      '20 -> 12',
+      '24 -> 12',
+    ],
   }),
   shadows: defineBuildingBlockDetail({
     id: 'cmp-foundation-shadows',
@@ -117,6 +153,14 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the canonical spacing ladder that controls shell rhythm and component density.',
     prompt: 'Render the Spacing building block from BB Shell using the live General Settings spacing tokens.',
     usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    convergenceRule: [
+      '6 -> 8',
+      '10 -> 8',
+      '14 -> 12',
+      '18 -> 16',
+      '20 -> 16',
+      '28 -> 24',
+    ],
   }),
   'icon-sizing': defineBuildingBlockDetail({
     id: 'cmp-foundation-icon-sizing',
@@ -759,6 +803,7 @@ export const DEFAULT_BUILDING_BLOCK_FILE_ROWS = Object.entries(BUILDING_BLOCK_DE
   Use_When: detail.summary || '',
   Avoid_When: '',
   Built_From_BBs: Array.isArray(detail.builtFromBbs) ? detail.builtFromBbs.join('\n') : '',
+  Convergence_Rule: Array.isArray(detail.convergenceRule) ? detail.convergenceRule.join('\n') : '',
   Anatomy: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
   Required_Parts: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
   Source_Path: detail.source || '',

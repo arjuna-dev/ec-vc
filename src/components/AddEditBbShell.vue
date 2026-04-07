@@ -76,6 +76,13 @@
           </ul>
         </div>
 
+        <div v-if="(detail?.convergenceRule || []).length" class="add-edit-bb-shell__meta">
+          <div class="add-edit-bb-shell__label">Convergence Rule</div>
+          <ul class="add-edit-bb-shell__list">
+            <li v-for="item in detail?.convergenceRule || []" :key="item">{{ item }}</li>
+          </ul>
+        </div>
+
         <div v-if="detail?.nextStep" class="add-edit-bb-shell__meta">
           <div class="add-edit-bb-shell__label">Next Step</div>
           <div class="add-edit-bb-shell__copy">{{ detail?.nextStep }}</div>

@@ -1428,6 +1428,7 @@ CREATE TABLE IF NOT EXISTS Building_Blocks (
   Owner TEXT,
   Extraction_Status TEXT,
   Reconstruction_Notes TEXT,
+  Convergence_Rule TEXT,
   Prompt TEXT,
   Variants TEXT,
   created_by TEXT,

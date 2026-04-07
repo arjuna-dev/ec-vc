@@ -1475,6 +1475,9 @@ function ensureDefaultBuildingBlocks(database) {
   if (!buildingBlockMeta.columnsSet.has('Built_From_BBs')) {
     database.exec('ALTER TABLE Building_Blocks ADD COLUMN Built_From_BBs TEXT')
   }
+  if (!buildingBlockMeta.columnsSet.has('Convergence_Rule')) {
+    database.exec('ALTER TABLE Building_Blocks ADD COLUMN Convergence_Rule TEXT')
+  }
 
   const insertRow = database.prepare(`
     INSERT INTO Building_Blocks (
@@ -1495,13 +1498,14 @@ function ensureDefaultBuildingBlocks(database) {
       Owner,
       Extraction_Status,
       Reconstruction_Notes,
+      Convergence_Rule,
       Prompt,
       Variants,
       created_by,
       created_at,
       updated_at
     ) VALUES (
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
     )
   `)
   const backfillShellUsage = database.prepare(`
@@ -1509,6 +1513,12 @@ function ensureDefaultBuildingBlocks(database) {
     SET Used_In_Shells = ?
     WHERE id = ?
       AND COALESCE(TRIM(Used_In_Shells), '') = ''
+  `)
+  const backfillConvergenceRule = database.prepare(`
+    UPDATE Building_Blocks
+    SET Convergence_Rule = ?
+    WHERE id = ?
+      AND COALESCE(TRIM(Convergence_Rule), '') = ''
   `)
 
   const actor = getAuditActor(database, { requireUser: false })
@@ -1544,6 +1554,7 @@ function ensureDefaultBuildingBlocks(database) {
         normalizeNullableString(row?.Owner),
         normalizeNullableString(row?.Extraction_Status),
         normalizeNullableString(row?.Reconstruction_Notes),
+        normalizeNullableString(row?.Convergence_Rule),
         normalizeNullableString(row?.Prompt),
         normalizeNullableString(row?.Variants),
         fallbackUserId,
@@ -1555,6 +1566,10 @@ function ensureDefaultBuildingBlocks(database) {
       if (!normalizedId) return
       backfillShellUsage.run(
         normalizeNullableString(row?.Used_In_Shells),
+        normalizedId,
+      )
+      backfillConvergenceRule.run(
+        normalizeNullableString(row?.Convergence_Rule),
         normalizedId,
       )
     })
@@ -1586,6 +1601,7 @@ function listBuildingBlocks() {
       Owner,
       Extraction_Status,
       Reconstruction_Notes,
+      Convergence_Rule,
       Prompt,
       Variants,
       created_at,
@@ -1633,13 +1649,14 @@ function createBuildingBlock(payload = {}) {
         Owner,
         Extraction_Status,
         Reconstruction_Notes,
+        Convergence_Rule,
         Prompt,
         Variants,
         created_by,
         created_at,
         updated_at
       ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
       )
     `,
     )
@@ -1661,6 +1678,7 @@ function createBuildingBlock(payload = {}) {
       normalizeNullableString(payload?.Owner) || normalizeNullableString(payload?.BB_Owner) || actor.user_label || 'BB File',
       normalizeNullableString(payload?.Extraction_Status) || normalizeNullableString(payload?.BB_Extraction_Status),
       normalizeNullableString(payload?.Reconstruction_Notes) || normalizeNullableString(payload?.BB_Reconstruction_Notes),
+      normalizeNullableString(payload?.Convergence_Rule) || normalizeNullableString(payload?.BB_Convergence_Rule),
       normalizeNullableString(payload?.Prompt) || normalizeNullableString(payload?.BB_Prompt),
       normalizeNullableString(payload?.Variants) || normalizeNullableString(payload?.BB_Variants),
       normalizeNullableString(payload?.created_by) || actor.user_id,
