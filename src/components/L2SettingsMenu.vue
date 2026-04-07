@@ -61,7 +61,8 @@ defineEmits(['toggle-group', 'toggle-item'])
 
 <style scoped>
 .l2-settings-menu {
-  width: min(var(--ds-settings-menu-width), 100%);
+  width: fit-content;
+  max-width: min(var(--ds-settings-menu-width), 100%);
   padding: var(--ds-space-10);
   background: var(--ds-color-surface-overlay-strong);
   border: 1px solid var(--ds-color-border-default);
@@ -86,7 +87,8 @@ defineEmits(['toggle-group', 'toggle-item'])
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
+  width: fit-content;
+  min-width: 100%;
   padding: 0;
   background: transparent;
   border: 0;
