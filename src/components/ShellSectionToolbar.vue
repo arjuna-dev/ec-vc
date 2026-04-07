@@ -57,7 +57,7 @@ defineEmits(['update:modelValue', 'update:viewMode'])
   padding: 12px;
   background: var(--ds-color-surface-base-88);
   border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-xl);
+  border-radius: var(--ds-radius-lg);
   backdrop-filter: blur(14px);
 }
 

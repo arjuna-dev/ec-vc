@@ -987,6 +987,10 @@ onBeforeUnmount(() => {
   background: rgba(248, 250, 252, 0.84);
 }
 
+.building-block-preview-tile__foundation-radius-sample {
+  background: var(--ds-color-brand-dark-grey);
+}
+
 .building-block-preview-tile__foundation-spacing-track {
   display: flex;
   align-items: center;

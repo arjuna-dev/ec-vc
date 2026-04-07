@@ -2094,7 +2094,7 @@ function onContactHeroPointerLeave() {
   margin: 28px;
   padding: var(--ds-panel-padding-md);
   background: rgba(17, 17, 17, 0.94);
-  border-radius: var(--ds-radius-card);
+  border-radius: var(--ds-radius-lg);
   color: #fff;
 }
 

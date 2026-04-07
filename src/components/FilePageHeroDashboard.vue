@@ -222,7 +222,7 @@ function updateGradientPosition(event) {
   padding: var(--ds-space-16);
   background: var(--ds-color-surface-overlay-84);
   border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-xl);
+  border-radius: var(--ds-radius-lg);
   box-shadow: var(--ds-shadow-card-soft);
 }
 
@@ -262,7 +262,7 @@ function updateGradientPosition(event) {
   padding: var(--ds-space-16);
   background: var(--ds-color-surface-overlay-78);
   border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-xl);
+  border-radius: var(--ds-radius-lg);
 }
 
 .file-page-hero__health-copy {

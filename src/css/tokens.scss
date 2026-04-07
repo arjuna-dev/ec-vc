@@ -40,10 +40,10 @@
   --ds-radius-sm: 6px;
   --ds-radius-md: 8px;
   --ds-radius-lg: 12px;
-  --ds-radius-xl: 18px;
-  --ds-radius-card: 20px;
-  --ds-radius-panel: 16px;
-  --ds-radius-2xl: 24px;
+  --ds-radius-xl: var(--ds-radius-lg);
+  --ds-radius-card: var(--ds-radius-lg);
+  --ds-radius-panel: var(--ds-radius-lg);
+  --ds-radius-2xl: var(--ds-radius-lg);
   --ds-radius-round: 50%;
   --ds-radius-pill: 999px;
 

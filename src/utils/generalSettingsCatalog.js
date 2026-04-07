@@ -55,7 +55,7 @@ export const GENERAL_SETTINGS_RADIUS_SAMPLES = Object.freeze([
   { key: 'sm', label: '6px', token: '--ds-radius-sm', radius: 'var(--ds-radius-sm)' },
   { key: 'md', label: '8px', token: '--ds-radius-md', radius: 'var(--ds-radius-md)' },
   { key: 'lg', label: '12px', token: '--ds-radius-lg', radius: 'var(--ds-radius-lg)' },
-  { key: 'xl', label: '18px', token: '--ds-radius-xl', radius: 'var(--ds-radius-xl)' },
+  { key: 'round', label: 'Round', token: '--ds-radius-round', radius: 'var(--ds-radius-round)' },
   { key: 'pill', label: 'Pill', token: '--ds-radius-pill', radius: 'var(--ds-radius-pill)' },
 ])
 
