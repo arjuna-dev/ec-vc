@@ -1468,11 +1468,6 @@ function listRoles() {
 }
 
 function ensureDefaultBuildingBlocks(database) {
-  const existingCount = Number(
-    database.prepare('SELECT COUNT(*) AS count FROM Building_Blocks').get()?.count || 0,
-  )
-  if (existingCount > 0) return
-
   const insertRow = database.prepare(`
     INSERT INTO Building_Blocks (
       id,
@@ -1502,11 +1497,21 @@ function ensureDefaultBuildingBlocks(database) {
 
   const actor = getAuditActor(database, { requireUser: false })
   const fallbackUserId = normalizeNullableString(actor?.user_id)
+  const existingIds = new Set(
+    database
+      .prepare('SELECT id FROM Building_Blocks')
+      .all()
+      .map((row) => normalizeNullableString(row?.id))
+      .filter(Boolean),
+  )
 
   const tx = database.transaction(() => {
     DEFAULT_BUILDING_BLOCK_FILE_ROWS.forEach((row) => {
+      const normalizedId = normalizeNullableString(row?.id) || `bb:${crypto.randomUUID()}`
+      if (existingIds.has(normalizedId)) return
+
       insertRow.run(
-        normalizeNullableString(row?.id) || `bb:${crypto.randomUUID()}`,
+        normalizedId,
         Number(row?.Sort_Order || 0) || null,
         normalizeNullableString(row?.Name) || 'Untitled Building Block',
         normalizeNullableString(row?.Summary),
@@ -1525,6 +1530,7 @@ function ensureDefaultBuildingBlocks(database) {
         normalizeNullableString(row?.Variants),
         fallbackUserId,
       )
+      existingIds.add(normalizedId)
     })
   })
 
