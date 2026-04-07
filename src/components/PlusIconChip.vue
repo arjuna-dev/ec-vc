@@ -24,38 +24,39 @@ defineProps({
 
 <style scoped>
 .plus-icon-chip {
+  --plus-icon-chip-size: 22px;
+  --plus-icon-chip-glyph-size: var(--ds-icon-size-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  width: var(--plus-icon-chip-size);
+  height: var(--plus-icon-chip-size);
+  min-width: var(--plus-icon-chip-size);
+  min-height: var(--plus-icon-chip-size);
+  border-radius: var(--ds-radius-round);
   background: var(--ds-color-brand-blue);
   color: var(--ds-color-brand-white);
 }
 
 .plus-icon-chip--widget {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
+  --plus-icon-chip-size: 22px;
+  --plus-icon-chip-glyph-size: var(--ds-icon-size-sm);
 }
 
 .plus-icon-chip--compare {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
+  --plus-icon-chip-size: 36px;
+  --plus-icon-chip-glyph-size: 29.5px;
 }
 
 .plus-icon-chip__glyph {
   display: block;
   color: inherit;
-  font-size: 18px;
+  font-size: var(--plus-icon-chip-glyph-size);
   line-height: 1;
-  transform: translateY(-0.5px);
+  transform: translate(-0.2px, -0.45px);
 }
 
 .plus-icon-chip--compare .plus-icon-chip__glyph {
-  font-size: 29.5px;
   transform: translate(-0.6px, 0.05px);
   text-shadow:
     0 0 0 currentColor,
