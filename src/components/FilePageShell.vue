@@ -1882,6 +1882,7 @@ function getTableColumnStyle(columnKey, fallbackWidth) {
   return {
     width: `${width}px`,
     minWidth: `${width}px`,
+    maxWidth: `${width}px`,
   }
 }
 
@@ -4138,6 +4139,7 @@ async function handleSelectedRowsDelete() {
 .test-shell-table {
   width: max-content;
   min-width: 100%;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -4148,6 +4150,8 @@ async function handleSelectedRowsDelete() {
   padding: 10px 12px;
   text-align: left;
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .test-shell-table__head {
@@ -4192,17 +4196,12 @@ async function handleSelectedRowsDelete() {
 
 .test-shell-table__head--name,
 .test-shell-table__cell--name {
-  position: sticky;
-  left: 60px;
-  z-index: 3;
   min-width: 108px;
   background: rgba(255, 255, 255, 0.98);
 }
 
 .test-shell-table__head--control,
 .test-shell-table__cell--control {
-  position: sticky;
-  z-index: 4;
   width: 30px;
   min-width: 30px;
   padding: 8px 2px;
@@ -4214,18 +4213,7 @@ async function handleSelectedRowsDelete() {
   background: #eef0f2;
 }
 
-.test-shell-table__head--control:first-child,
-.test-shell-table__cell--control:first-child {
-  left: 0;
-}
-
-.test-shell-table__head--control:nth-child(2),
-.test-shell-table__cell--control:nth-child(2) {
-  left: 30px;
-}
-
 .test-shell-table__head--name {
-  z-index: 5;
   background: #eef0f2;
 }
 
@@ -4241,6 +4229,7 @@ async function handleSelectedRowsDelete() {
   align-items: center;
   gap: 0;
   min-width: 0;
+  width: 100%;
 }
 
 .test-shell-table__eye {
@@ -4288,7 +4277,7 @@ async function handleSelectedRowsDelete() {
 .test-shell-table__name {
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-body);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: var(--font-weight-black);
   line-height: 1.35;
   min-width: 0;
