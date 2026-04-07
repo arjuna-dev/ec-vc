@@ -622,7 +622,7 @@
                 />
                 <th
                   class="test-shell-table__head test-shell-table__head--name"
-                  :style="getTableColumnStyle('name', NAME_COLUMN_MIN_WIDTH)"
+                  :style="getTableColumnStyle('name', NAME_COLUMN_DEFAULT_WIDTH)"
                 >
                   <div class="test-shell-table__head-inner">
                     <span>Name</span>
@@ -630,7 +630,7 @@
                       type="button"
                       class="test-shell-table__resize-handle"
                       aria-label="Resize Name column"
-                      @mousedown.prevent="startColumnResize('name', NAME_COLUMN_MIN_WIDTH, $event)"
+                      @pointerdown.stop.prevent="startColumnResize('name', 0, $event)"
                     />
                   </div>
                 </th>
@@ -646,7 +646,7 @@
                       type="button"
                       class="test-shell-table__resize-handle"
                       :aria-label="`Resize ${token.label} column`"
-                      @mousedown.prevent="startColumnResize(token.key, DEFAULT_COLUMN_MIN_WIDTH, $event)"
+                      @pointerdown.stop.prevent="startColumnResize(token.key, DEFAULT_COLUMN_MIN_WIDTH, $event)"
                     />
                   </div>
                 </th>
@@ -684,7 +684,7 @@
                 </td>
                 <td
                   class="test-shell-table__cell test-shell-table__cell--name"
-                  :style="getTableColumnStyle('name', NAME_COLUMN_MIN_WIDTH)"
+                  :style="getTableColumnStyle('name', NAME_COLUMN_DEFAULT_WIDTH)"
                 >
                   <div class="test-shell-table__name-row">
                     <div
@@ -865,7 +865,7 @@ const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
-const NAME_COLUMN_MIN_WIDTH = 84
+const NAME_COLUMN_DEFAULT_WIDTH = 84
 const TABLE_CONTROL_COLUMN_WIDTH = 30
 
 const SECTION_LOADERS = {
@@ -1952,11 +1952,21 @@ function stopColumnResize() {
 function startColumnResize(columnKey, minWidth, event) {
   stopColumnResize()
   const normalizedKey = String(columnKey || '').trim()
-  const startX = Number(event?.clientX || 0)
+  const startX = Number(event?.clientX || event?.pageX || 0)
   const initialWidth = getColumnWidth(normalizedKey, minWidth)
+  const handle = event?.currentTarget
+
+  if (handle && typeof handle.setPointerCapture === 'function' && event?.pointerId != null) {
+    try {
+      handle.setPointerCapture(event.pointerId)
+    } catch (captureError) {
+      void captureError
+    }
+  }
 
   const handlePointerMove = (moveEvent) => {
-    const nextWidth = Math.max(minWidth, initialWidth + Number(moveEvent?.clientX || 0) - startX)
+    const moveX = Number(moveEvent?.clientX || moveEvent?.pageX || 0)
+    const nextWidth = Math.max(minWidth, initialWidth + moveX - startX)
     tableColumnWidths.value = {
       ...tableColumnWidths.value,
       [normalizedKey]: nextWidth,
@@ -1967,11 +1977,11 @@ function startColumnResize(columnKey, minWidth, event) {
     stopColumnResize()
   }
 
-  window.addEventListener('mousemove', handlePointerMove)
-  window.addEventListener('mouseup', handlePointerUp)
+  window.addEventListener('pointermove', handlePointerMove)
+  window.addEventListener('pointerup', handlePointerUp)
   removeColumnResizeListeners = () => {
-    window.removeEventListener('mousemove', handlePointerMove)
-    window.removeEventListener('mouseup', handlePointerUp)
+    window.removeEventListener('pointermove', handlePointerMove)
+    window.removeEventListener('pointerup', handlePointerUp)
   }
 }
 
@@ -4175,17 +4185,25 @@ async function handleSelectedRowsDelete() {
   justify-content: space-between;
   gap: 8px;
   width: 100%;
+  position: relative;
+  padding-right: 10px;
 }
 
 .test-shell-table__resize-handle {
-  width: 8px;
-  min-width: 8px;
-  height: 20px;
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+  width: 14px;
+  min-width: 14px;
+  height: calc(100% + 8px);
   padding: 0;
   background: transparent;
   border: 0;
   border-right: 2px solid rgba(17, 17, 17, 0.18);
   cursor: col-resize;
+  z-index: 6;
+  touch-action: none;
 }
 
 .test-shell-table__resize-handle:hover,
@@ -4196,7 +4214,6 @@ async function handleSelectedRowsDelete() {
 
 .test-shell-table__head--name,
 .test-shell-table__cell--name {
-  min-width: 84px;
   background: rgba(255, 255, 255, 0.98);
 }
 
