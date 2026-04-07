@@ -630,7 +630,7 @@
                       type="button"
                       class="test-shell-table__resize-handle"
                       aria-label="Resize Name column"
-                      @pointerdown.prevent="startColumnResize('name', NAME_COLUMN_MIN_WIDTH, $event)"
+                      @mousedown.prevent="startColumnResize('name', NAME_COLUMN_MIN_WIDTH, $event)"
                     />
                   </div>
                 </th>
@@ -646,7 +646,7 @@
                       type="button"
                       class="test-shell-table__resize-handle"
                       :aria-label="`Resize ${token.label} column`"
-                      @pointerdown.prevent="startColumnResize(token.key, DEFAULT_COLUMN_MIN_WIDTH, $event)"
+                      @mousedown.prevent="startColumnResize(token.key, DEFAULT_COLUMN_MIN_WIDTH, $event)"
                     />
                   </div>
                 </th>
@@ -1951,12 +1951,11 @@ function stopColumnResize() {
 function startColumnResize(columnKey, minWidth, event) {
   stopColumnResize()
   const normalizedKey = String(columnKey || '').trim()
-  const startX = Number(event?.clientX || event?.pageX || 0)
+  const startX = Number(event?.clientX || 0)
   const initialWidth = getColumnWidth(normalizedKey, minWidth)
 
   const handlePointerMove = (moveEvent) => {
-    const moveX = Number(moveEvent?.clientX || moveEvent?.pageX || 0)
-    const nextWidth = Math.max(minWidth, initialWidth + moveX - startX)
+    const nextWidth = Math.max(minWidth, initialWidth + Number(moveEvent?.clientX || 0) - startX)
     tableColumnWidths.value = {
       ...tableColumnWidths.value,
       [normalizedKey]: nextWidth,
@@ -1967,11 +1966,11 @@ function startColumnResize(columnKey, minWidth, event) {
     stopColumnResize()
   }
 
-  window.addEventListener('pointermove', handlePointerMove)
-  window.addEventListener('pointerup', handlePointerUp)
+  window.addEventListener('mousemove', handlePointerMove)
+  window.addEventListener('mouseup', handlePointerUp)
   removeColumnResizeListeners = () => {
-    window.removeEventListener('pointermove', handlePointerMove)
-    window.removeEventListener('pointerup', handlePointerUp)
+    window.removeEventListener('mousemove', handlePointerMove)
+    window.removeEventListener('mouseup', handlePointerUp)
   }
 }
 
@@ -4172,25 +4171,17 @@ async function handleSelectedRowsDelete() {
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  position: relative;
-  padding-right: 10px;
 }
 
 .test-shell-table__resize-handle {
-  position: absolute;
-  top: 50%;
-  right: -6px;
-  transform: translateY(-50%);
-  width: 14px;
-  min-width: 14px;
-  height: calc(100% + 8px);
+  width: 8px;
+  min-width: 8px;
+  height: 20px;
   padding: 0;
   background: transparent;
   border: 0;
   border-right: 2px solid rgba(17, 17, 17, 0.18);
   cursor: col-resize;
-  z-index: 6;
-  touch-action: none;
 }
 
 .test-shell-table__resize-handle:hover,
