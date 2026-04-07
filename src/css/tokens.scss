@@ -162,18 +162,41 @@
   --ds-card-padding-md: var(--ds-space-16);
   --ds-card-padding-lg: 22px;
   --ds-card-min-height-lg: 116px;
+  --ds-card-grid-min-width-sm: 280px;
+  --ds-card-grid-min-width-md: 320px;
   --ds-field-padding: 14px 16px;
   --ds-panel-padding-sm: 14px;
   --ds-panel-padding-md: var(--ds-space-16);
+  --ds-panel-padding-lg: 22px;
   --ds-panel-blur-md: blur(14px);
+  --ds-size-health-bar: 12px;
+  --ds-font-size-kicker: 0.8rem;
+  --ds-font-size-panel-label: 0.78rem;
+  --ds-font-size-panel-value: 1.2rem;
+  --ds-font-size-body-emphasis: 0.95rem;
+  --ds-font-size-display-hero: clamp(3rem, 8vw, 5.5rem);
+  --ds-font-size-display-panel: clamp(2rem, 3vw, 2.8rem);
   --ds-font-size-stat-value: clamp(1.8rem, 2vw, 2.4rem);
   --ds-color-surface-stat-default: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
   --ds-color-surface-stat-inverse: rgba(255, 255, 255, 0.08);
+  --ds-color-surface-stat-neutral: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(247, 244, 238, 0.94) 100%);
+  --ds-color-surface-stat-rich: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(238, 241, 255, 0.96) 100%);
+  --ds-color-surface-stat-sparse: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 244, 238, 0.96) 100%);
+  --ds-color-surface-hero-dark:
+    radial-gradient(circle at top right, rgba(235, 255, 90, 0.32), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(255, 85, 33, 0.35), transparent 30%),
+    linear-gradient(135deg, #111111 0%, #2c2c2c 45%, #ff5521 100%);
   --ds-color-border-inverse-soft: rgba(255, 255, 255, 0.18);
   --ds-color-text-inverse-muted: rgba(255, 255, 255, 0.72);
+  --ds-color-text-inverse-strong: rgba(255, 255, 255, 0.84);
+  --ds-color-fill-health-sparse: #ff5521;
+  --ds-color-fill-health-medium: #ebff5a;
+  --ds-color-fill-health-rich: #2647ff;
 
   --ds-shadow-floating-label: 0 1px 4px rgba(0, 0, 0, 0.15);
   --ds-shadow-fab: 0 2px 6px rgba(0, 0, 0, 0.25);
   --ds-shadow-card-soft: 0 14px 28px rgba(17, 17, 17, 0.04);
   --ds-shadow-card-medium: var(--ds-shadow-card-soft);
+  --ds-shadow-hero-strong: 0 24px 50px rgba(17, 24, 39, 0.16);
+  --ds-shadow-hero-hover: 0 24px 54px rgba(17, 17, 17, 0.08);
 }
