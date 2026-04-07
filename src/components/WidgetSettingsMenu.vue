@@ -19,7 +19,7 @@
           <span class="widget-settings-menu__section-title">{{ section.label }}</span>
           <ToggleRowIcons
             label=""
-            :expanded="isSectionOpen(section.id)"
+            :expanded="!isSectionOpen(section.id)"
             tone="default"
             :interactive="false"
           />
@@ -108,11 +108,11 @@ function isSectionOpen(sectionId) {
   width: var(--ds-widget-settings-width);
   max-width: min(var(--ds-widget-settings-width), calc(100vw - 16px));
   padding: var(--ds-space-4);
-  background: rgba(17, 17, 17, 0.96);
+  background: var(--ds-widget-settings-surface);
   border: 1px solid var(--ds-widget-settings-border);
   border-radius: var(--ds-radius-md);
   box-shadow: var(--ds-shadow-control);
-  backdrop-filter: blur(18px);
+  backdrop-filter: var(--ds-panel-blur-md);
 }
 
 .widget-settings-menu__header {
@@ -127,7 +127,7 @@ function isSectionOpen(sectionId) {
   font-family: var(--ds-font-title);
   font-size: var(--ds-font-size-base);
   font-weight: var(--ds-font-weight-bold);
-  line-height: 0.96;
+  line-height: var(--ds-widget-settings-title-line-height);
 }
 
 .widget-settings-menu__caption {
@@ -195,12 +195,12 @@ function isSectionOpen(sectionId) {
 .widget-settings-menu__row-actions {
   display: inline-flex;
   align-items: center;
-  gap: 0;
+  gap: var(--ds-space-0);
 }
 
 .widget-settings-menu__move-button {
-  min-width: 20px;
-  min-height: 20px;
+  min-width: var(--ds-widget-settings-move-button-size);
+  min-height: var(--ds-widget-settings-move-button-size);
   padding: 0;
   color: var(--ds-widget-settings-button-color);
 }
@@ -213,7 +213,7 @@ function isSectionOpen(sectionId) {
   width: var(--ds-icon-size-sm);
   height: var(--ds-icon-size-sm);
   stroke: currentColor;
-  stroke-width: 1.45;
+  stroke-width: var(--ds-widget-settings-chevron-stroke-width);
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;

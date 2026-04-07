@@ -3,7 +3,7 @@
     <span class="main-menu-subgroup-row__label">{{ label }}</span>
     <ToggleRowIcons
       label=""
-      :expanded="expanded"
+      :expanded="!expanded"
       tone="muted"
     />
   </div>
