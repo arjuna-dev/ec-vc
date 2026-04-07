@@ -708,7 +708,7 @@ onBeforeUnmount(() => {
   color: #0f172a;
   font-family: var(--font-title);
   font-size: 1.38rem;
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   line-height: 0.94;
   letter-spacing: -0.04em;
   max-width: calc(100% - 56px);
@@ -782,7 +782,7 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__page-title {
   color: #0f172a;
   font-family: var(--font-title);
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
 }
 
 .building-block-preview-tile__crumb-current {
@@ -810,7 +810,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   font-family: var(--font-title);
   font-size: 0.84rem;
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   letter-spacing: -0.02em;
   line-height: 1;
 }
@@ -878,7 +878,7 @@ onBeforeUnmount(() => {
   color: #111111;
   font-family: var(--font-title);
   font-size: 0.9rem;
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   line-height: 1;
   letter-spacing: -0.02em;
 }
@@ -951,7 +951,7 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__foundation-type-sample {
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-title);
-  font-weight: var(--ds-font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   letter-spacing: -0.03em;
   line-height: 1;
 }
@@ -1017,7 +1017,7 @@ onBeforeUnmount(() => {
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-title);
   font-size: var(--ds-font-size-base-regular);
-  font-weight: var(--ds-font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   letter-spacing: -0.03em;
   line-height: 1;
 }

@@ -147,7 +147,7 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
   border-radius: var(--ds-control-radius);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-regular);
+  font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-xs);
 }
 
@@ -233,7 +233,7 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
   color: inherit;
   font-family: var(--font-title);
   font-size: 0.95rem;
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   line-height: 0.92;
   letter-spacing: 0.01em;
 }

@@ -73,7 +73,7 @@ defineEmits(['update:modelValue', 'update:viewMode'])
   border-radius: 10px;
   font-family: var(--font-body);
   font-size: var(--text-sm---medium);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--ds-font-weight-medium);
   transition:
     color 0.2s ease,
     background-color 0.2s ease,

@@ -55,7 +55,7 @@ const toneClass = computed(() => `dialog-shell-title-row--${String(props.tone ||
   color: rgba(15, 23, 42, 0.58);
   font-family: var(--font-title);
   font-size: 0.72rem;
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   letter-spacing: 0.06em;
   line-height: 1;
   text-transform: uppercase;
@@ -65,7 +65,7 @@ const toneClass = computed(() => `dialog-shell-title-row--${String(props.tone ||
   color: #111111;
   font-family: var(--font-title);
   font-size: 1.46rem;
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   line-height: 0.94;
   margin: 0;
 }

@@ -181,7 +181,7 @@ function updateGradientPosition(event) {
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-title);
   font-size: clamp(2rem, 3vw, 2.8rem);
-  font-weight: var(--ds-font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   line-height: 0.96;
   max-width: 12ch;
 }
@@ -194,7 +194,7 @@ function updateGradientPosition(event) {
   color: var(--ds-color-text-secondary);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-base-regular);
-  font-weight: var(--ds-font-weight-regular);
+  font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-base);
 }
 
@@ -242,7 +242,7 @@ function updateGradientPosition(event) {
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-title);
   font-size: clamp(1.8rem, 2vw, 2.4rem);
-  font-weight: var(--ds-font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   line-height: 0.92;
 }
 
@@ -251,7 +251,7 @@ function updateGradientPosition(event) {
   color: var(--ds-color-text-secondary);
   font-family: var(--ds-font-family-body);
   font-size: var(--ds-font-size-sm-regular);
-  font-weight: var(--ds-font-weight-regular);
+  font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-sm);
 }
 

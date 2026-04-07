@@ -68,7 +68,7 @@ defineEmits(['toggle-collapse'])
   color: rgba(15, 23, 42, 0.7);
   font-family: var(--font-title);
   font-size: 0.86rem;
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   letter-spacing: -0.02em;
   line-height: 1;
   min-width: 0;
@@ -95,7 +95,7 @@ defineEmits(['toggle-collapse'])
   color: rgba(15, 23, 42, 0.52);
   font-family: var(--font-title);
   font-size: 0.62rem;
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   letter-spacing: 0.04em;
   line-height: 1;
   white-space: nowrap;
@@ -106,7 +106,7 @@ defineEmits(['toggle-collapse'])
   color: rgba(15, 23, 42, 0.52);
   font-family: var(--font-title);
   font-size: 0.62rem;
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   letter-spacing: 0.04em;
   line-height: 1;
   white-space: nowrap;
@@ -122,7 +122,7 @@ defineEmits(['toggle-collapse'])
   border: 1px solid transparent;
   font-family: var(--font-title);
   font-size: 0.58rem;
-  font-weight: var(--font-weight-black);
+  font-weight: var(--ds-font-weight-bold);
   letter-spacing: 0.06em;
   line-height: 1;
   text-transform: uppercase;
