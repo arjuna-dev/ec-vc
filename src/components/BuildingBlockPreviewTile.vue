@@ -3,27 +3,17 @@
     class="building-block-preview-tile"
     :class="[`building-block-preview-tile--${size}`, { 'building-block-preview-tile--collapsed': isCollapsed }]"
   >
-    <div class="building-block-preview-tile__header">
-      <div class="building-block-preview-tile__header-main">
-        <div class="building-block-preview-tile__label-row">
-          <div class="building-block-preview-tile__label">{{ tileTitle }}</div>
-          <button
-            type="button"
-            class="building-block-preview-tile__collapse-toggle"
-            :aria-label="isCollapsed ? 'Expand block tile' : 'Collapse block tile'"
-            @click="isCollapsed = !isCollapsed"
-          >
-            <q-icon :name="isCollapsed ? 'expand_more' : 'expand_less'" size="16px" />
-          </button>
-        </div>
-
-        <div v-if="!isCollapsed" class="building-block-preview-tile__status" :class="statusClass">{{ tileStatusLabel }}</div>
-      </div>
-
-      <div v-if="$slots.actions" class="building-block-preview-tile__actions">
+    <BuildingBlockTileHeader
+      :title="tileTitle"
+      :status-label="tileStatusLabel"
+      :status-class="statusClass"
+      :collapsed="isCollapsed"
+      @toggle-collapse="isCollapsed = !isCollapsed"
+    >
+      <template v-if="$slots.actions" #actions>
         <slot name="actions" />
-      </div>
-    </div>
+      </template>
+    </BuildingBlockTileHeader>
 
     <div v-if="!isCollapsed" class="building-block-preview-tile__stage" :class="stageClass">
       <template v-if="blockKey === 'page-title-crumb'">
@@ -299,6 +289,7 @@ import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
+import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,
@@ -445,84 +436,6 @@ watch(
 
 .building-block-preview-tile--full-row:not(.building-block-preview-tile--collapsed) {
   padding: 18px 10px 18px 12px;
-}
-
-.building-block-preview-tile__actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-  flex-shrink: 0;
-  min-width: max-content;
-}
-
-.building-block-preview-tile__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: nowrap;
-}
-
-.building-block-preview-tile__header-main {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-  flex: 1 1 auto;
-  overflow: hidden;
-}
-
-.building-block-preview-tile__label-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-  white-space: nowrap;
-  width: 100%;
-  overflow: hidden;
-}
-
-.building-block-preview-tile__label {
-  color: rgba(15, 23, 42, 0.7);
-  font-family: var(--font-title);
-  font-size: 0.86rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: -0.02em;
-  line-height: 1;
-  text-transform: none;
-  white-space: nowrap;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.building-block-preview-tile__collapse-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  color: #111111;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-}
-
-.building-block-preview-tile__status {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  min-height: 20px;
-  padding: 0 8px;
-  border: 1px solid transparent;
-  font-family: var(--font-title);
-  font-size: 0.58rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.06em;
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .building-block-preview-tile__status--canonical {
