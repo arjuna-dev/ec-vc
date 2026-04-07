@@ -11,14 +11,18 @@
   --ds-font-weight-regular: var(--ds-font-weight-medium);
   --ds-font-weight-black: var(--ds-font-weight-bold);
 
-  --ds-font-size-xs: var(--text-xs---light);
-  --ds-font-size-xs-regular: var(--text-xs---regular);
-  --ds-font-size-sm: var(--text-sm---light);
-  --ds-font-size-xs-medium: var(--text-xs---medium);
-  --ds-font-size-sm-regular: var(--text-sm---regular);
-  --ds-font-size-sm-medium: var(--text-sm---medium);
-  --ds-font-size-base-regular: var(--text-base---regular);
-  --ds-font-size-4xl: var(--text-4xl---black);
+  --ds-font-size-xs: var(--text-xs---regular);
+  --ds-font-size-sm: var(--text-sm---regular);
+  --ds-font-size-base: var(--text-base---regular);
+  --ds-font-size-page-title: var(--text-2xl---regular);
+  --ds-font-size-hero: var(--text-4xl---regular);
+  --ds-font-size-xs-regular: var(--ds-font-size-xs);
+  --ds-font-size-xs-medium: var(--ds-font-size-xs);
+  --ds-font-size-sm-regular: var(--ds-font-size-sm);
+  --ds-font-size-sm-medium: var(--ds-font-size-sm);
+  --ds-font-size-base-regular: var(--ds-font-size-base);
+  --ds-font-size-2xl: var(--ds-font-size-page-title);
+  --ds-font-size-4xl: var(--ds-font-size-hero);
 
   --ds-line-height-xs: 16px;
   --ds-line-height-sm: 20px;

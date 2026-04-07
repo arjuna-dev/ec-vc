@@ -16,10 +16,11 @@ export const GENERAL_SETTINGS_FONT_SAMPLES = Object.freeze([
 ])
 
 export const GENERAL_SETTINGS_TYPE_SCALE_SAMPLES = Object.freeze([
-  { key: '4xl', label: '4XL / Hero', token: '--ds-font-size-4xl', size: 'var(--ds-font-size-4xl)' },
-  { key: 'base', label: 'Base', token: '--ds-font-size-base-regular', size: 'var(--ds-font-size-base-regular)' },
-  { key: 'sm', label: 'Small', token: '--ds-font-size-sm-regular', size: 'var(--ds-font-size-sm-regular)' },
-  { key: 'xs', label: 'XS', token: '--ds-font-size-xs-regular', size: 'var(--ds-font-size-xs-regular)' },
+  { key: 'hero', label: 'Hero', token: '--ds-font-size-hero', size: 'var(--ds-font-size-hero)' },
+  { key: 'page-title', label: 'Page Title', token: '--ds-font-size-page-title', size: 'var(--ds-font-size-page-title)' },
+  { key: 'base', label: 'Base', token: '--ds-font-size-base', size: 'var(--ds-font-size-base)' },
+  { key: 'sm', label: 'Small', token: '--ds-font-size-sm', size: 'var(--ds-font-size-sm)' },
+  { key: 'xs', label: 'XS', token: '--ds-font-size-xs', size: 'var(--ds-font-size-xs)' },
 ])
 
 export const GENERAL_SETTINGS_FONT_WEIGHT_SAMPLES = Object.freeze([

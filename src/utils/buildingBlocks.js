@@ -46,6 +46,15 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the canonical type-size ladder across hero, body, and utility text.',
     prompt: 'Render the Type Scale building block from BB Shell using the live General Settings size tokens.',
     usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    convergenceRule: [
+      '--ds-font-size-xs-regular -> --ds-font-size-xs',
+      '--ds-font-size-xs-medium -> --ds-font-size-xs',
+      '--ds-font-size-sm-regular -> --ds-font-size-sm',
+      '--ds-font-size-sm-medium -> --ds-font-size-sm',
+      '--ds-font-size-base-regular -> --ds-font-size-base',
+      '--ds-font-size-2xl -> --ds-font-size-page-title',
+      '--ds-font-size-4xl -> --ds-font-size-hero',
+    ],
   }),
   'font-weights': defineBuildingBlockDetail({
     id: 'cmp-foundation-font-weights',

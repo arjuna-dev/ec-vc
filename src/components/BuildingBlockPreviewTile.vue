@@ -707,7 +707,7 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__title {
   color: #0f172a;
   font-family: var(--ds-font-title);
-  font-size: 1.38rem;
+  font-size: var(--ds-font-size-page-title);
   font-weight: var(--ds-font-weight-bold);
   line-height: 0.94;
   letter-spacing: -0.04em;
