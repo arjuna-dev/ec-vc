@@ -1,5 +1,6 @@
 function defineBuildingBlockDetail(detail) {
   return {
+    builtFromBbs: detail.builtFromBbs || [],
     usedInShells: detail.usedInShells || [],
     usedIn: detail.usedIn || [
       detail.source ? `Primary source: ${detail.source}` : 'Primary source not yet extracted.',
@@ -233,6 +234,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     prompt: 'Render the BB Tile Header from Building Blocks using the same cool title type, collapse arrow, copy action, and eye action aligned in one compact top row.',
     usedIn: ['BB Shell tile top row', 'Building Blocks tile top row'],
     usedInShells: ['BB Shell', 'Add/Edit BB Shell'],
+    builtFromBbs: [],
     anatomy: ['Strong title-style text on the left', 'Collapse / expand arrow inline with the title', 'Copy icon action', 'Eye icon action'],
   }),
   'live-action-l1': defineBuildingBlockDetail({
@@ -403,6 +405,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the top row inside add/edit shell dialogs.',
     prompt: 'Render the Dialog Shell Title Row from Building Blocks using the canonical add/edit shell title row and close-control alignment.',
     usedInShells: ['Add/Edit Record Shell', 'Add/Edit File Shell', 'Add/Edit BB Shell'],
+    builtFromBbs: [],
     anatomy: ['Eyebrow or shell label', 'Main title', 'Optional header actions', 'Close icon button'],
   }),
   'dialog-shell-footer': defineBuildingBlockDetail({
@@ -621,6 +624,7 @@ export const DEFAULT_BUILDING_BLOCK_FILE_ROWS = Object.entries(BUILDING_BLOCK_DE
   Used_In_Shells: Array.isArray(detail.usedInShells) ? detail.usedInShells.join('\n') : '',
   Use_When: detail.summary || '',
   Avoid_When: '',
+  Built_From_BBs: Array.isArray(detail.builtFromBbs) ? detail.builtFromBbs.join('\n') : '',
   Anatomy: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
   Required_Parts: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
   Source_Path: detail.source || '',

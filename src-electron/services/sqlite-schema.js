@@ -1421,6 +1421,7 @@ CREATE TABLE IF NOT EXISTS Building_Blocks (
   Used_In_Shells TEXT,
   Use_When TEXT,
   Avoid_When TEXT,
+  Built_From_BBs TEXT,
   Anatomy TEXT,
   Required_Parts TEXT,
   Source_Path TEXT,

@@ -1472,6 +1472,9 @@ function ensureDefaultBuildingBlocks(database) {
   if (!buildingBlockMeta.columnsSet.has('Used_In_Shells')) {
     database.exec('ALTER TABLE Building_Blocks ADD COLUMN Used_In_Shells TEXT')
   }
+  if (!buildingBlockMeta.columnsSet.has('Built_From_BBs')) {
+    database.exec('ALTER TABLE Building_Blocks ADD COLUMN Built_From_BBs TEXT')
+  }
 
   const insertRow = database.prepare(`
     INSERT INTO Building_Blocks (
@@ -1485,6 +1488,7 @@ function ensureDefaultBuildingBlocks(database) {
       Used_In_Shells,
       Use_When,
       Avoid_When,
+      Built_From_BBs,
       Anatomy,
       Required_Parts,
       Source_Path,
@@ -1497,7 +1501,7 @@ function ensureDefaultBuildingBlocks(database) {
       created_at,
       updated_at
     ) VALUES (
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
     )
   `)
   const backfillShellUsage = database.prepare(`
@@ -1530,11 +1534,12 @@ function ensureDefaultBuildingBlocks(database) {
         normalizeNullableString(row?.Category),
         normalizeNullableString(row?.Status),
         normalizeNullableString(row?.Used_In),
-        normalizeNullableString(row?.Used_In_Shells),
-        normalizeNullableString(row?.Use_When),
-        normalizeNullableString(row?.Avoid_When),
-        normalizeNullableString(row?.Anatomy),
-        normalizeNullableString(row?.Required_Parts),
+      normalizeNullableString(row?.Used_In_Shells),
+      normalizeNullableString(row?.Use_When),
+      normalizeNullableString(row?.Avoid_When),
+      normalizeNullableString(row?.Built_From_BBs),
+      normalizeNullableString(row?.Anatomy),
+      normalizeNullableString(row?.Required_Parts),
         normalizeNullableString(row?.Source_Path),
         normalizeNullableString(row?.Owner),
         normalizeNullableString(row?.Extraction_Status),
@@ -1574,6 +1579,7 @@ function listBuildingBlocks() {
       Used_In_Shells,
       Use_When,
       Avoid_When,
+      Built_From_BBs,
       Anatomy,
       Required_Parts,
       Source_Path,
@@ -1620,6 +1626,7 @@ function createBuildingBlock(payload = {}) {
         Used_In_Shells,
         Use_When,
         Avoid_When,
+        Built_From_BBs,
         Anatomy,
         Required_Parts,
         Source_Path,
@@ -1632,7 +1639,7 @@ function createBuildingBlock(payload = {}) {
         created_at,
         updated_at
       ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
       )
     `,
     )
@@ -1647,6 +1654,7 @@ function createBuildingBlock(payload = {}) {
       normalizeNullableString(payload?.Used_In_Shells) || normalizeNullableString(payload?.BB_Used_In_Shells),
       normalizeNullableString(payload?.Use_When) || normalizeNullableString(payload?.BB_Use_When),
       normalizeNullableString(payload?.Avoid_When) || normalizeNullableString(payload?.BB_Avoid_When),
+      normalizeNullableString(payload?.Built_From_BBs) || normalizeNullableString(payload?.BB_Built_From_BBs),
       normalizeNullableString(payload?.Anatomy) || normalizeNullableString(payload?.BB_Anatomy),
       normalizeNullableString(payload?.Required_Parts) || normalizeNullableString(payload?.BB_Required_Parts),
       normalizeNullableString(payload?.Source_Path) || normalizeNullableString(payload?.BB_Source_Path),

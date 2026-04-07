@@ -52,6 +52,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         tokens: [
           { level_3: '1', address: 'BB.3.1', token_name: 'BB_Anatomy', label: 'Anatomy', db_field_aliases: ['Anatomy'] },
           { level_3: '2', address: 'BB.3.2', token_name: 'BB_Required_Parts', label: 'Required Parts', db_field_aliases: ['Required_Parts'] },
+          { level_3: '3', address: 'BB.3.3', token_name: 'BB_Built_From_BBs', label: 'Built From BBs', db_field_aliases: ['Built_From_BBs'] },
         ],
       },
       {

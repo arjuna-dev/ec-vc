@@ -62,6 +62,13 @@
           </ul>
         </div>
 
+        <div v-if="(detail?.builtFromBbs || []).length" class="add-edit-bb-shell__meta">
+          <div class="add-edit-bb-shell__label">Built From BBs</div>
+          <ul class="add-edit-bb-shell__list">
+            <li v-for="item in detail?.builtFromBbs || []" :key="item">{{ item }}</li>
+          </ul>
+        </div>
+
         <div class="add-edit-bb-shell__meta">
           <div class="add-edit-bb-shell__label">Reconstruction Notes</div>
           <ul class="add-edit-bb-shell__list">
