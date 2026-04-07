@@ -66,7 +66,7 @@ defineEmits(['toggle-collapse'])
 
 .building-block-tile-header__label {
   color: rgba(15, 23, 42, 0.7);
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.86rem;
   font-weight: var(--ds-font-weight-bold);
   letter-spacing: -0.02em;
@@ -93,7 +93,7 @@ defineEmits(['toggle-collapse'])
 
 .building-block-tile-header__graph {
   color: rgba(15, 23, 42, 0.52);
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.62rem;
   font-weight: var(--ds-font-weight-bold);
   letter-spacing: 0.04em;
@@ -104,7 +104,7 @@ defineEmits(['toggle-collapse'])
 
 .building-block-tile-header__shells {
   color: rgba(15, 23, 42, 0.52);
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.62rem;
   font-weight: var(--ds-font-weight-bold);
   letter-spacing: 0.04em;
@@ -120,7 +120,7 @@ defineEmits(['toggle-collapse'])
   min-height: 20px;
   padding: 0 8px;
   border: 1px solid transparent;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.58rem;
   font-weight: var(--ds-font-weight-bold);
   letter-spacing: 0.06em;

@@ -145,7 +145,7 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
   flex: 0 0 auto;
   height: var(--ds-control-height-md);
   border-radius: var(--ds-control-radius);
-  font-family: var(--ds-font-family-body);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-xs-regular);
   font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-xs);
@@ -231,7 +231,7 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
 
 .file-page-toolbar__add-button-label {
   color: inherit;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.95rem;
   font-weight: var(--ds-font-weight-bold);
   line-height: 0.92;

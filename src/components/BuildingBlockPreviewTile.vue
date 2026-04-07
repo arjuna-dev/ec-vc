@@ -706,7 +706,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__title {
   color: #0f172a;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 1.38rem;
   font-weight: var(--ds-font-weight-bold);
   line-height: 0.94;
@@ -773,7 +773,7 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__crumb-link,
 .building-block-preview-tile__crumb-separator {
   color: rgba(15, 23, 42, 0.56);
-  font-family: var(--font-body);
+  font-family: var(--ds-font-body);
   font-size: 0.84rem;
   line-height: 1;
 }
@@ -781,7 +781,7 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__crumb-current,
 .building-block-preview-tile__page-title {
   color: #0f172a;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-weight: var(--ds-font-weight-bold);
 }
 
@@ -808,7 +808,7 @@ onBeforeUnmount(() => {
   background: transparent;
   color: #111111;
   cursor: pointer;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.84rem;
   font-weight: var(--ds-font-weight-bold);
   letter-spacing: -0.02em;
@@ -876,7 +876,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__file-add-button-label {
   color: #111111;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.9rem;
   font-weight: var(--ds-font-weight-bold);
   line-height: 1;
@@ -909,7 +909,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__foundation-meta {
   color: rgba(17, 17, 17, 0.58);
-  font-family: var(--ds-font-family-body);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-xs-medium);
   font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-xs);
@@ -919,7 +919,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__foundation-token {
   color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-family-body);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-xs-regular);
   line-height: var(--ds-line-height-xs);
   word-break: break-word;
@@ -950,7 +950,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__foundation-type-sample {
   color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
+  font-family: var(--ds-font-title);
   font-weight: var(--ds-font-weight-bold);
   letter-spacing: -0.03em;
   line-height: 1;
@@ -958,7 +958,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__foundation-weight-sample {
   color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-body);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-sm-regular);
   line-height: var(--ds-line-height-sm);
 }
@@ -1015,7 +1015,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__foundation-format-value {
   color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
+  font-family: var(--ds-font-title);
   font-size: var(--ds-font-size-base-regular);
   font-weight: var(--ds-font-weight-bold);
   letter-spacing: -0.03em;
@@ -1040,7 +1040,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__fork-selector-label {
   color: rgba(17, 17, 17, 0.58);
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.62rem;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.08em;
@@ -1055,7 +1055,7 @@ onBeforeUnmount(() => {
   color: #f7f4ee;
   background: #000;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 1rem;
   font-weight: var(--font-weight-black);
   line-height: 1;
@@ -1076,7 +1076,7 @@ onBeforeUnmount(() => {
 }
 
 .building-block-preview-tile__fork-branch-title {
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 1rem;
   font-weight: var(--font-weight-black);
 }
@@ -1100,7 +1100,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__launchpad-eyebrow {
   color: rgba(15, 23, 42, 0.56);
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.72rem;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.08em;
@@ -1109,7 +1109,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__launchpad-title {
   color: #0f172a;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 1.24rem;
   font-weight: var(--font-weight-black);
   letter-spacing: -0.03em;
@@ -1118,7 +1118,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__launchpad-text {
   color: rgba(15, 23, 42, 0.72);
-  font-family: var(--font-body);
+  font-family: var(--ds-font-body);
   font-size: 0.88rem;
   line-height: 1.45;
   max-width: 340px;
@@ -1134,7 +1134,7 @@ onBeforeUnmount(() => {
   background: #2647ff;
   border: 0;
   border-radius: 10px;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.82rem;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.02em;
@@ -1166,7 +1166,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__record-dashboard-eyebrow {
   color: rgba(15, 23, 42, 0.56);
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.7rem;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.08em;
@@ -1175,7 +1175,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__record-dashboard-title {
   color: #0f172a;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 1.42rem;
   font-weight: var(--font-weight-black);
   letter-spacing: -0.04em;
@@ -1198,7 +1198,7 @@ onBeforeUnmount(() => {
   background: rgba(248, 250, 252, 0.92);
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 999px;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.68rem;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.05em;
@@ -1246,7 +1246,7 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__record-feed-header,
 .building-block-preview-tile__filter-menu-title {
   color: rgba(15, 23, 42, 0.72);
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.72rem;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.06em;
@@ -1257,14 +1257,14 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__record-panel-meta,
 .building-block-preview-tile__filter-count {
   color: rgba(15, 23, 42, 0.58);
-  font-family: var(--font-body);
+  font-family: var(--ds-font-body);
   font-size: 0.76rem;
 }
 
 .building-block-preview-tile__record-field-value,
 .building-block-preview-tile__record-panel-title {
   color: #0f172a;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 1rem;
   font-weight: var(--font-weight-black);
   letter-spacing: -0.02em;
@@ -1297,7 +1297,7 @@ onBeforeUnmount(() => {
   background: rgba(248, 250, 252, 0.92);
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 999px;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.68rem;
   font-weight: var(--font-weight-black);
 }
@@ -1328,7 +1328,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__record-panel-content {
   color: rgba(15, 23, 42, 0.72);
-  font-family: var(--font-body);
+  font-family: var(--ds-font-body);
   font-size: 0.8rem;
   line-height: 1.45;
 }
@@ -1338,7 +1338,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   color: #0f172a;
-  font-family: var(--font-body);
+  font-family: var(--ds-font-body);
   font-size: 0.82rem;
 }
 
@@ -1352,7 +1352,7 @@ onBeforeUnmount(() => {
 
 .building-block-preview-tile__placeholder-title {
   color: #111111;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 1rem;
   font-weight: var(--font-weight-black);
   line-height: 0.95;

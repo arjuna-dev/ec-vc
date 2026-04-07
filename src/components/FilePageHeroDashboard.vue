@@ -160,7 +160,7 @@ function updateGradientPosition(event) {
 .file-page-hero__stat-label,
 .file-page-hero__health-label {
   color: var(--ds-color-text-muted);
-  font-family: var(--ds-font-family-body);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-xs-medium);
   font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-xs);
@@ -179,7 +179,7 @@ function updateGradientPosition(event) {
 .file-page-hero__title {
   margin: 38px 0 0;
   color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
+  font-family: var(--ds-font-title);
   font-size: clamp(2rem, 3vw, 2.8rem);
   font-weight: var(--ds-font-weight-bold);
   line-height: 0.96;
@@ -192,7 +192,7 @@ function updateGradientPosition(event) {
   align-items: flex-end;
   max-width: var(--file-page-hero-text-max-width);
   color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-family-body);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-base-regular);
   font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-base);
@@ -240,7 +240,7 @@ function updateGradientPosition(event) {
 
 .file-page-hero__stat-value {
   color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-title);
+  font-family: var(--ds-font-title);
   font-size: clamp(1.8rem, 2vw, 2.4rem);
   font-weight: var(--ds-font-weight-bold);
   line-height: 0.92;
@@ -249,7 +249,7 @@ function updateGradientPosition(event) {
 .file-page-hero__stat-caption,
 .file-page-hero__health-text {
   color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-family-body);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-sm-regular);
   font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-sm);

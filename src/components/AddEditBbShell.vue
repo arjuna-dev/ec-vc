@@ -137,7 +137,7 @@ defineEmits(['update:modelValue'])
 
 .add-edit-bb-shell__label {
   color: rgba(15, 23, 42, 0.58);
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.72rem;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.06em;
@@ -149,7 +149,7 @@ defineEmits(['update:modelValue'])
 .add-edit-bb-shell__copy,
 .add-edit-bb-shell__list {
   color: #0f172a;
-  font-family: var(--font-body);
+  font-family: var(--ds-font-body);
   font-size: 0.94rem;
   line-height: 1.5;
 }
@@ -170,7 +170,7 @@ defineEmits(['update:modelValue'])
   min-height: 24px;
   padding: 0 10px;
   border: 1px solid transparent;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.66rem;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.06em;
@@ -198,7 +198,7 @@ defineEmits(['update:modelValue'])
   background: rgba(248, 250, 252, 0.92);
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 6px;
-  font-family: var(--font-body);
+  font-family: var(--ds-font-body);
   font-size: 0.92rem;
   line-height: 1.5;
   resize: vertical;

@@ -1,8 +1,10 @@
 /* Stage 1 runtime aliases from docs/design-system/tokens.json */
 
 :root {
-  --ds-font-family-title: var(--font-title);
-  --ds-font-family-body: var(--font-body);
+  --ds-font-title: var(--font-title);
+  --ds-font-body: var(--font-body);
+  --ds-font-family-title: var(--ds-font-title);
+  --ds-font-family-body: var(--ds-font-body);
   --ds-font-weight-light: var(--font-weight-light);
   --ds-font-weight-medium: var(--font-weight-medium);
   --ds-font-weight-bold: var(--font-weight-black);
@@ -96,7 +98,7 @@
 
   --ds-button-gap: var(--ds-space-8);
   --ds-button-radius: var(--ds-radius-md);
-  --ds-button-font-family: var(--ds-font-family-body);
+  --ds-button-font-family: var(--ds-font-body);
   --ds-button-font-size: var(--ds-font-size-base-regular);
   --ds-button-font-weight: var(--ds-font-weight-regular);
   --ds-button-line-height: var(--ds-line-height-sm);

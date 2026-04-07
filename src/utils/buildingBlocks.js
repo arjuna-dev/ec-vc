@@ -30,6 +30,11 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     prompt: 'Render the Fonts building block from BB Shell using the General Settings token source and the live title/body font pair.',
     anatomy: ['Title font sample', 'Body font sample', 'Explicit token labels'],
     usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    convergenceRule: [
+      '--ds-font-family-title -> --ds-font-title',
+      '--ds-font-family-body -> --ds-font-body',
+      'Shared shell surfaces should use ds font tokens directly instead of raw --font-title / --font-body',
+    ],
   }),
   'type-scale': defineBuildingBlockDetail({
     id: 'cmp-foundation-type-scale',

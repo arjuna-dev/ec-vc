@@ -53,7 +53,7 @@ const toneClass = computed(() => `dialog-shell-title-row--${String(props.tone ||
 
 .dialog-shell-title-row__eyebrow {
   color: rgba(15, 23, 42, 0.58);
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 0.72rem;
   font-weight: var(--ds-font-weight-bold);
   letter-spacing: 0.06em;
@@ -63,7 +63,7 @@ const toneClass = computed(() => `dialog-shell-title-row--${String(props.tone ||
 
 .dialog-shell-title-row__title {
   color: #111111;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-title);
   font-size: 1.46rem;
   font-weight: var(--ds-font-weight-bold);
   line-height: 0.94;

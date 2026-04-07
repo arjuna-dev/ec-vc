@@ -2,15 +2,15 @@ export const GENERAL_SETTINGS_FONT_SAMPLES = Object.freeze([
   {
     key: 'title',
     label: 'Title Font',
-    token: '--ds-font-family-title',
-    fontFamily: 'var(--ds-font-family-title)',
+    token: '--ds-font-title',
+    fontFamily: 'var(--ds-font-title)',
     sample: 'Neue Machina keeps shell titles crisp and structural.',
   },
   {
     key: 'body',
     label: 'Body Font',
-    token: '--ds-font-family-body',
-    fontFamily: 'var(--ds-font-family-body)',
+    token: '--ds-font-body',
+    fontFamily: 'var(--ds-font-body)',
     sample: 'Sequel Sans handles labels, body copy, and utility text.',
   },
 ])
