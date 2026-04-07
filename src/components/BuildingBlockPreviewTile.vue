@@ -24,6 +24,19 @@
         <PageTitleText title="BB Shell" />
       </template>
 
+      <template v-else-if="blockKey === 'bb-tile-header'">
+        <div class="building-block-preview-tile__header-preview">
+          <BuildingBlockTileHeader
+            title="Page Title"
+            graph-label="Built from 5 BBs"
+            shells-label="Used in 3 shells"
+            status-label="Canonical Shared"
+            status-class="building-block-preview-tile__status--canonical"
+            :collapsed="false"
+          />
+        </div>
+      </template>
+
       <template v-else-if="blockKey === 'page-back-symbol'">
         <PageBackSymbol />
       </template>
@@ -936,6 +949,15 @@ onBeforeUnmount(() => {
   gap: var(--ds-space-8);
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.building-block-preview-tile__header-preview {
+  display: flex;
+  width: 100%;
+  padding: var(--ds-space-12);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface-base);
 }
 
 .building-block-preview-tile__chevron-row {
