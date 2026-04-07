@@ -88,7 +88,7 @@ const surfaceTone = computed(() => {
     return effectiveState.value === 'hover' ? 'button-primary-hover' : 'button-primary'
   }
   if (props.variant === 'neutral') {
-    return effectiveState.value === 'hover' ? 'button-neutral-hover' : 'button-neutral'
+    return 'menu'
   }
   return effectiveState.value === 'hover' ? 'button-subtle-hover' : 'button-subtle'
 })
