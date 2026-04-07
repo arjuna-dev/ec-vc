@@ -865,7 +865,7 @@ const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
-const NAME_COLUMN_MIN_WIDTH = 108
+const NAME_COLUMN_MIN_WIDTH = 84
 const TABLE_CONTROL_COLUMN_WIDTH = 30
 
 const SECTION_LOADERS = {
@@ -4196,7 +4196,7 @@ async function handleSelectedRowsDelete() {
 
 .test-shell-table__head--name,
 .test-shell-table__cell--name {
-  min-width: 108px;
+  min-width: 84px;
   background: rgba(255, 255, 255, 0.98);
 }
 
