@@ -2223,7 +2223,7 @@ function goBack() {
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-12);
-  border-top: 1px solid var(--ds-color-border-soft-alt);
+  border-top: 1px solid var(--ds-color-border-default);
   background: var(--ds-color-surface-subtle);
   padding: var(--ds-space-12) var(--ds-space-16);
 }

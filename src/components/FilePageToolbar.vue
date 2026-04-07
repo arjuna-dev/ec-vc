@@ -83,7 +83,7 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
   min-width: 0;
   padding: 24px 20px;
   background: var(--ds-color-surface-base);
-  border: 1px solid var(--ds-color-border-soft);
+  border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-lg);
 }
 

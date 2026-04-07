@@ -73,16 +73,16 @@
   --ds-color-surface-overlay-84: var(--ds-color-surface-overlay-light);
   --ds-color-surface-overlay-96: var(--ds-color-surface-overlay-strong);
   --ds-color-surface-inverse: var(--ds-color-surface-base);
-  --ds-color-border-soft: var(--ds-color-brand-light-grey);
-  --ds-color-border-soft-alt: #e5e7eb;
+  --ds-color-border-soft: var(--ds-color-border-default);
+  --ds-color-border-soft-alt: var(--ds-color-border-default);
   --ds-color-border-default: rgba(17, 17, 17, 0.08);
-  --ds-color-border-strong: rgba(17, 17, 17, 0.1);
+  --ds-color-border-strong: var(--ds-color-border-default);
   --ds-color-border-dashed: rgba(17, 17, 17, 0.12);
   --ds-color-fill-subtle: rgba(17, 17, 17, 0.06);
 
   --ds-control-height-md: 32px;
   --ds-control-surface: var(--ds-color-surface-base);
-  --ds-control-border: var(--ds-color-border-soft);
+  --ds-control-border: var(--ds-color-border-default);
   --ds-control-radius: var(--ds-radius-md);
   --ds-control-shadow: var(--box--shadow--shadow-xs);
   --ds-control-text: var(--ds-color-text-primary);
@@ -130,7 +130,7 @@
   --ds-button-icon-subtle-bg-hover: var(--b10-color-bg-default-default-hover);
   --ds-button-icon-subtle-text: var(--b10-color-text-default);
 
-  --ds-table-border: var(--ds-color-border-soft);
+  --ds-table-border: var(--ds-color-border-default);
   --ds-table-header-bg: #f5f5f5;
   --ds-table-header-text: var(--ds-color-text-primary);
   --ds-table-cell-text: var(--ds-color-text-primary);

@@ -45,9 +45,7 @@ export const GENERAL_SETTINGS_SURFACE_SAMPLES = Object.freeze([
 ])
 
 export const GENERAL_SETTINGS_BORDER_SAMPLES = Object.freeze([
-  { key: 'soft', label: 'Soft', token: '--ds-color-border-soft', border: '1px solid var(--ds-color-border-soft)' },
   { key: 'default', label: 'Default', token: '--ds-color-border-default', border: '1px solid var(--ds-color-border-default)' },
-  { key: 'strong', label: 'Strong', token: '--ds-color-border-strong', border: '1px solid var(--ds-color-border-strong)' },
   { key: 'dashed', label: 'Dashed', token: '--ds-color-border-dashed', border: '1px dashed var(--ds-color-border-dashed)' },
 ])
 

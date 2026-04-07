@@ -112,7 +112,7 @@ function updateGradientPosition(event) {
   gap: var(--ds-space-24);
   padding: var(--ds-space-32);
   background: var(--ds-color-surface-base);
-  border: 1px solid var(--ds-color-border-soft);
+  border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-lg);
   overflow: hidden;
   box-shadow: var(--ds-shadow-card-soft);
