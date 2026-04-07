@@ -15,7 +15,7 @@ defineProps({
   },
   iconSize: {
     type: String,
-    default: '24px',
+    default: 'var(--ds-icon-size-md)',
   },
   iconClass: {
     type: [String, Array, Object],
@@ -26,7 +26,7 @@ defineProps({
 
 <style scoped>
 .main-menu-row-icon {
-  flex: 0 0 40px;
+  flex: 0 0 var(--ds-nav-row-icon-lane);
   display: inline-flex;
   align-items: center;
   justify-content: center;

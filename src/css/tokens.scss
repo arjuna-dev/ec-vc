@@ -88,6 +88,7 @@
   --ds-color-border-dashed: rgba(17, 17, 17, 0.12);
   --ds-color-fill-subtle: rgba(17, 17, 17, 0.06);
 
+  --ds-control-height-sm: 24px;
   --ds-control-height-md: 32px;
   --ds-control-surface: var(--ds-color-surface-base);
   --ds-control-border: var(--ds-color-border-default);
@@ -113,9 +114,14 @@
   --ds-button-line-height: var(--ds-line-height-sm);
   --ds-icon-size-sm: 16px;
   --ds-icon-size-md: 20px;
+  --ds-icon-button-size-sm: 32px;
+  --ds-icon-button-size-md: 44px;
+  --ds-icon-button-padding-sm: var(--ds-space-8);
+  --ds-icon-button-padding-md: var(--ds-space-12);
   --ds-button-icon-size: var(--ds-icon-size-sm);
   --ds-icon-button-radius: 32px;
   --ds-icon-button-icon-size: var(--ds-icon-size-md);
+  --ds-nav-row-icon-lane: calc(var(--ds-space-32) + var(--ds-space-8));
 
   --ds-button-primary-bg: var(--b10-color-bg-brand-default);
   --ds-button-primary-bg-hover: var(--b10-color-bg-brand-hover);

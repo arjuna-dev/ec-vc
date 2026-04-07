@@ -4,9 +4,8 @@
 
 <style scoped>
 .dropdown-chevron {
-  color: #111111;
-  font-size: 20px;
+  color: var(--ds-color-text-primary);
+  font-size: var(--ds-icon-size-md);
   line-height: 1;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
 }
 </style>

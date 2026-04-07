@@ -59,7 +59,9 @@ const effectiveState = computed(() => {
   return props.state === 'hover' ? 'hover' : 'default'
 })
 
-const padding = computed(() => (props.size === 'small' ? '8px' : '12px'))
+const padding = computed(() =>
+  props.size === 'small' ? 'var(--ds-icon-button-padding-sm)' : 'var(--ds-icon-button-padding-md)',
+)
 
 const buttonClasses = computed(() => [
   'b10-icon-btn',
@@ -72,7 +74,7 @@ const buttonClasses = computed(() => [
 <style scoped lang="scss">
 .b10-icon-btn {
   border: 1px solid transparent;
-  border-radius: 50%;
+  border-radius: var(--ds-radius-round);
   min-height: 0;
   min-width: 0;
 
@@ -88,15 +90,14 @@ const buttonClasses = computed(() => [
   :deep(.q-icon) {
     display: block;
     font-size: var(--ds-icon-size-md);
-    transform: translateY(0.5px);
   }
 }
 
 .b10-icon-btn--small {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
+  width: var(--ds-icon-button-size-sm);
+  height: var(--ds-icon-button-size-sm);
+  min-width: var(--ds-icon-button-size-sm);
+  min-height: var(--ds-icon-button-size-sm);
 
   :deep(.q-icon) {
     font-size: var(--ds-icon-size-sm);
@@ -104,10 +105,10 @@ const buttonClasses = computed(() => [
 }
 
 .b10-icon-btn--medium {
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  min-height: 44px;
+  width: var(--ds-icon-button-size-md);
+  height: var(--ds-icon-button-size-md);
+  min-width: var(--ds-icon-button-size-md);
+  min-height: var(--ds-icon-button-size-md);
 }
 
 .b10-icon-btn--primary.b10-icon-btn--state-default {

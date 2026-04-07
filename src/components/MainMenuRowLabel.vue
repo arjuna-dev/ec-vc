@@ -17,8 +17,8 @@ defineProps({
   min-width: 0;
   color: inherit;
   font-family: var(--ds-font-body);
-  font-size: 13px;
+  font-size: var(--ds-font-size-sm);
   font-weight: var(--ds-font-weight-light);
-  line-height: 1.2;
+  line-height: var(--ds-line-height-sm);
 }
 </style>

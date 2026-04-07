@@ -22,13 +22,13 @@ defineEmits(['click'])
 
 <style scoped>
 .eye-icon-button {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
+  width: var(--ds-control-height-sm);
+  height: var(--ds-control-height-sm);
+  min-width: var(--ds-control-height-sm);
+  min-height: var(--ds-control-height-sm);
   padding: 0;
-  border-radius: 50%;
-  color: rgba(17, 17, 17, 0.82);
+  border-radius: var(--ds-radius-round);
+  color: var(--ds-color-text-primary);
 }
 
 .eye-icon-button :deep(.q-btn__content) {
@@ -42,7 +42,6 @@ defineEmits(['click'])
 
 .eye-icon-button :deep(.q-icon) {
   display: block;
-  font-size: 16px;
-  transform: translateY(0.5px);
+  font-size: var(--ds-icon-size-sm);
 }
 </style>
