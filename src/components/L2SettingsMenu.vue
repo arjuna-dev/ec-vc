@@ -15,6 +15,7 @@
         <ToggleRowIcons
           :label="group.label"
           :expanded="group.expanded !== false"
+          :interactive="false"
         />
       </button>
 

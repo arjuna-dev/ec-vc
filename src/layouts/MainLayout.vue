@@ -245,85 +245,18 @@
         class="ec-quick-widget-settings-menu"
       >
         <div class="ec-quick-widget-settings-window">
-          <div class="ec-quick-widget-settings-panel">
-            <div
-              class="ec-quick-widget-settings-panel__header"
-              :class="{ 'ec-quick-widget-settings-panel__header--dragging': quickWidgetSettingsIsDragging }"
-              @pointerdown.stop="onQuickWidgetSettingsPointerDown"
-            >
-              <div class="ec-quick-widget-settings-panel__title">Widget Settings</div>
-              <div class="ec-quick-widget-settings-panel__caption">
-                Show, hide and reorder files
-              </div>
-            </div>
-
-            <div class="ec-quick-widget-settings-panel__list">
-              <section
-                v-for="settingsSection in quickWidgetSettingsSections"
-                :key="settingsSection.id"
-                class="ec-quick-widget-settings-section"
-              >
-                <button
-                  type="button"
-                  class="ec-quick-widget-settings-section__toggle"
-                  @click="toggleQuickWidgetSettingsSection(settingsSection.id)"
-                >
-                  <span class="ec-quick-widget-settings-section__title">{{ settingsSection.label }}</span>
-                  <q-icon
-                    :name="isQuickWidgetSettingsSectionOpen(settingsSection.id) ? 'expand_less' : 'expand_more'"
-                    size="16px"
-                    class="ec-quick-widget-settings-section__chevron"
-                  />
-                </button>
-
-                <template v-if="isQuickWidgetSettingsSectionOpen(settingsSection.id)">
-                  <div
-                    v-for="settingsAction in settingsSection.actions"
-                    :key="settingsAction.id"
-                    class="ec-quick-widget-settings-row"
-                  >
-                    <q-checkbox
-                      :model-value="isQuickWidgetActionEnabled(settingsAction.id)"
-                      dense
-                      size="xs"
-                      checked-icon="check_box"
-                      unchecked-icon="check_box_outline_blank"
-                      class="ec-quick-widget-settings-row__checkbox"
-                      @update:model-value="setQuickWidgetActionEnabled(settingsAction.id, $event)"
-                    />
-
-                    <div class="ec-quick-widget-settings-row__copy">
-                      <div class="ec-quick-widget-settings-row__label">{{ settingsAction.label }}</div>
-                    </div>
-
-                    <div class="ec-quick-widget-settings-row__actions">
-                      <q-btn
-                        flat
-                        dense
-                        round
-                        :disable="settingsAction.orderIndex === 0"
-                        @click.stop="moveQuickWidgetAction(settingsAction.id, -1)"
-                      >
-                        <svg viewBox="0 0 24 24" aria-hidden="true" class="ec-quick-widget-settings-row__chevron">
-                          <path d="M7 14L12 9L17 14" />
-                        </svg>
-                      </q-btn>
-                      <q-btn
-                        flat
-                        dense
-                        round
-                        :disable="settingsAction.orderIndex === quickWidgetSettingsActionCount - 1"
-                        @click.stop="moveQuickWidgetAction(settingsAction.id, 1)"
-                      >
-                        <svg viewBox="0 0 24 24" aria-hidden="true" class="ec-quick-widget-settings-row__chevron">
-                          <path d="M7 10L12 15L17 10" />
-                        </svg>
-                      </q-btn>
-                    </div>
-                  </div>
-                </template>
-              </section>
-            </div>
+          <div
+            class="ec-quick-widget-settings-panel-shell"
+            :class="{ 'ec-quick-widget-settings-panel-shell--dragging': quickWidgetSettingsIsDragging }"
+          >
+            <WidgetSettingsMenu
+              :sections="quickWidgetSettingsSections"
+              :open-section-ids="quickWidgetSettingsOpenSectionIds"
+              @header-pointerdown="onQuickWidgetSettingsPointerDown"
+              @toggle-section="toggleQuickWidgetSettingsSection"
+              @set-enabled="setQuickWidgetActionEnabled"
+              @move-action="moveQuickWidgetAction"
+            />
           </div>
         </div>
       </q-menu>
@@ -430,6 +363,7 @@ import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
+import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import {
@@ -903,8 +837,6 @@ const quickWidgetSettingsActions = computed(() =>
     .map((action, orderIndex) => ({ ...action, orderIndex })),
 )
 
-const quickWidgetSettingsActionCount = computed(() => quickWidgetSettingsActions.value.length)
-
 const quickWidgetSettingsSections = computed(() => {
   const sectionDefs = [
     { id: 'files', label: 'Files' },
@@ -914,10 +846,21 @@ const quickWidgetSettingsSections = computed(() => {
   return sectionDefs
     .map((section) => ({
       ...section,
-      actions: quickWidgetSettingsActions.value.filter((action) => action.group === section.id),
+      actions: quickWidgetSettingsActions.value
+        .filter((action) => action.group === section.id)
+        .map((action) => ({
+          ...action,
+          enabled: isQuickWidgetActionEnabled(action.id),
+        })),
     }))
     .filter((section) => section.actions.length)
 })
+
+const quickWidgetSettingsOpenSectionIds = computed(() =>
+  quickWidgetSettingsSections.value
+    .map((section) => section.id)
+    .filter((sectionId) => quickWidgetSettingsSectionOpen.value[String(sectionId || '').trim()] !== false),
+)
 
 const quickWidgetActions = computed(() =>
   quickWidgetActionCatalog.value.filter((action) => isQuickWidgetActionEnabled(action.id)),
@@ -2265,6 +2208,16 @@ function goBack() {
 
 .ec-quick-widget-settings-window {
   will-change: transform;
+}
+
+.ec-quick-widget-settings-panel-shell {
+  display: inline-flex;
+  cursor: grab;
+  user-select: none;
+}
+
+.ec-quick-widget-settings-panel-shell--dragging {
+  cursor: grabbing;
 }
 
 .ec-quick-widget-settings-panel {

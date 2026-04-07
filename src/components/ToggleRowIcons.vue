@@ -12,15 +12,16 @@
     </svg>
   </div>
 
-  <button
+  <component
+    :is="interactive ? 'button' : 'span'"
     v-else
-    type="button"
+    :type="interactive ? 'button' : undefined"
     class="toggle-row-icons toggle-row-icons--toggle"
     :class="{ 'toggle-row-icons--muted': tone === 'muted' }"
   >
     <span class="toggle-row-icons__label">{{ label }}</span>
     <q-icon :name="iconName" class="toggle-row-icons__icon" />
-  </button>
+  </component>
 </template>
 
 <script setup>
@@ -49,6 +50,10 @@ const props = defineProps({
     type: String,
     default: 'default',
     validator: (value) => ['default', 'muted'].includes(value),
+  },
+  interactive: {
+    type: Boolean,
+    default: true,
   },
 })
 

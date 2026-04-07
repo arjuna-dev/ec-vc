@@ -158,45 +158,10 @@
         <div class="components-shell-page__card-label">Widget Settings Menu</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('widget-settings-menu')">{{ componentStatusLabel('widget-settings-menu') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
-          <div class="components-shell-page__widget-settings-panel">
-            <div class="components-shell-page__widget-settings-header">
-              <div class="components-shell-page__widget-settings-eyebrow">Widget</div>
-              <div class="components-shell-page__widget-settings-title">Widget Settings</div>
-              <div class="components-shell-page__widget-settings-caption">Show, hide and reorder files</div>
-            </div>
-            <div class="components-shell-page__widget-settings-list">
-              <section class="components-shell-page__widget-settings-section">
-                <button type="button" class="components-shell-page__widget-settings-toggle">
-                  <span class="components-shell-page__widget-settings-section-title">Files</span>
-                  <q-icon name="expand_less" size="16px" class="components-shell-page__widget-settings-section-chevron" />
-                </button>
-                <div class="components-shell-page__widget-settings-row">
-                  <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" class="components-shell-page__widget-settings-checkbox" />
-                  <div class="components-shell-page__widget-settings-row-label">Companies</div>
-                  <div class="components-shell-page__widget-settings-row-actions">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-                      <path d="M7 14L12 9L17 14" />
-                    </svg>
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-                      <path d="M7 10L12 15L17 10" />
-                    </svg>
-                  </div>
-                </div>
-                <div class="components-shell-page__widget-settings-row">
-                  <q-checkbox model-value dense size="xs" checked-icon="check_box" unchecked-icon="check_box_outline_blank" class="components-shell-page__widget-settings-checkbox" />
-                  <div class="components-shell-page__widget-settings-row-label">Users</div>
-                  <div class="components-shell-page__widget-settings-row-actions">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-                      <path d="M7 14L12 9L17 14" />
-                    </svg>
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="components-shell-page__widget-settings-row-chevron">
-                      <path d="M7 10L12 15L17 10" />
-                    </svg>
-                  </div>
-                </div>
-              </section>
-            </div>
-          </div>
+          <WidgetSettingsMenu
+            :sections="widgetSettingsSampleSections"
+            :open-section-ids="widgetSettingsOpenSectionIds"
+          />
         </div>
       </article>
       <article class="components-shell-page__card components-shell-page__card--md">
@@ -378,6 +343,7 @@ import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
+import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
 
@@ -404,6 +370,17 @@ const l2SettingsSampleGroups = [
     ],
   },
 ]
+const widgetSettingsSampleSections = [
+  {
+    id: 'files',
+    label: 'Files',
+    actions: [
+      { id: 'companies', label: 'Companies', enabled: true, orderIndex: 0 },
+      { id: 'users', label: 'Users', enabled: true, orderIndex: 1 },
+    ],
+  },
+]
+const widgetSettingsOpenSectionIds = ['files']
 const openSections = ref({
   basic: true,
   navigation: true,

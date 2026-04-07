@@ -93,6 +93,13 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'widget-settings-menu'">
+        <WidgetSettingsMenu
+          :sections="widgetSettingsSampleSections"
+          :open-section-ids="widgetSettingsOpenSectionIds"
+        />
+      </template>
+
       <template v-else-if="blockKey === 'dialog-shell-title-row'">
         <DialogShellTitleRow
           title="Edit Building Block"
@@ -574,6 +581,7 @@ import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import ValueChip from 'src/components/ValueChip.vue'
 import ValueChipLabel from 'src/components/ValueChipLabel.vue'
 import ValueChipSurface from 'src/components/ValueChipSurface.vue'
+import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
 const l2SettingsSampleGroups = [
   {
     key: 'general',
@@ -594,6 +602,19 @@ const l2SettingsSampleGroups = [
     ],
   },
 ]
+
+const widgetSettingsSampleSections = [
+  {
+    id: 'files',
+    label: 'Files',
+    actions: [
+      { id: 'companies', label: 'Companies', enabled: true, orderIndex: 0 },
+      { id: 'users', label: 'Users', enabled: true, orderIndex: 1 },
+    ],
+  },
+]
+
+const widgetSettingsOpenSectionIds = ['files']
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,
