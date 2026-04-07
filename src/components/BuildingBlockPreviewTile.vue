@@ -56,6 +56,16 @@
         <ValueChip label="Companies" tone="default" />
       </template>
 
+      <template v-else-if="blockKey === 'value-chip-surface'">
+        <ValueChipSurface tone="default">
+          <span style="width: 44px; height: 1px;" />
+        </ValueChipSurface>
+      </template>
+
+      <template v-else-if="blockKey === 'value-chip-label'">
+        <ValueChipLabel label="Companies" tone="default" />
+      </template>
+
       <template v-else-if="blockKey === 'dropdown-chevron'">
         <DropdownChevron />
       </template>
@@ -520,6 +530,8 @@ import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import ValueChip from 'src/components/ValueChip.vue'
+import ValueChipLabel from 'src/components/ValueChipLabel.vue'
+import ValueChipSurface from 'src/components/ValueChipSurface.vue'
 const l2SettingsSampleGroups = [
   {
     key: 'general',
