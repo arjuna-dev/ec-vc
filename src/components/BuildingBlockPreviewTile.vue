@@ -37,6 +37,187 @@
         </div>
       </template>
 
+      <template v-else-if="blockKey === 'fonts'">
+        <div class="building-block-preview-tile__foundation-stack">
+          <article
+            v-for="sample in foundationFontSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-panel"
+          >
+            <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+            <div class="building-block-preview-tile__foundation-font-sample" :style="{ fontFamily: sample.fontFamily }">
+              {{ sample.sample }}
+            </div>
+            <div class="building-block-preview-tile__foundation-token">{{ sample.token }}</div>
+          </article>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'type-scale'">
+        <div class="building-block-preview-tile__foundation-stack">
+          <div
+            v-for="sample in foundationTypeScaleSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-type-row"
+          >
+            <div class="building-block-preview-tile__foundation-type-meta">
+              <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+              <div class="building-block-preview-tile__foundation-token">{{ sample.token }}</div>
+            </div>
+            <div class="building-block-preview-tile__foundation-type-sample" :style="{ fontSize: sample.size }">
+              Sample Text
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'font-weights'">
+        <div class="building-block-preview-tile__foundation-grid">
+          <article
+            v-for="sample in foundationFontWeightSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-card"
+          >
+            <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+            <div class="building-block-preview-tile__foundation-weight-sample" :style="{ fontWeight: sample.weight }">
+              Weight Sample
+            </div>
+            <div class="building-block-preview-tile__foundation-token">{{ sample.token }}</div>
+          </article>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'colors'">
+        <div class="building-block-preview-tile__foundation-grid">
+          <article
+            v-for="sample in foundationColorSwatches"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-card"
+          >
+            <div class="building-block-preview-tile__foundation-swatch" :style="{ background: sample.color }" />
+            <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+            <div class="building-block-preview-tile__foundation-token">{{ sample.token }}</div>
+          </article>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'surfaces'">
+        <div class="building-block-preview-tile__foundation-grid">
+          <article
+            v-for="sample in foundationSurfaceSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-card"
+          >
+            <div class="building-block-preview-tile__foundation-surface" :style="{ background: sample.background }" />
+            <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+            <div class="building-block-preview-tile__foundation-token">{{ sample.token }}</div>
+          </article>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'borders'">
+        <div class="building-block-preview-tile__foundation-grid">
+          <article
+            v-for="sample in foundationBorderSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-card"
+          >
+            <div class="building-block-preview-tile__foundation-border-sample" :style="{ border: sample.border }" />
+            <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+            <div class="building-block-preview-tile__foundation-token">{{ sample.token }}</div>
+          </article>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'radius'">
+        <div class="building-block-preview-tile__foundation-grid">
+          <article
+            v-for="sample in foundationRadiusSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-card"
+          >
+            <div class="building-block-preview-tile__foundation-radius-sample" :style="{ borderRadius: sample.radius }" />
+            <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+            <div class="building-block-preview-tile__foundation-token">{{ sample.token }}</div>
+          </article>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'shadows'">
+        <div class="building-block-preview-tile__foundation-grid">
+          <article
+            v-for="sample in foundationShadowSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-card"
+          >
+            <div class="building-block-preview-tile__foundation-shadow-sample" :style="{ boxShadow: sample.shadow }" />
+            <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+            <div class="building-block-preview-tile__foundation-token">{{ sample.token }}</div>
+          </article>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'spacing'">
+        <div class="building-block-preview-tile__foundation-stack">
+          <div
+            v-for="sample in foundationSpacingSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-spacing-row"
+          >
+            <div class="building-block-preview-tile__foundation-type-meta">
+              <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}px</div>
+              <div class="building-block-preview-tile__foundation-token">{{ sample.token }}</div>
+            </div>
+            <div class="building-block-preview-tile__foundation-spacing-track">
+              <div class="building-block-preview-tile__foundation-spacing-bar" :style="{ width: sample.width }" />
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'icon-sizing'">
+        <div class="building-block-preview-tile__foundation-grid">
+          <article
+            v-for="sample in foundationIconSizeSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-card"
+          >
+            <div class="building-block-preview-tile__foundation-icon-sample" :style="{ width: sample.size, height: sample.size }">
+              <q-icon name="add" :size="sample.size" />
+            </div>
+            <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+            <div class="building-block-preview-tile__foundation-token">{{ sample.token }}</div>
+          </article>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'formatting-rules'">
+        <div class="building-block-preview-tile__foundation-grid">
+          <article
+            v-for="sample in foundationFormattingSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-card"
+          >
+            <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+            <div class="building-block-preview-tile__foundation-format-value">{{ sample.value }}</div>
+          </article>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'motion-rules'">
+        <div class="building-block-preview-tile__foundation-grid">
+          <article
+            v-for="sample in foundationMotionSamples"
+            :key="sample.key"
+            class="building-block-preview-tile__foundation-card"
+          >
+            <div class="building-block-preview-tile__foundation-meta">{{ sample.label }}</div>
+            <div class="building-block-preview-tile__foundation-motion-sample" :style="{ transform: sample.transform }" />
+            <div class="building-block-preview-tile__foundation-token">{{ sample.detail }}</div>
+          </article>
+        </div>
+      </template>
+
       <template v-else-if="blockKey === 'plus-icon'">
         <button
           type="button"
@@ -119,6 +300,20 @@ import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
+import {
+  GENERAL_SETTINGS_BORDER_SAMPLES,
+  GENERAL_SETTINGS_COLOR_SWATCHES,
+  GENERAL_SETTINGS_FONT_SAMPLES,
+  GENERAL_SETTINGS_FONT_WEIGHT_SAMPLES,
+  GENERAL_SETTINGS_FORMATTING_SAMPLES,
+  GENERAL_SETTINGS_ICON_SIZE_SAMPLES,
+  GENERAL_SETTINGS_MOTION_SAMPLES,
+  GENERAL_SETTINGS_RADIUS_SAMPLES,
+  GENERAL_SETTINGS_SHADOW_SAMPLES,
+  GENERAL_SETTINGS_SPACING_SAMPLES,
+  GENERAL_SETTINGS_SURFACE_SAMPLES,
+  GENERAL_SETTINGS_TYPE_SCALE_SAMPLES,
+} from 'src/utils/generalSettingsCatalog'
 
 const props = defineProps({
   blockKey: { type: String, required: true },
@@ -139,7 +334,7 @@ const statusClass = computed(() =>
     : 'building-block-preview-tile__status--extract',
 )
 const stageClass = computed(() =>
-  ['file-dashboard', 'home-dashboard', 'file-toolbar', 'l2-toolbar'].includes(props.blockKey)
+  ['fonts', 'type-scale', 'colors', 'surfaces', 'spacing', 'formatting-rules', 'motion-rules', 'file-dashboard', 'home-dashboard', 'file-toolbar', 'l2-toolbar'].includes(props.blockKey)
     ? 'building-block-preview-tile__stage--stretch'
     : props.blockKey === 'page-title-crumb'
       ? 'building-block-preview-tile__stage--left'
@@ -177,6 +372,19 @@ const l2ToolbarItems = [
   { value: 'kdb', title: 'KDB', isKdb: true, isSystem: false, pushRight: true },
   { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
 ]
+
+const foundationFontSamples = GENERAL_SETTINGS_FONT_SAMPLES
+const foundationTypeScaleSamples = GENERAL_SETTINGS_TYPE_SCALE_SAMPLES
+const foundationFontWeightSamples = GENERAL_SETTINGS_FONT_WEIGHT_SAMPLES
+const foundationColorSwatches = GENERAL_SETTINGS_COLOR_SWATCHES
+const foundationSurfaceSamples = GENERAL_SETTINGS_SURFACE_SAMPLES
+const foundationBorderSamples = GENERAL_SETTINGS_BORDER_SAMPLES
+const foundationRadiusSamples = GENERAL_SETTINGS_RADIUS_SAMPLES
+const foundationShadowSamples = GENERAL_SETTINGS_SHADOW_SAMPLES
+const foundationSpacingSamples = GENERAL_SETTINGS_SPACING_SAMPLES
+const foundationIconSizeSamples = GENERAL_SETTINGS_ICON_SIZE_SAMPLES
+const foundationFormattingSamples = GENERAL_SETTINGS_FORMATTING_SAMPLES
+const foundationMotionSamples = GENERAL_SETTINGS_MOTION_SAMPLES
 
 const fileDashboardHealth = [
   { tone: 'positive', width: 58 },
@@ -476,6 +684,151 @@ watch(
   font-weight: var(--font-weight-black);
   line-height: 1;
   letter-spacing: -0.02em;
+}
+
+.building-block-preview-tile__foundation-stack {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.building-block-preview-tile__foundation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.building-block-preview-tile__foundation-panel,
+.building-block-preview-tile__foundation-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  min-width: 0;
+}
+
+.building-block-preview-tile__foundation-meta {
+  color: rgba(17, 17, 17, 0.58);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-medium);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.building-block-preview-tile__foundation-token {
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-xs-regular);
+  line-height: var(--ds-line-height-xs);
+  word-break: break-word;
+}
+
+.building-block-preview-tile__foundation-font-sample {
+  color: var(--ds-color-text-primary);
+  font-size: var(--ds-font-size-base-regular);
+  line-height: var(--ds-line-height-base);
+}
+
+.building-block-preview-tile__foundation-type-row,
+.building-block-preview-tile__foundation-spacing-row {
+  display: grid;
+  grid-template-columns: minmax(132px, 160px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.building-block-preview-tile__foundation-type-meta {
+  display: grid;
+  gap: 4px;
+}
+
+.building-block-preview-tile__foundation-type-sample {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-title);
+  font-weight: var(--ds-font-weight-black);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.building-block-preview-tile__foundation-weight-sample {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-body);
+  font-size: var(--ds-font-size-sm-regular);
+  line-height: var(--ds-line-height-sm);
+}
+
+.building-block-preview-tile__foundation-swatch,
+.building-block-preview-tile__foundation-surface,
+.building-block-preview-tile__foundation-border-sample,
+.building-block-preview-tile__foundation-radius-sample,
+.building-block-preview-tile__foundation-shadow-sample {
+  width: 100%;
+  min-height: 56px;
+  border-radius: 12px;
+}
+
+.building-block-preview-tile__foundation-swatch {
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.building-block-preview-tile__foundation-surface {
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.building-block-preview-tile__foundation-border-sample,
+.building-block-preview-tile__foundation-radius-sample,
+.building-block-preview-tile__foundation-shadow-sample {
+  background: rgba(248, 250, 252, 0.84);
+}
+
+.building-block-preview-tile__foundation-spacing-track {
+  display: flex;
+  align-items: center;
+  min-height: 14px;
+  width: 100%;
+}
+
+.building-block-preview-tile__foundation-spacing-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--ds-color-brand-blue);
+}
+
+.building-block-preview-tile__foundation-icon-sample {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: var(--ds-color-brand-blue);
+  border-radius: 999px;
+}
+
+.building-block-preview-tile__foundation-format-value {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-title);
+  font-size: var(--ds-font-size-base-regular);
+  font-weight: var(--ds-font-weight-black);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.building-block-preview-tile__foundation-motion-sample {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(38, 71, 255, 0.18), rgba(17, 17, 17, 0.08)),
+    var(--ds-color-surface-subtle);
+  border: 1px solid rgba(17, 17, 17, 0.08);
 }
 
 .building-block-preview-tile__placeholder {
