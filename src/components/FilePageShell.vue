@@ -158,6 +158,61 @@
         @update:search-query="searchQuery = $event"
         @update:view-mode="viewMode = $event"
       >
+        <template #primary-trailing>
+          <div v-if="isBbFileSource && activeBbFilterGroup" class="bb-shell-toolbar-filter">
+            <button
+              type="button"
+              class="bb-shell-toolbar-filter__chip"
+              :aria-label="`Selected building block filter ${activeBbFilterLabel}`"
+            >
+              <span class="bb-shell-toolbar-filter__chip-label">{{ activeBbFilterLabel }}</span>
+              <q-menu
+                anchor="bottom left"
+                self="top left"
+                class="test-shell-filters-menu"
+                content-class="test-shell-filters-menu__content"
+              >
+                <div class="test-shell-filters-panel">
+                  <div class="test-shell-filters-panel__title">{{ activeBbFilterGroup.label }}</div>
+                  <div class="test-shell-filters-panel__rows">
+                    <div class="test-shell-filter-group">
+                      <div class="test-shell-filter-group__children">
+                        <button
+                          type="button"
+                          class="test-shell-filter-child-row"
+                          :class="{ 'test-shell-filter-child-row--selected': !activeBbBlockKey }"
+                          @click="applyBbFilterSelection(`category:${activeBbFilterGroup.key}`)"
+                        >
+                          <span class="test-shell-filter-child-row__label">{{ activeBbFilterGroup.label }}</span>
+                        </button>
+                        <button
+                          v-for="block in activeBbFilterGroup.blocks"
+                          :key="`active-filter:${block.key}`"
+                          type="button"
+                          class="test-shell-filter-child-row"
+                          :class="{ 'test-shell-filter-child-row--selected': block.key === activeBbBlockKey }"
+                          @click="applyBbFilterSelection(`block:${block.key}`)"
+                        >
+                          <span class="test-shell-filter-child-row__label">{{ block.label }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </q-menu>
+            </button>
+
+            <button
+              type="button"
+              class="bb-shell-toolbar-filter__clear"
+              aria-label="Clear building block filter"
+              @click="clearActiveBbFilter()"
+            >
+              <q-icon name="close" size="14px" />
+            </button>
+          </div>
+        </template>
+
         <template #filters>
           <q-btn flat round dense class="test-shell-filters-trigger" icon="filter_list" aria-label="File shell filters">
             <q-menu
@@ -166,7 +221,78 @@
               class="test-shell-filters-menu"
               content-class="test-shell-filters-menu__content"
             >
-              <div class="test-shell-filters-panel">
+              <div v-if="isBbFileSource" class="test-shell-filters-panel test-shell-filters-panel--bb">
+                <div class="test-shell-filters-panel__title">Building Block Filter</div>
+
+                <div class="test-shell-filters-panel__rows test-shell-filters-panel__rows--bb">
+                  <div
+                    v-for="group in bbFilterGroups"
+                    :key="group.key"
+                    class="test-shell-filter-group"
+                  >
+                    <button
+                      type="button"
+                      class="test-shell-filter-heading"
+                      @click="toggleExpandedBbFilterCategory(group.key)"
+                    >
+                      <span class="test-shell-filter-heading__label">{{ group.label }}</span>
+                      <span class="test-shell-filter-heading__meta">{{ group.blocks.length }}</span>
+                      <q-icon
+                        :name="expandedBbFilterCategoryKey === group.key ? 'expand_less' : 'expand_more'"
+                        size="14px"
+                        class="test-shell-filter-heading__chevron"
+                      />
+                    </button>
+
+                    <div
+                      v-if="expandedBbFilterCategoryKey === group.key"
+                      class="test-shell-filter-group__children"
+                    >
+                      <button
+                        type="button"
+                        class="test-shell-filter-child-row"
+                        :class="{ 'test-shell-filter-child-row--selected': activeBbCategoryKey === group.key && !activeBbBlockKey }"
+                        @click="applyBbFilterSelection(`category:${group.key}`)"
+                      >
+                        <q-checkbox
+                          :model-value="activeBbCategoryKey === group.key && !activeBbBlockKey"
+                          dense
+                          size="xs"
+                          checked-icon="check_box"
+                          unchecked-icon="check_box_outline_blank"
+                          class="test-shell-filter-child-row__checkbox"
+                          @update:model-value="toggleBbCategoryFilter(group.key, $event)"
+                          @click.stop
+                        />
+                        <span class="test-shell-filter-child-row__label">{{ group.label }}</span>
+                      </button>
+
+                      <button
+                        v-for="block in group.blocks"
+                        :key="block.key"
+                        type="button"
+                        class="test-shell-filter-child-row"
+                        :class="{ 'test-shell-filter-child-row--selected': block.key === activeBbBlockKey }"
+                        @click="applyBbFilterSelection(`block:${block.key}`)"
+                      >
+                        <q-checkbox
+                          :model-value="block.key === activeBbBlockKey"
+                          dense
+                          size="xs"
+                          checked-icon="check_box"
+                          unchecked-icon="check_box_outline_blank"
+                          class="test-shell-filter-child-row__checkbox"
+                          @update:model-value="toggleBbBlockFilter(block.key, $event)"
+                          @click.stop
+                        />
+                        <span class="test-shell-filter-child-row__label">{{ block.label }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="test-shell-filters-panel">
                 <div class="test-shell-filters-panel__title">File Filter</div>
 
                 <div class="test-shell-filters-panel__rows">
@@ -1023,6 +1149,9 @@ const activeSectionKeyForCards = ref('')
 const activeFilterSectionKey = ref('')
 const activeFilterTokenKey = ref('')
 const expandedFilterSectionKey = ref('')
+const activeBbCategoryKey = ref('')
+const activeBbBlockKey = ref('')
+const expandedBbFilterCategoryKey = ref('')
 const expandedCardSettingsGroupsBySource = ref({})
 
 const activeSection = computed(() => {
@@ -1333,6 +1462,13 @@ const displayRows = computed(() => {
   return rawRows.value
     .map((row, index) => buildShellRow(row, index))
     .filter((row) => {
+      if (isBbFileSource.value) {
+        const blockKey = getBbTileBlockKey(row)
+        const categoryKey = String(row?.raw?.Category || '').trim().toLowerCase()
+
+        if (activeBbCategoryKey.value && categoryKey !== activeBbCategoryKey.value) return false
+        if (activeBbBlockKey.value && blockKey !== activeBbBlockKey.value) return false
+      }
       if (activeFilterSectionKey.value && !row.sectionPresence[activeFilterSectionKey.value]) return false
       if (activeFilterTokenKey.value && !row.tokenPresence[activeFilterTokenKey.value]) return false
       if (!query) return true
@@ -1632,6 +1768,50 @@ const multiTokenFilterSections = computed(() =>
   level2Sections.value.filter((section) => getFilterSectionTokenCount(section.key) > 1),
 )
 
+const bbFilterGroups = computed(() => {
+  if (!isBbFileSource.value) return []
+
+  const groups = []
+  const groupsByKey = new Map()
+
+  rawRows.value.forEach((row) => {
+    const blockKey = getBbTileBlockKey({ raw: row, recordId: row?.id })
+    if (!blockKey) return
+
+    const label = String(row?.Category || '').trim() || 'Uncategorized'
+    const key = label.toLowerCase()
+    const blockLabel = String(row?.Name || blockKey).trim() || blockKey
+
+    if (!groupsByKey.has(key)) {
+      const group = { key, label, blocks: [] }
+      groupsByKey.set(key, group)
+      groups.push(group)
+    }
+
+    groupsByKey.get(key).blocks.push({
+      key: blockKey,
+      label: blockLabel,
+    })
+  })
+
+  groups.forEach((group) => {
+    group.blocks.sort((left, right) => left.label.localeCompare(right.label, undefined, { sensitivity: 'base' }))
+  })
+
+  return groups
+})
+
+const activeBbFilterGroup = computed(() =>
+  bbFilterGroups.value.find((group) => group.key === activeBbCategoryKey.value) || null,
+)
+
+const activeBbFilterLabel = computed(() => {
+  if (!activeBbFilterGroup.value) return ''
+  if (!activeBbBlockKey.value) return activeBbFilterGroup.value.label
+  const block = activeBbFilterGroup.value.blocks.find((entry) => entry.key === activeBbBlockKey.value)
+  return block ? `${activeBbFilterGroup.value.label} > ${block.label}` : activeBbFilterGroup.value.label
+})
+
 const BB_TILE_SIZE_PRIORITY = Object.freeze({
   'full-row': 100,
   'hero-dashboard': 90,
@@ -1683,6 +1863,29 @@ const bbTileGroups = computed(() => {
 
   return groups
 })
+
+watch(
+  bbFilterGroups,
+  (groups) => {
+    if (!isBbFileSource.value) return
+
+    if (activeBbCategoryKey.value && !groups.some((group) => group.key === activeBbCategoryKey.value)) {
+      activeBbCategoryKey.value = ''
+    }
+
+    if (
+      activeBbBlockKey.value &&
+      !groups.some((group) => group.blocks.some((block) => block.key === activeBbBlockKey.value))
+    ) {
+      activeBbBlockKey.value = ''
+    }
+
+    if (expandedBbFilterCategoryKey.value && !groups.some((group) => group.key === expandedBbFilterCategoryKey.value)) {
+      expandedBbFilterCategoryKey.value = ''
+    }
+  },
+  { immediate: true },
+)
 
 watch(
   bbTileGroups,
@@ -1746,6 +1949,9 @@ watch(
     searchQuery.value = ''
     activeFilterSectionKey.value = ''
     activeFilterTokenKey.value = ''
+    activeBbCategoryKey.value = ''
+    activeBbBlockKey.value = ''
+    expandedBbFilterCategoryKey.value = ''
     expandedFilterSectionKey.value = ''
     await loadRows()
     activeSectionKeyForCards.value = getDefaultActiveSectionKey(level2Sections.value)
@@ -3265,6 +3471,80 @@ function applyFilterSelection(value) {
   }
 }
 
+function setActiveBbCategory(categoryKey) {
+  activeBbCategoryKey.value = categoryKey
+  if (activeBbBlockKey.value) {
+    const selectedStillVisible = bbFilterGroups.value.some(
+      (group) => group.key === categoryKey && group.blocks.some((block) => block.key === activeBbBlockKey.value),
+    )
+    if (!selectedStillVisible) activeBbBlockKey.value = ''
+  }
+}
+
+function clearBbCategoryFilter() {
+  activeBbCategoryKey.value = ''
+}
+
+function setActiveBbBlock(blockKey) {
+  activeBbBlockKey.value = blockKey
+  const matchingGroup = bbFilterGroups.value.find((group) => group.blocks.some((block) => block.key === blockKey))
+  if (matchingGroup) activeBbCategoryKey.value = matchingGroup.key
+}
+
+function clearBbBlockFilter() {
+  activeBbBlockKey.value = ''
+}
+
+function clearActiveBbFilter() {
+  clearBbBlockFilter()
+  clearBbCategoryFilter()
+  expandedBbFilterCategoryKey.value = ''
+}
+
+function toggleBbCategoryFilter(categoryKey, nextValue) {
+  if (nextValue === false) {
+    clearBbBlockFilter()
+    clearBbCategoryFilter()
+    return
+  }
+  setActiveBbCategory(categoryKey)
+}
+
+function toggleBbBlockFilter(blockKey, nextValue) {
+  if (nextValue === false) {
+    clearBbBlockFilter()
+    return
+  }
+  setActiveBbBlock(blockKey)
+}
+
+function toggleExpandedBbFilterCategory(categoryKey) {
+  expandedBbFilterCategoryKey.value = expandedBbFilterCategoryKey.value === categoryKey ? '' : categoryKey
+}
+
+function applyBbFilterSelection(value) {
+  const normalized = String(value || '').trim()
+  if (!normalized || normalized === 'all') {
+    clearActiveBbFilter()
+    return
+  }
+
+  if (normalized.startsWith('category:')) {
+    clearBbBlockFilter()
+    const categoryKey = normalized.slice('category:'.length)
+    setActiveBbCategory(categoryKey)
+    expandedBbFilterCategoryKey.value = categoryKey
+    return
+  }
+
+  if (normalized.startsWith('block:')) {
+    const blockKey = normalized.slice('block:'.length)
+    setActiveBbBlock(blockKey)
+    const matchingGroup = bbFilterGroups.value.find((group) => group.blocks.some((block) => block.key === blockKey))
+    expandedBbFilterCategoryKey.value = matchingGroup?.key || ''
+  }
+}
+
 function notifyShellAction(label) {
   $q.notify({
     type: 'info',
@@ -3466,6 +3746,13 @@ function isBbGraphLinkToken(tokenRow) {
   gap: 8px;
 }
 
+.test-shell-filters-panel__rows--bb {
+  display: grid;
+  grid-auto-flow: row;
+  justify-items: stretch;
+  gap: 6px;
+}
+
 .test-shell-filter-group {
   display: grid;
   gap: 4px;
@@ -3473,6 +3760,11 @@ function isBbGraphLinkToken(tokenRow) {
   width: max-content;
   min-width: 0;
   max-width: 220px;
+}
+
+.test-shell-filters-panel--bb .test-shell-filter-group {
+  width: 100%;
+  max-width: none;
 }
 
 .test-shell-filter-child-row {
@@ -3537,6 +3829,50 @@ function isBbGraphLinkToken(tokenRow) {
 .test-shell-filter-group__children {
   display: grid;
   gap: 5px;
+}
+
+.bb-shell-toolbar-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.bb-shell-toolbar-filter__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #111111;
+  cursor: pointer;
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.bb-shell-toolbar-filter__chip-label {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.bb-shell-toolbar-filter__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(17, 17, 17, 0.68);
+  cursor: pointer;
 }
 
 
