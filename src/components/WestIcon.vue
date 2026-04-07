@@ -14,7 +14,7 @@ defineProps({
   },
   size: {
     type: String,
-    default: '16px',
+    default: 'var(--ds-icon-size-sm)',
   },
 })
 </script>
