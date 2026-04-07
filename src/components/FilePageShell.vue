@@ -4204,6 +4204,7 @@ async function handleSelectedRowsDelete() {
 .test-shell-table__cell--control {
   width: 30px;
   min-width: 30px;
+  max-width: 30px;
   padding: 8px 2px;
   text-align: center;
   background: rgba(255, 255, 255, 0.98);
