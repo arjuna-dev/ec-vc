@@ -145,15 +145,13 @@
                 :class="item.itemClass"
                 @click="handleDrawerItemClick(item)"
               >
-                <q-item-section avatar>
-                  <q-icon
-                    :name="item.icon"
-                    :size="item.iconSize || '24px'"
-                    :class="item.iconClass"
-                  />
-                </q-item-section>
                 <q-item-section>
-                  <q-item-label>{{ item.label }}</q-item-label>
+                  <MainMenuRow
+                    :label="item.label"
+                    :icon="item.icon"
+                    :icon-size="item.iconSize || '24px'"
+                    :icon-class="item.iconClass"
+                  />
                 </q-item-section>
               </q-item>
               </template>
@@ -438,6 +436,7 @@ import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
 import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
+import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
@@ -2192,7 +2191,7 @@ function goBack() {
 }
 
 .ec-nav-item--primary {
-  min-height: 34px;
+  min-height: 28px;
 }
 
 .ec-nav-icon--widget-blue {
@@ -2231,7 +2230,7 @@ function goBack() {
 }
 
 .ec-nav-item--shell-child + .ec-nav-item--shell-child {
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .ec-nav-item--shell-child :deep(.q-item__section) {

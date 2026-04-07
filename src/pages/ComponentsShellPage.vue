@@ -95,10 +95,7 @@
         <div class="components-shell-page__card-label">Main Menu Row</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('main-menu-row')">{{ componentStatusLabel('main-menu-row') }}</div>
         <div class="components-shell-page__card-stage">
-          <div class="components-shell-page__nav-row">
-            <span class="components-shell-page__nav-row-icon material-icons">folder_open</span>
-            <span class="components-shell-page__nav-row-label">System Files</span>
-          </div>
+          <MainMenuRow label="System Files" icon="folder_open" />
         </div>
       </article>
 
@@ -418,6 +415,7 @@ import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
+import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'

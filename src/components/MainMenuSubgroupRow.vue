@@ -30,7 +30,7 @@ defineProps({
   justify-content: space-between;
   gap: var(--ds-space-8);
   width: 100%;
-  min-height: 32px;
+  min-height: 26px;
   padding: 0 var(--ds-space-8);
   color: var(--ds-color-brand-white);
   background: var(--ds-color-brand-black);
