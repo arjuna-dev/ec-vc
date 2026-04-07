@@ -73,8 +73,8 @@ export const GENERAL_SETTINGS_SPACING_SAMPLES = Object.freeze([
 ])
 
 export const GENERAL_SETTINGS_ICON_SIZE_SAMPLES = Object.freeze([
-  { key: 'small', label: '16px', token: '--ds-button-icon-size', size: 'var(--ds-button-icon-size)' },
-  { key: 'icon-button', label: '20px', token: '--ds-icon-button-icon-size', size: 'var(--ds-icon-button-icon-size)' },
+  { key: 'small', label: '16px', token: '--ds-icon-size-sm', size: 'var(--ds-icon-size-sm)' },
+  { key: 'icon-button', label: '20px', token: '--ds-icon-size-md', size: 'var(--ds-icon-size-md)' },
 ])
 
 export const GENERAL_SETTINGS_FORMATTING_SAMPLES = Object.freeze([

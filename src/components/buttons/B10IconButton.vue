@@ -81,7 +81,7 @@ const buttonClasses = computed(() => [
   }
 
   :deep(.q-icon) {
-    font-size: var(--ds-icon-button-icon-size);
+    font-size: var(--ds-icon-size-md);
   }
 }
 
