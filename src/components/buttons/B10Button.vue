@@ -68,7 +68,11 @@ const effectiveState = computed(() => {
   return props.state === 'hover' ? 'hover' : 'default'
 })
 
-const padding = computed(() => (props.size === 'small' ? '8px 8px' : '12px 12px'))
+const padding = computed(() =>
+  props.size === 'small'
+    ? 'var(--ds-button-padding-y-sm) var(--ds-button-padding-x-sm)'
+    : 'var(--ds-button-padding-y-md) var(--ds-button-padding-x-md)',
+)
 
 const buttonClasses = computed(() => [
   'b10-btn',

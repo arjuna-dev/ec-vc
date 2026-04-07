@@ -40,6 +40,13 @@
         <B10IconButton icon="arrow_back" variant="neutral" aria-label="Back" />
       </template>
 
+      <template v-else-if="blockKey === 'b10-button'">
+        <div class="building-block-preview-tile__button-row">
+          <B10Button label="Primary" variant="primary" />
+          <B10Button label="Neutral" variant="neutral" />
+        </div>
+      </template>
+
       <template v-else-if="blockKey === 'eye-icon'">
         <EyeIconButton aria-label="View item" />
       </template>
@@ -575,6 +582,7 @@ import PageTitleText from 'src/components/PageTitleText.vue'
 import PageBackLabel from 'src/components/PageBackLabel.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import WestIcon from 'src/components/WestIcon.vue'
+import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import DropdownChevron from 'src/components/DropdownChevron.vue'
@@ -911,6 +919,14 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: var(--ds-space-12);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.building-block-preview-tile__button-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-8);
   flex-wrap: wrap;
   justify-content: center;
 }
