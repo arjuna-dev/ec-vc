@@ -49,6 +49,10 @@
         <ButtonLabel label="Primary" />
       </template>
 
+      <template v-else-if="blockKey === 'b10-logo'">
+        <B10Logo size="card" />
+      </template>
+
       <template v-else-if="blockKey === 'west-icon'">
         <WestIcon />
       </template>
@@ -706,6 +710,7 @@ import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
 import PageBackLabel from 'src/components/PageBackLabel.vue'
 import ButtonLabel from 'src/components/ButtonLabel.vue'
+import B10Logo from 'src/components/B10Logo.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import WestIcon from 'src/components/WestIcon.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'

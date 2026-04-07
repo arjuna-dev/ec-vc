@@ -42,12 +42,7 @@
             </template>
           </div>
           <div class="ec-shell-brand-box">
-            <div v-if="!logoReady" class="ec-shell-toolbar-fallback">B10</div>
-            <div
-              ref="logoContainer"
-              class="ec-shell-toolbar-lottie"
-              :class="{ 'ec-shell-toolbar-lottie--hidden': !logoReady }"
-            />
+            <B10Logo size="header" />
           </div>
         </q-toolbar-title>
       </q-toolbar>
@@ -352,7 +347,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import lottie from 'lottie-web'
-import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
 import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
@@ -362,6 +356,7 @@ import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
+import B10Logo from 'src/components/B10Logo.vue'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import {
@@ -393,8 +388,6 @@ const quickActionsOpen = ref(false)
 const quickOpportunityBranchOpen = ref(false)
 const artifactDialogOpen = ref(false)
 const auditUserLabel = ref('')
-const logoContainer = ref(null)
-const logoReady = ref(false)
 const quickWidgetIconContainer = ref(null)
 const quickWidgetPosition = ref({ x: 0, y: 0 })
 const quickWidgetIsDragging = ref(false)
@@ -565,7 +558,6 @@ const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : nul
 const intakeDraftState = useIntakeDraftState()
 const intakeReviewQueueState = useIntakeReviewQueueState()
 const breadcrumbActionsState = useBreadcrumbActionsState()
-let logoAnimation = null
 let quickWidgetIconAnimation = null
 let quickWidgetDragState = null
 let quickWidgetSettingsDragState = null
@@ -1617,30 +1609,6 @@ async function openShellCreateFromQuickAction(section, extraQuery = {}) {
   })
 }
 
-function initLogoAnimation() {
-  if (!logoContainer.value) return
-  logoReady.value = false
-
-  logoAnimation?.destroy()
-  logoAnimation = lottie.loadAnimation({
-    container: logoContainer.value,
-    renderer: 'svg',
-    loop: true,
-    autoplay: true,
-    animationData: logoAnimationData,
-    rendererSettings: {
-      preserveAspectRatio: 'xMaxYMid meet',
-    },
-  })
-
-  logoAnimation.addEventListener('DOMLoaded', () => {
-    logoReady.value = true
-  })
-  logoAnimation.addEventListener('data_failed', () => {
-    logoReady.value = false
-  })
-}
-
 function loadQuickWidgetAnimation(
   container,
   animationData,
@@ -1731,7 +1699,6 @@ onMounted(() => {
   syncUserNavState()
   loadQuickWidgetActionSettings()
   loadQuickWidgetPosition()
-  initLogoAnimation()
   playQuickWidgetIdle()
   activateNextIntakeReviewItem()
 })
@@ -1746,9 +1713,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('pointermove', onQuickWidgetSettingsPointerMove)
   window.removeEventListener('pointerup', onQuickWidgetSettingsPointerUp)
   window.removeEventListener('pointercancel', onQuickWidgetSettingsPointerUp)
-  logoAnimation?.destroy()
   quickWidgetIconAnimation?.destroy()
-  logoAnimation = null
   quickWidgetIconAnimation = null
   quickWidgetDragState = null
   quickWidgetSettingsDragState = null

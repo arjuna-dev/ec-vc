@@ -14,14 +14,7 @@
         <div class="components-shell-page__card-label">B10 Logo</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('b10-logo')">{{ componentStatusLabel('b10-logo') }}</div>
         <div class="components-shell-page__card-stage">
-          <div class="components-shell-page__logo-shell">
-            <div v-if="!logoReady" class="components-shell-page__logo-fallback">B10</div>
-            <div
-              ref="logoContainer"
-              class="components-shell-page__logo-lottie"
-              :class="{ 'components-shell-page__logo-lottie--hidden': !logoReady }"
-            />
-          </div>
+          <B10Logo size="card" />
         </div>
       </article>
 
@@ -325,14 +318,14 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import lottie from 'lottie-web'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import L3Box from 'src/components/L3Box.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vue'
+import B10Logo from 'src/components/B10Logo.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
@@ -345,7 +338,6 @@ import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import WidgetSettingsMenu from 'src/components/WidgetSettingsMenu.vue'
-import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
 
 const activeToolbarSection = ref('general')
@@ -391,10 +383,6 @@ const openSections = ref({
   shell: true,
 })
 const router = useRouter()
-const logoContainer = ref(null)
-const logoReady = ref(false)
-let logoAnimation = null
-
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
@@ -453,38 +441,6 @@ function openComponentDetail(componentId) {
   })
 }
 
-function initLogoAnimation() {
-  if (!logoContainer.value) return
-  logoReady.value = false
-
-  logoAnimation?.destroy()
-  logoAnimation = lottie.loadAnimation({
-    container: logoContainer.value,
-    renderer: 'svg',
-    loop: true,
-    autoplay: true,
-    animationData: logoAnimationData,
-    rendererSettings: {
-      preserveAspectRatio: 'xMaxYMid meet',
-    },
-  })
-
-  logoAnimation.addEventListener('DOMLoaded', () => {
-    logoReady.value = true
-  })
-  logoAnimation.addEventListener('data_failed', () => {
-    logoReady.value = false
-  })
-}
-
-onMounted(() => {
-  initLogoAnimation()
-})
-
-onBeforeUnmount(() => {
-  logoAnimation?.destroy()
-  logoAnimation = null
-})
 </script>
 
 <style scoped>
@@ -712,39 +668,6 @@ onBeforeUnmount(() => {
   font-family: var(--font-body);
   font-size: 0.84rem;
   line-height: 1.2;
-}
-
-.components-shell-page__logo-shell {
-  width: 120px;
-  height: 51px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  flex: 0 0 auto;
-}
-
-.components-shell-page__logo-lottie {
-  display: block;
-  width: 120px;
-  max-width: 100%;
-  height: 51px;
-}
-
-.components-shell-page__logo-lottie--hidden {
-  opacity: 0;
-}
-
-.components-shell-page__logo-lottie :deep(svg) {
-  width: 100%;
-  height: 100%;
-}
-
-.components-shell-page__logo-fallback {
-  font-family: var(--font-body);
-  font-size: var(--text-2xl---black);
-  font-weight: var(--font-weight-black);
-  line-height: 1;
-  letter-spacing: -1px;
 }
 
 .components-shell-page__file-add-button {
