@@ -3,10 +3,11 @@
 :root {
   --ds-font-family-title: var(--font-title);
   --ds-font-family-body: var(--font-body);
-  --ds-font-weight-regular: var(--font-weight-regular);
   --ds-font-weight-light: var(--font-weight-light);
   --ds-font-weight-medium: var(--font-weight-medium);
-  --ds-font-weight-black: var(--font-weight-black);
+  --ds-font-weight-bold: var(--font-weight-black);
+  --ds-font-weight-regular: var(--ds-font-weight-medium);
+  --ds-font-weight-black: var(--ds-font-weight-bold);
 
   --ds-font-size-xs: var(--text-xs---light);
   --ds-font-size-xs-regular: var(--text-xs---regular);

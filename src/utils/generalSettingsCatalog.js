@@ -24,9 +24,8 @@ export const GENERAL_SETTINGS_TYPE_SCALE_SAMPLES = Object.freeze([
 
 export const GENERAL_SETTINGS_FONT_WEIGHT_SAMPLES = Object.freeze([
   { key: 'light', label: 'Light', token: '--ds-font-weight-light', weight: 'var(--ds-font-weight-light)' },
-  { key: 'regular', label: 'Regular', token: '--ds-font-weight-regular', weight: 'var(--ds-font-weight-regular)' },
   { key: 'medium', label: 'Medium', token: '--ds-font-weight-medium', weight: 'var(--ds-font-weight-medium)' },
-  { key: 'black', label: 'Black', token: '--ds-font-weight-black', weight: 'var(--ds-font-weight-black)' },
+  { key: 'bold', label: 'Bold', token: '--ds-font-weight-bold', weight: 'var(--ds-font-weight-bold)' },
 ])
 
 export const GENERAL_SETTINGS_COLOR_SWATCHES = Object.freeze([
