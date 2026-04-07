@@ -1,7 +1,9 @@
 <template>
   <article
+    ref="tileRef"
     class="building-block-preview-tile"
     :class="[`building-block-preview-tile--${size}`, { 'building-block-preview-tile--collapsed': isCollapsed }]"
+    :style="tileStyle"
   >
     <BuildingBlockTileHeader
       :title="tileTitle"
@@ -286,7 +288,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
@@ -317,6 +319,9 @@ const props = defineProps({
 })
 
 const detail = computed(() => BUILDING_BLOCK_DETAILS_BY_ID[props.blockKey] || null)
+const tileRef = ref(null)
+const tileResizeObserver = ref(null)
+const measuredRowSpan = ref(0)
 const isCollapsed = ref(false)
 const size = computed(() => getBuildingBlockTileSize(props.blockKey))
 const tileTitle = computed(() => props.title || detail.value?.title || 'Building Block')
@@ -389,14 +394,54 @@ const fileDashboardHealth = [
 ]
 
 const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Record' : 'Add'))
+const tileStyle = computed(() =>
+  measuredRowSpan.value > 0
+    ? { gridRow: `span ${measuredRowSpan.value}` }
+    : {},
+)
+
+function updateMeasuredRowSpan() {
+  if (!tileRef.value) return
+  const contentHeight = tileRef.value.scrollHeight || 0
+  if (!contentHeight) return
+  measuredRowSpan.value = Math.max(1, Math.ceil(contentHeight / 40))
+}
+
+function installTileResizeObserver() {
+  if (typeof ResizeObserver === 'undefined' || !tileRef.value) return
+  tileResizeObserver.value?.disconnect?.()
+  tileResizeObserver.value = new ResizeObserver(() => {
+    updateMeasuredRowSpan()
+  })
+  tileResizeObserver.value.observe(tileRef.value)
+}
 
 watch(
   () => props.collapseVersion,
   () => {
     if (props.collapseState === 'collapsed') isCollapsed.value = true
     if (props.collapseState === 'expanded') isCollapsed.value = false
+    nextTick(() => updateMeasuredRowSpan())
   },
 )
+
+watch(
+  () => [isCollapsed.value, props.blockKey, props.title, props.statusLabel, tileShellsLabel.value, tileGraphLabel.value],
+  () => {
+    nextTick(() => updateMeasuredRowSpan())
+  },
+)
+
+onMounted(() => {
+  nextTick(() => {
+    updateMeasuredRowSpan()
+    installTileResizeObserver()
+  })
+})
+
+onBeforeUnmount(() => {
+  tileResizeObserver.value?.disconnect?.()
+})
 </script>
 
 <style scoped>
@@ -435,7 +480,6 @@ watch(
 .building-block-preview-tile--title-wide { --tile-cols: 10; --tile-rows: 5; }
 
 .building-block-preview-tile--collapsed {
-  grid-row: span 2;
   gap: 8px;
 }
 
