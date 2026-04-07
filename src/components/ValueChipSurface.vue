@@ -92,7 +92,7 @@ defineProps({
 
 .value-chip-surface--button-subtle {
   background: transparent;
-  border-color: transparent;
+  border-color: var(--ds-button-subtle-border);
   color: var(--ds-button-subtle-text);
 }
 

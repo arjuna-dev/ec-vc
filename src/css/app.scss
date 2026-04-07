@@ -809,17 +809,17 @@ body.body--light .q-drawer.q-drawer--left .ec-nav-item.ec-nav-item--profile.ec-n
 }
 
 body.body--light .q-drawer.q-drawer--left .ec-nav-item:hover {
-  background: rgb(255 255 255 / 0.28);
+  background: var(--ds-interactive-hover-inverse);
 }
 
 body.body--light .q-drawer.q-drawer--left .ec-nav-item.q-router-link--active,
 body.body--light .q-drawer.q-drawer--left .ec-nav-item--selected {
-  background: rgb(255 255 255 / 0.28);
+  background: var(--ds-interactive-hover-inverse);
   color: var(--ds-color-brand-white);
 }
 
 body.body--light .q-drawer.q-drawer--left .q-separator {
-  background: rgb(255 255 255 / 0.35);
+  background: var(--ds-interactive-hover-inverse-strong);
 }
 
 .page-title-section {

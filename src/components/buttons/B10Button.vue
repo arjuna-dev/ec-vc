@@ -113,10 +113,35 @@ const surfaceTone = computed(() => {
 
 .b10-btn__surface {
   width: 100%;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
 }
 
 .b10-btn__icon {
   font-size: var(--ds-icon-size-sm);
+}
+
+.b10-btn--primary:not(.q-btn--disabled):hover .b10-btn__surface,
+.b10-btn--primary.b10-btn--state-hover:not(.q-btn--disabled) .b10-btn__surface {
+  background: var(--ds-button-hover-surface);
+  border-color: var(--ds-button-hover-border);
+  color: var(--ds-button-hover-text);
+}
+
+.b10-btn--neutral:not(.q-btn--disabled):hover .b10-btn__surface,
+.b10-btn--neutral.b10-btn--state-hover:not(.q-btn--disabled) .b10-btn__surface {
+  background: var(--ds-button-hover-surface);
+  border-color: var(--ds-button-hover-border);
+  color: var(--ds-button-hover-text);
+}
+
+.b10-btn--subtle:not(.q-btn--disabled):hover .b10-btn__surface,
+.b10-btn--subtle.b10-btn--state-hover:not(.q-btn--disabled) .b10-btn__surface {
+  background: var(--ds-button-hover-surface);
+  border-color: var(--ds-button-hover-border);
+  color: var(--ds-button-hover-text);
 }
 
 .b10-btn--block {

@@ -105,7 +105,8 @@
   --ds-control-active-text: var(--ds-color-surface-inverse);
   --ds-control-menu-text: #111;
   --ds-control-inline-padding: var(--ds-space-12);
-
+  --ds-interactive-hover-inverse: rgb(255 255 255 / 0.28);
+  --ds-interactive-hover-inverse-strong: rgb(255 255 255 / 0.35);
   --ds-button-gap: var(--ds-space-8);
   --ds-button-radius: var(--ds-radius-mini);
   --ds-button-padding-y-sm: var(--ds-space-8);
@@ -179,6 +180,10 @@
   --ds-button-neutral-bg-hover: var(--b10-color-bg-neutral-tertiary-hover);
   --ds-button-neutral-border: var(--b10-color-border-neutral-secondary);
   --ds-button-neutral-text: var(--b10-color-text-default);
+  --ds-button-hover-surface: var(--ds-color-brand-light-grey);
+  --ds-button-hover-border: var(--ds-color-brand-black);
+  --ds-button-hover-text: var(--ds-color-brand-black);
+  --ds-button-subtle-border: var(--b10-color-border-default);
   --ds-button-subtle-border-hover: var(--b10-color-border-default);
   --ds-button-subtle-text: var(--b10-color-text-neutral-default);
   --ds-button-subtle-text-hover: var(--b10-color-text-default);

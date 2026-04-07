@@ -14,6 +14,7 @@
     <B10Button
       label="Cancel"
       variant="subtle"
+      size="small"
       :disable="cancelDisabled"
       @click="$emit('cancel')"
     />
@@ -21,6 +22,7 @@
     <B10Button
       :label="saveLabel"
       variant="primary"
+      size="small"
       :disable="saveDisabled"
       :loading="loading"
       @click="$emit('save')"
