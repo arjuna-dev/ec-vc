@@ -74,8 +74,8 @@ onBeforeUnmount(() => {
 }
 
 .b10-logo--header {
-  width: 128px;
-  height: 52px;
+  width: 120px;
+  height: 51px;
 }
 
 .b10-logo__lottie {
