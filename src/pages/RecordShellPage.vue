@@ -104,124 +104,23 @@
               </div>
             </div>
 
-            <div class="record-shell__context-panel">
-              <div class="record-shell__context-tabs" role="tablist" :aria-label="`${activeRegistryEntry?.label || 'Record'} context`">
-                <button
-                  type="button"
-                  class="record-shell__context-tab"
-                  :class="{ 'record-shell__context-tab--active': genericHeroPanelTab === 'notes' }"
-                  @click="genericHeroPanelTab = 'notes'"
-                >
-                  Latest notes
-                </button>
-                <button
-                  type="button"
-                  class="record-shell__context-tab"
-                  :class="{ 'record-shell__context-tab--active': genericHeroPanelTab === 'documents' }"
-                  @click="genericHeroPanelTab = 'documents'"
-                >
-                  Related artifacts
-                </button>
-              </div>
-
-              <ul
-                v-if="genericHeroPanelTab === 'notes' && genericHeroNotes.length"
-                class="record-shell__context-list"
-              >
-                <li
-                  v-for="note in genericHeroNotes"
-                  :key="note.id"
-                  class="record-shell__context-item"
-                >
-                  <div class="record-shell__context-row">
-                    <div class="record-shell__context-title">{{ note.title }}</div>
-                    <div class="record-shell__context-meta">{{ note.created_at }}</div>
-                  </div>
-                  <div v-if="note.content" class="record-shell__context-content">
-                    {{ note.content }}
-                  </div>
-                </li>
-              </ul>
-              <div
-                v-else-if="genericHeroPanelTab === 'notes'"
-                class="record-shell__context-empty"
-              >
-                No notes yet for this {{ (activeRegistryEntry?.singularLabel || 'record').toLowerCase() }}.
-              </div>
-
-              <ul
-                v-if="genericHeroPanelTab === 'documents' && genericHeroDocuments.length"
-                class="record-shell__context-list"
-              >
-                <li
-                  v-for="document in genericHeroDocuments"
-                  :key="document.id"
-                  class="record-shell__context-item"
-                >
-                  <div class="record-shell__context-row">
-                    <div class="record-shell__context-title">{{ document.title }}</div>
-                    <div class="record-shell__context-meta">{{ document.meta }}</div>
-                  </div>
-                  <div v-if="document.content" class="record-shell__context-content">
-                    {{ document.content }}
-                  </div>
-                </li>
-              </ul>
-              <div
-                v-else-if="genericHeroPanelTab === 'documents'"
-                class="record-shell__context-empty"
-              >
-                No related artifacts yet for this {{ (activeRegistryEntry?.singularLabel || 'record').toLowerCase() }}.
-              </div>
-            </div>
+            <RecordContextPanel
+              v-model="genericHeroPanelTab"
+              :notes="genericHeroNotes"
+              :documents="genericHeroDocuments"
+              :singular-label="activeRegistryEntry?.singularLabel || 'record'"
+              :aria-label="`${activeRegistryEntry?.label || 'Record'} context`"
+            />
           </div>
         </div>
 
-        <div class="record-shell__feed">
-          <div class="record-shell__feed-header record-shell__feed-header--main">
-            <div class="record-shell__feed-label">Record Feed</div>
-          </div>
-
-          <div v-if="recordFeedTabOptions.length" class="record-shell__feed-tabs">
-            <button
-              v-for="tab in recordFeedTabOptions"
-              :key="tab.id"
-              type="button"
-              class="record-shell__feed-tab"
-              :class="{ 'record-shell__feed-tab--active': activeRecordFeedTab === tab.id }"
-              @click="activeRecordFeedTab = tab.id"
-            >
-              {{ tab.label }}
-            </button>
-          </div>
-
-          <div v-if="displayedRecordFeedItems.length" class="record-shell__feed-list">
-            <div
-              v-for="item in displayedRecordFeedItems"
-              :key="item.id"
-              class="record-shell__feed-entry"
-            >
-              <div class="record-shell__feed-entry-top">
-                <div class="record-shell__feed-entry-time">{{ item.meta }}</div>
-                <div class="record-shell__feed-entry-top-right">
-                  <button
-                    v-if="item.hasLogPage"
-                    type="button"
-                    class="record-shell__feed-entry-toggle"
-                    aria-label="Open event log"
-                    @click="openFeedItemLog(item.id)"
-                  >
-                    <q-icon name="open_in_new" size="13px" />
-                  </button>
-                </div>
-              </div>
-              <div class="record-shell__feed-entry-title">{{ item.title }}</div>
-            </div>
-          </div>
-          <div v-else class="record-shell__feed-state">
-            No feed items yet for this record.
-          </div>
-        </div>
+        <RecordFeedPanel
+          v-model="activeRecordFeedTab"
+          :tabs="recordFeedTabOptions"
+          :items="feedItems"
+          empty-message="No feed items yet for this record."
+          @open-log="openFeedItemLog"
+        />
       </section>
 
       <ShellSectionToolbar
@@ -567,6 +466,8 @@ import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
+import RecordContextPanel from 'src/components/RecordContextPanel.vue'
+import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
 import RecordHeroFieldCard from 'src/components/RecordHeroFieldCard.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import {
@@ -798,7 +699,6 @@ const feedItems = computed(() => {
   ]
 })
 const recordFeedTabOptions = computed(() => [{ id: 'all', label: 'All' }])
-const displayedRecordFeedItems = computed(() => feedItems.value.filter((item) => item.feedKey === activeRecordFeedTab.value))
 const recordShellNavItems = computed(() => [
   ...toolbarLeftSections.value.map((group) => ({
     value: group.value,
@@ -1958,104 +1858,6 @@ function onContactHeroPointerLeave() {
   background: transparent;
   border: 0;
   border-radius: 0;
-}
-
-.record-shell__context-panel {
-  display: none;
-}
-
-.record-shell__context-tabs {
-  display: inline-flex;
-  gap: 6px;
-  align-self: flex-start;
-  padding: 4px;
-  background: rgba(17, 17, 17, 0.05);
-  border-radius: 999px;
-}
-
-.record-shell__context-tab {
-  padding: 7px 12px;
-  color: var(--ds-color-text-muted-alt);
-  background: transparent;
-  border: 0;
-  border-radius: var(--ds-radius-pill);
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-medium);
-  font-weight: var(--ds-font-weight-medium);
-  letter-spacing: 0.04em;
-  line-height: var(--ds-line-height-xs);
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.record-shell__context-tab--active {
-  color: #111;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.08);
-}
-
-.record-shell__context-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-12);
-  margin-top: 10px;
-  padding: 0;
-  list-style: none;
-}
-
-.record-shell__context-item {
-  position: relative;
-  padding-left: 18px;
-}
-
-.record-shell__context-item::before {
-  position: absolute;
-  top: 8px;
-  left: 0;
-  width: 6px;
-  height: 6px;
-  content: '';
-  border-radius: 999px;
-  background: rgba(17, 17, 17, 0.3);
-}
-
-.record-shell__context-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--ds-space-12);
-}
-
-.record-shell__context-title {
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-medium);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-sm);
-}
-
-.record-shell__context-content {
-  margin-top: 4px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-sm-regular);
-  line-height: var(--ds-line-height-sm);
-}
-
-.record-shell__context-meta {
-  flex: 0 0 auto;
-  font-family: var(--ds-font-family-body);
-  font-size: var(--ds-font-size-xs-regular);
-  line-height: var(--ds-line-height-xs);
-  white-space: nowrap;
-}
-
-.record-shell__context-empty {
-  margin-top: 10px;
-  color: #6f6f6f;
-  font-family: var(--font-body);
-  font-size: var(--text-sm---regular);
-  line-height: 20px;
 }
 
 .record-shell__feed {

@@ -643,48 +643,51 @@
       </template>
 
       <template v-else-if="blockKey === 'record-context-panel'">
-        <div class="building-block-preview-tile__record-panel">
-          <div class="building-block-preview-tile__record-panel-tabs">
-            <button type="button" class="building-block-preview-tile__record-panel-tab building-block-preview-tile__record-panel-tab--active">
-              Latest notes
-            </button>
-            <button type="button" class="building-block-preview-tile__record-panel-tab">
-              Related artifacts
-            </button>
-          </div>
-          <div class="building-block-preview-tile__record-panel-list">
-            <article v-for="item in recordContextItems" :key="item.title" class="building-block-preview-tile__record-panel-item">
-              <div class="building-block-preview-tile__record-panel-row">
-                <div class="building-block-preview-tile__record-panel-title">{{ item.title }}</div>
-                <div class="building-block-preview-tile__record-panel-meta">{{ item.meta }}</div>
-              </div>
-              <div class="building-block-preview-tile__record-panel-content">{{ item.content }}</div>
-            </article>
-          </div>
-        </div>
+        <RecordContextPanel
+          v-model="activeRecordContextTab"
+          :notes="recordContextNotes"
+          :documents="recordContextDocuments"
+          singular-label="record"
+          aria-label="Record context"
+        />
       </template>
 
       <template v-else-if="blockKey === 'record-feed-panel'">
-        <div class="building-block-preview-tile__record-panel">
-          <div class="building-block-preview-tile__record-feed-header">Record Feed</div>
-          <div class="building-block-preview-tile__record-panel-tabs">
-            <button type="button" class="building-block-preview-tile__record-panel-tab building-block-preview-tile__record-panel-tab--active">
-              Activity
-            </button>
-            <button type="button" class="building-block-preview-tile__record-panel-tab">
-              Events
-            </button>
+        <RecordFeedPanel
+          v-model="activeRecordFeedTabPreview"
+          :tabs="recordFeedTabOptions"
+          :items="recordFeedItems"
+          empty-message="No feed items yet for this record."
+        />
+      </template>
+
+      <template v-else-if="blockKey === 'record-feed-label'">
+        <RecordFeedLabel label="Record Feed" />
+      </template>
+
+      <template v-else-if="blockKey === 'record-feed-time'">
+        <RecordFeedTime label="Most Recent" />
+      </template>
+
+      <template v-else-if="blockKey === 'record-feed-entry-title'">
+        <RecordFeedEntryTitle title="Updated founder note after diligence call" />
+      </template>
+
+      <template v-else-if="blockKey === 'record-feed-empty'">
+        <RecordFeedEmpty message="No feed items yet for this record." />
+      </template>
+
+      <template v-else-if="blockKey === 'record-feed-entry-surface'">
+        <RecordFeedEntrySurface>
+          <div class="building-block-preview-tile__record-feed-surface-sample">
+            <RecordFeedTime label="Most Recent" />
+            <RecordFeedEntryTitle title="Updated founder note after diligence call" />
           </div>
-          <div class="building-block-preview-tile__record-panel-list">
-            <article v-for="item in recordFeedItems" :key="item.title" class="building-block-preview-tile__record-panel-item">
-              <div class="building-block-preview-tile__record-panel-row">
-                <div class="building-block-preview-tile__record-panel-meta">{{ item.meta }}</div>
-                <q-icon name="open_in_new" size="13px" class="building-block-preview-tile__record-feed-icon" />
-              </div>
-              <div class="building-block-preview-tile__record-panel-title">{{ item.title }}</div>
-            </article>
-          </div>
-        </div>
+        </RecordFeedEntrySurface>
+      </template>
+
+      <template v-else-if="blockKey === 'record-feed-tab-label'">
+        <RecordFeedTabLabel label="Activity" />
       </template>
 
       <template v-else-if="blockKey === 'file-filter-menu'">
@@ -729,6 +732,14 @@ import PageBackLabel from 'src/components/PageBackLabel.vue'
 import ButtonLabel from 'src/components/ButtonLabel.vue'
 import B10Logo from 'src/components/B10Logo.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
+import RecordContextPanel from 'src/components/RecordContextPanel.vue'
+import RecordFeedEmpty from 'src/components/RecordFeedEmpty.vue'
+import RecordFeedEntrySurface from 'src/components/RecordFeedEntrySurface.vue'
+import RecordFeedEntryTitle from 'src/components/RecordFeedEntryTitle.vue'
+import RecordFeedLabel from 'src/components/RecordFeedLabel.vue'
+import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
+import RecordFeedTabLabel from 'src/components/RecordFeedTabLabel.vue'
+import RecordFeedTime from 'src/components/RecordFeedTime.vue'
 import RecordHeroFieldCard from 'src/components/RecordHeroFieldCard.vue'
 import RecordFieldDescription from 'src/components/RecordFieldDescription.vue'
 import RecordFieldLabel from 'src/components/RecordFieldLabel.vue'
@@ -845,6 +856,8 @@ const viewOptions = [
 const viewModeToggleOptions = viewOptions
 
 const activeLiveActionL1 = ref('companies')
+const activeRecordContextTab = ref('notes')
+const activeRecordFeedTabPreview = ref('all')
 const fileFilterMenuSampleSections = [
   {
     key: 'general',
@@ -896,9 +909,30 @@ const recordContextItems = [
   { title: 'Deck reviewed', meta: 'Yesterday', content: 'Artifacts linked and first-pass summary completed.' },
 ]
 
+const recordContextNotes = recordContextItems.map((item, index) => ({
+  id: `note:${index}`,
+  title: item.title,
+  created_at: item.meta,
+  content: item.content,
+}))
+
+const recordContextDocuments = [
+  {
+    id: 'document:summary',
+    title: 'Summary',
+    meta: 'Pinned field',
+    content: 'Artifacts linked and first-pass summary completed.',
+  },
+]
+
+const recordFeedTabOptions = [
+  { id: 'all', label: 'Activity' },
+  { id: 'events', label: 'Events' },
+]
+
 const recordFeedItems = [
-  { title: 'Artifact linked to record', meta: '09:42' },
-  { title: 'Summary updated', meta: 'Yesterday' },
+  { id: 'feed-1', feedKey: 'all', title: 'Artifact linked to record', meta: '09:42', hasLogPage: true },
+  { id: 'feed-2', feedKey: 'events', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
 ]
 
 
@@ -1106,6 +1140,7 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   justify-content: center;
 }
+
 
 .building-block-preview-tile__header-preview {
   display: flex;
@@ -1672,6 +1707,12 @@ onBeforeUnmount(() => {
   font-size: 1rem;
   font-weight: var(--font-weight-black);
   line-height: 0.95;
+}
+
+.building-block-preview-tile__record-feed-surface-sample {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 @media (max-width: 900px) {

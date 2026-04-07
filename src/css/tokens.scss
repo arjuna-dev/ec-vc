@@ -171,6 +171,20 @@
   --ds-live-action-menu-item-padding-y: var(--ds-space-4);
   --ds-live-action-menu-item-padding-x: var(--ds-space-6);
   --ds-value-chip-outline: 0 0 0 1px color-mix(in srgb, var(--ds-color-brand-white) 82%, transparent);
+  --ds-record-feed-label-size: 1.05rem;
+  --ds-record-feed-label-letter-spacing: -0.03em;
+  --ds-record-feed-tab-label-size: 10px;
+  --ds-record-feed-tab-label-letter-spacing: 0.04em;
+  --ds-record-feed-tab-label-line-height: 1;
+  --ds-record-feed-time-size: 10px;
+  --ds-record-feed-time-line-height: 1.3;
+  --ds-record-feed-time-color: color-mix(in srgb, var(--ds-color-brand-white) 54%, transparent);
+  --ds-record-feed-empty-color: color-mix(in srgb, var(--ds-color-brand-white) 62%, transparent);
+  --ds-record-feed-entry-padding-y: 9px;
+  --ds-record-feed-entry-padding-x: 10px;
+  --ds-record-feed-entry-surface: rgba(255, 255, 255, 0.04);
+  --ds-record-feed-entry-border: rgba(255, 255, 255, 0.12);
+  --ds-record-feed-entry-radius: 10px;
 
   --ds-button-primary-bg: var(--b10-color-bg-brand-default);
   --ds-button-primary-bg-hover: var(--b10-color-bg-brand-hover);

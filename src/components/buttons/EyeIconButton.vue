@@ -2,8 +2,9 @@
   <q-btn
     flat
     round
-    icon="visibility"
+    :icon="icon"
     class="eye-icon-button"
+    :class="{ 'eye-icon-button--inverse': tone === 'inverse' }"
     padding="0"
     :aria-label="ariaLabel"
     :disable="disable"
@@ -15,6 +16,12 @@
 defineProps({
   ariaLabel: { type: String, default: 'View row' },
   disable: { type: Boolean, default: false },
+  icon: { type: String, default: 'visibility' },
+  tone: {
+    type: String,
+    default: 'default',
+    validator: (value) => ['default', 'inverse'].includes(value),
+  },
 })
 
 defineEmits(['click'])
@@ -29,6 +36,10 @@ defineEmits(['click'])
   padding: 0;
   border-radius: var(--ds-radius-round);
   color: var(--ds-color-text-primary);
+}
+
+.eye-icon-button--inverse {
+  color: var(--ds-color-brand-white);
 }
 
 .eye-icon-button :deep(.q-btn__content) {
