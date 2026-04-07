@@ -866,7 +866,7 @@ const liveOptionRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
 const NAME_COLUMN_DEFAULT_WIDTH = 84
-const TABLE_CONTROL_COLUMN_WIDTH = 30
+const TABLE_CONTROL_COLUMN_WIDTH = 22
 
 const SECTION_LOADERS = {
   events: {
@@ -4148,7 +4148,6 @@ async function handleSelectedRowsDelete() {
 
 .test-shell-table {
   width: max-content;
-  min-width: 100%;
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
@@ -4219,10 +4218,10 @@ async function handleSelectedRowsDelete() {
 
 .test-shell-table__head--control,
 .test-shell-table__cell--control {
-  width: 30px;
-  min-width: 30px;
-  max-width: 30px;
-  padding: 8px 2px;
+  width: 22px;
+  min-width: 22px;
+  max-width: 22px;
+  padding: 6px 0;
   text-align: center;
   background: rgba(255, 255, 255, 0.98);
 }
