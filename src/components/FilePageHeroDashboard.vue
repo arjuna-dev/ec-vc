@@ -220,7 +220,7 @@ function updateGradientPosition(event) {
   justify-content: space-between;
   gap: var(--ds-space-8);
   padding: var(--ds-space-16);
-  background: var(--ds-color-surface-overlay-84);
+  background: var(--ds-color-surface-overlay-light);
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-lg);
   box-shadow: var(--ds-shadow-card-soft);
@@ -260,7 +260,7 @@ function updateGradientPosition(event) {
   flex-direction: column;
   gap: var(--ds-space-12);
   padding: var(--ds-space-16);
-  background: var(--ds-color-surface-overlay-78);
+  background: var(--ds-color-surface-overlay-light);
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-lg);
 }

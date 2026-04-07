@@ -40,8 +40,8 @@ export const GENERAL_SETTINGS_COLOR_SWATCHES = Object.freeze([
 export const GENERAL_SETTINGS_SURFACE_SAMPLES = Object.freeze([
   { key: 'base', label: 'Base', token: '--ds-color-surface-base', background: 'var(--ds-color-surface-base)' },
   { key: 'subtle', label: 'Subtle', token: '--ds-color-surface-subtle', background: 'var(--ds-color-surface-subtle)' },
-  { key: 'overlay-84', label: 'Overlay 84', token: '--ds-color-surface-overlay-84', background: 'var(--ds-color-surface-overlay-84)' },
-  { key: 'overlay-96', label: 'Overlay 96', token: '--ds-color-surface-overlay-96', background: 'var(--ds-color-surface-overlay-96)' },
+  { key: 'overlay-light', label: 'Overlay Light', token: '--ds-color-surface-overlay-light', background: 'var(--ds-color-surface-overlay-light)' },
+  { key: 'overlay-strong', label: 'Overlay Strong', token: '--ds-color-surface-overlay-strong', background: 'var(--ds-color-surface-overlay-strong)' },
 ])
 
 export const GENERAL_SETTINGS_BORDER_SAMPLES = Object.freeze([
