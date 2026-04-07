@@ -268,6 +268,90 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'record-shell-launchpad'">
+        <div class="building-block-preview-tile__launchpad">
+          <div class="building-block-preview-tile__launchpad-copy">
+            <div class="building-block-preview-tile__launchpad-eyebrow">Record Shell</div>
+            <div class="building-block-preview-tile__launchpad-title">Create a company</div>
+            <div class="building-block-preview-tile__launchpad-text">
+              Choose the L1 at the top, mark the L3 fields you want included, then open the shared create dialog.
+            </div>
+          </div>
+          <button type="button" class="building-block-preview-tile__launchpad-action">Create Record</button>
+        </div>
+      </template>
+
+      <template v-else-if="blockKey === 'record-dashboard'">
+        <div class="building-block-preview-tile__record-dashboard">
+          <div class="building-block-preview-tile__record-dashboard-main">
+            <div class="building-block-preview-tile__record-dashboard-header">
+              <div class="building-block-preview-tile__record-dashboard-title-stack">
+                <div class="building-block-preview-tile__record-dashboard-eyebrow">Files / Companies</div>
+                <div class="building-block-preview-tile__record-dashboard-title">Acme Inc.</div>
+              </div>
+              <div class="building-block-preview-tile__record-dashboard-actions">
+                <button type="button" class="building-block-preview-tile__record-dashboard-action-chip">Hero Fields</button>
+                <button type="button" class="building-block-preview-tile__record-dashboard-action-chip building-block-preview-tile__record-dashboard-action-chip--primary">Add Record</button>
+              </div>
+            </div>
+
+            <div class="building-block-preview-tile__record-dashboard-grid">
+              <article class="building-block-preview-tile__record-field-card">
+                <div class="building-block-preview-tile__record-field-top">
+                  <div class="building-block-preview-tile__record-field-label">Industry</div>
+                  <div class="building-block-preview-tile__record-field-description">General</div>
+                </div>
+                <div class="building-block-preview-tile__record-field-bottom">
+                  <div class="building-block-preview-tile__record-field-value">Enterprise SaaS</div>
+                  <q-icon name="task_alt" size="15px" class="building-block-preview-tile__record-field-status" />
+                </div>
+              </article>
+
+              <div class="building-block-preview-tile__record-panel">
+                <div class="building-block-preview-tile__record-panel-tabs">
+                  <button type="button" class="building-block-preview-tile__record-panel-tab building-block-preview-tile__record-panel-tab--active">
+                    Latest notes
+                  </button>
+                  <button type="button" class="building-block-preview-tile__record-panel-tab">
+                    Related artifacts
+                  </button>
+                </div>
+                <div class="building-block-preview-tile__record-panel-list">
+                  <article v-for="item in recordContextItems" :key="`dashboard-context:${item.title}`" class="building-block-preview-tile__record-panel-item">
+                    <div class="building-block-preview-tile__record-panel-row">
+                      <div class="building-block-preview-tile__record-panel-title">{{ item.title }}</div>
+                      <div class="building-block-preview-tile__record-panel-meta">{{ item.meta }}</div>
+                    </div>
+                    <div class="building-block-preview-tile__record-panel-content">{{ item.content }}</div>
+                  </article>
+                </div>
+              </div>
+
+              <div class="building-block-preview-tile__record-panel">
+                <div class="building-block-preview-tile__record-feed-header">Record Feed</div>
+                <div class="building-block-preview-tile__record-panel-tabs">
+                  <button type="button" class="building-block-preview-tile__record-panel-tab building-block-preview-tile__record-panel-tab--active">
+                    Activity
+                  </button>
+                  <button type="button" class="building-block-preview-tile__record-panel-tab">
+                    Events
+                  </button>
+                </div>
+                <div class="building-block-preview-tile__record-panel-list">
+                  <article v-for="item in recordFeedItems" :key="`dashboard-feed:${item.title}`" class="building-block-preview-tile__record-panel-item">
+                    <div class="building-block-preview-tile__record-panel-row">
+                      <div class="building-block-preview-tile__record-panel-meta">{{ item.meta }}</div>
+                      <q-icon name="open_in_new" size="13px" class="building-block-preview-tile__record-feed-icon" />
+                    </div>
+                    <div class="building-block-preview-tile__record-panel-title">{{ item.title }}</div>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <template v-else-if="blockKey === 'l2-toolbar'">
         <ShellSectionToolbar
           model-value="general"
@@ -943,6 +1027,142 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-black);
 }
 
+.building-block-preview-tile__launchpad {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+}
+
+.building-block-preview-tile__launchpad-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.building-block-preview-tile__launchpad-eyebrow {
+  color: rgba(15, 23, 42, 0.56);
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.building-block-preview-tile__launchpad-title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1.24rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.building-block-preview-tile__launchpad-text {
+  color: rgba(15, 23, 42, 0.72);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  max-width: 340px;
+}
+
+.building-block-preview-tile__launchpad-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  color: #fff;
+  background: #2647ff;
+  border: 0;
+  border-radius: 10px;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.building-block-preview-tile__record-dashboard {
+  width: 100%;
+}
+
+.building-block-preview-tile__record-dashboard-main {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+}
+
+.building-block-preview-tile__record-dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.building-block-preview-tile__record-dashboard-title-stack {
+  display: grid;
+  gap: 4px;
+}
+
+.building-block-preview-tile__record-dashboard-eyebrow {
+  color: rgba(15, 23, 42, 0.56);
+  font-family: var(--font-title);
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.building-block-preview-tile__record-dashboard-title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1.42rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+}
+
+.building-block-preview-tile__record-dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.building-block-preview-tile__record-dashboard-action-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  color: rgba(15, 23, 42, 0.72);
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.05em;
+}
+
+.building-block-preview-tile__record-dashboard-action-chip--primary {
+  color: #fff;
+  background: #111;
+  border-color: #111;
+}
+
+.building-block-preview-tile__record-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr) minmax(0, 1.05fr);
+  gap: 12px;
+  width: 100%;
+}
+
 .building-block-preview-tile__record-field-card,
 .building-block-preview-tile__record-panel,
 .building-block-preview-tile__filter-menu {
@@ -1099,6 +1319,15 @@ onBeforeUnmount(() => {
   .building-block-preview-tile--dashboard,
   .building-block-preview-tile--hero-dashboard {
     --tile-rows: 12;
+  }
+
+  .building-block-preview-tile__launchpad,
+  .building-block-preview-tile__record-dashboard-header {
+    flex-direction: column;
+  }
+
+  .building-block-preview-tile__record-dashboard-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
