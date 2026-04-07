@@ -131,6 +131,18 @@
   --ds-toolbar-search-width: 300px;
   --ds-toolbar-toggle-button-size: 26px;
   --ds-toolbar-toggle-icon-size: 16px;
+  --ds-toolbar-sticky-top: 76px;
+  --ds-toolbar-gap-sm: 10px;
+  --ds-toolbar-padding-sm: var(--ds-space-12);
+  --ds-toolbar-chip-padding-y: var(--ds-space-8);
+  --ds-toolbar-chip-padding-x: 14px;
+  --ds-toolbar-chip-radius: 10px;
+  --ds-toolbar-chip-compact-height: 26px;
+  --ds-toolbar-chip-compact-radius: var(--ds-radius-md);
+  --ds-toolbar-chip-compact-padding-x: 10px;
+  --ds-toolbar-chip-toggle-size: 20px;
+  --ds-toolbar-chip-toggle-icon-size: 14px;
+  --ds-toolbar-kdb-icon-size: 12px;
 
   --ds-button-primary-bg: var(--b10-color-bg-brand-default);
   --ds-button-primary-bg-hover: var(--b10-color-bg-brand-hover);

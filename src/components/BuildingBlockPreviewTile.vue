@@ -60,6 +60,10 @@
         </div>
       </template>
 
+      <template v-else-if="blockKey === 'view-mode-toggle'">
+        <ViewModeToggle model-value="card" :options="viewModeToggleOptions" />
+      </template>
+
       <template v-else-if="blockKey === 'eye-icon'">
         <EyeIconButton aria-label="View item" />
       </template>
@@ -612,6 +616,7 @@ import MainMenuRowIcon from 'src/components/MainMenuRowIcon.vue'
 import MainMenuRowLabel from 'src/components/MainMenuRowLabel.vue'
 import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
+import ViewModeToggle from 'src/components/ViewModeToggle.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 import ValueChip from 'src/components/ValueChip.vue'
 import ValueChipLabel from 'src/components/ValueChipLabel.vue'
@@ -707,6 +712,7 @@ const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
 ]
+const viewModeToggleOptions = viewOptions
 
 const activeLiveActionL1 = ref('companies')
 const liveActionOptions = [

@@ -32,15 +32,10 @@
           <q-icon name="search" />
         </template>
       </q-input>
-      <q-btn-toggle
+      <ViewModeToggle
         v-if="showViewToggle"
         :model-value="viewMode"
-        dense
-        unelevated
-        toggle-color="primary"
-        color="grey-3"
-        text-color="grey-8"
-        class="file-page-toolbar__toggle file-page-toolbar__view-toggle"
+        class="file-page-toolbar__view-toggle"
         :disable="loading"
         :options="viewOptions"
         @update:model-value="$emit('update:viewMode', $event)"
@@ -51,6 +46,7 @@
 
 <script setup>
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
+import ViewModeToggle from 'src/components/ViewModeToggle.vue'
 
 defineProps({
   allVisibleSelected: { type: Boolean, default: false },
@@ -133,48 +129,8 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
   padding: 0 var(--ds-control-inline-padding);
 }
 
-.file-page-toolbar__toggle {
-  display: flex;
-  align-items: center;
+.file-page-toolbar__view-toggle {
   align-self: center;
-  flex: 0 0 auto;
-  height: var(--ds-control-height-md);
-  border-radius: var(--ds-control-radius);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-xs);
-}
-
-.file-page-toolbar__toggle :deep(.q-btn-group) {
-  background: transparent;
-  box-shadow: none;
-  border: 0;
-}
-
-.file-page-toolbar__toggle :deep(.q-btn) {
-  background: transparent;
-  border: 1px solid var(--ds-control-border);
-  border-radius: var(--ds-control-radius);
-  box-shadow: none;
-}
-
-.file-page-toolbar__view-toggle :deep(.q-btn) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: var(--ds-toolbar-toggle-button-size);
-  min-height: var(--ds-toolbar-toggle-button-size);
-  height: var(--ds-toolbar-toggle-button-size);
-  padding-inline: 4px;
-}
-
-.file-page-toolbar__view-toggle :deep(.q-btn + .q-btn) {
-  margin-left: 6px;
-}
-
-.file-page-toolbar__view-toggle :deep(.q-icon) {
-  font-size: var(--ds-toolbar-toggle-icon-size);
 }
 
 @media (max-width: 900px) {

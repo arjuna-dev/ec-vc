@@ -14,17 +14,12 @@
       @click="$emit('update:modelValue', section.value)"
     >
       <span class="shell-section-toolbar__item-label">{{ section.title }}</span>
-      <q-icon v-if="section.isKdb" name="share" size="14px" class="shell-section-toolbar__item-icon" />
+      <q-icon v-if="section.isKdb" name="share" :size="'var(--ds-toolbar-chip-toggle-icon-size)'" class="shell-section-toolbar__item-icon" />
     </button>
 
-    <q-btn-toggle
+    <ViewModeToggle
       v-if="showViewToggle"
       :model-value="viewMode"
-      dense
-      unelevated
-      toggle-color="primary"
-      color="grey-3"
-      text-color="grey-8"
       class="shell-section-toolbar__view-toggle"
       :options="viewOptions"
       @update:model-value="$emit('update:viewMode', $event)"
@@ -33,6 +28,8 @@
 </template>
 
 <script setup>
+import ViewModeToggle from 'src/components/ViewModeToggle.vue'
+
 defineProps({
   modelValue: { type: String, default: '' },
   items: { type: Array, default: () => [] },
@@ -48,31 +45,31 @@ defineEmits(['update:modelValue', 'update:viewMode'])
 <style scoped>
 .shell-section-toolbar {
   position: sticky;
-  top: 76px;
+  top: var(--ds-toolbar-sticky-top);
   z-index: 3;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--ds-toolbar-gap-sm);
   flex-wrap: wrap;
-  padding: 12px;
+  padding: var(--ds-toolbar-padding-sm);
   background: var(--ds-color-surface-overlay-light);
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-lg);
-  backdrop-filter: blur(14px);
+  backdrop-filter: var(--ds-panel-blur-md);
 }
 
 .shell-section-toolbar__item {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  color: #4f4f4f;
+  padding: var(--ds-toolbar-chip-padding-y) var(--ds-toolbar-chip-padding-x);
+  color: var(--ds-color-text-subtle);
   cursor: pointer;
   background: transparent;
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 10px;
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-toolbar-chip-radius);
   font-family: var(--ds-font-body);
-  font-size: var(--text-sm---medium);
+  font-size: var(--ds-font-size-sm);
   font-weight: var(--ds-font-weight-medium);
   transition:
     color 0.2s ease,
@@ -86,41 +83,41 @@ defineEmits(['update:modelValue', 'update:viewMode'])
 }
 
 .shell-section-toolbar__item:hover {
-  color: #111;
-  background: rgba(255, 85, 33, 0.08);
-  border-color: rgba(255, 85, 33, 0.2);
+  color: var(--ds-color-text-primary);
+  background: var(--ds-color-fill-subtle);
+  border-color: var(--ds-color-border-dashed);
   transform: translateY(-1px);
 }
 
 .shell-section-toolbar__item--active {
-  color: #fff;
-  background: #111;
-  border-color: #111;
+  color: var(--ds-color-brand-white);
+  background: var(--ds-color-brand-black);
+  border-color: var(--ds-color-brand-black);
 }
 
 .shell-section-toolbar__item--kdb {
-  border-color: rgba(17, 17, 17, 0.16);
+  border-color: var(--ds-color-border-dashed);
 }
 
 .shell-section-toolbar__item--system {
-  border-color: rgba(17, 17, 17, 0.22);
+  border-color: var(--ds-color-border-dashed);
 }
 
 .shell-section-toolbar__item--kdb,
 .shell-section-toolbar__item--system {
-  height: 26px;
-  min-height: 26px;
-  padding: 0 10px;
-  border-radius: 8px;
+  height: var(--ds-toolbar-chip-compact-height);
+  min-height: var(--ds-toolbar-chip-compact-height);
+  padding: 0 var(--ds-toolbar-chip-compact-padding-x);
+  border-radius: var(--ds-toolbar-chip-compact-radius);
 }
 
 .shell-section-toolbar__item--kdb .shell-section-toolbar__item-label,
 .shell-section-toolbar__item--system .shell-section-toolbar__item-label {
-  font-size: calc(var(--text-sm---medium) * 0.72);
+  font-size: var(--ds-font-size-xs);
 }
 
 .shell-section-toolbar__item--kdb .shell-section-toolbar__item-icon {
-  font-size: 12px !important;
+  font-size: var(--ds-toolbar-kdb-icon-size) !important;
 }
 
 .shell-section-toolbar__item--push-right {
@@ -134,19 +131,9 @@ defineEmits(['update:modelValue', 'update:viewMode'])
   order: 999;
 }
 
-.shell-section-toolbar__view-toggle :deep(.q-btn-group) {
-  gap: 0;
-}
-
-.shell-section-toolbar__view-toggle :deep(.q-btn) {
-  min-width: 20px;
-  min-height: 20px;
-  padding: 0 2px;
-  border-radius: 5px;
-}
-
-.shell-section-toolbar__view-toggle :deep(.q-icon) {
-  font-size: 14px;
+.shell-section-toolbar__view-toggle {
+  --ds-toolbar-toggle-button-size: var(--ds-toolbar-chip-toggle-size);
+  --ds-toolbar-toggle-icon-size: var(--ds-toolbar-chip-toggle-icon-size);
 }
 
 .shell-section-toolbar__item:not(.shell-section-toolbar__item--push-right) + .shell-section-toolbar__item--push-right {
