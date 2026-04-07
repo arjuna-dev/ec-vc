@@ -5,12 +5,18 @@
     :aria-label="ariaLabel"
     @click="emit('click', $event)"
   >
-    <q-icon :name="icon" class="page-back-symbol__icon" />
-    <span class="page-back-symbol__label">{{ label }}</span>
+    <WestIcon
+      :icon="icon"
+      class="page-back-symbol__icon"
+    />
+    <PageBackLabel :label="label" />
   </button>
 </template>
 
 <script setup>
+import PageBackLabel from 'src/components/PageBackLabel.vue'
+import WestIcon from 'src/components/WestIcon.vue'
+
 const emit = defineEmits(['click'])
 
 defineProps({
@@ -35,24 +41,30 @@ defineProps({
   align-items: center;
   justify-content: center;
   gap: var(--ds-space-8);
-  min-height: 28px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ds-color-brand-black);
+  min-height: 32px;
+  padding: 0 var(--ds-space-8) 0 var(--ds-space-4);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-color-surface-base);
   cursor: pointer;
-  font-family: var(--ds-font-title);
-  font-size: 0.84rem;
-  font-weight: var(--ds-font-weight-bold);
-  line-height: 1;
-  letter-spacing: -0.02em;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
 }
 
-.page-back-symbol__label {
-  white-space: nowrap;
+.page-back-symbol:hover,
+.page-back-symbol:focus-visible {
+  background: var(--ds-color-surface-subtle);
+  border-color: var(--ds-color-brand-light-grey);
+}
+
+.page-back-symbol:focus-visible {
+  outline: none;
 }
 
 .page-back-symbol__icon {
-  font-size: 18px;
+  flex: 0 0 auto;
+  font-size: 16px;
 }
 </style>

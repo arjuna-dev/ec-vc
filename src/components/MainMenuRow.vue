@@ -41,10 +41,9 @@ defineProps({
   gap: var(--ds-space-8);
   width: 100%;
   min-height: 24px;
-  padding: 0 var(--ds-space-8);
+  padding: 0;
   color: var(--ds-color-brand-white);
-  background: var(--ds-color-brand-black);
   border: 0;
-  border-radius: var(--ds-radius-sm);
+  background: transparent;
 }
 </style>

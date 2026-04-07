@@ -28,6 +28,18 @@
         <PageBackSymbol />
       </template>
 
+      <template v-else-if="blockKey === 'page-back-label'">
+        <PageBackLabel label="Back" />
+      </template>
+
+      <template v-else-if="blockKey === 'west-icon'">
+        <WestIcon />
+      </template>
+
+      <template v-else-if="blockKey === 'b10-icon-button'">
+        <B10IconButton icon="arrow_back" variant="neutral" aria-label="Back" />
+      </template>
+
       <template v-else-if="blockKey === 'eye-icon'">
         <EyeIconButton aria-label="View item" />
       </template>
@@ -519,7 +531,10 @@ import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
+import PageBackLabel from 'src/components/PageBackLabel.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
+import WestIcon from 'src/components/WestIcon.vue'
+import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import DropdownChevron from 'src/components/DropdownChevron.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
