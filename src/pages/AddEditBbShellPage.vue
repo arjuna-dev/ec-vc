@@ -20,7 +20,7 @@ const route = useRoute()
 const router = useRouter()
 const dialogOpen = ref(false)
 
-const fallbackBlockId = BUILDING_BLOCK_OPTIONS[0]?.value || 'page-title-crumb'
+const fallbackBlockId = BUILDING_BLOCK_OPTIONS[0]?.value || 'page-title'
 const activeBlockId = computed(() => resolveValidBlockId(route.query.block))
 const activeDetail = computed(() => getBuildingBlockDetail(activeBlockId.value))
 

@@ -20,19 +20,8 @@
     </BuildingBlockTileHeader>
 
     <div v-if="!isCollapsed" class="building-block-preview-tile__stage" :class="stageClass">
-      <template v-if="blockKey === 'page-title-crumb'">
-        <div class="building-block-preview-tile__crumb-shell">
-          <div class="building-block-preview-tile__crumb-row">
-            <span class="building-block-preview-tile__crumb-link">Home</span>
-            <span class="building-block-preview-tile__crumb-separator">/</span>
-            <span class="building-block-preview-tile__crumb-link">Files</span>
-            <span class="building-block-preview-tile__crumb-separator">/</span>
-            <span class="building-block-preview-tile__crumb-link">System Files</span>
-            <span class="building-block-preview-tile__crumb-separator">/</span>
-            <span class="building-block-preview-tile__crumb-current">Building Blocks</span>
-          </div>
-          <div class="building-block-preview-tile__page-title">Building Blocks</div>
-        </div>
+      <template v-if="blockKey === 'page-title'">
+        <PageTitleText title="BB Shell" />
       </template>
 
       <template v-else-if="blockKey === 'page-back-symbol'">
@@ -474,6 +463,7 @@ import PlusIconChip from 'src/components/PlusIconChip.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
+import PageTitleText from 'src/components/PageTitleText.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
@@ -520,7 +510,7 @@ const statusClass = computed(() =>
 const stageClass = computed(() =>
   ['fonts', 'type-scale', 'colors', 'surfaces', 'spacing', 'formatting-rules', 'motion-rules', 'file-dashboard', 'home-dashboard', 'file-toolbar', 'l2-toolbar'].includes(props.blockKey)
     ? 'building-block-preview-tile__stage--stretch'
-    : props.blockKey === 'page-title-crumb'
+    : props.blockKey === 'page-title'
       ? 'building-block-preview-tile__stage--left'
       : 'building-block-preview-tile__stage--row',
 )
@@ -742,51 +732,6 @@ onBeforeUnmount(() => {
 .building-block-preview-tile--full-row :deep(.shell-section-toolbar) {
   width: 100%;
   max-width: none;
-}
-
-.building-block-preview-tile__crumb-shell {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-  width: 100%;
-}
-
-.building-block-preview-tile__crumb-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-width: 0;
-}
-
-.building-block-preview-tile__crumb-link,
-.building-block-preview-tile__crumb-separator {
-  color: rgba(15, 23, 42, 0.56);
-  font-family: var(--ds-font-body);
-  font-size: 0.84rem;
-  line-height: 1;
-}
-
-.building-block-preview-tile__crumb-current,
-.building-block-preview-tile__page-title {
-  color: #0f172a;
-  font-family: var(--ds-font-title);
-  font-weight: var(--ds-font-weight-bold);
-}
-
-.building-block-preview-tile__crumb-current {
-  font-size: 0.84rem;
-  line-height: 1;
-}
-
-.building-block-preview-tile__page-title {
-  font-size: var(--ds-font-size-page-title);
-  line-height: 0.95;
-  letter-spacing: -0.08em;
-  max-width: 100%;
-  white-space: normal;
-  overflow-wrap: anywhere;
 }
 
 .building-block-preview-tile__plus-icon-compare {

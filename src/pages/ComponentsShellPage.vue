@@ -69,9 +69,9 @@
           <q-icon :name="isSectionOpen('navigation') ? 'expand_less' : 'expand_more'" size="18px" />
         </button>
         <div v-if="isSectionOpen('navigation')" class="components-shell-page__board">
-      <BuildingBlockPreviewTile block-key="page-title-crumb">
+      <BuildingBlockPreviewTile block-key="page-title">
         <template #actions>
-          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-title-crumb')">
+          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('page-title')">
             <q-icon name="visibility" />
           </button>
         </template>

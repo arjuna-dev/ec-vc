@@ -4,7 +4,7 @@
       <q-toolbar class="q-px-md ec-shell-toolbar">
         <div class="ec-shell-toolbar-heading">
           <MainMenuIconButton @click="toggleLeftDrawer" />
-          <div class="ec-shell-page-title">{{ currentHeaderTitle }}</div>
+          <PageTitleText :title="currentHeaderTitle" />
           <q-btn
             flat
             dense
@@ -473,6 +473,7 @@ import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
 import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
+import PageTitleText from 'src/components/PageTitleText.vue'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import {
@@ -2001,16 +2002,6 @@ function goBack() {
   gap: var(--ds-space-8);
   min-width: 0;
   flex: 0 1 auto;
-}
-
-.ec-shell-page-title {
-  color: var(--ds-color-text-primary);
-  font-family: var(--font-title);
-  font-size: clamp(2.4rem, 5vw, 4rem);
-  font-weight: 900;
-  line-height: 0.95;
-  letter-spacing: -0.08em;
-  white-space: nowrap;
 }
 
 .ec-shell-back-btn {
