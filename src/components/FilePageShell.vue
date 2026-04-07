@@ -249,12 +249,21 @@
           :key="group.key"
           class="bb-shell-tiles-group"
         >
-          <header class="bb-shell-tiles-group__header">
-            <div class="bb-shell-tiles-group__eyebrow">Category</div>
+          <button
+            type="button"
+            class="bb-shell-tiles-group__header"
+            :aria-label="`${isBbTileGroupOpen(group.key) ? 'Collapse' : 'Expand'} ${group.label}`"
+            @click="toggleBbTileGroup(group.key)"
+          >
+            <q-icon
+              :name="isBbTileGroupOpen(group.key) ? 'expand_less' : 'expand_more'"
+              size="16px"
+              class="bb-shell-tiles-group__chevron"
+            />
             <div class="bb-shell-tiles-group__title">{{ group.label }}</div>
-          </header>
+          </button>
 
-          <div class="bb-shell-tiles-grid">
+          <div v-if="isBbTileGroupOpen(group.key)" class="bb-shell-tiles-grid">
             <BuildingBlockPreviewTile
               v-for="row in group.rows"
               :key="row.cardId"
@@ -851,6 +860,7 @@ const selectedRowIds = ref([])
 const tableColumnWidths = ref({})
 const bbTileCollapseVersion = ref(0)
 const bbTileCollapseState = ref('')
+const bbTileGroupOpenState = ref({})
 const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 
@@ -1647,6 +1657,21 @@ const bbTileGroups = computed(() => {
 
   return groups
 })
+
+watch(
+  bbTileGroups,
+  (groups) => {
+    const nextState = { ...bbTileGroupOpenState.value }
+    groups.forEach((group) => {
+      if (typeof nextState[group.key] !== 'boolean') nextState[group.key] = true
+    })
+    Object.keys(nextState).forEach((key) => {
+      if (!groups.some((group) => group.key === key)) delete nextState[key]
+    })
+    bbTileGroupOpenState.value = nextState
+  },
+  { immediate: true },
+)
 const tableLeftSections = computed(() =>
   level2Sections.value.filter((section) => {
     const label = String(section.label || '').trim().toLowerCase()
@@ -2278,6 +2303,17 @@ function getBbTileBlockKey(row) {
 function setAllBbTilesCollapsed(nextCollapsed) {
   bbTileCollapseState.value = nextCollapsed ? 'collapsed' : 'expanded'
   bbTileCollapseVersion.value += 1
+}
+
+function isBbTileGroupOpen(groupKey) {
+  return bbTileGroupOpenState.value[groupKey] !== false
+}
+
+function toggleBbTileGroup(groupKey) {
+  bbTileGroupOpenState.value = {
+    ...bbTileGroupOpenState.value,
+    [groupKey]: !isBbTileGroupOpen(groupKey),
+  }
 }
 
 async function copyRowRecordId(row) {
@@ -3384,19 +3420,15 @@ async function handleSelectedRowsDelete() {
 }
 
 .bb-shell-tiles-group__header {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.bb-shell-tiles-group__eyebrow {
-  font-family: var(--font-title);
-  font-size: 0.66rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(17, 17, 17, 0.52);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  width: fit-content;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
 }
 
 .bb-shell-tiles-group__title {
@@ -3406,6 +3438,11 @@ async function handleSelectedRowsDelete() {
   line-height: 1.04;
   letter-spacing: -0.02em;
   color: #111111;
+}
+
+.bb-shell-tiles-group__chevron {
+  color: #111111;
+  flex: 0 0 auto;
 }
 
 .bb-shell-tiles-toolbar__btn {
