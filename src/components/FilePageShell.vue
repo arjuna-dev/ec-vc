@@ -865,7 +865,7 @@ const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
-const NAME_COLUMN_MIN_WIDTH = 188
+const NAME_COLUMN_MIN_WIDTH = 108
 const TABLE_CONTROL_COLUMN_WIDTH = 30
 
 const SECTION_LOADERS = {
@@ -4195,7 +4195,7 @@ async function handleSelectedRowsDelete() {
   position: sticky;
   left: 60px;
   z-index: 3;
-  min-width: 196px;
+  min-width: 108px;
   background: rgba(255, 255, 255, 0.98);
 }
 
@@ -4240,6 +4240,7 @@ async function handleSelectedRowsDelete() {
   display: flex;
   align-items: center;
   gap: 0;
+  min-width: 0;
 }
 
 .test-shell-table__eye {
@@ -4287,10 +4288,14 @@ async function handleSelectedRowsDelete() {
 .test-shell-table__name {
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-family-body);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: var(--font-weight-black);
   line-height: 1.35;
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-align: left;
   justify-self: start;
 }
