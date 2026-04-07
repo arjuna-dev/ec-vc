@@ -14,7 +14,7 @@
   --ds-font-size-xs: var(--text-xs---regular);
   --ds-font-size-sm: var(--text-sm---regular);
   --ds-font-size-base: var(--text-base---regular);
-  --ds-font-size-page-title: var(--text-2xl---regular);
+  --ds-font-size-page-title: clamp(2.4rem, 5vw, 4rem);
   --ds-font-size-hero: var(--text-4xl---regular);
   --ds-font-size-xs-regular: var(--ds-font-size-xs);
   --ds-font-size-xs-medium: var(--ds-font-size-xs);

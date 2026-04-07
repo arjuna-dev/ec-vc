@@ -64,7 +64,7 @@ const toneClass = computed(() => `dialog-shell-title-row--${String(props.tone ||
 .dialog-shell-title-row__title {
   color: #111111;
   font-family: var(--ds-font-title);
-  font-size: var(--ds-font-size-page-title);
+  font-size: 1.46rem;
   font-weight: var(--ds-font-weight-bold);
   line-height: 0.94;
   margin: 0;
