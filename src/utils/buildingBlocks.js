@@ -653,7 +653,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the tabbed record context surface that shows latest notes and related artifacts.',
     prompt: 'Render the Record Context Panel from Building Blocks using the same tabbed side-panel treatment from Record Shell, including context tabs, list rows, and empty states.',
     usedInShells: ['Record Shell'],
-    builtFromBbs: ['fonts', 'type-scale', 'font-weights', 'colors', 'surfaces', 'radius', 'shadows', 'spacing'],
+    builtFromBbs: ['value-chip-surface', 'record-feed-tab-label', 'button-label', 'main-menu-row-label', 'record-field-description', 'spacing'],
     anatomy: ['Context tabs', 'Context list rows', 'Context meta line', 'Empty state copy'],
   }),
   'record-feed-panel': defineBuildingBlockDetail({
