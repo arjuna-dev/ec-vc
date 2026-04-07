@@ -2,18 +2,13 @@
   <q-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)">
     <q-card class="add-edit-bb-shell">
       <q-card-section class="add-edit-bb-shell__head">
-        <div>
-          <div class="add-edit-bb-shell__eyebrow">Add/Edit BB Shell</div>
-          <div class="add-edit-bb-shell__title">{{ detail?.title || 'Building Block' }}</div>
-        </div>
-        <button
-          type="button"
-          class="add-edit-bb-shell__close"
-          aria-label="Close details"
-          @click="$emit('update:modelValue', false)"
-        >
-          <q-icon name="close" />
-        </button>
+        <DialogShellTitleRow
+          eyebrow="Add/Edit BB Shell"
+          :title="detail?.title || 'Building Block'"
+          :closable="true"
+          close-label="Close details"
+          @close="$emit('update:modelValue', false)"
+        />
       </q-card-section>
 
       <q-card-section class="add-edit-bb-shell__body">
@@ -93,6 +88,8 @@
 </template>
 
 <script setup>
+import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
+
 defineProps({
   modelValue: { type: Boolean, default: false },
   detail: {
@@ -111,42 +108,7 @@ defineEmits(['update:modelValue'])
 }
 
 .add-edit-bb-shell__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.add-edit-bb-shell__eyebrow {
-  color: rgba(15, 23, 42, 0.58);
-  font-family: var(--font-title);
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.06em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.add-edit-bb-shell__title {
-  margin-top: 8px;
-  color: #0f172a;
-  font-family: var(--font-title);
-  font-size: 1.35rem;
-  font-weight: var(--font-weight-black);
-  line-height: 0.96;
-}
-
-.add-edit-bb-shell__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  color: #111111;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
+  padding-bottom: 8px;
 }
 
 .add-edit-bb-shell__body {

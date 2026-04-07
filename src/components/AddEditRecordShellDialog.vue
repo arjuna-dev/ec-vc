@@ -6,8 +6,8 @@
     >
       <q-card-section class="create-record-shell__header">
         <div class="create-record-shell__header-copy">
-          <div class="create-record-shell__title-row">
-            <div class="create-record-shell__title">{{ dialogTitle }}</div>
+          <DialogShellTitleRow :title="dialogTitle" class="create-record-shell__title-row">
+            <template #actions>
             <q-btn
               v-if="canOpenIngestionShell"
               flat
@@ -48,7 +48,8 @@
                 </template>
               </q-select>
             </div>
-          </div>
+            </template>
+          </DialogShellTitleRow>
           <div class="create-record-shell__intake-lane">
             <button
               type="button"
@@ -936,6 +937,7 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { setPendingIngestionShellRequest } from 'src/utils/ingestionShellState'
 
