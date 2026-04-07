@@ -79,7 +79,7 @@ defineEmits(['click'])
   font-family: var(--ds-font-title);
   font-size: var(--ds-font-size-base);
   font-weight: var(--ds-font-weight-bold);
-  line-height: 0.92;
+  line-height: var(--ds-plus-label-line-height);
   letter-spacing: 0.01em;
 }
 </style>

@@ -107,11 +107,11 @@
   --ds-control-inline-padding: var(--ds-space-12);
 
   --ds-button-gap: var(--ds-space-8);
-  --ds-button-radius: var(--ds-radius-md);
+  --ds-button-radius: var(--ds-radius-mini);
   --ds-button-padding-y-sm: var(--ds-space-8);
   --ds-button-padding-x-sm: var(--ds-space-8);
   --ds-button-padding-y-md: var(--ds-space-12);
-  --ds-button-padding-x-md: var(--ds-space-12);
+  --ds-button-padding-x-md: var(--ds-space-16);
   --ds-button-font-family: var(--ds-font-body);
   --ds-button-font-size: var(--ds-font-size-base-regular);
   --ds-button-font-weight: var(--ds-font-weight-regular);
@@ -164,6 +164,12 @@
   --ds-nav-row-height: var(--ds-control-height-sm);
   --ds-page-back-label-size: 0.84rem;
   --ds-chevron-stroke-width: 1.45;
+  --ds-plus-label-line-height: 0.92;
+  --ds-live-action-menu-radius: var(--ds-radius-mini);
+  --ds-live-action-menu-item-height: calc(var(--ds-control-height-md) + var(--ds-space-2));
+  --ds-live-action-menu-item-padding-y: var(--ds-space-4);
+  --ds-live-action-menu-item-padding-x: var(--ds-space-6);
+  --ds-value-chip-outline: 0 0 0 1px color-mix(in srgb, var(--ds-color-brand-white) 82%, transparent);
 
   --ds-button-primary-bg: var(--b10-color-bg-brand-default);
   --ds-button-primary-bg-hover: var(--b10-color-bg-brand-hover);

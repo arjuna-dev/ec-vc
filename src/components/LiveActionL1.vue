@@ -120,6 +120,7 @@ function openMenu() {
   background: var(--ds-color-surface-base) !important;
   box-shadow: var(--ds-shadow-card-soft) !important;
   border: 1px solid var(--ds-color-border-default) !important;
+  border-radius: var(--ds-live-action-menu-radius);
 }
 
 .live-action-l1__menu :deep(.q-virtual-scroll__content),
@@ -133,8 +134,8 @@ function openMenu() {
 
 .live-action-l1__menu-item,
 .live-action-l1__menu :deep(.q-item) {
-  min-height: calc(var(--ds-control-height-md) + var(--ds-space-2));
-  padding: var(--ds-space-4) calc(var(--ds-space-4) + var(--ds-space-2));
+  min-height: var(--ds-live-action-menu-item-height);
+  padding: var(--ds-live-action-menu-item-padding-y) var(--ds-live-action-menu-item-padding-x);
   color: var(--ds-color-brand-white);
   background: transparent;
 }

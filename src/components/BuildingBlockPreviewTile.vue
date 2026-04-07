@@ -45,6 +45,10 @@
         <PageBackLabel label="Back" />
       </template>
 
+      <template v-else-if="blockKey === 'button-label'">
+        <ButtonLabel label="Primary" />
+      </template>
+
       <template v-else-if="blockKey === 'west-icon'">
         <WestIcon />
       </template>
@@ -97,9 +101,17 @@
       </template>
 
       <template v-else-if="blockKey === 'value-chip-surface'">
-        <ValueChipSurface tone="default">
-          <span style="width: 44px; height: 1px;" />
-        </ValueChipSurface>
+        <div class="building-block-preview-tile__button-row">
+          <ValueChipSurface tone="default">
+            <span style="width: 44px; height: 1px;" />
+          </ValueChipSurface>
+          <ValueChipSurface tone="menu">
+            <span style="width: 30px; height: 1px;" />
+          </ValueChipSurface>
+          <ValueChipSurface tone="button-neutral" size="small">
+            <span style="width: 30px; height: 1px;" />
+          </ValueChipSurface>
+        </div>
       </template>
 
       <template v-else-if="blockKey === 'value-chip-label'">
@@ -623,6 +635,7 @@ import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
 import PageBackLabel from 'src/components/PageBackLabel.vue'
+import ButtonLabel from 'src/components/ButtonLabel.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import WestIcon from 'src/components/WestIcon.vue'
 import B10Button from 'src/components/buttons/B10Button.vue'
