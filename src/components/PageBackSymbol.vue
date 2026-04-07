@@ -43,20 +43,18 @@ defineProps({
   gap: var(--ds-space-8);
   min-height: 32px;
   padding: 0 var(--ds-space-8) 0 var(--ds-space-4);
-  border: 1px solid var(--ds-color-border-default);
+  border: 0;
   border-radius: var(--ds-radius-sm);
   background: var(--ds-color-surface-base);
   cursor: pointer;
   transition:
     background-color 140ms ease,
-    border-color 140ms ease,
     color 140ms ease;
 }
 
 .page-back-symbol:hover,
 .page-back-symbol:focus-visible {
   background: var(--ds-color-surface-subtle);
-  border-color: var(--ds-color-brand-light-grey);
 }
 
 .page-back-symbol:focus-visible {

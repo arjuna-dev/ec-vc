@@ -100,6 +100,10 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'file-shell-title-row'">
+        <FileShellTitleRow title="BB Shell" />
+      </template>
+
       <template v-else-if="blockKey === 'toggle-row-icons'">
         <div class="building-block-preview-tile__toggle-row-icons">
           <ToggleRowIcons label="General" :expanded="true" />
@@ -540,6 +544,7 @@ import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'
+import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'

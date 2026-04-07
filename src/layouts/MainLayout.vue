@@ -1,19 +1,10 @@
 <template>
     <q-layout view="lHh Lpr lFf">
     <q-header :height-hint="108" class="ec-shell-header">
-      <q-toolbar class="q-px-md ec-shell-toolbar">
+        <q-toolbar class="q-px-md ec-shell-toolbar">
         <div class="ec-shell-toolbar-heading">
           <MainMenuIconButton @click="toggleLeftDrawer" />
-          <PageTitleText :title="currentHeaderTitle" />
-          <q-btn
-            flat
-            dense
-            no-caps
-            icon="west"
-            label="Back"
-            class="ec-shell-back-btn"
-            @click="goBack"
-          />
+          <FileShellTitleRow :title="currentHeaderTitle" @back="goBack" />
         </div>
 
         <div v-if="isSelectableShellRoute" class="ec-shell-toolbar-center">
@@ -439,7 +430,7 @@ import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
-import PageTitleText from 'src/components/PageTitleText.vue'
+import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
 
 import ArtifactAddDialog from 'components/ArtifactAddDialog.vue'
 import {
