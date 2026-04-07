@@ -40,7 +40,7 @@ defineProps({
   justify-content: flex-start;
   gap: var(--ds-space-8);
   width: 100%;
-  min-height: 24px;
+  min-height: var(--ds-nav-row-height);
   padding: 0;
   color: var(--ds-color-brand-white);
   border: 0;

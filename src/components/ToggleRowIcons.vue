@@ -108,7 +108,7 @@ const iconName = computed(() => {
   width: var(--ds-icon-size-sm);
   height: var(--ds-icon-size-sm);
   stroke: currentColor;
-  stroke-width: 1.45;
+  stroke-width: var(--ds-chevron-stroke-width);
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;

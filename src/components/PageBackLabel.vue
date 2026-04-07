@@ -17,9 +17,9 @@ defineProps({
   align-items: center;
   color: var(--ds-color-brand-black);
   font-family: var(--ds-font-title);
-  font-size: 0.84rem;
+  font-size: var(--ds-page-back-label-size);
   font-weight: var(--ds-font-weight-bold);
-  line-height: 1;
+  line-height: var(--ds-line-height-xs);
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
