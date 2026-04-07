@@ -100,8 +100,13 @@
         />
       </template>
 
-      <template v-else-if="blockKey === 'file-shell-title-row'">
-        <FileShellTitleRow title="BB Shell" />
+      <template v-else-if="blockKey === 'shell-title-row'">
+        <FileShellTitleRow
+          v-model="activeLiveActionL1"
+          title="BB Shell"
+          :show-selector="true"
+          :options="liveActionOptions"
+        />
       </template>
 
       <template v-else-if="blockKey === 'toggle-row-icons'">

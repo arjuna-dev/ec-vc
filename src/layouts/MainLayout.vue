@@ -4,17 +4,17 @@
         <q-toolbar class="q-px-md ec-shell-toolbar">
         <div class="ec-shell-toolbar-heading">
           <MainMenuIconButton @click="toggleLeftDrawer" />
-          <FileShellTitleRow :title="currentHeaderTitle" @back="goBack" />
-        </div>
-
-        <div v-if="isSelectableShellRoute" class="ec-shell-toolbar-center">
-          <LiveActionL1
+          <FileShellTitleRow
             v-model="selectedShellSection"
-            tone="inverse"
+            :title="currentHeaderTitle"
+            :show-selector="isSelectableShellRoute"
             :options="shellSectionOptions"
+            tone="inverse"
+            @back="goBack"
           />
         </div>
-        <div v-else-if="isFileDialogShellRoute || isDialogShellRoute || isForkShellRoute || isBbShellRoute" class="ec-shell-toolbar-center">
+
+        <div v-if="isFileDialogShellRoute || isDialogShellRoute || isForkShellRoute || isBbShellRoute" class="ec-shell-toolbar-center">
           <button
             type="button"
             class="ec-shell-dialog-open-btn"
@@ -426,7 +426,6 @@ import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
 import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
-import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuRow from 'src/components/MainMenuRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
@@ -1945,7 +1944,7 @@ function goBack() {
   align-items: flex-end;
   gap: var(--ds-space-8);
   min-width: 0;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
 }
 
 .ec-shell-back-btn {
