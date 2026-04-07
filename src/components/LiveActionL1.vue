@@ -27,7 +27,9 @@
         </q-item>
       </template>
     </q-select>
-    <DropdownChevron class="live-action-l1__chevron" @click.stop="openMenu" />
+    <button type="button" class="live-action-l1__chevron-button" aria-label="Open selector" @click.stop="openMenu">
+      <DropdownChevron :tone="tone === 'inverse' ? 'light' : 'dark'" class="live-action-l1__chevron" />
+    </button>
   </div>
 </template>
 
@@ -71,21 +73,22 @@ function openMenu() {
 
 <style scoped>
 .live-action-l1 {
-  position: relative;
   display: inline-flex;
-  align-items: center;
-  padding-right: var(--ds-live-action-padding-right);
+  align-items: flex-end;
+  gap: var(--ds-space-4);
   overflow: visible;
 }
 
 .live-action-l1__select {
-  width: min(var(--ds-live-action-width), 100%);
-  min-width: 0;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: min(var(--ds-live-action-width), 100%);
+  max-width: 100%;
 }
 
 .live-action-l1__select :deep(.q-field__control) {
   min-height: var(--ds-control-height-xl);
-  padding: 0 var(--ds-space-4) 0 0;
+  padding: 0;
   background: transparent;
   border-radius: 0;
   box-shadow: none;
@@ -96,12 +99,21 @@ function openMenu() {
   color: var(--ds-color-brand-white) !important;
 }
 
-.live-action-l1__chevron {
-  position: absolute;
-  right: var(--ds-live-action-menu-offset-x);
-  bottom: var(--ds-live-action-menu-offset-y);
-  z-index: 2;
+.live-action-l1__chevron-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-icon-size-md);
+  height: var(--ds-icon-size-md);
+  padding: 0;
+  margin-bottom: var(--ds-space-4);
+  background: transparent;
+  border: 0;
   cursor: pointer;
+}
+
+.live-action-l1__chevron {
+  flex: 0 0 auto;
 }
 
 .live-action-l1__menu {

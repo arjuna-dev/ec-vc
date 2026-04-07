@@ -90,7 +90,14 @@
       </template>
 
       <template v-else-if="blockKey === 'dropdown-chevron'">
-        <DropdownChevron />
+        <div class="building-block-preview-tile__chevron-row">
+          <div class="building-block-preview-tile__chevron-swatch">
+            <DropdownChevron tone="dark" />
+          </div>
+          <div class="building-block-preview-tile__chevron-swatch building-block-preview-tile__chevron-swatch--dark">
+            <DropdownChevron tone="light" />
+          </div>
+        </div>
       </template>
 
       <template v-else-if="blockKey === 'l2-settings-menu'">
@@ -929,6 +936,32 @@ onBeforeUnmount(() => {
   gap: var(--ds-space-8);
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.building-block-preview-tile__chevron-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-12);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.building-block-preview-tile__chevron-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--ds-space-12);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface-subtle);
+}
+
+.building-block-preview-tile__chevron-swatch--dark {
+  color: var(--ds-color-brand-white);
+  border-color: transparent;
+  background: var(--ds-color-brand-black);
 }
 
 .building-block-preview-tile__drawer-row-context {

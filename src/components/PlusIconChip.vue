@@ -53,7 +53,7 @@ defineProps({
   color: inherit;
   font-size: var(--plus-icon-chip-glyph-size);
   line-height: 1;
-  transform: translate(-0.2px, -0.45px);
+  transform: translate(-0.25px, -0.12px);
 }
 
 .plus-icon-chip--compare .plus-icon-chip__glyph {
