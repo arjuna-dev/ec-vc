@@ -66,14 +66,16 @@ const iconName = computed(() => {
 
 .toggle-row-icons--toggle {
   justify-content: flex-start;
-  gap: var(--ds-space-2);
+  gap: var(--ds-space-4);
   padding: 0;
   color: var(--ds-color-text-primary);
   background: transparent;
   border: 0;
   cursor: pointer;
   font-family: var(--ds-font-body);
-  font-size: 0.82rem;
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-light);
+  line-height: var(--ds-line-height-sm);
 }
 
 .toggle-row-icons--muted {
@@ -91,15 +93,15 @@ const iconName = computed(() => {
 
 .toggle-row-icons--pair {
   display: grid;
-  grid-template-columns: 14px 14px;
+  grid-template-columns: var(--ds-icon-size-sm) var(--ds-icon-size-sm);
   gap: 0;
   justify-content: end;
   color: color-mix(in srgb, var(--ds-color-text-primary) 58%, transparent);
 }
 
 .toggle-row-icons__pair-chevron {
-  width: 12px;
-  height: 12px;
+  width: var(--ds-icon-size-sm);
+  height: var(--ds-icon-size-sm);
   stroke: currentColor;
   stroke-width: 1.45;
   fill: none;
