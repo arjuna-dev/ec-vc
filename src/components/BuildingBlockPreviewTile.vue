@@ -435,15 +435,7 @@
       </template>
 
       <template v-else-if="blockKey === 'file-dashboard'">
-        <FilePageHeroDashboard
-          eyebrow="Dashboard"
-          title="Companies"
-          text="Track the live operating picture for this file and move through core workflows from one surface."
-          :stats="fileDashboardStats"
-          health-label="File Health"
-          health-text="Healthy structure with active records and recent updates."
-          :health-segments="fileDashboardHealth"
-        />
+        <FileHeroSandbox />
       </template>
 
       <template v-else-if="blockKey === 'home-dashboard'">
@@ -523,27 +515,7 @@
       </template>
 
       <template v-else-if="blockKey === 'record-dashboard'">
-        <RecordDashboard
-          :title="'Acme Inc.'"
-          :subtitle="'Founder / CEO'"
-          :secondary-subtitle="'Series A, enterprise workflow infrastructure'"
-          :settings-groups="recordDashboardSettingsGroups"
-          :field-cards="recordDashboardFieldCards"
-          summary-value="High-conviction company with strong operator references."
-          summary-status-icon="task_alt"
-          :interactive="true"
-          :feed-tab="activeRecordFeedTabPreview"
-          :feed-tabs="recordFeedTabOptions"
-          :feed-items="recordFeedItems"
-          feed-empty-message="No feed items yet for this record."
-          @update:feed-tab="activeRecordFeedTabPreview = $event"
-        >
-          <template #portrait>
-            <div class="building-block-preview-tile__record-dashboard-portrait">
-              <div class="building-block-preview-tile__record-dashboard-portrait-initials">AI</div>
-            </div>
-          </template>
-        </RecordDashboard>
+        <HeroSandbox />
       </template>
 
       <template v-else-if="blockKey === 'record-hero'">
@@ -704,7 +676,6 @@ import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import HeroSandbox from 'src/components/HeroSandbox.vue'
 import HeroSandboxOverlay from 'src/components/HeroSandboxOverlay.vue'
 import HeroSandboxSurface from 'src/components/HeroSandboxSurface.vue'
-import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import FilterListIcon from 'src/components/FilterListIcon.vue'
 import L3Box from 'src/components/L3Box.vue'
@@ -728,7 +699,6 @@ import ButtonLabel from 'src/components/ButtonLabel.vue'
 import B10Logo from 'src/components/B10Logo.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import RecordContextPanel from 'src/components/RecordContextPanel.vue'
-import RecordDashboard from 'src/components/RecordDashboard.vue'
 import RecordFeedEmpty from 'src/components/RecordFeedEmpty.vue'
 import RecordFeedEntrySurface from 'src/components/RecordFeedEntrySurface.vue'
 import RecordFeedEntryTitle from 'src/components/RecordFeedEntryTitle.vue'
@@ -837,7 +807,9 @@ const tileStatusLabel = computed(() => props.statusLabel || detail.value?.status
 const statusClass = computed(() =>
   (detail.value?.status || '').trim() === 'canonical'
     ? 'building-block-preview-tile__status--canonical'
-    : 'building-block-preview-tile__status--extract',
+    : (detail.value?.status || '').trim() === 'deprecated'
+      ? 'building-block-preview-tile__status--deprecated'
+      : 'building-block-preview-tile__status--extract',
 )
 const stageClass = computed(() =>
   ['fonts', 'type-scale', 'colors', 'surfaces', 'spacing', 'formatting-rules', 'motion-rules', 'file-dashboard', 'home-dashboard', 'file-toolbar', 'l2-toolbar'].includes(props.blockKey)
@@ -883,13 +855,6 @@ const liveActionOptions = [
   { label: 'Funds', value: 'funds' },
 ]
 
-const fileDashboardStats = [
-  { label: 'Records', value: '128', caption: 'Tracked rows', tone: 'neutral' },
-  { label: 'Updated', value: '12', caption: 'Changed today', tone: 'positive' },
-  { label: 'Open', value: '7', caption: 'Items needing attention', tone: 'warning' },
-  { label: 'Links', value: '93%', caption: 'KDB coverage', tone: 'positive' },
-]
-
 const homeDashboardStats = [
   { label: 'Open tasks', value: '27' },
   { label: 'Recent adds (7d)', value: '41' },
@@ -933,28 +898,6 @@ const recordFeedItems = [
   { id: 'feed-2', feedKey: 'events', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
 ]
 
-const recordDashboardSettingsGroups = [
-  {
-    key: 'general',
-    label: 'General',
-    expanded: true,
-    items: [
-      { key: 'industry', label: 'Industry', checked: true },
-      { key: 'summary', label: 'Summary', checked: true },
-    ],
-  },
-]
-
-const recordDashboardFieldCards = [
-  {
-    key: 'industry',
-    label: 'Industry',
-    description: 'General',
-    value: 'Enterprise SaaS',
-    statusIcon: 'task_alt',
-  },
-]
-
 
 const l2ToolbarItems = [
   { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
@@ -976,12 +919,6 @@ const foundationSpacingSamples = GENERAL_SETTINGS_SPACING_SAMPLES
 const foundationIconSizeSamples = GENERAL_SETTINGS_ICON_SIZE_SAMPLES
 const foundationFormattingSamples = GENERAL_SETTINGS_FORMATTING_SAMPLES
 const foundationMotionSamples = GENERAL_SETTINGS_MOTION_SAMPLES
-
-const fileDashboardHealth = [
-  { tone: 'positive', width: 58 },
-  { tone: 'warning', width: 24 },
-  { tone: 'neutral', width: 18 },
-]
 
 const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Record' : 'Add'))
 const tileStyle = computed(() =>
@@ -1086,6 +1023,12 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__status--extract {
   color: #111111;
   background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.18);
+}
+
+.building-block-preview-tile__status--deprecated {
+  color: #111111;
+  background: color-mix(in srgb, var(--ds-color-brand-light-grey) 82%, white);
   border-color: rgba(15, 23, 42, 0.18);
 }
 
