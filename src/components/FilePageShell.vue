@@ -286,7 +286,7 @@
                 <EyeIconButton
                   aria-label="View block tile"
                   :disable="!row.recordId"
-                  @click="openRecordView(row)"
+                  @click="openBbShell(row)"
                 />
               </template>
             </BuildingBlockPreviewTile>
@@ -679,7 +679,7 @@
                     icon="visibility"
                     class="test-shell-table__eye"
                     :disable="!row.recordId"
-                    @click="openRecordView(row)"
+                    @click="isBbFileSource ? openBbShell(row) : openRecordView(row)"
                   />
                 </td>
                 <td
@@ -2249,6 +2249,17 @@ function openRecordView(row) {
     })
   if (!location) return
   router.push(location)
+}
+
+function openBbShell(row) {
+  const blockKey = getBbTileBlockKey(row)
+  if (!blockKey) return
+  router.push({
+    name: 'bb-shell',
+    query: {
+      block: blockKey,
+    },
+  })
 }
 
 function requestCreateRecordShell(options = {}) {
