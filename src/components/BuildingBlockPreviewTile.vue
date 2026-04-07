@@ -37,11 +37,15 @@
       </template>
 
       <template v-else-if="blockKey === 'value-chip'">
-        <span class="building-block-preview-tile__live-link-value">Companies</span>
+        <ValueChip label="Companies" tone="default" />
       </template>
 
       <template v-else-if="blockKey === 'dropdown-chevron'">
-        <q-icon name="expand_more" class="building-block-preview-tile__live-link-chevron" />
+        <DropdownChevron />
+      </template>
+
+      <template v-else-if="blockKey === 'live-action-l1'">
+        <LiveActionL1 v-model="activeLiveActionL1" :options="liveActionOptions" />
       </template>
 
       <template v-else-if="blockKey === 'fonts'">
@@ -474,7 +478,10 @@ import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
+import DropdownChevron from 'src/components/DropdownChevron.vue'
+import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
+import ValueChip from 'src/components/ValueChip.vue'
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,
@@ -526,6 +533,13 @@ const stageClass = computed(() =>
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
+]
+
+const activeLiveActionL1 = ref('companies')
+const liveActionOptions = [
+  { label: 'Companies', value: 'companies' },
+  { label: 'Projects', value: 'projects' },
+  { label: 'Funds', value: 'funds' },
 ]
 
 const fileDashboardStats = [
@@ -746,29 +760,6 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.building-block-preview-tile__live-link-value {
-  color: #fff;
-  font-family: var(--font-title);
-  font-size: 1rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  text-transform: lowercase;
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 10px;
-  background: #000;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
-}
-
-.building-block-preview-tile__live-link-chevron {
-  color: #111111;
-  font-size: 20px;
-  line-height: 1;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
 }
 
 .building-block-preview-tile__foundation-stack {

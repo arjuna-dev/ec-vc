@@ -93,7 +93,7 @@
           <textarea
             readonly
             class="add-edit-bb-shell__prompt"
-            :value="detail?.prompt || ''"
+            :value="detailPrompt"
           />
         </div>
       </q-card-section>
@@ -102,9 +102,10 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 
-defineProps({
+const props = defineProps({
   modelValue: { type: Boolean, default: false },
   detail: {
     type: Object,
@@ -113,6 +114,23 @@ defineProps({
 })
 
 defineEmits(['update:modelValue'])
+
+const detailPrompt = computed(() => {
+  const prompt = String(props.detail?.prompt || '').trim()
+  const builtFromBbs = Array.isArray(props.detail?.builtFromBbs) ? props.detail.builtFromBbs : []
+
+  if (builtFromBbs.length) {
+    return [
+      'Compose this from the linked canonical child BBs listed above. Do not recreate approved children locally. If a child changes later, that change should flow through automatically.',
+      prompt,
+    ].filter(Boolean).join('\n\n')
+  }
+
+  return [
+    'Treat this as a leaf or missing-child boundary. Do not guess hidden structure. If child BBs are missing, add them explicitly before treating this as a fully compositional parent.',
+    prompt,
+  ].filter(Boolean).join('\n\n')
+})
 </script>
 
 <style scoped>

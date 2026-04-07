@@ -17,42 +17,11 @@
         </div>
 
         <div v-if="isSelectableShellRoute" class="ec-shell-toolbar-center">
-          <div class="ec-shell-test-select-wrap">
-            <q-select
-              ref="testShellSectionSelectRef"
-              v-model="selectedShellSection"
-              dense
-              dark
-              options-dark
-              borderless
-              hide-bottom-space
-              emit-value
-              map-options
-              hide-dropdown-icon
-              :options="shellSectionOptions"
-              popup-content-class="ec-shell-test-select-menu"
-              class="ec-shell-test-select"
-            >
-              <template #selected-item="scope">
-                <span class="ec-shell-test-select__value">{{ scope.opt.label }}</span>
-              </template>
-              <template #option="scope">
-                <q-item
-                  v-bind="scope.itemProps"
-                  class="ec-shell-test-select-menu__item"
-                >
-                  <q-item-section>
-                    <span class="ec-shell-test-select-menu__value">{{ scope.opt.label }}</span>
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-            <q-icon
-              name="expand_more"
-              class="ec-shell-test-select__chevron"
-              @click.stop="openShellSectionMenu"
-            />
-          </div>
+          <LiveActionL1
+            v-model="selectedShellSection"
+            tone="inverse"
+            :options="shellSectionOptions"
+          />
         </div>
         <div v-else-if="isFileDialogShellRoute || isDialogShellRoute || isForkShellRoute || isBbShellRoute" class="ec-shell-toolbar-center">
           <button
@@ -471,6 +440,7 @@ import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
 import widgetBackAnimationData from 'src/assets/lottie/widget-back.json'
 import widgetOpenAnimationData from 'src/assets/lottie/widget-open.json'
 import widgetToAnimationData from 'src/assets/lottie/widget-to.json'
+import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
 
@@ -521,7 +491,6 @@ const quickWidgetSettingsSectionOpen = ref({
 const draftTrayDismissed = ref(false)
 const intakeQueueDialogOpen = ref(false)
 const intakeQueueFieldEdits = ref({})
-const testShellSectionSelectRef = ref(null)
 const drawerSectionOpen = ref({
   main: true,
   radars: true,
@@ -812,18 +781,6 @@ const selectedShellSection = computed({
     })
   },
 })
-
-function openShellSectionMenu() {
-  const select = testShellSectionSelectRef.value
-  if (!select) return
-  if (typeof select.showPopup === 'function') {
-    select.showPopup()
-    return
-  }
-  if (typeof select.focus === 'function') {
-    select.focus()
-  }
-}
 
 function reopenActiveRouteShellFromHeader() {
   if (typeof window === 'undefined') return
@@ -2091,114 +2048,6 @@ function goBack() {
   background: #111;
   box-shadow: 0 0 0 1px #ffffff;
   outline: none;
-}
-
-.ec-shell-test-select {
-  width: min(220px, 100%);
-  min-width: 0;
-}
-
-.ec-shell-test-select :deep(.q-field__control) {
-  min-height: 40px;
-  padding: 0 4px 0 0;
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.ec-shell-test-select :deep(.q-field__native),
-.ec-shell-test-select :deep(.q-field__marginal) {
-  color: #fff !important;
-}
-
-.ec-shell-test-select-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding-right: 18px;
-  overflow: visible;
-}
-
-.ec-shell-test-select__value {
-  color: #fff;
-  font-family: var(--font-title);
-  font-size: 1rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  text-transform: lowercase;
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 10px;
-  background: #000;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
-}
-
-.ec-shell-test-select__chevron {
-  position: absolute;
-  right: -4px;
-  bottom: -2px;
-  z-index: 2;
-  color: #111111;
-  font-size: 20px;
-  line-height: 1;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
-  cursor: pointer;
-}
-
-.ec-shell-test-select-menu {
-  background: #ffffff !important;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14) !important;
-  border: 1px solid rgba(17, 17, 17, 0.08) !important;
-}
-
-.ec-shell-test-select-menu :deep(.q-virtual-scroll__content),
-.ec-shell-test-select-menu :deep(.q-menu),
-.ec-shell-test-select-menu :deep(.q-list) {
-  background: #ffffff !important;
-  box-shadow: none !important;
-  border: 0 !important;
-  border-radius: 0;
-}
-
-.ec-shell-test-select-menu__item,
-.ec-shell-test-select-menu :deep(.q-item) {
-  min-height: 34px;
-  padding: 4px 6px;
-  color: #ffffff;
-  background: transparent;
-}
-
-.ec-shell-test-select-menu__value {
-  display: inline-flex;
-  align-items: center;
-  min-height: 26px;
-  padding: 0 8px;
-  color: #ffffff;
-  background: #111111;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
-  font-family: var(--font-title);
-  font-size: 0.88rem;
-  font-weight: 800;
-  line-height: 0.96;
-  letter-spacing: -0.03em;
-}
-
-.ec-shell-test-select-menu__item.q-manual-focusable--focused,
-.ec-shell-test-select-menu__item.q-item--active,
-.ec-shell-test-select-menu :deep(.q-item.q-manual-focusable--focused),
-.ec-shell-test-select-menu :deep(.q-item--active) {
-  background: transparent;
-}
-
-.ec-shell-test-select-menu__item.q-manual-focusable--focused .ec-shell-test-select-menu__value,
-.ec-shell-test-select-menu__item.q-item--active .ec-shell-test-select-menu__value,
-.ec-shell-test-select-menu :deep(.q-item.q-manual-focusable--focused .q-item__label),
-.ec-shell-test-select-menu :deep(.q-item--active .q-item__label) {
-  background: #000000;
-  box-shadow: 0 0 0 1px #ffffff;
 }
 
 .ec-breadcrumb-bar {

@@ -123,10 +123,7 @@
         <div class="components-shell-page__card-label">Live Action L1</div>
         <div class="components-shell-page__card-status" :class="componentStatusClass('live-action-l1')">{{ componentStatusLabel('live-action-l1') }}</div>
         <div class="components-shell-page__card-stage">
-          <div class="components-shell-page__live-link-wrap">
-            <div class="components-shell-page__live-link-value">Companies</div>
-            <q-icon name="expand_more" class="components-shell-page__live-link-chevron" />
-          </div>
+          <LiveActionL1 v-model="activeLiveActionL1" :options="liveActionOptions" />
         </div>
       </article>
       <article class="components-shell-page__card components-shell-page__card--lg">
@@ -435,6 +432,7 @@ import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vu
 import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
+import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import logoAnimationData from 'src/assets/lottie/animation-b10-firma.json'
@@ -442,6 +440,7 @@ import { BUILDING_BLOCK_DETAILS_BY_ID } from 'src/utils/buildingBlocks'
 
 const activeToolbarSection = ref('general')
 const toolbarViewMode = ref('card')
+const activeLiveActionL1 = ref('companies')
 const openSections = ref({
   basic: true,
   navigation: true,
@@ -458,6 +457,12 @@ let logoAnimation = null
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
+]
+
+const liveActionOptions = [
+  { label: 'Companies', value: 'companies' },
+  { label: 'Projects', value: 'projects' },
+  { label: 'Funds', value: 'funds' },
 ]
 
 const toolbarItems = [
@@ -742,49 +747,6 @@ onBeforeUnmount(() => {
   justify-content: stretch;
 }
 
-.components-shell-page__crumb-shell {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  width: 100%;
-}
-
-.components-shell-page__crumb-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.components-shell-page__crumb-link,
-.components-shell-page__crumb-separator {
-  color: rgba(15, 23, 42, 0.56);
-  font-family: var(--font-body);
-  font-size: 0.84rem;
-  line-height: 1;
-}
-
-.components-shell-page__crumb-current,
-.components-shell-page__page-title {
-  color: #0f172a;
-  font-family: var(--font-title);
-  font-weight: var(--font-weight-black);
-}
-
-.components-shell-page__crumb-current {
-  font-size: 0.84rem;
-  line-height: 1;
-}
-
-.components-shell-page__page-title {
-  font-size: clamp(2.4rem, 5vw, 4rem);
-  line-height: 0.95;
-  letter-spacing: -0.08em;
-  max-width: 100%;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
 .components-shell-page__nav-row {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);
@@ -959,43 +921,6 @@ onBeforeUnmount(() => {
   font-size: var(--ds-font-size-sm-regular, 0.84rem);
   font-weight: var(--ds-font-weight-regular, 400);
   line-height: var(--ds-line-height-sm, 1.35);
-}
-
-.components-shell-page__live-link-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding-right: 18px;
-  overflow: visible;
-}
-
-.components-shell-page__live-link-value {
-  color: #fff;
-  font-family: var(--font-title);
-  font-size: 1rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  text-transform: lowercase;
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 10px;
-  background: #000;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.82);
-}
-
-.components-shell-page__live-link-chevron {
-  position: absolute;
-  right: -4px;
-  bottom: -2px;
-  z-index: 2;
-  color: #111111;
-  font-size: 20px;
-  line-height: 1;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.18);
-  cursor: pointer;
 }
 
 .components-shell-page__l2-settings-panel {
