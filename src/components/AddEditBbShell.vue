@@ -1,16 +1,16 @@
 <template>
   <q-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)">
-    <q-card class="add-edit-bb-shell">
-      <q-card-section class="add-edit-bb-shell__head">
+    <DialogShellFrame card-class="add-edit-bb-shell" header-class="add-edit-bb-shell__head" body-class="add-edit-bb-shell__body">
+      <template #header>
         <DialogShellTitleRow
           :title="detail?.title || 'Building Block'"
           :closable="true"
           close-label="Close details"
           @close="$emit('update:modelValue', false)"
         />
-      </q-card-section>
+      </template>
 
-      <q-card-section class="add-edit-bb-shell__body">
+      <template #default>
         <div class="add-edit-bb-shell__meta">
           <div class="add-edit-bb-shell__label">ID</div>
           <div class="add-edit-bb-shell__value">{{ detail?.id || '' }}</div>
@@ -95,13 +95,14 @@
             :value="detailPrompt"
           />
         </div>
-      </q-card-section>
-    </q-card>
+      </template>
+    </DialogShellFrame>
   </q-dialog>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 
 const props = defineProps({

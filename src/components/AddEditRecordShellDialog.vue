@@ -1,10 +1,13 @@
 <template>
   <q-dialog v-model="open">
-    <q-card
-      class="create-record-shell"
-      :style="dialogStyle"
+    <DialogShellFrame
+      card-class="create-record-shell"
+      header-class="create-record-shell__header"
+      body-class="create-record-shell__body"
+      footer-class="create-record-shell__footer"
+      :card-style="dialogStyle"
     >
-      <q-card-section class="create-record-shell__header">
+      <template #header>
         <div class="create-record-shell__header-copy">
           <DialogShellTitleRow :title="dialogTitle" class="create-record-shell__title-row">
             <template #actions>
@@ -288,9 +291,9 @@
         </div>
 
         <div class="create-record-shell__header-actions"></div>
-      </q-card-section>
+      </template>
 
-      <q-card-section class="create-record-shell__body">
+      <template #default>
         <div class="create-record-shell__record-data">
           <button
             type="button"
@@ -893,9 +896,9 @@
             </div>
           </template>
         </div>
-      </q-card-section>
+      </template>
 
-      <q-card-actions align="right" class="create-record-shell__footer">
+      <template #footer>
         <DialogShellFooter
           :legend-items="dialogFooterLegendItems"
           :cancel-disabled="loading"
@@ -905,21 +908,24 @@
           @cancel="open = false"
           @save="submit"
         />
-      </q-card-actions>
+      </template>
 
-      <button
-        type="button"
-        class="create-record-shell__resize-handle"
-        aria-label="Resize dialog"
-        @mousedown.prevent="startResize"
-      />
-    </q-card>
+      <template #overlay>
+        <button
+          type="button"
+          class="create-record-shell__resize-handle"
+          aria-label="Resize dialog"
+          @mousedown.prevent="startResize"
+        />
+      </template>
+    </DialogShellFrame>
   </q-dialog>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import DialogShellFooter from 'src/components/DialogShellFooter.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'

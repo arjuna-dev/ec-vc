@@ -1,7 +1,12 @@
 <template>
   <q-dialog v-model="open">
-    <q-card class="file-structure-shell">
-      <q-card-section class="file-structure-shell__header">
+    <DialogShellFrame
+      card-class="file-structure-shell"
+      header-class="file-structure-shell__header"
+      body-class="file-structure-shell__body"
+      footer-class="file-structure-shell__actions"
+    >
+      <template #header>
         <div class="file-structure-shell__header-copy">
           <div class="file-structure-shell__title-row">
             <div class="file-structure-shell__title">Add/Edit File Shell</div>
@@ -35,9 +40,9 @@
             </div>
           </div>
         </div>
-      </q-card-section>
+      </template>
 
-      <q-card-section class="file-structure-shell__body">
+      <template #default>
         <div class="file-structure-shell__section-stack">
           <section class="file-structure-shell__group">
             <div class="file-structure-shell__group-head">
@@ -241,20 +246,21 @@
             </div>
           </section>
         </div>
-      </q-card-section>
+      </template>
 
-      <q-card-actions align="right" class="file-structure-shell__actions">
+      <template #footer>
         <DialogShellFooter
           :save-disabled="true"
           @cancel="emit('requestClose')"
         />
-      </q-card-actions>
-    </q-card>
+      </template>
+    </DialogShellFrame>
   </q-dialog>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
+import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import DialogShellFooter from 'src/components/DialogShellFooter.vue'
 
 const props = defineProps({

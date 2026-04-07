@@ -50,7 +50,7 @@ const toneClass = computed(() => `dialog-shell-title-row--${String(props.tone ||
 }
 
 .dialog-shell-title-row__title {
-  color: var(--ds-color-text-primary);
+  color: var(--ds-color-brand-dark-grey);
   font-family: var(--ds-font-title);
   font-size: var(--ds-font-size-dialog-title);
   font-weight: var(--ds-font-weight-bold);

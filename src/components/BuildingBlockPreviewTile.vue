@@ -157,6 +157,20 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'dialog-shell-frame'">
+        <DialogShellFrame class="building-block-preview-tile__dialog-frame">
+          <template #header>
+            <DialogShellTitleRow title="Edit Building Block" :closable="true" />
+          </template>
+          <template #default>
+            <div class="building-block-preview-tile__dialog-frame-body" />
+          </template>
+          <template #footer>
+            <DialogShellFooter save-label="Save" />
+          </template>
+        </DialogShellFrame>
+      </template>
+
       <template v-else-if="blockKey === 'shell-title-row'">
         <FileShellTitleRow
           v-model="activeLiveActionL1"
@@ -632,6 +646,7 @@ import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'
 import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
+import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'
 import PageBackLabel from 'src/components/PageBackLabel.vue'
@@ -996,6 +1011,19 @@ onBeforeUnmount(() => {
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-lg);
   background: var(--ds-color-surface-base);
+}
+
+.building-block-preview-tile__dialog-frame {
+  width: min(100%, 420px);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-base);
+}
+
+.building-block-preview-tile__dialog-frame-body {
+  min-height: 120px;
+  border-radius: var(--ds-radius-mini);
+  background: color-mix(in srgb, var(--ds-color-brand-light-grey) 58%, white);
 }
 
 .building-block-preview-tile__chevron-row {
