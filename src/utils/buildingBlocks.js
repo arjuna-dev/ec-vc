@@ -162,6 +162,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     prompt: 'Render the Home Dashboard component from Building Blocks by reusing the shared HomeDashboardHero component directly instead of recreating the hero layout locally.',
     usedIn: ['Home page hero surface', 'Building Blocks file component catalog'],
     usedInShells: ['BB Shell'],
+    builtFromBbs: ['page-title-crumb', 'l3-box'],
     anatomy: ['Breadcrumb row above the page title when used as a page header counterpart', 'Large overview count', 'Three stat blocks', 'Side panels for root path and active signal chips'],
   }),
   'page-title-crumb': defineBuildingBlockDetail({
@@ -222,6 +223,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for add actions that need icon plus text in one control.',
     prompt: 'Render the Plus With Label component from Building Blocks exactly, using the same electric-blue button, white plus icon, and title-font label treatment.',
     usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'File Shell', 'Record Shell'],
+    builtFromBbs: ['plus-icon'],
   }),
   'bb-tile-header': defineBuildingBlockDetail({
     id: 'cmp-bb-tile-header',
@@ -234,7 +236,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     prompt: 'Render the BB Tile Header from Building Blocks using the same cool title type, collapse arrow, copy action, and eye action aligned in one compact top row.',
     usedIn: ['BB Shell tile top row', 'Building Blocks tile top row'],
     usedInShells: ['BB Shell', 'Add/Edit BB Shell'],
-    builtFromBbs: [],
+    builtFromBbs: ['eye-icon'],
     anatomy: ['Strong title-style text on the left', 'Collapse / expand arrow inline with the title', 'Copy icon action', 'Eye icon action'],
   }),
   'live-action-l1': defineBuildingBlockDetail({
@@ -258,6 +260,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the top title row on file-level shells where the page title, back cluster, and shell controls align in one header lane.',
     prompt: 'Render the File Shell Title Row from Building Blocks using the canonical shell-header composition, without inventing local header spacing.',
     usedInShells: ['File Shell', 'BB Shell'],
+    builtFromBbs: ['page-back-symbol', 'page-title-crumb'],
     anatomy: ['Back or shell-left cluster', 'Page title / crumb treatment', 'Optional shell action lane'],
   }),
   'record-shell-title-row': defineBuildingBlockDetail({
@@ -270,6 +273,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the top title row on record-level shells where back navigation, record title, and shell actions live together.',
     prompt: 'Render the Record Shell Title Row from Building Blocks using the same header hierarchy and spacing as the canonical record-shell title row.',
     usedInShells: ['Record Shell'],
+    builtFromBbs: ['page-back-symbol', 'page-title-crumb', 'live-action-l1'],
     anatomy: ['Back cluster', 'Record title treatment', 'Right-side action cluster'],
   }),
   'b10-button': defineBuildingBlockDetail({
@@ -315,6 +319,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for file-level hero dashboards showing title, copy, stats, and health.',
     prompt: 'Render the File Dashboard component from Building Blocks using the real FilePageHeroDashboard surface, preserving its hero, stats, and health structure.',
     usedInShells: ['BB Shell', 'File Shell'],
+    builtFromBbs: ['l3-box'],
   }),
   'l3-box': defineBuildingBlockDetail({
     id: 'cmp-l3-box',
@@ -337,6 +342,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the top toolbar inside file pages with add, search, and view controls.',
     prompt: 'Render the File Toolbar component from Building Blocks using the real FilePageToolbar component, keeping its existing add, search, and view-toggle layout.',
     usedInShells: ['BB Shell', 'File Shell'],
+    builtFromBbs: ['plus-with-label'],
   }),
   'record-dashboard': defineBuildingBlockDetail({
     id: 'cmp-record-dashboard',
@@ -371,6 +377,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for compact shell settings menus like Hero Fields where grouped options can be expanded or collapsed.',
     prompt: 'Render the L2 Settings Menu from Building Blocks using the same compact panel, grouped rows, checkboxes, and expand/collapse treatment as the canonical menu sample.',
     usedInShells: ['BB Shell', 'File Shell', 'Record Shell'],
+    builtFromBbs: ['toggle-row-icons'],
   }),
   'widget-settings-menu': defineBuildingBlockDetail({
     id: 'cmp-widget-settings-menu',
@@ -382,6 +389,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the floating widget settings panel with grouped rows, checkboxes, and reorder chevrons.',
     prompt: 'Render the Widget Settings Menu from Building Blocks using the same dark floating panel, grouped section toggle, row labels, checkboxes, and reorder chevrons.',
     usedInShells: ['BB Shell', 'File Shell', 'Record Shell'],
+    builtFromBbs: ['toggle-row-icons'],
   }),
   'dialog-shell-frame': defineBuildingBlockDetail({
     id: 'cmp-dialog-shell-frame',
@@ -405,7 +413,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the top row inside add/edit shell dialogs.',
     prompt: 'Render the Dialog Shell Title Row from Building Blocks using the canonical add/edit shell title row and close-control alignment.',
     usedInShells: ['Add/Edit Record Shell', 'Add/Edit File Shell', 'Add/Edit BB Shell'],
-    builtFromBbs: [],
+    builtFromBbs: ['page-title-crumb'],
     anatomy: ['Eyebrow or shell label', 'Main title', 'Optional header actions', 'Close icon button'],
   }),
   'dialog-shell-footer': defineBuildingBlockDetail({
@@ -430,6 +438,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for standard main menu file rows inside the left drawer.',
     prompt: 'Render the Main Menu Row from Building Blocks using the same left-drawer icon and label treatment as the canonical nav row.',
     usedInShells: ['Main Layout'],
+    builtFromBbs: ['main-menu-icon'],
   }),
   'main-menu-subgroup-row': defineBuildingBlockDetail({
     id: 'cmp-main-menu-subgroup-row',
@@ -441,6 +450,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for grouped left-drawer subsection rows like Shells and workspace groupings.',
     prompt: 'Render the Main Menu Subgroup Row from Building Blocks using the same subgroup title plus expand-collapse chevron treatment as the canonical drawer subgroup row.',
     usedInShells: ['Main Layout'],
+    builtFromBbs: ['toggle-row-icons'],
   }),
   'eye-icon': defineBuildingBlockDetail({
     id: 'cmp-eye-icon',
