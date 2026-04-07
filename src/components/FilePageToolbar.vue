@@ -70,7 +70,7 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
   padding: var(--ds-toolbar-padding-y) var(--ds-toolbar-padding-x);
   background: var(--ds-color-surface-base);
   border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-lg);
+  border-radius: var(--ds-radius-sm);
 }
 
 .file-page-toolbar__block {

@@ -3957,7 +3957,7 @@ function isBbGraphLinkToken(tokenRow) {
   color: #111111;
   background: #fdfdfb;
   border: 1px solid #111111;
-  border-radius: 2px;
+  border-radius: var(--ds-radius-micro);
   font-family: var(--font-title);
   font-size: 0.72rem;
   font-weight: var(--font-weight-black);
