@@ -774,7 +774,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for shell-specific buttons that reopen or launch the active shell dialog.',
     prompt: 'Render the Shell Open Dialog Button from Building Blocks using the canonical shell launch button treatment with route-aware behavior.',
     usedInShells: ['Add/Edit Record Shell', 'Add/Edit File Shell', 'Add/Edit BB Shell', 'Fork Shell'],
-    builtFromBbs: ['b10-button'],
+    builtFromBbs: ['value-chip-surface', 'value-chip-label'],
     anatomy: ['Button container', 'Action label', 'Shell-aware open behavior'],
   }),
   'record-shell-launchpad': defineBuildingBlockDetail({
