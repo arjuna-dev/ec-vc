@@ -125,6 +125,12 @@
   --ds-icon-button-icon-size: var(--ds-icon-size-md);
   --ds-nav-row-icon-lane: calc(var(--ds-space-32) + var(--ds-space-8));
   --ds-live-action-width: 220px;
+  --ds-toolbar-gap-md: var(--ds-space-12);
+  --ds-toolbar-padding-y: var(--ds-space-24);
+  --ds-toolbar-padding-x: var(--ds-space-20);
+  --ds-toolbar-search-width: 300px;
+  --ds-toolbar-toggle-button-size: 26px;
+  --ds-toolbar-toggle-icon-size: 16px;
 
   --ds-button-primary-bg: var(--b10-color-bg-brand-default);
   --ds-button-primary-bg-hover: var(--b10-color-bg-brand-hover);

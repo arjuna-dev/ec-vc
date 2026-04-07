@@ -16,7 +16,7 @@
 
     <div class="file-page-toolbar__block file-page-toolbar__block--actions">
       <slot name="filters">
-        <q-icon name="tune" size="18px" class="file-page-toolbar__filters-icon" />
+        <q-icon name="tune" :size="'var(--ds-icon-size-md)'" class="file-page-toolbar__filters-icon" />
       </slot>
       <q-input
         :model-value="searchQuery"
@@ -74,9 +74,9 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 12px;
+  gap: var(--ds-toolbar-gap-md);
   min-width: 0;
-  padding: 24px 20px;
+  padding: var(--ds-toolbar-padding-y) var(--ds-toolbar-padding-x);
   background: var(--ds-color-surface-base);
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-lg);
@@ -85,7 +85,7 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
 .file-page-toolbar__block {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--ds-toolbar-gap-md);
   min-width: 0;
 }
 
@@ -107,15 +107,15 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
 }
 
 .file-page-toolbar__select-all {
-  min-height: 26px;
+  min-height: var(--ds-toolbar-toggle-button-size);
   margin-left: -1px;
-  color: var(--ds-color-text-default, #111111);
+  color: var(--ds-color-text-primary);
 }
 
 .file-page-toolbar__search {
-  width: min(100%, 300px);
-  min-width: min(100%, 300px);
-  flex: 0 0 min(100%, 300px);
+  width: min(100%, var(--ds-toolbar-search-width));
+  min-width: min(100%, var(--ds-toolbar-search-width));
+  flex: 0 0 min(100%, var(--ds-toolbar-search-width));
   background: var(--ds-control-surface);
   border: 1px solid var(--ds-control-border);
   border-radius: var(--ds-control-radius);
@@ -163,9 +163,9 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 26px;
-  min-height: 26px;
-  height: 26px;
+  min-width: var(--ds-toolbar-toggle-button-size);
+  min-height: var(--ds-toolbar-toggle-button-size);
+  height: var(--ds-toolbar-toggle-button-size);
   padding-inline: 4px;
 }
 
@@ -174,7 +174,7 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
 }
 
 .file-page-toolbar__view-toggle :deep(.q-icon) {
-  font-size: 16.2px;
+  font-size: var(--ds-toolbar-toggle-icon-size);
 }
 
 @media (max-width: 900px) {
