@@ -67,7 +67,7 @@ const statusClass = computed(() =>
   padding: 18px;
   overflow: hidden;
   border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 4px;
+  border-radius: var(--ds-radius-mini);
   background: rgba(255, 255, 255, 0.94);
 }
 

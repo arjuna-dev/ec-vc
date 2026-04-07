@@ -52,6 +52,7 @@ export const GENERAL_SETTINGS_BORDER_SAMPLES = Object.freeze([
 
 export const GENERAL_SETTINGS_RADIUS_SAMPLES = Object.freeze([
   { key: 'micro', label: '2px', token: '--ds-radius-micro', radius: 'var(--ds-radius-micro)' },
+  { key: 'mini', label: '4px', token: '--ds-radius-mini', radius: 'var(--ds-radius-mini)' },
   { key: 'sm', label: '6px', token: '--ds-radius-sm', radius: 'var(--ds-radius-sm)' },
   { key: 'md', label: '8px', token: '--ds-radius-md', radius: 'var(--ds-radius-md)' },
   { key: 'lg', label: '12px', token: '--ds-radius-lg', radius: 'var(--ds-radius-lg)' },
