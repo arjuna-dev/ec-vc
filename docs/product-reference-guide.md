@@ -259,6 +259,29 @@ New `L1` bootstrap rule:
 - it does not inherit the normal `System` / `KDB` subsection treatment used by standard files unless explicitly needed later
 - this is a controlled exception and must not be used to weaken the normal file bootstrap contract
 
+Building Blocks migration rule:
+
+- `BB Shell` should be treated as the single working surface for building block migration
+- do not maintain a second parallel working page for the same elements
+- finish the foundational visual system map:
+  - fonts
+  - typography
+  - colors
+  - surfaces
+  - borders
+  - radius
+  - shadows
+  - spacing
+  - icon sizing
+  - formatting
+  - motion
+- then use that map to drive shared components
+- then compose live pages and shells from those shared components
+
+Dependency direction:
+
+- `General Settings` -> `Building Blocks` -> `Pages / Shells`
+
 Fork shell rule:
 
 - `Fork Shell` is an independent shared shell route, not an `Opportunities` page extension

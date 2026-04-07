@@ -22,6 +22,7 @@ This tracker should stay aligned with:
 ### Current Focus
 
 - make canonical `L1` bootstrap consolidation the top architecture priority
+- run `Building Blocks to Shell Contract Migration` as the active shared-UI architecture project
 - keep the underlying structure, ownership, and runtime relationship paths converging cleanly
 - use the `Companion` and the first-pass game layer to surface issues without weakening the contract
 - keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
@@ -49,13 +50,17 @@ This tracker should stay aligned with:
 ### Top 5 To-Do
 
 1. Consolidate new `L1` bootstrap into one canonical contract with strict validation, and prove it through `Companion Roles`.
-2. Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths.
-3. Define the first generalized field-class layer for `L3` tokens:
+2. Finish `Building Blocks to Shell Contract Migration`:
+   - foundational tokens
+   - shared component extraction
+   - shell placeholder migration
+   - end-to-end rendering validation
+3. Convert the declared-but-not-yet-backed KDB set into real runtime-backed relationship paths.
+4. Define the first generalized field-class layer for `L3` tokens:
    - `owned_field`
    - `directional_link`
    - `kdb_relationship`
-4. Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships.
-5. Finish reviewing reciprocal KDB readback behavior so every shared relationship path reflects add, remove, and relabel consistently from both sides.
+5. Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships.
 
 ## Front-Loaded
 
@@ -177,6 +182,41 @@ This tracker should stay aligned with:
 - `Users_Roles` should now be treated as a real underlying assignment DB, even though it is not yet a standalone file page
 
 ## Pending
+
+- Project: `Building Blocks to Shell Contract Migration`
+  - Task 1: finish mapping foundational building blocks:
+    - fonts
+    - type scale
+    - font weights
+    - colors
+    - surfaces
+    - borders
+    - radius
+    - shadows
+    - spacing
+    - icon sizing
+    - number/date formatting
+    - motion rules
+  - Task 2: finish missing shell-level and placeholder block coverage:
+    - `Record Dashboard`
+    - remaining file / record / shell placeholders not yet represented in `BB Shell`
+  - Task 3: extract the remaining local samples into real shared components:
+    - page title / crumb
+    - page back symbol
+    - plus icon
+    - plus with label
+    - main menu row
+    - main menu subgroup row
+    - `BB Tile Header`
+    - `L2 Settings Menu`
+    - `Widget Settings Menu`
+  - Task 4: separate design-token ownership from component ownership so `General Settings` becomes the source of truth for foundational visual rules
+  - Task 5: migrate shell placeholders onto explicit building block and shell payload contracts
+  - Task 6: validate that shared component changes render through:
+    - `BB Shell`
+    - route-owned shell surfaces
+    - live app pages
+  - Success condition: changing one shared component or design token updates every consuming surface automatically
 
 - Implement the runtime `Owner Genesis` bootstrap sequence end to end:
   - assign the base `Companion`

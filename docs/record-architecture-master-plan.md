@@ -235,6 +235,43 @@ Approved first-pass `L2` structure for `BB File`:
 - `Reconstruction`
 - `Variants`
 
+### Building Blocks to Shell Contract Migration
+
+The next shared-UI architecture project should be `Building Blocks to Shell Contract Migration`.
+
+Purpose:
+
+- finish the missing foundational building block map
+- extract remaining local UI samples into real shared components
+- move shell placeholders onto explicit shared building block and shell payload contracts
+- keep `BB Shell` as the single working surface for component review and migration
+
+Required migration sequence:
+
+1. Finish foundational mapping:
+   - fonts
+   - type scale
+   - font weights
+   - colors
+   - surfaces
+   - borders
+   - radius
+   - shadows
+   - spacing
+   - icon sizing
+   - number/date formatting
+   - motion rules
+2. Finish missing building block coverage for file, record, and shell placeholders.
+3. Extract the remaining local samples into real shared components.
+4. Move shell placeholders onto explicit shared payload contracts.
+5. Validate that real app surfaces consume the same shared components and design-token rules as `BB Shell`.
+
+Working rule:
+
+- `BB Shell` is the migration surface
+- `General Settings` should become the source of truth for foundational visual tokens
+- shells should consume shared components and explicit payload contracts instead of re-rendering local page-specific markup
+
 Section meanings:
 
 - `General`: name, category, status, purpose

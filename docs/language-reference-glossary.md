@@ -8,6 +8,7 @@
 | Contact | The person record inside the CRM/KDB layer. It may correspond to a User, but is not the same thing as a User. | Product Reference |
 | File Shell | The shared shell renderer for file-level `L1` collection surfaces. It should stay fixed while route-owned `L1` payloads swap underneath it. | Product Reference |
 | BB File | `Building Blocks File`. A special `System-Level File` that governs reusable UI building blocks, design primitives, shell parts, and reconstruction guidance. It is not a standard app-data `L1` and is a controlled exception to the normal `System` / `KDB` subsection baseline. | Record Architecture |
+| Building Blocks to Shell Contract Migration | The architecture project that finishes the foundational building block map, extracts remaining local samples into real shared components, and moves shell placeholders onto explicit shared payload contracts. | Record Architecture |
 | Record Shell | The approved shared shell renderer for `Record View`. It should receive the selected record as payload input instead of forking by entity. | Record Architecture |
 | Fork Shell | The independent route-owned shared shell for branch-choice create flows. It may consume branch metadata from a source `L1`, but it must not collapse into entity-specific page UI or be treated as an `Opportunities` helper. | Record Architecture |
 | Shared Dialog Shell | The rule that the create / edit dialog is itself a shell surface. Any launching shell must pass the same canonical payload contract into it rather than reshaping grouped `L2` structure locally. | Record Architecture |
@@ -48,6 +49,7 @@
 | Owner Path | The approved runtime write path for a field or relationship. The shell should never guess this. | Record Architecture |
 | Reverse-Read Path | The approved runtime read path that lets a relationship appear correctly from both linked records. | Record Architecture |
 | Canon | The approved structure declared in the canonical contract files. Canon decides what is allowed. | Product Reference |
+| General Settings -> Building Blocks -> Pages / Shells | The required dependency direction for the design system. Foundational visual rules should come from `General Settings`, components should consume those rules, and pages/shells should compose from those components. | Product Reference |
 | L3 Alias Contract | The explicit runtime alias mapping declared on an `L3` token when the live payload field name differs from the canonical token name. This is a shell-level agreement, not a page-level patch. | Record Architecture |
 | Runtime-Backed | A declared path that already has real runtime ownership underneath it. | ECS Workstream Tracker |
 | Declared-But-Missing | A path declared in canon that does not yet have full runtime ownership or reverse-read support. | ECS Workstream Tracker |

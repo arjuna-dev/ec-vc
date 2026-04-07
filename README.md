@@ -101,6 +101,36 @@ Approved first-pass `L2` structure for `BB File`:
 - `Reconstruction`
 - `Variants`
 
+### Building Blocks to Shell Contract Migration
+
+The next shared-UI architecture project is `Building Blocks to Shell Contract Migration`.
+
+Purpose:
+
+- finish mapping the missing foundational building blocks
+- extract the remaining local UI samples into real shared components
+- migrate shell placeholders onto explicit building block and shell payload contracts
+- keep `BB Shell` as the single working surface for these elements
+
+Required first-pass scope:
+
+- finish foundational mapping for:
+  - fonts
+  - type scale
+  - font weights
+  - colors
+  - surfaces
+  - borders
+  - radius
+  - shadows
+  - spacing
+  - icon sizing
+  - number/date formatting
+  - motion rules
+- finish missing shell-level block coverage such as `Record Dashboard`
+- extract the remaining shared building block components
+- validate that shared component changes render through the real app surfaces, not just through `BB Shell`
+
 To bundle app for mac:
 
 ```javascript
