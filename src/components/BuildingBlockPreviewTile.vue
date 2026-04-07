@@ -23,12 +23,31 @@
       <template v-if="blockKey === 'page-title-crumb'">
         <div class="building-block-preview-tile__crumb-shell">
           <div class="building-block-preview-tile__crumb-row">
+            <span class="building-block-preview-tile__crumb-link">Home</span>
+            <span class="building-block-preview-tile__crumb-separator">/</span>
             <span class="building-block-preview-tile__crumb-link">Files</span>
+            <span class="building-block-preview-tile__crumb-separator">/</span>
+            <span class="building-block-preview-tile__crumb-link">System Files</span>
             <span class="building-block-preview-tile__crumb-separator">/</span>
             <span class="building-block-preview-tile__crumb-current">Building Blocks</span>
           </div>
           <div class="building-block-preview-tile__page-title">Building Blocks</div>
         </div>
+      </template>
+
+      <template v-else-if="blockKey === 'page-back-symbol'">
+        <button type="button" class="building-block-preview-tile__back-button" aria-label="Back">
+          <q-icon name="west" />
+          <span>Back</span>
+        </button>
+      </template>
+
+      <template v-else-if="blockKey === 'eye-icon'">
+        <EyeIconButton aria-label="View item" />
+      </template>
+
+      <template v-else-if="blockKey === 'main-menu-icon'">
+        <q-btn flat dense round icon="menu" aria-label="Menu" class="building-block-preview-tile__menu-icon-button" />
       </template>
 
       <template v-else-if="blockKey === 'fonts'">
@@ -467,6 +486,7 @@ import FilePageHeroDashboard from 'src/components/FilePageHeroDashboard.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
+import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,
@@ -737,15 +757,17 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__crumb-shell {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
   width: 100%;
 }
 
 .building-block-preview-tile__crumb-row {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
 }
 
 .building-block-preview-tile__crumb-link,
@@ -775,6 +797,34 @@ onBeforeUnmount(() => {
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+.building-block-preview-tile__back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #111111;
+  cursor: pointer;
+  font-family: var(--font-title);
+  font-size: 0.84rem;
+  font-weight: var(--font-weight-black);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.building-block-preview-tile__back-button span {
+  white-space: nowrap;
+}
+
+.building-block-preview-tile__back-button :deep(.q-icon) {
+  font-size: 18px;
+}
+
+.building-block-preview-tile__menu-icon-button {
+  color: #111111;
 }
 
 .building-block-preview-tile__file-add-button {
