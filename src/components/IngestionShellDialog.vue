@@ -1583,7 +1583,9 @@ async function persistDroppedArtifact(artifact) {
       duplicateStrategy: 'rename',
     })
     const persistedId = String(result?.results?.[0]?.raw?.artifact_id || '').trim()
-    if (!persistedId) return artifact
+    if (!persistedId) {
+      throw new Error(`Ingest returned no artifact id for "${artifact.name || 'file'}".`)
+    }
     return {
       ...artifact,
       artifactId: persistedId,
@@ -1634,10 +1636,6 @@ async function startArtifactProcessing(artifactId) {
   startingArtifactIds.value = [...startingArtifactIds.value, artifactId]
   try {
     const persistedArtifact = await persistDroppedArtifact(artifact)
-    if (!persistedArtifact?.artifactId) {
-      $q.notify({ type: 'negative', message: `Could not start ingestion for ${artifact.name || 'this file'}.` })
-      return
-    }
     stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
       entry.id === artifactId
         ? { ...entry, ...persistedArtifact }
