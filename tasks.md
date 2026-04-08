@@ -119,6 +119,39 @@
   - Keep the tracker-facing subset small and understandable
   - Leave full tuning surfaces in the `Avatar` and `Roles` pages
 
+### 2.0C Ingestion Foundation Milestone
+
+- [ ] **TASK-025:** Align Main Menu labels with loader/runtime naming
+  - Make the app render and speak in the same names used in the Main Menu
+  - Keep existing sqlite table ownership stable where possible
+  - Cover `User Roles`, `Markets`, `Securities`, and `Ingestion` first
+
+- [ ] **TASK-026:** Add standalone `Companion Roles` table
+  - Create `Companion_Roles` as a real first-class table
+  - Add canonical backend, bridge, and frontend ownership
+  - Do not treat it as a subtype of `Roles`
+
+- [ ] **TASK-027:** Add required `Companion Roles` columns
+  - Define the initial record structure needed for role contracts and project use
+  - Keep the first pass strict and minimal
+  - Prepare the table for seeded role records
+
+- [ ] **TASK-028:** Draft first-pass `Companion Roles` records
+  - Seed `Master Companion`
+  - Seed `Ingestion Assistant`
+  - Seed `Point Tracker`
+  - Seed `Quest Builder`
+
+- [ ] **TASK-029:** Create first-pass companion markdown documents
+  - Create `ingestion.md` as the ingestion rule book
+  - Add the first contract documents needed by the seeded companion roles
+  - Keep the first draft focused on operational clarity
+
+- [ ] **TASK-030:** Rewire ingestion to the canonical commencement path
+  - Restore ingestion start behavior around the canonical explicit start action
+  - Reuse the proper ingestion foundation instead of row-level rewiring
+  - Ensure prerequisite fields are prepopulated before commencement
+
 ### 2.1 Week 1: Foundation and FS Operations
 
 **Goal:** Get basic file system mirroring and structure creation working
