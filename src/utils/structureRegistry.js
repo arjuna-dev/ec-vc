@@ -252,6 +252,22 @@ function formatLabel(value) {
   return formatSharedDisplayLabel(value)
 }
 
+function stripTokenEntityPrefix(tokenName = '', prefixes = []) {
+  const rawTokenName = String(tokenName || '').trim()
+  if (!rawTokenName) return ''
+
+  const normalizedPrefixes = (Array.isArray(prefixes) ? prefixes : [])
+    .map((prefix) => String(prefix || '').trim())
+    .filter(Boolean)
+
+  for (const prefix of normalizedPrefixes) {
+    const candidate = `${prefix}_`
+    if (rawTokenName.startsWith(candidate)) return rawTokenName.slice(candidate.length)
+  }
+
+  return rawTokenName
+}
+
 function getSubsectionDisplayRank(subsection) {
   const rawLabel = String(subsection?.rawLabel || subsection?.label || '').trim().toLowerCase()
   if (rawLabel === 'kdb') return 998
@@ -281,6 +297,13 @@ function buildEntityRegistry(entityName) {
   const sourceEntity = canonicalEntitiesByName[canonicalEntityName]
   const customSubsections = Array.isArray(meta.customSubsections) ? meta.customSubsections : null
   if (!sourceEntity && !customSubsections) return null
+  const entityTokenPrefixes = [
+    String(sourceEntity?.structure_token?.token_name || '').trim(),
+    String(meta.singularLabel || '').trim().replace(/\s+/g, '_'),
+    canonicalEntityName.endsWith('s') ? canonicalEntityName.slice(0, -1) : canonicalEntityName,
+  ]
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
 
   const sourceSubsections = customSubsections || normalizeSubsections(sourceEntity)
   const subsections = sourceSubsections
@@ -319,7 +342,9 @@ function buildEntityRegistry(entityName) {
           ? token.subset_shape.map((value) => String(value || '').trim()).filter(Boolean)
           : [],
         relationshipGroup: String(token?.relationship_group || '').trim(),
-        label: formatLabel(String(token?.label || token?.token_name || '').trim().replace(`${meta.singularLabel}_`, '')),
+        label: formatLabel(
+          stripTokenEntityPrefix(String(token?.label || token?.token_name || '').trim(), entityTokenPrefixes),
+        ),
       })),
     }))
     .sort(compareSubsectionDisplayOrder)
