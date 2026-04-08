@@ -263,6 +263,15 @@
               :collapse-state="bbTileCollapseState"
               :collapse-version="bbTileCollapseVersion"
             >
+              <template #selection>
+                <q-checkbox
+                  :model-value="isRowSelected(row)"
+                  color="dark"
+                  class="bb-shell-tiles-grid__select-box"
+                  @update:model-value="toggleRowSelection(row, $event)"
+                />
+              </template>
+
               <template #actions>
                 <q-btn
                   flat
@@ -817,7 +826,7 @@ import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSection
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
-import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
+import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 
 const props = defineProps({
   shellMode: {
@@ -1710,26 +1719,6 @@ const activeBbFilterLabel = computed(() => {
   return block ? `${activeBbFilterGroup.value.label} > ${block.label}` : activeBbFilterGroup.value.label
 })
 
-const BB_TILE_SIZE_PRIORITY = Object.freeze({
-  'full-row': 100,
-  'hero-dashboard': 90,
-  dashboard: 80,
-  'toolbar-wide': 70,
-  'title-wide': 60,
-  'widget-settings': 55,
-  'settings-menu': 50,
-  lg: 40,
-  'live-link': 35,
-  'stat-box': 30,
-  md: 20,
-  sm: 10,
-})
-
-function getBbTilePriority(row) {
-  const sizeToken = getBuildingBlockTileSize(getBbTileBlockKey(row))
-  return BB_TILE_SIZE_PRIORITY[sizeToken] || 0
-}
-
 const bbTileGroups = computed(() => {
   if (!isBbFileSource.value || viewMode.value !== 'card') return []
 
@@ -1751,9 +1740,6 @@ const bbTileGroups = computed(() => {
 
   groups.forEach((group) => {
     group.rows.sort((left, right) => {
-      const priorityDelta = getBbTilePriority(right) - getBbTilePriority(left)
-      if (priorityDelta !== 0) return priorityDelta
-
       return String(left?.titleValue || '')
         .localeCompare(String(right?.titleValue || ''), undefined, { sensitivity: 'base' })
     })
@@ -3868,14 +3854,15 @@ function isBbGraphLinkToken(tokenRow) {
   font-size: 14px;
 }
 
+.bb-shell-tiles-grid__select-box {
+  margin-top: -2px;
+}
+
 .bb-shell-tiles-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 40px);
-  grid-auto-rows: 40px;
-  grid-auto-flow: dense;
-  column-gap: 10px;
-  row-gap: 0;
-  justify-content: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-start;
   align-items: start;
 }
 

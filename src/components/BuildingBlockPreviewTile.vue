@@ -2,8 +2,7 @@
   <article
     ref="tileRef"
     class="building-block-preview-tile"
-    :class="[`building-block-preview-tile--${size}`, { 'building-block-preview-tile--collapsed': isCollapsed }]"
-    :style="tileStyle"
+    :class="{ 'building-block-preview-tile--collapsed': isCollapsed }"
   >
     <BuildingBlockTileHeader
       :title="tileTitle"
@@ -463,6 +462,9 @@
       <template v-else-if="blockKey === 'search-bar-input'">
         <SearchBarInput model-value="" placeholder="Search Companies" />
       </template>
+      <template v-else-if="blockKey === 'bb-code-input'">
+        <BbCodeInput model-value="" placeholder="Enter bb:code" />
+      </template>
       <template v-else-if="blockKey === 'settings-checkbox'">
         <div class="building-block-preview-tile__comparison-row">
           <div class="building-block-preview-tile__comparison-panel">
@@ -775,6 +777,7 @@ import L3Box from 'src/components/L3Box.vue'
 import PlusIconChip from 'src/components/PlusIconChip.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import SearchBarInput from 'src/components/SearchBarInput.vue'
+import BbCodeInput from 'src/components/BbCodeInput.vue'
 import FileFilterMenu from 'src/components/FileFilterMenu.vue'
 import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
@@ -874,7 +877,7 @@ const dialogFooterLegendItems = [
   { label: 'Pre-Selected', tone: 'default' },
   { label: 'Suggested', tone: 'suggested' },
 ]
-import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
+import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts } from 'src/utils/buildingBlocks'
 
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,
@@ -902,9 +905,7 @@ const props = defineProps({
 const detail = computed(() => BUILDING_BLOCK_DETAILS_BY_ID[props.blockKey] || null)
 const tileRef = ref(null)
 const tileResizeObserver = ref(null)
-const measuredRowSpan = ref(0)
 const isCollapsed = ref(false)
-const size = computed(() => getBuildingBlockTileSize(props.blockKey))
 const tileTitle = computed(() => props.title || detail.value?.title || 'Building Block')
 const tileGraphCounts = computed(() => getBuildingBlockGraphCounts(props.blockKey))
 const tileGraphLabel = computed(() => `[${tileGraphCounts.value.parentCount}/${tileGraphCounts.value.childCount}]`)
@@ -1060,25 +1061,11 @@ const foundationFormattingSamples = GENERAL_SETTINGS_FORMATTING_SAMPLES
 const foundationMotionSamples = GENERAL_SETTINGS_MOTION_SAMPLES
 
 const addLabel = computed(() => (props.blockKey === 'plus-with-label' ? 'Add Record' : 'Add'))
-const tileStyle = computed(() =>
-  measuredRowSpan.value > 0
-    ? { gridRow: `span ${measuredRowSpan.value}` }
-    : {},
-)
-
-function updateMeasuredRowSpan() {
-  if (!tileRef.value) return
-  const contentHeight = tileRef.value.scrollHeight || 0
-  if (!contentHeight) return
-  measuredRowSpan.value = Math.max(1, Math.ceil(contentHeight / 40))
-}
 
 function installTileResizeObserver() {
   if (typeof ResizeObserver === 'undefined' || !tileRef.value) return
   tileResizeObserver.value?.disconnect?.()
-  tileResizeObserver.value = new ResizeObserver(() => {
-    updateMeasuredRowSpan()
-  })
+  tileResizeObserver.value = new ResizeObserver(() => {})
   tileResizeObserver.value.observe(tileRef.value)
 }
 
@@ -1087,20 +1074,11 @@ watch(
   () => {
     if (props.collapseState === 'collapsed') isCollapsed.value = true
     if (props.collapseState === 'expanded') isCollapsed.value = false
-    nextTick(() => updateMeasuredRowSpan())
-  },
-)
-
-watch(
-  () => [isCollapsed.value, props.blockKey, props.title, props.statusLabel, tileShellsLabel.value, tileGraphLabel.value],
-  () => {
-    nextTick(() => updateMeasuredRowSpan())
   },
 )
 
 onMounted(() => {
   nextTick(() => {
-    updateMeasuredRowSpan()
     installTileResizeObserver()
   })
 })
@@ -1112,14 +1090,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .building-block-preview-tile {
-  --tile-cols: 4;
-  --tile-rows: 4;
   position: relative;
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
-  grid-column: span var(--tile-cols);
-  grid-row: span var(--tile-rows);
   gap: 10px;
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
   min-height: 0;
   padding: 18px;
@@ -1129,28 +1105,8 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.94);
 }
 
-.building-block-preview-tile--sm { --tile-cols: 4; --tile-rows: 4; }
-.building-block-preview-tile--md { --tile-cols: 6; --tile-rows: 4; }
-.building-block-preview-tile--lg { --tile-cols: 9; --tile-rows: 6; }
-.building-block-preview-tile--toolbar-wide { --tile-cols: 14; --tile-rows: 4; }
-.building-block-preview-tile--dashboard { --tile-cols: 16; --tile-rows: 10; }
-.building-block-preview-tile--hero-dashboard { --tile-cols: 18; --tile-rows: 11; }
-.building-block-preview-tile--full-row {
-  --tile-rows: 11;
-  grid-column: 1 / -1;
-}
-.building-block-preview-tile--stat-box { --tile-cols: 6; --tile-rows: 6; }
-.building-block-preview-tile--live-link { --tile-cols: 7; --tile-rows: 4; }
-.building-block-preview-tile--settings-menu { --tile-cols: 8; --tile-rows: 8; }
-.building-block-preview-tile--widget-settings { --tile-cols: 8; --tile-rows: 8; }
-.building-block-preview-tile--title-wide { --tile-cols: 10; --tile-rows: 5; }
-
 .building-block-preview-tile--collapsed {
   gap: 8px;
-}
-
-.building-block-preview-tile--full-row:not(.building-block-preview-tile--collapsed) {
-  padding: 18px 10px 18px 12px;
 }
 
 .building-block-preview-tile__status--canonical {
@@ -1209,14 +1165,14 @@ onBeforeUnmount(() => {
   justify-content: stretch;
 }
 
-.building-block-preview-tile--full-row .building-block-preview-tile__stage--stretch {
+.building-block-preview-tile__stage--stretch {
   width: 100%;
 }
 
-.building-block-preview-tile--full-row :deep(.home-dashboard-hero),
-.building-block-preview-tile--full-row :deep(.file-page-hero-dashboard),
-.building-block-preview-tile--full-row :deep(.file-page-toolbar),
-.building-block-preview-tile--full-row :deep(.shell-section-toolbar) {
+.building-block-preview-tile :deep(.home-dashboard-hero),
+.building-block-preview-tile :deep(.file-page-hero-dashboard),
+.building-block-preview-tile :deep(.file-page-toolbar),
+.building-block-preview-tile :deep(.shell-section-toolbar) {
   width: 100%;
   max-width: none;
 }
@@ -1710,22 +1666,4 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
-@media (max-width: 900px) {
-  .building-block-preview-tile--title-wide,
-  .building-block-preview-tile--toolbar-wide,
-  .building-block-preview-tile--dashboard,
-  .building-block-preview-tile--hero-dashboard {
-    --tile-cols: 8;
-  }
-
-  .building-block-preview-tile--full-row {
-    --tile-rows: 12;
-  }
-
-  .building-block-preview-tile--dashboard,
-  .building-block-preview-tile--hero-dashboard {
-    --tile-rows: 12;
-  }
-
-}
 </style>
