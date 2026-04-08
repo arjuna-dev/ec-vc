@@ -1588,7 +1588,6 @@ async function persistDroppedArtifact(artifact) {
     }
     return {
       ...artifact,
-      id: persistedId,
       artifactId: persistedId,
     }
   } catch {
