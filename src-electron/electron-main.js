@@ -1539,6 +1539,9 @@ function listCompanionRoles() {
       id,
       Companion_Role_Name,
       Companion_Role_Summary,
+      Companion_Role_Type,
+      Companion_Role_Status,
+      Companion_Role_Contract_Path,
       created_at
     FROM Companion_Roles
     ORDER BY created_at DESC, id DESC
@@ -1864,14 +1867,33 @@ function createCompanionRole(payload = {}) {
     normalizeNullableString(payload?.Companion_Role_Summary) ||
     normalizeNullableString(payload?.Summary) ||
     normalizeNullableString(payload?.description)
+  const roleType =
+    normalizeNullableString(payload?.Companion_Role_Type) ||
+    normalizeNullableString(payload?.Type) ||
+    'Companion'
+  const roleStatus =
+    normalizeNullableString(payload?.Companion_Role_Status) ||
+    normalizeNullableString(payload?.Status) ||
+    'Draft'
+  const contractPath =
+    normalizeNullableString(payload?.Companion_Role_Contract_Path) ||
+    normalizeNullableString(payload?.Contract_Path)
 
   database
     .prepare(
       `
       INSERT INTO Companion_Roles (
-        id, Companion_Role_Name, Companion_Role_Summary, created_by, created_at, updated_at
+        id,
+        Companion_Role_Name,
+        Companion_Role_Summary,
+        Companion_Role_Type,
+        Companion_Role_Status,
+        Companion_Role_Contract_Path,
+        created_by,
+        created_at,
+        updated_at
       ) VALUES (
-        ?, ?, ?, ?, datetime('now'), datetime('now')
+        ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now')
       )
     `,
     )
@@ -1879,6 +1901,9 @@ function createCompanionRole(payload = {}) {
       id,
       name,
       summary,
+      roleType,
+      roleStatus,
+      contractPath,
       normalizeNullableString(payload?.created_by) || actor.user_id,
     )
 
@@ -2731,7 +2756,7 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
   Companion_Roles: {
     tableName: 'Companion_Roles',
     entityLabel: 'Companion Role',
-    displayColumns: ['Companion_Role_Name', 'id'],
+    displayColumns: ['Companion_Role_Name', 'Companion_Role_Type', 'Companion_Role_Status', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
   Opportunities: {

@@ -4595,6 +4595,34 @@
               "db_field_aliases": [
                 "Companion_Role_Summary"
               ]
+            },
+            {
+              "address": "22.3.3",
+              "token_name": "Companion_Role_Type",
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Companion_Role_Type_List",
+              "db_field_aliases": [
+                "Companion_Role_Type"
+              ]
+            },
+            {
+              "address": "22.3.4",
+              "token_name": "Companion_Role_Status",
+              "token_type": "select_single",
+              "option_source": "canonical_list",
+              "option_list": "Companion_Role_Status_List",
+              "db_field_aliases": [
+                "Companion_Role_Status"
+              ]
+            },
+            {
+              "address": "22.3.5",
+              "token_name": "Companion_Role_Contract_Path",
+              "token_type": "text",
+              "db_field_aliases": [
+                "Companion_Role_Contract_Path"
+              ]
             }
           ]
         }
@@ -4632,6 +4660,30 @@
       {
         "label": "Dropped",
         "value": "Dropped"
+      }
+    ],
+    "Companion_Role_Type_List": [
+      {
+        "label": "Companion",
+        "value": "Companion"
+      },
+      {
+        "label": "Steward",
+        "value": "Steward"
+      }
+    ],
+    "Companion_Role_Status_List": [
+      {
+        "label": "Draft",
+        "value": "Draft"
+      },
+      {
+        "label": "Active",
+        "value": "Active"
+      },
+      {
+        "label": "Paused",
+        "value": "Paused"
       }
     ],
     "Opportunity_Status_List": [

@@ -22,6 +22,9 @@ export function initDb() {
   db.pragma('busy_timeout = 5000')
   db.exec(SCHEMA_V1_SQL)
   ensureColumn(db, 'events', 'payload_json', 'TEXT')
+  ensureColumn(db, 'Companion_Roles', 'Companion_Role_Type', 'TEXT')
+  ensureColumn(db, 'Companion_Roles', 'Companion_Role_Status', 'TEXT')
+  ensureColumn(db, 'Companion_Roles', 'Companion_Role_Contract_Path', 'TEXT')
   db.pragma('user_version = 1')
 
   return db
