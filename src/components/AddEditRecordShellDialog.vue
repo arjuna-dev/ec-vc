@@ -1475,8 +1475,8 @@ async function persistDroppedArtifact(artifact) {
       ...artifact,
       artifactId: persistedId,
     }
-  } catch {
-    return artifact
+  } catch (error) {
+    throw new Error(error?.message || String(error || 'Could not ingest artifact.'))
   }
 }
 
@@ -1531,6 +1531,11 @@ async function startArtifactProcessing(artifactId) {
         : entry,
     )
     markDialogChanged()
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error?.message || `Could not start ingestion for ${artifact.name || 'this file'}.`,
+    })
   } finally {
     startingArtifactIds.value = startingArtifactIds.value.filter((id) => id !== artifactId)
   }
