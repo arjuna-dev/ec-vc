@@ -1,9 +1,9 @@
 <template>
-  <AddEditBbBuilder />
+  <div class="add-edit-bb-shell-page" />
 </template>
 
 <script setup>
-import AddEditBbBuilder from 'src/components/AddEditBbBuilder.vue'
+defineOptions({ name: 'AddEditBbShellPage' })
 </script>
 
 <style scoped>
