@@ -431,10 +431,6 @@
         <L3Box label="L3" value="128" caption="Canonical tokens" />
       </template>
 
-      <template v-else-if="blockKey === 'file-dashboard'">
-        <FileHero />
-      </template>
-
       <template v-else-if="blockKey === 'home-dashboard'">
         <HomeDashboardHero
           count="2.4k"
@@ -496,10 +492,6 @@
 
       <template v-else-if="blockKey === 'shell-open-dialog-button'">
         <ShellOpenDialogButton kind="record" />
-      </template>
-
-      <template v-else-if="blockKey === 'record-dashboard'">
-        <RecordHero />
       </template>
 
       <template v-else-if="blockKey === 'record-hero'">
@@ -824,7 +816,7 @@ const statusClass = computed(() =>
       : 'building-block-preview-tile__status--extract',
 )
 const stageClass = computed(() =>
-  ['fonts', 'type-scale', 'colors', 'surfaces', 'spacing', 'formatting-rules', 'motion-rules', 'file-dashboard', 'home-dashboard', 'file-toolbar', 'l2-toolbar'].includes(props.blockKey)
+  ['fonts', 'type-scale', 'colors', 'surfaces', 'spacing', 'formatting-rules', 'motion-rules', 'home-dashboard', 'file-toolbar', 'l2-toolbar'].includes(props.blockKey)
     ? 'building-block-preview-tile__stage--stretch'
     : props.blockKey === 'page-title'
       ? 'building-block-preview-tile__stage--left'
@@ -1407,82 +1399,6 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-black);
 }
 
-.building-block-preview-tile__record-dashboard {
-  width: 100%;
-}
-
-.building-block-preview-tile__record-dashboard-main {
-  display: grid;
-  gap: 14px;
-  width: 100%;
-}
-
-.building-block-preview-tile__record-dashboard-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-}
-
-.building-block-preview-tile__record-dashboard-title-stack {
-  display: grid;
-  gap: 4px;
-}
-
-.building-block-preview-tile__record-dashboard-eyebrow {
-  color: rgba(15, 23, 42, 0.56);
-  font-family: var(--ds-font-title);
-  font-size: 0.7rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.building-block-preview-tile__record-dashboard-title {
-  color: #0f172a;
-  font-family: var(--ds-font-title);
-  font-size: 1.42rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: -0.04em;
-  line-height: 0.98;
-}
-
-.building-block-preview-tile__record-dashboard-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.building-block-preview-tile__record-dashboard-action-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
-  color: rgba(15, 23, 42, 0.72);
-  background: rgba(248, 250, 252, 0.92);
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 999px;
-  font-family: var(--ds-font-title);
-  font-size: 0.68rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.05em;
-}
-
-.building-block-preview-tile__record-dashboard-action-chip--primary {
-  color: #fff;
-  background: #111;
-  border-color: #111;
-}
-
-.building-block-preview-tile__record-dashboard-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr) minmax(0, 1.05fr);
-  gap: 12px;
-  width: 100%;
-}
-
 .building-block-preview-tile__record-field-card,
 .building-block-preview-tile__record-panel,
 .building-block-preview-tile__filter-menu {
@@ -1644,32 +1560,6 @@ onBeforeUnmount(() => {
   min-width: auto;
 }
 
-.building-block-preview-tile__record-dashboard-portrait {
-  display: flex;
-  flex: 0 0 clamp(180px, 20vw, 240px);
-  width: clamp(180px, 20vw, 240px);
-  min-height: 100%;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(180deg, rgba(216, 212, 202, 0.92) 0%, rgba(204, 198, 188, 0.98) 100%);
-  border-right: 1px solid rgba(17, 17, 17, 0.08);
-}
-
-.building-block-preview-tile__record-dashboard-portrait-initials {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 96px;
-  height: 96px;
-  border-radius: var(--ds-radius-round);
-  background: var(--ds-color-brand-blue);
-  color: var(--ds-color-brand-white);
-  font-family: var(--ds-font-title);
-  font-size: 2rem;
-  font-weight: var(--ds-font-weight-bold);
-  letter-spacing: 0.04em;
-}
-
 @media (max-width: 900px) {
   .building-block-preview-tile--title-wide,
   .building-block-preview-tile--toolbar-wide,
@@ -1687,12 +1577,5 @@ onBeforeUnmount(() => {
     --tile-rows: 12;
   }
 
-  .building-block-preview-tile__record-dashboard-header {
-    flex-direction: column;
-  }
-
-  .building-block-preview-tile__record-dashboard-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>
