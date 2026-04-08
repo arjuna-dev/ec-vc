@@ -12,15 +12,29 @@
         {{ error }}
       </q-banner>
 
-      <section
+      <HeroSandbox
         ref="contactHeroRef"
-        class="record-shell__hero"
         :style="structuredRecordHeroStyle"
+        :title="heroName"
+        :initials="heroInitials"
+        :settings-groups="heroSettingsGroups"
+        :field-cards="selectedHeroFieldCards"
+        :summary-value="heroSummaryValue"
+        :summary-status-icon="heroSummaryStatusIcon"
+        :interactive="isRecordRoute"
+        :feed-tab="activeRecordFeedTab"
+        :feed-tabs="recordFeedTabOptions"
+        :feed-items="feedItems"
+        feed-empty-message="No feed items yet for this record."
         @pointerenter="startContactHeroPointerTracking"
         @pointermove="onContactHeroPointerMove"
         @pointerleave="onContactHeroPointerLeave"
+        @update:feed-tab="activeRecordFeedTab = $event"
+        @toggle-settings-group="toggleExpandedSection"
+        @toggle-settings-item="setTokenSelected"
+        @open-feed-log="openFeedItemLog"
       >
-        <div class="record-shell__hero-main">
+        <template #portrait>
           <figure class="record-shell__portrait record-shell__portrait--initials-only">
             <div class="record-shell__portrait-placeholder" aria-hidden="true">
               <div
@@ -31,97 +45,8 @@
               </div>
             </div>
           </figure>
-
-          <div class="record-shell__hero-copy">
-            <div class="record-shell__hero-name-row">
-              <h1 class="record-shell__name">
-                {{ heroName }}
-              </h1>
-
-              <q-btn
-                flat
-                round
-                dense
-                icon="tune"
-                class="record-shell__hero-icon-button"
-                aria-label="Hero field settings"
-              >
-                <q-tooltip>Hero Fields</q-tooltip>
-                <q-menu anchor="bottom right" self="top right">
-                  <L2SettingsMenu
-                    title="Hero Fields"
-                    :groups="heroSettingsGroups"
-                    @toggle-group="toggleExpandedSection"
-                    @toggle-item="setTokenSelected"
-                  />
-                </q-menu>
-              </q-btn>
-
-              <q-btn
-                flat
-                round
-                dense
-                icon="edit"
-                class="record-shell__hero-icon-button record-shell__hero-icon-button--create"
-                aria-label="Add record"
-                @click="openCreateRecordDialog"
-              >
-                <q-tooltip>Add Record</q-tooltip>
-              </q-btn>
-            </div>
-
-            <div class="record-shell__subtitle">
-              {{ heroSubtitle }}
-            </div>
-            <div class="record-shell__subtitle record-shell__subtitle--secondary">
-              {{ heroSecondaryLine }}
-            </div>
-
-            <div class="record-shell__hero-field-columns">
-              <div v-if="selectedHeroFieldCards.length" class="record-shell__hero-field-stack">
-                <RecordHeroFieldCard
-                  v-for="field in selectedHeroFieldCards"
-                  :key="field.key"
-                  :label="field.label"
-                  :description="field.description"
-                  :value="field.value"
-                  :status-icon="field.statusIcon"
-                  :interactive="isRecordRoute"
-                  @click="openRecordFieldDialog"
-                />
-              </div>
-
-              <div class="record-shell__hero-field-stack record-shell__hero-field-stack--summary">
-                <RecordHeroFieldCard
-                  label="Summary"
-                  description="General"
-                  :value="heroSummaryValue"
-                  :status-icon="heroSummaryStatusIcon"
-                  :interactive="isRecordRoute"
-                  :summary="true"
-                  @click="openRecordFieldDialog"
-                />
-              </div>
-            </div>
-
-            <RecordContextPanel
-              v-model="genericHeroPanelTab"
-              :notes="genericHeroNotes"
-              :documents="genericHeroDocuments"
-              :singular-label="activeRegistryEntry?.singularLabel || 'record'"
-              :aria-label="`${activeRegistryEntry?.label || 'Record'} context`"
-            />
-          </div>
-        </div>
-
-        <RecordFeedPanel
-          v-model="activeRecordFeedTab"
-          :tabs="recordFeedTabOptions"
-          :items="feedItems"
-          empty-message="No feed items yet for this record."
-          @open-log="openFeedItemLog"
-        />
-      </section>
+        </template>
+      </HeroSandbox>
 
       <ShellSectionToolbar
         v-if="recordShellNavItems.length"
@@ -465,14 +390,10 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
-import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
-import RecordContextPanel from 'src/components/RecordContextPanel.vue'
-import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
-import RecordHeroFieldCard from 'src/components/RecordHeroFieldCard.vue'
+import HeroSandbox from 'src/components/HeroSandbox.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import {
   CANONICAL_OPTION_LISTS,
-  getCreateBranches,
   getCanonicalTokenFieldNames,
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
@@ -504,7 +425,6 @@ const expandedSectionSubgroupKeys = ref([])
 const activeSectionKey = ref('')
 const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
-const genericHeroPanelTab = ref('notes')
 const activeRecordFeedTab = ref('all')
 const recordShellTopNavViewMode = ref('grid')
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
@@ -637,14 +557,6 @@ const heroAvatarColor = computed(() => {
   return palette[Math.abs(hashString(heroName.value)) % palette.length]
 })
 const heroName = computed(() => getTokenDisplayValue(canonicalNameToken.value) || `${activeRegistryEntry.value?.singularLabel || 'Record'} Name`)
-const heroSubtitle = computed(() => {
-  if (isRecordRoute.value) return `${activeRegistryEntry.value?.label || currentView.value?.table_name || 'Record'} Record`
-  return activeRegistryEntry.value?.label || 'Record Shell'
-})
-const heroSecondaryLine = computed(() => {
-  if (isRecordRoute.value) return `Record ID ${recordIdParam.value || '-'}`
-  return 'Expanded record-view skeleton for the selected L1 payload.'
-})
 const heroSummaryValue = computed(() => getTokenDisplayValue(canonicalSummaryToken.value) || 'No summary captured for this record yet.')
 const heroSummaryStatusIcon = computed(() => (tokenHasStoredValue(canonicalSummaryToken.value) ? 'task_alt' : ''))
 const selectedHeroFieldCards = computed(() =>
@@ -659,22 +571,6 @@ const selectedHeroFieldCards = computed(() =>
     }
   }),
 )
-const genericHeroNotes = computed(() =>
-  selectedHeroTokens.value.slice(0, 4).map((token, index) => ({
-    id: token.key,
-    title: token.label,
-    created_at: index === 0 ? 'Selected now' : 'Ready',
-    content: getTokenDisplayValue(token),
-  })),
-)
-const genericHeroDocuments = computed(() => [
-  {
-    id: 'record-shell-summary',
-    title: 'Summary',
-    meta: 'Pinned field',
-    content: heroSummaryValue.value,
-  },
-])
 const feedItems = computed(() => {
   if (isRecordRoute.value) return auditEvents.value
   return [
@@ -837,20 +733,6 @@ function setTokenSelected(tokenKey, isSelected) {
   selectedTokenKeys.value = Array.from(next)
 }
 
-function openCreateRecordDialog() {
-  if (getCreateBranches(activeSourceKey.value).length) {
-    router.push({
-      name: 'fork-shell',
-      query: {
-        section: activeSourceKey.value,
-        returnTo: route.fullPath,
-      },
-    })
-    return
-  }
-  createDialogRenderKey.value += 1
-  createDialogOpen.value = true
-}
 function handleDialogChange() {}
 function handleDialogClose() { createDialogOpen.value = false }
 
@@ -1599,12 +1481,12 @@ function onContactHeroPointerLeave() {
 
 .record-shell__portrait {
   position: relative;
-  flex: 0 0 clamp(280px, 26vw, 370px);
-  width: clamp(280px, 26vw, 370px);
+  flex: 1 1 auto;
+  width: 100%;
   min-height: 100%;
   margin: 0;
   overflow: hidden;
-  background: #d8d4ca;
+  background: transparent;
   border-right: 1px solid rgba(17, 17, 17, 0.08);
   border-radius: 24px 0 0 24px;
   box-shadow: none;

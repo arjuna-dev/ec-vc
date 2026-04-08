@@ -3,14 +3,16 @@
     <HeroSandboxOverlay>
       <template #left>
         <div class="hero-sandbox__portrait-holder">
-          <div class="hero-sandbox__portrait-badge">RT</div>
+          <slot name="portrait">
+            <div class="hero-sandbox__portrait-badge">{{ initials }}</div>
+          </slot>
         </div>
       </template>
 
       <template #middle>
         <div class="hero-sandbox__column-inner">
           <div class="hero-sandbox__middle-top">
-            <RecordTitle class="hero-sandbox__title" title="Record Title" />
+            <RecordTitle class="hero-sandbox__title" :title="title" />
             <div class="hero-sandbox__settings-menu">
               <B10IconButton
                 icon="tune"
@@ -20,23 +22,52 @@
                 @click="settingsMenuOpen = true"
               />
               <q-menu v-model="settingsMenuOpen" anchor="bottom right" self="top right">
-                <L2SettingsMenu title="Hero Fields" :groups="settingsGroups" />
+                <L2SettingsMenu
+                  title="Hero Fields"
+                  :groups="settingsGroups"
+                  @toggle-group="$emit('toggle-settings-group', $event)"
+                  @toggle-item="handleToggleSettingsItem"
+                />
               </q-menu>
             </div>
           </div>
 
-          <RecordFieldsBox />
-          <RecordSummaryBox />
+          <RecordFieldsBox>
+            <div v-if="fieldCards.length" class="hero-sandbox__field-grid">
+              <RecordHeroFieldCard
+                v-for="field in fieldCards"
+                :key="field.key"
+                :label="field.label"
+                :description="field.description"
+                :value="field.value"
+                :status-icon="field.statusIcon"
+                :interactive="interactive"
+              />
+            </div>
+          </RecordFieldsBox>
+
+          <RecordSummaryBox>
+            <RecordHeroFieldCard
+              label="Summary"
+              description="General"
+              :value="summaryValue"
+              :status-icon="summaryStatusIcon"
+              :interactive="interactive"
+              :summary="true"
+            />
+          </RecordSummaryBox>
         </div>
       </template>
 
       <template #right>
         <RecordFeedPanel
-          v-model="activeFeedTab"
+          :model-value="feedTab"
           :tabs="feedTabs"
           :items="feedItems"
-          empty-message="No feed items yet for this record."
+          :empty-message="feedEmptyMessage"
           class="hero-sandbox__feed-panel"
+          @update:model-value="$emit('update:feedTab', $event)"
+          @open-log="$emit('open-feed-log', $event)"
         />
       </template>
     </HeroSandboxOverlay>
@@ -51,6 +82,7 @@ import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
+import RecordHeroFieldCard from 'src/components/RecordHeroFieldCard.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 
@@ -59,29 +91,64 @@ defineOptions({
 })
 
 const settingsMenuOpen = ref(false)
-const activeFeedTab = ref('all')
 
-const settingsGroups = [
-  {
-    key: 'general',
-    label: 'General',
-    expanded: true,
-    items: [
-      { key: 'name', label: 'Name', checked: true },
-      { key: 'summary', label: 'Summary', checked: true },
-    ],
+defineProps({
+  title: {
+    type: String,
+    default: 'Record Title',
   },
-]
+  initials: {
+    type: String,
+    default: 'RT',
+  },
+  settingsGroups: {
+    type: Array,
+    default: () => [],
+  },
+  fieldCards: {
+    type: Array,
+    default: () => [],
+  },
+  summaryValue: {
+    type: String,
+    default: '',
+  },
+  summaryStatusIcon: {
+    type: String,
+    default: '',
+  },
+  interactive: {
+    type: Boolean,
+    default: false,
+  },
+  feedTab: {
+    type: String,
+    default: 'all',
+  },
+  feedTabs: {
+    type: Array,
+    default: () => [],
+  },
+  feedItems: {
+    type: Array,
+    default: () => [],
+  },
+  feedEmptyMessage: {
+    type: String,
+    default: 'No feed items yet for this record.',
+  },
+})
 
-const feedTabs = [
-  { id: 'all', label: 'Activity' },
-  { id: 'notes', label: 'Notes' },
-]
+const emit = defineEmits([
+  'update:feedTab',
+  'toggle-settings-group',
+  'toggle-settings-item',
+  'open-feed-log',
+])
 
-const feedItems = [
-  { id: '1', feedKey: 'all', meta: 'Most Recent', title: 'Founder note updated after partner call', hasLogPage: true },
-  { id: '2', feedKey: 'notes', meta: 'Today', title: 'Partner intro captured for follow-up', hasLogPage: true },
-]
+function handleToggleSettingsItem(itemKey, value) {
+  emit('toggle-settings-item', itemKey, value)
+}
 </script>
 
 <style scoped>
@@ -139,5 +206,12 @@ const feedItems = [
 .hero-sandbox__feed-panel {
   width: 100%;
   min-height: 100%;
+}
+
+.hero-sandbox__field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 14px;
+  justify-content: start;
 }
 </style>

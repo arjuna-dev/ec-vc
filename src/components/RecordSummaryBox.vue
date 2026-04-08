@@ -1,6 +1,6 @@
 <template>
   <div class="record-summary-box">
-    <div class="record-summary-box__label">Summary Box</div>
+    <slot />
   </div>
 </template>
 

@@ -1,6 +1,6 @@
 <template>
   <div class="record-fields-box">
-    <div class="record-fields-box__label">Field's Box</div>
+    <slot />
   </div>
 </template>
 

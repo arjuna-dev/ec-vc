@@ -578,11 +578,38 @@
       </template>
 
       <template v-else-if="blockKey === 'record-fields-box'">
-        <RecordFieldsBox />
+        <RecordFieldsBox>
+          <div class="building-block-preview-tile__record-fields-box-sample">
+            <div class="building-block-preview-tile__record-fields-box-cell">
+              <RecordHeroFieldCard
+                label="Industry"
+                description="General"
+                value="Enterprise SaaS"
+                status-icon="task_alt"
+              />
+            </div>
+            <div class="building-block-preview-tile__record-fields-box-cell">
+              <RecordHeroFieldCard
+                label="Stage"
+                description="Pipeline"
+                value="Series A"
+                status-icon="auto_awesome"
+              />
+            </div>
+          </div>
+        </RecordFieldsBox>
       </template>
 
       <template v-else-if="blockKey === 'record-summary-box'">
-        <RecordSummaryBox />
+        <RecordSummaryBox>
+          <RecordHeroFieldCard
+            label="Summary"
+            description="General"
+            value="High-conviction company with strong operator references."
+            status-icon="task_alt"
+            :summary="true"
+          />
+        </RecordSummaryBox>
       </template>
 
       <template v-else-if="blockKey === 'record-hero-field-card'">
@@ -1676,6 +1703,19 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.building-block-preview-tile__record-fields-box-sample {
+  display: inline-grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 15px;
+  width: auto;
+  justify-content: start;
+}
+
+.building-block-preview-tile__record-fields-box-cell {
+  display: flex;
+  min-width: auto;
 }
 
 .building-block-preview-tile__record-dashboard-portrait {

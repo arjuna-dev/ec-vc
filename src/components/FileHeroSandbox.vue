@@ -3,7 +3,6 @@
     <Hero2ColOverlay>
       <template #left>
         <div class="file-hero-sandbox__copy">
-          <div class="file-hero-sandbox__eyebrow">Dashboard</div>
           <RecordTitle class="file-hero-sandbox__title" title="Companies" />
           <div class="file-hero-sandbox__text">
             Track the live operating picture for this file and move through core workflows from one surface.
@@ -61,7 +60,6 @@ defineOptions({ name: 'FileHeroSandbox' })
   height: 100%;
 }
 
-.file-hero-sandbox__eyebrow,
 .file-hero-sandbox__stat-label,
 .file-hero-sandbox__health-label {
   color: var(--ds-color-text-muted);
