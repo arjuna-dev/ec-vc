@@ -21,26 +21,7 @@
         :health-segments="healthSegments"
       />
 
-      <div v-if="isRecordShellMode" class="record-shell-launchpad">
-        <div class="record-shell-launchpad__copy">
-          <div class="record-shell-launchpad__eyebrow">Record Shell</div>
-          <div class="record-shell-launchpad__title">Create a {{ activeRegistryEntry?.singularLabel || 'record' }}</div>
-          <div class="record-shell-launchpad__text">
-            Choose the L1 at the top, mark the L3 fields you want included, then open the shared create dialog.
-          </div>
-        </div>
-
-        <q-btn
-          unelevated
-          no-caps
-          color="primary"
-          class="record-shell-launchpad__action"
-          label="Create Record"
-          @click="requestCreateRecordShell"
-        />
-      </div>
-
-      <template v-else-if="isEventShellMode">
+      <template v-if="isEventShellMode">
       <ShellSectionToolbar
         v-if="eventShellNavItems.length"
         v-model="activeSectionKeyForCards"
@@ -3616,50 +3597,6 @@ function isBbGraphLinkToken(tokenRow) {
 </script>
 
 <style scoped>
-.record-shell-launchpad {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 20px;
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.92);
-}
-
-.record-shell-launchpad__copy {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-
-.record-shell-launchpad__eyebrow {
-  color: rgba(17, 17, 17, 0.56);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.record-shell-launchpad__title {
-  color: #111111;
-  font-family: var(--font-title);
-  font-size: 1.2rem;
-  font-weight: var(--font-weight-black);
-  line-height: 0.96;
-}
-
-.record-shell-launchpad__text {
-  color: rgba(17, 17, 17, 0.72);
-  font-size: 0.82rem;
-  line-height: 1.4;
-  max-width: 560px;
-}
-
-.record-shell-launchpad__action {
-  align-self: center;
-}
-
 .test-shell-page,
 .test-shell-body {
   display: flex;

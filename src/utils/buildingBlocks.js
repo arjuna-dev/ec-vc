@@ -244,8 +244,8 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   'record-title': defineBuildingBlockDetail({
     id: 'cmp-record-title',
     title: 'Record Title',
-    status: 'extract',
-    statusLabel: 'Extract Next',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
     source: 'src/components/RecordTitle.vue',
     nextStep: 'Reuse the shared RecordTitle directly anywhere record and hero surfaces need the larger hero-title treatment.',
     summary: 'Use this for record and file hero titles that should render at hero size.',
@@ -595,8 +595,8 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   'record-hero': defineBuildingBlockDetail({
     id: 'cmp-record-hero',
     title: 'Record Hero',
-    status: 'extract',
-    statusLabel: 'Extract Next',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
     source: 'src/components/HeroSandbox.vue',
     nextStep: 'Finalize this as the canonical record hero, then substitute it for the old record-dashboard surface.',
     summary: 'Use this for the canonical record hero with portrait, record title, settings, fields box, summary box, and record feed.',
@@ -608,8 +608,8 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   'hero-sandbox-surface': defineBuildingBlockDetail({
     id: 'cmp-hero-surface',
     title: 'Hero Surface',
-    status: 'extract',
-    statusLabel: 'Extract Next',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
     source: 'src/components/HeroSandboxSurface.vue',
     nextStep: 'Use this as the large background and shadow owner for hero sandbox experiments.',
     summary: 'Use this for the large hero background, blur, radius, and shadow frame.',
@@ -619,8 +619,8 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   'hero-3col-overlay': defineBuildingBlockDetail({
     id: 'cmp-hero-overlay',
     title: 'Hero 3Col Overlay',
-    status: 'extract',
-    statusLabel: 'Extract Next',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
     source: 'src/components/HeroSandboxOverlay.vue',
     nextStep: 'Use this as the transparent three-column overlay owner for hero sandbox experiments.',
     summary: 'Use this for the transparent three-box overlay that sits on top of the hero surface.',
@@ -630,8 +630,8 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   'hero-2col-overlay': defineBuildingBlockDetail({
     id: 'cmp-hero-2col-overlay',
     title: 'Hero 2Col Overlay',
-    status: 'extract',
-    statusLabel: 'Extract Next',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
     source: 'src/components/Hero2ColOverlay.vue',
     nextStep: 'Use this as the transparent two-column overlay owner for file hero sandbox experiments.',
     summary: 'Use this for the transparent two-box overlay with the right column smaller.',
@@ -693,8 +693,8 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   'record-fields-box': defineBuildingBlockDetail({
     id: 'cmp-record-fields-box',
     title: 'Record Fields Box',
-    status: 'extract',
-    statusLabel: 'Extract Next',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
     source: 'src/components/RecordFieldsBox.vue',
     nextStep: 'Use this as the selected-fields box inside hero sandbox experiments.',
     summary: 'Use this for the box that will hold selected record fields.',
@@ -704,8 +704,8 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   'record-summary-box': defineBuildingBlockDetail({
     id: 'cmp-record-summary-box',
     title: 'Record Summary Box',
-    status: 'extract',
-    statusLabel: 'Extract Next',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
     source: 'src/components/RecordSummaryBox.vue',
     nextStep: 'Use this as the summary box inside hero sandbox experiments.',
     summary: 'Use this for the summary box that fills the remaining middle-column space.',
@@ -715,8 +715,8 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   'file-hero': defineBuildingBlockDetail({
     id: 'cmp-file-hero',
     title: 'File Hero',
-    status: 'extract',
-    statusLabel: 'Extract Next',
+    status: 'canonical',
+    statusLabel: 'Canonical Shared',
     source: 'src/components/FileHero.vue',
     nextStep: 'Finalize this as the canonical file hero, then substitute it for the old file-dashboard surface.',
     summary: 'Use this for the canonical file hero with record title, summary copy, a 2 x 2 l3-box grid, and derived file health.',
@@ -1001,19 +1001,6 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     builtFromBbs: ['value-chip-surface', 'value-chip-label'],
     anatomy: ['Button container', 'Action label', 'Shell-aware open behavior'],
   }),
-  'record-shell-launchpad': defineBuildingBlockDetail({
-    id: 'cmp-record-shell-launchpad',
-    title: 'Record Shell Launchpad',
-    status: 'extract',
-    statusLabel: 'Extract Next',
-    source: 'src/components/FilePageShell.vue',
-    nextStep: 'Extract the record-shell launchpad so create-entry route surfaces share one canonical pre-dialog panel.',
-    summary: 'Use this for the record-shell launchpad panel that explains the create flow and provides the primary create action.',
-    prompt: 'Render the Record Shell Launchpad from Building Blocks using the same eyebrow, title, explanatory copy, and primary create button treatment as the current shell launchpad.',
-    usedInShells: ['Record Shell'],
-    builtFromBbs: ['b10-button', 'colors', 'surfaces', 'borders', 'radius', 'spacing'],
-    anatomy: ['Eyebrow', 'Launch title', 'Instructional copy', 'Primary create action'],
-  }),
   'file-filter-menu': defineBuildingBlockDetail({
     id: 'cmp-file-filter-menu',
     title: 'File Filter Menu',
@@ -1068,10 +1055,12 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
   }),
 }
 
-export const BUILDING_BLOCK_OPTIONS = Object.entries(BUILDING_BLOCK_DETAILS_BY_ID).map(([value, detail]) => ({
-  label: detail.title,
-  value,
-}))
+export const BUILDING_BLOCK_OPTIONS = Object.entries(BUILDING_BLOCK_DETAILS_BY_ID)
+  .filter(([, detail]) => detail.status !== 'deprecated')
+  .map(([value, detail]) => ({
+    label: detail.title,
+    value,
+  }))
 
 export const BUILDING_BLOCK_SIZE_BY_ID = Object.freeze({
   fonts: 'full-row',
@@ -1150,7 +1139,6 @@ export const BUILDING_BLOCK_SIZE_BY_ID = Object.freeze({
   'record-feed-entry-title': 'sm',
   'record-feed-empty': 'sm',
   'record-feed-entry-surface': 'md',
-  'record-shell-launchpad': 'toolbar-wide',
   'file-filter-menu': 'settings-menu',
   'fork-selector-surface': 'live-link',
   'fork-branch-card': 'md',
@@ -1237,34 +1225,35 @@ const BUILDING_BLOCK_CATEGORY_BY_ID = Object.freeze({
   'record-feed-empty': 'Record Components',
   'record-feed-entry-surface': 'Record Components',
   'shell-open-dialog-button': 'Shell Components',
-  'record-shell-launchpad': 'Shell Components',
   'fork-selector-surface': 'Shell Components',
   'fork-branch-card': 'Shell Components',
   'shell-route-empty-view': 'Shell Components',
 })
 
-export const DEFAULT_BUILDING_BLOCK_FILE_ROWS = Object.entries(BUILDING_BLOCK_DETAILS_BY_ID).map(([blockKey, detail], index) => ({
-  id: `bb:${blockKey}`,
-  Sort_Order: index + 1,
-  Name: detail.title,
-  Summary: detail.summary || '',
-  Category: BUILDING_BLOCK_CATEGORY_BY_ID[blockKey] || 'Building Blocks',
-  Status: detail.statusLabel || detail.status || '',
-  Used_In: Array.isArray(detail.usedIn) ? detail.usedIn.join('\n') : '',
-  Used_In_Shells: Array.isArray(detail.usedInShells) ? detail.usedInShells.join('\n') : '',
-  Use_When: detail.summary || '',
-  Avoid_When: '',
-  Built_From_BBs: Array.isArray(detail.builtFromBbs) ? detail.builtFromBbs.join('\n') : '',
-  Convergence_Rule: Array.isArray(detail.convergenceRule) ? detail.convergenceRule.join('\n') : '',
-  Anatomy: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
-  Required_Parts: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
-  Source_Path: detail.source || '',
-  Owner: 'BB Shell',
-  Extraction_Status: detail.statusLabel || '',
-  Reconstruction_Notes: Array.isArray(detail.reconstructionNotes) ? detail.reconstructionNotes.join('\n') : '',
-  Prompt: detail.prompt || '',
-  Variants: detail.status === 'canonical' ? 'Canonical Shared' : 'Extract Next',
-}))
+export const DEFAULT_BUILDING_BLOCK_FILE_ROWS = Object.entries(BUILDING_BLOCK_DETAILS_BY_ID)
+  .filter(([, detail]) => detail.status !== 'deprecated')
+  .map(([blockKey, detail], index) => ({
+    id: `bb:${blockKey}`,
+    Sort_Order: index + 1,
+    Name: detail.title,
+    Summary: detail.summary || '',
+    Category: BUILDING_BLOCK_CATEGORY_BY_ID[blockKey] || 'Building Blocks',
+    Status: detail.statusLabel || detail.status || '',
+    Used_In: Array.isArray(detail.usedIn) ? detail.usedIn.join('\n') : '',
+    Used_In_Shells: Array.isArray(detail.usedInShells) ? detail.usedInShells.join('\n') : '',
+    Use_When: detail.summary || '',
+    Avoid_When: '',
+    Built_From_BBs: Array.isArray(detail.builtFromBbs) ? detail.builtFromBbs.join('\n') : '',
+    Convergence_Rule: Array.isArray(detail.convergenceRule) ? detail.convergenceRule.join('\n') : '',
+    Anatomy: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
+    Required_Parts: Array.isArray(detail.anatomy) ? detail.anatomy.join('\n') : '',
+    Source_Path: detail.source || '',
+    Owner: 'BB Shell',
+    Extraction_Status: detail.statusLabel || '',
+    Reconstruction_Notes: Array.isArray(detail.reconstructionNotes) ? detail.reconstructionNotes.join('\n') : '',
+    Prompt: detail.prompt || '',
+    Variants: detail.status === 'canonical' ? 'Canonical Shared' : 'Extract Next',
+  }))
 
 export function getBuildingBlockDetail(blockId) {
   return BUILDING_BLOCK_DETAILS_BY_ID[String(blockId || '').trim()] || null

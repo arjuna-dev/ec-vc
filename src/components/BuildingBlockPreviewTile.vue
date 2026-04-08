@@ -494,19 +494,6 @@
         </div>
       </template>
 
-      <template v-else-if="blockKey === 'record-shell-launchpad'">
-        <div class="building-block-preview-tile__launchpad">
-          <div class="building-block-preview-tile__launchpad-copy">
-            <div class="building-block-preview-tile__launchpad-eyebrow">Record Shell</div>
-            <div class="building-block-preview-tile__launchpad-title">Create a company</div>
-            <div class="building-block-preview-tile__launchpad-text">
-              Choose the L1 at the top, mark the L3 fields you want included, then open the shared create dialog.
-            </div>
-          </div>
-          <button type="button" class="building-block-preview-tile__launchpad-action">Create Record</button>
-        </div>
-      </template>
-
       <template v-else-if="blockKey === 'shell-open-dialog-button'">
         <ShellOpenDialogButton kind="record" />
       </template>
@@ -557,9 +544,9 @@
       </template>
 
       <template v-else-if="blockKey === 'fork-branch-card'">
-        <button type="button" class="building-block-preview-tile__fork-branch-card">
-          <span class="building-block-preview-tile__fork-branch-title">Fund</span>
-        </button>
+        <div class="building-block-preview-tile__fork-branch-card">
+          <B10Button label="Fund" variant="neutral" size="small" />
+        </div>
       </template>
 
       <template v-else-if="blockKey === 'record-field-label'">
@@ -1419,66 +1406,6 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-black);
 }
 
-.building-block-preview-tile__launchpad {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-  padding: 18px 20px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  border-radius: 8px;
-}
-
-.building-block-preview-tile__launchpad-copy {
-  display: grid;
-  gap: 6px;
-}
-
-.building-block-preview-tile__launchpad-eyebrow {
-  color: rgba(15, 23, 42, 0.56);
-  font-family: var(--ds-font-title);
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.building-block-preview-tile__launchpad-title {
-  color: #0f172a;
-  font-family: var(--ds-font-title);
-  font-size: 1.24rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: -0.03em;
-  line-height: 1;
-}
-
-.building-block-preview-tile__launchpad-text {
-  color: rgba(15, 23, 42, 0.72);
-  font-family: var(--ds-font-body);
-  font-size: 0.88rem;
-  line-height: 1.45;
-  max-width: 340px;
-}
-
-.building-block-preview-tile__launchpad-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 38px;
-  padding: 0 14px;
-  color: #fff;
-  background: #2647ff;
-  border: 0;
-  border-radius: 10px;
-  font-family: var(--ds-font-title);
-  font-size: 0.82rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
 .building-block-preview-tile__record-dashboard {
   width: 100%;
 }
@@ -1758,7 +1685,6 @@ onBeforeUnmount(() => {
     --tile-rows: 12;
   }
 
-  .building-block-preview-tile__launchpad,
   .building-block-preview-tile__record-dashboard-header {
     flex-direction: column;
   }
