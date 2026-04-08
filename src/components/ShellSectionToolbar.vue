@@ -1,36 +1,54 @@
 <template>
   <section v-if="items.length" class="shell-section-toolbar" :aria-label="ariaLabel">
-    <button
-      v-for="section in items"
-      :key="section.value"
-      type="button"
-      class="shell-section-toolbar__item"
-      :class="{
-        'shell-section-toolbar__item--active': modelValue === section.value,
-        'shell-section-toolbar__item--kdb': section.isKdb,
-        'shell-section-toolbar__item--system': section.isSystem,
-        'shell-section-toolbar__item--push-right': section.pushRight,
-      }"
-      @click="$emit('update:modelValue', section.value)"
-    >
-      <span class="shell-section-toolbar__item-label">{{ section.title }}</span>
-      <q-icon v-if="section.isKdb" name="share" :size="'var(--ds-toolbar-chip-toggle-icon-size)'" class="shell-section-toolbar__item-icon" />
-    </button>
+    <div class="shell-section-toolbar__lane shell-section-toolbar__lane--left">
+      <button
+        v-for="section in leftItems"
+        :key="section.value"
+        type="button"
+        class="shell-section-toolbar__item"
+        :class="{
+          'shell-section-toolbar__item--active': modelValue === section.value,
+        }"
+        @click="$emit('update:modelValue', section.value)"
+      >
+        <span class="shell-section-toolbar__item-label">{{ section.title }}</span>
+      </button>
+    </div>
 
-    <ViewModeToggle
-      v-if="showViewToggle"
-      :model-value="viewMode"
-      class="shell-section-toolbar__view-toggle"
-      :options="viewOptions"
-      @update:model-value="$emit('update:viewMode', $event)"
-    />
+    <div v-if="midItems.length" class="shell-section-toolbar__lane shell-section-toolbar__lane--mid">
+      <button
+        v-for="section in midItems"
+        :key="section.value"
+        type="button"
+        class="shell-section-toolbar__item"
+        :class="{
+          'shell-section-toolbar__item--active': modelValue === section.value,
+          'shell-section-toolbar__item--kdb': section.isKdb,
+          'shell-section-toolbar__item--system': section.isSystem,
+        }"
+        @click="$emit('update:modelValue', section.value)"
+      >
+        <span class="shell-section-toolbar__item-label">{{ section.title }}</span>
+        <q-icon v-if="section.isKdb" name="share" :size="'var(--ds-toolbar-chip-toggle-icon-size)'" class="shell-section-toolbar__item-icon" />
+      </button>
+    </div>
+
+    <div v-if="showViewToggle" class="shell-section-toolbar__lane shell-section-toolbar__lane--right">
+      <ViewModeToggle
+        :model-value="viewMode"
+        class="shell-section-toolbar__view-toggle"
+        :options="viewOptions"
+        @update:model-value="$emit('update:viewMode', $event)"
+      />
+    </div>
   </section>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import ViewModeToggle from 'src/components/ViewModeToggle.vue'
 
-defineProps({
+const props = defineProps({
   modelValue: { type: String, default: '' },
   items: { type: Array, default: () => [] },
   viewMode: { type: String, default: 'grid' },
@@ -40,6 +58,9 @@ defineProps({
 })
 
 defineEmits(['update:modelValue', 'update:viewMode'])
+
+const leftItems = computed(() => props.items.filter((section) => !section.isKdb && !section.isSystem))
+const midItems = computed(() => props.items.filter((section) => section.isKdb || section.isSystem))
 </script>
 
 <style scoped>
@@ -47,15 +68,33 @@ defineEmits(['update:modelValue', 'update:viewMode'])
   position: sticky;
   top: var(--ds-toolbar-sticky-top);
   z-index: 3;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content max-content;
   align-items: center;
-  gap: var(--ds-toolbar-gap-sm);
-  flex-wrap: wrap;
+  column-gap: var(--ds-toolbar-gap-sm);
+  row-gap: var(--ds-toolbar-gap-sm);
   padding: var(--ds-toolbar-padding-sm);
   background: var(--ds-color-surface-overlay-light);
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-lg);
   backdrop-filter: var(--ds-panel-blur-md);
+}
+
+.shell-section-toolbar__lane {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-toolbar-gap-sm);
+  min-width: 0;
+}
+
+.shell-section-toolbar__lane--left {
+  flex-wrap: wrap;
+}
+
+.shell-section-toolbar__lane--mid,
+.shell-section-toolbar__lane--right {
+  justify-content: flex-start;
+  white-space: nowrap;
 }
 
 .shell-section-toolbar__item {
@@ -120,15 +159,8 @@ defineEmits(['update:modelValue', 'update:viewMode'])
   font-size: var(--ds-toolbar-kdb-icon-size) !important;
 }
 
-.shell-section-toolbar__item--push-right {
-  margin-left: auto;
-  align-self: center;
-}
-
 .shell-section-toolbar__view-toggle {
   align-self: center;
-  margin-left: 0;
-  order: 999;
 }
 
 .shell-section-toolbar__view-toggle {
@@ -136,8 +168,16 @@ defineEmits(['update:modelValue', 'update:viewMode'])
   --ds-toolbar-toggle-icon-size: var(--ds-toolbar-chip-toggle-icon-size);
 }
 
-.shell-section-toolbar__item:not(.shell-section-toolbar__item--push-right) + .shell-section-toolbar__item--push-right {
-  margin-left: auto;
+@media (max-width: 900px) {
+  .shell-section-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .shell-section-toolbar__lane--left,
+  .shell-section-toolbar__lane--mid,
+  .shell-section-toolbar__lane--right {
+    flex-wrap: wrap;
+  }
 }
 
 </style>

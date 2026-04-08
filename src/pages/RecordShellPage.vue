@@ -604,12 +604,16 @@ const recordShellNavItems = computed(() => [
     pushRight: false,
   })),
   ...toolbarRightSections.value.map((group, index) => {
-    const normalized = String(group.title || '').trim().toLowerCase()
+    const normalizedSectionLabels = Array.isArray(group.sections)
+      ? group.sections.map((section) => String(section.label || '').trim().toLowerCase())
+      : []
+    const isKdb = normalizedSectionLabels.includes('kdb')
+    const isSystem = normalizedSectionLabels.includes('system')
     return {
       value: group.value,
       title: group.title,
-      isKdb: normalized === 'kdb',
-      isSystem: normalized === 'system',
+      isKdb,
+      isSystem,
       pushRight: index === 0,
     }
   }),
