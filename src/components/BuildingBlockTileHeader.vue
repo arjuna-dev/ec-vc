@@ -1,5 +1,9 @@
 <template>
   <div class="building-block-tile-header">
+    <div v-if="$slots.leading" class="building-block-tile-header__leading">
+      <slot name="leading" />
+    </div>
+
     <div class="building-block-tile-header__main">
       <div class="building-block-tile-header__label-row">
         <div class="building-block-tile-header__label">{{ title }}</div>
@@ -44,6 +48,13 @@ defineEmits(['toggle-collapse'])
   justify-content: space-between;
   gap: 10px;
   flex-wrap: nowrap;
+}
+
+.building-block-tile-header__leading {
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex: 0 0 auto;
 }
 
 .building-block-tile-header__main {
