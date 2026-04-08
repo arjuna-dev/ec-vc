@@ -435,7 +435,7 @@
       </template>
 
       <template v-else-if="blockKey === 'file-dashboard'">
-        <FileHeroSandbox />
+        <FileHero />
       </template>
 
       <template v-else-if="blockKey === 'home-dashboard'">
@@ -539,7 +539,7 @@
       </template>
 
       <template v-else-if="blockKey === 'file-hero'">
-        <FileHeroSandbox />
+        <FileHero />
       </template>
 
       <template v-else-if="blockKey === 'l2-toolbar'">
@@ -697,7 +697,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import FileHeroSandbox from 'src/components/FileHeroSandbox.vue'
+import FileHero from 'src/components/FileHero.vue'
 import Hero2ColOverlay from 'src/components/Hero2ColOverlay.vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import HeroSandbox from 'src/components/HeroSandbox.vue'

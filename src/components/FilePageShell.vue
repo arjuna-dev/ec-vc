@@ -14,12 +14,9 @@
     </div>
 
     <div v-else class="test-shell-body">
-      <FilePageHeroDashboard
-        :eyebrow="pageShellLabel"
-        :title="heroTitle"
+      <FileHero
         :text="heroText"
         :stats="heroStats"
-        health-label="Contract health"
         :health-text="healthText"
         :health-segments="healthSegments"
       />
@@ -806,7 +803,7 @@ import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FileFilterMenu from 'components/FileFilterMenu.vue'
-import FilePageHeroDashboard from 'components/FilePageHeroDashboard.vue'
+import FileHero from 'components/FileHero.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'components/ShellSectionToolbar.vue'
 import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
@@ -1600,7 +1597,6 @@ const someVisibleSelected = computed(() => {
   return visibleSelectableRowIds.value.some((id) => selectedRowIds.value.includes(id))
 })
 
-const heroTitle = computed(() => pageShellLabel.value || 'Records')
 const heroText = computed(
   () =>
     isRecordShellMode.value
