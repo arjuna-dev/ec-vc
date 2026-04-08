@@ -116,6 +116,8 @@ The canonical `L1` contract should carry:
 - runtime capabilities
 - KDB declarations
 - bootstrap defaults
+- optional branch metadata when the `L1` supports subtype routing
+- optional explicit `L2.a-b-c-d` subgroup metadata when one subsection needs structured internal grouping
 
 The validator should fail if an `L1` is missing:
 
@@ -147,6 +149,12 @@ Working rule:
 - `Genesis` should not invent a smaller temporary schema
 - `Genesis` should install the current approved schema baseline as-is
 - later marketplace-delivered `L1`s may extend that baseline, but should not weaken or fork it casually
+
+Branch capability rule:
+
+- branch capability is a normal architecture feature, not a one-off exception
+- any `L1` may declare branch metadata when create flow must choose a subtype route first
+- branch metadata should be explicit in canon and registry, not implied by page-specific UI
 
 ### Owner Genesis File Order Rule
 
@@ -205,6 +213,7 @@ This matters because:
 - `L1 Files` is the root file registry and must exist before the rest of the file system can be treated as coherent
 - `Events` should exist before later genesis work is logged
 - later marketplace-delivered `L1`s should plug into this same file-first bootstrap model instead of bypassing it
+- `Events` should be treated as a first-class file/entity in the same contract system as the rest of the file surfaces
 
 ### BB File Contract
 
@@ -543,6 +552,7 @@ Current approved example:
 - it exists to choose `Fund` or `Round`
 - that choice should happen before overview and subtype-owned sections appear
 - if the shell later tries to write `Opportunity_Kind` into `Funds` or `Rounds` as if it were a normal field, that is a contract bug
+- `Funds` and `Rounds` remain two distinct concrete tables under that branch choice
 
 Correct evidence statement:
 
@@ -1780,6 +1790,13 @@ Grouped subsection rendering rule:
   - `Market Overview`
   - `Results Overview`
   as subgroup variants inside the panel
+
+Canonical subgroup rule:
+
+- when subgrouping is structurally necessary, it should be declared explicitly as `L2.a`, `L2.b`, `L2.c`, and so on
+- this is not a hidden `L4`
+- `L3` remains the leaf layer
+- shells should not invent subgrouping that canon does not declare
 
 ## Execution Plan
 

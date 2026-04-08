@@ -319,6 +319,8 @@ Current approved example:
 - choosing `Fund` or `Round` decides whether the create flow should continue as `Funds` or `Rounds`
 - the selector should steer structure first and should not later be written back as if it were a normal field on the subtype record
 - `Opportunities` may declare the available branch routes, but the route-owned branch-choice surface is still `Fork Shell`
+- branch capability should be treated as a normal architecture feature any `L1` may support when canon declares it
+- `Funds` and `Rounds` are intentionally separate concrete tables, not one blended subset table
 
 Observed evidence rule:
 
@@ -331,6 +333,7 @@ Observed evidence rule:
 Why a shared payload builder matters:
 
 - the app already has canonical `L1-L2-L3` structure, but shells still need one shared translation layer that turns that structure into the exact payload consumed by the shell
+- when a subsection needs internal grouping for readability, canon may explicitly declare subgrouping as `L2.a`, `L2.b`, `L2.c`, and so on without replacing `L3` as the leaf layer
 - centralizing that translation improves:
   - consistency
   - speed of change
@@ -589,6 +592,7 @@ Current product meaning:
 - `Master Companion` should perform sequential genesis file creation, beginning with `L1 Files`, then `Events`, then the current base file set in approved order
 - `BB File` should be treated as the first conceptual file in that sequence because it defines the visible building language before the operational file system is interpreted
 - file creation should happen before the bootstrap records that belong inside those files are created
+- `Events` should be treated as a first-class file/entity in that same file creation order, not as a lightweight side feed
 
 Current limit:
 

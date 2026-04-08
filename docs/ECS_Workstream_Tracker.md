@@ -90,9 +90,11 @@ This tracker should stay aligned with:
 - Excel workbook + canonical JSON workflow is now in place for schema indexing
 - `JSON + app editing` is now the chosen canonical structure direction
 - `docs/canonical-structure.json` is now the app-readable canonical structure registry across the current L1/L2/L3 entity set
+- canonical structure now also needs to support explicit `L2.a-b-c-d` subgrouping when a subsection requires structured internal grouping without weakening `L3`
 - canonical tokens can now carry explicit `db_field_aliases`, so shell rendering can resolve through canonical structure without guessing when live row payload fields still use older DB names
 - `Opportunities` is now being formalized as a parent canonical `L1` contract with `Funds` and `Rounds` as subtype branches
 - parent `L1`s with subtype branches now use an explicit route-choice step before create/add-record opens the shared dialog
+- branch capability should be treated as a normal architecture feature any `L1` may declare through canon
 - `Knowledge DBs` is now being treated as a real subset inside `Files` for reusable reference entities such as `Stages`, `Financial Industries`, and `Round Securities`
 - `Ingestion` is now an approved secondary `Knowledge DB` direction for tracking original artifact links, processing events, and created-file lineage
 - the file pages now render through one shared shell source with thin page wrappers, instead of drifting as copied page implementations
@@ -137,6 +139,7 @@ This tracker should stay aligned with:
   - `Convergence Rule` is temporary migration scaffolding only
   - once a primitive family is fully stabilized, `Convergence Rule` should be cleared, hidden, or removed instead of becoming permanent metadata
 - `Owner Genesis` should create the base file system sequentially through `Master Companion`, beginning with `BB File`, then `L1 Files`, then `Events`
+- `Events` should continue to be normalized as a first-class file/entity in that same contract system rather than treated as a lightweight side surface
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - artifact context assumptions should now be treated as `default/preselected unverified`
 - ingestion should start from the linked source artifact and should not create a duplicate artifact record at processing start
@@ -193,6 +196,7 @@ This tracker should stay aligned with:
   - Step 1A: define steward contracts that protect file and design structure from drift:
     - `File Steward`
     - `Design Steward`
+  - Step 1B: update the structure docs so branch-capable `L1`s, explicit `L2.a-b-c-d` subgrouping, and first-class `Events` are declared in canon before more runtime normalization
   - Step 2: add standalone `Companion Roles` as a real first-class table
   - Step 3: add the initial required `Companion Roles` columns
   - Step 4: create the first-pass `Companion Roles` records:

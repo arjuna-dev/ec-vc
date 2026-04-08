@@ -36,6 +36,12 @@ Each subgroup should contain its own explicit leaf items.
 
 The `File Steward` should treat this as a strict contract requirement, not as a rendering preference.
 
+When subgrouping is structurally necessary inside a subsection:
+
+- it should be declared explicitly as `L2.a`, `L2.b`, `L2.c`, and so on
+- it should not be improvised in shell code only
+- it should preserve `L3` as the leaf layer
+
 ## Building Block Rule
 
 The same anti-drift discipline used for shared UI building blocks should apply to file architecture.
@@ -57,6 +63,7 @@ The `File Steward` should:
 - flag when a declared file surface has no real backend/runtime owner
 - flag when a runtime table exists without its own explicit canonical contract
 - protect the consistency of `System`, `KDB`, and `General` subgrouping
+- protect declared branch-capable `L1`s from being normalized into the wrong table model
 - help keep file naming, loader naming, and menu naming aligned
 
 ## Stop Conditions
@@ -67,6 +74,7 @@ The `File Steward` should stop implementation and surface the gap when:
 - subgroup ownership is being guessed
 - runtime ownership and canonical ownership do not match
 - a file surface is borrowing another entity's structure without explicit approval
+- branch behavior is being implemented without explicit canonical branch metadata
 
 ## Working Principle
 

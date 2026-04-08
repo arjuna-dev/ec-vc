@@ -38,6 +38,8 @@ That means:
 - use declared runtime ownership
 - do not invent paths
 - do not improvise field meaning
+- respect declared branch metadata when an `L1` requires subtype routing
+- respect declared `L2.a-b-c-d` subgrouping when a subsection uses explicit internal grouping
 
 When the companion participates in editing or review:
 
@@ -231,6 +233,20 @@ That means a companion should treat them with the same structural discipline:
 - owned fields still write through approved ownership
 - KDB links still require declared relationship paths
 - no special low-discipline behavior just because the file is a `Knowledge DB`
+
+## Branch And Subgroup Rule
+
+If canon declares a branch:
+
+- the companion should treat branch choice as a structural routing step
+- it should not collapse branch choice into a normal editable field
+- it should not pretend a parent branchable `L1` and its concrete child tables are the same runtime owner
+
+If canon declares `L2.a-b-c-d` subgrouping:
+
+- the companion should preserve the declared subgroup structure
+- it should not flatten subgrouped `L2` content into one undifferentiated block
+- it should still treat `L3` as the leaf layer underneath that grouped subsection
 
 ## Ingestion Rule
 
