@@ -19,7 +19,7 @@ defineOptions({ name: 'Hero2ColOverlay' })
 .hero-2col-overlay {
   position: absolute;
   inset: 0;
-  padding: 24px;
+  padding: 5px;
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(1px);
   -webkit-backdrop-filter: blur(1px);
@@ -51,6 +51,7 @@ defineOptions({ name: 'Hero2ColOverlay' })
 }
 
 .hero-2col-overlay__column--right {
+  align-items: stretch;
   min-height: 0;
 }
 

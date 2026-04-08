@@ -57,7 +57,7 @@
                 class="fork-shell-card__branch"
                 @click="selectBranch(branch)"
               >
-                <span class="fork-shell-card__branch-title">{{ branch.label }}</span>
+                <ForkBranchCard :label="branch.label" />
               </button>
             </div>
           </q-card-section>
@@ -70,6 +70,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ForkBranchCard from 'src/components/ForkBranchCard.vue'
 import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'
 import {
   TEST_SHELL_SECTION_OPTIONS,
@@ -246,40 +247,17 @@ onBeforeUnmount(() => {
 
 .fork-shell-card__branch {
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 0;
-  padding: 0 12px;
-  min-height: 30px;
-  text-align: left;
-  color: #ffffff;
-  background: #111111;
-  border: 1px solid rgba(17, 17, 17, 0.92);
-  border-radius: 4px;
-  font-family: var(--font-title);
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-black);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+  padding: 0;
+  background: transparent;
+  border: 0;
   cursor: pointer;
   transition:
-    color 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease,
     transform 0.2s ease;
 }
 
 .fork-shell-card__branch:hover,
 .fork-shell-card__branch:focus-visible {
-  color: #111111;
-  background: rgba(255, 255, 255, 0.96);
-  border-color: rgba(17, 17, 17, 0.92);
   transform: translateY(-1px);
-}
-
-.fork-shell-card__branch-title {
-  font: inherit;
 }
 
 @media (max-width: 900px) {

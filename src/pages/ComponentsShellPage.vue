@@ -256,14 +256,6 @@
         </div>
       </article>
 
-      <BuildingBlockPreviewTile block-key="file-dashboard">
-        <template #actions>
-          <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('file-dashboard')">
-            <q-icon name="visibility" />
-          </button>
-        </template>
-      </BuildingBlockPreviewTile>
-
       <article class="components-shell-page__card components-shell-page__card--stat-box">
         <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l3-box')">
           <q-icon name="visibility" />

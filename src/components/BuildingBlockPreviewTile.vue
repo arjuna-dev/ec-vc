@@ -545,7 +545,7 @@
 
       <template v-else-if="blockKey === 'fork-branch-card'">
         <div class="building-block-preview-tile__fork-branch-card">
-          <B10Button label="Fund" variant="neutral" size="small" />
+          <ForkBranchCard label="Fund" />
         </div>
       </template>
 
@@ -699,6 +699,7 @@ import ShellOpenDialogButton from 'src/components/ShellOpenDialogButton.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'
+import ForkBranchCard from 'src/components/ForkBranchCard.vue'
 import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
@@ -1628,6 +1629,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 4px;
 }
+
 
 .building-block-preview-tile__record-fields-box-sample {
   display: inline-grid;

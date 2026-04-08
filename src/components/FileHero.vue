@@ -116,11 +116,13 @@ const normalizedHealthSegments = computed(() =>
 }
 
 .file-hero-sandbox__dashboard {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: var(--ds-space-12);
+  flex: 1 1 auto;
   width: 100%;
   min-width: 0;
+  min-height: 0;
   height: 100%;
 }
 
@@ -163,6 +165,8 @@ const normalizedHealthSegments = computed(() =>
   border-radius: var(--ds-radius-lg);
   box-shadow: var(--ds-shadow-card-soft);
   box-sizing: border-box;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .file-hero-sandbox__health-text {
@@ -173,10 +177,7 @@ const normalizedHealthSegments = computed(() =>
   line-height: var(--ds-line-height-sm);
 }
 
-.file-hero-sandbox__health {
-  margin-top: auto;
-  gap: var(--ds-space-12);
-}
+.file-hero-sandbox__health { gap: var(--ds-space-12); }
 
 .file-hero-sandbox__health-bar {
   display: flex;
