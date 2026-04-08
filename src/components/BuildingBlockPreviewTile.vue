@@ -14,6 +14,10 @@
       :collapsed="isCollapsed"
       @toggle-collapse="isCollapsed = !isCollapsed"
     >
+      <template v-if="$slots.selection" #leading>
+        <slot name="selection" />
+      </template>
+
       <template v-if="$slots.actions" #actions>
         <slot name="actions" />
       </template>
@@ -721,6 +725,17 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'bb-selection-frame'">
+        <BbSelectionFrame>
+          <div class="building-block-preview-tile__bb-selection-frame-sample">
+            <div class="building-block-preview-tile__bb-code">bb:file-hero</div>
+            <div class="building-block-preview-tile__bb-code">bb:record-hero</div>
+            <div class="building-block-preview-tile__bb-code">bb:record-feed-panel</div>
+            <div class="building-block-preview-tile__bb-code">bb:section-tabs</div>
+          </div>
+        </BbSelectionFrame>
+      </template>
+
       <template v-else-if="blockKey === 'file-filter-menu'">
         <FileFilterMenu
           title="File Filter"
@@ -786,6 +801,7 @@ import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
 import EntryInputListBox from 'src/components/EntryInputListBox.vue'
 import EditableGridTable from 'src/components/EditableGridTable.vue'
+import BbSelectionFrame from 'src/components/BbSelectionFrame.vue'
 import RecordHeroFieldCard from 'src/components/RecordHeroFieldCard.vue'
 import RecordFieldDescription from 'src/components/RecordFieldDescription.vue'
 import RecordFieldLabel from 'src/components/RecordFieldLabel.vue'
@@ -850,6 +866,7 @@ const dialogFooterLegendItems = [
   { label: 'Suggested', tone: 'suggested' },
 ]
 import { BUILDING_BLOCK_DETAILS_BY_ID, getBuildingBlockGraphCounts, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
+
 import {
   GENERAL_SETTINGS_BORDER_SAMPLES,
   GENERAL_SETTINGS_COLOR_SWATCHES,
@@ -1671,6 +1688,13 @@ onBeforeUnmount(() => {
 .building-block-preview-tile__record-fields-box-cell {
   display: flex;
   min-width: auto;
+}
+
+.building-block-preview-tile__bb-selection-frame-sample {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: 10px 12px;
+  align-items: start;
 }
 
 @media (max-width: 900px) {
