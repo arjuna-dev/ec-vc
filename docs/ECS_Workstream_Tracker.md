@@ -191,6 +191,16 @@ This tracker should stay aligned with:
 
 ## Pending
 
+- Milestone: `New L1 Bootstrap Automation Prep`
+  - Step 1: turn the approved `L1` birth sequence into an implementation checklist against the current codebase
+  - Step 2: define the canonical input contract for new normal `L1` birth
+  - Step 3: define the active `L1` set used for reciprocal KDB generation
+  - Step 4: define the default relationship owner-path rule:
+    - `KDB_Relationships` by default
+    - dedicated join table only when promoted
+  - Step 5: build the first strict bootstrap helper from one source
+  - Step 6: open a test branch only after the bootstrap contract is fully defined
+
 - Milestone: `Contained Ingestion Foundation Pass`
   - Step 1: align Main Menu labels with loader/runtime naming so the app renders and speaks in the same names the user sees
   - Step 1A: define steward contracts that protect file and design structure from drift:
