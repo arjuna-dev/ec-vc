@@ -22,6 +22,9 @@ defineOptions({ name: 'Hero3ColOverlay' })
 .hero-3col-overlay {
   position: absolute;
   inset: 0;
+  width: 100%;
+  min-width: 100%;
+  height: 100%;
   padding: 5px;
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(1px);
@@ -35,6 +38,7 @@ defineOptions({ name: 'Hero3ColOverlay' })
   grid-template-columns: minmax(0, 0.25fr) minmax(0, 0.375fr) minmax(0, 0.375fr);
   gap: 24px;
   width: 100%;
+  min-width: 100%;
   height: 100%;
 }
 

@@ -19,6 +19,9 @@ defineOptions({ name: 'Hero2ColOverlay' })
 .hero-2col-overlay {
   position: absolute;
   inset: 0;
+  width: 100%;
+  min-width: 100%;
+  height: 100%;
   padding: 5px;
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(1px);
@@ -32,6 +35,7 @@ defineOptions({ name: 'Hero2ColOverlay' })
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: 24px;
   width: 100%;
+  min-width: 100%;
   height: 100%;
 }
 

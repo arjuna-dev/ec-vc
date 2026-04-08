@@ -46,7 +46,9 @@ function handlePointerLeave() {
 <style scoped>
 .hero-surface {
   position: relative;
+  display: block;
   width: 100%;
+  min-width: 100%;
   min-height: 420px;
   overflow: hidden;
   border: 1px solid rgba(17, 17, 17, 0.08);
