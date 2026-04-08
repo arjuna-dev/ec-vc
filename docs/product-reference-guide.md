@@ -909,6 +909,32 @@ Birth rule for new normal `L1`s:
   - the bridge choice between dedicated join table and shared `KDB_Relationships`
 - if those pieces are missing, the `L1` bootstrap is incomplete even if the table, route, and shell already exist
 
+Practical birth sequence:
+
+1. define the new canonical `L1`
+2. create its real table/runtime owner
+3. load the shared base:
+   - `System`
+   - `KDB`
+   - `General`
+4. load the shared base parameters:
+   - `ID`
+   - `Creator`
+   - `Datetime`
+   - `EventLog`
+   - `Name`
+   - `Summary`
+5. add entity-specific `L2` structure
+6. load reciprocal KDB declarations against the approved active `L1` set
+7. decide relationship ownership:
+   - dedicated join table
+   - shared `KDB_Relationships`
+8. load reverse-read support
+9. add route/registry/shell ownership
+10. verify the file is truly createable/editable/browsable
+
+This is the minimum practical birth path for a new normal `L1`.
+
 ## Current Relationship Status
 
 Currently runtime-backed strongly enough to be treated as real relationship paths:

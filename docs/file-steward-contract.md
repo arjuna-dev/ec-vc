@@ -115,6 +115,17 @@ The `File Steward` should:
 - ensure new normal `L1`s are born with reciprocal KDB bridge wiring as part of file birth, not as a later repair step
 - ensure each canon-declared KDB relationship has an approved owner path and reverse-read path from the start
 - ensure `L1` bootstrap makes the bridge choice between dedicated join table and shared `KDB_Relationships` explicitly
+- enforce the full `L1` birth sequence:
+  - canonical entity
+  - real table/runtime owner
+  - shared base subsections
+  - shared base parameters
+  - entity-specific `L2` structure
+  - reciprocal KDB declarations
+  - bridge owner-path choice
+  - reverse-read path
+  - route/registry/shell ownership
+  - working create/edit/browse validation
 
 ## Stop Conditions
 

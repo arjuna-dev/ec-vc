@@ -753,6 +753,40 @@ KDB propagation rule:
 - bootstrap should decide whether each approved relationship uses a dedicated join table or the shared `KDB_Relationships` owner path
 - manual back-wiring after file birth should be treated as a temporary repair, not as the intended architecture rule
 
+### New L1 Bootstrap Algorithm
+
+The intended birth sequence for a new normal `L1` is:
+
+1. create the canonical `L1` entity definition
+2. create the real table/runtime owner for that `L1`
+3. create the shared base subsections:
+   - `System`
+   - `KDB`
+   - `General`
+4. create the shared base parameters:
+   - `System`
+     - `ID`
+     - `Creator`
+     - `Datetime`
+     - `EventLog`
+   - `General`
+     - `Name`
+     - `Summary`
+5. create the entity-specific `L2` extensions and any approved `L2.a-b-c-d` subgrouping
+6. create the reciprocal KDB declarations against the approved active `L1` set
+7. decide the owner path for each approved relationship:
+   - dedicated join table
+   - shared `KDB_Relationships`
+8. create the bridge contract and reverse-read path for each approved relationship
+9. add route, registry, shell, and navigation ownership
+10. confirm list/create/edit/delete and shell launch behavior are working
+
+Validation rule:
+
+- a new `L1` should not be treated as born correctly until all ten steps are complete
+- if the table exists but reciprocal KDB bridge work does not, the `L1` birth is still incomplete
+- if the shell exists but the runtime owner path does not, the `L1` birth is still incomplete
+
 ### Current Mandatory KDB Set
 
 The currently approved KDB direction is:
