@@ -549,6 +549,7 @@ function clearRenderedBlock() {
   max-height: calc((var(--ds-font-size-sm) * 1.4 * 5) + (8px * 4));
   overflow-y: auto;
   overflow-x: hidden;
+  padding-left: 8px;
 }
 
 .add-edit-bb-builder__bb-scroll {
