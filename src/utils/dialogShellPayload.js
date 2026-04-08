@@ -1,4 +1,6 @@
 export function getDialogSectionGroupValue(section) {
+  const subgroupKey = String(section?.subgroupKey || '').trim()
+  if (subgroupKey) return `subgroup:${subgroupKey}`
   const displayGroup = String(section?.displayGroup || '').trim()
   return displayGroup ? `group:${displayGroup}` : String(section?.key || '').trim()
 }
@@ -44,7 +46,7 @@ export function groupDialogLevel2Sections(level2Sections = []) {
     }
     groups.push({
       value,
-      title: String(section?.displayGroup || section?.label || '').trim(),
+      title: String(section?.subgroupLabel || section?.displayGroup || section?.label || '').trim(),
       sections: [section],
     })
   }
