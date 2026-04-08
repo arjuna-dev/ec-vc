@@ -498,7 +498,7 @@
         <RecordHero />
       </template>
 
-      <template v-else-if="blockKey === 'hero-sandbox-surface'">
+      <template v-else-if="blockKey === 'hero-surface'">
         <HeroSandboxSurface />
       </template>
 

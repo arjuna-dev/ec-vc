@@ -17,9 +17,10 @@ defineProps({
   align-items: flex-end;
   align-self: end;
   padding: 0 10px 1px 0;
-  color: #5c5c5c;
-  font-family: var(--ds-font-family-body);
-  font-size: 0.68rem;
+  color: var(--ds-color-brand-dark-grey);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-medium);
   line-height: 1;
   text-align: left;
   justify-self: start;

@@ -1,8 +1,13 @@
 <template>
-  <div class="record-field-label">{{ label }}</div>
+  <ValueChipSurface tone="default" size="small" class="record-field-label">
+    <ButtonLabel :label="label" />
+  </ValueChipSurface>
 </template>
 
 <script setup>
+import ButtonLabel from 'src/components/ButtonLabel.vue'
+import ValueChipSurface from 'src/components/ValueChipSurface.vue'
+
 defineProps({
   label: {
     type: String,
@@ -13,17 +18,14 @@ defineProps({
 
 <style scoped>
 .record-field-label {
-  display: inline-flex;
   width: fit-content;
   justify-self: start;
-  padding: 7px 10px;
-  color: #fff;
-  font-family: var(--font-title);
-  font-size: 0.74rem;
-  font-weight: var(--font-weight-black);
+}
+
+.record-field-label :deep(.button-label) {
+  color: var(--ds-color-brand-white);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-bold);
   line-height: 0.96;
-  background: #111;
-  border: 1px solid #111;
-  border-radius: 4px;
 }
 </style>
