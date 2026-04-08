@@ -146,7 +146,7 @@
                       </div>
 
                       <div v-if="processingArtifacts.length" class="create-record-shell__processing-list">
-                        <label
+                        <div
                           v-for="artifact in processingArtifacts"
                           :key="`processing:${artifact.id}`"
                           class="create-record-shell__processing-item"
@@ -162,17 +162,20 @@
                           />
                           <span class="create-record-shell__processing-item-name">{{ artifact.name }}</span>
                           <button
-                            v-if="!artifact.artifactId"
+                            v-if="!artifact.artifactId && !startingArtifactIds.includes(artifact.id)"
                             type="button"
                             class="create-record-shell__processing-start"
-                            @click="startArtifactProcessing(artifact.id)"
+                            @click.stop.prevent="startArtifactProcessing(artifact.id)"
                           >
                             Start
                           </button>
+                          <span v-else-if="startingArtifactIds.includes(artifact.id)" class="create-record-shell__processing-item-status">
+                            Starting...
+                          </span>
                           <span v-else class="create-record-shell__processing-item-status">
                             Started
                           </span>
-                        </label>
+                        </div>
                       </div>
 
                       <div v-else-if="stagedArtifacts.length" class="create-record-shell__processing-ready">
@@ -933,6 +936,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 
@@ -959,6 +963,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'update:shellSelectorValue', 'submit', 'change', 'request-close'])
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
+const $q = useQuasar()
 const router = useRouter()
 const route = useRoute()
 
@@ -979,6 +984,7 @@ const formValues = ref({})
 const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
+const startingArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
 const companionUrl = ref('')
 const companionBlurb = ref('')
@@ -1624,13 +1630,23 @@ async function ensureProcessedArtifactForSelection(artifactId) {
 async function startArtifactProcessing(artifactId) {
   const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
   if (!artifact || artifact.artifactId) return
-  const persistedArtifact = await persistDroppedArtifact(artifact)
-  stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
-    entry.id === artifactId
-      ? { ...entry, ...persistedArtifact }
-      : entry,
-  )
-  markDialogChanged()
+  if (startingArtifactIds.value.includes(artifactId)) return
+  startingArtifactIds.value = [...startingArtifactIds.value, artifactId]
+  try {
+    const persistedArtifact = await persistDroppedArtifact(artifact)
+    if (!persistedArtifact?.artifactId) {
+      $q.notify({ type: 'negative', message: `Could not start ingestion for ${artifact.name || 'this file'}.` })
+      return
+    }
+    stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
+      entry.id === artifactId
+        ? { ...entry, ...persistedArtifact }
+        : entry,
+    )
+    markDialogChanged()
+  } finally {
+    startingArtifactIds.value = startingArtifactIds.value.filter((id) => id !== artifactId)
+  }
 }
 
 function resolveArtifactContextOpportunityId() {
