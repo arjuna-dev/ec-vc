@@ -2,7 +2,10 @@
   <article
     ref="tileRef"
     class="building-block-preview-tile"
-    :class="{ 'building-block-preview-tile--collapsed': isCollapsed }"
+    :class="{
+      'building-block-preview-tile--collapsed': isCollapsed,
+      'building-block-preview-tile--intrinsic-full-row': isIntrinsicFullRow,
+    }"
   >
     <BuildingBlockTileHeader
       :title="tileTitle"
@@ -911,6 +914,9 @@ const tileGraphCounts = computed(() => getBuildingBlockGraphCounts(props.blockKe
 const tileGraphLabel = computed(() => `[${tileGraphCounts.value.parentCount}/${tileGraphCounts.value.childCount}]`)
 const tileShellsLabel = computed(() => `Shells: ${(detail.value?.usedInShells || []).length}`)
 const tileStatusLabel = computed(() => props.statusLabel || detail.value?.statusLabel || 'Extract Next')
+const isIntrinsicFullRow = computed(() =>
+  ['home-dashboard', 'file-hero', 'hero-2col-overlay', 'hero-3col-overlay', 'hero-surface', 'record-hero'].includes(props.blockKey),
+)
 const statusClass = computed(() =>
   (detail.value?.status || '').trim() === 'canonical'
     ? 'building-block-preview-tile__status--canonical'
@@ -1105,6 +1111,11 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.94);
 }
 
+.building-block-preview-tile--intrinsic-full-row {
+  display: flex;
+  width: 100%;
+}
+
 .building-block-preview-tile--collapsed {
   gap: 8px;
 }
@@ -1147,6 +1158,10 @@ onBeforeUnmount(() => {
   justify-content: center;
   flex: 1 1 auto;
   min-height: 0;
+}
+
+.building-block-preview-tile--intrinsic-full-row .building-block-preview-tile__stage {
+  width: 100%;
 }
 
 .building-block-preview-tile__stage--left {
