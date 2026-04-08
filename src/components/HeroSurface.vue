@@ -1,12 +1,12 @@
 <template>
   <section
     ref="rootRef"
-    class="hero-sandbox-surface"
+    class="hero-surface"
     :style="surfaceStyle"
     @pointermove="handlePointerMove"
     @pointerleave="handlePointerLeave"
   >
-    <div class="hero-sandbox-surface__base" />
+    <div class="hero-surface__base" />
     <slot />
   </section>
 </template>
@@ -22,9 +22,9 @@ const pointerY = ref('50%')
 const hoverOpacity = ref(0)
 
 const surfaceStyle = computed(() => ({
-  '--hero-sandbox-x': pointerX.value,
-  '--hero-sandbox-y': pointerY.value,
-  '--hero-sandbox-opacity': hoverOpacity.value,
+  '--hero-surface-x': pointerX.value,
+  '--hero-surface-y': pointerY.value,
+  '--hero-surface-opacity': hoverOpacity.value,
 }))
 
 function handlePointerMove(event) {
@@ -44,7 +44,7 @@ function handlePointerLeave() {
 </script>
 
 <style scoped>
-.hero-sandbox-surface {
+.hero-surface {
   position: relative;
   width: 100%;
   min-height: 420px;
@@ -59,20 +59,20 @@ function handlePointerLeave() {
   isolation: isolate;
 }
 
-.hero-sandbox-surface::before {
+.hero-surface::before {
   position: absolute;
   inset: 0;
   content: '';
   background:
-    radial-gradient(circle at var(--hero-sandbox-x) var(--hero-sandbox-y), rgba(38, 71, 255, 0.24), transparent 24%),
-    radial-gradient(circle at var(--hero-sandbox-x) var(--hero-sandbox-y), rgba(38, 71, 255, 0.12), transparent 42%);
-  opacity: var(--hero-sandbox-opacity);
+    radial-gradient(circle at var(--hero-surface-x) var(--hero-surface-y), rgba(38, 71, 255, 0.24), transparent 24%),
+    radial-gradient(circle at var(--hero-surface-x) var(--hero-surface-y), rgba(38, 71, 255, 0.12), transparent 42%);
+  opacity: var(--hero-surface-opacity);
   transition: opacity 160ms ease;
   pointer-events: none;
   z-index: 0;
 }
 
-.hero-sandbox-surface__base {
+.hero-surface__base {
   position: absolute;
   inset: 0;
   border-radius: inherit;

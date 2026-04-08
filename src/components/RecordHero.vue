@@ -1,6 +1,6 @@
 <template>
-  <HeroSandboxSurface>
-    <HeroSandboxOverlay>
+  <HeroSurface>
+    <Hero3ColOverlay>
       <template #left>
         <div class="hero-sandbox__portrait-holder">
           <slot name="portrait">
@@ -70,14 +70,14 @@
           @open-log="$emit('open-feed-log', $event)"
         />
       </template>
-    </HeroSandboxOverlay>
-  </HeroSandboxSurface>
+    </Hero3ColOverlay>
+  </HeroSurface>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import HeroSandboxOverlay from 'src/components/HeroSandboxOverlay.vue'
-import HeroSandboxSurface from 'src/components/HeroSandboxSurface.vue'
+import Hero3ColOverlay from 'src/components/Hero3ColOverlay.vue'
+import HeroSurface from 'src/components/HeroSurface.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'

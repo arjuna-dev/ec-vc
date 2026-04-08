@@ -499,19 +499,19 @@
       </template>
 
       <template v-else-if="blockKey === 'hero-surface'">
-        <HeroSandboxSurface />
+        <HeroSurface />
       </template>
 
       <template v-else-if="blockKey === 'hero-3col-overlay'">
-        <HeroSandboxSurface>
-          <HeroSandboxOverlay />
-        </HeroSandboxSurface>
+        <HeroSurface>
+          <Hero3ColOverlay />
+        </HeroSurface>
       </template>
 
       <template v-else-if="blockKey === 'hero-2col-overlay'">
-        <HeroSandboxSurface>
+        <HeroSurface>
           <Hero2ColOverlay />
-        </HeroSandboxSurface>
+        </HeroSurface>
       </template>
 
       <template v-else-if="blockKey === 'file-hero'">
@@ -677,8 +677,8 @@ import FileHero from 'src/components/FileHero.vue'
 import Hero2ColOverlay from 'src/components/Hero2ColOverlay.vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
 import RecordHero from 'src/components/RecordHero.vue'
-import HeroSandboxOverlay from 'src/components/HeroSandboxOverlay.vue'
-import HeroSandboxSurface from 'src/components/HeroSandboxSurface.vue'
+import Hero3ColOverlay from 'src/components/Hero3ColOverlay.vue'
+import HeroSurface from 'src/components/HeroSurface.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import FilterListIcon from 'src/components/FilterListIcon.vue'
 import L3Box from 'src/components/L3Box.vue'

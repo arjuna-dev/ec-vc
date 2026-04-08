@@ -1,13 +1,13 @@
 <template>
-  <div class="hero-sandbox-overlay">
-    <div class="hero-sandbox-overlay__grid">
-      <section class="hero-sandbox-overlay__column">
+  <div class="hero-3col-overlay">
+    <div class="hero-3col-overlay__grid">
+      <section class="hero-3col-overlay__column">
         <slot name="left" />
       </section>
-      <section class="hero-sandbox-overlay__column hero-sandbox-overlay__column--middle">
+      <section class="hero-3col-overlay__column hero-3col-overlay__column--middle">
         <slot name="middle" />
       </section>
-      <section class="hero-sandbox-overlay__column">
+      <section class="hero-3col-overlay__column">
         <slot name="right" />
       </section>
     </div>
@@ -15,11 +15,11 @@
 </template>
 
 <script setup>
-defineOptions({ name: 'HeroOverlay' })
+defineOptions({ name: 'Hero3ColOverlay' })
 </script>
 
 <style scoped>
-.hero-sandbox-overlay {
+.hero-3col-overlay {
   position: absolute;
   inset: 0;
   padding: 5px;
@@ -30,7 +30,7 @@ defineOptions({ name: 'HeroOverlay' })
   border-radius: inherit;
 }
 
-.hero-sandbox-overlay__grid {
+.hero-3col-overlay__grid {
   display: grid;
   grid-template-columns: minmax(0, 0.25fr) minmax(0, 0.375fr) minmax(0, 0.375fr);
   gap: 24px;
@@ -38,7 +38,7 @@ defineOptions({ name: 'HeroOverlay' })
   height: 100%;
 }
 
-.hero-sandbox-overlay__column {
+.hero-3col-overlay__column {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -53,12 +53,12 @@ defineOptions({ name: 'HeroOverlay' })
   -webkit-backdrop-filter: blur(18px);
 }
 
-.hero-sandbox-overlay__column--middle {
+.hero-3col-overlay__column--middle {
   min-height: 0;
 }
 
 @media (max-width: 900px) {
-  .hero-sandbox-overlay__grid {
+  .hero-3col-overlay__grid {
     grid-template-columns: 1fr;
   }
 }

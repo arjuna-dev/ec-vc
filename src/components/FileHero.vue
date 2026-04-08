@@ -1,5 +1,5 @@
 <template>
-  <HeroSandboxSurface>
+  <HeroSurface>
     <Hero2ColOverlay>
       <template #left>
         <div class="file-hero-sandbox__copy">
@@ -37,13 +37,13 @@
         </div>
       </template>
     </Hero2ColOverlay>
-  </HeroSandboxSurface>
+  </HeroSurface>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import Hero2ColOverlay from 'src/components/Hero2ColOverlay.vue'
-import HeroSandboxSurface from 'src/components/HeroSandboxSurface.vue'
+import HeroSurface from 'src/components/HeroSurface.vue'
 import L3Box from 'src/components/L3Box.vue'
 
 defineOptions({ name: 'FileHero' })
