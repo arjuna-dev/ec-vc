@@ -3,7 +3,7 @@ import { formatSharedDisplayLabel } from 'src/shared/labelFormatting'
 
 export const DEFAULT_L1_REQUIRED_SUBSECTIONS = Object.freeze(['System', 'KDB'])
 export const DEFAULT_L1_OPTIONAL_STANDARD_SUBSECTIONS = Object.freeze(['General'])
-export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', 'create', 'update', 'delete'])
+export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', 'create', 'delete'])
 
 const FILE_PAGE_ROUTE_META = Object.freeze({
   Building_Blocks: {

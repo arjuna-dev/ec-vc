@@ -73,6 +73,8 @@ const api = {
   },
   events: {
     list: ({ limit } = {}) => ipcRenderer.invoke('events:list', { limit }),
+    create: (payload) => ipcRenderer.invoke('events:create', payload),
+    delete: (eventId) => ipcRenderer.invoke('events:delete', { eventId }),
   },
   companies: {
     list: () => ipcRenderer.invoke('companies:list'),
@@ -87,10 +89,14 @@ const api = {
     },
   },
   funds: {
+    list: () => ipcRenderer.invoke('funds:list'),
     create: (payload) => ipcRenderer.invoke('funds:create', payload),
+    delete: (fundId) => ipcRenderer.invoke('funds:delete', { fundId }),
   },
   rounds: {
+    list: () => ipcRenderer.invoke('rounds:list'),
     create: (payload) => ipcRenderer.invoke('rounds:create', payload),
+    delete: (roundId) => ipcRenderer.invoke('rounds:delete', { roundId }),
   },
   opportunities: {
     list: () => ipcRenderer.invoke('opportunities:list'),

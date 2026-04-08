@@ -1128,6 +1128,70 @@ function listUsers() {
   )
 }
 
+function createEvent(payload = {}) {
+  const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
+  const eventId = normalizeNullableString(payload?.id) || `event:${crypto.randomUUID()}`
+  const tableName =
+    normalizeNullableString(payload?.table_name) ||
+    normalizeNullableString(payload?.Event_Source_Table) ||
+    'Events'
+  const recordId =
+    normalizeNullableString(payload?.record_id) ||
+    normalizeNullableString(payload?.Event_Source_Record_ID) ||
+    eventId
+  const fieldName =
+    normalizeNullableString(payload?.field_name) ||
+    normalizeNullableString(payload?.Event_Field) ||
+    'Event_Name'
+  const actionId = normalizeNullableString(payload?.action_id)
+  const actionLabel =
+    normalizeNullableString(payload?.action_label) ||
+    normalizeNullableString(payload?.Event_Action) ||
+    'Create Event'
+  const oldValue = payload?.old_value ?? null
+  const newValue =
+    payload?.new_value ??
+    normalizeNullableString(payload?.Event_Name) ??
+    normalizeNullableString(payload?.Event_Summary) ??
+    null
+  const editedBy = normalizeNullableString(payload?.edited_by) || actor.user_id
+  const providedPayload = payload?.payload && typeof payload.payload === 'object'
+    ? payload.payload
+    : null
+  const summaryPayload = {
+    actor_label: normalizeNullableString(payload?.actor_label) || actor.user_label,
+    entity_label: normalizeNullableString(payload?.entity_label) || 'Event',
+    record_label:
+      normalizeNullableString(payload?.Event_Name) ||
+      normalizeNullableString(payload?.record_label) ||
+      'Event',
+    field_label:
+      normalizeNullableString(payload?.Event_Field) ||
+      normalizeNullableString(payload?.field_label) ||
+      'Event',
+    action_label: actionLabel,
+    old_display_value: normalizeNullableString(oldValue),
+    new_display_value:
+      normalizeNullableString(payload?.Event_Summary) ||
+      normalizeNullableString(newValue),
+  }
+
+  writeAuditEvent(database, {
+    tableName,
+    recordId,
+    fieldName,
+    oldValue,
+    newValue,
+    editedBy,
+    actionId,
+    actionLabel,
+    payload: providedPayload || summaryPayload,
+  })
+
+  return { id: eventId }
+}
+
 function listIndustries() {
   return dbAll(
     `
@@ -2610,6 +2674,12 @@ function getLegacyOpportunityDatabookView(opportunityId) {
 }
 
 const DATABOOK_TABLE_CONFIGS = Object.freeze({
+  Events: {
+    tableName: 'events',
+    entityLabel: 'Event',
+    displayColumns: ['action_label', 'field_name', 'record_id', 'id'],
+    readonlyColumns: new Set(['id', 'edited_at']),
+  },
   Building_Blocks: {
     tableName: 'Building_Blocks',
     entityLabel: 'Building Block',
@@ -7258,6 +7328,24 @@ function registerIpc() {
     return { events: listEventRows(limit) }
   })
 
+  ipcMain.handle('events:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createEvent(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'events'))
+    }
+  })
+
+  ipcMain.handle('events:delete', async (_event, { eventId } = {}) => {
+    initDb()
+    const result = deleteRow('events', 'id', String(eventId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
   ipcMain.handle('companies:list', async () => {
     initDb()
     return { companies: listCompanies() }
@@ -7284,6 +7372,11 @@ function registerIpc() {
     return result
   })
 
+  ipcMain.handle('funds:list', async () => {
+    initDb()
+    return { funds: listFunds() }
+  })
+
   ipcMain.handle('funds:create', async (_event, payload = {}) => {
     initDb()
     const result = createFund(payload)
@@ -7291,9 +7384,28 @@ function registerIpc() {
     return result
   })
 
+  ipcMain.handle('funds:delete', async (_event, { fundId } = {}) => {
+    initDb()
+    const result = deleteRow('Funds', 'id', String(fundId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('rounds:list', async () => {
+    initDb()
+    return { rounds: listRounds() }
+  })
+
   ipcMain.handle('rounds:create', async (_event, payload = {}) => {
     initDb()
     const result = createRound(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('rounds:delete', async (_event, { roundId } = {}) => {
+    initDb()
+    const result = deleteRow('Rounds', 'id', String(roundId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
   })
