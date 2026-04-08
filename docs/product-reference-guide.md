@@ -892,6 +892,13 @@ Current shared owner-path standard:
 
 This keeps even non-golden `L1`s and `Knowledge DB` files on the same relationship system instead of drifting into custom pair logic.
 
+Interpretation rule:
+
+- shared `KDB_Relationships` is the default place where a relationship can exist and make linked records callable by row
+- dedicated join tables are the promoted path when the relationship itself needs its own governed fields or access rules
+- do not require a dedicated join table just to let one `L1` call another linked record's `L3`s
+- promote to a dedicated join table when the relationship itself becomes a first-class managed object
+
 Birth rule for new normal `L1`s:
 
 - new normal `L1`s should be born with their reciprocal KDB relationship layer loaded

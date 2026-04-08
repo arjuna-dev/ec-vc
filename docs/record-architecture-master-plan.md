@@ -841,6 +841,17 @@ Working rule:
 - reverse appearance should be maintained through the same shared contract
 - the choice between domain-specific join table and shared `KDB_Relationships` should be made during `L1` bootstrap, not improvised later per page or per file
 
+Promotion rule:
+
+- shared `KDB_Relationships` should be treated as the default relationship-existence layer
+- a dedicated join table should be used when the relationship itself becomes a governed object
+- that promotion is appropriate when the relationship needs:
+  - its own relationship metadata
+  - access-control or system-file policy
+  - relationship-specific activation or status
+  - a domain-specific audit surface
+- dedicated join tables should therefore be treated as promoted relationship owners, not as the default requirement for every link
+
 ## Human System Spine
 
 The human system should not be thought of as one flat set of interchangeable cards.
