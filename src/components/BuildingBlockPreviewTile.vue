@@ -207,15 +207,12 @@
       </template>
 
       <template v-else-if="blockKey === 'shell-title-row'">
-        <div class="building-block-preview-tile__shell-title-row-context">
-          <FileShellTitleRow
-            v-model="activeLiveActionL1"
-            title="BB Shell"
-            :show-selector="true"
-            :options="liveActionOptions"
-            tone="inverse"
-          />
-        </div>
+        <FileShellTitleRow
+          v-model="activeLiveActionL1"
+          title="BB Shell"
+          :show-selector="true"
+          :options="liveActionOptions"
+        />
       </template>
 
       <template v-else-if="blockKey === 'toggle-row-icons'">
