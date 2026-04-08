@@ -67,7 +67,32 @@
 
         <BbSelectionFrame v-if="bbGridExpanded">
           <div class="add-edit-bb-builder__bb-scroll ds-mini-scrollbar">
-            <div v-if="activeBbCodeItems.length" class="add-edit-bb-builder__bb-grid">
+            <div
+              v-if="detailsPanelOpen && layeredBbColumns.length"
+              class="add-edit-bb-builder__bb-layer-grid"
+              :style="{ '--bb-layer-column-count': String(layeredBbColumns.length) }"
+            >
+              <section
+                v-for="column in layeredBbColumns"
+                :key="column.layer"
+                class="add-edit-bb-builder__bb-layer-column"
+              >
+                <div class="add-edit-bb-builder__bb-layer-heading">{{ column.label }}</div>
+                <div class="add-edit-bb-builder__bb-layer-list ds-mini-scrollbar">
+                  <button
+                    v-for="item in column.items"
+                    :key="item.key"
+                    type="button"
+                    class="add-edit-bb-builder__bb-code"
+                    @click="selectBbFromList(item.key)"
+                  >
+                    {{ item.key }}
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <div v-else-if="activeBbCodeItems.length" class="add-edit-bb-builder__bb-grid">
               <button
                 v-for="item in activeBbCodeItems"
                 :key="item.key"
@@ -109,6 +134,10 @@ const activeSectionTab = ref('Basic Elements')
 const bbGridExpanded = ref(true)
 const detailsPanelOpen = ref(false)
 const selectedBlockKey = ref('')
+const MAX_BB_LAYER_COLUMNS = DEFAULT_BUILDING_BLOCK_FILE_ROWS.reduce((maxDepth, row) => {
+  const key = String(row?.id || '').trim()
+  return Math.max(maxDepth, getBlockDepth(key))
+}, 0)
 
 const sectionTabsLeft = computed(() =>
   Array.from(new Set(DEFAULT_BUILDING_BLOCK_FILE_ROWS.map((row) => String(row?.Category || '').trim()).filter(Boolean)))
@@ -154,8 +183,85 @@ const activeBbCodeItems = computed(() => {
   return activeBbCodes.value.map((key) => ({ key }))
 })
 
+const layeredBbColumns = computed(() => {
+  if (!detailsPanelOpen.value) return []
+  const normalizedSelectedKey = normalizeBlockKey(selectedBlockKey.value)
+  if (!normalizedSelectedKey || !getBuildingBlockDetail(normalizedSelectedKey)) return createEmptyLayerColumns()
+
+  const memo = new Map()
+  const reachableKeys = collectReachableKeys(normalizedSelectedKey)
+  const query = String(searchValue.value || '').trim().toLowerCase()
+  const columns = createEmptyLayerColumns()
+
+  reachableKeys.forEach((key) => {
+    const detail = getBuildingBlockDetail(key)
+    const item = {
+      key,
+      title: String(detail?.title || key).trim(),
+    }
+    if (query && !item.key.toLowerCase().includes(query) && !item.title.toLowerCase().includes(query)) return
+    const layer = Math.min(getBlockLayerFromLeaf(key, memo), Math.max(MAX_BB_LAYER_COLUMNS - 1, 0))
+    columns[layer]?.items.push(item)
+  })
+
+  return columns.map((column) => ({
+    ...column,
+    items: [...column.items].sort((left, right) => left.key.localeCompare(right.key, undefined, { sensitivity: 'base' })),
+  }))
+})
+
 function normalizeBlockKey(value) {
   return String(value || '').trim().replace(/^bb:/i, '')
+}
+
+function getChildBlockKeys(blockKey = '') {
+  const detail = getBuildingBlockDetail(blockKey)
+  return (Array.isArray(detail?.builtFromBbs) ? detail.builtFromBbs : [])
+    .map((dependency) => normalizeBlockKey(dependency))
+    .filter((dependency) => dependency && !!getBuildingBlockDetail(dependency))
+}
+
+function getBlockDepth(blockKey = '', visiting = new Set()) {
+  const normalizedKey = normalizeBlockKey(blockKey)
+  if (!normalizedKey || visiting.has(normalizedKey)) return 0
+  const childKeys = getChildBlockKeys(normalizedKey)
+  if (!childKeys.length) return 1
+  const nextVisiting = new Set(visiting)
+  nextVisiting.add(normalizedKey)
+  return 1 + Math.max(...childKeys.map((childKey) => getBlockDepth(childKey, nextVisiting)))
+}
+
+function getBlockLayerFromLeaf(blockKey = '', memo = new Map(), visiting = new Set()) {
+  const normalizedKey = normalizeBlockKey(blockKey)
+  if (!normalizedKey) return 0
+  if (memo.has(normalizedKey)) return memo.get(normalizedKey)
+  if (visiting.has(normalizedKey)) return 0
+  const childKeys = getChildBlockKeys(normalizedKey)
+  if (!childKeys.length) {
+    memo.set(normalizedKey, 0)
+    return 0
+  }
+  const nextVisiting = new Set(visiting)
+  nextVisiting.add(normalizedKey)
+  const layer = 1 + Math.max(...childKeys.map((childKey) => getBlockLayerFromLeaf(childKey, memo, nextVisiting)))
+  memo.set(normalizedKey, layer)
+  return layer
+}
+
+function collectReachableKeys(blockKey = '', visited = new Set()) {
+  const normalizedKey = normalizeBlockKey(blockKey)
+  if (!normalizedKey || visited.has(normalizedKey) || !getBuildingBlockDetail(normalizedKey)) return visited
+  visited.add(normalizedKey)
+  getChildBlockKeys(normalizedKey).forEach((childKey) => collectReachableKeys(childKey, visited))
+  return visited
+}
+
+function createEmptyLayerColumns() {
+  return Array.from({ length: MAX_BB_LAYER_COLUMNS }, (_, layer) => ({
+    layer,
+    label: `${layer} ${layer === 1 ? 'Layer' : 'Layers'}`,
+    items: [],
+  }))
 }
 
 function selectBbFromCode() {
@@ -326,10 +432,41 @@ function clearRenderedBlock() {
   gap: 10px 12px;
 }
 
-.add-edit-bb-builder__bb-scroll {
-  max-height: 125px;
+.add-edit-bb-builder__bb-layer-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--bb-layer-column-count), minmax(140px, 1fr));
+  gap: 12px;
+  min-width: max-content;
+}
+
+.add-edit-bb-builder__bb-layer-column {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 140px;
+}
+
+.add-edit-bb-builder__bb-layer-heading {
+  color: var(--ds-color-brand-black);
+  font-family: var(--ds-font-title);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-bold);
+  line-height: 1;
+}
+
+.add-edit-bb-builder__bb-layer-list {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  max-height: calc((var(--ds-font-size-sm) * 1.4 * 5) + (8px * 4));
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.add-edit-bb-builder__bb-scroll {
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: auto;
 }
 
 .add-edit-bb-builder__bb-code {
