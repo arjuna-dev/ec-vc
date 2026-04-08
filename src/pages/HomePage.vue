@@ -332,7 +332,7 @@ const hasBridge = computed(
     !!bridge.value?.artifacts?.list &&
     !!bridge.value?.notes?.list &&
     !!bridge.value?.tasks?.list &&
-    !!bridge.value?.roles?.list,
+    !!bridge.value?.['user-roles']?.list,
 )
 
 const collectionConfigs = [
@@ -415,13 +415,13 @@ const collectionConfigs = [
     load: async () => (await bridge.value.tasks.list())?.tasks || [],
   },
   {
-    key: 'roles',
+    key: 'user-roles',
     label: 'User Roles',
     icon: 'theater_comedy',
-    to: '/roles',
+    to: '/user-roles',
     accent: '#db2777',
     actionLabel: 'Open user roles',
-    load: async () => (await bridge.value.roles.list())?.roles || [],
+    load: async () => (await bridge.value['user-roles'].list())?.roles || [],
   },
 ]
 
@@ -448,7 +448,7 @@ const pipelines = computed(() => collections.value.pipelines || [])
 const artifacts = computed(() => collections.value.artifacts || [])
 const notes = computed(() => collections.value.notes || [])
 const tasks = computed(() => collections.value.tasks || [])
-const roles = computed(() => collections.value.roles || [])
+const roles = computed(() => collections.value['user-roles'] || [])
 
 const companiesCount = computed(() => companies.value.length)
 const contactsCount = computed(() => contacts.value.length)
@@ -683,7 +683,7 @@ const summaryCards = computed(() => [
     helper: `${openTasksCount.value} open • ${overdueTasksCount.value} overdue`,
   },
   {
-    ...collectionConfigByKey.roles,
+    ...collectionConfigByKey['user-roles'],
     count: rolesCount.value,
     helper: roles.value.length > 0 ? 'User roles available' : 'No user roles yet',
   },

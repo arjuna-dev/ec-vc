@@ -140,14 +140,15 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   Tasks: { key: 'tasks', label: 'Tasks', singularLabel: 'Task', routeName: 'tasks', path: '/tasks', icon: 'check_circle', showInWorkspaceNav: true, shellGroup: 'first_order' },
   Notes: { key: 'notes', label: 'Notes', singularLabel: 'Note', routeName: 'notes', path: '/notes', icon: 'note', showInWorkspaceNav: true, shellGroup: 'first_order' },
   Roles: {
-    key: 'roles',
+    key: 'user-roles',
     label: 'User Roles',
-    singularLabel: 'Role',
-    routeName: 'roles',
-    path: '/roles',
+    singularLabel: 'User Role',
+    routeName: 'user-roles',
+    path: '/user-roles',
     icon: 'theater_comedy',
     showInWorkspaceNav: true,
     shellGroup: 'knowledge_db',
+    runtimeEntityName: 'Roles',
   },
   Companion_Roles: {
     key: 'companion-roles',
@@ -162,14 +163,15 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     runtimeEntityName: 'Companion_Roles',
   },
   Financial_Industries: {
-    key: 'industries',
+    key: 'markets',
     label: 'Markets',
     singularLabel: 'Market',
-    routeName: 'industries',
-    path: '/industries',
+    routeName: 'markets',
+    path: '/markets',
     icon: 'category',
     showInWorkspaceNav: false,
     shellGroup: 'knowledge_db',
+    runtimeEntityName: 'Industries',
   },
   Round_Securities: {
     key: 'securities',
@@ -182,14 +184,15 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     shellGroup: 'knowledge_db',
   },
   Artifacts_Processed: {
-    key: 'artifacts-processed',
+    key: 'ingestion',
     label: 'Ingestion',
     singularLabel: 'Ingestion',
-    routeName: 'artifacts-processed',
-    path: '/artifacts-processed',
+    routeName: 'ingestion',
+    path: '/ingestion',
     icon: 'hub',
     showInWorkspaceNav: false,
     shellGroup: 'knowledge_db',
+    runtimeEntityName: 'Artifacts_Processed',
   },
 })
 
@@ -396,7 +399,7 @@ export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
   ),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'roles', 'companion-roles', 'industries', 'securities', 'artifacts-processed']
+const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'ingestion']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({
@@ -415,7 +418,16 @@ export const WORKSPACE_FILE_NAV_ITEMS = Object.freeze(
 )
 
 export function getFilePageRegistryEntry(key) {
-  return FILE_PAGE_REGISTRY_BY_KEY[String(key || '').trim().toLowerCase()] || null
+  const normalizedKey = String(key || '').trim().toLowerCase()
+  const aliases = {
+    roles: 'user-roles',
+    'user roles': 'user-roles',
+    industries: 'markets',
+    'financial industries': 'markets',
+    'artifacts-processed': 'ingestion',
+    artifacts_processed: 'ingestion',
+  }
+  return FILE_PAGE_REGISTRY_BY_KEY[aliases[normalizedKey] || normalizedKey] || null
 }
 
 export function getFilePageRegistryEntryByRouteName(routeName) {
@@ -520,6 +532,7 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     artifact: 'Artifacts',
     roles: 'Roles',
     role: 'Roles',
+    'user-roles': 'Roles',
     user_roles: 'Roles',
     'user roles': 'Roles',
     companion_roles: 'Companion_Roles',
@@ -548,6 +561,7 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     security: 'Round_Securities',
     round_securities: 'Round_Securities',
     'round securities': 'Round_Securities',
+    ingestion: 'Artifacts_Processed',
     artifacts_processed: 'Artifacts_Processed',
     'artifacts-processed': 'Artifacts_Processed',
     'processed artifact': 'Artifacts_Processed',

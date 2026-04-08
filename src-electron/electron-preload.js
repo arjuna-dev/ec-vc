@@ -16,7 +16,7 @@ function normalizeCompaniesDeleteError(error) {
   return message || 'Failed to delete company.'
 }
 
-contextBridge.exposeInMainWorld('ecvc', {
+const api = {
   version: 1,
   files: {
     getPathForFile: (file) => {
@@ -215,4 +215,10 @@ contextBridge.exposeInMainWorld('ecvc', {
     normalize: (p) => path.normalize(p),
     parse: (p) => path.parse(p),
   },
-})
+}
+
+api.markets = api.industries
+api['user-roles'] = api.roles
+api.ingestion = api['artifacts-processed']
+
+contextBridge.exposeInMainWorld('ecvc', api)

@@ -297,10 +297,10 @@ function resolveSourceKeyFromEntityName(entityName) {
     projects: 'projects',
     tasks: 'tasks',
     notes: 'notes',
-    roles: 'roles',
-    financial_industries: 'industries',
+    roles: 'user-roles',
+    financial_industries: 'markets',
     round_securities: 'securities',
-    artifacts_processed: 'artifacts-processed',
+    artifacts_processed: 'ingestion',
     artifacts: 'artifacts',
   }
   return sourceKeyByEntityName[normalized] || ''

@@ -72,7 +72,7 @@ const dialogEntityName = ref('')
 const dialogInitialArtifacts = ref([])
 const dialogArtifactContext = ref(null)
 
-const fallbackSectionKey = 'artifacts-processed'
+const fallbackSectionKey = 'ingestion'
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section || fallbackSectionKey))
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
@@ -219,7 +219,7 @@ onBeforeUnmount(() => {
 
 function resolveValidShellSection(value) {
   const normalized = String(value || '').trim().toLowerCase()
-  return normalized === 'artifacts-processed' ? normalized : fallbackSectionKey
+  return normalized === 'ingestion' || normalized === 'artifacts-processed' ? getFilePageRegistryEntry(normalized)?.key || fallbackSectionKey : fallbackSectionKey
 }
 
 function normalizeCreateDialogToken(token) {

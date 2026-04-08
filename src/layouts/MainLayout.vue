@@ -428,9 +428,9 @@ const DEFAULT_QUICK_WIDGET_ACTION_ORDER = [
   'project',
   'note',
   'task',
-  'industries',
+  'markets',
   'securities',
-  'artifacts-processed',
+  'ingestion',
   'settings',
 ]
 const mainNavigationItems = [
@@ -443,7 +443,7 @@ const mainNavigationItems = [
   iconSize: '22px',
 }))
 const workspaceFileNavItems = WORKSPACE_FILE_NAV_ITEMS.filter(
-  (item) => item.to !== '/roles' && item.to !== '/companion-roles' && item.to !== '/bb-file',
+  (item) => item.to !== '/user-roles' && item.to !== '/companion-roles' && item.to !== '/bb-file',
 )
 const companiesNavIndex = workspaceFileNavItems.findIndex((item) => item.to === '/companies')
 
@@ -462,7 +462,7 @@ const workspaceNavigationItems = [
   ...workspaceFileNavItems,
   {
     label: 'User Roles',
-    to: '/roles',
+    to: '/user-roles',
     exact: true,
     icon: 'theater_comedy',
     parentKey: 'knowledge-dbs',
@@ -478,7 +478,7 @@ const workspaceNavigationItems = [
   },
   {
     label: 'Markets',
-    to: '/industries',
+    to: '/markets',
     exact: true,
     icon: 'category',
     parentKey: 'knowledge-dbs',
@@ -494,7 +494,7 @@ const workspaceNavigationItems = [
   },
   {
     label: 'Ingestion',
-    to: '/artifacts-processed',
+    to: '/ingestion',
     exact: true,
     icon: 'hub',
     parentKey: 'knowledge-dbs',
@@ -532,10 +532,10 @@ const routeLabelByName = {
   rounds: 'Rounds',
   projects: 'Projects',
   artifacts: 'Artifacts',
-  industries: 'Markets',
+  markets: 'Markets',
   notes: 'Notes',
   securities: 'Securities',
-  'artifacts-processed': 'Ingestion',
+  ingestion: 'Ingestion',
   tasks: 'Tasks',
   'test-shell': 'File Shell',
   'record-shell': 'Record Shell',
@@ -544,7 +544,7 @@ const routeLabelByName = {
   'file-dialog-shell': 'Add/Edit File Shell',
   'dialog-shell': 'Add/Edit Record Shell',
   'ingestion-shell': 'Ingestion Shell',
-  roles: 'User Roles',
+  'user-roles': 'User Roles',
   'companion-roles': 'Companion Roles',
   avatar: 'Companion',
   'user-settings': 'Owner',
@@ -778,12 +778,12 @@ const quickWidgetActionCatalog = computed(() => {
       icon: 'attach_file',
       onClick: openArtifactFromQuickAction,
     },
-    industries: {
-      id: 'industries',
+    markets: {
+      id: 'markets',
       label: 'Markets',
       group: 'knowledge-dbs',
       icon: 'category',
-      onClick: () => openShellCreateFromQuickAction('industries'),
+      onClick: () => openShellCreateFromQuickAction('markets'),
     },
     securities: {
       id: 'securities',
@@ -792,12 +792,12 @@ const quickWidgetActionCatalog = computed(() => {
       icon: 'receipt_long',
       onClick: () => openShellCreateFromQuickAction('securities'),
     },
-    'artifacts-processed': {
-      id: 'artifacts-processed',
+    ingestion: {
+      id: 'ingestion',
       label: 'Ingestion',
       group: 'knowledge-dbs',
       icon: 'hub',
-      onClick: () => openShellCreateFromQuickAction('artifacts-processed'),
+      onClick: () => openShellCreateFromQuickAction('ingestion'),
     },
     settings: {
       id: 'settings',

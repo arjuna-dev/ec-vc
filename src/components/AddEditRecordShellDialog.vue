@@ -1455,7 +1455,7 @@ function openIngestionShell() {
   router.push({
     name: 'ingestion-shell',
     query: {
-      section: 'artifacts-processed',
+      section: 'ingestion',
       open: String(Date.now()),
       returnTo: route.fullPath,
     },
@@ -1485,7 +1485,7 @@ async function persistDroppedArtifact(artifact) {
 
 async function ensureProcessedArtifactForSelection(artifactId) {
   const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
-  if (!artifact || artifact.processedArtifactId || !bridge.value?.['artifacts-processed']?.create) return
+  if (!artifact || artifact.processedArtifactId || !bridge.value?.ingestion?.create) return
 
   let workingArtifact = artifact
   if (!String(artifact.artifactId || artifact.id || '').trim().startsWith('artifact:')) {
@@ -1499,7 +1499,7 @@ async function ensureProcessedArtifactForSelection(artifactId) {
   }
 
   try {
-    const result = await bridge.value['artifacts-processed'].create({
+    const result = await bridge.value.ingestion.create({
       Processed_Artifact_Name: workingArtifact.name,
       Processed_Artifact_Summary: '',
       Original_Artifact_Id: workingArtifact.artifactId || workingArtifact.id,
@@ -1556,7 +1556,7 @@ async function removeProcessedArtifactForSelection(artifactId) {
   if (!processedArtifactId) return
 
   try {
-    await bridge.value?.['artifacts-processed']?.delete?.(processedArtifactId)
+    await bridge.value?.ingestion?.delete?.(processedArtifactId)
   } catch {
     // Leave the local shell state consistent even if delete fails.
   }

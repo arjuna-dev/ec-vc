@@ -894,8 +894,8 @@ const SECTION_LOADERS = {
     resultKey: 'users',
     recordIdField: 'id',
   },
-  industries: {
-    listFn: (bridgeValue) => bridgeValue?.industries?.list?.(),
+  markets: {
+    listFn: (bridgeValue) => bridgeValue?.markets?.list?.(),
     resultKey: 'industries',
     recordIdField: 'id',
   },
@@ -954,8 +954,8 @@ const SECTION_LOADERS = {
     resultKey: 'buildingBlocks',
     recordIdField: 'id',
   },
-  roles: {
-    listFn: (bridgeValue) => bridgeValue?.roles?.list?.(),
+  'user-roles': {
+    listFn: (bridgeValue) => bridgeValue?.['user-roles']?.list?.(),
     resultKey: 'roles',
     recordIdField: 'id',
   },
@@ -964,8 +964,8 @@ const SECTION_LOADERS = {
     resultKey: 'companionRoles',
     recordIdField: 'id',
   },
-  'artifacts-processed': {
-    listFn: (bridgeValue) => bridgeValue?.['artifacts-processed']?.list?.(),
+  ingestion: {
+    listFn: (bridgeValue) => bridgeValue?.ingestion?.list?.(),
     resultKey: 'artifactsProcessed',
     recordIdField: 'id',
   },

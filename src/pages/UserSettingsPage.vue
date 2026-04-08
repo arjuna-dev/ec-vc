@@ -265,7 +265,7 @@ const defaultWorkspaceSettings = {
 const workspaceLandingOptions = [
   { label: 'Home', value: 'home' },
   { label: 'Files', value: 'files' },
-  { label: 'User Roles', value: 'roles' },
+  { label: 'User Roles', value: 'user-roles' },
 ]
 const workspaceModeOptions = [
   { label: 'Focused', value: 'focused' },
