@@ -2,24 +2,14 @@
   <div class="add-edit-bb-builder">
     <div class="add-edit-bb-builder__frame" :style="frameStyle">
       <div class="add-edit-bb-builder__header-block">
-        <div class="add-edit-bb-builder__dialog-header">
-          <div class="add-edit-bb-builder__title-block">
-            <RecordTitle :title="headerTitle" />
-          </div>
-          <div class="add-edit-bb-builder__header-code-box">
-            <BbCodeInput
-              v-model="bbCode"
-              placeholder="Enter bb:code"
-              @enter="selectBbFromCode"
-            />
-          </div>
-          <div class="add-edit-bb-builder__control-box">
-            <SearchBarInput
-              v-model="searchValue"
-              placeholder="Search"
-            />
-          </div>
-        </div>
+        <AddEditBbShellHeaderFrame
+          :title="headerTitle"
+          :bb-code="bbCode"
+          :search-value="searchValue"
+          @update:bb-code="bbCode = $event"
+          @update:search-value="searchValue = $event"
+          @enter="selectBbFromCode"
+        />
         <div class="add-edit-bb-builder__divider" />
       </div>
 
@@ -118,13 +108,11 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import BbCodeInput from 'src/components/BbCodeInput.vue'
+import AddEditBbShellHeaderFrame from 'src/components/AddEditBbShellHeaderFrame.vue'
 import BbRenderFrame from 'src/components/BbRenderFrame.vue'
 import BbSelectionFrame from 'src/components/BbSelectionFrame.vue'
 import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
-import RecordTitle from 'src/components/RecordTitle.vue'
-import SearchBarInput from 'src/components/SearchBarInput.vue'
 import SectionTabs from 'src/components/SectionTabs.vue'
 import { DEFAULT_BUILDING_BLOCK_FILE_ROWS, getBuildingBlockDetail, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 
@@ -393,24 +381,6 @@ function clearRenderedBlock() {
   width: 100%;
 }
 
-.add-edit-bb-builder__dialog-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.add-edit-bb-builder__title-block {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.add-edit-bb-builder__header-code-box,
-.add-edit-bb-builder__control-box {
-  width: 144px;
-  min-width: 144px;
-  flex: 0 0 144px;
-}
-
 .add-edit-bb-builder__divider {
   width: 100%;
   height: 1px;
@@ -488,30 +458,6 @@ function clearRenderedBlock() {
   border: 0;
   cursor: pointer;
   flex: 0 0 auto;
-}
-
-.add-edit-bb-builder__header-code-box :deep(.bb-code-input),
-.add-edit-bb-builder__control-box :deep(.search-bar-input) {
-  width: 100%;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.add-edit-bb-builder__control-box :deep(.q-field__control),
-.add-edit-bb-builder__control-box :deep(.q-field__native),
-.add-edit-bb-builder__control-box :deep(.q-field__input) {
-  min-height: calc(var(--ds-control-height-md) * 0.85);
-  height: calc(var(--ds-control-height-md) * 0.85);
-}
-
-.add-edit-bb-builder__control-box :deep(.q-field__control) {
-  border-radius: var(--ds-radius-micro);
-}
-
-.add-edit-bb-builder__control-box :deep(.q-field__input),
-.add-edit-bb-builder__control-box :deep(.q-field__native) {
-  font-size: var(--ds-font-size-xs);
-  text-align: left;
 }
 
 .add-edit-bb-builder__bb-grid {

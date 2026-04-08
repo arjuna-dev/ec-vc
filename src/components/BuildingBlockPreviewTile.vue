@@ -198,6 +198,14 @@
         />
       </template>
 
+      <template v-else-if="blockKey === 'add-edit-bb-shell-header-frame'">
+        <AddEditBbShellHeaderFrame
+          title="Add/Edit BB"
+          bb-code="bb:file-hero"
+          search-value=""
+        />
+      </template>
+
       <template v-else-if="blockKey === 'dialog-shell-frame'">
         <DialogShellFrame class="building-block-preview-tile__dialog-frame">
           <template #header>
@@ -768,6 +776,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import AddEditBbShellHeaderFrame from 'src/components/AddEditBbShellHeaderFrame.vue'
 import FileHero from 'src/components/FileHero.vue'
 import Hero2ColOverlay from 'src/components/Hero2ColOverlay.vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
