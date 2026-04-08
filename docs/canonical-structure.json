@@ -4318,7 +4318,7 @@
           "tokens": [
             {
               "address": "21.1.1",
-              "token_name": "Role_ID",
+              "token_name": "ID",
               "token_type": "id",
               "db_field_aliases": [
                 "id"
@@ -4334,7 +4334,7 @@
           "tokens": [
             {
               "address": "21.2.1",
-              "token_name": "Role_User",
+              "token_name": "User",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Users",
@@ -4342,7 +4342,7 @@
             },
             {
               "address": "21.2.2",
-              "token_name": "Role_Artifact",
+              "token_name": "Artifact",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Artifacts",
@@ -4350,7 +4350,7 @@
             },
             {
               "address": "21.2.3",
-              "token_name": "Role_Contact",
+              "token_name": "Contact",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Contacts",
@@ -4358,7 +4358,7 @@
             },
             {
               "address": "21.2.4",
-              "token_name": "Role_Company",
+              "token_name": "Company",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Companies",
@@ -4366,7 +4366,7 @@
             },
             {
               "address": "21.2.6",
-              "token_name": "Role_Fund",
+              "token_name": "Fund",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Funds",
@@ -4374,7 +4374,7 @@
             },
             {
               "address": "21.2.7",
-              "token_name": "Role_Round",
+              "token_name": "Round",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Rounds",
@@ -4382,7 +4382,7 @@
             },
             {
               "address": "21.2.8",
-              "token_name": "Role_Project",
+              "token_name": "Project",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Projects",
@@ -4390,7 +4390,7 @@
             },
             {
               "address": "21.2.9",
-              "token_name": "Role_Task",
+              "token_name": "Task",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Tasks",
@@ -4398,7 +4398,7 @@
             },
             {
               "address": "21.2.10",
-              "token_name": "Role_Note",
+              "token_name": "Note",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Notes",
@@ -4406,7 +4406,7 @@
             },
             {
               "address": "21.2.11",
-              "token_name": "Role_Role",
+              "token_name": "User_Role",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Roles",
@@ -4414,7 +4414,7 @@
             },
             {
               "address": "21.2.12",
-              "token_name": "Role_Financial_Industry",
+              "token_name": "Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Financial_Industries",
@@ -4422,7 +4422,7 @@
             },
             {
               "address": "21.2.13",
-              "token_name": "Role_Round_Security",
+              "token_name": "Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Round_Securities",
@@ -4430,7 +4430,7 @@
             },
             {
               "address": "21.2.14",
-              "token_name": "Role_Processed_Artifact",
+              "token_name": "Ingestion",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Artifacts_Processed",
@@ -4446,7 +4446,7 @@
           "tokens": [
             {
               "address": "21.3.1",
-              "token_name": "Role_Name",
+              "token_name": "Name",
               "token_type": "text",
               "db_field_aliases": [
                 "Role_Name"
@@ -4454,7 +4454,7 @@
             },
             {
               "address": "21.3.2",
-              "token_name": "Role_Summary",
+              "token_name": "Summary",
               "token_type": "text",
               "db_field_aliases": [
                 "Role_Summary"
@@ -4483,7 +4483,7 @@
           "tokens": [
             {
               "address": "22.1.1",
-              "token_name": "Companion_Role_ID",
+              "token_name": "ID",
               "token_type": "id",
               "db_field_aliases": [
                 "id"
@@ -4499,7 +4499,7 @@
           "tokens": [
             {
               "address": "22.2.1",
-              "token_name": "Companion_Role_User",
+              "token_name": "User",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Users",
@@ -4507,7 +4507,7 @@
             },
             {
               "address": "22.2.2",
-              "token_name": "Companion_Role_Artifact",
+              "token_name": "Artifact",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Artifacts",
@@ -4515,7 +4515,7 @@
             },
             {
               "address": "22.2.3",
-              "token_name": "Companion_Role_Contact",
+              "token_name": "Contact",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Contacts",
@@ -4523,7 +4523,7 @@
             },
             {
               "address": "22.2.4",
-              "token_name": "Companion_Role_Company",
+              "token_name": "Company",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Companies",
@@ -4531,7 +4531,7 @@
             },
             {
               "address": "22.2.5",
-              "token_name": "Companion_Role_User_Role",
+              "token_name": "User_Role",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Roles",
@@ -4539,7 +4539,7 @@
             },
             {
               "address": "22.2.6",
-              "token_name": "Companion_Role_Companion_Role",
+              "token_name": "Companion_Role",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Companion_Roles",
@@ -4547,7 +4547,7 @@
             },
             {
               "address": "22.2.7",
-              "token_name": "Companion_Role_Fund",
+              "token_name": "Fund",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Funds",
@@ -4555,7 +4555,7 @@
             },
             {
               "address": "22.2.8",
-              "token_name": "Companion_Role_Round",
+              "token_name": "Round",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Rounds",
@@ -4563,7 +4563,7 @@
             },
             {
               "address": "22.2.9",
-              "token_name": "Companion_Role_Project",
+              "token_name": "Project",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Projects",
@@ -4571,7 +4571,7 @@
             },
             {
               "address": "22.2.10",
-              "token_name": "Companion_Role_Task",
+              "token_name": "Task",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Tasks",
@@ -4579,7 +4579,7 @@
             },
             {
               "address": "22.2.11",
-              "token_name": "Companion_Role_Note",
+              "token_name": "Note",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Notes",
@@ -4587,7 +4587,7 @@
             },
             {
               "address": "22.2.12",
-              "token_name": "Companion_Role_Market",
+              "token_name": "Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Financial_Industries",
@@ -4595,7 +4595,7 @@
             },
             {
               "address": "22.2.13",
-              "token_name": "Companion_Role_Security",
+              "token_name": "Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Round_Securities",
@@ -4603,7 +4603,7 @@
             },
             {
               "address": "22.2.14",
-              "token_name": "Companion_Role_Ingestion",
+              "token_name": "Ingestion",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Artifacts_Processed",
@@ -4619,7 +4619,7 @@
           "tokens": [
             {
               "address": "22.3.1",
-              "token_name": "Companion_Role_Name",
+              "token_name": "Name",
               "token_type": "text",
               "db_field_aliases": [
                 "Companion_Role_Name"
@@ -4627,7 +4627,7 @@
             },
             {
               "address": "22.3.2",
-              "token_name": "Companion_Role_Summary",
+              "token_name": "Summary",
               "token_type": "text",
               "db_field_aliases": [
                 "Companion_Role_Summary"
