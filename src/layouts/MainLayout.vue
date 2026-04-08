@@ -381,7 +381,7 @@ import {
   resolveIntakeReviewItem,
   useIntakeReviewQueueState,
 } from 'src/utils/intakeReviewQueueState'
-import { consumePendingAddEditShellRequest, setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
+import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 
 const leftDrawerOpen = ref(false)
 const quickActionsOpen = ref(false)
@@ -704,7 +704,7 @@ function reopenActiveRouteShellFromHeader() {
     return
   }
   if (isBbShellRoute.value) {
-    window.dispatchEvent(new CustomEvent('ecvc:open-bb-shell-dialog'))
+    window.dispatchEvent(new CustomEvent('ecvc:reopen-bb-shell'))
     return
   }
   window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
@@ -1770,17 +1770,6 @@ watch(
   },
 )
 
-watch(
-  () => route.fullPath,
-  () => {
-    if (String(route.name || '').trim() !== 'bb-shell') return
-    const pendingRequest = consumePendingAddEditShellRequest('bb-shell')
-    if (!pendingRequest || typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return
-    window.dispatchEvent(new CustomEvent('ecvc:open-bb-shell-dialog'))
-  },
-  { immediate: true },
-)
-
 function resolveBreadcrumbActionDisabled(action) {
   if (typeof action?.disabled === 'function') return !!action.disabled()
   return !!action?.disabled
@@ -1791,11 +1780,7 @@ function handleDrawerItemClick(item) {
   const routeName = String(route.name || '').trim()
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return
   if (itemTarget === '/bb-shell' && routeName === 'bb-shell') {
-    window.dispatchEvent(new CustomEvent('ecvc:open-bb-shell-dialog'))
-    return
-  }
-  if (itemTarget === '/bb-shell') {
-    setPendingAddEditShellRequest({ sourceKey: 'bb-shell' })
+    window.dispatchEvent(new CustomEvent('ecvc:reopen-bb-shell'))
     return
   }
   if (itemTarget === '/file-dialog-shell' && routeName === 'file-dialog-shell') {

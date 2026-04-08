@@ -1,33 +1,20 @@
 <template>
-  <div class="shell-open-dialog-button__root">
-    <q-btn
-      no-caps
-      flat
-      :ripple="false"
-      class="shell-open-dialog-button"
-      padding="0"
-      @click="handleClick"
-    >
-      <ValueChipSurface tone="menu" class="shell-open-dialog-button__surface">
-        <ValueChipLabel :label="resolvedLabel" tone="default" />
-      </ValueChipSurface>
-    </q-btn>
-
-    <q-dialog
-      v-if="kind === 'bb'"
-      v-model="dialogOpen"
-      class="shell-open-dialog-button__dialog-host"
-    >
-      <div class="shell-open-dialog-button__bb-window-host">
-        <AddEditBbShellWindow />
-      </div>
-    </q-dialog>
-  </div>
+  <q-btn
+    no-caps
+    flat
+    :ripple="false"
+    class="shell-open-dialog-button"
+    padding="0"
+    @click="$emit('click', $event)"
+  >
+    <ValueChipSurface tone="menu" class="shell-open-dialog-button__surface">
+      <ValueChipLabel :label="resolvedLabel" tone="default" />
+    </ValueChipSurface>
+  </q-btn>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import AddEditBbShellWindow from 'src/components/AddEditBbShellWindow.vue'
+import { computed } from 'vue'
 import ValueChipLabel from 'src/components/ValueChipLabel.vue'
 import ValueChipSurface from 'src/components/ValueChipSurface.vue'
 
@@ -43,10 +30,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['click'])
-
-const dialogOpen = ref(false)
-const OPEN_BB_SHELL_DIALOG_EVENT = 'ecvc:open-bb-shell-dialog'
+defineEmits(['click'])
 
 const resolvedLabel = computed(() => {
   const explicit = String(props.label || '').trim()
@@ -57,40 +41,12 @@ const resolvedLabel = computed(() => {
   if (props.kind === 'bb') return 'Open BB Shell'
   return 'Open Dialog'
 })
-
-function handleClick(event) {
-  if (props.kind === 'bb') {
-    dialogOpen.value = true
-    return
-  }
-
-  emit('click', event)
-}
-
-function handleOpenBbShellDialog() {
-  if (props.kind !== 'bb') return
-  dialogOpen.value = true
-}
-
-onMounted(() => {
-  if (typeof window === 'undefined') return
-  window.addEventListener(OPEN_BB_SHELL_DIALOG_EVENT, handleOpenBbShellDialog)
-})
-
-onBeforeUnmount(() => {
-  if (typeof window === 'undefined') return
-  window.removeEventListener(OPEN_BB_SHELL_DIALOG_EVENT, handleOpenBbShellDialog)
-})
 </script>
 
 <style scoped>
 .shell-open-dialog-button {
   min-height: 0;
   border-radius: 0;
-}
-
-.shell-open-dialog-button__root {
-  display: contents;
 }
 
 .shell-open-dialog-button :deep(.q-btn__content) {
@@ -116,32 +72,6 @@ onBeforeUnmount(() => {
   background: var(--ds-button-hover-surface);
   border-color: var(--ds-button-hover-border);
   color: var(--ds-button-hover-text);
-}
-
-.shell-open-dialog-button__dialog {
-  position: relative;
-  border-radius: var(--ds-radius-lg);
-  overflow: auto;
-  resize: horizontal;
-  min-width: 720px;
-  max-width: calc(100vw - 32px);
-}
-
-.shell-open-dialog-button__dialog-host :deep(.q-dialog__inner) {
-  padding: 16px;
-  align-items: flex-start;
-}
-
-.shell-open-dialog-button__dialog-host :deep(.q-dialog__inner > div) {
-  border-radius: var(--ds-radius-lg);
-  overflow: visible;
-}
-
-.shell-open-dialog-button__bb-window-host {
-  min-width: min(1240px, calc(100vw - 32px));
-  max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 32px);
-  overflow: auto;
 }
 
 </style>
