@@ -162,7 +162,7 @@
                           />
                           <span class="create-record-shell__processing-item-name">{{ artifact.name }}</span>
                           <button
-                            v-if="!artifact.processedArtifactId"
+                            v-if="!artifact.artifactId"
                             type="button"
                             class="create-record-shell__processing-start"
                             @click="startArtifactProcessing(artifact.id)"
@@ -1569,23 +1569,15 @@ function artifactPreviewIcon(artifact) {
 }
 
 async function persistDroppedArtifact(artifact) {
-  if (!artifact?.path || !bridge.value?.artifacts?.create) return artifact
+  if (!artifact?.path || !bridge.value?.artifacts?.ingest) return artifact
   try {
-    const result = await bridge.value.artifacts.create({
-      path: artifact.path,
-      name: artifact.name,
-      size: artifact.size,
-      title: artifact.name,
+    const result = await bridge.value.artifacts.ingest({
+      filePaths: [artifact.path],
+      opportunityId: resolveArtifactContextOpportunityId() || undefined,
+      duplicateStrategy: 'rename',
     })
-    const persistedId = String(result?.artifact_id || result?.id || '').trim()
+    const persistedId = String(result?.results?.[0]?.raw?.artifact_id || '').trim()
     if (!persistedId) return artifact
-    const opportunityId = resolveArtifactContextOpportunityId()
-    if (opportunityId && bridge.value?.artifacts?.linkToOpportunity) {
-      await bridge.value.artifacts.linkToOpportunity({
-        artifactIds: [persistedId],
-        opportunityId,
-      })
-    }
     return {
       ...artifact,
       artifactId: persistedId,
@@ -1630,7 +1622,14 @@ async function ensureProcessedArtifactForSelection(artifactId) {
 }
 
 async function startArtifactProcessing(artifactId) {
-  await ensureProcessedArtifactForSelection(artifactId)
+  const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
+  if (!artifact || artifact.artifactId) return
+  const persistedArtifact = await persistDroppedArtifact(artifact)
+  stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
+    entry.id === artifactId
+      ? { ...entry, ...persistedArtifact }
+      : entry,
+  )
   markDialogChanged()
 }
 
