@@ -142,13 +142,14 @@ const MAX_BB_LAYER_COLUMNS = DEFAULT_BUILDING_BLOCK_FILE_ROWS.reduce((maxDepth, 
 }, 0)
 
 const selectedBlockTileSize = computed(() => getBuildingBlockTileSize(selectedBlockKey.value))
+const selectedBlockWidthMode = computed(() => getBuilderWidthMode(selectedBlockKey.value, selectedBlockTileSize.value))
 const headerTitle = computed(() => {
   const detail = getBuildingBlockDetail(selectedBlockKey.value)
   return String(detail?.title || '').trim() || 'Add/Edit BB'
 })
 
 const frameStyle = computed(() => ({
-  width: resolveFrameWidth(selectedBlockTileSize.value),
+  width: resolveFrameWidth(selectedBlockWidthMode.value),
   maxWidth: 'calc(100vw - 32px)',
 }))
 
@@ -277,13 +278,63 @@ function createEmptyLayerColumns() {
   }))
 }
 
-function resolveFrameWidth(tileSize = '') {
+function getBuilderWidthMode(blockKey = '', tileSize = '') {
+  const normalizedKey = normalizeBlockKey(blockKey)
   const normalizedTileSize = String(tileSize || '').trim().toLowerCase()
-  if (normalizedTileSize === 'full-row') return 'min(1680px, calc(100vw - 32px))'
-  if (['dashboard', 'hero-dashboard', 'toolbar-wide'].includes(normalizedTileSize)) return 'min(1520px, calc(100vw - 32px))'
-  if (['title-wide', 'lg', 'settings-menu', 'widget-settings', 'live-link', 'stat-box'].includes(normalizedTileSize)) {
-    return 'min(1360px, calc(100vw - 32px))'
+
+  const aggressiveWideKeys = new Set([
+    'fonts',
+    'type-scale',
+    'colors',
+    'surfaces',
+    'radius',
+    'spacing',
+    'formatting-rules',
+    'motion-rules',
+    'file-toolbar',
+    'l2-toolbar',
+    'home-dashboard',
+    'file-hero',
+    'hero-surface',
+    'hero-2col-overlay',
+    'hero-3col-overlay',
+    'record-hero',
+  ])
+
+  const mediumWideKeys = new Set([
+    'borders',
+    'shadows',
+    'icon-sizing',
+    'shell-title-row',
+    'dialog-shell-frame',
+    'dialog-shell-title-row',
+    'dialog-shell-footer',
+    'section-tabs',
+    'bb-selection-frame',
+    'bb-render-frame',
+    'editable-grid-table',
+    'file-filter-menu',
+    'record-context-panel',
+    'record-feed-panel',
+    'record-fields-box',
+    'field-map-row',
+    'main-menu-row',
+  ])
+
+  if (aggressiveWideKeys.has(normalizedKey)) return 'aggressive-wide'
+  if (mediumWideKeys.has(normalizedKey)) return 'medium-wide'
+  if (['dashboard', 'hero-dashboard'].includes(normalizedTileSize)) return 'aggressive-wide'
+  if (['full-row', 'toolbar-wide', 'title-wide', 'lg', 'settings-menu', 'widget-settings', 'live-link', 'stat-box'].includes(normalizedTileSize)) {
+    return 'standard'
   }
+  return 'compact'
+}
+
+function resolveFrameWidth(widthMode = '') {
+  const normalizedWidthMode = String(widthMode || '').trim().toLowerCase()
+  if (normalizedWidthMode === 'aggressive-wide') return 'min(1680px, calc(100vw - 32px))'
+  if (normalizedWidthMode === 'medium-wide') return 'min(1440px, calc(100vw - 32px))'
+  if (normalizedWidthMode === 'standard') return 'min(1240px, calc(100vw - 32px))'
   return 'min(1180px, calc(100vw - 32px))'
 }
 
