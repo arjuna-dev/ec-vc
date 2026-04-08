@@ -1467,6 +1467,21 @@ function listRoles() {
   )
 }
 
+function listCompanionRoles() {
+  initDb()
+  return dbAll(
+    `
+    SELECT
+      id,
+      Companion_Role_Name,
+      Companion_Role_Summary,
+      created_at
+    FROM Companion_Roles
+    ORDER BY created_at DESC, id DESC
+  `,
+  )
+}
+
 function ensureDefaultBuildingBlocks(database) {
   const buildingBlockMeta = getTableMeta(database, 'Building_Blocks')
   if (!buildingBlockMeta.columnsSet.has('Used_In_Shells')) {
@@ -1755,6 +1770,42 @@ function createRole(payload = {}) {
       `
       INSERT INTO Roles (
         id, Role_Name, Role_Summary, created_by, created_at, updated_at
+      ) VALUES (
+        ?, ?, ?, ?, datetime('now'), datetime('now')
+      )
+    `,
+    )
+    .run(
+      id,
+      name,
+      summary,
+      normalizeNullableString(payload?.created_by) || actor.user_id,
+    )
+
+  return { id }
+}
+
+function createCompanionRole(payload = {}) {
+  const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
+  const name =
+    normalizeNullableString(payload?.Companion_Role_Name) ||
+    normalizeNullableString(payload?.Name) ||
+    normalizeNullableString(payload?.title)
+
+  if (!name) throw new Error('Companion role name is required')
+
+  const id = normalizeNullableString(payload?.id) || `companion-role:${crypto.randomUUID()}`
+  const summary =
+    normalizeNullableString(payload?.Companion_Role_Summary) ||
+    normalizeNullableString(payload?.Summary) ||
+    normalizeNullableString(payload?.description)
+
+  database
+    .prepare(
+      `
+      INSERT INTO Companion_Roles (
+        id, Companion_Role_Name, Companion_Role_Summary, created_by, created_at, updated_at
       ) VALUES (
         ?, ?, ?, ?, datetime('now'), datetime('now')
       )
@@ -2605,6 +2656,12 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     tableName: 'Roles',
     entityLabel: 'Role',
     displayColumns: ['Role_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
+  Companion_Roles: {
+    tableName: 'Companion_Roles',
+    entityLabel: 'Companion Role',
+    displayColumns: ['Companion_Role_Name', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
   Opportunities: {
@@ -7533,6 +7590,29 @@ function registerIpc() {
   ipcMain.handle('roles:delete', async (_event, { roleId } = {}) => {
     initDb()
     const result = deleteRow('Roles', 'id', String(roleId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('companion-roles:list', async () => {
+    initDb()
+    return { companionRoles: listCompanionRoles() }
+  })
+
+  ipcMain.handle('companion-roles:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createCompanionRole(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'companion roles'))
+    }
+  })
+
+  ipcMain.handle('companion-roles:delete', async (_event, { companionRoleId } = {}) => {
+    initDb()
+    const result = deleteRow('Companion_Roles', 'id', String(companionRoleId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
   })

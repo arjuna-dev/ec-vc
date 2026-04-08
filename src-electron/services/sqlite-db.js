@@ -95,6 +95,9 @@ function maybeRecreateDb(dbPath) {
     hasTable(probe, 'Roles') &&
     hasColumn(probe, 'Roles', 'Role_Name') &&
     hasColumn(probe, 'Roles', 'Role_Summary') &&
+    hasTable(probe, 'Companion_Roles') &&
+    hasColumn(probe, 'Companion_Roles', 'Companion_Role_Name') &&
+    hasColumn(probe, 'Companion_Roles', 'Companion_Role_Summary') &&
     hasTable(probe, 'Users_Roles') &&
     hasColumn(probe, 'Users_Roles', 'user_id') &&
     hasColumn(probe, 'Users_Roles', 'role_id') &&

@@ -1410,6 +1410,19 @@ CREATE TABLE IF NOT EXISTS Roles (
 CREATE INDEX IF NOT EXISTS idx_Roles_created_by
   ON Roles(created_by);
 
+CREATE TABLE IF NOT EXISTS Companion_Roles (
+  id TEXT PRIMARY KEY,
+  Companion_Role_Name TEXT NOT NULL,
+  Companion_Role_Summary TEXT,
+  created_by TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Companion_Roles_created_by
+  ON Companion_Roles(created_by);
+
 CREATE TABLE IF NOT EXISTS Building_Blocks (
   id TEXT PRIMARY KEY,
   Sort_Order INTEGER,
