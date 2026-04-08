@@ -36,6 +36,10 @@ Implementation need:
   - KDB tokens
   - relationship ownership decision when explicitly promoted
 
+Reference:
+
+- `docs/new-l1-birth-input-contract.md`
+
 ### 2. Real table/runtime owner
 
 Primary files:
