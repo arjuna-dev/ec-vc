@@ -126,6 +126,7 @@
                             v-if="!artifact.artifactId && !startingArtifactIds.includes(artifact.id)"
                             type="button"
                             class="create-record-shell__processing-start"
+                            @mousedown.stop.prevent
                             @click.stop.prevent="startArtifactProcessing(artifact.id)"
                           >
                             Start
@@ -2203,6 +2204,9 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__processing-start {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
   padding: 0;
   color: var(--ds-color-brand-blue, #2647ff);
   background: transparent;
