@@ -188,6 +188,19 @@ This tracker should stay aligned with:
 
 ## Pending
 
+- Milestone: `Contained Ingestion Foundation Pass`
+  - Step 1: align Main Menu labels with loader/runtime naming so the app renders and speaks in the same names the user sees
+  - Step 2: add standalone `Companion Roles` as a real first-class table
+  - Step 3: add the initial required `Companion Roles` columns
+  - Step 4: create the first-pass `Companion Roles` records:
+    - `Master Companion`
+    - `Ingestion Assistant`
+    - `Point Tracker`
+    - `Quest Builder`
+  - Step 5: create the first-pass companion markdown documents, beginning with `ingestion.md`
+  - Step 6: rewire ingestion only after the prerequisite names, table, columns, records, and documents are in place
+  - Working rule: keep this pass in small contained cycles and avoid bundling the whole migration into one long implementation loop
+
 - Project: `Building Blocks to Shell Contract Migration`
   - Task 1: finish mapping foundational building blocks:
     - fonts
