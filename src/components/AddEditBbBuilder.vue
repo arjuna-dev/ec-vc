@@ -1,6 +1,6 @@
 <template>
   <div class="add-edit-bb-builder">
-    <div class="add-edit-bb-builder__frame">
+    <div class="add-edit-bb-builder__frame" :style="frameStyle">
       <div class="add-edit-bb-builder__header-block">
         <div class="add-edit-bb-builder__dialog-header">
           <div class="add-edit-bb-builder__title-block">
@@ -124,7 +124,7 @@ import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import SearchBarInput from 'src/components/SearchBarInput.vue'
 import SectionTabs from 'src/components/SectionTabs.vue'
-import { DEFAULT_BUILDING_BLOCK_FILE_ROWS, getBuildingBlockDetail } from 'src/utils/buildingBlocks'
+import { DEFAULT_BUILDING_BLOCK_FILE_ROWS, getBuildingBlockDetail, getBuildingBlockTileSize } from 'src/utils/buildingBlocks'
 
 defineOptions({ name: 'AddEditBbBuilder' })
 
@@ -138,6 +138,13 @@ const MAX_BB_LAYER_COLUMNS = DEFAULT_BUILDING_BLOCK_FILE_ROWS.reduce((maxDepth, 
   const key = String(row?.id || '').trim()
   return Math.max(maxDepth, getBlockDepth(key))
 }, 0)
+
+const selectedBlockTileSize = computed(() => getBuildingBlockTileSize(selectedBlockKey.value))
+
+const frameStyle = computed(() => ({
+  width: resolveFrameWidth(selectedBlockTileSize.value),
+  maxWidth: 'calc(100vw - 32px)',
+}))
 
 const sectionTabsLeft = computed(() =>
   Array.from(new Set(DEFAULT_BUILDING_BLOCK_FILE_ROWS.map((row) => String(row?.Category || '').trim()).filter(Boolean)))
@@ -264,6 +271,16 @@ function createEmptyLayerColumns() {
   }))
 }
 
+function resolveFrameWidth(tileSize = '') {
+  const normalizedTileSize = String(tileSize || '').trim().toLowerCase()
+  if (normalizedTileSize === 'full-row') return 'min(1680px, calc(100vw - 32px))'
+  if (['dashboard', 'hero-dashboard', 'toolbar-wide'].includes(normalizedTileSize)) return 'min(1520px, calc(100vw - 32px))'
+  if (['title-wide', 'lg', 'settings-menu', 'widget-settings', 'live-link', 'stat-box'].includes(normalizedTileSize)) {
+    return 'min(1360px, calc(100vw - 32px))'
+  }
+  return 'min(1180px, calc(100vw - 32px))'
+}
+
 function selectBbFromCode() {
   const normalized = normalizeBlockKey(bbCode.value)
   if (!normalized || !getBuildingBlockDetail(normalized)) return
@@ -291,12 +308,12 @@ function clearRenderedBlock() {
 }
 
 .add-edit-bb-builder__frame {
-  width: fit-content;
-  max-width: calc(100vw - 32px);
+  min-width: 0;
   margin: 0 auto;
   padding: 16px;
   border-radius: var(--ds-radius-lg);
   background: var(--ds-color-brand-white);
+  box-sizing: border-box;
 }
 
 .add-edit-bb-builder__close {
@@ -316,6 +333,7 @@ function clearRenderedBlock() {
 .add-edit-bb-builder__header-block {
   display: grid;
   gap: 10px;
+  width: 100%;
 }
 
 .add-edit-bb-builder__dialog-header {
@@ -346,16 +364,19 @@ function clearRenderedBlock() {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
   padding-top: 10px;
 }
 
 .add-edit-bb-builder__render-row {
   display: grid;
+  width: 100%;
 }
 
 .add-edit-bb-builder__render-main {
   display: grid;
   min-width: 0;
+  width: 100%;
 }
 
 .add-edit-bb-builder__divider--body {
@@ -371,12 +392,14 @@ function clearRenderedBlock() {
 }
 
 .add-edit-bb-builder__rendered-bb :deep(.building-block-preview-tile) {
+  width: 100%;
   border: 0;
   box-shadow: none;
   background: transparent;
 }
 
 .add-edit-bb-builder__rendered-bb :deep(.building-block-preview-tile__stage) {
+  width: 100%;
   padding: 0;
 }
 
