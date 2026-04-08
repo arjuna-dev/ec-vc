@@ -159,7 +159,6 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     icon: 'smart_toy',
     showInWorkspaceNav: true,
     shellGroup: 'knowledge_db',
-    canonicalEntityName: 'Roles',
     runtimeEntityName: 'Companion_Roles',
   },
   Financial_Industries: {

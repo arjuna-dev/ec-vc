@@ -4417,6 +4417,179 @@
           ]
         }
       ]
+    },
+    {
+      "level_1": "22",
+      "entity": "Companion_Roles",
+      "entity_label": "Companion Role",
+      "entity_address": "22.0.0",
+      "structure_token": {
+        "address": "22.0.0",
+        "token_name": "Companion_Role",
+        "token_type": "structure"
+      },
+      "subsections": [
+        {
+          "level_2": "1",
+          "subsection": "System",
+          "subsection_address": "22.1.0",
+          "structure_token": "Companion_Role_System",
+          "tokens": [
+            {
+              "address": "22.1.1",
+              "token_name": "Companion_Role_ID",
+              "token_type": "id",
+              "db_field_aliases": [
+                "id"
+              ]
+            }
+          ]
+        },
+        {
+          "level_2": "2",
+          "subsection": "KDB",
+          "subsection_address": "22.2.0",
+          "structure_token": "Companion_Role_KDB",
+          "tokens": [
+            {
+              "address": "22.2.1",
+              "token_name": "Companion_Role_User",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Users",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "22.2.2",
+              "token_name": "Companion_Role_Artifact",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "22.2.3",
+              "token_name": "Companion_Role_Contact",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Contacts",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "22.2.4",
+              "token_name": "Companion_Role_Company",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "22.2.5",
+              "token_name": "Companion_Role_User_Role",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Roles",
+              "relationship_group": "knowledge_db"
+            },
+            {
+              "address": "22.2.6",
+              "token_name": "Companion_Role_Companion_Role",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companion_Roles",
+              "relationship_group": "knowledge_db"
+            },
+            {
+              "address": "22.2.7",
+              "token_name": "Companion_Role_Fund",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "22.2.8",
+              "token_name": "Companion_Role_Round",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Rounds",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "22.2.9",
+              "token_name": "Companion_Role_Project",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "22.2.10",
+              "token_name": "Companion_Role_Task",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "22.2.11",
+              "token_name": "Companion_Role_Note",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "22.2.12",
+              "token_name": "Companion_Role_Market",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Financial_Industries",
+              "relationship_group": "knowledge_db"
+            },
+            {
+              "address": "22.2.13",
+              "token_name": "Companion_Role_Security",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Round_Securities",
+              "relationship_group": "knowledge_db"
+            },
+            {
+              "address": "22.2.14",
+              "token_name": "Companion_Role_Ingestion",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts_Processed",
+              "relationship_group": "knowledge_db"
+            }
+          ]
+        },
+        {
+          "level_2": "3",
+          "subsection": "General",
+          "subsection_address": "22.3.0",
+          "structure_token": "Companion_Role_General",
+          "tokens": [
+            {
+              "address": "22.3.1",
+              "token_name": "Companion_Role_Name",
+              "token_type": "text",
+              "db_field_aliases": [
+                "Companion_Role_Name"
+              ]
+            },
+            {
+              "address": "22.3.2",
+              "token_name": "Companion_Role_Summary",
+              "token_type": "text",
+              "db_field_aliases": [
+                "Companion_Role_Summary"
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "option_lists": {
