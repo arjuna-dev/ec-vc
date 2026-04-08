@@ -116,8 +116,34 @@ The canonical `L1` contract should carry:
 - runtime capabilities
 - KDB declarations
 - bootstrap defaults
+- shared base `System` token set
+- shared base `KDB` relationship starter set
+- shared base `General` token set
 - optional branch metadata when the `L1` supports subtype routing
 - optional explicit `L2.a-b-c-d` subgroup metadata when one subsection needs structured internal grouping
+
+### Shared L1 Base Rule
+
+Every normal `L1` should begin from one shared canonical base before any entity-specific structure is added.
+
+That shared base should include:
+
+- shared `System`
+- shared `KDB`
+- shared `General`
+
+And the shared field names inside that base should stay shared across `L1`s.
+
+Examples:
+
+- `Name`
+- `Summary`
+
+Working rule:
+
+- do not create a new normal `L1` by inventing entity-prefixed copies of shared base fields
+- after the shared base is in place, the entity may add its own `L2`s and explicit `L2.a-b-c-d` subgrouping
+- this keeps activation, linking, and shell behavior aligned across the file system
 
 The validator should fail if an `L1` is missing:
 

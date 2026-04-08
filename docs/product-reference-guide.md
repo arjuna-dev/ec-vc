@@ -558,6 +558,19 @@ This is the default contract for new `Knowledge DB` files such as:
 - `Ingestion`
 - `Roles`
 
+Shared base rule:
+
+- every normal `L1` should begin from the same starter structure
+- that starter structure should include shared `System`, shared `KDB`, and shared `General`
+- `General` should begin with shared field names such as `Name` and `Summary`
+- only after that shared base should an `L1` add its own independent `L2`s or explicit `L2.a-b-c-d` subgrouping
+
+Why:
+
+- shared naming keeps shell behavior and activation paths clean
+- shared starter relationships help new `L1`s link into the rest of the system from birth
+- entity-specific sections should extend the base, not replace it
+
 Controlled exception:
 
 - `BB File` is not part of this standard baseline
