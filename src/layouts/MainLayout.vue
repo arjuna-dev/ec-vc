@@ -704,7 +704,7 @@ function reopenActiveRouteShellFromHeader() {
     return
   }
   if (isBbShellRoute.value) {
-    window.dispatchEvent(new CustomEvent('ecvc:reopen-bb-shell'))
+    window.dispatchEvent(new CustomEvent('ecvc:open-bb-shell-dialog'))
     return
   }
   window.dispatchEvent(new CustomEvent('ecvc:reopen-dialog-shell'))
@@ -1779,6 +1779,10 @@ function handleDrawerItemClick(item) {
   const itemTarget = String(item?.to || '').trim()
   const routeName = String(route.name || '').trim()
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return
+  if (itemTarget === '/bb-shell' && routeName === 'bb-shell') {
+    window.dispatchEvent(new CustomEvent('ecvc:open-bb-shell-dialog'))
+    return
+  }
   if (itemTarget === '/file-dialog-shell' && routeName === 'file-dialog-shell') {
     window.dispatchEvent(new CustomEvent('ecvc:reopen-file-dialog-shell'))
     return
@@ -1790,9 +1794,6 @@ function handleDrawerItemClick(item) {
   if (itemTarget === '/fork-shell' && routeName === 'fork-shell') {
     window.dispatchEvent(new CustomEvent('ecvc:reopen-fork-shell'))
     return
-  }
-  if (itemTarget === '/bb-shell' && routeName === 'bb-shell') {
-    window.dispatchEvent(new CustomEvent('ecvc:reopen-bb-shell'))
   }
 }
 

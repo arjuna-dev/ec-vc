@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import AddEditBbShellWindow from 'src/components/AddEditBbShellWindow.vue'
 import ValueChipLabel from 'src/components/ValueChipLabel.vue'
 import ValueChipSurface from 'src/components/ValueChipSurface.vue'
@@ -46,6 +46,7 @@ const props = defineProps({
 const emit = defineEmits(['click'])
 
 const dialogOpen = ref(false)
+const OPEN_BB_SHELL_DIALOG_EVENT = 'ecvc:open-bb-shell-dialog'
 
 const resolvedLabel = computed(() => {
   const explicit = String(props.label || '').trim()
@@ -65,6 +66,21 @@ function handleClick(event) {
 
   emit('click', event)
 }
+
+function handleOpenBbShellDialog() {
+  if (props.kind !== 'bb') return
+  dialogOpen.value = true
+}
+
+onMounted(() => {
+  if (typeof window === 'undefined') return
+  window.addEventListener(OPEN_BB_SHELL_DIALOG_EVENT, handleOpenBbShellDialog)
+})
+
+onBeforeUnmount(() => {
+  if (typeof window === 'undefined') return
+  window.removeEventListener(OPEN_BB_SHELL_DIALOG_EVENT, handleOpenBbShellDialog)
+})
 </script>
 
 <style scoped>
