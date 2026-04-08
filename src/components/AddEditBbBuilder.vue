@@ -42,27 +42,29 @@
             :left-tabs="sectionTabsLeft"
             :right-tabs="[]"
           />
-          <MainMenuIconButton
-            aria-label="Toggle built from building blocks"
-            :disable="!selectedBlockKey"
-            @click="detailsPanelOpen = !detailsPanelOpen"
-          />
-          <button
-            type="button"
-            class="add-edit-bb-builder__grid-toggle"
-            :aria-label="bbGridExpanded ? 'Collapse building blocks' : 'Expand building blocks'"
-            @click="bbGridExpanded = !bbGridExpanded"
-          >
-            <q-icon :name="bbGridExpanded ? 'unfold_less' : 'unfold_more'" />
-          </button>
-          <button
-            type="button"
-            class="add-edit-bb-builder__close"
-            aria-label="Close builder"
-            @click="clearRenderedBlock"
-          >
-            <q-icon name="close" />
-          </button>
+          <div class="add-edit-bb-builder__tabs-actions">
+            <MainMenuIconButton
+              aria-label="Toggle built from building blocks"
+              :disable="!selectedBlockKey"
+              @click="detailsPanelOpen = !detailsPanelOpen"
+            />
+            <button
+              type="button"
+              class="add-edit-bb-builder__grid-toggle"
+              :aria-label="bbGridExpanded ? 'Collapse building blocks' : 'Expand building blocks'"
+              @click="bbGridExpanded = !bbGridExpanded"
+            >
+              <q-icon :name="bbGridExpanded ? 'unfold_less' : 'unfold_more'" />
+            </button>
+            <button
+              type="button"
+              class="add-edit-bb-builder__close"
+              aria-label="Close builder"
+              @click="clearRenderedBlock"
+            >
+              <q-icon name="close" />
+            </button>
+          </div>
         </div>
 
         <BbSelectionFrame v-if="bbGridExpanded">
@@ -404,11 +406,19 @@ function clearRenderedBlock() {
 }
 
 .add-edit-bb-builder__tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.add-edit-bb-builder__tabs-actions {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  width: fit-content;
-  max-width: 100%;
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .add-edit-bb-builder__grid-toggle {
