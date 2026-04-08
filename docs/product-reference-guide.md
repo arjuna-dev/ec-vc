@@ -562,13 +562,15 @@ Shared base rule:
 
 - every normal `L1` should begin from the same starter structure
 - that starter structure should include shared `System`, shared `KDB`, and shared `General`
-- `General` should begin with shared field names such as `Name` and `Summary`
+- shared `System` parameters should be `ID`, `Creator`, `Datetime`, and `EventLog`
+- shared `General` parameters should be `Name` and `Summary`
+- shared `KDB` means every normal `L1` owns the linkage section, not that every `L1` uses one identical relationship leaf list
 - only after that shared base should an `L1` add its own independent `L2`s or explicit `L2.a-b-c-d` subgrouping
 
 Why:
 
 - shared naming keeps shell behavior and activation paths clean
-- shared starter relationships help new `L1`s link into the rest of the system from birth
+- shared `KDB` ownership keeps relationship behavior structurally consistent without forcing every `L1` into one identical leaf set
 - entity-specific sections should extend the base, not replace it
 
 Controlled exception:

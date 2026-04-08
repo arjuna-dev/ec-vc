@@ -19,19 +19,23 @@
     "structure_order": [
       "shared_system_base",
       "shared_kdb_base",
+      "shared_general_base",
       "entity_extension_layers"
     ],
     "shared_system_base": {
       "required_subsection": "System",
       "required_token_set": [
-        "ID"
+        "ID",
+        "Creator",
+        "Datetime",
+        "EventLog"
       ],
       "rule": "Shared system fields should keep shared canonical names across L1 files."
     },
     "shared_kdb_base": {
       "required_subsection": "KDB",
-      "required_relationship_scope": "all active L1 files",
-      "rule": "New L1 files should begin from the same base relationship starter set so shared activation paths stay aligned."
+      "required_contract": "linkage_container",
+      "rule": "KDB is the shared linkage section for declared relationships. It is a required base subsection, but it is not one fixed universal leaf set."
     },
     "shared_general_base": {
       "required_subsection": "General",

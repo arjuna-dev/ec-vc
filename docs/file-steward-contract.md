@@ -20,13 +20,25 @@ That shared base should include:
 - shared `KDB`
 - shared `General`
 
-And the shared field names inside that base should stay shared across files.
+And only two parts of that base carry a fixed shared parameter set:
+
+- `System`
+  - `ID`
+  - `Creator`
+  - `Datetime`
+  - `EventLog`
+- `General`
+  - `Name`
+  - `Summary`
+
+`KDB` is also part of the shared base, but as the shared linkage section.
+
+It should not be treated as one fixed universal list of relationship leaf names.
 
 Examples:
 
 - `Name`
 - `Summary`
-- shared starter relationship fields
 
 The `File Steward` should not allow a new `L1` to rename shared base fields into entity-prefixed duplicates when the meaning is the same.
 
@@ -97,7 +109,7 @@ The `File Steward` should:
 - flag when a runtime table exists without its own explicit canonical contract
 - protect the consistency of `System`, `KDB`, and `General` subgrouping
 - protect shared base field names from drifting into unnecessary entity-specific aliases
-- protect the shared starter KDB set so new `L1`s can link cleanly from birth
+- protect `KDB` as the required shared linkage section without pretending every `L1` must use one identical relationship leaf list
 - protect declared branch-capable `L1`s from being normalized into the wrong table model
 - help keep file naming, loader naming, and menu naming aligned
 

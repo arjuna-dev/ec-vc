@@ -116,9 +116,9 @@ The canonical `L1` contract should carry:
 - runtime capabilities
 - KDB declarations
 - bootstrap defaults
-- shared base `System` token set
-- shared base `KDB` relationship starter set
-- shared base `General` token set
+- shared base `System` parameter set
+- shared `KDB` linkage-section requirement
+- shared base `General` parameter set
 - optional branch metadata when the `L1` supports subtype routing
 - optional explicit `L2.a-b-c-d` subgroup metadata when one subsection needs structured internal grouping
 
@@ -132,12 +132,20 @@ That shared base should include:
 - shared `KDB`
 - shared `General`
 
-And the shared field names inside that base should stay shared across `L1`s.
+And the fixed shared parameter sets inside that base should be:
 
-Examples:
+- `System`
+  - `ID`
+  - `Creator`
+  - `Datetime`
+  - `EventLog`
+- `General`
+  - `Name`
+  - `Summary`
 
-- `Name`
-- `Summary`
+`KDB` should also always exist in the shared base, but as the linkage section.
+
+It should not be treated as one universal fixed list of relationship leaf tokens.
 
 Working rule:
 
