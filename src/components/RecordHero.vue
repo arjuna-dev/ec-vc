@@ -87,7 +87,7 @@ import RecordTitle from 'src/components/RecordTitle.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 
 defineOptions({
-  name: 'HeroSandbox',
+  name: 'RecordHero',
 })
 
 const settingsMenuOpen = ref(false)

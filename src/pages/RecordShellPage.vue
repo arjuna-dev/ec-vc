@@ -12,7 +12,7 @@
         {{ error }}
       </q-banner>
 
-      <HeroSandbox
+      <RecordHero
         ref="contactHeroRef"
         :style="structuredRecordHeroStyle"
         :title="heroName"
@@ -46,7 +46,7 @@
             </div>
           </figure>
         </template>
-      </HeroSandbox>
+      </RecordHero>
 
       <ShellSectionToolbar
         v-if="recordShellNavItems.length"
@@ -390,7 +390,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
-import HeroSandbox from 'src/components/HeroSandbox.vue'
+import RecordHero from 'src/components/RecordHero.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import {
   CANONICAL_OPTION_LISTS,

@@ -499,11 +499,11 @@
       </template>
 
       <template v-else-if="blockKey === 'record-dashboard'">
-        <HeroSandbox />
+        <RecordHero />
       </template>
 
       <template v-else-if="blockKey === 'record-hero'">
-        <HeroSandbox />
+        <RecordHero />
       </template>
 
       <template v-else-if="blockKey === 'hero-sandbox-surface'">
@@ -684,7 +684,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import FileHero from 'src/components/FileHero.vue'
 import Hero2ColOverlay from 'src/components/Hero2ColOverlay.vue'
 import HomeDashboardHero from 'src/components/HomeDashboardHero.vue'
-import HeroSandbox from 'src/components/HeroSandbox.vue'
+import RecordHero from 'src/components/RecordHero.vue'
 import HeroSandboxOverlay from 'src/components/HeroSandboxOverlay.vue'
 import HeroSandboxSurface from 'src/components/HeroSandboxSurface.vue'
 import FilePageToolbar from 'src/components/FilePageToolbar.vue'
