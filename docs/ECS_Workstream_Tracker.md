@@ -190,6 +190,9 @@ This tracker should stay aligned with:
 
 - Milestone: `Contained Ingestion Foundation Pass`
   - Step 1: align Main Menu labels with loader/runtime naming so the app renders and speaks in the same names the user sees
+  - Step 1A: define steward contracts that protect file and design structure from drift:
+    - `File Steward`
+    - `Design Steward`
   - Step 2: add standalone `Companion Roles` as a real first-class table
   - Step 3: add the initial required `Companion Roles` columns
   - Step 4: create the first-pass `Companion Roles` records:
