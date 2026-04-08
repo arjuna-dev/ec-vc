@@ -2,12 +2,15 @@
 
 ## Purpose
 
-This document explains the role of these four files:
+This document explains the role of these files:
 
 - `src-electron/services/sqlite-schema.js`
 - `src-electron/services/sqlite-db.js`
 - `src-electron/electron-main.js`
 - `src-electron/electron-preload.js`
+- `src/shared/kdbRelationshipContracts.js`
+- `src/components/FilePageShell.vue`
+- `src/utils/dialogShellPayload.js`
 
 The goal is to make it easier to understand:
 
@@ -16,11 +19,11 @@ The goal is to make it easier to understand:
 - what guiding principles to follow
 - what to be careful about before changing them
 
-This is the core runtime chain behind the app's local data behavior.
+This is the core runtime and shared-shell chain behind the app's local data behavior.
 
 ## The Simple Mental Model
 
-These four files form one path:
+The first four files form the deepest runtime path:
 
 1. `sqlite-schema.js`
    - defines what the database should look like
@@ -37,6 +40,15 @@ So in simple words:
 - `db` makes it real locally
 - `main` does the work
 - `preload` exposes only the safe front-door
+
+The other three files sit on top of that runtime path:
+
+- `kdbRelationshipContracts.js`
+  - decides how canon-declared KDB links are interpreted underneath
+- `FilePageShell.vue`
+  - is the main shared file-shell renderer that consumes the runtime path
+- `dialogShellPayload.js`
+  - organizes canonical section payloads for the shared create/edit dialog
 
 ## 1. `src-electron/services/sqlite-schema.js`
 
@@ -134,7 +146,7 @@ Also important:
 
 This is the main backend runtime owner.
 
-It is the biggest and most important of the four files.
+It is the biggest and most important of the four runtime files.
 
 It handles:
 
@@ -164,7 +176,7 @@ this file is where that request is actually handled.
 
 In plain words:
 
-- this is where “the app actually does the thing”
+- this is where "the app actually does the thing"
 
 ## What to be aware of
 
@@ -221,9 +233,119 @@ Examples of common drift:
 - preload method exists but wrong channel name
 - menu/shell expects a surface that preload does not expose
 
+## 5. `src/shared/kdbRelationshipContracts.js`
+
+## Use
+
+This file is the KDB bridge contract map.
+
+It decides how canon-declared KDB relationships are treated at runtime.
+
+Right now it supports three patterns:
+
+- explicit dedicated join-table contracts
+- direct foreign-key contracts
+- generic fallback through `KDB_Relationships`
+
+This is one of the most important files for understanding why a declared KDB link does or does not fully work.
+
+## Guiding principles
+
+- treat this file as the relationship-behavior contract layer
+- keep relationship ownership explicit
+- do not guess reverse direction in the shell
+- if a KDB link is declared, this file should make clear whether it is:
+  - dedicated join-table owned
+  - direct-foreign-key owned
+  - generic KDB owned
+
+## What to be aware of
+
+- this file is where the current mixed relationship model becomes visible
+- some relationships are manually explicit here
+- many other relationships fall back to generic `KDB_Relationships`
+- this is one of the key places where future `new L1 birth automation` will need to become stricter
+
+Important rule:
+
+- a KDB token being present in canon does not automatically mean the full reciprocal bridge contract is already rich here
+
+## 6. `src/components/FilePageShell.vue`
+
+## Use
+
+This is the main shared file-shell renderer for file-level surfaces.
+
+It is where many `L1`s are presented through one common shell.
+
+It handles things like:
+
+- shell layout
+- card/list rendering
+- file toolbar behavior
+- shell-level create actions
+- event-shell special behavior
+- KDB-related display behavior
+
+This file is important because it proves whether the backend/runtime contract is actually usable through the shared shell.
+
+## Guiding principles
+
+- this should stay a shared shell, not drift into many page-specific mini-systems
+- it should consume explicit payload and bridge contracts
+- it should not guess ownership to compensate for missing backend structure
+
+## What to be aware of
+
+- because this file is large and highly visible, it is easy to patch symptoms here
+- that is dangerous if the real problem is deeper in runtime ownership
+- this file should reveal structural gaps, not hide them
+
+Important caution:
+
+- if `FilePageShell.vue` looks wrong, the bug may still actually live in:
+  - preload
+  - main
+  - schema
+  - KDB relationship contracts
+
+## 7. `src/utils/dialogShellPayload.js`
+
+## Use
+
+This file helps organize canonical structure into payload groups for the shared create/edit dialog shell.
+
+It does things like:
+
+- group `L2` sections
+- preserve subgroup structure
+- build KDB subgroups like:
+  - `First-Order`
+  - `Knowledge DB`
+- split sections into left/right shell placement
+
+It is part of the contract-preparation layer for the dialog shell.
+
+## Guiding principles
+
+- preserve canonical grouping explicitly
+- prefer canon-driven grouping over ad hoc shell-only grouping
+- keep subgroup identity visible
+- do not flatten structure just because the UI is simpler that way
+
+## What to be aware of
+
+- this file sits close to the shell, so it can become a quiet drift point if it starts inventing structure
+- it should group and prepare explicit structure, not guess missing canon
+- if grouping gets too magical here, the shell may look correct while the architecture is actually drifting
+
+Important rule:
+
+- this file should help render canon cleanly, not reinterpret canon loosely
+
 ## How They Work Together
 
-Here is the normal chain:
+Here is the deeper runtime chain:
 
 1. `sqlite-schema.js`
    - defines the table or join table
@@ -233,14 +355,23 @@ Here is the normal chain:
    - adds the real handler logic
 4. `electron-preload.js`
    - exposes the handler safely to the frontend
-5. frontend shell/page
+5. `kdbRelationshipContracts.js`
+   - tells the app how KDB links are actually owned/read
+6. frontend shell/page
    - calls the preload API
+
+For the shared shell path, there is then an additional layer:
+
+7. `FilePageShell.vue`
+   - renders the file surface
+8. `dialogShellPayload.js`
+   - prepares canonical grouped dialog payloads
 
 If one step is missing, the feature is incomplete.
 
 ## What This Means For New `L1` Work
 
-When creating a new normal `L1`, these four files usually map to different parts of the birth sequence:
+When creating a new normal `L1`, these files usually map to different parts of the birth sequence:
 
 - `sqlite-schema.js`
   - real table owner
@@ -252,8 +383,14 @@ When creating a new normal `L1`, these four files usually map to different parts
   - databook and relationship ownership
 - `electron-preload.js`
   - frontend bridge exposure
+- `kdbRelationshipContracts.js`
+  - KDB owner-path and reverse-read contract
+- `FilePageShell.vue`
+  - proof that the shared file shell can actually use the new source
+- `dialogShellPayload.js`
+  - proof that grouped dialog payloads still follow canon for that source
 
-So if a new `L1` feels “half-real,” it is usually because one or more of these files was skipped.
+So if a new `L1` feels "half-real," it is usually because one or more of these files was skipped.
 
 ## Practical Review Order
 
@@ -263,10 +400,16 @@ If something is not working, check in this order:
    - is the frontend even allowed to call it?
 2. `electron-main.js`
    - is there a real handler?
-3. `sqlite-schema.js`
+3. `kdbRelationshipContracts.js`
+   - is the relationship ownership/read contract correct?
+4. `sqlite-schema.js`
    - does the needed table/path actually exist?
-4. `sqlite-db.js`
+5. `sqlite-db.js`
    - is the local DB actually being created/reset with the current baseline?
+6. `FilePageShell.vue`
+   - is the shared shell consuming the data correctly?
+7. `dialogShellPayload.js`
+   - is the dialog grouping preserving canon correctly?
 
 If you are doing architecture work, review in this order instead:
 
@@ -274,19 +417,23 @@ If you are doing architecture work, review in this order instead:
 2. `sqlite-db.js`
 3. `electron-main.js`
 4. `electron-preload.js`
+5. `kdbRelationshipContracts.js`
+6. `FilePageShell.vue`
+7. `dialogShellPayload.js`
 
-That order follows ownership from deepest structure to frontend exposure.
+That order follows ownership from deepest structure to shell usage.
 
 ## Biggest Things To Watch Out For
 
 - a table existing does not mean runtime ownership exists
 - a runtime handler existing does not mean preload exposure exists
 - a preload method existing does not mean the shell is using it correctly
+- a KDB token existing does not mean the bridge contract is complete
 - a visible shell does not mean the backend contract is real
 
 And one especially important rule for this repo:
 
-- do not patch missing ownership in the frontend if the real missing layer is one of these runtime files
+- do not patch missing ownership in the frontend if the real missing layer is one of these runtime or contract files
 
 ## Short Summary
 
@@ -296,3 +443,6 @@ If you want one sentence for each file:
 - `sqlite-db.js` = how the DB is opened and enforced locally
 - `electron-main.js` = where the app's backend behavior actually happens
 - `electron-preload.js` = the safe API bridge the frontend is allowed to use
+- `kdbRelationshipContracts.js` = how declared KDB links are actually owned and read
+- `FilePageShell.vue` = the main shared file-shell surface that proves whether the runtime path is usable
+- `dialogShellPayload.js` = the dialog grouping helper that should preserve canon instead of inventing it
