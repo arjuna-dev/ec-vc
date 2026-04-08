@@ -20,68 +20,33 @@
               label="Open Ingestion Shell"
               @click="openIngestionShell"
             />
-            <div
+            <ShellSelector
               v-if="showShellSelector && shellSelectorOptions.length"
               class="create-record-shell__shell-selector"
-            >
-              <q-select
-                :model-value="shellSelectorValue"
-                dense
-                dark
-                options-dark
-                borderless
-                emit-value
-                map-options
-                hide-bottom-space
-                hide-dropdown-icon
-                :options="shellSelectorOptions"
-                popup-content-class="create-record-shell__shell-selector-menu"
-                class="create-record-shell__shell-selector-control"
-                @update:model-value="emit('update:shellSelectorValue', $event)"
-              >
-                <template #selected-item="scope">
-                  <span class="create-record-shell__shell-selector-value">{{ scope.opt.label }}</span>
-                </template>
-                <template #option="scope">
-                  <q-item v-bind="scope.itemProps" class="create-record-shell__shell-selector-option">
-                    <q-item-section>
-                      <span class="create-record-shell__shell-selector-option-label">{{ scope.opt.label }}</span>
-                    </q-item-section>
-                  </q-item>
-                </template>
-              </q-select>
-            </div>
+              :model-value="shellSelectorValue"
+              :options="shellSelectorOptions"
+              @update:model-value="emit('update:shellSelectorValue', $event)"
+            />
             </template>
           </DialogShellTitleRow>
           <div class="create-record-shell__intake-lane">
-            <button
-              type="button"
-              class="create-record-shell__intake-toggle"
-              @click="supportResourcesCollapsed = !supportResourcesCollapsed"
+            <CollapsibleSectionShell
+              title="Resources"
+              :collapsed="supportResourcesCollapsed"
+              @toggle="supportResourcesCollapsed = !supportResourcesCollapsed"
             >
-              <span class="create-record-shell__intake-title">Resources</span>
-              <q-icon
-                :name="supportResourcesCollapsed ? 'expand_more' : 'expand_less'"
-                class="create-record-shell__intake-toggle-icon"
-              />
-            </button>
-            <div v-if="!supportResourcesCollapsed" class="create-record-shell__intake-body">
+              <div class="create-record-shell__intake-body">
               <div class="create-record-shell__intake-column">
                 <div class="create-record-shell__intake-column-title">Artifacts</div>
-                <div
+                <DropZone
                   class="create-record-shell__artifact-drop"
                   :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
-                  @dragover.prevent="artifactDragOver = true"
-                  @dragleave.prevent="artifactDragOver = false"
-                  @drop.prevent="onArtifactDrop"
+                  :active="artifactDragOver"
+                  :caption="artifactDragOver ? 'Release to stage files' : 'Drag files or a folder here'"
+                  @dragover="artifactDragOver = true"
+                  @dragleave="artifactDragOver = false"
+                  @drop="onArtifactDrop"
                 >
-                  <div class="create-record-shell__artifact-drop-copy">
-                    <div class="create-record-shell__artifact-drop-title">Artifacts</div>
-                  <div class="create-record-shell__artifact-drop-caption">
-                    {{ artifactDragOver ? 'Release to stage files' : 'Drag files or a folder here' }}
-                  </div>
-                </div>
-
                 <div v-if="stagedArtifacts.length" class="create-record-shell__artifact-drop-list">
                   <div class="create-record-shell__artifact-drop-list-head">
                     <q-checkbox
@@ -97,29 +62,15 @@
                   </div>
 
                   <div v-if="availableArtifacts.length" class="create-record-shell__artifact-drop-items">
-                    <label
+                    <ArtifactRow
                       v-for="artifact in availableArtifacts"
                       :key="artifact.id"
-                      class="create-record-shell__artifact-drop-item"
-                    >
-                      <q-checkbox
-                        :model-value="selectedArtifactIds.includes(artifact.id)"
-                        dense
-                        size="xs"
-                        checked-icon="check_box"
-                        unchecked-icon="check_box_outline_blank"
-                        class="create-record-shell__artifact-checkbox"
-                        @update:model-value="toggleArtifactSelection(artifact.id, $event)"
-                      />
-                      <div class="create-record-shell__artifact-drop-item-preview">
-                        <q-icon
-                          :name="artifactPreviewIcon(artifact)"
-                          class="create-record-shell__artifact-drop-item-icon"
-                        />
-                      </div>
-                      <span class="create-record-shell__artifact-drop-item-name">{{ artifact.name }}</span>
-                      <span class="create-record-shell__artifact-drop-item-size">{{ formatArtifactSize(artifact.size) }}</span>
-                    </label>
+                      :selected="selectedArtifactIds.includes(artifact.id)"
+                      :icon="artifactPreviewIcon(artifact)"
+                      :name="artifact.name"
+                      :size="formatArtifactSize(artifact.size)"
+                      @update:selected="toggleArtifactSelection(artifact.id, $event)"
+                    />
                   </div>
 
                   <div v-else class="create-record-shell__artifact-drop-empty">
@@ -138,7 +89,7 @@
                     label="Autmatically process files as I drop"
                   />
                 </div>
-              </div>
+                </DropZone>
               </div>
 
               <div class="create-record-shell__intake-column">
@@ -150,14 +101,11 @@
                   </div>
 
                   <div class="create-record-shell__processing-sections">
-                    <section class="create-record-shell__processing-box">
-                      <div class="create-record-shell__processing-box-head">
-                        <div class="create-record-shell__processing-box-title">Ingestion</div>
-                        <div class="create-record-shell__processing-panel-meta">
-                          {{ processingArtifacts.length }} loading
-                        </div>
-                      </div>
-
+                    <ProcessingBox
+                      title="Ingestion"
+                      :meta="`${processingArtifacts.length} loading`"
+                      class="create-record-shell__processing-box"
+                    >
                       <div v-if="processingArtifacts.length" class="create-record-shell__processing-list">
                         <label
                           v-for="artifact in processingArtifacts"
@@ -188,11 +136,10 @@
                       <div v-else class="create-record-shell__processing-empty">
                         Drop files on the left to stage them for this record.
                       </div>
-                    </section>
+                    </ProcessingBox>
 
-                    <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
-                      <div class="create-record-shell__processing-box-head">
-                        <div class="create-record-shell__processing-box-title">URLs</div>
+                    <ProcessingBox title="URLs" compact class="create-record-shell__processing-box create-record-shell__processing-box--compact">
+                      <template #actions>
                         <button
                           type="button"
                           class="create-record-shell__processing-delete"
@@ -201,44 +148,21 @@
                         >
                           Delete
                         </button>
-                      </div>
-                      <input
-                        v-model="companionUrl"
-                        type="text"
-                        class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
-                        @input="markDialogChanged"
-                        @keydown.enter.stop.prevent="addCompanionEntry('url')"
+                      </template>
+                      <EntryInputListBox
+                        :input-value="companionUrl"
+                        :entries="urlEntries"
+                        :selected-ids="selectedUrlEntryIds"
+                        :expanded-ids="expandedEntryIds"
+                        @update:input-value="companionUrl = $event; markDialogChanged()"
+                        @submit="addCompanionEntry('url')"
+                        @toggle-select="toggleCompanionEntrySelection('url', $event[0], $event[1])"
+                        @toggle-expanded="toggleCompanionEntryExpanded"
                       />
-                      <div v-if="urlEntries.length" class="create-record-shell__processing-entry-list">
-                        <label
-                          v-for="entry in urlEntries"
-                          :key="entry.id"
-                          class="create-record-shell__processing-entry-row"
-                          :class="{ 'create-record-shell__processing-entry-row--expanded': expandedEntryIds.includes(entry.id) }"
-                        >
-                          <q-checkbox
-                            :model-value="selectedUrlEntryIds.includes(entry.id)"
-                            dense
-                            size="xs"
-                            checked-icon="check_box"
-                            unchecked-icon="check_box_outline_blank"
-                            class="create-record-shell__artifact-checkbox"
-                            @update:model-value="toggleCompanionEntrySelection('url', entry.id, $event)"
-                          />
-                          <button
-                            type="button"
-                            class="create-record-shell__processing-entry-toggle"
-                            @click="toggleCompanionEntryExpanded(entry.id)"
-                          >
-                            {{ entry.value }}
-                          </button>
-                        </label>
-                      </div>
-                    </section>
+                    </ProcessingBox>
 
-                    <section class="create-record-shell__processing-box create-record-shell__processing-box--compact">
-                      <div class="create-record-shell__processing-box-head">
-                        <div class="create-record-shell__processing-box-title">Blurbs</div>
+                    <ProcessingBox title="Blurbs" compact class="create-record-shell__processing-box create-record-shell__processing-box--compact">
+                      <template #actions>
                         <button
                           type="button"
                           class="create-record-shell__processing-delete"
@@ -247,46 +171,25 @@
                         >
                           Delete
                         </button>
-                      </div>
-                      <input
-                        v-model="companionBlurb"
-                        type="text"
-                        class="create-record-shell__processing-placeholder-box create-record-shell__processing-placeholder-box--input"
-                        @input="markDialogChanged"
-                        @keydown.enter.stop.prevent="addCompanionEntry('blurb')"
+                      </template>
+                      <EntryInputListBox
+                        :input-value="companionBlurb"
+                        :entries="blurbEntries"
+                        :selected-ids="selectedBlurbEntryIds"
+                        :expanded-ids="expandedEntryIds"
+                        @update:input-value="companionBlurb = $event; markDialogChanged()"
+                        @submit="addCompanionEntry('blurb')"
+                        @toggle-select="toggleCompanionEntrySelection('blurb', $event[0], $event[1])"
+                        @toggle-expanded="toggleCompanionEntryExpanded"
                       />
-                      <div v-if="blurbEntries.length" class="create-record-shell__processing-entry-list">
-                        <label
-                          v-for="entry in blurbEntries"
-                          :key="entry.id"
-                          class="create-record-shell__processing-entry-row"
-                          :class="{ 'create-record-shell__processing-entry-row--expanded': expandedEntryIds.includes(entry.id) }"
-                        >
-                          <q-checkbox
-                            :model-value="selectedBlurbEntryIds.includes(entry.id)"
-                            dense
-                            size="xs"
-                            checked-icon="check_box"
-                            unchecked-icon="check_box_outline_blank"
-                            class="create-record-shell__artifact-checkbox"
-                            @update:model-value="toggleCompanionEntrySelection('blurb', entry.id, $event)"
-                          />
-                          <button
-                            type="button"
-                            class="create-record-shell__processing-entry-toggle"
-                            @click="toggleCompanionEntryExpanded(entry.id)"
-                          >
-                            {{ entry.value }}
-                          </button>
-                        </label>
-                      </div>
-                    </section>
+                    </ProcessingBox>
 
                   </div>
                 </div>
               </div>
               </div>
-            </div>
+              </div>
+            </CollapsibleSectionShell>
           </div>
         </div>
 
@@ -308,33 +211,11 @@
           </button>
 
           <template v-if="!recordDataCollapsed">
-            <div class="create-record-shell__tabs">
-              <div class="create-record-shell__tabs-left">
-                <button
-                  v-for="section in leftPanelSections"
-                  :key="section.key"
-                  type="button"
-                  class="create-record-shell__tab"
-                  :class="{ 'create-record-shell__tab--active': section.key === activeSectionKey }"
-                  @click="activeSectionKey = section.key"
-                >
-                  {{ section.label }}
-                </button>
-              </div>
-
-              <div class="create-record-shell__tabs-right">
-                <button
-                  v-for="section in rightSections"
-                  :key="section.key"
-                  type="button"
-                  class="create-record-shell__tab"
-                  :class="{ 'create-record-shell__tab--active': section.key === activeSectionKey }"
-                  @click="activeSectionKey = section.key"
-                >
-                  {{ section.label }}
-                </button>
-              </div>
-            </div>
+            <SectionTabs
+              v-model="activeSectionKey"
+              :left-tabs="leftPanelSections"
+              :right-tabs="rightSections"
+            />
 
             <div class="create-record-shell__panel ds-mini-scrollbar">
               <div class="create-record-shell__panel-head">
@@ -370,24 +251,15 @@
                     :style="{ '--create-record-shell-label-width': activeFieldLabelWidth }"
                   >
                     <div class="create-record-shell__fields-grid create-record-shell__fields-grid--left">
-                      <div
+                      <FieldMapRow
                         v-for="fieldEntry in subgroupLeftEntries(subgroup)"
                         :key="fieldEntry.token.key"
-                        class="create-record-shell__field"
-                        :class="{
-                          'create-record-shell__field--wide': isWideField(fieldEntry.token),
-                          'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(fieldEntry.token),
-                        }"
+                        :label="fieldEntry.token.label"
+                        :type-hint="formatFieldType(fieldEntry.token.tokenType)"
+                        :wide="isWideField(fieldEntry.token)"
+                        :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
                       >
-                        <div class="create-record-shell__field-label-row">
-                          <div class="create-record-shell__field-label-wrap">
-                            <div class="create-record-shell__field-label">
-                              {{ fieldEntry.token.label }}
-                              <q-tooltip anchor="top middle" self="bottom middle">
-                                {{ formatFieldType(fieldEntry.token.tokenType) }}
-                              </q-tooltip>
-                            </div>
-                          </div>
+                        <template #parent-link>
                           <q-btn
                             v-if="fieldHasParentRecordLink(fieldEntry.token)"
                             flat
@@ -399,9 +271,8 @@
                             :aria-label="`Open source record for ${fieldEntry.token.label}`"
                             @click="openFieldParentRecord(fieldEntry.token)"
                           />
-                        </div>
-
-                        <div class="create-record-shell__field-value-row">
+                        </template>
+                        <template #input>
                           <q-select
                             v-if="fieldEntry.token.tokenType === 'select_multi'"
                             :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
@@ -451,7 +322,8 @@
                             ]"
                             @update:model-value="updateField(fieldEntry.token.key, $event)"
                           />
-
+                        </template>
+                        <template #action>
                           <q-btn
                             v-if="showFieldVerificationAction(fieldEntry.token)"
                             flat
@@ -492,29 +364,20 @@
                               </q-list>
                             </q-menu>
                           </q-btn>
-                        </div>
-                      </div>
+                        </template>
+                      </FieldMapRow>
                     </div>
 
                     <div class="create-record-shell__fields-grid create-record-shell__fields-grid--right">
-                      <div
+                      <FieldMapRow
                         v-for="fieldEntry in subgroupRightEntries(subgroup)"
                         :key="fieldEntry.token.key"
-                        class="create-record-shell__field"
-                        :class="{
-                          'create-record-shell__field--wide': isWideField(fieldEntry.token),
-                          'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(fieldEntry.token),
-                        }"
+                        :label="fieldEntry.token.label"
+                        :type-hint="formatFieldType(fieldEntry.token.tokenType)"
+                        :wide="isWideField(fieldEntry.token)"
+                        :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
                       >
-                        <div class="create-record-shell__field-label-row">
-                          <div class="create-record-shell__field-label-wrap">
-                            <div class="create-record-shell__field-label">
-                              {{ fieldEntry.token.label }}
-                              <q-tooltip anchor="top middle" self="bottom middle">
-                                {{ formatFieldType(fieldEntry.token.tokenType) }}
-                              </q-tooltip>
-                            </div>
-                          </div>
+                        <template #parent-link>
                           <q-btn
                             v-if="fieldHasParentRecordLink(fieldEntry.token)"
                             flat
@@ -526,9 +389,8 @@
                             :aria-label="`Open source record for ${fieldEntry.token.label}`"
                             @click="openFieldParentRecord(fieldEntry.token)"
                           />
-                        </div>
-
-                        <div class="create-record-shell__field-value-row">
+                        </template>
+                        <template #input>
                           <q-select
                             v-if="fieldEntry.token.tokenType === 'select_multi'"
                             :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
@@ -578,7 +440,8 @@
                             ]"
                             @update:model-value="updateField(fieldEntry.token.key, $event)"
                           />
-
+                        </template>
+                        <template #action>
                           <q-btn
                             v-if="showFieldVerificationAction(fieldEntry.token)"
                             flat
@@ -619,8 +482,8 @@
                               </q-list>
                             </q-menu>
                           </q-btn>
-                        </div>
-                      </div>
+                        </template>
+                      </FieldMapRow>
                     </div>
                   </div>
                 </section>
@@ -634,24 +497,15 @@
                 <div
                   class="create-record-shell__fields-grid create-record-shell__fields-grid--left"
                 >
-                  <div
+                  <FieldMapRow
                     v-for="fieldEntry in leftFieldEntries"
                     :key="fieldEntry.token.key"
-                    class="create-record-shell__field"
-                    :class="{
-                      'create-record-shell__field--wide': isWideField(fieldEntry.token),
-                      'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(fieldEntry.token),
-                    }"
+                    :label="fieldEntry.token.label"
+                    :type-hint="formatFieldType(fieldEntry.token.tokenType)"
+                    :wide="isWideField(fieldEntry.token)"
+                    :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
                   >
-                    <div class="create-record-shell__field-label-row">
-                      <div class="create-record-shell__field-label-wrap">
-                        <div class="create-record-shell__field-label">
-                          {{ fieldEntry.token.label }}
-                          <q-tooltip anchor="top middle" self="bottom middle">
-                            {{ formatFieldType(fieldEntry.token.tokenType) }}
-                          </q-tooltip>
-                        </div>
-                      </div>
+                    <template #parent-link>
                       <q-btn
                         v-if="fieldHasParentRecordLink(fieldEntry.token)"
                         flat
@@ -663,9 +517,8 @@
                         :aria-label="`Open source record for ${fieldEntry.token.label}`"
                         @click="openFieldParentRecord(fieldEntry.token)"
                       />
-                    </div>
-
-                    <div class="create-record-shell__field-value-row">
+                    </template>
+                    <template #input>
                       <q-select
                         v-if="fieldEntry.token.tokenType === 'select_multi'"
                         :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
@@ -715,7 +568,8 @@
                         ]"
                         @update:model-value="updateField(fieldEntry.token.key, $event)"
                       />
-
+                    </template>
+                    <template #action>
                       <q-btn
                         v-if="showFieldVerificationAction(fieldEntry.token)"
                         flat
@@ -756,31 +610,22 @@
                           </q-list>
                         </q-menu>
                       </q-btn>
-                    </div>
-                  </div>
+                    </template>
+                  </FieldMapRow>
                 </div>
 
                 <div
                   class="create-record-shell__fields-grid create-record-shell__fields-grid--right"
                 >
-                  <div
+                  <FieldMapRow
                     v-for="fieldEntry in rightFieldEntries"
                     :key="fieldEntry.token.key"
-                    class="create-record-shell__field"
-                    :class="{
-                      'create-record-shell__field--wide': isWideField(fieldEntry.token),
-                      'create-record-shell__field--verification-needed': shouldHighlightFieldVerification(fieldEntry.token),
-                    }"
+                    :label="fieldEntry.token.label"
+                    :type-hint="formatFieldType(fieldEntry.token.tokenType)"
+                    :wide="isWideField(fieldEntry.token)"
+                    :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
                   >
-                    <div class="create-record-shell__field-label-row">
-                      <div class="create-record-shell__field-label-wrap">
-                        <div class="create-record-shell__field-label">
-                          {{ fieldEntry.token.label }}
-                          <q-tooltip anchor="top middle" self="bottom middle">
-                            {{ formatFieldType(fieldEntry.token.tokenType) }}
-                          </q-tooltip>
-                        </div>
-                      </div>
+                    <template #parent-link>
                       <q-btn
                         v-if="fieldHasParentRecordLink(fieldEntry.token)"
                         flat
@@ -792,9 +637,8 @@
                         :aria-label="`Open source record for ${fieldEntry.token.label}`"
                         @click="openFieldParentRecord(fieldEntry.token)"
                       />
-                    </div>
-
-                    <div class="create-record-shell__field-value-row">
+                    </template>
+                    <template #input>
                       <q-select
                         v-if="fieldEntry.token.tokenType === 'select_multi'"
                         :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
@@ -844,7 +688,8 @@
                         ]"
                         @update:model-value="updateField(fieldEntry.token.key, $event)"
                       />
-
+                    </template>
+                    <template #action>
                       <q-btn
                         v-if="showFieldVerificationAction(fieldEntry.token)"
                         flat
@@ -885,8 +730,8 @@
                           </q-list>
                         </q-menu>
                       </q-btn>
-                    </div>
-                  </div>
+                    </template>
+                  </FieldMapRow>
                 </div>
               </div>
 
@@ -928,6 +773,14 @@ import { useRoute, useRouter } from 'vue-router'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import DialogShellFooter from 'src/components/DialogShellFooter.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
+import CollapsibleSectionShell from 'src/components/CollapsibleSectionShell.vue'
+import DropZone from 'src/components/DropZone.vue'
+import ArtifactRow from 'src/components/ArtifactRow.vue'
+import ProcessingBox from 'src/components/ProcessingBox.vue'
+import SectionTabs from 'src/components/SectionTabs.vue'
+import ShellSelector from 'src/components/ShellSelector.vue'
+import FieldMapRow from 'src/components/FieldMapRow.vue'
+import EntryInputListBox from 'src/components/EntryInputListBox.vue'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { setPendingIngestionShellRequest } from 'src/utils/ingestionShellState'
 

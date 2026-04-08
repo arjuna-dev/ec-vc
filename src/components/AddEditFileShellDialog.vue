@@ -64,107 +64,19 @@
                 This menu configuration is only available for File System owner.
               </div>
               <div class="file-structure-shell__table-shell">
-                <div
-                  class="file-structure-shell__table-wrap ds-mini-scrollbar"
-                >
-                  <table class="file-structure-shell__table">
-                  <thead>
-                    <tr>
-                      <th>Sections</th>
-                      <th
-                        v-for="column in sectionConfigurationColumns"
-                        :key="column.id"
-                        class="file-structure-shell__dynamic-column-head"
-                        :class="{ 'file-structure-shell__dynamic-column-head--summary': column.id === 'summary' }"
-                      >
-                        <div class="file-structure-shell__column-head-inner">
-                          <input
-                            v-if="column.isEditing"
-                            v-model="column.label"
-                            type="text"
-                            class="file-structure-shell__column-input"
-                            @blur="finishColumnEdit(column.id)"
-                            @keydown.enter.prevent="finishColumnEdit(column.id)"
-                          />
-                          <span v-else>{{ column.label }}</span>
-                          <button
-                            v-if="canConfigureFileSystem && column.deletable"
-                            type="button"
-                            class="file-structure-shell__delete-btn"
-                            @click="removeSectionConfigurationColumn(column.id)"
-                          >
-                            <q-icon name="close" />
-                          </button>
-                        </div>
-                      </th>
-                      <th class="file-structure-shell__add-column-head">
-                        <button
-                          :disabled="!canConfigureFileSystem"
-                          type="button"
-                          class="file-structure-shell__add-column-btn"
-                          @click="addSectionConfigurationColumn"
-                        >
-                          <q-icon name="add" />
-                          <q-tooltip class="file-structure-shell__action-tooltip">Add Parameter</q-tooltip>
-                        </button>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="row in sectionConfigurationRows" :key="row.key">
-                      <td class="file-structure-shell__row-head">
-                        <div class="file-structure-shell__row-head-inner">
-                          <input
-                            v-if="row.isEditing"
-                            v-model="row.label"
-                            type="text"
-                            class="file-structure-shell__row-input"
-                            @blur="finishRowEdit(row.key)"
-                            @keydown.enter.prevent="finishRowEdit(row.key)"
-                          />
-                          <span v-else>{{ row.label }}</span>
-                          <button
-                            v-if="canConfigureFileSystem && row.deletable"
-                            type="button"
-                            class="file-structure-shell__delete-btn"
-                            @click="removeSectionConfigurationRow(row.key)"
-                          >
-                            <q-icon name="close" />
-                          </button>
-                        </div>
-                      </td>
-                      <td
-                        v-for="column in sectionConfigurationColumns"
-                        :key="`${row.key}:${column.id}`"
-                        class="file-structure-shell__table-cell"
-                        :class="{ 'file-structure-shell__table-cell--summary': column.id === 'summary' }"
-                      >
-                        <div class="file-structure-shell__table-cell-surface" />
-                      </td>
-                      <td class="file-structure-shell__add-column-spacer" />
-                    </tr>
-                    <tr>
-                      <td class="file-structure-shell__add-row-cell">
-                        <button
-                          :disabled="!canConfigureFileSystem"
-                          type="button"
-                          class="file-structure-shell__add-row-btn"
-                          @click="addSectionConfigurationRow"
-                        >
-                          <q-icon name="add" />
-                          <q-tooltip class="file-structure-shell__action-tooltip">Add Section</q-tooltip>
-                        </button>
-                      </td>
-                      <td
-                        v-for="column in sectionConfigurationColumns"
-                        :key="`add-row:${column.id}`"
-                        class="file-structure-shell__add-row-spacer"
-                      />
-                      <td class="file-structure-shell__add-column-spacer" />
-                    </tr>
-                  </tbody>
-                  </table>
-                </div>
+                <EditableGridTable
+                  :columns="sectionConfigurationColumns"
+                  :rows="sectionConfigurationRows"
+                  :can-edit="canConfigureFileSystem"
+                  @updateColumnLabel="updateSectionConfigurationColumnLabel"
+                  @finishColumnEdit="finishColumnEdit"
+                  @removeColumn="removeSectionConfigurationColumn"
+                  @addColumn="addSectionConfigurationColumn"
+                  @updateRowLabel="updateSectionConfigurationRowLabel"
+                  @finishRowEdit="finishRowEdit"
+                  @removeRow="removeSectionConfigurationRow"
+                  @addRow="addSectionConfigurationRow"
+                />
               </div>
             </div>
           </section>
@@ -262,6 +174,7 @@
 import { computed, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import DialogShellFooter from 'src/components/DialogShellFooter.vue'
+import EditableGridTable from 'src/components/EditableGridTable.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -352,6 +265,14 @@ function addSectionConfigurationColumn() {
   nextSectionColumnId.value += 1
 }
 
+function updateSectionConfigurationColumnLabel(columnId, label) {
+  sectionConfigurationColumns.value = sectionConfigurationColumns.value.map((column) => (
+    column.id === columnId
+      ? { ...column, label }
+      : column
+  ))
+}
+
 function finishColumnEdit(columnId) {
   if (!canConfigureFileSystem.value) return
   sectionConfigurationColumns.value = sectionConfigurationColumns.value.map((column) => {
@@ -378,6 +299,14 @@ function addSectionConfigurationRow() {
     },
   ]
   nextSectionRowId.value += 1
+}
+
+function updateSectionConfigurationRowLabel(rowKey, label) {
+  sectionConfigurationRows.value = sectionConfigurationRows.value.map((row) => (
+    row.key === rowKey
+      ? { ...row, label }
+      : row
+  ))
 }
 
 function finishRowEdit(rowKey) {

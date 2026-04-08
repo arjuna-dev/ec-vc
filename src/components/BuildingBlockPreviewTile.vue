@@ -654,6 +654,73 @@
         <RecordFeedTabLabel label="Activity" />
       </template>
 
+      <template v-else-if="blockKey === 'collapsible-section-shell'">
+        <CollapsibleSectionShell title="Resources" :collapsed="false">
+          <div class="building-block-preview-tile__placeholder">
+            <div class="building-block-preview-tile__placeholder-title">Section Body</div>
+          </div>
+        </CollapsibleSectionShell>
+      </template>
+
+      <template v-else-if="blockKey === 'drop-zone'">
+        <DropZone caption="Drag files or a folder here" />
+      </template>
+
+      <template v-else-if="blockKey === 'artifact-row'">
+        <ArtifactRow selected icon="description" name="PitchDeck.pdf" size="240 KB" />
+      </template>
+
+      <template v-else-if="blockKey === 'processing-box'">
+        <ProcessingBox title="Ingestion" meta="3 loading">
+          <div class="building-block-preview-tile__record-feed-surface-sample building-block-preview-tile__processing-box-sample">
+            <span>Artifact A.pdf</span>
+            <span>Artifact B.docx</span>
+          </div>
+        </ProcessingBox>
+      </template>
+
+      <template v-else-if="blockKey === 'section-tabs'">
+        <SectionTabs
+          model-value="company-overview"
+          :left-tabs="sectionTabsLeftSample"
+          :right-tabs="sectionTabsRightSample"
+        />
+      </template>
+
+      <template v-else-if="blockKey === 'shell-selector'">
+        <ShellSelector model-value="record" :options="shellSelectorSampleOptions" />
+      </template>
+
+      <template v-else-if="blockKey === 'field-map-row'">
+        <FieldMapRow label="Industry" type-hint="Text">
+          <template #input>
+            <div class="building-block-preview-tile__processing-box-sample">
+              Enterprise SaaS
+            </div>
+          </template>
+          <template #action>
+            <RecordFieldStatusIcon state="verified" />
+          </template>
+        </FieldMapRow>
+      </template>
+
+      <template v-else-if="blockKey === 'entry-input-list-box'">
+        <EntryInputListBox
+          input-value="https://example.com"
+          :entries="entryInputListSampleEntries"
+          :selected-ids="entryInputListSampleSelected"
+          :expanded-ids="entryInputListSampleExpanded"
+        />
+      </template>
+
+      <template v-else-if="blockKey === 'editable-grid-table'">
+        <EditableGridTable
+          :columns="editableGridSampleColumns"
+          :rows="editableGridSampleRows"
+          :can-edit="true"
+        />
+      </template>
+
       <template v-else-if="blockKey === 'file-filter-menu'">
         <FileFilterMenu
           title="File Filter"
@@ -710,6 +777,15 @@ import RecordFeedLabel from 'src/components/RecordFeedLabel.vue'
 import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
 import RecordFeedTabLabel from 'src/components/RecordFeedTabLabel.vue'
 import RecordFeedTime from 'src/components/RecordFeedTime.vue'
+import CollapsibleSectionShell from 'src/components/CollapsibleSectionShell.vue'
+import DropZone from 'src/components/DropZone.vue'
+import ArtifactRow from 'src/components/ArtifactRow.vue'
+import ProcessingBox from 'src/components/ProcessingBox.vue'
+import SectionTabs from 'src/components/SectionTabs.vue'
+import ShellSelector from 'src/components/ShellSelector.vue'
+import FieldMapRow from 'src/components/FieldMapRow.vue'
+import EntryInputListBox from 'src/components/EntryInputListBox.vue'
+import EditableGridTable from 'src/components/EditableGridTable.vue'
 import RecordHeroFieldCard from 'src/components/RecordHeroFieldCard.vue'
 import RecordFieldDescription from 'src/components/RecordFieldDescription.vue'
 import RecordFieldLabel from 'src/components/RecordFieldLabel.vue'
@@ -852,6 +928,39 @@ const fileFilterMenuSampleSections = [
       { key: 'updated-at', label: 'Updated At', selected: false },
     ],
   },
+]
+
+const sectionTabsLeftSample = [
+  { key: 'company-overview', label: 'Company Overview' },
+  { key: 'product', label: 'Product' },
+]
+
+const sectionTabsRightSample = [
+  { key: 'operations', label: 'Operations' },
+  { key: 'finance', label: 'Finance' },
+]
+
+const shellSelectorSampleOptions = [
+  { label: 'Record', value: 'record' },
+  { label: 'File', value: 'file' },
+]
+
+const entryInputListSampleEntries = [
+  { id: 'url-1', value: 'https://alpha.example.com' },
+  { id: 'url-2', value: 'Founder meeting notes aligned with current sourcing thread.' },
+]
+
+const entryInputListSampleSelected = ['url-1']
+const entryInputListSampleExpanded = ['url-2']
+
+const editableGridSampleColumns = [
+  { id: 'owner', label: 'Owner', isEditing: false, deletable: true },
+  { id: 'summary', label: 'Summary', isEditing: false, deletable: true },
+]
+
+const editableGridSampleRows = [
+  { key: 'company-overview', label: 'Company Overview', isEditing: false, deletable: true },
+  { key: 'funding', label: 'Funding', isEditing: false, deletable: true },
 ]
 const liveActionOptions = [
   { label: 'Companies', value: 'companies' },
@@ -1544,6 +1653,10 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.building-block-preview-tile__processing-box-sample {
+  font-size: var(--ds-font-size-xs);
 }
 
 
