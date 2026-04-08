@@ -32,13 +32,13 @@
       </div>
 
       <div class="add-edit-bb-builder__body">
-        <div class="add-edit-bb-builder__staging-frame">
+        <BbRenderFrame>
           <BuildingBlockPreviewTile
             v-if="selectedBlockKey"
             :block-key="selectedBlockKey"
             class="add-edit-bb-builder__rendered-bb"
           />
-        </div>
+        </BbRenderFrame>
         <div class="add-edit-bb-builder__divider add-edit-bb-builder__divider--body" />
         <div class="add-edit-bb-builder__tabs-row">
           <SectionTabs
@@ -78,6 +78,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import BbRenderFrame from 'src/components/BbRenderFrame.vue'
 import BbSelectionFrame from 'src/components/BbSelectionFrame.vue'
 import BuildingBlockPreviewTile from 'src/components/BuildingBlockPreviewTile.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
@@ -206,16 +207,6 @@ function clearRenderedBlock() {
 
 .add-edit-bb-builder__divider--body {
   margin: 0;
-}
-
-.add-edit-bb-builder__staging-frame {
-  width: 100%;
-  min-height: 100px;
-  box-sizing: border-box;
-  padding: 10px;
-  border: 1px solid var(--ds-color-brand-light-grey);
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-color-brand-white);
 }
 
 .add-edit-bb-builder__rendered-bb {

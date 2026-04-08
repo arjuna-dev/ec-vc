@@ -736,6 +736,14 @@
         </BbSelectionFrame>
       </template>
 
+      <template v-else-if="blockKey === 'bb-render-frame'">
+        <BbRenderFrame>
+          <div class="building-block-preview-tile__bb-render-frame-sample">
+            <RecordTitle title="Record Title" />
+          </div>
+        </BbRenderFrame>
+      </template>
+
       <template v-else-if="blockKey === 'file-filter-menu'">
         <FileFilterMenu
           title="File Filter"
@@ -801,6 +809,7 @@ import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
 import EntryInputListBox from 'src/components/EntryInputListBox.vue'
 import EditableGridTable from 'src/components/EditableGridTable.vue'
+import BbRenderFrame from 'src/components/BbRenderFrame.vue'
 import BbSelectionFrame from 'src/components/BbSelectionFrame.vue'
 import RecordHeroFieldCard from 'src/components/RecordHeroFieldCard.vue'
 import RecordFieldDescription from 'src/components/RecordFieldDescription.vue'
@@ -1695,6 +1704,10 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(2, minmax(0, max-content));
   gap: 10px 12px;
   align-items: start;
+}
+
+.building-block-preview-tile__bb-render-frame-sample {
+  width: 100%;
 }
 
 @media (max-width: 900px) {
