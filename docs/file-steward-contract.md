@@ -112,6 +112,9 @@ The `File Steward` should:
 - protect `KDB` as the required shared linkage section without pretending every `L1` must use one identical relationship leaf list
 - protect declared branch-capable `L1`s from being normalized into the wrong table model
 - help keep file naming, loader naming, and menu naming aligned
+- ensure new normal `L1`s are born with reciprocal KDB bridge wiring as part of file birth, not as a later repair step
+- ensure each canon-declared KDB relationship has an approved owner path and reverse-read path from the start
+- ensure `L1` bootstrap makes the bridge choice between dedicated join table and shared `KDB_Relationships` explicitly
 
 ## Stop Conditions
 
@@ -123,6 +126,8 @@ The `File Steward` should stop implementation and surface the gap when:
 - runtime ownership and canonical ownership do not match
 - a file surface is borrowing another entity's structure without explicit approval
 - branch behavior is being implemented without explicit canonical branch metadata
+- a new normal `L1` is being introduced without its reciprocal KDB bridge layer
+- KDB bridge ownership is being invented ad hoc after file birth instead of being declared during bootstrap
 
 ## Working Principle
 

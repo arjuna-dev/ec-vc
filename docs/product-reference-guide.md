@@ -883,6 +883,7 @@ Do not:
 - add a relationship token without planning the owner path
 - fake reverse appearance in only one surface
 - patch a single page to behave as if the relationship were complete
+- treat manual back-wiring after file birth as the normal way new `L1` relationships should be introduced
 
 Current shared owner-path standard:
 
@@ -890,6 +891,16 @@ Current shared owner-path standard:
 - otherwise use the shared `KDB_Relationships` runtime contract
 
 This keeps even non-golden `L1`s and `Knowledge DB` files on the same relationship system instead of drifting into custom pair logic.
+
+Birth rule for new normal `L1`s:
+
+- new normal `L1`s should be born with their reciprocal KDB relationship layer loaded
+- that birth step should include:
+  - reciprocal KDB declarations
+  - one approved owner path per relationship
+  - one reverse-read path per relationship
+  - the bridge choice between dedicated join table and shared `KDB_Relationships`
+- if those pieces are missing, the `L1` bootstrap is incomplete even if the table, route, and shell already exist
 
 ## Current Relationship Status
 

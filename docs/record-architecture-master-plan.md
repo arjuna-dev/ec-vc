@@ -725,6 +725,12 @@ That means:
 - the new `L1` should not be left in a visible-but-nonfunctional state
 - validation should confirm the new `L1` is actually createable/editable before the task is treated as complete
 
+Relationship bootstrap is part of the same rule:
+
+- new normal `L1` creation should also create the reciprocal KDB bridge layer with the rest of the bootstrap
+- relationship bridge work should not be treated as an optional later pass after the file/table/runtime owner already exists
+- if a new `L1` is born without its reciprocal KDB bridge layer, that bootstrap is incomplete
+
 Default subsection baseline:
 
 - every new `L1` should at minimum expose:
@@ -742,6 +748,10 @@ KDB propagation rule:
 - do not create one-off relationship behavior for a single page, dialog, or record surface
 - reciprocal KDB updates across the other relevant `L1`s are part of the initial implementation, not a later polish pass
 - if the intended product rule is that records should be linkable across the DB set, that propagation must happen during the `L1` bootstrap itself
+- reciprocal KDB declarations should be born with the `L1`, not manually discovered later
+- the bridge contract should also be born with the `L1`, not hand-added only after drift is noticed
+- bootstrap should decide whether each approved relationship uses a dedicated join table or the shared `KDB_Relationships` owner path
+- manual back-wiring after file birth should be treated as a temporary repair, not as the intended architecture rule
 
 ### Current Mandatory KDB Set
 
@@ -829,6 +839,7 @@ Working rule:
 - existing domain-specific relationship tables may continue where they are already meaningful and approved
 - canon-declared KDB links without that special owner path should use the shared `KDB_Relationships` contract
 - reverse appearance should be maintained through the same shared contract
+- the choice between domain-specific join table and shared `KDB_Relationships` should be made during `L1` bootstrap, not improvised later per page or per file
 
 ## Human System Spine
 
