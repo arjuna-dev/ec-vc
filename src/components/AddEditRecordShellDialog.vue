@@ -103,7 +103,7 @@
                   <div class="create-record-shell__processing-sections">
                     <ProcessingBox
                       title="Ingestion"
-                      :meta="`${processingArtifacts.length} loading`"
+                      :meta="`${processingArtifacts.length} queued`"
                       class="create-record-shell__processing-box"
                     >
                       <div v-if="processingArtifacts.length" class="create-record-shell__processing-list">
@@ -122,15 +122,22 @@
                             @update:model-value="toggleArtifactSelection(artifact.id, $event)"
                           />
                           <span class="create-record-shell__processing-item-name">{{ artifact.name }}</span>
-                          <span class="create-record-shell__processing-item-status">
-                            <q-spinner size="12px" color="dark" class="create-record-shell__processing-spinner" />
-                            Loading
+                          <button
+                            v-if="!artifact.processedArtifactId"
+                            type="button"
+                            class="create-record-shell__processing-start"
+                            @click="startArtifactProcessing(artifact.id)"
+                          >
+                            Start
+                          </button>
+                          <span v-else class="create-record-shell__processing-item-status">
+                            Started
                           </span>
                         </label>
                       </div>
 
                       <div v-else-if="stagedArtifacts.length" class="create-record-shell__processing-ready">
-                        Select artifacts on the left to move them into processing.
+                        Files added on the left will appear here ready to start.
                       </div>
 
                       <div v-else class="create-record-shell__processing-empty">
@@ -1329,9 +1336,8 @@ async function onArtifactDrop(event) {
 
   const nextArtifacts = await Promise.all(
     files
-    .map((file) => normalizeArtifactFile(file))
-    .filter((file) => file.path || file.name)
-    .map((artifact) => persistDroppedArtifact(artifact)),
+      .map((file) => normalizeArtifactFile(file))
+      .filter((file) => file.path || file.name),
   )
 
   if (!nextArtifacts.length) return
@@ -1352,7 +1358,6 @@ async function onArtifactDrop(event) {
       ...nextArtifacts.map((artifact) => artifact.id),
     ]),
   )
-  await Promise.all(nextArtifacts.map((artifact) => ensureProcessedArtifactForSelection(artifact.id)))
   markDialogChanged()
 }
 
@@ -1461,6 +1466,13 @@ async function persistDroppedArtifact(artifact) {
     })
     const persistedId = String(result?.artifact_id || result?.id || '').trim()
     if (!persistedId) return artifact
+    const opportunityId = resolveArtifactContextOpportunityId()
+    if (opportunityId && bridge.value?.artifacts?.linkToOpportunity) {
+      await bridge.value.artifacts.linkToOpportunity({
+        artifactIds: [persistedId],
+        opportunityId,
+      })
+    }
     return {
       ...artifact,
       id: persistedId,
@@ -1475,11 +1487,22 @@ async function ensureProcessedArtifactForSelection(artifactId) {
   const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
   if (!artifact || artifact.processedArtifactId || !bridge.value?.['artifacts-processed']?.create) return
 
+  let workingArtifact = artifact
+  if (!String(artifact.artifactId || artifact.id || '').trim().startsWith('artifact:')) {
+    const persistedArtifact = await persistDroppedArtifact(artifact)
+    workingArtifact = persistedArtifact || artifact
+    stagedArtifacts.value = stagedArtifacts.value.map((entry) =>
+      entry.id === artifactId
+        ? { ...entry, ...workingArtifact }
+        : entry,
+    )
+  }
+
   try {
     const result = await bridge.value['artifacts-processed'].create({
-      Processed_Artifact_Name: artifact.name,
+      Processed_Artifact_Name: workingArtifact.name,
       Processed_Artifact_Summary: '',
-      Original_Artifact_Id: artifact.artifactId || artifact.id,
+      Original_Artifact_Id: workingArtifact.artifactId || workingArtifact.id,
       Working: 1,
     })
     const processedArtifactId = String(result?.id || '').trim()
@@ -1492,6 +1515,21 @@ async function ensureProcessedArtifactForSelection(artifactId) {
   } catch {
     // Keep the shell usable even if the processed-artifact bridge is not ready.
   }
+}
+
+async function startArtifactProcessing(artifactId) {
+  await ensureProcessedArtifactForSelection(artifactId)
+  markDialogChanged()
+}
+
+function resolveArtifactContextOpportunityId() {
+  const entityName = String(props.artifactContext?.entityName || '').trim().toLowerCase()
+  const entityLabel = String(props.artifactContext?.entityLabel || '').trim().toLowerCase()
+  const recordId = String(props.artifactContext?.recordId || '').trim()
+  if (!recordId) return ''
+  if (['opportunities', 'funds', 'rounds'].includes(entityName)) return recordId
+  if (['opportunity', 'fund', 'round'].includes(entityLabel)) return recordId
+  return ''
 }
 
 async function removeProcessedArtifactForSelection(artifactId) {
@@ -2145,6 +2183,17 @@ onBeforeUnmount(() => {
   color: rgba(17, 17, 17, 0.68);
   font-size: 0.72rem;
   line-height: 1.2;
+}
+
+.create-record-shell__processing-start {
+  padding: 0;
+  color: var(--ds-color-brand-blue, #2647ff);
+  background: transparent;
+  border: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
 }
 
 .create-record-shell__processing-spinner {
