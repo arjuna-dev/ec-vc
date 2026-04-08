@@ -34,14 +34,6 @@
       <div class="add-edit-bb-builder__body">
         <div class="add-edit-bb-builder__render-row">
           <div class="add-edit-bb-builder__render-main">
-            <div class="add-edit-bb-builder__render-toolbar">
-              <MainMenuIconButton
-                aria-label="Toggle built from building blocks"
-                :disable="!selectedBlockKey"
-                @click="detailsPanelOpen = !detailsPanelOpen"
-              />
-            </div>
-
             <BbRenderFrame>
               <BuildingBlockPreviewTile
                 v-if="selectedBlockKey"
@@ -85,6 +77,11 @@
             v-model="activeSectionTab"
             :left-tabs="sectionTabsLeft"
             :right-tabs="[]"
+          />
+          <MainMenuIconButton
+            aria-label="Toggle built from building blocks"
+            :disable="!selectedBlockKey"
+            @click="detailsPanelOpen = !detailsPanelOpen"
           />
           <button
             type="button"
@@ -274,13 +271,7 @@ function clearRenderedBlock() {
 
 .add-edit-bb-builder__render-main {
   display: grid;
-  gap: 6px;
   min-width: 0;
-}
-
-.add-edit-bb-builder__render-toolbar {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .add-edit-bb-builder__details-panel {
