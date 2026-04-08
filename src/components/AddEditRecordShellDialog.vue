@@ -1346,6 +1346,13 @@ async function onArtifactDrop(event) {
   })
 
   stagedArtifacts.value = Array.from(existingByPath.values())
+  selectedArtifactIds.value = Array.from(
+    new Set([
+      ...selectedArtifactIds.value,
+      ...nextArtifacts.map((artifact) => artifact.id),
+    ]),
+  )
+  await Promise.all(nextArtifacts.map((artifact) => ensureProcessedArtifactForSelection(artifact.id)))
   markDialogChanged()
 }
 
