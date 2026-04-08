@@ -4,7 +4,7 @@
       <div class="add-edit-bb-builder__header-block">
         <div class="add-edit-bb-builder__dialog-header">
           <div class="add-edit-bb-builder__title-block">
-            <RecordTitle title="Add/Edit BB" />
+            <RecordTitle :title="headerTitle" />
           </div>
           <div class="add-edit-bb-builder__header-code-box">
             <BbCodeInput
@@ -142,6 +142,10 @@ const MAX_BB_LAYER_COLUMNS = DEFAULT_BUILDING_BLOCK_FILE_ROWS.reduce((maxDepth, 
 }, 0)
 
 const selectedBlockTileSize = computed(() => getBuildingBlockTileSize(selectedBlockKey.value))
+const headerTitle = computed(() => {
+  const detail = getBuildingBlockDetail(selectedBlockKey.value)
+  return String(detail?.title || '').trim() || 'Add/Edit BB'
+})
 
 const frameStyle = computed(() => ({
   width: resolveFrameWidth(selectedBlockTileSize.value),
