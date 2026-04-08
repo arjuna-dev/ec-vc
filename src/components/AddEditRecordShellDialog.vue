@@ -122,15 +122,15 @@
                             @update:model-value="toggleArtifactSelection(artifact.id, $event)"
                           />
                           <span class="create-record-shell__processing-item-name">{{ artifact.name }}</span>
-                          <button
+                          <q-btn
                             v-if="!artifact.artifactId && !startingArtifactIds.includes(artifact.id)"
-                            type="button"
-                            class="create-record-shell__processing-start"
-                            @mousedown.stop.prevent
+                            flat
+                            dense
+                            no-caps
+                            class="create-record-shell__processing-start-btn"
+                            label="Start"
                             @click.stop.prevent="startArtifactProcessing(artifact.id)"
-                          >
-                            Start
-                          </button>
+                          />
                           <span v-else-if="startingArtifactIds.includes(artifact.id)" class="create-record-shell__processing-item-status">
                             Starting...
                           </span>
@@ -2203,18 +2203,17 @@ onBeforeUnmount(() => {
   line-height: 1.2;
 }
 
-.create-record-shell__processing-start {
-  position: relative;
-  z-index: 2;
-  pointer-events: auto;
-  padding: 0;
+.create-record-shell__processing-start-btn {
   color: var(--ds-color-brand-blue, #2647ff);
-  background: transparent;
-  border: 0;
   font-size: 0.72rem;
   font-weight: 700;
   line-height: 1.2;
-  cursor: pointer;
+  min-height: 20px;
+  padding: 0;
+}
+
+.create-record-shell__processing-start-btn :deep(.q-btn__content) {
+  line-height: 1.2;
 }
 
 .create-record-shell__processing-spinner {
