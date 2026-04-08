@@ -42,34 +42,6 @@
               />
             </BbRenderFrame>
           </div>
-
-          <aside
-            v-if="detailsPanelOpen"
-            class="add-edit-bb-builder__details-panel"
-            aria-label="Built from building blocks"
-          >
-            <div class="add-edit-bb-builder__details-panel-header">
-              <div class="add-edit-bb-builder__details-panel-title">Built From BBs</div>
-              <div class="add-edit-bb-builder__details-panel-meta">{{ builtFromBlockItems.length }}</div>
-            </div>
-
-            <div v-if="builtFromBlockItems.length" class="add-edit-bb-builder__details-list">
-              <button
-                v-for="item in builtFromBlockItems"
-                :key="item.key"
-                type="button"
-                class="add-edit-bb-builder__details-item"
-                @click="selectBbFromList(item.key)"
-              >
-                <span class="add-edit-bb-builder__details-item-code">{{ item.key }}</span>
-                <span class="add-edit-bb-builder__details-item-title">{{ item.title }}</span>
-              </button>
-            </div>
-
-            <div v-else class="add-edit-bb-builder__details-empty">
-              This building block does not define any child BB components yet.
-            </div>
-          </aside>
         </div>
         <div class="add-edit-bb-builder__divider add-edit-bb-builder__divider--body" />
         <div class="add-edit-bb-builder__tabs-row">
@@ -95,16 +67,20 @@
 
         <BbSelectionFrame v-if="bbGridExpanded">
           <div class="add-edit-bb-builder__bb-scroll ds-mini-scrollbar">
-            <div class="add-edit-bb-builder__bb-grid">
+            <div v-if="activeBbCodeItems.length" class="add-edit-bb-builder__bb-grid">
               <button
-                v-for="code in activeBbCodes"
-                :key="code"
+                v-for="item in activeBbCodeItems"
+                :key="item.key"
                 type="button"
                 class="add-edit-bb-builder__bb-code"
-                @click="selectBbFromList(code)"
+                @click="selectBbFromList(item.key)"
               >
-                {{ code }}
+                {{ item.key }}
               </button>
+            </div>
+
+            <div v-else class="add-edit-bb-builder__bb-empty">
+              No child BB codes are defined for the rendered building block yet.
             </div>
           </div>
         </BbSelectionFrame>
@@ -171,6 +147,11 @@ const builtFromBlockItems = computed(() => {
       }
     })
     .filter(Boolean)
+})
+
+const activeBbCodeItems = computed(() => {
+  if (detailsPanelOpen.value) return builtFromBlockItems.value
+  return activeBbCodes.value.map((key) => ({ key }))
 })
 
 function normalizeBlockKey(value) {
@@ -264,88 +245,11 @@ function clearRenderedBlock() {
 
 .add-edit-bb-builder__render-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: start;
 }
 
 .add-edit-bb-builder__render-main {
   display: grid;
   min-width: 0;
-}
-
-.add-edit-bb-builder__details-panel {
-  width: 260px;
-  min-width: 260px;
-  padding: 10px;
-  border: 1px solid var(--ds-color-brand-light-grey);
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-color-brand-white);
-}
-
-.add-edit-bb-builder__details-panel-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--ds-color-brand-light-grey);
-}
-
-.add-edit-bb-builder__details-panel-title {
-  color: var(--ds-color-brand-black);
-  font-family: var(--ds-font-title);
-  font-size: var(--ds-font-size-sm);
-  font-weight: var(--ds-font-weight-bold);
-  line-height: 1;
-}
-
-.add-edit-bb-builder__details-panel-meta {
-  color: var(--ds-color-brand-dark-grey);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-font-size-xs);
-  line-height: 1.2;
-}
-
-.add-edit-bb-builder__details-list {
-  display: grid;
-  gap: 6px;
-  padding-top: 10px;
-}
-
-.add-edit-bb-builder__details-item {
-  display: grid;
-  gap: 2px;
-  width: 100%;
-  padding: 8px 10px;
-  color: var(--ds-color-brand-black);
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid var(--ds-color-brand-light-grey);
-  border-radius: var(--ds-radius-sm);
-  text-align: left;
-  cursor: pointer;
-}
-
-.add-edit-bb-builder__details-item-code {
-  font-family: var(--ds-font-title);
-  font-size: var(--ds-font-size-xs);
-  font-weight: var(--ds-font-weight-bold);
-  line-height: 1;
-}
-
-.add-edit-bb-builder__details-item-title {
-  color: var(--ds-color-brand-dark-grey);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-font-size-xs);
-  line-height: 1.3;
-}
-
-.add-edit-bb-builder__details-empty {
-  padding-top: 10px;
-  color: var(--ds-color-brand-dark-grey);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-font-size-xs);
-  line-height: 1.4;
 }
 
 .add-edit-bb-builder__divider--body {
@@ -441,14 +345,16 @@ function clearRenderedBlock() {
   cursor: pointer;
 }
 
+.add-edit-bb-builder__bb-empty {
+  color: var(--ds-color-brand-dark-grey);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm);
+  line-height: 1.4;
+}
+
 @media (max-width: 900px) {
   .add-edit-bb-builder__render-row {
     grid-template-columns: 1fr;
-  }
-
-  .add-edit-bb-builder__details-panel {
-    width: 100%;
-    min-width: 0;
   }
 }
 </style>
