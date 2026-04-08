@@ -19,14 +19,6 @@
               placeholder="Search"
             />
           </div>
-          <button
-            type="button"
-            class="add-edit-bb-builder__close"
-            aria-label="Close builder"
-            @click="clearRenderedBlock"
-          >
-            <q-icon name="close" />
-          </button>
         </div>
         <div class="add-edit-bb-builder__divider" />
       </div>
@@ -62,6 +54,14 @@
             @click="bbGridExpanded = !bbGridExpanded"
           >
             <q-icon :name="bbGridExpanded ? 'unfold_less' : 'unfold_more'" />
+          </button>
+          <button
+            type="button"
+            class="add-edit-bb-builder__close"
+            aria-label="Close builder"
+            @click="clearRenderedBlock"
+          >
+            <q-icon name="close" />
           </button>
         </div>
 
