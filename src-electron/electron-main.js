@@ -1557,7 +1557,7 @@ function ensureDefaultFiles(database) {
     File_Name: String(entry.label || entry.singularLabel || entry.key || '').trim(),
     File_Summary: `System definition for ${String(entry.label || entry.singularLabel || 'file').trim()}.`,
     File_Status: 'Active',
-    File_Contract_Path: 'docs/001-file-contracts.md',
+    File_Contract_Path: 'docs/001-System_Files.md',
     File_Source_Key: String(entry.key || '').trim(),
     File_Canonical_Entity: String(entry.canonicalEntityName || '').trim(),
     File_Runtime_Entity: String(entry.entityName || '').trim(),

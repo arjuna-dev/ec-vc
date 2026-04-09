@@ -370,7 +370,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:shellSelectorValue'])
-const FILE_CONTRACT_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/001-file-contracts.md'
+const FILE_CONTRACT_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/001-System_Files.md'
 
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
