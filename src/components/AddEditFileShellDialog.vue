@@ -143,13 +143,15 @@
         />
       </div>
 
-      <div class="file-structure-shell__leaf-table-wrap">
+      <div class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
         <table class="file-structure-shell__leaf-table">
           <thead>
             <tr>
-              <th aria-label="Selection"></th>
-              <th>L3 Key</th>
+              <th aria-label="Reorder"></th>
+              <th>Order</th>
               <th>Label</th>
+              <th>L3 Key</th>
+              <th aria-label="Selection"></th>
               <th>Parent L2</th>
               <th>Parent Subgroup</th>
               <th>Type</th>
@@ -165,16 +167,43 @@
           <tbody>
             <tr v-for="token in activeLeafTokens" :key="token.key">
               <td>
-                <button
-                  type="button"
-                  class="file-structure-shell__select-square"
-                  :class="{ 'file-structure-shell__select-square--active': selectedLeafKeys.includes(token.key) }"
-                  :aria-label="selectedLeafKeys.includes(token.key) ? `Deselect ${token.label}` : `Select ${token.label}`"
-                  @click="toggleLeafSelection(token.key)"
+                <div class="file-structure-shell__order-controls">
+                  <button
+                    type="button"
+                    class="file-structure-shell__order-button"
+                    aria-label="Move up"
+                    :disabled="!canMoveLeaf(token.key, -1)"
+                    @click="moveLeaf(token.key, -1)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__order-icon">
+                      <path d="M7 14L12 9L17 14" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="file-structure-shell__order-button"
+                    aria-label="Move down"
+                    :disabled="!canMoveLeaf(token.key, 1)"
+                    @click="moveLeaf(token.key, 1)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__order-icon">
+                      <path d="M7 10L12 15L17 10" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td>{{ token.order }}</td>
+              <td>{{ token.label }}</td>
+              <td>
+                {{ token.key }}
+              </td>
+              <td>
+                <SettingsCheckbox
+                  :model-value="selectedLeafKeys.includes(token.key)"
+                  tone="light"
+                  @update:model-value="toggleLeafSelection(token.key)"
                 />
               </td>
-              <td>{{ token.key }}</td>
-              <td>{{ token.label }}</td>
               <td>{{ token.parentL2 }}</td>
               <td>{{ token.parentSubgroup }}</td>
               <td>{{ token.type }}</td>
@@ -187,7 +216,7 @@
               <td>{{ token.uiTreatment }}</td>
             </tr>
             <tr v-if="!activeLeafTokens.length">
-              <td colspan="13" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
+              <td colspan="14" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
             </tr>
           </tbody>
         </table>
@@ -207,6 +236,7 @@ import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 import SectionTabs from 'src/components/SectionTabs.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
+import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { LEVEL_2_FILE_REGISTRY_BY_KEY, LEVEL_3_FILE_REGISTRY_BY_KEY, getCanonicalTokenWriteTarget } from 'src/utils/structureRegistry'
 
@@ -393,6 +423,26 @@ function toggleLeafSelection(tokenKey) {
     [sourceKey]: current.includes(tokenKey)
       ? current.filter((key) => key !== tokenKey)
       : [...current, tokenKey],
+  }
+}
+
+function canMoveLeaf(tokenKey, direction) {
+  const currentIndex = activeLeafTokens.value.findIndex((token) => token.key === tokenKey)
+  const nextIndex = currentIndex + direction
+  return currentIndex >= 0 && nextIndex >= 0 && nextIndex < activeLeafTokens.value.length
+}
+
+function moveLeaf(tokenKey, direction) {
+  const sourceKey = activeSettingsSourceKey.value
+  const currentDrafts = [...(draftLeafRowsBySource.value[sourceKey] || [])]
+  const draftIndex = currentDrafts.findIndex((token) => token.key === tokenKey)
+  const nextDraftIndex = draftIndex + direction
+  if (draftIndex < 0 || nextDraftIndex < 0 || nextDraftIndex >= currentDrafts.length) return
+  const [token] = currentDrafts.splice(draftIndex, 1)
+  currentDrafts.splice(nextDraftIndex, 0, token)
+  draftLeafRowsBySource.value = {
+    ...draftLeafRowsBySource.value,
+    [sourceKey]: currentDrafts,
   }
 }
 
@@ -657,6 +707,10 @@ watch(
   background: rgba(255, 255, 255, 0.94);
 }
 
+.file-structure-shell__leaf-table-wrap.ds-mini-scrollbar {
+  scrollbar-width: thin;
+}
+
 .file-structure-shell__leaf-table {
   width: 100%;
   border-collapse: collapse;
@@ -688,8 +742,21 @@ watch(
   line-height: 1.35;
 }
 
-.file-structure-shell__select-square {
+.file-structure-shell__leaf-table td:nth-child(n + 4) {
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-light);
+}
+
+.file-structure-shell__order-controls {
   display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.file-structure-shell__order-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
   height: 16px;
   padding: 0;
@@ -699,9 +766,19 @@ watch(
   cursor: pointer;
 }
 
-.file-structure-shell__select-square--active {
-  background: var(--ds-color-brand-black);
-  border-color: var(--ds-color-brand-black);
+.file-structure-shell__order-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.file-structure-shell__order-icon {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: var(--ds-color-brand-black);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .file-structure-shell__leaf-empty {
