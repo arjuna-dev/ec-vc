@@ -99,15 +99,13 @@ onBeforeUnmount(() => {
 .l2-settings-menu-shell {
   position: relative;
   display: inline-flex;
-  align-items: stretch;
-  height: 100%;
+  align-items: center;
   padding: 0;
   overflow: visible;
 }
 
 .l2-settings-menu-shell :deep(.b10-icon-btn) {
-  align-self: stretch;
-  height: 100%;
+  align-self: center;
   padding: 0 !important;
 }
 
