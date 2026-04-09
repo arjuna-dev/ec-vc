@@ -70,7 +70,7 @@
           </div>
           <div class="file-structure-shell__content-box-title-shell file-structure-shell__content-box-title-shell--menu">
             <L2SettingsMenu
-              title="General Elements Settings"
+              :title="currentL1SettingsTitle"
               :groups="generalElementSettingsGroups"
             />
           </div>
@@ -138,10 +138,16 @@ const l2ToolbarItems = [
   { value: 'kdb', title: 'KDB', isKdb: true, isSystem: false, pushRight: true },
   { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
 ]
-const generalElementSettingsGroups = [
+const activeShellSelectorOption = computed(() =>
+  props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
+  || props.shellSelectorOptions[0]
+  || { value: '', label: 'Select File' },
+)
+const currentL1SettingsTitle = computed(() => `${activeShellSelectorOption.value.label} Settings`)
+const generalElementSettingsGroups = computed(() => [
   {
-    key: 'general-elements',
-    label: 'General Elements',
+    key: `${String(activeShellSelectorOption.value.value || 'selected').trim().toLowerCase()}-elements`,
+    label: activeShellSelectorOption.value.label,
     expanded: true,
     items: [
       { key: 'name', label: 'Name', checked: true },
@@ -149,12 +155,7 @@ const generalElementSettingsGroups = [
       { key: 'status', label: 'Status', checked: false },
     ],
   },
-]
-const activeShellSelectorOption = computed(() =>
-  props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
-  || props.shellSelectorOptions[0]
-  || { value: '', label: 'Select File' },
-)
+])
 
 function selectShellSelectorOption(value) {
   emit('update:shellSelectorValue', value)
