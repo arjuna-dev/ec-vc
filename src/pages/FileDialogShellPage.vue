@@ -77,6 +77,6 @@ onMounted(() => {
 }
 
 .file-dialog-shell-page__frame {
-  width: 75%;
+  width: 50%;
 }
 </style>

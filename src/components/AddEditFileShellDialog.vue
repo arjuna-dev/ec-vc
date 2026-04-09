@@ -46,15 +46,48 @@
         />
       </div>
     </template>
+
+    <div class="file-structure-shell__content-grid">
+      <RecordSummaryBox class="file-structure-shell__content-box">
+        <DialogShellTitleRow
+          title="Summary Box"
+          class="file-structure-shell__content-box-title"
+        />
+        <div class="file-structure-shell__placeholder-copy">
+          File summary content will render here.
+        </div>
+      </RecordSummaryBox>
+
+      <RecordFieldsBox class="file-structure-shell__content-box">
+        <DialogShellTitleRow
+          title="General Elements"
+          class="file-structure-shell__content-box-title"
+        />
+        <div class="file-structure-shell__placeholder-copy">
+          General file properties will render here.
+        </div>
+      </RecordFieldsBox>
+
+      <RecordFeedPanel
+        v-model="eventsFeedTab"
+        title="Events Feed"
+        :tabs="eventsFeedTabs"
+        :items="eventsFeedItems"
+        empty-message="No events yet."
+      />
+    </div>
   </DialogShellFrame>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
+import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
+import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
+import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -66,6 +99,9 @@ const emit = defineEmits(['update:shellSelectorValue'])
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
+const eventsFeedTab = ref('all')
+const eventsFeedTabs = [{ id: 'all', label: 'All' }]
+const eventsFeedItems = []
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
   || props.shellSelectorOptions[0]
@@ -133,6 +169,32 @@ onBeforeUnmount(() => {
 
 .file-structure-shell__dialog-title-row {
   padding-top: 16px;
+}
+
+.file-structure-shell__content-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  padding: 18px 28px 28px;
+  align-items: stretch;
+}
+
+.file-structure-shell__content-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 260px;
+}
+
+.file-structure-shell__content-box-title {
+  padding-bottom: 0;
+}
+
+.file-structure-shell__placeholder-copy {
+  color: rgba(15, 23, 42, 0.74);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-md);
+  line-height: 1.45;
 }
 
 .file-structure-shell__shell-selector {
@@ -461,6 +523,12 @@ onBeforeUnmount(() => {
   .file-structure-shell__title-row {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .file-structure-shell__content-grid {
+    grid-template-columns: 1fr;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 
   .file-structure-shell__group-head {
