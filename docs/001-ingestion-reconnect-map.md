@@ -165,3 +165,147 @@ Before changing ingestion naming or file creation again, confirm:
 - does the file-facing name still resolve to the runtime compatibility layer?
 
 If any answer becomes `no`, the ingestion path has drifted and must be reconnected before moving on.
+
+## First Stable Ingestion Pass
+
+This reconnect map also owns the current first-pass ingestion target so reconnect work and forward planning stay in one place.
+
+### Objective
+
+Move ingestion from a fragile one-shot extraction flow into a staged, resumable intake workflow that:
+
+- creates a draft first
+- surfaces high-value metadata early
+- keeps extraction and matching moving in the background
+- lets the user resume unfinished work
+- avoids duplicate records and bad links
+
+### Why This Matters
+
+We want ingestion to feel:
+
+- dependable
+- visible
+- resumable
+- guided
+
+### Source Docs
+
+Use these as the planning references:
+
+- `docs/001-intake-architecture-master-plan.md`
+- `docs/011-record-architecture-master-plan.md`
+- `docs/011-product-reference-guide.md`
+- `docs/999-ECS_Workstream_Tracker.md`
+
+Active workbook reference:
+
+- `docs/B10_DOS v260400 vrev.xlsx`
+
+### Scope
+
+This first stable pass should include:
+
+- shared draft ownership
+- staged markdown release behavior
+- high-value early prompts
+- visible draft tracking
+- resume behavior
+- better interaction between extraction and matching
+
+This first pass should not include:
+
+- database schema changes
+- new LLM API-call expansion without explicit approval
+- fully autonomous agent behavior
+
+### Target Behavior
+
+The intended flow is:
+
+`File Drop -> Draft Intake -> Early Prompts -> Deep Extraction + Matching -> Review -> Create`
+
+The user should be able to:
+
+1. drop files
+2. see a draft created immediately
+3. confirm high-value fields early
+4. keep processing moving while reviewing
+5. reopen the same draft later if needed
+6. only create canonical records after final confirmation
+
+### First-Pass Requirements
+
+1. Draft-first ownership
+   - dropped files create or reopen a draft
+   - draft state survives dialog boundaries
+   - unfinished drafts remain resumable
+2. Early prompt flow
+   - `Document Type`
+   - `Sponsor Company`
+   - `Related Fund`
+   - `Related Round`
+   - `Related Contacts`
+   - `Website`
+3. Staged markdown intake
+   - markdown should be released in useful chunks
+   - early chunks should reach `Company`, `Opportunity`, and `Contacts` first
+   - later chunks should respect already-claimed or verified metadata
+4. Draft files surface
+   - draft id
+   - current stage
+   - current message
+   - files count
+   - released chunks count
+   - company / opportunity / contacts status
+   - verification status
+   - next action
+   - resume availability
+5. Matching + extraction interaction
+   - matching should inform extraction while intake is still active
+   - confirmed values should narrow later matching
+   - later extraction should stand down on already-owned fields
+6. Review source clarity
+   - `AI Input`
+   - `Human Input`
+   - `Existing Record`
+
+### Suggested Implementation Order
+
+1. create shared intake draft state
+2. mount draft ownership in `MainLayout`
+3. refactor artifact entry flow to create and resume drafts
+4. move reusable ingest state out of opportunity-private ownership
+5. make `OpportunityCreateDialog` consume shared draft state
+6. add the visible `Draft Files` surface
+7. add early confirmation prompts
+8. improve staged markdown release and ownership tracking
+9. tighten resume continuity and post-verification continuation
+
+### Acceptance Criteria
+
+- dropping files creates a visible draft
+- unfinished drafts can be resumed reliably
+- early prompts appear before full extraction completes
+- verifying one field does not make the process feel stalled
+- extraction and matching visibly continue after early confirmation
+- review surfaces can distinguish AI, human, and existing-record values
+- no schema changes are required for this pass
+
+### Risks
+
+- draft state could stay trapped inside one dialog if ownership is not moved high enough
+- prompts could become noisy if confidence rules are too loose
+- extraction could still feel stalled if post-verification continuation is not reliable
+- relationship matching could create duplicate suggestions if ownership and stand-down rules are weak
+
+### Ticket Writing Rule
+
+Future ingestion tickets should stay compact and observable:
+
+- keep the objective singular and clear
+- describe the behavior, not just the component names
+- separate requirements from implementation suggestions
+- make acceptance criteria observable
+- say what should not be included so the ticket does not sprawl
+- point to the relevant master docs instead of re-explaining the whole architecture every time

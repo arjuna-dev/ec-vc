@@ -979,6 +979,67 @@ Basic `L1` structure rule:
   - `System`
   - `KDB`
 
+### Current Canon KDB Baseline
+
+The current canon-level KDB baseline for shared shells should be treated as follows.
+
+Approved rule:
+
+- all first-order `L1`s should be inter-related through declared KDB tokens
+- visible knowledge-db `L1`s should also participate in the same shared KDB contract
+- every `L1` should at minimum expose:
+  - `System`
+  - `KDB`
+
+Current visible shared interlinked set:
+
+- `Users`
+- `Artifacts`
+- `Contacts`
+- `Companies`
+- `Funds`
+- `Rounds`
+- `Projects`
+- `Tasks`
+- `Notes`
+- `Roles`
+- `Financial_Industries`
+- `Round_Securities`
+- `Artifacts_Processed`
+
+Current canon status:
+
+- all of the above now have `System`
+- all of the above now have `KDB`
+- all of the above now declare KDB links to the full visible shared interlinked set
+
+Current exception:
+
+- `Opportunities` remains a parent shell concept over `Funds` and `Rounds`
+- it should not currently be treated as a direct live KDB target until it has a true runtime-backed table/view contract in record snapshots
+
+Additional baseline correction:
+
+- the following canonical `L1`s previously lacked `KDB` and now have the basic `System + KDB` structure baseline:
+  - `Markets`
+  - `Locations`
+  - `Terms`
+  - `Academia`
+  - `Employments`
+  - `Stages`
+
+Current company overview grouping family:
+
+- `Ops_Overview`
+- `Business_Overview`
+- `Market_Overview`
+- `Results_Overview`
+
+Working rule:
+
+- these remain separate addressed subsections
+- they may render under one higher `Overview` family without losing their canonical addresses
+
 ## Owner Spine Rule
 
 The `Owner` spine should now be treated as a protected root path.
