@@ -71,6 +71,7 @@
       <RecordFeedPanel
         v-model="eventsFeedTab"
         title="Events Feed"
+        class="file-structure-shell__feed-box"
         :tabs="eventsFeedTabs"
         :items="eventsFeedItems"
         empty-message="No events yet."
@@ -174,20 +175,35 @@ onBeforeUnmount(() => {
 .file-structure-shell__content-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  padding: 18px 28px 28px;
+  gap: 12px;
+  padding: 14px 16px 18px;
   align-items: stretch;
 }
 
 .file-structure-shell__content-box {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   min-height: 260px;
 }
 
 .file-structure-shell__content-box-title {
   padding-bottom: 0;
+}
+
+.file-structure-shell__content-box-title:deep(.dialog-shell-title-row__title) {
+  font-size: var(--ds-font-size-body-lg);
+  line-height: 1;
+}
+
+.file-structure-shell__feed-box:deep(.record-feed-panel) {
+  margin: 0;
+  border-radius: var(--ds-radius-md);
+}
+
+.file-structure-shell__feed-box:deep(.record-feed-label) {
+  font-size: var(--ds-font-size-body-lg);
+  line-height: 1;
 }
 
 .file-structure-shell__placeholder-copy {
