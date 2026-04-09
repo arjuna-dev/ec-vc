@@ -84,6 +84,17 @@ This matters because repeated local shell controls make it harder to tell whethe
 - the payload contract
 - or a one-off page implementation
 
+## Containment Rule
+
+Intake architecture should also stay contained.
+
+Working rule:
+
+- prefer existing approved shell pieces over creating new leaf controls
+- do not multiply small intake-only buttons, modes, or helper variants unless explicitly approved
+- if a behavior belongs in an approved underlying component, correct that component instead of adding a parallel intake-only primitive
+- complexity should come from staged composition and ordered workflow, not from extra local pieces
+
 ## Governing Model
 
 The intake flow should follow this structure:

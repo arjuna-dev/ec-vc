@@ -93,6 +93,18 @@ This is the best route because it:
 - scales better as record count, relationship count, and payload count increase
 - turns broken UI states into validation failures instead of late discoveries
 
+### Containment Rule
+
+As the architecture grows, complexity should come from composition and approved order, not from multiplying leaf components or adding convenience variants.
+
+Working rule:
+
+- do not keep creating new leaf components when an approved existing component can be used
+- do not keep adding new buttons, modes, or special-case functionality without explicit approval
+- prefer changing the approved underlying component over adding a parallel convenience version
+- prefer composition over new primitives
+- keep the system contained so complexity emerges from the ordered structure rather than from extra small parts
+
 ### Canonical L1 Bootstrap Map
 
 The consolidation map should be:

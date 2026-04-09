@@ -26,6 +26,17 @@ When these rules change:
 - update this file
 - avoid creating parallel reference docs unless there is a strong reason
 
+## Containment Rule
+
+The product should grow through composition, not by multiplying primitives.
+
+Working rule:
+
+- prefer existing approved components over creating new leaf components
+- do not add new buttons, modes, or special-case variants unless explicitly approved
+- when behavior needs to change, prefer correcting the approved underlying component before introducing another convenience layer
+- complexity should emerge from ordered composition, not from a growing pile of small one-off pieces
+
 ## Core Language
 
 The product should use `File` and `Record` as the main information architecture terms.

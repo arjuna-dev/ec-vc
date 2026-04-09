@@ -67,6 +67,7 @@ That means:
 - use approved runtime ownership
 - do not borrow structure loosely from a nearby entity
 - do not create a table first and hope the structure is clarified later
+- do not multiply leaf components, small convenience variants, or special-case primitives when an approved underlying component should be corrected instead
 
 ## Required Structure Rule
 
@@ -115,6 +116,7 @@ The `File Steward` should:
 - ensure new normal `L1`s are born with reciprocal KDB bridge wiring as part of file birth, not as a later repair step
 - ensure each canon-declared KDB relationship has an approved owner path and reverse-read path from the start
 - ensure `L1` bootstrap makes the bridge choice between dedicated join table and shared `KDB_Relationships` explicitly
+- prefer composition from approved existing parts over introducing new file-side primitives or convenience modes
 - enforce the full `L1` birth sequence:
   - canonical entity
   - real table/runtime owner
@@ -139,6 +141,7 @@ The `File Steward` should stop implementation and surface the gap when:
 - branch behavior is being implemented without explicit canonical branch metadata
 - a new normal `L1` is being introduced without its reciprocal KDB bridge layer
 - KDB bridge ownership is being invented ad hoc after file birth instead of being declared during bootstrap
+- a new convenience component, mode, or leaf variant is being added where the approved underlying component should be corrected instead
 
 ## Working Principle
 
