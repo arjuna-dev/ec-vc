@@ -151,6 +151,13 @@ const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
 ]
+const l2ToolbarItems = [
+  { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'resources', title: 'Resources', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'record-data', title: 'Record Data', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'kdb', title: 'KDB', isKdb: true, isSystem: false, pushRight: true },
+  { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
+]
 const generalSettingsGroups = [
   {
     key: 'file-sections',
@@ -162,13 +169,6 @@ const generalSettingsGroups = [
       checked: true,
     })),
   },
-]
-const l2ToolbarItems = [
-  { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
-  { value: 'resources', title: 'Resources', isKdb: false, isSystem: false, pushRight: false },
-  { value: 'record-data', title: 'Record Data', isKdb: false, isSystem: false, pushRight: false },
-  { value: 'kdb', title: 'KDB', isKdb: true, isSystem: false, pushRight: true },
-  { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
 ]
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
