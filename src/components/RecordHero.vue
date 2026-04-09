@@ -13,23 +13,12 @@
         <div class="hero-sandbox__column-inner">
           <div class="hero-sandbox__middle-top">
             <RecordTitle class="hero-sandbox__title" :title="title" />
-            <div class="hero-sandbox__settings-menu">
-              <B10IconButton
-                icon="tune"
-                variant="subtle"
-                size="small"
-                aria-label="Record settings"
-                @click="settingsMenuOpen = true"
-              />
-              <q-menu v-model="settingsMenuOpen" anchor="bottom right" self="top right">
-                <L2SettingsMenu
-                  title="Hero Fields"
-                  :groups="settingsGroups"
-                  @toggle-group="$emit('toggle-settings-group', $event)"
-                  @toggle-item="handleToggleSettingsItem"
-                />
-              </q-menu>
-            </div>
+            <L2SettingsMenu
+              title="Hero Fields"
+              :groups="settingsGroups"
+              @toggle-group="$emit('toggle-settings-group', $event)"
+              @toggle-item="handleToggleSettingsItem"
+            />
           </div>
 
           <RecordFieldsBox>
@@ -75,7 +64,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import Hero3ColOverlay from 'src/components/Hero3ColOverlay.vue'
 import HeroSurface from 'src/components/HeroSurface.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
@@ -84,13 +72,10 @@ import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 import RecordHeroFieldCard from 'src/components/RecordHeroFieldCard.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
-import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 
 defineOptions({
   name: 'RecordHero',
 })
-
-const settingsMenuOpen = ref(false)
 
 defineProps({
   title: {
@@ -196,11 +181,6 @@ function handleToggleSettingsItem(itemKey, value) {
 
 .hero-sandbox__title {
   min-width: 0;
-}
-
-.hero-sandbox__settings-menu {
-  display: inline-flex;
-  align-items: flex-start;
 }
 
 .hero-sandbox__feed-panel {

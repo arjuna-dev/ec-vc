@@ -1,47 +1,59 @@
 <template>
-  <div class="l2-settings-menu">
-    <div class="l2-settings-menu__title">{{ title }}</div>
+  <div ref="menuRoot" class="l2-settings-menu-shell">
+    <B10IconButton
+      icon="tune"
+      variant="subtle"
+      size="small"
+      :aria-label="title"
+      @click="toggleMenu"
+    />
 
-    <div
-      v-for="group in groups"
-      :key="group.key"
-      class="l2-settings-menu__group"
-    >
-      <button
-        type="button"
-        class="l2-settings-menu__heading"
-        @click="$emit('toggle-group', group.key)"
-      >
-        <ToggleRowIcons
-          :label="group.label"
-          :expanded="group.expanded !== false"
-          :interactive="false"
-        />
-      </button>
+    <div v-if="menuOpen" class="l2-settings-menu">
+      <div class="l2-settings-menu__title">{{ title }}</div>
 
       <div
-        v-if="group.expanded !== false"
-        class="l2-settings-menu__children"
+        v-for="group in groups"
+        :key="group.key"
+        class="l2-settings-menu__group"
       >
-        <label
-          v-for="item in group.items"
-          :key="item.key"
-          class="l2-settings-menu__row"
+        <button
+          type="button"
+          class="l2-settings-menu__heading"
+          @click="$emit('toggle-group', group.key)"
         >
-          <SettingsCheckbox
-            :model-value="item.checked"
-            tone="light"
-            @update:model-value="$emit('toggle-item', item.key, $event)"
+          <ToggleRowIcons
+            :label="group.label"
+            :expanded="group.expanded !== false"
+            :interactive="false"
           />
+        </button>
 
-          <span class="l2-settings-menu__row-label">{{ item.label }}</span>
-        </label>
+        <div
+          v-if="group.expanded !== false"
+          class="l2-settings-menu__children"
+        >
+          <label
+            v-for="item in group.items"
+            :key="item.key"
+            class="l2-settings-menu__row"
+          >
+            <SettingsCheckbox
+              :model-value="item.checked"
+              tone="light"
+              @update:model-value="$emit('toggle-item', item.key, $event)"
+            />
+
+            <span class="l2-settings-menu__row-label">{{ item.label }}</span>
+          </label>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 
@@ -57,10 +69,44 @@ defineProps({
 })
 
 defineEmits(['toggle-group', 'toggle-item'])
+
+const menuOpen = ref(false)
+const menuRoot = ref(null)
+
+function toggleMenu() {
+  menuOpen.value = !menuOpen.value
+}
+
+function handlePointerDown(event) {
+  const target = event?.target
+  if (!target) return
+  if (menuRoot.value?.contains?.(target)) return
+  menuOpen.value = false
+}
+
+onMounted(() => {
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
+  window.addEventListener('pointerdown', handlePointerDown)
+})
+
+onBeforeUnmount(() => {
+  if (typeof window === 'undefined' || typeof window.removeEventListener !== 'function') return
+  window.removeEventListener('pointerdown', handlePointerDown)
+})
 </script>
 
 <style scoped>
+.l2-settings-menu-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+}
+
 .l2-settings-menu {
+  position: absolute;
+  top: calc(100% + var(--ds-space-8));
+  right: 0;
+  z-index: 20;
   width: fit-content;
   max-width: min(var(--ds-settings-menu-width), 100%);
   padding: var(--ds-space-10);
