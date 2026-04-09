@@ -725,6 +725,137 @@ We are trying to make it feel dependable by staging the work clearly.
 So the practical principle is:
 
 `Use draft-first intake, surface high-value information early, keep extraction and matching interacting, and make unfinished work always resumable.`
+
+## Extraction Efficiency Rule
+
+This intake architecture also owns the extraction-efficiency tuning rules for `autofill-extraction.js`.
+
+### Goal
+
+Increase extraction quality while reducing:
+
+- model confusion
+- unnecessary token usage
+- repeated retries/fallbacks
+- post-extraction manual cleanup
+
+### Scope
+
+This applies to:
+
+- `src-electron/services/autofill-extraction.js`
+- the structured output schema used by autofill
+- extraction prompt wording and ordering
+- extraction status telemetry
+
+If a future extraction improvement requires bridge/sqlite-layer alignment, that work is allowed when it is the correct canonical layer.
+
+### Efficiency Definition
+
+An extraction pass is more efficient when it:
+
+- produces usable structured output in one pass
+- needs fewer fallback runs
+- maps more fields correctly on first output
+- reduces manual edits in review surfaces
+
+Efficiency should also be understood through the point system:
+
+- extraction should favor the shortest path to higher verified score
+- best-case extraction is not just faster output
+- best-case extraction is the quickest route to the most relevant correct fields and links
+
+### Current Pipeline Baseline
+
+1. build prompt + source-file content
+2. stream structured extraction
+3. fallback to `generateText` when stream output is missing
+4. normalize structured payload
+5. run duplicate matching
+6. return diagnostics and structured output
+
+### Optimization Rules
+
+1. keep prompt instructions short, explicit, and non-overlapping
+2. prioritize high-value fields first
+3. avoid asking the model for behavior we do not persist yet
+4. keep schema strict and avoid ambiguous optional blocks
+5. add status logs for every important stage so failures are visible
+6. tune extraction toward the shortest high-score path, not just the broadest field coverage
+
+Scoring rule for optimization:
+
+- favor fields that unlock identity, authority, provenance, and parent linkage first
+- favor outputs that reduce downstream review work
+- do not spend extraction effort equally on low-value extras when higher-value anchors are still missing
+- use the point system as the guide for the best next extraction target
+
+### Prompt Tuning Strategy
+
+When tuning prompt text:
+
+1. change one logical block at a time
+2. run the same file set before and after
+3. compare:
+   - extracted entity counts
+   - key field coverage
+   - fallback frequency
+   - duplicate match quality
+4. keep only changes that improve at least one metric without regressions
+
+### High-Value Field Priority
+
+For each entity, prioritize these first:
+
+- `Company`: `Company_Name`, `Website`, `Company_Type`
+- `Contact`: `Name`, `Professional_Email`, `Personal_Email`
+- `Round`: `Round_Name`, `Round_Security_Type`, `Round_Target_Size`
+- `Fund`: `Fund_Name`, `Fund_Target_Size`, `Fund_Manager`
+- `Opportunity`: identity and stage-defining fields first
+
+Secondary fields should not dilute identity extraction quality.
+
+### Test Loop
+
+Use a fixed test set of representative files:
+
+- clean PDF
+- noisy PDF
+- docx with mixed entities
+- image-heavy file
+- ambiguous multi-company file
+
+For each iteration:
+
+1. run extraction on the same set
+2. save outputs and diagnostics
+3. compare to previous run
+4. record wins and regressions
+
+### Change Log Template
+
+For each tuning pass:
+
+- `Date`
+- `Change summary`
+- `Why`
+- `Expected effect`
+- `Observed effect`
+- `Keep or revert`
+
+### Active Backlog
+
+- [ ] Trim prompt lines that duplicate schema constraints.
+- [ ] Separate hard constraints from quality hints.
+- [ ] Improve source reference consistency (`source_refs`, `field_sources`).
+- [ ] Reduce fallback rate by improving stream stability.
+- [ ] Add a compact benchmark report for each run.
+
+### Guardrails
+
+- do not modify DB schema files in this phase
+- do not add expensive multi-call extraction loops in this phase
+- do not ship prompt changes without running the fixed test loop
 ## Add/Edit Shell Naming Rule
 
 `Add/Edit Record Shell` and intake-linked shell flows must follow the same naming contract as the other shared shells:

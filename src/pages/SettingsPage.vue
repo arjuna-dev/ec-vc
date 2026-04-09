@@ -479,7 +479,7 @@ const companionDocumentMenu = [
     id: 'field-class-map',
     label: 'Field Class Map',
     short: 'Token behavior',
-    path: 'docs/field-class-map.md',
+    path: 'docs/001-field-class-map.md',
     eyebrow: 'Field Class Map',
     heroTitle: 'Field Class',
   },

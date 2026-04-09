@@ -1040,6 +1040,34 @@ Working rule:
 - these remain separate addressed subsections
 - they may render under one higher `Overview` family without losing their canonical addresses
 
+### Company Record Alignment Note
+
+The current `Company` surface still appears too relationship-first compared with the workbook and canon structure.
+
+Current app emphasis:
+
+- small metadata
+- linked records
+
+Workbook/canonical direction:
+
+- `Metadata`
+- `KDB`
+- `Incorporation`
+- `Documents`
+- `Operations`
+- `Business`
+- `Market`
+- `Results`
+- `Business Plan`
+- `Fund Raising`
+
+Working implication:
+
+- relationship-specific lists such as contacts, rounds, funds, artifacts, and notes should not act as the full company model by themselves
+- those lists should eventually live inside `KDB` or inside clearly related structural sections
+- future `Company Record View` work should move toward workbook-aligned top-level groups instead of staying mostly relationship-first
+
 ## Owner Spine Rule
 
 The `Owner` spine should now be treated as a protected root path.
