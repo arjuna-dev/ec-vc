@@ -205,6 +205,8 @@ onBeforeUnmount(() => {
   width: 100%;
   min-height: 260px;
   margin: 0;
+  padding: 14px;
+  box-sizing: border-box;
   border-radius: var(--ds-radius-md);
 }
 
