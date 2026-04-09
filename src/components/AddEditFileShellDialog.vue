@@ -68,14 +68,15 @@
         </div>
       </RecordFieldsBox>
 
-      <RecordFeedPanel
-        v-model="eventsFeedTab"
-        title="Events Feed"
-        class="file-structure-shell__feed-box"
-        :tabs="eventsFeedTabs"
-        :items="eventsFeedItems"
-        empty-message="No events yet."
-      />
+      <RecordFieldsBox class="file-structure-shell__content-box">
+        <DialogShellTitleRow
+          title="Events Feed"
+          class="file-structure-shell__content-box-title"
+        />
+        <div class="file-structure-shell__placeholder-copy">
+          Event activity will render here.
+        </div>
+      </RecordFieldsBox>
     </div>
   </DialogShellFrame>
 </template>
@@ -83,7 +84,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
-import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
@@ -100,9 +100,6 @@ const emit = defineEmits(['update:shellSelectorValue'])
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
-const eventsFeedTab = ref('all')
-const eventsFeedTabs = [{ id: 'all', label: 'All' }]
-const eventsFeedItems = []
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
   || props.shellSelectorOptions[0]
@@ -193,24 +190,6 @@ onBeforeUnmount(() => {
 }
 
 .file-structure-shell__content-box-title:deep(.dialog-shell-title-row__title) {
-  font-size: var(--ds-font-size-base);
-  line-height: 1;
-}
-
-.file-structure-shell__feed-box {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-self: stretch;
-  width: 100%;
-  min-height: 260px;
-  margin: 0;
-  padding: 14px;
-  box-sizing: border-box;
-  border-radius: var(--ds-radius-md);
-}
-
-.file-structure-shell__feed-box:deep(.record-feed-label) {
   font-size: var(--ds-font-size-base);
   line-height: 1;
 }
