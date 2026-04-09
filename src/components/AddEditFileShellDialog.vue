@@ -43,232 +43,32 @@
     </template>
 
     <template #default>
-      <div class="file-structure-shell__section-stack">
-        <CollapsibleSectionShell
-          title="File Description"
-          :collapsed="fileDescriptionCollapsed"
-          @toggle="fileDescriptionCollapsed = !fileDescriptionCollapsed"
-        >
-          <div class="file-structure-shell__description-grid">
-            <DialogShellFrame
-              card-class="file-structure-shell__mini-frame"
-              header-class="file-structure-shell__mini-frame-header"
-              body-class="file-structure-shell__mini-frame-body"
-            >
-              <template #header>
-                <div class="file-structure-shell__mini-frame-title">Summary</div>
-              </template>
-              <div class="file-structure-shell__description-box">
-                Summary placeholder
-              </div>
-            </DialogShellFrame>
-
-            <DialogShellFrame
-              card-class="file-structure-shell__mini-frame"
-              header-class="file-structure-shell__mini-frame-header"
-              body-class="file-structure-shell__mini-frame-body"
-            >
-              <template #header>
-                <div class="file-structure-shell__mini-frame-title">General Characteristics</div>
-              </template>
-              <div class="file-structure-shell__description-box">
-                General Characteristics placeholder
-              </div>
-            </DialogShellFrame>
-          </div>
-        </CollapsibleSectionShell>
-
-        <CollapsibleSectionShell
-          title="Section Configuration"
-          :collapsed="sectionConfigurationCollapsed"
-          @toggle="sectionConfigurationCollapsed = !sectionConfigurationCollapsed"
-        >
-          <div v-if="!canConfigureFileSystem" class="file-structure-shell__owner-note">
-            This menu configuration is only available for File System owner.
-          </div>
-          <div class="file-structure-shell__table-shell">
-            <EditableGridTable
-              :columns="sectionConfigurationColumns"
-              :rows="sectionConfigurationRows"
-              :can-edit="canConfigureFileSystem"
-              @updateColumnLabel="updateSectionConfigurationColumnLabel"
-              @finishColumnEdit="finishColumnEdit"
-              @removeColumn="removeSectionConfigurationColumn"
-              @addColumn="addSectionConfigurationColumn"
-              @updateRowLabel="updateSectionConfigurationRowLabel"
-              @finishRowEdit="finishRowEdit"
-              @removeRow="removeSectionConfigurationRow"
-              @addRow="addSectionConfigurationRow"
-            />
-          </div>
-        </CollapsibleSectionShell>
-
-        <section class="file-structure-shell__group">
-          <div class="file-structure-shell__group-head">
-            <button
-              type="button"
-              class="file-structure-shell__group-toggle"
-              @click="dataStructureCollapsed = !dataStructureCollapsed"
-            >
-              <span class="file-structure-shell__group-title">Data Structure</span>
-              <q-icon
-                :name="dataStructureCollapsed ? 'expand_more' : 'expand_less'"
-                class="file-structure-shell__group-toggle-icon"
-              />
-            </button>
-            <button
-              v-if="canConfigureFileSystem"
-              type="button"
-              class="file-structure-shell__section-picker"
-              @click.stop="sectionPickerOpen = true"
-            >
-              <span class="file-structure-shell__section-picker-label">{{ activeSectionOption.label }}</span>
-              <q-icon name="expand_more" class="file-structure-shell__section-picker-icon" />
-              <q-menu
-                v-model="sectionPickerOpen"
-                anchor="bottom right"
-                self="top right"
-                class="file-structure-shell__section-picker-menu"
-              >
-                <div class="file-structure-shell__section-menu">
-                  <section
-                    v-for="group in sectionOptionGroups"
-                    :key="group.id"
-                    class="file-structure-shell__section-menu-group"
-                  >
-                    <button
-                      type="button"
-                      class="file-structure-shell__section-menu-toggle"
-                      @click.stop="toggleSectionGroup(group.id)"
-                    >
-                      <span class="file-structure-shell__section-menu-title">{{ group.label }}</span>
-                      <q-icon
-                        :name="isSectionGroupOpen(group.id) ? 'expand_less' : 'expand_more'"
-                        class="file-structure-shell__section-menu-chevron"
-                      />
-                    </button>
-
-                    <div v-if="isSectionGroupOpen(group.id)" class="file-structure-shell__section-menu-items">
-                      <button
-                        v-for="option in group.items"
-                        :key="option.value"
-                        type="button"
-                        class="file-structure-shell__section-menu-item"
-                        :class="{ 'file-structure-shell__section-menu-item--active': activeSectionSelection === option.value }"
-                        @click.stop="selectSectionOption(option.value)"
-                      >
-                        {{ option.label }}
-                      </button>
-                    </div>
-                  </section>
-                </div>
-              </q-menu>
-            </button>
-          </div>
-
-          <div v-if="!dataStructureCollapsed" class="file-structure-shell__group-body">
-            <div class="file-structure-shell__grid">
-              <div class="file-structure-shell__field">
-                <div class="file-structure-shell__field-label">Core Structure</div>
-                <div class="file-structure-shell__field-surface file-structure-shell__field-surface--tall" />
-              </div>
-              <div class="file-structure-shell__field">
-                <div class="file-structure-shell__field-label">Relations and Payloads</div>
-                <div class="file-structure-shell__field-surface file-structure-shell__field-surface--tall" />
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
+      <div class="file-structure-shell__body-empty" />
     </template>
   </DialogShellFrame>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import CollapsibleSectionShell from 'src/components/CollapsibleSectionShell.vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
-import EditableGridTable from 'src/components/EditableGridTable.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
   shellSelectorOptions: { type: Array, default: () => [] },
-  canConfigureFileSystem: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:shellSelectorValue'])
 
-const sectionConfigurationCollapsed = ref(false)
-const dataStructureCollapsed = ref(false)
-const fileDescriptionCollapsed = ref(false)
-const sectionPickerOpen = ref(false)
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
-const activeSectionSelection = ref('general')
-const openSectionGroups = ref(['system-created'])
-const nextSectionRowId = ref(2)
-const sectionConfigurationRows = ref([
-  { key: 'system', label: 'System', isEditing: false, deletable: false },
-  { key: 'kdb', label: 'KDB', isEditing: false, deletable: false },
-  { key: 'general', label: 'General', isEditing: false, deletable: false },
-])
-const nextSectionColumnId = ref(2)
-const sectionConfigurationColumns = ref([
-  { id: 'summary', label: 'Description / Summary', isEditing: false, deletable: false },
-])
-
-const sectionOptionGroups = [
-  {
-    id: 'system-created',
-    label: 'System Created',
-    items: [
-      { value: 'general', label: 'General' },
-      { value: 'system', label: 'System' },
-      { value: 'kdb', label: 'KDB' },
-    ],
-  },
-  {
-    id: 'user-created',
-    label: 'User Created',
-    items: [
-      { value: 'summary', label: 'Summary' },
-      { value: 'workflow', label: 'Workflow' },
-      { value: 'resources', label: 'Resources' },
-    ],
-  },
-]
-
-const activeSectionOption = computed(() =>
-  sectionOptionGroups.flatMap((group) => group.items).find((option) => option.value === activeSectionSelection.value)
-  || sectionOptionGroups[0].items[0],
-)
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
   || props.shellSelectorOptions[0]
   || { value: '', label: 'Select File' },
 )
-
-const canConfigureFileSystem = computed(() => props.canConfigureFileSystem)
-
-function isSectionGroupOpen(groupId) {
-  return openSectionGroups.value.includes(groupId)
-}
-
-function toggleSectionGroup(groupId) {
-  if (!canConfigureFileSystem.value) return
-  openSectionGroups.value = isSectionGroupOpen(groupId)
-    ? openSectionGroups.value.filter((value) => value !== groupId)
-    : [...openSectionGroups.value, groupId]
-}
-
-function selectSectionOption(value) {
-  if (!canConfigureFileSystem.value) return
-  activeSectionSelection.value = value
-  sectionPickerOpen.value = false
-}
 
 function selectShellSelectorOption(value) {
   emit('update:shellSelectorValue', value)
@@ -298,77 +98,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('pointerdown', handleGlobalPointerDown)
 })
 
-function addSectionConfigurationColumn() {
-  if (!canConfigureFileSystem.value) return
-  sectionConfigurationColumns.value = [
-    ...sectionConfigurationColumns.value,
-    {
-      id: `custom-${nextSectionColumnId.value}`,
-      label: '',
-      isEditing: true,
-      deletable: true,
-    },
-  ]
-  nextSectionColumnId.value += 1
-}
-
-function updateSectionConfigurationColumnLabel(columnId, label) {
-  sectionConfigurationColumns.value = sectionConfigurationColumns.value.map((column) => (
-    column.id === columnId
-      ? { ...column, label }
-      : column
-  ))
-}
-
-function finishColumnEdit(columnId) {
-  if (!canConfigureFileSystem.value) return
-  sectionConfigurationColumns.value = sectionConfigurationColumns.value.map((column) => {
-    if (column.id !== columnId) return column
-    const nextLabel = String(column.label || '').trim() || 'New Column'
-    return { ...column, label: nextLabel, isEditing: false }
-  })
-}
-
-function removeSectionConfigurationColumn(columnId) {
-  if (!canConfigureFileSystem.value) return
-  sectionConfigurationColumns.value = sectionConfigurationColumns.value.filter((column) => column.id !== columnId)
-}
-
-function addSectionConfigurationRow() {
-  if (!canConfigureFileSystem.value) return
-  sectionConfigurationRows.value = [
-    ...sectionConfigurationRows.value,
-    {
-      key: `custom-row-${nextSectionRowId.value}`,
-      label: '',
-      isEditing: true,
-      deletable: true,
-    },
-  ]
-  nextSectionRowId.value += 1
-}
-
-function updateSectionConfigurationRowLabel(rowKey, label) {
-  sectionConfigurationRows.value = sectionConfigurationRows.value.map((row) => (
-    row.key === rowKey
-      ? { ...row, label }
-      : row
-  ))
-}
-
-function finishRowEdit(rowKey) {
-  if (!canConfigureFileSystem.value) return
-  sectionConfigurationRows.value = sectionConfigurationRows.value.map((row) => {
-    if (row.key !== rowKey) return row
-    const nextLabel = String(row.label || '').trim() || 'New Sub-Section'
-    return { ...row, label: nextLabel, isEditing: false }
-  })
-}
-
-function removeSectionConfigurationRow(rowKey) {
-  if (!canConfigureFileSystem.value) return
-  sectionConfigurationRows.value = sectionConfigurationRows.value.filter((row) => row.key !== rowKey)
-}
 </script>
 
 <style scoped>
@@ -424,107 +153,8 @@ function removeSectionConfigurationRow(rowKey) {
   padding: 0 28px 20px;
 }
 
-.file-structure-shell__section-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.file-structure-shell__description-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.file-structure-shell__mini-frame {
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: none;
-}
-
-.file-structure-shell__mini-frame-title {
-  color: #0f172a;
-  font-family: var(--ds-font-title);
-  font-size: 0.9rem;
-  font-weight: var(--ds-font-weight-bold);
-  line-height: 1;
-}
-
-.file-structure-shell__description-box {
-  min-height: 140px;
-  padding: 14px 16px;
-  color: rgba(15, 23, 42, 0.62);
-  font-family: var(--ds-font-body);
-  font-size: 0.92rem;
-  line-height: 1.4;
-  border: 1px dashed rgba(15, 23, 42, 0.12);
-  border-radius: 12px;
-  background: rgba(248, 250, 252, 0.88);
-}
-
-.file-structure-shell__group {
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.86);
-  overflow: hidden;
-}
-
-.file-structure-shell__group-head {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.file-structure-shell__group-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: auto;
-  padding: 18px 0 18px 22px;
-  color: #0f172a;
-  background: transparent;
-  border: 0;
-  text-align: left;
-  cursor: pointer;
-}
-
-.file-structure-shell__group-title {
-  font-family: var(--font-title);
-  font-size: 1.15rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1;
-}
-
-.file-structure-shell__group-toggle-icon {
-  margin-left: 2px;
-  font-size: 20px;
-}
-
-.file-structure-shell__section-picker {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 30px;
-  padding: 0 10px;
-  margin: 0;
-  color: #fff;
-  background: #111827;
-  border: 1px solid #111827;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.file-structure-shell__section-picker-label {
-  font-family: var(--font-title);
-  font-size: 0.76rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
-
-.file-structure-shell__section-picker-icon {
-  font-size: 16px;
+.file-structure-shell__body-empty {
+  min-height: 0;
 }
 
 .file-structure-shell__section-menu {
@@ -535,39 +165,6 @@ function removeSectionConfigurationRow(rowKey) {
   padding: 10px;
   background: #111827;
   border-radius: 14px;
-}
-
-.file-structure-shell__section-menu-group + .file-structure-shell__section-menu-group {
-  margin-top: 8px;
-}
-
-.file-structure-shell__section-menu-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 6px 4px;
-  color: #fff;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-}
-
-.file-structure-shell__section-menu-title {
-  font-family: var(--font-title);
-  font-size: 0.8rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1;
-}
-
-.file-structure-shell__section-menu-chevron {
-  font-size: 16px;
-}
-
-.file-structure-shell__section-menu-items {
-  display: grid;
-  gap: 4px;
-  padding-top: 4px;
 }
 
 .file-structure-shell__section-menu-item {
@@ -591,41 +188,6 @@ function removeSectionConfigurationRow(rowKey) {
   color: #111827;
   background: #fff;
   border-color: #fff;
-}
-
-.file-structure-shell__group-body {
-  padding: 0 22px 22px;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
-}
-
-.file-structure-shell__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  padding-top: 18px;
-}
-
-.file-structure-shell__table-shell {
-  position: relative;
-  width: fit-content;
-  max-width: 100%;
-  padding-top: 18px;
-}
-
-.file-structure-shell__table-wrap {
-  width: 100%;
-  max-width: 100%;
-  max-height: 320px;
-  overflow: auto;
-}
-
-.file-structure-shell__owner-note {
-  padding-top: 18px;
-  color: rgba(15, 23, 42, 0.62);
-  font-family: var(--font-title);
-  font-size: 0.78rem;
-  font-weight: var(--font-weight-black);
-  line-height: 1.2;
 }
 
 .file-structure-shell__table {
