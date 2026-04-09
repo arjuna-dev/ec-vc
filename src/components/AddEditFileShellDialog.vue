@@ -7,7 +7,7 @@
     <template #header>
       <div class="file-structure-shell__header-copy">
         <div class="file-structure-shell__title-row">
-          <PageTitleText title="Add/Edit File Shell" />
+          <RecordTitle title="Add/Edit File Shell" />
           <button
             v-if="shellSelectorOptions.length"
             ref="shellSelectorButton"
@@ -167,7 +167,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import EditableGridTable from 'src/components/EditableGridTable.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
-import PageTitleText from 'src/components/PageTitleText.vue'
+import RecordTitle from 'src/components/RecordTitle.vue'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
