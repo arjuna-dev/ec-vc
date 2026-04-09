@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
 }
 
 .file-structure-shell__content-box-title:deep(.dialog-shell-title-row__title) {
-  font-size: var(--ds-font-size-body-lg);
+  font-size: var(--ds-font-size-base);
   line-height: 1;
 }
 
@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
 }
 
 .file-structure-shell__feed-box:deep(.record-feed-label) {
-  font-size: var(--ds-font-size-body-lg);
+  font-size: var(--ds-font-size-base);
   line-height: 1;
 }
 
