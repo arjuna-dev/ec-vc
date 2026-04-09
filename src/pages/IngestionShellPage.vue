@@ -12,8 +12,8 @@
       v-else
       v-model="dialogOpen"
       :mode="dialogMode"
-      :source-label="activeRegistryEntry?.label || 'Ingestion'"
-      :singular-label="activeRegistryEntry?.singularLabel || 'ingestion record'"
+      :source-label="activeRegistryEntry?.label || 'Artifact Processed'"
+      :singular-label="activeRegistryEntry?.singularLabel || 'artifact processed record'"
       :key-field-tokens="createKeyFieldTokens"
       :left-sections="dialogSectionSplit.leftSections"
       :right-sections="dialogSectionSplit.rightSections"

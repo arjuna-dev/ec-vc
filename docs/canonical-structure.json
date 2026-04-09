@@ -215,10 +215,10 @@
             },
             {
               "address": "0.2.14",
-              "token_name": "Event_Processed_Artifact",
+              "token_name": "Event_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -405,10 +405,10 @@
             },
             {
               "address": "1.2.14",
-              "token_name": "Artifact_Processed_Artifact",
+              "token_name": "Artifact_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -594,10 +594,10 @@
             },
             {
               "address": "2.2.14",
-              "token_name": "User_Processed_Artifact",
+              "token_name": "User_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -847,10 +847,10 @@
             },
             {
               "address": "3.4.14",
-              "token_name": "Contact_Processed_Artifact",
+              "token_name": "Contact_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -1019,7 +1019,7 @@
               "token_name": "Company_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             },
             {
@@ -1746,10 +1746,10 @@
             },
             {
               "address": "17.2.14",
-              "token_name": "Opportunity_Processed_Artifact",
+              "token_name": "Opportunity_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -1999,10 +1999,10 @@
             },
             {
               "address": "5.2.14",
-              "token_name": "Fund_Processed_Artifact",
+              "token_name": "Fund_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -2333,10 +2333,10 @@
             },
             {
               "address": "6.2.14",
-              "token_name": "Round_Processed_Artifact",
+              "token_name": "Round_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -2631,10 +2631,10 @@
             },
             {
               "address": "7.2.14",
-              "token_name": "Project_Processed_Artifact",
+              "token_name": "Project_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -2949,10 +2949,10 @@
             },
             {
               "address": "8.2.14",
-              "token_name": "Task_Processed_Artifact",
+              "token_name": "Task_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -3213,10 +3213,10 @@
             },
             {
               "address": "9.2.14",
-              "token_name": "Note_Processed_Artifact",
+              "token_name": "Note_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -3934,10 +3934,10 @@
             },
             {
               "address": "18.2.14",
-              "token_name": "Financial_Industry_Processed_Artifact",
+              "token_name": "Financial_Industry_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -4099,10 +4099,10 @@
             },
             {
               "address": "19.2.14",
-              "token_name": "Round_Security_Processed_Artifact",
+              "token_name": "Round_Security_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -4129,12 +4129,12 @@
     },
     {
       "level_1": "20",
-      "entity": "Artifacts_Processed",
-      "entity_label": "Ingestion",
+      "entity": "Artifact_Processed",
+      "entity_label": "Artifact Processed",
       "entity_address": "20.0.0",
       "structure_token": {
         "address": "20.0.0",
-        "token_name": "Processed_Artifact",
+        "token_name": "Artifact_Processed",
         "token_type": "structure"
       },
       "subsections": [
@@ -4142,11 +4142,11 @@
           "level_2": "1",
           "subsection": "System",
           "subsection_address": "20.1.0",
-          "structure_token": "Processed_Artifact_System",
+          "structure_token": "Artifact_Processed_System",
           "tokens": [
             {
               "address": "20.1.1",
-              "token_name": "Processed_Artifact_ID",
+              "token_name": "Artifact_Processed_ID",
               "token_type": "id",
               "db_field_aliases": [
                 "id"
@@ -4154,7 +4154,7 @@
             },
             {
               "address": "20.1.2",
-              "token_name": "Processed_Artifact_Creator",
+              "token_name": "Artifact_Processed_Creator",
               "token_type": "select_single",
               "input_source": "system_actor",
               "db_field_aliases": [
@@ -4163,7 +4163,7 @@
             },
             {
               "address": "20.1.3",
-              "token_name": "Processed_Artifact_Datetime",
+              "token_name": "Artifact_Processed_Datetime",
               "token_type": "datetime",
               "db_field_aliases": [
                 "created_at"
@@ -4175,11 +4175,11 @@
           "level_2": "2",
           "subsection": "KDB",
           "subsection_address": "20.2.0",
-          "structure_token": "Processed_Artifact_KDB",
+          "structure_token": "Artifact_Processed_KDB",
           "tokens": [
             {
               "address": "20.2.1",
-              "token_name": "Processed_Artifact_User",
+              "token_name": "Artifact_Processed_User",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Users",
@@ -4187,7 +4187,7 @@
             },
             {
               "address": "20.2.2",
-              "token_name": "Processed_Artifact_Artifact",
+              "token_name": "Artifact_Processed_Artifact",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Artifacts",
@@ -4195,7 +4195,7 @@
             },
             {
               "address": "20.2.3",
-              "token_name": "Processed_Artifact_Contact",
+              "token_name": "Artifact_Processed_Contact",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Contacts",
@@ -4203,7 +4203,7 @@
             },
             {
               "address": "20.2.4",
-              "token_name": "Processed_Artifact_Company",
+              "token_name": "Artifact_Processed_Company",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Companies",
@@ -4211,7 +4211,7 @@
             },
             {
               "address": "20.2.6",
-              "token_name": "Processed_Artifact_Fund",
+              "token_name": "Artifact_Processed_Fund",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Funds",
@@ -4219,7 +4219,7 @@
             },
             {
               "address": "20.2.7",
-              "token_name": "Processed_Artifact_Round",
+              "token_name": "Artifact_Processed_Round",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Rounds",
@@ -4227,7 +4227,7 @@
             },
             {
               "address": "20.2.8",
-              "token_name": "Processed_Artifact_Project",
+              "token_name": "Artifact_Processed_Project",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Projects",
@@ -4235,7 +4235,7 @@
             },
             {
               "address": "20.2.9",
-              "token_name": "Processed_Artifact_Task",
+              "token_name": "Artifact_Processed_Task",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Tasks",
@@ -4243,7 +4243,7 @@
             },
             {
               "address": "20.2.10",
-              "token_name": "Processed_Artifact_Note",
+              "token_name": "Artifact_Processed_Note",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Notes",
@@ -4251,7 +4251,7 @@
             },
             {
               "address": "20.2.11",
-              "token_name": "Processed_Artifact_Role",
+              "token_name": "Artifact_Processed_Role",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Roles",
@@ -4259,7 +4259,7 @@
             },
             {
               "address": "20.2.12",
-              "token_name": "Processed_Artifact_Financial_Industry",
+              "token_name": "Artifact_Processed_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Financial_Industries",
@@ -4267,7 +4267,7 @@
             },
             {
               "address": "20.2.13",
-              "token_name": "Processed_Artifact_Round_Security",
+              "token_name": "Artifact_Processed_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Round_Securities",
@@ -4275,10 +4275,10 @@
             },
             {
               "address": "20.2.14",
-              "token_name": "Processed_Artifact_Processed_Artifact",
+              "token_name": "Artifact_Processed_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -4287,16 +4287,16 @@
           "level_2": "3",
           "subsection": "General",
           "subsection_address": "20.3.0",
-          "structure_token": "Processed_Artifact_General",
+          "structure_token": "Artifact_Processed_General",
           "tokens": [
             {
               "address": "20.3.1",
-              "token_name": "Processed_Artifact_Name",
+              "token_name": "Artifact_Processed_Name",
               "token_type": "text"
             },
             {
               "address": "20.3.2",
-              "token_name": "Processed_Artifact_Summary",
+              "token_name": "Artifact_Processed_Summary",
               "token_type": "text"
             }
           ]
@@ -4434,10 +4434,10 @@
             },
             {
               "address": "21.2.14",
-              "token_name": "Role_Processed_Artifact",
+              "token_name": "Role_Artifact_Processed",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -4610,7 +4610,7 @@
               "token_name": "Companion_Role_Ingestion",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
+              "option_entity": "Artifact_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -4925,3 +4925,4 @@
     ]
   }
 }
+

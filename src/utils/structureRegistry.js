@@ -182,10 +182,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: false,
     shellGroup: 'knowledge_db',
   },
-  Artifacts_Processed: {
+  Artifact_Processed: {
     key: 'ingestion',
-    label: 'Ingestion',
-    singularLabel: 'Ingestion',
+    label: 'Artifact Processed',
+    singularLabel: 'Artifact Processed',
     routeName: 'ingestion',
     path: '/ingestion',
     icon: 'hub',
@@ -195,7 +195,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   },
 })
 
-const FILE_PAGE_ENTITY_ORDER = ['Building_Blocks', 'Events', 'Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Roles', 'Companion_Roles', 'Financial_Industries', 'Round_Securities', 'Artifacts_Processed']
+const FILE_PAGE_ENTITY_ORDER = ['Building_Blocks', 'Events', 'Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Roles', 'Companion_Roles', 'Financial_Industries', 'Round_Securities', 'Artifact_Processed']
 
 function normalizeSubsections(entity) {
   const subsections = entity?.subsections
@@ -591,11 +591,14 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     security: 'Round_Securities',
     round_securities: 'Round_Securities',
     'round securities': 'Round_Securities',
-    ingestion: 'Artifacts_Processed',
-    artifacts_processed: 'Artifacts_Processed',
-    'artifacts-processed': 'Artifacts_Processed',
-    'processed artifact': 'Artifacts_Processed',
-    'processed artifacts': 'Artifacts_Processed',
+    ingestion: 'Artifact_Processed',
+    artifact_processed: 'Artifact_Processed',
+    'artifact-processed': 'Artifact_Processed',
+    artifacts_processed: 'Artifact_Processed',
+    'artifacts-processed': 'Artifact_Processed',
+    'processed artifact': 'Artifact_Processed',
+    'processed artifacts': 'Artifact_Processed',
+    'artifact processed': 'Artifact_Processed',
   }
 
   const normalizedKey = normalized.toLowerCase()
