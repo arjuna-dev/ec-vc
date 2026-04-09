@@ -77,10 +77,21 @@
           class="file-structure-shell__content-box-title"
         >
           <template #actions>
-            <L2SettingsMenu
-              title="General"
-              :groups="generalSettingsGroups"
-            />
+            <div class="file-structure-shell__settings-menu">
+              <B10IconButton
+                icon="tune"
+                variant="subtle"
+                size="small"
+                aria-label="General element settings"
+                @click="generalSettingsOpen = true"
+              />
+              <q-menu v-model="generalSettingsOpen" anchor="bottom right" self="top right">
+                <L2SettingsMenu
+                  title="File Sections"
+                  :groups="generalSettingsGroups"
+                />
+              </q-menu>
+            </div>
           </template>
         </DialogShellTitleRow>
         <div class="file-structure-shell__placeholder-copy">
@@ -114,6 +125,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
+import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
@@ -129,6 +141,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:shellSelectorValue'])
 
+const generalSettingsOpen = ref(false)
 const shellSelectorOpen = ref(false)
 const boxesExpanded = ref(true)
 const shellSelectorButton = ref(null)
@@ -140,14 +153,14 @@ const viewOptions = [
 ]
 const generalSettingsGroups = [
   {
-    key: 'general-fields',
-    label: 'General',
+    key: 'file-sections',
+    label: 'Sections',
     expanded: true,
-    items: [
-      { key: 'name', label: 'Name', checked: true },
-      { key: 'summary', label: 'Summary', checked: true },
-      { key: 'status', label: 'Status', checked: false },
-    ],
+    items: l2ToolbarItems.map((item) => ({
+      key: item.value,
+      label: item.title,
+      checked: true,
+    })),
   },
 ]
 const l2ToolbarItems = [
@@ -269,6 +282,11 @@ onBeforeUnmount(() => {
 }
 
 .file-structure-shell__content-box-title:deep(.dialog-shell-title-row__actions) {
+  align-items: flex-start;
+}
+
+.file-structure-shell__settings-menu {
+  display: inline-flex;
   align-items: flex-start;
 }
 
