@@ -102,8 +102,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .file-structure-shell {
-  width: min(1240px, calc(100vw - 32px));
-  max-width: calc(100vw - 32px);
+  width: 100%;
+  max-width: 100%;
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 28px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(247, 249, 252, 0.98));

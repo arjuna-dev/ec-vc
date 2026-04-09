@@ -8,12 +8,14 @@
     </div>
 
     <div v-else class="file-dialog-shell-page__frame-wrap">
-      <AddEditFileShellDialog
-        :shell-selector-value="activeSourceKey"
-        :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
-        :can-configure-file-system="canConfigureFileSystem"
-        @update:shell-selector-value="updateShellSelector"
-      />
+      <div class="file-dialog-shell-page__frame">
+        <AddEditFileShellDialog
+          :shell-selector-value="activeSourceKey"
+          :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
+          :can-configure-file-system="canConfigureFileSystem"
+          @update:shell-selector-value="updateShellSelector"
+        />
+      </div>
     </div>
   </q-page>
 </template>
@@ -71,5 +73,10 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   width: 100%;
+  padding-inline: 0;
+}
+
+.file-dialog-shell-page__frame {
+  width: 75%;
 }
 </style>
