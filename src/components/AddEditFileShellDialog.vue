@@ -45,12 +45,16 @@
           class="file-structure-shell__dialog-title-row"
         >
           <template #actions>
-            <ToggleRowIcons
-              label=""
-              :expanded="boxesExpanded"
+            <button
+              type="button"
               class="file-structure-shell__boxes-toggle"
               @click="boxesExpanded = !boxesExpanded"
-            />
+            >
+              <q-icon
+                :name="boxesExpanded ? 'expand_less' : 'expand_more'"
+                class="file-structure-shell__boxes-toggle-icon"
+              />
+            </button>
           </template>
         </DialogShellTitleRow>
       </div>
@@ -109,7 +113,6 @@ import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
-import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -204,11 +207,20 @@ onBeforeUnmount(() => {
 }
 
 .file-structure-shell__boxes-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
   color: rgba(15, 23, 42, 0.64);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
 }
 
-.file-structure-shell__boxes-toggle:deep(.toggle-row-icons__icon) {
-  font-size: var(--ds-icon-size-base);
+.file-structure-shell__boxes-toggle-icon {
+  font-size: 18px;
 }
 
 .file-structure-shell__content-grid {
