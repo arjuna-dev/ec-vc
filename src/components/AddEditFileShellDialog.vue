@@ -198,17 +198,12 @@ onBeforeUnmount(() => {
 }
 
 .file-structure-shell__feed-box {
-  align-self: stretch;
-  min-height: 260px;
-}
-
-.file-structure-shell__feed-box:deep(.record-feed-panel) {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-self: stretch;
   width: 100%;
-  min-height: 100%;
+  min-height: 260px;
   margin: 0;
   border-radius: var(--ds-radius-md);
 }
