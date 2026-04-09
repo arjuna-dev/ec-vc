@@ -44,6 +44,22 @@ That is useful because it gives us the real current birth path.
 
 It is also a problem because it is still too distributed.
 
+The exercise also exposed a second issue:
+
+- file visibility and file acceptance are not currently the same thing
+
+Why:
+
+- the canonical registry already defines which files exist and whether they should be visible
+- but the main layout still manually injects additional file rows into navigation
+
+So the current app has two visibility sources:
+
+1. registry-driven visibility
+2. layout-driven manual visibility
+
+This creates drift because a file can appear in menus even if it has not been fully accepted through the canonical file-definition layer.
+
 ## Required Birth Sequence
 
 The target sequence for a new normal file should become:
@@ -110,16 +126,51 @@ It is meant to become:
 - the structure input layer for later file creation
 - the guide layer that helps both humans and LLMs understand what should happen next
 
+This is also why visibility must be aligned with the file-definition layer:
+
+- if the `Files` registry is supposed to define what the system treats as real files
+- then visibility should come from that same accepted definition
+- not from a second handwritten menu list in the layout
+
 ## Working Interpretation
 
 For the current architecture, that means:
 
-- `BB File` remains the visible system-level exception
-- after that, the first operational pair is:
-  - `File Folder`
-  - `L1 Files`
-- then `Events`
-- then the rest of the approved genesis order
+- file order should follow natural appearance order and true bootstrap dependency order
+- the system should render and create files in the same chronological order they are needed
+- `System Files` should come first because it is the repository/genesis layer for the rest of the file system
+
+Under the current best understanding, the preferred bootstrap sequence is:
+
+1. `System Files`
+   - includes the first paired bootstrap items:
+     - `File Folder`
+     - `File Registry`
+2. `Rule Books`
+   - load the governing documents that tell the system how file creation, stewardship, gameplay, and companion behavior should work
+3. `BB File`
+   - because the visible building language should exist before the rest of the file surfaces are interpreted
+4. `Owner Identity Pass`
+   - `Owner`
+   - `User Roles`
+   - `Contact`
+   - linked `User` identity as needed for authority and email grounding
+5. `Companion Pass`
+   - `Companion`
+   - `Companion Roles`
+6. `Companion Install Pass`
+   - install and execute the first companion workers such as:
+     - `File Steward`
+     - `Project Guide`
+     - `Points Tracker`
+7. remaining operational and reference files in approved dependency order
+8. `Events` and `Ingestion` should remain reconnect-safe throughout so the system can track what was created and why
+
+The reason this is stronger than a simple flat file order is:
+
+- the first files should exist to help create the later ones
+- the first governance/rule layers should exist before the first complex operational records are born
+- the first companions should arrive only after the files and rulebooks they depend on already exist
 
 The next crucial proof file after this pair should be:
 
@@ -142,6 +193,13 @@ This also keeps the early bootstrap logic readable:
 - first role is `Owner`
 - `User Roles` mostly attach through `Contacts`
 - those relations should become easier to create once the `Files` layer is already describing file type, ownership, and shared structural requirements
+
+The same logic applies to rendering:
+
+- files should appear in the order they are naturally needed
+- not alphabetically
+- not by historical accident
+- and not by layout-only reshuffling that ignores bootstrap dependency order
 
 ## Semi-Automatic Goal
 
@@ -172,6 +230,10 @@ The orchestrator should derive as much as possible from one file definition:
 - required subsections
 - runtime capabilities
 - file-order placement
+- bootstrap phase
+- natural appearance order
+- rulebook dependencies
+- companion dependencies
 
 The file definition should also be able to declare or guide:
 
@@ -185,6 +247,8 @@ The file definition should also be able to declare or guide:
 - steward guidance path
 - file-guide path
 - settings that make rendering more straightforward
+- which rulebook documents must already exist before the file is created
+- which companion helpers are required to keep the file healthy after creation
 
 ## What Should Still Be Explicit
 
@@ -209,6 +273,14 @@ A new file should not be treated as born until all of these are true:
 - registry row exists
 - sqlite owner exists
 - bridge/runtime path exists
+
+- visibility should also mean accepted status
+
+That means:
+
+- a file should not be made visible only through layout injection
+- if it is visible as a file, it should be visible because the accepted file-definition layer says so
+- any exception should be explicitly declared as a system-level exception
 
 ## Planning Goal For The Next Pass
 
@@ -235,3 +307,8 @@ And also:
 - a clearer file guide for humans
 - a cleaner input layer for LLM guidance
 - more straightforward rendering because rules are already declared in the file definition and settings layer
+
+And one more important outcome:
+
+- file visibility, file acceptance, and file creation should all mean the same thing
+- the user should not have to wonder whether a file is visible because it is real, or visible because the layout manually surfaced it

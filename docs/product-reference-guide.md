@@ -615,8 +615,14 @@ Current product meaning:
 - the owner bootstrap should create a `User Set-up` project and its default setup tasks
 - the user may skip setup task completion, but those bootstrap project/task records should still be created
 - `Owner Genesis` should also initialize the current approved schema baseline from `src-electron/services/sqlite-schema.js`, using the current table set as-is rather than a reduced temporary subset
-- `Master Companion` should perform sequential genesis file creation, beginning with `L1 Files`, then `Events`, then the current base file set in approved order
-- `BB File` should be treated as the first conceptual file in that sequence because it defines the visible building language before the operational file system is interpreted
+- `Master Companion` should perform sequential genesis file creation in natural appearance order:
+  - `System Files`
+  - `Rule Books`
+  - `BB File`
+  - then the current base file set in approved dependency order
+- `System Files` should come first because it is the file-definition repository/genesis layer for the rest of the file system
+- `Rule Books` should load next because they define how the system should behave before deeper creation begins
+- `BB File` should be treated as the first conceptual visible file after that because it defines the visible building language before the operational file system is interpreted
 - file creation should happen before the bootstrap records that belong inside those files are created
 - `Events` should be treated as a first-class file/entity in that same file creation order, not as a lightweight side feed
 

@@ -147,6 +147,44 @@ So the `Files` layer is meant to become:
 
 This is why it must exist before `Owner`, `Users`, `Contacts`, and the rest of the operational file set.
 
+### File Visibility Acceptance Rule
+
+The current app still has visibility drift between:
+
+- registry-driven file acceptance
+- layout-driven manual menu injection
+
+Current technical truth:
+
+- `src/utils/structureRegistry.js` already defines a canonical file registry
+- `WORKSPACE_FILE_NAV_ITEMS` is derived from that registry through `showInWorkspaceNav`
+- but `src/layouts/MainLayout.vue` still manually injects additional file items into the visible drawer navigation
+
+That means some files can appear visible because the layout says so, even when the registry does not yet treat them as visible accepted files.
+
+This is important because it creates a false signal:
+
+- the UI can make a file look accepted
+- while canon, registry, and runtime acceptance are still not fully aligned
+
+Working rule:
+
+- file visibility should come from the accepted file-definition layer
+- layout should not manually reintroduce file items except for explicitly declared system-level exceptions
+- if a file is visible, that visibility should mean it has been accepted through the canonical file-definition path
+
+Why this matters:
+
+- otherwise we can think a file has been accepted as an `L1` when only the layout has surfaced it
+- this weakens the file-creation contract
+- it makes RAMP order, file acceptance, and runtime ownership drift apart
+
+So the intended direction is:
+
+- one registry-driven acceptance rule
+- layout as renderer, not second source of truth
+- explicit exceptions only
+
 ### Containment Rule
 
 As the architecture grows, complexity should come from composition and approved order, not from multiplying leaf components or adding convenience variants.
@@ -266,6 +304,9 @@ Working rule:
 - the first paired bootstrap items should be:
   - `File Folder`
   - `File Registry`
+- `System Files` should be treated as the genesis repository layer and should render first because the rest of the file system depends on it
+- after `System Files`, the next thing loaded should be the governing `Rule Books`
+- after the `Rule Books`, `BB File` should load because the visible building language should exist before the rest of the file surfaces are interpreted
 - those two should exist before `Owner`, `Users`, `Contacts`, and the rest of the base bootstrap records
 - the first operational file created after `BB File` should therefore be the root `Files` registry surface
 - the second file created should be `Events`
@@ -275,13 +316,18 @@ Working rule:
 Reason:
 
 - after `File Folder` and `File Registry` exist, they should be used to create the next files through the same declared structure
-- the next crucial proof file is `Owner`
-- `Owner` should be created using that same file-definition path so we can test whether the architecture is really guiding file birth cleanly
+- the next crucial proof file set is the owner identity pass:
+  - `Owner`
+  - `User Roles`
+  - `Contact`
+  - linked `User` identity as needed
+- this should happen before the companion install pass so authority and identity are grounded first
 - after that:
-  - `User` helps govern who enters and leaves the system
-  - the first role is `Owner`
-  - `User Roles` are mostly attached through `Contacts`
-  - so the early bootstrap chain should remain easy to reason about from the file-definition layer outward
+  - `Companion`
+  - `Companion Roles`
+  - the first installed companion workers such as `File Steward`, `Project Guide`, and `Points Tracker`
+- those companions should only be installed after the files and documents they depend on already exist
+- so the early bootstrap chain should remain easy to reason about from the file-definition layer outward
 
 System-level exception rule:
 
@@ -293,28 +339,32 @@ System-level exception rule:
 
 Current approved first-pass genesis file order:
 
-1. `BB File`
-2. `File Folder`
-3. `L1 Files`
-4. `Events`
-5. `Owner`
-6. `Users`
-7. `Contacts`
-8. `User Roles`
-9. `Companion`
-10. `Companion Roles`
-11. `Projects`
-12. `Tasks`
-13. `Notes`
-14. `Artifacts`
-15. `Ingestion`
-16. `Companies`
-17. `Opportunities`
-18. `Funds`
-19. `Rounds`
-20. `Markets`
-21. `Securities`
-22. remaining current supporting `KDB` / reference files
+1. `System Files`
+2. `Rule Books`
+3. `BB File`
+4. `Owner`
+5. `User Roles`
+6. `Contact`
+7. linked `User` identity
+8. `Companion`
+9. `Companion Roles`
+10. install first companion workers:
+   - `File Steward`
+   - `Project Guide`
+   - `Points Tracker`
+11. `Events`
+12. `Projects`
+13. `Tasks`
+14. `Notes`
+15. `Artifacts`
+16. `Ingestion`
+17. `Companies`
+18. `Opportunities`
+19. `Funds`
+20. `Rounds`
+21. `Markets`
+22. `Securities`
+23. remaining current supporting `KDB` / reference files
 
 Execution rule:
 
@@ -328,6 +378,7 @@ This matters because:
 - `BB File` establishes the visible building language and reconstruction canon before the rest of the product file system is interpreted
 - `File Folder` gives the system its first real file container surface
 - `L1 Files` is the root file registry and must exist before the rest of the file system can be treated as coherent
+- `Rule Books` should load before deeper operational creation because they tell the system and the stewards how file creation and upkeep should work
 - `Events` should exist before later genesis work is logged
 - the file-definition layer should also supply the guidance needed to make rendering more straightforward through:
   - file guide rules

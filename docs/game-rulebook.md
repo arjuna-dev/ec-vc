@@ -44,27 +44,29 @@ System-level exception rule:
 
 Owner Genesis file creation order:
 
-1. `BB File`
-2. `L1 Files`
-3. `Events`
+1. `System Files`
+2. `Rule Books`
+3. `BB File`
 4. `Owner`
-5. `Users`
-6. `Contacts`
-7. `User Roles`
+5. `User Roles`
+6. `Contact`
+7. linked `User` identity
 8. `Companion`
 9. `Companion Roles`
-10. `Projects`
-11. `Tasks`
-12. `Notes`
-13. `Artifacts`
-14. `Ingestion`
-15. `Companies`
-16. `Opportunities`
-17. `Funds`
-18. `Rounds`
-19. `Markets`
-20. `Securities`
-21. remaining current supporting `KDB` / reference files
+10. install first companion workers
+11. `Events`
+12. `Projects`
+13. `Tasks`
+14. `Notes`
+15. `Artifacts`
+16. `Ingestion`
+17. `Companies`
+18. `Opportunities`
+19. `Funds`
+20. `Rounds`
+21. `Markets`
+22. `Securities`
+23. remaining current supporting `KDB` / reference files
 
 File-before-record rule:
 
