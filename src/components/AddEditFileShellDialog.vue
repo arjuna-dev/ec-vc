@@ -146,7 +146,6 @@
           <thead>
             <tr>
               <th aria-label="Selection"></th>
-              <th aria-label="Order"></th>
               <th>Label</th>
               <th>L3 Key</th>
               <th>Parent L2</th>
@@ -170,7 +169,6 @@
                   @update:model-value="toggleLeafSelection(token.key)"
                 />
               </td>
-              <td>{{ token.order }}</td>
               <td>{{ token.label }}</td>
               <td>
                 {{ token.key }}
@@ -187,7 +185,7 @@
               <td>{{ token.uiTreatment }}</td>
             </tr>
             <tr v-if="!activeLeafTokens.length">
-              <td colspan="13" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
+              <td colspan="12" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
             </tr>
           </tbody>
         </table>
