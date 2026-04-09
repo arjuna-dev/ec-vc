@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
 }
 
 .file-structure-shell__header {
-  padding: 26px 28px 20px;
+  padding: 26px 28px 0;
 }
 
 .file-structure-shell__title-row {
