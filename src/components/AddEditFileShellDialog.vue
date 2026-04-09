@@ -716,7 +716,7 @@ watch(
 
 .file-structure-shell__leaf-table td:nth-child(n + 4) {
   font-size: var(--ds-font-size-xs);
-  font-weight: var(--ds-font-weight-light);
+  font-weight: var(--ds-font-weight-medium);
 }
 
 .file-structure-shell__leaf-table td:nth-child(3) {
