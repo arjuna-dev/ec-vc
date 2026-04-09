@@ -80,14 +80,11 @@
     </div>
 
     <div class="file-structure-shell__toolbar-row">
-      <FilePageToolbar
-        :all-visible-selected="false"
-        :some-visible-selected="false"
-        add-label="Add Record"
-        search-query=""
-        search-placeholder="Search Files"
+      <ShellSectionToolbar
+        v-model="activeL2Toolbar"
+        :items="l2ToolbarItems"
         view-mode="card"
-        :view-options="fileToolbarViewOptions"
+        :view-options="viewOptions"
         :show-view-toggle="true"
       />
     </div>
@@ -97,12 +94,12 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
-import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
+import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -114,9 +111,17 @@ const emit = defineEmits(['update:shellSelectorValue'])
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
-const fileToolbarViewOptions = [
+const activeL2Toolbar = ref('general')
+const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
+]
+const l2ToolbarItems = [
+  { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'resources', title: 'Resources', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'record-data', title: 'Record Data', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'kdb', title: 'KDB', isKdb: true, isSystem: false, pushRight: true },
+  { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
 ]
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
