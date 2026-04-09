@@ -40,14 +40,26 @@
           </div>
         </div>
         <div class="file-structure-shell__divider" />
-        <DialogShellTitleRow
-          :title="activeShellSelectorOption.label"
-          class="file-structure-shell__dialog-title-row"
-        />
+        <div class="file-structure-shell__dialog-title-row">
+          <DialogShellTitleRow
+            :title="activeShellSelectorOption.label"
+            class="file-structure-shell__dialog-title-copy"
+          />
+          <button
+            type="button"
+            class="file-structure-shell__chevron-button"
+            :aria-label="boxesCollapsed ? 'Expand boxes' : 'Collapse boxes'"
+            @click="boxesCollapsed = !boxesCollapsed"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__chevron-icon">
+              <path :d="boxesCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
+            </svg>
+          </button>
+        </div>
       </div>
     </template>
 
-    <div class="file-structure-shell__content-grid">
+    <div v-if="!boxesCollapsed" class="file-structure-shell__content-grid">
       <RecordSummaryBox class="file-structure-shell__content-box">
         <div class="file-structure-shell__content-box-title-shell">
           <DialogShellTitleRow
@@ -101,8 +113,29 @@
         :items="l2ToolbarItems"
         view-mode="card"
         :view-options="viewOptions"
-        :show-view-toggle="true"
+        :show-view-toggle="false"
       />
+      <button
+        type="button"
+        class="file-structure-shell__chevron-button file-structure-shell__chevron-button--toolbar"
+        :aria-label="leafItemsCollapsed ? 'Expand leaf items' : 'Collapse leaf items'"
+        @click="leafItemsCollapsed = !leafItemsCollapsed"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__chevron-icon">
+          <path :d="leafItemsCollapsed ? 'M7 10L12 15L17 10' : 'M7 14L12 9L17 14'" />
+        </svg>
+      </button>
+    </div>
+
+    <div v-if="!leafItemsCollapsed" class="file-structure-shell__leaf-row">
+      <button
+        v-for="item in visibleLeafItems"
+        :key="item.key"
+        type="button"
+        class="file-structure-shell__leaf-chip"
+      >
+        {{ item.label }}
+      </button>
     </div>
   </DialogShellFrame>
 </template>
@@ -131,6 +164,8 @@ const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const activeL2Toolbar = ref('')
+const boxesCollapsed = ref(false)
+const leafItemsCollapsed = ref(false)
 const expandedSettingsGroupsBySource = ref({})
 const checkedSettingsItemsBySource = ref({})
 const viewOptions = [
@@ -213,6 +248,11 @@ const liveGeneralElementSettingsGroups = computed(() => {
     })),
   }))
 })
+const visibleLeafItems = computed(() =>
+  liveGeneralElementSettingsGroups.value.flatMap((group) =>
+    Array.isArray(group.items) ? group.items.filter((item) => item.checked !== false) : [],
+  ),
+)
 
 function selectShellSelectorOption(value) {
   emit('update:shellSelectorValue', value)
@@ -338,7 +378,15 @@ watch(
 }
 
 .file-structure-shell__dialog-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding-top: 16px;
+}
+
+.file-structure-shell__dialog-title-copy {
+  min-width: 0;
 }
 
 .file-structure-shell__content-grid {
@@ -398,7 +446,60 @@ watch(
 }
 
 .file-structure-shell__toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px 10px;
+}
+
+.file-structure-shell__toolbar-row :deep(.shell-section-toolbar) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.file-structure-shell__chevron-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.file-structure-shell__chevron-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--ds-color-brand-black);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.file-structure-shell__leaf-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   padding: 0 16px 18px;
+}
+
+.file-structure-shell__leaf-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  color: var(--ds-color-brand-black);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-medium);
 }
 
 .file-structure-shell__shell-selector {
