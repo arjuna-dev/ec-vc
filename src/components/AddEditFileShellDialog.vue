@@ -158,7 +158,7 @@
                     @click="structureColumnsCollapsed = !structureColumnsCollapsed"
                   >
                     <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__column-collapse-icon">
-                      <path :d="structureColumnsCollapsed ? 'M10 7L15 12L10 17' : 'M14 7L9 12L14 17'" />
+                      <path :d="structureColumnsCollapsed ? 'M14 7L9 12L14 17' : 'M10 7L15 12L10 17'" />
                     </svg>
                   </button>
                   <span>Label</span>
