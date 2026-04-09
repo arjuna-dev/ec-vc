@@ -43,24 +43,11 @@
         <DialogShellTitleRow
           :title="activeShellSelectorOption.label"
           class="file-structure-shell__dialog-title-row"
-        >
-          <template #actions>
-            <button
-              type="button"
-              class="file-structure-shell__boxes-toggle"
-              @click="boxesExpanded = !boxesExpanded"
-            >
-              <q-icon
-                :name="boxesExpanded ? 'expand_less' : 'expand_more'"
-                class="file-structure-shell__boxes-toggle-icon"
-              />
-            </button>
-          </template>
-        </DialogShellTitleRow>
+        />
       </div>
     </template>
 
-    <div v-if="boxesExpanded" class="file-structure-shell__content-grid">
+    <div class="file-structure-shell__content-grid">
       <RecordSummaryBox class="file-structure-shell__content-box">
         <DialogShellTitleRow
           title="Summary Box"
@@ -92,6 +79,15 @@
       </RecordFieldsBox>
     </div>
 
+    <div class="file-structure-shell__toolbar-row">
+      <ShellSectionToolbar
+        v-model="activeL2Toolbar"
+        :items="l2ToolbarItems"
+        view-mode="card"
+        :view-options="viewOptions"
+        :show-view-toggle="true"
+      />
+    </div>
   </DialogShellFrame>
 </template>
 
@@ -103,6 +99,7 @@ import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
+import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -112,9 +109,20 @@ const props = defineProps({
 const emit = defineEmits(['update:shellSelectorValue'])
 
 const shellSelectorOpen = ref(false)
-const boxesExpanded = ref(true)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
+const activeL2Toolbar = ref('general')
+const viewOptions = [
+  { label: '', value: 'card', icon: 'grid_view' },
+  { label: '', value: 'table', icon: 'table_rows' },
+]
+const l2ToolbarItems = [
+  { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'resources', title: 'Resources', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'record-data', title: 'Record Data', isKdb: false, isSystem: false, pushRight: false },
+  { value: 'kdb', title: 'KDB', isKdb: true, isSystem: false, pushRight: true },
+  { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
+]
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
   || props.shellSelectorOptions[0]
@@ -184,23 +192,6 @@ onBeforeUnmount(() => {
   padding-top: 16px;
 }
 
-.file-structure-shell__boxes-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  color: rgba(15, 23, 42, 0.64);
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-}
-
-.file-structure-shell__boxes-toggle-icon {
-  font-size: 18px;
-}
-
 .file-structure-shell__content-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -226,15 +217,15 @@ onBeforeUnmount(() => {
   line-height: 1;
 }
 
-.file-structure-shell__content-box-title:deep(.dialog-shell-title-row__actions) {
-  align-items: flex-start;
-}
-
 .file-structure-shell__placeholder-copy {
   color: rgba(15, 23, 42, 0.74);
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-body-md);
   line-height: 1.45;
+}
+
+.file-structure-shell__toolbar-row {
+  padding: 0 16px 18px;
 }
 
 .file-structure-shell__shell-selector {
