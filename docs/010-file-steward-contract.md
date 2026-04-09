@@ -111,6 +111,12 @@ The `File Steward` should:
 - protect the consistency of `System`, `KDB`, and `General` subgrouping
 - protect shared base field names from drifting into unnecessary entity-specific aliases
 - protect `KDB` as the required shared linkage section without pretending every `L1` must use one identical relationship leaf list
+- act as the KDB orchestrator for file birth and file upkeep
+- make sure files are born correctly
+- make sure `KDB` is born with them
+- make sure the right relationships exist
+- make sure relationship direction, owner-path, and reverse-read are correct
+- make sure file order and creation sequence support those connections
 - protect declared branch-capable `L1`s from being normalized into the wrong table model
 - help keep file naming, loader naming, and menu naming aligned
 - ensure new normal `L1`s are born with reciprocal KDB bridge wiring as part of file birth, not as a later repair step
