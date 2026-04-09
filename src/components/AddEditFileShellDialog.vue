@@ -43,11 +43,20 @@
         <DialogShellTitleRow
           :title="activeShellSelectorOption.label"
           class="file-structure-shell__dialog-title-row"
-        />
+        >
+          <template #actions>
+            <ToggleRowIcons
+              label=""
+              :expanded="boxesExpanded"
+              class="file-structure-shell__boxes-toggle"
+              @click="boxesExpanded = !boxesExpanded"
+            />
+          </template>
+        </DialogShellTitleRow>
       </div>
     </template>
 
-    <div class="file-structure-shell__content-grid">
+    <div v-if="boxesExpanded" class="file-structure-shell__content-grid">
       <RecordSummaryBox class="file-structure-shell__content-box">
         <DialogShellTitleRow
           title="Summary Box"
@@ -100,6 +109,7 @@ import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
+import ToggleRowIcons from 'src/components/ToggleRowIcons.vue'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -109,6 +119,7 @@ const props = defineProps({
 const emit = defineEmits(['update:shellSelectorValue'])
 
 const shellSelectorOpen = ref(false)
+const boxesExpanded = ref(true)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const activeL2Toolbar = ref('general')
@@ -190,6 +201,14 @@ onBeforeUnmount(() => {
 
 .file-structure-shell__dialog-title-row {
   padding-top: 16px;
+}
+
+.file-structure-shell__boxes-toggle {
+  color: rgba(15, 23, 42, 0.64);
+}
+
+.file-structure-shell__boxes-toggle:deep(.toggle-row-icons__icon) {
+  font-size: var(--ds-icon-size-base);
 }
 
 .file-structure-shell__content-grid {
