@@ -471,7 +471,10 @@ function removeSectionConfigurationRow(rowKey) {
 }
 
 .file-structure-shell__section-menu {
-  min-width: 230px;
+  display: inline-grid;
+  min-width: 0;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 48px));
   padding: 10px;
   background: #111827;
   border-radius: 14px;
@@ -511,7 +514,8 @@ function removeSectionConfigurationRow(rowKey) {
 }
 
 .file-structure-shell__section-menu-item {
-  width: 100%;
+  width: auto;
+  min-width: 0;
   padding: 8px 10px;
   color: rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.06);
@@ -522,6 +526,7 @@ function removeSectionConfigurationRow(rowKey) {
   font-weight: var(--font-weight-black);
   line-height: 1;
   text-align: left;
+  white-space: nowrap;
   cursor: pointer;
 }
 
