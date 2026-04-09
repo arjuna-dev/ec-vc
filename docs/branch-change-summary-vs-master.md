@@ -37,9 +37,9 @@ The main intentions were:
 
 Top files by added lines compared to `master`:
 
-1. `+5096` [001-workbook-schema-companion.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/001-workbook-schema-companion.json)
+1. `+5096` [000-workbook-schema-companion.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/000-workbook-schema-companion.json)
 2. `+4905` [FilePageShell.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/FilePageShell.vue)
-3. `+4418` [canonical-structure.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/canonical-structure.json)
+3. `+4418` [000-canonical-structure.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/000-canonical-structure.json)
 4. `+2933` [IngestionShellDialog.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/IngestionShellDialog.vue)
 5. `+2833` [AddEditRecordShellDialog.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/AddEditRecordShellDialog.vue)
 6. `+2635` [electron-main.js](/c:/Users/erikc/Coding_Repository/ec-vc/src-electron/electron-main.js)
@@ -103,8 +103,8 @@ Intent:
 
 Main files:
 
-- [001-workbook-schema-companion.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/001-workbook-schema-companion.json)
-- [canonical-structure.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/canonical-structure.json)
+- [000-workbook-schema-companion.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/000-workbook-schema-companion.json)
+- [000-canonical-structure.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/000-canonical-structure.json)
 - [011-record-architecture-master-plan.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/011-record-architecture-master-plan.md)
 - [011-product-reference-guide.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/011-product-reference-guide.md)
 - [999-ECS_Workstream_Tracker.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/999-ECS_Workstream_Tracker.md)
@@ -147,7 +147,7 @@ If someone wants to understand the branch without reading everything, the sugges
 
 1. [branch-change-summary-vs-master.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/branch-change-summary-vs-master.md)
 2. [011-record-architecture-master-plan.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/011-record-architecture-master-plan.md)
-3. [canonical-structure.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/canonical-structure.json)
+3. [000-canonical-structure.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/000-canonical-structure.json)
 4. [FilePageShell.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/FilePageShell.vue)
 5. [IngestionShellDialog.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/IngestionShellDialog.vue)
 6. [AddEditRecordShellDialog.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/AddEditRecordShellDialog.vue)

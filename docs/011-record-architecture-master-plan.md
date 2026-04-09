@@ -29,8 +29,8 @@ When decisions change:
 For the current first-pass architecture work, the active workbook schema reference is:
 
 - `docs/B10_DOS v260400 vrev.xlsx`
-- `docs/001-workbook-schema-companion.json`
-- `docs/canonical-structure.json`
+- `docs/000-workbook-schema-companion.json`
+- `docs/000-canonical-structure.json`
 
 That workbook should be treated as the active structural reference used to validate and refine the first approved architecture pass.
 
@@ -39,7 +39,7 @@ The JSON companion should be treated as a workbook-derived reference layer, not 
 During this phase, the intended direction is:
 
 - `Workbook` helps define and validate the structure
-- `docs/canonical-structure.json` is the canonical machine-readable structure layer used by the app
+- `docs/000-canonical-structure.json` is the canonical machine-readable structure layer used by the app
 - the app should edit that canonical JSON structure directly
 - exporters and importers should remain available as adapters for migration and outside data sources
 
@@ -853,7 +853,7 @@ Authority rule:
 That means:
 
 - the new `L1` must be implemented as a real new canonical source/table, not just a route or visible shell option
-- the canonical entity must be added to `docs/canonical-structure.json`
+- the canonical entity must be added to `docs/000-canonical-structure.json`
 - route, registry, shell, and navigation must be added together
 - runtime ownership must be added for:
   - `list`
@@ -1332,7 +1332,7 @@ Expected token return shape:
 
 Working rule:
 
-- fixed dropdown values should live in top-level reusable `option_lists` inside `docs/canonical-structure.json`
+- fixed dropdown values should live in top-level reusable `option_lists` inside `docs/000-canonical-structure.json`
 - tokens should reference those lists explicitly
 - live pickers should point to their source entity explicitly
 - the shared dialog may render from canonical and live row sources
@@ -1381,7 +1381,7 @@ Working interpretation:
 
 Current canonical file:
 
-- `docs/canonical-structure.json`
+- `docs/000-canonical-structure.json`
 
 ## Opportunity Structure Rule
 

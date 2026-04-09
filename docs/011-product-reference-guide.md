@@ -134,7 +134,7 @@ Implementation note:
 
 For the current architecture pass:
 
-- `docs/canonical-structure.json` is the app-readable canonical structure layer
+- `docs/000-canonical-structure.json` is the app-readable canonical structure layer
 - the workbook is being used to validate and refine that structure
 - the workbook companion remains a useful workbook-derived reference surface
 - canonical tokens may declare explicit `db_field_aliases` when live payload field names still reflect older DB naming

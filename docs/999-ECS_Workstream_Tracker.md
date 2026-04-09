@@ -89,7 +89,7 @@ This tracker should stay aligned with:
 - `Game Rulebook` is now the first-pass reference for points, quests, boards, and the Game Master layer
 - Excel workbook + canonical JSON workflow is now in place for schema indexing
 - `JSON + app editing` is now the chosen canonical structure direction
-- `docs/canonical-structure.json` is now the app-readable canonical structure registry across the current L1/L2/L3 entity set
+- `docs/000-canonical-structure.json` is now the app-readable canonical structure registry across the current L1/L2/L3 entity set
 - canonical structure now also needs to support explicit `L2.a-b-c-d` subgrouping when a subsection requires structured internal grouping without weakening `L3`
 - canonical tokens can now carry explicit `db_field_aliases`, so shell rendering can resolve through canonical structure without guessing when live row payload fields still use older DB names
 - `Opportunities` is now being formalized as a parent canonical `L1` contract with `Funds` and `Rounds` as subtype branches
@@ -324,7 +324,7 @@ This tracker should stay aligned with:
 - as of April 3, 2026:
   - route-level `Databook` navigation has been renamed to `Record View`
   - page-level record navigation now runs through one shared helper instead of per-page route objects
-  - `docs/canonical-structure.json` now carries the active app-readable L1/L2/L3 structure registry
+  - `docs/000-canonical-structure.json` now carries the active app-readable L1/L2/L3 structure registry
   - canonical `General` now standardizes `Name` at `*.3.1` and `Summary` at `*.3.2`
   - shared edit dialog ordering now treats `Name` as the first field in the left grid and `Summary` as the first field in the right grid
   - canonical structure now carries explicit DB-field aliases where live row payloads still use older field names such as `Name`, `Company_Name`, or `title`

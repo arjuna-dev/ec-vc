@@ -18,8 +18,8 @@ The target is strict bootstrap behavior, not a heuristic helper.
 
 Primary files:
 
-- `docs/canonical-structure.json`
-- `docs/001-workbook-schema-companion.json`
+- `docs/000-canonical-structure.json`
+- `docs/000-workbook-schema-companion.json`
 
 Current status:
 
@@ -36,9 +36,90 @@ Implementation need:
   - KDB tokens
   - relationship ownership decision when explicitly promoted
 
-Reference:
+### Canonical birth input contract
 
-- `docs/001-new-l1-birth-input-contract.md`
+A new normal `L1` should not begin birth unless this input contract is complete.
+
+If any required part is missing, the correct action is:
+
+- stop
+- surface the gap
+- complete the canonical input first
+
+Minimum required input:
+
+1. canonical entity identity
+   - canonical entity name
+   - singular label
+   - plural label
+   - route key
+2. entity class
+   - normal `L1`
+   - branch-capable `L1`
+   - approved exception
+3. shared base confirmation
+   - `System`
+   - `KDB`
+   - `General`
+4. shared base parameter confirmation
+   - `System`
+     - `ID`
+     - `Creator`
+     - `Datetime`
+     - `EventLog`
+   - `General`
+     - `Name`
+     - `Summary`
+5. entity-specific extension structure
+   - entity-specific `L2` list
+   - approved `L2.a-b-c-d` subgrouping
+6. KDB declaration set
+   - target `L1`
+   - source token
+   - expected reverse target
+7. relationship owner-path decision set
+   - shared `KDB_Relationships`
+   - promoted dedicated join table
+8. shell ownership identity
+   - file-shell route ownership
+   - registry/menu identity
+   - runtime entity/table identity
+9. validation target
+   - list works
+   - create works
+   - edit works
+   - delete works
+   - KDB appears
+   - reverse-read appears
+   - shell launch works
+
+Compact check:
+
+1. what is the entity called?
+2. is it normal, branch-capable, or an approved exception?
+3. does it own the shared base?
+4. does it use the shared base parameters correctly?
+5. what are its entity-specific `L2`s?
+6. what KDB links does it declare?
+7. which links stay in `KDB_Relationships`?
+8. which links are explicitly promoted to dedicated join tables?
+9. what route/registry/runtime identity should be created?
+10. how do we prove the birth is complete?
+
+This contract does not allow:
+
+- guessing labels from table names
+- creating a visible shell before runtime ownership exists
+- adding KDB tokens without reverse-read planning
+- assuming every relationship deserves a dedicated join table
+- inventing subgroup structure later in shell code
+
+File Steward rule:
+
+- missing birth input is a stop condition
+- the steward should not allow partial birth input
+- the steward should not allow silent defaults beyond the approved shared base
+- the steward should not allow post-birth structural invention to fill in missing canon
 
 ### 2. Real table/runtime owner
 
@@ -67,7 +148,7 @@ Implementation need:
 
 Primary files:
 
-- `docs/canonical-structure.json`
+- `docs/000-canonical-structure.json`
 - `src/utils/structureRegistry.js`
 
 Current status:
@@ -98,8 +179,8 @@ Shared `General` parameters:
 
 Primary files:
 
-- `docs/canonical-structure.json`
-- `docs/001-workbook-schema-companion.json`
+- `docs/000-canonical-structure.json`
+- `docs/000-workbook-schema-companion.json`
 
 Current status:
 
@@ -116,8 +197,8 @@ Implementation need:
 
 Primary files:
 
-- `docs/canonical-structure.json`
-- `docs/001-workbook-schema-companion.json`
+- `docs/000-canonical-structure.json`
+- `docs/000-workbook-schema-companion.json`
 
 Current status:
 
@@ -132,7 +213,7 @@ Implementation need:
 
 Primary files:
 
-- `docs/canonical-structure.json`
+- `docs/000-canonical-structure.json`
 - `src/shared/kdbRelationshipContracts.js`
 
 Current status:
