@@ -72,6 +72,8 @@
             <L2SettingsMenu
               :title="generalElementSettingsTitle"
               :groups="liveGeneralElementSettingsGroups"
+              @toggle-group="toggleSettingsGroup"
+              @toggle-item="toggleSettingsItem"
             />
           </div>
         </div>
@@ -106,7 +108,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
@@ -115,6 +117,8 @@ import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
+import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { LEVEL_2_FILE_REGISTRY_BY_KEY, LEVEL_3_FILE_REGISTRY_BY_KEY } from 'src/utils/structureRegistry'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -126,36 +130,89 @@ const emit = defineEmits(['update:shellSelectorValue'])
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
-const activeL2Toolbar = ref('general')
+const activeL2Toolbar = ref('')
+const expandedSettingsGroupsBySource = ref({})
+const checkedSettingsItemsBySource = ref({})
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
-]
-const l2ToolbarItems = [
-  { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
-  { value: 'resources', title: 'Resources', isKdb: false, isSystem: false, pushRight: false },
-  { value: 'record-data', title: 'Record Data', isKdb: false, isSystem: false, pushRight: false },
-  { value: 'kdb', title: 'KDB', isKdb: true, isSystem: false, pushRight: true },
-  { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
 ]
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
   || props.shellSelectorOptions[0]
   || { value: '', label: 'Select File' },
 )
-const generalElementSettingsTitle = computed(() => `${activeShellSelectorOption.value.label} Settings`)
-const liveGeneralElementSettingsGroups = computed(() => [
-  {
-    key: `${activeShellSelectorOption.value.value || 'selected-file'}-general-elements`,
-    label: activeShellSelectorOption.value.label,
-    expanded: true,
-    items: [
-      { key: 'name', label: 'Name', checked: true },
-      { key: 'summary', label: 'Summary', checked: true },
-      { key: 'status', label: 'Status', checked: false },
-    ],
-  },
+const activeSettingsSourceKey = computed(() => activeShellSelectorOption.value.value || 'selected-file')
+const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSettingsSourceKey.value] || [])
+const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSettingsSourceKey.value] || [])
+const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
+const dialogSectionGroups = computed(() =>
+  buildDialogSectionGroups({
+    groupedSections: groupedLevel2Sections.value,
+    tokenFilter: (section) => level3Tokens.value.filter((token) => token.parentKey === section.key),
+  }),
+)
+const dialogSectionSplit = computed(() => splitDialogSections(dialogSectionGroups.value))
+const l2ToolbarItems = computed(() => [
+  ...dialogSectionSplit.value.leftSections.map((section) => ({
+    value: section.key,
+    title: section.label,
+    isKdb: false,
+    isSystem: false,
+    pushRight: false,
+  })),
+  ...dialogSectionSplit.value.rightSections.map((section, index) => {
+    const normalized = String(section.label || '').trim().toLowerCase()
+    return {
+      value: section.key,
+      title: section.label,
+      isKdb: normalized === 'kdb',
+      isSystem: normalized === 'system',
+      pushRight: index === 0,
+    }
+  }),
 ])
+const activeSettingsSection = computed(
+  () => dialogSectionGroups.value.find((section) => section.key === activeL2Toolbar.value) || dialogSectionGroups.value[0] || null,
+)
+const generalElementSettingsTitle = computed(() => `${activeShellSelectorOption.value.label} Settings`)
+const baseSettingsGroups = computed(() => {
+  if (!activeSettingsSection.value) return []
+
+  const subgroupSource = Array.isArray(activeSettingsSection.value.subgroups) && activeSettingsSection.value.subgroups.length
+    ? activeSettingsSection.value.subgroups.map((subgroup) => ({
+      key: subgroup.key,
+      label: subgroup.label,
+      tokens: Array.isArray(subgroup.tokens) ? subgroup.tokens : [],
+    }))
+    : [{
+      key: activeSettingsSection.value.key,
+      label: activeSettingsSection.value.label,
+      tokens: Array.isArray(activeSettingsSection.value.tokens) ? activeSettingsSection.value.tokens : [],
+    }]
+
+  return subgroupSource.map((group) => ({
+    key: group.key,
+    label: group.label,
+    items: group.tokens.map((token) => ({
+      key: token.key,
+      label: token.label,
+    })),
+  }))
+})
+const liveGeneralElementSettingsGroups = computed(() => {
+  const expandedKeys = new Set(expandedSettingsGroupsBySource.value[activeSettingsSourceKey.value] || [])
+  const checkedItems = checkedSettingsItemsBySource.value[activeSettingsSourceKey.value] || {}
+  return baseSettingsGroups.value.map((group) => ({
+    key: group.key,
+    label: group.label,
+    expanded: expandedKeys.has(group.key),
+    items: group.items.map((item) => ({
+      ...item,
+      checked: checkedItems[item.key] !== false,
+    })),
+  }))
+})
 
 function selectShellSelectorOption(value) {
   emit('update:shellSelectorValue', value)
@@ -164,6 +221,32 @@ function selectShellSelectorOption(value) {
 
 function toggleShellSelector() {
   shellSelectorOpen.value = !shellSelectorOpen.value
+}
+
+function toggleSettingsGroup(groupKey) {
+  const sourceKey = activeSettingsSourceKey.value
+  const current = Array.isArray(expandedSettingsGroupsBySource.value[sourceKey])
+    ? expandedSettingsGroupsBySource.value[sourceKey]
+    : []
+  const next = current.includes(groupKey)
+    ? current.filter((key) => key !== groupKey)
+    : [...current, groupKey]
+  expandedSettingsGroupsBySource.value = {
+    ...expandedSettingsGroupsBySource.value,
+    [sourceKey]: next,
+  }
+}
+
+function toggleSettingsItem(itemKey, value) {
+  const sourceKey = activeSettingsSourceKey.value
+  const current = checkedSettingsItemsBySource.value[sourceKey] || {}
+  checkedSettingsItemsBySource.value = {
+    ...checkedSettingsItemsBySource.value,
+    [sourceKey]: {
+      ...current,
+      [itemKey]: value,
+    },
+  }
 }
 
 function handleGlobalPointerDown(event) {
@@ -184,6 +267,44 @@ onBeforeUnmount(() => {
   if (typeof window === 'undefined' || typeof window.removeEventListener !== 'function') return
   window.removeEventListener('pointerdown', handleGlobalPointerDown)
 })
+
+watch(
+  l2ToolbarItems,
+  (items) => {
+    if (items.some((item) => item.value === activeL2Toolbar.value)) return
+    activeL2Toolbar.value = items[0]?.value || ''
+  },
+  { immediate: true },
+)
+
+watch(
+  baseSettingsGroups,
+  (groups) => {
+    const sourceKey = activeSettingsSourceKey.value
+    const groupKeys = groups.map((group) => group.key)
+    const existingExpanded = Array.isArray(expandedSettingsGroupsBySource.value[sourceKey])
+      ? expandedSettingsGroupsBySource.value[sourceKey].filter((key) => groupKeys.includes(key))
+      : []
+    const nextExpanded = existingExpanded.length ? existingExpanded : groupKeys
+
+    expandedSettingsGroupsBySource.value = {
+      ...expandedSettingsGroupsBySource.value,
+      [sourceKey]: nextExpanded,
+    }
+
+    const existingChecked = checkedSettingsItemsBySource.value[sourceKey] || {}
+    const allowedItemKeys = new Set(groups.flatMap((group) => group.items.map((item) => item.key)))
+    const nextChecked = Object.fromEntries(
+      Object.entries(existingChecked).filter(([itemKey]) => allowedItemKeys.has(itemKey)),
+    )
+
+    checkedSettingsItemsBySource.value = {
+      ...checkedSettingsItemsBySource.value,
+      [sourceKey]: nextChecked,
+    }
+  },
+  { immediate: true },
+)
 
 </script>
 
