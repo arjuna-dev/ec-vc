@@ -143,12 +143,64 @@
 
       <div class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
         <table class="file-structure-shell__leaf-table">
+          <colgroup>
+            <col :style="columnStyle('select')">
+            <col v-if="!structureColumnsCollapsed" :style="columnStyle('l2Section')">
+            <col v-if="!structureColumnsCollapsed" :style="columnStyle('l2Sub')">
+            <col v-if="!structureColumnsCollapsed" :style="columnStyle('l3Key')">
+            <col v-if="!structureColumnsCollapsed" :style="columnStyle('structureOrder')">
+            <col :style="columnStyle('label')">
+            <col :style="columnStyle('type')">
+            <col :style="columnStyle('visible')">
+            <col :style="columnStyle('writeTarget')">
+          </colgroup>
           <thead>
             <tr>
               <th aria-label="Selection"></th>
-              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">L2 Section</th>
-              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">L2 Sub</th>
-              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">L3 Key</th>
+              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">
+                <div class="file-structure-shell__header-cell">
+                  <span>L2 Key</span>
+                  <button
+                    type="button"
+                    class="file-structure-shell__column-resizer"
+                    aria-label="Resize L2 Section column"
+                    @pointerdown.prevent="startColumnResize('l2Section', $event)"
+                  />
+                </div>
+              </th>
+              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">
+                <div class="file-structure-shell__header-cell">
+                  <span>L2 Sub</span>
+                  <button
+                    type="button"
+                    class="file-structure-shell__column-resizer"
+                    aria-label="Resize L2 Sub column"
+                    @pointerdown.prevent="startColumnResize('l2Sub', $event)"
+                  />
+                </div>
+              </th>
+              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">
+                <div class="file-structure-shell__header-cell">
+                  <span>L3 Key</span>
+                  <button
+                    type="button"
+                    class="file-structure-shell__column-resizer"
+                    aria-label="Resize L3 Key column"
+                    @pointerdown.prevent="startColumnResize('l3Key', $event)"
+                  />
+                </div>
+              </th>
+              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">
+                <div class="file-structure-shell__header-cell">
+                  <span>Order</span>
+                  <button
+                    type="button"
+                    class="file-structure-shell__column-resizer"
+                    aria-label="Resize structure order column"
+                    @pointerdown.prevent="startColumnResize('structureOrder', $event)"
+                  />
+                </div>
+              </th>
               <th>
                 <div class="file-structure-shell__label-header">
                   <button
@@ -163,14 +215,46 @@
                   </button>
                   <span>Label</span>
                 </div>
+                <button
+                  type="button"
+                  class="file-structure-shell__column-resizer"
+                  aria-label="Resize label column"
+                  @pointerdown.prevent="startColumnResize('label', $event)"
+                />
               </th>
-              <th>Type</th>
-              <th>Visible</th>
-              <th>Editable</th>
-              <th>KDB Meaning</th>
-              <th>Write Target / Alias</th>
-              <th>Order</th>
-              <th>UI Treatment</th>
+              <th class="file-structure-shell__colhead--data">
+                <div class="file-structure-shell__header-cell">
+                  <span>Type</span>
+                  <button
+                    type="button"
+                    class="file-structure-shell__column-resizer"
+                    aria-label="Resize type column"
+                    @pointerdown.prevent="startColumnResize('type', $event)"
+                  />
+                </div>
+              </th>
+              <th class="file-structure-shell__colhead--data">
+                <div class="file-structure-shell__header-cell">
+                  <span>Visible</span>
+                  <button
+                    type="button"
+                    class="file-structure-shell__column-resizer"
+                    aria-label="Resize visible column"
+                    @pointerdown.prevent="startColumnResize('visible', $event)"
+                  />
+                </div>
+              </th>
+              <th class="file-structure-shell__colhead--data">
+                <div class="file-structure-shell__header-cell">
+                  <span>Write Target / Alias</span>
+                  <button
+                    type="button"
+                    class="file-structure-shell__column-resizer"
+                    aria-label="Resize write target column"
+                    @pointerdown.prevent="startColumnResize('writeTarget', $event)"
+                  />
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -185,17 +269,14 @@
               <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.parentL2 }}</td>
               <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.parentSubgroup }}</td>
               <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--l3-key">{{ token.key }}</td>
+              <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.order }}</td>
               <td class="file-structure-shell__cell--label">{{ token.label }}</td>
               <td class="file-structure-shell__cell--data">{{ token.type }}</td>
               <td class="file-structure-shell__cell--data">{{ token.visible }}</td>
-              <td class="file-structure-shell__cell--data">{{ token.editable }}</td>
-              <td class="file-structure-shell__cell--data">{{ token.relationshipMeaning }}</td>
               <td class="file-structure-shell__cell--data">{{ token.writeTarget }}</td>
-              <td class="file-structure-shell__cell--data">{{ token.order }}</td>
-              <td class="file-structure-shell__cell--data">{{ token.uiTreatment }}</td>
             </tr>
             <tr v-if="!activeLeafTokens.length">
-              <td :colspan="structureColumnsCollapsed ? 8 : 11" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
+              <td :colspan="structureColumnsCollapsed ? 4 : 8" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
             </tr>
           </tbody>
         </table>
@@ -205,7 +286,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
@@ -239,6 +320,18 @@ const draftLeafRowsBySource = ref({})
 const selectedLeafKeysBySource = ref({})
 const expandedSettingsGroupsBySource = ref({})
 const checkedSettingsItemsBySource = ref({})
+const columnWidths = reactive({
+  select: 42,
+  l2Section: 92,
+  l2Sub: 78,
+  l3Key: 108,
+  structureOrder: 54,
+  label: 180,
+  type: 76,
+  visible: 72,
+  writeTarget: 220,
+})
+const activeColumnResize = ref(null)
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
@@ -355,6 +448,11 @@ const activeLeafTokens = computed(() => {
 })
 const selectedLeafKeys = computed(() => selectedLeafKeysBySource.value[activeSettingsSourceKey.value] || [])
 
+function columnStyle(columnKey) {
+  const width = columnWidths[columnKey]
+  return width ? { width: `${width}px`, minWidth: `${width}px` } : {}
+}
+
 function selectShellSelectorOption(value) {
   emit('update:shellSelectorValue', value)
   shellSelectorOpen.value = false
@@ -432,6 +530,25 @@ function toggleSettingsItem(itemKey, value) {
   }
 }
 
+function startColumnResize(columnKey, event) {
+  if (event.button !== 0) return
+  activeColumnResize.value = {
+    columnKey,
+    startX: event.clientX,
+    startWidth: columnWidths[columnKey] || 0,
+  }
+}
+
+function handleColumnResize(event) {
+  if (!activeColumnResize.value) return
+  const { columnKey, startX, startWidth } = activeColumnResize.value
+  columnWidths[columnKey] = Math.max(36, startWidth + (event.clientX - startX))
+}
+
+function stopColumnResize() {
+  activeColumnResize.value = null
+}
+
 function handleGlobalPointerDown(event) {
   const target = event?.target
   if (!target) return
@@ -444,11 +561,15 @@ function handleGlobalPointerDown(event) {
 onMounted(() => {
   if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
   window.addEventListener('pointerdown', handleGlobalPointerDown)
+  window.addEventListener('pointermove', handleColumnResize)
+  window.addEventListener('pointerup', stopColumnResize)
 })
 
 onBeforeUnmount(() => {
   if (typeof window === 'undefined' || typeof window.removeEventListener !== 'function') return
   window.removeEventListener('pointerdown', handleGlobalPointerDown)
+  window.removeEventListener('pointermove', handleColumnResize)
+  window.removeEventListener('pointerup', stopColumnResize)
 })
 
 watch(
@@ -656,20 +777,21 @@ watch(
 }
 
 .file-structure-shell__leaf-table {
-  width: 100%;
+  width: max-content;
   border-collapse: collapse;
-  min-width: 1280px;
+  min-width: 0;
 }
 
 .file-structure-shell__leaf-table th,
 .file-structure-shell__leaf-table td {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   text-align: left;
   vertical-align: top;
 }
 
 .file-structure-shell__leaf-table th {
+  position: relative;
   color: rgba(15, 23, 42, 0.72);
   background: rgba(248, 250, 252, 0.96);
   font-family: var(--ds-font-title);
@@ -679,10 +801,28 @@ watch(
   white-space: nowrap;
 }
 
+.file-structure-shell__header-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .file-structure-shell__label-header {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.file-structure-shell__column-resizer {
+  position: absolute;
+  top: 0;
+  right: -6px;
+  width: 12px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: col-resize;
 }
 
 .file-structure-shell__column-collapse-button {
@@ -716,28 +856,40 @@ watch(
 
 .file-structure-shell__colhead--structure {
   font-size: var(--ds-font-size-xs);
+  width: 1%;
+  white-space: nowrap;
+}
+
+.file-structure-shell__colhead--data {
+  width: 1%;
+  white-space: nowrap;
 }
 
 .file-structure-shell__cell--structure {
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-light);
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .file-structure-shell__cell--label {
   font-size: var(--ds-font-size-sm);
-  font-weight: var(--ds-font-weight-bold);
+  font-weight: var(--ds-font-weight-medium);
 }
 
 .file-structure-shell__cell--data {
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-light);
+  width: 1%;
+  white-space: nowrap;
 }
 
 .file-structure-shell__cell--l3-key {
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-light);
   line-height: 1.2;
+  width: 1%;
+  white-space: nowrap;
 }
 
 .file-structure-shell__leaf-empty {

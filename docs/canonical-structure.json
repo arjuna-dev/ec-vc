@@ -960,14 +960,6 @@
           "tokens": [
             {
               "address": "4.2.1",
-              "token_name": "Company_Artifact",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Artifacts",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "4.2.2",
               "token_name": "Company_User",
               "token_type": "select_multi",
               "option_source": "live_entity",
@@ -975,7 +967,7 @@
               "relationship_group": "first_order"
             },
             {
-              "address": "4.2.3",
+              "address": "4.2.2",
               "token_name": "Company_Contact",
               "token_type": "select_multi",
               "option_source": "live_entity",
@@ -983,55 +975,7 @@
               "relationship_group": "first_order"
             },
             {
-              "address": "4.2.4",
-              "token_name": "Company_Company",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Companies",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "4.2.5",
-              "token_name": "Company_Fund",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Funds",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "4.2.6",
-              "token_name": "Company_Round",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Rounds",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "4.2.7",
-              "token_name": "Company_Project",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Projects",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "4.2.8",
-              "token_name": "Company_Task",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Tasks",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "4.2.9",
-              "token_name": "Company_Note",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Notes",
-              "relationship_group": "first_order"
-            },
-            {
-              "address": "4.2.11",
+              "address": "4.2.3",
               "token_name": "Company_Role",
               "token_type": "select_multi",
               "option_source": "live_entity",
@@ -1039,8 +983,72 @@
               "relationship_group": "first_order"
             },
             {
+              "address": "4.2.4",
+              "token_name": "Company_Project",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Projects",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "4.2.5",
+              "token_name": "Company_Task",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Tasks",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "4.2.6",
+              "token_name": "Company_Note",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Notes",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "4.2.7",
+              "token_name": "Company_Artifact_RAW",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "4.2.8",
+              "token_name": "Company_Artifact_Processed",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Artifacts_Processed",
+              "relationship_group": "knowledge_db"
+            },
+            {
+              "address": "4.2.9",
+              "token_name": "Company_Company",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Companies",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "4.2.10",
+              "token_name": "Company_Fund",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Funds",
+              "relationship_group": "first_order"
+            },
+            {
+              "address": "4.2.11",
+              "token_name": "Company_Round",
+              "token_type": "select_multi",
+              "option_source": "live_entity",
+              "option_entity": "Rounds",
+              "relationship_group": "first_order"
+            },
+            {
               "address": "4.2.12",
-              "token_name": "Company_Financial_Industry",
+              "token_name": "Company_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Financial_Industries",
@@ -1048,18 +1056,10 @@
             },
             {
               "address": "4.2.13",
-              "token_name": "Company_Round_Security",
+              "token_name": "Company_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Round_Securities",
-              "relationship_group": "knowledge_db"
-            },
-            {
-              "address": "4.2.14",
-              "token_name": "Company_Processed_Artifact",
-              "token_type": "select_multi",
-              "option_source": "live_entity",
-              "option_entity": "Artifacts_Processed",
               "relationship_group": "knowledge_db"
             }
           ]
