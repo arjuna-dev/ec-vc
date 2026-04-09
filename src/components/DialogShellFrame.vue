@@ -4,7 +4,11 @@
       <slot name="header" />
     </q-card-section>
 
-    <q-card-section class="dialog-shell-frame__body" :class="[bodyClass, { 'dialog-shell-frame__body--scrollable': bodyScrollable }]">
+    <q-card-section
+      v-if="$slots.default"
+      class="dialog-shell-frame__body"
+      :class="[bodyClass, { 'dialog-shell-frame__body--scrollable': bodyScrollable }]"
+    >
       <slot />
     </q-card-section>
 

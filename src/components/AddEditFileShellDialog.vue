@@ -41,10 +41,6 @@
         </div>
       </div>
     </template>
-
-    <template #default>
-      <div class="file-structure-shell__body-empty" />
-    </template>
   </DialogShellFrame>
 </template>
 
@@ -147,15 +143,6 @@ onBeforeUnmount(() => {
   top: calc(100% + 10px);
   right: 0;
   z-index: 20;
-}
-
-.file-structure-shell__body {
-  padding: 0;
-}
-
-.file-structure-shell__body-empty {
-  min-height: 0;
-  display: none;
 }
 
 .file-structure-shell__section-menu {
