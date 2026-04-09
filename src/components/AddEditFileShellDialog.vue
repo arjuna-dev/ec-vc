@@ -40,6 +40,10 @@
           </div>
         </div>
         <div class="file-structure-shell__divider" />
+        <DialogShellTitleRow
+          :title="activeShellSelectorOption.label"
+          class="file-structure-shell__dialog-title-row"
+        />
       </div>
     </template>
   </DialogShellFrame>
@@ -48,6 +52,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
+import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 
@@ -124,6 +129,10 @@ onBeforeUnmount(() => {
   height: 1px;
   margin-top: 18px;
   background: rgba(15, 23, 42, 0.12);
+}
+
+.file-structure-shell__dialog-title-row {
+  padding-top: 16px;
 }
 
 .file-structure-shell__shell-selector {
