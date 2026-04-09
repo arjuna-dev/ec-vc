@@ -252,8 +252,11 @@ onBeforeUnmount(() => {
 
 .file-structure-shell__content-box-title-shell--menu {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-end;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
 }
 
 .file-structure-shell__content-box-title {
