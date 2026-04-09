@@ -127,15 +127,54 @@
       </button>
     </div>
 
-    <div v-if="!leafItemsCollapsed" class="file-structure-shell__leaf-row">
-      <button
-        v-for="item in visibleLeafItems"
-        :key="item.key"
-        type="button"
-        class="file-structure-shell__leaf-chip"
-      >
-        {{ item.label }}
-      </button>
+    <div v-if="!leafItemsCollapsed" class="file-structure-shell__leaf-area">
+      <div v-if="subgroupTabs.length" class="file-structure-shell__subgroup-tabs">
+        <SectionTabs
+          v-model="activeSubgroupKey"
+          :left-tabs="subgroupTabs"
+          :right-tabs="[]"
+        />
+      </div>
+
+      <div class="file-structure-shell__leaf-table-wrap">
+        <table class="file-structure-shell__leaf-table">
+          <thead>
+            <tr>
+              <th>L3 Key</th>
+              <th>Label</th>
+              <th>Parent L2</th>
+              <th>Parent Subgroup</th>
+              <th>Type</th>
+              <th>Value</th>
+              <th>Visible</th>
+              <th>Editable</th>
+              <th>KDB Meaning</th>
+              <th>Write Target / Alias</th>
+              <th>Order</th>
+              <th>UI Treatment</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="token in activeLeafTokens" :key="token.key">
+              <td>{{ token.key }}</td>
+              <td>{{ token.label }}</td>
+              <td>{{ token.parentL2 }}</td>
+              <td>{{ token.parentSubgroup }}</td>
+              <td>{{ token.type }}</td>
+              <td>{{ token.value }}</td>
+              <td>{{ token.visible }}</td>
+              <td>{{ token.editable }}</td>
+              <td>{{ token.relationshipMeaning }}</td>
+              <td>{{ token.writeTarget }}</td>
+              <td>{{ token.order }}</td>
+              <td>{{ token.uiTreatment }}</td>
+            </tr>
+            <tr v-if="!activeLeafTokens.length">
+              <td colspan="12" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </DialogShellFrame>
 </template>
@@ -149,9 +188,10 @@ import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
+import SectionTabs from 'src/components/SectionTabs.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
-import { LEVEL_2_FILE_REGISTRY_BY_KEY, LEVEL_3_FILE_REGISTRY_BY_KEY } from 'src/utils/structureRegistry'
+import { LEVEL_2_FILE_REGISTRY_BY_KEY, LEVEL_3_FILE_REGISTRY_BY_KEY, getCanonicalTokenWriteTarget } from 'src/utils/structureRegistry'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -166,6 +206,7 @@ const shellSelectorMenu = ref(null)
 const activeL2Toolbar = ref('')
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
+const activeSubgroupKey = ref('')
 const expandedSettingsGroupsBySource = ref({})
 const checkedSettingsItemsBySource = ref({})
 const viewOptions = [
@@ -248,11 +289,39 @@ const liveGeneralElementSettingsGroups = computed(() => {
     })),
   }))
 })
-const visibleLeafItems = computed(() =>
-  liveGeneralElementSettingsGroups.value.flatMap((group) =>
-    Array.isArray(group.items) ? group.items.filter((item) => item.checked !== false) : [],
-  ),
+const subgroupTabs = computed(() =>
+  (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => ({
+    key: group.key,
+    label: group.label,
+  })),
 )
+const activeLeafTokens = computed(() => {
+  const subgroupMap = new Map(
+    (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => [group.key, group]),
+  )
+  const tokens = subgroupTabs.value.length
+    ? (subgroupMap.get(activeSubgroupKey.value)?.tokens || [])
+    : (Array.isArray(activeSettingsSection.value?.tokens) ? activeSettingsSection.value.tokens : [])
+
+  return tokens.map((token, index) => {
+    const checkedItems = checkedSettingsItemsBySource.value[activeSettingsSourceKey.value] || {}
+    const writeTarget = getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
+    return {
+      key: token.key || '—',
+      label: token.label || '—',
+      parentL2: token.parentLabel || activeSettingsSection.value?.label || '—',
+      parentSubgroup: subgroupMap.get(activeSubgroupKey.value)?.label || '—',
+      type: token.tokenType || '—',
+      value: '—',
+      visible: checkedItems[token.key] !== false ? 'Yes' : 'No',
+      editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
+      relationshipMeaning: token.relationshipGroup || '—',
+      writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '—',
+      order: token.level_3 || String(index + 1),
+      uiTreatment: token.tokenType || token.optionList || token.optionSource || '—',
+    }
+  })
+})
 
 function selectShellSelectorOption(value) {
   emit('update:shellSelectorValue', value)
@@ -342,6 +411,15 @@ watch(
       ...checkedSettingsItemsBySource.value,
       [sourceKey]: nextChecked,
     }
+  },
+  { immediate: true },
+)
+
+watch(
+  subgroupTabs,
+  (tabs) => {
+    if (tabs.some((tab) => tab.key === activeSubgroupKey.value)) return
+    activeSubgroupKey.value = tabs[0]?.key || ''
   },
   { immediate: true },
 )
@@ -481,25 +559,58 @@ watch(
   stroke-width: 1.8;
 }
 
-.file-structure-shell__leaf-row {
+.file-structure-shell__leaf-area {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
   padding: 0 16px 18px;
 }
 
-.file-structure-shell__leaf-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 12px;
-  color: var(--ds-color-brand-black);
-  background: rgba(255, 255, 255, 0.92);
+.file-structure-shell__subgroup-tabs {
+  padding-top: 2px;
+}
+
+.file-structure-shell__leaf-table-wrap {
+  overflow-x: auto;
   border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 999px;
+  border-radius: var(--ds-radius-md);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.file-structure-shell__leaf-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1280px;
+}
+
+.file-structure-shell__leaf-table th,
+.file-structure-shell__leaf-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  text-align: left;
+  vertical-align: top;
+}
+
+.file-structure-shell__leaf-table th {
+  color: rgba(15, 23, 42, 0.72);
+  background: rgba(248, 250, 252, 0.96);
+  font-family: var(--ds-font-title);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-bold);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.file-structure-shell__leaf-table td {
+  color: var(--ds-color-brand-black);
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-sm);
-  font-weight: var(--ds-font-weight-medium);
+  line-height: 1.35;
+}
+
+.file-structure-shell__leaf-empty {
+  color: rgba(15, 23, 42, 0.6);
+  text-align: center;
 }
 
 .file-structure-shell__shell-selector {
