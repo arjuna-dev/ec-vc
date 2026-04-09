@@ -176,7 +176,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  padding: 14px 16px 18px;
+  padding: 10px 16px 18px;
   align-items: stretch;
 }
 
