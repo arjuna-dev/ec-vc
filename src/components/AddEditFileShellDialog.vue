@@ -89,6 +89,9 @@
             </button>
           </div>
         </div>
+        <div class="file-structure-shell__contract-link-panel">
+          <div class="file-structure-shell__guide-divider" />
+        </div>
       </RecordSummaryBox>
 
       <RecordFieldsBox class="file-structure-shell__content-box">
@@ -133,6 +136,9 @@
             :left-tabs="eventsTabs"
             :right-tabs="[]"
           />
+        </div>
+        <div class="file-structure-shell__contract-link-panel">
+          <div class="file-structure-shell__guide-divider" />
         </div>
       </RecordFieldsBox>
     </div>
@@ -671,6 +677,7 @@ watch(
 
 <style scoped>
 .file-structure-shell {
+  --file-structure-shell-side-column-width: 232px;
   width: 100%;
   max-width: 100%;
   border: 1px solid rgba(15, 23, 42, 0.1);
@@ -712,7 +719,7 @@ watch(
 
 .file-structure-shell__content-grid {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  grid-template-columns: var(--file-structure-shell-side-column-width) minmax(0, 1fr) var(--file-structure-shell-side-column-width);
   gap: 12px;
   padding: 10px 16px 18px;
   align-items: stretch;
@@ -727,7 +734,7 @@ watch(
 }
 
 .file-structure-shell__content-box--summary {
-  width: max-content;
+  width: 100%;
   min-width: 0;
   max-width: 100%;
   justify-self: start;
@@ -735,7 +742,7 @@ watch(
 }
 
 .file-structure-shell__content-box--events {
-  width: max-content;
+  width: 100%;
   min-width: 0;
   max-width: 100%;
   justify-self: end;
@@ -746,11 +753,13 @@ watch(
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
-  align-items: start;
+  align-items: center;
+  min-height: 32px;
 }
 
 .file-structure-shell__content-box-title-shell {
   display: inline-flex;
+  align-items: center;
   width: fit-content;
   min-width: 0;
   max-width: 100%;
@@ -823,12 +832,14 @@ watch(
 
 .file-structure-shell__selected-l3-panel {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
 .file-structure-shell__selected-l3-row {
   display: grid;
   gap: 2px;
+  padding: 10px;
 }
 
 .file-structure-shell__selected-l3-label {
