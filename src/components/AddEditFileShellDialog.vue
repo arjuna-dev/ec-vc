@@ -146,9 +146,9 @@
           <thead>
             <tr>
               <th aria-label="Selection"></th>
-              <th v-if="!structureColumnsCollapsed">L2 Section</th>
-              <th v-if="!structureColumnsCollapsed">L2 Sub</th>
-              <th v-if="!structureColumnsCollapsed">L3 Key</th>
+              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">L2 Section</th>
+              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">L2 Sub</th>
+              <th v-if="!structureColumnsCollapsed" class="file-structure-shell__colhead--structure">L3 Key</th>
               <th>
                 <div class="file-structure-shell__label-header">
                   <button
@@ -182,8 +182,8 @@
                   @update:model-value="toggleLeafSelection(token.key)"
                 />
               </td>
-              <td v-if="!structureColumnsCollapsed">{{ token.parentL2 }}</td>
-              <td v-if="!structureColumnsCollapsed">{{ token.parentSubgroup }}</td>
+              <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.parentL2 }}</td>
+              <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.parentSubgroup }}</td>
               <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--l3-key">{{ token.key }}</td>
               <td>{{ token.label }}</td>
               <td class="file-structure-shell__cell--data">{{ token.type }}</td>
@@ -712,6 +712,14 @@ watch(
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-sm);
   line-height: 1.35;
+}
+
+.file-structure-shell__colhead--structure {
+  font-size: var(--ds-font-size-xs);
+}
+
+.file-structure-shell__cell--structure {
+  font-size: var(--ds-font-size-xs);
 }
 
 .file-structure-shell__cell--data {
