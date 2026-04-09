@@ -75,7 +75,14 @@
         <DialogShellTitleRow
           title="General Elements"
           class="file-structure-shell__content-box-title"
-        />
+        >
+          <template #actions>
+            <L2SettingsMenu
+              title="General"
+              :groups="generalSettingsGroups"
+            />
+          </template>
+        </DialogShellTitleRow>
         <div class="file-structure-shell__placeholder-copy">
           General file properties will render here.
         </div>
@@ -107,6 +114,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
+import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
@@ -129,6 +137,18 @@ const activeL2Toolbar = ref('general')
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
+]
+const generalSettingsGroups = [
+  {
+    key: 'general-fields',
+    label: 'General',
+    expanded: true,
+    items: [
+      { key: 'name', label: 'Name', checked: true },
+      { key: 'summary', label: 'Summary', checked: true },
+      { key: 'status', label: 'Status', checked: false },
+    ],
+  },
 ]
 const l2ToolbarItems = [
   { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
@@ -246,6 +266,10 @@ onBeforeUnmount(() => {
 .file-structure-shell__content-box-title:deep(.dialog-shell-title-row__title) {
   font-size: var(--ds-font-size-base);
   line-height: 1;
+}
+
+.file-structure-shell__content-box-title:deep(.dialog-shell-title-row__actions) {
+  align-items: flex-start;
 }
 
 .file-structure-shell__placeholder-copy {
