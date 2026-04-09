@@ -1,5 +1,8 @@
 <template>
-  <div class="main-menu-subgroup-row">
+  <div
+    class="main-menu-subgroup-row"
+    :class="{ 'main-menu-subgroup-row--compact': compact }"
+  >
     <span class="main-menu-subgroup-row__label">{{ label }}</span>
     <ToggleRowIcons
       label=""
@@ -21,6 +24,10 @@ defineProps({
     type: Boolean,
     default: true,
   },
+  compact: {
+    type: Boolean,
+    default: false,
+  },
 })
 </script>
 
@@ -38,6 +45,11 @@ defineProps({
   background: transparent;
 }
 
+.main-menu-subgroup-row--compact {
+  justify-content: flex-start;
+  width: auto;
+}
+
 .main-menu-subgroup-row__label {
   flex: 1 1 auto;
   color: inherit;
@@ -47,6 +59,10 @@ defineProps({
   letter-spacing: var(--ds-nav-subgroup-letter-spacing);
   line-height: var(--ds-line-height-xs);
   text-transform: uppercase;
+}
+
+.main-menu-subgroup-row--compact .main-menu-subgroup-row__label {
+  flex: 0 0 auto;
 }
 
 .main-menu-subgroup-row :deep(.toggle-row-icons) {

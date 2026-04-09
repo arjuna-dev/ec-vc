@@ -18,6 +18,7 @@
             <MainMenuSubgroupRow
               :label="activeShellSelectorOption.label"
               :expanded="shellSelectorOpen"
+              compact
             />
           </button>
           <div
