@@ -185,6 +185,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 12px;
   min-height: 260px;
+  align-self: stretch;
 }
 
 .file-structure-shell__content-box-title {
@@ -196,7 +197,18 @@ onBeforeUnmount(() => {
   line-height: 1;
 }
 
+.file-structure-shell__feed-box {
+  align-self: stretch;
+  min-height: 260px;
+}
+
 .file-structure-shell__feed-box:deep(.record-feed-panel) {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-self: stretch;
+  width: 100%;
+  min-height: 100%;
   margin: 0;
   border-radius: var(--ds-radius-md);
 }
