@@ -65,15 +65,29 @@
     </template>
 
     <div v-if="!boxesCollapsed" class="file-structure-shell__content-grid">
-      <RecordSummaryBox class="file-structure-shell__content-box">
-        <div class="file-structure-shell__content-box-title-shell">
-          <DialogShellTitleRow
-            title="Summary Box"
-            class="file-structure-shell__content-box-title"
-          />
-        </div>
-        <div class="file-structure-shell__placeholder-copy">
-          File summary content will render here.
+      <RecordSummaryBox class="file-structure-shell__content-box file-structure-shell__content-box--summary">
+        <div class="file-structure-shell__content-box-title-row">
+          <div class="file-structure-shell__content-box-title-shell">
+            <DialogShellTitleRow
+              title="Summary Box"
+              class="file-structure-shell__content-box-title"
+            />
+          </div>
+          <div class="file-structure-shell__content-box-title-shell file-structure-shell__content-box-title-shell--doc">
+            <button
+              type="button"
+              class="file-structure-shell__doc-link"
+              aria-label="Open File Guide"
+              title="Open File Guide"
+              @click="openFileContractDoc"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__doc-link-icon">
+                <path
+                  d="M7 3H14L19 8V21H7V3ZM13 4.5V9H17.5L13 4.5ZM9 13H17V14.5H9V13ZM9 16H17V17.5H9V16ZM9 10H12V11.5H9V10Z"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </RecordSummaryBox>
 
@@ -94,20 +108,31 @@
             />
           </div>
         </div>
-        <div class="file-structure-shell__placeholder-copy">
-          General file properties will render here.
+        <div class="file-structure-shell__contract-link-panel">
+          <div class="file-structure-shell__guide-divider" />
+          <div class="file-structure-shell__selected-l3-panel">
+            <div
+              v-for="item in selectedGeneralElementItems"
+              :key="item.key"
+              class="file-structure-shell__selected-l3-row"
+            >
+              <span class="file-structure-shell__selected-l3-label">{{ item.label }}</span>
+              <span class="file-structure-shell__selected-l3-meta">{{ item.groupLabel }}</span>
+            </div>
+            <div v-if="!selectedGeneralElementItems.length" class="file-structure-shell__contract-link-meta">
+              No L3 items selected for this file yet.
+            </div>
+          </div>
         </div>
       </RecordFieldsBox>
 
-      <RecordFieldsBox class="file-structure-shell__content-box">
-        <div class="file-structure-shell__content-box-title-shell">
-          <DialogShellTitleRow
-            title="Events Feed"
-            class="file-structure-shell__content-box-title"
+      <RecordFieldsBox class="file-structure-shell__content-box file-structure-shell__content-box--events">
+        <div class="file-structure-shell__events-tabs">
+          <SectionTabs
+            v-model="activeEventsTab"
+            :left-tabs="eventsTabs"
+            :right-tabs="[]"
           />
-        </div>
-        <div class="file-structure-shell__placeholder-copy">
-          Event activity will render here.
         </div>
       </RecordFieldsBox>
     </div>
@@ -307,11 +332,13 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:shellSelectorValue'])
+const FILE_CONTRACT_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/file-contracts.md'
 
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const activeL2Toolbar = ref('')
+const activeEventsTab = ref('notes')
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
 const structureColumnsCollapsed = ref(false)
@@ -335,6 +362,11 @@ const activeColumnResize = ref(null)
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
+]
+const eventsTabs = [
+  { key: 'notes', label: 'Notes' },
+  { key: 'feed', label: 'Feed' },
+  { key: 'system', label: 'System' },
 ]
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
@@ -412,6 +444,17 @@ const liveGeneralElementSettingsGroups = computed(() => {
     })),
   }))
 })
+const selectedGeneralElementItems = computed(() =>
+  liveGeneralElementSettingsGroups.value.flatMap((group) =>
+    group.items
+      .filter((item) => item.checked !== false)
+      .map((item) => ({
+        key: item.key,
+        label: item.label,
+        groupLabel: group.label,
+      })),
+  ),
+)
 const subgroupTabs = computed(() =>
   (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => ({
     key: group.key,
@@ -456,6 +499,11 @@ function columnStyle(columnKey) {
 function selectShellSelectorOption(value) {
   emit('update:shellSelectorValue', value)
   shellSelectorOpen.value = false
+}
+
+function openFileContractDoc() {
+  if (typeof window === 'undefined') return
+  window.ecvc?.openExternal?.(FILE_CONTRACT_DOC_URL)
 }
 
 function toggleShellSelector() {
@@ -664,7 +712,7 @@ watch(
 
 .file-structure-shell__content-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
   gap: 12px;
   padding: 10px 16px 18px;
   align-items: stretch;
@@ -678,15 +726,34 @@ watch(
   align-self: stretch;
 }
 
+.file-structure-shell__content-box--summary {
+  width: max-content;
+  min-width: 0;
+  max-width: 100%;
+  justify-self: start;
+  align-self: start;
+}
+
+.file-structure-shell__content-box--events {
+  width: max-content;
+  min-width: 0;
+  max-width: 100%;
+  justify-self: end;
+  align-self: start;
+}
+
 .file-structure-shell__content-box-title-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
-  align-items: center;
+  align-items: start;
 }
 
 .file-structure-shell__content-box-title-shell {
+  display: inline-flex;
+  width: fit-content;
   min-width: 0;
+  max-width: 100%;
   padding: 0;
   border: 0;
   border-radius: var(--ds-radius-md);
@@ -702,13 +769,43 @@ watch(
   background: transparent;
 }
 
+.file-structure-shell__content-box-title-shell--doc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
 .file-structure-shell__content-box-title {
   padding-bottom: 0;
 }
 
 .file-structure-shell__content-box-title:deep(.dialog-shell-title-row__title) {
+  color: var(--ds-color-brand-black);
   font-size: var(--ds-font-size-base);
   line-height: 1;
+}
+
+.file-structure-shell__doc-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(15, 23, 42, 0.72);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.file-structure-shell__doc-link-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
 
 .file-structure-shell__placeholder-copy {
@@ -716,6 +813,52 @@ watch(
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-body-md);
   line-height: 1.45;
+}
+
+.file-structure-shell__guide-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(15, 23, 42, 0.12);
+}
+
+.file-structure-shell__selected-l3-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.file-structure-shell__selected-l3-row {
+  display: grid;
+  gap: 2px;
+}
+
+.file-structure-shell__selected-l3-label {
+  color: var(--ds-color-brand-black);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: 1.3;
+}
+
+.file-structure-shell__selected-l3-meta {
+  color: rgba(15, 23, 42, 0.62);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-light);
+  line-height: 1.25;
+}
+
+.file-structure-shell__events-tabs {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.file-structure-shell__contract-link-copy,
+.file-structure-shell__contract-link-meta {
+  color: rgba(15, 23, 42, 0.74);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm);
+  line-height: 1.4;
 }
 
 .file-structure-shell__toolbar-row {
@@ -866,9 +1009,11 @@ watch(
 }
 
 .file-structure-shell__cell--structure {
+  color: rgba(15, 23, 42, 0.62);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-light);
-  line-height: 1.2;
+  line-height: 1.25;
   white-space: nowrap;
 }
 
@@ -878,16 +1023,21 @@ watch(
 }
 
 .file-structure-shell__cell--data {
+  color: rgba(15, 23, 42, 0.62);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-light);
+  line-height: 1.25;
   width: 1%;
   white-space: nowrap;
 }
 
 .file-structure-shell__cell--l3-key {
+  color: rgba(15, 23, 42, 0.62);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-light);
-  line-height: 1.2;
+  line-height: 1.25;
   width: 1%;
   white-space: nowrap;
 }
