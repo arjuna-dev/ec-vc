@@ -1,4 +1,4 @@
-# Owner Manual
+# Owner
 
 ## Purpose
 
@@ -15,7 +15,7 @@ This manual is meant to stay readable by a human while also functioning as a sta
 
 ## README
 
-These docs should stop being “extra documentation” and start being part of the operating system.
+These docs should stop being "extra documentation" and start being part of the operating system.
 
 So for me, and for the user, they become:
 
@@ -129,7 +129,7 @@ The next best step is to define the exact first memory-extension set and what ea
 
 ## Index
 
-Use this as the Owner’s pause menu.
+Use this as the Owner's pause menu.
 
 ### 1. Core System
 
@@ -164,7 +164,7 @@ Use this as the Owner’s pause menu.
   - KDB birth discipline
 - `Design Steward`
   - BB and shell consistency
-- `Companion Contract`
+- `Companion`
   - how companions should behave
 - `Game Rulebook`
   - how the guide/game layer should motivate without weakening truth
@@ -218,11 +218,3 @@ These are the first missing memory-extension docs the system likely needs:
 2. `Bootstrap Sequence Manifest`
 3. `File Governance Matrix`
 4. `KDB_Orchestrator`
-5. `Genesis Companion / Steward Manifest`
-6. `Events / Provenance Rule Sheet`
-
-## Working Rule
-
-We will edit this together.
-
-It should help both the user and the system understand what we are doing, why we are doing it, and how the files, rules, and relationships should fit together.

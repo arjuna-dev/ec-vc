@@ -16,7 +16,7 @@ It should be treated as the single reference source for:
 
 Companion behavior rules now also live in:
 
-- `docs/010-companion-contract.md`
+- `docs/000-Companion.md`
 - `docs/010-game-rulebook.md`
 - `docs/010-game-master-contract.md`
 - `docs/999-ECS_Workstream_Tracker.md`

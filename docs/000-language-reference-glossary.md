@@ -2,7 +2,7 @@
 
 | Concept | Description | Source |
 | --- | --- | --- |
-| Companion | A disciplined system helper that may propose content, but must follow approved structure and ownership. | Companion Contract |
+| Companion | A disciplined system helper that may propose content, but must follow approved structure and ownership. | Companion |
 | Owner | The system authority and node founder identity. It is the origin of top-level control. | Product Reference |
 | User | The application actor layer that carries permissions, role assignment, work rights, and system participation. | Product Reference |
 | Contact | The person record inside the CRM/KDB layer. It may correspond to a User, but is not the same thing as a User. | Product Reference |
@@ -56,9 +56,9 @@
 | Transitional Manual Bridge | A temporary repair where a missing KDB bridge contract is wired after file birth. This may be needed while architecture is converging, but it should not be treated as the intended steady-state rule. | Record Architecture |
 | Entity Extension Layer | The independent structure a specific `L1` adds after the shared base, including its own extra `L2`s and any explicit `L2.a-b-c-d` subgrouping. | File Steward Contract |
 | L3 Token | The leaf token level in canonical structure. It is where field behavior, alias mapping, and write-path expectations should be declared. | Record Architecture |
-| Owned Field | A value owned by the current record or its approved owned subtable. It writes through that owner path only. | Companion Contract |
+| Owned Field | A value owned by the current record or its approved owned subtable. It writes through that owner path only. | Companion |
 | Directional Link | A root-established or rule-bearing path such as identity, authority, provenance, or parentage. It should not be treated like generic KDB. | Record Architecture |
-| KDB Relationship | A link between records that must have a declared relationship path, owner path, reverse-read path, and bidirectional visibility. In the current shared-shell flow, relation editing should open the shared `Add/Edit Record Shell` in `KDB` with the clicked source record context. | Companion Contract |
+| KDB Relationship | A link between records that must have a declared relationship path, owner path, reverse-read path, and bidirectional visibility. In the current shared-shell flow, relation editing should open the shared `Add/Edit Record Shell` in `KDB` with the clicked source record context. | Companion |
 | Field Class | The behavior class declared at the token level, such as `owned_field`, `directional_link`, or `kdb_relationship`. | Record Architecture |
 | Ownership Mode | The declared ownership mode for a token, such as `local`, `root_owned`, or `relationship_owned`. | Product Reference |
 | Cardinality | The declared relationship size rule such as `one_to_one`, `one_to_many`, or `many_to_many`. | Product Reference |
@@ -72,10 +72,10 @@
 | Declared-But-Missing | A path declared in canon that does not yet have full runtime ownership or reverse-read support. | ECS Workstream Tracker |
 | File Shell Lab | The strict shared file shell route used to test and exercise contract-driven page behavior. | Record Architecture |
 | Deprecated Record Surface | `RecordPage.vue`, the earlier shared record implementation. It is now a historical legacy surface and not the active shared record route target. | Record Architecture |
-| Knowledge DB | A reusable reference or processing file surface that may not be golden-tier in product importance, but still behaves like an `L1` in the shell and contract system. | Companion Contract |
+| Knowledge DB | A reusable reference or processing file surface that may not be golden-tier in product importance, but still behaves like an `L1` in the shell and contract system. | Companion |
 | Field Label Row | The top row of a field block that carries the field label and any adjacent guidance or action control. | Working UI Language |
 | Field Control Shell | The visible value/input box under a field label. It is the rendered shell around the actual field content, not the field contract itself. | Working UI Language |
-| Top-Layer Mechanism | A tuning layer that may improve speed, ranking, comfort, or prioritization without modifying ownership or the underlying contract. | Companion Contract |
+| Top-Layer Mechanism | A tuning layer that may improve speed, ranking, comfort, or prioritization without modifying ownership or the underlying contract. | Companion |
 | Heuristic Guidance | A top-layer ranking and prioritization aid that may front-load likely options, but must not alter structure or ownership. | Product Reference |
 | Clarity Pass | A review after editing that checks whether a document change remains readable, structured, and easy to follow before it is treated as settled. | Companion Surface |
 ## Canonical Entity Name

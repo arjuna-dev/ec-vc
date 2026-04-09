@@ -44,7 +44,7 @@
               <B10Button
                 variant="primary"
                 icon-start="description"
-                label="Companion Contract"
+                label="Companion"
                 :disable="!hasDocsBridge"
                 @click="showCompanionContractDialog = true"
               />
@@ -288,7 +288,7 @@
         <q-dialog v-model="showCompanionContractDialog">
           <q-card class="companion-contract-dialog">
             <q-card-section class="companion-contract-dialog__head">
-              <div class="avatar-card__eyebrow">{{ activeCompanionDocument?.eyebrow || 'Companion Contract' }}</div>
+              <div class="avatar-card__eyebrow">{{ activeCompanionDocument?.eyebrow || 'Companion' }}</div>
               <div class="avatar-shell__hero-title companion-contract-dialog__title">
                 {{ activeCompanionDocument?.heroTitle || 'Companion' }}
               </div>
@@ -308,7 +308,7 @@
                   <div class="companion-contract-workspace__toolbar">
                     <div class="companion-contract-workspace__toolbar-copy">
                       <div class="companion-contract-workspace__document-title">
-                        {{ activeCompanionDocument?.label || 'Companion Contract' }}
+                        {{ activeCompanionDocument?.label || 'Companion' }}
                       </div>
                       <div class="companion-contract-workspace__document-path">
                         {{ activeCompanionDocument?.path || '' }}
@@ -460,11 +460,11 @@ const LLM_STORAGE_KEY = 'ecvc.avatarLlmProfile'
 const showCompanionContractDialog = ref(false)
 const companionDocumentMenu = [
   {
-    id: 'companion-contract',
-    label: 'Companion Contract',
+    id: 'companion',
+    label: 'Companion',
     short: 'Main contract',
-    path: 'docs/010-companion-contract.md',
-    eyebrow: 'Companion Contract',
+    path: 'docs/000-Companion.md',
+    eyebrow: 'Companion',
     heroTitle: 'Companion',
   },
   {
@@ -479,7 +479,7 @@ const companionDocumentMenu = [
     id: 'field-class-map',
     label: 'Field Class Map',
     short: 'Token behavior',
-    path: 'docs/001-field-class-map.md',
+    path: 'docs/001-field-classification-map.md',
     eyebrow: 'Field Class Map',
     heroTitle: 'Field Class',
   },
@@ -524,7 +524,7 @@ const companionDocumentMenu = [
     heroTitle: 'Glossary',
   },
 ]
-const activeCompanionDocumentId = ref('companion-contract')
+const activeCompanionDocumentId = ref('companion')
 const companionDocLoading = ref(false)
 const companionDocSaving = ref(false)
 const companionDocError = ref('')
@@ -689,7 +689,7 @@ const companionRoleToolbarItems = computed(() => [
   },
 ])
 const companionDialogLead = computed(() => {
-  if (activeCompanionDocumentId.value === 'companion-contract') {
+  if (activeCompanionDocumentId.value === 'companion') {
     return 'This companion should be helpful about content, strict about structure, and honest about missing ownership.'
   }
 

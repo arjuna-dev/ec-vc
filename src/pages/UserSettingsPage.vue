@@ -37,6 +37,16 @@
             </div>
 
             <p class="settings-shell__hero-text">{{ settingsHeroText }}</p>
+
+            <div class="settings-shell__hero-actions">
+              <B10Button
+                variant="primary"
+                icon-start="description"
+                label="Owner"
+                :disable="!hasDocsBridge"
+                @click="showOwnerManualDialog = true"
+              />
+            </div>
           </div>
 
           <div class="settings-hero-controls">
@@ -242,19 +252,65 @@
             </q-card-actions>
           </q-card>
         </div>
+
+        <q-dialog v-model="showOwnerManualDialog">
+          <q-card class="owner-manual-dialog">
+            <q-card-section class="owner-manual-dialog__head">
+              <div class="settings-form-card__eyebrow">Owner</div>
+              <div class="settings-shell__hero-title owner-manual-dialog__title">Owner</div>
+              <div class="owner-manual-dialog__lead">
+                Use the Owner manual as the pause menu for system, file, and governance navigation.
+              </div>
+            </q-card-section>
+
+            <q-separator />
+
+            <q-card-section class="owner-manual-dialog__body">
+              <div class="owner-manual-dialog__toolbar">
+                <div>
+                  <div class="owner-manual-dialog__document-title">Owner</div>
+                  <div class="owner-manual-dialog__document-path">{{ ownerManualPath }}</div>
+                </div>
+
+                <B10Button
+                  variant="subtle"
+                  icon-start="refresh"
+                  label="Reload"
+                  :disable="ownerManualLoading || !hasDocsBridge"
+                  @click="loadOwnerManual"
+                />
+              </div>
+
+              <div v-if="ownerManualError" class="owner-manual-dialog__error">
+                {{ ownerManualError }}
+              </div>
+              <div v-else-if="ownerManualLoading" class="owner-manual-dialog__loading">
+                Loading document...
+              </div>
+              <div v-else class="owner-manual-dialog__read">
+                <pre class="owner-manual-dialog__read-pre">{{ ownerManualContent }}</pre>
+              </div>
+            </q-card-section>
+
+            <q-card-actions align="right" class="owner-manual-dialog__actions">
+              <B10Button variant="primary" label="Close" @click="showOwnerManualDialog = false" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
       </section>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import isEmail from 'validator/lib/isEmail.js'
 import B10Button from 'src/components/buttons/B10Button.vue'
 
 const $q = useQuasar()
 const WORKSPACE_SETTINGS_STORAGE_KEY = 'ecvc.workspaceSettings'
+const OWNER_MANUAL_PATH = 'docs/000-Owner.md'
 const defaultWorkspaceSettings = {
   defaultLanding: 'home',
   workspaceMode: 'balanced',
@@ -290,11 +346,16 @@ const isElectronRuntime = computed(() => {
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(() => !!bridge.value?.userSettings?.get && !!bridge.value?.userSettings?.set)
+const hasDocsBridge = computed(() => !!bridge.value?.docs?.read)
 
 const loading = ref(false)
 const saving = ref(false)
 const savingWorkspaceSettings = ref(false)
 const error = ref('')
+const showOwnerManualDialog = ref(false)
+const ownerManualLoading = ref(false)
+const ownerManualError = ref('')
+const ownerManualContent = ref('')
 const canEditOwnerSettings = ref(true)
 const form = ref({
   Name: '',
@@ -391,6 +452,7 @@ const hasUnsavedChanges = computed(
 const hasWorkspaceChanges = computed(
   () => normalizedWorkspaceSignature(workspaceSettings.value) !== normalizedWorkspaceSignature(savedWorkspaceSettings.value)
 )
+const ownerManualPath = computed(() => OWNER_MANUAL_PATH)
 const workspaceToolbarText = computed(() => {
   const landing = workspaceLandingOptions.find((option) => option.value === workspaceSettings.value.defaultLanding)?.label || 'Home'
   const mode = workspaceModeOptions.find((option) => option.value === workspaceSettings.value.workspaceMode)?.label || 'Balanced'
@@ -512,10 +574,30 @@ async function saveWorkspaceSettings() {
   }
 }
 
+async function loadOwnerManual() {
+  if (!hasDocsBridge.value) return
+  ownerManualLoading.value = true
+  ownerManualError.value = ''
+  try {
+    const result = await bridge.value.docs.read(OWNER_MANUAL_PATH)
+    ownerManualContent.value = String(result?.content || '')
+  } catch (e) {
+    ownerManualError.value = normalizeIpcErrorMessage(e)
+  } finally {
+    ownerManualLoading.value = false
+  }
+}
+
 onMounted(() => {
   loadWorkspaceSettings()
   if (!hasBridge.value) return
   loadUserSettings()
+})
+
+watch(showOwnerManualDialog, (isOpen) => {
+  if (isOpen && !ownerManualContent.value && !ownerManualLoading.value) {
+    loadOwnerManual()
+  }
 })
 </script>
 
@@ -608,6 +690,11 @@ onMounted(() => {
   line-height: 1.65;
 }
 
+.settings-shell__hero-actions {
+  display: flex;
+  align-items: center;
+}
+
 .settings-identity-preview {
   display: flex;
   flex-direction: column;
@@ -689,6 +776,86 @@ onMounted(() => {
 
 .settings-form-card__actions {
   padding: 16px 24px 22px;
+}
+
+.owner-manual-dialog {
+  width: min(980px, 94vw);
+  max-width: 980px;
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+.owner-manual-dialog__head {
+  display: grid;
+  gap: 8px;
+  padding: 22px 24px 18px;
+}
+
+.owner-manual-dialog__title {
+  margin: 0;
+}
+
+.owner-manual-dialog__lead {
+  color: #475569;
+  font-family: var(--font-body);
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+
+.owner-manual-dialog__body {
+  display: grid;
+  gap: 14px;
+  padding: 18px 24px 24px;
+}
+
+.owner-manual-dialog__toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.owner-manual-dialog__document-title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+}
+
+.owner-manual-dialog__document-path {
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.owner-manual-dialog__loading,
+.owner-manual-dialog__error,
+.owner-manual-dialog__read {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 18px;
+}
+
+.owner-manual-dialog__error {
+  color: #b42318;
+  background: rgba(254, 228, 226, 0.72);
+  border-color: rgba(240, 68, 56, 0.18);
+}
+
+.owner-manual-dialog__read-pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #233041;
+}
+
+.owner-manual-dialog__actions {
+  padding: 0 24px 22px;
 }
 
 .settings-secondary-shell {
