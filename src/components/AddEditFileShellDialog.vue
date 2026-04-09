@@ -145,10 +145,10 @@
         <table class="file-structure-shell__leaf-table">
           <thead>
             <tr>
+              <th aria-label="Selection"></th>
               <th>Order</th>
               <th>Label</th>
               <th>L3 Key</th>
-              <th aria-label="Selection"></th>
               <th>Parent L2</th>
               <th>Parent Subgroup</th>
               <th>Type</th>
@@ -163,17 +163,17 @@
           </thead>
           <tbody>
             <tr v-for="token in activeLeafTokens" :key="token.key">
-              <td>{{ token.order }}</td>
-              <td>{{ token.label }}</td>
-              <td>
-                {{ token.key }}
-              </td>
               <td>
                 <SettingsCheckbox
                   :model-value="selectedLeafKeys.includes(token.key)"
                   tone="light"
                   @update:model-value="toggleLeafSelection(token.key)"
                 />
+              </td>
+              <td>{{ token.order }}</td>
+              <td>{{ token.label }}</td>
+              <td>
+                {{ token.key }}
               </td>
               <td>{{ token.parentL2 }}</td>
               <td>{{ token.parentSubgroup }}</td>
