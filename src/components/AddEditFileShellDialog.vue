@@ -150,11 +150,12 @@ onBeforeUnmount(() => {
 }
 
 .file-structure-shell__body {
-  padding: 0 28px 20px;
+  padding: 0;
 }
 
 .file-structure-shell__body-empty {
   min-height: 0;
+  display: none;
 }
 
 .file-structure-shell__section-menu {
