@@ -139,6 +139,16 @@ This tracker should stay aligned with:
   - `Convergence Rule` is temporary migration scaffolding only
   - once a primitive family is fully stabilized, `Convergence Rule` should be cleared, hidden, or removed instead of becoming permanent metadata
 - `Owner Genesis` should create the base file system sequentially through `Master Companion`, beginning with `BB File`, then `L1 Files`, then `Events`
+- the early bootstrap priority stack should now be treated separately from the broader file set:
+  - `User Basics`
+  - `Master Companion`
+  - `File Steward`
+  - `Game Packs`
+- `File Steward` should preload before any game pack
+- the first game pack inside the game-pack set should be `Investor Game Pack`
+- later planned game packs include:
+  - `Advisor Game Pack`
+  - `Company Game Pack`
 - `Events` should continue to be normalized as a first-class file/entity in that same contract system rather than treated as a lightweight side surface
 - the game layer should use provisional points, realized points, deductions, bonuses, quests, and board-level stage objectives
 - artifact context assumptions should now be treated as `default/preselected unverified`

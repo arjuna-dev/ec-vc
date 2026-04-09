@@ -935,6 +935,24 @@ Practical birth sequence:
 
 This is the minimum practical birth path for a new normal `L1`.
 
+Bootstrap priority direction:
+
+- some early system records/files should be rendered or loaded before the broader file set
+- the current priority stack is:
+  1. `User Basics`
+  2. `Master Companion`
+  3. `File Steward`
+  4. `Game Packs`
+- `File Steward` should preload before any game pack
+- the first game pack inside the game-pack set should be `Investor Game Pack`
+- later planned game packs include:
+  - `Advisor Game Pack`
+  - `Company Game Pack`
+
+Reason:
+
+- this keeps network/team foundations, orchestration, and file-discipline support in place before gameplay packs are loaded
+
 ## Current Relationship Status
 
 Currently runtime-backed strongly enough to be treated as real relationship paths:

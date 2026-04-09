@@ -787,6 +787,32 @@ Validation rule:
 - if the table exists but reciprocal KDB bridge work does not, the `L1` birth is still incomplete
 - if the shell exists but the runtime owner path does not, the `L1` birth is still incomplete
 
+### Bootstrap Priority Set
+
+Before the broader normal `L1` set is born, the system should support a small priority stack for early render/load order.
+
+Current intended priority order:
+
+1. `User Basics`
+2. `Master Companion`
+3. `File Steward`
+4. `Game Packs`
+
+Working interpretation:
+
+- `User Basics` should establish the first network/team foundation
+- `Master Companion` should establish orchestration authority
+- `File Steward` should load before the first game pack so file/game structure can be created and kept disciplined
+- `Game Packs` should load after that steward layer is present
+
+Current game-pack direction:
+
+- `File Steward` should preload before any game pack
+- the first game pack inside the game-pack set should be `Investor Game Pack`
+- additional planned game packs include:
+  - `Advisor Game Pack`
+  - `Company Game Pack`
+
 ### Current Mandatory KDB Set
 
 The currently approved KDB direction is:
