@@ -46,7 +46,7 @@ Top files by added lines compared to `master`:
 7. `+1942` [RecordShellPage.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/pages/RecordShellPage.vue)
 8. `+1698` [BuildingBlockPreviewTile.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/BuildingBlockPreviewTile.vue)
 9. `+1487` [buildingsBlocks.js](/c:/Users/erikc/Coding_Repository/ec-vc/src/utils/buildingBlocks.js)
-10. `+1400` [record-architecture-master-plan.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/record-architecture-master-plan.md)
+10. `+1400` [011-record-architecture-master-plan.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/011-record-architecture-master-plan.md)
 
 ## Changes By Area
 
@@ -105,8 +105,8 @@ Main files:
 
 - [workbook-schema-companion.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/workbook-schema-companion.json)
 - [canonical-structure.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/canonical-structure.json)
-- [record-architecture-master-plan.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/record-architecture-master-plan.md)
-- [product-reference-guide.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/product-reference-guide.md)
+- [011-record-architecture-master-plan.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/011-record-architecture-master-plan.md)
+- [011-product-reference-guide.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/011-product-reference-guide.md)
 - [ECS_Workstream_Tracker.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/ECS_Workstream_Tracker.md)
 
 Intent:
@@ -146,7 +146,7 @@ Approximate share of changed lines by folder:
 If someone wants to understand the branch without reading everything, the suggested order is:
 
 1. [branch-change-summary-vs-master.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/branch-change-summary-vs-master.md)
-2. [record-architecture-master-plan.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/record-architecture-master-plan.md)
+2. [011-record-architecture-master-plan.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/011-record-architecture-master-plan.md)
 3. [canonical-structure.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/canonical-structure.json)
 4. [FilePageShell.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/FilePageShell.vue)
 5. [IngestionShellDialog.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/IngestionShellDialog.vue)

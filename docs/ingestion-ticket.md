@@ -76,8 +76,8 @@ We want ingestion to feel:
 Use these as the planning references:
 
 - `docs/intake-architecture-master-plan.md`
-- `docs/record-architecture-master-plan.md`
-- `docs/product-reference-guide.md`
+- `docs/011-record-architecture-master-plan.md`
+- `docs/011-product-reference-guide.md`
 - `docs/ECS_Workstream_Tracker.md`
 
 Active workbook reference:

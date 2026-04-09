@@ -14,7 +14,7 @@ This is meant to reduce context loss while we move together between product, sch
 
 This tracker should stay aligned with:
 
-- `docs/record-architecture-master-plan.md`
+- `docs/011-record-architecture-master-plan.md`
 - `docs/intake-architecture-master-plan.md`
 
 ## Summary
@@ -307,7 +307,7 @@ This tracker should stay aligned with:
 ## Notes
 
 - As of April 2, 2026, the planning layer has been consolidated into two master docs:
-  - `record-architecture-master-plan.md`
+  - `011-record-architecture-master-plan.md`
   - `intake-architecture-master-plan.md`
 - the active workbook schema reference for first-pass record architecture is:
   - `docs/B10_DOS v260400 vrev.xlsx`

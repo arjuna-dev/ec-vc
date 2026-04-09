@@ -15,8 +15,8 @@ This is meant to show:
 
 This document should be read as the `Company`-specific companion to:
 
-- `record-architecture-master-plan.md`
-- `product-reference-guide.md`
+- `011-record-architecture-master-plan.md`
+- `011-product-reference-guide.md`
 
 ## Current App Company Sections
 
