@@ -44,42 +44,64 @@
 
     <template #default>
       <div class="file-structure-shell__section-stack">
-        <section class="file-structure-shell__group">
-          <div class="file-structure-shell__group-head">
-            <button
-              type="button"
-              class="file-structure-shell__group-toggle"
-              @click="sectionConfigurationCollapsed = !sectionConfigurationCollapsed"
+        <CollapsibleSectionShell
+          title="File Description"
+          :collapsed="fileDescriptionCollapsed"
+          @toggle="fileDescriptionCollapsed = !fileDescriptionCollapsed"
+        >
+          <div class="file-structure-shell__description-grid">
+            <DialogShellFrame
+              card-class="file-structure-shell__mini-frame"
+              header-class="file-structure-shell__mini-frame-header"
+              body-class="file-structure-shell__mini-frame-body"
             >
-              <span class="file-structure-shell__group-title">Section Configuration</span>
-              <q-icon
-                :name="sectionConfigurationCollapsed ? 'expand_more' : 'expand_less'"
-                class="file-structure-shell__group-toggle-icon"
-              />
-            </button>
-          </div>
+              <template #header>
+                <div class="file-structure-shell__mini-frame-title">Summary</div>
+              </template>
+              <div class="file-structure-shell__description-box">
+                Summary placeholder
+              </div>
+            </DialogShellFrame>
 
-          <div v-if="!sectionConfigurationCollapsed" class="file-structure-shell__group-body">
-            <div v-if="!canConfigureFileSystem" class="file-structure-shell__owner-note">
-              This menu configuration is only available for File System owner.
-            </div>
-            <div class="file-structure-shell__table-shell">
-              <EditableGridTable
-                :columns="sectionConfigurationColumns"
-                :rows="sectionConfigurationRows"
-                :can-edit="canConfigureFileSystem"
-                @updateColumnLabel="updateSectionConfigurationColumnLabel"
-                @finishColumnEdit="finishColumnEdit"
-                @removeColumn="removeSectionConfigurationColumn"
-                @addColumn="addSectionConfigurationColumn"
-                @updateRowLabel="updateSectionConfigurationRowLabel"
-                @finishRowEdit="finishRowEdit"
-                @removeRow="removeSectionConfigurationRow"
-                @addRow="addSectionConfigurationRow"
-              />
-            </div>
+            <DialogShellFrame
+              card-class="file-structure-shell__mini-frame"
+              header-class="file-structure-shell__mini-frame-header"
+              body-class="file-structure-shell__mini-frame-body"
+            >
+              <template #header>
+                <div class="file-structure-shell__mini-frame-title">General Characteristics</div>
+              </template>
+              <div class="file-structure-shell__description-box">
+                General Characteristics placeholder
+              </div>
+            </DialogShellFrame>
           </div>
-        </section>
+        </CollapsibleSectionShell>
+
+        <CollapsibleSectionShell
+          title="Section Configuration"
+          :collapsed="sectionConfigurationCollapsed"
+          @toggle="sectionConfigurationCollapsed = !sectionConfigurationCollapsed"
+        >
+          <div v-if="!canConfigureFileSystem" class="file-structure-shell__owner-note">
+            This menu configuration is only available for File System owner.
+          </div>
+          <div class="file-structure-shell__table-shell">
+            <EditableGridTable
+              :columns="sectionConfigurationColumns"
+              :rows="sectionConfigurationRows"
+              :can-edit="canConfigureFileSystem"
+              @updateColumnLabel="updateSectionConfigurationColumnLabel"
+              @finishColumnEdit="finishColumnEdit"
+              @removeColumn="removeSectionConfigurationColumn"
+              @addColumn="addSectionConfigurationColumn"
+              @updateRowLabel="updateSectionConfigurationRowLabel"
+              @finishRowEdit="finishRowEdit"
+              @removeRow="removeSectionConfigurationRow"
+              @addRow="addSectionConfigurationRow"
+            />
+          </div>
+        </CollapsibleSectionShell>
 
         <section class="file-structure-shell__group">
           <div class="file-structure-shell__group-head">
@@ -164,6 +186,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import CollapsibleSectionShell from 'src/components/CollapsibleSectionShell.vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import EditableGridTable from 'src/components/EditableGridTable.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
@@ -179,6 +202,7 @@ const emit = defineEmits(['update:shellSelectorValue'])
 
 const sectionConfigurationCollapsed = ref(false)
 const dataStructureCollapsed = ref(false)
+const fileDescriptionCollapsed = ref(false)
 const sectionPickerOpen = ref(false)
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
@@ -404,6 +428,39 @@ function removeSectionConfigurationRow(rowKey) {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.file-structure-shell__description-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.file-structure-shell__mini-frame {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: none;
+}
+
+.file-structure-shell__mini-frame-title {
+  color: #0f172a;
+  font-family: var(--ds-font-title);
+  font-size: 0.9rem;
+  font-weight: var(--ds-font-weight-bold);
+  line-height: 1;
+}
+
+.file-structure-shell__description-box {
+  min-height: 140px;
+  padding: 14px 16px;
+  color: rgba(15, 23, 42, 0.62);
+  font-family: var(--ds-font-body);
+  font-size: 0.92rem;
+  line-height: 1.4;
+  border: 1px dashed rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.88);
 }
 
 .file-structure-shell__group {
