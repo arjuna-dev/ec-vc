@@ -18,7 +18,6 @@
             <MainMenuSubgroupRow
               :label="activeShellSelectorOption.label"
               :expanded="shellSelectorOpen"
-              compact
             />
           </button>
           <div
@@ -373,8 +372,8 @@ function removeSectionConfigurationRow(rowKey) {
 .file-structure-shell__shell-selector {
   position: relative;
   flex: 0 0 auto;
-  min-width: 220px;
-  padding: 8px 12px;
+  width: auto;
+  padding: 8px 10px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 12px;
   background: #111827;
