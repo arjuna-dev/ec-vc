@@ -9,6 +9,13 @@
         <div class="file-structure-shell__title-row">
           <RecordTitle title="Add/Edit File Shell" />
           <button
+            type="button"
+            class="file-structure-shell__add-element-button"
+            @click="addLeafElement"
+          >
+            Add Element
+          </button>
+          <button
             v-if="shellSelectorOptions.length"
             ref="shellSelectorButton"
             type="button"
@@ -140,6 +147,7 @@
         <table class="file-structure-shell__leaf-table">
           <thead>
             <tr>
+              <th>Select</th>
               <th>L3 Key</th>
               <th>Label</th>
               <th>Parent L2</th>
@@ -156,6 +164,15 @@
           </thead>
           <tbody>
             <tr v-for="token in activeLeafTokens" :key="token.key">
+              <td>
+                <button
+                  type="button"
+                  class="file-structure-shell__select-square"
+                  :class="{ 'file-structure-shell__select-square--active': selectedLeafKeys.includes(token.key) }"
+                  :aria-label="selectedLeafKeys.includes(token.key) ? `Deselect ${token.label}` : `Select ${token.label}`"
+                  @click="toggleLeafSelection(token.key)"
+                />
+              </td>
               <td>{{ token.key }}</td>
               <td>{{ token.label }}</td>
               <td>{{ token.parentL2 }}</td>
@@ -170,7 +187,7 @@
               <td>{{ token.uiTreatment }}</td>
             </tr>
             <tr v-if="!activeLeafTokens.length">
-              <td colspan="12" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
+              <td colspan="13" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
             </tr>
           </tbody>
         </table>
@@ -207,6 +224,8 @@ const activeL2Toolbar = ref('')
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
 const activeSubgroupKey = ref('')
+const draftLeafRowsBySource = ref({})
+const selectedLeafKeysBySource = ref({})
 const expandedSettingsGroupsBySource = ref({})
 const checkedSettingsItemsBySource = ref({})
 const viewOptions = [
@@ -299,18 +318,20 @@ const activeLeafTokens = computed(() => {
   const subgroupMap = new Map(
     (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => [group.key, group]),
   )
-  const tokens = subgroupTabs.value.length
+  const sourceTokens = subgroupTabs.value.length
     ? (subgroupMap.get(activeSubgroupKey.value)?.tokens || [])
     : (Array.isArray(activeSettingsSection.value?.tokens) ? activeSettingsSection.value.tokens : [])
+  const draftTokens = draftLeafRowsBySource.value[activeSettingsSourceKey.value] || []
+  const tokens = [...draftTokens, ...sourceTokens]
 
   return tokens.map((token, index) => {
     const checkedItems = checkedSettingsItemsBySource.value[activeSettingsSourceKey.value] || {}
-    const writeTarget = getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
+    const writeTarget = token.isDraft ? null : getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
     return {
       key: token.key || '—',
       label: token.label || '—',
       parentL2: token.parentLabel || activeSettingsSection.value?.label || '—',
-      parentSubgroup: subgroupMap.get(activeSubgroupKey.value)?.label || '—',
+      parentSubgroup: token.draftParentSubgroup || subgroupMap.get(activeSubgroupKey.value)?.label || '—',
       type: token.tokenType || '—',
       value: '—',
       visible: checkedItems[token.key] !== false ? 'Yes' : 'No',
@@ -322,6 +343,7 @@ const activeLeafTokens = computed(() => {
     }
   })
 })
+const selectedLeafKeys = computed(() => selectedLeafKeysBySource.value[activeSettingsSourceKey.value] || [])
 
 function selectShellSelectorOption(value) {
   emit('update:shellSelectorValue', value)
@@ -330,6 +352,48 @@ function selectShellSelectorOption(value) {
 
 function toggleShellSelector() {
   shellSelectorOpen.value = !shellSelectorOpen.value
+}
+
+function addLeafElement() {
+  const sourceKey = activeSettingsSourceKey.value
+  const currentDrafts = draftLeafRowsBySource.value[sourceKey] || []
+  const nextIndex = currentDrafts.length + 1
+  const nextKey = `${sourceKey}-draft-leaf-${nextIndex}`
+  const parentSubgroup = subgroupTabs.value.find((tab) => tab.key === activeSubgroupKey.value)?.label || '—'
+  draftLeafRowsBySource.value = {
+    ...draftLeafRowsBySource.value,
+    [sourceKey]: [
+      ...currentDrafts,
+      {
+        isDraft: true,
+        key: nextKey,
+        label: `Draft Leaf ${nextIndex}`,
+        parentLabel: activeSettingsSection.value?.label || '—',
+        tokenType: 'text',
+        relationshipGroup: '',
+        level_3: String(nextIndex),
+        dbFieldAliases: [],
+        optionList: '',
+        optionSource: '',
+        draftParentSubgroup: parentSubgroup,
+      },
+    ],
+  }
+  selectedLeafKeysBySource.value = {
+    ...selectedLeafKeysBySource.value,
+    [sourceKey]: [...selectedLeafKeys.value, nextKey],
+  }
+}
+
+function toggleLeafSelection(tokenKey) {
+  const sourceKey = activeSettingsSourceKey.value
+  const current = selectedLeafKeys.value
+  selectedLeafKeysBySource.value = {
+    ...selectedLeafKeysBySource.value,
+    [sourceKey]: current.includes(tokenKey)
+      ? current.filter((key) => key !== tokenKey)
+      : [...current, tokenKey],
+  }
 }
 
 function toggleSettingsGroup(groupKey) {
@@ -444,8 +508,24 @@ watch(
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
+}
+
+.file-structure-shell__add-element-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  color: var(--ds-color-brand-black);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: var(--ds-radius-micro);
+  font-family: var(--ds-font-title);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-bold);
+  cursor: pointer;
 }
 
 .file-structure-shell__divider {
@@ -606,6 +686,22 @@ watch(
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-sm);
   line-height: 1.35;
+}
+
+.file-structure-shell__select-square {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(15, 23, 42, 0.32);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.file-structure-shell__select-square--active {
+  background: var(--ds-color-brand-black);
+  border-color: var(--ds-color-brand-black);
 }
 
 .file-structure-shell__leaf-empty {
