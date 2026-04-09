@@ -9,18 +9,16 @@
 
     <AddEditFileShellDialog
       v-else
-      v-model="dialogOpen"
       :shell-selector-value="activeSourceKey"
       :shell-selector-options="TEST_SHELL_SECTION_OPTIONS"
       :can-configure-file-system="canConfigureFileSystem"
       @update:shell-selector-value="updateShellSelector"
-      @request-close="dialogOpen = false"
     />
   </q-page>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditFileShellDialog from 'src/components/AddEditFileShellDialog.vue'
 import { TEST_SHELL_SECTION_OPTIONS } from 'src/utils/structureRegistry'
@@ -28,19 +26,10 @@ import { TEST_SHELL_SECTION_OPTIONS } from 'src/utils/structureRegistry'
 const route = useRoute()
 const router = useRouter()
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
-const dialogOpen = ref(false)
 const canConfigureFileSystem = ref(false)
 
 const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
 const activeSourceKey = computed(() => resolveValidShellSection(route.query.section))
-
-watch(
-  activeSourceKey,
-  () => {
-    if (!dialogOpen.value) dialogOpen.value = true
-  },
-  { immediate: true },
-)
 
 function resolveValidShellSection(value) {
   const normalized = String(value || '').trim().toLowerCase()
@@ -57,10 +46,6 @@ function updateShellSelector(nextValue) {
   })
 }
 
-function reopenFileDialogShell() {
-  dialogOpen.value = true
-}
-
 async function loadFileSystemOwnership() {
   try {
     const bridge = typeof window !== 'undefined' ? window.ecvc : null
@@ -73,13 +58,6 @@ async function loadFileSystemOwnership() {
 
 onMounted(() => {
   loadFileSystemOwnership()
-  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
-  window.addEventListener('ecvc:reopen-file-dialog-shell', reopenFileDialogShell)
-})
-
-onBeforeUnmount(() => {
-  if (typeof window === 'undefined' || typeof window.removeEventListener !== 'function') return
-  window.removeEventListener('ecvc:reopen-file-dialog-shell', reopenFileDialogShell)
 })
 </script>
 

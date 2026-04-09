@@ -1,189 +1,177 @@
 <template>
-  <q-dialog v-model="open">
-    <DialogShellFrame
-      card-class="file-structure-shell"
-      header-class="file-structure-shell__header"
-      body-class="file-structure-shell__body"
-      footer-class="file-structure-shell__actions"
-    >
-      <template #header>
-        <div class="file-structure-shell__header-copy">
-          <div class="file-structure-shell__title-row">
-            <div class="file-structure-shell__title">Add/Edit File Shell</div>
-            <div v-if="shellSelectorOptions.length" class="file-structure-shell__shell-selector">
-              <q-select
-                :model-value="shellSelectorValue"
-                dense
-                dark
-                options-dark
-                borderless
-                emit-value
-                map-options
-                hide-bottom-space
-                hide-dropdown-icon
-                :options="shellSelectorOptions"
-                popup-content-class="file-structure-shell__shell-selector-menu"
-                class="file-structure-shell__shell-selector-control"
-                @update:model-value="emit('update:shellSelectorValue', $event)"
-              >
-                <template #selected-item="scope">
-                  <span class="file-structure-shell__shell-selector-value">{{ scope.opt.label }}</span>
-                </template>
-                <template #option="scope">
-                  <q-item v-bind="scope.itemProps" class="file-structure-shell__shell-selector-option">
-                    <q-item-section>
-                      <span class="file-structure-shell__shell-selector-option-label">{{ scope.opt.label }}</span>
-                    </q-item-section>
-                  </q-item>
-                </template>
-              </q-select>
-            </div>
+  <DialogShellFrame
+    card-class="file-structure-shell"
+    header-class="file-structure-shell__header"
+    body-class="file-structure-shell__body"
+  >
+    <template #header>
+      <div class="file-structure-shell__header-copy">
+        <div class="file-structure-shell__title-row">
+          <div class="file-structure-shell__title">Add/Edit File Shell</div>
+          <div v-if="shellSelectorOptions.length" class="file-structure-shell__shell-selector">
+            <q-select
+              :model-value="shellSelectorValue"
+              dense
+              dark
+              options-dark
+              borderless
+              emit-value
+              map-options
+              hide-bottom-space
+              hide-dropdown-icon
+              :options="shellSelectorOptions"
+              popup-content-class="file-structure-shell__shell-selector-menu"
+              class="file-structure-shell__shell-selector-control"
+              @update:model-value="emit('update:shellSelectorValue', $event)"
+            >
+              <template #selected-item="scope">
+                <span class="file-structure-shell__shell-selector-value">{{ scope.opt.label }}</span>
+              </template>
+              <template #option="scope">
+                <q-item v-bind="scope.itemProps" class="file-structure-shell__shell-selector-option">
+                  <q-item-section>
+                    <span class="file-structure-shell__shell-selector-option-label">{{ scope.opt.label }}</span>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </div>
         </div>
-      </template>
+      </div>
+    </template>
 
-      <template #default>
-        <div class="file-structure-shell__section-stack">
-          <section class="file-structure-shell__group">
-            <div class="file-structure-shell__group-head">
-              <button
-                type="button"
-                class="file-structure-shell__group-toggle"
-                @click="sectionConfigurationCollapsed = !sectionConfigurationCollapsed"
-              >
-                <span class="file-structure-shell__group-title">Section Configuration</span>
-                <q-icon
-                  :name="sectionConfigurationCollapsed ? 'expand_more' : 'expand_less'"
-                  class="file-structure-shell__group-toggle-icon"
-                />
-              </button>
+    <template #default>
+      <div class="file-structure-shell__section-stack">
+        <section class="file-structure-shell__group">
+          <div class="file-structure-shell__group-head">
+            <button
+              type="button"
+              class="file-structure-shell__group-toggle"
+              @click="sectionConfigurationCollapsed = !sectionConfigurationCollapsed"
+            >
+              <span class="file-structure-shell__group-title">Section Configuration</span>
+              <q-icon
+                :name="sectionConfigurationCollapsed ? 'expand_more' : 'expand_less'"
+                class="file-structure-shell__group-toggle-icon"
+              />
+            </button>
+          </div>
+
+          <div v-if="!sectionConfigurationCollapsed" class="file-structure-shell__group-body">
+            <div v-if="!canConfigureFileSystem" class="file-structure-shell__owner-note">
+              This menu configuration is only available for File System owner.
             </div>
-
-            <div v-if="!sectionConfigurationCollapsed" class="file-structure-shell__group-body">
-              <div v-if="!canConfigureFileSystem" class="file-structure-shell__owner-note">
-                This menu configuration is only available for File System owner.
-              </div>
-              <div class="file-structure-shell__table-shell">
-                <EditableGridTable
-                  :columns="sectionConfigurationColumns"
-                  :rows="sectionConfigurationRows"
-                  :can-edit="canConfigureFileSystem"
-                  @updateColumnLabel="updateSectionConfigurationColumnLabel"
-                  @finishColumnEdit="finishColumnEdit"
-                  @removeColumn="removeSectionConfigurationColumn"
-                  @addColumn="addSectionConfigurationColumn"
-                  @updateRowLabel="updateSectionConfigurationRowLabel"
-                  @finishRowEdit="finishRowEdit"
-                  @removeRow="removeSectionConfigurationRow"
-                  @addRow="addSectionConfigurationRow"
-                />
-              </div>
+            <div class="file-structure-shell__table-shell">
+              <EditableGridTable
+                :columns="sectionConfigurationColumns"
+                :rows="sectionConfigurationRows"
+                :can-edit="canConfigureFileSystem"
+                @updateColumnLabel="updateSectionConfigurationColumnLabel"
+                @finishColumnEdit="finishColumnEdit"
+                @removeColumn="removeSectionConfigurationColumn"
+                @addColumn="addSectionConfigurationColumn"
+                @updateRowLabel="updateSectionConfigurationRowLabel"
+                @finishRowEdit="finishRowEdit"
+                @removeRow="removeSectionConfigurationRow"
+                @addRow="addSectionConfigurationRow"
+              />
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="file-structure-shell__group">
-            <div class="file-structure-shell__group-head">
-              <button
-                type="button"
-                class="file-structure-shell__group-toggle"
-                @click="dataStructureCollapsed = !dataStructureCollapsed"
+        <section class="file-structure-shell__group">
+          <div class="file-structure-shell__group-head">
+            <button
+              type="button"
+              class="file-structure-shell__group-toggle"
+              @click="dataStructureCollapsed = !dataStructureCollapsed"
+            >
+              <span class="file-structure-shell__group-title">Data Structure</span>
+              <q-icon
+                :name="dataStructureCollapsed ? 'expand_more' : 'expand_less'"
+                class="file-structure-shell__group-toggle-icon"
+              />
+            </button>
+            <button
+              v-if="canConfigureFileSystem"
+              type="button"
+              class="file-structure-shell__section-picker"
+              @click.stop="sectionPickerOpen = true"
+            >
+              <span class="file-structure-shell__section-picker-label">{{ activeSectionOption.label }}</span>
+              <q-icon name="expand_more" class="file-structure-shell__section-picker-icon" />
+              <q-menu
+                v-model="sectionPickerOpen"
+                anchor="bottom right"
+                self="top right"
+                class="file-structure-shell__section-picker-menu"
               >
-                <span class="file-structure-shell__group-title">Data Structure</span>
-                <q-icon
-                  :name="dataStructureCollapsed ? 'expand_more' : 'expand_less'"
-                  class="file-structure-shell__group-toggle-icon"
-                />
-              </button>
-              <button
-                v-if="canConfigureFileSystem"
-                type="button"
-                class="file-structure-shell__section-picker"
-                @click.stop="sectionPickerOpen = true"
-              >
-                <span class="file-structure-shell__section-picker-label">{{ activeSectionOption.label }}</span>
-                <q-icon name="expand_more" class="file-structure-shell__section-picker-icon" />
-                <q-menu
-                  v-model="sectionPickerOpen"
-                  anchor="bottom right"
-                  self="top right"
-                  class="file-structure-shell__section-picker-menu"
-                >
-                  <div class="file-structure-shell__section-menu">
-                    <section
-                      v-for="group in sectionOptionGroups"
-                      :key="group.id"
-                      class="file-structure-shell__section-menu-group"
+                <div class="file-structure-shell__section-menu">
+                  <section
+                    v-for="group in sectionOptionGroups"
+                    :key="group.id"
+                    class="file-structure-shell__section-menu-group"
+                  >
+                    <button
+                      type="button"
+                      class="file-structure-shell__section-menu-toggle"
+                      @click.stop="toggleSectionGroup(group.id)"
                     >
+                      <span class="file-structure-shell__section-menu-title">{{ group.label }}</span>
+                      <q-icon
+                        :name="isSectionGroupOpen(group.id) ? 'expand_less' : 'expand_more'"
+                        class="file-structure-shell__section-menu-chevron"
+                      />
+                    </button>
+
+                    <div v-if="isSectionGroupOpen(group.id)" class="file-structure-shell__section-menu-items">
                       <button
+                        v-for="option in group.items"
+                        :key="option.value"
                         type="button"
-                        class="file-structure-shell__section-menu-toggle"
-                        @click.stop="toggleSectionGroup(group.id)"
+                        class="file-structure-shell__section-menu-item"
+                        :class="{ 'file-structure-shell__section-menu-item--active': activeSectionSelection === option.value }"
+                        @click.stop="selectSectionOption(option.value)"
                       >
-                        <span class="file-structure-shell__section-menu-title">{{ group.label }}</span>
-                        <q-icon
-                          :name="isSectionGroupOpen(group.id) ? 'expand_less' : 'expand_more'"
-                          class="file-structure-shell__section-menu-chevron"
-                        />
+                        {{ option.label }}
                       </button>
-
-                      <div v-if="isSectionGroupOpen(group.id)" class="file-structure-shell__section-menu-items">
-                        <button
-                          v-for="option in group.items"
-                          :key="option.value"
-                          type="button"
-                          class="file-structure-shell__section-menu-item"
-                          :class="{ 'file-structure-shell__section-menu-item--active': activeSectionSelection === option.value }"
-                          @click.stop="selectSectionOption(option.value)"
-                        >
-                          {{ option.label }}
-                        </button>
-                      </div>
-                    </section>
-                  </div>
-                </q-menu>
-              </button>
-            </div>
-
-            <div v-if="!dataStructureCollapsed" class="file-structure-shell__group-body">
-              <div class="file-structure-shell__grid">
-                <div class="file-structure-shell__field">
-                  <div class="file-structure-shell__field-label">Core Structure</div>
-                  <div class="file-structure-shell__field-surface file-structure-shell__field-surface--tall" />
+                    </div>
+                  </section>
                 </div>
-                <div class="file-structure-shell__field">
-                  <div class="file-structure-shell__field-label">Relations and Payloads</div>
-                  <div class="file-structure-shell__field-surface file-structure-shell__field-surface--tall" />
-                </div>
+              </q-menu>
+            </button>
+          </div>
+
+          <div v-if="!dataStructureCollapsed" class="file-structure-shell__group-body">
+            <div class="file-structure-shell__grid">
+              <div class="file-structure-shell__field">
+                <div class="file-structure-shell__field-label">Core Structure</div>
+                <div class="file-structure-shell__field-surface file-structure-shell__field-surface--tall" />
+              </div>
+              <div class="file-structure-shell__field">
+                <div class="file-structure-shell__field-label">Relations and Payloads</div>
+                <div class="file-structure-shell__field-surface file-structure-shell__field-surface--tall" />
               </div>
             </div>
-          </section>
-        </div>
-      </template>
-
-      <template #footer>
-        <DialogShellFooter
-          :save-disabled="true"
-          @cancel="emit('requestClose')"
-        />
-      </template>
-    </DialogShellFrame>
-  </q-dialog>
+          </div>
+        </section>
+      </div>
+    </template>
+  </DialogShellFrame>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
-import DialogShellFooter from 'src/components/DialogShellFooter.vue'
 import EditableGridTable from 'src/components/EditableGridTable.vue'
 
 const props = defineProps({
-  modelValue: { type: Boolean, default: false },
   shellSelectorValue: { type: String, default: '' },
   shellSelectorOptions: { type: Array, default: () => [] },
   canConfigureFileSystem: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['update:modelValue', 'update:shellSelectorValue', 'requestClose'])
+const emit = defineEmits(['update:shellSelectorValue'])
 
 const sectionConfigurationCollapsed = ref(false)
 const dataStructureCollapsed = ref(false)
@@ -221,11 +209,6 @@ const sectionOptionGroups = [
     ],
   },
 ]
-
-const open = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
-})
 
 const activeSectionOption = computed(() =>
   sectionOptionGroups.flatMap((group) => group.items).find((option) => option.value === activeSectionSelection.value)

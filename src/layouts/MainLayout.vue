@@ -14,9 +14,9 @@
           />
         </div>
 
-        <div v-if="isFileDialogShellRoute || isDialogShellRoute || isForkShellRoute || isBbShellRoute" class="ec-shell-toolbar-center">
+        <div v-if="isDialogShellRoute || isForkShellRoute || isBbShellRoute" class="ec-shell-toolbar-center">
           <ShellOpenDialogButton
-            :kind="isForkShellRoute ? 'fork' : isFileDialogShellRoute ? 'file' : isBbShellRoute ? 'bb' : 'record'"
+            :kind="isForkShellRoute ? 'fork' : isBbShellRoute ? 'bb' : 'record'"
             @click="reopenActiveRouteShellFromHeader"
           />
         </div>
@@ -671,7 +671,6 @@ const toolbarActions = computed(() => {
   return []
 })
 const isSelectableShellRoute = computed(() => ['test-shell', 'record-shell'].includes(String(route.name || '')))
-const isFileDialogShellRoute = computed(() => String(route.name || '') === 'file-dialog-shell')
 const isDialogShellRoute = computed(() => String(route.name || '') === 'dialog-shell')
 const isForkShellRoute = computed(() => String(route.name || '') === 'fork-shell')
 const isBbShellRoute = computed(() => String(route.name || '') === 'bb-shell')
@@ -697,10 +696,6 @@ function reopenActiveRouteShellFromHeader() {
   if (typeof window === 'undefined') return
   if (isForkShellRoute.value) {
     window.dispatchEvent(new CustomEvent('ecvc:reopen-fork-shell'))
-    return
-  }
-  if (isFileDialogShellRoute.value) {
-    window.dispatchEvent(new CustomEvent('ecvc:reopen-file-dialog-shell'))
     return
   }
   if (isBbShellRoute.value) {
@@ -1781,10 +1776,6 @@ function handleDrawerItemClick(item) {
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return
   if (itemTarget === '/bb-shell' && routeName === 'bb-shell') {
     window.dispatchEvent(new CustomEvent('ecvc:reopen-bb-shell'))
-    return
-  }
-  if (itemTarget === '/file-dialog-shell' && routeName === 'file-dialog-shell') {
-    window.dispatchEvent(new CustomEvent('ecvc:reopen-file-dialog-shell'))
     return
   }
   if (itemTarget === '/dialog-shell' && routeName === 'dialog-shell') {
