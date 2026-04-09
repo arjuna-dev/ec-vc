@@ -18,7 +18,7 @@ Companion behavior and ingestion-side structural discipline should also stay ali
 - `docs/010-companion-contract.md`
 - `docs/010-game-rulebook.md`
 - `docs/010-game-master-contract.md`
-- `docs/ECS_Workstream_Tracker.md`
+- `docs/999-ECS_Workstream_Tracker.md`
 
 When decisions change:
 

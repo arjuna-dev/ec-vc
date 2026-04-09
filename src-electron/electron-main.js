@@ -28,6 +28,7 @@ import {
 } from '../src/shared/kdbRelationshipContracts.js'
 import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
 import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
+import { FILE_PAGE_REGISTRY } from '../src/utils/structureRegistry.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -1549,6 +1550,165 @@ function listCompanionRoles() {
   )
 }
 
+function ensureDefaultFiles(database) {
+  const rows = FILE_PAGE_REGISTRY.map((entry, index) => ({
+    id: `file:${String(entry.key || '').trim() || index + 1}`,
+    File_Order: index + 1,
+    File_Name: String(entry.label || entry.singularLabel || entry.key || '').trim(),
+    File_Summary: `System definition for ${String(entry.label || entry.singularLabel || 'file').trim()}.`,
+    File_Status: 'Active',
+    File_Contract_Path: 'docs/001-file-contracts.md',
+    File_Source_Key: String(entry.key || '').trim(),
+    File_Canonical_Entity: String(entry.canonicalEntityName || '').trim(),
+    File_Runtime_Entity: String(entry.entityName || '').trim(),
+    File_Route_Name: String(entry.routeName || '').trim(),
+    File_Path: String(entry.path || '').trim(),
+  })).filter((row) => row.File_Source_Key && row.File_Name)
+
+  const upsertRow = database.prepare(`
+    INSERT INTO Files (
+      id,
+      File_Order,
+      File_Name,
+      File_Summary,
+      File_Status,
+      File_Contract_Path,
+      File_Source_Key,
+      File_Canonical_Entity,
+      File_Runtime_Entity,
+      File_Route_Name,
+      File_Path,
+      created_at,
+      updated_at
+    ) VALUES (
+      @id,
+      @File_Order,
+      @File_Name,
+      @File_Summary,
+      @File_Status,
+      @File_Contract_Path,
+      @File_Source_Key,
+      @File_Canonical_Entity,
+      @File_Runtime_Entity,
+      @File_Route_Name,
+      @File_Path,
+      datetime('now'),
+      datetime('now')
+    )
+    ON CONFLICT(File_Source_Key) DO UPDATE SET
+      File_Order = excluded.File_Order,
+      File_Name = excluded.File_Name,
+      File_Summary = excluded.File_Summary,
+      File_Status = excluded.File_Status,
+      File_Contract_Path = excluded.File_Contract_Path,
+      File_Canonical_Entity = excluded.File_Canonical_Entity,
+      File_Runtime_Entity = excluded.File_Runtime_Entity,
+      File_Route_Name = excluded.File_Route_Name,
+      File_Path = excluded.File_Path,
+      updated_at = datetime('now')
+  `)
+
+  const tx = database.transaction((inputRows) => {
+    inputRows.forEach((row) => upsertRow.run(row))
+  })
+  tx(rows)
+}
+
+function listFiles() {
+  const database = initDb()
+  ensureDefaultFiles(database)
+  return dbAll(
+    `
+      SELECT
+        id,
+        File_Order,
+        File_Name,
+        File_Summary,
+        File_Status,
+        File_Contract_Path,
+        File_Source_Key,
+        File_Canonical_Entity,
+        File_Runtime_Entity,
+        File_Route_Name,
+        File_Path,
+        File_EventLog,
+        created_by,
+        created_at,
+        updated_at
+      FROM Files
+      ORDER BY COALESCE(File_Order, 9999), File_Name, id
+    `,
+  )
+}
+
+function createFile(payload = {}) {
+  const database = initDb()
+  ensureDefaultFiles(database)
+  const actor = getAuditActor(database, { requireUser: true })
+  const name =
+    normalizeNullableString(payload?.File_Name) ||
+    normalizeNullableString(payload?.Name) ||
+    normalizeNullableString(payload?.title)
+
+  if (!name) throw new Error('File name is required')
+
+  const id = normalizeNullableString(payload?.id) || `file:${crypto.randomUUID()}`
+  const sourceKey = normalizeNullableString(payload?.File_Source_Key) || normalizeNullableString(payload?.sourceKey)
+  if (!sourceKey) throw new Error('File source key is required')
+
+  database.prepare(`
+    INSERT INTO Files (
+      id,
+      File_Order,
+      File_Name,
+      File_Summary,
+      File_Status,
+      File_Contract_Path,
+      File_Source_Key,
+      File_Canonical_Entity,
+      File_Runtime_Entity,
+      File_Route_Name,
+      File_Path,
+      File_EventLog,
+      created_by,
+      created_at,
+      updated_at
+    ) VALUES (
+      @id,
+      @File_Order,
+      @File_Name,
+      @File_Summary,
+      @File_Status,
+      @File_Contract_Path,
+      @File_Source_Key,
+      @File_Canonical_Entity,
+      @File_Runtime_Entity,
+      @File_Route_Name,
+      @File_Path,
+      @File_EventLog,
+      @created_by,
+      datetime('now'),
+      datetime('now')
+    )
+  `).run({
+    id,
+    File_Order: payload?.File_Order ?? null,
+    File_Name: name,
+    File_Summary: normalizeNullableString(payload?.File_Summary) || normalizeNullableString(payload?.Summary),
+    File_Status: normalizeNullableString(payload?.File_Status) || normalizeNullableString(payload?.Status) || 'Draft',
+    File_Contract_Path: normalizeNullableString(payload?.File_Contract_Path),
+    File_Source_Key: sourceKey,
+    File_Canonical_Entity: normalizeNullableString(payload?.File_Canonical_Entity),
+    File_Runtime_Entity: normalizeNullableString(payload?.File_Runtime_Entity),
+    File_Route_Name: normalizeNullableString(payload?.File_Route_Name),
+    File_Path: normalizeNullableString(payload?.File_Path),
+    File_EventLog: normalizeNullableString(payload?.File_EventLog),
+    created_by: actor.user_id,
+  })
+
+  return { id }
+}
+
 function ensureDefaultBuildingBlocks(database) {
   const buildingBlockMeta = getTableMeta(database, 'Building_Blocks')
   if (!buildingBlockMeta.columnsSet.has('Used_In_Shells')) {
@@ -2759,6 +2919,12 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['Companion_Role_Name', 'Companion_Role_Type', 'Companion_Role_Status', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
+  Files: {
+    tableName: 'Files',
+    entityLabel: 'File',
+    displayColumns: ['File_Name', 'id'],
+    readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
+  },
   Opportunities: {
     tableName: 'Opportunities',
     entityLabel: 'Opportunity',
@@ -2831,6 +2997,11 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   'financial industries': 'Industries',
   artifacts: 'Artifacts',
   artifact: 'Artifacts',
+  files: 'Files',
+  file: 'Files',
+  'file-system': 'Files',
+  file_system: 'Files',
+  'system files': 'Files',
   roles: 'Roles',
   role: 'Roles',
   opportunities: 'Opportunities',
@@ -7351,6 +7522,25 @@ function registerIpc() {
   ipcMain.handle('events:list', async (_event, { limit } = {}) => {
     initDb()
     return { events: listEventRows(limit) }
+  })
+
+  ipcMain.handle('file-system:list', async () => {
+    initDb()
+    return { files: listFiles() }
+  })
+
+  ipcMain.handle('file-system:create', async (_event, payload = {}) => {
+    initDb()
+    const result = createFile(payload)
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('file-system:delete', async (_event, { fileId } = {}) => {
+    initDb()
+    const result = deleteRow('Files', 'id', String(fileId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
   })
 
   ipcMain.handle('events:create', async (_event, payload = {}) => {
