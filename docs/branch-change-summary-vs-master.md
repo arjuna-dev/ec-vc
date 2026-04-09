@@ -37,7 +37,7 @@ The main intentions were:
 
 Top files by added lines compared to `master`:
 
-1. `+5096` [workbook-schema-companion.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/workbook-schema-companion.json)
+1. `+5096` [001-workbook-schema-companion.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/001-workbook-schema-companion.json)
 2. `+4905` [FilePageShell.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/FilePageShell.vue)
 3. `+4418` [canonical-structure.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/canonical-structure.json)
 4. `+2933` [IngestionShellDialog.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/IngestionShellDialog.vue)
@@ -103,7 +103,7 @@ Intent:
 
 Main files:
 
-- [workbook-schema-companion.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/workbook-schema-companion.json)
+- [001-workbook-schema-companion.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/001-workbook-schema-companion.json)
 - [canonical-structure.json](/c:/Users/erikc/Coding_Repository/ec-vc/docs/canonical-structure.json)
 - [011-record-architecture-master-plan.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/011-record-architecture-master-plan.md)
 - [011-product-reference-guide.md](/c:/Users/erikc/Coding_Repository/ec-vc/docs/011-product-reference-guide.md)

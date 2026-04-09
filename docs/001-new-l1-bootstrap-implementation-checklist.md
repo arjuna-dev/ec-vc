@@ -19,7 +19,7 @@ The target is strict bootstrap behavior, not a heuristic helper.
 Primary files:
 
 - `docs/canonical-structure.json`
-- `docs/workbook-schema-companion.json`
+- `docs/001-workbook-schema-companion.json`
 
 Current status:
 
@@ -38,7 +38,7 @@ Implementation need:
 
 Reference:
 
-- `docs/new-l1-birth-input-contract.md`
+- `docs/001-new-l1-birth-input-contract.md`
 
 ### 2. Real table/runtime owner
 
@@ -99,7 +99,7 @@ Shared `General` parameters:
 Primary files:
 
 - `docs/canonical-structure.json`
-- `docs/workbook-schema-companion.json`
+- `docs/001-workbook-schema-companion.json`
 
 Current status:
 
@@ -117,7 +117,7 @@ Implementation need:
 Primary files:
 
 - `docs/canonical-structure.json`
-- `docs/workbook-schema-companion.json`
+- `docs/001-workbook-schema-companion.json`
 
 Current status:
 

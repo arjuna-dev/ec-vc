@@ -16,8 +16,8 @@ This document should be treated as the single planning source of truth for the `
 Companion behavior and ingestion-side structural discipline should also stay aligned with:
 
 - `docs/010-companion-contract.md`
-- `docs/game-rulebook.md`
-- `docs/game-master-contract.md`
+- `docs/010-game-rulebook.md`
+- `docs/010-game-master-contract.md`
 - `docs/ECS_Workstream_Tracker.md`
 
 When decisions change:
@@ -29,7 +29,7 @@ When decisions change:
 For the current first-pass architecture work, the active workbook schema reference is:
 
 - `docs/B10_DOS v260400 vrev.xlsx`
-- `docs/workbook-schema-companion.json`
+- `docs/001-workbook-schema-companion.json`
 - `docs/canonical-structure.json`
 
 That workbook should be treated as the active structural reference used to validate and refine the first approved architecture pass.
