@@ -49,10 +49,12 @@
 
     <div class="file-structure-shell__content-grid">
       <RecordSummaryBox class="file-structure-shell__content-box">
-        <DialogShellTitleRow
-          title="Summary Box"
-          class="file-structure-shell__content-box-title"
-        />
+        <div class="file-structure-shell__content-box-title-shell">
+          <DialogShellTitleRow
+            title="Summary Box"
+            class="file-structure-shell__content-box-title"
+          />
+        </div>
         <div class="file-structure-shell__placeholder-copy">
           File summary content will render here.
         </div>
@@ -79,10 +81,12 @@
       </RecordFieldsBox>
 
       <RecordFieldsBox class="file-structure-shell__content-box">
-        <DialogShellTitleRow
-          title="Events Feed"
-          class="file-structure-shell__content-box-title"
-        />
+        <div class="file-structure-shell__content-box-title-shell">
+          <DialogShellTitleRow
+            title="Events Feed"
+            class="file-structure-shell__content-box-title"
+          />
+        </div>
         <div class="file-structure-shell__placeholder-copy">
           Event activity will render here.
         </div>
