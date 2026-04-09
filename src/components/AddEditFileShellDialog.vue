@@ -59,10 +59,20 @@
       </RecordSummaryBox>
 
       <RecordFieldsBox class="file-structure-shell__content-box">
-        <DialogShellTitleRow
-          title="General Elements"
-          class="file-structure-shell__content-box-title"
-        />
+        <div class="file-structure-shell__content-box-title-row">
+          <div class="file-structure-shell__content-box-title-shell">
+            <DialogShellTitleRow
+              title="General Elements"
+              class="file-structure-shell__content-box-title"
+            />
+          </div>
+          <div class="file-structure-shell__content-box-title-shell file-structure-shell__content-box-title-shell--menu">
+            <L2SettingsMenu
+              title="General Elements Settings"
+              :groups="generalElementSettingsGroups"
+            />
+          </div>
+        </div>
         <div class="file-structure-shell__placeholder-copy">
           General file properties will render here.
         </div>
@@ -94,6 +104,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
+import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
@@ -122,6 +133,18 @@ const l2ToolbarItems = [
   { value: 'record-data', title: 'Record Data', isKdb: false, isSystem: false, pushRight: false },
   { value: 'kdb', title: 'KDB', isKdb: true, isSystem: false, pushRight: true },
   { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
+]
+const generalElementSettingsGroups = [
+  {
+    key: 'general-elements',
+    label: 'General Elements',
+    expanded: true,
+    items: [
+      { key: 'name', label: 'Name', checked: true },
+      { key: 'summary', label: 'Summary', checked: true },
+      { key: 'status', label: 'Status', checked: false },
+    ],
+  },
 ]
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
@@ -206,6 +229,27 @@ onBeforeUnmount(() => {
   gap: 12px;
   min-height: 260px;
   align-self: stretch;
+}
+
+.file-structure-shell__content-box-title-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+}
+
+.file-structure-shell__content-box-title-shell {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: var(--ds-radius-md);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.88));
+}
+
+.file-structure-shell__content-box-title-shell--menu {
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: flex-end;
 }
 
 .file-structure-shell__content-box-title {
