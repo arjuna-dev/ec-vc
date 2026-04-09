@@ -8,13 +8,11 @@
       <div class="file-structure-shell__header-copy">
         <div class="file-structure-shell__title-row">
           <RecordTitle title="Add/Edit File Shell" />
-          <button
-            type="button"
-            class="file-structure-shell__add-element-button"
+          <PlusWithLabelButton
+            label="Add Element"
+            aria-label="Add Element"
             @click="addLeafElement"
-          >
-            Add Element
-          </button>
+          />
           <button
             v-if="shellSelectorOptions.length"
             ref="shellSelectorButton"
@@ -232,6 +230,7 @@ import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
+import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import RecordTitle from 'src/components/RecordTitle.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'
 import SectionTabs from 'src/components/SectionTabs.vue'
@@ -560,22 +559,6 @@ watch(
   align-items: center;
   justify-content: flex-start;
   gap: 16px;
-}
-
-.file-structure-shell__add-element-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 30px;
-  padding: 0 12px;
-  color: var(--ds-color-brand-black);
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: var(--ds-radius-micro);
-  font-family: var(--ds-font-title);
-  font-size: var(--ds-font-size-xs);
-  font-weight: var(--ds-font-weight-bold);
-  cursor: pointer;
 }
 
 .file-structure-shell__divider {
