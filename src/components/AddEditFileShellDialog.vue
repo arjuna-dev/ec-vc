@@ -105,7 +105,7 @@ onBeforeUnmount(() => {
   width: 100%;
   max-width: 100%;
   border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 28px;
+  border-radius: var(--ds-radius-md);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(247, 249, 252, 0.98));
   box-shadow: 0 28px 60px rgba(15, 23, 42, 0.16);
 }
