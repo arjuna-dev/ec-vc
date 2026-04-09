@@ -107,10 +107,18 @@ onBeforeUnmount(() => {
 .l2-settings-menu-shell :deep(.b10-icon-btn) {
   align-self: center;
   padding: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
 }
 
 .l2-settings-menu-shell :deep(.q-btn) {
   padding: 0 !important;
+}
+
+.l2-settings-menu-shell :deep(.q-icon) {
+  font-size: 14px !important;
 }
 
 .l2-settings-menu {

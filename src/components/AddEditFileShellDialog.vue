@@ -682,15 +682,15 @@ watch(
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
-  align-items: start;
+  align-items: center;
 }
 
 .file-structure-shell__content-box-title-shell {
   min-width: 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 0;
+  border: 0;
   border-radius: var(--ds-radius-md);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.88));
+  background: transparent;
 }
 
 .file-structure-shell__content-box-title-shell--menu {
