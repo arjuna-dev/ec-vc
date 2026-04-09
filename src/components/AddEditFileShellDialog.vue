@@ -146,7 +146,7 @@
           <thead>
             <tr>
               <th aria-label="Selection"></th>
-              <th>Order</th>
+              <th aria-label="Order"></th>
               <th>Label</th>
               <th>L3 Key</th>
               <th>Parent L2</th>
