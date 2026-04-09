@@ -146,10 +146,24 @@
           <thead>
             <tr>
               <th aria-label="Selection"></th>
-              <th>Label</th>
-              <th>L3 Key</th>
-              <th>L2 Section</th>
-              <th>L2 Sub</th>
+              <th v-if="!structureColumnsCollapsed">L2 Section</th>
+              <th v-if="!structureColumnsCollapsed">L2 Sub</th>
+              <th v-if="!structureColumnsCollapsed">L3 Key</th>
+              <th>
+                <div class="file-structure-shell__label-header">
+                  <button
+                    type="button"
+                    class="file-structure-shell__column-collapse-button"
+                    :aria-label="structureColumnsCollapsed ? 'Expand structure columns' : 'Collapse structure columns'"
+                    @click="structureColumnsCollapsed = !structureColumnsCollapsed"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__column-collapse-icon">
+                      <path :d="structureColumnsCollapsed ? 'M10 7L15 12L10 17' : 'M14 7L9 12L14 17'" />
+                    </svg>
+                  </button>
+                  <span>Label</span>
+                </div>
+              </th>
               <th>Type</th>
               <th>Visible</th>
               <th>Editable</th>
@@ -168,12 +182,10 @@
                   @update:model-value="toggleLeafSelection(token.key)"
                 />
               </td>
+              <td v-if="!structureColumnsCollapsed">{{ token.parentL2 }}</td>
+              <td v-if="!structureColumnsCollapsed">{{ token.parentSubgroup }}</td>
+              <td v-if="!structureColumnsCollapsed">{{ token.key }}</td>
               <td>{{ token.label }}</td>
-              <td>
-                {{ token.key }}
-              </td>
-              <td>{{ token.parentL2 }}</td>
-              <td>{{ token.parentSubgroup }}</td>
               <td>{{ token.type }}</td>
               <td>{{ token.visible }}</td>
               <td>{{ token.editable }}</td>
@@ -183,7 +195,7 @@
               <td>{{ token.uiTreatment }}</td>
             </tr>
             <tr v-if="!activeLeafTokens.length">
-              <td colspan="11" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
+              <td :colspan="structureColumnsCollapsed ? 8 : 11" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
             </tr>
           </tbody>
         </table>
@@ -221,6 +233,7 @@ const shellSelectorMenu = ref(null)
 const activeL2Toolbar = ref('')
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
+const structureColumnsCollapsed = ref(false)
 const activeSubgroupKey = ref('')
 const draftLeafRowsBySource = ref({})
 const selectedLeafKeysBySource = ref({})
@@ -664,6 +677,34 @@ watch(
   font-weight: var(--ds-font-weight-bold);
   line-height: 1.1;
   white-space: nowrap;
+}
+
+.file-structure-shell__label-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.file-structure-shell__column-collapse-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.file-structure-shell__column-collapse-icon {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: var(--ds-color-brand-black);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .file-structure-shell__leaf-table td {
