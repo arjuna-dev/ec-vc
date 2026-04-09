@@ -149,7 +149,7 @@
               <th>Label</th>
               <th>L3 Key</th>
               <th>L2 Section</th>
-              <th>L2 Subsection</th>
+              <th>L2Sub</th>
               <th>Type</th>
               <th>Visible</th>
               <th>Editable</th>
