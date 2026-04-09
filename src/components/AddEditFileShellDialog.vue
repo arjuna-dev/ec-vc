@@ -681,6 +681,10 @@ watch(
   font-weight: var(--ds-font-weight-light);
 }
 
+.file-structure-shell__leaf-table td:nth-child(3) {
+  font-size: var(--ds-font-size-xs);
+}
+
 .file-structure-shell__leaf-empty {
   color: rgba(15, 23, 42, 0.6);
   text-align: center;
