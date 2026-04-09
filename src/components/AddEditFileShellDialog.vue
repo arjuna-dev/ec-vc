@@ -139,6 +139,38 @@
         </div>
         <div class="file-structure-shell__contract-link-panel">
           <div class="file-structure-shell__guide-divider" />
+          <div v-if="activeEventsTab === 'notes'" class="file-structure-shell__notes-panel">
+            <div
+              v-for="note in latestNotes"
+              :key="note.id"
+              class="file-structure-shell__notes-row"
+            >
+              <div class="file-structure-shell__notes-name">{{ note.name }}</div>
+              <div class="file-structure-shell__notes-summary">{{ note.summary }}</div>
+            </div>
+            <div v-if="!latestNotes.length" class="file-structure-shell__contract-link-meta">
+              No notes available yet.
+            </div>
+          </div>
+          <div v-else-if="activeEventsTab === 'system'" class="file-structure-shell__system-panel">
+            <div class="file-structure-shell__system-head">
+              <div>Label</div>
+              <div>Alias</div>
+              <div>Type</div>
+            </div>
+            <div
+              v-for="item in selectedSystemItems"
+              :key="item.key"
+              class="file-structure-shell__system-row"
+            >
+              <div class="file-structure-shell__system-label">{{ item.label }}</div>
+              <div class="file-structure-shell__system-alias">{{ item.alias }}</div>
+              <div class="file-structure-shell__system-type">{{ item.type }}</div>
+            </div>
+            <div v-if="!selectedSystemItems.length" class="file-structure-shell__contract-link-meta">
+              No selected items available yet.
+            </div>
+          </div>
         </div>
       </RecordFieldsBox>
     </div>
@@ -345,6 +377,7 @@ const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const activeL2Toolbar = ref('')
 const activeEventsTab = ref('notes')
+const latestNotesBySource = ref({})
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
 const structureColumnsCollapsed = ref(false)
@@ -461,6 +494,18 @@ const selectedGeneralElementItems = computed(() =>
       })),
   ),
 )
+const selectedSystemItems = computed(() => {
+  const checkedItems = checkedSettingsItemsBySource.value[activeSettingsSourceKey.value] || {}
+  return level3Tokens.value
+    .filter((token) => checkedItems[token.key] !== false)
+    .map((token) => ({
+      key: token.key,
+      label: token.label || '—',
+      alias: token.dbFieldAliases?.length ? token.dbFieldAliases.join(', ') : '—',
+      type: token.tokenType || '—',
+    }))
+})
+const latestNotes = computed(() => latestNotesBySource.value[activeSettingsSourceKey.value] || [])
 const subgroupTabs = computed(() =>
   (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => ({
     key: group.key,
@@ -510,6 +555,20 @@ function selectShellSelectorOption(value) {
 function openFileContractDoc() {
   if (typeof window === 'undefined') return
   window.ecvc?.openExternal?.(FILE_CONTRACT_DOC_URL)
+}
+
+async function loadLatestNotes() {
+  if (typeof window === 'undefined') return
+  const result = await window.ecvc?.notes?.list?.()
+  const rows = Array.isArray(result?.notes) ? result.notes.slice(0, 5) : []
+  latestNotesBySource.value = {
+    ...latestNotesBySource.value,
+    [activeSettingsSourceKey.value]: rows.map((note) => ({
+      id: String(note?.id || ''),
+      name: String(note?.Note_Name || note?.title || 'Untitled Note'),
+      summary: String(note?.Note_Content || '').trim().slice(0, 96) || 'No summary yet.',
+    })),
+  }
 }
 
 function toggleShellSelector() {
@@ -617,6 +676,7 @@ onMounted(() => {
   window.addEventListener('pointerdown', handleGlobalPointerDown)
   window.addEventListener('pointermove', handleColumnResize)
   window.addEventListener('pointerup', stopColumnResize)
+  loadLatestNotes()
 })
 
 onBeforeUnmount(() => {
@@ -672,6 +732,10 @@ watch(
   },
   { immediate: true },
 )
+
+watch(activeSettingsSourceKey, () => {
+  loadLatestNotes()
+})
 
 </script>
 
@@ -862,6 +926,67 @@ watch(
   display: inline-flex;
   width: fit-content;
   max-width: 100%;
+}
+
+.file-structure-shell__notes-panel,
+.file-structure-shell__system-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.file-structure-shell__notes-row {
+  display: grid;
+  gap: 4px;
+}
+
+.file-structure-shell__notes-name,
+.file-structure-shell__system-label,
+.file-structure-shell__system-type,
+.file-structure-shell__system-head {
+  color: var(--ds-color-brand-black);
+  font-family: var(--ds-font-body);
+}
+
+.file-structure-shell__notes-name {
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: 1.3;
+}
+
+.file-structure-shell__notes-summary {
+  color: rgba(15, 23, 42, 0.62);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-light);
+  line-height: 1.3;
+}
+
+.file-structure-shell__system-head,
+.file-structure-shell__system-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.file-structure-shell__system-head {
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.file-structure-shell__system-label,
+.file-structure-shell__system-type {
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-light);
+  line-height: 1.3;
+}
+
+.file-structure-shell__system-alias {
+  color: rgba(15, 23, 42, 0.34);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-light);
+  line-height: 1.3;
 }
 
 .file-structure-shell__contract-link-copy,
