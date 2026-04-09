@@ -7,35 +7,37 @@
     <template #header>
       <div class="file-structure-shell__header-copy">
         <div class="file-structure-shell__title-row">
-          <div class="file-structure-shell__title">Add/Edit File Shell</div>
-          <div v-if="shellSelectorOptions.length" class="file-structure-shell__shell-selector">
-            <q-select
-              :model-value="shellSelectorValue"
-              dense
-              dark
-              options-dark
-              borderless
-              emit-value
-              map-options
-              hide-bottom-space
-              hide-dropdown-icon
-              :options="shellSelectorOptions"
-              popup-content-class="file-structure-shell__shell-selector-menu"
-              class="file-structure-shell__shell-selector-control"
-              @update:model-value="emit('update:shellSelectorValue', $event)"
+          <PageTitleText title="Add/Edit File Shell" />
+          <button
+            v-if="shellSelectorOptions.length"
+            type="button"
+            class="file-structure-shell__shell-selector"
+            @click.stop="shellSelectorOpen = true"
+          >
+            <MainMenuSubgroupRow
+              :label="activeShellSelectorOption.label"
+              :expanded="shellSelectorOpen"
+            />
+            <q-menu
+              v-model="shellSelectorOpen"
+              anchor="bottom right"
+              self="top right"
+              class="file-structure-shell__shell-selector-menu"
             >
-              <template #selected-item="scope">
-                <span class="file-structure-shell__shell-selector-value">{{ scope.opt.label }}</span>
-              </template>
-              <template #option="scope">
-                <q-item v-bind="scope.itemProps" class="file-structure-shell__shell-selector-option">
-                  <q-item-section>
-                    <span class="file-structure-shell__shell-selector-option-label">{{ scope.opt.label }}</span>
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div>
+              <div class="file-structure-shell__section-menu">
+                <button
+                  v-for="option in shellSelectorOptions"
+                  :key="option.value"
+                  type="button"
+                  class="file-structure-shell__section-menu-item"
+                  :class="{ 'file-structure-shell__section-menu-item--active': shellSelectorValue === option.value }"
+                  @click.stop="selectShellSelectorOption(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </q-menu>
+          </button>
         </div>
       </div>
     </template>
@@ -164,6 +166,8 @@
 import { computed, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import EditableGridTable from 'src/components/EditableGridTable.vue'
+import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
+import PageTitleText from 'src/components/PageTitleText.vue'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -176,6 +180,7 @@ const emit = defineEmits(['update:shellSelectorValue'])
 const sectionConfigurationCollapsed = ref(false)
 const dataStructureCollapsed = ref(false)
 const sectionPickerOpen = ref(false)
+const shellSelectorOpen = ref(false)
 const activeSectionSelection = ref('general')
 const openSectionGroups = ref(['system-created'])
 const nextSectionRowId = ref(2)
@@ -214,6 +219,11 @@ const activeSectionOption = computed(() =>
   sectionOptionGroups.flatMap((group) => group.items).find((option) => option.value === activeSectionSelection.value)
   || sectionOptionGroups[0].items[0],
 )
+const activeShellSelectorOption = computed(() =>
+  props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
+  || props.shellSelectorOptions[0]
+  || { value: '', label: 'Select File' },
+)
 
 const canConfigureFileSystem = computed(() => props.canConfigureFileSystem)
 
@@ -232,6 +242,11 @@ function selectSectionOption(value) {
   if (!canConfigureFileSystem.value) return
   activeSectionSelection.value = value
   sectionPickerOpen.value = false
+}
+
+function selectShellSelectorOption(value) {
+  emit('update:shellSelectorValue', value)
+  shellSelectorOpen.value = false
 }
 
 function addSectionConfigurationColumn() {
@@ -328,37 +343,22 @@ function removeSectionConfigurationRow(rowKey) {
   gap: 16px;
 }
 
-.file-structure-shell__title {
-  color: #0f172a;
-  font-family: var(--font-title);
-  font-size: clamp(1.8rem, 2.6vw, 2.6rem);
-  font-weight: var(--font-weight-black);
-  line-height: 0.96;
-}
-
 .file-structure-shell__shell-selector {
-  min-width: 200px;
-  padding: 0 12px;
+  min-width: 220px;
+  padding: 8px 12px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 12px;
   background: #111827;
+  cursor: pointer;
 }
 
-.file-structure-shell__shell-selector-control {
-  min-height: 40px;
+.file-structure-shell__shell-selector:hover {
+  background: #0b1220;
+  border-color: rgba(15, 23, 42, 0.24);
 }
 
-.file-structure-shell__shell-selector-control :deep(.q-field__control) {
-  min-height: 40px;
-}
-
-.file-structure-shell__shell-selector-value,
-.file-structure-shell__shell-selector-option-label {
+.file-structure-shell__shell-selector :deep(.main-menu-subgroup-row) {
   color: #fff;
-  font-family: var(--font-title);
-  font-size: 0.92rem;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.02em;
 }
 
 .file-structure-shell__body {
