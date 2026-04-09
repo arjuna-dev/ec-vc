@@ -93,6 +93,60 @@ This is the best route because it:
 - scales better as record count, relationship count, and payload count increase
 - turns broken UI states into validation failures instead of late discoveries
 
+### File Creation Orchestration Rule
+
+The `Files` exercise confirmed that new file birth is still too manual.
+
+Current truth:
+
+- a new first-class file can be created
+- but doing so still requires too many hand-touched layers
+- that means file birth is understandable, but not yet semi-automatic
+
+Architectural rule:
+
+- file creation should become an orchestrated bootstrap pass, not a long manual assembly task
+- if a new normal file still requires repeated manual edits across canon, registry, route, shell loader, sqlite schema, preload bridge, and runtime handlers, the orchestration layer is incomplete
+- the system should derive as much of this path as possible from one approved file-birth contract
+
+Practical implication:
+
+- the app should eventually be able to create a new normal file from one canonical definition plus one approved creation step
+- all remaining non-derived steps should be explicit validations, not hidden manual chores
+
+This matters because:
+
+- it lowers implementation cost for future files
+- it reduces structural drift at birth
+- it makes file creation fast enough to match the way the product is actually being shaped
+- it keeps canon, shell, runtime, and sqlite ownership speaking the same language
+
+The reasoning matters more than the order alone:
+
+- `File Folder` and `File Registry` are not first only for sequencing convenience
+- they are first because they become the architectural input layer for the rest of the file system
+- once they exist, a new file should be creatable by first creating a new `Files` record and declaring what that file is
+- that record should tell the system whether the new thing is:
+  - a true `L1`
+  - an `L2`
+  - an `L2.a`
+  - or another approved structure layer
+- that classification should help determine:
+  - whether shared `System` applies
+  - whether shared `KDB` applies
+  - who owns the file
+  - whether the file is owner-only
+  - which shell and runtime rules should apply
+  - which steward/file-guide rules should apply
+
+So the `Files` layer is meant to become:
+
+- the first file-definition registry
+- the first file-governance registry
+- the first guide/input layer for both humans and LLMs
+
+This is why it must exist before `Owner`, `Users`, `Contacts`, and the rest of the operational file set.
+
 ### Containment Rule
 
 As the architecture grows, complexity should come from composition and approved order, not from multiplying leaf components or adding convenience variants.
@@ -209,10 +263,25 @@ Branch capability rule:
 Working rule:
 
 - `Master Companion` is the acting bootstrap operator for sequential genesis creation
-- the first file created should be `L1 Files`
+- the first paired bootstrap items should be:
+  - `File Folder`
+  - `File Registry`
+- those two should exist before `Owner`, `Users`, `Contacts`, and the rest of the base bootstrap records
+- the first operational file created after `BB File` should therefore be the root `Files` registry surface
 - the second file created should be `Events`
 - the rest of the current base file system should then be created in approved order
 - file creation should happen before file-owned bootstrap records are created
+
+Reason:
+
+- after `File Folder` and `File Registry` exist, they should be used to create the next files through the same declared structure
+- the next crucial proof file is `Owner`
+- `Owner` should be created using that same file-definition path so we can test whether the architecture is really guiding file birth cleanly
+- after that:
+  - `User` helps govern who enters and leaves the system
+  - the first role is `Owner`
+  - `User Roles` are mostly attached through `Contacts`
+  - so the early bootstrap chain should remain easy to reason about from the file-definition layer outward
 
 System-level exception rule:
 
@@ -225,26 +294,27 @@ System-level exception rule:
 Current approved first-pass genesis file order:
 
 1. `BB File`
-2. `L1 Files`
-3. `Events`
-4. `Owner`
-5. `Users`
-6. `Contacts`
-7. `User Roles`
-8. `Companion`
-9. `Companion Roles`
-10. `Projects`
-11. `Tasks`
-12. `Notes`
-13. `Artifacts`
-14. `Ingestion`
-15. `Companies`
-16. `Opportunities`
-17. `Funds`
-18. `Rounds`
-19. `Markets`
-20. `Securities`
-21. remaining current supporting `KDB` / reference files
+2. `File Folder`
+3. `L1 Files`
+4. `Events`
+5. `Owner`
+6. `Users`
+7. `Contacts`
+8. `User Roles`
+9. `Companion`
+10. `Companion Roles`
+11. `Projects`
+12. `Tasks`
+13. `Notes`
+14. `Artifacts`
+15. `Ingestion`
+16. `Companies`
+17. `Opportunities`
+18. `Funds`
+19. `Rounds`
+20. `Markets`
+21. `Securities`
+22. remaining current supporting `KDB` / reference files
 
 Execution rule:
 
@@ -256,8 +326,14 @@ Execution rule:
 This matters because:
 
 - `BB File` establishes the visible building language and reconstruction canon before the rest of the product file system is interpreted
+- `File Folder` gives the system its first real file container surface
 - `L1 Files` is the root file registry and must exist before the rest of the file system can be treated as coherent
 - `Events` should exist before later genesis work is logged
+- the file-definition layer should also supply the guidance needed to make rendering more straightforward through:
+  - file guide rules
+  - settings
+  - explicit ownership classification
+  - explicit structure classification
 - later marketplace-delivered `L1`s should plug into this same file-first bootstrap model instead of bypassing it
 - `Events` should be treated as a first-class file/entity in the same contract system as the rest of the file surfaces
 
