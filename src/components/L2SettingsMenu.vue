@@ -102,6 +102,7 @@ onBeforeUnmount(() => {
   align-items: stretch;
   height: 100%;
   padding: 0;
+  overflow: visible;
 }
 
 .l2-settings-menu-shell :deep(.b10-icon-btn) {
@@ -119,8 +120,9 @@ onBeforeUnmount(() => {
   top: calc(100% + var(--ds-space-8));
   right: 0;
   z-index: 20;
-  width: fit-content;
-  max-width: min(var(--ds-settings-menu-width), 100%);
+  width: max-content;
+  min-width: min(220px, calc(100vw - 32px));
+  max-width: min(var(--ds-settings-menu-width), calc(100vw - 32px));
   padding: var(--ds-space-10);
   background: var(--ds-color-surface-overlay-strong);
   border: 1px solid var(--ds-color-border-default);
