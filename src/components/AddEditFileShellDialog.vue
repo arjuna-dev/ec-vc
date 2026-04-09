@@ -68,7 +68,7 @@
               class="file-structure-shell__content-box-title"
             />
           </div>
-          <div class="file-structure-shell__content-box-title-shell file-structure-shell__content-box-title-shell--menu">
+          <div class="file-structure-shell__content-box-menu-anchor">
             <L2SettingsMenu
               title="General Elements Settings"
               :groups="generalElementSettingsGroups"
@@ -240,6 +240,7 @@ onBeforeUnmount(() => {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: start;
+  overflow: visible;
 }
 
 .file-structure-shell__content-box-title-shell {
@@ -250,10 +251,11 @@ onBeforeUnmount(() => {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.88));
 }
 
-.file-structure-shell__content-box-title-shell--menu {
+.file-structure-shell__content-box-menu-anchor {
   display: inline-flex;
   align-items: flex-start;
   justify-content: flex-end;
+  overflow: visible;
 }
 
 .file-structure-shell__content-box-title {
