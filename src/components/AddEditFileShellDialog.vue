@@ -10,34 +10,34 @@
           <PageTitleText title="Add/Edit File Shell" />
           <button
             v-if="shellSelectorOptions.length"
+            ref="shellSelectorButton"
             type="button"
             class="file-structure-shell__shell-selector"
-            @click.stop="shellSelectorOpen = true"
+            @click.stop="toggleShellSelector"
           >
             <MainMenuSubgroupRow
               :label="activeShellSelectorOption.label"
               :expanded="shellSelectorOpen"
             />
-            <q-menu
-              v-model="shellSelectorOpen"
-              anchor="bottom right"
-              self="top right"
-              class="file-structure-shell__shell-selector-menu"
-            >
-              <div class="file-structure-shell__section-menu">
-                <button
-                  v-for="option in shellSelectorOptions"
-                  :key="option.value"
-                  type="button"
-                  class="file-structure-shell__section-menu-item"
-                  :class="{ 'file-structure-shell__section-menu-item--active': shellSelectorValue === option.value }"
-                  @click.stop="selectShellSelectorOption(option.value)"
-                >
-                  {{ option.label }}
-                </button>
-              </div>
-            </q-menu>
           </button>
+          <div
+            v-if="shellSelectorOpen"
+            ref="shellSelectorMenu"
+            class="file-structure-shell__shell-selector-dropdown"
+          >
+            <div class="file-structure-shell__section-menu">
+              <button
+                v-for="option in shellSelectorOptions"
+                :key="option.value"
+                type="button"
+                class="file-structure-shell__section-menu-item"
+                :class="{ 'file-structure-shell__section-menu-item--active': shellSelectorValue === option.value }"
+                @click.stop="selectShellSelectorOption(option.value)"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </template>
@@ -163,7 +163,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import EditableGridTable from 'src/components/EditableGridTable.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
@@ -181,6 +181,8 @@ const sectionConfigurationCollapsed = ref(false)
 const dataStructureCollapsed = ref(false)
 const sectionPickerOpen = ref(false)
 const shellSelectorOpen = ref(false)
+const shellSelectorButton = ref(null)
+const shellSelectorMenu = ref(null)
 const activeSectionSelection = ref('general')
 const openSectionGroups = ref(['system-created'])
 const nextSectionRowId = ref(2)
@@ -248,6 +250,29 @@ function selectShellSelectorOption(value) {
   emit('update:shellSelectorValue', value)
   shellSelectorOpen.value = false
 }
+
+function toggleShellSelector() {
+  shellSelectorOpen.value = !shellSelectorOpen.value
+}
+
+function handleGlobalPointerDown(event) {
+  const target = event?.target
+  if (!target) return
+  const clickedButton = shellSelectorButton.value?.contains?.(target)
+  const clickedMenu = shellSelectorMenu.value?.contains?.(target)
+  if (clickedButton || clickedMenu) return
+  shellSelectorOpen.value = false
+}
+
+onMounted(() => {
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
+  window.addEventListener('pointerdown', handleGlobalPointerDown)
+})
+
+onBeforeUnmount(() => {
+  if (typeof window === 'undefined' || typeof window.removeEventListener !== 'function') return
+  window.removeEventListener('pointerdown', handleGlobalPointerDown)
+})
 
 function addSectionConfigurationColumn() {
   if (!canConfigureFileSystem.value) return
@@ -337,6 +362,7 @@ function removeSectionConfigurationRow(rowKey) {
 }
 
 .file-structure-shell__title-row {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -344,6 +370,8 @@ function removeSectionConfigurationRow(rowKey) {
 }
 
 .file-structure-shell__shell-selector {
+  position: relative;
+  flex: 0 0 auto;
   min-width: 220px;
   padding: 8px 12px;
   border: 1px solid rgba(15, 23, 42, 0.12);
@@ -359,6 +387,13 @@ function removeSectionConfigurationRow(rowKey) {
 
 .file-structure-shell__shell-selector :deep(.main-menu-subgroup-row) {
   color: #fff;
+}
+
+.file-structure-shell__shell-selector-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 20;
 }
 
 .file-structure-shell__body {
