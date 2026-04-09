@@ -147,7 +147,7 @@
         <table class="file-structure-shell__leaf-table">
           <thead>
             <tr>
-              <th>Select</th>
+              <th aria-label="Selection"></th>
               <th>L3 Key</th>
               <th>Label</th>
               <th>Parent L2</th>
