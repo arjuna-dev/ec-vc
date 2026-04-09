@@ -148,10 +148,9 @@
               <th aria-label="Selection"></th>
               <th>Label</th>
               <th>L3 Key</th>
-              <th>Parent L2</th>
-              <th>Parent Subgroup</th>
+              <th>L2 Section</th>
+              <th>L2 Subsection</th>
               <th>Type</th>
-              <th>Value</th>
               <th>Visible</th>
               <th>Editable</th>
               <th>KDB Meaning</th>
@@ -176,7 +175,6 @@
               <td>{{ token.parentL2 }}</td>
               <td>{{ token.parentSubgroup }}</td>
               <td>{{ token.type }}</td>
-              <td>{{ token.value }}</td>
               <td>{{ token.visible }}</td>
               <td>{{ token.editable }}</td>
               <td>{{ token.relationshipMeaning }}</td>
@@ -185,7 +183,7 @@
               <td>{{ token.uiTreatment }}</td>
             </tr>
             <tr v-if="!activeLeafTokens.length">
-              <td colspan="12" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
+              <td colspan="11" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
             </tr>
           </tbody>
         </table>
@@ -333,7 +331,6 @@ const activeLeafTokens = computed(() => {
       parentL2: token.parentLabel || activeSettingsSection.value?.label || '—',
       parentSubgroup: token.draftParentSubgroup || subgroupMap.get(activeSubgroupKey.value)?.label || '—',
       type: token.tokenType || '—',
-      value: '—',
       visible: checkedItems[token.key] !== false ? 'Yes' : 'No',
       editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
       relationshipMeaning: token.relationshipGroup || '—',
