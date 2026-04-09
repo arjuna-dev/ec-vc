@@ -788,6 +788,7 @@ watch(
 
 .file-structure-shell__shell-selector {
   position: relative;
+  margin-left: auto;
   flex: 0 0 auto;
   width: auto;
   padding: 8px 10px;
