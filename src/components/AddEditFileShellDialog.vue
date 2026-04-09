@@ -184,15 +184,15 @@
               </td>
               <td v-if="!structureColumnsCollapsed">{{ token.parentL2 }}</td>
               <td v-if="!structureColumnsCollapsed">{{ token.parentSubgroup }}</td>
-              <td v-if="!structureColumnsCollapsed">{{ token.key }}</td>
+              <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--l3-key">{{ token.key }}</td>
               <td>{{ token.label }}</td>
-              <td>{{ token.type }}</td>
-              <td>{{ token.visible }}</td>
-              <td>{{ token.editable }}</td>
-              <td>{{ token.relationshipMeaning }}</td>
-              <td>{{ token.writeTarget }}</td>
-              <td>{{ token.order }}</td>
-              <td>{{ token.uiTreatment }}</td>
+              <td class="file-structure-shell__cell--data">{{ token.type }}</td>
+              <td class="file-structure-shell__cell--data">{{ token.visible }}</td>
+              <td class="file-structure-shell__cell--data">{{ token.editable }}</td>
+              <td class="file-structure-shell__cell--data">{{ token.relationshipMeaning }}</td>
+              <td class="file-structure-shell__cell--data">{{ token.writeTarget }}</td>
+              <td class="file-structure-shell__cell--data">{{ token.order }}</td>
+              <td class="file-structure-shell__cell--data">{{ token.uiTreatment }}</td>
             </tr>
             <tr v-if="!activeLeafTokens.length">
               <td :colspan="structureColumnsCollapsed ? 8 : 11" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
@@ -714,13 +714,14 @@ watch(
   line-height: 1.35;
 }
 
-.file-structure-shell__leaf-table td:nth-child(n + 4) {
+.file-structure-shell__cell--data {
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-medium);
 }
 
-.file-structure-shell__leaf-table td:nth-child(3) {
+.file-structure-shell__cell--l3-key {
   font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-light);
 }
 
 .file-structure-shell__leaf-empty {
