@@ -78,12 +78,26 @@
         </div>
       </RecordFieldsBox>
     </div>
+
+    <div class="file-structure-shell__toolbar-row">
+      <FilePageToolbar
+        :all-visible-selected="false"
+        :some-visible-selected="false"
+        add-label="Add Record"
+        search-query=""
+        search-placeholder="Search Files"
+        view-mode="card"
+        :view-options="fileToolbarViewOptions"
+        :show-view-toggle="true"
+      />
+    </div>
   </DialogShellFrame>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
+import FilePageToolbar from 'src/components/FilePageToolbar.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import MainMenuSubgroupRow from 'src/components/MainMenuSubgroupRow.vue'
@@ -100,6 +114,10 @@ const emit = defineEmits(['update:shellSelectorValue'])
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
+const fileToolbarViewOptions = [
+  { label: '', value: 'card', icon: 'grid_view' },
+  { label: '', value: 'table', icon: 'table_rows' },
+]
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
   || props.shellSelectorOptions[0]
@@ -199,6 +217,10 @@ onBeforeUnmount(() => {
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-body-md);
   line-height: 1.45;
+}
+
+.file-structure-shell__toolbar-row {
+  padding: 0 16px 18px;
 }
 
 .file-structure-shell__shell-selector {
