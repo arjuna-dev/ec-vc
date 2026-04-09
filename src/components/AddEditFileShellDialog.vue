@@ -185,7 +185,7 @@
               <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.parentL2 }}</td>
               <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--structure">{{ token.parentSubgroup }}</td>
               <td v-if="!structureColumnsCollapsed" class="file-structure-shell__cell--l3-key">{{ token.key }}</td>
-              <td>{{ token.label }}</td>
+              <td class="file-structure-shell__cell--label">{{ token.label }}</td>
               <td class="file-structure-shell__cell--data">{{ token.type }}</td>
               <td class="file-structure-shell__cell--data">{{ token.visible }}</td>
               <td class="file-structure-shell__cell--data">{{ token.editable }}</td>
@@ -720,16 +720,24 @@ watch(
 
 .file-structure-shell__cell--structure {
   font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-light);
+  line-height: 1.2;
+}
+
+.file-structure-shell__cell--label {
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-bold);
 }
 
 .file-structure-shell__cell--data {
   font-size: var(--ds-font-size-xs);
-  font-weight: var(--ds-font-weight-medium);
+  font-weight: var(--ds-font-weight-light);
 }
 
 .file-structure-shell__cell--l3-key {
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-light);
+  line-height: 1.2;
 }
 
 .file-structure-shell__leaf-empty {
