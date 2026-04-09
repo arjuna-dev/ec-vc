@@ -47,6 +47,7 @@ defineProps({
 
 .dialog-shell-frame__body {
   flex: 1 1 auto;
+  padding: 0;
 }
 
 .dialog-shell-frame__body--scrollable {
