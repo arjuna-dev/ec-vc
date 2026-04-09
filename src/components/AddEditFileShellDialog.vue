@@ -39,6 +39,7 @@
             </div>
           </div>
         </div>
+        <div class="file-structure-shell__divider" />
       </div>
     </template>
   </DialogShellFrame>
@@ -116,6 +117,13 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+
+.file-structure-shell__divider {
+  width: 100%;
+  height: 1px;
+  margin-top: 18px;
+  background: rgba(15, 23, 42, 0.12);
 }
 
 .file-structure-shell__shell-selector {
