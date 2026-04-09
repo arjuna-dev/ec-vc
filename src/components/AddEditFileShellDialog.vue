@@ -145,7 +145,6 @@
         <table class="file-structure-shell__leaf-table">
           <thead>
             <tr>
-              <th aria-label="Reorder"></th>
               <th>Order</th>
               <th>Label</th>
               <th>L3 Key</th>
@@ -164,32 +163,6 @@
           </thead>
           <tbody>
             <tr v-for="token in activeLeafTokens" :key="token.key">
-              <td>
-                <div class="file-structure-shell__order-controls">
-                  <button
-                    type="button"
-                    class="file-structure-shell__order-button"
-                    aria-label="Move up"
-                    :disabled="!canMoveLeaf(token.key, -1)"
-                    @click="moveLeaf(token.key, -1)"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__order-icon">
-                      <path d="M7 14L12 9L17 14" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    class="file-structure-shell__order-button"
-                    aria-label="Move down"
-                    :disabled="!canMoveLeaf(token.key, 1)"
-                    @click="moveLeaf(token.key, 1)"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__order-icon">
-                      <path d="M7 10L12 15L17 10" />
-                    </svg>
-                  </button>
-                </div>
-              </td>
               <td>{{ token.order }}</td>
               <td>{{ token.label }}</td>
               <td>
@@ -214,7 +187,7 @@
               <td>{{ token.uiTreatment }}</td>
             </tr>
             <tr v-if="!activeLeafTokens.length">
-              <td colspan="14" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
+              <td colspan="13" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
             </tr>
           </tbody>
         </table>
@@ -422,26 +395,6 @@ function toggleLeafSelection(tokenKey) {
     [sourceKey]: current.includes(tokenKey)
       ? current.filter((key) => key !== tokenKey)
       : [...current, tokenKey],
-  }
-}
-
-function canMoveLeaf(tokenKey, direction) {
-  const currentIndex = activeLeafTokens.value.findIndex((token) => token.key === tokenKey)
-  const nextIndex = currentIndex + direction
-  return currentIndex >= 0 && nextIndex >= 0 && nextIndex < activeLeafTokens.value.length
-}
-
-function moveLeaf(tokenKey, direction) {
-  const sourceKey = activeSettingsSourceKey.value
-  const currentDrafts = [...(draftLeafRowsBySource.value[sourceKey] || [])]
-  const draftIndex = currentDrafts.findIndex((token) => token.key === tokenKey)
-  const nextDraftIndex = draftIndex + direction
-  if (draftIndex < 0 || nextDraftIndex < 0 || nextDraftIndex >= currentDrafts.length) return
-  const [token] = currentDrafts.splice(draftIndex, 1)
-  currentDrafts.splice(nextDraftIndex, 0, token)
-  draftLeafRowsBySource.value = {
-    ...draftLeafRowsBySource.value,
-    [sourceKey]: currentDrafts,
   }
 }
 
@@ -728,40 +681,6 @@ watch(
 .file-structure-shell__leaf-table td:nth-child(n + 4) {
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-light);
-}
-
-.file-structure-shell__order-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.file-structure-shell__order-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  background: transparent;
-  border: 1px solid rgba(15, 23, 42, 0.32);
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.file-structure-shell__order-button:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.file-structure-shell__order-icon {
-  width: 10px;
-  height: 10px;
-  fill: none;
-  stroke: var(--ds-color-brand-black);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
 }
 
 .file-structure-shell__leaf-empty {
