@@ -232,6 +232,30 @@
         </div>
       </q-banner>
 
+      <section v-if="fileSystemValidationGroups.length" class="test-shell-validation-groups">
+        <article
+          v-for="group in fileSystemValidationGroups"
+          :key="group.key"
+          class="test-shell-validation-group"
+        >
+          <div class="test-shell-validation-group__head">
+            <div class="test-shell-validation-group__title">{{ group.label }}</div>
+            <div class="test-shell-validation-group__meta">{{ group.issues.length }} issues</div>
+          </div>
+
+          <div class="test-shell-validation-group__body">
+            <div
+              v-for="(issue, index) in group.issues"
+              :key="`${group.key}:${issue.sourceKey || issue.fileId || 'issue'}:${issue.field || 'field'}:${index}`"
+              class="test-shell-validation-group__row"
+            >
+              <div class="test-shell-validation-group__row-key">{{ issue.sourceKey || issue.fileId || 'System Files' }}</div>
+              <div class="test-shell-validation-group__row-text">{{ issue.issue }}</div>
+            </div>
+          </div>
+        </article>
+      </section>
+
       <q-banner v-if="error" class="bg-red-2 text-black" rounded>
         {{ error }}
       </q-banner>
@@ -1671,6 +1695,51 @@ const fileSystemValidationIssueCount = computed(() => {
 const fileSystemValidationPreviewIssues = computed(() => {
   const validation = fileSystemValidation.value
   return Array.isArray(validation?.issues) ? validation.issues.slice(0, 5) : []
+})
+
+function getFileSystemValidationGroupKey(issue = {}) {
+  const field = String(issue?.field || '').trim()
+  if (field === 'File_Guide_Path') return 'guide'
+  if (field === 'File_Canonical_Entity' || field === 'File_Runtime_Entity' || field === 'File_Route_Name' || field === 'File_Path') return 'runtime'
+  if (field === 'Requires_System' || field === 'Requires_KDB') return 'structure'
+  if (field === 'File_Status' || String(issue?.issue || '').includes('workspace navigation')) return 'acceptance'
+  if (field === 'File_Order') return 'ordering'
+  if (field === 'File_Source_Key') return 'registry'
+  return 'other'
+}
+
+const FILE_SYSTEM_VALIDATION_GROUP_LABELS = Object.freeze({
+  guide: 'Guide Path',
+  runtime: 'Runtime Identity',
+  structure: 'Required Structure',
+  acceptance: 'Acceptance + Navigation',
+  ordering: 'Ordering',
+  registry: 'Registry Linkage',
+  other: 'Other Drift',
+})
+
+const fileSystemValidationGroups = computed(() => {
+  const validation = fileSystemValidation.value
+  const issues = Array.isArray(validation?.issues) ? validation.issues : []
+  if (!issues.length) return []
+
+  const grouped = new Map()
+  issues.forEach((issue) => {
+    const key = getFileSystemValidationGroupKey(issue)
+    if (!grouped.has(key)) {
+      grouped.set(key, {
+        key,
+        label: FILE_SYSTEM_VALIDATION_GROUP_LABELS[key] || 'Other Drift',
+        issues: [],
+      })
+    }
+    grouped.get(key).issues.push(issue)
+  })
+
+  const order = ['guide', 'runtime', 'structure', 'acceptance', 'ordering', 'registry', 'other']
+  return order
+    .map((key) => grouped.get(key))
+    .filter(Boolean)
 })
 
 const fileSystemValidationBanner = computed(() => activeSourceKey.value === 'file-system' && Boolean(fileSystemValidation.value))
@@ -4973,6 +5042,63 @@ function isBbGraphLinkToken(tokenRow) {
 
 .test-shell-validation-banner__issue-text {
   font-size: var(--ds-font-size-xs, 11px);
+}
+
+.test-shell-validation-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.test-shell-validation-group {
+  padding: 12px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.test-shell-validation-group__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.test-shell-validation-group__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1c1c1c;
+}
+
+.test-shell-validation-group__meta {
+  font-size: 11px;
+  color: #6f6f6f;
+}
+
+.test-shell-validation-group__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.test-shell-validation-group__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.test-shell-validation-group__row-key {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1c1c1c;
+}
+
+.test-shell-validation-group__row-text {
+  font-size: 11px;
+  line-height: 1.35;
+  color: #5f5f5f;
 }
 
 @media (max-width: 900px) {
