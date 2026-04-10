@@ -36,14 +36,16 @@
             <div v-if="normalizedActionItems.length" class="file-hero-sandbox__action-panel">
               <div class="file-hero-sandbox__action-title">{{ actionTitleText }}</div>
               <div class="file-hero-sandbox__action-list">
-                <article
+                <button
                   v-for="(item, index) in normalizedActionItems"
                   :key="`${item.label}-${index}`"
+                  type="button"
                   class="file-hero-sandbox__action-item"
+                  @click="emit('action-item-click', item)"
                 >
                   <div class="file-hero-sandbox__action-item-label">{{ item.label }}</div>
                   <div v-if="item.caption" class="file-hero-sandbox__action-item-caption">{{ item.caption }}</div>
-                </article>
+                </button>
               </div>
             </div>
           </article>
@@ -60,6 +62,7 @@ import HeroSurface from 'src/components/HeroSurface.vue'
 import L3Box from 'src/components/L3Box.vue'
 
 defineOptions({ name: 'FileHero' })
+const emit = defineEmits(['action-item-click'])
 
 const props = defineProps({
   text: {
@@ -112,8 +115,10 @@ const normalizedHealthSegments = computed(() =>
 const normalizedActionItems = computed(() =>
   (Array.isArray(props.actionItems) ? props.actionItems : [])
     .map((item) => ({
+      id: String(item?.id || '').trim(),
       label: String(item?.label || '').trim(),
       caption: String(item?.caption || '').trim(),
+      path: String(item?.path || '').trim(),
     }))
     .filter((item) => item.label),
 )
@@ -238,11 +243,20 @@ const actionTitleText = computed(() => String(props.actionTitle || '').trim() ||
 .file-hero-sandbox__action-item {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
   padding: var(--ds-space-8) var(--ds-space-10);
   border: 1px solid var(--ds-color-border-subtle);
   border-radius: var(--ds-radius-md);
   background: rgba(255, 255, 255, 0.58);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.file-hero-sandbox__action-item:hover {
+  border-color: var(--ds-color-border-default);
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .file-hero-sandbox__action-item-label {

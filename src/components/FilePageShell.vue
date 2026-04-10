@@ -22,6 +22,7 @@
         :action-label="heroActionLabel"
         :action-title="heroActionTitle"
         :action-items="heroActionItems"
+        @action-item-click="handleHeroActionItemClick"
       />
 
       <template v-if="isEventShellMode">
@@ -811,6 +812,23 @@
         @request-close="handleCreateDialogClose"
         @submit="submitCreateRecordShell"
       />
+
+      <q-dialog v-model="heroDocumentDialogOpen" maximized>
+        <q-card class="hero-document-dialog">
+          <q-card-section class="hero-document-dialog__header">
+            <div class="hero-document-dialog__title">{{ heroDocumentDialogTitle || 'Document' }}</div>
+            <q-btn flat round dense icon="close" aria-label="Close document" @click="heroDocumentDialogOpen = false" />
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="hero-document-dialog__body">
+            <div v-if="heroDocumentDialogLoading" class="hero-document-dialog__status">Loading document...</div>
+            <div v-else-if="heroDocumentDialogError" class="hero-document-dialog__status hero-document-dialog__status--error">
+              {{ heroDocumentDialogError }}
+            </div>
+            <pre v-else class="hero-document-dialog__content">{{ heroDocumentDialogContent }}</pre>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
     </div>
   </q-page>
 </template>
@@ -895,6 +913,11 @@ const createDialogInitialArtifacts = ref([])
 const createDialogLastChangeSnapshot = ref(null)
 const createDialogLastSavedSignature = ref('')
 const createDialogAutosavePending = ref(false)
+const heroDocumentDialogOpen = ref(false)
+const heroDocumentDialogTitle = ref('')
+const heroDocumentDialogContent = ref('')
+const heroDocumentDialogLoading = ref(false)
+const heroDocumentDialogError = ref('')
 let createDialogAutosaveTimer = null
 let createDialogAutosaveInFlight = false
 let queuedCreateDialogSnapshot = null
@@ -1694,16 +1717,34 @@ const heroActionItems = computed(() => {
   if (activeSourceKey.value !== 'file-system') return []
   return [
     {
+      id: 'system-files-guide',
       label: 'System Files Guide',
       caption: 'docs/100/Active/100-System_Files.md',
+      path: 'docs/100/Active/100-System_Files.md',
     },
     {
-      label: 'Files Guide',
-      caption: 'docs/100/Active/100-Files.md',
+      id: 'file-steward',
+      label: 'File Steward',
+      caption: 'docs/020/Active/020_File_Steward.md',
+      path: 'docs/020/Active/020_File_Steward.md',
     },
     {
-      label: 'File Guides Index',
-      caption: 'docs/100/Active/100-File_Guides_Index.md',
+      id: 'architect-steward',
+      label: 'Architect Steward',
+      caption: 'docs/020/Active/020_Architect_Steward.md',
+      path: 'docs/020/Active/020_Architect_Steward.md',
+    },
+    {
+      id: 'ux-steward',
+      label: 'UX Steward',
+      caption: 'docs/020/Active/020_UX_Steward.md',
+      path: 'docs/020/Active/020_UX_Steward.md',
+    },
+    {
+      id: 'open-issues',
+      label: 'Open Issues',
+      caption: 'docs/100/Active/100-System_Files_Open_Issues.md',
+      path: 'docs/100/Active/100-System_Files_Open_Issues.md',
     },
   ]
 })
@@ -2589,6 +2630,32 @@ function openBbShell(row) {
   const blockKey = getBbTileBlockKey(row)
   if (!blockKey) return
   openBbShellByBlockKey(blockKey)
+}
+
+function normalizeIpcErrorMessage(errorValue) {
+  const raw = String(errorValue?.message || errorValue || '').trim()
+  if (!raw) return 'An unexpected error occurred.'
+  return raw.replace(/^Error invoking remote method '[^']+':\s*/i, '').trim()
+}
+
+async function handleHeroActionItemClick(item = {}) {
+  const path = String(item?.path || '').trim()
+  if (!path || typeof bridge.value?.docs?.read !== 'function') return
+
+  heroDocumentDialogTitle.value = String(item?.label || 'Document').trim()
+  heroDocumentDialogContent.value = ''
+  heroDocumentDialogError.value = ''
+  heroDocumentDialogLoading.value = true
+  heroDocumentDialogOpen.value = true
+
+  try {
+    const result = await bridge.value.docs.read(path)
+    heroDocumentDialogContent.value = String(result?.content || '')
+  } catch (errorValue) {
+    heroDocumentDialogError.value = normalizeIpcErrorMessage(errorValue)
+  } finally {
+    heroDocumentDialogLoading.value = false
+  }
 }
 
 function openBbShellByBlockKey(blockKey) {
@@ -5065,6 +5132,50 @@ function isBbGraphLinkToken(tokenRow) {
 .test-shell-validation-group__row-action {
   font-size: 11px;
   line-height: 1.35;
+  color: #1c1c1c;
+}
+
+.hero-document-dialog {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.hero-document-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hero-document-dialog__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1c1c1c;
+}
+
+.hero-document-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.hero-document-dialog__status {
+  font-size: 13px;
+  color: #5f5f5f;
+}
+
+.hero-document-dialog__status--error {
+  color: #9f1f1f;
+}
+
+.hero-document-dialog__content {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--ds-font-mono, 'Courier New', monospace);
+  font-size: 12px;
+  line-height: 1.5;
   color: #1c1c1c;
 }
 
