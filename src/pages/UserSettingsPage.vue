@@ -580,11 +580,11 @@ const ownerDocumentMenu = [
     heroTitle: 'Owner',
   },
   {
-    id: 'system-files',
-    label: 'System Files',
-    short: 'File governance',
-    path: 'docs/001-System_Files.md',
-    eyebrow: 'System Files',
+    id: 'files',
+    label: 'Files',
+    short: 'File guide rules',
+    path: 'docs/001-Files.md',
+    eyebrow: 'Files',
     heroTitle: 'Files',
   },
   {

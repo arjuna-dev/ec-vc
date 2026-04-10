@@ -1,370 +1,177 @@
-# System File Guide
+# System Files
+
+## File Identity
+
+- file name: `System Files`
+- file guide: `docs/001-System_Files.md`
+- parent guide: `docs/001-Files.md`
+- file class: `L1`
+- canonical entity: `Files`
+- app-facing label: `System Files`
+- canonical owner identity: `Owner`
 
 ## Purpose
 
-This document is the source-of-birth guide for all file guides in the system.
+`System Files` is the first file-definition surface.
 
-It defines:
+It exists to define, register, and govern the files that the system is allowed to create, render, and maintain.
 
-- why every file should be born with its own `.md`
-- what those file guides must contain
-- how those guides should help both the `Owner` and the `File Steward`
+This file is not just a menu list.
 
-So this is not only a file-governance note.
+It is the file-definition layer that helps the system know:
 
-It is the parent guide that governs how child file guides are created.
+- what files exist
+- what kind of files they are
+- which file guide belongs to each file
+- whether each file requires `System`
+- whether each file requires `KDB`
+- who owns each file
+- which steward governs each file
+- which rulebooks and manuals each file depends on
 
-## Core Rule
+## Glossary
 
-Every file should be born with its own accompanying `.md`.
+| Term | Meaning |
+| --- | --- |
+| `System Files` | The app-facing file-definition surface. |
+| `Files` | The canonical entity behind the `System Files` surface. |
+| `File Guide` | The `.md` guide that explains and governs a specific file. |
+| `File Class` | Whether a file is an `L1`, `L2`, or `L2.a`. |
+| `Ownership Mode` | The declared ownership rule for a file or field. |
+| `Steward` | The companion or role responsible for keeping a file correct. |
+| `System` | The shared provenance and runtime-control L2 section. |
+| `General` | The shared human-readable description L2 section. |
+| `KDB` | The declared relationship L2 section. |
 
-That file-level guide should:
+## Referenced Documents
 
-- explain the file to the `Owner`
-- explain the file to the `File Steward`
-- stay local to the file
-- be visible from `System Files`
-- be visible from the `Add/Edit File Shell`
+- `docs/001-Files.md`
+- `docs/000-Owner.md`
+- `docs/000-Companion.md`
+- `docs/010-file-steward-contract.md`
+- `docs/011-record-architecture-master-plan.md`
+- `docs/000-canonical-structure.json`
+- `docs/000-electron-runtime-architecture-guide.md`
 
-This means:
+## Operating Rules
 
-- one file record
-- one file guide
-- one stable guide surface for governance, rendering, KDB, stewardship, and provenance
+- Use `System Files` as the registry for file-definition truth.
+- Do not treat a file as fully born if it has no guide.
+- Do not treat a file as fully born if its `System`, `General`, or required `KDB` sections are missing.
+- Do not add file visibility in layout code as a substitute for registry/canon acceptance.
+- Do not use this file as a loose notes page; every row should help define file birth, ownership, rendering, governance, or guide linkage.
+- If a file is visible in the app but missing here, surface that as drift.
 
-## Parent / Child Guide Rule
+## Ownership
 
-`System File Guide` is the parent guide.
+- owner: `Owner`
+- steward: `File Steward`
+- ownership mode: `root_owned`
+- edit rule: owner and file steward governed
 
-Every file-specific guide should be a child guide derived from it.
+The `Owner` has final authority over file-definition direction.
 
-That means:
+The `File Steward` governs whether each file is born correctly, has its required guide, and is connected to the right KDB relationships.
 
-- `System File Guide` defines the required structure
-- each file-specific guide inherits that structure
-- each file-specific guide then adds file-specific rules
+## Owner
 
-So the relationship should be:
+The `Owner` should use `System Files` to understand:
 
-- parent guide:
-  - `System File Guide`
-- child guides:
-  - `Companies.md`
-  - `Projects.md`
-  - `Events.md`
-  - `Artifact_Processed.md`
-  - and so on
+- which files exist
+- why they exist
+- which ones are ready
+- which ones still need guide, KDB, or runtime work
+- which companions or stewards govern the file
 
-## Why This Matters
+## File Steward
 
-Without a parent file-guide rule, file guidance easily drifts into:
-
-- remembered exceptions
-- conversation-only decisions
-- partial guidance spread across many docs
-
-With a parent file-guide rule, the system can say clearly for each file:
-
-- what the file is
-- how it should be born
-- what sections it should expose
-- whether `System` applies
-- whether `KDB` applies
-- who governs it
-- what rulebooks it depends on
-- what events should prove it was born correctly
-
-## Required Child Guide Sections
-
-Every child file guide should begin with these sections.
-
-### 1. File Identity
-
-This section should declare:
+The `File Steward` should use `System Files` to validate:
 
 - file name
-- file class:
-  - `L1`
-  - `L2`
-  - `L2.a`
-- short purpose
-- canonical owner identity
+- file class
+- file guide path
+- required `System` section
+- required `General` section
+- required `KDB` section
+- ownership mode
+- steward assignment
+- referenced rulebooks and manuals
+- birth and provenance requirements
 
-### 2. Purpose
+## Governance
 
-This section should give the fastest human-readable overview of the file.
+`System Files` is governed by:
 
-It should explain:
+- `Owner`
+- `File Steward`
+- `Files.md`
+- canonical structure
+- runtime ownership
 
-- what the file stores
-- why the file exists
-- what the file helps the system do
-- what a human should understand before editing it
+This file should not be bypassed when creating or accepting a new file.
 
-### 3. Glossary
+## Provenance / Events
 
-This section should appear directly after the summary.
+The system should be able to reconstruct:
 
-It should define the key terms a person or companion needs before reading the rest of the file guide.
+- when a file definition was created
+- who created it
+- when its guide was created
+- when its guide changed
+- when its KDB requirements changed
+- when it became visible or accepted as a real file
 
-The glossary should include:
-
-- file-specific terms
-- important `L2` names
-- important `L2.a` subgroup names
-- important `L3` names when they are not obvious
-- relationship terms
-- ownership terms
-
-### 4. Referenced Documents
-
-This section should list the guides, manuals, rulebooks, contracts, and architecture docs that govern this file.
-
-It should help both humans and companions know what to read before acting.
-
-### 5. Operating Rules
-
-This section should declare how the file should be used in practice.
-
-It should include:
-
-- rules for reading the file
-- rules for editing the file
-- rules for creating records inside the file
-- rules for companions operating on the file
-- rules for when to stop and surface a missing contract
-
-### 6. Ownership
-
-This section should declare:
-
-- who owns the file
-- whether ownership is owner-only, steward-governed, or shared
-- which steward governs the file
-- which user or role can edit the file
-- whether ownership is local, root-owned, relationship-owned, or another approved mode
-
-This section is required because file birth without ownership creates drift.
-
-### 7. Owner Section
-
-This section should explain to the `Owner`:
-
-- what the file is for
-- what kind of information it stores
-- how the file should be used
-- what the file depends on
-- what the user should understand before editing or creating records there
-
-This should be human-readable first.
-
-### 8. File Steward Section
-
-This section should explain to the `File Steward`:
-
-- how the file should be born
-- what structural requirements it has
-- what shared base rules apply
-- whether `System` is required
-- whether `KDB` is required
-- what relationships must be born with it
-- what reverse-read expectations exist
-- what validation proves the file is correctly born
-
-This should be governance-readable first.
-
-### 9. Governance Section
-
-This section should declare:
-
-- who owns the file
-- which steward governs it
-- which rulebooks it depends on
-- whether the file is owner-only or shared
-
-### 10. Provenance / Events Section
-
-This section should declare:
-
-- which events prove the file was born correctly
-- what provenance should be preserved
-- how genesis or file creation should later be reconstructable
-
-### 11. L2 File System
-
-This section should declare the file's actual L2 architecture.
-
-It should always describe these base sections when they apply:
-
-- `System`
-- `General`
-- `KDB`
-- `File Specific`
-
-`File Specific` means any file-specific L2s, L2 subsections, and L3 leaf groups that exist beyond the shared base.
-
-#### System
-
-This section should declare:
-
-- whether `System` is required
-- which system fields are born with the file
-- what event or provenance fields matter
-- what should not be user-editable
-
-#### General
-
-This section should declare:
-
-- whether `General` is required
-- how `Name` and `Summary` behave
-- whether the file has additional general fields
-- how the general section should be read by humans and companions
-
-#### KDB
-
-This section should declare:
-
-- whether the file participates in `KDB`
-- which files it relates to
-- whether those relationships are born at file creation
-- whether the relationship path is:
-  - shared `KDB_Relationships`
-  - promoted dedicated join owner
-- whether reverse-read exists
-
-#### File Specific
-
-This section should declare:
-
-- file-specific `L2`s
-- approved `L2.a-b-c-d` subgrouping
-- important `L3` leaf groups
-- the file's defined table/record structure
-- whether the file is standard or exceptional
-
-### 12. Open Questions
-
-This section should list unresolved items that are not yet settled truth.
-
-This is where the file guide should preserve uncertainty instead of letting it become drift.
-
-## Shared L2 Section Rules
-
-These rules explain how the shared L2 sections work for every file guide.
+## L2 File System
 
 ### System
 
-`System` is the file's provenance and runtime-control layer.
+The `System` section should track:
 
-It should describe:
-
-- identity fields
-- creator or actor fields
-- datetime fields
-- event-log linkage
-- system-owned values that should not be casually user-editable
+- file id
+- creator
+- datetime
+- event log linkage
+- guide path
+- runtime status
 
 ### General
 
-`General` is the file's main human-readable description layer.
+The `General` section should track:
 
-It should describe:
-
-- `Name`
-- `Summary`
-- any approved general fields that are shared or file-specific
-- how humans and companions should quickly understand the record
+- file name
+- file summary
+- file class
+- file status
 
 ### KDB
 
-`KDB` is the file's declared relationship layer.
+The `KDB` section should track set relationships to:
 
-It should describe:
+- `Owner`
+- `Users`
+- `Contacts`
+- `File Steward`
+- `Companion Roles`
+- `Events`
+- rulebooks and manuals
 
-- set relationships
-- file-to-file relationship targets
-- record-to-record relationship targets
-- whether each relationship is born at file creation
-- whether each relationship uses shared `KDB_Relationships` or a promoted dedicated owner
-- whether reverse-read exists
+These relationships should be born deliberately, not discovered by later guessing.
 
-## System Files Rule
+### File Specific
 
-The `System Files` file/page should expose these file-definition properties for each file:
+The file-specific section should track:
 
-- is it `L1`, `L2`, or `L2.a`
-- does it require `System`
-- does it require `KDB`
-- what ownership mode applies
-- who owns it
-- which steward governs it
-- which rulebooks it depends on
-- which file guide belongs to it
-- what its defined structure is
-- what glossary terms it introduces
+- whether the file requires `System`
+- whether the file requires `KDB`
+- ownership mode
+- steward
+- rulebook dependencies
+- file guide path
+- defined structure
+- glossary terms introduced
 
-That means `System Files` is not only a registry.
+## Open Questions
 
-It becomes:
-
-- a file-definition layer
-- a governance layer
-- a rendering input layer
-- a guide registry
-
-## Add/Edit File Shell Rule
-
-Each file guide should also be reachable from the `Add/Edit File Shell`.
-
-The intended location is:
-
-- top-left box
-- next to the box title
-
-So the guide remains:
-
-- local
-- visible
-- easy to open while editing the file definition
-
-## KDB Stewardship Rule
-
-The `File Steward` is also the effective KDB orchestrator for file birth and upkeep.
-
-That means the `File Steward` should make sure:
-
-- files are born correctly
-- `KDB` is born with them
-- the right relationships exist
-- relationship direction, owner-path, and reverse-read are correct
-- file order and creation sequence support those connections
-
-So child file guides should treat KDB governance as part of `File Steward` responsibility, not as a detached separate guide layer.
-
-## First Child Guide Template
-
-Each file-specific guide can begin from this compact template:
-
-1. `File Identity`
-2. `Purpose`
-3. `Glossary`
-4. `Referenced Documents`
-5. `Operating Rules`
-6. `Ownership`
-7. `Owner`
-8. `File Steward`
-9. `Governance`
-10. `Provenance / Events`
-11. `L2 File System`
-12. `Open Questions`
-
-## Working Rule
-
-We will refine this together.
-
-The goal is:
-
-- every file is born with a guide
-- every guide is governed by one parent file-guide rule
-- both the `Owner` and the `File Steward` can use that guide to keep the file understandable, stable, and connected
+- Should `Files` and `System Files` converge to one visible name?
+- Which columns should appear first in the `System Files` table?
+- Which file-definition fields are canonical rows versus derived display helpers?
