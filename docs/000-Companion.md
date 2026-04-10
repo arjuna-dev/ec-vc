@@ -92,7 +92,7 @@ The companion must follow these rules:
 
 ## Role-Specific Confidence Rule
 
-Detailed confidence behavior belongs in role guides such as `docs/010_Intake_Assistant.md`.
+Detailed confidence behavior belongs in role guides such as `docs/100_Intake_Assistant.md`.
 
 The base companion rule is simple:
 
