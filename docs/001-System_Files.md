@@ -59,6 +59,7 @@ It is the file-definition layer that helps the system know:
 - Do not treat a file as fully born if it has no guide.
 - Do not treat a file as fully born if its `System`, `General`, or required `KDB` sections are missing.
 - Do not add file visibility in layout code as a substitute for registry/canon acceptance.
+- Do not load canonical structure through scattered direct JSON imports; use the approved canonical loader boundary.
 - Do not use this file as a loose notes page; every row should help define file birth, ownership, rendering, governance, or guide linkage.
 - If a file is visible in the app but missing here, surface that as drift.
 

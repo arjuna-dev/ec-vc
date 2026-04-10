@@ -1472,6 +1472,13 @@ Current canonical file:
 
 - `docs/000-canonical-structure.json`
 
+Canonical loading rule:
+
+- app/shared code should load canonical structure through `src/shared/canonicalStructure.js`
+- runtime scripts and validators should use the same loader concept or an approved Node-safe sibling loader
+- direct imports of `docs/000-canonical-structure.json` should not be scattered across unrelated modules
+- KDB contract building, file registry building, shell rendering, and bootstrap validation should all receive canon through an explicit loading boundary
+
 ## Opportunity Structure Rule
 
 `Opportunities` is now the shared parent `L1` contract for the opportunity lane.

@@ -297,6 +297,32 @@ That means the `File Steward` should make sure:
 
 So child file guides should treat KDB governance as part of `File Steward` responsibility, not as a detached separate guide layer.
 
+## Canonical Loader Rule
+
+`docs/000-canonical-structure.json` is the machine-readable structure source of truth.
+
+Code should not import that JSON file casually from many places.
+
+The approved app-side doorway is:
+
+- `src/shared/canonicalStructure.js`
+
+That doorway exists so canonical structure has one visible loading point before it feeds:
+
+- file registry
+- KDB relationship contracts
+- shell rendering
+- bootstrap validation
+- future File Steward tooling
+
+If Node scripts, Electron runtime code, ingestion validators, or bootstrap tools need canonical structure, they should use the same loader concept or an approved Node-safe sibling loader.
+
+The rule is:
+
+- one canonical source file
+- one approved loading boundary per runtime
+- no hidden direct JSON imports scattered through app code
+
 ## File Guide Template
 
 Each file-specific guide can begin from this compact template:
