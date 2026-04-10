@@ -390,17 +390,24 @@
 
                 <aside class="owner-manual-workspace__menu">
                   <div class="owner-manual-workspace__section-title">Relevant Guides</div>
-                  <button
-                    v-for="document in ownerDocumentMenu"
-                    :key="document.id"
-                    type="button"
-                    class="owner-manual-menu__item"
-                    :class="{ 'owner-manual-menu__item--active': document.id === activeOwnerDocumentId }"
-                    @click="selectOwnerDocument(document.id)"
+                  <div
+                    v-for="group in ownerDocumentGroups"
+                    :key="group.layer"
+                    class="owner-manual-menu__group"
                   >
-                    <span class="owner-manual-menu__label">{{ document.label }}</span>
-                    <span class="owner-manual-menu__meta">{{ document.short }}</span>
-                  </button>
+                    <div class="owner-manual-menu__group-label">{{ group.layer }}</div>
+                    <button
+                      v-for="document in group.documents"
+                      :key="document.id"
+                      type="button"
+                      class="owner-manual-menu__item"
+                      :class="{ 'owner-manual-menu__item--active': document.id === activeOwnerDocumentId }"
+                      @click="selectOwnerDocument(document.id)"
+                    >
+                      <span class="owner-manual-menu__label">{{ document.label }}</span>
+                      <span class="owner-manual-menu__meta">{{ document.short }}</span>
+                    </button>
+                  </div>
                 </aside>
               </div>
             </q-card-section>
@@ -573,6 +580,7 @@ const hasWorkspaceChanges = computed(
 const ownerDocumentMenu = [
   {
     id: 'owner',
+    layer: '000 Owner / Root Authority',
     label: 'Owner',
     short: 'Pause menu',
     path: 'docs/000/Active/000-Owner_Manual.md',
@@ -581,6 +589,7 @@ const ownerDocumentMenu = [
   },
   {
     id: 'files',
+    layer: '001 System',
     label: 'Files',
     short: 'File guide rules',
     path: 'docs/001/Active/001-Files.md',
@@ -589,6 +598,7 @@ const ownerDocumentMenu = [
   },
   {
     id: 'product-reference',
+    layer: '011 Operation Guides',
     label: 'Product Reference',
     short: 'Product language',
     path: 'docs/011/Active/011-product-reference-guide.md',
@@ -597,6 +607,7 @@ const ownerDocumentMenu = [
   },
   {
     id: 'glossary',
+    layer: '000 Owner / Root Authority',
     label: 'Index / Glossary',
     short: 'Concept index',
     path: 'docs/000/Active/000-language-reference-glossary.md',
@@ -604,6 +615,20 @@ const ownerDocumentMenu = [
     heroTitle: 'Glossary',
   },
 ]
+const groupOwnerDocuments = (documents) => {
+  const groups = []
+  documents.forEach((document) => {
+    const layer = document.layer || 'Other'
+    let group = groups.find((entry) => entry.layer === layer)
+    if (!group) {
+      group = { layer, documents: [] }
+      groups.push(group)
+    }
+    group.documents.push(document)
+  })
+  return groups
+}
+const ownerDocumentGroups = computed(() => groupOwnerDocuments(ownerDocumentMenu))
 const activeOwnerDocument = computed(
   () => ownerDocumentMenu.find((document) => document.id === activeOwnerDocumentId.value) || ownerDocumentMenu[0]
 )
@@ -1296,6 +1321,24 @@ watch(activeOwnerDocumentId, () => {
   background: rgba(248, 250, 252, 0.96);
   cursor: pointer;
   text-align: left;
+}
+
+.owner-manual-menu__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.owner-manual-menu__group + .owner-manual-menu__group {
+  margin-top: 14px;
+}
+
+.owner-manual-menu__group-label {
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .owner-manual-menu__item:hover {

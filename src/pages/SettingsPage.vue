@@ -422,17 +422,24 @@
 
                 <aside class="companion-contract-workspace__menu">
                   <div class="companion-contract-workspace__section-title">Relevant Contracts</div>
-                  <button
-                    v-for="document in companionDocumentMenu"
-                    :key="document.id"
-                    type="button"
-                    class="companion-contract-menu__item"
-                    :class="{ 'companion-contract-menu__item--active': document.id === activeCompanionDocumentId }"
-                    @click="selectCompanionDocument(document.id)"
+                  <div
+                    v-for="group in companionDocumentGroups"
+                    :key="group.layer"
+                    class="companion-contract-menu__group"
                   >
-                    <span class="companion-contract-menu__label">{{ document.label }}</span>
-                    <span class="companion-contract-menu__meta">{{ document.short }}</span>
-                  </button>
+                    <div class="companion-contract-menu__group-label">{{ group.layer }}</div>
+                    <button
+                      v-for="document in group.documents"
+                      :key="document.id"
+                      type="button"
+                      class="companion-contract-menu__item"
+                      :class="{ 'companion-contract-menu__item--active': document.id === activeCompanionDocumentId }"
+                      @click="selectCompanionDocument(document.id)"
+                    >
+                      <span class="companion-contract-menu__label">{{ document.label }}</span>
+                      <span class="companion-contract-menu__meta">{{ document.short }}</span>
+                    </button>
+                  </div>
                 </aside>
               </div>
             </q-card-section>
@@ -461,6 +468,7 @@ const showCompanionContractDialog = ref(false)
 const companionDocumentMenu = [
   {
     id: 'companion',
+    layer: '000 Owner / Root Authority',
     label: 'Companion',
     short: 'Main contract',
     path: 'docs/000/Active/000-Companion_Manual.md',
@@ -469,6 +477,7 @@ const companionDocumentMenu = [
   },
   {
     id: 'record-architecture',
+    layer: '011 Operation Guides',
     label: 'Record Architecture',
     short: 'Shell + ownership',
     path: 'docs/011/Active/011-record-architecture-master-plan.md',
@@ -477,6 +486,7 @@ const companionDocumentMenu = [
   },
   {
     id: 'field-class-map',
+    layer: '001 System',
     label: 'Field Class Map',
     short: 'Token behavior',
     path: 'docs/001/Active/001-field-classification-map.md',
@@ -485,6 +495,7 @@ const companionDocumentMenu = [
   },
   {
     id: 'product-reference',
+    layer: '011 Operation Guides',
     label: 'Product Reference',
     short: 'Product language',
     path: 'docs/011/Active/011-product-reference-guide.md',
@@ -493,6 +504,7 @@ const companionDocumentMenu = [
   },
   {
     id: 'workstream-tracker',
+    layer: '999 Other / Workstream',
     label: 'ECS Workstream Tracker',
     short: 'Active direction',
     path: 'docs/999/Active/999-ECS_Workstream_Tracker.md',
@@ -501,6 +513,7 @@ const companionDocumentMenu = [
   },
   {
     id: 'game-rulebook',
+    layer: '010 Operation',
     label: 'Game Rulebook',
     short: 'Boards + points',
     path: 'docs/010/Active/010_Game_Rulebook.md',
@@ -509,6 +522,7 @@ const companionDocumentMenu = [
   },
   {
     id: 'game-master',
+    layer: '100 Stewards',
     label: 'Game Steward',
     short: 'Guide behavior',
     path: 'docs/100/Active/100_Game_Steward.md',
@@ -517,6 +531,7 @@ const companionDocumentMenu = [
   },
   {
     id: 'glossary',
+    layer: '000 Owner / Root Authority',
     label: 'Index / Glossary',
     short: 'Concept index',
     path: 'docs/000/Active/000-language-reference-glossary.md',
@@ -524,6 +539,20 @@ const companionDocumentMenu = [
     heroTitle: 'Glossary',
   },
 ]
+const groupCompanionDocuments = (documents) => {
+  const groups = []
+  documents.forEach((document) => {
+    const layer = document.layer || 'Other'
+    let group = groups.find((entry) => entry.layer === layer)
+    if (!group) {
+      group = { layer, documents: [] }
+      groups.push(group)
+    }
+    group.documents.push(document)
+  })
+  return groups
+}
+const companionDocumentGroups = computed(() => groupCompanionDocuments(companionDocumentMenu))
 const activeCompanionDocumentId = ref('companion')
 const companionDocLoading = ref(false)
 const companionDocSaving = ref(false)
@@ -1370,6 +1399,24 @@ onMounted(() => {
     border-color 180ms ease,
     background 180ms ease,
     transform 180ms ease;
+}
+
+.companion-contract-menu__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.companion-contract-menu__group + .companion-contract-menu__group {
+  margin-top: 14px;
+}
+
+.companion-contract-menu__group-label {
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .companion-contract-menu__item:hover {
