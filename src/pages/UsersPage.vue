@@ -1,7 +1,7 @@
 <template>
-  <FilePageShell />
+  <FileShellContract />
 </template>
 
 <script setup>
-import FilePageShell from 'src/components/FilePageShell.vue'
+import FileShellContract from 'src/components/FileShellContract.vue'
 </script>
