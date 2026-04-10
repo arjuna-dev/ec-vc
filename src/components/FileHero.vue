@@ -22,7 +22,7 @@
           </div>
 
           <article class="file-hero-sandbox__health">
-            <div class="file-hero-sandbox__health-label">File Health</div>
+            <div class="file-hero-sandbox__health-label">{{ actionLabelText }}</div>
             <div class="file-hero-sandbox__health-text">{{ healthText }}</div>
             <div class="file-hero-sandbox__health-bar">
               <span
@@ -32,6 +32,19 @@
                 :class="`file-hero-sandbox__health-segment--${segment.tone}`"
                 :style="{ width: `${segment.width}%` }"
               />
+            </div>
+            <div v-if="normalizedActionItems.length" class="file-hero-sandbox__action-panel">
+              <div class="file-hero-sandbox__action-title">{{ actionTitleText }}</div>
+              <div class="file-hero-sandbox__action-list">
+                <article
+                  v-for="(item, index) in normalizedActionItems"
+                  :key="`${item.label}-${index}`"
+                  class="file-hero-sandbox__action-item"
+                >
+                  <div class="file-hero-sandbox__action-item-label">{{ item.label }}</div>
+                  <div v-if="item.caption" class="file-hero-sandbox__action-item-caption">{{ item.caption }}</div>
+                </article>
+              </div>
             </div>
           </article>
         </div>
@@ -65,6 +78,18 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  actionLabel: {
+    type: String,
+    default: 'File Health',
+  },
+  actionTitle: {
+    type: String,
+    default: '',
+  },
+  actionItems: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const fallbackStats = [
@@ -84,6 +109,16 @@ const normalizedStats = computed(() => (props.stats.length ? props.stats : fallb
 const normalizedHealthSegments = computed(() =>
   props.healthSegments.length ? props.healthSegments : fallbackHealthSegments,
 )
+const normalizedActionItems = computed(() =>
+  (Array.isArray(props.actionItems) ? props.actionItems : [])
+    .map((item) => ({
+      label: String(item?.label || '').trim(),
+      caption: String(item?.caption || '').trim(),
+    }))
+    .filter((item) => item.label),
+)
+const actionLabelText = computed(() => String(props.actionLabel || '').trim() || 'File Health')
+const actionTitleText = computed(() => String(props.actionTitle || '').trim() || 'Open Issues')
 </script>
 
 <style scoped>
@@ -178,6 +213,53 @@ const normalizedHealthSegments = computed(() =>
 }
 
 .file-hero-sandbox__health { gap: var(--ds-space-12); }
+
+.file-hero-sandbox__action-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-8);
+  min-height: 0;
+}
+
+.file-hero-sandbox__action-title {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-sm-medium);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-sm);
+}
+
+.file-hero-sandbox__action-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-8);
+}
+
+.file-hero-sandbox__action-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--ds-space-8) var(--ds-space-10);
+  border: 1px solid var(--ds-color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.file-hero-sandbox__action-item-label {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs-medium);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-xs);
+}
+
+.file-hero-sandbox__action-item-caption {
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs-regular);
+  font-weight: var(--ds-font-weight-light);
+  line-height: var(--ds-line-height-xs);
+}
 
 .file-hero-sandbox__health-bar {
   display: flex;

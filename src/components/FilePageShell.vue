@@ -19,6 +19,9 @@
         :stats="heroStats"
         :health-text="healthText"
         :health-segments="healthSegments"
+        :action-label="heroActionLabel"
+        :action-title="heroActionTitle"
+        :action-items="heroActionItems"
       />
 
       <template v-if="isEventShellMode">
@@ -211,26 +214,6 @@
           </q-btn>
         </template>
       </FilePageToolbar>
-
-      <q-banner
-        v-if="fileSystemValidationBanner"
-        class="test-shell-validation-banner"
-        :class="fileSystemValidationBannerClass"
-        rounded
-      >
-        <div class="test-shell-validation-banner__title">{{ fileSystemValidationTitle }}</div>
-        <div class="test-shell-validation-banner__text">{{ fileSystemValidationText }}</div>
-        <div v-if="fileSystemValidationPreviewIssues.length" class="test-shell-validation-banner__issues">
-          <div
-            v-for="(issue, index) in fileSystemValidationPreviewIssues"
-            :key="`${issue.sourceKey || issue.fileId || 'issue'}:${issue.field || 'field'}:${index}`"
-            class="test-shell-validation-banner__issue"
-          >
-            <span class="test-shell-validation-banner__issue-key">{{ issue.sourceKey || issue.fileId || 'System Files' }}</span>
-            <span class="test-shell-validation-banner__issue-text">{{ issue.issue }}</span>
-          </div>
-        </div>
-      </q-banner>
 
       <section v-if="fileSystemValidationGroups.length" class="test-shell-validation-groups">
         <article
@@ -1645,34 +1628,57 @@ const heroText = computed(
       : 'This is the actual fixed page shell under standardization. The selected L1 source changes the real payload and canonical L2/L3 structure underneath it.',
 )
 
-const heroStats = computed(() => [
-  {
-    label: 'Source',
-    value: activeRegistryEntry.value?.label || '--',
-    caption: 'Selected L1 entity',
-    tone: 'neutral',
-  },
-  {
-    label: isRecordShellMode.value ? 'Selected' : 'Rows',
-    value: isRecordShellMode.value ? selectedRecordShellLevel3Keys.value.length : rawRows.value.length,
-    caption: isRecordShellMode.value ? 'Chosen L3 fields' : 'Real rows loaded',
-    tone: 'rich',
-  },
-  {
-    label: 'L2',
-    value: level2Sections.value.length,
-    caption: 'Canonical sections',
-    tone: 'neutral',
-  },
-  {
-    label: 'L3',
-    value: activeSourceKey.value === 'file-system' ? fileSystemValidationIssueCount.value : level3Tokens.value.length,
-    caption: activeSourceKey.value === 'file-system' ? 'Drift issues found' : 'Canonical tokens',
-    tone: 'sparse',
-  },
-])
+const heroStats = computed(() => {
+  if (activeSourceKey.value === 'file-system') {
+    return [
+      {
+        label: 'Rows',
+        value: rawRows.value.length,
+        caption: 'Registry rows loaded',
+        tone: 'neutral',
+      },
+      {
+        label: 'Drift',
+        value: fileSystemValidationIssueCount.value,
+        caption: 'Current validator issues',
+        tone: 'rich',
+      },
+    ]
+  }
+
+  return [
+    {
+      label: 'Source',
+      value: activeRegistryEntry.value?.label || '--',
+      caption: 'Selected L1 entity',
+      tone: 'neutral',
+    },
+    {
+      label: isRecordShellMode.value ? 'Selected' : 'Rows',
+      value: isRecordShellMode.value ? selectedRecordShellLevel3Keys.value.length : rawRows.value.length,
+      caption: isRecordShellMode.value ? 'Chosen L3 fields' : 'Real rows loaded',
+      tone: 'rich',
+    },
+    {
+      label: 'L2',
+      value: level2Sections.value.length,
+      caption: 'Canonical sections',
+      tone: 'neutral',
+    },
+    {
+      label: 'L3',
+      value: level3Tokens.value.length,
+      caption: 'Canonical tokens',
+      tone: 'sparse',
+    },
+  ]
+})
 
 const healthText = computed(() => {
+  if (activeSourceKey.value === 'file-system' && fileSystemValidation.value) {
+    const validation = fileSystemValidation.value
+    return `Checked ${Number(validation?.rowCount || 0)} rows against ${Number(validation?.registryCount || 0)} executable registry entries. Errors: ${Number(validation?.severityCounts?.error || 0)}. Warnings: ${Number(validation?.severityCounts?.warn || 0)}. Info: ${Number(validation?.severityCounts?.info || 0)}.`
+  }
   return `The shell is fixed. Real rows and explicit canonical token values are shown without guessing. Unmapped shell slots remain placeholders until canonical shell mapping exists.`
 })
 
@@ -1681,6 +1687,26 @@ const healthSegments = computed(() => [
   { tone: 'rich', width: 45 },
   { tone: 'sparse', width: 20 },
 ])
+
+const heroActionLabel = computed(() => (activeSourceKey.value === 'file-system' ? 'File Health' : 'File Health'))
+const heroActionTitle = computed(() => (activeSourceKey.value === 'file-system' ? 'Open Issues' : 'Next Actions'))
+const heroActionItems = computed(() => {
+  if (activeSourceKey.value !== 'file-system') return []
+  return [
+    {
+      label: 'System Files Guide',
+      caption: 'docs/100/Active/100-System_Files.md',
+    },
+    {
+      label: 'Files Guide',
+      caption: 'docs/100/Active/100-Files.md',
+    },
+    {
+      label: 'File Guides Index',
+      caption: 'docs/100/Active/100-File_Guides_Index.md',
+    },
+  ]
+})
 
 const fileSystemValidation = computed(() =>
   activeSourceKey.value === 'file-system' && loaderDiagnostics.value && typeof loaderDiagnostics.value === 'object'
@@ -1691,11 +1717,6 @@ const fileSystemValidation = computed(() =>
 const fileSystemValidationIssueCount = computed(() => {
   const validation = fileSystemValidation.value
   return Array.isArray(validation?.issues) ? validation.issues.length : 0
-})
-
-const fileSystemValidationPreviewIssues = computed(() => {
-  const validation = fileSystemValidation.value
-  return Array.isArray(validation?.issues) ? validation.issues.slice(0, 5) : []
 })
 
 function getFileSystemValidationGroupKey(issue = {}) {
@@ -1741,32 +1762,6 @@ const fileSystemValidationGroups = computed(() => {
   return order
     .map((key) => grouped.get(key))
     .filter(Boolean)
-})
-
-const fileSystemValidationBanner = computed(() => activeSourceKey.value === 'file-system' && Boolean(fileSystemValidation.value))
-
-const fileSystemValidationBannerClass = computed(() => {
-  const validation = fileSystemValidation.value
-  if (!validation) return 'bg-grey-2 text-black'
-  if (Number(validation?.severityCounts?.error || 0) > 0) return 'bg-red-2 text-black'
-  if (Number(validation?.severityCounts?.warn || 0) > 0) return 'bg-orange-2 text-black'
-  return 'bg-green-2 text-black'
-})
-
-const fileSystemValidationTitle = computed(() => {
-  const validation = fileSystemValidation.value
-  if (!validation) return ''
-  if (validation.driftFree) return 'System Files acceptance validator: no drift found.'
-  return 'System Files acceptance validator found drift.'
-})
-
-const fileSystemValidationText = computed(() => {
-  const validation = fileSystemValidation.value
-  if (!validation) return ''
-  const errors = Number(validation?.severityCounts?.error || 0)
-  const warns = Number(validation?.severityCounts?.warn || 0)
-  const info = Number(validation?.severityCounts?.info || 0)
-  return `Checked ${Number(validation?.rowCount || 0)} rows against ${Number(validation?.registryCount || 0)} executable registry entries. Errors: ${errors}. Warnings: ${warns}. Info: ${info}.`
 })
 
 const isBbFileSource = computed(() => activeSourceKey.value === 'bb-file')
@@ -5008,41 +5003,6 @@ function isBbGraphLinkToken(tokenRow) {
   border-radius: 18px;
   color: #777777;
   background: rgba(255, 255, 255, 0.72);
-}
-
-.test-shell-validation-banner {
-  margin-bottom: 12px;
-}
-
-.test-shell-validation-banner__title {
-  font-weight: 600;
-}
-
-.test-shell-validation-banner__text {
-  margin-top: 4px;
-}
-
-.test-shell-validation-banner__issues {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.test-shell-validation-banner__issue {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-}
-
-.test-shell-validation-banner__issue-key {
-  font-size: var(--ds-font-size-xs, 11px);
-  font-weight: var(--ds-font-weight-medium, 500);
-  white-space: nowrap;
-}
-
-.test-shell-validation-banner__issue-text {
-  font-size: var(--ds-font-size-xs, 11px);
 }
 
 .test-shell-validation-groups {
