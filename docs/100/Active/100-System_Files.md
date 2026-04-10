@@ -217,3 +217,7 @@ The file-specific section should track:
 - Should `Files` and `System Files` converge to one visible name?
 - Which columns should appear first in the `System Files` table?
 - Which file-definition fields are canonical rows versus derived display helpers?
+
+Acceptance contract direction lives in:
+
+- `docs/010/Draft/010-files-system-birth-audit.md`

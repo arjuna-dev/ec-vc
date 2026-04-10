@@ -544,3 +544,7 @@ The goal is:
 - every file is born with a guide
 - every guide is governed by one parent file-guide rule
 - the `Owner`, `File Steward`, and `UX Steward` can use that guide to keep the file understandable, stable, guided, and connected
+
+The current System Files acceptance-contract direction lives in:
+
+- `docs/010/Draft/010-files-system-birth-audit.md`

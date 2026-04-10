@@ -259,3 +259,7 @@ They are file-definition metadata used to keep file creation, rendering, ownersh
 - Should `File_Guide_Path` be required before a file can appear in main navigation?
 - Should `Files` eventually generate `docs/100/Active/100-File_Guides_Index.md` automatically?
 - Should guide lifecycle moves create explicit file-level events?
+
+Acceptance contract direction lives in:
+
+- `docs/010/Draft/010-files-system-birth-audit.md`

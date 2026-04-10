@@ -134,6 +134,93 @@ Remaining runtime concerns:
 - `createFile()` creates a file row and actor, but does not visibly write a file-birth audit event
 - Add/Edit File Shell should not be treated as the proven row-edit path; FilePageShell shared create/edit dialog is the proven persistence path
 
+## System Files Acceptance Contract Direction
+
+Status: `approved direction`
+
+This is the key architecture objective for the next phase.
+
+The deeper test is:
+
+`Can the app trust System Files records as the accepted file-definition truth without breaking runtime startup, routing, shells, or navigation?`
+
+The intended end-state is:
+
+1. canonical JSON
+2. `structureRegistry` / runtime registry
+3. `System Files` seed rows
+4. `System Files` acceptance state
+5. visible nav, shell eligibility, and guide links
+
+The important direction-of-authority rule is:
+
+`Code/canon births System Files. System Files governs acceptance after it exists.`
+
+This avoids the startup chicken-and-egg problem.
+
+At startup, the app still needs code and canon to know enough to create, seed, read, and render `System Files`.
+
+After bootstrap, `System Files` should become the accepted file-definition layer.
+
+### Acceptance Chain
+
+The clean chain should be:
+
+1. Bootstrap source
+2. Seed registry
+3. Acceptance layer
+4. Runtime validation
+5. Visible navigation
+
+### 1. Bootstrap Source
+
+Canon plus route meta defines the minimum needed to create and open `System Files`.
+
+This is allowed because `System Files` cannot govern itself before it exists.
+
+### 2. Seed Registry
+
+`ensureDefaultFiles()` creates or updates file rows from approved canon/registry definitions.
+
+This gives `System Files` a starting set of records.
+
+### 3. Acceptance Layer
+
+`System Files` rows should say whether each file is:
+
+- active
+- draft
+- hidden
+- partial
+- accepted
+
+This layer should decide what is allowed to become visible or shell-eligible after bootstrap.
+
+### 4. Runtime Validation
+
+The app should compare accepted rows against route, runtime, bridge, sqlite, and shell support.
+
+If `System Files` says a file is active but runtime support is missing, the app should surface drift instead of pretending the file is fully born.
+
+If route/runtime exists but `System Files` says the file is draft or hidden, visibility should follow the accepted policy.
+
+### 5. Visible Navigation
+
+Visible navigation should render only rows that pass acceptance and runtime validation, plus explicitly declared system-level exceptions.
+
+## Acceptance Contract Questions
+
+Before implementation, answer these:
+
+- Which `File_Status` values exist?
+- Does `Active` mean visible?
+- Does `Draft` mean hidden, or visible only inside `System Files`?
+- Does missing `File_Guide_Path` block visibility?
+- What happens if `System Files` says active but route/runtime is missing?
+- What happens if route/runtime exists but `System Files` says hidden or draft?
+- Which files are protected genesis rows?
+- Which fields are locked after birth?
+
 ## Recommended Next Implementation Order
 
 ### 1. System Files acceptance policy
