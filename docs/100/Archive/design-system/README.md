@@ -6,9 +6,14 @@ It is not a redesign.
 
 It is a guide to the visual system that already exists in the product today.
 
-The technical source of truth is still:
+This guide is archived reference material.
 
-- `docs/design-system/tokens.json`
+The old audit artifact lives at:
+
+- `docs/100/Archive/design-system/tokens.json`
+
+The active runtime token alias layer lives at:
+
 - `src/css/tokens.scss`
 
 This file explains what those mean in normal design language.
@@ -202,10 +207,10 @@ The codebase now has a runtime alias layer in:
 
 That file gives names to repeated decisions without changing the look.
 
-So the design system is now starting to exist in two forms:
+At the time this guide was written, the design system existed in two forms:
 
 1. Audit form
-   - `docs/design-system/tokens.json`
+   - `docs/100/Archive/design-system/tokens.json`
 2. Runtime form
    - `src/css/tokens.scss`
 
