@@ -4741,6 +4741,7 @@
               "address": "23.2.2",
               "token_name": "File_User",
               "token_type": "select_multi",
+              "option_source": "live_entity",
               "option_entity": "Users",
               "relationship_group": "first_order"
             },
@@ -4748,6 +4749,7 @@
               "address": "23.2.3",
               "token_name": "File_Contact",
               "token_type": "select_multi",
+              "option_source": "live_entity",
               "option_entity": "Contacts",
               "relationship_group": "first_order"
             },
@@ -4755,6 +4757,7 @@
               "address": "23.2.4",
               "token_name": "File_Companion_Role",
               "token_type": "select_multi",
+              "option_source": "live_entity",
               "option_entity": "Companion_Roles",
               "relationship_group": "first_order",
               "db_field_aliases": [
@@ -4765,6 +4768,7 @@
               "address": "23.2.5",
               "token_name": "File_Event",
               "token_type": "select_multi",
+              "option_source": "live_entity",
               "option_entity": "Events",
               "relationship_group": "first_order"
             },
@@ -4772,6 +4776,7 @@
               "address": "23.2.6",
               "token_name": "File_Rulebook",
               "token_type": "select_multi",
+              "option_source": "live_entity",
               "option_entity": "Files",
               "relationship_group": "knowledge_db",
               "db_field_aliases": [
