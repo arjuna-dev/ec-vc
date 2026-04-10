@@ -60,7 +60,7 @@ Reviewed surfaces:
 | Requires System / KDB | Requirements should derive from canonical sections. | `ensureDefaultFiles()` derives `Requires_System` and `Requires_KDB` from registry subsections. | `yes` | File Steward: derivation is useful and explicit. |
 | Shell rendering | `/file-system` should render through the shared file shell. | Route `/file-system` loads `FilesPage.vue`, which renders `FilePageShell`. `FilePageShell` has a `file-system` loader. | `yes` | Runtime Steward: page shell path exists. |
 | Add/Edit File Shell | Add/Edit File Shell should guide file structure and link the correct guide. | `AddEditFileShellDialog` uses registry L2/L3 data and local structure-selection state. It is not the proven row-edit persistence path. The guide icon currently points to parent guide `docs/001/Active/001-Files.md`, not the selected file's `File_Guide_Path`. | `partial` | UX/File Steward: parent guide is useful, but selected file guide linking is not yet dynamic and this shell should not be assumed to persist registry row edits. |
-| Navigation acceptance | Visible file nav should mean accepted file truth. | `WORKSPACE_FILE_NAV_ITEMS` derives from `showInWorkspaceNav`, but `MainLayout` still manually injects `Opportunities`, User Roles, Companion Roles, Artifact Processed, Markets, and Securities. | `partial` | Architect Steward: visible nav still has a second source of truth. |
+| Navigation acceptance | Visible file nav should mean accepted file truth. | `WORKSPACE_FILE_NAV_ITEMS` now carries the visible drawer file list and explicit `workspace` / `knowledge-dbs` grouping from `structureRegistry`; `MainLayout` consumes that export instead of manually injecting file nav rows. | `partial` | Architect Steward: layout injection is consolidated, but route meta still owns acceptance before `System Files` records become the source. |
 | Events/provenance | File birth should be reconstructable from events. | `events` table and `writeAuditEvent()` exist. `Files` has `File_EventLog`, `created_by`, and timestamps. `createFile()` sets `created_by`, but does not visibly write a file-birth audit event in this path. | `partial` | Provenance Steward: event infrastructure exists, but genesis/file-birth reconstruction is not proven. |
 | KDB/LDB relationships | File relationships should be declared and reverse-readable where required. | Canon declares KDB relationship tokens for Owner, Users, Contacts, Companion Roles, Events, and Rulebooks. Runtime has generic `KDB_Relationships`, but this audit did not prove Files-specific bridge writing or reverse-read behavior. | `partial` | File/Provenance Steward: relationship intent exists; runtime bridge proof is still needed. |
 | UX fork | User should be guided between `L1`, `L2`, and `L2.a`. | File guides and Add/Edit File Shell describe/show structure-level data, but this audit did not prove a full guided create flow that writes new canonical structure. | `partial` | UX Steward: guidance exists, but file-birth UX is not yet a full creation wizard. |
@@ -81,13 +81,17 @@ That is better than manual rows, but it means file acceptance is still upstream 
 
 The intended future direction is that `System Files` becomes the accepted file-definition registry, and route/nav/runtime validation aligns against it.
 
-### 3. Navigation has improved, but still has a second source
+### 3. Navigation layout injection has been consolidated
 
 `WORKSPACE_FILE_NAV_ITEMS` is registry-derived.
 
-However, `MainLayout.vue` still manually injects several items into the visible drawer.
+The drawer now consumes the registry export for both main workspace files and `Knowledge DBs`.
 
-This can make files appear accepted even when the registry/canon path is not the only source of truth.
+This removes the layout-level second source of truth.
+
+Remaining limitation:
+
+- visible acceptance still comes from `structureRegistry` route meta before it comes from `System Files` records
 
 ### 4. File guide linkage is honest but incomplete
 
@@ -132,17 +136,18 @@ Remaining runtime concerns:
 
 ## Recommended Next Implementation Order
 
-### 1. Navigation acceptance consolidation
+### 1. System Files acceptance policy
 
 Goal:
 
-- remove or explicitly mark manual nav injections
-- make visible file items come from one acceptance rule
-- preserve explicit exceptions only where approved
+- define what lets a `Files` row become visible
+- decide whether visible `L1`s require `File_Guide_Path`
+- decide which registry route-meta exceptions are allowed before `System Files` becomes the source
+- keep `structureRegistry` as the executable registry until `System Files` can safely govern acceptance
 
 Why first:
 
-- visible navigation currently gives the strongest false signal of file acceptance
+- layout injection is fixed, but acceptance is still route-meta owned
 
 ### 2. File guide path policy
 
@@ -193,15 +198,15 @@ Why fifth:
 
 ## Suggested Immediate Next Step
 
-Start with navigation acceptance consolidation.
+Start with System Files acceptance policy.
 
 Do not make `System Files` the only runtime source yet.
 
 First:
 
-- identify every manual nav item currently injected outside `WORKSPACE_FILE_NAV_ITEMS`
-- decide which are approved explicit exceptions
-- document or encode those exceptions in one registry-owned place
-- stop treating manual layout injection as normal file acceptance
+- decide what `File_Status = Active` must mean
+- decide whether `File_Guide_Path` is required for visible `L1`s
+- decide whether missing guide path keeps a file visible, marks it partial, or hides it
+- decide how `structureRegistry` and `System Files` should reconcile when they disagree
 
 If this pass is clean, then move to the file-guide path policy.

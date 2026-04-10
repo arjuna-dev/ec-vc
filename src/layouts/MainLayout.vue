@@ -442,65 +442,7 @@ const mainNavigationItems = [
   itemClass: 'ec-nav-item--primary',
   iconSize: '22px',
 }))
-const workspaceFileNavItems = WORKSPACE_FILE_NAV_ITEMS.filter(
-  (item) => item.to !== '/user-roles' && item.to !== '/companion-roles' && item.to !== '/bb-file',
-)
-const companiesNavIndex = workspaceFileNavItems.findIndex((item) => item.to === '/companies')
-
-if (companiesNavIndex >= 0) {
-  workspaceFileNavItems.splice(companiesNavIndex + 1, 0, {
-    label: 'Opportunities',
-    to: '/opportunities',
-    exact: true,
-    icon: 'work',
-  })
-} else {
-  workspaceFileNavItems.push({ label: 'Opportunities', to: '/opportunities', exact: true, icon: 'work' })
-}
-
-const workspaceNavigationItems = [
-  ...workspaceFileNavItems,
-  {
-    label: 'User Roles',
-    to: '/user-roles',
-    exact: true,
-    icon: 'theater_comedy',
-    parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-  },
-  {
-    label: 'Companion Roles',
-    to: '/companion-roles',
-    exact: true,
-    icon: 'smart_toy',
-    parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-  },
-  {
-    label: 'Artifact Processed',
-    to: '/ingestion',
-    exact: true,
-    icon: 'hub',
-    parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-  },
-  {
-    label: 'Markets',
-    to: '/markets',
-    exact: true,
-    icon: 'category',
-    parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-  },
-  {
-    label: 'Securities',
-    to: '/securities',
-    exact: true,
-    icon: 'receipt_long',
-    parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-  },
-].map((item) => ({
+const workspaceNavigationItems = WORKSPACE_FILE_NAV_ITEMS.map((item) => ({
   ...item,
   itemClass: item.itemClass || 'ec-nav-item--secondary ec-nav-item--workspace-child',
   iconSize: item.iconSize || '18px',
