@@ -262,7 +262,7 @@ const actionTitleText = computed(() => String(props.actionTitle || '').trim() ||
   color: var(--ds-color-text-primary);
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-xs);
-  font-weight: var(--ds-font-weight-medium);
+  font-weight: var(--ds-font-weight-light);
   line-height: var(--ds-line-height-xs);
   text-align: center;
   overflow-wrap: anywhere;
