@@ -1592,6 +1592,209 @@ function getFileRegistryEntryBySourceKey(sourceKey) {
   return FILE_PAGE_REGISTRY.find((entry) => String(entry?.key || '').trim() === normalizedSourceKey) || null
 }
 
+const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Partial', 'Draft', 'Hidden', 'Archived'])
+const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
+
+function normalizeFileStatusValue(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (!normalized) return ''
+  const match = ACCEPTED_FILE_STATUS_VALUES.find((status) => status.toLowerCase() === normalized)
+  return match || ''
+}
+
+function normalizeYesNoValue(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (normalized === 'yes') return 'Yes'
+  if (normalized === 'no') return 'No'
+  return ''
+}
+
+function buildFilesAcceptanceValidation(rows = []) {
+  const issues = []
+  const rowsBySourceKey = new Map()
+
+  rows.forEach((row) => {
+    const sourceKey = String(row?.File_Source_Key || '').trim()
+    if (sourceKey && !rowsBySourceKey.has(sourceKey)) rowsBySourceKey.set(sourceKey, row)
+  })
+
+  const addIssue = ({ severity = 'warn', sourceKey = '', fileId = '', field = '', issue = '' } = {}) => {
+    if (!issue) return
+    issues.push({
+      severity,
+      sourceKey: String(sourceKey || '').trim(),
+      fileId: String(fileId || '').trim(),
+      field: String(field || '').trim(),
+      issue: String(issue || '').trim(),
+    })
+  }
+
+  FILE_PAGE_REGISTRY.forEach((entry, index) => {
+    const sourceKey = String(entry?.key || '').trim()
+    const row = rowsBySourceKey.get(sourceKey)
+    const expected = buildDefaultFileRegistryRow(entry, index)
+
+    if (!row) {
+      addIssue({
+        severity: 'error',
+        sourceKey,
+        field: 'File_Source_Key',
+        issue: 'Registry entry exists in structureRegistry but no System Files row was found.',
+      })
+      return
+    }
+
+    const fileId = String(row?.id || '').trim()
+    const statusValue = normalizeFileStatusValue(row?.File_Status)
+    const expectedGuideRequired = !PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS.has(sourceKey)
+    const guidePath = String(row?.File_Guide_Path || '').trim()
+
+    if (!statusValue) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'File_Status',
+        issue: `File_Status "${String(row?.File_Status || '').trim()}" is outside the approved acceptance vocabulary.`,
+      })
+    }
+
+    if (String(row?.File_Canonical_Entity || '').trim() !== expected.File_Canonical_Entity) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'File_Canonical_Entity',
+        issue: `Canonical entity drift: expected "${expected.File_Canonical_Entity}".`,
+      })
+    }
+
+    if (String(row?.File_Runtime_Entity || '').trim() !== expected.File_Runtime_Entity) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'File_Runtime_Entity',
+        issue: `Runtime entity drift: expected "${expected.File_Runtime_Entity}".`,
+      })
+    }
+
+    if (String(row?.File_Route_Name || '').trim() !== expected.File_Route_Name) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'File_Route_Name',
+        issue: `Route name drift: expected "${expected.File_Route_Name}".`,
+      })
+    }
+
+    if (String(row?.File_Path || '').trim() !== expected.File_Path) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'File_Path',
+        issue: `Route path drift: expected "${expected.File_Path}".`,
+      })
+    }
+
+    if (Number(row?.File_Order || 0) !== Number(expected.File_Order || 0)) {
+      addIssue({
+        severity: 'info',
+        sourceKey,
+        fileId,
+        field: 'File_Order',
+        issue: `File order differs from the executable registry seed (${expected.File_Order}).`,
+      })
+    }
+
+    if (normalizeYesNoValue(row?.Requires_System) !== expected.Requires_System) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'Requires_System',
+        issue: `Requires_System drift: expected "${expected.Requires_System}".`,
+      })
+    }
+
+    if (normalizeYesNoValue(row?.Requires_KDB) !== expected.Requires_KDB) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'Requires_KDB',
+        issue: `Requires_KDB drift: expected "${expected.Requires_KDB}".`,
+      })
+    }
+
+    if (statusValue === 'Active' && expectedGuideRequired && !guidePath) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'File_Guide_Path',
+        issue: 'Active file is missing File_Guide_Path and does not qualify as a protected bootstrap exception.',
+      })
+    }
+
+    if (statusValue && statusValue !== 'Active' && entry.showInWorkspaceNav) {
+      addIssue({
+        severity: 'info',
+        sourceKey,
+        fileId,
+        field: 'File_Status',
+        issue: `System Files status is "${statusValue}" while structureRegistry still marks this file visible in workspace navigation.`,
+      })
+    }
+  })
+
+  rows.forEach((row) => {
+    const sourceKey = String(row?.File_Source_Key || '').trim()
+    if (!sourceKey) {
+      addIssue({
+        severity: 'warn',
+        fileId: String(row?.id || '').trim(),
+        field: 'File_Source_Key',
+        issue: 'System Files row is missing File_Source_Key.',
+      })
+      return
+    }
+    if (!getFileRegistryEntryBySourceKey(sourceKey)) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId: String(row?.id || '').trim(),
+        field: 'File_Source_Key',
+        issue: 'System Files row has no matching structureRegistry entry.',
+      })
+    }
+  })
+
+  const severityCounts = issues.reduce(
+    (counts, issue) => {
+      const severity = String(issue?.severity || 'info').trim().toLowerCase()
+      if (severity === 'error') counts.error += 1
+      else if (severity === 'warn') counts.warn += 1
+      else counts.info += 1
+      return counts
+    },
+    { error: 0, warn: 0, info: 0 },
+  )
+
+  return {
+    checkedAt: new Date().toISOString(),
+    statuses: [...ACCEPTED_FILE_STATUS_VALUES],
+    protectedBootstrapSourceKeys: [...PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS],
+    rowCount: rows.length,
+    registryCount: FILE_PAGE_REGISTRY.length,
+    driftFree: issues.length === 0,
+    severityCounts,
+    issues,
+  }
+}
+
 function ensureDefaultFiles(database) {
   const filesMeta = getTableMeta(database, 'Files')
   const requiredColumns = [
@@ -1712,7 +1915,7 @@ function ensureDefaultFiles(database) {
 function listFiles() {
   const database = initDb()
   ensureDefaultFiles(database)
-  return dbAll(
+  const files = dbAll(
     `
       SELECT
         id,
@@ -1743,6 +1946,10 @@ function listFiles() {
       ORDER BY COALESCE(File_Order, 9999), File_Name, id
     `,
   )
+  return {
+    files,
+    validation: buildFilesAcceptanceValidation(files),
+  }
 }
 
 function createFile(payload = {}) {
@@ -7674,7 +7881,7 @@ function registerIpc() {
 
   ipcMain.handle('file-system:list', async () => {
     initDb()
-    return { files: listFiles() }
+    return listFiles()
   })
 
   ipcMain.handle('file-system:create', async (_event, payload = {}) => {

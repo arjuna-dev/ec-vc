@@ -212,6 +212,26 @@
         </template>
       </FilePageToolbar>
 
+      <q-banner
+        v-if="fileSystemValidationBanner"
+        class="test-shell-validation-banner"
+        :class="fileSystemValidationBannerClass"
+        rounded
+      >
+        <div class="test-shell-validation-banner__title">{{ fileSystemValidationTitle }}</div>
+        <div class="test-shell-validation-banner__text">{{ fileSystemValidationText }}</div>
+        <div v-if="fileSystemValidationPreviewIssues.length" class="test-shell-validation-banner__issues">
+          <div
+            v-for="(issue, index) in fileSystemValidationPreviewIssues"
+            :key="`${issue.sourceKey || issue.fileId || 'issue'}:${issue.field || 'field'}:${index}`"
+            class="test-shell-validation-banner__issue"
+          >
+            <span class="test-shell-validation-banner__issue-key">{{ issue.sourceKey || issue.fileId || 'System Files' }}</span>
+            <span class="test-shell-validation-banner__issue-text">{{ issue.issue }}</span>
+          </div>
+        </div>
+      </q-banner>
+
       <q-banner v-if="error" class="bg-red-2 text-black" rounded>
         {{ error }}
       </q-banner>
@@ -849,6 +869,7 @@ const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
 const rawRows = ref([])
+const loaderDiagnostics = ref({})
 const viewMode = ref('card')
 const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
@@ -1620,8 +1641,8 @@ const heroStats = computed(() => [
   },
   {
     label: 'L3',
-    value: level3Tokens.value.length,
-    caption: 'Canonical tokens',
+    value: activeSourceKey.value === 'file-system' ? fileSystemValidationIssueCount.value : level3Tokens.value.length,
+    caption: activeSourceKey.value === 'file-system' ? 'Drift issues found' : 'Canonical tokens',
     tone: 'sparse',
   },
 ])
@@ -1635,6 +1656,48 @@ const healthSegments = computed(() => [
   { tone: 'rich', width: 45 },
   { tone: 'sparse', width: 20 },
 ])
+
+const fileSystemValidation = computed(() =>
+  activeSourceKey.value === 'file-system' && loaderDiagnostics.value && typeof loaderDiagnostics.value === 'object'
+    ? loaderDiagnostics.value.validation || null
+    : null,
+)
+
+const fileSystemValidationIssueCount = computed(() => {
+  const validation = fileSystemValidation.value
+  return Array.isArray(validation?.issues) ? validation.issues.length : 0
+})
+
+const fileSystemValidationPreviewIssues = computed(() => {
+  const validation = fileSystemValidation.value
+  return Array.isArray(validation?.issues) ? validation.issues.slice(0, 5) : []
+})
+
+const fileSystemValidationBanner = computed(() => activeSourceKey.value === 'file-system' && Boolean(fileSystemValidation.value))
+
+const fileSystemValidationBannerClass = computed(() => {
+  const validation = fileSystemValidation.value
+  if (!validation) return 'bg-grey-2 text-black'
+  if (Number(validation?.severityCounts?.error || 0) > 0) return 'bg-red-2 text-black'
+  if (Number(validation?.severityCounts?.warn || 0) > 0) return 'bg-orange-2 text-black'
+  return 'bg-green-2 text-black'
+})
+
+const fileSystemValidationTitle = computed(() => {
+  const validation = fileSystemValidation.value
+  if (!validation) return ''
+  if (validation.driftFree) return 'System Files acceptance validator: no drift found.'
+  return 'System Files acceptance validator found drift.'
+})
+
+const fileSystemValidationText = computed(() => {
+  const validation = fileSystemValidation.value
+  if (!validation) return ''
+  const errors = Number(validation?.severityCounts?.error || 0)
+  const warns = Number(validation?.severityCounts?.warn || 0)
+  const info = Number(validation?.severityCounts?.info || 0)
+  return `Checked ${Number(validation?.rowCount || 0)} rows against ${Number(validation?.registryCount || 0)} executable registry entries. Errors: ${errors}. Warnings: ${warns}. Info: ${info}.`
+})
 
 const isBbFileSource = computed(() => activeSourceKey.value === 'bb-file')
 const searchPlaceholder = computed(() => `Search ${activeRegistryEntry.value?.label || 'Records'}`)
@@ -2169,6 +2232,7 @@ onBeforeUnmount(() => {
 async function loadRows() {
   error.value = ''
   rawRows.value = []
+  loaderDiagnostics.value = {}
   const loader = activeLoader.value
   if (!loader) {
     error.value = 'This section does not have a supported live loader yet.'
@@ -2185,6 +2249,7 @@ async function loadRows() {
   try {
     const result = await loader.listFn(bridgeValue)
     rawRows.value = Array.isArray(result?.[loader.resultKey]) ? result[loader.resultKey] : []
+    loaderDiagnostics.value = result && typeof result === 'object' ? result : {}
   } catch (loadError) {
     error.value = loadError?.message || `Could not load ${activeRegistryEntry.value?.label || 'records'}.`
   } finally {
@@ -4873,6 +4938,41 @@ function isBbGraphLinkToken(tokenRow) {
   border-radius: 18px;
   color: #777777;
   background: rgba(255, 255, 255, 0.72);
+}
+
+.test-shell-validation-banner {
+  margin-bottom: 12px;
+}
+
+.test-shell-validation-banner__title {
+  font-weight: 600;
+}
+
+.test-shell-validation-banner__text {
+  margin-top: 4px;
+}
+
+.test-shell-validation-banner__issues {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.test-shell-validation-banner__issue {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.test-shell-validation-banner__issue-key {
+  font-size: var(--ds-font-size-xs, 11px);
+  font-weight: var(--ds-font-weight-medium, 500);
+  white-space: nowrap;
+}
+
+.test-shell-validation-banner__issue-text {
+  font-size: var(--ds-font-size-xs, 11px);
 }
 
 @media (max-width: 900px) {
