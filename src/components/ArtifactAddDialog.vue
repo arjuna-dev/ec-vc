@@ -137,6 +137,7 @@ import AddEditRecordShellDialog from './AddEditRecordShellDialog.vue'
 import {
   CANONICAL_OPTION_LISTS,
   getCreateBranchTokenName,
+  getFilePageRegistryEntryByEntityReference,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
 } from 'src/utils/structureRegistry'
@@ -287,23 +288,7 @@ function getInputOptionsForToken(token) {
 }
 
 function resolveSourceKeyFromEntityName(entityName) {
-  const normalized = String(entityName || '').trim().toLowerCase()
-  const sourceKeyByEntityName = {
-    companies: 'companies',
-    contacts: 'contacts',
-    users: 'users',
-    funds: 'funds',
-    rounds: 'rounds',
-    projects: 'projects',
-    tasks: 'tasks',
-    notes: 'notes',
-    roles: 'user-roles',
-    financial_industries: 'markets',
-    round_securities: 'securities',
-    artifacts_processed: 'ingestion',
-    artifacts: 'artifacts',
-  }
-  return sourceKeyByEntityName[normalized] || ''
+  return getFilePageRegistryEntryByEntityReference(entityName)?.key || ''
 }
 
 function buildLiveEntityOptions(sourceKey) {

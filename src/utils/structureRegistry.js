@@ -510,6 +510,24 @@ export function getFilePageRegistryEntryByEntityName(entityName) {
   return LEVEL_1_FILE_REGISTRY.find((entry) => String(entry.entityName || '').trim() === normalizedEntityName) || null
 }
 
+export function getFilePageRegistryEntryByEntityReference(entityName) {
+  const normalizedEntityName = String(entityName || '').trim()
+  if (!normalizedEntityName) return null
+
+  const legacyEntityAliases = {
+    Financial_Industries: 'markets',
+    Round_Securities: 'securities',
+    Artifact_Processed: 'ingestion',
+    Artifacts_Processed: 'ingestion',
+    Roles: 'user-roles',
+  }
+
+  return (
+    getFilePageRegistryEntryByEntityName(normalizedEntityName)
+    || getFilePageRegistryEntry(legacyEntityAliases[normalizedEntityName] || normalizedEntityName)
+  )
+}
+
 export function getRegistryTitleTokenForSource(sourceKey = '') {
   const entry = getFilePageRegistryEntry(sourceKey)
   if (!entry) return null

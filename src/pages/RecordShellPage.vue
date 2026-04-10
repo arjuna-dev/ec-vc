@@ -397,6 +397,7 @@ import {
   getCanonicalTokenFieldNames,
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
+  getFilePageRegistryEntryByEntityReference,
   getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
   LEVEL_1_FILE_REGISTRY,
@@ -880,8 +881,7 @@ function getLiveEntitySetOptionsForToken(token) {
 }
 
 function resolveSourceKeyFromEntityName(entityName) {
-  const normalized = String(entityName || '').trim()
-  return LEVEL_1_FILE_REGISTRY.find((entry) => String(entry.entityName || '').trim() === normalized)?.key || ''
+  return getFilePageRegistryEntryByEntityReference(entityName)?.key || ''
 }
 
 function buildLiveEntityOptions(sourceKey) {

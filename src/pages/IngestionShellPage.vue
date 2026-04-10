@@ -46,6 +46,7 @@ import {
   getCreateBranchTokenName,
   getCanonicalTokenFieldNames,
   getFilePageRegistryEntry,
+  getFilePageRegistryEntryByEntityReference,
   getRuntimeTableNameForEntityName,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
@@ -237,9 +238,7 @@ function getInputOptionsForToken(token) {
 }
 
 function resolveSourceKeyFromEntityName(entityName) {
-  const normalized = String(entityName || '').trim()
-  return TEST_SHELL_SECTION_OPTIONS.find((entry) => String(entry.value || '').trim() === String(normalized || '').trim().toLowerCase())?.value
-    || (getFilePageRegistryEntry(normalized)?.key || '')
+  return getFilePageRegistryEntryByEntityReference(entityName)?.key || ''
 }
 
 function getLiveEntityOptionsForToken(token) {
