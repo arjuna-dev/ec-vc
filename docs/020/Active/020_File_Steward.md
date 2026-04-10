@@ -184,6 +184,9 @@ The `File Steward` should:
 - require project-scoped access assignments when global user-role status is not enough to explain permissions
 - protect declared branch-capable `L1`s from being normalized into the wrong table model
 - help keep file naming, loader naming, and menu naming aligned
+- make sure every file guide includes a glossary section
+- treat `Glossary Steward` as heavy governance only where language risk is meaningfully high, not automatically for every file
+- treat `Markets` and `Securities` as heavy glossary-governed files from the start
 - ensure new normal `L1`s are born with reciprocal KDB bridge wiring as part of file birth, not as a later repair step
 - ensure each canon-declared KDB relationship has an approved owner path and reverse-read path from the start
 - ensure `L1` bootstrap makes the bridge choice between dedicated join table and shared `KDB_Relationships` explicitly

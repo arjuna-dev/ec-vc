@@ -228,6 +228,26 @@ The glossary should include:
 - relationship terms
 - ownership terms
 
+Every file guide should include a `Glossary` section.
+
+But `Glossary Steward` should apply in two different strengths:
+
+- light glossary mode
+  - the file still includes a glossary section
+  - glossary upkeep is local to the file unless language drift risk becomes meaningful
+- heavy glossary mode
+  - `Glossary Steward` becomes an active governing steward for that file
+  - naming should be watched closely across canon, guides, UI labels, runtime names, and relationship language
+
+Use heavy glossary mode when the file:
+
+- introduces important system vocabulary
+- owns broad domain language
+- is likely to create canon/UI/runtime naming drift
+- will expand into a large category with many dependent terms
+
+`Markets` and `Securities` should be treated as heavy glossary files from the beginning.
+
 ### 4. Referenced Documents
 
 This section should list the guides, manuals, rulebooks, contracts, and architecture docs that govern this file.

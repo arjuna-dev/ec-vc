@@ -58,6 +58,27 @@ The `Glossary Steward` should:
 - help decide whether a new term is a real concept, an alias, or temporary migration language
 - keep renaming decisions connected to the files and code layers they affect
 - help companions and humans use the same words for the same architecture
+- apply lightly by default, meaning every file may keep a glossary section without needing active glossary governance
+- apply heavily when a file owns broad or system-critical vocabulary and naming drift would spread across canon, guides, UI, runtime, or relationships
+- treat `Markets` and `Securities` as heavy glossary-governed files from the beginning
+
+## Light / Heavy Rule
+
+The `Glossary Steward` should distinguish between:
+
+- light glossary application
+  - every file guide still has a glossary section
+  - glossary upkeep stays mostly local unless drift risk becomes meaningful
+- heavy glossary application
+  - `Glossary Steward` becomes an active governing steward for the file
+  - terminology should be reviewed across docs, canon, UI, runtime, and relationship language
+
+Heavy glossary application is appropriate when:
+
+- the file owns broad domain vocabulary
+- the file introduces important system language
+- the file is likely to create aliases, legacy-name drift, or user-facing ambiguity
+- many other files or roles will depend on its language
 
 ## Prohibited Behavior
 
