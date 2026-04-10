@@ -49,6 +49,8 @@ It is the file-definition layer that helps the system know:
 - `docs/000-Owner.md`
 - `docs/000-Companion.md`
 - `docs/010_File_Steward.md`
+- `docs/010_UX_Steward.md`
+- `docs/010_Architect_Steward.md`
 - `docs/011-record-architecture-master-plan.md`
 - `docs/000-canonical-structure.json`
 - `docs/000-electron-runtime-architecture-guide.md`
@@ -58,6 +60,7 @@ It is the file-definition layer that helps the system know:
 - Use `System Files` as the registry for file-definition truth.
 - Treat canonical JSON as the first birth source for file structure; `System Files` records should register that structure, not invent it afterward.
 - Do not treat a file as fully born if it has no guide.
+- Do not treat a file as fully born if its UX fork questions are missing.
 - Do not treat a file as fully born if its `System`, `General`, or required `KDB` sections are missing.
 - Do not add file visibility in layout code as a substitute for registry/canon acceptance.
 - Do not load canonical structure through scattered direct JSON imports; use the approved canonical loader boundary.

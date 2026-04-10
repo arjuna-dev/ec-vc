@@ -8,7 +8,7 @@ It defines:
 
 - why every file should be born with its own `.md`
 - what every file guide must contain
-- how file guides help the `Owner`, `File Steward`, companions, and future agents understand the file
+- how file guides help the `Owner`, `File Steward`, `UX Steward`, companions, and future agents understand the file
 
 This is the parent file-guide rule.
 
@@ -46,6 +46,7 @@ That means:
 - canonical JSON defines the `L1/L2/L3` structure
 - `System Files` registers the file, class, guide, owner, steward, and required `System` or `KDB` status
 - the file guide explains the human and steward rules for that file
+- the file guide includes UX parameters for structural forks and user guidance
 - runtime/sqlite and shell rendering should follow the canonical definition and registry row
 
 If a runtime file/table/shell exists without the matching canonical JSON structure and `System Files` row, the file is not fully born.
@@ -188,7 +189,21 @@ This section should explain to the `File Steward`:
 
 This should be governance-readable first.
 
-### 9. Governance
+### 9. UX Steward
+
+This section should explain to the `UX Steward`:
+
+- what user-facing forks exist in this file
+- where the user should make those choices
+- which plain-language labels should be shown
+- which canonical values those choices create
+- what the safe default is
+- what happens when the user is unsure
+- what stop condition should prevent the user from continuing
+
+This should be user-guidance-readable first.
+
+### 10. Governance
 
 This section should declare:
 
@@ -197,7 +212,7 @@ This section should declare:
 - which rulebooks it depends on
 - whether the file is owner-only or shared
 
-### 10. Provenance / Events
+### 11. Provenance / Events
 
 This section should declare:
 
@@ -205,7 +220,7 @@ This section should declare:
 - what provenance should be preserved
 - how genesis or file creation should later be reconstructable
 
-### 11. L2 File System
+### 12. L2 File System
 
 This section should declare the file's actual L2 architecture.
 
@@ -218,7 +233,7 @@ It should always describe these base sections when they apply:
 
 `File Specific` means any file-specific L2s, L2 subsections, and L3 leaf groups that exist beyond the shared base.
 
-### 12. Open Questions
+### 13. Open Questions
 
 This section should list unresolved items that are not yet settled truth.
 
@@ -317,6 +332,39 @@ That means the `File Steward` should make sure:
 
 So child file guides should treat KDB governance as part of `File Steward` responsibility, not as a detached separate guide layer.
 
+## UX Stewardship Rule
+
+Each file guide should include UX parameters that help the `File Steward` guide the user correctly.
+
+The first structural fork should be:
+
+`Is this a new file the user should be able to find, govern, and open?`
+
+If yes, the structure should be created as `L1`.
+
+If no, the user should be guided toward:
+
+- `L2` when the concept is a major section inside an existing file
+- `L2.a` when the concept is a subgroup inside an existing section
+
+The default rule is:
+
+- when uncertain, begin as `L1`
+- demote to `L2` only when the concept is clearly a section inside an existing file
+- demote to `L2.a` only when the concept is clearly a subgroup inside an existing section
+
+The `UX Steward` should define:
+
+- the plain-language question shown to the user
+- the canonical value created by each answer
+- the safe default
+- the parent selection required for `L2` and `L2.a`
+- the stop condition when the user does not have enough context
+
+`File Specific` should not replace explicit named `L2` sections.
+
+It should document the file's unique structure metadata while real user-facing sections remain explicit `L2`s.
+
 ## Canonical Loader Rule
 
 `docs/000-canonical-structure.json` is the machine-readable structure source of truth.
@@ -355,10 +403,11 @@ Each file-specific guide can begin from this compact template:
 6. `Ownership`
 7. `Owner`
 8. `File Steward`
-9. `Governance`
-10. `Provenance / Events`
-11. `L2 File System`
-12. `Open Questions`
+9. `UX Steward`
+10. `Governance`
+11. `Provenance / Events`
+12. `L2 File System`
+13. `Open Questions`
 
 ## Working Rule
 
@@ -368,4 +417,4 @@ The goal is:
 
 - every file is born with a guide
 - every guide is governed by one parent file-guide rule
-- both the `Owner` and the `File Steward` can use that guide to keep the file understandable, stable, and connected
+- the `Owner`, `File Steward`, and `UX Steward` can use that guide to keep the file understandable, stable, guided, and connected

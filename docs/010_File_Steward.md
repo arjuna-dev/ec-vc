@@ -111,6 +111,11 @@ The `File Steward` should:
 - protect the consistency of `System`, `KDB`, and `General` subgrouping
 - protect shared base field names from drifting into unnecessary entity-specific aliases
 - protect `KDB` as the required shared linkage section without pretending every `L1` must use one identical relationship leaf list
+- use each file guide's `UX Steward` section to guide the user through structural forks
+- ask whether a new structure is an `L1`, `L2`, or `L2.a` before accepting it as born
+- require parent file selection before creating an `L2`
+- require parent file and parent `L2` selection before creating an `L2.a`
+- treat `L1` as the safe default when the user is unsure whether something is a standalone file
 - act as the KDB orchestrator for file birth and file upkeep
 - make sure files are born correctly
 - make sure `KDB` is born with them
@@ -148,6 +153,7 @@ The `File Steward` should stop implementation and surface the gap when:
 - a new normal `L1` is being introduced without its reciprocal KDB bridge layer
 - KDB bridge ownership is being invented ad hoc after file birth instead of being declared during bootstrap
 - a new convenience component, mode, or leaf variant is being added where the approved underlying component should be corrected instead
+- a user is being asked to create file structure without UX fork guidance from the file guide
 
 ## Working Principle
 
