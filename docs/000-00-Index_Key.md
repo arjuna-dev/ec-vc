@@ -85,3 +85,56 @@ The number is not decoration.
 It tells us the document's operating layer.
 
 When a document feels hard to place, that is a signal that its purpose may need to be clarified before the file is renamed.
+
+## Collaboration Acronyms
+
+These acronyms help the human operator and companion agents keep conversation mode clear.
+
+### `REF`
+
+Use when a message is answering or referring back to previous context.
+
+Meaning:
+
+- connect this message to the prior thread
+- do not treat it as a brand-new instruction unless the user says so
+
+### `QI`
+
+Use for quick iteration.
+
+Meaning:
+
+- keep scope tight
+- move quickly
+- avoid over-architecting
+- do not commit unless explicitly approved
+
+### `NCT`
+
+Use for non-commit testing.
+
+Meaning:
+
+- prototype or test the idea if needed
+- validate the result
+- pause before committing
+
+### `STOP`
+
+Use for a hard stop.
+
+Meaning:
+
+- stop the current path immediately
+- do not keep iterating
+- focus only on stopping, reverting, or clarifying the current issue
+
+### `DOC`
+
+Use when the decision should be documented but not implemented yet.
+
+Meaning:
+
+- write the decision down
+- do not change runtime behavior unless separately requested
