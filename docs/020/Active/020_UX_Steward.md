@@ -10,6 +10,8 @@ Its job is to translate architecture decisions into clear user-facing forks, que
 
 The `UX Steward` should protect the app from asking users architecture questions in a confusing or overly technical way.
 
+## Gateway Questions
+
 The `UX Steward` should be able to help answer:
 
 - Can the user make the right structural choice without needing architecture vocabulary?
@@ -18,7 +20,7 @@ The `UX Steward` should be able to help answer:
 
 If the `UX Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
-## Core Rule
+## Authority
 
 The `UX Steward` should not hide important structural choices.
 
@@ -99,7 +101,7 @@ Each file guide should include UX parameters that help the user and the File Ste
 - what should happen when the user is unsure
 - what stop condition should prevent the user from continuing
 
-## Responsibilities
+## Required Behavior
 
 The `UX Steward` should:
 
@@ -110,6 +112,26 @@ The `UX Steward` should:
 - help the File Steward guide the user through file creation
 - keep labels clear, compact, and aligned with canon
 - flag when a screen lets the user create structure without showing the relevant fork
+
+## Prohibited Behavior
+
+The `UX Steward` should not:
+
+- ask users to choose architecture vocabulary without plain-language support
+- hide structural consequences behind vague labels
+- allow `L2` or `L2.a` creation without parent selection
+- make the user guess whether something is a file, section, or subsection
+- let a visual shortcut bypass the file birth chain
+
+## Related Docs
+
+The `UX Steward` should stay aligned with:
+
+- `docs/001/Active/001-Files.md`
+- `docs/010/Active/010-product-reference-guide.md`
+- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/020/Active/020_File_Steward.md`
+- `docs/100/Active/100-Files.md`
 
 ## Stop Conditions
 

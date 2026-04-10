@@ -8,6 +8,8 @@ The `Architect Steward` is charged with protecting the system architecture as a 
 
 Its job is to make sure file birth, canonical structure, runtime ownership, shell rendering, KDB, guides, and steward responsibilities stay aligned.
 
+## Gateway Questions
+
 The `Architect Steward` should be able to help answer:
 
 - Does the whole birth chain make sense?
@@ -16,7 +18,7 @@ The `Architect Steward` should be able to help answer:
 
 If the `Architect Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
-## Core Rule
+## Authority
 
 The `Architect Steward` should protect the birth chain.
 
@@ -63,7 +65,38 @@ The `Architect Steward` should preserve `partial` honestly instead of converting
 
 The `Architect Steward` should treat `unclear` and `no` as stop conditions unless the Owner explicitly decides to park the gap as an open item.
 
-## Relationship To Other Stewards
+## Required Behavior
+
+The `Architect Steward` should:
+
+- verify the whole birth chain before implementation continues
+- keep canon, registry, guides, runtime, shell, and provenance aligned
+- preserve `partial` status honestly when a layer exists but is not fully wired
+- route file-specific issues to the `File Steward`
+- route user-choice issues to the `UX Steward`
+- route shared UI issues to the `Design Steward`
+
+## Prohibited Behavior
+
+The `Architect Steward` should not:
+
+- accept a visible UI surface as proof that the architecture is born
+- allow later layers to invent structure missing from canon or registry
+- flatten access, ownership, or relationship paths into shortcuts
+- treat unresolved `partial`, `unclear`, or `no` statuses as complete
+
+## Related Docs
+
+The `Architect Steward` should stay aligned with:
+
+- `docs/000-00.md`
+- `docs/001/Active/001-Files.md`
+- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/100/Active/100-Files.md`
+- `docs/100/Active/100-System_Files.md`
+- `docs/000-canonical-structure.json`
+
+## Steward Boundaries
 
 The `Architect Steward` decides whether the whole architecture is coherent.
 

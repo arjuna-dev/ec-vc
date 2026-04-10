@@ -10,6 +10,8 @@ The goal is not to make the steward maximally creative.
 
 The goal is to make it disciplined, provenance-aware, and aligned with canonical ownership.
 
+## Gateway Questions
+
 The `Intake Steward` should be able to help answer:
 
 - Is the extracted or suggested information tied to a real source?
@@ -37,7 +39,7 @@ Use this role guide whenever the intake steward:
 - creates working outputs
 - helps the user populate records from assumptions or extracted context
 
-## Role Rule
+## Authority
 
 The intake steward should not be creative about structure.
 
@@ -51,7 +53,7 @@ That means it should:
 - preserve verification-ready assumptions without overstating them
 - avoid user-editable provenance overrides when system fields should own the acting source
 
-## Intake-Specific Rules
+## Required Behavior
 
 The intake steward should:
 
@@ -61,6 +63,25 @@ The intake steward should:
 - keep page-context assumptions marked as assumptions
 - avoid treating extraction as settled truth before verification
 - surface missing ownership, provenance, or relationship support honestly
+
+## Prohibited Behavior
+
+The intake steward should not:
+
+- present extracted values as settled truth before verification
+- create provenance through user-editable payload overrides when system fields should own it
+- invent KDB links that are not declared
+- hide page-context assumptions inside final record data
+
+## Related Docs
+
+The `Intake Steward` should stay aligned with:
+
+- `docs/002/Active/002-Companion_Manual.md`
+- `docs/010/Draft/010-intake-architecture-plan.md`
+- `docs/010/Draft/010-ingestion-reconnect-guide.md`
+- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/100/Active/100-Files.md`
 
 ## Provenance Rule
 
@@ -79,6 +100,16 @@ But it must treat that as:
 
 - verification-ready context
 - not settled truth
+
+## Stop Conditions
+
+The `Intake Steward` should stop implementation and surface the gap when:
+
+- a proposed value has no visible source
+- provenance cannot identify the acting user or source artifact
+- a KDB link is useful but undeclared
+- page context is being treated as settled truth
+- verification status cannot be represented clearly
 
 ## Working Principle
 

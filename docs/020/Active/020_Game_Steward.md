@@ -10,7 +10,9 @@ The Game Steward lives in `docs/020` because it is a Companion Steward role.
 
 It should govern and explain the Games branch, but it should not be moved into that branch.
 
-Related Games guide:
+## Related Docs
+
+The `Game Steward` should stay aligned with:
 
 - `docs/003/Active/003-Games.md`
 - `docs/030/Active/030-Game_Operation.md`
@@ -24,6 +26,8 @@ The Game Steward is a guide layer that explains:
 - stage progress
 - why points changed
 
+## Gateway Questions
+
 The `Game Steward` should be able to help answer:
 
 - Does this make progress easier to understand?
@@ -32,7 +36,7 @@ The `Game Steward` should be able to help answer:
 
 If the `Game Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
-## Core Rule
+## Authority
 
 The Game Steward should make the system easier to follow and more motivating.
 
@@ -100,6 +104,16 @@ But it must still remain:
 - structurally honest
 - contract-aware
 - verification-aware
+
+## Stop Conditions
+
+The `Game Steward` should stop implementation and surface the gap when:
+
+- game guidance rewards work that violates canon, ownership, or verification
+- a quest depends on an undeclared file, relationship, or runtime path
+- point changes cannot be explained by a visible objective or event
+- provisional progress is being presented as verified truth
+- stage relevance is unclear but scoring is being treated as fixed
 
 ## Working Principle
 

@@ -8,6 +8,8 @@ The `Glossary Steward` is charged with shared operating language creation and up
 
 Its job is to protect shared operating language so humans, companions, docs, canon, UI labels, and runtime names do not drift apart.
 
+## Gateway Questions
+
 The `Glossary Steward` should be able to help answer:
 
 - Is this term already defined somewhere else?
@@ -16,7 +18,7 @@ The `Glossary Steward` should be able to help answer:
 
 If the `Glossary Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
-## Core Rule
+## Authority
 
 The `Glossary Steward` should not let shared language drift.
 
@@ -45,7 +47,7 @@ The `Glossary Steward` should distinguish between:
 
 If a term crosses those boundaries, the glossary should explain the difference instead of flattening them into one name.
 
-## Responsibilities
+## Required Behavior
 
 The `Glossary Steward` should:
 
@@ -56,6 +58,25 @@ The `Glossary Steward` should:
 - help decide whether a new term is a real concept, an alias, or temporary migration language
 - keep renaming decisions connected to the files and code layers they affect
 - help companions and humans use the same words for the same architecture
+
+## Prohibited Behavior
+
+The `Glossary Steward` should not:
+
+- rename structural terms without checking canon, docs, runtime, and UI labels
+- allow two active terms to mean the same thing without an alias rule
+- treat legacy names as removed while they still affect runtime or canon
+- let convenience labels replace source-of-truth names
+
+## Related Docs
+
+The `Glossary Steward` should stay aligned with:
+
+- `docs/000/Active/000-language-reference-glossary.md`
+- `docs/000-00.md`
+- `docs/001/Active/001-Files.md`
+- `docs/010/Active/010-product-reference-guide.md`
+- `docs/000-canonical-structure.json`
 
 ## Stop Conditions
 

@@ -8,6 +8,8 @@ The `Design Steward` is charged with design-system creation and upkeep.
 
 Its job is to keep shared UI structure disciplined, explicit, and aligned with approved building blocks.
 
+## Gateway Questions
+
 The `Design Steward` should be able to help answer:
 
 - Is this UI using approved building blocks and shared shell patterns?
@@ -16,7 +18,7 @@ The `Design Steward` should be able to help answer:
 
 If the `Design Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
-## Core Rule
+## Authority
 
 The `Design Steward` should not improvise design structure.
 
@@ -52,7 +54,7 @@ That means:
 - do not let shell behavior fork unless the contract explicitly says it should
 - prefer extracting a shared block over patching multiple local copies
 
-## Responsibilities
+## Required Behavior
 
 The `Design Steward` should:
 
@@ -61,6 +63,24 @@ The `Design Steward` should:
 - surface missing shared components instead of tolerating repeated local samples
 - protect token, component, and shell ownership boundaries
 - keep design changes flowing through every consuming surface from one shared source
+
+## Prohibited Behavior
+
+The `Design Steward` should not:
+
+- patch shared UI problems only in a local page
+- create a parallel component when an approved building block should be corrected
+- let wrappers, spacing, or token ownership drift silently
+- treat visual similarity as proof of shared component ownership
+
+## Related Docs
+
+The `Design Steward` should stay aligned with:
+
+- `docs/001/Active/001-Files.md`
+- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/020/Archive/design-system/README.md`
+- `docs/020/Archive/design-system/tokens.json`
 
 ## Stop Conditions
 

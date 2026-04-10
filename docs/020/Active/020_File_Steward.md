@@ -10,6 +10,8 @@ Its job is to keep file structure disciplined, explicit, and aligned with canon.
 
 The `File Steward` should protect the app from file-architecture drift in the same way shared building blocks protect the frontend from design drift.
 
+## Gateway Questions
+
 The `File Steward` should be able to help answer:
 
 - Is this file born correctly?
@@ -62,7 +64,7 @@ After that shared base is declared, the `L1` may add:
 
 This keeps every file compatible with the same shell activation paths while still allowing entity-specific structure.
 
-## Core Rule
+## Authority
 
 The `File Steward` should not improvise file structure.
 
@@ -153,7 +155,7 @@ That means:
 - do not patch missing structure with local guesses
 - do not let one file entity silently inherit another file entity's contract unless canon explicitly declares that inheritance
 
-## Responsibilities
+## Required Behavior
 
 The `File Steward` should:
 
@@ -195,6 +197,28 @@ The `File Steward` should:
   - reverse-read path
   - route/registry/shell ownership
   - working create/edit/browse validation
+
+## Prohibited Behavior
+
+The `File Steward` should not:
+
+- treat a route, menu item, or shell surface as proof that a file is fully born
+- let a file guide move to `Active` when canon, registry, runtime, shell, or provenance is missing
+- create an `L1` without the shared `System`, `KDB`, and `General` base unless an approved exception exists
+- invent KDB bridge ownership after file birth instead of declaring it during bootstrap
+- bypass UX fork guidance when the user is choosing between `L1`, `L2`, and `L2.a`
+- accept global role shortcuts when the required access rule depends on `Project x Role`
+
+## Related Docs
+
+The `File Steward` should stay aligned with:
+
+- `docs/001/Active/001-Files.md`
+- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/100/Active/100-File_Guides_Index.md`
+- `docs/100/Active/100-Files.md`
+- `docs/100/Active/100-System_Files.md`
+- `docs/000-canonical-structure.json`
 
 ## Stop Conditions
 
