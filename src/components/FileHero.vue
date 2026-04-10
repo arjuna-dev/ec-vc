@@ -23,7 +23,6 @@
 
           <article class="file-hero-sandbox__health">
             <div class="file-hero-sandbox__health-label">{{ actionLabelText }}</div>
-            <div class="file-hero-sandbox__health-text">{{ healthText }}</div>
             <div class="file-hero-sandbox__health-bar">
               <span
                 v-for="(segment, index) in normalizedHealthSegments"
@@ -43,8 +42,8 @@
                   class="file-hero-sandbox__action-item"
                   @click="emit('action-item-click', item)"
                 >
-                  <q-icon :name="item.icon || 'description'" size="18px" class="file-hero-sandbox__action-item-icon" />
-                  <q-tooltip>{{ item.label }}</q-tooltip>
+                  <q-icon :name="item.icon || 'description'" size="28px" class="file-hero-sandbox__action-item-icon" />
+                  <div class="file-hero-sandbox__action-item-label">{{ item.label }}</div>
                 </button>
               </div>
             </div>
@@ -103,8 +102,7 @@ const fallbackStats = [
 ]
 
 const fallbackHealthSegments = [
-  { tone: 'rich', width: 42 },
-  { tone: 'medium', width: 34 },
+  { tone: 'rich', width: 76 },
   { tone: 'sparse', width: 24 },
 ]
 
@@ -125,7 +123,7 @@ const normalizedActionItems = computed(() =>
     .slice(0, 5),
 )
 const actionLabelText = computed(() => String(props.actionLabel || '').trim() || 'File Health')
-const actionTitleText = computed(() => String(props.actionTitle || '').trim() || 'Open Issues')
+const actionTitleText = computed(() => String(props.actionTitle || '').trim() || 'Reference Documents')
 </script>
 
 <style scoped>
@@ -211,14 +209,6 @@ const actionTitleText = computed(() => String(props.actionTitle || '').trim() ||
   overflow: hidden;
 }
 
-.file-hero-sandbox__health-text {
-  color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-font-size-sm-regular);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-sm);
-}
-
 .file-hero-sandbox__health { gap: var(--ds-space-12); }
 
 .file-hero-sandbox__action-panel {
@@ -244,11 +234,13 @@ const actionTitleText = computed(() => String(props.actionTitle || '').trim() ||
 
 .file-hero-sandbox__action-item {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
+  justify-content: flex-start;
+  gap: 4px;
+  width: 72px;
+  min-height: 58px;
+  padding: 4px 0 0;
   border: 1px solid var(--ds-color-border-subtle);
   border-radius: var(--ds-radius-md);
   background: rgba(255, 255, 255, 0.58);
@@ -263,6 +255,17 @@ const actionTitleText = computed(() => String(props.actionTitle || '').trim() ||
 
 .file-hero-sandbox__action-item-icon {
   color: var(--ds-color-text-secondary);
+}
+
+.file-hero-sandbox__action-item-label {
+  max-width: 60px;
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-xs);
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .file-hero-sandbox__health-bar {

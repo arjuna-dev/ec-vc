@@ -1727,7 +1727,7 @@ const healthSegments = computed(() => {
 })
 
 const heroActionLabel = computed(() => (activeSourceKey.value === 'file-system' ? 'File Health' : 'File Health'))
-const heroActionTitle = computed(() => (activeSourceKey.value === 'file-system' ? 'Open Issues' : 'Next Actions'))
+const heroActionTitle = computed(() => (activeSourceKey.value === 'file-system' ? 'Reference Documents' : 'Next Actions'))
 const heroActionItems = computed(() => {
   if (activeSourceKey.value !== 'file-system') return []
   return [

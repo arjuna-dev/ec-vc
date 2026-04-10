@@ -542,7 +542,7 @@
           health-text="Checked 18 rows against 18 executable registry entries. Errors: 0. Warnings: 14. Info: 0."
           :health-segments="fileHeroPreviewSegments"
           action-label="File Health"
-          action-title="Open Issues"
+          action-title="Reference Documents"
           :action-items="fileHeroPreviewActionItems"
         />
       </template>
@@ -905,9 +905,8 @@ const fileHeroPreviewStats = [
 ]
 
 const fileHeroPreviewSegments = [
-  { tone: 'rich', width: 18 },
-  { tone: 'medium', width: 42 },
-  { tone: 'sparse', width: 40 },
+  { tone: 'rich', width: 22.22 },
+  { tone: 'sparse', width: 77.78 },
 ]
 
 const fileHeroPreviewActionItems = [
