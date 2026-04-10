@@ -38,6 +38,7 @@ Birth-status meaning:
 
 | File | Lifecycle | Birth Status | Guide Path | Parent Rule | Steward | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
+| `Files` | `Active` | `partially born` | `docs/200/Active/200-Files.md` | `docs/001/Active/001-Files.md` | `File Steward` | Canonical registry entity and runtime table exist. Full genesis/provenance reconstruction remains `partial`. |
 | `System Files` | `Active` | `partially born` | `docs/200/Active/200-System_Files.md` | `docs/001/Active/001-Files.md` | `File Steward` | Canon, registry, sqlite ownership, and shell path exist. Genesis event reconstruction remains `partial`. |
 | `Access Assignments` | `Draft` | `approved direction` | `docs/200/Draft/200-Access_Assignments.md` | `docs/001/Active/001-Files.md` | `File Steward` | Approved future `L1`. Canon, registry, runtime ownership, and shell rendering are not born yet. |
 
