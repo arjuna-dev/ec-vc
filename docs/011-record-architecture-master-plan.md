@@ -1263,11 +1263,19 @@ Current runtime note:
 - `Users_Roles` exists today as the role assignment DB
 - that path is useful, but it should not be mistaken for the final access model if project scope is required
 
-Future architecture candidate:
+Approved future canonical file:
 
 - `Access_Assignments`
 
-`Access_Assignments` may become the explicit owner for scoped access if access needs to be browsed, audited, governed, or edited as its own file.
+`Access_Assignments` should become the explicit standalone `L1` owner for scoped access.
+
+Reason:
+
+- access needs to be browsed directly
+- access needs to be audited directly
+- access needs to be governed directly
+- access decisions affect the `Owner` LDB boundary
+- project-scoped permissions should not hide inside a flat role helper table
 
 Fields to consider:
 
@@ -1282,9 +1290,11 @@ Fields to consider:
 
 Open architecture decision:
 
-- decide whether `Access_Assignments` should be a standalone `L1`, an `L2` under `Users`, or an `L2` under `Projects`
-- if access becomes a governed object with audit meaning, prefer a standalone file
-- if access remains only a simple assignment helper, keep it under the owning access surface
+- define the canonical `L1/L2/L3` structure for `Access_Assignments`
+- decide its exact `System`, `General`, `KDB`, and file-specific fields
+- decide whether `Users_Roles` remains a lower-level runtime helper, is absorbed, or becomes legacy
+- decide how `Access_Assignments` reads from and writes to `Users`, `Contacts`, `Projects`, and `Roles`
+- decide what events prove an access assignment was granted, changed, revoked, or expired
 
 Do not implement this through guessed permission behavior.
 

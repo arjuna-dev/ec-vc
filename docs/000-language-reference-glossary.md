@@ -7,7 +7,7 @@
 | Owner LDB | The Owner's protected local database or workspace. Access to it should be governed through explicit user/contact/project/role rules, not guessed globally. | Files |
 | User | The access identity layer. A User governs whether a linked Contact can access the Owner LDB. | Product Reference |
 | Contact | The person record inside the CRM/KDB layer. It may correspond to a User, but is not the same thing as a User. | Product Reference |
-| Access Assignment | The scoped rule that links a user/contact to a project or scope, a role, a status, and access limits. It is the likely future owner for project-scoped Owner LDB access. | Files |
+| Access Assignment | The scoped rule that links a user/contact to a project or scope, a role, a status, and access limits. `Access_Assignments` should become its own canonical `L1` because access must be browsed, audited, and governed directly. | Files |
 | Project x Role Access | The dynamic access rule where permissions are evaluated through project scope and role together instead of through global user status alone. | Files |
 | File Shell | The shared shell renderer for file-level `L1` collection surfaces. It should stay fixed while route-owned `L1` payloads swap underneath it. | Product Reference |
 | BB File | `Building Blocks File`. A special `System-Level File` that governs reusable UI building blocks, design primitives, shell parts, and reconstruction guidance. It is not a standard app-data `L1` and is a controlled exception to the normal `System` / `KDB` subsection baseline. | Record Architecture |

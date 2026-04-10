@@ -382,11 +382,23 @@ The intended model is:
 
 `Contact + Project + Role -> access rights / capabilities`
 
-This should eventually converge into an explicit access assignment structure rather than relying only on a flat user-role list.
+This should converge into an explicit access assignment structure rather than relying only on a flat user-role list.
 
-Possible future file or assignment owner:
+Approved future canonical file:
 
 - `Access_Assignments`
+
+`Access_Assignments` should be its own `L1` because access needs to be browsed, audited, governed, and validated directly.
+
+It is not runtime-born yet.
+
+Before implementation, it still needs the normal file birth chain:
+
+- canonical JSON structure
+- `System Files` registry row
+- file guide
+- runtime/sqlite ownership
+- shell rendering path
 
 Minimum fields to consider:
 
