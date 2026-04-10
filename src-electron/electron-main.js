@@ -1797,6 +1797,7 @@ function buildFilesAcceptanceValidation(rows = []) {
 
 function ensureDefaultFiles(database) {
   const filesMeta = getTableMeta(database, 'Files')
+  const hasLegacyFileContractPath = filesMeta.columnsSet.has('File_Contract_Path')
   const requiredColumns = [
     ['File_Class', 'TEXT'],
     ['Requires_System', 'TEXT'],
@@ -1815,6 +1816,19 @@ function ensureDefaultFiles(database) {
       database.exec(`ALTER TABLE Files ADD COLUMN ${columnName} ${columnType}`)
     }
   })
+
+  if (hasLegacyFileContractPath) {
+    database.exec(`
+      UPDATE Files
+      SET File_Guide_Path = CASE
+        WHEN TRIM(COALESCE(File_Contract_Path, '')) = '' THEN File_Guide_Path
+        WHEN TRIM(COALESCE(File_Contract_Path, '')) = 'docs/file-contracts.md' THEN File_Guide_Path
+        ELSE TRIM(File_Contract_Path)
+      END
+      WHERE COALESCE(TRIM(File_Guide_Path), '') = ''
+        AND COALESCE(TRIM(File_Contract_Path), '') != ''
+    `)
+  }
 
   const rows = FILE_PAGE_REGISTRY
     .map((entry, index) => buildDefaultFileRegistryRow(entry, index))
