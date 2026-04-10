@@ -56,6 +56,7 @@ It is the file-definition layer that helps the system know:
 ## Operating Rules
 
 - Use `System Files` as the registry for file-definition truth.
+- Treat canonical JSON as the first birth source for file structure; `System Files` records should register that structure, not invent it afterward.
 - Do not treat a file as fully born if it has no guide.
 - Do not treat a file as fully born if its `System`, `General`, or required `KDB` sections are missing.
 - Do not add file visibility in layout code as a substitute for registry/canon acceptance.

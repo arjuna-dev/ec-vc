@@ -30,6 +30,26 @@ This means:
 - one file guide
 - one stable guide surface for governance, rendering, KDB, stewardship, and provenance
 
+## File Birth Chain
+
+Every file should be born from the canonical JSON structure.
+
+The intended birth chain is:
+
+1. `docs/000-canonical-structure.json`
+2. `System Files` registry row
+3. file guide `.md`
+4. runtime/sqlite table and shell rendering
+
+That means:
+
+- canonical JSON defines the `L1/L2/L3` structure
+- `System Files` registers the file, class, guide, owner, steward, and required `System` or `KDB` status
+- the file guide explains the human and steward rules for that file
+- runtime/sqlite and shell rendering should follow the canonical definition and registry row
+
+If a runtime file/table/shell exists without the matching canonical JSON structure and `System Files` row, the file is not fully born.
+
 ## Parent / Child Guide Rule
 
 `Files.md` is the parent guide.
