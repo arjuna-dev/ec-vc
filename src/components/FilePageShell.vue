@@ -216,31 +216,6 @@
         </template>
       </FilePageToolbar>
 
-      <section v-if="fileSystemValidationGroups.length" class="test-shell-validation-groups">
-        <article
-          v-for="group in fileSystemValidationGroups"
-          :key="group.key"
-          class="test-shell-validation-group"
-        >
-          <div class="test-shell-validation-group__head">
-            <div class="test-shell-validation-group__title">{{ group.label }}</div>
-            <div class="test-shell-validation-group__meta">{{ group.issues.length }} issues</div>
-          </div>
-
-          <div class="test-shell-validation-group__body">
-            <div
-              v-for="(issue, index) in group.issues"
-              :key="`${group.key}:${issue.sourceKey || issue.fileId || 'issue'}:${issue.field || 'field'}:${index}`"
-              class="test-shell-validation-group__row"
-            >
-              <div class="test-shell-validation-group__row-key">{{ issue.sourceKey || issue.fileId || 'System Files' }}</div>
-              <div class="test-shell-validation-group__row-text">{{ issue.issue }}</div>
-              <div v-if="issue.suggestedAction" class="test-shell-validation-group__row-action">{{ issue.suggestedAction }}</div>
-            </div>
-          </div>
-        </article>
-      </section>
-
       <q-banner v-if="error" class="bg-red-2 text-black" rounded>
         {{ error }}
       </q-banner>
@@ -1834,51 +1809,6 @@ const fileSystemValidation = computed(() =>
 const fileSystemValidationIssueCount = computed(() => {
   const validation = fileSystemValidation.value
   return Array.isArray(validation?.issues) ? validation.issues.length : 0
-})
-
-function getFileSystemValidationGroupKey(issue = {}) {
-  const field = String(issue?.field || '').trim()
-  if (field === 'File_Guide_Path') return 'guide'
-  if (field === 'File_Canonical_Entity' || field === 'File_Runtime_Entity' || field === 'File_Route_Name' || field === 'File_Path') return 'runtime'
-  if (field === 'Requires_System' || field === 'Requires_KDB') return 'structure'
-  if (field === 'File_Status' || String(issue?.issue || '').includes('workspace navigation')) return 'acceptance'
-  if (field === 'File_Order') return 'ordering'
-  if (field === 'File_Source_Key') return 'registry'
-  return 'other'
-}
-
-const FILE_SYSTEM_VALIDATION_GROUP_LABELS = Object.freeze({
-  guide: 'Guide Path',
-  runtime: 'Runtime Identity',
-  structure: 'Required Structure',
-  acceptance: 'Acceptance + Navigation',
-  ordering: 'Ordering',
-  registry: 'Registry Linkage',
-  other: 'Other Drift',
-})
-
-const fileSystemValidationGroups = computed(() => {
-  const validation = fileSystemValidation.value
-  const issues = Array.isArray(validation?.issues) ? validation.issues : []
-  if (!issues.length) return []
-
-  const grouped = new Map()
-  issues.forEach((issue) => {
-    const key = getFileSystemValidationGroupKey(issue)
-    if (!grouped.has(key)) {
-      grouped.set(key, {
-        key,
-        label: FILE_SYSTEM_VALIDATION_GROUP_LABELS[key] || 'Other Drift',
-        issues: [],
-      })
-    }
-    grouped.get(key).issues.push(issue)
-  })
-
-  const order = ['guide', 'runtime', 'structure', 'acceptance', 'ordering', 'registry', 'other']
-  return order
-    .map((key) => grouped.get(key))
-    .filter(Boolean)
 })
 
 const isBbFileSource = computed(() => activeSourceKey.value === 'bb-file')
