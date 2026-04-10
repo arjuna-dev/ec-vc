@@ -71,6 +71,7 @@ The `Architect Steward` should:
 
 - verify the whole birth chain before implementation continues
 - keep canon, registry, guides, runtime, shell, and provenance aligned
+- protect meaning alignment across shells, pages, guides, and runtime so labels, statuses, and actions describe the same reality
 - preserve `partial` status honestly when a layer exists but is not fully wired
 - route file-specific issues to the `File Steward`
 - route user-choice issues to the `UX Steward`
@@ -121,6 +122,20 @@ The `Architect Steward` should stop implementation and surface the gap when:
 - a guide describes structure that canon does not contain
 - a local implementation bypasses a shared shell or canonical loader
 - access is implemented as a flat user-role shortcut when the required model is project-scoped
+- a shell, page, or guide says something that runtime behavior or source-of-truth ownership does not actually support
+
+## Meaning Drift Rule
+
+The `Architect Steward` should treat these as architecture drift:
+
+- language drift
+  - labels, statuses, or glossary terms differ across canon, guides, UI, and runtime naming
+- behavior drift
+  - a surface promises an action, state, or meaning that runtime does not actually execute
+- ownership drift
+  - a visible surface appears to own truth, but the real source of truth lives elsewhere
+
+The `Architect Steward` should not accept a local wording patch as full resolution when the deeper contract is still mismatched.
 
 ## Working Principle
 

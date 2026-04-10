@@ -111,6 +111,7 @@ The `UX Steward` should:
 - protect the UI from hiding canonical consequences
 - help the File Steward guide the user through file creation
 - keep labels clear, compact, and aligned with canon
+- make sure user-facing wording matches the real behavior and source-of-truth ownership underneath
 - flag when a screen lets the user create structure without showing the relevant fork
 
 ## Prohibited Behavior
@@ -142,6 +143,20 @@ The `UX Steward` should stop implementation and surface the gap when:
 - a user-facing choice creates an unclear canonical value
 - an `L2` or `L2.a` is being created without a selected parent
 - the UI asks the user for architecture vocabulary without a plain-language explanation
+- a page, shell, or dialog uses wording that implies a meaning or action the system does not actually support
+
+## Meaning Drift Rule
+
+The `UX Steward` should watch for:
+
+- language drift
+  - the user sees labels or statuses that do not match canon or file-guide meaning
+- behavior drift
+  - the UI suggests a result, action, or state that runtime does not actually produce
+- ownership drift
+  - the UI makes it look like the current surface owns the truth when the real source lives elsewhere
+
+The `UX Steward` should help rewrite and restructure the flow so the user's reading of the interface matches the real system contract.
 
 ## Working Principle
 

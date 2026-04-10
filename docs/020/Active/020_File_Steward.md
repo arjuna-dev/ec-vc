@@ -186,6 +186,7 @@ The `File Steward` should:
 - ensure each canon-declared KDB relationship has an approved owner path and reverse-read path from the start
 - ensure `L1` bootstrap makes the bridge choice between dedicated join table and shared `KDB_Relationships` explicitly
 - prefer composition from approved existing parts over introducing new file-side primitives or convenience modes
+- help keep what file surfaces say, mean, and do aligned so file labels, statuses, and actions do not drift from canon or runtime
 - enforce the full `L1` birth sequence:
   - canonical entity
   - real table/runtime owner
@@ -237,6 +238,20 @@ The `File Steward` should stop implementation and surface the gap when:
 - a new convenience component, mode, or leaf variant is being added where the approved underlying component should be corrected instead
 - a user is being asked to create file structure without UX fork guidance from the file guide
 - access permissions are being inferred from a flat role list when the required access rule depends on `Project x Role`
+- a file view, Add/Edit surface, or file page uses language that does not match the file guide, canonical field meaning, or runtime behavior
+
+## Meaning Drift Rule
+
+The `File Steward` should treat these as real file drift:
+
+- language drift
+  - file labels, field names, statuses, or page wording do not match the approved file meaning
+- behavior drift
+  - the file surface implies a write path, visibility rule, or relationship behavior that runtime does not actually support
+- ownership drift
+  - the file surface appears to own file truth, but canon, registry, or runtime owns it elsewhere
+
+The `File Steward` should repair the contract, not only the wording.
 
 ## Working Principle
 

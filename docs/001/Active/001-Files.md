@@ -124,6 +124,38 @@ With a parent file-guide rule, the system can say clearly for each file:
 - what rulebooks it depends on
 - what events should prove it was born correctly
 
+## Meaning Drift Rule
+
+If a surface says something, the system should mean it.
+
+If the system means it, runtime behavior should do it.
+
+If runtime behavior does it, canon and guides should describe it the same way.
+
+This rule applies across:
+
+- `BB Shell`
+- `Add/Edit` shells
+- file views
+- page views
+- navigation labels
+- file guides
+- canonical structure
+- runtime handlers and bridge behavior
+
+Three drift classes should be treated as real architecture drift:
+
+- language drift
+  - labels, titles, statuses, or glossary terms do not match canon or guide meaning
+- behavior drift
+  - UI wording promises an action or state that runtime does not actually perform
+- ownership drift
+  - the visible source appears to own truth, but the real source of truth lives elsewhere
+
+When these drift classes appear, do not patch only the surface wording.
+
+Resolve the mismatch so that what the surface says, what the system means, and what runtime does are aligned again.
+
 ## Required File Guide Sections
 
 Every child file guide should begin with these sections.
