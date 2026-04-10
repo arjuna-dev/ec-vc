@@ -54,7 +54,7 @@ That means:
 - `docs/020/Active/020_File_Steward.md`
 - `docs/020/Active/020_UX_Steward.md`
 - `docs/010/Active/010-record-architecture-master-plan.md`
-- `docs/010/Active/010_Game_Rulebook.md`
+- `docs/300/Active/300_Game_Rulebook.md`
 - `docs/000-canonical-structure.json`
 
 ## Operating Rules
