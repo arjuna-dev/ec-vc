@@ -16,6 +16,8 @@ This document should be treated as the single planning source of truth for the `
 Companion behavior and ingestion-side structural discipline should also stay aligned with:
 
 - `docs/002/Active/002-Companion_Manual.md`
+- `docs/003/Active/003-Games.md`
+- `docs/030/Active/030-Game_Operation.md`
 - `docs/300/Active/300_Game_Rulebook.md`
 - `docs/020/Active/020_Game_Steward.md`
 - `docs/999/Active/999-ECS_Workstream_Tracker.md`
@@ -23,8 +25,8 @@ Companion behavior and ingestion-side structural discipline should also stay ali
 Docs-domain rule:
 
 - `docs/300/Active/300_Game_Rulebook.md` is the concrete Games guide
-- future `003` docs should define root Games rules
-- future `030` docs should define Games operation
+- `docs/003/Active/003-Games.md` defines root Games rules
+- `docs/030/Active/030-Game_Operation.md` defines Games operation
 - `docs/020/Active/020_Game_Steward.md` stays in Companion Stewards because it defines the companion role that explains and governs the game layer
 
 When decisions change:

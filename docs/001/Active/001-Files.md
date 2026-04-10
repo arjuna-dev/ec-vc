@@ -522,6 +522,19 @@ Each file-specific guide can begin from this compact template:
 12. `L2 File System`
 13. `Open Questions`
 
+System file guides should live in `docs/100`.
+
+Start new file guides in `docs/100/Draft` unless the file is already fully born and approved as active truth.
+
+Use this naming pattern:
+
+- `docs/100/Draft/100-<File_Name>.md`
+- `docs/100/Active/100-<File_Name>.md`
+
+Do not place system file guides in `docs/200`.
+
+`docs/200` is reserved for concrete Companion role guides.
+
 ## Working Rule
 
 We will refine this together.

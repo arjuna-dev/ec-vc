@@ -97,7 +97,7 @@ When subgrouping is structurally necessary inside a subsection:
 
 ## Honest Birth Status Rule
 
-File guides live in `docs/200`.
+System file guides live in `docs/100`.
 
 The `File Steward` owns whether a file guide belongs in:
 

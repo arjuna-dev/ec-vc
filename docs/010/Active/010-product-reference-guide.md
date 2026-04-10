@@ -17,6 +17,8 @@ It should be treated as the single reference source for:
 Companion behavior rules now also live in:
 
 - `docs/002/Active/002-Companion_Manual.md`
+- `docs/003/Active/003-Games.md`
+- `docs/030/Active/030-Game_Operation.md`
 - `docs/300/Active/300_Game_Rulebook.md`
 - `docs/020/Active/020_Game_Steward.md`
 - `docs/999/Active/999-ECS_Workstream_Tracker.md`
@@ -24,8 +26,8 @@ Companion behavior rules now also live in:
 Game-domain placement rule:
 
 - `docs/300/Active/300_Game_Rulebook.md` is the current concrete Games guide
-- future `003` docs should describe root Games rules
-- future `030` docs should describe Games operation
+- `docs/003/Active/003-Games.md` describes root Games rules
+- `docs/030/Active/030-Game_Operation.md` describes Games operation
 - `docs/020/Active/020_Game_Steward.md` remains a Companion Steward role because it describes who explains and governs the game layer
 
 When these rules change:

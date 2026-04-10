@@ -12,6 +12,8 @@ It should govern and explain the Games branch, but it should not be moved into t
 
 Related Games guide:
 
+- `docs/003/Active/003-Games.md`
+- `docs/030/Active/030-Game_Operation.md`
 - `docs/300/Active/300_Game_Rulebook.md`
 
 The Game Steward is a guide layer that explains:

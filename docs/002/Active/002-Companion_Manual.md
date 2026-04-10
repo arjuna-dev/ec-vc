@@ -18,7 +18,7 @@ It is the base operating manual for companion work.
 
 Before operating on a file, the companion should read and follow that file's governing `.md`.
 
-File guides live in `docs/200`.
+System file guides live in `docs/100`.
 
 The companion should treat file-guide lifecycle folders as part of the instruction:
 

@@ -34,7 +34,7 @@ The clean rule is:
 | --- | --- |
 | `Files` | The canonical entity and sqlite table that stores file-definition records. |
 | `System Files` | The app-facing surface that exposes and governs the `Files` registry. |
-| `File Guide` | The `.md` guide attached to a file record. File guides live in `docs/200`. |
+| `File Guide` | The `.md` guide attached to a file record. System file guides live in `docs/100`. |
 | `File Source Key` | The stable registry key used to connect a file row to the file/page registry. |
 | `File Class` | Whether a file is an `L1`, `L2`, or `L2.a`. |
 | `File Order` | The display or creation order used by the registry and file shell. |

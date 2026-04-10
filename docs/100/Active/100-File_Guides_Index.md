@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the local map for file guides in `docs/200`.
+This document is the local map for system file guides in `docs/100`.
 
 It lists which file guides exist, where they live, who governs them, and whether they are active operating truth, draft direction, or archived memory.
 
@@ -77,4 +77,4 @@ When a new file guide is created:
 
 - Should this index eventually be generated from `System Files` records?
 - Should `File_Status` in runtime align directly with `Active`, `Draft`, and `Archive`?
-- Should each active `L1` require a `200` guide before it appears in main navigation?
+- Should each active `L1` require a `100` guide before it appears in main navigation?

@@ -9,14 +9,16 @@ It lives in `docs/300` because it describes a game-specific guide, not a system-
 Related docs:
 
 - `docs/000-00.md`
+- `docs/003/Active/003-Games.md`
+- `docs/030/Active/030-Game_Operation.md`
 - `docs/010/Active/010-record-architecture-master-plan.md`
 - `docs/010/Active/010-product-reference-guide.md`
 - `docs/020/Active/020_Game_Steward.md`
 
 Domain rule:
 
-- future `003` docs should define root Games rules
-- future `030` docs should define Games operation
+- `docs/003/Active/003-Games.md` defines root Games rules
+- `docs/030/Active/030-Game_Operation.md` defines Games operation
 - this `300` guide defines the current concrete game rulebook
 - `Game Steward` remains in `020` because it is the companion role that explains and governs this layer
 
