@@ -32,6 +32,7 @@ export const GENERAL_SETTINGS_FONT_WEIGHT_SAMPLES = Object.freeze([
 
 export const GENERAL_SETTINGS_COLOR_SWATCHES = Object.freeze([
   { key: 'brand-blue', label: 'Brand Blue', token: '--ds-color-brand-blue', color: 'var(--ds-color-brand-blue)' },
+  { key: 'brand-orange', label: 'Brand Orange', token: '--ds-color-brand-orange', color: 'var(--ds-color-brand-orange)' },
   { key: 'brand-black', label: 'Brand Black', token: '--ds-color-brand-black', color: 'var(--ds-color-brand-black)' },
   { key: 'brand-dark-grey', label: 'Brand Dark_Grey', token: '--ds-color-brand-dark-grey', color: 'var(--ds-color-brand-dark-grey)' },
   { key: 'brand-white', label: 'Brand White', token: '--ds-color-brand-white', color: 'var(--ds-color-brand-white)' },
