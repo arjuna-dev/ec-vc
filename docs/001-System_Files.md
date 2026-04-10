@@ -103,6 +103,43 @@ The `File Steward` should use `System Files` to validate:
 - referenced rulebooks and manuals
 - birth and provenance requirements
 
+## UX Steward
+
+The `UX Steward` should use `System Files` to make file-definition choices understandable to the user.
+
+The first user-facing fork should ask:
+
+`Is this a new file the user should be able to find, govern, and open?`
+
+For `System Files`, the answer is yes.
+
+That means:
+
+- `System Files` is an `L1`
+- it should be visible as a governed file-definition surface
+- it should have its own file guide
+- it should expose the file-definition fields needed to guide future file birth
+
+The safe default for new user-created concepts is also `L1` until the user or steward confirms the concept is only a section or subsection inside an existing file.
+
+## File Birth Checklist
+
+For `System Files`, the initial checklist is:
+
+- canonical JSON structure exists: yes, entity `Files`
+- `System Files` registry row exists: yes, source key `file-system`
+- file guide exists: yes, `docs/001-System_Files.md`
+- owner is declared: yes, `Owner`
+- steward is declared: yes, `File Steward`
+- UX fork questions are declared: yes, this guide defines the initial `L1/L2/L2.a` fork
+- `System` requirement is declared: yes
+- `KDB` requirement is declared: yes
+- runtime/sqlite ownership is declared: yes, table `Files`
+- shell rendering path is declared: yes, route `/file-system`
+- events/provenance path is declared: partial, event log linkage exists but full genesis event reconstruction is still an open runtime task
+
+If any item regresses from yes to unclear, the file should be treated as not fully born until the gap is surfaced.
+
 ## Governance
 
 `System Files` is governed by:

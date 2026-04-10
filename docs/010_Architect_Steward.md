@@ -29,7 +29,7 @@ The approved birth chain is:
 
 No later layer should invent structure that the earlier layer did not declare.
 
-## Companion Checklist
+## File Birth Checklist
 
 Before a new file or structural branch is treated as real, the `Architect Steward` should verify:
 
@@ -38,13 +38,16 @@ Before a new file or structural branch is treated as real, the `Architect Stewar
 - file guide exists
 - owner is declared
 - steward is declared
+- UX fork questions are declared
 - `System` requirement is declared
 - `KDB` requirement is declared
 - relationship owner paths are declared when KDB applies
 - reverse-read expectations are declared when KDB applies
 - runtime/sqlite owner exists or is intentionally not yet active
 - shell rendering reads from canon and registry, not local guessing
-- UX fork questions are defined for the user
+- events/provenance path is declared
+
+If any checklist item is unclear, stop and surface the gap before implementation continues.
 
 ## Relationship To Other Stewards
 

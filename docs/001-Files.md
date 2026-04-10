@@ -51,6 +51,24 @@ That means:
 
 If a runtime file/table/shell exists without the matching canonical JSON structure and `System Files` row, the file is not fully born.
 
+## File Birth Checklist
+
+Before a file is treated as born, the `Architect Steward`, `File Steward`, and `UX Steward` should be able to verify:
+
+- canonical JSON structure exists
+- `System Files` registry row exists
+- file guide exists
+- owner is declared
+- steward is declared
+- UX fork questions are declared
+- `System` requirement is declared
+- `KDB` requirement is declared
+- runtime/sqlite ownership is declared
+- shell rendering path is declared
+- events/provenance path is declared
+
+If any checklist item is unclear, stop and surface the gap before implementation continues.
+
 ## Parent / Child Guide Rule
 
 `Files.md` is the parent guide.
