@@ -95,6 +95,36 @@ When subgrouping is structurally necessary inside a subsection:
 - it should not be improvised in shell code only
 - it should preserve `L3` as the leaf layer
 
+## Honest Birth Status Rule
+
+The `File Steward` should preserve the difference between:
+
+- approved direction
+- partially born file
+- fully born file
+
+Approved direction means the Owner and architecture docs have accepted the concept.
+
+It does not mean the file is implemented.
+
+A file is only fully born when the file birth checklist is honestly satisfied:
+
+- canonical JSON structure exists
+- `System Files` registry row exists
+- file guide exists
+- owner is declared
+- steward is declared
+- UX fork questions are declared
+- `System` requirement is declared
+- `KDB` requirement is declared
+- runtime/sqlite ownership is declared
+- shell rendering path is declared
+- events/provenance path is declared
+
+If a file guide exists but canon, registry, runtime, or shell ownership is missing, the `File Steward` should mark those items as `no`, `partial`, or `unclear`.
+
+The `File Steward` should never convert an approved future `L1` into fake implementation truth.
+
 ## Building Block Rule
 
 The same anti-drift discipline used for shared UI building blocks should apply to file architecture.
