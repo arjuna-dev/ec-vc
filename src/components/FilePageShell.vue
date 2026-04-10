@@ -251,6 +251,7 @@
             >
               <div class="test-shell-validation-group__row-key">{{ issue.sourceKey || issue.fileId || 'System Files' }}</div>
               <div class="test-shell-validation-group__row-text">{{ issue.issue }}</div>
+              <div v-if="issue.suggestedAction" class="test-shell-validation-group__row-action">{{ issue.suggestedAction }}</div>
             </div>
           </div>
         </article>
@@ -5099,6 +5100,12 @@ function isBbGraphLinkToken(tokenRow) {
   font-size: 11px;
   line-height: 1.35;
   color: #5f5f5f;
+}
+
+.test-shell-validation-group__row-action {
+  font-size: 11px;
+  line-height: 1.35;
+  color: #1c1c1c;
 }
 
 @media (max-width: 900px) {

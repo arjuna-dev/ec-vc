@@ -1648,7 +1648,7 @@ function buildFilesAcceptanceValidation(rows = []) {
     if (sourceKey && !rowsBySourceKey.has(sourceKey)) rowsBySourceKey.set(sourceKey, row)
   })
 
-  const addIssue = ({ severity = 'warn', sourceKey = '', fileId = '', field = '', issue = '' } = {}) => {
+  const addIssue = ({ severity = 'warn', sourceKey = '', fileId = '', field = '', issue = '', suggestedAction = '' } = {}) => {
     if (!issue) return
     issues.push({
       severity,
@@ -1656,6 +1656,7 @@ function buildFilesAcceptanceValidation(rows = []) {
       fileId: String(fileId || '').trim(),
       field: String(field || '').trim(),
       issue: String(issue || '').trim(),
+      suggestedAction: String(suggestedAction || '').trim(),
     })
   }
 
@@ -1670,6 +1671,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         sourceKey,
         field: 'File_Source_Key',
         issue: 'Registry entry exists in structureRegistry but no System Files row was found.',
+        suggestedAction: 'Create or reseed the System Files row before trusting runtime acceptance.',
       })
       return
     }
@@ -1686,6 +1688,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'File_Status',
         issue: `File_Status "${String(row?.File_Status || '').trim()}" is outside the approved acceptance vocabulary.`,
+        suggestedAction: 'Normalize File_Status to Active, Partial, Draft, Hidden, or Archived.',
       })
     }
 
@@ -1696,6 +1699,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'File_Canonical_Entity',
         issue: `Canonical entity drift: expected "${expected.File_Canonical_Entity}".`,
+        suggestedAction: 'Align the System Files row with structureRegistry or update the executable registry intentionally.',
       })
     }
 
@@ -1706,6 +1710,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'File_Runtime_Entity',
         issue: `Runtime entity drift: expected "${expected.File_Runtime_Entity}".`,
+        suggestedAction: 'Align runtime entity naming with structureRegistry and runtime ownership.',
       })
     }
 
@@ -1716,6 +1721,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'File_Route_Name',
         issue: `Route name drift: expected "${expected.File_Route_Name}".`,
+        suggestedAction: 'Align the route name with the executable registry before treating the file as accepted.',
       })
     }
 
@@ -1726,6 +1732,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'File_Path',
         issue: `Route path drift: expected "${expected.File_Path}".`,
+        suggestedAction: 'Align the route path with structureRegistry or change the registry intentionally.',
       })
     }
 
@@ -1736,6 +1743,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'File_Order',
         issue: `File order differs from the executable registry seed (${expected.File_Order}).`,
+        suggestedAction: 'Keep if intentional, otherwise realign the row order with the registry seed.',
       })
     }
 
@@ -1746,6 +1754,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'Requires_System',
         issue: `Requires_System drift: expected "${expected.Requires_System}".`,
+        suggestedAction: 'Align the row value with canonical subsection requirements.',
       })
     }
 
@@ -1756,6 +1765,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'Requires_KDB',
         issue: `Requires_KDB drift: expected "${expected.Requires_KDB}".`,
+        suggestedAction: 'Align the row value with canonical subsection requirements.',
       })
     }
 
@@ -1766,16 +1776,18 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId,
         field: 'File_Guide_Path',
         issue: 'Active file is missing File_Guide_Path and does not qualify as a protected bootstrap exception.',
+        suggestedAction: 'Add a real guide path or move the file to Partial or Draft until the guide exists.',
       })
     }
 
     if (statusValue && statusValue !== 'Active' && entry.showInWorkspaceNav) {
       addIssue({
-        severity: 'info',
+        severity: 'warn',
         sourceKey,
         fileId,
         field: 'File_Status',
         issue: `System Files status is "${statusValue}" while structureRegistry still marks this file visible in workspace navigation.`,
+        suggestedAction: 'Promote the guide and file status to Active, hide the file from workspace nav, or mark it as an explicit bootstrap exception.',
       })
     }
   })
@@ -1788,6 +1800,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId: String(row?.id || '').trim(),
         field: 'File_Source_Key',
         issue: 'System Files row is missing File_Source_Key.',
+        suggestedAction: 'Add the missing source key or remove the orphan row.',
       })
       return
     }
@@ -1798,6 +1811,7 @@ function buildFilesAcceptanceValidation(rows = []) {
         fileId: String(row?.id || '').trim(),
         field: 'File_Source_Key',
         issue: 'System Files row has no matching structureRegistry entry.',
+        suggestedAction: 'Add the registry entry or retire the row if the file is no longer accepted.',
       })
     }
   })
