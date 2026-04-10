@@ -1619,6 +1619,12 @@ const someVisibleSelected = computed(() => {
   return visibleSelectableRowIds.value.some((id) => selectedRowIds.value.includes(id))
 })
 
+function getHeroContractSourceKey(sourceKey = '') {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  if (['opportunities', 'funds', 'rounds'].includes(normalizedSourceKey)) return 'opportunities'
+  return normalizedSourceKey
+}
+
 const FILE_GUIDE_PATHS_BY_SOURCE = Object.freeze({
   'bb-file': 'docs/100/Draft/100-BB_Shell.md',
   'file-system': 'docs/100/Active/100-System_Files.md',
@@ -1743,8 +1749,9 @@ function buildSharedHeroReferenceDocs(sourceKey, fileLabel) {
 }
 
 const heroPayload = computed(() => {
-  const sourceKey = String(activeSourceKey.value || '').trim().toLowerCase()
-  const fileLabel = String(activeRegistryEntry.value?.label || pageShellLabel.value || 'File').trim() || 'File'
+  const sourceKey = getHeroContractSourceKey(activeSourceKey.value)
+  const heroRegistryEntry = getFilePageRegistryEntry(sourceKey) || activeRegistryEntry.value || null
+  const fileLabel = String(heroRegistryEntry?.label || pageShellLabel.value || 'File').trim() || 'File'
   const validation = sourceKey === 'file-system' ? fileSystemValidation.value : null
   const totalRows = rawRows.value.length
   const totalDriftPoints = Math.max(
