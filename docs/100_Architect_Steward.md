@@ -43,6 +43,7 @@ Before a new file or structural branch is treated as real, the `Architect Stewar
 - `KDB` requirement is declared
 - relationship owner paths are declared when KDB applies
 - reverse-read expectations are declared when KDB applies
+- access paths distinguish `Contact` identity, `User` access, `Project` scope, and `Role` authority when Owner LDB access is affected
 - runtime/sqlite owner exists or is intentionally not yet active
 - shell rendering reads from canon and registry, not local guessing
 - events/provenance path is declared
@@ -84,6 +85,7 @@ The `Architect Steward` should stop implementation and surface the gap when:
 - the UI creates a structural choice without a UX fork
 - a guide describes structure that canon does not contain
 - a local implementation bypasses a shared shell or canonical loader
+- access is implemented as a flat user-role shortcut when the required model is project-scoped
 
 ## Working Principle
 

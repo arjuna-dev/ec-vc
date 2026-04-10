@@ -130,6 +130,8 @@ The `File Steward` should:
 - make sure the right relationships exist
 - make sure relationship direction, owner-path, and reverse-read are correct
 - make sure file order and creation sequence support those connections
+- keep `Users`, `Contacts`, `Roles`, and `Projects` from drifting apart when they define access to the `Owner` LDB
+- require project-scoped access assignments when global user-role status is not enough to explain permissions
 - protect declared branch-capable `L1`s from being normalized into the wrong table model
 - help keep file naming, loader naming, and menu naming aligned
 - ensure new normal `L1`s are born with reciprocal KDB bridge wiring as part of file birth, not as a later repair step
@@ -162,6 +164,7 @@ The `File Steward` should stop implementation and surface the gap when:
 - KDB bridge ownership is being invented ad hoc after file birth instead of being declared during bootstrap
 - a new convenience component, mode, or leaf variant is being added where the approved underlying component should be corrected instead
 - a user is being asked to create file structure without UX fork guidance from the file guide
+- access permissions are being inferred from a flat role list when the required access rule depends on `Project x Role`
 
 ## Working Principle
 

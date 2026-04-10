@@ -366,6 +366,30 @@ Current approved first-pass genesis file order:
 22. `Securities`
 23. remaining current supporting `KDB` / reference files
 
+First-pass L1 micro-summary:
+
+- `System Files`: the file-definition repository and genesis layer for the rest of the file system
+- `Rule Books`: the governing rule layer that tells stewards how creation, upkeep, and validation should work
+- `BB File`: the visible building-language layer for reusable shell, page, and component canon
+- `Owner`: the root authority primitive and local workspace founder identity
+- `User Roles`: the first role definition layer for authority and participation
+- `Contact`: the people and address-book layer
+- `User`: the access identity linked to a contact when that contact can enter the `Owner` LDB
+- `Companion`: the companion operating surface and manual layer
+- `Companion Roles`: the role catalog for companion workers
+- `Events`: the provenance layer that proves creation, activity, and later reconstruction
+- `Projects`: the operational work container and access scope
+- `Tasks`: the action/work tracking layer
+- `Notes`: the lightweight knowledge and observation layer
+- `Artifacts`: the raw source-material layer
+- `Ingestion`: the processing and extraction layer that turns source material into structured candidates
+- `Companies`: the company/profile operating layer
+- `Opportunities`: the deal or opportunity branch layer
+- `Funds`: the fund-specific investment layer
+- `Rounds`: the financing-round-specific investment layer
+- `Markets`: the market/reference layer
+- `Securities`: the security/instrument reference layer
+
 Execution rule:
 
 - create the file
@@ -1208,6 +1232,63 @@ Working rule:
 - `Roles` defines the role records
 - `Users_Roles` defines the user-to-role assignments
 - `Users_Roles` is a real assignment DB even if it is not yet a standalone file page
+
+### Owner LDB Access Model
+
+`Users` should not be understood as people in general.
+
+`Contacts` is closer to the people and address-book layer.
+
+The cleaner model is:
+
+- `Contact`: the person or entity profile
+- `User`: the login or access identity linked to a `Contact`
+- `Role`: the permission or behavior role
+- `Project`: the scope where access applies
+- `Owner LDB`: the protected local database or workspace
+- `[Project] x [Role]`: the dynamic access rule that determines what a user can see or do inside that project context
+
+Clean rule:
+
+`Users` govern access to the `Owner` LDB by linking `Contacts` to project-scoped roles.
+
+A `Contact` may exist without being a `User`.
+
+A `User` should be treated as an access-enabled `Contact` identity.
+
+Permissions should be evaluated through `Project x Role` context rather than global user status alone.
+
+Current runtime note:
+
+- `Users_Roles` exists today as the role assignment DB
+- that path is useful, but it should not be mistaken for the final access model if project scope is required
+
+Future architecture candidate:
+
+- `Access_Assignments`
+
+`Access_Assignments` may become the explicit owner for scoped access if access needs to be browsed, audited, governed, or edited as its own file.
+
+Fields to consider:
+
+- `user/contact`
+- `project/scope`
+- `role`
+- `status`
+- `granted_by`
+- `granted_at`
+- `revoked_at`
+- `access_limits`
+
+Open architecture decision:
+
+- decide whether `Access_Assignments` should be a standalone `L1`, an `L2` under `Users`, or an `L2` under `Projects`
+- if access becomes a governed object with audit meaning, prefer a standalone file
+- if access remains only a simple assignment helper, keep it under the owning access surface
+
+Do not implement this through guessed permission behavior.
+
+This should be documented before runtime work because it affects auth, LDB boundaries, project visibility, and collaboration.
 
 ## Field Class Model
 

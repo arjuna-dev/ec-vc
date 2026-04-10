@@ -354,6 +354,55 @@ It becomes:
 - a rendering input layer
 - a guide registry
 
+## Owner LDB Access Rule
+
+`Users` should not be understood as people in general.
+
+`Contacts` is the people and address-book layer.
+
+`Users` is the access identity layer.
+
+Clean rule:
+
+- `Contacts` store the person or entity profile
+- `Users` govern access to the `Owner` LDB
+- a `User` should be treated as an access-enabled `Contact` identity
+- a `Contact` may exist without being a `User`
+- access should be evaluated through `Project x Role` context instead of global user status alone
+
+That means:
+
+- `Owner` remains the root authority
+- `Owner LDB` is the protected local database or workspace
+- `Project` is the access scope
+- `Role` is the permission or behavior role
+- `[Project] x [Role]` is the dynamic access rule that determines what the linked user can see or do
+
+The intended model is:
+
+`Contact + Project + Role -> access rights / capabilities`
+
+This should eventually converge into an explicit access assignment structure rather than relying only on a flat user-role list.
+
+Possible future file or assignment owner:
+
+- `Access_Assignments`
+
+Minimum fields to consider:
+
+- `user/contact`
+- `project/scope`
+- `role`
+- `status`
+- `granted_by`
+- `granted_at`
+- `revoked_at`
+- `access_limits`
+
+Do not implement this as guessed permission behavior.
+
+Document the access model first because it affects auth, LDB boundaries, project visibility, collaboration, and file-level governance.
+
 ## Add/Edit File Shell Rule
 
 Each file guide should also be reachable from the `Add/Edit File Shell`.
