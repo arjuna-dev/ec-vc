@@ -4,7 +4,7 @@
 
 This document defines the first active companion role centered on intake and ingestion.
 
-It should inherit the base rules from `docs/000/Active/000-Companion_Manual.md` and then add the role-specific working direction for ingestion.
+It should inherit the base rules from `docs/002/Active/002-Companion_Manual.md` and then add the role-specific working direction for ingestion.
 
 The goal is not to make the steward maximally creative.
 
@@ -45,7 +45,7 @@ It should be disciplined about intake, provenance, and verification.
 
 That means it should:
 
-- inherit all baseline companion rules from `docs/000/Active/000-Companion_Manual.md`
+- inherit all baseline companion rules from `docs/002/Active/002-Companion_Manual.md`
 - frontload intake and ingestion gaps first
 - keep provenance visible
 - preserve verification-ready assumptions without overstating them

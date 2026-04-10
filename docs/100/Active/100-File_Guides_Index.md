@@ -38,9 +38,9 @@ Birth-status meaning:
 
 | File | Lifecycle | Birth Status | Guide Path | Parent Rule | Steward | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| `Files` | `Active` | `partially born` | `docs/200/Active/200-Files.md` | `docs/001/Active/001-Files.md` | `File Steward` | Canonical registry entity and runtime table exist. Full genesis/provenance reconstruction remains `partial`. |
-| `System Files` | `Active` | `partially born` | `docs/200/Active/200-System_Files.md` | `docs/001/Active/001-Files.md` | `File Steward` | Canon, registry, sqlite ownership, and shell path exist. Genesis event reconstruction remains `partial`. |
-| `Access Assignments` | `Draft` | `approved direction` | `docs/200/Draft/200-Access_Assignments.md` | `docs/001/Active/001-Files.md` | `File Steward` | Approved future `L1`. Canon, registry, runtime ownership, and shell rendering are not born yet. |
+| `Files` | `Active` | `partially born` | `docs/100/Active/100-Files.md` | `docs/001/Active/001-Files.md` | `File Steward` | Canonical registry entity and runtime table exist. Full genesis/provenance reconstruction remains `partial`. |
+| `System Files` | `Active` | `partially born` | `docs/100/Active/100-System_Files.md` | `docs/001/Active/001-Files.md` | `File Steward` | Canon, registry, sqlite ownership, and shell path exist. Genesis event reconstruction remains `partial`. |
+| `Access Assignments` | `Draft` | `approved direction` | `docs/100/Draft/100-Access_Assignments.md` | `docs/001/Active/001-Files.md` | `File Steward` | Approved future `L1`. Canon, registry, runtime ownership, and shell rendering are not born yet. |
 
 ## Promotion Rule
 
@@ -66,12 +66,12 @@ If any item is `no`, `partial`, or `unclear`, keep the guide in `Draft` unless t
 
 When a new file guide is created:
 
-1. Start it in `docs/200/Draft`.
+1. Start it in `docs/100/Draft`.
 2. Use the required guide structure from `docs/001/Active/001-Files.md`.
 3. Fill the honest file birth checklist.
 4. Mark missing birth-chain items as `no`, `partial`, or `unclear`.
 5. Add the guide to this index.
-6. Promote to `docs/200/Active` only after the `File Steward` confirms the guide is active truth.
+6. Promote to `docs/100/Active` only after the `File Steward` confirms the guide is active truth.
 
 ## Open Questions
 

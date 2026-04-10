@@ -16,9 +16,9 @@ It should be treated as the single reference source for:
 
 Companion behavior rules now also live in:
 
-- `docs/000/Active/000-Companion_Manual.md`
+- `docs/002/Active/002-Companion_Manual.md`
 - `docs/010/Active/010_Game_Rulebook.md`
-- `docs/100/Active/100_Game_Steward.md`
+- `docs/020/Active/020_Game_Steward.md`
 - `docs/999/Active/999-ECS_Workstream_Tracker.md`
 
 When these rules change:

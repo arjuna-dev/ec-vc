@@ -3,7 +3,7 @@
 ## File Identity
 
 - file name: `Files`
-- file guide: `docs/200/Active/200-Files.md`
+- file guide: `docs/100/Active/100-Files.md`
 - parent guide: `docs/001/Active/001-Files.md`
 - file class: `L1`
 - canonical entity: `Files`
@@ -19,8 +19,8 @@ It stores the file-definition records that tell the system which files exist, ho
 This guide is different from `docs/001/Active/001-Files.md`.
 
 - `docs/001/Active/001-Files.md` is the parent rule for all file guides.
-- `docs/200/Active/200-Files.md` is the guide for the actual `Files` canonical entity and registry table.
-- `docs/200/Active/200-System_Files.md` is the guide for the app-facing `System Files` surface backed by `Files`.
+- `docs/100/Active/100-Files.md` is the guide for the actual `Files` canonical entity and registry table.
+- `docs/100/Active/100-System_Files.md` is the guide for the app-facing `System Files` surface backed by `Files`.
 
 The clean rule is:
 
@@ -46,15 +46,15 @@ The clean rule is:
 ## Referenced Documents
 
 - `docs/001/Active/001-Files.md`
-- `docs/200/Active/200-File_Guides_Index.md`
-- `docs/200/Active/200-System_Files.md`
+- `docs/100/Active/100-File_Guides_Index.md`
+- `docs/100/Active/100-System_Files.md`
 - `docs/000/Active/000-Owner_Manual.md`
-- `docs/000/Active/000-Companion_Manual.md`
+- `docs/002/Active/002-Companion_Manual.md`
 - `docs/000/Active/000-language-reference-glossary.md`
-- `docs/100/Active/100_File_Steward.md`
-- `docs/100/Active/100_Architect_Steward.md`
-- `docs/100/Active/100_UX_Steward.md`
-- `docs/011/Active/011-record-architecture-master-plan.md`
+- `docs/020/Active/020_File_Steward.md`
+- `docs/020/Active/020_Architect_Steward.md`
+- `docs/020/Active/020_UX_Steward.md`
+- `docs/010/Active/010-record-architecture-master-plan.md`
 - `docs/000-canonical-structure.json`
 
 ## Operating Rules
@@ -173,7 +173,7 @@ For `Files`, the current checklist is:
 
 - canonical JSON structure exists: `yes`, entity `Files`
 - `System Files` registry row exists: `yes`, source key `file-system`
-- file guide exists: `yes`, `docs/200/Active/200-Files.md`
+- file guide exists: `yes`, `docs/100/Active/100-Files.md`
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `yes`, this guide describes the first `L1/L2/L2.a` fork
@@ -257,5 +257,5 @@ They are file-definition metadata used to keep file creation, rendering, ownersh
 
 - Should `File_Status` align directly with `Active`, `Draft`, and `Archive`?
 - Should `File_Guide_Path` be required before a file can appear in main navigation?
-- Should `Files` eventually generate `docs/200/Active/200-File_Guides_Index.md` automatically?
+- Should `Files` eventually generate `docs/100/Active/100-File_Guides_Index.md` automatically?
 - Should guide lifecycle moves create explicit file-level events?

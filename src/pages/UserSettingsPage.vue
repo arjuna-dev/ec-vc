@@ -601,7 +601,7 @@ const ownerDocumentMenu = [
     layer: '011 Operation Guides',
     label: 'Product Reference',
     short: 'Product language',
-    path: 'docs/011/Active/011-product-reference-guide.md',
+    path: 'docs/010/Active/010-product-reference-guide.md',
     eyebrow: 'Reference',
     heroTitle: 'Reference',
   },

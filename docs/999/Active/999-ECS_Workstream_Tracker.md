@@ -14,8 +14,8 @@ This is meant to reduce context loss while we move together between product, sch
 
 This tracker should stay aligned with:
 
-- `docs/011/Active/011-record-architecture-master-plan.md`
-- `docs/001/Draft/001-intake-architecture-plan.md`
+- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/010/Draft/010-intake-architecture-plan.md`
 
 ## Current Focus
 
@@ -180,8 +180,8 @@ This tracker should stay aligned with:
 ## Recent Decisions
 
 - the planning layer is now centered on:
-  - `011-record-architecture-master-plan.md`
-  - `001-intake-architecture-plan.md`
+  - `010-record-architecture-master-plan.md`
+  - `010-intake-architecture-plan.md`
 - canonical structure now lives in JSON, with workbook as validation/reference
 - the shared record direction is now `Record Shell`
 - KDB relationships are now treated as strict contract paths:

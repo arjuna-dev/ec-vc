@@ -22,9 +22,9 @@ File guides live in `docs/200`.
 
 The companion should treat file-guide lifecycle folders as part of the instruction:
 
-- `docs/200/Active`: binding current file-guide truth
-- `docs/200/Draft`: approved or working file-guide direction that is not fully born yet
-- `docs/200/Archive`: historical file-guide memory, not current instruction unless an active guide explicitly references it
+- `docs/100/Active`: binding current file-guide truth
+- `docs/100/Draft`: approved or working file-guide direction that is not fully born yet
+- `docs/100/Archive`: historical file-guide memory, not current instruction unless an active guide explicitly references it
 
 The companion must not treat a `Draft` file guide as implemented truth.
 
@@ -121,7 +121,7 @@ The companion must follow these rules:
 
 ## Role-Specific Confidence Rule
 
-Detailed confidence behavior belongs in role guides such as `docs/100/Active/100_Intake_Steward.md`.
+Detailed confidence behavior belongs in role guides such as `docs/020/Active/020_Intake_Steward.md`.
 
 The base companion rule is simple:
 

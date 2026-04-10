@@ -15,9 +15,9 @@ This document should be treated as the single planning source of truth for the `
 
 Companion behavior and ingestion-side structural discipline should also stay aligned with:
 
-- `docs/000/Active/000-Companion_Manual.md`
+- `docs/002/Active/002-Companion_Manual.md`
 - `docs/010/Active/010_Game_Rulebook.md`
-- `docs/100/Active/100_Game_Steward.md`
+- `docs/020/Active/020_Game_Steward.md`
 - `docs/999/Active/999-ECS_Workstream_Tracker.md`
 
 When decisions change:

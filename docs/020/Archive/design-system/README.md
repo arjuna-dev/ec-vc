@@ -10,7 +10,7 @@ This guide is archived reference material.
 
 The old audit artifact lives at:
 
-- `docs/100/Archive/design-system/tokens.json`
+- `docs/020/Archive/design-system/tokens.json`
 
 The active runtime token alias layer lives at:
 
@@ -210,7 +210,7 @@ That file gives names to repeated decisions without changing the look.
 At the time this guide was written, the design system existed in two forms:
 
 1. Audit form
-   - `docs/100/Archive/design-system/tokens.json`
+   - `docs/020/Archive/design-system/tokens.json`
 2. Runtime form
    - `src/css/tokens.scss`
 
