@@ -1550,6 +1550,48 @@ function listCompanionRoles() {
   )
 }
 
+function getFileRegistrySubsectionLabels(entry) {
+  return (Array.isArray(entry?.subsections) ? entry.subsections : [])
+    .map((section) => String(section?.rawLabel || section?.label || '').trim())
+    .filter(Boolean)
+}
+
+function getFileRegistryRequiresSubsection(entry, subsectionName) {
+  const normalizedName = String(subsectionName || '').trim().toLowerCase()
+  return getFileRegistrySubsectionLabels(entry).some((label) => label.toLowerCase() === normalizedName) ? 'Yes' : 'No'
+}
+
+function buildDefaultFileRegistryRow(entry, index) {
+  const subsectionLabels = getFileRegistrySubsectionLabels(entry)
+  return {
+    id: `file:${String(entry?.key || '').trim() || index + 1}`,
+    File_Order: index + 1,
+    File_Name: String(entry?.label || entry?.singularLabel || entry?.key || '').trim(),
+    File_Summary: `System definition for ${String(entry?.label || entry?.singularLabel || 'file').trim()}.`,
+    File_Status: 'Active',
+    File_Guide_Path: entry?.key === 'file-system' ? 'docs/001-System_Files.md' : null,
+    File_Class: 'L1',
+    Requires_System: getFileRegistryRequiresSubsection(entry, 'System'),
+    Requires_KDB: getFileRegistryRequiresSubsection(entry, 'KDB'),
+    Ownership_Mode: 'root_owned',
+    File_Owner: 'Owner',
+    File_Steward: 'File Steward',
+    Rulebook_Dependencies: 'docs/001-Files.md',
+    Defined_Structure: subsectionLabels.join(', '),
+    Glossary_Terms: '',
+    File_Source_Key: String(entry?.key || '').trim(),
+    File_Canonical_Entity: String(entry?.canonicalEntityName || '').trim(),
+    File_Runtime_Entity: String(entry?.entityName || '').trim(),
+    File_Route_Name: String(entry?.routeName || '').trim(),
+    File_Path: String(entry?.path || '').trim(),
+  }
+}
+
+function getFileRegistryEntryBySourceKey(sourceKey) {
+  const normalizedSourceKey = String(sourceKey || '').trim()
+  return FILE_PAGE_REGISTRY.find((entry) => String(entry?.key || '').trim() === normalizedSourceKey) || null
+}
+
 function ensureDefaultFiles(database) {
   const filesMeta = getTableMeta(database, 'Files')
   const requiredColumns = [
@@ -1571,38 +1613,9 @@ function ensureDefaultFiles(database) {
     }
   })
 
-  const getSubsectionLabels = (entry) =>
-    (Array.isArray(entry?.subsections) ? entry.subsections : [])
-      .map((section) => String(section?.rawLabel || section?.label || '').trim())
-      .filter(Boolean)
-
-  const getRequiresSubsection = (entry, subsectionName) => {
-    const normalizedName = String(subsectionName || '').trim().toLowerCase()
-    return getSubsectionLabels(entry).some((label) => label.toLowerCase() === normalizedName) ? 'Yes' : 'No'
-  }
-
-  const rows = FILE_PAGE_REGISTRY.map((entry, index) => ({
-    id: `file:${String(entry.key || '').trim() || index + 1}`,
-    File_Order: index + 1,
-    File_Name: String(entry.label || entry.singularLabel || entry.key || '').trim(),
-    File_Summary: `System definition for ${String(entry.label || entry.singularLabel || 'file').trim()}.`,
-    File_Status: 'Active',
-    File_Guide_Path: entry.key === 'file-system' ? 'docs/001-System_Files.md' : null,
-    File_Class: 'L1',
-    Requires_System: getRequiresSubsection(entry, 'System'),
-    Requires_KDB: getRequiresSubsection(entry, 'KDB'),
-    Ownership_Mode: 'root_owned',
-    File_Owner: 'Owner',
-    File_Steward: 'File Steward',
-    Rulebook_Dependencies: 'docs/001-Files.md',
-    Defined_Structure: getSubsectionLabels(entry).join(', '),
-    Glossary_Terms: '',
-    File_Source_Key: String(entry.key || '').trim(),
-    File_Canonical_Entity: String(entry.canonicalEntityName || '').trim(),
-    File_Runtime_Entity: String(entry.entityName || '').trim(),
-    File_Route_Name: String(entry.routeName || '').trim(),
-    File_Path: String(entry.path || '').trim(),
-  })).filter((row) => row.File_Source_Key && row.File_Name)
+  const rows = FILE_PAGE_REGISTRY
+    .map((entry, index) => buildDefaultFileRegistryRow(entry, index))
+    .filter((row) => row.File_Source_Key && row.File_Name)
 
   const upsertRow = database.prepare(`
     INSERT INTO Files (
@@ -1735,17 +1748,28 @@ function listFiles() {
 function createFile(payload = {}) {
   const database = initDb()
   ensureDefaultFiles(database)
+  const sourceKey = normalizeNullableString(payload?.File_Source_Key) || normalizeNullableString(payload?.sourceKey)
+  if (!sourceKey) throw new Error('File source key is required')
+
+  const registryEntry = getFileRegistryEntryBySourceKey(sourceKey)
+  if (!registryEntry) {
+    throw new Error('File source key must exist in canonical file registry before runtime file creation.')
+  }
+
+  const registryDefaults = buildDefaultFileRegistryRow(registryEntry, FILE_PAGE_REGISTRY.indexOf(registryEntry))
+  const existingFile = database.prepare('SELECT id FROM Files WHERE File_Source_Key = ?').get(sourceKey)
+  if (existingFile?.id) return { id: existingFile.id }
+
   const actor = getAuditActor(database, { requireUser: true })
   const name =
     normalizeNullableString(payload?.File_Name) ||
     normalizeNullableString(payload?.Name) ||
-    normalizeNullableString(payload?.title)
+    normalizeNullableString(payload?.title) ||
+    registryDefaults.File_Name
 
   if (!name) throw new Error('File name is required')
 
   const id = normalizeNullableString(payload?.id) || `file:${crypto.randomUUID()}`
-  const sourceKey = normalizeNullableString(payload?.File_Source_Key) || normalizeNullableString(payload?.sourceKey)
-  if (!sourceKey) throw new Error('File source key is required')
 
   database.prepare(`
     INSERT INTO Files (
@@ -1801,25 +1825,31 @@ function createFile(payload = {}) {
     )
   `).run({
     id,
-    File_Order: payload?.File_Order ?? null,
+    File_Order: payload?.File_Order ?? registryDefaults.File_Order,
     File_Name: name,
-    File_Summary: normalizeNullableString(payload?.File_Summary) || normalizeNullableString(payload?.Summary),
-    File_Status: normalizeNullableString(payload?.File_Status) || normalizeNullableString(payload?.Status) || 'Draft',
-    File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path),
-    File_Class: normalizeNullableString(payload?.File_Class),
-    Requires_System: normalizeNullableString(payload?.Requires_System),
-    Requires_KDB: normalizeNullableString(payload?.Requires_KDB),
-    Ownership_Mode: normalizeNullableString(payload?.Ownership_Mode),
-    File_Owner: normalizeNullableString(payload?.File_Owner),
-    File_Steward: normalizeNullableString(payload?.File_Steward),
-    Rulebook_Dependencies: normalizeNullableString(payload?.Rulebook_Dependencies),
-    Defined_Structure: normalizeNullableString(payload?.Defined_Structure),
-    Glossary_Terms: normalizeNullableString(payload?.Glossary_Terms),
+    File_Summary:
+      normalizeNullableString(payload?.File_Summary) ||
+      normalizeNullableString(payload?.Summary) ||
+      registryDefaults.File_Summary,
+    File_Status:
+      normalizeNullableString(payload?.File_Status) ||
+      normalizeNullableString(payload?.Status) ||
+      registryDefaults.File_Status,
+    File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path) || registryDefaults.File_Guide_Path,
+    File_Class: normalizeNullableString(payload?.File_Class) || registryDefaults.File_Class,
+    Requires_System: normalizeNullableString(payload?.Requires_System) || registryDefaults.Requires_System,
+    Requires_KDB: normalizeNullableString(payload?.Requires_KDB) || registryDefaults.Requires_KDB,
+    Ownership_Mode: normalizeNullableString(payload?.Ownership_Mode) || registryDefaults.Ownership_Mode,
+    File_Owner: normalizeNullableString(payload?.File_Owner) || registryDefaults.File_Owner,
+    File_Steward: normalizeNullableString(payload?.File_Steward) || registryDefaults.File_Steward,
+    Rulebook_Dependencies: normalizeNullableString(payload?.Rulebook_Dependencies) || registryDefaults.Rulebook_Dependencies,
+    Defined_Structure: normalizeNullableString(payload?.Defined_Structure) || registryDefaults.Defined_Structure,
+    Glossary_Terms: normalizeNullableString(payload?.Glossary_Terms) || registryDefaults.Glossary_Terms,
     File_Source_Key: sourceKey,
-    File_Canonical_Entity: normalizeNullableString(payload?.File_Canonical_Entity),
-    File_Runtime_Entity: normalizeNullableString(payload?.File_Runtime_Entity),
-    File_Route_Name: normalizeNullableString(payload?.File_Route_Name),
-    File_Path: normalizeNullableString(payload?.File_Path),
+    File_Canonical_Entity: normalizeNullableString(payload?.File_Canonical_Entity) || registryDefaults.File_Canonical_Entity,
+    File_Runtime_Entity: normalizeNullableString(payload?.File_Runtime_Entity) || registryDefaults.File_Runtime_Entity,
+    File_Route_Name: normalizeNullableString(payload?.File_Route_Name) || registryDefaults.File_Route_Name,
+    File_Path: normalizeNullableString(payload?.File_Path) || registryDefaults.File_Path,
     File_EventLog: normalizeNullableString(payload?.File_EventLog),
     created_by: actor.user_id,
   })
