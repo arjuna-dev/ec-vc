@@ -54,12 +54,12 @@ Reviewed surfaces:
 | Runtime table | Runtime should own a real `Files` table. | SQLite schema creates `Files` with registry metadata columns, `File_EventLog`, `created_by`, `created_at`, and `updated_at`. | `yes` | Runtime Steward: executable owner exists. |
 | Runtime bridge | The renderer should have file-system list/create/delete bridge calls. | Preload exposes `file-system.list`, `file-system.create`, and `file-system.delete`. | `yes` | Runtime Steward: bridge exists for basic file registry operations. |
 | Runtime handlers | Electron should implement list/create/delete for file-system. | `file-system:list`, `file-system:create`, and `file-system:delete` handlers exist. | `yes` | Runtime Steward: basic handlers exist. |
-| Runtime update | Runtime should support editing file registry rows if System Files is an owner surface. | Dedicated `file-system:update` was not found in the direct file-system bridge. Editing may occur through generic databook/change paths, but this was not proven in this audit. | `partial` | Runtime Steward: update path needs explicit confirmation. |
+| Runtime update | Runtime should support editing file registry rows if System Files is an owner surface. | Dedicated `file-system:update` was not found, but `FilePageShell` edit/autosave uses `databooks:update`; `applyAuditedChanges()` permits `Files` field updates through `DATABOOK_TABLE_CONFIGS.Files`, writes `updated_at`, and creates audit events. | `yes` | Runtime Steward: explicit `file-system:update` is probably unnecessary while the shared databook update contract remains the approved edit path. |
 | Default registry seed | System should seed registry rows from the approved source of truth. | `ensureDefaultFiles()` seeds rows from `FILE_PAGE_REGISTRY`, which is built from canonical structure plus route meta. | `partial` | Architect/File Steward: useful, but System Files is not yet the source of file acceptance; route meta still has authority. |
 | File guide defaulting | Each born file should know its guide path or honestly show that it is missing. | Default guide path is only assigned for `file-system`; other rows default to `null`. | `partial` | File Steward: good honesty, but next pass should decide which active files require guide paths before nav acceptance. |
 | Requires System / KDB | Requirements should derive from canonical sections. | `ensureDefaultFiles()` derives `Requires_System` and `Requires_KDB` from registry subsections. | `yes` | File Steward: derivation is useful and explicit. |
 | Shell rendering | `/file-system` should render through the shared file shell. | Route `/file-system` loads `FilesPage.vue`, which renders `FilePageShell`. `FilePageShell` has a `file-system` loader. | `yes` | Runtime Steward: page shell path exists. |
-| Add/Edit File Shell | Add/Edit File Shell should guide file structure and link the correct guide. | `AddEditFileShellDialog` uses registry L2/L3 data, but the guide icon currently points to parent guide `docs/001/Active/001-Files.md`, not the selected file's `File_Guide_Path`. | `partial` | UX/File Steward: parent guide is useful, but selected file guide linking is not yet dynamic. |
+| Add/Edit File Shell | Add/Edit File Shell should guide file structure and link the correct guide. | `AddEditFileShellDialog` uses registry L2/L3 data and local structure-selection state. It is not the proven row-edit persistence path. The guide icon currently points to parent guide `docs/001/Active/001-Files.md`, not the selected file's `File_Guide_Path`. | `partial` | UX/File Steward: parent guide is useful, but selected file guide linking is not yet dynamic and this shell should not be assumed to persist registry row edits. |
 | Navigation acceptance | Visible file nav should mean accepted file truth. | `WORKSPACE_FILE_NAV_ITEMS` derives from `showInWorkspaceNav`, but `MainLayout` still manually injects `Opportunities`, User Roles, Companion Roles, Artifact Processed, Markets, and Securities. | `partial` | Architect Steward: visible nav still has a second source of truth. |
 | Events/provenance | File birth should be reconstructable from events. | `events` table and `writeAuditEvent()` exist. `Files` has `File_EventLog`, `created_by`, and timestamps. `createFile()` sets `created_by`, but does not visibly write a file-birth audit event in this path. | `partial` | Provenance Steward: event infrastructure exists, but genesis/file-birth reconstruction is not proven. |
 | KDB/LDB relationships | File relationships should be declared and reverse-readable where required. | Canon declares KDB relationship tokens for Owner, Users, Contacts, Companion Roles, Events, and Rulebooks. Runtime has generic `KDB_Relationships`, but this audit did not prove Files-specific bridge writing or reverse-read behavior. | `partial` | File/Provenance Steward: relationship intent exists; runtime bridge proof is still needed. |
@@ -111,21 +111,28 @@ But the audited `createFile()` path does not visibly write a file-birth audit ev
 
 That means genesis reconstruction remains correctly marked `partial`.
 
+## Runtime Steward Proof Addendum
+
+Status: `complete for first pass`
+
+The first Runtime Steward proof pass confirmed:
+
+- `Files` has runtime/sqlite ownership through the `Files` table
+- `file-system:list`, `file-system:create`, and `file-system:delete` exist
+- file row edits can use the shared `databooks:update` path
+- `databooks:update` resolves `Files` through `DATABOOK_TABLE_CONFIGS.Files`
+- `applyAuditedChanges()` checks the target column exists, updates the row, updates `updated_at`, and writes an audit event
+- an explicit `file-system:update` bridge is not required unless we decide file registry updates need stricter governance than the shared databook update path
+
+Remaining runtime concerns:
+
+- `delete` exists for `Files`, but this audit did not prove root/system file deletion governance
+- `createFile()` creates a file row and actor, but does not visibly write a file-birth audit event
+- Add/Edit File Shell should not be treated as the proven row-edit path; FilePageShell shared create/edit dialog is the proven persistence path
+
 ## Recommended Next Implementation Order
 
-### 1. Runtime Steward proof pass
-
-Goal:
-
-- prove whether `Files` has list/create/update/delete support through the intended shell path
-- explicitly document or add the missing update path if needed
-- avoid assuming generic edit paths are enough until verified
-
-Why first:
-
-- runtime truth should be known before changing file-birth UX
-
-### 2. Navigation acceptance consolidation
+### 1. Navigation acceptance consolidation
 
 Goal:
 
@@ -133,11 +140,11 @@ Goal:
 - make visible file items come from one acceptance rule
 - preserve explicit exceptions only where approved
 
-Why second:
+Why first:
 
 - visible navigation currently gives the strongest false signal of file acceptance
 
-### 3. File guide path policy
+### 2. File guide path policy
 
 Goal:
 
@@ -149,7 +156,7 @@ Why third:
 
 - this turns docs into actual UI/runtime guidance without forcing every file guide to be complete immediately
 
-### 4. Provenance birth event pass
+### 3. Provenance birth event pass
 
 Goal:
 
@@ -160,6 +167,18 @@ Goal:
 Why fourth:
 
 - this is the line between "has fields" and "can explain history"
+
+### 4. Files delete governance pass
+
+Goal:
+
+- decide whether root/system file rows can be deleted
+- block delete for protected genesis rows if needed
+- make delete behavior visible in the File Steward and Runtime Steward rules
+
+Why fourth:
+
+- the delete bridge exists, but governance for deleting accepted files is not proven
 
 ### 5. KDB/LDB bridge proof pass
 
@@ -174,15 +193,15 @@ Why fifth:
 
 ## Suggested Immediate Next Step
 
-Start with a small Runtime Steward proof pass for `Files`.
+Start with navigation acceptance consolidation.
 
-Do not change behavior first.
+Do not make `System Files` the only runtime source yet.
 
-Confirm:
+First:
 
-- where file row edits are saved
-- whether Add/Edit File Shell can persist all file-definition fields
-- whether update uses a generic databook path or needs an explicit `file-system:update`
-- whether delete is acceptable for root/system file rows or needs governance restrictions
+- identify every manual nav item currently injected outside `WORKSPACE_FILE_NAV_ITEMS`
+- decide which are approved explicit exceptions
+- document or encode those exceptions in one registry-owned place
+- stop treating manual layout injection as normal file acceptance
 
-If that pass reveals missing runtime support, fix that before changing navigation or guide policies.
+If this pass is clean, then move to the file-guide path policy.
