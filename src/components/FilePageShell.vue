@@ -1713,16 +1713,15 @@ const healthSegments = computed(() => {
     const stable = Math.max(total - drift, 0)
     if (total > 0) {
       return [
-        { tone: 'rich', width: (stable / total) * 100 },
         { tone: 'sparse', width: (drift / total) * 100 },
+        { tone: 'rich', width: (stable / total) * 100 },
       ]
     }
   }
 
   return [
-    { tone: 'medium', width: 35 },
-    { tone: 'rich', width: 45 },
     { tone: 'sparse', width: 20 },
+    { tone: 'rich', width: 80 },
   ]
 })
 

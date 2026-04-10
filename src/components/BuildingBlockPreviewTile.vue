@@ -905,8 +905,8 @@ const fileHeroPreviewStats = [
 ]
 
 const fileHeroPreviewSegments = [
-  { tone: 'rich', width: 22.22 },
   { tone: 'sparse', width: 77.78 },
+  { tone: 'rich', width: 22.22 },
 ]
 
 const fileHeroPreviewActionItems = [

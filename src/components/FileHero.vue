@@ -102,8 +102,8 @@ const fallbackStats = [
 ]
 
 const fallbackHealthSegments = [
-  { tone: 'rich', width: 76 },
   { tone: 'sparse', width: 24 },
+  { tone: 'rich', width: 76 },
 ]
 
 const normalizedStats = computed(() => (props.stats.length ? props.stats : fallbackStats))
@@ -274,7 +274,9 @@ const actionTitleText = computed(() => String(props.actionTitle || '').trim() ||
   height: var(--ds-size-health-bar);
   overflow: hidden;
   background: var(--ds-color-fill-subtle);
+  border: 2px solid var(--ds-color-brand-white);
   border-radius: var(--ds-radius-pill);
+  box-sizing: border-box;
 }
 
 .file-hero-sandbox__health-segment {
@@ -283,14 +285,14 @@ const actionTitleText = computed(() => String(props.actionTitle || '').trim() ||
 }
 
 .file-hero-sandbox__health-segment--sparse {
-  background: var(--ds-color-fill-health-sparse);
+  background: var(--ds-color-brand-orange);
 }
 
 .file-hero-sandbox__health-segment--medium {
-  background: var(--ds-color-fill-health-medium);
+  background: var(--ds-color-brand-dark-grey);
 }
 
 .file-hero-sandbox__health-segment--rich {
-  background: var(--ds-color-fill-health-rich);
+  background: var(--ds-color-brand-dark-grey);
 }
 </style>
