@@ -123,6 +123,11 @@ The companion must follow these rules:
 
 Detailed confidence behavior belongs in role guides such as `docs/020/Active/020_Intake_Steward.md`.
 
+Verification and provenance discipline should also stay aligned with:
+
+- `docs/020/Active/020_Provenance_Steward.md`
+- `docs/020/Active/020_Runtime_Steward.md`
+
 The base companion rule is simple:
 
 - confidence may affect whether work is suggested or committed
@@ -168,6 +173,10 @@ These layers are related, but they are not interchangeable.
 ## KDB Rule
 
 Detailed KDB relationship governance belongs in the file guide, KDB guide, or File Steward layer.
+
+Runtime support for those relationships belongs in the Runtime Steward layer:
+
+- `docs/020/Active/020_Runtime_Steward.md`
 
 The companion's base rule is:
 

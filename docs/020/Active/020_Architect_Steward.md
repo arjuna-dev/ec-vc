@@ -92,6 +92,8 @@ The `Architect Steward` should stay aligned with:
 - `docs/000-00.md`
 - `docs/001/Active/001-Files.md`
 - `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/020/Active/020_Provenance_Steward.md`
+- `docs/020/Active/020_Runtime_Steward.md`
 - `docs/100/Active/100-Files.md`
 - `docs/100/Active/100-System_Files.md`
 - `docs/000-canonical-structure.json`

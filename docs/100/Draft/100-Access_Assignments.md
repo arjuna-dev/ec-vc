@@ -53,6 +53,8 @@ That means:
 - `docs/020/Active/020_Architect_Steward.md`
 - `docs/020/Active/020_File_Steward.md`
 - `docs/020/Active/020_UX_Steward.md`
+- `docs/020/Active/020_Provenance_Steward.md`
+- `docs/020/Active/020_Runtime_Steward.md`
 - `docs/010/Active/010-record-architecture-master-plan.md`
 - `docs/300/Active/300_Game_Rulebook.md`
 - `docs/000-canonical-structure.json`
@@ -268,6 +270,7 @@ The `Access Limits` section should track:
 ## Open Questions
 
 - Should `Users_Roles` remain as a runtime helper, be absorbed by `Access_Assignments`, or become legacy?
+- Should an `Access Steward` become active when `Access_Assignments` moves from approved direction to runtime-backed implementation?
 - What exact access statuses should be canonical?
 - Which access limits should be first-class fields versus freeform notes?
 - Should access assignment activation require explicit Owner confirmation every time?

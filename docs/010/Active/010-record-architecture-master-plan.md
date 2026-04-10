@@ -20,6 +20,8 @@ Companion behavior and ingestion-side structural discipline should also stay ali
 - `docs/030/Active/030-Game_Operation.md`
 - `docs/300/Active/300_Game_Rulebook.md`
 - `docs/020/Active/020_Game_Steward.md`
+- `docs/020/Active/020_Provenance_Steward.md`
+- `docs/020/Active/020_Runtime_Steward.md`
 - `docs/999/Active/999-ECS_Workstream_Tracker.md`
 
 Docs-domain rule:
