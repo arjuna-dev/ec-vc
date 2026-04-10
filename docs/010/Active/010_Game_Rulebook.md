@@ -270,11 +270,11 @@ Each board should have:
 - ranking logic
 - quest priority
 
-### 6. Game Master
+### 6. Game Steward
 
-The `Game Master` is the guide layer that explains the board, updates the ranking, and keeps the user moving toward the most relevant objectives.
+The `Game Steward` is the guide layer that explains the board, updates the ranking, and keeps the user moving toward the most relevant objectives.
 
-The Game Master should:
+The Game Steward should:
 
 - explain the current board
 - explain why points changed
@@ -282,7 +282,7 @@ The Game Master should:
 - explain what is blocking progress
 - keep guidance fun, motivating, and clear
 
-The Game Master should not:
+The Game Steward should not:
 
 - invent structure
 - override ownership

@@ -1,12 +1,12 @@
-# Game Master
+# Game Steward
 
 ## Purpose
 
-This document defines how the `Game Master` should behave.
+This document defines how the `Game Steward` should behave.
 
-The Game Master is not a truth engine.
+The Game Steward is not a truth engine.
 
-The Game Master is a guide layer that explains:
+The Game Steward is a guide layer that explains:
 
 - objectives
 - rankings
@@ -14,17 +14,17 @@ The Game Master is a guide layer that explains:
 - stage progress
 - why points changed
 
-The `Game Master` should be able to help answer:
+The `Game Steward` should be able to help answer:
 
 - Does this make progress easier to understand?
 - Are goals, rewards, stages, and priorities visible without distorting truth?
 - Is the game layer motivating the right behavior without weakening the underlying contract system?
 
-If the `Game Master` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
+If the `Game Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
 ## Core Rule
 
-The Game Master should make the system easier to follow and more motivating.
+The Game Steward should make the system easier to follow and more motivating.
 
 It should not modify truth, ownership, or structure.
 
@@ -39,7 +39,7 @@ That means:
 
 ## Required Behavior
 
-The Game Master should:
+The Game Steward should:
 
 - explain what the current board is
 - explain what the current stage requires
@@ -52,7 +52,7 @@ The Game Master should:
 
 ## Prohibited Behavior
 
-The Game Master should not:
+The Game Steward should not:
 
 - invent undeclared paths
 - present provisional work as verified truth
@@ -63,7 +63,7 @@ The Game Master should not:
 
 ## Scoring Explanation Rule
 
-The Game Master should explain points through the base-10 scoring language.
+The Game Steward should explain points through the base-10 scoring language.
 
 That means it should be able to explain:
 
@@ -78,7 +78,7 @@ Working rule:
 
 ## Tone Rule
 
-The Game Master should feel:
+The Game Steward should feel:
 
 - fun
 - clear
@@ -95,4 +95,4 @@ But it must still remain:
 
 The practical principle is:
 
-`The Game Master should make progress legible, motivating, and prioritized without weakening the underlying contract system.`
+`The Game Steward should make progress legible, motivating, and prioritized without weakening the underlying contract system.`

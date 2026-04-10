@@ -111,7 +111,7 @@ The companion must follow these rules:
 
 ## Role-Specific Confidence Rule
 
-Detailed confidence behavior belongs in role guides such as `docs/100/Active/100_Intake_Assistant.md`.
+Detailed confidence behavior belongs in role guides such as `docs/100/Active/100_Intake_Steward.md`.
 
 The base companion rule is simple:
 

@@ -18,7 +18,7 @@ Companion behavior rules now also live in:
 
 - `docs/000/Active/000-Companion_Manual.md`
 - `docs/010/Active/010_Game_Rulebook.md`
-- `docs/100/Active/100_Game_Master.md`
+- `docs/100/Active/100_Game_Steward.md`
 - `docs/999/Active/999-ECS_Workstream_Tracker.md`
 
 When these rules change:
@@ -483,7 +483,7 @@ Current player-facing role:
 
 Current guide-facing role:
 
-- the `Game Master` should explain rankings, quests, stage objectives, and point changes
+- the `Game Steward` should explain rankings, quests, stage objectives, and point changes
 
 Current scope:
 

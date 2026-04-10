@@ -17,7 +17,7 @@ Companion behavior and ingestion-side structural discipline should also stay ali
 
 - `docs/000/Active/000-Companion_Manual.md`
 - `docs/010/Active/010_Game_Rulebook.md`
-- `docs/100/Active/100_Game_Master.md`
+- `docs/100/Active/100_Game_Steward.md`
 - `docs/999/Active/999-ECS_Workstream_Tracker.md`
 
 When decisions change:
@@ -631,7 +631,7 @@ focus on the right objectives through:
 - quests
 - rankings
 - stage boards
-- Game Master guidance
+- Game Steward guidance
 
 But it must remain constrained by the underlying architecture.
 

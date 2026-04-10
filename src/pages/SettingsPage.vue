@@ -509,10 +509,10 @@ const companionDocumentMenu = [
   },
   {
     id: 'game-master',
-    label: 'Game Master',
+    label: 'Game Steward',
     short: 'Guide behavior',
-    path: 'docs/100/Active/100_Game_Master.md',
-    eyebrow: 'Game Master',
+    path: 'docs/100/Active/100_Game_Steward.md',
+    eyebrow: 'Game Steward',
     heroTitle: 'Master',
   },
   {
