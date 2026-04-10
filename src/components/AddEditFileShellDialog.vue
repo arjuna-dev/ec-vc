@@ -79,7 +79,7 @@
               class="file-structure-shell__doc-link"
               aria-label="Open File Guide"
               title="Open File Guide"
-              @click="openFileContractDoc"
+              @click="openFileGuideDoc"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true" class="file-structure-shell__doc-link-icon">
                 <path
@@ -89,7 +89,7 @@
             </button>
           </div>
         </div>
-        <div class="file-structure-shell__contract-link-panel">
+        <div class="file-structure-shell__guide-panel">
           <div class="file-structure-shell__guide-divider" />
         </div>
       </RecordSummaryBox>
@@ -111,7 +111,7 @@
             />
           </div>
         </div>
-        <div class="file-structure-shell__contract-link-panel">
+        <div class="file-structure-shell__guide-panel">
           <div class="file-structure-shell__guide-divider" />
           <div class="file-structure-shell__selected-l3-panel">
             <div
@@ -122,7 +122,7 @@
               <span class="file-structure-shell__selected-l3-label">{{ item.label }}</span>
               <span class="file-structure-shell__selected-l3-meta">{{ item.groupLabel }}</span>
             </div>
-            <div v-if="!selectedGeneralElementItems.length" class="file-structure-shell__contract-link-meta">
+            <div v-if="!selectedGeneralElementItems.length" class="file-structure-shell__guide-meta">
               No L3 items selected for this file yet.
             </div>
           </div>
@@ -137,7 +137,7 @@
             :right-tabs="[]"
           />
         </div>
-        <div class="file-structure-shell__contract-link-panel">
+        <div class="file-structure-shell__guide-panel">
           <div class="file-structure-shell__guide-divider" />
           <div v-if="activeEventsTab === 'notes'" class="file-structure-shell__notes-panel">
             <div
@@ -148,7 +148,7 @@
               <div class="file-structure-shell__notes-name">{{ note.name }}</div>
               <div class="file-structure-shell__notes-summary">{{ note.summary }}</div>
             </div>
-            <div v-if="!latestNotes.length" class="file-structure-shell__contract-link-meta">
+            <div v-if="!latestNotes.length" class="file-structure-shell__guide-meta">
               No notes available yet.
             </div>
           </div>
@@ -167,7 +167,7 @@
               <div class="file-structure-shell__system-alias">{{ item.alias }}</div>
               <div class="file-structure-shell__system-type">{{ item.type }}</div>
             </div>
-            <div v-if="!selectedSystemItems.length" class="file-structure-shell__contract-link-meta">
+            <div v-if="!selectedSystemItems.length" class="file-structure-shell__guide-meta">
               No selected items available yet.
             </div>
           </div>
@@ -370,7 +370,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:shellSelectorValue'])
-const FILE_CONTRACT_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/001-Files.md'
+const FILE_GUIDE_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/001-Files.md'
 
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
@@ -552,9 +552,9 @@ function selectShellSelectorOption(value) {
   shellSelectorOpen.value = false
 }
 
-function openFileContractDoc() {
+function openFileGuideDoc() {
   if (typeof window === 'undefined') return
-  window.ecvc?.openExternal?.(FILE_CONTRACT_DOC_URL)
+  window.ecvc?.openExternal?.(FILE_GUIDE_DOC_URL)
 }
 
 async function loadLatestNotes() {
@@ -989,8 +989,8 @@ watch(activeSettingsSourceKey, () => {
   line-height: 1.3;
 }
 
-.file-structure-shell__contract-link-copy,
-.file-structure-shell__contract-link-meta {
+.file-structure-shell__guide-copy,
+.file-structure-shell__guide-meta {
   color: rgba(15, 23, 42, 0.74);
   font-family: var(--ds-font-body);
   font-size: var(--ds-font-size-sm);

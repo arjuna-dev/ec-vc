@@ -1432,7 +1432,7 @@ CREATE TABLE IF NOT EXISTS Files (
   File_Name TEXT NOT NULL,
   File_Summary TEXT,
   File_Status TEXT,
-  File_Contract_Path TEXT,
+  File_Guide_Path TEXT,
   File_Class TEXT,
   Requires_System TEXT,
   Requires_KDB TEXT,

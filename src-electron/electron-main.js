@@ -1559,6 +1559,7 @@ function ensureDefaultFiles(database) {
     ['Ownership_Mode', 'TEXT'],
     ['File_Owner', 'TEXT'],
     ['File_Steward', 'TEXT'],
+    ['File_Guide_Path', 'TEXT'],
     ['Rulebook_Dependencies', 'TEXT'],
     ['Defined_Structure', 'TEXT'],
     ['Glossary_Terms', 'TEXT'],
@@ -1576,7 +1577,7 @@ function ensureDefaultFiles(database) {
     File_Name: String(entry.label || entry.singularLabel || entry.key || '').trim(),
     File_Summary: `System definition for ${String(entry.label || entry.singularLabel || 'file').trim()}.`,
     File_Status: 'Active',
-    File_Contract_Path: entry.key === 'file-system' ? 'docs/001-System_Files.md' : null,
+    File_Guide_Path: entry.key === 'file-system' ? 'docs/001-System_Files.md' : null,
     File_Class: 'L1',
     Requires_System: 'Yes',
     Requires_KDB: 'Yes',
@@ -1600,7 +1601,7 @@ function ensureDefaultFiles(database) {
       File_Name,
       File_Summary,
       File_Status,
-      File_Contract_Path,
+      File_Guide_Path,
       File_Class,
       Requires_System,
       Requires_KDB,
@@ -1623,7 +1624,7 @@ function ensureDefaultFiles(database) {
       @File_Name,
       @File_Summary,
       @File_Status,
-      @File_Contract_Path,
+      @File_Guide_Path,
       @File_Class,
       @Requires_System,
       @Requires_KDB,
@@ -1646,10 +1647,10 @@ function ensureDefaultFiles(database) {
       File_Name = excluded.File_Name,
       File_Summary = excluded.File_Summary,
       File_Status = excluded.File_Status,
-      File_Contract_Path = CASE
-        WHEN excluded.File_Contract_Path IS NOT NULL THEN excluded.File_Contract_Path
-        WHEN Files.File_Contract_Path = 'docs/001-System_Files.md' THEN NULL
-        ELSE Files.File_Contract_Path
+      File_Guide_Path = CASE
+        WHEN excluded.File_Guide_Path IS NOT NULL THEN excluded.File_Guide_Path
+        WHEN Files.File_Guide_Path = 'docs/001-System_Files.md' THEN NULL
+        ELSE Files.File_Guide_Path
       END,
       File_Class = COALESCE(NULLIF(Files.File_Class, ''), excluded.File_Class),
       Requires_System = COALESCE(NULLIF(Files.Requires_System, ''), excluded.Requires_System),
@@ -1684,7 +1685,7 @@ function listFiles() {
         File_Name,
         File_Summary,
         File_Status,
-        File_Contract_Path,
+        File_Guide_Path,
         File_Class,
         Requires_System,
         Requires_KDB,
@@ -1731,7 +1732,7 @@ function createFile(payload = {}) {
       File_Name,
       File_Summary,
       File_Status,
-      File_Contract_Path,
+      File_Guide_Path,
       File_Class,
       Requires_System,
       Requires_KDB,
@@ -1756,7 +1757,7 @@ function createFile(payload = {}) {
       @File_Name,
       @File_Summary,
       @File_Status,
-      @File_Contract_Path,
+      @File_Guide_Path,
       @File_Class,
       @Requires_System,
       @Requires_KDB,
@@ -1782,7 +1783,7 @@ function createFile(payload = {}) {
     File_Name: name,
     File_Summary: normalizeNullableString(payload?.File_Summary) || normalizeNullableString(payload?.Summary),
     File_Status: normalizeNullableString(payload?.File_Status) || normalizeNullableString(payload?.Status) || 'Draft',
-    File_Contract_Path: normalizeNullableString(payload?.File_Contract_Path),
+    File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path),
     File_Class: normalizeNullableString(payload?.File_Class),
     Requires_System: normalizeNullableString(payload?.Requires_System),
     Requires_KDB: normalizeNullableString(payload?.Requires_KDB),
