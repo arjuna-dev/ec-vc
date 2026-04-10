@@ -50,9 +50,9 @@ This is the live runtime path for bringing files into the system.
 
 The processed-artifact file surface is currently separate:
 
-1. `Artifact Processed` is exposed as the file-facing/canonical name
-2. runtime compatibility still maps through older `Artifacts_Processed` backend naming
-3. `listProcessedArtifacts()` and `createProcessedArtifact()` currently own that file/table surface
+1. `Intake` is exposed as the file-facing/canonical name
+2. runtime compatibility may temporarily map through older aliases during migration, but the current runtime owner is `Intake`
+3. `listIntake()` and `createIntake()` currently own that file/table surface
 4. the sqlite table still contains:
    - `Processed_Artifact_Name`
    - `Processed_Artifact_Summary`
@@ -98,9 +98,9 @@ Even if the model changes later, we must keep clear how:
 
 stay connected.
 
-### 3. Ingestion Shell
+### 3. Intake Shell
 
-[IngestionShellPage.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/pages/IngestionShellPage.vue) and [IngestionShellDialog.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/IngestionShellDialog.vue) already provide a true shell surface for working with the processed-artifact side.
+[IntakeShellPage.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/pages/IntakeShellPage.vue) and [IntakeShellDialog.vue](/c:/Users/erikc/Coding_Repository/ec-vc/src/components/IntakeShellDialog.vue) already provide a true shell surface for working with the intake side.
 
 This must not be lost while file naming and file creation are being cleaned.
 
@@ -109,9 +109,9 @@ This must not be lost while file naming and file creation are being cleaned.
 The system is still partly running with a naming split:
 
 - file-facing name:
-  - `Artifact Processed`
+  - `Intake`
 - runtime/backend compatibility:
-  - `Artifacts_Processed`
+  - legacy aliases such as `ingestion` and `artifacts-processed`
 
 This is currently acceptable as a compatibility layer, but it must be tracked deliberately until the deeper rename pass is complete.
 

@@ -1,18 +1,18 @@
-# Artifact Processed
+# Intake
 
 ## File Identity
 
-- file name: `Artifact Processed`
-- file guide: `docs/100/Draft/100-Artifact_Processed.md`
+- file name: `Intake`
+- file guide: `docs/100/Draft/100-Intake.md`
 - parent guide: `docs/001/Active/001-Files.md`
 - file class: `L1`
-- canonical entity: `Artifact_Processed`
-- app-facing label: `Artifact Processed`
+- canonical entity: `Intake`
+- app-facing label: `Intake`
 - canonical owner identity: `Owner`
 
 ## Purpose
 
-`Artifact Processed` stores processed artifact outputs and ingestion-stage derivatives.
+`Intake` stores processed artifact outputs and intake-stage derivatives.
 
 It exists to keep post-processing structure, extraction products, and reconnectable lineage explicit.
 
@@ -20,8 +20,8 @@ It exists to keep post-processing structure, extraction products, and reconnecta
 
 | Term | Meaning |
 | --- | --- |
-| `Processed Artifact` | A processed or downstream artifact record. |
-| `Ingestion` | The processing path that produces downstream structured outputs. |
+| `Intake` | The governed intake record that holds processed or downstream artifact outputs. |
+| `Intake Workflow` | The processing path that produces downstream structured outputs. |
 | `Lineage` | The connection back to the original artifact and created files. |
 
 ## Referenced Documents
@@ -33,7 +33,7 @@ It exists to keep post-processing structure, extraction products, and reconnecta
 
 ## Operating Rules
 
-- Treat `Artifact Processed` as the governed downstream artifact layer.
+- Treat `Intake` as the governed downstream artifact layer.
 - Keep lineage to the original artifact explicit.
 - Do not treat processing outputs as disconnected from provenance.
 
@@ -45,7 +45,7 @@ It exists to keep post-processing structure, extraction products, and reconnecta
 
 ## Owner
 
-The `Owner` should use `Artifact Processed` to understand downstream extraction outputs and how they connect back to original artifacts.
+The `Owner` should use `Intake` to understand downstream extraction outputs and how they connect back to original artifacts.
 
 ## File Steward
 
@@ -57,7 +57,7 @@ The `UX Steward` should make processed-artifact status and lineage legible witho
 
 ## Governance
 
-`Artifact Processed` is governed by `Owner`, `Provenance Steward`, `File Steward`, and ingestion/reconnect rules.
+`Intake` is governed by `Owner`, `Provenance Steward`, `File Steward`, and intake/reconnect rules.
 
 ## Provenance / Events
 
@@ -67,14 +67,14 @@ The system should preserve processing creation, stage changes, source artifact l
 
 - canonical JSON structure exists: `yes`
 - `System Files` registry row exists: `yes`
-- file guide exists: `yes`, `docs/100/Draft/100-Artifact_Processed.md`
+- file guide exists: `yes`, `docs/100/Draft/100-Intake.md`
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `Provenance Steward`
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
 - `KDB` requirement is declared: `yes`
-- runtime/sqlite ownership is declared: `yes`, table `Artifacts_Processed`
-- shell rendering path is declared: `yes`, route `/ingestion`
+- runtime/sqlite ownership is declared: `yes`, table `Intake`
+- shell rendering path is declared: `yes`, route `/intake`
 - events/provenance path is declared: `partial`
 
 ## L2 File System
@@ -93,7 +93,7 @@ Tracks relationships to original artifacts, created files, opportunities, and ev
 
 ### File Specific
 
-Tracks ingestion-stage outputs, processed content fields, and reconnectability metadata.
+Tracks intake-stage outputs, processed content fields, and reconnectability metadata.
 
 ## Open Questions
 

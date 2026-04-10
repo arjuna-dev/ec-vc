@@ -1,9 +1,9 @@
 import { ref } from 'vue'
 
-const pendingIngestionShellRequest = ref(null)
+const pendingIntakeShellRequest = ref(null)
 
-export function setPendingIngestionShellRequest(request = null) {
-  pendingIngestionShellRequest.value = request && typeof request === 'object'
+export function setPendingIntakeShellRequest(request = null) {
+  pendingIntakeShellRequest.value = request && typeof request === 'object'
     ? {
         initialArtifacts: Array.isArray(request.initialArtifacts)
           ? request.initialArtifacts.map((artifact) => ({
@@ -23,8 +23,8 @@ export function setPendingIngestionShellRequest(request = null) {
     : null
 }
 
-export function consumePendingIngestionShellRequest() {
-  const pending = pendingIngestionShellRequest.value
-  pendingIngestionShellRequest.value = null
+export function consumePendingIntakeShellRequest() {
+  const pending = pendingIntakeShellRequest.value
+  pendingIntakeShellRequest.value = null
   return pending
 }

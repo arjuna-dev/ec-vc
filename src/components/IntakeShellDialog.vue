@@ -129,7 +129,7 @@
               </div>
 
               <div class="create-record-shell__intake-column">
-                <div class="create-record-shell__intake-column-title">Ingestion Companion</div>
+                <div class="create-record-shell__intake-column-title">Intake Companion</div>
                 <div class="create-record-shell__intake-side">
                   <div class="create-record-shell__processing-panel">
                   <div class="create-record-shell__processing-panel-head">
@@ -139,7 +139,7 @@
                   <div class="create-record-shell__processing-sections">
                     <section class="create-record-shell__processing-box">
                       <div class="create-record-shell__processing-box-head">
-                        <div class="create-record-shell__processing-box-title">Ingestion</div>
+                        <div class="create-record-shell__processing-box-title">Intake</div>
                         <div class="create-record-shell__processing-panel-meta">
                           {{ processingArtifacts.length }} queued
                         </div>
@@ -1028,7 +1028,7 @@ const leftPanelSections = computed(() => [
 
 const rightSections = computed(() => (branchSelectionSettled.value ? props.rightSections : []))
 
-const dialogTitle = computed(() => 'Ingestion Shell')
+const dialogTitle = computed(() => 'Intake Shell')
 
 const artifactContextNote = computed(() => {
   const entityLabel = String(props.artifactContext?.entityLabel || '').trim()
@@ -1042,7 +1042,7 @@ const artifactContextNote = computed(() => {
   }
 })
 
-const submitLabel = computed(() => 'Save Ingestion')
+const submitLabel = computed(() => 'Save Intake')
 const fieldVerificationActionOptions = [
   { label: 'Verify field', value: 'verified', icon: 'check_circle', iconClass: 'create-record-shell__verification-icon--verified', color: 'rgba(35, 92, 26, 0.96)' },
   { label: 'Pre-Selected', value: 'default_preselected_unverified', icon: 'auto_awesome', iconClass: 'create-record-shell__verification-icon--default', color: 'rgba(64, 121, 210, 0.92)' },
@@ -1598,7 +1598,7 @@ async function persistDroppedArtifact(artifact) {
 
 async function ensureProcessedArtifactForSelection(artifactId) {
   const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
-  if (!artifact || artifact.processedArtifactId || !bridge.value?.ingestion?.create) return
+  if (!artifact || artifact.processedArtifactId || !bridge.value?.intake?.create) return
 
   let workingArtifact = artifact
   if (!String(artifact.artifactId || artifact.id || '').trim().startsWith('artifact:')) {
@@ -1612,7 +1612,7 @@ async function ensureProcessedArtifactForSelection(artifactId) {
   }
 
   try {
-    const result = await bridge.value.ingestion.create({
+    const result = await bridge.value.intake.create({
       Processed_Artifact_Name: workingArtifact.name,
       Processed_Artifact_Summary: '',
       Original_Artifact_Id: workingArtifact.artifactId || workingArtifact.id,
@@ -1646,7 +1646,7 @@ async function startArtifactProcessing(artifactId) {
   } catch (error) {
     $q.notify({
       type: 'negative',
-      message: error?.message || `Could not start ingestion for ${artifact.name || 'this file'}.`,
+      message: error?.message || `Could not start intake for ${artifact.name || 'this file'}.`,
     })
   } finally {
     startingArtifactIds.value = startingArtifactIds.value.filter((id) => id !== artifactId)
@@ -1669,7 +1669,7 @@ async function removeProcessedArtifactForSelection(artifactId) {
   if (!processedArtifactId) return
 
   try {
-    await bridge.value?.ingestion?.delete?.(processedArtifactId)
+    await bridge.value?.intake?.delete?.(processedArtifactId)
   } catch {
     // Leave the local shell state consistent even if delete fails.
   }

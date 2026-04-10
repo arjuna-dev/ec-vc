@@ -200,17 +200,17 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'knowledge-dbs',
     shellGroup: 'knowledge_db',
   },
-  Artifact_Processed: {
-    key: 'ingestion',
-    label: 'Artifact Processed',
-    singularLabel: 'Artifact Processed',
-    routeName: 'ingestion',
-    path: '/ingestion',
+  Intake: {
+    key: 'intake',
+    label: 'Intake',
+    singularLabel: 'Intake',
+    routeName: 'intake',
+    path: '/intake',
     icon: 'hub',
     showInWorkspaceNav: true,
     workspaceNavGroup: 'knowledge-dbs',
     shellGroup: 'knowledge_db',
-    runtimeEntityName: 'Artifacts_Processed',
+    runtimeEntityName: 'Intake',
   },
 })
 
@@ -226,7 +226,7 @@ const FILE_PAGE_ENTITY_ORDER = [
   'Tasks',
   'Notes',
   'Artifacts',
-  'Artifact_Processed',
+  'Intake',
   'Companies',
   'Opportunities',
   'Funds',
@@ -467,7 +467,7 @@ export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
   ),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'file-system', 'events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'ingestion']
+const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'file-system', 'events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'intake']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({
@@ -494,8 +494,10 @@ export function getFilePageRegistryEntry(key) {
     'system files': 'file-system',
     roles: 'user-roles',
     'user roles': 'user-roles',
-    'artifacts-processed': 'ingestion',
-    artifacts_processed: 'ingestion',
+    intake: 'intake',
+    ingestion: 'intake',
+    'artifacts-processed': 'intake',
+    artifacts_processed: 'intake',
   }
   return FILE_PAGE_REGISTRY_BY_KEY[aliases[normalizedKey] || normalizedKey] || null
 }
@@ -517,8 +519,9 @@ export function getFilePageRegistryEntryByEntityReference(entityName) {
   const legacyEntityAliases = {
     Financial_Industries: 'markets',
     Round_Securities: 'securities',
-    Artifact_Processed: 'ingestion',
-    Artifacts_Processed: 'ingestion',
+    Artifact_Processed: 'intake',
+    Artifacts_Processed: 'intake',
+    Intake: 'intake',
     Roles: 'user-roles',
   }
 
@@ -648,14 +651,15 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     note: 'Notes',
     securities: 'Securities',
     security: 'Securities',
-    ingestion: 'Artifact_Processed',
-    artifact_processed: 'Artifact_Processed',
-    'artifact-processed': 'Artifact_Processed',
-    artifacts_processed: 'Artifact_Processed',
-    'artifacts-processed': 'Artifact_Processed',
-    'processed artifact': 'Artifact_Processed',
-    'processed artifacts': 'Artifact_Processed',
-    'artifact processed': 'Artifact_Processed',
+    intake: 'Intake',
+    ingestion: 'Intake',
+    artifact_processed: 'Intake',
+    'artifact-processed': 'Intake',
+    artifacts_processed: 'Intake',
+    'artifacts-processed': 'Intake',
+    'processed artifact': 'Intake',
+    'processed artifacts': 'Intake',
+    'artifact processed': 'Intake',
   }
 
   const normalizedKey = normalized.toLowerCase()

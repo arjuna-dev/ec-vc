@@ -29,7 +29,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for the canonical font-family system that separates title and body roles.',
     prompt: 'Render the Fonts building block from BB Shell using the General Settings token source and the live title/body font pair.',
     anatomy: ['Title font sample', 'Body font sample', 'Explicit token labels'],
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     convergenceRule: [
       '--ds-font-family-title -> --ds-font-title',
       '--ds-font-family-body -> --ds-font-body',
@@ -45,7 +45,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for shell type sizing instead of page-local size literals.',
     summary: 'Use this for the canonical type-size ladder across hero, body, and utility text.',
     prompt: 'Render the Type Scale building block from BB Shell using the live General Settings size tokens.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     convergenceRule: [
       '--ds-font-size-xs-regular -> --ds-font-size-xs',
       '--ds-font-size-xs-medium -> --ds-font-size-xs',
@@ -65,7 +65,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for weight changes instead of hardcoded numeric values in local components.',
     summary: 'Use this for the canonical weight ladder from light through bold.',
     prompt: 'Render the Font Weights building block from BB Shell using the live General Settings weight tokens.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     convergenceRule: [
       'regular -> medium',
       'black -> bold',
@@ -84,7 +84,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for shell and component colors instead of drifting local hex values.',
     summary: 'Use this for the canonical text, brand, surface, and border color family.',
     prompt: 'Render the Colors building block from BB Shell using the live General Settings color tokens.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     convergenceRule: [
       'Text Primary -> Brand Black',
       'Text Muted -> Brand Dark_Grey',
@@ -102,7 +102,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for surface backgrounds and overlay states.',
     summary: 'Use this for the canonical surface family that shells and cards sit on top of.',
     prompt: 'Render the Surfaces building block from BB Shell using the live General Settings surface tokens.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     convergenceRule: [
       'base-88 -> overlay-light',
       'subtle-alt -> subtle',
@@ -122,7 +122,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for shell and control border treatment.',
     summary: 'Use this for the canonical border language across cards, controls, and panels.',
     prompt: 'Render the Borders building block from BB Shell using the live General Settings border tokens.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     convergenceRule: [
       'soft -> default',
       'soft-alt -> default',
@@ -138,7 +138,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for corner treatments instead of per-page radius literals.',
     summary: 'Use this for the canonical corner-radius ladder from sharp shells to pill controls.',
     prompt: 'Render the Radius building block from BB Shell using the live General Settings radius tokens.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     convergenceRule: [
       '16 -> 12',
       '18 -> 12',
@@ -155,7 +155,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for elevation and focus shadows.',
     summary: 'Use this for the canonical shadow/elevation system across labels, cards, and controls.',
     prompt: 'Render the Shadows building block from BB Shell using the live General Settings shadow tokens.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     convergenceRule: [
       '--ds-shadow-card-medium -> --ds-shadow-card-soft',
       'Card Soft + Card Medium -> Card',
@@ -170,7 +170,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for spacing rhythm instead of arbitrary pixel values.',
     summary: 'Use this for the canonical spacing ladder that controls shell rhythm and component density.',
     prompt: 'Render the Spacing building block from BB Shell using the live General Settings spacing tokens.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     convergenceRule: [
       '6 -> 8',
       '10 -> 8',
@@ -189,7 +189,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Use the General Settings token layer for icon sizes across buttons, chips, and shell controls.',
     summary: 'Use this for the canonical icon-size ladder.',
     prompt: 'Render the Icon Sizing building block from BB Shell using the live General Settings icon size tokens.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
   }),
   'formatting-rules': defineBuildingBlockDetail({
     id: 'cmp-foundation-formatting-rules',
@@ -200,7 +200,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Promote number/date formatting into General Settings ownership instead of leaving formatting examples implied.',
     summary: 'Use this for the current number, currency, percent, date, and time formatting language.',
     prompt: 'Render the Formatting Rules building block from BB Shell using the canonical number/date formatting examples.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
   }),
   'motion-rules': defineBuildingBlockDetail({
     id: 'cmp-foundation-motion-rules',
@@ -211,7 +211,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Keep shell motion purposeful and token-driven instead of page-local animation timing guesses.',
     summary: 'Use this for the current motion timing language across quick, standard, and emphasis interactions.',
     prompt: 'Render the Motion Rules building block from BB Shell using the canonical motion timing samples.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
   }),
   'home-dashboard': defineBuildingBlockDetail({
     id: 'cmp-home-dashboard',
@@ -237,7 +237,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for page headers that show the main page title.',
     prompt: 'Render the Page Title component from Building Blocks as the large standalone page title, using the same typography and spacing as the canonical component.',
     usedIn: ['Page-level shell headers', 'Any route-mounted page that needs large title treatment'],
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     builtFromBbs: ['fonts', 'type-scale', 'font-weights', 'colors', 'spacing'],
     anatomy: ['Large title row', 'Title font with tight tracking'],
   }),
@@ -264,7 +264,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     summary: 'Use this for compact back navigation inside shell headers and detail surfaces.',
     prompt: 'Render the Page Back Symbol from Building Blocks exactly, using the same single wrapper around the west icon and Back label.',
     usedIn: ['Shell header left cluster', 'Pages with explicit back navigation'],
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     builtFromBbs: ['west-icon', 'page-back-label', 'spacing', 'borders', 'radius', 'surfaces'],
     anatomy: ['Left-pointing west icon', 'Back label', 'Shared wrapper around both'],
   }),
@@ -277,7 +277,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse the shared WestIcon directly anywhere the same bare back glyph is needed.',
     summary: 'Use this for the stand-alone back glyph with no button wrapper or hover treatment.',
     prompt: 'Render the West Icon from Building Blocks as the bare west glyph only, with no button behavior or wrapper.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     builtFromBbs: ['colors', 'icon-sizing'],
     anatomy: ['Bare west glyph', 'No wrapper', 'No hover interaction'],
   }),
@@ -290,7 +290,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse the shared PageBackLabel directly anywhere the same back-navigation text treatment is needed.',
     summary: 'Use this for the compact Back label paired with the west icon.',
     prompt: 'Render the Page Back Label from Building Blocks using the same title-font Back text treatment as the canonical page-back control.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     builtFromBbs: ['fonts', 'font-weights', 'colors'],
     anatomy: ['Back label text', 'Title font treatment', 'Compact inline sizing'],
   }),
@@ -303,7 +303,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse the shared ButtonLabel anywhere the same B10 button text treatment is needed.',
     summary: 'Use this for canonical B10 button text instead of recreating button typography locally.',
     prompt: 'Render the Button Label from Building Blocks using the same shared B10 button typography treatment.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     builtFromBbs: ['fonts', 'font-weights', 'colors', 'spacing'],
     anatomy: ['Button label text', 'B10 type treatment', 'Inline action sizing'],
   }),
@@ -316,7 +316,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse the shared B10Logo directly anywhere the live animated brand treatment is needed.',
     summary: 'Use this for compact brand badges or temporary logo placeholders.',
     prompt: 'Render the B10 Logo from Building Blocks using the shared animated brand logo component and its fallback text behavior.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     builtFromBbs: ['fonts', 'colors', 'radius', 'spacing'],
   }),
   'plus-icon': defineBuildingBlockDetail({
@@ -443,7 +443,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse this component directly and vary only payload props such as label, icon, and variant.',
     summary: 'Use this for canonical B10 action buttons composed from the shared button surface and button label children.',
     prompt: 'Render the B10 Button component from Building Blocks using the shared button surface and button label children instead of local button styles.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     builtFromBbs: ['value-chip-surface', 'button-label', 'colors', 'radius', 'spacing', 'icon-sizing'],
   }),
   'b10-icon-button': defineBuildingBlockDetail({
@@ -455,7 +455,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     nextStep: 'Reuse this component directly and vary only icon and variant props.',
     summary: 'Use this for canonical icon-only actions that should come from the B10 button system.',
     prompt: 'Render the B10 Icon Button component from Building Blocks using the shared B10IconButton component and its existing variants.',
-    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Ingestion Shell'],
+    usedInShells: ['BB Shell', 'Add/Edit BB Shell', 'Add/Edit Record Shell', 'Add/Edit File Shell', 'Record Shell', 'Fork Shell', 'Intake Shell'],
     builtFromBbs: ['colors', 'radius', 'icon-sizing', 'spacing'],
   }),
   'view-mode-toggle': defineBuildingBlockDetail({
@@ -1023,7 +1023,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     statusLabel: 'Canonical Shared',
     source: 'src/components/ArtifactRow.vue',
     nextStep: 'Reuse the shared artifact row directly and vary only explicit selected state, icon, name, and size payload.',
-    summary: 'Use this for staged artifact cards inside add/edit record ingestion areas.',
+    summary: 'Use this for staged artifact cards inside add/edit record intake areas.',
     prompt: 'Render the Artifact Row from Building Blocks using the shared checkbox, preview icon, name, and size card.',
     usedInShells: ['BB Shell', 'Add/Edit Record Shell'],
     builtFromBbs: ['colors', 'surfaces', 'borders', 'radius', 'spacing'],
@@ -1036,7 +1036,7 @@ export const BUILDING_BLOCK_DETAILS_BY_ID = {
     statusLabel: 'Canonical Shared',
     source: 'src/components/ProcessingBox.vue',
     nextStep: 'Reuse the shared processing box directly and vary only explicit title, meta, compact mode, and body payload.',
-    summary: 'Use this for ingestion, URL, and blurb sub-panels inside add/edit record processing areas.',
+    summary: 'Use this for intake, URL, and blurb sub-panels inside add/edit record processing areas.',
     prompt: 'Render the Processing Box from Building Blocks using the shared compact panel surface and head row.',
     usedInShells: ['BB Shell', 'Add/Edit Record Shell'],
     builtFromBbs: ['surfaces', 'borders', 'radius', 'spacing'],
@@ -1485,3 +1485,4 @@ export function getBuildingBlockGraphLinks(blockId) {
 
   return { parents, children }
 }
+

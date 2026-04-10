@@ -12,13 +12,13 @@
           <DialogShellTitleRow :title="dialogTitle" class="create-record-shell__title-row">
             <template #actions>
             <q-btn
-              v-if="canOpenIngestionShell"
+              v-if="canOpenIntakeShell"
               flat
               no-caps
               dense
               class="create-record-shell__header-link"
-              label="Open Ingestion Shell"
-              @click="openIngestionShell"
+              label="Open Intake Shell"
+              @click="openIntakeShell"
             />
             <ShellSelector
               v-if="showShellSelector && shellSelectorOptions.length"
@@ -93,7 +93,7 @@
               </div>
 
               <div class="create-record-shell__intake-column">
-                <div class="create-record-shell__intake-column-title">Ingestion Companion</div>
+                <div class="create-record-shell__intake-column-title">Intake Companion</div>
                 <div class="create-record-shell__intake-side">
                   <div class="create-record-shell__processing-panel">
                   <div class="create-record-shell__processing-panel-head">
@@ -102,7 +102,7 @@
 
                   <div class="create-record-shell__processing-sections">
                     <ProcessingBox
-                      title="Ingestion"
+                      title="Intake"
                       :meta="`${processingArtifacts.length} queued`"
                       class="create-record-shell__processing-box"
                     >
@@ -794,7 +794,7 @@ import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
 import EntryInputListBox from 'src/components/EntryInputListBox.vue'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
-import { setPendingIngestionShellRequest } from 'src/utils/ingestionShellState'
+import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -924,7 +924,7 @@ const availableArtifacts = computed(() =>
 const processingArtifacts = computed(() =>
   stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
 )
-const canOpenIngestionShell = computed(() => stagedArtifacts.value.length > 0 || processingArtifacts.value.length > 0)
+const canOpenIntakeShell = computed(() => stagedArtifacts.value.length > 0 || processingArtifacts.value.length > 0)
 const activeFieldLabelWidth = computed(() => '10ch')
 
 const activeSection = computed(
@@ -1447,15 +1447,15 @@ function artifactPreviewIcon(artifact) {
   return 'insert_drive_file'
 }
 
-function openIngestionShell() {
-  setPendingIngestionShellRequest({
+function openIntakeShell() {
+  setPendingIntakeShellRequest({
     initialArtifacts: stagedArtifacts.value,
     artifactContext: props.artifactContext,
   })
   router.push({
-    name: 'ingestion-shell',
+    name: 'intake-shell',
     query: {
-      section: 'ingestion',
+      section: 'intake',
       open: String(Date.now()),
       returnTo: route.fullPath,
     },
@@ -1485,7 +1485,7 @@ async function persistDroppedArtifact(artifact) {
 
 async function ensureProcessedArtifactForSelection(artifactId) {
   const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
-  if (!artifact || artifact.processedArtifactId || !bridge.value?.ingestion?.create) return
+  if (!artifact || artifact.processedArtifactId || !bridge.value?.intake?.create) return
 
   let workingArtifact = artifact
   if (!String(artifact.artifactId || artifact.id || '').trim().startsWith('artifact:')) {
@@ -1499,7 +1499,7 @@ async function ensureProcessedArtifactForSelection(artifactId) {
   }
 
   try {
-    const result = await bridge.value.ingestion.create({
+    const result = await bridge.value.intake.create({
       Processed_Artifact_Name: workingArtifact.name,
       Processed_Artifact_Summary: '',
       Original_Artifact_Id: workingArtifact.artifactId || workingArtifact.id,
@@ -1533,7 +1533,7 @@ async function startArtifactProcessing(artifactId) {
   } catch (error) {
     $q.notify({
       type: 'negative',
-      message: error?.message || `Could not start ingestion for ${artifact.name || 'this file'}.`,
+      message: error?.message || `Could not start intake for ${artifact.name || 'this file'}.`,
     })
   } finally {
     startingArtifactIds.value = startingArtifactIds.value.filter((id) => id !== artifactId)
@@ -1556,7 +1556,7 @@ async function removeProcessedArtifactForSelection(artifactId) {
   if (!processedArtifactId) return
 
   try {
-    await bridge.value?.ingestion?.delete?.(processedArtifactId)
+    await bridge.value?.intake?.delete?.(processedArtifactId)
   } catch {
     // Leave the local shell state consistent even if delete fails.
   }

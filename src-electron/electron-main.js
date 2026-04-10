@@ -1612,7 +1612,7 @@ const FILE_GUIDE_PATH_BY_SOURCE_KEY = Object.freeze({
   'companion-roles': 'docs/100/Draft/100-Companion_Roles.md',
   markets: 'docs/100/Draft/100-Markets.md',
   securities: 'docs/100/Draft/100-Securities.md',
-  ingestion: 'docs/100/Draft/100-Artifact_Processed.md',
+  intake: 'docs/100/Draft/100-Intake.md',
 })
 
 function getDefaultFileStatusForGuidePath(guidePath = '') {
@@ -3379,9 +3379,9 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['title', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
-  Artifacts_Processed: {
-    tableName: 'Artifacts_Processed',
-    entityLabel: 'Processed Artifact',
+  Intake: {
+    tableName: 'Intake',
+    entityLabel: 'Intake',
     displayColumns: ['Processed_Artifact_Name', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
@@ -3427,10 +3427,14 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   note: 'Notes',
   securities: 'Securities',
   security: 'Securities',
-  'artifacts_processed': 'Artifacts_Processed',
-  'artifacts-processed': 'Artifacts_Processed',
-  'processed artifact': 'Artifacts_Processed',
-  'processed artifacts': 'Artifacts_Processed',
+  intake: 'Intake',
+  ingestion: 'Intake',
+  artifact_processed: 'Intake',
+  'artifact-processed': 'Intake',
+  artifacts_processed: 'Intake',
+  'artifacts-processed': 'Intake',
+  'processed artifact': 'Intake',
+  'processed artifacts': 'Intake',
 })
 
 function getDatabookTableConfig(tableName) {
@@ -4351,7 +4355,7 @@ function createArtifact(payload = {}) {
   return { id: artifactId, artifact_id: artifactId, title }
 }
 
-function listProcessedArtifacts() {
+function listIntake() {
   return dbAll(
     `
     SELECT
@@ -4364,13 +4368,13 @@ function listProcessedArtifacts() {
       created_by,
       created_at,
       updated_at
-    FROM Artifacts_Processed
+    FROM Intake
     ORDER BY created_at DESC, id DESC
   `,
   )
 }
 
-function createProcessedArtifact(payload = {}) {
+function createIntake(payload = {}) {
   const database = initDb()
   const actor = getAuditActor(database, { requireUser: true })
   const name =
@@ -4378,9 +4382,9 @@ function createProcessedArtifact(payload = {}) {
     normalizeNullableString(payload?.Name) ||
     normalizeNullableString(payload?.title)
 
-  if (!name) throw new Error('Processed artifact name is required')
+  if (!name) throw new Error('Intake name is required')
 
-  const id = normalizeNullableString(payload?.id) || `processed-artifact:${crypto.randomUUID()}`
+  const id = normalizeNullableString(payload?.id) || `intake:${crypto.randomUUID()}`
   const summary =
     normalizeNullableString(payload?.Processed_Artifact_Summary) ||
     normalizeNullableString(payload?.Summary) ||
@@ -4397,7 +4401,7 @@ function createProcessedArtifact(payload = {}) {
   database
     .prepare(
       `
-      INSERT INTO Artifacts_Processed (
+      INSERT INTO Intake (
         id,
         Processed_Artifact_Name,
         Processed_Artifact_Summary,
@@ -8388,25 +8392,25 @@ function registerIpc() {
     }
   })
 
-  ipcMain.handle('artifacts-processed:list', async () => {
+  ipcMain.handle('intake:list', async () => {
     initDb()
-    return { artifactsProcessed: listProcessedArtifacts() }
+    return { intake: listIntake() }
   })
 
-  ipcMain.handle('artifacts-processed:create', async (_event, payload = {}) => {
+  ipcMain.handle('intake:create', async (_event, payload = {}) => {
     initDb()
     try {
-      const result = createProcessedArtifact(payload)
+      const result = createIntake(payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
-      throw new Error(toUserFriendlySaveError(e, 'processed artifacts'))
+      throw new Error(toUserFriendlySaveError(e, 'intake'))
     }
   })
 
-  ipcMain.handle('artifacts-processed:delete', async (_event, { processedArtifactId } = {}) => {
+  ipcMain.handle('intake:delete', async (_event, { intakeId } = {}) => {
     initDb()
-    const result = deleteRow('Artifacts_Processed', 'id', String(processedArtifactId || ''))
+    const result = deleteRow('Intake', 'id', String(intakeId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
   })

@@ -1892,7 +1892,7 @@ CREATE TABLE IF NOT EXISTS Artifact_Links (
   FOREIGN KEY (to_artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS Artifacts_Processed (
+CREATE TABLE IF NOT EXISTS Intake (
   id TEXT PRIMARY KEY,
   Processed_Artifact_Name TEXT NOT NULL,
   Processed_Artifact_Summary TEXT,
@@ -1906,11 +1906,11 @@ CREATE TABLE IF NOT EXISTS Artifacts_Processed (
   FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_Artifacts_Processed_original_artifact
-  ON Artifacts_Processed(Original_Artifact_Id);
+CREATE INDEX IF NOT EXISTS idx_Intake_original_artifact
+  ON Intake(Original_Artifact_Id);
 
-CREATE INDEX IF NOT EXISTS idx_Artifacts_Processed_created_by
-  ON Artifacts_Processed(created_by);
+CREATE INDEX IF NOT EXISTS idx_Intake_created_by
+  ON Intake(created_by);
 
 CREATE TABLE IF NOT EXISTS KDB_Relationships (
   id TEXT PRIMARY KEY,

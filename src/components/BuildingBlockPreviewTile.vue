@@ -700,7 +700,7 @@
       </template>
 
       <template v-else-if="blockKey === 'processing-box'">
-        <ProcessingBox title="Ingestion" meta="3 loading">
+        <ProcessingBox title="Intake" meta="3 loading">
           <div class="building-block-preview-tile__record-feed-surface-sample building-block-preview-tile__processing-box-sample">
             <span>Artifact A.pdf</span>
             <span>Artifact B.docx</span>

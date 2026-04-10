@@ -213,11 +213,11 @@ const api = {
       return () => ipcRenderer.removeListener('artifacts:ingest:status', handler)
     },
   },
-  'artifacts-processed': {
-    list: () => ipcRenderer.invoke('artifacts-processed:list'),
-    create: (payload) => ipcRenderer.invoke('artifacts-processed:create', payload),
-    delete: (processedArtifactId) =>
-      ipcRenderer.invoke('artifacts-processed:delete', { processedArtifactId }),
+  intake: {
+    list: () => ipcRenderer.invoke('intake:list'),
+    create: (payload) => ipcRenderer.invoke('intake:create', payload),
+    delete: (intakeId) =>
+      ipcRenderer.invoke('intake:delete', { intakeId }),
   },
   db: {
     info: () => ipcRenderer.invoke('db:info'),
@@ -234,7 +234,8 @@ const api = {
 }
 
 api['user-roles'] = api.roles
-api.ingestion = api['artifacts-processed']
+api.ingestion = api.intake
+api['artifacts-processed'] = api.intake
 api.filesystem = api['file-system']
 
 contextBridge.exposeInMainWorld('ecvc', api)

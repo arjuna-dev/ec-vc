@@ -833,7 +833,7 @@ Examples:
 
 ## Artifact Processing Provenance Rule
 
-When an artifact is selected and moved into the `Ingestion Companion` processing lane, the system should treat that as the start of a tracked processing record.
+When an artifact is selected and moved into the `Intake Companion` processing lane, the system should treat that as the start of a tracked processing record.
 
 That tracked record belongs in:
 

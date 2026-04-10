@@ -1,19 +1,19 @@
 <template>
-  <q-page class="q-pa-md ingestion-shell-page">
+  <q-page class="q-pa-md intake-shell-page">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Ingestion Shell requires Electron. Run <code>quasar dev -m electron</code> or
+        Intake Shell requires Electron. Run <code>quasar dev -m electron</code> or
         <code>quasar build -m electron</code>.
       </q-banner>
     </div>
 
-    <IngestionShellDialog
+    <IntakeShellDialog
       :key="dialogRenderKey"
       v-else
       v-model="dialogOpen"
       :mode="dialogMode"
-      :source-label="activeRegistryEntry?.label || 'Artifact Processed'"
-      :singular-label="activeRegistryEntry?.singularLabel || 'artifact processed record'"
+      :source-label="activeRegistryEntry?.label || 'Intake'"
+      :singular-label="activeRegistryEntry?.singularLabel || 'intake record'"
       :key-field-tokens="createKeyFieldTokens"
       :left-sections="dialogSectionSplit.leftSections"
       :right-sections="dialogSectionSplit.rightSections"
@@ -38,7 +38,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
-import IngestionShellDialog from 'src/components/IngestionShellDialog.vue'
+import IntakeShellDialog from 'src/components/IntakeShellDialog.vue'
 import {
   CANONICAL_OPTION_LISTS,
   getCreateBranchEntry,
@@ -54,7 +54,7 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
-import { consumePendingIngestionShellRequest } from 'src/utils/ingestionShellState'
+import { consumePendingIntakeShellRequest } from 'src/utils/intakeShellState'
 
 const route = useRoute()
 const $q = useQuasar()
@@ -73,7 +73,7 @@ const dialogEntityName = ref('')
 const dialogInitialArtifacts = ref([])
 const dialogArtifactContext = ref(null)
 
-const fallbackSectionKey = 'ingestion'
+const fallbackSectionKey = 'intake'
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section || fallbackSectionKey))
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
@@ -140,7 +140,7 @@ watch(activeSourceKey, async () => {
 watch(
   () => route.query.open,
   () => {
-    const pending = consumePendingIngestionShellRequest()
+    const pending = consumePendingIntakeShellRequest()
     if (!pending) return
     dialogInitialArtifacts.value = Array.isArray(pending.initialArtifacts) ? pending.initialArtifacts : []
     dialogArtifactContext.value = pending.artifactContext && typeof pending.artifactContext === 'object'
@@ -220,7 +220,9 @@ onBeforeUnmount(() => {
 
 function resolveValidShellSection(value) {
   const normalized = String(value || '').trim().toLowerCase()
-  return normalized === 'ingestion' || normalized === 'artifacts-processed' ? getFilePageRegistryEntry(normalized)?.key || fallbackSectionKey : fallbackSectionKey
+  return normalized === 'intake' || normalized === 'ingestion' || normalized === 'artifacts-processed'
+    ? getFilePageRegistryEntry(normalized)?.key || fallbackSectionKey
+    : fallbackSectionKey
 }
 
 function normalizeCreateDialogToken(token) {

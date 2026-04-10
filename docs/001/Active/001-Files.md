@@ -103,7 +103,7 @@ Examples of child guides:
 - `Companies.md`
 - `Projects.md`
 - `Events.md`
-- `Artifact_Processed.md`
+- `Intake.md`
 
 ## Why This Matters
 

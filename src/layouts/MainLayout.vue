@@ -430,7 +430,7 @@ const DEFAULT_QUICK_WIDGET_ACTION_ORDER = [
   'task',
   'markets',
   'securities',
-  'ingestion',
+  'intake',
   'settings',
 ]
 const mainNavigationItems = [
@@ -454,7 +454,7 @@ const testShellNavigationItems = [
   { label: 'Add/Edit BB Shell', to: '/bb-shell', exact: true, icon: 'web_asset' },
   { label: 'Add/Edit File Shell', to: '/file-dialog-shell', exact: true, icon: 'web_asset' },
   { label: 'Add/Edit Record Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
-  { label: 'Artifact Processed Shell', to: '/ingestion-shell', exact: true, icon: 'hourglass_top' },
+  { label: 'Intake Shell', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
   { label: 'Fork Shell', to: '/fork-shell', exact: true, icon: 'call_split' },
 ].map((item) => ({
   ...item,
@@ -475,7 +475,7 @@ const routeLabelByName = {
   markets: 'Markets',
   notes: 'Notes',
   securities: 'Securities',
-  ingestion: 'Artifact Processed',
+  intake: 'Intake',
   tasks: 'Tasks',
   'test-shell': 'File Shell',
   'record-shell': 'Record Shell',
@@ -483,7 +483,7 @@ const routeLabelByName = {
   'bb-shell': 'Add/Edit BB Shell',
   'file-dialog-shell': 'Add/Edit File Shell',
   'dialog-shell': 'Add/Edit Record Shell',
-  'ingestion-shell': 'Artifact Processed Shell',
+  'intake-shell': 'Intake Shell',
   'user-roles': 'User Roles',
   'companion-roles': 'Companion Roles',
   avatar: 'Companion',
@@ -727,12 +727,12 @@ const quickWidgetActionCatalog = computed(() => {
       icon: 'receipt_long',
       onClick: () => openShellCreateFromQuickAction('securities'),
     },
-    ingestion: {
-      id: 'ingestion',
-      label: 'Artifact Processed',
+    intake: {
+      id: 'intake',
+      label: 'Intake',
       group: 'knowledge-dbs',
       icon: 'hub',
-      onClick: () => openShellCreateFromQuickAction('ingestion'),
+      onClick: () => openShellCreateFromQuickAction('intake'),
     },
     settings: {
       id: 'settings',

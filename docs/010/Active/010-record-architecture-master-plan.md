@@ -292,7 +292,7 @@ That means the app should create and own the current baseline table set as part 
 - current first-order `L1` tables such as `Companies`, `Funds`, `Rounds`, `Users`, `Contacts`, `Projects`, `Tasks`, `Notes`, `Roles`, `Artifacts`, and related current working record tables
 - current knowledge/reference tables such as `Markets`, `Securities`, `Regions`, `BusinessModels`, `SectorGroups`, `VerticalIndustries`, `VC_Terms_Glossary`, and related current supporting tables
 - current owned subtables and current relationship/join tables exactly as they are presently declared
-- current linkage/runtime tables such as `Users_Roles`, `Artifacts_Processed`, and `KDB_Relationships`
+- current linkage/runtime tables such as `Users_Roles`, `Intake`, and `KDB_Relationships`
 
 Working rule:
 
@@ -1057,7 +1057,7 @@ Current visible shared interlinked set:
 - `Roles`
 - `Markets`
 - `Securities`
-- `Artifacts_Processed`
+- `Intake`
 
 Current canon status:
 
@@ -1765,7 +1765,7 @@ Minimum contract:
 
 Working rule:
 
-- when an artifact is selected and sent into the `Ingestion Companion` processing lane, that is the point where the `Ingestion` record should be created/tracked
+- when an artifact is selected and sent into the `Intake Companion` processing lane, that is the point where the `Ingestion` record should be created/tracked
 - one original artifact may have many `Ingestion` records
 - one `Ingestion` record may have many `Created Files`
 

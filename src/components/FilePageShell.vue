@@ -996,9 +996,9 @@ const SECTION_LOADERS = {
     resultKey: 'companionRoles',
     recordIdField: 'id',
   },
-  ingestion: {
-    listFn: (bridgeValue) => bridgeValue?.ingestion?.list?.(),
-    resultKey: 'artifactsProcessed',
+  intake: {
+    listFn: (bridgeValue) => bridgeValue?.intake?.list?.(),
+    resultKey: 'intake',
     recordIdField: 'id',
   },
 }
@@ -1643,7 +1643,7 @@ const FILE_GUIDE_PATHS_BY_SOURCE = Object.freeze({
   'companion-roles': 'docs/100/Draft/100-Companion_Roles.md',
   markets: 'docs/100/Draft/100-Markets.md',
   securities: 'docs/100/Draft/100-Securities.md',
-  ingestion: 'docs/100/Draft/100-Artifact_Processed.md',
+  intake: 'docs/100/Draft/100-Intake.md',
 })
 
 const PRIMARY_STEWARD_DOCS_BY_SOURCE = Object.freeze({

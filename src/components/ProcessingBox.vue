@@ -19,7 +19,7 @@ defineOptions({ name: 'ProcessingBox' })
 defineProps({
   title: {
     type: String,
-    default: 'Ingestion',
+    default: 'Intake',
   },
   meta: {
     type: String,
