@@ -10,7 +10,9 @@ Its job is to translate architecture decisions into clear user-facing forks, que
 
 The `UX Steward` should protect the app from asking users architecture questions in a confusing or overly technical way.
 
-The `UX Steward` should be able to help answer: `Can the user make the right structural choice without needing architecture vocabulary?`
+The `UX Steward` should be able to help answer:
+
+- Can the user make the right structural choice without needing architecture vocabulary?
 
 ## Core Rule
 

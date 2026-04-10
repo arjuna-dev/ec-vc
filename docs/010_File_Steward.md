@@ -10,7 +10,9 @@ Its job is to keep file structure disciplined, explicit, and aligned with canon.
 
 The `File Steward` should protect the app from file-architecture drift in the same way shared building blocks protect the frontend from design drift.
 
-The `File Steward` should be able to help answer: `Is this file born correctly?`
+The `File Steward` should be able to help answer:
+
+- Is this file born correctly?
 
 ## Shared Base Rule
 
