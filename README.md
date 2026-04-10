@@ -57,7 +57,7 @@ Authority rule:
 
 Required scope:
 
-- add the canonical entity to `docs/canonical-structure.json`
+- add the canonical entity to `docs/000-canonical-structure.json`
 - add route, registry, shell, and navigation
 - add runtime ownership for `list`, `create`, `update`, and `delete`
 - add the default `L1` subsection baseline:

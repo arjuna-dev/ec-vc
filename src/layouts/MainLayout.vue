@@ -477,6 +477,14 @@ const workspaceNavigationItems = [
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
   {
+    label: 'Artifact Processed',
+    to: '/ingestion',
+    exact: true,
+    icon: 'hub',
+    parentKey: 'knowledge-dbs',
+    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
+  },
+  {
     label: 'Markets',
     to: '/markets',
     exact: true,
@@ -492,16 +500,6 @@ const workspaceNavigationItems = [
     parentKey: 'knowledge-dbs',
     itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
   },
-  {
-    label: 'Artifact Processed',
-    to: '/ingestion',
-    exact: true,
-    icon: 'hub',
-    parentKey: 'knowledge-dbs',
-    itemClass: 'ec-nav-item--secondary ec-nav-item--workspace-child',
-  },
-  {
-    label: 'System Files', to: '/file-system', exact: true, icon: 'folder_open' },
 ].map((item) => ({
   ...item,
   itemClass: item.itemClass || 'ec-nav-item--secondary ec-nav-item--workspace-child',

@@ -1,4 +1,4 @@
-import canonicalStructure from '../../docs/canonical-structure.json'
+import canonicalStructure from '../../docs/000-canonical-structure.json'
 import { formatSharedDisplayLabel } from 'src/shared/labelFormatting'
 
 export const DEFAULT_L1_REQUIRED_SUBSECTIONS = Object.freeze(['System', 'KDB'])
@@ -94,6 +94,16 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     icon: 'history',
     showInWorkspaceNav: true,
     shellGroup: 'knowledge_db',
+  },
+  Files: {
+    key: 'file-system',
+    label: 'System Files',
+    singularLabel: 'File',
+    routeName: 'file-system',
+    path: '/file-system',
+    icon: 'folder_open',
+    showInWorkspaceNav: true,
+    shellGroup: 'system_level',
   },
   Users: { key: 'users', label: 'Users', singularLabel: 'User', routeName: 'users', path: '/users', icon: 'badge', showInWorkspaceNav: true, shellGroup: 'first_order' },
   Artifacts: {
@@ -195,7 +205,26 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   },
 })
 
-const FILE_PAGE_ENTITY_ORDER = ['Building_Blocks', 'Events', 'Users', 'Artifacts', 'Contacts', 'Companies', 'Opportunities', 'Funds', 'Rounds', 'Projects', 'Tasks', 'Notes', 'Roles', 'Companion_Roles', 'Financial_Industries', 'Round_Securities', 'Artifact_Processed']
+const FILE_PAGE_ENTITY_ORDER = [
+  'Files',
+  'Building_Blocks',
+  'Events',
+  'Users',
+  'Contacts',
+  'Roles',
+  'Companion_Roles',
+  'Projects',
+  'Tasks',
+  'Notes',
+  'Artifacts',
+  'Artifact_Processed',
+  'Companies',
+  'Opportunities',
+  'Funds',
+  'Rounds',
+  'Financial_Industries',
+  'Round_Securities',
+]
 
 function normalizeSubsections(entity) {
   const subsections = entity?.subsections
@@ -429,7 +458,7 @@ export const LEVEL_3_FILE_REGISTRY_BY_KEY = Object.freeze(
   ),
 )
 
-const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'ingestion']
+const TEST_SHELL_RENDERABLE_KEYS = ['bb-file', 'file-system', 'events', 'users', 'artifacts', 'contacts', 'companies', 'opportunities', 'projects', 'notes', 'tasks', 'user-roles', 'companion-roles', 'markets', 'securities', 'ingestion']
 
 export const TEST_SHELL_SECTION_OPTIONS = Object.freeze(
   LEVEL_1_FILE_REGISTRY.filter((entry) => TEST_SHELL_RENDERABLE_KEYS.includes(entry.key)).map((entry) => ({
@@ -450,6 +479,9 @@ export const WORKSPACE_FILE_NAV_ITEMS = Object.freeze(
 export function getFilePageRegistryEntry(key) {
   const normalizedKey = String(key || '').trim().toLowerCase()
   const aliases = {
+    files: 'file-system',
+    file: 'file-system',
+    'system files': 'file-system',
     roles: 'user-roles',
     'user roles': 'user-roles',
     industries: 'markets',
@@ -546,6 +578,11 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
   const aliasMap = {
     events: 'Events',
     event: 'Events',
+    files: 'Files',
+    file: 'Files',
+    'file-system': 'Files',
+    file_system: 'Files',
+    'system files': 'Files',
     companies: 'Companies',
     company: 'Companies',
     contacts: 'Contacts',

@@ -198,7 +198,7 @@ def build_schema(rows: list[dict[str, Any]], workbook_name: str) -> OrderedDict[
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[1]
     workbook_path = repo_root / "docs" / "B10_DOS v260400 vrev.xlsx"
-    output_path = repo_root / "docs" / "001-workbook-schema-companion.json"
+    output_path = repo_root / "docs" / "000-workbook-schema-companion.json"
 
     if not workbook_path.exists():
         raise FileNotFoundError(f"Workbook not found: {workbook_path}")

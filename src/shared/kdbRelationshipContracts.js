@@ -1,4 +1,4 @@
-import canonicalStructure from '../../docs/canonical-structure.json'
+import canonicalStructure from '../../docs/000-canonical-structure.json'
 
 const GENERIC_KDB_TABLE = 'KDB_Relationships'
 

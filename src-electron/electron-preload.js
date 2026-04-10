@@ -76,6 +76,11 @@ const api = {
     create: (payload) => ipcRenderer.invoke('events:create', payload),
     delete: (eventId) => ipcRenderer.invoke('events:delete', { eventId }),
   },
+  'file-system': {
+    list: () => ipcRenderer.invoke('file-system:list'),
+    create: (payload) => ipcRenderer.invoke('file-system:create', payload),
+    delete: (fileId) => ipcRenderer.invoke('file-system:delete', { fileId }),
+  },
   companies: {
     list: () => ipcRenderer.invoke('companies:list'),
     create: (payload) => ipcRenderer.invoke('companies:create', payload),
@@ -231,5 +236,6 @@ const api = {
 api.markets = api.industries
 api['user-roles'] = api.roles
 api.ingestion = api['artifacts-processed']
+api.filesystem = api['file-system']
 
 contextBridge.exposeInMainWorld('ecvc', api)

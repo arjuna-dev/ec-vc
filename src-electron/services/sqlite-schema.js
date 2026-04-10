@@ -1426,6 +1426,40 @@ CREATE TABLE IF NOT EXISTS Companion_Roles (
 CREATE INDEX IF NOT EXISTS idx_Companion_Roles_created_by
   ON Companion_Roles(created_by);
 
+CREATE TABLE IF NOT EXISTS Files (
+  id TEXT PRIMARY KEY,
+  File_Order INTEGER,
+  File_Name TEXT NOT NULL,
+  File_Summary TEXT,
+  File_Status TEXT,
+  File_Contract_Path TEXT,
+  File_Class TEXT,
+  Requires_System TEXT,
+  Requires_KDB TEXT,
+  Ownership_Mode TEXT,
+  File_Owner TEXT,
+  File_Steward TEXT,
+  Rulebook_Dependencies TEXT,
+  Defined_Structure TEXT,
+  Glossary_Terms TEXT,
+  File_Source_Key TEXT NOT NULL UNIQUE,
+  File_Canonical_Entity TEXT,
+  File_Runtime_Entity TEXT,
+  File_Route_Name TEXT,
+  File_Path TEXT,
+  File_EventLog TEXT,
+  created_by TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (created_by) REFERENCES Users(id) ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_Files_order
+  ON Files(File_Order);
+
+CREATE INDEX IF NOT EXISTS idx_Files_created_by
+  ON Files(created_by);
+
 CREATE TABLE IF NOT EXISTS Building_Blocks (
   id TEXT PRIMARY KEY,
   Sort_Order INTEGER,

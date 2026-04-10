@@ -884,6 +884,11 @@ const NAME_COLUMN_DEFAULT_WIDTH = 84
 const TABLE_CONTROL_COLUMN_WIDTH = 22
 
 const SECTION_LOADERS = {
+  'file-system': {
+    listFn: (bridgeValue) => bridgeValue?.['file-system']?.list?.(),
+    resultKey: 'files',
+    recordIdField: 'id',
+  },
   events: {
     listFn: (bridgeValue) => bridgeValue?.events?.list?.(),
     resultKey: 'events',
