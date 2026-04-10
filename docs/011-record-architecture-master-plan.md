@@ -766,6 +766,15 @@ Shell styling rule:
 
 KDB relationships must now be treated as real system paths, not as optional UI affordances.
 
+Naming direction:
+
+- the intended future label for `KDB` is `LDB`
+- `LDB` means `Local DataBase`
+- the meaning is the local file-to-file and record-to-record relationship layer inside the owner's local system
+- current runtime names may still say `KDB` until a deliberate staged rename is performed
+- do not rename docs, UI labels, sqlite tables, relationship contracts, and canonical sections independently
+- the rename should be treated as one architecture pass, not a piecemeal cleanup
+
 Current shared-shell launch rule:
 
 - card-view `Add Relation` should route into `dialog-shell`

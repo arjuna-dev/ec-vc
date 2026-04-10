@@ -297,6 +297,24 @@ It should describe:
 - whether each relationship uses shared `KDB_Relationships` or a promoted dedicated owner
 - whether reverse-read exists
 
+### LDB Naming Direction
+
+The intended future name for this relationship layer is `LDB`.
+
+`LDB` means `Local DataBase`.
+
+This name better describes the local relationship layer between:
+
+- files created inside the local owner/user system
+- records inside those files
+- local system files and their relationship paths
+
+Current implementation may still use `KDB` names in canon, docs, sqlite tables, functions, and UI labels.
+
+Do not rename those pieces one by one.
+
+The rename should happen as a staged architecture pass so docs, canonical structure, UI labels, sqlite owner paths, relationship contracts, and steward language stay aligned.
+
 ## System Files Rule
 
 The `System Files` file/page should expose these file-definition properties for each file:

@@ -25,6 +25,7 @@ This tracker should stay aligned with:
 - use the `Companion` and the first-pass game layer to surface issues without weakening the contract
 - keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
 - keep KDB linking, unlinking, and selector labels working through shared shell contracts instead of per-entity fixes
+- document the naming direction from `KDB` toward `LDB` while avoiding piecemeal runtime renames
 - adopt `Record Shell` as the shared `Record View` direction
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
 - keep owner authority locked while still allowing owner-only editing of owner profile data
