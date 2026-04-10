@@ -793,7 +793,7 @@ For every first-level canonical table:
 
 - metadata fields are direct inputs into that table or its owned subtable(s)
 - those metadata fields should be edited through their canonical owner surface
-- relationships to other first-level tables should be searchable through the target table’s real metadata
+- relationships to other first-level tables should be searchable through the target tableÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢s real metadata
 - relationship editors should save to the real join table, not local-only draft state pretending to be canonical
 
 ## First-Order Field Rule
@@ -819,7 +819,7 @@ If a field belongs to a different canonical table, the UI should either:
 
 When the user links one first-level record to another:
 
-- search should query the target table’s real metadata
+- search should query the target tableÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢s real metadata
 - saved links should use the target record id
 - loaded relationship state should come from the real join table
 
@@ -1079,11 +1079,11 @@ The product currently uses several naming layers that must stay distinct:
 - `L1` label:
   the user-facing section name, such as `Markets`
 - route key:
-  the navigation/shell key, such as `industries`
+  the navigation/shell key, such as `markets`
 - canonical entity name:
-  the structural ownership name, such as `Financial_Industries`
+  the structural ownership name, such as `Markets`
 - databook table name:
-  the IPC/database action name, such as `Industries`
+  the IPC/database action name, such as `Markets`
 
 Shared shells may render from canonical structure and route keys, but IPC actions must use databook table names.
 

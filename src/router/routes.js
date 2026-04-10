@@ -21,7 +21,7 @@ const routes = [
       { path: 'companies', name: 'companies', component: () => import('pages/CompaniesPage.vue') },
       { path: 'contacts', name: 'contacts', component: () => import('pages/ContactsPage.vue') },
       { path: 'users', name: 'users', component: () => import('pages/UsersPage.vue') },
-      { path: 'markets', name: 'markets', component: () => import('pages/IndustriesPage.vue') },
+      { path: 'markets', name: 'markets', component: () => import('pages/MarketsPage.vue') },
       { path: 'industries', redirect: { name: 'markets' } },
       { path: 'securities', name: 'securities', component: () => import('pages/SecuritiesPage.vue') },
       { path: 'ingestion', name: 'ingestion', component: () => import('pages/IngestionPage.vue') },

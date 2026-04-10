@@ -202,7 +202,7 @@
               "token_name": "Event_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -210,7 +210,7 @@
               "token_name": "Event_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -392,7 +392,7 @@
               "token_name": "Artifact_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -400,7 +400,7 @@
               "token_name": "Artifact_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -581,7 +581,7 @@
               "token_name": "User_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -589,7 +589,7 @@
               "token_name": "User_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -834,7 +834,7 @@
               "token_name": "Contact_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -842,7 +842,7 @@
               "token_name": "Contact_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -1051,7 +1051,7 @@
               "token_name": "Company_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -1059,7 +1059,7 @@
               "token_name": "Company_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             }
           ]
@@ -1733,7 +1733,7 @@
               "token_name": "Opportunity_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -1741,7 +1741,7 @@
               "token_name": "Opportunity_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -1986,7 +1986,7 @@
               "token_name": "Fund_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -1994,7 +1994,7 @@
               "token_name": "Fund_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -2112,7 +2112,7 @@
               "token_name": "Fund_Target_Industries",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries"
+              "option_entity": "Markets"
             },
             {
               "address": "5.4.15",
@@ -2320,7 +2320,7 @@
               "token_name": "Round_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -2328,7 +2328,7 @@
               "token_name": "Round_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -2387,7 +2387,7 @@
               "token_name": "Round_Security_Type",
               "token_type": "select_single",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities"
+              "option_entity": "Securities"
             },
             {
               "address": "6.4.4",
@@ -2618,7 +2618,7 @@
               "token_name": "Project_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -2626,7 +2626,7 @@
               "token_name": "Project_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -2936,7 +2936,7 @@
               "token_name": "Task_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -2944,7 +2944,7 @@
               "token_name": "Task_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -3200,7 +3200,7 @@
               "token_name": "Note_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -3208,7 +3208,7 @@
               "token_name": "Note_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -3805,7 +3805,7 @@
     },
     {
       "level_1": "18",
-      "entity": "Financial_Industries",
+      "entity": "Markets",
       "entity_label": "Financial Industry",
       "entity_address": "18.0.0",
       "structure_token": {
@@ -3921,7 +3921,7 @@
               "token_name": "Financial_Industry_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -3929,7 +3929,7 @@
               "token_name": "Financial_Industry_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -3970,7 +3970,7 @@
     },
     {
       "level_1": "19",
-      "entity": "Round_Securities",
+      "entity": "Securities",
       "entity_label": "Round Security",
       "entity_address": "19.0.0",
       "structure_token": {
@@ -4086,7 +4086,7 @@
               "token_name": "Round_Security_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -4094,7 +4094,7 @@
               "token_name": "Round_Security_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -4262,7 +4262,7 @@
               "token_name": "Artifact_Processed_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -4270,7 +4270,7 @@
               "token_name": "Artifact_Processed_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -4421,7 +4421,7 @@
               "token_name": "Role_Financial_Industry",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -4429,7 +4429,7 @@
               "token_name": "Role_Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -4594,7 +4594,7 @@
               "token_name": "Companion_Role_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -4602,7 +4602,7 @@
               "token_name": "Companion_Role_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {

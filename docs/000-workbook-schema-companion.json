@@ -66,8 +66,8 @@
             { "index": "", "level_3": "9", "address": "0.2.9", "token_name": "Event_Task", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Tasks", "relationship_group": "first_order" },
             { "index": "", "level_3": "10", "address": "0.2.10", "token_name": "Event_Note", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Notes", "relationship_group": "first_order" },
             { "index": "", "level_3": "11", "address": "0.2.11", "token_name": "Event_Role", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Roles", "relationship_group": "first_order" },
-            { "index": "", "level_3": "12", "address": "0.2.12", "token_name": "Event_Financial_Industry", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Financial_Industries", "relationship_group": "knowledge_db" },
-            { "index": "", "level_3": "13", "address": "0.2.13", "token_name": "Event_Round_Security", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Round_Securities", "relationship_group": "knowledge_db" },
+            { "index": "", "level_3": "12", "address": "0.2.12", "token_name": "Event_Financial_Industry", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Markets", "relationship_group": "knowledge_db" },
+            { "index": "", "level_3": "13", "address": "0.2.13", "token_name": "Event_Round_Security", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Securities", "relationship_group": "knowledge_db" },
             { "index": "", "level_3": "14", "address": "0.2.14", "token_name": "Event_Artifact_Processed", "token_type": "select_multi", "node_type": "leaf", "level": "3", "parent_id": "0.2.0", "option_source": "live_entity", "option_entity": "Artifact_Processed", "relationship_group": "knowledge_db" },
             { "index": "", "level_3": "0", "address": "0.2.0", "token_name": "Event_KDB", "token_type": "structure", "node_type": "structure", "level": "2", "parent_id": "0.0.0" }
           ]
@@ -314,7 +314,7 @@
               "level": "3",
               "parent_id": "1.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -327,7 +327,7 @@
               "level": "3",
               "parent_id": "1.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -635,7 +635,7 @@
               "level": "3",
               "parent_id": "2.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -648,7 +648,7 @@
               "level": "3",
               "parent_id": "2.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -1070,7 +1070,7 @@
               "level": "3",
               "parent_id": "3.4.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -1083,7 +1083,7 @@
               "level": "3",
               "parent_id": "3.4.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -1450,7 +1450,7 @@
               "level": "3",
               "parent_id": "4.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -1463,7 +1463,7 @@
               "level": "3",
               "parent_id": "4.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -2689,7 +2689,7 @@
               "level": "3",
               "parent_id": "17.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -2702,7 +2702,7 @@
               "level": "3",
               "parent_id": "17.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -3119,7 +3119,7 @@
               "level": "3",
               "parent_id": "5.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -3132,7 +3132,7 @@
               "level": "3",
               "parent_id": "5.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -3350,7 +3350,7 @@
               "level": "3",
               "parent_id": "5.4.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries"
+              "option_entity": "Markets"
             },
             {
               "index": "",
@@ -3735,7 +3735,7 @@
               "level": "3",
               "parent_id": "6.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -3748,7 +3748,7 @@
               "level": "3",
               "parent_id": "6.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -3857,7 +3857,7 @@
               "level": "3",
               "parent_id": "6.4.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities"
+              "option_entity": "Securities"
             },
             {
               "index": "",
@@ -4290,7 +4290,7 @@
               "level": "3",
               "parent_id": "7.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -4303,7 +4303,7 @@
               "level": "3",
               "parent_id": "7.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -4835,7 +4835,7 @@
               "level": "3",
               "parent_id": "8.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -4848,7 +4848,7 @@
               "level": "3",
               "parent_id": "8.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -5291,7 +5291,7 @@
               "level": "3",
               "parent_id": "9.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -5304,7 +5304,7 @@
               "level": "3",
               "parent_id": "9.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -6505,7 +6505,7 @@
     },
     {
       "level_1": "18",
-      "entity": "Financial_Industries",
+      "entity": "Markets",
       "entity_address": "18.0.0",
       "subsections": {
         "18.0.0": {
@@ -6703,7 +6703,7 @@
               "level": "3",
               "parent_id": "18.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -6716,7 +6716,7 @@
               "level": "3",
               "parent_id": "18.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -6792,7 +6792,7 @@
     },
     {
       "level_1": "19",
-      "entity": "Round_Securities",
+      "entity": "Securities",
       "entity_address": "19.0.0",
       "subsections": {
         "19.0.0": {
@@ -6990,7 +6990,7 @@
               "level": "3",
               "parent_id": "19.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -7003,7 +7003,7 @@
               "level": "3",
               "parent_id": "19.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -7298,7 +7298,7 @@
               "level": "3",
               "parent_id": "20.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -7311,7 +7311,7 @@
               "level": "3",
               "parent_id": "20.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {
@@ -7579,7 +7579,7 @@
               "level": "3",
               "parent_id": "21.2.0",
               "option_source": "live_entity",
-              "option_entity": "Financial_Industries",
+              "option_entity": "Markets",
               "relationship_group": "knowledge_db"
             },
             {
@@ -7592,7 +7592,7 @@
               "level": "3",
               "parent_id": "21.2.0",
               "option_source": "live_entity",
-              "option_entity": "Round_Securities",
+              "option_entity": "Securities",
               "relationship_group": "knowledge_db"
             },
             {

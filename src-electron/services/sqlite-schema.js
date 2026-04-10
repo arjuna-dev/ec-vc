@@ -227,7 +227,7 @@ CREATE TABLE IF NOT EXISTS Fund_Strategy_Target_Industries (
   industry_id TEXT NOT NULL,
   PRIMARY KEY (fund_id, industry_id),
   FOREIGN KEY (fund_id) REFERENCES Fund_Strategy(fund_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (industry_id) REFERENCES Industries(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (industry_id) REFERENCES Markets(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Fund_Strategy_Target_Stages (
@@ -580,18 +580,18 @@ CREATE TABLE IF NOT EXISTS Intros (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS Industries (
+CREATE TABLE IF NOT EXISTS Markets (
   id TEXT PRIMARY KEY,
-  Industry_Name TEXT,
-  Industry_Summary TEXT,
+  Market_Name TEXT,
+  Market_Summary TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS Round_Securities (
+CREATE TABLE IF NOT EXISTS Securities (
   id TEXT PRIMARY KEY,
-  Round_Security_Name TEXT,
-  Round_Security_Summary TEXT,
+  Security_Name TEXT,
+  Security_Summary TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -605,7 +605,7 @@ CREATE TABLE IF NOT EXISTS SectorGroups (
 
 CREATE TABLE IF NOT EXISTS VerticalIndustries (
   id TEXT PRIMARY KEY,
-  Vertical_Industry_Name TEXT,
+  Vertical_Market_Name TEXT,
   Full_Description TEXT,
   Example_related_company TEXT,
   Company_Website TEXT,
@@ -710,14 +710,14 @@ CREATE TABLE IF NOT EXISTS Regions_Companies_hq_region (
 );
 CREATE INDEX IF NOT EXISTS idx_Regions_Companies_hq_region_to ON Regions_Companies_hq_region(to_id);
 
-CREATE TABLE IF NOT EXISTS Industries_Companies_industries (
+CREATE TABLE IF NOT EXISTS Markets_Companies_markets (
   from_id TEXT NOT NULL,
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES Industries(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_id) REFERENCES Markets(id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_id) REFERENCES Companies(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_Industries_Companies_industries_to ON Industries_Companies_industries(to_id);
+CREATE INDEX IF NOT EXISTS idx_Markets_Companies_markets_to ON Markets_Companies_markets(to_id);
 
 CREATE TABLE IF NOT EXISTS Contacts_Companies_founders (
   from_id TEXT NOT NULL,
@@ -890,14 +890,14 @@ CREATE TABLE IF NOT EXISTS Regions_Rounds_target_regions (
 );
 CREATE INDEX IF NOT EXISTS idx_Regions_Rounds_target_regions_to ON Regions_Rounds_target_regions(to_id);
 
-CREATE TABLE IF NOT EXISTS Industries_Rounds_target_industries (
+CREATE TABLE IF NOT EXISTS Markets_Rounds_target_markets (
   from_id TEXT NOT NULL,
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
-  FOREIGN KEY (from_id) REFERENCES Industries(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (from_id) REFERENCES Markets(id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (to_id) REFERENCES Rounds(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_Industries_Rounds_target_industries_to ON Industries_Rounds_target_industries(to_id);
+CREATE INDEX IF NOT EXISTS idx_Markets_Rounds_target_markets_to ON Markets_Rounds_target_markets(to_id);
 
 CREATE TABLE IF NOT EXISTS Contacts_Funds_captable_individuals (
   from_id TEXT NOT NULL,
@@ -1276,23 +1276,23 @@ CREATE TABLE IF NOT EXISTS Intros_Rounds_related_rounds (
 );
 CREATE INDEX IF NOT EXISTS idx_Intros_Rounds_related_rounds_to ON Intros_Rounds_related_rounds(to_id);
 
-CREATE TABLE IF NOT EXISTS SectorGroups_Industries_industries (
+CREATE TABLE IF NOT EXISTS SectorGroups_Markets_markets (
   from_id TEXT NOT NULL,
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES SectorGroups(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Industries(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Markets(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_SectorGroups_Industries_industries_to ON SectorGroups_Industries_industries(to_id);
+CREATE INDEX IF NOT EXISTS idx_SectorGroups_Markets_markets_to ON SectorGroups_Markets_markets(to_id);
 
-CREATE TABLE IF NOT EXISTS EPL_Business_Units_Industries_bu_industries (
+CREATE TABLE IF NOT EXISTS EPL_Business_Units_Markets_bu_markets (
   from_id TEXT NOT NULL,
   to_id TEXT NOT NULL,
   PRIMARY KEY (from_id, to_id),
   FOREIGN KEY (from_id) REFERENCES EPL_Business_Units(id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (to_id) REFERENCES Industries(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (to_id) REFERENCES Markets(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_Industries_bu_industries_to ON EPL_Business_Units_Industries_bu_industries(to_id);
+CREATE INDEX IF NOT EXISTS idx_EPL_Business_Units_Markets_bu_markets_to ON EPL_Business_Units_Markets_bu_markets(to_id);
 
 CREATE TABLE IF NOT EXISTS EPL_Business_Units_SectorGroups_bu_sectors (
   from_id TEXT NOT NULL,
@@ -1867,12 +1867,12 @@ CREATE TABLE IF NOT EXISTS Companies_Artifacts_documents (
 );
 
 -- Join Tables referencing Artifacts (Moved to end)
-CREATE TABLE IF NOT EXISTS Artifacts_Industries (
+CREATE TABLE IF NOT EXISTS Artifacts_Markets (
   artifact_id TEXT NOT NULL,
   industry_id TEXT NOT NULL,
   PRIMARY KEY (artifact_id, industry_id),
   FOREIGN KEY (artifact_id) REFERENCES Artifacts(artifact_id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (industry_id) REFERENCES Industries(id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (industry_id) REFERENCES Markets(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Artifacts_Regions (

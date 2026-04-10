@@ -19,10 +19,10 @@ const schemaModulePath = process.argv[2] ?? './schema.mjs'
 const providedDbPath = process.argv[3] ?? null
 
 function logOk(name) {
-  console.log(`✅ ${name}`)
+  console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ${name}`)
 }
 function logFail(name, err) {
-  console.error(`❌ ${name}`)
+  console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ ${name}`)
   console.error(err?.stack ?? err)
 }
 
@@ -176,7 +176,7 @@ await runTest('Core tables exist', async () => {
     'Task_Team_Support',
     'IC_Scorecard',
     'Intros',
-    'Industries',
+    'Markets',
     'SectorGroups',
     'VerticalIndustries',
     'BusinessModels',
@@ -193,7 +193,7 @@ await runTest('Core tables exist', async () => {
     'Artifact_Raw',
     'Artifact_Llm_Ready',
     'Artifact_Llm_Generated',
-    'Artifacts_Industries',
+    'Artifacts_Markets',
     'Artifacts_Regions',
     'Artifact_Links',
   ]

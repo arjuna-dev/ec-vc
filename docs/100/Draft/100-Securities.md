@@ -6,7 +6,7 @@
 - file guide: `docs/100/Draft/100-Securities.md`
 - parent guide: `docs/001/Active/001-Files.md`
 - file class: `L1`
-- canonical entity: `Round_Securities`
+- canonical entity: `Securities`
 - app-facing label: `Securities`
 - canonical owner identity: `Owner`
 
@@ -20,7 +20,7 @@ It exists to keep security naming explicit and aligned instead of scattered acro
 
 | Term | Meaning |
 | --- | --- |
-| `Security` | A governed round security concept. |
+| `Security` | A governed security concept. |
 | `Security Type` | The security classification used by rounds. |
 | `Knowledge DB` | The controlled vocabulary file for shared options. |
 
@@ -73,7 +73,7 @@ The system should preserve security vocabulary changes, promoted labels, and dep
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
 - `KDB` requirement is declared: `yes`
-- runtime/sqlite ownership is declared: `yes`, table `Round_Securities`
+- runtime/sqlite ownership is declared: `yes`, table `Securities`
 - shell rendering path is declared: `yes`, route `/securities`
 - events/provenance path is declared: `partial`
 

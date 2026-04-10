@@ -1,10 +1,6 @@
 const EXACT_LABEL_ALIASES = Object.freeze({
   bemail: 'Business Email',
   pemail: 'Personal Email',
-  financial_industry: 'Markets',
-  'financial industry': 'Markets',
-  financial_industries: 'Markets',
-  'financial industries': 'Markets',
 })
 
 const WORD_ALIASES = Object.freeze({
@@ -35,8 +31,5 @@ export function formatSharedDisplayLabel(value = '') {
       return lower.charAt(0).toUpperCase() + lower.slice(1)
     })
     .join(' ')
-
   return formatted
-    .replace(/\bFinancial Industries\b/g, 'Markets')
-    .replace(/\bFinancial Industry\b/g, 'Markets')
 }

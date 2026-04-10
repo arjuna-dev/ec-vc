@@ -290,7 +290,7 @@ That means the app should create and own the current baseline table set as part 
 
 - system/runtime tables such as `app_settings`, `Owner_DB`, `events`, `databook_snapshots`, and `Field_Verification_Metadata`
 - current first-order `L1` tables such as `Companies`, `Funds`, `Rounds`, `Users`, `Contacts`, `Projects`, `Tasks`, `Notes`, `Roles`, `Artifacts`, and related current working record tables
-- current knowledge/reference tables such as `Industries`, `Round_Securities`, `Regions`, `BusinessModels`, `SectorGroups`, `VerticalIndustries`, `VC_Terms_Glossary`, and related current supporting tables
+- current knowledge/reference tables such as `Markets`, `Securities`, `Regions`, `BusinessModels`, `SectorGroups`, `VerticalIndustries`, `VC_Terms_Glossary`, and related current supporting tables
 - current owned subtables and current relationship/join tables exactly as they are presently declared
 - current linkage/runtime tables such as `Users_Roles`, `Artifacts_Processed`, and `KDB_Relationships`
 
@@ -1055,8 +1055,8 @@ Current visible shared interlinked set:
 - `Tasks`
 - `Notes`
 - `Roles`
-- `Financial_Industries`
-- `Round_Securities`
+- `Markets`
+- `Securities`
 - `Artifacts_Processed`
 
 Current canon status:
@@ -1422,7 +1422,7 @@ That means heuristics may:
 - front-load likely options
 - rank likely targets
 - highlight likely next actions
-- prioritize what is in the user’s line of sight
+- prioritize what is in the userÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢s line of sight
 - use board relevance and point weighting to rank options
 
 But heuristics must not:
@@ -1697,8 +1697,8 @@ Current approved `Knowledge DB` file direction includes:
 - `Employments`
 - `Stages`
 - `Roles`
-- `Financial Industries`
-- `Round Securities`
+- `Markets`
+- `Securities`
 - `Ingestion`
 
 ### Standard DB Baseline
@@ -1740,8 +1740,8 @@ Relationship inheritance rule:
 
 Examples:
 
-- `Fund_Target_Industries` should read from `Financial_Industries`
-- `Round_Security_Type` should read from `Round_Securities`
+- `Fund_Target_Industries` should read from `Markets`
+- `Round_Security_Type` should read from `Securities`
 - `Fund_Target_Stages` should read from `Stages`
 
 ### Ingestion Contract
@@ -2471,8 +2471,8 @@ These are not interchangeable.
 Examples:
 
 - route key `companies` -> databook table name `Companies`
-- canonical entity `Financial_Industries` -> databook table name `Industries`
-- route key `securities` -> databook table name `Round_Securities`
+- canonical entity `Markets` -> databook table name `Markets`
+- route key `securities` -> databook table name `Securities`
 
 If a shell action is performing a databook write, verification write, or databook snapshot/update flow, it must normalize through the approved databook table-name mapping first.
 

@@ -1193,41 +1193,39 @@ function createEvent(payload = {}) {
   return { id: eventId }
 }
 
-function listIndustries() {
+function listMarkets() {
   return dbAll(
     `
     SELECT
       id,
-      Industry_Name,
-      Industry_Summary,
+      Market_Name,
+      Market_Summary,
       created_at,
       updated_at
-    FROM Industries
-    ORDER BY COALESCE(Industry_Name, '') ASC, id ASC
+    FROM Markets
+    ORDER BY COALESCE(Market_Name, '') ASC, id ASC
   `,
   )
 }
 
-function createIndustry(payload = {}) {
+function createMarket(payload = {}) {
   const database = initDb()
   const name =
-    normalizeNullableString(payload?.Industry_Name) ||
-    normalizeNullableString(payload?.Financial_Industry_Name) ||
+    normalizeNullableString(payload?.Market_Name) ||
     normalizeNullableString(payload?.Name) ||
     normalizeNullableString(payload?.title)
   if (!name) throw new Error('Market name is required')
 
-  const id = normalizeNullableString(payload?.id) || `industry:${crypto.randomUUID()}`
+  const id = normalizeNullableString(payload?.id) || `market:${crypto.randomUUID()}`
   const summary =
-    normalizeNullableString(payload?.Industry_Summary) ||
-    normalizeNullableString(payload?.Financial_Industry_Summary) ||
+    normalizeNullableString(payload?.Market_Summary) ||
     normalizeNullableString(payload?.Summary) ||
     normalizeNullableString(payload?.description)
 
   database
     .prepare(
       `
-      INSERT INTO Industries (id, Industry_Name, Industry_Summary, created_at, updated_at)
+      INSERT INTO Markets (id, Market_Name, Market_Summary, created_at, updated_at)
       VALUES (?, ?, ?, datetime('now'), datetime('now'))
     `,
     )
@@ -1241,12 +1239,12 @@ function listSecurities() {
     `
     SELECT
       id,
-      Round_Security_Name,
-      Round_Security_Summary,
+      Security_Name,
+      Security_Summary,
       created_at,
       updated_at
-    FROM Round_Securities
-    ORDER BY COALESCE(Round_Security_Name, '') ASC, id ASC
+    FROM Securities
+    ORDER BY COALESCE(Security_Name, '') ASC, id ASC
   `,
   )
 }
@@ -1254,21 +1252,21 @@ function listSecurities() {
 function createSecurity(payload = {}) {
   const database = initDb()
   const name =
-    normalizeNullableString(payload?.Round_Security_Name) ||
+    normalizeNullableString(payload?.Security_Name) ||
     normalizeNullableString(payload?.Name) ||
     normalizeNullableString(payload?.title)
   if (!name) throw new Error('Security name is required')
 
   const id = normalizeNullableString(payload?.id) || `security:${crypto.randomUUID()}`
   const summary =
-    normalizeNullableString(payload?.Round_Security_Summary) ||
+    normalizeNullableString(payload?.Security_Summary) ||
     normalizeNullableString(payload?.Summary) ||
     normalizeNullableString(payload?.description)
 
   database
     .prepare(
       `
-      INSERT INTO Round_Securities (id, Round_Security_Name, Round_Security_Summary, created_at, updated_at)
+      INSERT INTO Securities (id, Security_Name, Security_Summary, created_at, updated_at)
       VALUES (?, ?, ?, datetime('now'), datetime('now'))
     `,
     )
@@ -3302,16 +3300,16 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
     displayColumns: ['User_Name', 'User_PEmail', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
-  Industries: {
-    tableName: 'Industries',
+  Markets: {
+    tableName: 'Markets',
     entityLabel: 'Market',
-    displayColumns: ['Industry_Name', 'id'],
+    displayColumns: ['Market_Name', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
-  Round_Securities: {
-    tableName: 'Round_Securities',
+  Securities: {
+    tableName: 'Securities',
     entityLabel: 'Security',
-    displayColumns: ['Round_Security_Name', 'id'],
+    displayColumns: ['Security_Name', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
   Artifacts: {
@@ -3402,12 +3400,8 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   contact: 'Contacts',
   users: 'Users',
   user: 'Users',
-  industries: 'Industries',
-  industry: 'Industries',
-  markets: 'Industries',
-  market: 'Industries',
-  financial_industries: 'Industries',
-  'financial industries': 'Industries',
+  markets: 'Markets',
+  market: 'Markets',
   artifacts: 'Artifacts',
   artifact: 'Artifacts',
   files: 'Files',
@@ -3431,10 +3425,8 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   task: 'Tasks',
   notes: 'Notes',
   note: 'Notes',
-  securities: 'Round_Securities',
-  security: 'Round_Securities',
-  round_securities: 'Round_Securities',
-  'round securities': 'Round_Securities',
+  securities: 'Securities',
+  security: 'Securities',
   'artifacts_processed': 'Artifacts_Processed',
   'artifacts-processed': 'Artifacts_Processed',
   'processed artifact': 'Artifacts_Processed',
@@ -8166,15 +8158,15 @@ function registerIpc() {
     return { users: listUsers() }
   })
 
-  ipcMain.handle('industries:list', async () => {
+  ipcMain.handle('markets:list', async () => {
     initDb()
-    return { industries: listIndustries() }
+    return { markets: listMarkets() }
   })
 
-  ipcMain.handle('industries:create', async (_event, payload = {}) => {
+  ipcMain.handle('markets:create', async (_event, payload = {}) => {
     initDb()
     try {
-      const result = createIndustry(payload)
+      const result = createMarket(payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8182,9 +8174,9 @@ function registerIpc() {
     }
   })
 
-  ipcMain.handle('industries:delete', async (_event, { industryId } = {}) => {
+  ipcMain.handle('markets:delete', async (_event, { marketId } = {}) => {
     initDb()
-    const result = deleteRow('Industries', 'id', String(industryId || ''))
+    const result = deleteRow('Markets', 'id', String(marketId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
   })
@@ -8207,7 +8199,7 @@ function registerIpc() {
 
   ipcMain.handle('securities:delete', async (_event, { securityId } = {}) => {
     initDb()
-    const result = deleteRow('Round_Securities', 'id', String(securityId || ''))
+    const result = deleteRow('Securities', 'id', String(securityId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
   })

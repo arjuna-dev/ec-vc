@@ -151,10 +151,10 @@ const api = {
     create: (payload) => ipcRenderer.invoke('users:create', payload),
     delete: (userId) => ipcRenderer.invoke('users:delete', { userId }),
   },
-  industries: {
-    list: () => ipcRenderer.invoke('industries:list'),
-    create: (payload) => ipcRenderer.invoke('industries:create', payload),
-    delete: (industryId) => ipcRenderer.invoke('industries:delete', { industryId }),
+  markets: {
+    list: () => ipcRenderer.invoke('markets:list'),
+    create: (payload) => ipcRenderer.invoke('markets:create', payload),
+    delete: (marketId) => ipcRenderer.invoke('markets:delete', { marketId }),
   },
   securities: {
     list: () => ipcRenderer.invoke('securities:list'),
@@ -233,7 +233,6 @@ const api = {
   },
 }
 
-api.markets = api.industries
 api['user-roles'] = api.roles
 api.ingestion = api['artifacts-processed']
 api.filesystem = api['file-system']

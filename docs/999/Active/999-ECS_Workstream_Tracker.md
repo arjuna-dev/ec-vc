@@ -213,8 +213,8 @@ Resolved architecture correction:
 The issue surfaced because several naming layers were being conflated:
 
 - route keys such as `companies`
-- canonical entity names such as `Financial_Industries`
-- databook table names such as `Companies` and `Industries`
+- canonical entity names such as `Markets`
+- databook table names such as `Companies` and `Markets`
 
 The approved rule is now:
 

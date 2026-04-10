@@ -89,7 +89,7 @@
 The structural entity name used by canon and shell ownership logic. This name is used to define `L1`, `L2`, and `L3` structure, but it is not automatically the same thing as the databook table name or route key.
 
 Example:
-- `Financial_Industries`
+- `Markets`
 
 ## Route Key
 
@@ -97,7 +97,7 @@ The navigation/shell key used in routes and payload switching. Route keys are fo
 
 Examples:
 - `companies`
-- `industries`
+- `markets`
 - `securities`
 
 ## Databook Table Name
@@ -112,8 +112,8 @@ Databook table names must be used for write and read actions even when they diff
 
 Examples:
 - `Companies`
-- `Industries`
-- `Round_Securities`
+- `Markets`
+- `Securities`
 
 ## Table Name Normalization
 

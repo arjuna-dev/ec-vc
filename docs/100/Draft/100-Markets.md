@@ -6,7 +6,7 @@
 - file guide: `docs/100/Draft/100-Markets.md`
 - parent guide: `docs/001/Active/001-Files.md`
 - file class: `L1`
-- canonical entity: `Financial_Industries`
+- canonical entity: `Markets`
 - app-facing label: `Markets`
 - canonical owner identity: `Owner`
 
@@ -73,7 +73,7 @@ The system should preserve vocabulary changes, promoted labels, and deprecations
 - UX fork questions are declared: `partial`
 - `System` requirement is declared: `yes`
 - `KDB` requirement is declared: `yes`
-- runtime/sqlite ownership is declared: `yes`, table `Industries`
+- runtime/sqlite ownership is declared: `yes`, table `Markets`
 - shell rendering path is declared: `yes`, route `/markets`
 - events/provenance path is declared: `partial`
 

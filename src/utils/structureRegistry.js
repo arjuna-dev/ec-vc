@@ -178,7 +178,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     shellGroup: 'knowledge_db',
     runtimeEntityName: 'Companion_Roles',
   },
-  Financial_Industries: {
+  Markets: {
     key: 'markets',
     label: 'Markets',
     singularLabel: 'Market',
@@ -188,9 +188,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'knowledge-dbs',
     shellGroup: 'knowledge_db',
-    runtimeEntityName: 'Industries',
   },
-  Round_Securities: {
+  Securities: {
     key: 'securities',
     label: 'Securities',
     singularLabel: 'Security',
@@ -232,8 +231,8 @@ const FILE_PAGE_ENTITY_ORDER = [
   'Opportunities',
   'Funds',
   'Rounds',
-  'Financial_Industries',
-  'Round_Securities',
+  'Markets',
+  'Securities',
 ]
 
 function normalizeSubsections(entity) {
@@ -495,8 +494,6 @@ export function getFilePageRegistryEntry(key) {
     'system files': 'file-system',
     roles: 'user-roles',
     'user roles': 'user-roles',
-    industries: 'markets',
-    'financial industries': 'markets',
     'artifacts-processed': 'ingestion',
     artifacts_processed: 'ingestion',
   }
@@ -600,12 +597,8 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     contact: 'Contacts',
     users: 'Users',
     user: 'Users',
-    industries: 'Industries',
-    industry: 'Industries',
-    markets: 'Industries',
-    market: 'Industries',
-    financial_industries: 'Industries',
-    'financial industries': 'Industries',
+    markets: 'Markets',
+    market: 'Markets',
     artifacts: 'Artifacts',
     artifact: 'Artifacts',
     roles: 'Roles',
@@ -635,10 +628,8 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     task: 'Tasks',
     notes: 'Notes',
     note: 'Notes',
-    securities: 'Round_Securities',
-    security: 'Round_Securities',
-    round_securities: 'Round_Securities',
-    'round securities': 'Round_Securities',
+    securities: 'Securities',
+    security: 'Securities',
     ingestion: 'Artifact_Processed',
     artifact_processed: 'Artifact_Processed',
     'artifact-processed': 'Artifact_Processed',
@@ -653,7 +644,6 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
   if (aliasMap[normalizedKey]) return aliasMap[normalizedKey]
 
   const entry = getFilePageRegistryEntryByEntityName(normalized)
-  if (entry?.entityName === 'Financial_Industries') return 'Industries'
   return String(entry?.entityName || normalized).trim()
 }
 
