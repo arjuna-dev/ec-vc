@@ -3,7 +3,7 @@
 ## File Identity
 
 - file name: `System Files`
-- file guide: `docs/001/Active/001-System_Files.md`
+- file guide: `docs/200/Active/200-System_Files.md`
 - parent guide: `docs/001/Active/001-Files.md`
 - file class: `L1`
 - canonical entity: `Files`
@@ -128,7 +128,7 @@ For `System Files`, the initial checklist is:
 
 - canonical JSON structure exists: `yes`, entity `Files`
 - `System Files` registry row exists: `yes`, source key `file-system`
-- file guide exists: `yes`, `docs/001/Active/001-System_Files.md`
+- file guide exists: `yes`, `docs/200/Active/200-System_Files.md`
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `yes`, this guide defines the initial `L1/L2/L2.a` fork

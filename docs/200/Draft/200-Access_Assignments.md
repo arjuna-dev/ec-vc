@@ -3,7 +3,7 @@
 ## File Identity
 
 - file name: `Access Assignments`
-- file guide: `docs/001/Draft/001-Access_Assignments.md`
+- file guide: `docs/200/Draft/200-Access_Assignments.md`
 - parent guide: `docs/001/Active/001-Files.md`
 - file class: `L1`
 - canonical entity: `Access_Assignments`
@@ -173,7 +173,7 @@ For `Access Assignments`, the current checklist is:
 
 - canonical JSON structure exists: `no`, approved future entity `Access_Assignments`
 - `System Files` registry row exists: `no`
-- file guide exists: `yes`, `docs/001/Draft/001-Access_Assignments.md`
+- file guide exists: `yes`, `docs/200/Draft/200-Access_Assignments.md`
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `yes`, this guide defines the first access fork
