@@ -3,8 +3,8 @@
 ## File Identity
 
 - file name: `Access Assignments`
-- file guide: `docs/001-Access_Assignments.md`
-- parent guide: `docs/001-Files.md`
+- file guide: `docs/001/Draft/001-Access_Assignments.md`
+- parent guide: `docs/001/Active/001-Files.md`
 - file class: `L1`
 - canonical entity: `Access_Assignments`
 - app-facing label: `Access Assignments`
@@ -46,15 +46,15 @@ That means:
 
 ## Referenced Documents
 
-- `docs/001-Files.md`
-- `docs/000-Owner_Manual.md`
-- `docs/000-Companion_Manual.md`
-- `docs/000-language-reference-glossary.md`
-- `docs/100_Architect_Steward.md`
-- `docs/100_File_Steward.md`
-- `docs/100_UX_Steward.md`
-- `docs/011-record-architecture-master-plan.md`
-- `docs/010_Game_Rulebook.md`
+- `docs/001/Active/001-Files.md`
+- `docs/000/Active/000-Owner_Manual.md`
+- `docs/000/Active/000-Companion_Manual.md`
+- `docs/000/Active/000-language-reference-glossary.md`
+- `docs/100/Active/100_Architect_Steward.md`
+- `docs/100/Active/100_File_Steward.md`
+- `docs/100/Active/100_UX_Steward.md`
+- `docs/011/Active/011-record-architecture-master-plan.md`
+- `docs/010/Active/010_Game_Rulebook.md`
 - `docs/000-canonical-structure.json`
 
 ## Operating Rules
@@ -173,7 +173,7 @@ For `Access Assignments`, the current checklist is:
 
 - canonical JSON structure exists: `no`, approved future entity `Access_Assignments`
 - `System Files` registry row exists: `no`
-- file guide exists: `yes`, `docs/001-Access_Assignments.md`
+- file guide exists: `yes`, `docs/001/Draft/001-Access_Assignments.md`
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `yes`, this guide defines the first access fork

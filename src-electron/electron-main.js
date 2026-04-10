@@ -1569,14 +1569,14 @@ function buildDefaultFileRegistryRow(entry, index) {
     File_Name: String(entry?.label || entry?.singularLabel || entry?.key || '').trim(),
     File_Summary: `System definition for ${String(entry?.label || entry?.singularLabel || 'file').trim()}.`,
     File_Status: 'Active',
-    File_Guide_Path: entry?.key === 'file-system' ? 'docs/001-System_Files.md' : null,
+    File_Guide_Path: entry?.key === 'file-system' ? 'docs/001/Active/001-System_Files.md' : null,
     File_Class: 'L1',
     Requires_System: getFileRegistryRequiresSubsection(entry, 'System'),
     Requires_KDB: getFileRegistryRequiresSubsection(entry, 'KDB'),
     Ownership_Mode: 'root_owned',
     File_Owner: 'Owner',
     File_Steward: 'File Steward',
-    Rulebook_Dependencies: 'docs/001-Files.md',
+    Rulebook_Dependencies: 'docs/001/Active/001-Files.md',
     Defined_Structure: subsectionLabels.join(', '),
     Glossary_Terms: '',
     File_Source_Key: String(entry?.key || '').trim(),
@@ -1672,7 +1672,7 @@ function ensureDefaultFiles(database) {
       File_Status = excluded.File_Status,
       File_Guide_Path = CASE
         WHEN excluded.File_Guide_Path IS NOT NULL THEN excluded.File_Guide_Path
-        WHEN Files.File_Guide_Path = 'docs/001-System_Files.md' THEN NULL
+        WHEN Files.File_Guide_Path = 'docs/001/Active/001-System_Files.md' THEN NULL
         ELSE Files.File_Guide_Path
       END,
       File_Class = COALESCE(NULLIF(Files.File_Class, ''), excluded.File_Class),

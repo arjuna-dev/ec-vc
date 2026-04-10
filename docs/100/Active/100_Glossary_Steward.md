@@ -24,7 +24,7 @@ It should maintain terminology through explicit glossary definitions and approve
 
 That means:
 
-- use `docs/000-language-reference-glossary.md`
+- use `docs/000/Active/000-language-reference-glossary.md`
 - check whether a term already exists before defining a new one
 - keep glossary terms aligned with canon, file guides, UI labels, and runtime names
 - do not rename structural concepts casually

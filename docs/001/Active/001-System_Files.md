@@ -3,8 +3,8 @@
 ## File Identity
 
 - file name: `System Files`
-- file guide: `docs/001-System_Files.md`
-- parent guide: `docs/001-Files.md`
+- file guide: `docs/001/Active/001-System_Files.md`
+- parent guide: `docs/001/Active/001-Files.md`
 - file class: `L1`
 - canonical entity: `Files`
 - app-facing label: `System Files`
@@ -45,15 +45,15 @@ It is the file-definition layer that helps the system know:
 
 ## Referenced Documents
 
-- `docs/001-Files.md`
-- `docs/000-Owner_Manual.md`
-- `docs/000-Companion_Manual.md`
-- `docs/100_File_Steward.md`
-- `docs/100_UX_Steward.md`
-- `docs/100_Architect_Steward.md`
-- `docs/011-record-architecture-master-plan.md`
+- `docs/001/Active/001-Files.md`
+- `docs/000/Active/000-Owner_Manual.md`
+- `docs/000/Active/000-Companion_Manual.md`
+- `docs/100/Active/100_File_Steward.md`
+- `docs/100/Active/100_UX_Steward.md`
+- `docs/100/Active/100_Architect_Steward.md`
+- `docs/011/Active/011-record-architecture-master-plan.md`
 - `docs/000-canonical-structure.json`
-- `docs/000-electron-runtime-architecture-guide.md`
+- `docs/000/Active/000-electron-runtime-architecture-guide.md`
 
 ## Operating Rules
 
@@ -128,7 +128,7 @@ For `System Files`, the initial checklist is:
 
 - canonical JSON structure exists: `yes`, entity `Files`
 - `System Files` registry row exists: `yes`, source key `file-system`
-- file guide exists: `yes`, `docs/001-System_Files.md`
+- file guide exists: `yes`, `docs/001/Active/001-System_Files.md`
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `yes`, this guide defines the initial `L1/L2/L2.a` fork

@@ -84,7 +84,7 @@ Instead, the companion should:
 
 - read the relevant file guide
 - read the declared token behavior when available
-- follow `docs/001-field-classification-map.md` when reviewing token behavior
+- follow `docs/001/Active/001-field-classification-map.md` when reviewing token behavior
 - avoid turning file-specific rules into universal companion rules
 
 At minimum, the companion must preserve the distinction between:
@@ -111,7 +111,7 @@ The companion must follow these rules:
 
 ## Role-Specific Confidence Rule
 
-Detailed confidence behavior belongs in role guides such as `docs/100_Intake_Assistant.md`.
+Detailed confidence behavior belongs in role guides such as `docs/100/Active/100_Intake_Assistant.md`.
 
 The base companion rule is simple:
 

@@ -14,8 +14,8 @@ This is meant to reduce context loss while we move together between product, sch
 
 This tracker should stay aligned with:
 
-- `docs/011-record-architecture-master-plan.md`
-- `docs/001-intake-architecture-plan.md`
+- `docs/011/Active/011-record-architecture-master-plan.md`
+- `docs/001/Draft/001-intake-architecture-plan.md`
 
 ## Current Focus
 

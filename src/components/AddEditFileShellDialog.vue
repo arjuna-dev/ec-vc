@@ -370,7 +370,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:shellSelectorValue'])
-const FILE_GUIDE_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/001-Files.md'
+const FILE_GUIDE_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/001/Active/001-Files.md'
 
 const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
