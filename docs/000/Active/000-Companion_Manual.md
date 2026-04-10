@@ -18,6 +18,16 @@ It is the base operating manual for companion work.
 
 Before operating on a file, the companion should read and follow that file's governing `.md`.
 
+File guides live in `docs/200`.
+
+The companion should treat file-guide lifecycle folders as part of the instruction:
+
+- `docs/200/Active`: binding current file-guide truth
+- `docs/200/Draft`: approved or working file-guide direction that is not fully born yet
+- `docs/200/Archive`: historical file-guide memory, not current instruction unless an active guide explicitly references it
+
+The companion must not treat a `Draft` file guide as implemented truth.
+
 Each file guide should explain the file's:
 
 - purpose

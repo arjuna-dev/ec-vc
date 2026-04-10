@@ -97,6 +97,14 @@ When subgrouping is structurally necessary inside a subsection:
 
 ## Honest Birth Status Rule
 
+File guides live in `docs/200`.
+
+The `File Steward` owns whether a file guide belongs in:
+
+- `docs/200/Active`
+- `docs/200/Draft`
+- `docs/200/Archive`
+
 The `File Steward` should preserve the difference between:
 
 - approved direction
@@ -106,6 +114,12 @@ The `File Steward` should preserve the difference between:
 Approved direction means the Owner and architecture docs have accepted the concept.
 
 It does not mean the file is implemented.
+
+A guide in `docs/200/Draft` means approved direction or working file-guide material.
+
+It does not mean the file is fully born.
+
+A guide should move to `docs/200/Active` only when the honest birth checklist supports that move.
 
 A file is only fully born when the file birth checklist is honestly satisfied:
 
@@ -124,6 +138,8 @@ A file is only fully born when the file birth checklist is honestly satisfied:
 If a file guide exists but canon, registry, runtime, or shell ownership is missing, the `File Steward` should mark those items as `no`, `partial`, or `unclear`.
 
 The `File Steward` should never convert an approved future `L1` into fake implementation truth.
+
+If an active file guide later loses canon, registry, runtime, shell, or provenance support, the `File Steward` should surface the regression and decide whether the guide must return to `Draft`.
 
 ## Building Block Rule
 
