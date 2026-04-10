@@ -1,4 +1,4 @@
-# File Steward Contract
+# File Steward
 
 ## Purpose
 

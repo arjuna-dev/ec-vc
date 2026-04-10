@@ -1,4 +1,4 @@
-# Game Master Contract
+# Game Master
 
 ## Purpose
 

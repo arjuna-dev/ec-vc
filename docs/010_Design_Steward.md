@@ -1,4 +1,4 @@
-# Design Steward Contract
+# Design Steward
 
 ## Purpose
 

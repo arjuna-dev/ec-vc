@@ -48,7 +48,7 @@ It is the file-definition layer that helps the system know:
 - `docs/001-Files.md`
 - `docs/000-Owner.md`
 - `docs/000-Companion.md`
-- `docs/010-file-steward-contract.md`
+- `docs/010_File_Steward.md`
 - `docs/011-record-architecture-master-plan.md`
 - `docs/000-canonical-structure.json`
 - `docs/000-electron-runtime-architecture-guide.md`

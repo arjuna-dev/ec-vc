@@ -508,10 +508,10 @@ const companionDocumentMenu = [
     heroTitle: 'Game',
   },
   {
-    id: 'game-master-contract',
-    label: 'Game Master Contract',
+    id: 'game-master',
+    label: 'Game Master',
     short: 'Guide behavior',
-    path: 'docs/010-game-master-contract.md',
+    path: 'docs/010_Game_Master.md',
     eyebrow: 'Game Master',
     heroTitle: 'Master',
   },
