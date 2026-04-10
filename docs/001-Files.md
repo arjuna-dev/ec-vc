@@ -69,6 +69,21 @@ Before a file is treated as born, the `Architect Steward`, `File Steward`, and `
 
 If any checklist item is unclear, stop and surface the gap before implementation continues.
 
+## Checklist Status Vocabulary
+
+Use these statuses when applying the File Birth Checklist:
+
+- `yes`: the item exists, is declared, and is safe to rely on
+- `partial`: the item exists in some form, but is not fully proven or fully wired
+- `unclear`: the item cannot be answered confidently; stop and surface the gap
+- `no`: the item is explicitly missing; do not treat the file as born
+
+The checklist should not use vague completion language.
+
+If the honest status is `partial`, preserve the note explaining what exists and what remains unproven.
+
+If the honest status is `unclear` or `no`, implementation should pause until the gap is resolved or deliberately accepted as an open item.
+
 ## Parent / Child Guide Rule
 
 `Files.md` is the parent guide.

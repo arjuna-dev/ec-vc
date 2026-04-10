@@ -49,6 +49,19 @@ Before a new file or structural branch is treated as real, the `Architect Stewar
 
 If any checklist item is unclear, stop and surface the gap before implementation continues.
 
+## Checklist Status Vocabulary
+
+Use these statuses when reviewing the File Birth Checklist:
+
+- `yes`: the item exists, is declared, and is safe to rely on
+- `partial`: the item exists in some form, but is not fully proven or fully wired
+- `unclear`: the item cannot be answered confidently; stop and surface the gap
+- `no`: the item is explicitly missing; do not treat the file as born
+
+The `Architect Steward` should preserve `partial` honestly instead of converting it into fake completion.
+
+The `Architect Steward` should treat `unclear` and `no` as stop conditions unless the Owner explicitly decides to park the gap as an open item.
+
 ## Relationship To Other Stewards
 
 The `Architect Steward` decides whether the whole architecture is coherent.

@@ -126,19 +126,19 @@ The safe default for new user-created concepts is also `L1` until the user or st
 
 For `System Files`, the initial checklist is:
 
-- canonical JSON structure exists: yes, entity `Files`
-- `System Files` registry row exists: yes, source key `file-system`
-- file guide exists: yes, `docs/001-System_Files.md`
-- owner is declared: yes, `Owner`
-- steward is declared: yes, `File Steward`
-- UX fork questions are declared: yes, this guide defines the initial `L1/L2/L2.a` fork
-- `System` requirement is declared: yes
-- `KDB` requirement is declared: yes
-- runtime/sqlite ownership is declared: yes, table `Files`
-- shell rendering path is declared: yes, route `/file-system`
-- events/provenance path is declared: partial, event log linkage exists but full genesis event reconstruction is still an open runtime task
+- canonical JSON structure exists: `yes`, entity `Files`
+- `System Files` registry row exists: `yes`, source key `file-system`
+- file guide exists: `yes`, `docs/001-System_Files.md`
+- owner is declared: `yes`, `Owner`
+- steward is declared: `yes`, `File Steward`
+- UX fork questions are declared: `yes`, this guide defines the initial `L1/L2/L2.a` fork
+- `System` requirement is declared: `yes`
+- `KDB` requirement is declared: `yes`
+- runtime/sqlite ownership is declared: `yes`, table `Files`
+- shell rendering path is declared: `yes`, route `/file-system`
+- events/provenance path is declared: `partial`, event log linkage exists but full genesis event reconstruction is still an open runtime task
 
-If any item regresses from yes to unclear, the file should be treated as not fully born until the gap is surfaced.
+If any item regresses from `yes` to `partial`, `unclear`, or `no`, the file should be treated as not fully born until the gap is surfaced.
 
 ## Governance
 
