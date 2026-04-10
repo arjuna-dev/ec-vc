@@ -156,6 +156,36 @@ When these drift classes appear, do not patch only the surface wording.
 
 Resolve the mismatch so that what the surface says, what the system means, and what runtime does are aligned again.
 
+## Shared BB Rendering Rule
+
+Rendering pages must be composed only from approved `bb:*` elements.
+
+That means:
+
+- shared structure should come from approved building blocks
+- page-level code may provide payload, source bindings, and approved shell contract values
+- page-level code should not invent local structural lookalikes when the structure is meant to be shared
+- if a needed structure does not yet exist in the `BB` layer, that is a `BB` gap and should be surfaced as such
+
+If two pages solving the same shell job render different structures, first check whether one of them bypassed approved `bb:*` elements.
+
+## Shared File Hero Rule
+
+All file pages must use the same shared `bb:file-hero` structure.
+
+That means:
+
+- `System Files`
+- `BB Shell`
+- `Events`
+- every other file page
+
+should all render from the same shared file-hero layer.
+
+Files may provide different hero payload values, but they must not switch to different hero layouts or page-specific hero contracts.
+
+If two file pages look structurally different at the hero level, that is drift unless the shared contract explicitly defines that variation.
+
 ## Required File Guide Sections
 
 Every child file guide should begin with these sections.

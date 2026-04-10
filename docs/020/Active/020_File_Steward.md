@@ -154,6 +154,8 @@ That means:
 - keep leaf ownership explicit
 - do not patch missing structure with local guesses
 - do not let one file entity silently inherit another file entity's contract unless canon explicitly declares that inheritance
+- require file pages to render through approved `bb:*` elements when the page structure is meant to be shared
+- require all file pages to use the same shared `bb:file-hero` structure, with file-specific differences carried by payload rather than local hero layouts
 
 ## Required Behavior
 
@@ -239,6 +241,8 @@ The `File Steward` should stop implementation and surface the gap when:
 - a user is being asked to create file structure without UX fork guidance from the file guide
 - access permissions are being inferred from a flat role list when the required access rule depends on `Project x Role`
 - a file view, Add/Edit surface, or file page uses language that does not match the file guide, canonical field meaning, or runtime behavior
+- a file page is rendered through local structural code when an approved shared `bb:*` element should own that structure
+- one file page renders a different hero layout from another file page even though both should be using `bb:file-hero`
 
 ## Meaning Drift Rule
 
