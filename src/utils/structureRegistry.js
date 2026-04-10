@@ -1,5 +1,5 @@
-import canonicalStructure from '../../docs/000-canonical-structure.json'
-import { formatSharedDisplayLabel } from 'src/shared/labelFormatting'
+import canonicalStructure from '../shared/canonicalStructure.js'
+import { formatSharedDisplayLabel } from '../shared/labelFormatting.js'
 
 export const DEFAULT_L1_REQUIRED_SUBSECTIONS = Object.freeze(['System', 'KDB'])
 export const DEFAULT_L1_OPTIONAL_STANDARD_SUBSECTIONS = Object.freeze(['General'])
