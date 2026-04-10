@@ -1564,13 +1564,14 @@ function getFileRegistryRequiresSubsection(entry, subsectionName) {
 function buildDefaultFileRegistryRow(entry, index) {
   const subsectionLabels = getFileRegistrySubsectionLabels(entry)
   const sourceKey = String(entry?.key || '').trim()
+  const guidePath = FILE_GUIDE_PATH_BY_SOURCE_KEY[sourceKey] || null
   return {
     id: `file:${sourceKey || index + 1}`,
     File_Order: index + 1,
     File_Name: String(entry?.label || entry?.singularLabel || entry?.key || '').trim(),
     File_Summary: `System definition for ${String(entry?.label || entry?.singularLabel || 'file').trim()}.`,
-    File_Status: 'Active',
-    File_Guide_Path: FILE_GUIDE_PATH_BY_SOURCE_KEY[sourceKey] || null,
+    File_Status: getDefaultFileStatusForGuidePath(guidePath),
+    File_Guide_Path: guidePath,
     File_Class: 'L1',
     Requires_System: getFileRegistryRequiresSubsection(entry, 'System'),
     Requires_KDB: getFileRegistryRequiresSubsection(entry, 'KDB'),
@@ -1615,6 +1616,14 @@ const FILE_GUIDE_PATH_BY_SOURCE_KEY = Object.freeze({
   securities: 'docs/100/Draft/100-Securities.md',
   ingestion: 'docs/100/Draft/100-Artifact_Processed.md',
 })
+
+function getDefaultFileStatusForGuidePath(guidePath = '') {
+  const normalizedPath = String(guidePath || '').trim().toLowerCase()
+  if (normalizedPath.includes('/active/')) return 'Active'
+  if (normalizedPath.includes('/draft/')) return 'Draft'
+  if (normalizedPath.includes('/archive/')) return 'Archived'
+  return 'Partial'
+}
 
 function normalizeFileStatusValue(value) {
   const normalized = String(value || '').trim().toLowerCase()
