@@ -698,7 +698,7 @@
                   v-for="tokenRow in row.sectionTokenRows"
                   :key="tokenRow.key"
                   class="test-shell-table__cell"
-                  :style="getTableColumnStyle(tokenRow.tokenName, DEFAULT_COLUMN_MIN_WIDTH)"
+                  :style="getTableColumnStyle(tokenRow.columnKey, DEFAULT_COLUMN_MIN_WIDTH)"
                 >
                   <template v-if="isBbGraphLinkToken(tokenRow)">
                     <div v-if="tokenRow.links?.length" class="test-shell-table__bb-links">
@@ -1825,10 +1825,8 @@ const summarySectionShellOptions = Object.freeze(buildCardRelationshipOptions())
 
 function getDefaultActiveSectionKey(sections = []) {
   const normalizedSections = Array.isArray(sections) ? sections : []
-  if (activeSourceKey.value === 'events') {
-    const generalSection = normalizedSections.find((section) => String(section?.label || '').trim().toLowerCase() === 'general')
-    if (generalSection?.key) return generalSection.key
-  }
+  const generalSection = normalizedSections.find((section) => String(section?.label || '').trim().toLowerCase() === 'general')
+  if (generalSection?.key) return generalSection.key
   return normalizedSections[0]?.key || ''
 }
 
@@ -2226,6 +2224,7 @@ function buildShellRow(row, index) {
       const { value, links } = getBbRowColumnValue(token.tokenName, row, bbGraphCounts, bbGraphLinks)
       return {
         key: `${recordId || index}:${token.key}`,
+        columnKey: token.key,
         tokenName: token.tokenName,
         label: token.label,
         rawValue: value,
@@ -2237,6 +2236,7 @@ function buildShellRow(row, index) {
     const value = stringifyValue(rawValue)
     return {
       key: `${recordId || index}:${token.key}`,
+      columnKey: token.key,
       tokenName: token.tokenName,
       label: token.label,
       rawValue,
