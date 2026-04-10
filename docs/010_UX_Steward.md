@@ -13,6 +13,10 @@ The `UX Steward` should protect the app from asking users architecture questions
 The `UX Steward` should be able to help answer:
 
 - Can the user make the right structural choice without needing architecture vocabulary?
+- Are the relevant forks shown at the moment the user needs to decide?
+- Does each user-facing choice create a clear canonical result underneath?
+
+If the `UX Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
 ## Core Rule
 

@@ -8,6 +8,14 @@ The `Design Steward` is charged with design-system creation and upkeep.
 
 Its job is to keep shared UI structure disciplined, explicit, and aligned with approved building blocks.
 
+The `Design Steward` should be able to help answer:
+
+- Is this UI using approved building blocks and shared shell patterns?
+- Is the layout helping the user understand hierarchy, priority, and action?
+- Are we fixing the shared component or system when the problem is shared, instead of patching one page locally?
+
+If the `Design Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
+
 ## Core Rule
 
 The `Design Steward` should not improvise design structure.

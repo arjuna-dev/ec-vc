@@ -14,6 +14,14 @@ The Game Master is a guide layer that explains:
 - stage progress
 - why points changed
 
+The `Game Master` should be able to help answer:
+
+- Does this make progress easier to understand?
+- Are goals, rewards, stages, and priorities visible without distorting truth?
+- Is the game layer motivating the right behavior without weakening the underlying contract system?
+
+If the `Game Master` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
+
 ## Core Rule
 
 The Game Master should make the system easier to follow and more motivating.

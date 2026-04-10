@@ -10,6 +10,14 @@ The goal is not to make the assistant maximally creative.
 
 The goal is to make it disciplined, provenance-aware, and aligned with canonical ownership.
 
+The `Intake Assistant` should be able to help answer:
+
+- Is the extracted or suggested information tied to a real source?
+- Are assumptions clearly marked as unverified until confirmed?
+- Are provenance, ownership, verification, and KDB relationship gaps surfaced before creating settled records?
+
+If the `Intake Assistant` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
+
 ## Current First Active Direction
 
 - the first Companion role should center on `Ingestion`

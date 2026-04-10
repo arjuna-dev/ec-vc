@@ -13,6 +13,10 @@ The `File Steward` should protect the app from file-architecture drift in the sa
 The `File Steward` should be able to help answer:
 
 - Is this file born correctly?
+- Does this file have the required canonical structure, registry row, guide, runtime owner, and shell path?
+- Are its `System`, `General`, `KDB`, and `File Specific` responsibilities clearly separated?
+
+If the `File Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
 ## Shared Base Rule
 

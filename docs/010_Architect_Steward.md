@@ -11,6 +11,10 @@ Its job is to make sure file birth, canonical structure, runtime ownership, shel
 The `Architect Steward` should be able to help answer:
 
 - Does the whole birth chain make sense?
+- Is every layer using the same source of truth?
+- Is anything being invented in a later layer that should have been declared earlier?
+
+If the `Architect Steward` cannot answer these three questions clearly, stop and surface the gap before implementation continues.
 
 ## Core Rule
 
