@@ -43,8 +43,8 @@
                   class="file-hero-sandbox__action-item"
                   @click="emit('action-item-click', item)"
                 >
-                  <div class="file-hero-sandbox__action-item-label">{{ item.label }}</div>
-                  <div v-if="item.caption" class="file-hero-sandbox__action-item-caption">{{ item.caption }}</div>
+                  <q-icon :name="item.icon || 'description'" size="18px" class="file-hero-sandbox__action-item-icon" />
+                  <q-tooltip>{{ item.label }}</q-tooltip>
                 </button>
               </div>
             </div>
@@ -119,8 +119,10 @@ const normalizedActionItems = computed(() =>
       label: String(item?.label || '').trim(),
       caption: String(item?.caption || '').trim(),
       path: String(item?.path || '').trim(),
+      icon: String(item?.icon || '').trim(),
     }))
-    .filter((item) => item.label),
+    .filter((item) => item.label)
+    .slice(0, 5),
 )
 const actionLabelText = computed(() => String(props.actionLabel || '').trim() || 'File Health')
 const actionTitleText = computed(() => String(props.actionTitle || '').trim() || 'Open Issues')
@@ -236,20 +238,20 @@ const actionTitleText = computed(() => String(props.actionTitle || '').trim() ||
 
 .file-hero-sandbox__action-list {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: var(--ds-space-8);
 }
 
 .file-hero-sandbox__action-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding: var(--ds-space-8) var(--ds-space-10);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
   border: 1px solid var(--ds-color-border-subtle);
   border-radius: var(--ds-radius-md);
   background: rgba(255, 255, 255, 0.58);
-  text-align: left;
   cursor: pointer;
   transition: border-color 120ms ease, background-color 120ms ease;
 }
@@ -259,20 +261,8 @@ const actionTitleText = computed(() => String(props.actionTitle || '').trim() ||
   background: rgba(255, 255, 255, 0.82);
 }
 
-.file-hero-sandbox__action-item-label {
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-font-size-xs-medium);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-xs);
-}
-
-.file-hero-sandbox__action-item-caption {
+.file-hero-sandbox__action-item-icon {
   color: var(--ds-color-text-secondary);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-font-size-xs-regular);
-  font-weight: var(--ds-font-weight-light);
-  line-height: var(--ds-line-height-xs);
 }
 
 .file-hero-sandbox__health-bar {

@@ -1705,11 +1705,26 @@ const healthText = computed(() => {
   return `The shell is fixed. Real rows and explicit canonical token values are shown without guessing. Unmapped shell slots remain placeholders until canonical shell mapping exists.`
 })
 
-const healthSegments = computed(() => [
-  { tone: 'medium', width: 35 },
-  { tone: 'rich', width: 45 },
-  { tone: 'sparse', width: 20 },
-])
+const healthSegments = computed(() => {
+  if (activeSourceKey.value === 'file-system' && fileSystemValidation.value) {
+    const validation = fileSystemValidation.value
+    const total = Math.max(Number(validation?.registryCount || validation?.rowCount || 0), 0)
+    const drift = Math.min(fileSystemValidationIssueCount.value, total)
+    const stable = Math.max(total - drift, 0)
+    if (total > 0) {
+      return [
+        { tone: 'rich', width: (stable / total) * 100 },
+        { tone: 'sparse', width: (drift / total) * 100 },
+      ]
+    }
+  }
+
+  return [
+    { tone: 'medium', width: 35 },
+    { tone: 'rich', width: 45 },
+    { tone: 'sparse', width: 20 },
+  ]
+})
 
 const heroActionLabel = computed(() => (activeSourceKey.value === 'file-system' ? 'File Health' : 'File Health'))
 const heroActionTitle = computed(() => (activeSourceKey.value === 'file-system' ? 'Open Issues' : 'Next Actions'))
@@ -1721,30 +1736,35 @@ const heroActionItems = computed(() => {
       label: 'System Files Guide',
       caption: 'docs/100/Active/100-System_Files.md',
       path: 'docs/100/Active/100-System_Files.md',
+      icon: 'description',
     },
     {
       id: 'file-steward',
       label: 'File Steward',
       caption: 'docs/020/Active/020_File_Steward.md',
       path: 'docs/020/Active/020_File_Steward.md',
+      icon: 'description',
     },
     {
       id: 'architect-steward',
       label: 'Architect Steward',
       caption: 'docs/020/Active/020_Architect_Steward.md',
       path: 'docs/020/Active/020_Architect_Steward.md',
+      icon: 'description',
     },
     {
       id: 'ux-steward',
       label: 'UX Steward',
       caption: 'docs/020/Active/020_UX_Steward.md',
       path: 'docs/020/Active/020_UX_Steward.md',
+      icon: 'description',
     },
     {
       id: 'open-issues',
       label: 'Open Issues',
       caption: 'docs/100/Active/100-System_Files_Open_Issues.md',
       path: 'docs/100/Active/100-System_Files_Open_Issues.md',
+      icon: 'description',
     },
   ]
 })
