@@ -536,7 +536,15 @@
       </template>
 
       <template v-else-if="blockKey === 'file-hero'">
-        <FileHero />
+        <FileHero
+          text="Track the live operating picture for this file and move through core workflows from one surface."
+          :stats="fileHeroPreviewStats"
+          health-text="Checked 18 rows against 18 executable registry entries. Errors: 0. Warnings: 14. Info: 0."
+          :health-segments="fileHeroPreviewSegments"
+          action-label="File Health"
+          action-title="Open Issues"
+          :action-items="fileHeroPreviewActionItems"
+        />
       </template>
 
       <template v-else-if="blockKey === 'l2-toolbar'">
@@ -890,6 +898,23 @@ const widgetSettingsSampleSections = [
 ]
 
 const widgetSettingsOpenSectionIds = ['files']
+
+const fileHeroPreviewStats = [
+  { label: 'Rows', value: '18', caption: 'Registry rows loaded', tone: 'neutral' },
+  { label: 'Drift', value: '14', caption: 'Current validator issues', tone: 'rich' },
+]
+
+const fileHeroPreviewSegments = [
+  { tone: 'rich', width: 18 },
+  { tone: 'medium', width: 42 },
+  { tone: 'sparse', width: 40 },
+]
+
+const fileHeroPreviewActionItems = [
+  { id: 'system-files-guide', label: 'System Files Guide', caption: 'docs/100/Active/100-System_Files.md' },
+  { id: 'file-steward', label: 'File Steward', caption: 'docs/020/Active/020_File_Steward.md' },
+  { id: 'open-issues', label: 'Open Issues', caption: 'docs/100/Active/100-System_Files_Open_Issues.md' },
+]
 const dialogFooterLegendItems = [
   { label: 'Pre-Selected', tone: 'default' },
   { label: 'Suggested', tone: 'suggested' },
