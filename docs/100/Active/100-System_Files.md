@@ -221,3 +221,46 @@ The file-specific section should track:
 Acceptance contract direction lives in:
 
 - `docs/010/Draft/010-files-system-birth-audit.md`
+
+## Acceptance Contract Working Rule
+
+`System Files` should govern acceptance after bootstrap, not replace bootstrap.
+
+The working status vocabulary is:
+
+- `Active`
+- `Partial`
+- `Draft`
+- `Hidden`
+- `Archived`
+
+The working visibility rule is:
+
+- only `Active` files that pass runtime validation should appear in normal workspace navigation
+- `Partial`, `Draft`, `Hidden`, and `Archived` files should stay governable in `System Files`, but not appear in normal workspace navigation
+
+Runtime validation should check:
+
+- canonical entity exists
+- route/runtime registry exists
+- shell rendering path exists
+- runtime ownership exists where required
+- `File_Guide_Path` exists, unless the file is a protected bootstrap exception
+
+Protected bootstrap exceptions currently include:
+
+- `Files` / `System Files`
+- `Events`
+- `Building_Blocks`
+
+If `System Files` and runtime disagree:
+
+- do not guess
+- do not silently merge
+- surface drift explicitly
+
+Current working reconciliation rule:
+
+- runtime safety decides executable visibility
+- `System Files` decides accepted intent
+- disagreement means drift

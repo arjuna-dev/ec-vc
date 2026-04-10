@@ -255,11 +255,47 @@ They are file-definition metadata used to keep file creation, rendering, ownersh
 
 ## Open Questions
 
-- Should `File_Status` align directly with `Active`, `Draft`, and `Archive`?
-- Should `File_Guide_Path` be required before a file can appear in main navigation?
 - Should `Files` eventually generate `docs/100/Active/100-File_Guides_Index.md` automatically?
 - Should guide lifecycle moves create explicit file-level events?
 
 Acceptance contract direction lives in:
 
 - `docs/010/Draft/010-files-system-birth-audit.md`
+
+## Acceptance Contract Working Rule
+
+Use this first-pass file acceptance vocabulary:
+
+- `Active`
+- `Partial`
+- `Draft`
+- `Hidden`
+- `Archived`
+
+Working rule:
+
+- `Active` means accepted for real use, but still requires runtime validation before nav visibility
+- `Partial` means partially born and not ready for normal workspace navigation
+- `Draft` means approved direction or work-in-progress inside `System Files`
+- `Hidden` means intentionally not shown in normal workspace navigation
+- `Archived` means historical retention only
+
+For normal visible `L1` files:
+
+- `File_Guide_Path` should exist
+
+If a file has no guide path:
+
+- it should remain governable in `System Files`
+- it should not be treated as fully born
+- its safe status should be `Partial` or `Draft`
+
+Protected bootstrap exceptions currently include:
+
+- `Files` / `System Files`
+- `Events`
+- `Building_Blocks`
+
+These exceptions are allowed because startup, provenance, or shared UI architecture depends on them early.
+
+They do not weaken the acceptance rule for normal files.

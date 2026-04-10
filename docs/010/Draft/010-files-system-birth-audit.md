@@ -221,6 +221,155 @@ Before implementation, answer these:
 - Which files are protected genesis rows?
 - Which fields are locked after birth?
 
+## Acceptance Contract First Pass
+
+Status: `approved direction for implementation planning`
+
+This first pass turns the open questions into a strict working policy for later runtime work.
+
+It is still a DOC/NCT contract.
+
+It does not yet make `System Files` the executable source of truth by itself.
+
+### File Status Vocabulary
+
+Use these `File_Status` values:
+
+- `Active`
+- `Partial`
+- `Draft`
+- `Hidden`
+- `Archived`
+
+Definitions:
+
+- `Active`
+  - The file is accepted for real use.
+  - It may appear in main navigation if runtime validation passes.
+  - It should have a real guide path unless it is a protected bootstrap exception.
+- `Partial`
+  - The file is partially born.
+  - Some required layer exists, but acceptance is blocked by a known gap.
+  - It should stay visible in `System Files`, but not in normal workspace navigation unless it is a protected bootstrap exception.
+- `Draft`
+  - The file is approved direction or work-in-progress.
+  - It should be visible inside `System Files` for governance, but not in normal workspace navigation.
+- `Hidden`
+  - The file exists, but is intentionally kept out of normal navigation.
+  - It remains visible in `System Files`.
+- `Archived`
+  - The file is retained for history or traceability.
+  - It should not appear in normal workspace navigation.
+
+### Visibility Rule
+
+Main workspace navigation should follow this rule:
+
+- `Active` + runtime validation pass = visible
+- `Partial` = not visible, except protected bootstrap exceptions
+- `Draft` = not visible
+- `Hidden` = not visible
+- `Archived` = not visible
+
+`System Files` should remain the governance surface where all of these rows are still reviewable.
+
+### Runtime Validation Gate
+
+Before a file becomes visible from `System Files`, these checks should pass:
+
+- canonical entity exists
+- registry row exists
+- route/runtime registry entry exists
+- shell rendering path exists
+- runtime ownership exists where required
+- `File_Guide_Path` exists, unless the file is a protected bootstrap exception
+
+If any of these fail:
+
+- the app should surface drift
+- the file should not be treated as fully born
+- `Active` should not be trusted as enough by itself
+
+### Guide Path Rule
+
+For normal visible `L1` files:
+
+- `File_Guide_Path` should be required
+
+If a file has no guide path:
+
+- it may remain in `System Files`
+- it should not be treated as fully born
+- its safe status should be `Partial` or `Draft`, not `Active`
+
+### Protected Bootstrap Exceptions
+
+The first protected bootstrap exceptions should be:
+
+- `Files` / `System Files`
+- `Events`
+- `Building_Blocks`
+
+These are special because startup, governance, provenance, or shared UI architecture depends on them early.
+
+Rules for protected bootstrap exceptions:
+
+- they may remain visible before the full acceptance chain is complete
+- they should still surface drift honestly
+- they should not be used as proof that normal files can skip the acceptance contract
+
+`Owner` and `Companion` are not listed here yet because they are currently being treated as root/manual surfaces, not proven born-file rows.
+
+### Reconciliation Rule
+
+When `structureRegistry` and `System Files` disagree:
+
+- bootstrap/runtime safety wins first
+- `System Files` acceptance intent should still be surfaced
+- the disagreement should be treated as drift, not silently merged away
+
+That means:
+
+- if `System Files` says `Active` but runtime support is missing, keep the file out of normal navigation and mark drift
+- if runtime support exists but `System Files` says `Draft`, `Hidden`, or `Archived`, keep the file out of normal navigation
+- if the file is a protected bootstrap exception, allow visibility but surface the acceptance gap
+
+### Fields Locked After Birth
+
+These fields should be treated as birth-locked unless an explicit migration/governance pass changes them:
+
+- `File_Source_Key`
+- `File_Canonical_Entity`
+- `File_Runtime_Entity`
+- `File_Route_Name`
+- `File_Path`
+- protected genesis/bootstrap status
+
+These fields may remain editable under owner/steward governance:
+
+- `File_Name`
+- `File_Summary`
+- `File_Status`
+- `File_Guide_Path`
+- `File_Order`
+- `Ownership_Mode`
+- `File_Steward`
+- `Rulebook_Dependencies`
+- `Defined_Structure`
+- `Glossary_Terms`
+
+### Working Acceptance Rule
+
+The strict first-pass rule is:
+
+`Code/canon births the file. System Files records govern acceptance. Runtime validation decides visibility.`
+
+This keeps authority ordered:
+
+1. bootstrap safety
+2. accepted file-definition intent
+3. visible navigation
+
 ## Recommended Next Implementation Order
 
 ### 1. System Files acceptance policy
