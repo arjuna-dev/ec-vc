@@ -9,6 +9,9 @@
 | Contact | The person record inside the CRM/KDB layer. It may correspond to a User, but is not the same thing as a User. | Product Reference |
 | Access Assignment | The scoped rule that links a user/contact to a project or scope, a role, a status, and access limits. `Access_Assignments` should become its own canonical `L1` because access must be browsed, audited, and governed directly. | Files |
 | Project x Role Access | The dynamic access rule where permissions are evaluated through project scope and role together instead of through global user status alone. | Files |
+| Approved Direction | A concept or file direction that the Owner and architecture docs have accepted. It is not the same as implemented runtime truth. | File Steward |
+| Partially Born | A file or structure where some birth-chain parts exist, but canon, registry, guide, runtime ownership, shell rendering, or provenance are not all complete. | File Steward |
+| Fully Born | A file or structure whose canon, registry row, guide, ownership, steward, UX fork questions, runtime/sqlite ownership, shell path, and provenance path are honestly satisfied. | File Steward |
 | File Shell | The shared shell renderer for file-level `L1` collection surfaces. It should stay fixed while route-owned `L1` payloads swap underneath it. | Product Reference |
 | BB File | `Building Blocks File`. A special `System-Level File` that governs reusable UI building blocks, design primitives, shell parts, and reconstruction guidance. It is not a standard app-data `L1` and is a controlled exception to the normal `System` / `KDB` subsection baseline. | Record Architecture |
 | Built From BBs | The explicit BB-to-BB dependency field. It declares which already-built building blocks a BB is composed from so the catalog can function as inventory, usage map, and dependency map. | Record Architecture |
