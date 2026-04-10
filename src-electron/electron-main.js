@@ -1571,6 +1571,16 @@ function ensureDefaultFiles(database) {
     }
   })
 
+  const getSubsectionLabels = (entry) =>
+    (Array.isArray(entry?.subsections) ? entry.subsections : [])
+      .map((section) => String(section?.rawLabel || section?.label || '').trim())
+      .filter(Boolean)
+
+  const getRequiresSubsection = (entry, subsectionName) => {
+    const normalizedName = String(subsectionName || '').trim().toLowerCase()
+    return getSubsectionLabels(entry).some((label) => label.toLowerCase() === normalizedName) ? 'Yes' : 'No'
+  }
+
   const rows = FILE_PAGE_REGISTRY.map((entry, index) => ({
     id: `file:${String(entry.key || '').trim() || index + 1}`,
     File_Order: index + 1,
@@ -1579,13 +1589,13 @@ function ensureDefaultFiles(database) {
     File_Status: 'Active',
     File_Guide_Path: entry.key === 'file-system' ? 'docs/001-System_Files.md' : null,
     File_Class: 'L1',
-    Requires_System: 'Yes',
-    Requires_KDB: 'Yes',
+    Requires_System: getRequiresSubsection(entry, 'System'),
+    Requires_KDB: getRequiresSubsection(entry, 'KDB'),
     Ownership_Mode: 'root_owned',
     File_Owner: 'Owner',
     File_Steward: 'File Steward',
     Rulebook_Dependencies: 'docs/001-Files.md',
-    Defined_Structure: 'System, General, KDB, File Specific',
+    Defined_Structure: getSubsectionLabels(entry).join(', '),
     Glossary_Terms: '',
     File_Source_Key: String(entry.key || '').trim(),
     File_Canonical_Entity: String(entry.canonicalEntityName || '').trim(),
@@ -1653,13 +1663,25 @@ function ensureDefaultFiles(database) {
         ELSE Files.File_Guide_Path
       END,
       File_Class = COALESCE(NULLIF(Files.File_Class, ''), excluded.File_Class),
-      Requires_System = COALESCE(NULLIF(Files.Requires_System, ''), excluded.Requires_System),
-      Requires_KDB = COALESCE(NULLIF(Files.Requires_KDB, ''), excluded.Requires_KDB),
+      Requires_System = CASE
+        WHEN Files.Requires_System IS NULL OR Files.Requires_System = '' THEN excluded.Requires_System
+        WHEN Files.Requires_System = 'Yes' AND excluded.Requires_System = 'No' THEN excluded.Requires_System
+        ELSE Files.Requires_System
+      END,
+      Requires_KDB = CASE
+        WHEN Files.Requires_KDB IS NULL OR Files.Requires_KDB = '' THEN excluded.Requires_KDB
+        WHEN Files.Requires_KDB = 'Yes' AND excluded.Requires_KDB = 'No' THEN excluded.Requires_KDB
+        ELSE Files.Requires_KDB
+      END,
       Ownership_Mode = COALESCE(NULLIF(Files.Ownership_Mode, ''), excluded.Ownership_Mode),
       File_Owner = COALESCE(NULLIF(Files.File_Owner, ''), excluded.File_Owner),
       File_Steward = COALESCE(NULLIF(Files.File_Steward, ''), excluded.File_Steward),
       Rulebook_Dependencies = COALESCE(NULLIF(Files.Rulebook_Dependencies, ''), excluded.Rulebook_Dependencies),
-      Defined_Structure = COALESCE(NULLIF(Files.Defined_Structure, ''), excluded.Defined_Structure),
+      Defined_Structure = CASE
+        WHEN Files.Defined_Structure IS NULL OR Files.Defined_Structure = '' THEN excluded.Defined_Structure
+        WHEN Files.Defined_Structure = 'System, General, KDB, File Specific' THEN excluded.Defined_Structure
+        ELSE Files.Defined_Structure
+      END,
       Glossary_Terms = COALESCE(NULLIF(Files.Glossary_Terms, ''), excluded.Glossary_Terms),
       File_Canonical_Entity = excluded.File_Canonical_Entity,
       File_Runtime_Entity = excluded.File_Runtime_Entity,
