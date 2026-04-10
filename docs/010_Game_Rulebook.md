@@ -56,17 +56,18 @@ Owner Genesis file creation order:
 10. install first companion workers
 11. `Events`
 12. `Projects`
-13. `Tasks`
-14. `Notes`
-15. `Artifacts`
-16. `Ingestion`
-17. `Companies`
-18. `Opportunities`
-19. `Funds`
-20. `Rounds`
-21. `Markets`
-22. `Securities`
-23. remaining current supporting `KDB` / reference files
+13. `Access Assignments`
+14. `Tasks`
+15. `Notes`
+16. `Artifacts`
+17. `Ingestion`
+18. `Companies`
+19. `Opportunities`
+20. `Funds`
+21. `Rounds`
+22. `Markets`
+23. `Securities`
+24. remaining current supporting `KDB` / reference files
 
 File-before-record rule:
 

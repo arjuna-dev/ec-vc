@@ -195,6 +195,7 @@ This tracker should stay aligned with:
 - the shared verification metadata layer is now the approved location for preselected, suggested, verified, and rejected field states
 - create forks are now expected to route through registry-driven branch choice instead of page-specific hardcoding
 - file visibility, file acceptance, and file creation should keep converging on one registry-driven rule
+- `Access_Assignments` is approved as a future standalone `L1` that should sit immediately after `Projects` in the file creation sequence, because it depends on `Contacts`, `Users`, `Roles`, and `Projects`
 
 ## Update Rule
 

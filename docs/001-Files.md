@@ -99,6 +99,7 @@ That means:
 Examples of child guides:
 
 - `System_Files.md`
+- `Access_Assignments.md`
 - `Companies.md`
 - `Projects.md`
 - `Events.md`

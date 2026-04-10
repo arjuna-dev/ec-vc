@@ -354,17 +354,18 @@ Current approved first-pass genesis file order:
    - `Points Tracker`
 11. `Events`
 12. `Projects`
-13. `Tasks`
-14. `Notes`
-15. `Artifacts`
-16. `Ingestion`
-17. `Companies`
-18. `Opportunities`
-19. `Funds`
-20. `Rounds`
-21. `Markets`
-22. `Securities`
-23. remaining current supporting `KDB` / reference files
+13. `Access Assignments`
+14. `Tasks`
+15. `Notes`
+16. `Artifacts`
+17. `Ingestion`
+18. `Companies`
+19. `Opportunities`
+20. `Funds`
+21. `Rounds`
+22. `Markets`
+23. `Securities`
+24. remaining current supporting `KDB` / reference files
 
 First-pass L1 micro-summary:
 
@@ -379,6 +380,7 @@ First-pass L1 micro-summary:
 - `Companion Roles`: the role catalog for companion workers
 - `Events`: the provenance layer that proves creation, activity, and later reconstruction
 - `Projects`: the operational work container and access scope
+- `Access Assignments`: the governed access layer connecting contacts/users to project-scoped roles inside the Owner LDB
 - `Tasks`: the action/work tracking layer
 - `Notes`: the lightweight knowledge and observation layer
 - `Artifacts`: the raw source-material layer
