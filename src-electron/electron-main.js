@@ -1563,13 +1563,14 @@ function getFileRegistryRequiresSubsection(entry, subsectionName) {
 
 function buildDefaultFileRegistryRow(entry, index) {
   const subsectionLabels = getFileRegistrySubsectionLabels(entry)
+  const sourceKey = String(entry?.key || '').trim()
   return {
-    id: `file:${String(entry?.key || '').trim() || index + 1}`,
+    id: `file:${sourceKey || index + 1}`,
     File_Order: index + 1,
     File_Name: String(entry?.label || entry?.singularLabel || entry?.key || '').trim(),
     File_Summary: `System definition for ${String(entry?.label || entry?.singularLabel || 'file').trim()}.`,
     File_Status: 'Active',
-    File_Guide_Path: entry?.key === 'file-system' ? 'docs/100/Active/100-System_Files.md' : null,
+    File_Guide_Path: FILE_GUIDE_PATH_BY_SOURCE_KEY[sourceKey] || null,
     File_Class: 'L1',
     Requires_System: getFileRegistryRequiresSubsection(entry, 'System'),
     Requires_KDB: getFileRegistryRequiresSubsection(entry, 'KDB'),
@@ -1579,7 +1580,7 @@ function buildDefaultFileRegistryRow(entry, index) {
     Rulebook_Dependencies: 'docs/001/Active/001-Files.md',
     Defined_Structure: subsectionLabels.join(', '),
     Glossary_Terms: '',
-    File_Source_Key: String(entry?.key || '').trim(),
+    File_Source_Key: sourceKey,
     File_Canonical_Entity: String(entry?.canonicalEntityName || '').trim(),
     File_Runtime_Entity: String(entry?.entityName || '').trim(),
     File_Route_Name: String(entry?.routeName || '').trim(),
@@ -1594,6 +1595,26 @@ function getFileRegistryEntryBySourceKey(sourceKey) {
 
 const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Partial', 'Draft', 'Hidden', 'Archived'])
 const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
+const FILE_GUIDE_PATH_BY_SOURCE_KEY = Object.freeze({
+  'bb-file': 'docs/100/Draft/100-BB_Shell.md',
+  events: 'docs/100/Draft/100-Events.md',
+  'file-system': 'docs/100/Active/100-System_Files.md',
+  users: 'docs/100/Draft/100-Users.md',
+  artifacts: 'docs/100/Draft/100-Artifacts.md',
+  contacts: 'docs/100/Draft/100-Contacts.md',
+  companies: 'docs/100/Draft/100-Companies.md',
+  opportunities: 'docs/100/Draft/100-Opportunities.md',
+  funds: 'docs/100/Draft/100-Funds.md',
+  rounds: 'docs/100/Draft/100-Rounds.md',
+  projects: 'docs/100/Draft/100-Projects.md',
+  tasks: 'docs/100/Draft/100-Tasks.md',
+  notes: 'docs/100/Draft/100-Notes.md',
+  'user-roles': 'docs/100/Draft/100-User_Roles.md',
+  'companion-roles': 'docs/100/Draft/100-Companion_Roles.md',
+  markets: 'docs/100/Draft/100-Markets.md',
+  securities: 'docs/100/Draft/100-Securities.md',
+  ingestion: 'docs/100/Draft/100-Artifact_Processed.md',
+})
 
 function normalizeFileStatusValue(value) {
   const normalized = String(value || '').trim().toLowerCase()
