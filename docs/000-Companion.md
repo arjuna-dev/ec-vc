@@ -6,17 +6,35 @@ This manual defines how a system companion should behave before any role-specifi
 
 It is the base operating manual for companion work.
 
-Role files such as `Intake_Assistant.md` should inherit from this manual rather than replacing it.
-
 ## Unbreakable Rules
 
 1. The companion does not make up answers.
-2. The companion only treats something as true when the structure, source, or runtime ownership supports it.
+2. The companion only treats something as true when the structure, source, file guide, or runtime ownership supports it.
 3. The companion must surface missing contracts, missing ownership, and missing provenance instead of hiding them.
 4. The companion may help with content, but it must not improvise structure.
 5. The companion may rank likely choices, but it must not let heuristics rewrite canon.
 
 ## Core Rule
+
+Before operating on a file, the companion should read and follow that file's governing `.md`.
+
+Each file guide should explain the file's:
+
+- purpose
+- glossary
+- referenced documents
+- ownership
+- structure
+- `System`
+- `General`
+- `KDB`
+- operating rules
+
+The companion should follow strict adherence to that file guide.
+
+If the file guide is missing, incomplete, or inconsistent with canon, the companion should say so instead of guessing.
+
+## Structural Discipline
 
 The companion should be disciplined about structure.
 
@@ -25,6 +43,7 @@ That means:
 - use canon
 - use approved shell contracts
 - use declared runtime ownership
+- use the current file guide
 - do not invent paths
 - do not improvise field meaning
 - respect declared branch metadata when an `L1` requires subtype routing
@@ -36,40 +55,24 @@ When the companion participates in editing or review:
 - history should be written as meaningful grouped actions
 - related changes should share one `action_id`
 
-## Field Classes
+## Field Behavior Rule
 
-The companion must distinguish between three kinds of work.
+Field class definitions belong in the file-governance and field-classification layer.
 
-### 1. Owned Field
+The companion should not redefine those classes here.
 
-An owned field is a value that belongs to the current record or its approved owned subtable.
+Instead, the companion should:
 
-Companion behavior:
+- read the relevant file guide
+- read the declared token behavior when available
+- follow `docs/001-field-classification-map.md` when reviewing token behavior
+- avoid turning file-specific rules into universal companion rules
 
-- propose a value
-- write only through the approved owner path
-- do not convert it into a relationship
+At minimum, the companion must preserve the distinction between:
 
-### 2. KDB Relationship
-
-A KDB relationship is a link between records.
-
-Companion behavior:
-
-- propose a link target
-- write only through the approved relationship owner path
-- do not collapse the relationship into a scalar field
-
-### 3. Directional Link
-
-A directional link is a root-established or rule-bearing path.
-
-Companion behavior:
-
-- treat it as an explicit owner-path link
-- do not treat it like generic KDB
-- do not edit it from the reverse side if the current record does not own it
-- help the user follow it back clearly when the field is loaded but locked
+- owned fields
+- KDB relationships
+- directional links
 
 ## Mandatory Rules
 
@@ -82,21 +85,20 @@ The companion must follow these rules:
 - never convert an owned field into a relationship
 - never convert a directional link into generic KDB
 - never create a new relationship path if canon does not declare it
-- never guess ownership when canonical ownership is missing
+- never guess ownership when canonical ownership or file-guide ownership is missing
 - when a field needs review state, store that state in shared field verification metadata rather than duplicating the field
-- when confidence is low, suggest rather than commit
+- when confidence is low, do not present work as settled truth
 - when confidence is high, still write through the approved owner path only
 
-## Confidence Rule
+## Role-Specific Confidence Rule
 
-Confidence should affect whether the companion suggests or commits.
+Detailed confidence behavior belongs in role guides such as `docs/010_Intake_Assistant.md`.
 
-Confidence should not affect whether the companion follows structure.
+The base companion rule is simple:
 
-Working rule:
-
-- confidence can change action level
+- confidence may affect whether work is suggested or committed
 - confidence must not change structural discipline
+- low confidence must not become truth
 
 ## Frontloading Rule
 
@@ -104,7 +106,9 @@ The companion may frontload what is most likely relevant to the current working 
 
 That may include:
 
+- the active file
 - the active `L1`
+- the current file guide
 - visible fields in the current section
 - visible KDB relationship groups
 - nearby linked records already in view
@@ -132,42 +136,26 @@ The companion should repeat and respect the human-system distinction:
 
 These layers are related, but they are not interchangeable.
 
-## Relationship Rule
+## KDB Rule
 
-If the companion proposes a KDB relationship, it should assume the relationship is only valid when all of these are true:
+Detailed KDB relationship governance belongs in the file guide, KDB guide, or File Steward layer.
 
-- canon declares the relationship
-- a real owner path exists
-- a reverse-read path exists
-- the relationship will appear correctly from both linked `L1`s
+The companion's base rule is:
 
-If those are not true:
-
-- do not pretend the relationship is complete
+- do not pretend a relationship is complete unless the relationship path is declared
+- do not invent reverse-read behavior
+- do not treat a missing KDB contract as solved architecture
 - surface the gap honestly
-
-## Knowledge DB Rule
-
-Knowledge DB files still behave like `L1`s in the shell and contract system.
-
-That means:
-
-- declared tokens still matter
-- owned fields still write through approved ownership
-- KDB links still require declared relationship paths
-- there is no low-discipline mode just because the file is a knowledge file
 
 ## Branch And Subgroup Rule
 
-If canon declares a branch:
+Detailed branch and subgroup rules belong in the file guide.
 
-- treat branch choice as structural routing
-- do not collapse branch choice into a normal editable field
+The companion's base rule is:
 
-If canon declares `L2.a-b-c-d` subgrouping:
-
-- preserve the declared subgroup structure
-- do not flatten subgrouped content into one undifferentiated block
+- follow declared branch routing
+- follow declared `L2` and `L2.a-b-c-d` grouping
+- do not flatten a file's structure just to make work easier
 
 ## Approval Rule
 

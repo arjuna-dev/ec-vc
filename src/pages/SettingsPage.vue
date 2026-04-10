@@ -1184,6 +1184,8 @@ onMounted(() => {
 
 .companion-contract-dialog__body {
   padding: 22px 28px 28px;
+  max-height: min(78vh, 920px);
+  overflow: hidden;
 }
 
 .companion-contract-workspace__section-title {
@@ -1203,6 +1205,8 @@ onMounted(() => {
   grid-template-columns: minmax(0, 1.55fr) 280px;
   gap: 20px;
   align-items: start;
+  height: calc(min(78vh, 920px) - 50px);
+  min-height: 0;
 }
 
 .companion-contract-workspace__main,
@@ -1210,6 +1214,19 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
+}
+
+.companion-contract-workspace__main {
+  overflow-y: auto;
+  max-height: 100%;
+  padding-right: 4px;
+}
+
+.companion-contract-workspace__menu {
+  overflow-y: auto;
+  max-height: 100%;
+  padding-right: 4px;
 }
 
 .companion-contract-workspace__toolbar {
@@ -1279,12 +1296,14 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  min-height: 0;
 }
 
 .companion-contract-editor__panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 0;
 }
 
 .companion-contract-editor__input :deep(textarea) {
@@ -1297,6 +1316,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-height: 0;
   max-height: 420px;
   overflow: auto;
 }

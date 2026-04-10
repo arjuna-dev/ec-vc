@@ -256,39 +256,152 @@
         <q-dialog v-model="showOwnerManualDialog">
           <q-card class="owner-manual-dialog">
             <q-card-section class="owner-manual-dialog__head">
-              <div class="settings-form-card__eyebrow">Owner</div>
-              <div class="settings-shell__hero-title owner-manual-dialog__title">Owner</div>
+              <div class="settings-form-card__eyebrow">{{ activeOwnerDocument?.eyebrow || 'Owner' }}</div>
+              <div class="settings-shell__hero-title owner-manual-dialog__title">
+                {{ activeOwnerDocument?.heroTitle || 'Owner' }}
+              </div>
+              <div class="owner-manual-dialog__owner">For the Owner</div>
               <div class="owner-manual-dialog__lead">
-                Use the Owner manual as the pause menu for system, file, and governance navigation.
+                {{ ownerDialogLead }}
               </div>
             </q-card-section>
 
             <q-separator />
 
             <q-card-section class="owner-manual-dialog__body">
-              <div class="owner-manual-dialog__toolbar">
-                <div>
-                  <div class="owner-manual-dialog__document-title">Owner</div>
-                  <div class="owner-manual-dialog__document-path">{{ ownerManualPath }}</div>
+              <div class="owner-manual-workspace">
+                <div class="owner-manual-workspace__main">
+                  <div v-if="ownerManualError" class="owner-manual-workspace__error">
+                    {{ ownerManualError }}
+                  </div>
+
+                  <div class="owner-manual-workspace__toolbar">
+                    <div class="owner-manual-workspace__toolbar-copy">
+                      <div class="owner-manual-workspace__document-title">
+                        {{ activeOwnerDocument?.label || 'Owner' }}
+                      </div>
+                      <div class="owner-manual-workspace__document-path">
+                        {{ activeOwnerDocument?.path || '' }}
+                      </div>
+                    </div>
+
+                    <div class="owner-manual-workspace__toolbar-actions">
+                      <B10Button
+                        variant="subtle"
+                        icon-start="refresh"
+                        label="Reload"
+                        :disable="ownerManualLoading || ownerManualSaving || !hasDocsBridge"
+                        @click="reloadActiveOwnerDocument"
+                      />
+                      <B10Button
+                        variant="subtle"
+                        :icon-start="ownerManualEditMode ? 'visibility' : 'edit'"
+                        :label="ownerManualEditMode ? 'View' : 'Edit'"
+                        :disable="ownerManualLoading || !hasDocsBridge"
+                        @click="ownerManualEditMode = !ownerManualEditMode"
+                      />
+                      <B10Button
+                        variant="primary"
+                        icon-start="save"
+                        label="Save"
+                        :disable="!ownerManualDirty || ownerManualLoading || ownerManualSaving || !hasDocsBridge"
+                        :loading="ownerManualSaving"
+                        @click="saveActiveOwnerDocument"
+                      />
+                    </div>
+                  </div>
+
+                  <div v-if="ownerManualLoading" class="owner-manual-workspace__loading">
+                    Loading document...
+                  </div>
+
+                  <template v-else>
+                    <div v-if="!ownerManualEditMode && isOwnerGlossaryDocument" class="owner-glossary">
+                      <div class="owner-glossary__toolbar">
+                        <div class="owner-manual-workspace__section-title">Index / Glossary</div>
+                        <q-select
+                          v-model="ownerGlossarySourceFilter"
+                          dense
+                          outlined
+                          emit-value
+                          map-options
+                          label="Source"
+                          :options="ownerGlossarySourceOptions"
+                          class="owner-glossary__source-filter"
+                        />
+                      </div>
+
+                      <div class="owner-glossary__table-wrap">
+                        <table class="owner-glossary__table">
+                          <thead>
+                            <tr>
+                              <th>Concept</th>
+                              <th>Description</th>
+                              <th>Source</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="entry in filteredOwnerGlossaryEntries" :key="`${entry.Concept}-${entry.Source}`">
+                              <td>{{ entry.Concept }}</td>
+                              <td>{{ entry.Description }}</td>
+                              <td>{{ entry.Source }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <div v-else-if="!ownerManualEditMode" class="owner-manual-workspace__read">
+                      <pre class="owner-manual-workspace__read-pre">{{ ownerManualSavedContent }}</pre>
+                    </div>
+                    <div v-else class="owner-manual-editor">
+                      <div class="owner-manual-editor__panel">
+                        <div class="owner-manual-workspace__section-title">Edit</div>
+                        <q-input
+                          v-model="ownerManualDraftContent"
+                          type="textarea"
+                          autogrow
+                          outlined
+                          class="owner-manual-editor__input"
+                        />
+                      </div>
+
+                      <div class="owner-manual-editor__panel">
+                        <div class="owner-manual-workspace__section-title">Pending Markup</div>
+                        <div class="owner-manual-diff">
+                          <div
+                            v-for="(line, index) in ownerManualDiffLines"
+                            :key="`${index}-${line.type}-${line.text}`"
+                            class="owner-manual-diff__line"
+                            :class="`owner-manual-diff__line--${line.type}`"
+                          >
+                            <span class="owner-manual-diff__marker">{{ ownerDiffMarkerFor(line.type) }}</span>
+                            <span class="owner-manual-diff__text">{{ line.text || ' ' }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+
+                  <div v-if="ownerManualReview" class="owner-manual-chat">
+                    <div class="owner-manual-chat__eyebrow">Owner Acknowledgment</div>
+                    <div class="owner-manual-chat__bubble">{{ ownerManualReview }}</div>
+                  </div>
                 </div>
 
-                <B10Button
-                  variant="subtle"
-                  icon-start="refresh"
-                  label="Reload"
-                  :disable="ownerManualLoading || !hasDocsBridge"
-                  @click="loadOwnerManual"
-                />
-              </div>
-
-              <div v-if="ownerManualError" class="owner-manual-dialog__error">
-                {{ ownerManualError }}
-              </div>
-              <div v-else-if="ownerManualLoading" class="owner-manual-dialog__loading">
-                Loading document...
-              </div>
-              <div v-else class="owner-manual-dialog__read">
-                <pre class="owner-manual-dialog__read-pre">{{ ownerManualContent }}</pre>
+                <aside class="owner-manual-workspace__menu">
+                  <div class="owner-manual-workspace__section-title">Relevant Guides</div>
+                  <button
+                    v-for="document in ownerDocumentMenu"
+                    :key="document.id"
+                    type="button"
+                    class="owner-manual-menu__item"
+                    :class="{ 'owner-manual-menu__item--active': document.id === activeOwnerDocumentId }"
+                    @click="selectOwnerDocument(document.id)"
+                  >
+                    <span class="owner-manual-menu__label">{{ document.label }}</span>
+                    <span class="owner-manual-menu__meta">{{ document.short }}</span>
+                  </button>
+                </aside>
               </div>
             </q-card-section>
 
@@ -310,7 +423,6 @@ import B10Button from 'src/components/buttons/B10Button.vue'
 
 const $q = useQuasar()
 const WORKSPACE_SETTINGS_STORAGE_KEY = 'ecvc.workspaceSettings'
-const OWNER_MANUAL_PATH = 'docs/000-Owner.md'
 const defaultWorkspaceSettings = {
   defaultLanding: 'home',
   workspaceMode: 'balanced',
@@ -346,7 +458,7 @@ const isElectronRuntime = computed(() => {
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const hasBridge = computed(() => !!bridge.value?.userSettings?.get && !!bridge.value?.userSettings?.set)
-const hasDocsBridge = computed(() => !!bridge.value?.docs?.read)
+const hasDocsBridge = computed(() => !!bridge.value?.docs?.read && !!bridge.value?.docs?.write)
 
 const loading = ref(false)
 const saving = ref(false)
@@ -354,8 +466,14 @@ const savingWorkspaceSettings = ref(false)
 const error = ref('')
 const showOwnerManualDialog = ref(false)
 const ownerManualLoading = ref(false)
+const ownerManualSaving = ref(false)
 const ownerManualError = ref('')
-const ownerManualContent = ref('')
+const ownerManualSavedContent = ref('')
+const ownerManualDraftContent = ref('')
+const ownerManualReview = ref('')
+const ownerManualEditMode = ref(false)
+const ownerGlossarySourceFilter = ref('all')
+const activeOwnerDocumentId = ref('owner')
 const canEditOwnerSettings = ref(true)
 const form = ref({
   Name: '',
@@ -452,7 +570,68 @@ const hasUnsavedChanges = computed(
 const hasWorkspaceChanges = computed(
   () => normalizedWorkspaceSignature(workspaceSettings.value) !== normalizedWorkspaceSignature(savedWorkspaceSettings.value)
 )
-const ownerManualPath = computed(() => OWNER_MANUAL_PATH)
+const ownerDocumentMenu = [
+  {
+    id: 'owner',
+    label: 'Owner',
+    short: 'Pause menu',
+    path: 'docs/000-Owner.md',
+    eyebrow: 'Owner',
+    heroTitle: 'Owner',
+  },
+  {
+    id: 'system-files',
+    label: 'System Files',
+    short: 'File governance',
+    path: 'docs/001-System_Files.md',
+    eyebrow: 'System Files',
+    heroTitle: 'Files',
+  },
+  {
+    id: 'product-reference',
+    label: 'Product Reference',
+    short: 'Product language',
+    path: 'docs/011-product-reference-guide.md',
+    eyebrow: 'Reference',
+    heroTitle: 'Reference',
+  },
+  {
+    id: 'glossary',
+    label: 'Index / Glossary',
+    short: 'Concept index',
+    path: 'docs/000-language-reference-glossary.md',
+    eyebrow: 'Index / Glossary',
+    heroTitle: 'Glossary',
+  },
+]
+const activeOwnerDocument = computed(
+  () => ownerDocumentMenu.find((document) => document.id === activeOwnerDocumentId.value) || ownerDocumentMenu[0]
+)
+const ownerDialogLead = computed(() => {
+  if (activeOwnerDocumentId.value === 'owner') {
+    return 'Use the Owner manual as the pause menu for system, file, and governance navigation.'
+  }
+
+  if (activeOwnerDocumentId.value === 'glossary') {
+    return 'Use the glossary to keep concepts, file language, and governance terms aligned while you edit.'
+  }
+
+  return 'Keep the owner-facing guidance readable, structured, and anchored to the real system contracts.'
+})
+const ownerManualDirty = computed(() => ownerManualDraftContent.value !== ownerManualSavedContent.value)
+const isOwnerGlossaryDocument = computed(() => activeOwnerDocumentId.value === 'glossary')
+const ownerGlossaryEntries = computed(() => parseGlossaryMarkdown(ownerManualSavedContent.value))
+const ownerGlossarySourceOptions = computed(() => {
+  const sources = Array.from(new Set(ownerGlossaryEntries.value.map((entry) => entry.Source).filter(Boolean))).sort()
+  return [{ label: 'All Sources', value: 'all' }, ...sources.map((source) => ({ label: source, value: source }))]
+})
+const filteredOwnerGlossaryEntries = computed(() => {
+  if (ownerGlossarySourceFilter.value === 'all') return ownerGlossaryEntries.value
+  return ownerGlossaryEntries.value.filter((entry) => entry.Source === ownerGlossarySourceFilter.value)
+})
+const ownerManualDiffLines = computed(() =>
+  buildLineDiff(ownerManualSavedContent.value, ownerManualDraftContent.value)
+)
 const workspaceToolbarText = computed(() => {
   const landing = workspaceLandingOptions.find((option) => option.value === workspaceSettings.value.defaultLanding)?.label || 'Home'
   const mode = workspaceModeOptions.find((option) => option.value === workspaceSettings.value.workspaceMode)?.label || 'Balanced'
@@ -574,18 +753,145 @@ async function saveWorkspaceSettings() {
   }
 }
 
-async function loadOwnerManual() {
-  if (!hasDocsBridge.value) return
+function parseGlossaryMarkdown(content) {
+  const lines = String(content || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('|'))
+
+  if (lines.length < 3) return []
+
+  const rows = lines.map((line) =>
+    line
+      .slice(1, -1)
+      .split('|')
+      .map((cell) => cell.trim()),
+  )
+
+  const headers = rows[0]
+  return rows
+    .slice(2)
+    .filter((row) => row.length === headers.length)
+    .map((row) =>
+      headers.reduce((entry, header, index) => {
+        entry[header] = row[index] || ''
+        return entry
+      }, {}),
+    )
+}
+
+function buildLineDiff(before, after) {
+  const a = String(before || '').split('\n')
+  const b = String(after || '').split('\n')
+  const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0))
+
+  for (let i = a.length - 1; i >= 0; i -= 1) {
+    for (let j = b.length - 1; j >= 0; j -= 1) {
+      dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1])
+    }
+  }
+
+  const lines = []
+  let i = 0
+  let j = 0
+
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      lines.push({ type: 'same', text: a[i] })
+      i += 1
+      j += 1
+      continue
+    }
+
+    if (dp[i + 1][j] >= dp[i][j + 1]) {
+      lines.push({ type: 'remove', text: a[i] })
+      i += 1
+    } else {
+      lines.push({ type: 'add', text: b[j] })
+      j += 1
+    }
+  }
+
+  while (i < a.length) {
+    lines.push({ type: 'remove', text: a[i] })
+    i += 1
+  }
+
+  while (j < b.length) {
+    lines.push({ type: 'add', text: b[j] })
+    j += 1
+  }
+
+  return lines
+}
+
+function ownerDiffMarkerFor(type) {
+  if (type === 'add') return '+'
+  if (type === 'remove') return '-'
+  return '·'
+}
+
+function createOwnerClarityPass() {
+  const diffLines = ownerManualDiffLines.value
+  const additions = diffLines.filter((line) => line.type === 'add').length
+  const removals = diffLines.filter((line) => line.type === 'remove').length
+  const headings = ownerManualDraftContent.value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('#')).length
+  const longLines = ownerManualDraftContent.value
+    .split('\n')
+    .filter((line) => line.length > 160).length
+
+  const notes = [
+    `${activeOwnerDocument.value?.label || 'Document'} saved with ${additions} additions and ${removals} removals.`,
+    headings > 0 ? `The heading structure is still visible across ${headings} heading line(s).` : 'The heading structure is now missing, so this should be reviewed.',
+    longLines > 0 ? `${longLines} long line(s) may still read densely.` : 'The updated lines look readable at a quick pass.',
+  ]
+
+  return notes.join(' ')
+}
+
+async function loadActiveOwnerDocument() {
+  if (!showOwnerManualDialog.value || !hasDocsBridge.value) return
   ownerManualLoading.value = true
   ownerManualError.value = ''
   try {
-    const result = await bridge.value.docs.read(OWNER_MANUAL_PATH)
-    ownerManualContent.value = String(result?.content || '')
+    const result = await bridge.value.docs.read(activeOwnerDocument.value.path)
+    ownerManualSavedContent.value = String(result?.content || '')
+    ownerManualDraftContent.value = ownerManualSavedContent.value
+    ownerManualReview.value = ''
+    ownerGlossarySourceFilter.value = 'all'
   } catch (e) {
     ownerManualError.value = normalizeIpcErrorMessage(e)
   } finally {
     ownerManualLoading.value = false
   }
+}
+
+async function reloadActiveOwnerDocument() {
+  await loadActiveOwnerDocument()
+}
+
+async function saveActiveOwnerDocument() {
+  if (!hasDocsBridge.value || !ownerManualDirty.value || !activeOwnerDocument.value?.path) return
+
+  ownerManualSaving.value = true
+  ownerManualError.value = ''
+
+  try {
+    await bridge.value.docs.write(activeOwnerDocument.value.path, ownerManualDraftContent.value)
+    ownerManualSavedContent.value = ownerManualDraftContent.value
+    ownerManualReview.value = createOwnerClarityPass()
+  } catch (e) {
+    ownerManualError.value = normalizeIpcErrorMessage(e)
+  } finally {
+    ownerManualSaving.value = false
+  }
+}
+
+function selectOwnerDocument(documentId) {
+  activeOwnerDocumentId.value = documentId
 }
 
 onMounted(() => {
@@ -595,9 +901,13 @@ onMounted(() => {
 })
 
 watch(showOwnerManualDialog, (isOpen) => {
-  if (isOpen && !ownerManualContent.value && !ownerManualLoading.value) {
-    loadOwnerManual()
-  }
+  if (!isOpen) return
+  ownerManualEditMode.value = false
+  loadActiveOwnerDocument()
+})
+watch(activeOwnerDocumentId, () => {
+  ownerManualEditMode.value = false
+  if (showOwnerManualDialog.value) loadActiveOwnerDocument()
 })
 </script>
 
@@ -795,6 +1105,14 @@ watch(showOwnerManualDialog, (isOpen) => {
   margin: 0;
 }
 
+.owner-manual-dialog__owner {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .owner-manual-dialog__lead {
   color: #475569;
   font-family: var(--font-body);
@@ -803,19 +1121,58 @@ watch(showOwnerManualDialog, (isOpen) => {
 }
 
 .owner-manual-dialog__body {
-  display: grid;
-  gap: 14px;
   padding: 18px 24px 24px;
+  max-height: min(78vh, 920px);
+  overflow: hidden;
 }
 
-.owner-manual-dialog__toolbar {
+.owner-manual-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 260px);
+  gap: 16px;
+  height: calc(min(78vh, 920px) - 42px);
+  min-height: 0;
+}
+
+.owner-manual-workspace__main,
+.owner-manual-workspace__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.owner-manual-workspace__main {
+  overflow-y: auto;
+  max-height: 100%;
+  padding-right: 4px;
+}
+
+.owner-manual-workspace__menu {
+  overflow-y: auto;
+  max-height: 100%;
+  padding-right: 4px;
+}
+
+.owner-manual-workspace__toolbar {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
 
-.owner-manual-dialog__document-title {
+.owner-manual-workspace__toolbar-copy,
+.owner-manual-workspace__toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.owner-manual-workspace__toolbar-actions {
+  justify-content: flex-end;
+}
+
+.owner-manual-workspace__document-title {
   color: #0f172a;
   font-family: var(--font-title);
   font-size: 1rem;
@@ -823,28 +1180,40 @@ watch(showOwnerManualDialog, (isOpen) => {
   line-height: 1;
 }
 
-.owner-manual-dialog__document-path {
+.owner-manual-workspace__document-path {
   color: #64748b;
   font-size: 0.8rem;
   line-height: 1.5;
 }
 
-.owner-manual-dialog__loading,
-.owner-manual-dialog__error,
-.owner-manual-dialog__read {
+.owner-manual-workspace__section-title {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.owner-manual-workspace__loading,
+.owner-manual-workspace__error,
+.owner-manual-workspace__read,
+.owner-manual-editor__panel,
+.owner-manual-workspace__menu,
+.owner-manual-chat,
+.owner-glossary__table-wrap {
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.88);
   padding: 18px;
 }
 
-.owner-manual-dialog__error {
+.owner-manual-workspace__error {
   color: #b42318;
   background: rgba(254, 228, 226, 0.72);
   border-color: rgba(240, 68, 56, 0.18);
 }
 
-.owner-manual-dialog__read-pre {
+.owner-manual-workspace__read-pre {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
@@ -852,6 +1221,160 @@ watch(showOwnerManualDialog, (isOpen) => {
   font-size: 12px;
   line-height: 1.65;
   color: #233041;
+}
+
+.owner-manual-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+.owner-manual-editor__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.owner-manual-editor__input :deep(textarea) {
+  min-height: 380px;
+}
+
+.owner-manual-diff {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  max-height: 420px;
+  overflow: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+
+.owner-manual-diff__line {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+.owner-manual-diff__line--add {
+  background: rgba(22, 163, 74, 0.08);
+  color: #166534;
+}
+
+.owner-manual-diff__line--remove {
+  background: rgba(220, 38, 38, 0.08);
+  color: #991b1b;
+}
+
+.owner-manual-diff__line--same {
+  background: rgba(148, 163, 184, 0.08);
+  color: #475569;
+}
+
+.owner-manual-diff__marker {
+  font-weight: 700;
+}
+
+.owner-manual-diff__text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.owner-manual-menu__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.96);
+  cursor: pointer;
+  text-align: left;
+}
+
+.owner-manual-menu__item:hover {
+  background: rgba(241, 245, 249, 0.98);
+}
+
+.owner-manual-menu__item--active {
+  border-color: rgba(37, 99, 235, 0.28);
+  background: rgba(219, 234, 254, 0.72);
+}
+
+.owner-manual-menu__label {
+  color: #0f172a;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.owner-manual-menu__meta {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.owner-manual-chat__eyebrow {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.owner-manual-chat__bubble {
+  margin-top: 8px;
+  color: #233041;
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.owner-glossary__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.owner-glossary__source-filter {
+  min-width: 220px;
+}
+
+.owner-glossary__table-wrap {
+  overflow: auto;
+  padding: 0;
+}
+
+.owner-glossary__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.owner-glossary__table th,
+.owner-glossary__table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  text-align: left;
+  vertical-align: top;
+}
+
+.owner-glossary__table th {
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.owner-glossary__table td {
+  color: #334155;
+  font-size: 0.86rem;
+  line-height: 1.55;
 }
 
 .owner-manual-dialog__actions {
@@ -912,6 +1435,21 @@ watch(showOwnerManualDialog, (isOpen) => {
 
   .settings-form-card__header {
     flex-direction: column;
+  }
+
+  .owner-manual-workspace,
+  .owner-manual-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-manual-workspace__toolbar,
+  .owner-glossary__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .owner-manual-workspace__toolbar-actions {
+    justify-content: flex-start;
   }
 }
 
