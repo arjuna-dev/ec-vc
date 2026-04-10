@@ -1644,129 +1644,186 @@ const someVisibleSelected = computed(() => {
   return visibleSelectableRowIds.value.some((id) => selectedRowIds.value.includes(id))
 })
 
-const heroText = computed(
-  () =>
-    isRecordShellMode.value
-      ? 'This is the shared record-create shell. The selected L1 sets the real source entity, and the selected L3 set defines which extra canonical fields the create dialog includes.'
-      : 'This is the actual fixed page shell under standardization. The selected L1 source changes the real payload and canonical L2/L3 structure underneath it.',
-)
-
-const heroStats = computed(() => {
+const heroPayload = computed(() => {
   if (activeSourceKey.value === 'file-system') {
-    return [
-      {
-        label: 'Rows',
-        value: rawRows.value.length,
-        caption: 'Registry rows loaded',
-        tone: 'neutral',
-      },
-      {
-        label: 'Drift',
-        value: fileSystemValidationIssueCount.value,
-        caption: 'Current validator issues',
-        tone: 'rich',
-      },
-    ]
-  }
-
-  return [
-    {
-      label: 'Source',
-      value: activeRegistryEntry.value?.label || '--',
-      caption: 'Selected L1 entity',
-      tone: 'neutral',
-    },
-    {
-      label: isRecordShellMode.value ? 'Selected' : 'Rows',
-      value: isRecordShellMode.value ? selectedRecordShellLevel3Keys.value.length : rawRows.value.length,
-      caption: isRecordShellMode.value ? 'Chosen L3 fields' : 'Real rows loaded',
-      tone: 'rich',
-    },
-    {
-      label: 'L2',
-      value: level2Sections.value.length,
-      caption: 'Canonical sections',
-      tone: 'neutral',
-    },
-    {
-      label: 'L3',
-      value: level3Tokens.value.length,
-      caption: 'Canonical tokens',
-      tone: 'sparse',
-    },
-  ]
-})
-
-const healthText = computed(() => {
-  if (activeSourceKey.value === 'file-system' && fileSystemValidation.value) {
-    const validation = fileSystemValidation.value
-    return `Checked ${Number(validation?.rowCount || 0)} rows against ${Number(validation?.registryCount || 0)} executable registry entries. Errors: ${Number(validation?.severityCounts?.error || 0)}. Warnings: ${Number(validation?.severityCounts?.warn || 0)}. Info: ${Number(validation?.severityCounts?.info || 0)}.`
-  }
-  return `The shell is fixed. Real rows and explicit canonical token values are shown without guessing. Unmapped shell slots remain placeholders until canonical shell mapping exists.`
-})
-
-const healthSegments = computed(() => {
-  if (activeSourceKey.value === 'file-system' && fileSystemValidation.value) {
     const validation = fileSystemValidation.value
     const total = Math.max(Number(validation?.registryCount || validation?.rowCount || 0), 0)
     const drift = Math.min(fileSystemValidationIssueCount.value, total)
-    const stable = Math.max(total - drift, 0)
-    if (total > 0) {
-      return [
-        { tone: 'sparse', width: (drift / total) * 100 },
-        { tone: 'rich', width: (stable / total) * 100 },
-      ]
+    const remaining = Math.max(total - drift, 0)
+    return {
+      text: 'This is the actual fixed page shell under standardization. The selected L1 source changes the real payload and canonical L2/L3 structure underneath it.',
+      stats: [
+        {
+          label: 'Rows',
+          value: rawRows.value.length,
+          caption: 'Registry rows loaded',
+          tone: 'neutral',
+        },
+        {
+          label: 'Drift',
+          value: fileSystemValidationIssueCount.value,
+          caption: 'Current validator issues',
+          tone: 'rich',
+        },
+      ],
+      healthText: `Checked ${Number(validation?.rowCount || 0)} rows against ${Number(validation?.registryCount || 0)} executable registry entries. Errors: ${Number(validation?.severityCounts?.error || 0)}. Warnings: ${Number(validation?.severityCounts?.warn || 0)}. Info: ${Number(validation?.severityCounts?.info || 0)}.`,
+      healthSegments: total > 0
+        ? [
+            { tone: 'sparse', width: (drift / total) * 100 },
+            { tone: 'rich', width: (remaining / total) * 100 },
+          ]
+        : [
+            { tone: 'sparse', width: 0 },
+            { tone: 'rich', width: 100 },
+          ],
+      actionLabel: 'File Health',
+      actionTitle: 'Reference Documents',
+      actionItems: [
+        {
+          id: 'system-files-guide',
+          label: 'System Files Guide',
+          caption: 'docs/100/Active/100-System_Files.md',
+          path: 'docs/100/Active/100-System_Files.md',
+          icon: 'description',
+        },
+        {
+          id: 'file-steward',
+          label: 'File Steward',
+          caption: 'docs/020/Active/020_File_Steward.md',
+          path: 'docs/020/Active/020_File_Steward.md',
+          icon: 'description',
+        },
+        {
+          id: 'architect-steward',
+          label: 'Architect Steward',
+          caption: 'docs/020/Active/020_Architect_Steward.md',
+          path: 'docs/020/Active/020_Architect_Steward.md',
+          icon: 'description',
+        },
+        {
+          id: 'ux-steward',
+          label: 'UX Steward',
+          caption: 'docs/020/Active/020_UX_Steward.md',
+          path: 'docs/020/Active/020_UX_Steward.md',
+          icon: 'description',
+        },
+        {
+          id: 'open-issues',
+          label: 'Open Issues',
+          caption: 'docs/100/Active/100-System_Files_Open_Issues.md',
+          path: 'docs/100/Active/100-System_Files_Open_Issues.md',
+          icon: 'description',
+        },
+      ],
     }
   }
 
-  return [
-    { tone: 'sparse', width: 20 },
-    { tone: 'rich', width: 80 },
-  ]
+  if (isBbFileSource.value) {
+    const total = Math.max(rawRows.value.length, 0)
+    return {
+      text: 'This is the shared building block shell. It should expose the same shell contract shape as the file shell, with differences driven by source data rather than custom hero structure.',
+      stats: [
+        {
+          label: 'Rows',
+          value: rawRows.value.length,
+          caption: 'Building block rows loaded',
+          tone: 'neutral',
+        },
+        {
+          label: 'Drift',
+          value: 0,
+          caption: 'Validator not connected yet',
+          tone: 'neutral',
+        },
+      ],
+      healthText: 'The BB Shell is using the same hero payload contract shape as the file shell. A dedicated BB drift validator has not been wired yet.',
+      healthSegments: [
+        { tone: 'sparse', width: 0 },
+        { tone: 'rich', width: total > 0 ? 100 : 100 },
+      ],
+      actionLabel: 'File Health',
+      actionTitle: 'Reference Documents',
+      actionItems: [
+        {
+          id: 'bb-shell-guide',
+          label: 'BB Shell Guide',
+          caption: 'docs/100/Draft/100-BB_Shell.md',
+          path: 'docs/100/Draft/100-BB_Shell.md',
+          icon: 'description',
+        },
+        {
+          id: 'file-steward',
+          label: 'File Steward',
+          caption: 'docs/020/Active/020_File_Steward.md',
+          path: 'docs/020/Active/020_File_Steward.md',
+          icon: 'description',
+        },
+        {
+          id: 'architect-steward',
+          label: 'Architect Steward',
+          caption: 'docs/020/Active/020_Architect_Steward.md',
+          path: 'docs/020/Active/020_Architect_Steward.md',
+          icon: 'description',
+        },
+        {
+          id: 'ux-steward',
+          label: 'UX Steward',
+          caption: 'docs/020/Active/020_UX_Steward.md',
+          path: 'docs/020/Active/020_UX_Steward.md',
+          icon: 'description',
+        },
+      ],
+    }
+  }
+
+  return {
+    text: isRecordShellMode.value
+      ? 'This is the shared record-create shell. The selected L1 sets the real source entity, and the selected L3 set defines which extra canonical fields the create dialog includes.'
+      : 'This is the actual fixed page shell under standardization. The selected L1 source changes the real payload and canonical L2/L3 structure underneath it.',
+    stats: [
+      {
+        label: 'Source',
+        value: activeRegistryEntry.value?.label || '--',
+        caption: 'Selected L1 entity',
+        tone: 'neutral',
+      },
+      {
+        label: isRecordShellMode.value ? 'Selected' : 'Rows',
+        value: isRecordShellMode.value ? selectedRecordShellLevel3Keys.value.length : rawRows.value.length,
+        caption: isRecordShellMode.value ? 'Chosen L3 fields' : 'Real rows loaded',
+        tone: 'rich',
+      },
+      {
+        label: 'L2',
+        value: level2Sections.value.length,
+        caption: 'Canonical sections',
+        tone: 'neutral',
+      },
+      {
+        label: 'L3',
+        value: level3Tokens.value.length,
+        caption: 'Canonical tokens',
+        tone: 'sparse',
+      },
+    ],
+    healthText: 'The shell is fixed. Real rows and explicit canonical token values are shown without guessing. Unmapped shell slots remain placeholders until canonical shell mapping exists.',
+    healthSegments: [
+      { tone: 'sparse', width: 20 },
+      { tone: 'rich', width: 80 },
+    ],
+    actionLabel: 'File Health',
+    actionTitle: 'Next Actions',
+    actionItems: [],
+  }
 })
 
-const heroActionLabel = computed(() => (activeSourceKey.value === 'file-system' ? 'File Health' : 'File Health'))
-const heroActionTitle = computed(() => (activeSourceKey.value === 'file-system' ? 'Reference Documents' : 'Next Actions'))
-const heroActionItems = computed(() => {
-  if (activeSourceKey.value !== 'file-system') return []
-  return [
-    {
-      id: 'system-files-guide',
-      label: 'System Files Guide',
-      caption: 'docs/100/Active/100-System_Files.md',
-      path: 'docs/100/Active/100-System_Files.md',
-      icon: 'description',
-    },
-    {
-      id: 'file-steward',
-      label: 'File Steward',
-      caption: 'docs/020/Active/020_File_Steward.md',
-      path: 'docs/020/Active/020_File_Steward.md',
-      icon: 'description',
-    },
-    {
-      id: 'architect-steward',
-      label: 'Architect Steward',
-      caption: 'docs/020/Active/020_Architect_Steward.md',
-      path: 'docs/020/Active/020_Architect_Steward.md',
-      icon: 'description',
-    },
-    {
-      id: 'ux-steward',
-      label: 'UX Steward',
-      caption: 'docs/020/Active/020_UX_Steward.md',
-      path: 'docs/020/Active/020_UX_Steward.md',
-      icon: 'description',
-    },
-    {
-      id: 'open-issues',
-      label: 'Open Issues',
-      caption: 'docs/100/Active/100-System_Files_Open_Issues.md',
-      path: 'docs/100/Active/100-System_Files_Open_Issues.md',
-      icon: 'description',
-    },
-  ]
-})
+const heroText = computed(() => heroPayload.value.text)
+const heroStats = computed(() => heroPayload.value.stats)
+const healthText = computed(() => heroPayload.value.healthText)
+const healthSegments = computed(() => heroPayload.value.healthSegments)
+const heroActionLabel = computed(() => heroPayload.value.actionLabel)
+const heroActionTitle = computed(() => heroPayload.value.actionTitle)
+const heroActionItems = computed(() => heroPayload.value.actionItems)
 
 const fileSystemValidation = computed(() =>
   activeSourceKey.value === 'file-system' && loaderDiagnostics.value && typeof loaderDiagnostics.value === 'object'
