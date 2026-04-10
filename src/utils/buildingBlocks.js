@@ -1485,4 +1485,3 @@ export function getBuildingBlockGraphLinks(blockId) {
 
   return { parents, children }
 }
-
