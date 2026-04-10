@@ -46,8 +46,8 @@ It is the file-definition layer that helps the system know:
 ## Referenced Documents
 
 - `docs/001-Files.md`
-- `docs/000-Owner.md`
-- `docs/000-Companion.md`
+- `docs/000-Owner_Manual.md`
+- `docs/000-Companion_Manual.md`
 - `docs/100_File_Steward.md`
 - `docs/100_UX_Steward.md`
 - `docs/100_Architect_Steward.md`

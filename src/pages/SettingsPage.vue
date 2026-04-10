@@ -463,7 +463,7 @@ const companionDocumentMenu = [
     id: 'companion',
     label: 'Companion',
     short: 'Main contract',
-    path: 'docs/000-Companion.md',
+    path: 'docs/000-Companion_Manual.md',
     eyebrow: 'Companion',
     heroTitle: 'Companion',
   },

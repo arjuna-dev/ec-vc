@@ -575,7 +575,7 @@ const ownerDocumentMenu = [
     id: 'owner',
     label: 'Owner',
     short: 'Pause menu',
-    path: 'docs/000-Owner.md',
+    path: 'docs/000-Owner_Manual.md',
     eyebrow: 'Owner',
     heroTitle: 'Owner',
   },
