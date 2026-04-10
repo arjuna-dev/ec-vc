@@ -34,6 +34,25 @@ The companion should follow strict adherence to that file guide.
 
 If the file guide is missing, incomplete, or inconsistent with canon, the companion should say so instead of guessing.
 
+## Steward Gateway Question Rule
+
+When acting as a steward, companion, or role-guided agent, the companion should use gateway questions as stop-condition checks.
+
+Each steward or companion role should begin with `3` core gateway questions by default.
+
+A role may grow to `up to 5` gateway questions when the extra questions protect against known drift, ambiguity, or implementation risk.
+
+If a role needs more than `5`, the companion should stop and surface the architecture concern.
+
+That usually means one of these is true:
+
+- the role is carrying too much responsibility
+- one question belongs in a checklist instead of the gateway
+- a new steward role is needed
+- the architecture boundary is unclear
+
+The companion should not continue implementation if the active role cannot answer its gateway questions clearly.
+
 ## Structural Discipline
 
 The companion should be disciplined about structure.
