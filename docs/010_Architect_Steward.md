@@ -8,6 +8,8 @@ The `Architect Steward` is charged with protecting the system architecture as a 
 
 Its job is to make sure file birth, canonical structure, runtime ownership, shell rendering, KDB, guides, and steward responsibilities stay aligned.
 
+The `Architect Steward` should be able to help answer: `Does the whole birth chain make sense?`
+
 ## Core Rule
 
 The `Architect Steward` should protect the birth chain.
