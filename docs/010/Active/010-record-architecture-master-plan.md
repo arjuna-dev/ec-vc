@@ -20,6 +20,13 @@ Companion behavior and ingestion-side structural discipline should also stay ali
 - `docs/020/Active/020_Game_Steward.md`
 - `docs/999/Active/999-ECS_Workstream_Tracker.md`
 
+Docs-domain rule:
+
+- `docs/300/Active/300_Game_Rulebook.md` is the concrete Games guide
+- future `003` docs should define root Games rules
+- future `030` docs should define Games operation
+- `docs/020/Active/020_Game_Steward.md` stays in Companion Stewards because it defines the companion role that explains and governs the game layer
+
 When decisions change:
 
 - update this file
@@ -618,6 +625,11 @@ Working interaction rule:
 ## Game Layer Constraint
 
 The game layer is now an approved top-layer direction.
+
+Docs placement:
+
+- Games rules and concrete rulebooks belong in the Games branch: `003`, `030`, and `300`
+- companion roles that explain or govern Games remain in the Companion branch: `020` and, if needed later, `200`
 
 It should help:
 

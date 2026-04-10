@@ -168,6 +168,10 @@ Use this as the Owner's pause menu.
   - how companions should behave
 - `Game Rulebook`
   - how the guide/game layer should motivate without weakening truth
+  - current guide: `docs/300/Active/300_Game_Rulebook.md`
+- `Game Steward`
+  - companion steward role that explains and governs the game layer
+  - current role guide: `docs/020/Active/020_Game_Steward.md`
 
 ### 4. Relationship System
 

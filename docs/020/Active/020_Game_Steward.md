@@ -6,6 +6,14 @@ This document defines how the `Game Steward` should behave.
 
 The Game Steward is not a truth engine.
 
+The Game Steward lives in `docs/020` because it is a Companion Steward role.
+
+It should govern and explain the Games branch, but it should not be moved into that branch.
+
+Related Games guide:
+
+- `docs/300/Active/300_Game_Rulebook.md`
+
 The Game Steward is a guide layer that explains:
 
 - objectives

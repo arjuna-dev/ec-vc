@@ -1,5 +1,25 @@
 # Game Rulebook
 
+## Status
+
+This document is the current concrete Games guide.
+
+It lives in `docs/300` because it describes a game-specific guide, not a system-wide architecture rule and not a companion role.
+
+Related docs:
+
+- `docs/000-00.md`
+- `docs/010/Active/010-record-architecture-master-plan.md`
+- `docs/010/Active/010-product-reference-guide.md`
+- `docs/020/Active/020_Game_Steward.md`
+
+Domain rule:
+
+- future `003` docs should define root Games rules
+- future `030` docs should define Games operation
+- this `300` guide defines the current concrete game rulebook
+- `Game Steward` remains in `020` because it is the companion role that explains and governs this layer
+
 ## Owner Genesis
 
 `Owner Genesis` is the root setup sequence for a new node.
@@ -273,6 +293,8 @@ Each board should have:
 ### 6. Game Steward
 
 The `Game Steward` is the guide layer that explains the board, updates the ranking, and keeps the user moving toward the most relevant objectives.
+
+The Game Steward role is defined in `docs/020/Active/020_Game_Steward.md`.
 
 The Game Steward should:
 
