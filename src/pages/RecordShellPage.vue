@@ -508,8 +508,17 @@ const selectedTokenKeys = computed({
 })
 
 const selectedTokenKeySet = computed(() => new Set(selectedTokenKeys.value))
-const selectableSections = computed(() => level2Sections.value.filter((section) => normalizedSelectableTokens.value.some((token) => token.parentKey === section.key)))
-const selectedHeroTokens = computed(() => normalizedSelectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)))
+const generalSectionKeys = computed(() =>
+  level2Sections.value
+    .filter((section) => String(section.label || '').trim().toLowerCase() === 'general')
+    .map((section) => section.key),
+)
+const generalSelectableTokens = computed(() =>
+  normalizedSelectableTokens.value.filter((token) => generalSectionKeys.value.includes(token.parentKey)),
+)
+const selectedHeroTokens = computed(() =>
+  generalSelectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)),
+)
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
 const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
 const createSectionGroups = computed(() =>
@@ -655,7 +664,9 @@ const dialogInitialValues = computed(() => {
   )
 })
 const dialogInitialFieldMeta = computed(() => ({}))
-const heroSettingsGroups = computed(() => selectableSections.value.map((section) => ({
+const heroSettingsGroups = computed(() => level2Sections.value
+  .filter((section) => generalSectionKeys.value.includes(section.key))
+  .map((section) => ({
   key: section.key,
   label: section.label,
   expanded: isSectionExpanded(section.key),
@@ -664,7 +675,7 @@ const heroSettingsGroups = computed(() => selectableSections.value.map((section)
     label: token.label,
     checked: isSelectedToken(token.key),
   })),
-})))
+  })))
 
 watch(level2Sections, (sections) => {
   if (!sections.length) {
@@ -688,10 +699,10 @@ watch(activeSectionTokenGroups, (groups) => {
 
 watch(activeSourceKey, async () => { await ensureLiveOptionsLoaded() }, { immediate: true })
 watch(
-  [activeSourceKey, selectableTokens],
+  [activeSourceKey, generalSelectableTokens],
   () => {
     const sourceKey = activeSourceKey.value
-    const allowedKeys = new Set(normalizedSelectableTokens.value.map((token) => token.key))
+    const allowedKeys = new Set(generalSelectableTokens.value.map((token) => token.key))
     const existing = Array.isArray(heroFieldKeysBySource.value[sourceKey]) ? heroFieldKeysBySource.value[sourceKey] : []
     const normalized = existing.filter((key) => allowedKeys.has(key))
 
@@ -707,7 +718,7 @@ watch(
 
     heroFieldKeysBySource.value = {
       ...heroFieldKeysBySource.value,
-      [sourceKey]: normalizedSelectableTokens.value.slice(0, 4).map((token) => token.key),
+      [sourceKey]: generalSelectableTokens.value.slice(0, 4).map((token) => token.key),
     }
   },
   { immediate: true },
