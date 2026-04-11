@@ -6,6 +6,7 @@
       body-class="create-record-shell__body"
       footer-class="create-record-shell__footer"
       :card-style="dialogStyle"
+      body-scrollable
     >
       <template #header>
         <div class="create-record-shell__header-copy">
@@ -1028,8 +1029,8 @@ function initializeDialogState() {
   selectedUrlEntryIds.value = []
   selectedBlurbEntryIds.value = []
   expandedEntryIds.value = []
-  supportResourcesCollapsed.value = props.preferAddLayout ? false : Boolean(props.initialResourcesCollapsed)
-  recordDataCollapsed.value = props.preferAddLayout ? true : Boolean(props.initialRecordDataCollapsed)
+  supportResourcesCollapsed.value = props.preferAddLayout ? true : Boolean(props.initialResourcesCollapsed)
+  recordDataCollapsed.value = props.preferAddLayout ? false : Boolean(props.initialRecordDataCollapsed)
   dialogWidth.value = 760
   dialogHeight.value = 780
   formValues.value = Object.fromEntries(
@@ -1836,12 +1837,15 @@ onBeforeUnmount(() => {
   gap: 10px;
   min-height: 0;
   padding: 18px 28px 28px;
+  overflow: hidden;
 }
 
 .create-record-shell__record-data {
   display: grid;
+  flex: 1 1 auto;
   gap: 12px;
   min-height: 0;
+  overflow: hidden;
 }
 
 .create-record-shell__record-data-toggle {
