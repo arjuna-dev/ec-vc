@@ -1375,7 +1375,6 @@ const displayRows = computed(() => {
         row.recordId,
         ...row.sectionTokenRows.map((tokenRow) => tokenRow.tokenName),
         ...row.sectionTokenRows.map((tokenRow) => tokenRow.value),
-        ...Object.keys(row.raw || {}),
       ]
       return haystack.some((value) => String(value || '').toLowerCase().includes(query))
     })
