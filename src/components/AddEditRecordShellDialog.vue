@@ -1170,6 +1170,14 @@ function handleTextFieldEnter(token, tokenKey, event) {
   commitStagedField(tokenKey)
 }
 
+function buildCommittedFormValues() {
+  if (!Object.keys(stagedFieldValues.value).length) return { ...formValues.value }
+  return {
+    ...formValues.value,
+    ...stagedFieldValues.value,
+  }
+}
+
 function submit() {
   emit('submit', {
     ...buildDialogSnapshot(),
@@ -1191,7 +1199,7 @@ function buildDialogSnapshot() {
     : []
 
   return {
-    values: { ...formValues.value },
+    values: buildCommittedFormValues(),
     verification: {
       changes: buildVerificationChanges(),
     },
