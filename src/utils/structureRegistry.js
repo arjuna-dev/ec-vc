@@ -172,6 +172,26 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         sectionRawLabels: ['Operations', 'Business', 'Market', 'Results'],
       },
       {
+        value: 'operations',
+        label: 'Operations',
+        sectionRawLabels: ['Operations'],
+      },
+      {
+        value: 'business',
+        label: 'Business',
+        sectionRawLabels: ['Business'],
+      },
+      {
+        value: 'market',
+        label: 'Market',
+        sectionRawLabels: ['Market'],
+      },
+      {
+        value: 'results',
+        label: 'Results',
+        sectionRawLabels: ['Results'],
+      },
+      {
         value: 'business-plan',
         label: 'Business Plan',
         sectionRawLabels: ['Business_Plan'],
