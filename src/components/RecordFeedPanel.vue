@@ -2,12 +2,15 @@
   <section class="record-feed-panel">
     <div class="record-feed-panel__header record-feed-panel__header--main">
       <RecordFeedLabel :label="title" />
-      <PlusWithLabelButton
-        v-if="showAddButton"
-        class="record-feed-panel__add"
-        :label="resolvedAddLabel"
-        @click="$emit('request-add', activeTab)"
-      />
+      <div class="record-feed-panel__add-slot">
+        <PlusWithLabelButton
+          class="record-feed-panel__add"
+          :class="{ 'record-feed-panel__add--hidden': !showAddButton }"
+          :label="resolvedAddLabel"
+          :disable="!showAddButton"
+          @click="showAddButton ? $emit('request-add', activeTab) : null"
+        />
+      </div>
     </div>
 
     <div v-if="tabs.length" class="record-feed-panel__tabs">
@@ -184,10 +187,24 @@ const resolvedAddLabel = computed(() => {
 .record-feed-panel__header--main {
   justify-content: space-between;
   gap: 20px;
+  min-height: 18px;
+}
+
+.record-feed-panel__add-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 86px;
+  min-width: 86px;
 }
 
 .record-feed-panel__add {
   flex: 0 0 auto;
+}
+
+.record-feed-panel__add--hidden {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .record-feed-panel__add :deep(.plus-with-label-button) {
