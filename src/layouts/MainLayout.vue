@@ -450,10 +450,10 @@ const workspaceNavigationItems = WORKSPACE_FILE_NAV_ITEMS.map((item) => ({
 const testShellNavigationItems = [
   { label: 'BB Shell', to: '/bb-file', exact: true, icon: 'dashboard_customize' },
   { label: 'File Shell', to: '/test-shell', exact: true, icon: 'science' },
-  { label: 'Record Shell', to: '/record-shell', exact: true, icon: 'album' },
+  { label: 'Record Shell', to: '/record-shell?section=tasks', exact: true, icon: 'album' },
   { label: 'Add/Edit BB Shell', to: '/bb-shell', exact: true, icon: 'web_asset' },
-  { label: 'Add/Edit File Shell', to: '/file-dialog-shell', exact: true, icon: 'web_asset' },
-  { label: 'Add/Edit Record Shell', to: '/dialog-shell', exact: true, icon: 'web_asset' },
+  { label: 'Add/Edit File Shell', to: '/file-dialog-shell?section=file-system', exact: true, icon: 'web_asset' },
+  { label: 'Add/Edit Record Shell', to: '/dialog-shell?section=tasks', exact: true, icon: 'web_asset' },
   { label: 'Intake Shell', to: '/intake-shell', exact: true, icon: 'hourglass_top' },
   { label: 'Fork Shell', to: '/fork-shell', exact: true, icon: 'call_split' },
 ].map((item) => ({
