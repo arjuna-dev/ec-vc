@@ -254,6 +254,7 @@ const resolvedAddLabel = computed(() => {
   --plus-icon-chip-glyph-size: 4px;
   background: var(--ds-color-brand-white);
   color: var(--ds-color-brand-black);
+  border-radius: 2px;
 }
 
 .record-feed-panel__state {
