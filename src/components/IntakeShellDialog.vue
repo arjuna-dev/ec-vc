@@ -2176,6 +2176,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 12px;
   min-height: 0;
+  padding: 0 20px;
 }
 
 .create-record-shell__record-data-toggle {
@@ -2209,6 +2210,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 12px;
   width: 100%;
+  padding: 0 20px;
 }
 
 .create-record-shell__intake-toggle {
