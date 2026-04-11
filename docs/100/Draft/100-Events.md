@@ -1,5 +1,7 @@
 # Events
 
+Note: the current canonical/runtime entity is still `Events`, but the user-facing naming direction is moving toward `History` so this file is not confused later with calendar events.
+
 ## File Identity
 
 - file name: `Events`
@@ -16,6 +18,8 @@
 
 It exists to help reconstruct what happened, when it happened, and who or what caused it.
 
+The preferred user-facing meaning of this file is therefore closer to `History` than to calendar-style events.
+
 ## Glossary
 
 | Term | Meaning |
@@ -23,6 +27,7 @@ It exists to help reconstruct what happened, when it happened, and who or what c
 | `Event` | A logged system change or action. |
 | `Action` | The operation or intent tied to the event. |
 | `Edited By` | The actor who caused the event. |
+| `Source` | Where the candidate value or triggering input came from before it was realized or verified. |
 | `Payload` | Extra context preserved with the event. |
 
 ## Referenced Documents
@@ -34,9 +39,11 @@ It exists to help reconstruct what happened, when it happened, and who or what c
 
 ## Operating Rules
 
-- Use `Events` as the system provenance surface.
+- Use `Events` as the current system provenance surface, while treating `History` as the clearer user-facing naming direction.
 - Do not treat silent runtime changes as acceptable when they should produce reconstructable events.
 - Keep event fields aligned with runtime audit behavior.
+- Keep `actor`, `source`, and `action` distinct.
+- Do not confuse the origin of input with the actor who later verified or realized it.
 
 ## Ownership
 
@@ -62,7 +69,37 @@ The `UX Steward` should keep event meaning legible so users can tell what change
 
 ## Provenance / Events
 
-`Events` is itself part of the provenance layer. It should preserve actor, datetime, table, record, field, action, and payload context.
+`Events` is itself part of the provenance layer. It should preserve actor, source, datetime, table, record, field, action, and payload context.
+
+The cleaner event model is:
+
+- `edited_by` / `actor`
+  - the owner or acting user who made the change real
+- `source`
+  - companion
+  - intake
+  - manual input
+  - imported artifact
+  - suggested value
+  - pre-selected value
+- `action`
+  - verified
+  - created
+  - modified
+  - rejected
+  - deleted
+  - suggested
+  - pre-selected
+
+This means a value may come from one source, but the event action should still reflect what the acting user actually did.
+
+Example:
+
+- source = `suggested`
+- actor = `Owner`
+- action = `verified`
+
+That event should read as a verification action by the owner, while still preserving where the candidate value came from.
 
 ## File Birth Checklist
 
@@ -86,7 +123,7 @@ Tracks event identity, actor, timestamp, and event linkage.
 
 ### General
 
-Tracks the human-readable event summary and status.
+Tracks the human-readable history summary and status.
 
 ### KDB
 
@@ -100,3 +137,4 @@ Tracks table name, record id, field name, action id, action label, old value, ne
 
 - Which file-birth events should be required for every new accepted file?
 - Which event labels should be standardized across shared runtime update paths?
+- When should the app-facing label switch from `Events` to `History` while keeping canonical/runtime continuity?

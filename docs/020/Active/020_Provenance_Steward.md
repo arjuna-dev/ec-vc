@@ -27,6 +27,7 @@ It should not decide what the structure is.
 It should decide whether the system can prove:
 
 - who acted
+- where the candidate input came from
 - what source was used
 - what changed
 - when it changed
@@ -38,6 +39,10 @@ It should decide whether the system can prove:
 The `Provenance Steward` should:
 
 - require source, actor, and event paths for important changes
+- require the system to distinguish clearly between:
+  - `actor`
+  - `source`
+  - `action`
 - preserve the difference between assumption, extraction, provisional truth, and verified truth
 - require `Creator` to begin from the action that made the value real, while preserving an event trail for later governed overrides
 - make file birth and genesis events reconstructable
@@ -85,3 +90,29 @@ The `Provenance Steward` should stop implementation and surface the gap when:
 ## Working Principle
 
 `The Provenance Steward should make every important system claim explain where it came from, who acted, what changed, and how that history can be reconstructed.`
+
+## Actor / Source / Action Rule
+
+The provenance layer should treat these as separate fields of truth:
+
+- `actor`
+  - the owner or acting user who verified, created, modified, rejected, or deleted something
+- `source`
+  - the origin of the candidate input before it was realized
+- `action`
+  - what actually happened in the system
+
+This matters because input may come from one source while the final realizing action comes from another actor.
+
+Example:
+
+- a companion suggests a value
+- the owner verifies it
+
+The resulting history entry should preserve:
+
+- source = `suggested` or `companion`
+- actor = `Owner`
+- action = `verified`
+
+The event should therefore read as verification by the owner, not as if suggestion and verification were the same thing.

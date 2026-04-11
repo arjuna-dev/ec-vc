@@ -69,6 +69,10 @@ This tracker should stay aligned with:
     - field type
     - always-required vs conditional-required
     - multi-condition requirement support
+- provenance/history naming and contract cleanup:
+  - keep canonical/runtime continuity where needed
+  - move user-facing meaning toward `History`
+  - preserve separate `actor`, `source`, and `action` fields in the audit model
 - intake continuity:
   - draft resume
   - staged review
