@@ -74,6 +74,7 @@ The `Architect Steward` should:
 - protect meaning alignment across shells, pages, guides, and runtime so labels, statuses, and actions describe the same reality
 - protect shared page rendering so pages are built from approved `bb:*` elements rather than local structural lookalikes
 - protect shared hero rendering so all file pages use the same `bb:file-hero` structure and differ only by approved payload
+- when a parent wrapper is hardened, also inspect the child shared shell for internal fallback defaults so fail-closed behavior is true end to end
 - preserve `partial` status honestly when a layer exists but is not fully wired
 - route file-specific issues to the `File Steward`
 - route user-choice issues to the `UX Steward`
@@ -127,6 +128,7 @@ The `Architect Steward` should stop implementation and surface the gap when:
 - a shell, page, or guide says something that runtime behavior or source-of-truth ownership does not actually support
 - a file page bypasses approved `bb:*` structure and invents a local rendering path for a shared shell job
 - one file page uses a different hero structure from another file page without an approved shared contract variation
+- a parent route or wrapper fails closed, but the child shared shell still contains an internal default that can silently render the wrong source
 
 ## Meaning Drift Rule
 

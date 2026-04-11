@@ -205,6 +205,7 @@ This tracker should stay aligned with:
 - `Markets` / `Securities` event tokens and broader token families now converge on `Market_*` / `Security_*`
 - the parent `File Shell` contract now fails closed on unmapped routes instead of silently rendering `Tasks`
 - shared file/page surfaces now expose missing canonical title/summary ownership instead of guessing from local row fields
+- note for future checklist passes: when a wrapper is hardened, immediately audit the child shared shell for inherited fallback defaults, because wrapper hardening alone can leave a second quiet drift path behind
 
 ## Update Rule
 
