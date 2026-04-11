@@ -780,6 +780,7 @@ import {
   getCreateBranchEntry,
   getCreateBranches,
   getCreateBranchTokenName,
+  getFilePageBirthDefaults,
   getFilePageCreateSurface,
   getFilePageEditSurface,
   getFilePageRegistryEntry,
@@ -2981,7 +2982,10 @@ function openCreateRecordShell(options = {}) {
   editDialogRow.value = null
   editDialogRecordPayload.value = null
   createDialogInitialSectionKey.value = 'general'
-  createDialogPrefillValues.value = options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}
+  createDialogPrefillValues.value = {
+    ...getFilePageBirthDefaults(activeSourceKey.value),
+    ...(options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}),
+  }
   createDialogFieldMeta.value = {}
   createDialogInitialArtifacts.value = []
   upsertLocalDraftRow(activeContentSourceKey.value, createDialogDraftRecordId.value, createDialogInitialValues.value)

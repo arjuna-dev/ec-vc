@@ -25,6 +25,7 @@ This tracker should stay aligned with:
 - use the `Companion` and the first-pass game layer to surface issues without weakening the contract
 - keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
 - keep KDB linking, unlinking, and selector labels working through shared shell contracts instead of per-entity fixes
+- start applying birth-governance derivation in the shared create flow, beginning with the simplest visible defaults
 - document the naming direction from `KDB` toward `LDB` while avoiding piecemeal runtime renames
 - adopt `Record Shell` as the shared `Record View` direction
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
@@ -68,6 +69,14 @@ This tracker should stay aligned with:
   - fail closed on unmapped page routes
   - honest non-validator file-health state
   - remove heuristic title/summary and option-label fallback paths
+- shared create-flow hardening:
+  - discardable local draft birth
+  - commit text inputs on blur, flush on save
+  - remove ghost draft rows
+  - keep branch choice and required birth data honest in the shell
+- birth-governance derivation:
+  - document derivation rules
+  - seed first registry-owned birth defaults into shared create
 - owner spine protection and explicit human-system owner paths
 - `Owner Genesis` ordering, including:
   - `System Files`
@@ -200,6 +209,9 @@ This tracker should stay aligned with:
 - the shared verification metadata layer is now the approved location for preselected, suggested, verified, and rejected field states
 - create forks are now expected to route through registry-driven branch choice instead of page-specific hardcoding
 - file visibility, file acceptance, and file creation should keep converging on one registry-driven rule
+- shared create flow now starts from `General` again instead of a growing ad hoc required-token layer
+- file birth now derives a default `File_Source_Key` from `File_Name` when no explicit source key is provided at save time, while still rejecting duplicate active file names and duplicate source keys
+- first birth-governance derivation step is underway through registry-owned birth defaults in the shared create flow
 - `Access_Assignments` is approved as a future standalone `L1` that should sit immediately after `Projects` in the file creation sequence, because it depends on `Contacts`, `Users`, `Roles`, and `Projects`
 - `Intake` is now the approved file/page/runtime name replacing `Ingestion` / `Artifact Processed`, with route redirects kept only as temporary compatibility
 - `Markets` / `Securities` event tokens and broader token families now converge on `Market_*` / `Security_*`

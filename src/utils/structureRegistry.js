@@ -123,6 +123,11 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'files',
     shellGroup: 'system_level',
     fileGuidePath: 'docs/100/Active/100-System_Files.md',
+    birthDefaults: {
+      File_Owner: 'Owner',
+      File_Steward: 'File Steward',
+      Ownership_Mode: 'root_owned',
+    },
     extraReferenceDocs: [
       {
         id: 'open-issues',
@@ -514,6 +519,7 @@ function buildEntityRegistry(entityName) {
     entityName: runtimeEntityName,
     canonicalEntityName,
     fileGuidePath: String(meta.fileGuidePath || '').trim(),
+    birthDefaults: meta.birthDefaults && typeof meta.birthDefaults === 'object' ? { ...meta.birthDefaults } : {},
     primaryStewardDoc: normalizeReferenceDoc(meta.primaryStewardDoc),
     extraReferenceDocs: (Array.isArray(meta.extraReferenceDocs) ? meta.extraReferenceDocs : []).map(normalizeReferenceDoc).filter(Boolean),
     requiredSubsections: Array.isArray(meta.requiredSubsections) ? meta.requiredSubsections : [...DEFAULT_L1_REQUIRED_SUBSECTIONS],
@@ -697,6 +703,13 @@ export function getFilePageReferenceDocs(sourceKey = '') {
   docs.push(...entry.extraReferenceDocs)
 
   return Array.from(new Map(docs.map((doc) => [doc.id, doc])).values()).slice(0, 5)
+}
+
+export function getFilePageBirthDefaults(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  return entry?.birthDefaults && typeof entry.birthDefaults === 'object'
+    ? { ...entry.birthDefaults }
+    : {}
 }
 
 export function getRegistryTitleTokenForSource(sourceKey = '') {
