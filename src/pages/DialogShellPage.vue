@@ -91,14 +91,17 @@ const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSource
 const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
+const canonicalNameToken = computed(() => level3Tokens.value.find((token) => String(token.level_3) === '1') || null)
+const canonicalSummaryToken = computed(() =>
+  level3Tokens.value.find((token) => String(token.level_3) === '2' || String(token.label || '').trim().toLowerCase() === 'summary') || null,
+)
 
 const createPrimaryTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchToken = branchTokenName
     ? level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
     : null
-  const tokens = level3Tokens.value.filter((token) => String(token.level_3) === '1' || String(token.level_3) === '2')
-  return [...tokens, branchToken]
+  return [canonicalNameToken.value, canonicalSummaryToken.value, branchToken]
     .filter(Boolean)
     .filter((token, index, list) => list.findIndex((entry) => entry.key === token.key) === index)
     .map(normalizeCreateDialogToken)
