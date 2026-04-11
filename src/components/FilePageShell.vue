@@ -3480,8 +3480,26 @@ function removeLocalDraftRow(sourceKey, draftId) {
   }
 }
 
+function hasPersistableDraftContent(snapshot) {
+  const values = snapshot?.values && typeof snapshot.values === 'object'
+    ? snapshot.values
+    : {}
+
+  return Object.values(values).some((value) => {
+    if (Array.isArray(value)) {
+      return value.some((item) => String(item ?? '').trim().length > 0)
+    }
+    if (value == null) return false
+    return String(value).trim().length > 0
+  })
+}
+
 function updateLocalDraftRowFromSnapshot(snapshot) {
   if (createDialogMode.value !== 'create') return
+  if (!hasPersistableDraftContent(snapshot)) {
+    removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
+    return
+  }
   upsertLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value, snapshot?.values || createDialogInitialValues.value)
 }
 
