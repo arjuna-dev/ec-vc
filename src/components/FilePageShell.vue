@@ -839,6 +839,7 @@ import {
   getCreateBranchTokenName,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByRouteName,
+  getFilePageReferenceDocs,
   getRuntimeTableNameForEntityName,
   getCanonicalTokenFieldNames,
   getCanonicalTokenWriteFieldName,
@@ -1611,129 +1612,6 @@ function getHeroContractSourceKey(sourceKey = '') {
   return normalizedSourceKey
 }
 
-const FILE_GUIDE_PATHS_BY_SOURCE = Object.freeze({
-  'bb-file': 'docs/100/Draft/100-BB_Shell.md',
-  'file-system': 'docs/100/Active/100-System_Files.md',
-  events: 'docs/100/Draft/100-Events.md',
-  users: 'docs/100/Draft/100-Users.md',
-  contacts: 'docs/100/Draft/100-Contacts.md',
-  companies: 'docs/100/Draft/100-Companies.md',
-  opportunities: 'docs/100/Draft/100-Opportunities.md',
-  funds: 'docs/100/Draft/100-Funds.md',
-  rounds: 'docs/100/Draft/100-Rounds.md',
-  projects: 'docs/100/Draft/100-Projects.md',
-  tasks: 'docs/100/Draft/100-Tasks.md',
-  notes: 'docs/100/Draft/100-Notes.md',
-  artifacts: 'docs/100/Draft/100-Artifacts.md',
-  'user-roles': 'docs/100/Draft/100-User_Roles.md',
-  'companion-roles': 'docs/100/Draft/100-Companion_Roles.md',
-  markets: 'docs/100/Draft/100-Markets.md',
-  securities: 'docs/100/Draft/100-Securities.md',
-  intake: 'docs/100/Draft/100-Intake.md',
-})
-
-const PRIMARY_STEWARD_DOCS_BY_SOURCE = Object.freeze({
-  'bb-file': {
-    id: 'design-steward',
-    label: 'Design Steward',
-    caption: 'docs/020/Active/020_Design_Steward.md',
-    path: 'docs/020/Active/020_Design_Steward.md',
-    icon: 'description',
-  },
-  events: {
-    id: 'provenance-steward',
-    label: 'Provenance Steward',
-    caption: 'docs/020/Active/020_Provenance_Steward.md',
-    path: 'docs/020/Active/020_Provenance_Steward.md',
-    icon: 'description',
-  },
-  artifacts: {
-    id: 'provenance-steward',
-    label: 'Provenance Steward',
-    caption: 'docs/020/Active/020_Provenance_Steward.md',
-    path: 'docs/020/Active/020_Provenance_Steward.md',
-    icon: 'description',
-  },
-  markets: {
-    id: 'glossary-steward',
-    label: 'Glossary Steward',
-    caption: 'docs/020/Active/020_Glossary_Steward.md',
-    path: 'docs/020/Active/020_Glossary_Steward.md',
-    icon: 'description',
-  },
-  securities: {
-    id: 'glossary-steward',
-    label: 'Glossary Steward',
-    caption: 'docs/020/Active/020_Glossary_Steward.md',
-    path: 'docs/020/Active/020_Glossary_Steward.md',
-    icon: 'description',
-  },
-})
-
-function buildSharedHeroReferenceDocs(sourceKey, fileLabel) {
-  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
-  const guidePath = FILE_GUIDE_PATHS_BY_SOURCE[normalizedSourceKey]
-  const docs = []
-
-  if (guidePath) {
-    docs.push({
-      id: `${normalizedSourceKey || 'file'}-guide`,
-      label: `${fileLabel} Guide`,
-      caption: guidePath,
-      path: guidePath,
-      icon: 'description',
-    })
-  }
-
-  const primarySteward = PRIMARY_STEWARD_DOCS_BY_SOURCE[normalizedSourceKey] || {
-    id: 'file-steward',
-    label: 'File Steward',
-    caption: 'docs/020/Active/020_File_Steward.md',
-    path: 'docs/020/Active/020_File_Steward.md',
-    icon: 'description',
-  }
-
-  docs.push(primarySteward)
-
-  if (primarySteward.id !== 'file-steward') {
-    docs.push({
-      id: 'file-steward',
-      label: 'File Steward',
-      caption: 'docs/020/Active/020_File_Steward.md',
-      path: 'docs/020/Active/020_File_Steward.md',
-      icon: 'description',
-    })
-  }
-
-  docs.push({
-    id: 'architect-steward',
-    label: 'Architect Steward',
-    caption: 'docs/020/Active/020_Architect_Steward.md',
-    path: 'docs/020/Active/020_Architect_Steward.md',
-    icon: 'description',
-  })
-
-  docs.push({
-    id: 'ux-steward',
-    label: 'UX Steward',
-    caption: 'docs/020/Active/020_UX_Steward.md',
-    path: 'docs/020/Active/020_UX_Steward.md',
-    icon: 'description',
-  })
-
-  if (normalizedSourceKey === 'file-system') {
-    docs.push({
-      id: 'open-issues',
-      label: 'Open Issues',
-      caption: 'docs/100/Active/100-System_Files_Open_Issues.md',
-      path: 'docs/100/Active/100-System_Files_Open_Issues.md',
-      icon: 'description',
-    })
-  }
-
-  return docs.slice(0, 5)
-}
-
 const heroPayload = computed(() => {
   const sourceKey = getHeroContractSourceKey(activeSourceKey.value)
   const heroRegistryEntry = getFilePageRegistryEntry(sourceKey) || activeRegistryEntry.value || null
@@ -1786,7 +1664,7 @@ const heroPayload = computed(() => {
         ],
     actionLabel: 'File Health',
     actionTitle: 'Reference Documents',
-    actionItems: buildSharedHeroReferenceDocs(sourceKey, fileLabel),
+    actionItems: getFilePageReferenceDocs(sourceKey),
   }
 })
 

@@ -15,6 +15,14 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     icon: 'dashboard_customize',
     showInWorkspaceNav: false,
     shellGroup: 'system_level',
+    fileGuidePath: 'docs/100/Draft/100-BB_Shell.md',
+    primaryStewardDoc: {
+      id: 'design-steward',
+      label: 'Design Steward',
+      caption: 'docs/020/Active/020_Design_Steward.md',
+      path: 'docs/020/Active/020_Design_Steward.md',
+      icon: 'description',
+    },
     requiredSubsections: ['General', 'Usage', 'Anatomy', 'Source', 'Reconstruction', 'Variants'],
     optionalStandardSubsections: [],
     requiredRuntimeCapabilities: ['list', 'create', 'delete'],
@@ -95,6 +103,14 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'files',
     shellGroup: 'knowledge_db',
+    fileGuidePath: 'docs/100/Draft/100-Events.md',
+    primaryStewardDoc: {
+      id: 'provenance-steward',
+      label: 'Provenance Steward',
+      caption: 'docs/020/Active/020_Provenance_Steward.md',
+      path: 'docs/020/Active/020_Provenance_Steward.md',
+      icon: 'description',
+    },
   },
   Files: {
     key: 'file-system',
@@ -106,8 +122,18 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'files',
     shellGroup: 'system_level',
+    fileGuidePath: 'docs/100/Active/100-System_Files.md',
+    extraReferenceDocs: [
+      {
+        id: 'open-issues',
+        label: 'Open Issues',
+        caption: 'docs/100/Active/100-System_Files_Open_Issues.md',
+        path: 'docs/100/Active/100-System_Files_Open_Issues.md',
+        icon: 'description',
+      },
+    ],
   },
-  Users: { key: 'users', label: 'Users', singularLabel: 'User', routeName: 'users', path: '/users', icon: 'badge', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order' },
+  Users: { key: 'users', label: 'Users', singularLabel: 'User', routeName: 'users', path: '/users', icon: 'badge', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/Draft/100-Users.md' },
   Artifacts: {
     key: 'artifacts',
     label: 'Artifacts',
@@ -118,8 +144,16 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'files',
     shellGroup: 'first_order',
+    fileGuidePath: 'docs/100/Draft/100-Artifacts.md',
+    primaryStewardDoc: {
+      id: 'provenance-steward',
+      label: 'Provenance Steward',
+      caption: 'docs/020/Active/020_Provenance_Steward.md',
+      path: 'docs/020/Active/020_Provenance_Steward.md',
+      icon: 'description',
+    },
   },
-  Contacts: { key: 'contacts', label: 'Contacts', singularLabel: 'Contact', routeName: 'contacts', path: '/contacts', icon: 'people', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order' },
+  Contacts: { key: 'contacts', label: 'Contacts', singularLabel: 'Contact', routeName: 'contacts', path: '/contacts', icon: 'people', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/Draft/100-Contacts.md' },
   Companies: {
     key: 'companies',
     label: 'Companies',
@@ -130,6 +164,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'files',
     shellGroup: 'first_order',
+    fileGuidePath: 'docs/100/Draft/100-Companies.md',
   },
   Opportunities: {
     key: 'opportunities',
@@ -144,16 +179,17 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'files',
     relationshipSourcePrefixes: ['Opportunity', 'Fund', 'Round'],
     shellGroup: 'first_order',
+    fileGuidePath: 'docs/100/Draft/100-Opportunities.md',
     createBranches: [
       { value: 'fund', label: 'Fund', icon: 'account_balance_wallet', targetSourceKey: 'funds' },
       { value: 'round', label: 'Round', icon: 'donut_large', targetSourceKey: 'rounds' },
     ],
   },
-  Funds: { key: 'funds', label: 'Funds', singularLabel: 'Fund', routeName: 'funds', path: '/funds', icon: 'account_balance', showInWorkspaceNav: false, shellGroup: 'first_order' },
-  Rounds: { key: 'rounds', label: 'Rounds', singularLabel: 'Round', routeName: 'rounds', path: '/rounds', icon: 'toll', showInWorkspaceNav: false, shellGroup: 'first_order' },
-  Projects: { key: 'projects', label: 'Projects', singularLabel: 'Project', routeName: 'projects', path: '/projects', icon: 'schema', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order' },
-  Tasks: { key: 'tasks', label: 'Tasks', singularLabel: 'Task', routeName: 'tasks', path: '/tasks', icon: 'check_circle', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order' },
-  Notes: { key: 'notes', label: 'Notes', singularLabel: 'Note', routeName: 'notes', path: '/notes', icon: 'note', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order' },
+  Funds: { key: 'funds', label: 'Funds', singularLabel: 'Fund', routeName: 'funds', path: '/funds', icon: 'account_balance', showInWorkspaceNav: false, shellGroup: 'first_order', fileGuidePath: 'docs/100/Draft/100-Funds.md' },
+  Rounds: { key: 'rounds', label: 'Rounds', singularLabel: 'Round', routeName: 'rounds', path: '/rounds', icon: 'toll', showInWorkspaceNav: false, shellGroup: 'first_order', fileGuidePath: 'docs/100/Draft/100-Rounds.md' },
+  Projects: { key: 'projects', label: 'Projects', singularLabel: 'Project', routeName: 'projects', path: '/projects', icon: 'schema', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/Draft/100-Projects.md' },
+  Tasks: { key: 'tasks', label: 'Tasks', singularLabel: 'Task', routeName: 'tasks', path: '/tasks', icon: 'check_circle', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/Draft/100-Tasks.md' },
+  Notes: { key: 'notes', label: 'Notes', singularLabel: 'Note', routeName: 'notes', path: '/notes', icon: 'note', showInWorkspaceNav: true, workspaceNavGroup: 'files', shellGroup: 'first_order', fileGuidePath: 'docs/100/Draft/100-Notes.md' },
   Roles: {
     key: 'user-roles',
     label: 'User Roles',
@@ -165,6 +201,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'knowledge-dbs',
     shellGroup: 'knowledge_db',
     runtimeEntityName: 'Roles',
+    fileGuidePath: 'docs/100/Draft/100-User_Roles.md',
   },
   Companion_Roles: {
     key: 'companion-roles',
@@ -177,6 +214,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'knowledge-dbs',
     shellGroup: 'knowledge_db',
     runtimeEntityName: 'Companion_Roles',
+    fileGuidePath: 'docs/100/Draft/100-Companion_Roles.md',
   },
   Markets: {
     key: 'markets',
@@ -188,6 +226,14 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'knowledge-dbs',
     shellGroup: 'knowledge_db',
+    fileGuidePath: 'docs/100/Draft/100-Markets.md',
+    primaryStewardDoc: {
+      id: 'glossary-steward',
+      label: 'Glossary Steward',
+      caption: 'docs/020/Active/020_Glossary_Steward.md',
+      path: 'docs/020/Active/020_Glossary_Steward.md',
+      icon: 'description',
+    },
   },
   Securities: {
     key: 'securities',
@@ -199,6 +245,14 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     showInWorkspaceNav: true,
     workspaceNavGroup: 'knowledge-dbs',
     shellGroup: 'knowledge_db',
+    fileGuidePath: 'docs/100/Draft/100-Securities.md',
+    primaryStewardDoc: {
+      id: 'glossary-steward',
+      label: 'Glossary Steward',
+      caption: 'docs/020/Active/020_Glossary_Steward.md',
+      path: 'docs/020/Active/020_Glossary_Steward.md',
+      icon: 'description',
+    },
   },
   Intake: {
     key: 'intake',
@@ -211,6 +265,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'knowledge-dbs',
     shellGroup: 'knowledge_db',
     runtimeEntityName: 'Intake',
+    fileGuidePath: 'docs/100/Draft/100-Intake.md',
   },
 })
 
@@ -284,6 +339,20 @@ function normalizeOptionItems(items) {
       return { label: value, value }
     })
     .filter(Boolean)
+}
+
+function normalizeReferenceDoc(doc = {}) {
+  const id = String(doc?.id || '').trim()
+  const label = String(doc?.label || '').trim()
+  const path = String(doc?.path || '').trim()
+  if (!id || !label || !path) return null
+  return {
+    id,
+    label,
+    caption: String(doc?.caption || path).trim(),
+    path,
+    icon: String(doc?.icon || 'description').trim() || 'description',
+  }
 }
 
 function formatLabel(value) {
@@ -391,6 +460,9 @@ function buildEntityRegistry(entityName) {
     ...meta,
     entityName: runtimeEntityName,
     canonicalEntityName,
+    fileGuidePath: String(meta.fileGuidePath || '').trim(),
+    primaryStewardDoc: normalizeReferenceDoc(meta.primaryStewardDoc),
+    extraReferenceDocs: (Array.isArray(meta.extraReferenceDocs) ? meta.extraReferenceDocs : []).map(normalizeReferenceDoc).filter(Boolean),
     requiredSubsections: Array.isArray(meta.requiredSubsections) ? meta.requiredSubsections : [...DEFAULT_L1_REQUIRED_SUBSECTIONS],
     optionalStandardSubsections: Array.isArray(meta.optionalStandardSubsections)
       ? meta.optionalStandardSubsections
@@ -525,6 +597,53 @@ export function getFilePageRegistryEntryByEntityReference(entityName) {
     getFilePageRegistryEntryByEntityName(normalizedEntityName)
     || getFilePageRegistryEntry(legacyEntityAliases[normalizedEntityName] || normalizedEntityName)
   )
+}
+
+export function getFilePageReferenceDocs(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  if (!entry) return []
+
+  const docs = []
+
+  if (String(entry.fileGuidePath || '').trim()) {
+    docs.push({
+      id: `${entry.key}-guide`,
+      label: `${entry.label} Guide`,
+      caption: entry.fileGuidePath,
+      path: entry.fileGuidePath,
+      icon: 'description',
+    })
+  }
+
+  docs.push(
+    entry.primaryStewardDoc || {
+      id: 'file-steward',
+      label: 'File Steward',
+      caption: 'docs/020/Active/020_File_Steward.md',
+      path: 'docs/020/Active/020_File_Steward.md',
+      icon: 'description',
+    },
+  )
+
+  docs.push({
+    id: 'architect-steward',
+    label: 'Architect Steward',
+    caption: 'docs/020/Active/020_Architect_Steward.md',
+    path: 'docs/020/Active/020_Architect_Steward.md',
+    icon: 'description',
+  })
+
+  docs.push({
+    id: 'ux-steward',
+    label: 'UX Steward',
+    caption: 'docs/020/Active/020_UX_Steward.md',
+    path: 'docs/020/Active/020_UX_Steward.md',
+    icon: 'description',
+  })
+
+  docs.push(...entry.extraReferenceDocs)
+
+  return Array.from(new Map(docs.map((doc) => [doc.id, doc])).values()).slice(0, 5)
 }
 
 export function getRegistryTitleTokenForSource(sourceKey = '') {
