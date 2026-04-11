@@ -1106,10 +1106,7 @@ const selectedCardItemTokens = computed(() =>
     .map((tokenKey) => availableCardItemTokens.value.find((token) => token.key === tokenKey))
     .filter(Boolean),
 )
-function getRequiredCreateTokenNamesForSource(sourceKey = '') {
-  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
-  if (normalizedSourceKey === 'file-system') return ['File_Source_Key']
-  if (normalizedSourceKey === 'users') return ['User_PEmail']
+function getRequiredCreateTokenNamesForSource() {
   return []
 }
 
@@ -1126,9 +1123,7 @@ const createPrimaryTokens = computed(() => {
   const branchToken = branchTokenName
     ? level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
     : null
-  const tokens = isRecordShellMode.value
-    ? [canonicalTitleToken.value, canonicalSummaryToken.value].filter(Boolean)
-    : [canonicalTitleToken.value, branchToken, ...requiredCreateTokens.value].filter(Boolean)
+  const tokens = [canonicalTitleToken.value, canonicalSummaryToken.value, branchToken, ...requiredCreateTokens.value].filter(Boolean)
   const seen = new Set()
   return tokens
     .filter((token) => {
@@ -3519,7 +3514,17 @@ function buildCreatePayload(values = {}) {
     payloadEntries.push([fieldName, normalizedValue])
   })
 
-  return Object.fromEntries(payloadEntries)
+  const payload = Object.fromEntries(payloadEntries)
+  if (activeSourceKey.value === 'file-system') {
+    const explicitSourceKey = String(payload.File_Source_Key || '').trim()
+    if (!explicitSourceKey) {
+      const fileName = String(payload.File_Name || '').trim()
+      const derivedSourceKey = deriveFileSourceKeyFromName(fileName)
+      if (derivedSourceKey) payload.File_Source_Key = derivedSourceKey
+    }
+  }
+
+  return payload
 }
 
 function missingRequiredCreateTokens(values = {}) {
@@ -3799,6 +3804,15 @@ function normalizeCreateFieldValue(token, value) {
 
   const normalized = String(value || '').trim()
   return normalized ? normalized : null
+}
+
+function deriveFileSourceKeyFromName(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
 }
 
 function setActiveFilterSection(sectionKey) {

@@ -2175,24 +2175,40 @@ function listFiles() {
 function createFile(payload = {}) {
   const database = initDb()
   ensureDefaultFiles(database)
-  const sourceKey = normalizeNullableString(payload?.File_Source_Key) || normalizeNullableString(payload?.sourceKey)
+  const name =
+    normalizeNullableString(payload?.File_Name) ||
+    normalizeNullableString(payload?.Name) ||
+    normalizeNullableString(payload?.title)
+
+  if (!name) throw new Error('File name is required')
+
+  const sourceKey =
+    normalizeNullableString(payload?.File_Source_Key) ||
+    normalizeNullableString(payload?.sourceKey) ||
+    toFileSourceKey(name)
   if (!sourceKey) throw new Error('File source key is required')
 
   const registryEntry = getFileRegistryEntryBySourceKey(sourceKey)
   const registryDefaults = registryEntry
     ? buildDefaultFileRegistryRow(registryEntry, FILE_PAGE_REGISTRY.indexOf(registryEntry))
     : buildDraftFileDefinitionRow(sourceKey, payload)
-  const existingFile = database.prepare('SELECT id FROM Files WHERE File_Source_Key = ?').get(sourceKey)
-  if (existingFile?.id) return { id: existingFile.id }
+  const existingFile = database.prepare('SELECT id FROM Files WHERE File_Source_Key = ? LIMIT 1').get(sourceKey)
+  if (existingFile?.id) throw new Error('File source key is already in use')
+
+  const duplicateActiveName = database
+    .prepare(
+      `
+      SELECT id
+      FROM Files
+      WHERE lower(trim(File_Name)) = lower(trim(?))
+        AND lower(trim(COALESCE(File_Status, ''))) = 'active'
+      LIMIT 1
+    `,
+    )
+    .get(name)
+  if (duplicateActiveName?.id) throw new Error('File name is already in use by another active file')
 
   const actor = getAuditActor(database, { requireUser: true })
-  const name =
-    normalizeNullableString(payload?.File_Name) ||
-    normalizeNullableString(payload?.Name) ||
-    normalizeNullableString(payload?.title) ||
-    registryDefaults.File_Name
-
-  if (!name) throw new Error('File name is required')
 
   const id = normalizeNullableString(payload?.id) || `file:${crypto.randomUUID()}`
 
@@ -2294,6 +2310,15 @@ function createFile(payload = {}) {
   })
 
   return { id }
+}
+
+function toFileSourceKey(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
 }
 
 function ensureDefaultBuildingBlocks(database) {

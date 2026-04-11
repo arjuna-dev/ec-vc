@@ -4782,6 +4782,14 @@
               "db_field_aliases": [
                 "Rulebook_Dependencies"
               ]
+            },
+            {
+              "address": "23.2.7",
+              "token_name": "File_Source_Key",
+              "token_type": "text",
+              "db_field_aliases": [
+                "File_Source_Key"
+              ]
             }
           ]
         },
@@ -4829,14 +4837,6 @@
               "token_type": "text",
               "db_field_aliases": [
                 "File_Guide_Path"
-              ]
-            },
-            {
-              "address": "23.4.3",
-              "token_name": "File_Source_Key",
-              "token_type": "text",
-              "db_field_aliases": [
-                "File_Source_Key"
               ]
             },
             {
