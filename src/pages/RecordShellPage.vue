@@ -1456,7 +1456,20 @@ function updateInlineFieldValue(token, nextValue) {
   }
 }
 
+function isSystemManagedReadOnlyToken(token) {
+  const tokenType = String(token?.tokenType || '').trim().toLowerCase()
+  const tokenName = String(token?.tokenName || '').trim().toLowerCase()
+
+  if (['id', 'datetime', 'date', 'creator'].includes(tokenType)) return true
+  if (tokenName.endsWith('_id')) return true
+  if (tokenName.includes('creator')) return true
+  if (tokenName.includes('created_at') || tokenName.includes('updated_at')) return true
+  if (tokenName.includes('user_role') || tokenName.includes('role_link')) return true
+  return false
+}
+
 function isInlineFieldEditable(token) {
+  if (isSystemManagedReadOnlyToken(token)) return false
   const field = resolveExistingFieldForToken(token)
   if (field) return Boolean(field.editable)
   return tokenSupportsRecordUpdate(token, activeRegistryEntry.value?.entityName || tableNameParam.value)
