@@ -1,5 +1,10 @@
 <template>
-  <FilePageShell :shell-mode="resolvedShellMode" :source-key="resolvedSourceKey" />
+  <FilePageShell v-if="resolvedSourceKey" :shell-mode="resolvedShellMode" :source-key="resolvedSourceKey" />
+  <q-page v-else class="q-pa-md">
+    <q-banner class="bg-red-2 text-black" rounded>
+      File Shell route is not mapped to an approved file source.
+    </q-banner>
+  </q-page>
 </template>
 
 <script setup>
@@ -40,6 +45,6 @@ const resolvedSourceKey = computed(() => {
   }
 
   const routeEntry = getFilePageRegistryEntryByRouteName(route.name)
-  return String(routeEntry?.key || fallbackSectionKey).trim().toLowerCase()
+  return String(routeEntry?.key || '').trim().toLowerCase()
 })
 </script>
