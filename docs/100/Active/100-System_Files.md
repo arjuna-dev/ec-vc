@@ -186,7 +186,7 @@ The user should not be asked to restate those values manually when the birth pat
 
 `System Files` should eventually make those birth-governance rules visible and reviewable as part of file-definition truth.
 
-`Creator` should be treated as birth-locked provenance, not as a loose editable field.
+`Creator` should be treated as birth-derived provenance under governed edit, not as a loose editable field.
 
 That means the first accepted birth action should determine it:
 
@@ -194,7 +194,15 @@ That means the first accepted birth action should determine it:
 - intake approval by companion -> `Companion`
 - intake approval by user -> `User`
 
-Later edits may add history, but they should not overwrite the original creator for that born value.
+Later edits may add history, and governed edits may overwrite the visible creator when permissions allow.
+
+If a later edit is allowed by the user's role or clearance, `Creator` may be updated.
+
+When that happens, the event trail should preserve:
+
+- who changed it
+- when it changed
+- what the previous creator value was
 
 ## Provenance / Events
 

@@ -92,13 +92,14 @@ The system should not ask the user to restate governance fields one by one when 
 
 Manual editing may still exist later, but birth should begin from derived governance defaults first.
 
-`Creator` should be treated as a birth-locked provenance field.
+`Creator` should be treated as a birth-derived provenance field under governance.
 
 That means:
 
 - a direct `Add Record` birth should lock `Creator` to the acting `User`
 - an intake approval birth should lock `Creator` to the approving `Companion` or `User`
-- later editing should not rewrite the original birth creator for that data point
+- later governed editing may overwrite `Creator` when the acting role has permission
+- the event trail should preserve who changed it, when it changed, and what the previous creator value was
 
 ## Checklist Status Vocabulary
 
