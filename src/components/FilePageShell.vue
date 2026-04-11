@@ -826,7 +826,7 @@ import {
   LEVEL_3_FILE_REGISTRY_BY_KEY,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
-import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipContracts'
+import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipContracts'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
@@ -2596,7 +2596,7 @@ function buildContextRelationshipPrefillForSource(sourceKey, contextEntity, cont
 
   const sourceTokens = Array.isArray(LEVEL_3_FILE_REGISTRY_BY_KEY[normalizedSourceKey]) ? LEVEL_3_FILE_REGISTRY_BY_KEY[normalizedSourceKey] : []
   const matchingTokens = sourceTokens.filter((token) => {
-    const relationshipContract = getKdbRelationshipContractForToken(targetEntityName, token?.tokenName)
+    const relationshipContract = getLdbRelationshipContractForToken(targetEntityName, token?.tokenName)
     return String(relationshipContract?.targetEntity || '').trim() === normalizedContextEntity
   })
 
@@ -2950,7 +2950,7 @@ function cancelInlineTableEdit() {
 function getKdbCellItems(tokenRow) {
   const token = tokenRow?.token
   const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
-  const relationshipContract = getKdbRelationshipContractForToken(entityName, token?.tokenName)
+  const relationshipContract = getLdbRelationshipContractForToken(entityName, token?.tokenName)
   const targetEntry = relationshipContract
     ? getFilePageRegistryEntryByEntityReference(relationshipContract.targetEntity)
     : null
@@ -3019,7 +3019,7 @@ function buildSingleTokenUpdateChanges(token, value, { recordId = '', entityName
   if (!recordId || !entityName || !token) return []
   const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
   const normalizedValue = normalizeCreateFieldValue(token, value)
-  const relationshipContract = getKdbRelationshipContractForToken(entityName, token?.tokenName)
+  const relationshipContract = getLdbRelationshipContractForToken(entityName, token?.tokenName)
   if (relationshipContract) {
     const relationshipIds = Array.isArray(normalizedValue)
       ? normalizedValue.map((entry) => String(entry || '').trim()).filter(Boolean)
@@ -3923,7 +3923,7 @@ function tokenHasDirectWriteTarget(token) {
 }
 
 function tokenHasRelationshipWriteContract(token, entityName = '') {
-  return Boolean(getKdbRelationshipContractForToken(entityName, token?.tokenName))
+  return Boolean(getLdbRelationshipContractForToken(entityName, token?.tokenName))
 }
 
 function isUnsupportedRelationshipWriteToken(token, entityName = '') {
@@ -3984,7 +3984,7 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
     if (!haveNormalizedDialogValuesChanged(token, rawValue, initialValue)) return []
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
 
-    const relationshipContract = getKdbRelationshipContractForToken(entityName, token?.tokenName)
+    const relationshipContract = getLdbRelationshipContractForToken(entityName, token?.tokenName)
     if (relationshipContract) {
       const relationshipIds = Array.isArray(normalizedValue)
         ? normalizedValue.map((value) => String(value || '').trim()).filter(Boolean)
@@ -4131,7 +4131,7 @@ async function resolveRelatedArtifactIdsForShell({ targetEntity = '', targetReco
   const opportunityRows = await bridge.value.db.query(
     `
       SELECT DISTINCT source_record_id AS opportunity_id
-      FROM KDB_Relationships
+      FROM LDB_Relationships
       WHERE source_entity = 'Opportunities'
         AND source_token = ?
         AND target_entity = ?
@@ -4150,7 +4150,7 @@ async function resolveRelatedArtifactIdsForShell({ targetEntity = '', targetReco
   const artifactRows = await bridge.value.db.query(
     `
       SELECT DISTINCT target_record_id AS artifact_id
-      FROM KDB_Relationships
+      FROM LDB_Relationships
       WHERE source_entity = 'Opportunities'
         AND source_token = 'Opportunity_Artifact'
         AND source_record_id IN (${placeholders})

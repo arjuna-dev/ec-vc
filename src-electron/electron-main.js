@@ -20,12 +20,12 @@ import {
   USER_WORKSPACE_DIR,
 } from './services/workspace-structure.js'
 import {
-  getGenericKdbRelationshipTableName,
-  getKdbRelationshipContractForToken,
-  getKdbRelationshipContractsForEntity,
-  isDirectKdbRelationshipContract,
-  isGenericKdbRelationshipContract,
-} from '../src/shared/kdbRelationshipContracts.js'
+  getGenericLdbRelationshipTableName,
+  getLdbRelationshipContractForToken,
+  getLdbRelationshipContractsForEntity,
+  isDirectLdbRelationshipContract,
+  isGenericLdbRelationshipContract,
+} from '../src/shared/ldbRelationshipContracts.js'
 import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
 import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
 import { FILE_PAGE_REGISTRY, getCreateBranches, getViewForks } from '../src/utils/structureRegistry.js'
@@ -3717,11 +3717,11 @@ function resolveRecordDisplayLabel(record, config, fallback = '') {
   return normalizeNullableString(fallback) || ''
 }
 
-function listKdbRelationshipItems(database, contract, sourceRecordId) {
+function listLdbRelationshipItems(database, contract, sourceRecordId) {
   const targetConfig = getRecordTableConfig(contract.targetEntity)
   const targetTableName = targetConfig.tableName
   const targetIdColumn = getRecordPrimaryKeyColumn(database, targetTableName)
-  const rows = isDirectKdbRelationshipContract(contract)
+  const rows = isDirectLdbRelationshipContract(contract)
     ? normalizeNullableString(contract?.contractType) === 'direct_foreign_key'
       ? database
           .prepare(
@@ -3747,12 +3747,12 @@ function listKdbRelationshipItems(database, contract, sourceRecordId) {
           `,
           )
           .all(sourceRecordId)
-    : isGenericKdbRelationshipContract(contract)
+    : isGenericLdbRelationshipContract(contract)
       ? database
         .prepare(
           `
           SELECT rel.target_record_id AS id, target.*
-          FROM ${quoteIdentifier(getGenericKdbRelationshipTableName())} rel
+          FROM ${quoteIdentifier(getGenericLdbRelationshipTableName())} rel
           JOIN ${quoteIdentifier(targetTableName)} target
             ON target.${quoteIdentifier(targetIdColumn)} = rel.target_record_id
           WHERE rel.source_entity = ?
@@ -3785,9 +3785,9 @@ function listKdbRelationshipItems(database, contract, sourceRecordId) {
   }))
 }
 
-function buildKdbRelationshipFields(database, entityName, recordId, idColumn = 'id') {
-  return getKdbRelationshipContractsForEntity(entityName).map((contract) => {
-    const relatedItems = listKdbRelationshipItems(database, contract, recordId).filter((item) => item.id)
+function buildLdbRelationshipFields(database, entityName, recordId, idColumn = 'id') {
+  return getLdbRelationshipContractsForEntity(entityName).map((contract) => {
+    const relatedItems = listLdbRelationshipItems(database, contract, recordId).filter((item) => item.id)
     return {
       key: `${entityName}|${recordId}|${contract.sourceToken}`,
       section: 'KDB',
@@ -4131,7 +4131,7 @@ function buildCompanyRecordView(database, recordId) {
       id_column: 'company_id',
     })),
   ]
-  const relationshipFields = buildKdbRelationshipFields(database, 'Companies', rid, 'id')
+  const relationshipFields = buildLdbRelationshipFields(database, 'Companies', rid, 'id')
 
   return {
     table_name: 'Companies',
@@ -4252,7 +4252,7 @@ function buildUserRecordView(database, recordId) {
     ...field,
     section: 'Metadata',
   }))
-  const relationshipFields = buildKdbRelationshipFields(database, 'Users', rid, 'id').map((field) => {
+  const relationshipFields = buildLdbRelationshipFields(database, 'Users', rid, 'id').map((field) => {
     if (
       field.field_name === 'User_Contact' &&
       ownerContactId &&
@@ -4376,7 +4376,7 @@ function buildContactRecordView(database, recordId) {
     relationship_target_entity: 'Roles',
   }
 
-  const relationshipFields = buildKdbRelationshipFields(database, 'Contacts', rid, 'id')
+  const relationshipFields = buildLdbRelationshipFields(database, 'Contacts', rid, 'id')
 
   return {
     table_name: 'Contacts',
@@ -4447,7 +4447,7 @@ function getRecordView(tableName, recordId) {
     field_name: columnName,
     id_column: idColumn,
   }))
-  const relationshipFields = buildKdbRelationshipFields(database, config.tableName, rid, idColumn)
+  const relationshipFields = buildLdbRelationshipFields(database, config.tableName, rid, idColumn)
 
   return {
     table_name: config.tableName,
@@ -5351,9 +5351,9 @@ function resolveAuditCurrentFieldDisplayValue(database, tableName, recordId, fie
   const normalizedFieldName = normalizeNullableString(fieldName)
   if (!normalizedFieldName) return ''
 
-  const relationshipContract = getKdbRelationshipContractForToken(tableName, normalizedFieldName)
+  const relationshipContract = getLdbRelationshipContractForToken(tableName, normalizedFieldName)
   if (relationshipContract) {
-    return listKdbRelationshipItems(database, relationshipContract, recordId)
+    return listLdbRelationshipItems(database, relationshipContract, recordId)
       .map((item) => normalizeNullableString(item?.label))
       .filter(Boolean)
       .join(', ')
@@ -5403,7 +5403,7 @@ function buildAuditEventPayload(
     return payload
   }
 
-  const relationshipContract = getKdbRelationshipContractForToken(tableName, normalizedFieldName)
+  const relationshipContract = getLdbRelationshipContractForToken(tableName, normalizedFieldName)
   if (relationshipContract) {
     const oldIds = normalizeRelationshipIds(oldValue)
     const newIds = normalizeRelationshipIds(newValue)
@@ -6703,13 +6703,13 @@ function applyAuditedChanges(
 
     for (const change of normalizedChanges) {
       if (change.change_kind === 'relationship') {
-        const relationshipContract = getKdbRelationshipContractForToken(change.table_name, change.relationship_token)
+        const relationshipContract = getLdbRelationshipContractForToken(change.table_name, change.relationship_token)
         if (!relationshipContract) {
           throw new Error(`Relationship contract is not wired for ${change.relationship_token} on ${change.table_name}`)
         }
 
         const requestedIds = normalizeRelationshipIds(change.new_value)
-        const currentIds = isDirectKdbRelationshipContract(relationshipContract)
+        const currentIds = isDirectLdbRelationshipContract(relationshipContract)
           ? normalizeNullableString(relationshipContract?.contractType) === 'direct_foreign_key'
             ? [
                 normalizeNullableString(
@@ -6737,12 +6737,12 @@ function applyAuditedChanges(
                 .all(change.record_id)
                 .map((row) => normalizeNullableString(row?.related_id))
                 .filter(Boolean)
-          : isGenericKdbRelationshipContract(relationshipContract)
+          : isGenericLdbRelationshipContract(relationshipContract)
             ? database
               .prepare(
                 `
                 SELECT target_record_id AS related_id
-                FROM ${quoteIdentifier(getGenericKdbRelationshipTableName())}
+                FROM ${quoteIdentifier(getGenericLdbRelationshipTableName())}
                 WHERE source_entity = ?
                   AND source_record_id = ?
                   AND source_token = ?
@@ -6774,7 +6774,7 @@ function applyAuditedChanges(
         const toInsert = requestedIds.filter((id) => !currentSet.has(id))
         const toDelete = currentIds.filter((id) => !requestedSet.has(id))
 
-        if (isDirectKdbRelationshipContract(relationshipContract)) {
+        if (isDirectLdbRelationshipContract(relationshipContract)) {
           if (requestedIds.length > 1) {
             throw new Error(`${change.relationship_token} supports only one linked record at a time`)
           }
@@ -6822,11 +6822,11 @@ function applyAuditedChanges(
           }
         } else {
           for (const relatedId of toDelete) {
-            if (isGenericKdbRelationshipContract(relationshipContract)) {
+            if (isGenericLdbRelationshipContract(relationshipContract)) {
               database
                 .prepare(
                   `
-                  DELETE FROM ${quoteIdentifier(getGenericKdbRelationshipTableName())}
+                  DELETE FROM ${quoteIdentifier(getGenericLdbRelationshipTableName())}
                   WHERE source_entity = ?
                     AND source_record_id = ?
                     AND source_token = ?
@@ -6846,7 +6846,7 @@ function applyAuditedChanges(
                 database
                   .prepare(
                     `
-                    DELETE FROM ${quoteIdentifier(getGenericKdbRelationshipTableName())}
+                    DELETE FROM ${quoteIdentifier(getGenericLdbRelationshipTableName())}
                     WHERE source_entity = ?
                       AND source_record_id = ?
                       AND source_token = ?
@@ -6876,11 +6876,11 @@ function applyAuditedChanges(
           }
 
           for (const relatedId of toInsert) {
-            if (isGenericKdbRelationshipContract(relationshipContract)) {
+            if (isGenericLdbRelationshipContract(relationshipContract)) {
               database
                 .prepare(
                   `
-                  INSERT OR IGNORE INTO ${quoteIdentifier(getGenericKdbRelationshipTableName())} (
+                  INSERT OR IGNORE INTO ${quoteIdentifier(getGenericLdbRelationshipTableName())} (
                     id,
                     source_entity,
                     source_record_id,
@@ -6891,7 +6891,7 @@ function applyAuditedChanges(
                 `,
                 )
                 .run(
-                  `kdbrel:${crypto.randomUUID()}`,
+                  `ldbrel:${crypto.randomUUID()}`,
                   relationshipContract.sourceEntity,
                   change.record_id,
                   relationshipContract.sourceToken,
@@ -6903,7 +6903,7 @@ function applyAuditedChanges(
                 database
                   .prepare(
                     `
-                    INSERT OR IGNORE INTO ${quoteIdentifier(getGenericKdbRelationshipTableName())} (
+                    INSERT OR IGNORE INTO ${quoteIdentifier(getGenericLdbRelationshipTableName())} (
                       id,
                       source_entity,
                       source_record_id,
@@ -6914,7 +6914,7 @@ function applyAuditedChanges(
                   `,
                   )
                   .run(
-                    `kdbrel:${crypto.randomUUID()}`,
+                    `ldbrel:${crypto.randomUUID()}`,
                     relationshipContract.targetEntity,
                     relatedId,
                     relationshipContract.targetToken,

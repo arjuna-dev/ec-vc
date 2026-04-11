@@ -58,7 +58,7 @@ import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import { consumePendingAddEditShellRequest } from 'src/utils/addEditShellState'
-import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipContracts'
+import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipContracts'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import {
   CANONICAL_OPTION_LISTS,
@@ -419,7 +419,7 @@ function buildContextRelationshipPrefill() {
   if (!targetEntityName) return { initialValues: {}, initialFieldMeta: {} }
 
   const matchingTokens = level3Tokens.value.filter((token) => {
-    const relationshipContract = getKdbRelationshipContractForToken(targetEntityName, token?.tokenName)
+    const relationshipContract = getLdbRelationshipContractForToken(targetEntityName, token?.tokenName)
     return String(relationshipContract?.targetEntity || '').trim() === normalizedContextEntity
   })
 
@@ -693,7 +693,7 @@ async function submitCreateRecord(values = {}) {
     const createdEntityName = String(getFilePageRegistryEntry(createTargetSourceKey)?.entityName || '').trim()
     if (createdRecordId && createdEntityName && bridge.value?.records?.update) {
       const relationshipChanges = allCreateTokens.flatMap((token) => {
-        if (!getKdbRelationshipContractForToken(createdEntityName, token?.tokenName)) return []
+        if (!getLdbRelationshipContractForToken(createdEntityName, token?.tokenName)) return []
         return buildTokenUpdateChanges(token, {
           nextValue: values?.[token.key],
           initialValue: null,
