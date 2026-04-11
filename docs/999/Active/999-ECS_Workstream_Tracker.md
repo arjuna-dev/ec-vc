@@ -75,6 +75,11 @@ This tracker should stay aligned with:
   - commit text inputs on blur, flush on save
   - remove ghost draft rows
   - keep branch choice and required birth data honest in the shell
+- shared dialog and file-shell convergence:
+  - unify dialog section framing for `Resources` and `Record Data`
+  - move dialog section titles onto one shared title treatment
+  - add shared dialog undo controls
+  - align `Add/Edit File Shell` middle-row language to the `Record View` pattern
 - intake extraction orchestration:
   - `Intake Steward` should orchestrate relevant `File Stewards`
   - extraction should ask whether an artifact answers any declared `L1` / `L3` directive
@@ -223,6 +228,12 @@ This tracker should stay aligned with:
 - create forks are now expected to route through registry-driven branch choice instead of page-specific hardcoding
 - file visibility, file acceptance, and file creation should keep converging on one registry-driven rule
 - shared create flow now starts from `General` again instead of a growing ad hoc required-token layer
+- dialog section framing and section-title treatment now converge through the shared section-shell path instead of separate `Resources` and `Record Data` header systems
+- dialog shells now support shared undo through both visible undo controls and `Ctrl+Z` / `Cmd+Z` outside active text inputs
+- `Add/Edit File Shell` middle-row language now converges toward the `Record View` pattern:
+  - `Summary`
+  - `Relevant Items`
+  - `General`
 - file birth now derives a default `File_Source_Key` from `File_Name` when no explicit source key is provided at save time, while still rejecting duplicate active file names and duplicate source keys
 - first birth-governance derivation step is underway through registry-owned birth defaults in the shared create flow
 - legacy runtime wording such as `databooks:*` is now treated as an explicit audit target rather than safe language to keep extending blindly
