@@ -108,12 +108,14 @@ defineEmits(['click'])
 }
 
 .plus-with-label-button--record-feed .plus-with-label-button__inner {
-  gap: 0;
+  gap: 1px;
 }
 
 .plus-with-label-button--record-feed .plus-with-label-button__icon {
+  display: inline-flex;
   margin: 0;
-  line-height: 0;
+  line-height: 1;
+  overflow: visible;
 }
 
 .plus-with-label-button--record-feed .plus-with-label-button__label {
@@ -126,8 +128,8 @@ defineEmits(['click'])
 }
 
 .plus-with-label-button--record-feed :deep(.plus-icon-chip) {
-  --plus-icon-chip-size: 4px;
-  --plus-icon-chip-glyph-size: 4px;
+  --plus-icon-chip-size: 7px;
+  --plus-icon-chip-glyph-size: 6px;
   background: var(--ds-color-brand-white);
   color: var(--ds-color-brand-black);
   border-radius: 2px;
