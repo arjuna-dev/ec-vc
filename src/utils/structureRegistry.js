@@ -123,6 +123,12 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'files',
     shellGroup: 'system_level',
     fileGuidePath: 'docs/100/Active/100-System_Files.md',
+    tokenOverrides: {
+      File_Source_Key: {
+        token_type: 'select_single',
+        option_source: 'file_registry_keys',
+      },
+    },
     extraReferenceDocs: [
       {
         id: 'open-issues',
@@ -450,6 +456,7 @@ function buildEntityRegistry(entityName) {
     .filter(Boolean)
 
   const sourceSubsections = customSubsections || normalizeSubsections(sourceEntity)
+  const tokenOverrides = meta.tokenOverrides && typeof meta.tokenOverrides === 'object' ? meta.tokenOverrides : {}
   const subsections = sourceSubsections
     .map((subsection) => ({
       key: String(subsection?.structure_token || subsection?.subsection || '').trim() || `${entityName}_${subsection?.level_2 || ''}`,
@@ -462,34 +469,49 @@ function buildEntityRegistry(entityName) {
       subgroupLabel: String(subsection?.subgroup_label || '').trim(),
       subgroupAddress: String(subsection?.subgroup_address || '').trim(),
       displayGroup: String(subsection?.display_group || '').trim(),
-      tokens: normalizeTokens(subsection).map((token) => ({
-        key: String(token?.token_name || token?.address || '').trim(),
-        level_3: String(token?.level_3 || '').trim(),
-        address: String(token?.address || '').trim(),
-        tokenName: String(token?.token_name || '').trim(),
-        dbFieldAliases: normalizeDbFieldAliases(token),
-        dbWriteField: String(token?.db_write_field || '').trim(),
-        dbWriteTable: String(token?.db_write_table || '').trim(),
-        dbWriteIdColumn: String(token?.db_write_id_column || '').trim(),
-        tokenType: String(token?.token_type || '').trim(),
-        inputSource: String(token?.input_source || '').trim(),
-        optionSource: String(token?.option_source || '').trim(),
-        optionList: String(token?.option_list || '').trim(),
-        optionEntity: String(token?.option_entity || '').trim(),
-        optionValueMode: String(token?.option_value_mode || '').trim(),
-        optionEntities: Array.isArray(token?.option_entities)
-          ? token.option_entities.map((value) => String(value || '').trim()).filter(Boolean)
-          : [],
-        optionSubset: token?.option_subset && typeof token.option_subset === 'object' ? { ...token.option_subset } : null,
-        subsetEntity: String(token?.subset_entity || '').trim(),
-        subsetShape: Array.isArray(token?.subset_shape)
-          ? token.subset_shape.map((value) => String(value || '').trim()).filter(Boolean)
-          : [],
-        relationshipGroup: String(token?.relationship_group || '').trim(),
-        label: formatLabel(
-          stripTokenEntityPrefix(String(token?.label || token?.token_name || '').trim(), entityTokenPrefixes),
-        ),
-      })),
+      tokens: normalizeTokens(subsection).map((token) => {
+        const tokenName = String(token?.token_name || '').trim()
+        const override = tokenOverrides[tokenName] && typeof tokenOverrides[tokenName] === 'object'
+          ? tokenOverrides[tokenName]
+          : {}
+
+        return {
+          key: String(token?.token_name || token?.address || '').trim(),
+          level_3: String(token?.level_3 || '').trim(),
+          address: String(token?.address || '').trim(),
+          tokenName,
+          dbFieldAliases: normalizeDbFieldAliases(token),
+          dbWriteField: String(token?.db_write_field || '').trim(),
+          dbWriteTable: String(token?.db_write_table || '').trim(),
+          dbWriteIdColumn: String(token?.db_write_id_column || '').trim(),
+          tokenType: String(override.token_type ?? token?.token_type ?? '').trim(),
+          inputSource: String(override.input_source ?? token?.input_source ?? '').trim(),
+          optionSource: String(override.option_source ?? token?.option_source ?? '').trim(),
+          optionList: String(override.option_list ?? token?.option_list ?? '').trim(),
+          optionEntity: String(override.option_entity ?? token?.option_entity ?? '').trim(),
+          optionValueMode: String(override.option_value_mode ?? token?.option_value_mode ?? '').trim(),
+          optionEntities: Array.isArray(override.option_entities)
+            ? override.option_entities.map((value) => String(value || '').trim()).filter(Boolean)
+            : Array.isArray(token?.option_entities)
+              ? token.option_entities.map((value) => String(value || '').trim()).filter(Boolean)
+              : [],
+          optionSubset: override.option_subset && typeof override.option_subset === 'object'
+            ? { ...override.option_subset }
+            : token?.option_subset && typeof token.option_subset === 'object'
+              ? { ...token.option_subset }
+              : null,
+          subsetEntity: String(override.subset_entity ?? token?.subset_entity ?? '').trim(),
+          subsetShape: Array.isArray(override.subset_shape)
+            ? override.subset_shape.map((value) => String(value || '').trim()).filter(Boolean)
+            : Array.isArray(token?.subset_shape)
+              ? token.subset_shape.map((value) => String(value || '').trim()).filter(Boolean)
+              : [],
+          relationshipGroup: String(override.relationship_group ?? token?.relationship_group ?? '').trim(),
+          label: formatLabel(
+            stripTokenEntityPrefix(String(override.label ?? token?.label ?? token?.token_name ?? '').trim(), entityTokenPrefixes),
+          ),
+        }
+      }),
     }))
     .sort(compareSubsectionDisplayOrder)
 

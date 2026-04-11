@@ -703,6 +703,7 @@ import {
 } from 'src/utils/card-kdb-relationships'
 import {
   CANONICAL_OPTION_LISTS,
+  FILE_PAGE_REGISTRY,
   getCreateBranchEntry,
   getCreateBranches,
   getCreateBranchTokenName,
@@ -1374,6 +1375,13 @@ function getInputOptionsForToken(token) {
 
   if (optionSource === 'canonical_list' && optionList) {
     return CANONICAL_OPTION_LISTS[optionList] || []
+  }
+
+  if (optionSource === 'file_registry_keys') {
+    return FILE_PAGE_REGISTRY.map((entry) => ({
+      label: String(entry?.label || entry?.singularLabel || entry?.key || '').trim(),
+      value: String(entry?.key || '').trim(),
+    })).filter((option) => option.label && option.value)
   }
 
   if (optionSource === 'live_entity') {
