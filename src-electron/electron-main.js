@@ -190,7 +190,9 @@ function upsertPipelines(rows = []) {
 
 function createPipeline(payload = {}) {
   const database = initDb()
-  const name = normalizeNullableString(payload.name)
+  const name =
+    normalizeNullableString(payload.Project_Name) ||
+    normalizeNullableString(payload.name)
   if (!name) throw new Error('Pipeline name is required')
 
   const pipelineId =
