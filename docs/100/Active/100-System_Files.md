@@ -28,6 +28,8 @@ It is the file-definition layer that helps the system know:
 - who owns each file
 - which steward governs each file
 - which rulebooks and manuals each file depends on
+- whether the file uses create branches, view forks, or no forks
+- which fork instructions govern how payload and creation should change
 
 ## Glossary
 
@@ -61,6 +63,7 @@ It is the file-definition layer that helps the system know:
 - Treat canonical JSON as the first birth source for file structure; `System Files` records should register that structure, not invent it afterward.
 - Do not treat a file as fully born if it has no guide.
 - Do not treat a file as fully born if its UX fork questions are missing.
+- Do not treat a branchable file as fully born if its create-branch or view-fork instructions are missing.
 - Do not treat a file as fully born if its `System`, `General`, or required `KDB` sections are missing.
 - Do not add file visibility in layout code as a substitute for registry/canon acceptance.
 - Do not load canonical structure through scattered direct JSON imports; use the approved canonical loader boundary.
@@ -100,6 +103,8 @@ The `File Steward` should use `System Files` to validate:
 - required `KDB` section
 - ownership mode
 - steward assignment
+- create-branch instructions
+- view-fork instructions
 - referenced rulebooks and manuals
 - birth and provenance requirements
 
@@ -132,6 +137,8 @@ For `System Files`, the initial checklist is:
 - owner is declared: `yes`, `Owner`
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `yes`, this guide defines the initial `L1/L2/L2.a` fork
+- create-branch instructions are declared: `yes`, branchable files must declare them in canon/registry before create flows depend on them
+- view-fork instructions are declared: `yes`, branchable files must declare them in canon/registry before toolbar/tune payload depends on them
 - `System` requirement is declared: `yes`
 - `KDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Files`
@@ -209,6 +216,8 @@ The file-specific section should track:
 - steward
 - rulebook dependencies
 - file guide path
+- create-branch instructions
+- view-fork instructions
 - defined structure
 - glossary terms introduced
 

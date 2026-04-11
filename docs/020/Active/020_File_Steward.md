@@ -131,6 +131,8 @@ A file is only fully born when the file birth checklist is honestly satisfied:
 - owner is declared
 - steward is declared
 - UX fork questions are declared
+- create-branch instructions are declared when the file can birth into child branches
+- view-fork instructions are declared when the file page must switch payload by fork
 - `System` requirement is declared
 - `KDB` requirement is declared
 - runtime/sqlite ownership is declared
@@ -170,6 +172,7 @@ The `File Steward` should:
 - protect shared base field names from drifting into unnecessary entity-specific aliases
 - protect `KDB` as the required shared linkage section without pretending every `L1` must use one identical relationship leaf list
 - use each file guide's `UX Steward` section to guide the user through structural forks
+- declare whether a file uses create branches, view forks, or no forks before exposing fork controls in shared shells
 - ask whether a new structure is an `L1`, `L2`, or `L2.a` before accepting it as born
 - require parent file selection before creating an `L2`
 - require parent file and parent `L2` selection before creating an `L2.a`
@@ -183,6 +186,7 @@ The `File Steward` should:
 - keep `Users`, `Contacts`, `Roles`, and `Projects` from drifting apart when they define access to the `Owner` LDB
 - require project-scoped access assignments when global user-role status is not enough to explain permissions
 - protect declared branch-capable `L1`s from being normalized into the wrong table model
+- make sure branchable files declare fork labels, fork purpose, and fork-owned payload scope in canon/registry before tune payload or create flows depend on them
 - help keep file naming, loader naming, and menu naming aligned
 - make sure every file guide includes a glossary section
 - treat `Glossary Steward` as heavy governance only where language risk is meaningfully high, not automatically for every file
@@ -238,6 +242,7 @@ The `File Steward` should stop implementation and surface the gap when:
 - runtime ownership and canonical ownership do not match
 - a file surface is borrowing another entity's structure without explicit approval
 - branch behavior is being implemented without explicit canonical branch metadata
+- fork instructions are missing even though the toolbar, tune menu, or create flow depends on branch selection
 - a new normal `L1` is being introduced without its reciprocal KDB bridge layer
 - KDB bridge ownership is being invented ad hoc after file birth instead of being declared during bootstrap
 - a new convenience component, mode, or leaf variant is being added where the approved underlying component should be corrected instead

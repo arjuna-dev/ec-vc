@@ -41,6 +41,8 @@ Before a new file or structural branch is treated as real, the `Architect Stewar
 - owner is declared
 - steward is declared
 - UX fork questions are declared
+- create-branch instructions are declared when branch birth exists
+- view-fork instructions are declared when page payload must switch by fork
 - `System` requirement is declared
 - `KDB` requirement is declared
 - relationship owner paths are declared when KDB applies
@@ -74,6 +76,8 @@ The `Architect Steward` should:
 - protect meaning alignment across shells, pages, guides, and runtime so labels, statuses, and actions describe the same reality
 - protect shared page rendering so pages are built from approved `bb:*` elements rather than local structural lookalikes
 - protect shared hero rendering so all file pages use the same `bb:file-hero` structure and differ only by approved payload
+- require branchable files to declare their create branches and view forks in canon/registry before shell controls are rendered
+- require fork selectors and fork-aware tune payloads to read from one approved branch contract instead of page-local assumptions
 - when a parent wrapper is hardened, also inspect the child shared shell for internal fallback defaults so fail-closed behavior is true end to end
 - preserve `partial` status honestly when a layer exists but is not fully wired
 - route file-specific issues to the `File Steward`
@@ -119,6 +123,7 @@ These roles should collaborate, not replace one another.
 The `Architect Steward` should stop implementation and surface the gap when:
 
 - a runtime table exists before canonical structure is declared
+- a branchable file renders fork controls before create-branch or view-fork instructions are declared in canon/registry
 - a page renders a file that is missing from `System Files`
 - KDB is declared without an owner path
 - the UI creates a structural choice without a UX fork
