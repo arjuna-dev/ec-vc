@@ -6703,6 +6703,14 @@ function applyAuditedChanges(
             throw new Error(`${change.relationship_token} supports only one linked record at a time`)
           }
 
+          if (
+            normalizeNullableString(relationshipContract?.contractType) === 'reverse_direct_foreign_key' &&
+            normalizeNullableString(change.relationship_token) === 'User_Contact' &&
+            requestedIds.length === 0
+          ) {
+            throw new Error('User Contact cannot be blank.')
+          }
+
           const requestedId = requestedIds[0] || null
           if (normalizeNullableString(relationshipContract?.contractType) === 'direct_foreign_key') {
             database

@@ -458,6 +458,38 @@ function buildLiveEntityOptions(sourceKey) {
   }).filter(Boolean)
 }
 
+async function loadLiveOptionRowsForSource(sourceKey) {
+  if (!sourceKey) return
+  try {
+    const result = await bridge.value?.[sourceKey]?.list?.()
+    const rows = Array.isArray(result) ? result : Object.values(result || {}).find((value) => Array.isArray(value)) || []
+    liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: rows }
+  } catch {
+    liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: [] }
+  }
+}
+
+async function ensureLiveOptionsLoadedForTokens(tokens = []) {
+  const sourceKeys = new Set()
+  for (const token of Array.isArray(tokens) ? tokens : []) {
+    const optionSource = String(token?.optionSource || '').trim()
+    if (optionSource === 'live_entity') {
+      const sourceKey = resolveSourceKeyFromEntityName(token.optionEntity)
+      if (sourceKey) sourceKeys.add(sourceKey)
+    }
+    if (optionSource === 'live_entity_set') {
+      for (const entityName of Array.isArray(token?.optionEntities) ? token.optionEntities : []) {
+        const sourceKey = resolveSourceKeyFromEntityName(entityName)
+        if (sourceKey) sourceKeys.add(sourceKey)
+      }
+    }
+  }
+  for (const sourceKey of sourceKeys) {
+    if (liveOptionRowsBySource.value[sourceKey]) continue
+    await loadLiveOptionRowsForSource(sourceKey)
+  }
+}
+
 function resolveCreateDialogOptionValue(token, rawValue) {
   if (rawValue == null) return ''
   const normalized = String(rawValue || '').trim()
@@ -540,30 +572,10 @@ function buildEditDialogInitialValuesFromPayload(payload) {
 }
 
 async function ensureLiveOptionsLoaded() {
-  const sourceKeys = new Set()
-  for (const token of [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]) {
-    const optionSource = String(token?.optionSource || '').trim()
-    if (optionSource === 'live_entity') {
-      const sourceKey = resolveSourceKeyFromEntityName(token.optionEntity)
-      if (sourceKey) sourceKeys.add(sourceKey)
-    }
-    if (optionSource === 'live_entity_set') {
-      for (const entityName of Array.isArray(token?.optionEntities) ? token.optionEntities : []) {
-        const sourceKey = resolveSourceKeyFromEntityName(entityName)
-        if (sourceKey) sourceKeys.add(sourceKey)
-      }
-    }
-  }
-  for (const sourceKey of sourceKeys) {
-    if (liveOptionRowsBySource.value[sourceKey]) continue
-    try {
-      const result = await bridge.value?.[sourceKey]?.list?.()
-      const rows = Array.isArray(result) ? result : Object.values(result || {}).find((value) => Array.isArray(value)) || []
-      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: rows }
-    } catch {
-      liveOptionRowsBySource.value = { ...liveOptionRowsBySource.value, [sourceKey]: [] }
-    }
-  }
+  await ensureLiveOptionsLoadedForTokens([
+    ...createPrimaryTokens.value,
+    ...createSectionGroups.value.flatMap((section) => section.tokens),
+  ])
 }
 
 async function submitDialogRecord({ values } = {}) {
@@ -575,8 +587,9 @@ async function submitDialogRecord({ values } = {}) {
 }
 
 async function submitCreateRecord(values = {}) {
+  const allCreateTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   const payload = Object.fromEntries(
-    [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+    allCreateTokens
       .map((token) => {
         if (branchSelectorTokenKey.value && token.key === branchSelectorTokenKey.value) return null
         const normalizedValue = normalizeTokenWriteValue(token, values?.[token.key])
@@ -595,6 +608,7 @@ async function submitCreateRecord(values = {}) {
   try {
     let result = null
     const branchEntry = getCreateBranchEntry(activeSourceKey.value, values?.[branchSelectorTokenKey.value])
+    const createTargetSourceKey = branchEntry?.targetSourceKey || activeSourceKey.value
     if (branchSelectorTokenKey.value) {
       const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Type').trim()
       if (!branchEntry?.targetSourceKey) {
@@ -609,6 +623,31 @@ async function submitCreateRecord(values = {}) {
       $q.notify({ type: 'negative', message: 'Create bridge is not available for this record type yet.' })
       return
     }
+
+    const createdRecordId = String(result?.id || '').trim()
+    const createdEntityName = String(getFilePageRegistryEntry(createTargetSourceKey)?.entityName || '').trim()
+    if (createdRecordId && createdEntityName && bridge.value?.records?.update) {
+      const relationshipChanges = allCreateTokens.flatMap((token) => {
+        if (!getKdbRelationshipContractForToken(createdEntityName, token?.tokenName)) return []
+        return buildTokenUpdateChanges(token, {
+          nextValue: values?.[token.key],
+          initialValue: null,
+          recordId: createdRecordId,
+          entityName: createdEntityName,
+          tableName: getRuntimeTableNameForEntityName(createdEntityName),
+        })
+      })
+
+      if (relationshipChanges.length) {
+        await bridge.value.records.update({
+          tableName: getRuntimeTableNameForEntityName(createdEntityName),
+          recordId: createdRecordId,
+          changes: relationshipChanges,
+          actionLabel: 'shared_dialog_shell_birth_relationships',
+        })
+      }
+    }
+
     dialogOpen.value = false
     $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
   } catch (error) {

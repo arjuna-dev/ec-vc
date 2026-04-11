@@ -468,10 +468,29 @@
                             :aria-label="`Open source record for ${fieldEntry.token.label}`"
                             @click="openFieldParentRecord(fieldEntry.token)"
                           />
+                          <q-btn
+                            v-if="fieldHasCopyableLockedValue(fieldEntry.token)"
+                            flat
+                            dense
+                            round
+                            size="sm"
+                            icon="content_copy"
+                            class="create-record-shell__field-parent-link"
+                            :aria-label="`Copy ${fieldEntry.token.label}`"
+                            @click="copyLockedFieldValue(fieldEntry.token)"
+                          />
                         </template>
                         <template #input>
+                          <div
+                            v-if="isFieldLocked(fieldEntry.token) && !isSummaryField(fieldEntry.token)"
+                            class="create-record-shell__read-value"
+                            :class="fieldVerificationClass(fieldEntry.token)"
+                          >
+                            {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
+                          </div>
+
                           <q-select
-                            v-if="fieldEntry.token.tokenType === 'select_multi'"
+                            v-else-if="fieldEntry.token.tokenType === 'select_multi'"
                             :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
                             :input-value="getSelectDraftValue(fieldEntry.token.key)"
                             dense
@@ -567,8 +586,15 @@
                           />
                         </template>
                         <template #below>
+                          <div
+                            v-if="isSummaryField(fieldEntry.token) && isFieldLocked(fieldEntry.token)"
+                            class="create-record-shell__read-value create-record-shell__read-value--summary"
+                            :class="fieldVerificationClass(fieldEntry.token)"
+                          >
+                            {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
+                          </div>
                           <q-input
-                            v-if="isSummaryField(fieldEntry.token)"
+                            v-else-if="isSummaryField(fieldEntry.token)"
                             :model-value="getStagedFieldValue(fieldEntry.token.key)"
                             dense
                             outlined
@@ -592,8 +618,8 @@
                               v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
                               :key="item.key"
                               dense
-                              removable
-                              :disable="loading || isFieldLocked(fieldEntry.token)"
+                              :removable="!loading && !isFieldLocked(fieldEntry.token)"
+                              :disable="loading"
                               class="create-record-shell__selected-multi-chip"
                               @remove="removeMultiSelectValue(fieldEntry.token, item.value)"
                             >
@@ -674,10 +700,29 @@
                             :aria-label="`Open source record for ${fieldEntry.token.label}`"
                             @click="openFieldParentRecord(fieldEntry.token)"
                           />
+                          <q-btn
+                            v-if="fieldHasCopyableLockedValue(fieldEntry.token)"
+                            flat
+                            dense
+                            round
+                            size="sm"
+                            icon="content_copy"
+                            class="create-record-shell__field-parent-link"
+                            :aria-label="`Copy ${fieldEntry.token.label}`"
+                            @click="copyLockedFieldValue(fieldEntry.token)"
+                          />
                         </template>
                         <template #input>
+                          <div
+                            v-if="isFieldLocked(fieldEntry.token) && !isSummaryField(fieldEntry.token)"
+                            class="create-record-shell__read-value"
+                            :class="fieldVerificationClass(fieldEntry.token)"
+                          >
+                            {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
+                          </div>
+
                           <q-select
-                            v-if="fieldEntry.token.tokenType === 'select_multi'"
+                            v-else-if="fieldEntry.token.tokenType === 'select_multi'"
                             :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
                             :input-value="getSelectDraftValue(fieldEntry.token.key)"
                             dense
@@ -773,8 +818,15 @@
                           />
                         </template>
                         <template #below>
+                          <div
+                            v-if="isSummaryField(fieldEntry.token) && isFieldLocked(fieldEntry.token)"
+                            class="create-record-shell__read-value create-record-shell__read-value--summary"
+                            :class="fieldVerificationClass(fieldEntry.token)"
+                          >
+                            {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
+                          </div>
                           <q-input
-                            v-if="isSummaryField(fieldEntry.token)"
+                            v-else-if="isSummaryField(fieldEntry.token)"
                             :model-value="getStagedFieldValue(fieldEntry.token.key)"
                             dense
                             outlined
@@ -798,8 +850,8 @@
                               v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
                               :key="item.key"
                               dense
-                              removable
-                              :disable="loading || isFieldLocked(fieldEntry.token)"
+                              :removable="!loading && !isFieldLocked(fieldEntry.token)"
+                              :disable="loading"
                               class="create-record-shell__selected-multi-chip"
                               @remove="removeMultiSelectValue(fieldEntry.token, item.value)"
                             >
@@ -890,10 +942,29 @@
                         :aria-label="`Open source record for ${fieldEntry.token.label}`"
                         @click="openFieldParentRecord(fieldEntry.token)"
                       />
+                      <q-btn
+                        v-if="fieldHasCopyableLockedValue(fieldEntry.token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        icon="content_copy"
+                        class="create-record-shell__field-parent-link"
+                        :aria-label="`Copy ${fieldEntry.token.label}`"
+                        @click="copyLockedFieldValue(fieldEntry.token)"
+                      />
                     </template>
                     <template #input>
+                      <div
+                        v-if="isFieldLocked(fieldEntry.token) && !isSummaryField(fieldEntry.token)"
+                        class="create-record-shell__read-value"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                      >
+                        {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
+                      </div>
+
                       <q-select
-                        v-if="fieldEntry.token.tokenType === 'select_multi'"
+                        v-else-if="fieldEntry.token.tokenType === 'select_multi'"
                         :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
                         :input-value="getSelectDraftValue(fieldEntry.token.key)"
                         dense
@@ -989,8 +1060,15 @@
                       />
                     </template>
                     <template #below>
+                      <div
+                        v-if="isSummaryField(fieldEntry.token) && isFieldLocked(fieldEntry.token)"
+                        class="create-record-shell__read-value create-record-shell__read-value--summary"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                      >
+                        {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
+                      </div>
                       <q-input
-                        v-if="isSummaryField(fieldEntry.token)"
+                        v-else-if="isSummaryField(fieldEntry.token)"
                         :model-value="getStagedFieldValue(fieldEntry.token.key)"
                         dense
                         outlined
@@ -1014,8 +1092,8 @@
                           v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
                           :key="item.key"
                           dense
-                          removable
-                          :disable="loading || isFieldLocked(fieldEntry.token)"
+                          :removable="!loading && !isFieldLocked(fieldEntry.token)"
+                          :disable="loading"
                           class="create-record-shell__selected-multi-chip"
                           @remove="removeMultiSelectValue(fieldEntry.token, item.value)"
                         >
@@ -1098,10 +1176,29 @@
                         :aria-label="`Open source record for ${fieldEntry.token.label}`"
                         @click="openFieldParentRecord(fieldEntry.token)"
                       />
+                      <q-btn
+                        v-if="fieldHasCopyableLockedValue(fieldEntry.token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        icon="content_copy"
+                        class="create-record-shell__field-parent-link"
+                        :aria-label="`Copy ${fieldEntry.token.label}`"
+                        @click="copyLockedFieldValue(fieldEntry.token)"
+                      />
                     </template>
                     <template #input>
+                      <div
+                        v-if="isFieldLocked(fieldEntry.token) && !isSummaryField(fieldEntry.token)"
+                        class="create-record-shell__read-value"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                      >
+                        {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
+                      </div>
+
                       <q-select
-                        v-if="fieldEntry.token.tokenType === 'select_multi'"
+                        v-else-if="fieldEntry.token.tokenType === 'select_multi'"
                         :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
                         :input-value="getSelectDraftValue(fieldEntry.token.key)"
                         dense
@@ -1197,8 +1294,15 @@
                       />
                     </template>
                     <template #below>
+                      <div
+                        v-if="isSummaryField(fieldEntry.token) && isFieldLocked(fieldEntry.token)"
+                        class="create-record-shell__read-value create-record-shell__read-value--summary"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                      >
+                        {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
+                      </div>
                       <q-input
-                        v-if="isSummaryField(fieldEntry.token)"
+                        v-else-if="isSummaryField(fieldEntry.token)"
                         :model-value="getStagedFieldValue(fieldEntry.token.key)"
                         dense
                         outlined
@@ -1222,8 +1326,8 @@
                           v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
                           :key="item.key"
                           dense
-                          removable
-                          :disable="loading || isFieldLocked(fieldEntry.token)"
+                          :removable="!loading && !isFieldLocked(fieldEntry.token)"
+                          :disable="loading"
                           class="create-record-shell__selected-multi-chip"
                           @remove="removeMultiSelectValue(fieldEntry.token, item.value)"
                         >
@@ -2003,6 +2107,58 @@ function formatMultiSelectSummary(token, value) {
   return `${entries.length} selected`
 }
 
+function getSingleSelectOptionLabel(token, value) {
+  const normalizedValue = String(value || '').trim()
+  if (!normalizedValue) return ''
+  const matchedOption = (Array.isArray(token?.inputOptions) ? token.inputOptions : []).find((option) =>
+    String(option?.value ?? '').trim() === normalizedValue,
+  )
+  return String(matchedOption?.label ?? matchedOption?.value ?? normalizedValue).trim()
+}
+
+function getLockedFieldDisplayValue(token) {
+  const tokenKey = String(token?.key || '').trim()
+  if (!tokenKey) return ''
+  const rawValue = formValues.value?.[tokenKey]
+  const tokenType = String(token?.tokenType || '').trim()
+  if (tokenType === 'select_multi') return formatMultiSelectSummary(token, rawValue)
+  if (tokenType === 'select_single') return getSingleSelectOptionLabel(token, rawValue)
+  return String(getStagedFieldValue(tokenKey) || rawValue || '').trim()
+}
+
+function fieldHasCopyableLockedValue(token) {
+  return Boolean(isFieldLocked(token) && getLockedFieldDisplayValue(token))
+}
+
+async function copyLockedFieldValue(token) {
+  const value = getLockedFieldDisplayValue(token)
+  if (!value) return
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value)
+    } else {
+      const helper = document.createElement('textarea')
+      helper.value = value
+      helper.setAttribute('readonly', '')
+      helper.style.position = 'absolute'
+      helper.style.left = '-9999px'
+      document.body.appendChild(helper)
+      helper.select()
+      document.execCommand('copy')
+      document.body.removeChild(helper)
+    }
+    $q.notify({
+      type: 'positive',
+      message: `${String(token?.label || 'Value').trim()} copied.`,
+    })
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error?.message || 'Could not copy field value.',
+    })
+  }
+}
+
 function removeMultiSelectValue(token, rawValue) {
   if (!token || isFieldLocked(token)) return
   const tokenKey = String(token.key || '').trim()
@@ -2041,6 +2197,24 @@ function getInlineCreateConfig(token) {
     singularLabel: String(registryEntry?.singularLabel || registryEntry?.label || entityName).trim() || entityName,
     titleField,
   }
+}
+
+const INLINE_CREATE_RESULT_ID_FIELDS = Object.freeze({
+  users: Object.freeze({
+    Contacts: 'contact_id',
+    Users: 'id',
+  }),
+})
+
+function resolveInlineCreatedValueId(token, inlineCreateConfig, result) {
+  const sourceKey = String(inlineCreateConfig?.sourceKey || '').trim().toLowerCase()
+  const expectedEntity = String(token?.optionEntity || '').trim()
+  const explicitFieldName = INLINE_CREATE_RESULT_ID_FIELDS[sourceKey]?.[expectedEntity]
+  if (explicitFieldName) {
+    const explicitValue = String(result?.[explicitFieldName] || '').trim()
+    if (explicitValue) return explicitValue
+  }
+  return String(result?.id || '').trim()
 }
 
 function hasMatchingSelectOption(token, rawValue) {
@@ -2120,7 +2294,7 @@ async function commitSelectInputValue(token, rawValue, done = null) {
     const result = await bridge.value?.[inlineCreateConfig.sourceKey]?.create?.({
       [inlineCreateConfig.titleField]: normalizedValue,
     })
-    const createdId = String(result?.id || '').trim()
+    const createdId = resolveInlineCreatedValueId(token, inlineCreateConfig, result)
     if (!createdId) throw new Error('Related record was not created.')
 
     const tokenType = String(token?.tokenType || '').trim()
@@ -3617,6 +3791,33 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-field__input) {
   padding-left: 2px;
   padding-right: 10px;
+}
+
+.create-record-shell__read-value {
+  display: flex;
+  align-items: center;
+  width: 15ch;
+  min-width: 15ch;
+  max-width: 15ch;
+  min-height: 20px;
+  padding: 0 2px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(17, 17, 17, 0.48);
+  font-family: var(--font-body);
+  font-size: var(--ds-font-size-xs);
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.create-record-shell__read-value--summary {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  align-items: flex-start;
+  white-space: pre-wrap;
 }
 
 .create-record-shell__selected-multi-box {
