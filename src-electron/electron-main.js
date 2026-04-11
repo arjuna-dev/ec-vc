@@ -1165,7 +1165,7 @@ function listUsers() {
 
 function createEvent(payload = {}) {
   const database = initDb()
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const eventId = normalizeNullableString(payload?.id) || `event:${crypto.randomUUID()}`
   const tableName =
     normalizeNullableString(payload?.table_name) ||
@@ -2265,7 +2265,7 @@ function createFile(payload = {}) {
     .get(name)
   if (duplicateActiveName?.id) throw new Error('File name is already in use by another active file')
 
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
 
   const id = normalizeNullableString(payload?.id) || `file:${crypto.randomUUID()}`
 
@@ -2573,7 +2573,7 @@ function listBuildingBlocks() {
 function createBuildingBlock(payload = {}) {
   const database = initDb()
   ensureDefaultBuildingBlocks(database)
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const name =
     normalizeNullableString(payload?.Name) ||
     normalizeNullableString(payload?.BB_Name) ||
@@ -2647,7 +2647,7 @@ function createBuildingBlock(payload = {}) {
 
 function createRole(payload = {}) {
   const database = initDb()
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const name =
     normalizeNullableString(payload?.Role_Name) ||
     normalizeNullableString(payload?.Name) ||
@@ -2683,7 +2683,7 @@ function createRole(payload = {}) {
 
 function createCompanionRole(payload = {}) {
   const database = initDb()
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const name =
     normalizeNullableString(payload?.Companion_Role_Name) ||
     normalizeNullableString(payload?.Name) ||
@@ -4476,7 +4476,7 @@ function getRecordView(tableName, recordId) {
 function createContact(payload = {}) {
   const database = initDb()
   ensureContactsProvenanceColumns(database)
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const id = normalizeNullableString(payload.id) || `contact:${crypto.randomUUID()}`
   const name = normalizeNullableString(payload.Name)
   if (!name) throw new Error('Contact name is required')
@@ -4557,7 +4557,7 @@ function normalizeArtifactFormatFromPath(filePath = '', fallbackName = '') {
 
 function createArtifact(payload = {}) {
   const database = initDb()
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const fsPath =
     normalizeNullableString(payload?.fs_path) ||
     normalizeNullableString(payload?.path)
@@ -4635,7 +4635,7 @@ function listIntake() {
 
 function createIntake(payload = {}) {
   const database = initDb()
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const name =
     normalizeNullableString(payload?.Intake_Name) ||
     normalizeNullableString(payload?.Processed_Artifact_Name) ||
@@ -5549,7 +5549,7 @@ function writeLifecycleAuditEvent(
   const normalizedRecordId = normalizeNullableString(recordId)
   if (!normalizedTableName || !normalizedRecordId) return null
 
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const normalizedActionLabel = normalizeLifecycleActionLabel(actionLabel)
   const recordContext = resolveAuditRecordContext(database, normalizedTableName, normalizedRecordId)
   const resolvedRecordLabel =
@@ -6476,7 +6476,7 @@ function listFieldVerificationMetadata({ tableName, recordId } = {}) {
 
 function upsertFieldVerificationMetadata(payload = {}) {
   const database = initDb()
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const tableName = normalizeNullableString(payload?.tableName)
   const recordId = normalizeNullableString(payload?.recordId)
   const fieldName = normalizeNullableString(payload?.fieldName)
@@ -6631,7 +6631,7 @@ function applyAuditedChanges(
     return { updated: 0, events_created: 0, snapshot_id: null, actor }
   }
 
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   for (const change of normalizedChanges) {
     assertOwnerAuthorityChangeAllowed(database, change)
     assertOwnerRecordEditAllowed(database, actor, change)
@@ -7297,7 +7297,7 @@ function createRecordHistoryEntry(tableName, recordId, { source = 'create' } = {
   const config = getRecordTableConfig(tableName)
   const rid = normalizeNullableString(recordId)
   if (!rid) throw new Error('recordId is required')
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const snapshotPayload = getRecordView(config.tableName, rid)
   snapshotPayload.__meta = {
     source,
