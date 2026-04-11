@@ -2002,9 +2002,10 @@ watch(
 )
 
 watch(
-  [rawRows, isSystemSectionActive, activeSourceKey],
-  async ([rows, isSystem]) => {
-    if (!isSystem || !bridge.value?.audit?.events || !activeRegistryEntry.value?.entityName) {
+  [rawRows, isSystemSectionActive, viewMode, activeSourceKey],
+  async ([rows, isSystem, currentViewMode]) => {
+    const shouldLoadRowHistory = isSystem || currentViewMode === 'card'
+    if (!shouldLoadRowHistory || !bridge.value?.audit?.events || !activeRegistryEntry.value?.entityName) {
       rowHistoryByRecordId.value = {}
       rowHistoryLoadingByRecordId.value = {}
       return
