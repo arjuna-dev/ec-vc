@@ -1051,6 +1051,20 @@ const selectedCardItemTokens = computed(() =>
     .map((tokenKey) => availableCardItemTokens.value.find((token) => token.key === tokenKey))
     .filter(Boolean),
 )
+function getRequiredCreateTokenNamesForSource(sourceKey = '') {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  if (normalizedSourceKey === 'file-system') return ['File_Source_Key']
+  return []
+}
+
+const requiredCreateTokens = computed(() => {
+  const requiredTokenNames = new Set(getRequiredCreateTokenNamesForSource(activeSourceKey.value))
+  if (!requiredTokenNames.size) return []
+  return level3Tokens.value
+    .filter((token) => requiredTokenNames.has(String(token?.tokenName || '').trim()))
+    .map((token) => normalizeCreateDialogToken(token))
+})
+
 const createKeyFieldTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchToken = branchTokenName
@@ -1058,7 +1072,7 @@ const createKeyFieldTokens = computed(() => {
     : null
   const tokens = isRecordShellMode.value
     ? [canonicalTitleToken.value, canonicalSummaryToken.value].filter(Boolean)
-    : [canonicalTitleToken.value, branchToken, ...selectedCardItemTokens.value].filter(Boolean)
+    : [canonicalTitleToken.value, branchToken, ...requiredCreateTokens.value, ...selectedCardItemTokens.value].filter(Boolean)
   const seen = new Set()
   return tokens
     .filter((token) => {
