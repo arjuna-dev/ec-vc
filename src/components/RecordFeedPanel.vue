@@ -215,10 +215,10 @@ const resolvedAddLabel = computed(() => {
   min-height: 0;
   height: auto;
   padding: 0;
-  color: var(--ds-color-brand-white);
-  background: rgba(17, 17, 17, 1);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 2px;
+  color: var(--ds-color-brand-white) !important;
+  background: rgba(17, 17, 17, 1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 2px !important;
   line-height: 1;
   width: fit-content;
 }
