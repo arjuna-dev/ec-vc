@@ -73,6 +73,7 @@ The `Architect Steward` should:
 
 - verify the whole birth chain before implementation continues
 - keep canon, registry, guides, runtime, shell, and provenance aligned
+- require bootstrap and setup flows to follow the same declared `System Files` and `LDB` contract path as normal runtime behavior whenever possible, instead of relying on special one-off logic
 - protect meaning alignment across shells, pages, guides, and runtime so labels, statuses, and actions describe the same reality
 - protect shared page rendering so pages are built from approved `bb:*` elements rather than local structural lookalikes
 - protect shared hero rendering so all file pages use the same `bb:file-hero` structure and differ only by approved payload
@@ -88,6 +89,25 @@ The `Architect Steward` should:
 - route file-specific issues to the `File Steward`
 - route user-choice issues to the `UX Steward`
 - route shared UI issues to the `Design Steward`
+
+## Natural Path Rule
+
+The `Architect Steward` should prefer one natural action tube over special-case bootstrap magic.
+
+That means:
+
+- if `System Files` declares the file, relationship, owner path, and shell expectations, runtime should follow that same path instead of inventing a side bootstrap mechanism
+- if `LDB` declares the relationship path, the relationship should become visible because the contract is real, not because ids were manually forced to line up in a hidden helper
+- setup flows such as `Owner Genesis` should still feel guided, but underneath they should be exercising the same contract system the rest of the app uses
+
+Why this matters:
+
+- it makes drift easier to see
+- it makes bugs emerge earlier and more honestly
+- it lets `System Files` prove whether its parameters are actually governing the app
+- it moves the system toward a poka-yoke style architecture where the approved path is also the easiest path
+
+If a bootstrap or setup flow only works because it bypasses the normal `System Files` or `LDB` contract path, the `Architect Steward` should treat that as architecture debt, not as proof that the system is complete.
 
 ## Prohibited Behavior
 

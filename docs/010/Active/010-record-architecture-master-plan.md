@@ -105,6 +105,35 @@ This is the best route because it:
 - scales better as record count, relationship count, and payload count increase
 - turns broken UI states into validation failures instead of late discoveries
 
+### Natural System Tube Rule
+
+The long-term goal is that important actions happen by naturally following the declared system path, not by relying on parallel bootstrap exceptions.
+
+That means:
+
+- `System Files` should declare what a file is, what it requires, and which ownership and relationship rules apply
+- `LDB` should declare how records relate and which reverse-read or owner-path rules must be true
+- runtime should then realize those same declarations instead of creating a second hidden path that only bootstrap code understands
+
+This matters because:
+
+- it gives the app one clearer tube for action
+- it helps bugs appear sooner and in the right place
+- it lets us test whether `System Files` parameters are truly governing behavior
+- it supports a poka-yoke style architecture where the approved path is also the safest and most natural path
+
+Examples:
+
+- `Owner Genesis` should ideally create the owner spine by following the same owner/contact/user/role rules that the normal system contract declares
+- a visible relationship should ideally exist because the `LDB` contract owns it, not because ids were manually forced to align in a side helper
+- shell behavior should ideally reflect the same declared file and relationship rules that runtime is enforcing underneath
+
+Working interpretation:
+
+- bootstrap helpers are still allowed while architecture is converging
+- but they should increasingly behave as orchestrators of the declared contract, not as private alternate systems
+- if a path only works through bootstrap magic and not through the declared `System Files` + `LDB` logic, treat that as a gap to close
+
 ### File Creation Orchestration Rule
 
 The `Files` exercise confirmed that new file birth is still too manual.

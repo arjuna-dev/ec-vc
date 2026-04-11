@@ -27,6 +27,7 @@ This tracker should stay aligned with:
 - keep KDB linking, unlinking, and selector labels working through shared shell contracts instead of per-entity fixes
 - start applying birth-governance derivation in the shared create flow, beginning with the simplest visible defaults
 - document and begin the naming direction from `KDB` toward `LDB` while avoiding piecemeal runtime renames
+- keep pushing bootstrap/setup flows to follow the same `System Files` + `LDB` contract path as normal runtime behavior so bugs surface earlier and more honestly
 - adopt `Record Shell` as the shared `Record View` direction
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
 - keep owner authority locked while still allowing owner-only editing of owner profile data
