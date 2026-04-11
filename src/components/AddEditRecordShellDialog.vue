@@ -437,7 +437,7 @@
                   <div
                     v-if="isSubgroupExpanded(subgroup.key)"
                     class="create-record-shell__fields"
-                    :style="{ '--create-record-shell-label-width': activeFieldLabelWidth }"
+                    :style="{ '--field-map-label-width': activeFieldLabelWidth }"
                   >
                     <div class="create-record-shell__fields-grid create-record-shell__fields-grid--left">
                       <FieldMapRow
@@ -467,11 +467,11 @@
                             :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
                             dense
                             outlined
-                            use-chips
                             multiple
                             emit-value
                             map-options
                             :options="fieldEntry.token.inputOptions || []"
+                            :display-value="formatMultiSelectSummary(fieldEntry.token, formValues[fieldEntry.token.key])"
                             :disable="loading || isFieldLocked(fieldEntry.token)"
                             class="create-record-shell__input"
                             :class="[
@@ -486,7 +486,6 @@
                             :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
                             dense
                             outlined
-                            use-chips
                             emit-value
                             map-options
                             :options="fieldEntry.token.inputOptions || []"
@@ -513,6 +512,20 @@
                             @blur="commitStagedField(fieldEntry.token.key)"
                             @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                           />
+                        </template>
+                        <template #below>
+                          <div
+                            v-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                            class="create-record-shell__selected-multi-box"
+                          >
+                            <div
+                              v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
+                              :key="item.key"
+                              class="create-record-shell__selected-multi-item"
+                            >
+                              {{ item.label }}
+                            </div>
+                          </div>
                         </template>
                         <template #action>
                           <q-btn
@@ -587,11 +600,11 @@
                             :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
                             dense
                             outlined
-                            use-chips
                             multiple
                             emit-value
                             map-options
                             :options="fieldEntry.token.inputOptions || []"
+                            :display-value="formatMultiSelectSummary(fieldEntry.token, formValues[fieldEntry.token.key])"
                             :disable="loading || isFieldLocked(fieldEntry.token)"
                             class="create-record-shell__input"
                             :class="[
@@ -606,7 +619,6 @@
                             :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
                             dense
                             outlined
-                            use-chips
                             emit-value
                             map-options
                             :options="fieldEntry.token.inputOptions || []"
@@ -633,6 +645,20 @@
                             @blur="commitStagedField(fieldEntry.token.key)"
                             @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                           />
+                        </template>
+                        <template #below>
+                          <div
+                            v-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                            class="create-record-shell__selected-multi-box"
+                          >
+                            <div
+                              v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
+                              :key="item.key"
+                              class="create-record-shell__selected-multi-item"
+                            >
+                              {{ item.label }}
+                            </div>
+                          </div>
                         </template>
                         <template #action>
                           <q-btn
@@ -685,7 +711,7 @@
               <div
                 v-else-if="activeFields.length"
                 class="create-record-shell__fields"
-                :style="{ '--create-record-shell-label-width': activeFieldLabelWidth }"
+                :style="{ '--field-map-label-width': activeFieldLabelWidth }"
               >
                 <div
                   class="create-record-shell__fields-grid create-record-shell__fields-grid--left"
@@ -717,11 +743,11 @@
                         :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
                         dense
                         outlined
-                        use-chips
                         multiple
                         emit-value
                         map-options
                         :options="fieldEntry.token.inputOptions || []"
+                        :display-value="formatMultiSelectSummary(fieldEntry.token, formValues[fieldEntry.token.key])"
                         :disable="loading || isFieldLocked(fieldEntry.token)"
                         class="create-record-shell__input"
                         :class="[
@@ -736,7 +762,6 @@
                         :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
                         dense
                         outlined
-                        use-chips
                         emit-value
                         map-options
                         :options="fieldEntry.token.inputOptions || []"
@@ -763,6 +788,20 @@
                         @blur="commitStagedField(fieldEntry.token.key)"
                         @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                       />
+                    </template>
+                    <template #below>
+                      <div
+                        v-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                        class="create-record-shell__selected-multi-box"
+                      >
+                        <div
+                          v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
+                          :key="item.key"
+                          class="create-record-shell__selected-multi-item"
+                        >
+                          {{ item.label }}
+                        </div>
+                      </div>
                     </template>
                     <template #action>
                       <q-btn
@@ -839,11 +878,11 @@
                         :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
                         dense
                         outlined
-                        use-chips
                         multiple
                         emit-value
                         map-options
                         :options="fieldEntry.token.inputOptions || []"
+                        :display-value="formatMultiSelectSummary(fieldEntry.token, formValues[fieldEntry.token.key])"
                         :disable="loading || isFieldLocked(fieldEntry.token)"
                         class="create-record-shell__input"
                         :class="[
@@ -858,7 +897,6 @@
                         :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
                         dense
                         outlined
-                        use-chips
                         emit-value
                         map-options
                         :options="fieldEntry.token.inputOptions || []"
@@ -885,6 +923,20 @@
                         @blur="commitStagedField(fieldEntry.token.key)"
                         @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                       />
+                    </template>
+                    <template #below>
+                      <div
+                        v-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                        class="create-record-shell__selected-multi-box"
+                      >
+                        <div
+                          v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
+                          :key="item.key"
+                          class="create-record-shell__selected-multi-item"
+                        >
+                          {{ item.label }}
+                        </div>
+                      </div>
                     </template>
                     <template #action>
                       <q-btn
@@ -1150,7 +1202,7 @@ const processingArtifacts = computed(() =>
   stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
 )
 const canOpenIntakeShell = computed(() => stagedArtifacts.value.length > 0 || processingArtifacts.value.length > 0)
-const activeFieldLabelWidth = computed(() => '10ch')
+const activeFieldLabelWidth = computed(() => '20ch')
 
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
@@ -1563,6 +1615,30 @@ function formatFieldType(tokenType) {
 
 function isWideField(token) {
   return isSummaryField(token)
+}
+
+function getMultiSelectOptionEntries(token, value) {
+  const selectedValues = Array.isArray(value)
+    ? value.map((item) => String(item || '').trim()).filter(Boolean)
+    : []
+  if (!selectedValues.length) return []
+  const optionMap = new Map(
+    (Array.isArray(token?.inputOptions) ? token.inputOptions : []).map((option) => [
+      String(option?.value ?? option?.label ?? '').trim(),
+      String(option?.label ?? option?.value ?? '').trim(),
+    ]),
+  )
+  return selectedValues.map((selectedValue) => ({
+    key: `${String(token?.key || 'field').trim()}:${selectedValue}`,
+    label: optionMap.get(selectedValue) || selectedValue,
+  }))
+}
+
+function formatMultiSelectSummary(token, value) {
+  const entries = getMultiSelectOptionEntries(token, value)
+  if (!entries.length) return ''
+  if (entries.length === 1) return entries[0].label
+  return `${entries.length} selected`
 }
 function isSubgroupExpanded(groupKey) { return expandedSubgroupKeys.value.includes(groupKey) }
 function toggleSubgroup(groupKey) {
@@ -2994,16 +3070,19 @@ onBeforeUnmount(() => {
 
 .create-record-shell__input {
   flex: 0 1 auto;
-  width: fit-content;
-  min-width: 132px;
-  max-width: 280px;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  align-self: center;
   background: transparent;
 }
 
 .create-record-shell__input :deep(.q-field__control) {
-  min-height: calc(0.78rem + 0.5px);
+  min-height: 20px;
+  height: 20px;
   padding-top: 0;
   padding-bottom: 0;
+  align-items: center;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.52);
   border: 1px solid rgba(17, 17, 17, 0.14);
@@ -3014,13 +3093,14 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-field__input) {
   padding-top: 0;
   padding-bottom: 0;
-  min-height: calc(0.78rem + 0.5px);
+  min-height: 20px;
 }
 
 .create-record-shell__input :deep(.q-field__native),
 .create-record-shell__input :deep(.q-field__input),
 .create-record-shell__input :deep(.q-field__marginal),
-.create-record-shell__input :deep(.q-chip) {
+.create-record-shell__input :deep(.q-chip),
+.create-record-shell__selected-multi-item {
   font-size: 0.78rem;
   line-height: 0.92;
 }
@@ -3029,6 +3109,32 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-field__input) {
   padding-left: 2px;
   padding-right: 10px;
+}
+
+.create-record-shell__selected-multi-box {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-radius: 6px;
+  background: rgba(249, 249, 247, 0.92);
+}
+
+.create-record-shell__selected-multi-item {
+  display: flex;
+  align-items: center;
+  min-height: 20px;
+  min-width: 0;
+  padding: 0 8px;
+  overflow: hidden;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(17, 17, 17, 0.82);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .create-record-shell__input--verification-default :deep(.q-chip) {

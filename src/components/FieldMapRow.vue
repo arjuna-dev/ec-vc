@@ -6,7 +6,7 @@
       'field-map-row--verification-needed': verificationNeeded,
     }"
   >
-    <div class="field-map-row__label-row">
+    <div class="field-map-row__top-row">
       <div class="field-map-row__label-wrap">
         <div class="field-map-row__label">
           {{ label }}
@@ -15,12 +15,16 @@
           </q-tooltip>
         </div>
       </div>
-      <slot name="parent-link" />
+      <div class="field-map-row__value-row">
+        <slot name="input" />
+      </div>
+      <div class="field-map-row__action-row">
+        <slot name="parent-link" />
+        <slot name="action" />
+      </div>
     </div>
-
-    <div class="field-map-row__value-row">
-      <slot name="input" />
-      <slot name="action" />
+    <div v-if="$slots.below" class="field-map-row__below-row">
+      <slot name="below" />
     </div>
   </div>
 </template>
@@ -59,10 +63,10 @@ defineProps({
   grid-column: 1 / -1;
 }
 
-.field-map-row__label-row {
-  display: flex;
+.field-map-row__top-row {
+  display: grid;
+  grid-template-columns: minmax(0, var(--field-map-label-width, 20ch)) minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
 }
 
@@ -74,17 +78,29 @@ defineProps({
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  max-width: 100%;
+  overflow: hidden;
   color: var(--ds-color-brand-black);
   font-family: var(--ds-font-title);
   font-size: var(--ds-font-size-xs);
   font-weight: var(--ds-font-weight-bold);
   line-height: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .field-map-row__value-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
+  min-width: 0;
+}
+
+.field-map-row__action-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+}
+
+.field-map-row__below-row {
+  grid-column: 1 / -1;
 }
 </style>
