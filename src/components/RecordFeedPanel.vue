@@ -218,7 +218,7 @@ const resolvedAddLabel = computed(() => {
   color: var(--ds-color-brand-white);
   background: rgba(17, 17, 17, 1);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: var(--ds-radius-sm);
+  border-radius: 2px;
   line-height: 1;
   width: fit-content;
 }
