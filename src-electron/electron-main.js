@@ -5935,6 +5935,13 @@ function assignUserRole(database, userId, roleId, assignedBy = null) {
   const normalizedRoleId = normalizeNullableString(roleId)
   if (!normalizedUserId || !normalizedRoleId) return
 
+  if (normalizedRoleId === 'role:owner') {
+    const ownerUserId = getOwnerUserId(database)
+    if (ownerUserId && normalizedUserId !== ownerUserId) {
+      throw new Error('The Owner role can only be assigned to the canonical owner user.')
+    }
+  }
+
   database
     .prepare(
       `

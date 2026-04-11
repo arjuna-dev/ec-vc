@@ -80,6 +80,15 @@ const EXPLICIT_LDB_RELATIONSHIP_PAIRS = Object.freeze([
     rightEntity: 'Projects',
     rightToken: 'Project_Task',
   },
+  {
+    joinTable: 'Users_Roles',
+    leftEntity: 'Users',
+    leftToken: 'User_Role_Link',
+    rightEntity: 'Roles',
+    rightToken: 'Role_User',
+    leftJoinColumn: 'user_id',
+    rightJoinColumn: 'role_id',
+  },
 ])
 
 function normalize(value) {
@@ -106,8 +115,12 @@ function buildDirectionalContract(pair, direction = 'left') {
     sourceToken: fromLeft ? pair.leftToken : pair.rightToken,
     targetEntity: fromLeft ? pair.rightEntity : pair.leftEntity,
     targetToken: fromLeft ? pair.rightToken : pair.leftToken,
-    sourceJoinColumn: fromLeft ? 'from_id' : 'to_id',
-    targetJoinColumn: fromLeft ? 'to_id' : 'from_id',
+    sourceJoinColumn: fromLeft
+      ? normalize(pair.leftJoinColumn) || 'from_id'
+      : normalize(pair.rightJoinColumn) || 'to_id',
+    targetJoinColumn: fromLeft
+      ? normalize(pair.rightJoinColumn) || 'to_id'
+      : normalize(pair.leftJoinColumn) || 'from_id',
   }
 }
 
