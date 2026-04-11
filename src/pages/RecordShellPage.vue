@@ -1039,7 +1039,8 @@ function formatAuditFieldLabel(fieldName) {
 function formatAuditActorLabel(editedBy) {
   const normalized = String(editedBy || '').trim()
   const userMatch = liveOptionRowsBySource.value.users?.find((row) => String(row?.id || '').trim() === normalized)
-  return String(userMatch?.User_Name || userMatch?.Name || '').trim() || 'User'
+  const userTitleToken = getRegistryTitleTokenForSource('users')
+  return String(userTitleToken ? getCanonicalTokenValue(userMatch || {}, userTitleToken) : '').trim() || 'User'
 }
 
 function getAuditTokenForFieldName(fieldName = '') {

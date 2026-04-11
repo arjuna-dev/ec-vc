@@ -66,7 +66,7 @@ const emit = defineEmits(['action-item-click'])
 const props = defineProps({
   text: {
     type: String,
-    default: 'Track the live operating picture for this file and move through core workflows from one surface.',
+    default: '',
   },
   stats: {
     type: Array,
@@ -74,7 +74,7 @@ const props = defineProps({
   },
   healthText: {
     type: String,
-    default: 'Healthy structure with active records and recent updates.',
+    default: '',
   },
   healthSegments: {
     type: Array,
@@ -94,22 +94,8 @@ const props = defineProps({
   },
 })
 
-const fallbackStats = [
-  { label: 'Records', value: '128', caption: 'Tracked in this file', tone: 'neutral' },
-  { label: 'Actions', value: '24', caption: 'Ready for review', tone: 'rich' },
-  { label: 'Reviews', value: '8', caption: 'Need attention', tone: 'sparse' },
-  { label: 'Active', value: '92%', caption: 'Healthy coverage', tone: 'rich' },
-]
-
-const fallbackHealthSegments = [
-  { tone: 'sparse', width: 24 },
-  { tone: 'rich', width: 76 },
-]
-
-const normalizedStats = computed(() => (props.stats.length ? props.stats : fallbackStats))
-const normalizedHealthSegments = computed(() =>
-  props.healthSegments.length ? props.healthSegments : fallbackHealthSegments,
-)
+const normalizedStats = computed(() => (Array.isArray(props.stats) ? props.stats : []))
+const normalizedHealthSegments = computed(() => (Array.isArray(props.healthSegments) ? props.healthSegments : []))
 const normalizedActionItems = computed(() =>
   (Array.isArray(props.actionItems) ? props.actionItems : [])
     .map((item) => ({

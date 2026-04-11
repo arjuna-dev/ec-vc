@@ -59,6 +59,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PageBackSymbol from 'src/components/PageBackSymbol.vue'
 import { RECORD_VIEW_ROUTE_NAME } from 'src/utils/recordViewNavigation'
+import { getCanonicalTokenValue, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
 
 const route = useRoute()
 const router = useRouter()
@@ -157,7 +158,8 @@ function formatAuditFieldLabel(fieldName) {
 function formatActorLabel(editedBy) {
   const normalized = String(editedBy || '').trim()
   const matched = users.value.find((row) => String(row?.id || '').trim() === normalized)
-  return String(matched?.User_Name || matched?.Name || '').trim() || normalized || 'User'
+  const userTitleToken = getRegistryTitleTokenForSource('users')
+  return String(userTitleToken ? getCanonicalTokenValue(matched || {}, userTitleToken) : '').trim() || normalized || 'User'
 }
 
 const eventPayload = computed(() => (eventRecord.value?.payload && typeof eventRecord.value.payload === 'object' ? eventRecord.value.payload : {}))

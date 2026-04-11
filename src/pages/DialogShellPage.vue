@@ -55,6 +55,7 @@ import {
   getCreateBranches,
   getCreateBranchTokenName,
   getCanonicalTokenFieldNames,
+  getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
   getRuntimeTableNameForEntityName,
@@ -256,8 +257,7 @@ function buildLiveEntityOptions(sourceKey) {
   const titleToken = (LEVEL_3_FILE_REGISTRY_BY_KEY[sourceKey] || []).find((token) => String(token.level_3) === '1') || null
   return rows.map((row) => {
     const value = String(row?.id || row?.artifact_id || '').trim()
-    const labelField = String(titleToken?.dbWriteField || titleToken?.tokenName || '').trim()
-    const label = String(row?.[labelField] || row?.Name || value).trim()
+    const label = String(titleToken ? getCanonicalTokenValue(row, titleToken) : '').trim() || value
     return value && label ? { label, value } : null
   }).filter(Boolean)
 }
