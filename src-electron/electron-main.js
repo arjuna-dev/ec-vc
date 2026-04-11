@@ -193,7 +193,7 @@ function upsertPipelines(rows = []) {
 
 function createPipeline(payload = {}) {
   const database = initDb()
-  const actor = getAuditActor(database, { requireUser: true })
+  const actor = getAuditActor(database)
   const name =
     normalizeNullableString(payload.Project_Name) ||
     normalizeNullableString(payload.name)
@@ -5563,7 +5563,7 @@ function writeLifecycleAuditEvent(
     fieldName: 'record',
     oldValue,
     newValue,
-    editedBy: actor.user_id,
+    editedBy: normalizeNullableString(actor?.user_id) || null,
     actionLabel: normalizedActionLabel,
     payload: {
       actor_label: resolveAuditActorDisplayLabel(database, actor.user_id),
