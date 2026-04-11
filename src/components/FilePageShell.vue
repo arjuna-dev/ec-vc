@@ -2564,24 +2564,21 @@ function requestCreateRecordShell(options = {}) {
     })
     return
   }
-  if (getCreateBranchEntry(activeSourceKey.value, requestedBranch)) {
-    router.push({
-      name: 'dialog-shell',
-      query: {
-        section: activeSourceKey.value,
-        create: String(Date.now()),
-        kind: requestedBranch,
-      },
-    })
-    return
+
+  const nextInitialValues = {}
+  const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
+  const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
+  const branchToken = branchTokenName
+    ? [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+        (token) => String(token?.tokenName || '').trim() === branchTokenName,
+      ) || null
+    : null
+
+  if (branchToken && branchEntry) {
+    nextInitialValues[branchToken.key] = resolveCreateDialogOptionValue(branchToken, branchEntry.value)
   }
 
-  const nextQuery = {
-    ...route.query,
-    create: String(Date.now()),
-  }
-  delete nextQuery.kind
-  router.push({ name: route.name, params: route.params, query: nextQuery })
+  openCreateRecordShell({ initialValues: nextInitialValues })
 }
 
 function handleToolbarAdd() {
