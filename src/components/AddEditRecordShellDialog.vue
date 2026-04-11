@@ -321,7 +321,7 @@
 
                           <q-input
                             v-else
-                            :model-value="stringValue(formValues[fieldEntry.token.key])"
+                            :model-value="getStagedFieldValue(fieldEntry.token.key)"
                             dense
                             outlined
                             :disable="loading || isFieldLocked(fieldEntry.token)"
@@ -332,7 +332,9 @@
                               { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
                               fieldVerificationClass(fieldEntry.token),
                             ]"
-                            @update:model-value="updateField(fieldEntry.token.key, $event)"
+                            @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
+                            @blur="commitStagedField(fieldEntry.token.key)"
+                            @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                           />
                         </template>
                         <template #action>
@@ -439,7 +441,7 @@
 
                           <q-input
                             v-else
-                            :model-value="stringValue(formValues[fieldEntry.token.key])"
+                            :model-value="getStagedFieldValue(fieldEntry.token.key)"
                             dense
                             outlined
                             :disable="loading || isFieldLocked(fieldEntry.token)"
@@ -450,7 +452,9 @@
                               { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
                               fieldVerificationClass(fieldEntry.token),
                             ]"
-                            @update:model-value="updateField(fieldEntry.token.key, $event)"
+                            @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
+                            @blur="commitStagedField(fieldEntry.token.key)"
+                            @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                           />
                         </template>
                         <template #action>
@@ -567,7 +571,7 @@
 
                       <q-input
                         v-else
-                        :model-value="stringValue(formValues[fieldEntry.token.key])"
+                        :model-value="getStagedFieldValue(fieldEntry.token.key)"
                         dense
                         outlined
                         :disable="loading || isFieldLocked(fieldEntry.token)"
@@ -578,7 +582,9 @@
                           { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
                           fieldVerificationClass(fieldEntry.token),
                         ]"
-                        @update:model-value="updateField(fieldEntry.token.key, $event)"
+                        @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
+                        @blur="commitStagedField(fieldEntry.token.key)"
+                        @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                       />
                     </template>
                     <template #action>
@@ -687,7 +693,7 @@
 
                       <q-input
                         v-else
-                        :model-value="stringValue(formValues[fieldEntry.token.key])"
+                        :model-value="getStagedFieldValue(fieldEntry.token.key)"
                         dense
                         outlined
                         :disable="loading || isFieldLocked(fieldEntry.token)"
@@ -698,7 +704,9 @@
                           { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
                           fieldVerificationClass(fieldEntry.token),
                         ]"
-                        @update:model-value="updateField(fieldEntry.token.key, $event)"
+                        @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
+                        @blur="commitStagedField(fieldEntry.token.key)"
+                        @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                       />
                     </template>
                     <template #action>
@@ -841,6 +849,7 @@ const open = computed({
 
 const activeSectionKey = ref('')
 const formValues = ref({})
+const stagedFieldValues = ref({})
 const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
@@ -1062,6 +1071,7 @@ function initializeDialogState() {
   hasUserChanges.value = false
   activeSectionKey.value = resolveInitialDialogSectionKey(props.initialSectionKey)
   artifactDragOver.value = false
+  stagedFieldValues.value = {}
   stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
   selectedArtifactIds.value = []
   autoProcessArtifacts.value = false
@@ -1120,6 +1130,11 @@ function updateField(tokenKey, value) {
     ...formValues.value,
     [tokenKey]: value,
   }
+  if (tokenKey in stagedFieldValues.value) {
+    const nextStagedValues = { ...stagedFieldValues.value }
+    delete nextStagedValues[tokenKey]
+    stagedFieldValues.value = nextStagedValues
+  }
   if (token && isReviewTrackedField(token)) {
     fieldVerificationStates.value = {
       ...fieldVerificationStates.value,
@@ -1128,6 +1143,31 @@ function updateField(tokenKey, value) {
   }
   hasUserChanges.value = true
   emit('change', buildDialogSnapshot())
+}
+
+function getStagedFieldValue(tokenKey) {
+  if (tokenKey in stagedFieldValues.value) return stagedFieldValues.value[tokenKey]
+  return stringValue(formValues.value?.[tokenKey])
+}
+
+function stageFieldValue(tokenKey, value) {
+  stagedFieldValues.value = {
+    ...stagedFieldValues.value,
+    [tokenKey]: value == null ? '' : String(value),
+  }
+}
+
+function commitStagedField(tokenKey) {
+  if (!(tokenKey in stagedFieldValues.value)) return
+  const nextValue = stagedFieldValues.value[tokenKey]
+  updateField(tokenKey, nextValue)
+}
+
+function handleTextFieldEnter(token, tokenKey, event) {
+  if (isLongTextField(token)) return
+  event?.stopPropagation?.()
+  event?.preventDefault?.()
+  commitStagedField(tokenKey)
 }
 
 function submit() {
