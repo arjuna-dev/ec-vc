@@ -40,6 +40,7 @@
         @toggle-settings-group="toggleExpandedSection"
         @toggle-settings-item="setTokenSelected"
         @open-feed-log="openFeedItemLog"
+        @request-feed-add="handleRecordFeedAdd"
       >
         <template #portrait>
           <figure class="record-shell__portrait record-shell__portrait--initials-only">
@@ -409,6 +410,7 @@ import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vu
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import RecordHero from 'src/components/RecordHero.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
+import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
   CANONICAL_OPTION_LISTS,
   getCanonicalTokenFieldNames,
@@ -424,6 +426,7 @@ import {
 } from 'src/utils/structureRegistry'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
+import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/tokenWriteChanges'
 
@@ -588,6 +591,20 @@ const heroAvatarColor = computed(() => {
 const heroName = computed(() => getTokenDisplayValue(canonicalNameToken.value) || `${activeRegistryEntry.value?.singularLabel || 'Record'} Name`)
 const heroSummaryValue = computed(() => getTokenDisplayValue(canonicalSummaryToken.value) || 'No summary captured for this record yet.')
 const heroSummaryStatusIcon = computed(() => (tokenHasStoredValue(canonicalSummaryToken.value) ? 'task_alt' : ''))
+const recordFeedArtifactContext = computed(() => {
+  if (!isRecordRoute.value) return null
+  const entityName = String(activeRegistryEntry.value?.entityName || tableNameParam.value || '').trim()
+  const entityLabel = String(activeRegistryEntry.value?.label || activeRegistryEntry.value?.singularLabel || 'Record').trim()
+  const recordId = String(recordIdParam.value || '').trim()
+  const recordLabel = String(heroName.value || '').trim() || recordId
+  if (!entityName || !recordId) return null
+  return {
+    entityName,
+    entityLabel,
+    recordId,
+    recordLabel,
+  }
+})
 const selectedHeroFieldCards = computed(() =>
   selectedHeroTokens.value.map((token) => {
     const sectionLabel = level2Sections.value.find((section) => section.key === token.parentKey)?.label || 'Field'
@@ -773,6 +790,41 @@ function setTokenSelected(tokenKey, isSelected) {
 
 function handleDialogChange() {}
 function handleDialogClose() { createDialogOpen.value = false }
+
+function handleRecordFeedAdd(feedTab) {
+  const normalizedFeedTab = String(feedTab || '').trim().toLowerCase()
+  if (!['notes', 'artifacts', 'intake'].includes(normalizedFeedTab)) return
+
+  if (normalizedFeedTab === 'intake') {
+    setPendingIntakeShellRequest({
+      initialArtifacts: [],
+      artifactContext: recordFeedArtifactContext.value,
+    })
+    router.push({
+      name: 'intake-shell',
+      query: {
+        section: 'intake',
+        create: '1',
+        open: String(Date.now()),
+      },
+    })
+    return
+  }
+
+  setPendingAddEditShellRequest({
+    sourceKey: normalizedFeedTab,
+    initialValues: {},
+  })
+  router.push({
+    name: 'dialog-shell',
+    query: {
+      section: normalizedFeedTab,
+      create: '1',
+      contextEntity: String(recordFeedArtifactContext.value?.entityName || '').trim(),
+      contextRecordId: String(recordFeedArtifactContext.value?.recordId || '').trim(),
+    },
+  })
+}
 
 async function submitCreateRecord({ values } = {}) {
   if (isRecordRoute.value) {

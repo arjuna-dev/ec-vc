@@ -2,6 +2,12 @@
   <section class="record-feed-panel">
     <div class="record-feed-panel__header record-feed-panel__header--main">
       <RecordFeedLabel :label="title" />
+      <PlusWithLabelButton
+        v-if="showAddButton"
+        class="record-feed-panel__add"
+        :label="resolvedAddLabel"
+        @click="$emit('request-add', activeTab)"
+      />
     </div>
 
     <div v-if="tabs.length" class="record-feed-panel__tabs">
@@ -71,6 +77,7 @@ import RecordFeedLabel from 'src/components/RecordFeedLabel.vue'
 import RecordFeedTabLabel from 'src/components/RecordFeedTabLabel.vue'
 import RecordFeedTime from 'src/components/RecordFeedTime.vue'
 import ValueChipSurface from 'src/components/ValueChipSurface.vue'
+import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 
 defineOptions({
@@ -103,9 +110,13 @@ const props = defineProps({
     type: String,
     default: 'No feed items yet for this record.',
   },
+  addButtonTabs: {
+    type: Array,
+    default: () => ['notes', 'artifacts', 'intake'],
+  },
 })
 
-defineEmits(['open-log'])
+defineEmits(['open-log', 'request-add'])
 
 const displayedItems = computed(() => {
   const availableTabs = Array.isArray(props.tabs) ? props.tabs : []
@@ -130,6 +141,21 @@ const displayedGroups = computed(() => {
       }
     })
     .filter((group) => group.id && group.items.length)
+})
+
+const showAddButton = computed(() => {
+  const active = String(activeTab.value || '').trim().toLowerCase()
+  return (Array.isArray(props.addButtonTabs) ? props.addButtonTabs : [])
+    .map((tab) => String(tab || '').trim().toLowerCase())
+    .includes(active)
+})
+
+const resolvedAddLabel = computed(() => {
+  const active = String(activeTab.value || '').trim().toLowerCase()
+  if (active === 'notes') return 'Add Note'
+  if (active === 'artifacts') return 'Add Artifact'
+  if (active === 'intake') return 'Add Intake'
+  return 'Add'
 })
 </script>
 
@@ -156,8 +182,12 @@ const displayedGroups = computed(() => {
 }
 
 .record-feed-panel__header--main {
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 20px;
+}
+
+.record-feed-panel__add {
+  flex: 0 0 auto;
 }
 
 .record-feed-panel__state {

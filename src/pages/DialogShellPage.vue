@@ -49,6 +49,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
+import { consumePendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import {
   CANONICAL_OPTION_LISTS,
   getCreateBranchEntry,
@@ -183,6 +184,10 @@ watch(
 
 function buildCreateDialogInitialValues() {
   const nextInitialValues = {}
+  const pending = consumePendingAddEditShellRequest(activeSourceKey.value)
+  if (pending?.initialValues && typeof pending.initialValues === 'object') {
+    Object.assign(nextInitialValues, pending.initialValues)
+  }
   const requestedBranch = String(route.query.kind || '').trim().toLowerCase()
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)

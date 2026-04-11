@@ -58,6 +58,7 @@
           class="hero-sandbox__feed-panel"
           @update:model-value="$emit('update:feedTab', $event)"
           @open-log="$emit('open-feed-log', $event)"
+          @request-add="$emit('request-feed-add', $event)"
         />
       </template>
     </Hero3ColOverlay>
@@ -134,6 +135,7 @@ const emit = defineEmits([
   'toggle-settings-group',
   'toggle-settings-item',
   'open-feed-log',
+  'request-feed-add',
 ])
 
 function handleToggleSettingsItem(itemKey, value) {
