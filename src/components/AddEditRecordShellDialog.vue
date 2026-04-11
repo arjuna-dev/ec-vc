@@ -2402,7 +2402,7 @@ function isSystemManagedToken(token) {
   const tokenLabel = String(token?.label || '').trim().toLowerCase()
   const inputSource = String(token?.inputSource || '').trim().toLowerCase()
 
-  if (['id', 'datetime', 'date', 'creator'].includes(tokenType)) return true
+  if (['id', 'creator'].includes(tokenType)) return true
   if (inputSource === 'system_actor') return true
   if (tokenName.endsWith('_id')) return true
   if (tokenName.includes('creator') || tokenLabel.includes('creator')) return true
