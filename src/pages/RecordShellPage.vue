@@ -444,7 +444,7 @@ const expandedSectionSubgroupKeys = ref([])
 const activeSectionKey = ref('')
 const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
-const activeRecordFeedTab = ref('system')
+const activeRecordFeedTab = ref('events')
 const recordShellTopNavViewMode = ref('grid')
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
@@ -597,7 +597,7 @@ const feedItems = computed(() => {
   return [
     {
       id: 'feed-template-1',
-      feedKey: 'system',
+      feedKey: 'events',
       groupKey: 'lifecycle',
       sourceLabel: 'Record Shell',
       meta: 'Now',
@@ -607,7 +607,7 @@ const feedItems = computed(() => {
     },
     {
       id: 'feed-template-2',
-      feedKey: 'actions',
+      feedKey: 'events',
       groupKey: 'actions',
       sourceLabel: 'Payload',
       meta: 'Live',
@@ -1149,7 +1149,7 @@ function normalizeAuditFeedEvents(events = []) {
       const fieldName = String(event?.field_name || '').trim()
       const actionLabel = String(event?.action_label || '').trim().toLowerCase()
       const groupKey = resolveAuditFeedGroupKey(event, fieldName, actionLabel)
-      const feedKey = resolveAuditFeedTabKey(event, groupKey)
+      const feedKey = resolveAuditFeedTabKey(event)
       return {
         id: String(event?.id || '').trim() || `audit:${Math.random()}`,
         feedKey,
@@ -1180,7 +1180,7 @@ function resolveAuditFeedGroupKey(event = {}, fieldName = '', actionLabel = '') 
   return 'actions'
 }
 
-function resolveAuditFeedTabKey(event = {}, groupKey = 'actions') {
+function resolveAuditFeedTabKey(event = {}) {
   const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {}
   const explicitTab = String(
     payload?.feed_tab ||
@@ -1191,11 +1191,11 @@ function resolveAuditFeedTabKey(event = {}, groupKey = 'actions') {
     .trim()
     .toLowerCase()
 
-  if (['system', 'notes', 'artifacts', 'intake', 'actions'].includes(explicitTab)) {
+  if (['events', 'notes', 'artifacts', 'intake'].includes(explicitTab)) {
     return explicitTab
   }
 
-  return groupKey === 'lifecycle' ? 'system' : 'actions'
+  return 'events'
 }
 
 function openFeedItemLog(eventId) {

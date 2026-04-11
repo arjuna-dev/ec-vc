@@ -4,11 +4,10 @@ export const RECORD_FEED_GROUP_OPTIONS = [
 ]
 
 export const RECORD_FEED_TAB_ORDER = [
-  { id: 'system', label: 'Events' },
+  { id: 'events', label: 'Events' },
   { id: 'notes', label: 'Notes' },
   { id: 'artifacts', label: 'Artifacts' },
   { id: 'intake', label: 'Intake' },
-  { id: 'actions', label: 'Actions' },
 ]
 
 export function filterRecordFeedTabs(items = []) {
