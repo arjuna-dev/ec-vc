@@ -42,10 +42,11 @@ const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 
 function resolveValidShellSection(value, entityName = '') {
   const normalized = String(value || '').trim().toLowerCase()
+  if (!normalized) {
+    return getFilePageRegistryEntryByEntityReference(String(entityName || '').trim())?.key || ''
+  }
   if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized)) return normalized
-
-  const derivedSourceKey = getFilePageRegistryEntryByEntityReference(String(entityName || '').trim())?.key || ''
-  return derivedSourceKey
+  return ''
 }
 
 function updateShellSelector(nextValue) {

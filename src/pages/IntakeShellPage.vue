@@ -7,6 +7,12 @@
       </q-banner>
     </div>
 
+    <div v-else-if="!hasResolvedSourceKey" class="q-pa-md">
+      <q-banner class="bg-red-2 text-black" rounded>
+        Intake Shell source is not mapped to an approved file section.
+      </q-banner>
+    </div>
+
     <IntakeShellDialog
       :key="dialogRenderKey"
       v-else
@@ -77,6 +83,7 @@ const dialogArtifactContext = ref(null)
 const fallbackSectionKey = 'intake'
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section || fallbackSectionKey))
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
+const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
 const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
@@ -225,9 +232,10 @@ onBeforeUnmount(() => {
 
 function resolveValidShellSection(value) {
   const normalized = String(value || '').trim().toLowerCase()
+  if (!normalized) return fallbackSectionKey
   return normalized === 'intake' || normalized === 'ingestion' || normalized === 'artifacts-processed'
-    ? getFilePageRegistryEntry(normalized)?.key || fallbackSectionKey
-    : fallbackSectionKey
+    ? getFilePageRegistryEntry(normalized)?.key || ''
+    : ''
 }
 
 function normalizeCreateDialogToken(token) {

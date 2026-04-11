@@ -399,8 +399,9 @@ function toggleGeneralSettingsItem(itemKey, nextChecked) {
 
 function resolveValidShellSection(value, entityName = '') {
   const normalized = String(value || '').trim().toLowerCase()
+  if (!normalized) return resolveSourceKeyFromEntityName(entityName)
   if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized)) return normalized
-  return resolveSourceKeyFromEntityName(entityName)
+  return ''
 }
 
 function normalizeCreateDialogToken(token) {
