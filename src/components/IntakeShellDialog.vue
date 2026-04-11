@@ -2195,9 +2195,9 @@ onBeforeUnmount(() => {
 .create-record-shell__record-data-title {
   color: #111111;
   font-family: var(--font-title);
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: var(--font-weight-black);
-  line-height: 0.92;
+  line-height: 0.96;
 }
 
 .create-record-shell__record-data-toggle-icon {
@@ -2229,9 +2229,9 @@ onBeforeUnmount(() => {
 .create-record-shell__intake-title {
   color: #111111;
   font-family: var(--font-title);
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: var(--font-weight-black);
-  line-height: 0.92;
+  line-height: 0.96;
 }
 
 .create-record-shell__intake-toggle-icon {
