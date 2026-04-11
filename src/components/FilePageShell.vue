@@ -415,7 +415,7 @@
                   :options="summarySectionShellOptions"
                   @update:model-value="setRowRelationshipPanel(row, $event)"
                 />
-                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" :disable="!supportsActiveSourceEditing" @click="requestEditRecordShell(row, { sectionKey: 'kdb' })">
+                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" :disable="!supportsActiveSourceEditing" @click="handleCardAddRelation(row)">
                   <span class="test-shell-card__summary-add-relation-plus">
                     <q-icon name="add" />
                   </span>
@@ -831,6 +831,8 @@ import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
+import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
+import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 
 const props = defineProps({
   shellMode: {
@@ -2551,6 +2553,23 @@ function getRowRelationshipPanel(row) {
   return rowId ? cardRelationshipPanelById.value[rowId] || 'notes' : 'notes'
 }
 
+function buildRowArtifactContext(row) {
+  if (activeSourceKey.value === 'artifacts') return null
+  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  const entityLabel = String(activeRegistryEntry.value?.singularLabel || activeRegistryEntry.value?.label || '').trim()
+  const recordId = String(row?.recordId || '').trim()
+  const recordLabel = String(row?.titleValue || '').trim()
+  if (!entityName || !entityLabel || !recordId) return null
+
+  return {
+    entityName,
+    entityLabel,
+    recordId,
+    recordLabel,
+    state: 'default_preselected_unverified',
+  }
+}
+
 function setRowRelationshipPanel(row, nextValue) {
   const rowId = getRowSelectionId(row)
   if (!rowId) return
@@ -2558,6 +2577,59 @@ function setRowRelationshipPanel(row, nextValue) {
     ...cardRelationshipPanelById.value,
     [rowId]: resolveCardRelationshipPanel(nextValue, row.relationshipItemsByType || {}),
   }
+}
+
+function handleCardAddRelation(row) {
+  if (!supportsActiveSourceEditing.value) return
+  const activePanel = String(getRowRelationshipPanel(row) || '').trim().toLowerCase()
+  const supportedCreateSourceKeys = new Set([
+    'users',
+    'artifacts',
+    'contacts',
+    'companies',
+    'opportunities',
+    'projects',
+    'notes',
+    'tasks',
+    'intake',
+  ])
+
+  if (!supportedCreateSourceKeys.has(activePanel)) {
+    requestEditRecordShell(row, { sectionKey: 'kdb' })
+    return
+  }
+
+  const artifactContext = buildRowArtifactContext(row)
+
+  if (activePanel === 'intake') {
+    setPendingIntakeShellRequest({
+      initialArtifacts: [],
+      artifactContext,
+    })
+    router.push({
+      name: 'intake-shell',
+      query: {
+        section: 'intake',
+        create: '1',
+        open: String(Date.now()),
+      },
+    })
+    return
+  }
+
+  setPendingAddEditShellRequest({
+    sourceKey: activePanel,
+    initialValues: {},
+  })
+  router.push({
+    name: 'dialog-shell',
+    query: {
+      section: activePanel,
+      create: '1',
+      contextEntity: String(artifactContext?.entityName || '').trim(),
+      contextRecordId: String(artifactContext?.recordId || '').trim(),
+    },
+  })
 }
 
 function getTestShellMetadataRows(row) {
