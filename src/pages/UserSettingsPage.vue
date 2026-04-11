@@ -83,7 +83,9 @@
                       outlined
                       dense
                       label="Name *"
+                      :error="showOwnerRequiredErrors && !ownerNameValue"
                       :disable="loading || saving || !canEditOwnerSettings"
+                      @keyup.enter="saveUserSettings"
                     />
                   </div>
                   <div class="col-12 col-md-6">
@@ -92,7 +94,9 @@
                       outlined
                       dense
                       label="Email *"
+                      :error="showOwnerRequiredErrors && !ownerEmailValue"
                       :disable="loading || saving || !canEditOwnerSettings"
+                      @keyup.enter="saveUserSettings"
                     />
                   </div>
                   <div class="col-12 col-md-6">
@@ -139,12 +143,18 @@
                 <B10Button
                   variant="primary"
                   icon-start="save"
-                  label="Save Owner Settings"
+                  label="Save and Continue"
                   :loading="saving"
                   :disable="loading || !hasUnsavedChanges || !canEditOwnerSettings"
                   @click="saveUserSettings"
                 />
               </q-card-actions>
+              <div
+                v-if="showOwnerRequiredErrors"
+                class="settings-form-card__required-note"
+              >
+                Input fields to continue
+              </div>
             </q-card>
           </div>
         </div>
@@ -471,6 +481,7 @@ const loading = ref(false)
 const saving = ref(false)
 const savingWorkspaceSettings = ref(false)
 const error = ref('')
+const ownerSubmitAttempted = ref(false)
 const showOwnerManualDialog = ref(false)
 const ownerManualLoading = ref(false)
 const ownerManualSaving = ref(false)
@@ -578,6 +589,12 @@ function normalizedWorkspaceSignature(value) {
 
 const hasUnsavedChanges = computed(
   () => normalizedFormSignature(form.value) !== normalizedFormSignature(savedForm.value)
+)
+const ownerNameValue = computed(() => normalizeInput(form.value.Name))
+const ownerEmailValue = computed(() => normalizeInput(form.value.User_PEmail))
+const ownerHasMissingRequiredFields = computed(() => !ownerNameValue.value || !ownerEmailValue.value)
+const showOwnerRequiredErrors = computed(
+  () => ownerSubmitAttempted.value && ownerHasMissingRequiredFields.value
 )
 const hasWorkspaceChanges = computed(
   () => normalizedWorkspaceSignature(workspaceSettings.value) !== normalizedWorkspaceSignature(savedWorkspaceSettings.value)
@@ -698,6 +715,7 @@ async function loadUserSettings() {
     ownerSetupMessage.value = String(result?.ownerSetupMessage || '').trim()
     form.value = mapUserSettingsToForm(result)
     savedForm.value = { ...form.value }
+    ownerSubmitAttempted.value = false
   } catch (e) {
     error.value = normalizeIpcErrorMessage(e)
   } finally {
@@ -708,21 +726,20 @@ async function loadUserSettings() {
 async function saveUserSettings() {
   if (!hasBridge.value) return
   if (!canEditOwnerSettings.value) return
-  const name = normalizeInput(form.value.Name)
-  const email = normalizeInput(form.value.User_PEmail)
-  if (!name) {
+  ownerSubmitAttempted.value = true
+  if (!ownerNameValue.value) {
     const message = 'User name should not be empty'
     error.value = message
     $q.notify({ type: 'negative', message: `Error: ${message}` })
     return
   }
-  if (!email) {
+  if (!ownerEmailValue.value) {
     const message = 'User email should not be empty'
     error.value = message
     $q.notify({ type: 'negative', message: `Error: ${message}` })
     return
   }
-  if (!isEmail(email)) {
+  if (!isEmail(ownerEmailValue.value)) {
     const message = 'Enter a valid email address'
     error.value = message
     $q.notify({ type: 'negative', message })
@@ -734,9 +751,9 @@ async function saveUserSettings() {
   try {
     const payload = {
       contact: {
-        Name: name,
-        User_PEmail: email,
-        Personal_Email: email,
+        Name: ownerNameValue.value,
+        User_PEmail: ownerEmailValue.value,
+        Personal_Email: ownerEmailValue.value,
         Professional_Email: '',
         Phone: normalizeInput(form.value.Phone),
         LinkedIn: normalizeInput(form.value.LinkedIn),
@@ -746,6 +763,7 @@ async function saveUserSettings() {
     const result = await bridge.value.userSettings.set(payload)
     form.value = mapUserSettingsToForm(result)
     savedForm.value = { ...form.value }
+    ownerSubmitAttempted.value = false
     globalThis?.dispatchEvent?.(new Event('ecvc:user-label-changed'))
     $q.notify({ type: 'positive', message: 'User settings saved' })
   } catch (e) {
@@ -1118,6 +1136,15 @@ watch(activeOwnerDocumentId, () => {
 
 .settings-form-card__actions {
   padding: 16px 24px 22px;
+}
+
+.settings-form-card__required-note {
+  padding: 0 24px 22px;
+  color: #b42318;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .owner-manual-dialog {
