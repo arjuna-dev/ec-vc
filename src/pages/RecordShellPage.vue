@@ -72,15 +72,6 @@
           <div class="record-shell__panel-meta">{{ activeSectionTokens.length }} fields</div>
         </div>
 
-        <RecordHistoryBox
-          v-if="isSystemSectionActive"
-          title="History"
-          :items="isRecordRoute ? feedItems : []"
-          :loading="loading"
-          empty-label="No history yet for this record."
-          @open-item="openFeedItemLog($event?.id)"
-        />
-
         <div v-if="isKdbSectionActive" class="record-shell__kdb-grid">
           <div
             v-for="group in activeKdbTokenGroups"
@@ -199,6 +190,125 @@
                 <div v-else class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div v-else-if="isSystemSectionActive" class="record-shell__system-grid">
+          <div class="record-shell__system-column">
+            <div class="record-shell__field-grid">
+              <div
+                v-for="token in systemSectionTokens"
+                :key="token.key"
+                class="record-shell__field-card"
+              >
+                <div class="record-shell__field-label">{{ token.label }}</div>
+                <div v-if="isRecordRoute" class="record-shell__field-value-row">
+                  <div
+                    v-if="isSystemReadOnlyInline(token)"
+                    class="record-shell__field-static-box"
+                  >
+                    {{ getTokenDisplayValue(token) }}
+                  </div>
+                  <q-select
+                    v-else-if="token.tokenType === 'select_multi'"
+                    :model-value="inlineMultiValue(token)"
+                    dense
+                    outlined
+                    use-chips
+                    multiple
+                    emit-value
+                    map-options
+                    :options="token.inputOptions || []"
+                    :disable="loading || !isInlineFieldEditable(token)"
+                    class="record-shell__field-input"
+                    @update:model-value="updateInlineFieldValue(token, $event)"
+                    @blur="commitInlineFieldValue(token)"
+                  />
+                  <q-select
+                    v-else-if="token.tokenType === 'select_single'"
+                    :model-value="inlineSingleValue(token)"
+                    dense
+                    outlined
+                    use-chips
+                    emit-value
+                    map-options
+                    :options="token.inputOptions || []"
+                    :disable="loading || !isInlineFieldEditable(token)"
+                    class="record-shell__field-input"
+                    @update:model-value="commitInlineFieldValue(token, $event)"
+                  />
+                  <q-input
+                    v-else
+                    :model-value="inlineStringValue(token)"
+                    dense
+                    outlined
+                    :disable="loading || !isInlineFieldEditable(token)"
+                    :type="inlineInputType(token)"
+                    class="record-shell__field-input"
+                    @update:model-value="updateInlineFieldValue(token, $event)"
+                    @blur="commitInlineFieldValue(token)"
+                    @keydown.enter.stop.prevent="commitInlineFieldValue(token)"
+                  />
+                  <q-btn
+                    v-if="showInlineFieldVerificationAction(token)"
+                    flat
+                    dense
+                    size="sm"
+                    :disable="loading"
+                    class="record-shell__field-action"
+                  >
+                    <q-icon
+                      :name="inlineFieldVerificationIcon(token)"
+                      :class="inlineFieldVerificationIconClass(token)"
+                      :style="inlineFieldVerificationIconStyle(token)"
+                      size="14px"
+                    />
+                    <q-menu anchor="bottom right" self="top left">
+                      <q-list dense class="record-shell__verification-menu">
+                        <q-item
+                          v-for="option in fieldVerificationActionOptions"
+                          :key="option.value"
+                          clickable
+                          v-close-popup
+                          class="record-shell__verification-menu-item"
+                          @click="updateInlineFieldVerificationState(token, option.value)"
+                        >
+                          <q-item-section avatar>
+                            <q-icon :name="option.icon" :style="{ color: option.color }" size="14px" />
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="record-shell__verification-menu-label">{{ option.label }}</q-item-label>
+                          </q-item-section>
+                        </q-item>
+                      </q-list>
+                    </q-menu>
+                  </q-btn>
+                  <q-btn
+                    v-if="showInlineFieldCopyAction(token)"
+                    flat
+                    dense
+                    size="sm"
+                    :disable="loading"
+                    class="record-shell__field-action"
+                    aria-label="Copy field value"
+                    @click="copyInlineFieldValue(token)"
+                  >
+                    <q-icon name="content_copy" size="14px" />
+                  </q-btn>
+                </div>
+                <div v-else class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="record-shell__system-column record-shell__system-column--history">
+            <RecordHistoryBox
+              title="History"
+              :items="isRecordRoute ? feedItems : []"
+              :loading="loading"
+              empty-label="No history yet for this record."
+              @open-item="openFeedItemLog($event?.id)"
+            />
           </div>
         </div>
 
@@ -605,6 +715,7 @@ const activeSectionEntries = computed(() => activeSectionGroup.value?.sections |
 const activeSectionTokens = computed(() => sectionDisplayTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
 const isKdbSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'kdb'))
 const isSystemSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
+const systemSectionTokens = computed(() => activeSectionTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
 const hasGroupedSectionSubsections = computed(() => !isKdbSectionActive.value && activeSectionEntries.value.length > 1)
 const activeSectionTokenGroups = computed(() =>
   activeSectionEntries.value
@@ -1460,11 +1571,25 @@ function isSystemManagedReadOnlyToken(token) {
   const tokenType = String(token?.tokenType || '').trim().toLowerCase()
   const tokenName = String(token?.tokenName || '').trim().toLowerCase()
 
-  if (['id', 'datetime', 'date', 'creator'].includes(tokenType)) return true
+  if (['id', 'creator'].includes(tokenType)) return true
   if (tokenName.endsWith('_id')) return true
   if (tokenName.includes('creator')) return true
   if (tokenName.includes('created_at') || tokenName.includes('updated_at')) return true
   if (tokenName.includes('user_role') || tokenName.includes('role_link')) return true
+  return false
+}
+
+function isHistoryDerivedSystemToken(token) {
+  const tokenType = String(token?.tokenType || '').trim().toLowerCase()
+  const tokenName = String(token?.tokenName || '').trim().toLowerCase()
+  const tokenLabel = String(token?.label || '').trim().toLowerCase()
+  const inputSource = String(token?.inputSource || '').trim().toLowerCase()
+
+  if (tokenType === 'creator') return true
+  if (inputSource === 'system_actor') return true
+  if (tokenName.includes('creator') || tokenLabel.includes('creator')) return true
+  if (tokenName.includes('created_at') || tokenName.includes('updated_at')) return true
+  if (tokenType === 'datetime' && tokenLabel === 'datetime') return true
   return false
 }
 
@@ -2144,6 +2269,9 @@ function onContactHeroPointerLeave() {
 .record-shell__panel-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
 .record-shell__panel-title { color:#111; font-family:var(--font-title); font-size:.94rem; font-weight:var(--font-weight-black); line-height:.96; }
 .record-shell__panel-meta { color:rgba(17,17,17,.54); font-size:.72rem; }
+.record-shell__system-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,360px); gap:16px; align-items:start; }
+.record-shell__system-column { min-width:0; }
+.record-shell__system-column--history { display:grid; align-content:start; }
 .record-shell__section-group-stack { display:grid; gap:14px; }
 .record-shell__section-group { display:grid; gap:8px; }
 .record-shell__section-group-toggle { display:inline-flex; align-items:center; justify-content:flex-start; gap:2px; width:max-content; padding:0; color:#111; background:transparent; border:0; text-align:left; cursor:pointer; }
