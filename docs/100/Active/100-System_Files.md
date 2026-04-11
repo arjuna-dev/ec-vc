@@ -252,6 +252,34 @@ The `General` section should track:
 - file class
 - file status
 
+## Future L3 Field Rules
+
+When `System Files` and the `Add/Edit File Shell` later govern `L3` birth more directly, each declared `L3` should be able to carry more than just a label.
+
+At minimum, future `L3` definition should support:
+
+- field type
+  - examples: `text`, `number`, `percentage`, `date`, `datetime`, `select_single`, `select_multi`
+- required-at-birth rule
+- required-under-condition rule
+- multi-selectable requirement conditions
+- whether the field is system-governed, user-input, KDB-linked, or derived
+
+This means file creation should later let the user decide not only:
+
+- which `L3` fields exist
+
+but also:
+
+- what kind of value each field stores
+- whether the field is always required
+- whether the field is only required under certain conditions
+- whether multiple requirement conditions may apply at once
+
+The target direction is for required-field logic to be explicit and governable, not buried in shell heuristics.
+
+That conditional-required layer should be treated as future `L3` governance work, not as loose UI-only behavior.
+
 ### KDB
 
 The `KDB` section should track set relationships to:

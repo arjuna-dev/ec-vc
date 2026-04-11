@@ -50,6 +50,10 @@ This tracker should stay aligned with:
    - `owned_field`
    - `directional_link`
    - `kdb_relationship`
+   - then extend that layer with governable field-definition metadata:
+     - field type
+     - always-required vs conditional-required
+     - multiple requirement conditions on the same field
 5. Define the missing runtime owner paths for canon-declared `User_*`, `Artifact_*`, and `Note_*` relationships.
 
 ## Active Workstreams
@@ -61,6 +65,10 @@ This tracker should stay aligned with:
   - `owned_field`
   - `directional_link`
   - `kdb_relationship`
+  - future `L3` governance metadata:
+    - field type
+    - always-required vs conditional-required
+    - multi-condition requirement support
 - intake continuity:
   - draft resume
   - staged review

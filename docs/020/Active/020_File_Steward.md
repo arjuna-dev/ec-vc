@@ -171,6 +171,12 @@ The `File Steward` should:
 - protect the consistency of `System`, `KDB`, and `General` subgrouping
 - protect shared base field names from drifting into unnecessary entity-specific aliases
 - protect `KDB` as the required shared linkage section without pretending every `L1` must use one identical relationship leaf list
+- treat future `L3` field-definition governance as explicit contract work:
+  - field type
+  - required-at-birth
+  - conditional-required rules
+  - multi-condition requirement support
+  - system-governed vs user-input vs KDB-linked vs derived status
 - use each file guide's `UX Steward` section to guide the user through structural forks
 - declare whether a file uses create branches, view forks, or no forks before exposing fork controls in shared shells
 - make sure `System Files` records declare `fork_mode` and `fork_enabled` before fork behavior is treated as real
