@@ -250,6 +250,41 @@ Example direction:
 - `Opportunities`
   - `fork_mode: create`
 
+## Target Fork Model
+
+The target direction is for `System Files` to govern both fork characteristics and fork instruction payload.
+
+That means the file-definition layer should eventually be able to say:
+
+- whether forks are enabled
+- whether the file uses:
+  - no forks
+  - view forks
+  - create forks
+  - both
+- which create forks exist
+- which view forks exist
+- what each fork is for
+- which payload scope each fork owns
+
+The intended split is:
+
+- create forks
+  - govern file birth and create-target choice
+  - help the user decide whether creation stays `L1` or branches into another declared path
+- view forks
+  - govern reading, rendering, tune payload, and file perspective
+  - do not automatically imply a different birth path
+
+Working examples:
+
+- `Opportunities`
+  - create-fork file
+- `Companies`
+  - view-fork-only file
+
+This target model should be treated as the direction for future `System Files` rows even when the full fork instruction payload still lives in registry truth during the current phase.
+
 ## Open Questions
 
 - Should `Files` and `System Files` converge to one visible name?

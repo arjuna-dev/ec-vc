@@ -148,6 +148,21 @@ This helps keep three things aligned:
 - what the shared shell renders
 - what the user is being asked to choose
 
+The target direction is for `System Files` to eventually govern not only `fork_mode` and `fork_enabled`, but also the fork instruction payload itself:
+
+- create fork set
+- view fork set
+- fork labels
+- fork purpose
+- fork-owned payload scope
+
+That means future file definition should be able to distinguish:
+
+- birth-path forks
+- view/rendering forks
+
+without treating them as the same kind of file behavior.
+
 ## Meaning Drift Rule
 
 If a surface says something, the system should mean it.

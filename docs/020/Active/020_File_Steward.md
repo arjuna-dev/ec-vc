@@ -193,6 +193,9 @@ The `File Steward` should:
   - `view`
   - `create`
   - `view_and_create`
+- treat the target direction as two explicit fork families:
+  - create forks for birth-path choice
+  - view forks for page/tune/rendering choice
 - help keep file naming, loader naming, and menu naming aligned
 - make sure every file guide includes a glossary section
 - treat `Glossary Steward` as heavy governance only where language risk is meaningfully high, not automatically for every file
