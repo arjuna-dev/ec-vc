@@ -1125,9 +1125,26 @@ const selectedRecordShellLevel3Keys = computed(() => {
 })
 const selectedRecordShellLevel3KeySet = computed(() => new Set(selectedRecordShellLevel3Keys.value))
 const activeCardSettingsSectionKey = computed(() => String(activeSection.value?.key || '').trim())
-const availableCardItemTokens = computed(() =>
-  activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
-)
+function isCoreCardSection(section) {
+  const normalized = String(section?.label || section?.rawLabel || '').trim().toLowerCase()
+  return normalized === 'general' || normalized === 'system' || normalized === 'kdb'
+}
+
+const cardSettingsSourceSections = computed(() => {
+  const active = activeSection.value
+  const activeLabel = String(active?.label || '').trim().toLowerCase()
+  if (activeLabel !== 'general') return active ? [active] : []
+
+  const fileSpecificSections = level2Sections.value.filter((section) => !isCoreCardSection(section))
+  return fileSpecificSections.length ? fileSpecificSections : (active ? [active] : [])
+})
+
+const availableCardItemTokens = computed(() => {
+  const sourceSectionKeys = new Set(cardSettingsSourceSections.value.map((section) => section.key))
+  return level3Tokens.value.filter(
+    (token) => sourceSectionKeys.has(token.parentKey) && token.key !== canonicalTitleToken.value?.key,
+  )
+})
 const enabledCardItemKeys = computed(() => {
   const scopeKey = `${activeContentSourceKey.value}:${activeCardSettingsSectionKey.value}`
   const configured = Array.isArray(cardItemKeysBySource.value[scopeKey]) ? cardItemKeysBySource.value[scopeKey] : []
@@ -1174,7 +1191,7 @@ const createDialogSubmitDisabled = computed(() => {
   return !canCreateWithShell.value
 })
 const cardItemTokenGroups = computed(() =>
-  level2Sections.value
+  cardSettingsSourceSections.value
     .map((section) => ({
       key: section.key,
       label: section.label,
@@ -1229,22 +1246,22 @@ const cardSettingsMenuGroups = computed(() => {
       }]
     : []
 
-  const activeSectionGroup = activeSection.value && availableCardItemTokens.value.length
-    ? [{
-        key: activeSection.value.key,
-        label: activeSection.value.label,
-        expanded: true,
-        items: availableCardItemTokens.value.map((token) => ({
+  const sourceGroups = cardItemTokenGroups.value.length
+    ? cardItemTokenGroups.value.map((group) => ({
+        key: group.key,
+        label: group.label,
+        expanded: expandedCardSettingsGroups.value.includes(group.key),
+        items: group.tokens.map((token) => ({
           key: token.key,
           label: token.label,
           checked: isCardItemEnabled(token.key),
         })),
-      }]
+      }))
     : []
 
   return [
     ...selectedGroup,
-    ...activeSectionGroup,
+    ...sourceGroups,
   ]
 })
 const canCreateWithShell = computed(() => {
