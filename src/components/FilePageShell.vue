@@ -2592,19 +2592,7 @@ function handleCardAddRelation(row) {
     'projects',
     'tasks',
     'notes',
-    'user-roles',
-    'companion-roles',
-    'markets',
-    'securities',
-    'intake',
   ])
-
-  if (!supportedCreateSourceKeys.has(activePanel)) {
-    requestEditRecordShell(row, { sectionKey: 'kdb' })
-    return
-  }
-
-  const artifactContext = buildRowArtifactContext(row)
 
   if (activePanel === 'intake') {
     setPendingIntakeShellRequest({
@@ -2621,6 +2609,13 @@ function handleCardAddRelation(row) {
     })
     return
   }
+
+  if (!supportedCreateSourceKeys.has(activePanel)) {
+    requestEditRecordShell(row, { sectionKey: 'kdb' })
+    return
+  }
+
+  const artifactContext = buildRowArtifactContext(row)
 
   setPendingAddEditShellRequest({
     sourceKey: activePanel,
