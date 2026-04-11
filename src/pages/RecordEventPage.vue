@@ -17,7 +17,7 @@
 
       <q-card flat bordered class="record-event-page__card">
         <q-card-section class="record-event-page__card-head">
-          <div class="record-event-page__eyebrow">Event Log</div>
+          <div class="record-event-page__eyebrow">History Log</div>
           <div class="record-event-page__title">{{ eventTitle }}</div>
           <div class="record-event-page__meta">
             <span>{{ eventActor }}</span>
@@ -157,9 +157,11 @@ function formatAuditFieldLabel(fieldName) {
 
 function formatActorLabel(editedBy) {
   const normalized = String(editedBy || '').trim()
+  if (!normalized) return 'Missing actor'
   const matched = users.value.find((row) => String(row?.id || '').trim() === normalized)
   const userTitleToken = getRegistryTitleTokenForSource('users')
-  return String(userTitleToken ? getCanonicalTokenValue(matched || {}, userTitleToken) : '').trim() || normalized || 'User'
+  const resolved = String(userTitleToken ? getCanonicalTokenValue(matched || {}, userTitleToken) : '').trim()
+  return resolved || `Unresolved actor: ${normalized}`
 }
 
 function formatVerificationStateLabel(state) {
@@ -175,18 +177,18 @@ const eventPayload = computed(() => (eventRecord.value?.payload && typeof eventR
 const eventFieldLabel = computed(() => String(eventPayload.value?.field_label || '').trim() || formatAuditFieldLabel(String(eventRecord.value?.field_name || '').replace(/__verification$/, '')))
 const eventActionLabel = computed(() => String(eventRecord.value?.action_label || '').trim() || 'record_event')
 const eventActor = computed(() => String(eventPayload.value?.actor_label || '').trim() || formatActorLabel(eventRecord.value?.edited_by))
-const eventTime = computed(() => String(eventRecord.value?.edited_at || '').trim() || 'Recent')
+const eventTime = computed(() => String(eventRecord.value?.edited_at || '').trim() || 'Missing datetime')
 const eventOldValue = computed(() => String(eventPayload.value?.old_display_value || '').trim() || stringifyAuditValue(eventRecord.value?.old_value))
 const eventNewValue = computed(() => String(eventPayload.value?.new_display_value || '').trim() || stringifyAuditValue(eventRecord.value?.new_value))
 const eventTitle = computed(() => {
   const fieldName = String(eventRecord.value?.field_name || '').trim()
-  const recordLabel = String(eventPayload.value?.record_label || '').trim() || 'record'
+  const recordLabel = String(eventPayload.value?.record_label || '').trim() || 'Missing record label'
   if (fieldName.endsWith('__verification')) {
     const verificationStateLabel = formatVerificationStateLabel(eventPayload.value?.verification_state)
     return `${eventActor.value} marked ${eventFieldLabel.value} as ${verificationStateLabel.toLowerCase()} for ${recordLabel}`
   }
   if (String(eventRecord.value?.action_label || '').toLowerCase().includes('create')) return `${eventActor.value} created ${recordLabel}`
-  return `${eventActor.value} updated ${eventFieldLabel.value || 'record'} for ${recordLabel}`
+  return `${eventActor.value} updated ${eventFieldLabel.value || 'Missing field label'} for ${recordLabel}`
 })
 const rawEventJson = computed(() => {
   if (!eventRecord.value) return ''

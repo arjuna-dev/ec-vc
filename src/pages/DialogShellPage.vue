@@ -596,10 +596,10 @@ function buildHistoryEventTitle(event = {}) {
   const action = String(event?.action_label || '').trim().toLowerCase()
   const recordLabel = String(event?.record_name || event?.record_label || event?.record_id || '').trim()
   const fieldLabel = String(event?.field_label || event?.field_name || '').trim()
-  if (action === 'created') return recordLabel ? `Created ${recordLabel}` : 'Created record'
-  if (action === 'deleted') return recordLabel ? `Deleted ${recordLabel}` : 'Deleted record'
-  if (action === 'verified') return fieldLabel ? `Verified ${fieldLabel}` : 'Verified field'
-  if (action === 'modified') return fieldLabel ? `Modified ${fieldLabel}` : (recordLabel ? `Modified ${recordLabel}` : 'Modified record')
+  if (action === 'created') return recordLabel ? `Created ${recordLabel}` : 'Created missing record label'
+  if (action === 'deleted') return recordLabel ? `Deleted ${recordLabel}` : 'Deleted missing record label'
+  if (action === 'verified') return fieldLabel ? `Verified ${fieldLabel}` : 'Verified missing field label'
+  if (action === 'modified') return fieldLabel ? `Modified ${fieldLabel}` : (recordLabel ? `Modified ${recordLabel}` : 'Modified missing record label')
   if (fieldLabel) return `${action || 'Updated'} ${fieldLabel}`
   if (recordLabel) return `${action || 'Updated'} ${recordLabel}`
   return String(event?.summary || event?.action_label || 'History item').trim()
@@ -729,7 +729,7 @@ async function submitCreateRecord(values = {}) {
     }
 
     dialogOpen.value = false
-    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
+    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} created.` })
   } catch (error) {
     $q.notify({ type: 'negative', message: error?.message || String(error) })
   } finally {
@@ -768,7 +768,7 @@ async function submitEditRecord(values = {}) {
       actionLabel: 'shared_dialog_shell_edit',
     })
     dialogOpen.value = false
-    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
+    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} updated.` })
   } catch (error) {
     $q.notify({ type: 'negative', message: error?.message || String(error) })
   } finally {

@@ -3155,7 +3155,7 @@ function requestCreateRecordShellForSource(sourceKey, options = {}) {
     const branchLabel = String(targetRegistryEntry?.createBranchLabel || 'Type').trim()
     void $q.dialog({
       title: `Choose ${branchLabel}`,
-      message: `Select which ${String(targetRegistryEntry?.singularLabel || 'record').trim().toLowerCase()} path you want to create.`,
+      message: `Select which ${String(targetRegistryEntry?.singularLabel || 'missing record type').trim().toLowerCase()} path you want to create.`,
       cancel: true,
       persistent: true,
       options: {
@@ -3511,7 +3511,7 @@ async function submitCreateRecordShell({ values, verification, artifacts } = {})
       createDialogPrefillValues.value = {}
       createDialogFieldMeta.value = {}
       createDialogInitialArtifacts.value = []
-      $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
+      $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} updated.` })
       await loadRows()
     } else {
       const sourceKey = activeSourceKey.value
@@ -3553,7 +3553,7 @@ async function submitCreateRecordShell({ values, verification, artifacts } = {})
       createDialogPrefillValues.value = {}
       createDialogFieldMeta.value = {}
       createDialogInitialArtifacts.value = []
-      $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
+      $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} created.` })
       await loadRows()
     }
   } catch (createError) {

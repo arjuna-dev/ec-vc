@@ -770,7 +770,10 @@ const toolbarRightSections = computed(() =>
   ),
 )
 
-const heroInitials = computed(() => String(activeRegistryEntry.value?.singularLabel || 'Record').slice(0, 2).toUpperCase())
+const heroInitials = computed(() => {
+  const label = String(activeRegistryEntry.value?.singularLabel || '').trim()
+  return label ? label.slice(0, 2).toUpperCase() : '??'
+})
 const structuredRecordHeroStyle = computed(() => {
   return {
     '--contact-hero-blob-x': `${contactHeroGradient.value.x}%`,
@@ -800,7 +803,7 @@ const heroSummaryStatusIcon = computed(() => (tokenHasStoredValue(canonicalSumma
 const recordFeedArtifactContext = computed(() => {
   if (!isRecordRoute.value) return null
   const entityName = String(activeRegistryEntry.value?.entityName || tableNameParam.value || '').trim()
-  const entityLabel = String(activeRegistryEntry.value?.label || activeRegistryEntry.value?.singularLabel || 'Record').trim()
+  const entityLabel = String(activeRegistryEntry.value?.label || activeRegistryEntry.value?.singularLabel || '').trim() || 'Missing record type'
   const recordId = String(recordIdParam.value || '').trim()
   const recordLabel = String(heroName.value || '').trim() || recordId
   if (!entityName || !recordId) return null
@@ -1080,7 +1083,7 @@ async function submitCreateRecord({ values } = {}) {
       return
     }
     createDialogOpen.value = false
-    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} created.` })
+    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} created.` })
   } catch (error) {
     $q.notify({ type: 'negative', message: error?.message || String(error) })
   } finally {
@@ -1116,7 +1119,7 @@ async function submitRecordUpdate(values = {}) {
     currentView.value = result?.view || currentView.value
     fields.value = Array.isArray(result?.view?.fields) ? result.view.fields : fields.value
     createDialogOpen.value = false
-    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Record'} updated.` })
+    $q.notify({ type: 'positive', message: `${activeRegistryEntry.value?.singularLabel || 'Missing record type'} updated.` })
   } catch (submitError) {
     const message = normalizeIpcErrorMessage(submitError)
     error.value = message
@@ -1284,9 +1287,9 @@ function getTokenRawValue(token) {
 
 function getTokenDisplayValue(token) {
   const rawValue = getTokenRawValue(token)
-  if (Array.isArray(rawValue)) return rawValue.length ? rawValue.join(', ') : 'No value yet'
+  if (Array.isArray(rawValue)) return rawValue.length ? rawValue.join(', ') : 'Missing value'
   const normalized = String(rawValue ?? '').trim()
-  return normalized || 'No value yet'
+  return normalized || 'Missing value'
 }
 
 function getTokenDialogValue(token) {
@@ -1402,7 +1405,7 @@ function resolveAuditDisplayValue(fieldName = '', value = null) {
 }
 
 function buildAuditRecordDescriptor() {
-  const recordName = String(heroName.value || '').trim() || 'Record'
+  const recordName = String(heroName.value || '').trim() || 'Missing record label'
   return recordName
 }
 
@@ -1722,7 +1725,7 @@ async function copyInlineFieldValue(token) {
   try {
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(value)
-      $q.notify({ type: 'positive', message: `${token?.label || 'Field'} copied` })
+      $q.notify({ type: 'positive', message: `${token?.label || 'Missing field label'} copied` })
       return
     }
     throw new Error('Clipboard unavailable')
