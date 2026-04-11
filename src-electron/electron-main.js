@@ -2714,8 +2714,8 @@ function createCompanionRole(payload = {}) {
   return { id }
 }
 
-function listDatabookVersions(tableName, recordId) {
-  const config = getDatabookTableConfig(tableName)
+function listRecordHistoryEntries(tableName, recordId) {
+  const config = getRecordTableConfig(tableName)
   const rid = normalizeNullableString(recordId)
   if (!rid) throw new Error('recordId is required')
   return dbAll(
@@ -2734,7 +2734,7 @@ function listDatabookVersions(tableName, recordId) {
   )
 }
 
-function getDatabookSnapshot(snapshotId) {
+function getRecordHistoryEntry(snapshotId) {
   const sid = String(snapshotId || '').trim()
   if (!sid) throw new Error('snapshotId is required')
   const row = dbAll(
@@ -3668,23 +3668,23 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   'artifacts-processed': 'Intake',
 })
 
-function getDatabookTableConfig(tableName) {
+function getRecordTableConfig(tableName) {
   const raw = normalizeNullableString(tableName)
   if (!raw) throw new Error('tableName is required')
   const canonical = DATABOOK_TABLE_ALIASES[String(raw).toLowerCase()] || raw
   const config = DATABOOK_TABLE_CONFIGS[canonical]
-  if (!config) throw new Error(`Unsupported Databook table: ${raw}`)
+  if (!config) throw new Error(`Unsupported record table: ${raw}`)
   return config
 }
 
-function getDatabookPrimaryKeyColumn(database, tableName) {
+function getRecordPrimaryKeyColumn(database, tableName) {
   const tableMeta = getTableMeta(database, tableName)
   const idColumn = tableMeta?.pkColumn
-  if (!idColumn) throw new Error(`Databook table ${tableName} must have a primary key`)
+  if (!idColumn) throw new Error(`Record table ${tableName} must have a primary key`)
   return idColumn
 }
 
-function resolveDatabookDisplayLabel(record, config, fallback = '') {
+function resolveRecordDisplayLabel(record, config, fallback = '') {
   for (const columnName of config.displayColumns || []) {
     const value = normalizeNullableString(record?.[columnName])
     if (value) return value
@@ -3693,9 +3693,9 @@ function resolveDatabookDisplayLabel(record, config, fallback = '') {
 }
 
 function listKdbRelationshipItems(database, contract, sourceRecordId) {
-  const targetConfig = getDatabookTableConfig(contract.targetEntity)
+  const targetConfig = getRecordTableConfig(contract.targetEntity)
   const targetTableName = targetConfig.tableName
-  const targetIdColumn = getDatabookPrimaryKeyColumn(database, targetTableName)
+  const targetIdColumn = getRecordPrimaryKeyColumn(database, targetTableName)
   const rows = isDirectKdbRelationshipContract(contract)
     ? normalizeNullableString(contract?.contractType) === 'direct_foreign_key'
       ? database
@@ -3754,7 +3754,7 @@ function listKdbRelationshipItems(database, contract, sourceRecordId) {
   return rows.map((row) => ({
     id: normalizeNullableString(row?.id),
     label:
-      resolveDatabookDisplayLabel(row, targetConfig, normalizeNullableString(row?.id)) ||
+      resolveRecordDisplayLabel(row, targetConfig, normalizeNullableString(row?.id)) ||
       normalizeNullableString(row?.id) ||
       '',
   }))
@@ -3766,7 +3766,7 @@ function buildKdbRelationshipFields(database, entityName, recordId, idColumn = '
     return {
       key: `${entityName}|${recordId}|${contract.sourceToken}`,
       section: 'KDB',
-      label: formatDatabookFieldLabel(contract.sourceToken),
+      label: formatRecordFieldLabel(contract.sourceToken),
       value: relatedItems.map((item) => item.label).join(', '),
       editable: true,
       table_name: entityName,
@@ -3808,11 +3808,11 @@ function normalizeRelationshipIds(rawValue) {
   )
 }
 
-function formatDatabookFieldLabel(fieldName) {
+function formatRecordFieldLabel(fieldName) {
   return formatSharedDisplayLabel(fieldName)
 }
 
-function resolveDatabookEntityName(record, config, recordId) {
+function resolveRecordEntityName(record, config, recordId) {
   for (const columnName of config.displayColumns || []) {
     const value = normalizeNullableString(record?.[columnName])
     if (value) return value
@@ -3820,7 +3820,7 @@ function resolveDatabookEntityName(record, config, recordId) {
   return recordId
 }
 
-function isDatabookFieldEditable(config, tableMeta, columnName) {
+function isRecordFieldEditable(config, tableMeta, columnName) {
   if (!columnName) return false
   if (columnName === tableMeta.pkColumn) return false
   if (config.readonlyColumns?.has?.(columnName)) return false
@@ -3924,7 +3924,7 @@ function getCompanyAggregate(database, companyId) {
   return row
 }
 
-function buildCompanyDatabookView(database, recordId) {
+function buildCompanyRecordView(database, recordId) {
   const rid = normalizeNullableString(recordId)
   if (!rid) throw new Error('recordId is required')
 
@@ -4020,7 +4020,7 @@ function buildCompanyDatabookView(database, recordId) {
     ...mainFields.map((columnName) => ({
       key: `Companies|${rid}|${columnName}`,
       section: 'Company',
-      label: formatDatabookFieldLabel(columnName),
+      label: formatRecordFieldLabel(columnName),
       value: row?.[columnName] == null ? '' : String(row[columnName]),
       editable: !new Set(['id', 'created_at', 'updated_at']).has(columnName),
       table_name: 'Companies',
@@ -4031,7 +4031,7 @@ function buildCompanyDatabookView(database, recordId) {
     ...incorporationFields.map((columnName) => ({
       key: `Company_Incorporation_Info|${rid}|${columnName}`,
       section: 'Company Incorporation',
-      label: formatDatabookFieldLabel(columnName),
+      label: formatRecordFieldLabel(columnName),
       value: row?.[columnName] == null ? '' : String(row[columnName]),
       editable: !new Set(['created_at', 'updated_at']).has(columnName),
       table_name: 'Company_Incorporation_Info',
@@ -4042,7 +4042,7 @@ function buildCompanyDatabookView(database, recordId) {
     ...operationsFields.map((columnName) => ({
       key: `Company_Operations_Overview|${rid}|${columnName}`,
       section: 'Company Operations',
-      label: formatDatabookFieldLabel(columnName),
+      label: formatRecordFieldLabel(columnName),
       value: row?.[columnName] == null ? '' : String(row[columnName]),
       editable: !new Set(['created_at', 'updated_at']).has(columnName),
       table_name: 'Company_Operations_Overview',
@@ -4053,7 +4053,7 @@ function buildCompanyDatabookView(database, recordId) {
     ...businessOverviewFields.map((columnName) => ({
       key: `Company_Business_Overview|${rid}|${columnName}`,
       section: 'Business Overview',
-      label: formatDatabookFieldLabel(columnName),
+      label: formatRecordFieldLabel(columnName),
       value: row?.[columnName] == null ? '' : String(row[columnName]),
       editable: !new Set(['created_at', 'updated_at']).has(columnName),
       table_name: 'Company_Business_Overview',
@@ -4064,7 +4064,7 @@ function buildCompanyDatabookView(database, recordId) {
     ...marketOverviewFields.map((columnName) => ({
       key: `Company_Market_Overview|${rid}|${columnName}`,
       section: 'Market Overview',
-      label: formatDatabookFieldLabel(columnName),
+      label: formatRecordFieldLabel(columnName),
       value: row?.[columnName] == null ? '' : String(row[columnName]),
       editable: !new Set(['created_at', 'updated_at']).has(columnName),
       table_name: 'Company_Market_Overview',
@@ -4075,7 +4075,7 @@ function buildCompanyDatabookView(database, recordId) {
     ...resultsOverviewFields.map((columnName) => ({
       key: `Company_Results_Overview|${rid}|${columnName}`,
       section: 'Results Overview',
-      label: formatDatabookFieldLabel(columnName),
+      label: formatRecordFieldLabel(columnName),
       value: row?.[columnName] == null ? '' : String(row[columnName]),
       editable: !new Set(['created_at', 'updated_at']).has(columnName),
       table_name: 'Company_Results_Overview',
@@ -4086,7 +4086,7 @@ function buildCompanyDatabookView(database, recordId) {
     ...businessPlanFields.map((columnName) => ({
       key: `Company_Business_Plan|${rid}|${columnName}`,
       section: 'Business Plan',
-      label: formatDatabookFieldLabel(columnName),
+      label: formatRecordFieldLabel(columnName),
       value: row?.[columnName] == null ? '' : String(row[columnName]),
       editable: !new Set(['created_at', 'updated_at']).has(columnName),
       table_name: 'Company_Business_Plan',
@@ -4097,7 +4097,7 @@ function buildCompanyDatabookView(database, recordId) {
     ...fundRaisingFields.map((columnName) => ({
       key: `Company_Fund_Raising|${rid}|${columnName}`,
       section: 'Fund Raising',
-      label: formatDatabookFieldLabel(columnName),
+      label: formatRecordFieldLabel(columnName),
       value: row?.[columnName] == null ? '' : String(row[columnName]),
       editable: !new Set(['created_at', 'updated_at']).has(columnName),
       table_name: 'Company_Fund_Raising',
@@ -4132,7 +4132,7 @@ function buildCompanyDatabookView(database, recordId) {
   }
 }
 
-function createDatabookField({
+function createRecordField({
   tableName,
   recordId,
   fieldName,
@@ -4145,7 +4145,7 @@ function createDatabookField({
   return {
     key: `${prefix}|${recordId}|${fieldName}`,
     section: '',
-    label: formatDatabookFieldLabel(fieldName),
+    label: formatRecordFieldLabel(fieldName),
     value: value == null ? '' : String(value),
     editable: Boolean(editable),
     table_name: tableName,
@@ -4155,7 +4155,7 @@ function createDatabookField({
   }
 }
 
-function buildUserDatabookView(database, recordId) {
+function buildUserRecordView(database, recordId) {
   const rid = normalizeNullableString(recordId)
   if (!rid) throw new Error('recordId is required')
   const actor = getAuditActor(database)
@@ -4189,7 +4189,7 @@ function buildUserDatabookView(database, recordId) {
 
   const metadataFieldNames = ['id', 'User_Name', 'User_PEmail', 'created_at', 'updated_at']
   const metadataFields = metadataFieldNames.map((fieldName) =>
-    createDatabookField({
+    createRecordField({
       tableName: 'Users',
       recordId: rid,
       fieldName,
@@ -4266,7 +4266,7 @@ function buildUserDatabookView(database, recordId) {
   }
 }
 
-function buildContactDatabookView(database, recordId) {
+function buildContactRecordView(database, recordId) {
   const rid = normalizeNullableString(recordId)
   if (!rid) throw new Error('recordId is required')
 
@@ -4313,7 +4313,7 @@ function buildContactDatabookView(database, recordId) {
     'LinkedIn',
   ]
   const metadataFields = metadataFieldNames.map((fieldName) =>
-    createDatabookField({
+    createRecordField({
       tableName: 'Contacts',
       recordId: rid,
       fieldName,
@@ -4377,25 +4377,25 @@ function buildContactDatabookView(database, recordId) {
   }
 }
 
-function getDatabookView(tableName, recordId) {
+function getRecordView(tableName, recordId) {
   const database = initDb()
-  const config = getDatabookTableConfig(tableName)
+  const config = getRecordTableConfig(tableName)
   const rid = normalizeNullableString(recordId)
   if (!rid) throw new Error('recordId is required')
 
   if (config.tableName === 'Companies') {
-    return buildCompanyDatabookView(database, rid)
+    return buildCompanyRecordView(database, rid)
   }
   if (config.tableName === 'Users') {
-    return buildUserDatabookView(database, rid)
+    return buildUserRecordView(database, rid)
   }
   if (config.tableName === 'Contacts') {
-    return buildContactDatabookView(database, rid)
+    return buildContactRecordView(database, rid)
   }
 
   const tableMeta = getTableMeta(database, config.tableName)
   const idColumn = tableMeta.pkColumn
-  if (!idColumn) throw new Error(`Databook table ${config.tableName} must have a primary key`)
+  if (!idColumn) throw new Error(`Record table ${config.tableName} must have a primary key`)
 
   const row = database
     .prepare(
@@ -4412,10 +4412,10 @@ function getDatabookView(tableName, recordId) {
   const fields = tableMeta.columnNames.map((columnName) => ({
     key: `${config.tableName}|${rid}|${columnName}`,
     section: config.entityLabel,
-    label: formatDatabookFieldLabel(columnName),
+    label: formatRecordFieldLabel(columnName),
     value: row?.[columnName] == null ? '' : String(row[columnName]),
     editable:
-      isDatabookFieldEditable(config, tableMeta, columnName) &&
+      isRecordFieldEditable(config, tableMeta, columnName) &&
       canEditProtectedOwnerContact,
     table_name: config.tableName,
     record_id: rid,
@@ -4428,7 +4428,7 @@ function getDatabookView(tableName, recordId) {
     table_name: config.tableName,
     record_id: rid,
     entity_label: config.entityLabel,
-    entity_name: resolveDatabookEntityName(row, config, rid),
+    entity_name: resolveRecordEntityName(row, config, rid),
     record: row,
     sections: [
       {
@@ -5209,9 +5209,9 @@ function coerceValueForColumn(rawValue, declaredType = '') {
   return text
 }
 
-function sanitizeDatabookUpdateError(error) {
+function sanitizeRecordUpdateError(error) {
   const message = normalizeNullableString(error?.message) || String(error || '')
-  if (!message) return 'Could not save Databook changes. Please try again.'
+  if (!message) return 'Could not save record changes. Please try again.'
   if (message.includes('Invalid number')) return message
   if (message.includes('Expected numeric value')) {
     return `${message}. Use formats like 1000000, 1,000,000, 1M, 2.5K.`
@@ -5264,7 +5264,7 @@ function resolveAuditActorDisplayLabel(database, userId) {
 
 function resolveAuditRecordContext(database, tableName, recordId) {
   try {
-    const config = getDatabookTableConfig(tableName)
+    const config = getRecordTableConfig(tableName)
     const tableMeta = getTableMeta(database, config.tableName)
     const idColumn = tableMeta?.pkColumn
     if (!idColumn) {
@@ -5285,7 +5285,7 @@ function resolveAuditRecordContext(database, tableName, recordId) {
     return {
       tableName: config.tableName,
       entityLabel: normalizeNullableString(config.entityLabel),
-      recordLabel: resolveDatabookDisplayLabel(row || {}, config, normalizeNullableString(recordId) || 'Record'),
+      recordLabel: resolveRecordDisplayLabel(row || {}, config, normalizeNullableString(recordId) || 'Record'),
       row: row || null,
     }
   } catch {
@@ -5302,8 +5302,8 @@ function resolveAuditRelationshipLabels(database, targetEntity, ids = []) {
   const normalizedIds = Array.isArray(ids) ? ids.map((value) => normalizeNullableString(value)).filter(Boolean) : []
   if (!normalizedIds.length) return []
   try {
-    const targetConfig = getDatabookTableConfig(targetEntity)
-    const targetIdColumn = getDatabookPrimaryKeyColumn(database, targetConfig.tableName)
+    const targetConfig = getRecordTableConfig(targetEntity)
+    const targetIdColumn = getRecordPrimaryKeyColumn(database, targetConfig.tableName)
     const placeholders = normalizedIds.map(() => '?').join(', ')
     const rows = database
       .prepare(
@@ -5313,7 +5313,7 @@ function resolveAuditRelationshipLabels(database, targetEntity, ids = []) {
     const labelById = new Map(
       rows.map((row) => [
         normalizeNullableString(row?.[targetIdColumn]),
-        resolveDatabookDisplayLabel(row, targetConfig, normalizeNullableString(row?.[targetIdColumn])),
+        resolveRecordDisplayLabel(row, targetConfig, normalizeNullableString(row?.[targetIdColumn])),
       ]),
     )
     return normalizedIds.map((id) => labelById.get(id) || id)
@@ -5361,7 +5361,7 @@ function buildAuditEventPayload(
     actor_label: resolveAuditActorDisplayLabel(database, editedBy),
     record_label: recordContext.recordLabel,
     entity_label: recordContext.entityLabel,
-    field_label: formatDatabookFieldLabel(normalizedFieldName),
+    field_label: formatRecordFieldLabel(normalizedFieldName),
   }
 
   if (String(fieldName || '').endsWith('__verification') || action.includes('verification')) {
@@ -5381,7 +5381,7 @@ function buildAuditEventPayload(
     const newLabels = resolveAuditRelationshipLabels(database, relationshipContract.targetEntity, newIds)
     payload.relationship_target_entity = normalizeNullableString(relationshipContract.targetEntity)
     try {
-      payload.relationship_target_label = normalizeNullableString(getDatabookTableConfig(relationshipContract.targetEntity)?.entityLabel)
+      payload.relationship_target_label = normalizeNullableString(getRecordTableConfig(relationshipContract.targetEntity)?.entityLabel)
     } catch {
       payload.relationship_target_label = ''
     }
@@ -6250,7 +6250,7 @@ function listEventRows(limit = 200) {
     const entityLabel = normalizeNullableString(payload.entity_label)
     const fieldLabel =
       normalizeNullableString(payload.field_label) ||
-      formatDatabookFieldLabel(String(event?.field_name || '').replace(/__verification$/, ''))
+      formatRecordFieldLabel(String(event?.field_name || '').replace(/__verification$/, ''))
     const nextValue = normalizeNullableString(payload.new_display_value)
     const previousValue = normalizeNullableString(payload.old_display_value)
     const { title, summary } = buildEventShellSummary({
@@ -6458,7 +6458,7 @@ function upsertFieldVerificationMetadata(payload = {}) {
 
 function applyAuditedChanges(
   changes = [],
-  { createDatabookSnapshotFor = null, actionId = null, actionLabel = null } = {},
+  { createRecordHistoryFor = null, actionId = null, actionLabel = null } = {},
 ) {
   const database = initDb()
   const normalizedChanges = (Array.isArray(changes) ? changes : [])
@@ -6799,10 +6799,10 @@ function applyAuditedChanges(
     }
 
     let snapshotId = null
-    if (createDatabookSnapshotFor?.tableName && createDatabookSnapshotFor?.recordId) {
-      const config = getDatabookTableConfig(createDatabookSnapshotFor.tableName)
-      const recordId = normalizeNullableString(createDatabookSnapshotFor.recordId)
-      const snapshotPayload = getDatabookView(config.tableName, recordId)
+    if (createRecordHistoryFor?.tableName && createRecordHistoryFor?.recordId) {
+      const config = getRecordTableConfig(createRecordHistoryFor.tableName)
+      const recordId = normalizeNullableString(createRecordHistoryFor.recordId)
+      const snapshotPayload = getRecordView(config.tableName, recordId)
       snapshotId = `snapshot:${crypto.randomUUID()}`
       database
         .prepare(
@@ -7143,13 +7143,13 @@ function createAssistantPromptFromProposal(database, proposal = {}) {
   return id
 }
 
-function createDatabookSnapshot(tableName, recordId, { source = 'create' } = {}) {
+function createRecordHistoryEntry(tableName, recordId, { source = 'create' } = {}) {
   const database = initDb()
-  const config = getDatabookTableConfig(tableName)
+  const config = getRecordTableConfig(tableName)
   const rid = normalizeNullableString(recordId)
   if (!rid) throw new Error('recordId is required')
   const actor = getAuditActor(database, { requireUser: true })
-  const snapshotPayload = getDatabookView(config.tableName, rid)
+  const snapshotPayload = getRecordView(config.tableName, rid)
   snapshotPayload.__meta = {
     source,
     table_name: config.tableName,
@@ -7175,16 +7175,16 @@ function createDatabookSnapshot(tableName, recordId, { source = 'create' } = {})
   return snapshotId
 }
 
-function createDatabookSnapshotForOpportunity(opportunityId, options = {}) {
-  return createDatabookSnapshot('Opportunities', opportunityId, options)
+function createRecordHistoryEntryForOpportunity(opportunityId, options = {}) {
+  return createRecordHistoryEntry('Opportunities', opportunityId, options)
 }
 
-function createDatabookSnapshotForFund(fundId, options = {}) {
-  return createDatabookSnapshot('Funds', fundId, options)
+function createRecordHistoryEntryForFund(fundId, options = {}) {
+  return createRecordHistoryEntry('Funds', fundId, options)
 }
 
-function createDatabookSnapshotForRound(roundId, options = {}) {
-  return createDatabookSnapshot('Rounds', roundId, options)
+function createRecordHistoryEntryForRound(roundId, options = {}) {
+  return createRecordHistoryEntry('Rounds', roundId, options)
 }
 
 function normalizeEntityRaisingStatus(value) {
@@ -7311,7 +7311,7 @@ function createFund(payload = {}) {
   })
 
   tx()
-  const snapshotId = createDatabookSnapshotForFund(fundId, { source: 'fund_create' })
+  const snapshotId = createRecordHistoryEntryForFund(fundId, { source: 'fund_create' })
   return { id: fundId, snapshot_id: snapshotId }
 }
 
@@ -7393,7 +7393,7 @@ function createRound(payload = {}) {
   })
 
   tx()
-  const snapshotId = createDatabookSnapshotForRound(roundId, { source: 'round_create' })
+  const snapshotId = createRecordHistoryEntryForRound(roundId, { source: 'round_create' })
   return { id: roundId, snapshot_id: snapshotId }
 }
 
@@ -7609,7 +7609,7 @@ function createOpportunity(payload = {}) {
     throw e
   }
 
-  const snapshotId = createDatabookSnapshotForOpportunity(opportunityId, {
+  const snapshotId = createRecordHistoryEntryForOpportunity(opportunityId, {
     source: 'autofill_create',
   })
   return { id: opportunityId, snapshot_id: snapshotId }
@@ -7792,7 +7792,7 @@ function updateOpportunity(payload = {}) {
     throw e
   }
 
-  const snapshotId = createDatabookSnapshotForOpportunity(opportunityId, {
+  const snapshotId = createRecordHistoryEntryForOpportunity(opportunityId, {
     source: 'autofill_update',
   })
   return { id: opportunityId, snapshot_id: snapshotId }
@@ -8303,32 +8303,32 @@ function registerIpc() {
 
   ipcMain.handle('databooks:view', async (_event, { tableName, recordId } = {}) => {
     initDb()
-    return getDatabookView(tableName, recordId)
+    return getRecordView(tableName, recordId)
   })
 
   ipcMain.handle('records:view', async (_event, { tableName, recordId } = {}) => {
     initDb()
-    return getDatabookView(tableName, recordId)
+    return getRecordView(tableName, recordId)
   })
 
   ipcMain.handle('databooks:versions', async (_event, { tableName, recordId } = {}) => {
     initDb()
-    return { versions: listDatabookVersions(tableName, recordId) }
+    return { versions: listRecordHistoryEntries(tableName, recordId) }
   })
 
   ipcMain.handle('records:history', async (_event, { tableName, recordId } = {}) => {
     initDb()
-    return { versions: listDatabookVersions(tableName, recordId) }
+    return { versions: listRecordHistoryEntries(tableName, recordId) }
   })
 
   ipcMain.handle('databooks:viewSnapshot', async (_event, { snapshotId } = {}) => {
     initDb()
-    return getDatabookSnapshot(snapshotId)
+    return getRecordHistoryEntry(snapshotId)
   })
 
   ipcMain.handle('records:viewHistoryEntry', async (_event, { snapshotId } = {}) => {
     initDb()
-    return getDatabookSnapshot(snapshotId)
+    return getRecordHistoryEntry(snapshotId)
   })
 
   ipcMain.handle(
@@ -8336,22 +8336,22 @@ function registerIpc() {
     async (_event, { tableName, recordId, changes, actionId, actionLabel } = {}) => {
       initDb()
       try {
-        const config = getDatabookTableConfig(tableName)
+        const config = getRecordTableConfig(tableName)
         const rid = normalizeNullableString(recordId)
         if (!rid) throw new Error('recordId is required')
         const result = applyAuditedChanges(changes, {
-          createDatabookSnapshotFor: { tableName: config.tableName, recordId: rid },
+          createRecordHistoryFor: { tableName: config.tableName, recordId: rid },
           actionId: normalizeNullableString(actionId),
           actionLabel: normalizeNullableString(actionLabel) || 'record_edit_session',
         })
         await syncWorkspaceWorkbooksSafe()
         return {
           ...result,
-          view: getDatabookView(config.tableName, rid),
+          view: getRecordView(config.tableName, rid),
         }
       } catch (e) {
         console.error('databooks:update failed:', e)
-        throw new Error(sanitizeDatabookUpdateError(e))
+        throw new Error(sanitizeRecordUpdateError(e))
       }
     },
   )
@@ -8361,22 +8361,22 @@ function registerIpc() {
     async (_event, { tableName, recordId, changes, actionId, actionLabel } = {}) => {
       initDb()
       try {
-        const config = getDatabookTableConfig(tableName)
+        const config = getRecordTableConfig(tableName)
         const rid = normalizeNullableString(recordId)
         if (!rid) throw new Error('recordId is required')
         const result = applyAuditedChanges(changes, {
-          createDatabookSnapshotFor: { tableName: config.tableName, recordId: rid },
+          createRecordHistoryFor: { tableName: config.tableName, recordId: rid },
           actionId: normalizeNullableString(actionId),
           actionLabel: normalizeNullableString(actionLabel) || 'record_edit_session',
         })
         await syncWorkspaceWorkbooksSafe()
         return {
           ...result,
-          view: getDatabookView(config.tableName, rid),
+          view: getRecordView(config.tableName, rid),
         }
       } catch (e) {
         console.error('records:update failed:', e)
-        throw new Error(sanitizeDatabookUpdateError(e))
+        throw new Error(sanitizeRecordUpdateError(e))
       }
     },
   )
