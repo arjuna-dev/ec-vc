@@ -8,13 +8,15 @@
     text-color="grey-8"
     class="view-mode-toggle"
     :disable="disable"
-    :options="options"
+    :options="normalizedOptions"
     @update:model-value="$emit('update:modelValue', $event)"
   />
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   modelValue: {
     type: String,
     default: 'page',
@@ -30,6 +32,21 @@ defineProps({
 })
 
 defineEmits(['update:modelValue'])
+
+const normalizedOptions = computed(() =>
+  (Array.isArray(props.options) ? props.options : []).map((option) => {
+    const label = String(option?.label || option?.value || '').trim()
+    return {
+      ...option,
+      label: '',
+      attrs: {
+        ...(option?.attrs && typeof option.attrs === 'object' ? option.attrs : {}),
+        title: label,
+        'aria-label': label,
+      },
+    }
+  }),
+)
 </script>
 
 <style scoped>
