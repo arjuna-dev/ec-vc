@@ -850,9 +850,44 @@ export function getCreateBranchEntry(sourceKey = '', branchValue = '') {
   return getCreateBranches(sourceKey).find((branch) => String(branch?.value || '').trim().toLowerCase() === normalizedBranchValue) || null
 }
 
+function getAutoFileSpecificViewFork(entry) {
+  if (!entry) return null
+  const coreLabels = new Set(['general', 'system', 'kdb'])
+  const fileSpecificSectionRawLabels = (Array.isArray(entry.subsections) ? entry.subsections : [])
+    .map((section) => String(section?.rawLabel || '').trim())
+    .filter(Boolean)
+    .filter((label) => !coreLabels.has(label.toLowerCase()))
+
+  if (!fileSpecificSectionRawLabels.length) return null
+
+  return {
+    value: 'file-specific',
+    label: 'File Specific',
+    sectionRawLabels: fileSpecificSectionRawLabels,
+  }
+}
+
 export function getViewForks(sourceKey = '') {
   const entry = getFilePageRegistryEntry(sourceKey)
-  return Array.isArray(entry?.viewForks) ? entry.viewForks : []
+  if (!entry) return []
+
+  const forks = []
+  const autoFileSpecificFork = getAutoFileSpecificViewFork(entry)
+  if (autoFileSpecificFork) {
+    forks.push(autoFileSpecificFork)
+  }
+
+  if (Array.isArray(entry.viewForks)) {
+    forks.push(...entry.viewForks)
+  }
+
+  return Array.from(
+    new Map(
+      forks
+        .filter((fork) => String(fork?.value || '').trim() && String(fork?.label || '').trim())
+        .map((fork) => [String(fork.value || '').trim().toLowerCase(), fork]),
+    ).values(),
+  )
 }
 
 export function getViewForkEntry(sourceKey = '', forkValue = '') {
