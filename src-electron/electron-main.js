@@ -5940,12 +5940,8 @@ const EVENT_RELATION_FIELD_BY_ENTITY_LABEL = Object.freeze({
   Note: 'Event_Note',
   Role: 'Event_Role',
   Market: 'Event_Market',
-  'Financial Industry': 'Event_Market',
   Security: 'Event_Security',
-  'Round Security': 'Event_Security',
   Intake: 'Event_Intake',
-  'Processed Artifact': 'Event_Intake',
-  Ingestion: 'Event_Intake',
 })
 
 function appendUniqueEventRelation(target, fieldName, values) {

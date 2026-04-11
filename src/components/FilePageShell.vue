@@ -928,7 +928,7 @@ const SECTION_LOADERS = {
   },
   markets: {
     listFn: (bridgeValue) => bridgeValue?.markets?.list?.(),
-    resultKey: 'industries',
+    resultKey: 'markets',
     recordIdField: 'id',
   },
   securities: {
