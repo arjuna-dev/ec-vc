@@ -1164,6 +1164,7 @@ const cardSettingsMenuGroups = computed(() => {
   ]
 })
 const canCreateWithShell = computed(() => {
+  if (typeof bridge.value?.[activeSourceKey.value]?.create === 'function') return true
   const branchEntries = getCreateBranches(activeSourceKey.value)
   if (branchEntries.length) {
     return branchEntries.some((branch) => Boolean(bridge.value?.[String(branch?.targetSourceKey || '').trim()]?.create))
