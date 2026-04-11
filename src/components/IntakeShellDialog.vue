@@ -303,19 +303,11 @@
 
       <q-card-section class="create-record-shell__body">
         <div class="create-record-shell__record-data">
-          <button
-            type="button"
-            class="create-record-shell__record-data-toggle"
-            @click="recordDataCollapsed = !recordDataCollapsed"
+          <CollapsibleSectionShell
+            title="Record Data"
+            :collapsed="recordDataCollapsed"
+            @toggle="recordDataCollapsed = !recordDataCollapsed"
           >
-            <span class="create-record-shell__record-data-title">Record Data</span>
-            <q-icon
-              :name="recordDataCollapsed ? 'expand_more' : 'expand_less'"
-              class="create-record-shell__record-data-toggle-icon"
-            />
-          </button>
-
-          <template v-if="!recordDataCollapsed">
             <div class="create-record-shell__tabs">
               <div class="create-record-shell__tabs-left">
                 <button
@@ -910,7 +902,7 @@
                 No canonical fields are mapped to this section yet.
               </div>
             </div>
-          </template>
+          </CollapsibleSectionShell>
         </div>
       </q-card-section>
 
@@ -957,6 +949,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import CollapsibleSectionShell from 'src/components/CollapsibleSectionShell.vue'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 
 const props = defineProps({
