@@ -1158,8 +1158,6 @@ const selectedCardItemTokens = computed(() =>
     .filter(Boolean),
 )
 function getRequiredCreateTokenNamesForSource() {
-  const normalizedSourceKey = String(activeSourceKey.value || '').trim().toLowerCase()
-  if (normalizedSourceKey === 'users') return ['User_Email']
   return []
 }
 
