@@ -256,7 +256,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/user-roles',
     icon: 'theater_comedy',
     showInWorkspaceNav: true,
-    workspaceNavGroup: 'knowledge-dbs',
+    workspaceNavGroup: 'local-dbs',
     shellGroup: 'knowledge_db',
     runtimeEntityName: 'Roles',
     fileGuidePath: 'docs/100/Draft/100-User_Roles.md',
@@ -269,7 +269,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/companion-roles',
     icon: 'smart_toy',
     showInWorkspaceNav: true,
-    workspaceNavGroup: 'knowledge-dbs',
+    workspaceNavGroup: 'local-dbs',
     shellGroup: 'knowledge_db',
     runtimeEntityName: 'Companion_Roles',
     fileGuidePath: 'docs/100/Draft/100-Companion_Roles.md',
@@ -282,7 +282,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/markets',
     icon: 'category',
     showInWorkspaceNav: true,
-    workspaceNavGroup: 'knowledge-dbs',
+    workspaceNavGroup: 'local-dbs',
     shellGroup: 'knowledge_db',
     fileGuidePath: 'docs/100/Draft/100-Markets.md',
     primaryStewardDoc: {
@@ -301,7 +301,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/securities',
     icon: 'receipt_long',
     showInWorkspaceNav: true,
-    workspaceNavGroup: 'knowledge-dbs',
+    workspaceNavGroup: 'local-dbs',
     shellGroup: 'knowledge_db',
     fileGuidePath: 'docs/100/Draft/100-Securities.md',
     primaryStewardDoc: {
@@ -320,7 +320,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     path: '/intake',
     icon: 'hub',
     showInWorkspaceNav: true,
-    workspaceNavGroup: 'knowledge-dbs',
+    workspaceNavGroup: 'local-dbs',
     shellGroup: 'knowledge_db',
     runtimeEntityName: 'Intake',
     fileGuidePath: 'docs/100/Draft/100-Intake.md',
@@ -629,7 +629,7 @@ export const WORKSPACE_FILE_NAV_ITEMS = Object.freeze(
     to: entry.path,
     exact: true,
     icon: entry.icon,
-    parentKey: entry.workspaceNavGroup === 'knowledge-dbs' ? 'knowledge-dbs' : 'workspace',
+    parentKey: entry.workspaceNavGroup === 'local-dbs' ? 'local-dbs' : 'workspace',
   })),
 )
 

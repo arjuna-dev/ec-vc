@@ -398,7 +398,7 @@ const quickWidgetSettingsIsDragging = ref(false)
 const quickWidgetSettingsTarget = ref(null)
 const quickWidgetSettingsSectionOpen = ref({
   files: true,
-  'knowledge-dbs': true,
+  'local-dbs': true,
 })
 const draftTrayDismissed = ref(false)
 const intakeQueueDialogOpen = ref(false)
@@ -408,7 +408,7 @@ const drawerSectionOpen = ref({
   main: true,
   radars: true,
   workspace: true,
-  'knowledge-dbs': false,
+  'local-dbs': false,
   'test-shells': false,
 })
 
@@ -539,7 +539,7 @@ const drawerNavigationSections = computed(() => [
         toggleKey: 'workspace',
       },
       ...workspaceNavigationItems
-        .filter((item) => item.parentKey !== 'knowledge-dbs')
+        .filter((item) => item.parentKey !== 'local-dbs')
         .map((item) => ({
           ...item,
           parentKey: 'workspace',
@@ -550,13 +550,13 @@ const drawerNavigationSections = computed(() => [
         itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
         icon: 'folder',
         iconSize: '22px',
-        toggleKey: 'knowledge-dbs',
+        toggleKey: 'local-dbs',
       },
       ...workspaceNavigationItems
-        .filter((item) => item.parentKey === 'knowledge-dbs')
+        .filter((item) => item.parentKey === 'local-dbs')
         .map((item) => ({
           ...item,
-          parentKey: 'knowledge-dbs',
+          parentKey: 'local-dbs',
         })),
       {
         kind: 'toggle',
@@ -717,21 +717,21 @@ const quickWidgetActionCatalog = computed(() => {
     markets: {
       id: 'markets',
       label: 'Markets',
-      group: 'knowledge-dbs',
+      group: 'local-dbs',
       icon: 'category',
       onClick: () => openShellCreateFromQuickAction('markets'),
     },
     securities: {
       id: 'securities',
       label: 'Securities',
-      group: 'knowledge-dbs',
+      group: 'local-dbs',
       icon: 'receipt_long',
       onClick: () => openShellCreateFromQuickAction('securities'),
     },
     intake: {
       id: 'intake',
       label: 'Intake',
-      group: 'knowledge-dbs',
+      group: 'local-dbs',
       icon: 'hub',
       onClick: () => openShellCreateFromQuickAction('intake'),
     },
@@ -766,7 +766,7 @@ const quickWidgetSettingsActions = computed(() =>
 const quickWidgetSettingsSections = computed(() => {
   const sectionDefs = [
     { id: 'files', label: 'Files' },
-    { id: 'knowledge-dbs', label: 'Local DBs' },
+    { id: 'local-dbs', label: 'Local DBs' },
   ]
 
   return sectionDefs

@@ -201,6 +201,8 @@ export const KDB_RELATIONSHIP_CONTRACTS = Object.freeze([
   ...GENERIC_KDB_RELATIONSHIP_CONTRACTS,
 ])
 
+export const LDB_RELATIONSHIP_CONTRACTS = KDB_RELATIONSHIP_CONTRACTS
+
 export function getKdbRelationshipContractForToken(entityName, tokenName) {
   const normalizedEntity = normalize(entityName)
   const normalizedToken = normalize(tokenName)
@@ -216,8 +218,20 @@ export function getKdbRelationshipContractsForEntity(entityName) {
   return KDB_RELATIONSHIP_CONTRACTS.filter((contract) => contract.sourceEntity === normalizedEntity)
 }
 
+export function getLdbRelationshipContractForToken(entityName, tokenName) {
+  return getKdbRelationshipContractForToken(entityName, tokenName)
+}
+
+export function getLdbRelationshipContractsForEntity(entityName) {
+  return getKdbRelationshipContractsForEntity(entityName)
+}
+
 export function isGenericKdbRelationshipContract(contract) {
   return normalize(contract?.contractType) === 'generic_kdb'
+}
+
+export function isGenericLdbRelationshipContract(contract) {
+  return isGenericKdbRelationshipContract(contract)
 }
 
 export function isDirectKdbRelationshipContract(contract) {
@@ -225,6 +239,16 @@ export function isDirectKdbRelationshipContract(contract) {
   return contractType === 'direct_foreign_key' || contractType === 'reverse_direct_foreign_key'
 }
 
+export function isDirectLdbRelationshipContract(contract) {
+  return isDirectKdbRelationshipContract(contract)
+}
+
 export function getGenericKdbRelationshipTableName() {
   return GENERIC_KDB_TABLE
+}
+
+export const GENERIC_LDB_TABLE = GENERIC_KDB_TABLE
+
+export function getGenericLdbRelationshipTableName() {
+  return getGenericKdbRelationshipTableName()
 }
