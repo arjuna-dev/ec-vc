@@ -1130,7 +1130,7 @@ const createPrimaryTokens = computed(() => {
   const seen = new Set()
   return tokens
     .filter((token) => {
-      if (isAutomaticCreatorToken(token)) return false
+      if (createDialogMode.value === 'create' && isAutomaticCreatorToken(token)) return false
       if (seen.has(token.key)) return false
       seen.add(token.key)
       return true
@@ -1164,7 +1164,7 @@ const createSectionGroups = computed(() => {
       (token) =>
         token.parentKey === section.key &&
         !primaryTokenKeys.has(token.key) &&
-        !isAutomaticCreatorToken(token) &&
+        !(createDialogMode.value === 'create' && isAutomaticCreatorToken(token)) &&
         (!isRecordShellMode.value || selectedRecordShellLevel3KeySet.value.has(token.key)),
     ),
     mapToken: normalizeCreateDialogToken,
@@ -3526,7 +3526,7 @@ function buildCreatePayload(values = {}) {
   const payloadEntries = []
 
   allTokens.forEach((token) => {
-    if (isAutomaticCreatorToken(token)) return
+    if (createDialogMode.value === 'create' && isAutomaticCreatorToken(token)) return
     const rawValue = values?.[token.key]
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
     if (normalizedValue == null) return
@@ -3633,7 +3633,6 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
   const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
 
   return allTokens.flatMap((token) => {
-    if (isAutomaticCreatorToken(token)) return []
     if (isBranchSelectorToken(token)) return []
     if (createDialogFieldMeta.value?.[token.key]?.locked) return []
     const rawValue = values?.[token.key]

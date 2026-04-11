@@ -3990,7 +3990,7 @@ function buildCompanyDatabookView(database, recordId) {
       section: 'Company',
       label: formatDatabookFieldLabel(columnName),
       value: row?.[columnName] == null ? '' : String(row[columnName]),
-      editable: !new Set(['id', 'created_by', 'created_at', 'updated_at']).has(columnName),
+      editable: !new Set(['id', 'created_at', 'updated_at']).has(columnName),
       table_name: 'Companies',
       record_id: rid,
       field_name: columnName,
