@@ -762,6 +762,7 @@ const editDialogRow = ref(null)
 const editDialogRecordPayload = ref(null)
 const createDialogDraftRecordId = ref('')
 const createDialogDraftEntityName = ref('')
+const createDialogDraftSourceKey = ref('')
 const createDialogInitialSectionKey = ref('key-fields')
 const createDialogPrefillValues = ref({})
 const createDialogFieldMeta = ref({})
@@ -786,6 +787,7 @@ const bbTileCollapseState = ref('')
 const bbTileGroupOpenState = ref({})
 const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
+const localDraftRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
 const NAME_COLUMN_DEFAULT_WIDTH = 84
@@ -1333,8 +1335,11 @@ const tableSectionTokens = computed(() => {
 
 const displayRows = computed(() => {
   const query = String(searchQuery.value || '').trim().toLowerCase()
+  const localDraftRows = Array.isArray(localDraftRowsBySource.value[activeContentSourceKey.value])
+    ? localDraftRowsBySource.value[activeContentSourceKey.value]
+    : []
 
-  return rawRows.value
+  return [...localDraftRows, ...rawRows.value]
     .map((row, index) => buildShellRow(row, index))
     .filter((row) => {
       if (isBbFileSource.value) {
@@ -2583,10 +2588,6 @@ function requestCreateRecordShell(options = {}) {
 }
 
 function handleToolbarAdd() {
-  $q.notify({
-    type: 'info',
-    message: `Add handler reached for ${activeRegistryEntry.value?.label || activeSourceKey.value || 'this file'}.`,
-  })
   requestCreateRecordShell(activeCreateBranchEntry.value ? { kind: activeForkValue.value } : {})
 }
 
@@ -2683,12 +2684,15 @@ function openCreateRecordShell(options = {}) {
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'create'
   createDialogPreferAddLayout.value = true
+  createDialogDraftRecordId.value = `draft:${crypto.randomUUID()}`
+  createDialogDraftSourceKey.value = activeContentSourceKey.value
   editDialogRow.value = null
   editDialogRecordPayload.value = null
   createDialogInitialSectionKey.value = 'key-fields'
   createDialogPrefillValues.value = options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}
   createDialogFieldMeta.value = {}
   createDialogInitialArtifacts.value = []
+  upsertLocalDraftRow(activeContentSourceKey.value, createDialogDraftRecordId.value, createDialogInitialValues.value)
   createDialogRenderKey.value += 1
   createDialogOpen.value = true
 }
@@ -2856,6 +2860,7 @@ async function submitCreateRecordShell({ values, verification } = {}) {
         await applyVerificationChanges(createdRecordId, createdEntityName, verification || {})
       }
 
+      removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
       createDialogOpen.value = false
       resetCreateDialogAutosaveState()
       editDialogRecordPayload.value = null
@@ -2875,13 +2880,19 @@ async function submitCreateRecordShell({ values, verification } = {}) {
 
 function handleCreateDialogChange(snapshot) {
   createDialogLastChangeSnapshot.value = snapshot
+  updateLocalDraftRowFromSnapshot(snapshot)
+  if (createDialogMode.value === 'create') return
   if (!snapshot?.hasUserChanges) return
   queueCreateDialogAutosave(snapshot)
 }
 
 async function handleCreateDialogClose(snapshot) {
   createDialogLastChangeSnapshot.value = snapshot
-  await flushCreateDialogAutosave(snapshot, { immediate: true, reloadRows: true })
+  updateLocalDraftRowFromSnapshot(snapshot)
+  if (createDialogMode.value !== 'create') {
+    await flushCreateDialogAutosave(snapshot, { immediate: true, reloadRows: true })
+  }
+  removeLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value)
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'create'
   createDialogPreferAddLayout.value = false
@@ -2913,6 +2924,7 @@ function resetCreateDialogAutosaveState() {
   clearCreateDialogAutosaveTimer()
   createDialogDraftRecordId.value = ''
   createDialogDraftEntityName.value = ''
+  createDialogDraftSourceKey.value = ''
   createDialogLastChangeSnapshot.value = null
   createDialogLastSavedSignature.value = ''
   createDialogAutosavePending.value = false
@@ -3046,6 +3058,10 @@ async function applyVerificationChanges(recordId, entityName, verification = {})
 
 async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRows = false } = {}) {
   if (!snapshot?.hasUserChanges) return
+  if (createDialogMode.value === 'create') {
+    createDialogAutosavePending.value = false
+    return
+  }
   if (!immediate && createDialogAutosaveInFlight) {
     queuedCreateDialogSnapshot = snapshot
     return
@@ -3110,6 +3126,49 @@ async function flushCreateDialogAutosave(snapshot, { immediate = false, reloadRo
       queuedCreateDialogSnapshot = null
     }
   }
+}
+
+function buildLocalDraftRowPayload(values = {}) {
+  const payload = buildCreatePayload(values)
+  return {
+    id: createDialogDraftRecordId.value,
+    ...payload,
+  }
+}
+
+function upsertLocalDraftRow(sourceKey, draftId, values = {}) {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  const normalizedDraftId = String(draftId || '').trim()
+  if (!normalizedSourceKey || !normalizedDraftId) return
+
+  const nextRow = buildLocalDraftRowPayload(values)
+  localDraftRowsBySource.value = {
+    ...localDraftRowsBySource.value,
+    [normalizedSourceKey]: [
+      nextRow,
+      ...(Array.isArray(localDraftRowsBySource.value[normalizedSourceKey]) ? localDraftRowsBySource.value[normalizedSourceKey] : []).filter(
+        (row) => String(row?.id || '').trim() !== normalizedDraftId,
+      ),
+    ],
+  }
+}
+
+function removeLocalDraftRow(sourceKey, draftId) {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  const normalizedDraftId = String(draftId || '').trim()
+  if (!normalizedSourceKey || !normalizedDraftId) return
+  const existingRows = Array.isArray(localDraftRowsBySource.value[normalizedSourceKey])
+    ? localDraftRowsBySource.value[normalizedSourceKey]
+    : []
+  localDraftRowsBySource.value = {
+    ...localDraftRowsBySource.value,
+    [normalizedSourceKey]: existingRows.filter((row) => String(row?.id || '').trim() !== normalizedDraftId),
+  }
+}
+
+function updateLocalDraftRowFromSnapshot(snapshot) {
+  if (createDialogMode.value !== 'create') return
+  upsertLocalDraftRow(createDialogDraftSourceKey.value, createDialogDraftRecordId.value, snapshot?.values || createDialogInitialValues.value)
 }
 
 function buildCreatePayload(values = {}) {
