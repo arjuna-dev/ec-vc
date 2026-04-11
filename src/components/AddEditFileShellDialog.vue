@@ -423,6 +423,10 @@ const dialogSectionGroups = computed(() =>
   }),
 )
 const dialogSectionSplit = computed(() => splitDialogSections(dialogSectionGroups.value))
+function isRelationshipSectionLabel(value = '') {
+  const normalized = String(value || '').trim().toLowerCase()
+  return normalized === 'kdb' || normalized === 'ldb'
+}
 const l2ToolbarItems = computed(() => [
   ...dialogSectionSplit.value.leftSections.map((section) => ({
     value: section.key,
@@ -432,11 +436,11 @@ const l2ToolbarItems = computed(() => [
     pushRight: false,
   })),
   ...dialogSectionSplit.value.rightSections.map((section, index) => {
-    const normalized = String(section.label || '').trim().toLowerCase()
+    const normalized = String(section.rawLabel || section.label || '').trim().toLowerCase()
     return {
       value: section.key,
       title: section.label,
-      isKdb: normalized === 'kdb',
+      isKdb: isRelationshipSectionLabel(normalized),
       isSystem: normalized === 'system',
       pushRight: index === 0,
     }

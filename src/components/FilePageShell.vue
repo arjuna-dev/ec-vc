@@ -1052,8 +1052,12 @@ const hasSupportedBridge = computed(() => {
   return typeof activeLoader.value.listFn(bridge.value) !== 'undefined'
 })
 const supportsActiveSourceEditing = computed(() => activeContentSourceKey.value !== 'events')
+function isRelationshipSectionLabel(value = '') {
+  const normalized = String(value || '').trim().toLowerCase()
+  return normalized === 'kdb' || normalized === 'ldb'
+}
 const hasActiveSourceKdb = computed(() =>
-  level2Sections.value.some((section) => String(section?.label || section?.rawLabel || '').trim().toLowerCase() === 'kdb'),
+  level2Sections.value.some((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label)),
 )
 
 const sourceLevel2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeContentSourceKey.value] || [])
@@ -1084,7 +1088,7 @@ const toolbarForkOptions = computed(() => {
 const activeSection = computed(() => {
   return level2Sections.value.find((section) => section.key === activeSectionKeyForCards.value) || level2Sections.value[0] || null
 })
-const isKdbSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'kdb')
+const isKdbSectionActive = computed(() => isRelationshipSectionLabel(activeSection.value?.rawLabel || activeSection.value?.label))
 const isSystemSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'system')
 
 const activeSectionTokens = computed(() => {
@@ -1225,7 +1229,7 @@ const createDialogBranchSelectorTokenKey = computed(() => {
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
 const createDialogKdbSectionKey = computed(
-  () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || '',
+  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label))?.key || '',
 )
 const isTableInlineEditingAvailable = computed(() => viewMode.value !== 'card')
 const activeCardSettingsScopeKey = computed(() => `${activeContentSourceKey.value}:${activeCardSettingsSectionKey.value}`)
@@ -1945,14 +1949,14 @@ watch(
 )
 const tableLeftSections = computed(() =>
   level2Sections.value.filter((section) => {
-    const label = String(section.label || '').trim().toLowerCase()
-    return label !== 'kdb' && label !== 'system'
+    const label = String(section.rawLabel || section.label || '').trim().toLowerCase()
+    return !isRelationshipSectionLabel(label) && label !== 'system'
   }),
 )
 const tableRightSections = computed(() =>
   level2Sections.value.filter((section) => {
-    const label = String(section.label || '').trim().toLowerCase()
-    return label === 'kdb' || label === 'system'
+    const label = String(section.rawLabel || section.label || '').trim().toLowerCase()
+    return isRelationshipSectionLabel(label) || label === 'system'
   }),
 )
 const eventShellNavItems = computed(() => [
@@ -1964,11 +1968,11 @@ const eventShellNavItems = computed(() => [
     pushRight: false,
   })),
   ...tableRightSections.value.map((section, index) => {
-    const normalized = String(section.label || '').trim().toLowerCase()
+    const normalized = String(section.rawLabel || section.label || '').trim().toLowerCase()
     return {
       value: section.key,
       title: section.label,
-      isKdb: normalized === 'kdb',
+      isKdb: isRelationshipSectionLabel(normalized),
       isSystem: normalized === 'system',
       pushRight: index === 0,
     }
@@ -2122,7 +2126,7 @@ watch(
     const row = displayRows.value.find((entry) => String(entry?.recordId || '').trim() === normalizedRecordId) || null
     if (!row) return
 
-    if (String(editSection || '').trim().toLowerCase() === 'kdb') {
+    if (isRelationshipSectionLabel(editSection)) {
       await openAddRelationShell(row)
     } else {
       await openEditRecordShell(row)

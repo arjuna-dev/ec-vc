@@ -77,6 +77,17 @@ import {
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 
+function isRelationshipSection(sectionOrLabel) {
+  const normalized = String(
+    typeof sectionOrLabel === 'string'
+      ? sectionOrLabel
+      : sectionOrLabel?.rawLabel || sectionOrLabel?.label || '',
+  )
+    .trim()
+    .toLowerCase()
+  return normalized === 'kdb' || normalized === 'ldb'
+}
+
 const route = useRoute()
 const $q = useQuasar()
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
@@ -132,8 +143,8 @@ const promotedGeneralTokens = computed(() => {
     groupedLevel2Sections.value
       .flatMap((group) => (Array.isArray(group.sections) ? group.sections : []))
       .filter((section) => {
-        const label = String(section?.label || '').trim().toLowerCase()
-        return !['general', 'kdb', 'system'].includes(label)
+        const label = String(section?.rawLabel || section?.label || '').trim().toLowerCase()
+        return label !== 'general' && label !== 'system' && !isRelationshipSection(label)
       })
       .map((section) => section.key),
   )
@@ -145,9 +156,9 @@ const promotedGeneralTokens = computed(() => {
 const generalSourceGroups = computed(() =>
   groupedLevel2Sections.value.filter((group) =>
     Array.isArray(group.sections) &&
-    group.sections.some((section) => {
-      const label = String(section.label || '').trim().toLowerCase()
-      return !['general', 'kdb', 'system'].includes(label)
+      group.sections.some((section) => {
+      const label = String(section.rawLabel || section.label || '').trim().toLowerCase()
+      return label !== 'general' && label !== 'system' && !isRelationshipSection(label)
     }),
   ),
 )
@@ -217,7 +228,7 @@ const canCreateWithShell = computed(() => {
 })
 const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.records?.update))
 const dialogKdbSectionKey = computed(
-  () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || 'general',
+  () => createSectionGroups.value.find((section) => isRelationshipSection(section))?.key || 'general',
 )
 const dialogHistoryTableName = computed(() => String(getRuntimeTableNameForEntityName(dialogEntityName.value) || '').trim())
 
@@ -299,7 +310,7 @@ watch(
     dialogMode.value = 'edit'
     dialogRecordId.value = normalizedRecordId
     dialogEntityName.value = String(editEntityName || activeRegistryEntry.value?.entityName || '').trim()
-    dialogInitialSectionKey.value = String(editSection || '').trim().toLowerCase() === 'kdb' ? dialogKdbSectionKey.value : 'general'
+    dialogInitialSectionKey.value = isRelationshipSection(editSection) ? dialogKdbSectionKey.value : 'general'
     dialogInitialValues.value = {}
     dialogInitialFieldMeta.value = {}
     dialogHistoryItems.value = []

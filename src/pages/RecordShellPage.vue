@@ -687,12 +687,16 @@ const selectedTokenKeys = computed({
 })
 
 const selectedTokenKeySet = computed(() => new Set(selectedTokenKeys.value))
+function isRelationshipSectionLabel(value = '') {
+  const normalized = String(value || '').trim().toLowerCase()
+  return normalized === 'kdb' || normalized === 'ldb'
+}
 const heroSourceGroups = computed(() =>
   groupedLevel2Sections.value.filter((group) =>
     Array.isArray(group.sections) &&
     group.sections.some((section) => {
-      const label = String(section.label || '').trim().toLowerCase()
-      return !['general', 'kdb', 'system'].includes(label)
+      const label = String(section.rawLabel || section.label || '').trim().toLowerCase()
+      return label !== 'general' && label !== 'system' && !isRelationshipSectionLabel(label)
     }),
   ),
 )
@@ -723,7 +727,9 @@ const activeSectionGroup = computed(() => groupedLevel2Sections.value.find((grou
 const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || null)
 const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
 const activeSectionTokens = computed(() => sectionDisplayTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
-const isKdbSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'kdb'))
+const isKdbSectionActive = computed(() =>
+  activeSectionEntries.value.some((section) => isRelationshipSectionLabel(section.rawLabel || section.label)),
+)
 const isSystemSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
 const systemSectionTokens = computed(() => activeSectionTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
 const hasGroupedSectionSubsections = computed(() => !isKdbSectionActive.value && activeSectionEntries.value.length > 1)
@@ -753,8 +759,16 @@ const activeKdbTokenGroups = computed(() => {
   }
   return grouped.filter((group) => group.tokens.length)
 })
-const toolbarLeftSections = computed(() => groupedLevel2Sections.value.filter((group) => !group.sections.some((section) => ['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase()))))
-const toolbarRightSections = computed(() => groupedLevel2Sections.value.filter((group) => group.sections.some((section) => ['kdb', 'system'].includes(String(section.label || '').trim().toLowerCase()))))
+const toolbarLeftSections = computed(() =>
+  groupedLevel2Sections.value.filter(
+    (group) => !group.sections.some((section) => isRelationshipSectionLabel(section.rawLabel || section.label) || String(section.rawLabel || section.label || '').trim().toLowerCase() === 'system'),
+  ),
+)
+const toolbarRightSections = computed(() =>
+  groupedLevel2Sections.value.filter(
+    (group) => group.sections.some((section) => isRelationshipSectionLabel(section.rawLabel || section.label) || String(section.rawLabel || section.label || '').trim().toLowerCase() === 'system'),
+  ),
+)
 
 const heroInitials = computed(() => String(activeRegistryEntry.value?.singularLabel || 'Record').slice(0, 2).toUpperCase())
 const structuredRecordHeroStyle = computed(() => {

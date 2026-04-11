@@ -119,8 +119,12 @@ const canCreateWithShell = computed(() => {
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
 const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.records?.update))
+function isRelationshipSectionLabel(value = '') {
+  const normalized = String(value || '').trim().toLowerCase()
+  return normalized === 'kdb' || normalized === 'ldb'
+}
 const dialogKdbSectionKey = computed(
-  () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || 'general',
+  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label))?.key || 'general',
 )
 
 watch(
@@ -170,7 +174,7 @@ watch(
     dialogMode.value = 'edit'
     dialogRecordId.value = normalizedRecordId
     dialogEntityName.value = String(editEntityName || activeRegistryEntry.value?.entityName || '').trim()
-    dialogInitialSectionKey.value = String(editSection || '').trim().toLowerCase() === 'kdb' ? dialogKdbSectionKey.value : 'general'
+    dialogInitialSectionKey.value = isRelationshipSectionLabel(editSection) ? dialogKdbSectionKey.value : 'general'
     dialogInitialValues.value = {}
     dialogInitialFieldMeta.value = {}
 

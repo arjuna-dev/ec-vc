@@ -5,6 +5,11 @@ export function getDialogSectionGroupValue(section) {
   return displayGroup ? `group:${displayGroup}` : String(section?.key || '').trim()
 }
 
+function isRelationshipSectionLabel(value = '') {
+  const normalized = String(value || '').trim().toLowerCase()
+  return normalized === 'kdb' || normalized === 'ldb'
+}
+
 function formatRelationshipGroupLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   if (normalized === 'first_order') return 'First-Order'
@@ -69,12 +74,13 @@ export function buildDialogSectionGroups({
         .filter((section) => section.tokens.length)
 
       const flatTokens = subsectionGroups.flatMap((section) => section.tokens)
-      const isKdbGroup = String(group?.title || '').trim().toLowerCase() === 'kdb'
+      const isKdbGroup = isRelationshipSectionLabel(group?.title)
       const kdbSubgroups = isKdbGroup ? buildKdbSubgroups(flatTokens) : []
 
       return {
         key: group.value,
         label: group.title,
+        rawLabel: String(group?.sections?.[0]?.rawLabel || group?.title || '').trim(),
         tokens: flatTokens,
         subgroups: kdbSubgroups.length ? kdbSubgroups : subsectionGroups.length > 1 ? subsectionGroups : [],
       }
@@ -85,7 +91,13 @@ export function buildDialogSectionGroups({
 export function splitDialogSections(sectionGroups = []) {
   const sections = Array.isArray(sectionGroups) ? sectionGroups : []
   return {
-    leftSections: sections.filter((section) => !['kdb', 'system'].includes(String(section?.label || '').trim().toLowerCase())),
-    rightSections: sections.filter((section) => ['kdb', 'system'].includes(String(section?.label || '').trim().toLowerCase())),
+    leftSections: sections.filter((section) => {
+      const sectionLabel = String(section?.rawLabel || section?.label || '').trim().toLowerCase()
+      return ![ 'system' ].includes(sectionLabel) && !isRelationshipSectionLabel(sectionLabel)
+    }),
+    rightSections: sections.filter((section) => {
+      const sectionLabel = String(section?.rawLabel || section?.label || '').trim().toLowerCase()
+      return sectionLabel === 'system' || isRelationshipSectionLabel(sectionLabel)
+    }),
   }
 }

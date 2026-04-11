@@ -417,6 +417,12 @@ function formatLabel(value) {
   return formatSharedDisplayLabel(value)
 }
 
+function formatSubsectionLabel(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (normalized === 'kdb') return 'LDB'
+  return formatLabel(value)
+}
+
 function stripTokenEntityPrefix(tokenName = '', prefixes = []) {
   const rawTokenName = String(tokenName || '').trim()
   if (!rawTokenName) return ''
@@ -477,7 +483,7 @@ function buildEntityRegistry(entityName) {
       key: String(subsection?.structure_token || subsection?.subsection || '').trim() || `${entityName}_${subsection?.level_2 || ''}`,
       level_2: String(subsection?.level_2 || resolveAddressPart(subsection?.subsection_address, 1) || '').trim(),
       address: String(subsection?.subsection_address || '').trim(),
-      label: formatLabel(subsection?.subsection),
+      label: formatSubsectionLabel(subsection?.subsection),
       rawLabel: String(subsection?.subsection || '').trim(),
       structureToken: String(subsection?.structure_token || '').trim(),
       subgroupKey: String(subsection?.subgroup_key || '').trim(),
