@@ -119,6 +119,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     routeName: 'file-system',
     path: '/file-system',
     icon: 'folder_open',
+    createSurface: 'file-dialog',
+    editSurface: 'file-dialog',
     showInWorkspaceNav: true,
     workspaceNavGroup: 'files',
     shellGroup: 'system_level',
@@ -842,6 +844,16 @@ export function getViewForks(sourceKey = '') {
 export function getViewForkEntry(sourceKey = '', forkValue = '') {
   const normalizedForkValue = String(forkValue || '').trim().toLowerCase()
   return getViewForks(sourceKey).find((fork) => String(fork?.value || '').trim().toLowerCase() === normalizedForkValue) || null
+}
+
+export function getFilePageCreateSurface(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  return String(entry?.createSurface || 'record-dialog').trim().toLowerCase() || 'record-dialog'
+}
+
+export function getFilePageEditSurface(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  return String(entry?.editSurface || getFilePageCreateSurface(sourceKey) || 'record-dialog').trim().toLowerCase() || 'record-dialog'
 }
 
 export function getCanonicalTokenFieldNames(token = {}) {
