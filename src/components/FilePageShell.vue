@@ -2002,7 +2002,7 @@ watch(
 )
 
 watch(
-  [displayRows, isSystemSectionActive, activeSourceKey],
+  [rawRows, isSystemSectionActive, activeSourceKey],
   async ([rows, isSystem]) => {
     if (!isSystem || !bridge.value?.audit?.events || !activeRegistryEntry.value?.entityName) {
       rowHistoryByRecordId.value = {}
