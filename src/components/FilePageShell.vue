@@ -336,147 +336,12 @@
                 />
               </div>
               <div class="test-shell-card__control-actions">
-                <q-btn
-                  flat
-                  round
-                  icon="tune"
-                  class="test-shell-card__control-settings"
-                  aria-label="Card settings"
-                >
-                  <q-menu
-                    anchor="bottom right"
-                    self="top right"
-                    class="test-shell-card-settings-menu"
-                    content-class="test-shell-card-settings-menu__content"
-                  >
-                    <div class="test-shell-card-settings-panel">
-                      <div class="test-shell-card-settings-panel__title">Card Settings</div>
-                      <div class="test-shell-card-settings-panel__caption">
-                        Name stays fixed. Choose and order the extra fields shown on the card.
-                      </div>
-
-                      <div class="test-shell-card-settings-panel__list">
-                        <section
-                          v-if="selectedCardItemTokens.length"
-                          class="test-shell-card-settings-group test-shell-card-settings-group--selected"
-                        >
-                          <div class="test-shell-card-settings-group__title">Selected</div>
-
-                          <div
-                            v-for="token in selectedCardItemTokens"
-                            :key="`selected:${token.key}`"
-                            class="test-shell-card-settings-row"
-                          >
-                            <q-checkbox
-                              :model-value="true"
-                              dense
-                              size="xs"
-                              checked-icon="check_box"
-                              unchecked-icon="check_box_outline_blank"
-                              class="test-shell-card-settings-row__checkbox"
-                              @update:model-value="setCardItemEnabled(token.key, $event)"
-                            />
-
-                            <div class="test-shell-card-settings-row__copy">
-                              <div class="test-shell-card-settings-row__label">{{ token.label }}</div>
-                            </div>
-
-                            <div class="test-shell-card-settings-row__actions">
-                              <q-btn
-                                flat
-                                dense
-                                round
-                                :disable="getCardItemOrderIndex(token.key) <= 0"
-                                @click.stop="moveCardItem(token.key, -1)"
-                              >
-                                <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
-                                  <path d="M7 14L12 9L17 14" />
-                                </svg>
-                              </q-btn>
-                              <q-btn
-                                flat
-                                dense
-                                round
-                                :disable="getCardItemOrderIndex(token.key) < 0 || getCardItemOrderIndex(token.key) >= enabledCardItemKeys.length - 1"
-                                @click.stop="moveCardItem(token.key, 1)"
-                              >
-                                <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
-                                  <path d="M7 10L12 15L17 10" />
-                                </svg>
-                              </q-btn>
-                            </div>
-                          </div>
-                        </section>
-
-                        <section
-                          v-for="group in cardItemTokenGroups"
-                          :key="group.key"
-                          class="test-shell-card-settings-group"
-                        >
-                          <button
-                            type="button"
-                            class="test-shell-card-settings-group__toggle"
-                            @click="toggleCardSettingsGroup(group.key)"
-                          >
-                            <span class="test-shell-card-settings-group__title">{{ group.label }}</span>
-                            <q-icon
-                              :name="isCardSettingsGroupExpanded(group.key) ? 'expand_less' : 'expand_more'"
-                              size="14px"
-                              class="test-shell-card-settings-group__icon"
-                            />
-                          </button>
-
-                          <div v-if="isCardSettingsGroupExpanded(group.key)" class="test-shell-card-settings-group__body">
-                            <div
-                              v-for="token in group.tokens"
-                              :key="token.key"
-                              class="test-shell-card-settings-row"
-                            >
-                              <q-checkbox
-                                :model-value="isCardItemEnabled(token.key)"
-                                dense
-                                size="xs"
-                                checked-icon="check_box"
-                                unchecked-icon="check_box_outline_blank"
-                                class="test-shell-card-settings-row__checkbox"
-                                @update:model-value="setCardItemEnabled(token.key, $event)"
-                              />
-
-                              <div class="test-shell-card-settings-row__copy">
-                                <div class="test-shell-card-settings-row__label">{{ token.label }}</div>
-                              </div>
-
-                              <div class="test-shell-card-settings-row__actions">
-                                <q-btn
-                                  flat
-                                  dense
-                                  round
-                                  :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) <= 0"
-                                  @click.stop="moveCardItem(token.key, -1)"
-                                >
-                                  <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
-                                    <path d="M7 14L12 9L17 14" />
-                                  </svg>
-                                </q-btn>
-                                <q-btn
-                                  flat
-                                  dense
-                                  round
-                                  :disable="!isCardItemEnabled(token.key) || getCardItemOrderIndex(token.key) < 0 || getCardItemOrderIndex(token.key) >= enabledCardItemKeys.length - 1"
-                                  @click.stop="moveCardItem(token.key, 1)"
-                                >
-                                  <svg viewBox="0 0 24 24" aria-hidden="true" class="test-shell-card-settings-row__chevron">
-                                    <path d="M7 10L12 15L17 10" />
-                                  </svg>
-                                </q-btn>
-                              </div>
-                            </div>
-                          </div>
-                        </section>
-                      </div>
-                    </div>
-                  </q-menu>
-                </q-btn>
+                <L2SettingsMenu
+                  title="Card Settings"
+                  :groups="cardSettingsMenuGroups"
+                  @toggle-group="toggleCardSettingsGroup"
+                  @toggle-item="setCardItemEnabled"
+                />
                 <q-btn
                   flat
                   round
@@ -824,6 +689,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
+import L2SettingsMenu from 'components/L2SettingsMenu.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import ShellSectionToolbar from 'components/ShellSectionToolbar.vue'
 import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
@@ -1031,9 +897,10 @@ const propDrivenSourceKey = computed(() => {
   const normalized = String(props.sourceKey || '').trim().toLowerCase()
   return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : ''
 })
+const activeBranchEntries = computed(() => getCreateBranches(activeSourceKey.value))
 const activeForkValue = computed(() => {
   const normalized = String(route.query.kind || '').trim().toLowerCase()
-  if (activeSourceKey.value !== 'opportunities') return ''
+  if (!activeBranchEntries.value.length) return ''
   return getCreateBranchEntry(activeSourceKey.value, normalized) ? normalized : ''
 })
 const activeForkEntry = computed(() => getCreateBranchEntry(activeSourceKey.value, activeForkValue.value))
@@ -1079,12 +946,10 @@ const activeBbBlockKey = ref('')
 const expandedBbFilterCategoryKey = ref('')
 const expandedCardSettingsGroupsBySource = ref({})
 const toolbarForkOptions = computed(() => {
-  if (activeSourceKey.value !== 'opportunities') return []
-  const branchEntries = getCreateBranches(activeSourceKey.value)
-  if (!branchEntries.length) return []
+  if (!activeBranchEntries.value.length) return []
   return [
     { value: '', label: 'All' },
-    ...branchEntries.map((branch) => ({
+    ...activeBranchEntries.value.map((branch) => ({
       value: String(branch?.value || '').trim().toLowerCase(),
       label: String(branch?.label || '').trim(),
     })),
@@ -1209,6 +1074,34 @@ const expandedCardSettingsGroups = computed(() => {
   const sourceKey = activeContentSourceKey.value
   const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
   return Array.isArray(existing) ? existing : cardItemTokenGroups.value.map((group) => group.key)
+})
+const cardSettingsMenuGroups = computed(() => {
+  const selectedGroup = selectedCardItemTokens.value.length
+    ? [{
+        key: 'selected',
+        label: 'Selected',
+        expanded: true,
+        items: selectedCardItemTokens.value.map((token) => ({
+          key: token.key,
+          label: token.label,
+          checked: true,
+        })),
+      }]
+    : []
+
+  return [
+    ...selectedGroup,
+    ...cardItemTokenGroups.value.map((group) => ({
+      key: group.key,
+      label: group.label,
+      expanded: expandedCardSettingsGroups.value.includes(group.key),
+      items: group.tokens.map((token) => ({
+        key: token.key,
+        label: token.label,
+        checked: isCardItemEnabled(token.key),
+      })),
+    })),
+  ]
 })
 const canCreateWithShell = computed(() => {
   const branchEntries = getCreateBranches(activeSourceKey.value)
@@ -1498,7 +1391,7 @@ function normalizeEntitySourceKey(entityName) {
 }
 
 function setActiveForkValue(nextValue) {
-  if (activeSourceKey.value !== 'opportunities') return
+  if (!activeBranchEntries.value.length) return
   const normalized = String(nextValue || '').trim().toLowerCase()
   const nextQuery = { ...route.query }
   if (normalized && getCreateBranchEntry(activeSourceKey.value, normalized)) {
@@ -2151,10 +2044,6 @@ function isCardItemEnabled(tokenKey) {
   return enabledCardItemKeys.value.includes(tokenKey)
 }
 
-function getCardItemOrderIndex(tokenKey) {
-  return enabledCardItemKeys.value.indexOf(tokenKey)
-}
-
 function setCardItemEnabled(tokenKey, nextValue) {
   const sourceKey = activeContentSourceKey.value
   const current = enabledCardItemKeys.value
@@ -2170,24 +2059,6 @@ function setCardItemEnabled(tokenKey, nextValue) {
     ...cardItemKeysBySource.value,
     [sourceKey]: [...current, tokenKey],
   }
-}
-
-function moveCardItem(tokenKey, direction) {
-  const sourceKey = activeContentSourceKey.value
-  const current = [...enabledCardItemKeys.value]
-  const currentIndex = current.indexOf(tokenKey)
-  const nextIndex = currentIndex + direction
-  if (currentIndex < 0 || nextIndex < 0 || nextIndex >= current.length) return
-  const [item] = current.splice(currentIndex, 1)
-  current.splice(nextIndex, 0, item)
-  cardItemKeysBySource.value = {
-    ...cardItemKeysBySource.value,
-    [sourceKey]: current,
-  }
-}
-
-function isCardSettingsGroupExpanded(groupKey) {
-  return expandedCardSettingsGroups.value.includes(groupKey)
 }
 
 function toggleCardSettingsGroup(groupKey) {
