@@ -29,10 +29,11 @@ This tracker should stay aligned with:
 - adopt `Record Shell` as the shared `Record View` direction
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
 - keep owner authority locked while still allowing owner-only editing of owner profile data
-- finish the setup layer so the first Companion role and first game board can begin on `Ingestion`
+- finish the setup layer so the first Companion role and first game board can begin on `Intake`
 - implement highlighted `default/preselected unverified` context cues so artifact assumptions become verification-ready rather than hidden
-- put the shared field verification metadata layer in place before the first full ingestion board pass
+- put the shared field verification metadata layer in place before the first full intake board pass
 - group shared history by dialog/edit-session action boundaries instead of logging every tiny intermediate step
+- keep the shared `File Shell` contract fail-closed and remove heuristic fallback behavior from shared file/page surfaces
 
 ## Top 5 To-Do
 
@@ -63,6 +64,10 @@ This tracker should stay aligned with:
   - staged review
   - visible tracker state
 - `Knowledge DB` convergence with the normal file-shell contract
+- strict file-shell contract hardening:
+  - fail closed on unmapped page routes
+  - honest non-validator file-health state
+  - remove heuristic title/summary and option-label fallback paths
 - owner spine protection and explicit human-system owner paths
 - `Owner Genesis` ordering, including:
   - `System Files`
@@ -84,7 +89,7 @@ This tracker should stay aligned with:
   - Step 5: build the first strict bootstrap helper from one source
   - Step 6: open a test branch only after the bootstrap contract is fully defined
 
-- Milestone: `Contained Ingestion Foundation Pass`
+- Milestone: `Contained Intake Foundation Pass`
   - Step 1: align Main Menu labels with loader/runtime naming so the app renders and speaks in the same names the user sees
   - Step 1A: define steward contracts that protect file and design structure from drift:
     - `File Steward`
@@ -94,11 +99,11 @@ This tracker should stay aligned with:
   - Step 3: add the initial required `Companion Roles` columns
   - Step 4: create the first-pass `Companion Roles` records:
     - `Master Companion`
-    - `Ingestion Assistant`
+    - `Intake Steward`
     - `Point Tracker`
     - `Quest Builder`
-  - Step 5: create the first-pass companion markdown documents, beginning with `ingestion.md`
-  - Step 6: rewire ingestion only after the prerequisite names, table, columns, records, and documents are in place
+  - Step 5: create the first-pass companion markdown documents, beginning with `intake.md`
+  - Step 6: rewire intake only after the prerequisite names, table, columns, records, and documents are in place
   - Working rule: keep this pass in small contained cycles and avoid bundling the whole migration into one long implementation loop
 
 - Project: `Building Blocks to Shell Contract Migration`
@@ -145,7 +150,7 @@ This tracker should stay aligned with:
 - Implement the runtime `Owner Genesis` bootstrap sequence end to end:
   - assign the base `Companion`
   - create the base `Owner Opportunities` project space
-  - create the base `Owner Ingestion` project space
+  - create the base `Owner Intake` project space
   - create the base `User Roles` set
   - create the base `Companion Roles` set
   - create `Master Companion Role` as the first base `Companion Role`
@@ -188,7 +193,7 @@ This tracker should stay aligned with:
   - declared in canon
   - runtime-backed underneath
   - bidirectionally visible
-- `Knowledge DBs` now behaves as a dedicated file branch and `Ingestion` remains reconnect-safe inside that same contract family
+- `Knowledge DBs` now behaves as a dedicated file branch and `Intake` remains reconnect-safe inside that same contract family
 - owner identity now bootstraps into `Users`, with explicit runtime owner paths through:
   - `Owner_DB`
   - `Users_Roles`
@@ -196,6 +201,10 @@ This tracker should stay aligned with:
 - create forks are now expected to route through registry-driven branch choice instead of page-specific hardcoding
 - file visibility, file acceptance, and file creation should keep converging on one registry-driven rule
 - `Access_Assignments` is approved as a future standalone `L1` that should sit immediately after `Projects` in the file creation sequence, because it depends on `Contacts`, `Users`, `Roles`, and `Projects`
+- `Intake` is now the approved file/page/runtime name replacing `Ingestion` / `Artifact Processed`, with route redirects kept only as temporary compatibility
+- `Markets` / `Securities` event tokens and broader token families now converge on `Market_*` / `Security_*`
+- the parent `File Shell` contract now fails closed on unmapped routes instead of silently rendering `Tasks`
+- shared file/page surfaces now expose missing canonical title/summary ownership instead of guessing from local row fields
 
 ## Update Rule
 
@@ -238,6 +247,8 @@ Current approved examples:
 - `BEmail` -> `Business Email`
 - `PEmail` -> `Personal Email`
 - `Financial Industry` / `Financial Industries` -> `Markets`
+- `Round Security` / `Round Securities` -> `Securities`
+- `Ingestion` / `Artifact Processed` -> `Intake`
 
 ## Shared Audit Correction
 
