@@ -5,8 +5,13 @@ export const CARD_KDB_RELATIONSHIP_DEFS = [
   { value: 'companies', label: 'Companies', icon: 'apartment' },
   { value: 'opportunities', label: 'Opportunities', icon: 'paid' },
   { value: 'projects', label: 'Projects', icon: 'workspaces' },
-  { value: 'notes', label: 'Notes', icon: 'note' },
   { value: 'tasks', label: 'Tasks', icon: 'task_alt' },
+  { value: 'notes', label: 'Notes', icon: 'note' },
+  { value: 'user-roles', label: 'User Roles', icon: 'theater_comedy' },
+  { value: 'companion-roles', label: 'Companion Roles', icon: 'smart_toy' },
+  { value: 'markets', label: 'Markets', icon: 'category' },
+  { value: 'securities', label: 'Securities', icon: 'receipt_long' },
+  { value: 'intake', label: 'Intake', icon: 'hub' },
 ]
 
 const RELATIONSHIP_TARGET_PREFIXES = {
@@ -16,8 +21,13 @@ const RELATIONSHIP_TARGET_PREFIXES = {
   companies: ['Company'],
   opportunities: ['Opportunity', 'Fund', 'Round'],
   projects: ['Project'],
-  notes: ['Note'],
   tasks: ['Task'],
+  notes: ['Note'],
+  'user-roles': ['Role', 'User_Role'],
+  'companion-roles': ['Companion_Role'],
+  markets: ['Market'],
+  securities: ['Security'],
+  intake: ['Intake'],
 }
 
 const RELATIONSHIP_ID_KEYS = {
@@ -27,8 +37,13 @@ const RELATIONSHIP_ID_KEYS = {
   companies: ['company'],
   opportunities: ['opportunity', 'fund', 'round'],
   projects: ['project'],
-  notes: ['note'],
   tasks: ['task'],
+  notes: ['note'],
+  'user-roles': ['role', 'user_role'],
+  'companion-roles': ['companion_role'],
+  markets: ['market'],
+  securities: ['security'],
+  intake: ['intake'],
 }
 
 function splitRelationshipValues(value) {

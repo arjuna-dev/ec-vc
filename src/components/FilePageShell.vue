@@ -2590,8 +2590,12 @@ function handleCardAddRelation(row) {
     'companies',
     'opportunities',
     'projects',
-    'notes',
     'tasks',
+    'notes',
+    'user-roles',
+    'companion-roles',
+    'markets',
+    'securities',
     'intake',
   ])
 
