@@ -5482,11 +5482,17 @@ function writeAuditEvent(
 
 function normalizeLifecycleActionLabel(actionLabel) {
   const normalized = normalizeNullableString(actionLabel)?.toLowerCase()
-  if (normalized === 'create') return 'created'
-  if (normalized === 'update') return 'modified'
-  if (normalized === 'delete') return 'deleted'
+  if (!normalized) return 'modified'
+  if (normalized === 'create' || normalized.includes('create')) return 'created'
+  if (normalized === 'delete' || normalized.includes('delete') || normalized.includes('remove')) return 'deleted'
+  if (
+    normalized === 'update' ||
+    normalized === 'modified' ||
+    normalized.includes('update') ||
+    normalized.includes('edit')
+  ) return 'modified'
   if (normalized === 'created' || normalized === 'modified' || normalized === 'deleted') return normalized
-  return normalized || 'modified'
+  return normalized
 }
 
 function resolveLifecycleRecordId(result = {}, fallback = null) {
@@ -8453,10 +8459,11 @@ function registerIpc() {
         const config = getRecordTableConfig(tableName)
         const rid = normalizeNullableString(recordId)
         if (!rid) throw new Error('recordId is required')
+        const normalizedActionLabel = normalizeLifecycleActionLabel(actionLabel || 'modified')
         const result = applyAuditedChanges(changes, {
           createRecordHistoryFor: { tableName: config.tableName, recordId: rid },
           actionId: normalizeNullableString(actionId),
-          actionLabel: normalizeNullableString(actionLabel) || 'record_edit_session',
+          actionLabel: normalizedActionLabel,
         })
         await syncWorkspaceWorkbooksSafe()
         return {
@@ -8478,10 +8485,11 @@ function registerIpc() {
         const config = getRecordTableConfig(tableName)
         const rid = normalizeNullableString(recordId)
         if (!rid) throw new Error('recordId is required')
+        const normalizedActionLabel = normalizeLifecycleActionLabel(actionLabel || 'modified')
         const result = applyAuditedChanges(changes, {
           createRecordHistoryFor: { tableName: config.tableName, recordId: rid },
           actionId: normalizeNullableString(actionId),
-          actionLabel: normalizeNullableString(actionLabel) || 'record_edit_session',
+          actionLabel: normalizedActionLabel,
         })
         await syncWorkspaceWorkbooksSafe()
         return {
