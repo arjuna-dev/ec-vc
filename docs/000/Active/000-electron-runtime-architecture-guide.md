@@ -221,6 +221,21 @@ The frontend should talk to backend through this file, not by direct access.
 
 This is the app's front door to backend behavior.
 
+Legacy runtime naming note:
+
+- `api.databooks.*` is still a live shared runtime surface
+- it should currently be treated as `keep temporarily`
+- the approved successor direction is `api.records.*`
+
+Approved migration map:
+
+- `api.databooks.view` -> `api.records.view`
+- `api.databooks.update` -> `api.records.update`
+- `api.databooks.versions` -> `api.records.history`
+- `api.databooks.viewSnapshot` -> `api.records.viewHistoryEntry`
+
+Do not widen `api.databooks.*` casually while governance, provenance, and event behavior are becoming more detailed. If new shared behavior needs this surface, first decide whether it belongs on the temporary legacy contract or the successor `records` contract.
+
 ## What to be aware of
 
 - if a runtime handler exists in `electron-main.js` but is not exposed here, the frontend still cannot use it

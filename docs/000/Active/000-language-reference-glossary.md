@@ -115,6 +115,22 @@ Examples:
 - `Markets`
 - `Securities`
 
+Legacy note:
+
+- `databook` is still older runtime language
+- the behavior is still active today
+- but the preferred direction is to rename the shared runtime contract around `record` / `record view` language
+
+Approved successor naming direction:
+
+- `databooks:view` -> `records:view`
+- `databooks:update` -> `records:update`
+- `databooks:versions` -> `records:history`
+- `databooks:viewSnapshot` -> `records:viewHistoryEntry`
+- `databook_snapshots` -> `record_history`
+
+Until that rename is executed, `databook table name` should be understood as a temporary runtime phrase, not preferred product language.
+
 ## Table Name Normalization
 
 The required shared-shell step that resolves route keys and canonical entity names into databook table names before IPC actions are executed.

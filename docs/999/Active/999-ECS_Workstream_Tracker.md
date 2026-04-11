@@ -221,6 +221,9 @@ This tracker should stay aligned with:
 - file birth now derives a default `File_Source_Key` from `File_Name` when no explicit source key is provided at save time, while still rejecting duplicate active file names and duplicate source keys
 - first birth-governance derivation step is underway through registry-owned birth defaults in the shared create flow
 - legacy runtime wording such as `databooks:*` is now treated as an explicit audit target rather than safe language to keep extending blindly
+- approved successor direction for the shared legacy runtime path is now:
+  - `databooks:*` -> `records:*`
+  - `databook_snapshots` -> `record_history`
 - `Access_Assignments` is approved as a future standalone `L1` that should sit immediately after `Projects` in the file creation sequence, because it depends on `Contacts`, `Users`, `Roles`, and `Projects`
 - `Intake` is now the approved file/page/runtime name replacing `Ingestion` / `Artifact Processed`, with route redirects kept only as temporary compatibility
 - `Markets` / `Securities` event tokens and broader token families now converge on `Market_*` / `Security_*`
