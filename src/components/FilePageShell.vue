@@ -2284,6 +2284,7 @@ function buildShellRow(row, index) {
   return {
     cardId: `${recordId || 'row'}:${index}`,
     recordId,
+    isLocalDraft: Boolean(row?.__localDraft) || String(recordId || '').trim().startsWith('draft:'),
     raw: row,
     avatarText: buildInitialsFromName(titleValue) || activeRegistryEntry.value?.singularLabel?.slice(0, 2)?.toUpperCase() || 'TS',
     titleValue,
@@ -2509,6 +2510,16 @@ async function handleHeroActionItemClick(item = {}) {
   }
 }
 
+function buildDraftDialogInitialValuesFromRow(row) {
+  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  return Object.fromEntries(
+    allTokens.map((token) => {
+      const value = getCanonicalTokenValue(row?.raw || {}, token)
+      return [token.key, normalizeCreateDialogInitialValue(token, value)]
+    }),
+  )
+}
+
 function openBbShellByBlockKey(blockKey) {
   const normalizedBlockKey = String(blockKey || '').trim()
   if (!normalizedBlockKey) return
@@ -2692,6 +2703,22 @@ function openCreateRecordShell(options = {}) {
 async function openEditRecordShell(row) {
   if (!supportsActiveSourceEditing.value) return
   if (!row?.recordId) return
+  if (row?.isLocalDraft) {
+    resetCreateDialogAutosaveState()
+    createDialogMode.value = 'create'
+    createDialogPreferAddLayout.value = true
+    createDialogDraftRecordId.value = String(row.recordId || '').trim()
+    createDialogDraftSourceKey.value = activeContentSourceKey.value
+    editDialogRow.value = row
+    editDialogRecordPayload.value = null
+    createDialogInitialSectionKey.value = 'key-fields'
+    createDialogPrefillValues.value = buildDraftDialogInitialValuesFromRow(row)
+    createDialogFieldMeta.value = {}
+    createDialogInitialArtifacts.value = []
+    createDialogRenderKey.value += 1
+    createDialogOpen.value = true
+    return
+  }
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
   createDialogPreferAddLayout.value = false
@@ -2728,6 +2755,10 @@ async function openEditRecordShell(row) {
 async function openAddRelationShell(row) {
   if (!supportsActiveSourceEditing.value) return
   if (!row?.recordId) return
+  if (row?.isLocalDraft) {
+    await openEditRecordShell(row)
+    return
+  }
   resetCreateDialogAutosaveState()
   createDialogMode.value = 'edit'
   createDialogPreferAddLayout.value = false
