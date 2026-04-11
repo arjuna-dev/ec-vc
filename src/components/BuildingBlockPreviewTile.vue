@@ -516,7 +516,12 @@
       </template>
 
       <template v-else-if="blockKey === 'record-hero'">
-        <RecordHero />
+        <RecordHero
+          :feed-tab="activeRecordFeedTabPreview"
+          :feed-tabs="recordFeedTabOptions"
+          :feed-groups="recordFeedGroupOptions"
+          :feed-items="recordFeedItems"
+        />
       </template>
 
       <template v-else-if="blockKey === 'hero-surface'">
@@ -649,6 +654,7 @@
         <RecordFeedPanel
           v-model="activeRecordFeedTabPreview"
           :tabs="recordFeedTabOptions"
+          :groups="recordFeedGroupOptions"
           :items="recordFeedItems"
           empty-message="No feed items yet for this record."
         />
@@ -1077,9 +1083,15 @@ const recordFeedTabOptions = [
   { id: 'events', label: 'Events' },
 ]
 
+const recordFeedGroupOptions = [
+  { id: 'lifecycle', label: 'Lifecycle' },
+  { id: 'actions', label: 'Actions' },
+]
+
 const recordFeedItems = [
-  { id: 'feed-1', feedKey: 'all', title: 'Artifact linked to record', meta: '09:42', hasLogPage: true },
-  { id: 'feed-2', feedKey: 'events', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
+  { id: 'feed-1', feedKey: 'all', groupKey: 'lifecycle', title: 'Record created', meta: '09:42', hasLogPage: true },
+  { id: 'feed-2', feedKey: 'all', groupKey: 'actions', title: 'Companion suggestion queued', meta: '09:50', hasLogPage: true },
+  { id: 'feed-3', feedKey: 'events', groupKey: 'lifecycle', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
 ]
 
 

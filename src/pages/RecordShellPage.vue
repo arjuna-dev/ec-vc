@@ -30,6 +30,7 @@
         :interactive="isRecordRoute"
         :feed-tab="activeRecordFeedTab"
         :feed-tabs="recordFeedTabOptions"
+        :feed-groups="recordFeedGroupOptions"
         :feed-items="feedItems"
         feed-empty-message="No feed items yet for this record."
         @pointerenter="startContactHeroPointerTracking"
@@ -589,12 +590,17 @@ const selectedHeroFieldCards = computed(() =>
     }
   }),
 )
+const recordFeedGroupOptions = computed(() => [
+  { id: 'lifecycle', label: 'Lifecycle' },
+  { id: 'actions', label: 'Actions' },
+])
 const feedItems = computed(() => {
   if (isRecordRoute.value) return auditEvents.value
   return [
     {
       id: 'feed-template-1',
       feedKey: 'all',
+      groupKey: 'lifecycle',
       sourceLabel: 'Record Shell',
       meta: 'Now',
       title: 'Template feed lane',
@@ -604,6 +610,7 @@ const feedItems = computed(() => {
     {
       id: 'feed-template-2',
       feedKey: 'all',
+      groupKey: 'actions',
       sourceLabel: 'Payload',
       meta: 'Live',
       title: 'L1-driven structure',
@@ -1143,9 +1150,11 @@ function normalizeAuditFeedEvents(events = []) {
     .map((event) => {
       const fieldName = String(event?.field_name || '').trim()
       const actionLabel = String(event?.action_label || '').trim().toLowerCase()
+      const groupKey = resolveAuditFeedGroupKey(event, fieldName, actionLabel)
       return {
         id: String(event?.id || '').trim() || `audit:${Math.random()}`,
         feedKey: 'all',
+        groupKey,
         sourceLabel: formatAuditActorLabel(event?.edited_by),
         meta: String(event?.edited_at || '').trim() || 'Recent',
         title: buildAuditEventTitle(event, fieldName, actionLabel),
@@ -1154,6 +1163,22 @@ function normalizeAuditFeedEvents(events = []) {
       }
     })
     .filter((event) => event.title)
+}
+
+function resolveAuditFeedGroupKey(event = {}, fieldName = '', actionLabel = '') {
+  const normalizedFieldName = String(fieldName || '').trim().toLowerCase()
+  const normalizedActionLabel = String(actionLabel || '').trim().toLowerCase()
+  const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {}
+  const state = String(payload?.verification_state || payload?.state || '').trim().toLowerCase()
+
+  const lifecycleActions = new Set(['created', 'modified', 'deleted'])
+  const actionStates = new Set(['pre-selected', 'pre_selected', 'default_preselected_unverified', 'suggested', 'suggested_unverified', 'verified', 'rejected', 'approved'])
+
+  if (normalizedFieldName.endsWith('__verification')) return 'actions'
+  if (normalizedActionLabel.includes('verification')) return 'actions'
+  if (actionStates.has(state)) return 'actions'
+  if (lifecycleActions.has(normalizedActionLabel)) return 'lifecycle'
+  return 'actions'
 }
 
 function openFeedItemLog(eventId) {

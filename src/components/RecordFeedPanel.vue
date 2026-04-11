@@ -22,30 +22,39 @@
       </button>
     </div>
 
-    <div v-if="displayedItems.length" class="record-feed-panel__list">
-      <RecordFeedEntrySurface
-        v-for="item in displayedItems"
-        :key="item.id"
-        class="record-feed-panel__entry"
+    <div v-if="displayedGroups.length" class="record-feed-panel__group-stack">
+      <section
+        v-for="group in displayedGroups"
+        :key="group.id"
+        class="record-feed-panel__group"
       >
-        <div class="record-feed-panel__entry-top">
-          <RecordFeedTime :label="item.meta" />
-          <div class="record-feed-panel__entry-top-right">
-            <EyeIconButton
-              v-if="item.hasLogPage"
-              class="record-feed-panel__entry-toggle"
-              aria-label="Open feed log"
-              icon="open_in_new"
-              tone="inverse"
-              @click="$emit('open-log', item.id)"
+        <div class="record-feed-panel__group-label">{{ group.label }}</div>
+        <div class="record-feed-panel__list">
+          <RecordFeedEntrySurface
+            v-for="item in group.items"
+            :key="item.id"
+            class="record-feed-panel__entry"
+          >
+            <div class="record-feed-panel__entry-top">
+              <RecordFeedTime :label="item.meta" />
+              <div class="record-feed-panel__entry-top-right">
+                <EyeIconButton
+                  v-if="item.hasLogPage"
+                  class="record-feed-panel__entry-toggle"
+                  aria-label="Open feed log"
+                  icon="open_in_new"
+                  tone="inverse"
+                  @click="$emit('open-log', item.id)"
+                />
+              </div>
+            </div>
+            <RecordFeedEntryTitle
+              class="record-feed-panel__entry-title"
+              :title="item.title"
             />
-          </div>
+          </RecordFeedEntrySurface>
         </div>
-        <RecordFeedEntryTitle
-          class="record-feed-panel__entry-title"
-          :title="item.title"
-        />
-      </RecordFeedEntrySurface>
+      </section>
     </div>
     <div v-else class="record-feed-panel__state">
       <RecordFeedEmpty :message="emptyMessage" />
@@ -82,6 +91,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  groups: {
+    type: Array,
+    default: () => [],
+  },
   items: {
     type: Array,
     default: () => [],
@@ -97,6 +110,22 @@ defineEmits(['open-log'])
 const displayedItems = computed(() => {
   const active = String(activeTab.value || '').trim()
   return props.items.filter((item) => String(item?.feedKey || '').trim() === active)
+})
+
+const displayedGroups = computed(() => {
+  const activeItems = displayedItems.value
+  const groups = Array.isArray(props.groups) ? props.groups : []
+  return groups
+    .map((group) => {
+      const groupId = String(group?.id || '').trim()
+      const items = activeItems.filter((item) => String(item?.groupKey || '').trim() === groupId)
+      return {
+        id: groupId,
+        label: String(group?.label || '').trim() || 'Group',
+        items,
+      }
+    })
+    .filter((group) => group.id && group.items.length)
 })
 </script>
 
@@ -131,11 +160,33 @@ const displayedItems = computed(() => {
   margin-top: 18px;
 }
 
+.record-feed-panel__group-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.record-feed-panel__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.record-feed-panel__group-label {
+  color: rgba(255, 255, 255, 0.62);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-line-height-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .record-feed-panel__list {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 14px;
 }
 
 .record-feed-panel__tabs {

@@ -52,6 +52,7 @@
         <RecordFeedPanel
           :model-value="feedTab"
           :tabs="feedTabs"
+          :groups="feedGroups"
           :items="feedItems"
           :empty-message="feedEmptyMessage"
           class="hero-sandbox__feed-panel"
@@ -111,6 +112,10 @@ defineProps({
     default: 'all',
   },
   feedTabs: {
+    type: Array,
+    default: () => [],
+  },
+  feedGroups: {
     type: Array,
     default: () => [],
   },
