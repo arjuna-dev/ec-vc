@@ -2600,6 +2600,18 @@ function requestEditRecordShell(row, options = {}) {
   const recordId = String(row?.recordId || '').trim()
   if (!recordId) return
 
+  if (activeSourceKey.value === 'file-system') {
+    const fileSection = String(row?.raw?.File_Source_Key || '').trim().toLowerCase()
+    router.push({
+      name: 'file-dialog-shell',
+      query: {
+        section: fileSection || activeSourceKey.value,
+        returnTo: route.fullPath,
+      },
+    })
+    return
+  }
+
   const normalizedSectionKey = String(options?.sectionKey || '').trim().toLowerCase()
 
   if (normalizedSectionKey === 'kdb') {
