@@ -2612,11 +2612,23 @@ function buildDraftDialogInitialValuesFromRow(row) {
   )
 }
 
+function isSystemManagedReadOnlyToken(token) {
+  const tokenType = String(token?.tokenType || '').trim().toLowerCase()
+  const tokenName = String(token?.tokenName || '').trim().toLowerCase()
+
+  if (['id', 'datetime', 'date', 'creator'].includes(tokenType)) return true
+  if (tokenName.endsWith('_id')) return true
+  if (tokenName.includes('creator')) return true
+  if (tokenName.includes('created_at') || tokenName.includes('updated_at')) return true
+  if (tokenName.includes('user_role') || tokenName.includes('role_link')) return true
+  return false
+}
+
 function canInlineEditTableCell(row, token, kind = 'token') {
   if (!isTableInlineEditingAvailable.value) return false
   if (!token?.key || !row?.recordId) return false
   if (kind !== 'name' && isKdbSectionActive.value) return false
-  if (String(token?.tokenType || '').trim().toLowerCase() === 'id') return false
+  if (isSystemManagedReadOnlyToken(token)) return false
   if (row?.isLocalDraft) return true
 
   const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
