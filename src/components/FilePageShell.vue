@@ -7,6 +7,12 @@
       </q-banner>
     </div>
 
+    <div v-else-if="!hasResolvedSourceKey" class="q-pa-md">
+      <q-banner class="bg-red-2 text-black" rounded>
+        File Shell source is not mapped to an approved file section.
+      </q-banner>
+    </div>
+
     <div v-else-if="!hasSupportedBridge" class="q-pa-md">
       <q-banner class="bg-red-2 text-black" rounded>
         Electron detected, but this section does not expose a supported list bridge yet.
@@ -1025,11 +1031,13 @@ const propDrivenSourceKey = computed(() => {
 const activeSourceKey = computed(() => {
   if (propDrivenSourceKey.value) return propDrivenSourceKey.value
   if (routeDrivenSourceKey.value) return routeDrivenSourceKey.value
-  return fallbackSectionKey
+  return isFileShellLabMode.value ? fallbackSectionKey : ''
 })
 
+const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
+
 const activeRegistryEntry = computed(
-  () => getFilePageRegistryEntry(activeSourceKey.value) || getFilePageRegistryEntry(fallbackSectionKey),
+  () => getFilePageRegistryEntry(activeSourceKey.value) || null,
 )
 const routeRegistryEntry = computed(() => getFilePageRegistryEntryByRouteName(route.name))
 const pageShellLabel = computed(() => {

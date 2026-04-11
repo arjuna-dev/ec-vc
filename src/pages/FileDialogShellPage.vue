@@ -7,6 +7,12 @@
       </q-banner>
     </div>
 
+    <div v-else-if="!hasResolvedSourceKey" class="q-pa-md">
+      <q-banner class="bg-red-2 text-black" rounded>
+        Add/Edit File Shell source is not mapped to an approved file section.
+      </q-banner>
+    </div>
+
     <div v-else class="file-dialog-shell-page__frame-wrap">
       <div class="file-dialog-shell-page__frame">
         <AddEditFileShellDialog
@@ -31,12 +37,12 @@ const router = useRouter()
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const canConfigureFileSystem = ref(false)
 
-const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
 const activeSourceKey = computed(() => resolveValidShellSection(route.query.section))
+const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 
 function resolveValidShellSection(value) {
   const normalized = String(value || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : fallbackSectionKey
+  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : ''
 }
 
 function updateShellSelector(nextValue) {

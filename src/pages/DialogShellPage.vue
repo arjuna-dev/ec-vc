@@ -7,6 +7,12 @@
       </q-banner>
     </div>
 
+    <div v-else-if="!hasResolvedSourceKey" class="q-pa-md">
+      <q-banner class="bg-red-2 text-black" rounded>
+        Add/Edit Dialog Shell source is not mapped to an approved file section.
+      </q-banner>
+    </div>
+
     <AddEditRecordShellDialog
       :key="dialogRenderKey"
       v-else
@@ -75,9 +81,9 @@ const dialogRecordId = ref('')
 const dialogEntityName = ref('')
 const isAddAction = computed(() => dialogMode.value === 'create' && Boolean(String(route.query.create || '').trim()))
 
-const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section))
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
+const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
 const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
@@ -212,7 +218,7 @@ function updateShellSelector(nextValue) {
 
 function resolveValidShellSection(value) {
   const normalized = String(value || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : fallbackSectionKey
+  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : ''
 }
 
 function normalizeCreateDialogToken(token) {

@@ -7,6 +7,12 @@
       </q-banner>
     </div>
 
+    <div v-else-if="!hasResolvedSourceKey" class="q-pa-md">
+      <q-banner class="bg-red-2 text-black" rounded>
+        Record Shell source is not mapped to an approved file section.
+      </q-banner>
+    </div>
+
     <div v-else class="record-shell">
       <q-banner v-if="error" class="bg-red-2 text-black" rounded>
         {{ error }}
@@ -443,14 +449,14 @@ const heroFieldKeysBySource = ref(loadShellFieldSelectionMap())
 const tableNameParam = computed(() => String(route.params.tableName || '').trim())
 const recordIdParam = computed(() => String(route.params.recordId || '').trim())
 const isRecordRoute = computed(() => Boolean(tableNameParam.value && recordIdParam.value))
-const fallbackSectionKey = TEST_SHELL_SECTION_OPTIONS[0]?.value || 'tasks'
 const activeSourceKey = computed(() => {
   if (isRecordRoute.value) {
-    return resolveSourceKeyFromTableName(currentView.value?.table_name || tableNameParam.value) || fallbackSectionKey
+    return resolveSourceKeyFromTableName(currentView.value?.table_name || tableNameParam.value) || ''
   }
   const current = String(route.query.section || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current) ? current : fallbackSectionKey
+  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current) ? current : ''
 })
+const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
 const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
 const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
