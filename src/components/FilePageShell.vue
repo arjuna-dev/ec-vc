@@ -416,22 +416,12 @@
                   :options="summarySectionShellOptions"
                   @update:model-value="setRowRelationshipPanel(row, $event)"
                 />
-                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" :disable="!supportsActiveSourceEditing" @click="handleCardAddRelation(row)">
+                <q-btn flat no-caps class="test-shell-card__summary-add-relation" aria-label="Add Relation" :disable="!supportsActiveSourceEditing || getRowRelationshipPanel(row) === 'events'" @click="handleCardAddRelation(row)">
                   <span class="test-shell-card__summary-add-relation-plus">
                     <q-icon name="add" />
                   </span>
                   <span class="test-shell-card__summary-add-relation-label">Add</span>
                 </q-btn>
-                <q-btn
-                  flat
-                  round
-                  dense
-                  icon="event"
-                  class="test-shell-card__summary-events"
-                  aria-label="Open events"
-                  :disable="!getLatestRowHistoryItem(row)"
-                  @click="openLatestRowHistory(row)"
-                />
               </div>
 
               <div class="test-shell-card__summary-panel">
@@ -451,7 +441,7 @@
                     </div>
 
                     <div v-else class="test-shell-card__summary-empty">
-                      No {{ getCardRelationshipLabel(getRowRelationshipPanel(row)).toLowerCase() }} linked to this record.
+                      {{ getActiveRelationshipEmptyMessage(row) }}
                     </div>
                   </div>
                 </div>
@@ -2556,7 +2546,16 @@ function eventTokenDisplayValue(row, token) {
 }
 
 function getActiveRelationshipItems(row) {
+  if (String(getRowRelationshipPanel(row) || '').trim().toLowerCase() === 'events') {
+    return getRowHistoryItems(row).map((item) => String(item?.title || '').trim()).filter(Boolean)
+  }
   return row?.relationshipItemsByType?.[getRowRelationshipPanel(row)] || []
+}
+
+function getActiveRelationshipEmptyMessage(row) {
+  const activePanel = String(getRowRelationshipPanel(row) || '').trim().toLowerCase()
+  if (activePanel === 'events') return 'No events yet for this record.'
+  return `No ${getCardRelationshipLabel(activePanel).toLowerCase()} linked to this record.`
 }
 
 function getRowRelationshipPanel(row) {
@@ -2776,10 +2775,6 @@ function getRowHistoryItems(row) {
   return Array.isArray(rowHistoryByRecordId.value[recordId]) ? rowHistoryByRecordId.value[recordId] : []
 }
 
-function getLatestRowHistoryItem(row) {
-  return getRowHistoryItems(row)[0] || null
-}
-
 function isRowHistoryLoading(row) {
   const recordId = String(row?.recordId || '').trim()
   if (!recordId) return false
@@ -2800,12 +2795,6 @@ function openRowHistoryItem(row, item) {
       eventId,
     },
   })
-}
-
-function openLatestRowHistory(row) {
-  const latestItem = getLatestRowHistoryItem(row)
-  if (!latestItem) return
-  openRowHistoryItem(row, latestItem)
 }
 
 function openBbShell(row) {
@@ -5207,19 +5196,6 @@ function isBbGraphLinkToken(tokenRow) {
   font-weight: var(--font-weight-black);
   line-height: 0.95;
   letter-spacing: 0.01em;
-}
-
-.test-shell-card__summary-events {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  margin-left: 2px;
-  color: rgba(17, 17, 17, 0.82);
-}
-
-.test-shell-card__summary-events :deep(.q-icon) {
-  font-size: 14px;
 }
 
 .test-shell-card__summary-body {
