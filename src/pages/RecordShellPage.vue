@@ -70,6 +70,15 @@
           <div class="record-shell__panel-meta">{{ activeSectionTokens.length }} fields</div>
         </div>
 
+        <RecordHistoryBox
+          v-if="isSystemSectionActive"
+          title="History"
+          :items="isRecordRoute ? feedItems : []"
+          :loading="loading"
+          empty-label="No history yet for this record."
+          @open-item="openFeedItemLog($event?.id)"
+        />
+
         <div v-if="isKdbSectionActive" class="record-shell__kdb-grid">
           <div
             v-for="group in activeKdbTokenGroups"
@@ -396,6 +405,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
+import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import RecordHero from 'src/components/RecordHero.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import {
@@ -517,6 +527,7 @@ const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || 
 const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
 const activeSectionTokens = computed(() => normalizedSelectableTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
 const isKdbSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'kdb'))
+const isSystemSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
 const hasGroupedSectionSubsections = computed(() => !isKdbSectionActive.value && activeSectionEntries.value.length > 1)
 const activeSectionTokenGroups = computed(() =>
   activeSectionEntries.value

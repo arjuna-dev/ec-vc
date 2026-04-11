@@ -520,6 +520,21 @@
                     />
                   </div>
                 </th>
+                <th
+                  v-if="isSystemSectionActive"
+                  class="test-shell-table__head"
+                  :style="getTableColumnStyle('history', 320)"
+                >
+                  <div class="test-shell-table__head-inner">
+                    <span>History</span>
+                    <button
+                      type="button"
+                      class="test-shell-table__resize-handle"
+                      aria-label="Resize History column"
+                      @pointerdown.stop.prevent="startColumnResize('history', 320, $event)"
+                    />
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -685,6 +700,19 @@
                     {{ tokenRow.value || 'No explicit value' }}
                   </span>
                 </td>
+                <td
+                  v-if="isSystemSectionActive"
+                  class="test-shell-table__cell test-shell-table__cell--history"
+                  :style="getTableColumnStyle('history', 320)"
+                >
+                  <RecordHistoryBox
+                    title="History"
+                    :items="getRowHistoryItems(row)"
+                    :loading="isRowHistoryLoading(row)"
+                    empty-label="No history yet for this record."
+                    @open-item="openRowHistoryItem(row, $event)"
+                  />
+                </td>
               </tr>
             </tbody>
           </table>
@@ -765,6 +793,7 @@ import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
 import L2SettingsMenu from 'components/L2SettingsMenu.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
+import RecordHistoryBox from 'components/RecordHistoryBox.vue'
 import ShellSectionToolbar from 'components/ShellSectionToolbar.vue'
 import BuildingBlockPreviewTile from 'components/BuildingBlockPreviewTile.vue'
 import EyeIconButton from 'components/buttons/EyeIconButton.vue'
@@ -824,6 +853,8 @@ const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
 const rawRows = ref([])
+const rowHistoryByRecordId = ref({})
+const rowHistoryLoadingByRecordId = ref({})
 const loaderDiagnostics = ref({})
 const viewMode = ref('page')
 const createDialogOpen = ref(false)
@@ -1052,6 +1083,7 @@ const activeSection = computed(() => {
   return level2Sections.value.find((section) => section.key === activeSectionKeyForCards.value) || level2Sections.value[0] || null
 })
 const isKdbSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'kdb')
+const isSystemSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'system')
 
 const activeSectionTokens = computed(() => {
   if (!activeSection.value) return []
@@ -1941,8 +1973,54 @@ watch(
     activeBbBlockKey.value = ''
     expandedBbFilterCategoryKey.value = ''
     expandedFilterSectionKey.value = ''
+    rowHistoryByRecordId.value = {}
+    rowHistoryLoadingByRecordId.value = {}
     await loadRows()
     activeSectionKeyForCards.value = getDefaultActiveSectionKey(level2Sections.value)
+  },
+  { immediate: true },
+)
+
+watch(
+  [displayRows, isSystemSectionActive, activeSourceKey],
+  async ([rows, isSystem]) => {
+    if (!isSystem || !bridge.value?.audit?.events || !activeRegistryEntry.value?.entityName) {
+      rowHistoryByRecordId.value = {}
+      rowHistoryLoadingByRecordId.value = {}
+      return
+    }
+
+    const tableName = String(getRuntimeTableNameForEntityName(activeRegistryEntry.value.entityName) || activeRegistryEntry.value.entityName || '').trim()
+    if (!tableName) {
+      rowHistoryByRecordId.value = {}
+      rowHistoryLoadingByRecordId.value = {}
+      return
+    }
+
+    const recordIds = (Array.isArray(rows) ? rows : [])
+      .map((row) => String(row?.recordId || '').trim())
+      .filter(Boolean)
+
+    rowHistoryLoadingByRecordId.value = Object.fromEntries(recordIds.map((recordId) => [recordId, true]))
+
+    const nextHistoryEntries = {}
+    await Promise.all(
+      recordIds.map(async (recordId) => {
+        try {
+          const result = await bridge.value.audit.events({
+            table_name: tableName,
+            record_id: recordId,
+            limit: 5,
+          })
+          nextHistoryEntries[recordId] = normalizeAuditHistoryItems(result?.events)
+        } catch {
+          nextHistoryEntries[recordId] = []
+        }
+      }),
+    )
+
+    rowHistoryByRecordId.value = nextHistoryEntries
+    rowHistoryLoadingByRecordId.value = Object.fromEntries(recordIds.map((recordId) => [recordId, false]))
   },
   { immediate: true },
 )
@@ -2545,6 +2623,69 @@ function openRecordView(row) {
     })
   if (!location) return
   router.push(location)
+}
+
+function formatAuditHistoryActionLabel(value) {
+  const normalized = String(value || '').trim()
+  if (!normalized) return 'updated'
+  return normalized
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map((part) => {
+      const lower = part.toLowerCase()
+      if (lower === 'create') return 'created'
+      if (lower === 'update') return 'modified'
+      if (lower === 'delete') return 'deleted'
+      return lower
+    })
+    .join(' ')
+}
+
+function normalizeAuditHistoryItems(events = []) {
+  return (Array.isArray(events) ? events : [])
+    .map((event) => {
+      const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {}
+      const fieldLabel = String(payload?.field_label || event?.field_name || '').replace(/__verification$/, '').trim()
+      const actorLabel = String(payload?.actor_label || event?.edited_by || '').trim() || 'System'
+      const actionLabel = formatAuditHistoryActionLabel(event?.action_label)
+      const title = fieldLabel ? `${actionLabel} ${fieldLabel}` : actionLabel
+      return {
+        id: String(event?.id || '').trim(),
+        sourceLabel: actorLabel,
+        meta: String(event?.edited_at || '').trim() || 'Recent',
+        title,
+        openable: Boolean(event?.id),
+      }
+    })
+    .filter((item) => item.id)
+}
+
+function getRowHistoryItems(row) {
+  const recordId = String(row?.recordId || '').trim()
+  if (!recordId) return []
+  return Array.isArray(rowHistoryByRecordId.value[recordId]) ? rowHistoryByRecordId.value[recordId] : []
+}
+
+function isRowHistoryLoading(row) {
+  const recordId = String(row?.recordId || '').trim()
+  if (!recordId) return false
+  return Boolean(rowHistoryLoadingByRecordId.value[recordId])
+}
+
+function openRowHistoryItem(row, item) {
+  const recordId = String(row?.recordId || '').trim()
+  const eventId = String(item?.id || '').trim()
+  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  const tableName = String(getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
+  if (!recordId || !eventId || !tableName) return
+  router.push({
+    name: 'record-event',
+    params: {
+      tableName,
+      recordId,
+      eventId,
+    },
+  })
 }
 
 function openBbShell(row) {
