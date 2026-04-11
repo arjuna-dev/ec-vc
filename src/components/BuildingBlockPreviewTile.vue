@@ -1080,6 +1080,9 @@ const recordContextDocuments = [
 
 const recordFeedTabOptions = [
   { id: 'system', label: 'System' },
+  { id: 'notes', label: 'Notes' },
+  { id: 'artifacts', label: 'Artifacts' },
+  { id: 'intake', label: 'Intake' },
   { id: 'actions', label: 'Actions' },
 ]
 
@@ -1090,8 +1093,11 @@ const recordFeedGroupOptions = [
 
 const recordFeedItems = [
   { id: 'feed-1', feedKey: 'system', groupKey: 'lifecycle', title: 'Record created', meta: '09:42', hasLogPage: true },
-  { id: 'feed-2', feedKey: 'actions', groupKey: 'actions', title: 'Companion suggestion queued', meta: '09:50', hasLogPage: true },
-  { id: 'feed-3', feedKey: 'system', groupKey: 'lifecycle', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
+  { id: 'feed-2', feedKey: 'notes', groupKey: 'actions', title: 'Partner note attached', meta: '09:46', hasLogPage: true },
+  { id: 'feed-3', feedKey: 'artifacts', groupKey: 'actions', title: 'Pitch deck linked', meta: '09:48', hasLogPage: true },
+  { id: 'feed-4', feedKey: 'intake', groupKey: 'actions', title: 'Intake suggestion queued', meta: '09:50', hasLogPage: true },
+  { id: 'feed-5', feedKey: 'actions', groupKey: 'actions', title: 'Companion suggestion queued', meta: '09:52', hasLogPage: true },
+  { id: 'feed-6', feedKey: 'system', groupKey: 'lifecycle', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
 ]
 
 
