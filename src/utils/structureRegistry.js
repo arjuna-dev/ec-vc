@@ -119,8 +119,6 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     routeName: 'file-system',
     path: '/file-system',
     icon: 'folder_open',
-    createSurface: 'file-dialog',
-    editSurface: 'file-dialog',
     showInWorkspaceNav: true,
     workspaceNavGroup: 'files',
     shellGroup: 'system_level',
