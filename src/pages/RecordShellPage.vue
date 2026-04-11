@@ -302,6 +302,16 @@
           </div>
 
           <div class="record-shell__system-column record-shell__system-column--history">
+            <div v-if="historySummaryItems.length" class="record-shell__history-summary-box">
+              <div
+                v-for="item in historySummaryItems"
+                :key="item.key"
+                class="record-shell__history-summary-item"
+              >
+                <div class="record-shell__history-summary-label">{{ item.label }}</div>
+                <div class="record-shell__history-summary-value">{{ item.value }}</div>
+              </div>
+            </div>
             <RecordHistoryBox
               title="History"
               :items="isRecordRoute ? feedItems : []"
@@ -818,6 +828,28 @@ const feedItems = computed(() => {
   ]
 })
 const recordFeedTabOptions = computed(() => filterRecordFeedTabs(feedItems.value))
+const historySummaryItems = computed(() => {
+  const lifecycleItems = auditEvents.value.filter((item) => String(item?.groupKey || '').trim() === 'lifecycle')
+  const createdEvent = [...lifecycleItems]
+    .reverse()
+    .find((item) => String(item?.title || '').trim().toLowerCase().includes('created'))
+  const fallbackItem = lifecycleItems[lifecycleItems.length - 1] || auditEvents.value[auditEvents.value.length - 1] || null
+  const sourceItem = createdEvent || fallbackItem
+  if (!sourceItem) return []
+
+  return [
+    {
+      key: 'creator',
+      label: 'Creator',
+      value: String(sourceItem.sourceLabel || '').trim() || 'Unknown',
+    },
+    {
+      key: 'datetime',
+      label: 'Datetime',
+      value: String(sourceItem.meta || '').trim() || 'Unknown',
+    },
+  ]
+})
 const recordShellNavItems = computed(() => [
   ...toolbarLeftSections.value.map((group) => ({
     value: group.value,
@@ -2272,6 +2304,10 @@ function onContactHeroPointerLeave() {
 .record-shell__system-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,360px); gap:16px; align-items:start; }
 .record-shell__system-column { min-width:0; }
 .record-shell__system-column--history { display:grid; align-content:start; }
+.record-shell__history-summary-box { display:grid; gap:8px; margin-bottom:12px; padding:10px; border:1px solid rgba(17,17,17,.08); border-radius:8px; background:rgba(17,17,17,.02); }
+.record-shell__history-summary-item { display:grid; gap:3px; }
+.record-shell__history-summary-label { color:rgba(17,17,17,.54); font-size:.68rem; line-height:1.1; text-transform:uppercase; letter-spacing:.04em; }
+.record-shell__history-summary-value { color:#111; font-size:.78rem; line-height:1.25; }
 .record-shell__section-group-stack { display:grid; gap:14px; }
 .record-shell__section-group { display:grid; gap:8px; }
 .record-shell__section-group-toggle { display:inline-flex; align-items:center; justify-content:flex-start; gap:2px; width:max-content; padding:0; color:#111; background:transparent; border:0; text-align:left; cursor:pointer; }

@@ -95,8 +95,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
   },
   Events: {
     key: 'events',
-    label: 'Events',
-    singularLabel: 'Event',
+    label: 'History',
+    singularLabel: 'History Entry',
     routeName: 'events',
     path: '/events',
     icon: 'history',
