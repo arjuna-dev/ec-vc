@@ -69,7 +69,7 @@
         <div class="file-structure-shell__content-box-title-row">
           <div class="file-structure-shell__content-box-title-shell">
             <DialogShellTitleRow
-              title="Summary Box"
+              title="Summary"
               class="file-structure-shell__content-box-title"
             />
           </div>
@@ -98,7 +98,7 @@
         <div class="file-structure-shell__content-box-title-row">
           <div class="file-structure-shell__content-box-title-shell">
             <DialogShellTitleRow
-              title="General Elements"
+              title="Relevant Items"
               class="file-structure-shell__content-box-title"
             />
           </div>
@@ -445,7 +445,7 @@ const l2ToolbarItems = computed(() => [
 const activeSettingsSection = computed(
   () => dialogSectionGroups.value.find((section) => section.key === activeL2Toolbar.value) || dialogSectionGroups.value[0] || null,
 )
-const generalElementSettingsTitle = computed(() => `${activeShellSelectorOption.value.label} Settings`)
+const generalElementSettingsTitle = computed(() => 'General')
 const baseSettingsGroups = computed(() => {
   if (!activeSettingsSection.value) return []
 
