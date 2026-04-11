@@ -187,19 +187,19 @@ const resolvedAddLabel = computed(() => {
 .record-feed-panel__header--main {
   justify-content: space-between;
   gap: 20px;
-  min-height: 12px;
 }
 
 .record-feed-panel__add-slot {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  flex: 0 0 56px;
-  min-width: 56px;
-  min-height: 12px;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
 }
 
 .record-feed-panel__add {
+  display: inline-flex;
   flex: 0 0 auto;
 }
 
@@ -209,16 +209,18 @@ const resolvedAddLabel = computed(() => {
 }
 
 .record-feed-panel__add :deep(.plus-with-label-button) {
-  align-self: flex-start;
+  align-self: center;
+  display: inline-flex;
   min-width: 0;
-  min-height: 12px;
-  height: 12px;
+  min-height: 0;
+  height: auto;
   padding: 0;
   color: var(--ds-color-brand-white);
   background: rgba(17, 17, 17, 1);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--ds-radius-sm);
   line-height: 1;
+  width: fit-content;
 }
 
 .record-feed-panel__add :deep(.plus-with-label-button:hover),
@@ -234,6 +236,7 @@ const resolvedAddLabel = computed(() => {
 
 .record-feed-panel__add :deep(.plus-with-label-button__icon) {
   margin: 0;
+  line-height: 0;
 }
 
 .record-feed-panel__add :deep(.plus-with-label-button__label) {
@@ -242,6 +245,8 @@ const resolvedAddLabel = computed(() => {
   font-size: 10px;
   line-height: 1;
   padding: 0;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .record-feed-panel__add :deep(.plus-icon-chip) {
