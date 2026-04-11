@@ -51,7 +51,7 @@ import ViewModeToggle from 'src/components/ViewModeToggle.vue'
 const props = defineProps({
   modelValue: { type: String, default: '' },
   items: { type: Array, default: () => [] },
-  viewMode: { type: String, default: 'grid' },
+  viewMode: { type: String, default: 'page' },
   viewOptions: { type: Array, default: () => [] },
   showViewToggle: { type: Boolean, default: true },
   ariaLabel: { type: String, default: 'Sections' },

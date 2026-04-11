@@ -17,7 +17,7 @@
 defineProps({
   modelValue: {
     type: String,
-    default: 'card',
+    default: 'page',
   },
   options: {
     type: Array,

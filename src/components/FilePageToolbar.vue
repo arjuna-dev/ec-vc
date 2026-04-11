@@ -83,7 +83,7 @@ const props = defineProps({
   addLabel: { type: String, default: 'Add Record' },
   searchQuery: { type: String, default: '' },
   searchPlaceholder: { type: String, default: 'Search [file/Record]' },
-  viewMode: { type: String, default: 'card' },
+  viewMode: { type: String, default: 'page' },
   viewOptions: { type: Array, default: () => [] },
   showViewToggle: { type: Boolean, default: true },
   forkValue: { type: String, default: '' },
