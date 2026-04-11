@@ -565,8 +565,11 @@
                 >
                   <div
                     class="test-shell-table__name-row"
-                    :class="{ 'test-shell-table__cell--editable': isSystemFilesTableInlineEditable }"
-                    @click="beginInlineTableEdit(row, canonicalTitleToken, 'name')"
+                    :class="{
+                      'test-shell-table__cell--editable': canInlineEditTableCell(row, canonicalTitleToken, 'name'),
+                      'test-shell-table__cell--direct': canInlineEditTableCell(row, canonicalTitleToken, 'name'),
+                    }"
+                    @dblclick="beginInlineTableEdit(row, canonicalTitleToken, 'name')"
                   >
                     <template v-if="isInlineEditingCell(row, canonicalTitleToken, 'name')">
                       <div class="test-shell-table__inline-editor">
@@ -664,13 +667,15 @@
                     <div v-if="getKdbDisplayItems(tokenRow).length" class="test-shell-table__kdb-list">
                       <div
                         v-for="item in getKdbDisplayItems(tokenRow)"
-                        :key="`${tokenRow.key}:${item}`"
+                        :key="`${tokenRow.key}:${item.key}`"
                         class="test-shell-table__kdb-item"
+                        :class="{ 'test-shell-table__kdb-item--linkable': item.canOpen }"
+                        @dblclick="openKdbSourceCell(item)"
                       >
                         <span class="test-shell-table__kdb-icon">
                           <q-icon name="share" size="10px" />
                         </span>
-                        <span class="test-shell-table__kdb-text">{{ item }}</span>
+                        <span class="test-shell-table__kdb-text">{{ item.label }}</span>
                       </div>
                     </div>
                     <span v-else class="test-shell-card__value--placeholder">No explicit value</span>
@@ -679,9 +684,10 @@
                     v-else
                     :class="[
                       { 'test-shell-card__value--placeholder': !tokenRow.value },
-                      { 'test-shell-table__cell--editable': isSystemFilesTableInlineEditable },
+                      { 'test-shell-table__cell--editable': canInlineEditTableCell(row, tokenRow.token, 'token') },
+                      { 'test-shell-table__cell--direct': canInlineEditTableCell(row, tokenRow.token, 'token') },
                     ]"
-                    @click="beginInlineTableEdit(row, tokenRow.token, 'token')"
+                    @dblclick="beginInlineTableEdit(row, tokenRow.token, 'token')"
                   >
                     {{ tokenRow.value || 'No explicit value' }}
                   </span>
@@ -784,6 +790,7 @@ import {
   getFilePageCreateSurface,
   getFilePageEditSurface,
   getFilePageRegistryEntry,
+  getFilePageRegistryEntryByEntityReference,
   getFilePageRegistryEntryByRouteName,
   getFilePageReferenceDocs,
   getViewForkEntry,
@@ -1212,9 +1219,7 @@ const createDialogBranchSelectorTokenKey = computed(() => {
 const createDialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || '',
 )
-const isSystemFilesTableInlineEditable = computed(() =>
-  activeSourceKey.value === 'file-system' && viewMode.value !== 'card',
-)
+const isTableInlineEditingAvailable = computed(() => viewMode.value !== 'card')
 const expandedCardSettingsGroups = computed(() => {
   const sourceKey = activeContentSourceKey.value
   const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
@@ -2436,16 +2441,24 @@ function buildInitialsFromName(value) {
 }
 
 function getKdbDisplayItems(tokenRow) {
-  const rawValue = tokenRow?.rawValue
-  if (Array.isArray(rawValue)) {
-    return rawValue.map((item) => stringifyValue(item)).filter(Boolean)
-  }
-  const normalized = stringifyValue(rawValue || tokenRow?.value)
+  const items = getKdbCellItems(tokenRow)
+  if (items.length) return items
+
+  const normalized = stringifyValue(tokenRow?.rawValue || tokenRow?.value)
   if (!normalized) return []
   return normalized
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
+    .map((label) => ({
+      key: label,
+      label,
+      canOpen: false,
+      sourceKey: '',
+      recordId: '',
+      entityName: '',
+      tokenName: '',
+    }))
 }
 
 function getEventTokenRawValue(row, token) {
@@ -2606,11 +2619,32 @@ function buildDraftDialogInitialValuesFromRow(row) {
   )
 }
 
+function canInlineEditTableCell(row, token, kind = 'token') {
+  if (!isTableInlineEditingAvailable.value) return false
+  if (!token?.key || !row?.recordId) return false
+  if (kind !== 'name' && isKdbSectionActive.value) return false
+  if (row?.isLocalDraft) return true
+
+  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  if (!entityName) return false
+
+  if (tokenHasRelationshipWriteContract(token, entityName)) {
+    return !isUnsupportedRelationshipWriteToken(token, entityName)
+  }
+
+  const writeTarget = getCanonicalTokenWriteTarget(
+    token,
+    getRuntimeTableNameForEntityName(entityName),
+    activeLoader.value?.recordIdField || 'id',
+  )
+  return Boolean(writeTarget?.tableName && writeTarget?.fieldName)
+}
+
 function isInlineEditingCell(row, token, kind = 'token') {
   const rowId = String(row?.recordId || '').trim()
   const tokenKey = String(token?.key || '').trim()
   return (
-    isSystemFilesTableInlineEditable.value &&
+    canInlineEditTableCell(row, token, kind) &&
     inlineTableEditState.value.rowId === rowId &&
     inlineTableEditState.value.tokenKey === tokenKey &&
     inlineTableEditState.value.kind === kind
@@ -2618,7 +2652,7 @@ function isInlineEditingCell(row, token, kind = 'token') {
 }
 
 function beginInlineTableEdit(row, token, kind = 'token') {
-  if (!isSystemFilesTableInlineEditable.value) return
+  if (!canInlineEditTableCell(row, token, kind)) return
   if (!token?.key || !row?.recordId) return
   const initialValue = normalizeCreateDialogInitialValue(token, getCanonicalTokenValue(row?.raw || {}, token))
   inlineTableEditState.value = {
@@ -2638,6 +2672,43 @@ function cancelInlineTableEdit() {
   }
 }
 
+function getKdbCellItems(tokenRow) {
+  const token = tokenRow?.token
+  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  const relationshipContract = getKdbRelationshipContractForToken(entityName, token?.tokenName)
+  const targetEntry = relationshipContract
+    ? getFilePageRegistryEntryByEntityReference(relationshipContract.targetEntity)
+    : null
+  const targetSourceKey = String(targetEntry?.key || '').trim()
+  const targetTitleToken = targetSourceKey ? getRegistryTitleTokenForSource(targetSourceKey) : null
+  const targetRows = targetSourceKey ? getOptionRowsForSource(targetSourceKey) : []
+  const rawValue = tokenRow?.rawValue
+  const rawIds = Array.isArray(rawValue)
+    ? rawValue.map((value) => String(value || '').trim()).filter(Boolean)
+    : stringifyValue(rawValue)
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+
+  if (!rawIds.length) return []
+
+  return rawIds.map((recordId) => {
+    const matchingRow = targetRows.find((entry) => String(entry?.id || '').trim() === recordId)
+    const label = matchingRow && targetTitleToken
+      ? stringifyValue(getCanonicalTokenValue(matchingRow, targetTitleToken)) || recordId
+      : recordId
+    return {
+      key: recordId,
+      label,
+      recordId,
+      sourceKey: targetSourceKey,
+      entityName: String(targetEntry?.entityName || '').trim(),
+      tokenName: String(token?.tokenName || '').trim(),
+      canOpen: Boolean(targetSourceKey && recordId),
+    }
+  })
+}
+
 function updateLocalDraftTokenValue(row, token, value) {
   const sourceKey = activeContentSourceKey.value
   const draftId = String(row?.recordId || '').trim()
@@ -2655,6 +2726,18 @@ function updateLocalDraftTokenValue(row, token, value) {
       }
     }),
   }
+}
+
+function openKdbSourceCell(item) {
+  if (!item?.canOpen || !item?.entityName || !item?.recordId) return
+  const location = buildRecordViewLocation({
+    tableName: item.entityName,
+    recordId: item.recordId,
+    returnTo: route.fullPath,
+    query: item.tokenName ? { focusField: item.tokenName } : {},
+  })
+  if (!location) return
+  router.push(location)
 }
 
 function buildSingleTokenUpdateChanges(token, value, { recordId = '', entityName = '', tableName = '', idColumn = 'id' } = {}) {
@@ -5034,6 +5117,10 @@ function isBbGraphLinkToken(tokenRow) {
   cursor: pointer;
 }
 
+.test-shell-table__cell--direct {
+  color: #2647ff;
+}
+
 .test-shell-table__inline-editor {
   display: flex;
   flex-direction: column;
@@ -5060,6 +5147,15 @@ function isBbGraphLinkToken(tokenRow) {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
+}
+
+.test-shell-table__kdb-item--linkable {
+  cursor: pointer;
+}
+
+.test-shell-table__kdb-item--linkable:hover {
+  border-color: rgba(31, 122, 61, 0.34);
+  background: rgba(31, 122, 61, 0.1);
 }
 
 .test-shell-table__bb-links {
@@ -5097,9 +5193,9 @@ function isBbGraphLinkToken(tokenRow) {
   gap: 6px;
   min-width: 0;
   padding: 4px 7px;
-  color: #111111;
-  background: rgba(17, 17, 17, 0.04);
-  border: 1px solid rgba(17, 17, 17, 0.1);
+  color: #1f7a3d;
+  background: rgba(31, 122, 61, 0.06);
+  border: 1px solid rgba(31, 122, 61, 0.18);
   border-radius: 3px;
 }
 
