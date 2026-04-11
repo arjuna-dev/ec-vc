@@ -5836,14 +5836,6 @@ function assertOwnerRecordEditAllowed(database, actor, change) {
   throw new Error('Only the owner can edit owner profile data.')
 }
 
-function countRows(database, tableName) {
-  return Number(
-    database
-      .prepare(`SELECT COUNT(*) AS total FROM ${quoteIdentifier(tableName)}`)
-      .get()?.total || 0,
-  )
-}
-
 function assertUserDeleteAllowed(database, userId) {
   const normalizedUserId = normalizeNullableString(userId)
   if (!normalizedUserId) throw new Error('User ID is required')
@@ -5851,10 +5843,6 @@ function assertUserDeleteAllowed(database, userId) {
   const ownerUserId = getOwnerUserId(database)
   if (ownerUserId && normalizedUserId === ownerUserId) {
     throw new Error('The owner user cannot be deleted from normal editing.')
-  }
-
-  if (countRows(database, 'Users') <= 1) {
-    throw new Error('The last user cannot be deleted.')
   }
 }
 
@@ -5865,10 +5853,6 @@ function assertContactDeleteAllowed(database, contactId) {
   const ownerContactId = getOwnerContactId(database)
   if (ownerContactId && normalizedContactId === ownerContactId) {
     throw new Error('The owner contact cannot be deleted from normal editing.')
-  }
-
-  if (countRows(database, 'Contacts') <= 1) {
-    throw new Error('The last contact cannot be deleted.')
   }
 }
 
