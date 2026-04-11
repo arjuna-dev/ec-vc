@@ -30,23 +30,28 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditFileShellDialog from 'src/components/AddEditFileShellDialog.vue'
-import { TEST_SHELL_SECTION_OPTIONS } from 'src/utils/structureRegistry'
+import { TEST_SHELL_SECTION_OPTIONS, getFilePageRegistryEntryByEntityReference } from 'src/utils/structureRegistry'
 
 const route = useRoute()
 const router = useRouter()
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
 const canConfigureFileSystem = ref(false)
 
-const activeSourceKey = computed(() => resolveValidShellSection(route.query.section))
+const activeSourceKey = computed(() => resolveValidShellSection(route.query.section, route.query.entity))
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 
-function resolveValidShellSection(value) {
+function resolveValidShellSection(value, entityName = '') {
   const normalized = String(value || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : ''
+  if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized)) return normalized
+
+  const derivedSourceKey = getFilePageRegistryEntryByEntityReference(String(entityName || '').trim())?.key || ''
+  if (derivedSourceKey) return derivedSourceKey
+
+  return 'file-system'
 }
 
 function updateShellSelector(nextValue) {
-  const section = resolveValidShellSection(nextValue)
+  const section = resolveValidShellSection(nextValue, route.query.entity)
   router.replace({
     query: {
       ...route.query,

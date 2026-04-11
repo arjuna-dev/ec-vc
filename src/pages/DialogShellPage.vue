@@ -82,7 +82,7 @@ const dialogRecordId = ref('')
 const dialogEntityName = ref('')
 const isAddAction = computed(() => dialogMode.value === 'create' && Boolean(String(route.query.create || '').trim()))
 
-const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section))
+const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section, route.query.entity))
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
@@ -134,7 +134,7 @@ const dialogKdbSectionKey = computed(
 watch(
   () => route.query.section,
   (nextValue) => {
-    const validValue = resolveValidShellSection(nextValue)
+    const validValue = resolveValidShellSection(nextValue, route.query.entity)
     if (validValue !== dialogShellSourceKey.value) {
       dialogShellSourceKey.value = validValue
     }
@@ -214,12 +214,13 @@ onBeforeUnmount(() => {
 })
 
 function updateShellSelector(nextValue) {
-  dialogShellSourceKey.value = resolveValidShellSection(nextValue)
+  dialogShellSourceKey.value = resolveValidShellSection(nextValue, route.query.entity)
 }
 
-function resolveValidShellSection(value) {
+function resolveValidShellSection(value, entityName = '') {
   const normalized = String(value || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : ''
+  if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized)) return normalized
+  return resolveSourceKeyFromEntityName(entityName)
 }
 
 function normalizeCreateDialogToken(token) {
