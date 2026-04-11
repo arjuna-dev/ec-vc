@@ -39,6 +39,16 @@
                 </template>
               </q-select>
             </div>
+            <q-btn
+              flat
+              no-caps
+              dense
+              class="create-record-shell__header-link"
+              label="Undo"
+              icon="undo"
+              :disable="!canUndo"
+              @click="undoLastAction"
+            />
           </div>
           <div class="create-record-shell__intake-lane">
             <button
@@ -1009,7 +1019,13 @@ const recordDataCollapsed = ref(false)
 const dialogWidth = ref(760)
 const dialogHeight = ref(780)
 const fieldVerificationStates = ref({})
+const undoStack = ref([])
+const currentUndoSignature = ref('')
+const isApplyingUndo = ref(false)
 let removeResizeListeners = null
+let removeUndoKeyListener = null
+
+const canUndo = computed(() => undoStack.value.length > 0)
 
 const branchSelectionSettled = computed(() => {
   const tokenKey = String(props.branchSelectorTokenKey || '').trim()
@@ -1194,8 +1210,108 @@ function resolveInitialDialogSectionKey(initialKey = '') {
   return String(allSections.value[0]?.key || '').trim()
 }
 
+function createUndoSnapshot() {
+  return {
+    activeSectionKey: activeSectionKey.value,
+    formValues: { ...formValues.value },
+    stagedFieldValues: { ...stagedFieldValues.value },
+    fieldVerificationStates: { ...fieldVerificationStates.value },
+    stagedArtifacts: stagedArtifacts.value.map((artifact) => ({ ...artifact })),
+    selectedArtifactIds: [...selectedArtifactIds.value],
+    autoProcessArtifacts: autoProcessArtifacts.value,
+    companionUrl: companionUrl.value,
+    companionBlurb: companionBlurb.value,
+    urlEntries: urlEntries.value.map((entry) => ({ ...entry })),
+    blurbEntries: blurbEntries.value.map((entry) => ({ ...entry })),
+    selectedUrlEntryIds: [...selectedUrlEntryIds.value],
+    selectedBlurbEntryIds: [...selectedBlurbEntryIds.value],
+    expandedEntryIds: [...expandedEntryIds.value],
+    supportResourcesCollapsed: supportResourcesCollapsed.value,
+    recordDataCollapsed: recordDataCollapsed.value,
+  }
+}
+
+function syncUndoSignature() {
+  currentUndoSignature.value = JSON.stringify(createUndoSnapshot())
+}
+
+function pushUndoSnapshot() {
+  if (isApplyingUndo.value) return
+  const snapshot = createUndoSnapshot()
+  const signature = JSON.stringify(snapshot)
+  if (signature !== currentUndoSignature.value) {
+    currentUndoSignature.value = signature
+  }
+  if (undoStack.value.at(-1)?.signature === signature) return
+  undoStack.value = [...undoStack.value.slice(-49), { signature, snapshot }]
+}
+
+function restoreUndoSnapshot(snapshot) {
+  isApplyingUndo.value = true
+  activeSectionKey.value = String(snapshot?.activeSectionKey || activeSectionKey.value || '')
+  formValues.value = { ...(snapshot?.formValues || {}) }
+  stagedFieldValues.value = { ...(snapshot?.stagedFieldValues || {}) }
+  fieldVerificationStates.value = { ...(snapshot?.fieldVerificationStates || {}) }
+  stagedArtifacts.value = Array.isArray(snapshot?.stagedArtifacts)
+    ? snapshot.stagedArtifacts.map((artifact) => ({ ...artifact }))
+    : []
+  selectedArtifactIds.value = Array.isArray(snapshot?.selectedArtifactIds) ? [...snapshot.selectedArtifactIds] : []
+  autoProcessArtifacts.value = Boolean(snapshot?.autoProcessArtifacts)
+  companionUrl.value = String(snapshot?.companionUrl || '')
+  companionBlurb.value = String(snapshot?.companionBlurb || '')
+  urlEntries.value = Array.isArray(snapshot?.urlEntries) ? snapshot.urlEntries.map((entry) => ({ ...entry })) : []
+  blurbEntries.value = Array.isArray(snapshot?.blurbEntries) ? snapshot.blurbEntries.map((entry) => ({ ...entry })) : []
+  selectedUrlEntryIds.value = Array.isArray(snapshot?.selectedUrlEntryIds) ? [...snapshot.selectedUrlEntryIds] : []
+  selectedBlurbEntryIds.value = Array.isArray(snapshot?.selectedBlurbEntryIds) ? [...snapshot.selectedBlurbEntryIds] : []
+  expandedEntryIds.value = Array.isArray(snapshot?.expandedEntryIds) ? [...snapshot.expandedEntryIds] : []
+  supportResourcesCollapsed.value = Boolean(snapshot?.supportResourcesCollapsed)
+  recordDataCollapsed.value = Boolean(snapshot?.recordDataCollapsed)
+  hasUserChanges.value = true
+  syncUndoSignature()
+  isApplyingUndo.value = false
+  emit('change', buildDialogSnapshot())
+}
+
+function undoLastAction() {
+  if (!undoStack.value.length) return
+  const previous = undoStack.value.at(-1)?.snapshot || null
+  undoStack.value = undoStack.value.slice(0, -1)
+  if (!previous) return
+  restoreUndoSnapshot(previous)
+}
+
+function startUndoKeyListener() {
+  if (typeof window === 'undefined' || removeUndoKeyListener) return
+  const handleKeydown = (event) => {
+    if (!open.value) return
+    if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return
+    if (String(event.key || '').trim().toLowerCase() !== 'z') return
+    const target = event.target
+    if (target instanceof HTMLElement) {
+      const tagName = String(target.tagName || '').toLowerCase()
+      if (target.isContentEditable || ['input', 'textarea', 'select'].includes(tagName)) return
+    }
+    if (!canUndo.value) return
+    event.preventDefault()
+    event.stopPropagation()
+    undoLastAction()
+  }
+  window.addEventListener('keydown', handleKeydown, true)
+  removeUndoKeyListener = () => {
+    window.removeEventListener('keydown', handleKeydown, true)
+    removeUndoKeyListener = null
+  }
+}
+
+function stopUndoKeyListener() {
+  if (typeof removeUndoKeyListener === 'function') {
+    removeUndoKeyListener()
+  }
+}
+
 function initializeDialogState() {
   hasUserChanges.value = false
+  undoStack.value = []
   activeSectionKey.value = resolveInitialDialogSectionKey(props.initialSectionKey)
   artifactDragOver.value = false
   stagedFieldValues.value = {}
@@ -1232,6 +1348,7 @@ function initializeDialogState() {
         String(props.initialFieldMeta?.[token.key]?.verificationState || '').trim(),
       ]),
   )
+  syncUndoSignature()
 }
 
 watch(
@@ -1239,6 +1356,18 @@ watch(
   (nextValue) => {
     if (!nextValue) return
     initializeDialogState()
+  },
+  { immediate: true },
+)
+
+watch(
+  () => open.value,
+  (nextOpen) => {
+    if (nextOpen) {
+      startUndoKeyListener()
+      return
+    }
+    stopUndoKeyListener()
   },
   { immediate: true },
 )
@@ -1252,6 +1381,7 @@ watch(activeSectionSubgroups, (groups) => {
 }, { immediate: true })
 
 function updateField(tokenKey, value) {
+  pushUndoSnapshot()
   const token = allSections.value.flatMap((section) => section.tokens || []).find((entry) => entry.key === tokenKey) || null
   formValues.value = {
     ...formValues.value,
@@ -1269,6 +1399,7 @@ function updateField(tokenKey, value) {
     }
   }
   hasUserChanges.value = true
+  syncUndoSignature()
   emit('change', buildDialogSnapshot())
 }
 
@@ -1354,6 +1485,7 @@ function buildDialogSnapshot() {
 
 function markDialogChanged() {
   hasUserChanges.value = true
+  syncUndoSignature()
   emit('change', buildDialogSnapshot())
 }
 
@@ -1502,11 +1634,13 @@ function verificationMenuSelf(column) {
 }
 
 function updateFieldVerificationState(token, nextState) {
+  pushUndoSnapshot()
   fieldVerificationStates.value = {
     ...fieldVerificationStates.value,
     [token.key]: String(nextState || '').trim(),
   }
   hasUserChanges.value = true
+  syncUndoSignature()
   emit('change', buildDialogSnapshot())
 }
 
@@ -1558,6 +1692,7 @@ function openFieldParentRecord(token) {
 }
 
 async function onArtifactDrop(event) {
+  pushUndoSnapshot()
   artifactDragOver.value = false
   const files = Array.from(event?.dataTransfer?.files || [])
   if (!files.length) return
@@ -1623,6 +1758,7 @@ function normalizeInitialArtifacts(artifacts = []) {
 }
 
 async function toggleArtifactSelection(artifactId, nextValue) {
+  pushUndoSnapshot()
   if (nextValue) {
     if (!selectedArtifactIds.value.includes(artifactId)) {
       selectedArtifactIds.value = [...selectedArtifactIds.value, artifactId]
@@ -1638,6 +1774,7 @@ async function toggleArtifactSelection(artifactId, nextValue) {
 }
 
 async function toggleAllArtifacts(nextValue) {
+  pushUndoSnapshot()
   if (nextValue) {
     selectedArtifactIds.value = stagedArtifacts.value.map((artifact) => artifact.id)
     await Promise.all(selectedArtifactIds.value.map((artifactId) => ensureProcessedArtifactForSelection(artifactId)))
@@ -1724,6 +1861,7 @@ async function ensureProcessedArtifactForSelection(artifactId) {
 }
 
 async function startArtifactProcessing(artifactId) {
+  pushUndoSnapshot()
   const artifact = stagedArtifacts.value.find((entry) => entry.id === artifactId)
   if (!artifact || artifact.artifactId) return
   if (startingArtifactIds.value.includes(artifactId)) return
@@ -1775,6 +1913,7 @@ async function removeProcessedArtifactForSelection(artifactId) {
 }
 
 function addCompanionEntry(kind) {
+  pushUndoSnapshot()
   const normalizedKind = String(kind || '').trim().toLowerCase()
   const sourceRef = normalizedKind === 'url' ? companionUrl : companionBlurb
   const nextValue = String(sourceRef.value || '').trim()
@@ -1813,6 +1952,7 @@ function toggleCompanionEntrySelection(kind, entryId, nextValue) {
 }
 
 function removeCompanionEntries(kind) {
+  pushUndoSnapshot()
   const normalizedKind = String(kind || '').trim().toLowerCase()
   if (normalizedKind === 'url') {
     const selected = new Set(selectedUrlEntryIds.value)
@@ -1874,6 +2014,7 @@ function stopResize() {
 
 onBeforeUnmount(() => {
   stopResize()
+  stopUndoKeyListener()
 })
 </script>
 
