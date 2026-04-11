@@ -81,6 +81,10 @@ The `Owner` has final authority over file-definition direction.
 
 The `File Steward` governs whether each file is born correctly, has its required guide, and is connected to the right KDB relationships.
 
+`File_Owner` should mean the actual owning authority for the file.
+
+In the current system direction, that is the real `Owner`, not a loose placeholder field.
+
 ## Owner
 
 The `Owner` should use `System Files` to understand:
@@ -179,7 +183,7 @@ The `System` section should track:
 - file id
 - creator
 - datetime
-- event log linkage
+- event log linkage to rows in the `Events` file
 - guide path
 - runtime status
 
@@ -215,8 +219,10 @@ The file-specific section should track:
 - fork mode
 - fork enabled
 - ownership mode
+- file owner
 - steward
 - rulebook dependencies
+- file event log
 - file guide path
 - create-branch instructions
 - view-fork instructions
