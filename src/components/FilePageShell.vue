@@ -67,13 +67,13 @@
         <div v-else-if="viewMode === 'card'" class="event-shell__grid">
           <article v-for="row in displayRows" :key="row.cardId" class="event-shell__card">
             <div class="event-shell__card-top">
-              <div class="event-shell__card-title">{{ row.titleValue || 'Event' }}</div>
+              <div class="event-shell__card-title">{{ row.titleValue || 'Missing event title' }}</div>
               <button type="button" class="event-shell__card-open" aria-label="Open event" @click="openRecordView(row)">
                 <q-icon name="open_in_new" size="13px" />
               </button>
             </div>
 
-            <div class="event-shell__card-meta">{{ row.raw?.edited_at || 'Recent' }}</div>
+            <div class="event-shell__card-meta">{{ row.raw?.edited_at || 'Missing datetime' }}</div>
 
             <div class="event-shell__field-grid">
               <div v-for="token in activeSectionTokens" :key="`${row.cardId}:${token.key}`" class="event-shell__field-card">
@@ -88,7 +88,7 @@
                   </span>
                 </div>
                 <div v-else class="event-shell__field-value" :class="{ 'event-shell__field-value--empty': !eventTokenDisplayValue(row, token) }">
-                  {{ eventTokenDisplayValue(row, token) || 'No value yet' }}
+                  {{ eventTokenDisplayValue(row, token) || 'Missing value' }}
                 </div>
               </div>
             </div>
@@ -98,9 +98,9 @@
         <div v-else class="event-shell__list">
           <article v-for="row in displayRows" :key="row.cardId" class="event-shell__list-row">
             <div class="event-shell__list-row-head">
-              <div class="event-shell__card-title">{{ row.titleValue || 'Event' }}</div>
+              <div class="event-shell__card-title">{{ row.titleValue || 'Missing event title' }}</div>
               <div class="event-shell__list-row-actions">
-                <div class="event-shell__card-meta">{{ row.raw?.edited_at || 'Recent' }}</div>
+                <div class="event-shell__card-meta">{{ row.raw?.edited_at || 'Missing datetime' }}</div>
                 <button type="button" class="event-shell__card-open" aria-label="Open event" @click="openRecordView(row)">
                   <q-icon name="open_in_new" size="13px" />
                 </button>
@@ -120,7 +120,7 @@
                   </span>
                 </div>
                 <div v-else class="event-shell__field-value" :class="{ 'event-shell__field-value--empty': !eventTokenDisplayValue(row, token) }">
-                  {{ eventTokenDisplayValue(row, token) || 'No value yet' }}
+                  {{ eventTokenDisplayValue(row, token) || 'Missing value' }}
                 </div>
               </div>
             </div>

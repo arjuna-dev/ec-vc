@@ -786,8 +786,16 @@ const heroAvatarColor = computed(() => {
   const palette = ['#111111', '#2b2b2b', '#444444', '#5c5c5c', '#747474', '#8b8b8b']
   return palette[Math.abs(hashString(heroName.value)) % palette.length]
 })
-const heroName = computed(() => getTokenDisplayValue(canonicalNameToken.value) || `${activeRegistryEntry.value?.singularLabel || 'Record'} Name`)
-const heroSummaryValue = computed(() => getTokenDisplayValue(canonicalSummaryToken.value) || 'No summary captured for this record yet.')
+const heroName = computed(() => {
+  if (!canonicalNameToken.value) return 'Missing canonical Name token'
+  const value = getTokenDisplayValue(canonicalNameToken.value)
+  return value || 'Missing Name value'
+})
+const heroSummaryValue = computed(() => {
+  if (!canonicalSummaryToken.value) return 'Missing canonical Summary token'
+  const value = getTokenDisplayValue(canonicalSummaryToken.value)
+  return value || 'Summary not set'
+})
 const heroSummaryStatusIcon = computed(() => (tokenHasStoredValue(canonicalSummaryToken.value) ? 'task_alt' : ''))
 const recordFeedArtifactContext = computed(() => {
   if (!isRecordRoute.value) return null
@@ -805,7 +813,7 @@ const recordFeedArtifactContext = computed(() => {
 })
 const selectedHeroFieldCards = computed(() =>
   selectedHeroTokens.value.map((token) => {
-    const sectionLabel = level2Sections.value.find((section) => section.key === token.parentKey)?.label || 'Field'
+    const sectionLabel = level2Sections.value.find((section) => section.key === token.parentKey)?.label || 'Unmapped section'
     return {
       key: token.key,
       label: token.label,
