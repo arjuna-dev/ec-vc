@@ -1132,8 +1132,8 @@ const selectedRecordShellLevel3Keys = computed(() => {
 const selectedRecordShellLevel3KeySet = computed(() => new Set(selectedRecordShellLevel3Keys.value))
 const activeCardSettingsSectionKey = computed(() => String(activeSection.value?.key || '').trim())
 function isCoreCardSection(section) {
-  const normalized = String(section?.label || section?.rawLabel || '').trim().toLowerCase()
-  return normalized === 'general' || normalized === 'system' || normalized === 'kdb'
+  const normalized = String(section?.rawLabel || section?.label || '').trim().toLowerCase()
+  return normalized === 'general' || normalized === 'system' || isRelationshipSectionLabel(normalized)
 }
 
 const cardSettingsSourceSections = computed(() => {

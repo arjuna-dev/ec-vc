@@ -872,9 +872,9 @@ const recordShellNavItems = computed(() => [
   })),
   ...toolbarRightSections.value.map((group, index) => {
     const normalizedSectionLabels = Array.isArray(group.sections)
-      ? group.sections.map((section) => String(section.label || '').trim().toLowerCase())
+      ? group.sections.map((section) => String(section.rawLabel || section.label || '').trim().toLowerCase())
       : []
-    const isKdb = normalizedSectionLabels.includes('kdb')
+    const isKdb = normalizedSectionLabels.some((label) => isRelationshipSectionLabel(label))
     const isSystem = normalizedSectionLabels.includes('system')
     return {
       value: group.value,
