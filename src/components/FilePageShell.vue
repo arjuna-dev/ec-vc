@@ -2018,8 +2018,9 @@ watch(
       return
     }
 
+    const recordIdField = String(activeLoader.value?.recordIdField || 'id').trim() || 'id'
     const recordIds = (Array.isArray(rows) ? rows : [])
-      .map((row) => String(row?.recordId || '').trim())
+      .map((row) => String(row?.[recordIdField] || '').trim())
       .filter(Boolean)
 
     rowHistoryLoadingByRecordId.value = Object.fromEntries(recordIds.map((recordId) => [recordId, true]))
