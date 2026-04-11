@@ -130,27 +130,92 @@
       </RecordFieldsBox>
 
       <RecordFieldsBox class="file-structure-shell__content-box file-structure-shell__content-box--events">
-        <div class="file-structure-shell__content-box-title-row">
-          <div class="file-structure-shell__content-box-title-shell">
-            <DialogShellTitleRow
-              title="Notes"
-              class="file-structure-shell__content-box-title"
-            />
-          </div>
+        <div class="file-structure-shell__events-tabs">
+          <SectionTabs
+            v-model="activeEventsTab"
+            :left-tabs="eventsTabs"
+            :right-tabs="[]"
+          />
         </div>
         <div class="file-structure-shell__guide-panel">
           <div class="file-structure-shell__guide-divider" />
-          <div class="file-structure-shell__notes-panel">
-            <div
-              v-for="note in latestNotes"
-              :key="note.id"
-              class="file-structure-shell__notes-row"
-            >
-              <div class="file-structure-shell__notes-name">{{ note.name }}</div>
-              <div class="file-structure-shell__notes-summary">{{ note.summary }}</div>
+          <div v-if="activeEventsTab === 'tokens'" class="file-structure-shell__system-panel">
+            <div class="file-structure-shell__governance-toolbar">
+              <div class="file-structure-shell__governance-title">File Specific Tokens</div>
+              <q-btn flat dense no-caps class="file-structure-shell__governance-add" label="Add Token" @click="addTokenGovernanceRow" />
             </div>
-            <div v-if="!latestNotes.length" class="file-structure-shell__guide-meta">
-              No notes available yet.
+            <div class="file-structure-shell__system-head file-structure-shell__system-head--tokens">
+              <div>Label</div>
+              <div>Type</div>
+              <div>Required</div>
+              <div>View</div>
+            </div>
+            <div
+              v-for="item in tokenGovernanceRows"
+              :key="item.key"
+              class="file-structure-shell__system-row file-structure-shell__system-row--tokens"
+            >
+              <div class="file-structure-shell__system-label">
+                <q-input
+                  :model-value="item.label"
+                  dense
+                  outlined
+                  class="file-structure-shell__governance-input"
+                  @update:model-value="updateTokenGovernanceRow(item.key, 'label', $event)"
+                />
+              </div>
+              <div class="file-structure-shell__system-type">{{ item.type }}</div>
+              <div class="file-structure-shell__system-required">
+                <SettingsCheckbox
+                  :model-value="item.required"
+                  tone="light"
+                  @update:model-value="updateTokenGovernanceRow(item.key, 'required', $event)"
+                />
+              </div>
+              <div class="file-structure-shell__system-view">
+                <q-select
+                  :model-value="item.viewKey"
+                  dense
+                  outlined
+                  emit-value
+                  map-options
+                  class="file-structure-shell__governance-select"
+                  :options="governanceViewOptions"
+                  @update:model-value="updateTokenGovernanceRow(item.key, 'viewKey', $event)"
+                />
+              </div>
+            </div>
+            <div v-if="!tokenGovernanceRows.length" class="file-structure-shell__guide-meta">
+              No file-specific tokens defined yet.
+            </div>
+          </div>
+          <div v-else-if="activeEventsTab === 'views'" class="file-structure-shell__system-panel">
+            <div class="file-structure-shell__governance-toolbar">
+              <div class="file-structure-shell__governance-title">Views</div>
+              <q-btn flat dense no-caps class="file-structure-shell__governance-add" label="Add View" @click="addGovernanceViewRow" />
+            </div>
+            <div class="file-structure-shell__system-head file-structure-shell__system-head--views">
+              <div>Label</div>
+              <div>Key</div>
+            </div>
+            <div
+              v-for="item in governanceViewRows"
+              :key="item.key"
+              class="file-structure-shell__system-row file-structure-shell__system-row--views"
+            >
+              <div class="file-structure-shell__system-label">
+                <q-input
+                  :model-value="item.label"
+                  dense
+                  outlined
+                  class="file-structure-shell__governance-input"
+                  @update:model-value="updateGovernanceViewRow(item.key, $event)"
+                />
+              </div>
+              <div class="file-structure-shell__system-alias">{{ item.value }}</div>
+            </div>
+            <div v-if="!governanceViewRows.length" class="file-structure-shell__guide-meta">
+              No file views defined yet.
             </div>
           </div>
         </div>
@@ -178,7 +243,7 @@
     </div>
 
     <div v-if="!leafItemsCollapsed" class="file-structure-shell__leaf-area">
-      <div v-if="!isGovernanceToolbarActive && subgroupTabs.length" class="file-structure-shell__subgroup-tabs">
+      <div v-if="subgroupTabs.length" class="file-structure-shell__subgroup-tabs">
         <SectionTabs
           v-model="activeSubgroupKey"
           :left-tabs="subgroupTabs"
@@ -186,92 +251,7 @@
         />
       </div>
 
-      <div v-if="activeL2Toolbar === 'tokens'" class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
-        <div class="file-structure-shell__governance-toolbar">
-          <div class="file-structure-shell__governance-title">File Specific Tokens</div>
-          <q-btn flat dense no-caps class="file-structure-shell__governance-add" label="Add Token" @click="addTokenGovernanceRow" />
-        </div>
-        <table class="file-structure-shell__leaf-table">
-          <thead>
-            <tr>
-              <th class="file-structure-shell__colhead--data">Label</th>
-              <th class="file-structure-shell__colhead--data">Type</th>
-              <th class="file-structure-shell__colhead--data">Required</th>
-              <th class="file-structure-shell__colhead--data">View</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in tokenGovernanceRows" :key="item.key">
-              <td class="file-structure-shell__cell--data">
-                <q-input
-                  :model-value="item.label"
-                  dense
-                  outlined
-                  class="file-structure-shell__governance-input"
-                  @update:model-value="updateTokenGovernanceRow(item.key, 'label', $event)"
-                />
-              </td>
-              <td class="file-structure-shell__cell--data">{{ item.type }}</td>
-              <td class="file-structure-shell__cell--data">
-                <SettingsCheckbox
-                  :model-value="item.required"
-                  tone="light"
-                  @update:model-value="updateTokenGovernanceRow(item.key, 'required', $event)"
-                />
-              </td>
-              <td class="file-structure-shell__cell--data">
-                <q-select
-                  :model-value="item.viewKey"
-                  dense
-                  outlined
-                  emit-value
-                  map-options
-                  class="file-structure-shell__governance-select"
-                  :options="governanceViewOptions"
-                  @update:model-value="updateTokenGovernanceRow(item.key, 'viewKey', $event)"
-                />
-              </td>
-            </tr>
-            <tr v-if="!tokenGovernanceRows.length">
-              <td :colspan="4" class="file-structure-shell__leaf-empty">No file-specific tokens defined yet.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div v-else-if="activeL2Toolbar === 'views'" class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
-        <div class="file-structure-shell__governance-toolbar">
-          <div class="file-structure-shell__governance-title">Views</div>
-          <q-btn flat dense no-caps class="file-structure-shell__governance-add" label="Add View" @click="addGovernanceViewRow" />
-        </div>
-        <table class="file-structure-shell__leaf-table">
-          <thead>
-            <tr>
-              <th class="file-structure-shell__colhead--data">Label</th>
-              <th class="file-structure-shell__colhead--data">Key</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in governanceViewRows" :key="item.key">
-              <td class="file-structure-shell__cell--data">
-                <q-input
-                  :model-value="item.label"
-                  dense
-                  outlined
-                  class="file-structure-shell__governance-input"
-                  @update:model-value="updateGovernanceViewRow(item.key, $event)"
-                />
-              </td>
-              <td class="file-structure-shell__cell--data">{{ item.value }}</td>
-            </tr>
-            <tr v-if="!governanceViewRows.length">
-              <td :colspan="2" class="file-structure-shell__leaf-empty">No file views defined yet.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div v-else class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
+      <div class="file-structure-shell__leaf-table-wrap ds-mini-scrollbar">
         <table class="file-structure-shell__leaf-table">
           <colgroup>
             <col :style="columnStyle('select')">
@@ -462,6 +442,7 @@ const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const activeL2Toolbar = ref('')
+const activeEventsTab = ref('tokens')
 const latestNotesBySource = ref({})
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
@@ -490,6 +471,10 @@ const activeColumnResize = ref(null)
 const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
+]
+const eventsTabs = [
+  { key: 'tokens', label: 'Tokens' },
+  { key: 'views', label: 'Views' },
 ]
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
@@ -529,24 +514,9 @@ const l2ToolbarItems = computed(() => [
       pushRight: index === 0,
     }
   }),
-  {
-    value: 'tokens',
-    title: 'Tokens',
-    isKdb: false,
-    isSystem: true,
-    pushRight: false,
-  },
-  {
-    value: 'views',
-    title: 'Views',
-    isKdb: false,
-    isSystem: true,
-    pushRight: false,
-  },
 ])
-const isGovernanceToolbarActive = computed(() => ['tokens', 'views'].includes(String(activeL2Toolbar.value || '').trim().toLowerCase()))
 const activeSettingsSection = computed(
-  () => dialogSectionGroups.value.find((section) => section.key === activeL2Toolbar.value) || (!isGovernanceToolbarActive.value ? dialogSectionGroups.value[0] || null : null),
+  () => dialogSectionGroups.value.find((section) => section.key === activeL2Toolbar.value) || dialogSectionGroups.value[0] || null,
 )
 const generalElementSettingsTitle = computed(() => 'General')
 const baseSettingsGroups = computed(() => {
