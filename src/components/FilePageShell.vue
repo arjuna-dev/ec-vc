@@ -330,6 +330,7 @@
               </div>
               <div class="test-shell-card__control-actions">
                 <L2SettingsMenu
+                  v-if="cardSettingsMenuGroups.length"
                   title="Card Settings"
                   :groups="cardSettingsMenuGroups"
                   @toggle-group="toggleCardSettingsGroup"
@@ -1135,10 +1136,10 @@ function isCoreCardSection(section) {
 const cardSettingsSourceSections = computed(() => {
   const active = activeSection.value
   const activeLabel = String(active?.label || '').trim().toLowerCase()
-  if (activeLabel !== 'general') return active ? [active] : []
+  if (activeLabel !== 'general') return active && !isCoreCardSection(active) ? [active] : []
 
   const fileSpecificSections = level2Sections.value.filter((section) => !isCoreCardSection(section))
-  return fileSpecificSections.length ? fileSpecificSections : (active ? [active] : [])
+  return fileSpecificSections
 })
 
 const availableCardItemTokens = computed(() => {
