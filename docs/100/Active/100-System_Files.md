@@ -69,6 +69,7 @@ It is the file-definition layer that helps the system know:
 - Do not load canonical structure through scattered direct JSON imports; use the approved canonical loader boundary.
 - Do not use this file as a loose notes page; every row should help define file birth, ownership, rendering, governance, or guide linkage.
 - If a file is visible in the app but missing here, surface that as drift.
+- Treat legacy runtime names honestly. If a file still depends on an older runtime surface such as `databooks:*`, do not widen that dependency casually while file-definition, provenance, and KDB rules are becoming more detailed.
 
 ## Ownership
 
@@ -215,6 +216,19 @@ The system should be able to reconstruct:
 - when its KDB requirements changed
 - when it became visible or accepted as a real file
 
+This event/provenance layer is system-wide.
+
+That means:
+
+- create
+- modify
+- delete
+- governed override
+
+should all connect into one event backbone, even if some runtime paths still use older IPC names temporarily.
+
+`Creator` and `Datetime` should be treated as quick visible summaries of that event trail, not as a second competing source of truth.
+
 ## L2 File System
 
 ### System
@@ -224,6 +238,7 @@ The `System` section should track:
 - file id
 - creator
 - datetime
+- history / event trail
 - event log linkage to rows in the `Events` file
 - guide path
 - runtime status
@@ -269,6 +284,19 @@ The file-specific section should track:
 - view-fork instructions
 - defined structure
 - glossary terms introduced
+
+### Runtime Mapping
+
+The runtime-mapping characteristics should stay visible and reviewable because older runtime language may survive temporarily while the newer shell contract matures.
+
+Examples include:
+
+- canonical entity
+- runtime entity
+- route name
+- legacy runtime surface still in use, if any
+
+If a file still depends on a legacy runtime surface, that should be treated as explicit runtime debt, not hidden implementation detail.
 
 Fork characteristics should be tracked explicitly here.
 

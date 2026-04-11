@@ -80,6 +80,10 @@ The `Architect Steward` should:
 - require fork selectors and fork-aware tune payloads to read from one approved branch contract instead of page-local assumptions
 - require birth governance to derive from approved birth context where possible instead of becoming a second manual prompt layer
 - when a parent wrapper is hardened, also inspect the child shared shell for internal fallback defaults so fail-closed behavior is true end to end
+- classify legacy runtime surfaces before extending them:
+  - `keep temporarily` when they are still the approved shared contract
+  - `rename soon` when behavior is still valid but the language is stale
+  - `replace structurally` when the older runtime surface no longer matches the system being built
 - preserve `partial` status honestly when a layer exists but is not fully wired
 - route file-specific issues to the `File Steward`
 - route user-choice issues to the `UX Steward`
@@ -135,6 +139,7 @@ The `Architect Steward` should stop implementation and surface the gap when:
 - a file page bypasses approved `bb:*` structure and invents a local rendering path for a shared shell job
 - one file page uses a different hero structure from another file page without an approved shared contract variation
 - a parent route or wrapper fails closed, but the child shared shell still contains an internal default that can silently render the wrong source
+- a new governance, provenance, or KDB behavior is being added on top of a legacy runtime surface whose language and ownership are no longer clearly approved
 
 ## Meaning Drift Rule
 
@@ -148,6 +153,24 @@ The `Architect Steward` should treat these as architecture drift:
   - a visible surface appears to own truth, but the real source of truth lives elsewhere
 
 The `Architect Steward` should not accept a local wording patch as full resolution when the deeper contract is still mismatched.
+
+## Legacy Runtime Rule
+
+The `Architect Steward` should treat older runtime names such as `databooks:*` as temporary runtime language, not as automatic proof of current architecture correctness.
+
+That means:
+
+- a legacy runtime name may remain in use temporarily if it is still the real shared contract
+- it should be marked honestly as legacy runtime language when newer shell, governance, or provenance concepts are being built above it
+- new shared behavior should not keep widening a legacy runtime path without first checking whether the old surface is detailed enough for the current system
+
+If a legacy runtime surface is still being used, the `Architect Steward` should classify it explicitly as:
+
+- `keep temporarily`
+- `rename soon`
+- `replace structurally`
+
+This protects the system from quietly inheriting the limits of an older runtime model while newer shell and governance work continue above it.
 
 ## Birth Governance Rule
 

@@ -35,6 +35,7 @@ This tracker should stay aligned with:
 - put the shared field verification metadata layer in place before the first full intake board pass
 - group shared history by dialog/edit-session action boundaries instead of logging every tiny intermediate step
 - keep the shared `File Shell` contract fail-closed and remove heuristic fallback behavior from shared file/page surfaces
+- audit legacy runtime language before adding more shared governance/provenance behavior on top of it
 
 ## Top 5 To-Do
 
@@ -77,6 +78,9 @@ This tracker should stay aligned with:
 - birth-governance derivation:
   - document derivation rules
   - seed first registry-owned birth defaults into shared create
+- legacy runtime audit:
+  - classify `databooks:*` and other older IPC/runtime names as `keep temporarily`, `rename soon`, or `replace structurally`
+  - avoid widening old runtime language while the newer governance and event model is still being defined
 - owner spine protection and explicit human-system owner paths
 - `Owner Genesis` ordering, including:
   - `System Files`
@@ -184,6 +188,10 @@ This tracker should stay aligned with:
 - Decide which `Companion` and `Role` parameters belong in the tracker versus inside dedicated `Companion` / `Roles` views
 - Finish removing remaining internal `Databook` bridge and class naming in the shared record layer
 - Replace remaining heuristic record section mapping with workbook-backed ownership
+- decide the next migration step after the legacy runtime audit:
+  - stabilize and rename
+  - deepen carefully
+  - or replace structurally
 
 ## Parked
 
@@ -212,6 +220,7 @@ This tracker should stay aligned with:
 - shared create flow now starts from `General` again instead of a growing ad hoc required-token layer
 - file birth now derives a default `File_Source_Key` from `File_Name` when no explicit source key is provided at save time, while still rejecting duplicate active file names and duplicate source keys
 - first birth-governance derivation step is underway through registry-owned birth defaults in the shared create flow
+- legacy runtime wording such as `databooks:*` is now treated as an explicit audit target rather than safe language to keep extending blindly
 - `Access_Assignments` is approved as a future standalone `L1` that should sit immediately after `Projects` in the file creation sequence, because it depends on `Contacts`, `Users`, `Roles`, and `Projects`
 - `Intake` is now the approved file/page/runtime name replacing `Ingestion` / `Artifact Processed`, with route redirects kept only as temporary compatibility
 - `Markets` / `Securities` event tokens and broader token families now converge on `Market_*` / `Security_*`
