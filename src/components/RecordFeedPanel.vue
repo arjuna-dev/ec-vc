@@ -6,6 +6,7 @@
         <PlusWithLabelButton
           class="record-feed-panel__add"
           :class="{ 'record-feed-panel__add--hidden': !showAddButton }"
+          variant="record-feed"
           :label="resolvedAddLabel"
           :disable="!showAddButton"
           @click="showAddButton ? $emit('request-add', activeTab) : null"
@@ -210,51 +211,11 @@ const resolvedAddLabel = computed(() => {
 
 .record-feed-panel__add :deep(.plus-with-label-button) {
   align-self: center;
-  display: inline-flex;
-  min-width: 0;
-  min-height: 0;
-  height: auto;
-  padding: 0;
-  color: var(--ds-color-brand-white) !important;
-  background: rgba(17, 17, 17, 1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  border-radius: 2px !important;
-  line-height: 1;
-  width: fit-content;
 }
 
 .record-feed-panel__add :deep(.plus-with-label-button:hover),
 .record-feed-panel__add :deep(.plus-with-label-button:focus-visible) {
   background: rgba(32, 32, 32, 1);
-}
-
-.record-feed-panel__add :deep(.plus-with-label-button__inner) {
-  gap: 0;
-  align-items: center;
-  line-height: 1;
-}
-
-.record-feed-panel__add :deep(.plus-with-label-button__icon) {
-  margin: 0;
-  line-height: 0;
-}
-
-.record-feed-panel__add :deep(.plus-with-label-button__label) {
-  color: inherit;
-  display: block;
-  font-size: 10px;
-  line-height: 1;
-  padding: 0;
-  margin: 0;
-  white-space: nowrap;
-}
-
-.record-feed-panel__add :deep(.plus-icon-chip) {
-  --plus-icon-chip-size: 4px;
-  --plus-icon-chip-glyph-size: 4px;
-  background: var(--ds-color-brand-white);
-  color: var(--ds-color-brand-black);
-  border-radius: 2px;
 }
 
 .record-feed-panel__state {
