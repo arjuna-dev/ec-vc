@@ -30,7 +30,7 @@
             />
             </template>
           </DialogShellTitleRow>
-          <div class="create-record-shell__intake-lane">
+          <div v-if="false" class="create-record-shell__intake-lane">
             <CollapsibleSectionShell
               title="Resources"
               :collapsed="supportResourcesCollapsed"
@@ -209,7 +209,182 @@
       </template>
 
       <template #default>
-        <div class="create-record-shell__record-data">
+        <div class="create-record-shell__content-stack">
+          <div class="create-record-shell__intake-lane">
+            <CollapsibleSectionShell
+              title="Resources"
+              :collapsed="supportResourcesCollapsed"
+              @toggle="supportResourcesCollapsed = !supportResourcesCollapsed"
+            >
+              <div class="create-record-shell__intake-body">
+              <div class="create-record-shell__intake-column">
+                <div class="create-record-shell__intake-column-title">Artifacts</div>
+                <DropZone
+                  class="create-record-shell__artifact-drop"
+                  :class="{ 'create-record-shell__artifact-drop--active': artifactDragOver }"
+                  :active="artifactDragOver"
+                  :caption="artifactDragOver ? 'Release to stage files' : 'Drag files or a folder here'"
+                  @dragover="artifactDragOver = true"
+                  @dragleave="artifactDragOver = false"
+                  @drop="onArtifactDrop"
+                >
+                <div v-if="stagedArtifacts.length" class="create-record-shell__artifact-drop-list">
+                  <div class="create-record-shell__artifact-drop-list-head">
+                    <q-checkbox
+                      :model-value="allArtifactsSelected"
+                      dense
+                      size="xs"
+                      checked-icon="check_box"
+                      unchecked-icon="check_box_outline_blank"
+                      class="create-record-shell__artifact-checkbox"
+                      @update:model-value="toggleAllArtifacts"
+                      :label="`${selectedArtifactCount} of ${stagedArtifacts.length} selected Â· Select all / none`"
+                    />
+                  </div>
+
+                  <div v-if="availableArtifacts.length" class="create-record-shell__artifact-drop-items">
+                    <ArtifactRow
+                      v-for="artifact in availableArtifacts"
+                      :key="artifact.id"
+                      :selected="selectedArtifactIds.includes(artifact.id)"
+                      :icon="artifactPreviewIcon(artifact)"
+                      :name="artifact.name"
+                      :size="formatArtifactSize(artifact.size)"
+                      @update:selected="toggleArtifactSelection(artifact.id, $event)"
+                    />
+                  </div>
+
+                  <div v-else class="create-record-shell__artifact-drop-empty">
+                    All staged artifacts are in the processing lane.
+                  </div>
+                </div>
+
+                <div class="create-record-shell__artifact-drop-footer">
+                  <q-checkbox
+                    v-model="autoProcessArtifacts"
+                    dense
+                    size="sm"
+                    checked-icon="check_box"
+                    unchecked-icon="check_box_outline_blank"
+                    class="create-record-shell__artifact-checkbox"
+                    label="Autmatically process files as I drop"
+                  />
+                </div>
+                </DropZone>
+              </div>
+
+              <div class="create-record-shell__intake-column">
+                <div class="create-record-shell__intake-column-title">Intake Companion</div>
+                <div class="create-record-shell__intake-side">
+                  <div class="create-record-shell__processing-panel">
+                  <div class="create-record-shell__processing-panel-head">
+                    <div class="create-record-shell__processing-panel-title">Resources</div>
+                  </div>
+
+                  <div class="create-record-shell__processing-sections">
+                    <ProcessingBox
+                      title="Intake"
+                      :meta="`${processingArtifacts.length} queued`"
+                      class="create-record-shell__processing-box"
+                    >
+                      <div v-if="processingArtifacts.length" class="create-record-shell__processing-list">
+                        <div
+                          v-for="artifact in processingArtifacts"
+                          :key="`processing:${artifact.id}`"
+                          class="create-record-shell__processing-item"
+                        >
+                          <q-checkbox
+                            :model-value="true"
+                            dense
+                            size="xs"
+                            checked-icon="check_box"
+                            unchecked-icon="check_box_outline_blank"
+                            class="create-record-shell__artifact-checkbox"
+                            @update:model-value="toggleArtifactSelection(artifact.id, $event)"
+                          />
+                          <span class="create-record-shell__processing-item-name">{{ artifact.name }}</span>
+                          <q-btn
+                            v-if="!artifact.artifactId && !startingArtifactIds.includes(artifact.id)"
+                            flat
+                            dense
+                            no-caps
+                            class="create-record-shell__processing-start-btn"
+                            label="Start"
+                            @click.stop.prevent="startArtifactProcessing(artifact.id)"
+                          />
+                          <span v-else-if="startingArtifactIds.includes(artifact.id)" class="create-record-shell__processing-item-status">
+                            Starting...
+                          </span>
+                          <span v-else class="create-record-shell__processing-item-status">
+                            Started
+                          </span>
+                        </div>
+                      </div>
+
+                      <div v-else-if="stagedArtifacts.length" class="create-record-shell__processing-ready">
+                        Files added on the left will appear here ready to start.
+                      </div>
+
+                      <div v-else class="create-record-shell__processing-empty">
+                        Drop files on the left to stage them for this record.
+                      </div>
+                    </ProcessingBox>
+
+                    <ProcessingBox title="URLs" compact class="create-record-shell__processing-box create-record-shell__processing-box--compact">
+                      <template #actions>
+                        <button
+                          type="button"
+                          class="create-record-shell__processing-delete"
+                          :disabled="!selectedUrlEntryIds.length"
+                          @click="removeCompanionEntries('url')"
+                        >
+                          Delete
+                        </button>
+                      </template>
+                      <EntryInputListBox
+                        :input-value="companionUrl"
+                        :entries="urlEntries"
+                        :selected-ids="selectedUrlEntryIds"
+                        :expanded-ids="expandedEntryIds"
+                        @update:input-value="companionUrl = $event; markDialogChanged()"
+                        @submit="addCompanionEntry('url')"
+                        @toggle-select="toggleCompanionEntrySelection('url', $event[0], $event[1])"
+                        @toggle-expanded="toggleCompanionEntryExpanded"
+                      />
+                    </ProcessingBox>
+
+                    <ProcessingBox title="Blurbs" compact class="create-record-shell__processing-box create-record-shell__processing-box--compact">
+                      <template #actions>
+                        <button
+                          type="button"
+                          class="create-record-shell__processing-delete"
+                          :disabled="!selectedBlurbEntryIds.length"
+                          @click="removeCompanionEntries('blurb')"
+                        >
+                          Delete
+                        </button>
+                      </template>
+                      <EntryInputListBox
+                        :input-value="companionBlurb"
+                        :entries="blurbEntries"
+                        :selected-ids="selectedBlurbEntryIds"
+                        :expanded-ids="expandedEntryIds"
+                        @update:input-value="companionBlurb = $event; markDialogChanged()"
+                        @submit="addCompanionEntry('blurb')"
+                        @toggle-select="toggleCompanionEntrySelection('blurb', $event[0], $event[1])"
+                        @toggle-expanded="toggleCompanionEntryExpanded"
+                      />
+                    </ProcessingBox>
+
+                  </div>
+                </div>
+              </div>
+              </div>
+              </div>
+            </CollapsibleSectionShell>
+          </div>
+
+          <div class="create-record-shell__record-data">
           <button
             type="button"
             class="create-record-shell__record-data-toggle"
@@ -760,6 +935,7 @@
               </div>
             </div>
           </template>
+        </div>
         </div>
       </template>
 
@@ -1927,9 +2103,18 @@ onBeforeUnmount(() => {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-height: 0;
   padding: 18px 28px 28px;
+  overflow: hidden;
+}
+
+.create-record-shell__content-stack {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
   overflow: hidden;
 }
 
