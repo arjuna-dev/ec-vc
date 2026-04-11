@@ -1189,11 +1189,11 @@
         },
         {
           "level_2": "6",
-          "subsection": "Ops_Overview",
+          "subsection": "Operations",
           "subsection_address": "4.6.0",
           "structure_token": "Company_Ops_Overview",
           "subgroup_key": "business-overview",
-          "subgroup_label": "Business Overview",
+          "subgroup_label": "Overview",
           "subgroup_address": "4.6.a",
           "tokens": [
             {
@@ -1278,11 +1278,11 @@
         },
         {
           "level_2": "7",
-          "subsection": "Business_Overview",
+          "subsection": "Business",
           "subsection_address": "4.7.0",
           "structure_token": "Company_Business_Overview",
           "subgroup_key": "business-overview",
-          "subgroup_label": "Business Overview",
+          "subgroup_label": "Overview",
           "subgroup_address": "4.7.b",
           "tokens": [
             {
@@ -1344,11 +1344,11 @@
         },
         {
           "level_2": "8",
-          "subsection": "Market_Overview",
+          "subsection": "Market",
           "subsection_address": "4.8.0",
           "structure_token": "Company_Market_Overview",
           "subgroup_key": "business-overview",
-          "subgroup_label": "Business Overview",
+          "subgroup_label": "Overview",
           "subgroup_address": "4.8.c",
           "tokens": [
             {
@@ -1370,11 +1370,11 @@
         },
         {
           "level_2": "9",
-          "subsection": "Results_Overview",
+          "subsection": "Results",
           "subsection_address": "4.9.0",
           "structure_token": "Company_Results_Overview",
           "subgroup_key": "business-overview",
-          "subgroup_label": "Business Overview",
+          "subgroup_label": "Overview",
           "subgroup_address": "4.9.d",
           "tokens": [
             {
@@ -1519,7 +1519,7 @@
         },
         {
           "level_2": "11",
-          "subsection": "Fund_Raising",
+          "subsection": "Capital_Structure",
           "subsection_address": "4.11.0",
           "structure_token": "Company_Fund_Raising",
           "tokens": [

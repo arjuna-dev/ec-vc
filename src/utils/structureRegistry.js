@@ -165,6 +165,23 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'files',
     shellGroup: 'first_order',
     fileGuidePath: 'docs/100/Draft/100-Companies.md',
+    viewForks: [
+      {
+        value: 'overview',
+        label: 'Overview',
+        sectionRawLabels: ['Operations', 'Business', 'Market', 'Results'],
+      },
+      {
+        value: 'business-plan',
+        label: 'Business Plan',
+        sectionRawLabels: ['Business_Plan'],
+      },
+      {
+        value: 'capital-structure',
+        label: 'Capital Structure',
+        sectionRawLabels: ['Capital_Structure'],
+      },
+    ],
   },
   Opportunities: {
     key: 'opportunities',
@@ -795,6 +812,16 @@ export function getCreateBranches(sourceKey = '') {
 export function getCreateBranchEntry(sourceKey = '', branchValue = '') {
   const normalizedBranchValue = String(branchValue || '').trim().toLowerCase()
   return getCreateBranches(sourceKey).find((branch) => String(branch?.value || '').trim().toLowerCase() === normalizedBranchValue) || null
+}
+
+export function getViewForks(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  return Array.isArray(entry?.viewForks) ? entry.viewForks : []
+}
+
+export function getViewForkEntry(sourceKey = '', forkValue = '') {
+  const normalizedForkValue = String(forkValue || '').trim().toLowerCase()
+  return getViewForks(sourceKey).find((fork) => String(fork?.value || '').trim().toLowerCase() === normalizedForkValue) || null
 }
 
 export function getCanonicalTokenFieldNames(token = {}) {

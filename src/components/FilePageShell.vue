@@ -144,7 +144,7 @@
         :view-options="viewOptions"
         :show-view-toggle="true"
         @toggle-select-all="toggleSelectAllVisible"
-        @add="requestCreateRecordShell(activeForkValue ? { kind: activeForkValue } : {})"
+        @add="requestCreateRecordShell(activeCreateBranchEntry ? { kind: activeForkValue } : {})"
         @update:fork-value="setActiveForkValue"
         @update:search-query="searchQuery = $event"
         @update:view-mode="viewMode = $event"
@@ -709,6 +709,8 @@ import {
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByRouteName,
   getFilePageReferenceDocs,
+  getViewForkEntry,
+  getViewForks,
   getRuntimeTableNameForEntityName,
   getCanonicalTokenFieldNames,
   getCanonicalTokenWriteFieldName,
@@ -897,14 +899,22 @@ const propDrivenSourceKey = computed(() => {
   const normalized = String(props.sourceKey || '').trim().toLowerCase()
   return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : ''
 })
-const activeBranchEntries = computed(() => getCreateBranches(activeSourceKey.value))
+const activeCreateBranchEntries = computed(() => getCreateBranches(activeSourceKey.value))
+const activeViewForks = computed(() => getViewForks(activeSourceKey.value))
 const activeForkValue = computed(() => {
   const normalized = String(route.query.kind || '').trim().toLowerCase()
-  if (!activeBranchEntries.value.length) return ''
-  return getCreateBranchEntry(activeSourceKey.value, normalized) ? normalized : ''
+  if (activeCreateBranchEntries.value.length) {
+    return getCreateBranchEntry(activeSourceKey.value, normalized) ? normalized : ''
+  }
+  if (activeViewForks.value.length) {
+    if (getViewForkEntry(activeSourceKey.value, normalized)) return normalized
+    return String(activeViewForks.value[0]?.value || '').trim().toLowerCase()
+  }
+  return ''
 })
-const activeForkEntry = computed(() => getCreateBranchEntry(activeSourceKey.value, activeForkValue.value))
-const activeContentSourceKey = computed(() => String(activeForkEntry.value?.targetSourceKey || activeSourceKey.value || '').trim().toLowerCase())
+const activeCreateBranchEntry = computed(() => getCreateBranchEntry(activeSourceKey.value, activeForkValue.value))
+const activeViewForkEntry = computed(() => getViewForkEntry(activeSourceKey.value, activeForkValue.value))
+const activeContentSourceKey = computed(() => String(activeCreateBranchEntry.value?.targetSourceKey || activeSourceKey.value || '').trim().toLowerCase())
 
 const activeSourceKey = computed(() => {
   if (propDrivenSourceKey.value) return propDrivenSourceKey.value
@@ -935,8 +945,24 @@ const hasActiveSourceKdb = computed(() =>
   level2Sections.value.some((section) => String(section?.label || section?.rawLabel || '').trim().toLowerCase() === 'kdb'),
 )
 
-const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeContentSourceKey.value] || [])
-const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeContentSourceKey.value] || [])
+const sourceLevel2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeContentSourceKey.value] || [])
+const level2Sections = computed(() => {
+  const forkSectionLabels = new Set(
+    (Array.isArray(activeViewForkEntry.value?.sectionRawLabels) ? activeViewForkEntry.value.sectionRawLabels : [])
+      .map((label) => String(label || '').trim().toLowerCase())
+      .filter(Boolean),
+  )
+  if (!forkSectionLabels.size) return sourceLevel2Sections.value
+
+  return sourceLevel2Sections.value.filter((section) => {
+    const rawLabel = String(section?.rawLabel || '').trim().toLowerCase()
+    return forkSectionLabels.has(rawLabel) || rawLabel === 'general' || rawLabel === 'system' || rawLabel === 'kdb'
+  })
+})
+const level3Tokens = computed(() => {
+  const allowedSectionKeys = new Set(level2Sections.value.map((section) => section.key))
+  return (LEVEL_3_FILE_REGISTRY_BY_KEY[activeContentSourceKey.value] || []).filter((token) => allowedSectionKeys.has(token.parentKey))
+})
 const activeSectionKeyForCards = ref('')
 const activeFilterSectionKey = ref('')
 const activeFilterTokenKey = ref('')
@@ -946,10 +972,18 @@ const activeBbBlockKey = ref('')
 const expandedBbFilterCategoryKey = ref('')
 const expandedCardSettingsGroupsBySource = ref({})
 const toolbarForkOptions = computed(() => {
-  if (!activeBranchEntries.value.length) return []
+  if (activeViewForks.value.length) {
+    return activeViewForks.value
+      .map((fork) => ({
+        value: String(fork?.value || '').trim().toLowerCase(),
+        label: String(fork?.label || '').trim(),
+      }))
+      .filter((option) => option.label)
+  }
+  if (!activeCreateBranchEntries.value.length) return []
   return [
     { value: '', label: 'All' },
-    ...activeBranchEntries.value.map((branch) => ({
+    ...activeCreateBranchEntries.value.map((branch) => ({
       value: String(branch?.value || '').trim().toLowerCase(),
       label: String(branch?.label || '').trim(),
     })),
@@ -1391,10 +1425,10 @@ function normalizeEntitySourceKey(entityName) {
 }
 
 function setActiveForkValue(nextValue) {
-  if (!activeBranchEntries.value.length) return
+  if (!activeCreateBranchEntries.value.length && !activeViewForks.value.length) return
   const normalized = String(nextValue || '').trim().toLowerCase()
   const nextQuery = { ...route.query }
-  if (normalized && getCreateBranchEntry(activeSourceKey.value, normalized)) {
+  if (normalized && (getCreateBranchEntry(activeSourceKey.value, normalized) || getViewForkEntry(activeSourceKey.value, normalized))) {
     nextQuery.kind = normalized
   } else {
     delete nextQuery.kind
@@ -2829,8 +2863,8 @@ function resolveCreateDialogEntityName(payload = {}) {
 
 function resolveEditEntityName(row) {
   if (activeSourceKey.value !== 'opportunities') return activeRegistryEntry.value?.entityName || ''
-  if (activeForkEntry.value?.targetSourceKey) {
-    return getFilePageRegistryEntry(activeForkEntry.value.targetSourceKey)?.entityName || activeRegistryEntry.value?.entityName || ''
+  if (activeCreateBranchEntry.value?.targetSourceKey) {
+    return getFilePageRegistryEntry(activeCreateBranchEntry.value.targetSourceKey)?.entityName || activeRegistryEntry.value?.entityName || ''
   }
   const opportunityKindToken =
     (LEVEL_3_FILE_REGISTRY_BY_KEY.opportunities || []).find(
