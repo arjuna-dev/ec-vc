@@ -2583,6 +2583,10 @@ function requestCreateRecordShell(options = {}) {
 }
 
 function handleToolbarAdd() {
+  $q.notify({
+    type: 'info',
+    message: `Add handler reached for ${activeRegistryEntry.value?.label || activeSourceKey.value || 'this file'}.`,
+  })
   requestCreateRecordShell(activeCreateBranchEntry.value ? { kind: activeForkValue.value } : {})
 }
 
