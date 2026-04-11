@@ -793,7 +793,7 @@ async function submitRecordUpdate(values = {}) {
   }
   createDialogLoading.value = true
   try {
-    const result = await bridge.value?.databooks?.update?.({
+    const result = await bridge.value?.records?.update?.({
       tableName: runtimeTableName.value,
       recordId: recordIdParam.value,
       changes,
@@ -1180,7 +1180,7 @@ async function loadRecordView() {
   loading.value = true
   error.value = ''
   try {
-    const result = await bridge.value.databooks.view(tableNameParam.value, recordIdParam.value)
+    const result = await bridge.value.records.view(tableNameParam.value, recordIdParam.value)
     currentView.value = result || null
     fields.value = Array.isArray(result?.fields) ? result.fields : []
     if (!Array.isArray(liveOptionRowsBySource.value.users)) {
@@ -1353,7 +1353,7 @@ async function commitInlineFieldValue(token, explicitValue) {
   inlineFieldSavingKeys.value = [...inlineFieldSavingKeys.value, saveKey]
 
   try {
-    const result = await bridge.value?.databooks?.update?.({
+    const result = await bridge.value?.records?.update?.({
       tableName: runtimeTableName.value,
       recordId: recordIdParam.value,
       changes,

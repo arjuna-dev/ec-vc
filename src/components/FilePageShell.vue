@@ -1354,9 +1354,9 @@ const createDialogArtifactContext = computed(() => {
 async function loadEditDialogRecordPayload(entityName, recordId) {
   const normalizedEntityName = String(entityName || '').trim()
   const normalizedRecordId = String(recordId || '').trim()
-  if (!bridge.value?.databooks?.view || !normalizedEntityName || !normalizedRecordId) return null
+  if (!bridge.value?.records?.view || !normalizedEntityName || !normalizedRecordId) return null
 
-  const result = await bridge.value.databooks.view(normalizedEntityName, normalizedRecordId)
+  const result = await bridge.value.records.view(normalizedEntityName, normalizedRecordId)
   if (!result?.record) return null
 
   let verificationFields = []
@@ -2933,7 +2933,7 @@ async function commitInlineTableEdit(row, token, immediateValue) {
   }
 
   try {
-    await bridge.value?.databooks?.update?.({
+    await bridge.value?.records?.update?.({
       tableName,
       recordId: row.recordId,
       changes,
@@ -3492,7 +3492,7 @@ async function updateRecordFromPayload(recordId, entityName, payload = {}) {
   })
   if (!changes.length) return
 
-  await bridge.value?.databooks?.update?.({
+  await bridge.value?.records?.update?.({
     tableName,
     recordId,
     changes,

@@ -8306,12 +8306,27 @@ function registerIpc() {
     return getDatabookView(tableName, recordId)
   })
 
+  ipcMain.handle('records:view', async (_event, { tableName, recordId } = {}) => {
+    initDb()
+    return getDatabookView(tableName, recordId)
+  })
+
   ipcMain.handle('databooks:versions', async (_event, { tableName, recordId } = {}) => {
     initDb()
     return { versions: listDatabookVersions(tableName, recordId) }
   })
 
+  ipcMain.handle('records:history', async (_event, { tableName, recordId } = {}) => {
+    initDb()
+    return { versions: listDatabookVersions(tableName, recordId) }
+  })
+
   ipcMain.handle('databooks:viewSnapshot', async (_event, { snapshotId } = {}) => {
+    initDb()
+    return getDatabookSnapshot(snapshotId)
+  })
+
+  ipcMain.handle('records:viewHistoryEntry', async (_event, { snapshotId } = {}) => {
     initDb()
     return getDatabookSnapshot(snapshotId)
   })
@@ -8336,6 +8351,31 @@ function registerIpc() {
         }
       } catch (e) {
         console.error('databooks:update failed:', e)
+        throw new Error(sanitizeDatabookUpdateError(e))
+      }
+    },
+  )
+
+  ipcMain.handle(
+    'records:update',
+    async (_event, { tableName, recordId, changes, actionId, actionLabel } = {}) => {
+      initDb()
+      try {
+        const config = getDatabookTableConfig(tableName)
+        const rid = normalizeNullableString(recordId)
+        if (!rid) throw new Error('recordId is required')
+        const result = applyAuditedChanges(changes, {
+          createDatabookSnapshotFor: { tableName: config.tableName, recordId: rid },
+          actionId: normalizeNullableString(actionId),
+          actionLabel: normalizeNullableString(actionLabel) || 'record_edit_session',
+        })
+        await syncWorkspaceWorkbooksSafe()
+        return {
+          ...result,
+          view: getDatabookView(config.tableName, rid),
+        }
+      } catch (e) {
+        console.error('records:update failed:', e)
         throw new Error(sanitizeDatabookUpdateError(e))
       }
     },

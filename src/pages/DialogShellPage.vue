@@ -126,7 +126,7 @@ const canCreateWithShell = computed(() => {
   }
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
-const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.databooks?.update))
+const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.records?.update))
 const dialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || 'general',
 )
@@ -330,8 +330,8 @@ function getEditDialogTokenValueFromPayload(payload, token) {
 async function loadEditDialogRecordPayload(entityName, recordId) {
   const normalizedEntityName = String(entityName || '').trim()
   const normalizedRecordId = String(recordId || '').trim()
-  if (!bridge.value?.databooks?.view || !normalizedEntityName || !normalizedRecordId) return null
-  return await bridge.value.databooks.view(normalizedEntityName, normalizedRecordId)
+  if (!bridge.value?.records?.view || !normalizedEntityName || !normalizedRecordId) return null
+  return await bridge.value.records.view(normalizedEntityName, normalizedRecordId)
 }
 
 function buildEditDialogInitialValuesFromPayload(payload) {
@@ -447,7 +447,7 @@ async function submitEditRecord(values = {}) {
 
   dialogLoading.value = true
   try {
-    await bridge.value?.databooks?.update?.({
+    await bridge.value?.records?.update?.({
       tableName: getRuntimeTableNameForEntityName(dialogEntityName.value),
       recordId: dialogRecordId.value,
       changes,

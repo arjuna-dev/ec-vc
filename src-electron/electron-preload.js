@@ -110,12 +110,19 @@ const api = {
     upsertMany: (rows) => ipcRenderer.invoke('opportunities:upsertMany', { rows }),
     delete: (opportunityId) => ipcRenderer.invoke('opportunities:delete', { opportunityId }),
   },
-  databooks: {
-    view: (tableName, recordId) => ipcRenderer.invoke('databooks:view', { tableName, recordId }),
-    versions: (tableName, recordId) => ipcRenderer.invoke('databooks:versions', { tableName, recordId }),
-    viewSnapshot: (snapshotId) => ipcRenderer.invoke('databooks:viewSnapshot', { snapshotId }),
+  records: {
+    view: (tableName, recordId) => ipcRenderer.invoke('records:view', { tableName, recordId }),
+    history: (tableName, recordId) => ipcRenderer.invoke('records:history', { tableName, recordId }),
+    viewHistoryEntry: (snapshotId) => ipcRenderer.invoke('records:viewHistoryEntry', { snapshotId }),
     update: ({ tableName, recordId, changes, actionId, actionLabel } = {}) =>
-      ipcRenderer.invoke('databooks:update', { tableName, recordId, changes, actionId, actionLabel }),
+      ipcRenderer.invoke('records:update', { tableName, recordId, changes, actionId, actionLabel }),
+  },
+  databooks: {
+    view: (tableName, recordId) => ipcRenderer.invoke('records:view', { tableName, recordId }),
+    versions: (tableName, recordId) => ipcRenderer.invoke('records:history', { tableName, recordId }),
+    viewSnapshot: (snapshotId) => ipcRenderer.invoke('records:viewHistoryEntry', { snapshotId }),
+    update: ({ tableName, recordId, changes, actionId, actionLabel } = {}) =>
+      ipcRenderer.invoke('records:update', { tableName, recordId, changes, actionId, actionLabel }),
   },
   verification: {
     list: ({ tableName, recordId } = {}) =>
