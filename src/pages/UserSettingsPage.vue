@@ -482,6 +482,8 @@ const ownerManualEditMode = ref(false)
 const ownerGlossarySourceFilter = ref('all')
 const activeOwnerDocumentId = ref('owner')
 const canEditOwnerSettings = ref(true)
+const ownerSetupRequired = ref(false)
+const ownerSetupMessage = ref('')
 const form = ref({
   Name: '',
   User_PEmail: '',
@@ -501,6 +503,9 @@ const savedWorkspaceSettings = ref({ ...defaultWorkspaceSettings })
 
 const settingsHeroText = computed(() => {
   if (loading.value) return 'Loading the local owner profile and node settings.'
+  if (ownerSetupRequired.value) {
+    return ownerSetupMessage.value || 'Owner setup is required before the workspace can proceed.'
+  }
   if (!canEditOwnerSettings.value) {
     return 'Owner authority is locked. Owner data stays visible here, but only the owner can update the local node profile.'
   }
@@ -689,6 +694,8 @@ async function loadUserSettings() {
   try {
     const result = await bridge.value.userSettings.get()
     canEditOwnerSettings.value = result?.canEditOwnerSettings !== false
+    ownerSetupRequired.value = result?.requiresOwnerSetup === true
+    ownerSetupMessage.value = String(result?.ownerSetupMessage || '').trim()
     form.value = mapUserSettingsToForm(result)
     savedForm.value = { ...form.value }
   } catch (e) {

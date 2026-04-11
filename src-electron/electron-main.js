@@ -5790,6 +5790,44 @@ function getOwnerContactId(database) {
   )
 }
 
+function getOwnerIdentityStatus(database) {
+  const ownerUserId = getOwnerUserId(database)
+  const ownerUser = ownerUserId ? getUserById(database, ownerUserId) : null
+  const ownerContactId = getOwnerContactId(database)
+  const ownerContact = ownerContactId ? getContactById(database, ownerContactId) : null
+  const ownerName = normalizeNullableString(ownerUser?.User_Name)
+  const ownerEmail = normalizeNullableString(ownerUser?.User_PEmail)
+  const hasOwnerUser = Boolean(ownerUserId && ownerUser)
+  const hasOwnerEmail = Boolean(ownerEmail && isEmail(ownerEmail))
+  const hasOwnerContact = Boolean(ownerContactId && ownerContact)
+  const ownerIdsAligned = Boolean(ownerUserId && ownerContactId && ownerUserId === ownerContactId)
+  const ownerContactLinked = Boolean(ownerContact && normalizeNullableString(ownerContact.linked_user_id) === ownerUserId)
+  const isComplete =
+    hasOwnerUser &&
+    Boolean(ownerName) &&
+    hasOwnerEmail &&
+    hasOwnerContact &&
+    ownerIdsAligned &&
+    ownerContactLinked
+
+  let message = ''
+  if (!hasOwnerUser) message = 'Owner user is missing.'
+  else if (!ownerName) message = 'Owner name is missing.'
+  else if (!hasOwnerEmail) message = 'Owner email is missing.'
+  else if (!hasOwnerContact) message = 'Owner contact is missing.'
+  else if (!ownerIdsAligned) message = 'Owner contact id must match owner user id.'
+  else if (!ownerContactLinked) message = 'Owner contact must stay linked to owner user.'
+
+  return {
+    isComplete,
+    message,
+    ownerUserId: ownerUserId || null,
+    ownerContactId: ownerContactId || null,
+    ownerName: ownerName || '',
+    ownerEmail: ownerEmail || '',
+  }
+}
+
 function isOwnerActor(database, actor = null) {
   const ownerUserId = getOwnerUserId(database)
   const actorUserId = normalizeNullableString(actor?.user_id)
@@ -5916,7 +5954,7 @@ function assignUserRole(database, userId, roleId, assignedBy = null) {
 
 function upsertLinkedContactForUserProfile(
   database,
-  { userId, name, email, profile = {}, preferredContactId = '' } = {},
+  { userId, name, email, profile = {}, preferredContactId = '', forceContactId = '' } = {},
 ) {
   const normalizedUserId = normalizeNullableString(userId)
   const normalizedName = normalizeNullableString(name)
@@ -5925,13 +5963,27 @@ function upsertLinkedContactForUserProfile(
     throw new Error('User contact bootstrap requires user id and name.')
   }
 
-  const storedContactId = normalizeNullableString(preferredContactId)
+  const forcedContactId = normalizeNullableString(forceContactId)
+  const storedContactId = forcedContactId || normalizeNullableString(preferredContactId)
   const existingContact =
     (storedContactId &&
       database.prepare('SELECT id FROM Contacts WHERE id = ? LIMIT 1').get(storedContactId)) ||
     database.prepare('SELECT id FROM Contacts WHERE linked_user_id = ? LIMIT 1').get(normalizedUserId)
 
-  const contactId = existingContact?.id || `contact:${crypto.randomUUID()}`
+  const desiredContactId = forcedContactId || existingContact?.id || `contact:${crypto.randomUUID()}`
+  if (existingContact?.id && desiredContactId && existingContact.id !== desiredContactId) {
+    database
+      .prepare(
+        `
+        UPDATE Contacts
+        SET id = ?, updated_at = datetime('now')
+        WHERE id = ?
+      `,
+      )
+      .run(desiredContactId, existingContact.id)
+  }
+
+  const contactId = desiredContactId
   const personalEmail = normalizeNullableString(profile?.Personal_Email) || normalizedEmail
   const professionalEmail = normalizeNullableString(profile?.Professional_Email)
 
@@ -6015,6 +6067,7 @@ function createOrUpdateUserProfile(database, profile = {}) {
     email,
     profile,
     preferredContactId: getAppSetting(database, APP_SETTING_KEYS.userContactId),
+    forceContactId: userId,
   })
 
   setAppSetting(database, APP_SETTING_KEYS.userId, userId)
@@ -6042,6 +6095,7 @@ function ensureOwnerUserProfile(database) {
         User_PEmail: existingUser.User_PEmail,
       },
       preferredContactId: getAppSetting(database, APP_SETTING_KEYS.userContactId),
+      forceContactId: existingUser.id,
     })
     setAppSetting(database, APP_SETTING_KEYS.userContactId, ownerContactId)
     ensureOwnerDb(database, existingUser.id)
@@ -6190,6 +6244,7 @@ function getContactById(database, contactId) {
 
 function getUserSettingsPayload(database) {
   ensureOwnerUserProfile(database)
+  const ownerIdentity = getOwnerIdentityStatus(database)
   const actor = getAuditActor(database)
   const ownerUserId = getOwnerUserId(database)
   const ownerContactId = getOwnerContactId(database)
@@ -6203,6 +6258,9 @@ function getUserSettingsPayload(database) {
     auditUserId: actor.user_id,
     ownerUserId: ownerUserId || null,
     ownerContactId: ownerContactId || null,
+    ownerSetupComplete: ownerIdentity.isComplete,
+    requiresOwnerSetup: !ownerIdentity.isComplete,
+    ownerSetupMessage: ownerIdentity.message || '',
     canEditOwnerSettings: !ownerUserId || actor.user_id === ownerUserId,
     userId: user?.id || null,
     user,

@@ -403,6 +403,7 @@ const quickWidgetSettingsSectionOpen = ref({
 const draftTrayDismissed = ref(false)
 const intakeQueueDialogOpen = ref(false)
 const intakeQueueFieldEdits = ref({})
+const ownerSetupRequired = ref(false)
 const drawerSectionOpen = ref({
   main: true,
   radars: true,
@@ -1544,6 +1545,20 @@ async function openShellCreateFromQuickAction(section, extraQuery = {}) {
   })
 }
 
+async function ensureOwnerSetupRoute() {
+  if (!bridge.value?.userSettings?.get) return
+  try {
+    const result = await bridge.value.userSettings.get()
+    ownerSetupRequired.value = result?.requiresOwnerSetup === true
+    const routeName = String(route.name || '').trim()
+    if (ownerSetupRequired.value && routeName !== 'user-settings') {
+      await router.replace({ name: 'user-settings' })
+    }
+  } catch {
+    ownerSetupRequired.value = false
+  }
+}
+
 function loadQuickWidgetAnimation(
   container,
   animationData,
@@ -1636,6 +1651,7 @@ onMounted(() => {
   loadQuickWidgetPosition()
   playQuickWidgetIdle()
   activateNextIntakeReviewItem()
+  void ensureOwnerSetupRoute()
 })
 
 onBeforeUnmount(() => {
@@ -1659,6 +1675,7 @@ watch(
   () => route.fullPath,
   () => {
     syncUserNavState()
+    void ensureOwnerSetupRoute()
   },
 )
 
