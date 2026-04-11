@@ -11,6 +11,36 @@
         @update:model-value="$emit('toggle-select-all', $event)"
       />
       <PlusWithLabelButton :label="addLabel" :disable="loading || addDisabled" @click="$emit('add')" />
+      <q-btn
+        v-if="showForkSelector"
+        flat
+        no-caps
+        dense
+        class="file-page-toolbar__fork-trigger"
+        :disable="loading || disabled"
+      >
+        <span class="file-page-toolbar__fork-trigger-label">{{ activeForkLabel }}</span>
+        <q-icon name="expand_more" size="14px" />
+        <q-menu
+          anchor="bottom left"
+          self="top left"
+          class="file-page-toolbar__fork-menu"
+          content-class="file-page-toolbar__fork-menu-content"
+        >
+          <div class="file-page-toolbar__fork-list">
+            <button
+              v-for="option in normalizedForkOptions"
+              :key="option.value"
+              type="button"
+              class="file-page-toolbar__fork-option"
+              :class="{ 'file-page-toolbar__fork-option--active': option.value === forkValue }"
+              @click="selectForkValue(option.value)"
+            >
+              <span class="file-page-toolbar__fork-option-label">{{ option.label }}</span>
+            </button>
+          </div>
+        </q-menu>
+      </q-btn>
       <slot name="primary-trailing" />
     </div>
 
@@ -42,8 +72,9 @@ import FilterListIcon from 'src/components/FilterListIcon.vue'
 import PlusWithLabelButton from 'src/components/PlusWithLabelButton.vue'
 import SearchBarInput from 'src/components/SearchBarInput.vue'
 import ViewModeToggle from 'src/components/ViewModeToggle.vue'
+import { computed } from 'vue'
 
-defineProps({
+const props = defineProps({
   allVisibleSelected: { type: Boolean, default: false },
   someVisibleSelected: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
@@ -55,9 +86,30 @@ defineProps({
   viewMode: { type: String, default: 'card' },
   viewOptions: { type: Array, default: () => [] },
   showViewToggle: { type: Boolean, default: true },
+  forkValue: { type: String, default: '' },
+  forkOptions: { type: Array, default: () => [] },
 })
 
-defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'])
+const emit = defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode', 'update:forkValue'])
+
+const normalizedForkOptions = computed(() =>
+  (Array.isArray(props.forkOptions) ? props.forkOptions : [])
+    .map((option) => ({
+      value: String(option?.value || '').trim(),
+      label: String(option?.label || '').trim(),
+    }))
+    .filter((option) => option.label),
+)
+
+const showForkSelector = computed(() => normalizedForkOptions.value.length > 0)
+const activeForkLabel = computed(() => {
+  const matchedOption = normalizedForkOptions.value.find((option) => option.value === String(props.forkValue || '').trim())
+  return matchedOption?.label || 'All'
+})
+
+function selectForkValue(value) {
+  emit('update:forkValue', value)
+}
 </script>
 
 <style scoped>
@@ -105,6 +157,59 @@ defineEmits(['toggle-select-all', 'add', 'update:searchQuery', 'update:viewMode'
 
 .file-page-toolbar__search {
   flex: 0 0 auto;
+}
+
+.file-page-toolbar__fork-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--ds-toolbar-toggle-button-size);
+  padding: 0 10px;
+  color: var(--ds-color-text-primary);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+}
+
+.file-page-toolbar__fork-trigger-label {
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-light);
+  line-height: var(--ds-line-height-xs);
+}
+
+.file-page-toolbar__fork-list {
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  padding: 6px;
+  gap: 4px;
+}
+
+.file-page-toolbar__fork-option {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--ds-color-text-primary);
+  cursor: pointer;
+}
+
+.file-page-toolbar__fork-option--active {
+  background: var(--ds-color-surface-muted);
+}
+
+.file-page-toolbar__fork-option-label {
+  color: inherit;
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-light);
+  line-height: var(--ds-line-height-xs);
 }
 
 .file-page-toolbar__view-toggle {

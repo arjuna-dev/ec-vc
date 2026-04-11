@@ -136,13 +136,16 @@
         :disabled="false"
         :loading="loading"
         :add-disabled="!canCreateWithShell"
+        :fork-value="activeForkValue"
+        :fork-options="toolbarForkOptions"
         :search-query="searchQuery"
         :search-placeholder="searchPlaceholder"
         :view-mode="viewMode"
         :view-options="viewOptions"
         :show-view-toggle="true"
         @toggle-select-all="toggleSelectAllVisible"
-        @add="requestCreateRecordShell"
+        @add="requestCreateRecordShell(activeForkValue ? { kind: activeForkValue } : {})"
+        @update:fork-value="setActiveForkValue"
         @update:search-query="searchQuery = $event"
         @update:view-mode="viewMode = $event"
       >
@@ -1028,6 +1031,13 @@ const propDrivenSourceKey = computed(() => {
   const normalized = String(props.sourceKey || '').trim().toLowerCase()
   return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : ''
 })
+const activeForkValue = computed(() => {
+  const normalized = String(route.query.kind || '').trim().toLowerCase()
+  if (activeSourceKey.value !== 'opportunities') return ''
+  return getCreateBranchEntry(activeSourceKey.value, normalized) ? normalized : ''
+})
+const activeForkEntry = computed(() => getCreateBranchEntry(activeSourceKey.value, activeForkValue.value))
+const activeContentSourceKey = computed(() => String(activeForkEntry.value?.targetSourceKey || activeSourceKey.value || '').trim().toLowerCase())
 
 const activeSourceKey = computed(() => {
   if (propDrivenSourceKey.value) return propDrivenSourceKey.value
@@ -1038,7 +1048,7 @@ const activeSourceKey = computed(() => {
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 
 const activeRegistryEntry = computed(
-  () => getFilePageRegistryEntry(activeSourceKey.value) || null,
+  () => getFilePageRegistryEntry(activeContentSourceKey.value) || null,
 )
 const routeRegistryEntry = computed(() => getFilePageRegistryEntryByRouteName(route.name))
 const pageShellLabel = computed(() => {
@@ -1047,19 +1057,19 @@ const pageShellLabel = computed(() => {
   return routeRegistryEntry.value?.label || activeRegistryEntry.value?.label || 'Records'
 })
 
-const activeLoader = computed(() => SECTION_LOADERS[activeSourceKey.value] || null)
+const activeLoader = computed(() => SECTION_LOADERS[activeContentSourceKey.value] || null)
 const hasSupportedBridge = computed(() => {
   if (!activeLoader.value) return false
   return typeof activeLoader.value.listFn(bridge.value) !== 'undefined'
 })
-const isEventShellMode = computed(() => activeSourceKey.value === 'events' && !isRecordShellMode.value)
-const supportsActiveSourceEditing = computed(() => activeSourceKey.value !== 'events')
+const isEventShellMode = computed(() => activeContentSourceKey.value === 'events' && !isRecordShellMode.value)
+const supportsActiveSourceEditing = computed(() => activeContentSourceKey.value !== 'events')
 const hasActiveSourceKdb = computed(() =>
   level2Sections.value.some((section) => String(section?.label || section?.rawLabel || '').trim().toLowerCase() === 'kdb'),
 )
 
-const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
-const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
+const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeContentSourceKey.value] || [])
+const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeContentSourceKey.value] || [])
 const activeSectionKeyForCards = ref('')
 const activeFilterSectionKey = ref('')
 const activeFilterTokenKey = ref('')
@@ -1068,6 +1078,18 @@ const activeBbCategoryKey = ref('')
 const activeBbBlockKey = ref('')
 const expandedBbFilterCategoryKey = ref('')
 const expandedCardSettingsGroupsBySource = ref({})
+const toolbarForkOptions = computed(() => {
+  if (activeSourceKey.value !== 'opportunities') return []
+  const branchEntries = getCreateBranches(activeSourceKey.value)
+  if (!branchEntries.length) return []
+  return [
+    { value: '', label: 'All' },
+    ...branchEntries.map((branch) => ({
+      value: String(branch?.value || '').trim().toLowerCase(),
+      label: String(branch?.label || '').trim(),
+    })),
+  ].filter((option) => option.label)
+})
 
 const activeSection = computed(() => {
   return level2Sections.value.find((section) => section.key === activeSectionKeyForCards.value) || level2Sections.value[0] || null
@@ -1120,7 +1142,7 @@ const availableCardItemTokens = computed(() =>
   }),
 )
 const enabledCardItemKeys = computed(() => {
-  const sourceKey = activeSourceKey.value
+  const sourceKey = activeContentSourceKey.value
   const configured = Array.isArray(cardItemKeysBySource.value[sourceKey]) ? cardItemKeysBySource.value[sourceKey] : []
   const allowedKeys = new Set(availableCardItemTokens.value.map((token) => token.key))
   return configured.filter((key) => allowedKeys.has(key))
@@ -1184,7 +1206,7 @@ const createDialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || '',
 )
 const expandedCardSettingsGroups = computed(() => {
-  const sourceKey = activeSourceKey.value
+  const sourceKey = activeContentSourceKey.value
   const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
   return Array.isArray(existing) ? existing : cardItemTokenGroups.value.map((group) => group.key)
 })
@@ -1193,7 +1215,7 @@ const canCreateWithShell = computed(() => {
   if (branchEntries.length) {
     return branchEntries.some((branch) => Boolean(bridge.value?.[String(branch?.targetSourceKey || '').trim()]?.create))
   }
-  return Boolean(bridge.value?.[activeSourceKey.value]?.create)
+  return Boolean(bridge.value?.[activeContentSourceKey.value]?.create)
 })
 
 function getEditDialogTokenValueFromPayload(payload, token) {
@@ -1475,6 +1497,18 @@ function normalizeEntitySourceKey(entityName) {
   return String(entityName || '').trim().toLowerCase()
 }
 
+function setActiveForkValue(nextValue) {
+  if (activeSourceKey.value !== 'opportunities') return
+  const normalized = String(nextValue || '').trim().toLowerCase()
+  const nextQuery = { ...route.query }
+  if (normalized && getCreateBranchEntry(activeSourceKey.value, normalized)) {
+    nextQuery.kind = normalized
+  } else {
+    delete nextQuery.kind
+  }
+  router.push({ name: route.name, params: route.params, query: nextQuery })
+}
+
 function getRegistryTitleTokenForSource(sourceKey) {
   const entry = getFilePageRegistryEntry(sourceKey)
   if (!entry) return null
@@ -1485,7 +1519,7 @@ function getRegistryTitleTokenForSource(sourceKey) {
 function getOptionRowsForSource(sourceKey) {
   const normalized = normalizeEntitySourceKey(sourceKey)
   if (!normalized) return []
-  if (normalized === activeSourceKey.value) return rawRows.value
+  if (normalized === activeContentSourceKey.value) return rawRows.value
   return Array.isArray(liveOptionRowsBySource.value[normalized]) ? liveOptionRowsBySource.value[normalized] : []
 }
 
@@ -1546,7 +1580,7 @@ function getLiveEntitySetOptionsForToken(token) {
 
 async function ensureLiveOptionRowsLoaded(sourceKey) {
   const normalized = normalizeEntitySourceKey(sourceKey)
-  if (!normalized || normalized === activeSourceKey.value) return
+  if (!normalized || normalized === activeContentSourceKey.value) return
   if (Array.isArray(liveOptionRowsBySource.value[normalized])) return
 
   const loader = SECTION_LOADERS[normalized]
@@ -1988,9 +2022,9 @@ watch(
 )
 
 watch(
-  [activeSourceKey, availableCardItemTokens],
+  [activeContentSourceKey, availableCardItemTokens],
   () => {
-    const sourceKey = activeSourceKey.value
+    const sourceKey = activeContentSourceKey.value
     const allowedKeys = new Set(availableCardItemTokens.value.map((token) => token.key))
     const existing = Array.isArray(cardItemKeysBySource.value[sourceKey]) ? cardItemKeysBySource.value[sourceKey] : []
     const normalized = existing.filter((key) => allowedKeys.has(key))
@@ -2022,9 +2056,9 @@ watch(
 )
 
 watch(
-  [activeSourceKey, cardItemTokenGroups],
+  [activeContentSourceKey, cardItemTokenGroups],
   () => {
-    const sourceKey = activeSourceKey.value
+    const sourceKey = activeContentSourceKey.value
     const availableKeys = new Set(cardItemTokenGroups.value.map((group) => group.key))
     const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
     const normalized = Array.isArray(existing)
@@ -2042,7 +2076,7 @@ watch(
 watch(
   [
     () => viewMode.value,
-    () => activeSourceKey.value,
+    () => activeContentSourceKey.value,
     () => activeSectionKeyForCards.value,
     () => tableSectionTokens.value.map((token) => token.key).join('|'),
     () => displayRows.value.length,
@@ -2122,7 +2156,7 @@ function getCardItemOrderIndex(tokenKey) {
 }
 
 function setCardItemEnabled(tokenKey, nextValue) {
-  const sourceKey = activeSourceKey.value
+  const sourceKey = activeContentSourceKey.value
   const current = enabledCardItemKeys.value
   if (!nextValue) {
     cardItemKeysBySource.value = {
@@ -2139,7 +2173,7 @@ function setCardItemEnabled(tokenKey, nextValue) {
 }
 
 function moveCardItem(tokenKey, direction) {
-  const sourceKey = activeSourceKey.value
+  const sourceKey = activeContentSourceKey.value
   const current = [...enabledCardItemKeys.value]
   const currentIndex = current.indexOf(tokenKey)
   const nextIndex = currentIndex + direction
@@ -2157,7 +2191,7 @@ function isCardSettingsGroupExpanded(groupKey) {
 }
 
 function toggleCardSettingsGroup(groupKey) {
-  const sourceKey = activeSourceKey.value
+  const sourceKey = activeContentSourceKey.value
   const current = [...expandedCardSettingsGroups.value]
   const next = current.includes(groupKey)
     ? current.filter((key) => key !== groupKey)
@@ -2924,6 +2958,9 @@ function resolveCreateDialogEntityName(payload = {}) {
 
 function resolveEditEntityName(row) {
   if (activeSourceKey.value !== 'opportunities') return activeRegistryEntry.value?.entityName || ''
+  if (activeForkEntry.value?.targetSourceKey) {
+    return getFilePageRegistryEntry(activeForkEntry.value.targetSourceKey)?.entityName || activeRegistryEntry.value?.entityName || ''
+  }
   const opportunityKindToken =
     (LEVEL_3_FILE_REGISTRY_BY_KEY.opportunities || []).find(
       (token) => String(token?.tokenName || '').trim() === 'Opportunity_Kind',
@@ -3572,7 +3609,7 @@ function handleSelectedRowsEdit() {
 async function handleSelectedRowsDelete() {
   if (!canDeleteSelectedRows.value) return
 
-  const deleteFn = bridge.value?.[activeSourceKey.value]?.delete
+  const deleteFn = bridge.value?.[activeContentSourceKey.value]?.delete
   if (typeof deleteFn !== 'function') return
 
   const selectedCount = selectedRows.value.length
