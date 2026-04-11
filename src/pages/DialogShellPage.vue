@@ -50,6 +50,7 @@ import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import { consumePendingAddEditShellRequest } from 'src/utils/addEditShellState'
+import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipContracts'
 import {
   CANONICAL_OPTION_LISTS,
   getCreateBranchEntry,
@@ -152,11 +153,12 @@ watch(
   async ([, , , editRecordId, editEntityName, editSection]) => {
     const normalizedRecordId = String(editRecordId || '').trim()
     if (!normalizedRecordId) {
+      const pending = consumePendingAddEditShellRequest(activeSourceKey.value)
       dialogMode.value = 'create'
       dialogRecordId.value = ''
       dialogEntityName.value = ''
-      dialogInitialValues.value = buildCreateDialogInitialValues()
-      dialogInitialFieldMeta.value = {}
+      dialogInitialValues.value = buildCreateDialogInitialValues(pending)
+      dialogInitialFieldMeta.value = buildCreateDialogInitialFieldMeta(pending)
       dialogInitialSectionKey.value = 'general'
       dialogRenderKey.value += 1
       return
@@ -182,12 +184,12 @@ watch(
   { immediate: true },
 )
 
-function buildCreateDialogInitialValues() {
+function buildCreateDialogInitialValues(pending = null) {
   const nextInitialValues = {}
-  const pending = consumePendingAddEditShellRequest(activeSourceKey.value)
   if (pending?.initialValues && typeof pending.initialValues === 'object') {
     Object.assign(nextInitialValues, pending.initialValues)
   }
+  Object.assign(nextInitialValues, buildContextRelationshipPrefill().initialValues)
   const requestedBranch = String(route.query.kind || '').trim().toLowerCase()
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
@@ -202,6 +204,15 @@ function buildCreateDialogInitialValues() {
   }
 
   return nextInitialValues
+}
+
+function buildCreateDialogInitialFieldMeta(pending = null) {
+  const nextFieldMeta = {}
+  if (pending?.initialFieldMeta && typeof pending.initialFieldMeta === 'object') {
+    Object.assign(nextFieldMeta, pending.initialFieldMeta)
+  }
+  Object.assign(nextFieldMeta, buildContextRelationshipPrefill().initialFieldMeta)
+  return nextFieldMeta
 }
 
 function reopenDialogShell() {
@@ -244,6 +255,45 @@ function getInputOptionsForToken(token) {
 
 function resolveSourceKeyFromEntityName(entityName) {
   return getFilePageRegistryEntryByEntityReference(entityName)?.key || ''
+}
+
+function buildContextRelationshipPrefill() {
+  const normalizedContextEntity = String(route.query.contextEntity || '').trim()
+  const normalizedContextRecordId = String(route.query.contextRecordId || '').trim()
+  if (!normalizedContextEntity || !normalizedContextRecordId) {
+    return { initialValues: {}, initialFieldMeta: {} }
+  }
+
+  const targetEntityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  if (!targetEntityName) return { initialValues: {}, initialFieldMeta: {} }
+
+  const matchingTokens = level3Tokens.value.filter((token) => {
+    const relationshipContract = getKdbRelationshipContractForToken(targetEntityName, token?.tokenName)
+    return String(relationshipContract?.targetEntity || '').trim() === normalizedContextEntity
+  })
+
+  if (!matchingTokens.length) return { initialValues: {}, initialFieldMeta: {} }
+
+  const initialValues = {}
+  const initialFieldMeta = {}
+
+  matchingTokens.forEach((token) => {
+    const tokenKey = String(token?.key || '').trim()
+    const tokenType = String(token?.tokenType || '').trim()
+    const tokenName = String(token?.tokenName || '').trim()
+    if (!tokenKey || !tokenName) return
+
+    initialValues[tokenKey] = tokenType === 'select_multi' ? [normalizedContextRecordId] : normalizedContextRecordId
+    initialFieldMeta[tokenKey] = {
+      fieldName: tokenName,
+      tableName: getRuntimeTableNameForEntityName(targetEntityName),
+      recordId: '',
+      verificationState: 'default_preselected_unverified',
+      verificationSource: 'action_route_preselected',
+    }
+  })
+
+  return { initialValues, initialFieldMeta }
 }
 
 function getLiveEntityOptionsForToken(token) {

@@ -2582,6 +2582,50 @@ function buildRowArtifactContext(row) {
   }
 }
 
+function buildContextRelationshipPrefillForSource(sourceKey, contextEntity, contextRecordId) {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  const normalizedContextEntity = String(contextEntity || '').trim()
+  const normalizedContextRecordId = String(contextRecordId || '').trim()
+  if (!normalizedSourceKey || !normalizedContextEntity || !normalizedContextRecordId) {
+    return { initialValues: {}, initialFieldMeta: {} }
+  }
+
+  const registryEntry = getFilePageRegistryEntry(normalizedSourceKey)
+  const targetEntityName = String(registryEntry?.entityName || '').trim()
+  if (!targetEntityName) return { initialValues: {}, initialFieldMeta: {} }
+
+  const sourceTokens = Array.isArray(LEVEL_3_FILE_REGISTRY_BY_KEY[normalizedSourceKey]) ? LEVEL_3_FILE_REGISTRY_BY_KEY[normalizedSourceKey] : []
+  const matchingTokens = sourceTokens.filter((token) => {
+    const relationshipContract = getKdbRelationshipContractForToken(targetEntityName, token?.tokenName)
+    return String(relationshipContract?.targetEntity || '').trim() === normalizedContextEntity
+  })
+
+  if (!matchingTokens.length) return { initialValues: {}, initialFieldMeta: {} }
+
+  const initialValues = {}
+  const initialFieldMeta = {}
+
+  matchingTokens.forEach((token) => {
+    const tokenKey = String(token?.key || '').trim()
+    const tokenType = String(token?.tokenType || '').trim()
+    const tokenName = String(token?.tokenName || '').trim()
+    if (!tokenKey || !tokenName) return
+
+    initialValues[tokenKey] = tokenType === 'select_multi'
+      ? [normalizedContextRecordId]
+      : normalizedContextRecordId
+    initialFieldMeta[tokenKey] = {
+      fieldName: tokenName,
+      tableName: getRuntimeTableNameForEntityName(targetEntityName),
+      recordId: '',
+      verificationState: 'default_preselected_unverified',
+      verificationSource: 'action_route_preselected',
+    }
+  })
+
+  return { initialValues, initialFieldMeta }
+}
+
 function setRowRelationshipPanel(row, nextValue) {
   const rowId = getRowSelectionId(row)
   if (!rowId) return
@@ -3122,9 +3166,15 @@ function requestCreateRecordShellForSource(sourceKey, options = {}) {
   }
 
   if (normalizedSourceKey !== activeSourceKey.value) {
+    const contextPrefill = buildContextRelationshipPrefillForSource(
+      normalizedSourceKey,
+      options?.contextEntity,
+      options?.contextRecordId,
+    )
     setPendingAddEditShellRequest({
       sourceKey: normalizedSourceKey,
-      initialValues: {},
+      initialValues: contextPrefill.initialValues,
+      initialFieldMeta: contextPrefill.initialFieldMeta,
     })
     const nextQuery = {
       section: normalizedSourceKey,
@@ -3142,7 +3192,14 @@ function requestCreateRecordShellForSource(sourceKey, options = {}) {
     return
   }
 
-  const nextInitialValues = {}
+  const contextPrefill = buildContextRelationshipPrefillForSource(
+    normalizedSourceKey,
+    options?.contextEntity,
+    options?.contextRecordId,
+  )
+  const nextInitialValues = {
+    ...contextPrefill.initialValues,
+  }
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
   const branchToken = branchTokenName
@@ -3155,7 +3212,10 @@ function requestCreateRecordShellForSource(sourceKey, options = {}) {
     nextInitialValues[branchToken.key] = resolveCreateDialogOptionValue(branchToken, branchEntry.value)
   }
 
-  openCreateRecordShell({ initialValues: nextInitialValues })
+  openCreateRecordShell({
+    initialValues: nextInitialValues,
+    initialFieldMeta: contextPrefill.initialFieldMeta,
+  })
 }
 
 function requestCreateRecordShell(options = {}) {
@@ -3268,7 +3328,9 @@ function openCreateRecordShell(options = {}) {
     ...getFilePageBirthDefaults(activeSourceKey.value),
     ...(options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}),
   }
-  createDialogFieldMeta.value = {}
+  createDialogFieldMeta.value = options?.initialFieldMeta && typeof options.initialFieldMeta === 'object'
+    ? { ...options.initialFieldMeta }
+    : {}
   createDialogInitialArtifacts.value = []
   upsertLocalDraftRow(activeContentSourceKey.value, createDialogDraftRecordId.value, createDialogInitialValues.value)
   createDialogRenderKey.value += 1
