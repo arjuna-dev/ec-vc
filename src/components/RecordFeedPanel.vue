@@ -108,8 +108,12 @@ const props = defineProps({
 defineEmits(['open-log'])
 
 const displayedItems = computed(() => {
+  const availableTabs = Array.isArray(props.tabs) ? props.tabs : []
   const active = String(activeTab.value || '').trim()
-  return props.items.filter((item) => String(item?.feedKey || '').trim() === active)
+  const resolvedActive = availableTabs.some((tab) => String(tab?.id || '').trim() === active)
+    ? active
+    : String(availableTabs[0]?.id || '').trim()
+  return props.items.filter((item) => String(item?.feedKey || '').trim() === resolvedActive)
 })
 
 const displayedGroups = computed(() => {

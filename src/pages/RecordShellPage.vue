@@ -443,7 +443,7 @@ const expandedSectionSubgroupKeys = ref([])
 const activeSectionKey = ref('')
 const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
-const activeRecordFeedTab = ref('all')
+const activeRecordFeedTab = ref('system')
 const recordShellTopNavViewMode = ref('grid')
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
@@ -599,7 +599,7 @@ const feedItems = computed(() => {
   return [
     {
       id: 'feed-template-1',
-      feedKey: 'all',
+      feedKey: 'system',
       groupKey: 'lifecycle',
       sourceLabel: 'Record Shell',
       meta: 'Now',
@@ -609,7 +609,7 @@ const feedItems = computed(() => {
     },
     {
       id: 'feed-template-2',
-      feedKey: 'all',
+      feedKey: 'actions',
       groupKey: 'actions',
       sourceLabel: 'Payload',
       meta: 'Live',
@@ -619,7 +619,15 @@ const feedItems = computed(() => {
     },
   ]
 })
-const recordFeedTabOptions = computed(() => [{ id: 'all', label: 'All' }])
+const recordFeedTabOptions = computed(() => {
+  const items = Array.isArray(feedItems.value) ? feedItems.value : []
+  const hasSystem = items.some((item) => String(item?.feedKey || '').trim() === 'system')
+  const hasActions = items.some((item) => String(item?.feedKey || '').trim() === 'actions')
+  return [
+    hasSystem ? { id: 'system', label: 'System' } : null,
+    hasActions ? { id: 'actions', label: 'Actions' } : null,
+  ].filter(Boolean)
+})
 const recordShellNavItems = computed(() => [
   ...toolbarLeftSections.value.map((group) => ({
     value: group.value,
@@ -1153,7 +1161,7 @@ function normalizeAuditFeedEvents(events = []) {
       const groupKey = resolveAuditFeedGroupKey(event, fieldName, actionLabel)
       return {
         id: String(event?.id || '').trim() || `audit:${Math.random()}`,
-        feedKey: 'all',
+        feedKey: groupKey === 'lifecycle' ? 'system' : 'actions',
         groupKey,
         sourceLabel: formatAuditActorLabel(event?.edited_by),
         meta: String(event?.edited_at || '').trim() || 'Recent',

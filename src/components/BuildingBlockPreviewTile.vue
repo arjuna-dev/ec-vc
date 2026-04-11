@@ -1079,8 +1079,8 @@ const recordContextDocuments = [
 ]
 
 const recordFeedTabOptions = [
-  { id: 'all', label: 'Activity' },
-  { id: 'events', label: 'Events' },
+  { id: 'system', label: 'System' },
+  { id: 'actions', label: 'Actions' },
 ]
 
 const recordFeedGroupOptions = [
@@ -1089,9 +1089,9 @@ const recordFeedGroupOptions = [
 ]
 
 const recordFeedItems = [
-  { id: 'feed-1', feedKey: 'all', groupKey: 'lifecycle', title: 'Record created', meta: '09:42', hasLogPage: true },
-  { id: 'feed-2', feedKey: 'all', groupKey: 'actions', title: 'Companion suggestion queued', meta: '09:50', hasLogPage: true },
-  { id: 'feed-3', feedKey: 'events', groupKey: 'lifecycle', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
+  { id: 'feed-1', feedKey: 'system', groupKey: 'lifecycle', title: 'Record created', meta: '09:42', hasLogPage: true },
+  { id: 'feed-2', feedKey: 'actions', groupKey: 'actions', title: 'Companion suggestion queued', meta: '09:50', hasLogPage: true },
+  { id: 'feed-3', feedKey: 'system', groupKey: 'lifecycle', title: 'Summary updated', meta: 'Yesterday', hasLogPage: true },
 ]
 
 
