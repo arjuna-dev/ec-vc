@@ -135,7 +135,7 @@
         :some-visible-selected="someVisibleSelected"
         :disabled="false"
         :loading="loading"
-        :add-disabled="!canCreateWithShell"
+        :add-disabled="false"
         :fork-value="activeForkValue"
         :fork-options="toolbarForkOptions"
         :search-query="searchQuery"
