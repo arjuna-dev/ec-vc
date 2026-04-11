@@ -2,7 +2,7 @@
   <q-page class="record-event-page q-pa-md">
     <div v-if="!isElectronRuntime" class="q-pa-md">
       <q-banner class="bg-orange-2 text-black" rounded>
-        Record event view requires Electron.
+        History entry view requires Electron.
       </q-banner>
     </div>
 

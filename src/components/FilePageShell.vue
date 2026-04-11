@@ -2557,7 +2557,7 @@ function getActiveRelationshipItems(row) {
 
 function getActiveRelationshipEmptyMessage(row) {
   const activePanel = String(getRowRelationshipPanel(row) || '').trim().toLowerCase()
-  if (activePanel === 'events') return 'No events yet for this record.'
+  if (activePanel === 'events') return 'No history yet for this record.'
   return `No ${getCardRelationshipLabel(activePanel).toLowerCase()} linked to this record.`
 }
 
@@ -3152,7 +3152,7 @@ function requestCreateRecordShellForSource(sourceKey, options = {}) {
   const createBranches = getCreateBranches(normalizedSourceKey)
   const targetRegistryEntry = getFilePageRegistryEntry(normalizedSourceKey) || activeRegistryEntry.value
   if (!requestedBranch && createBranches.length) {
-    const branchLabel = String(targetRegistryEntry?.createBranchLabel || 'Type').trim()
+    const branchLabel = String(targetRegistryEntry?.createBranchLabel || 'Fork').trim()
     void $q.dialog({
       title: `Choose ${branchLabel}`,
       message: `Select which ${String(targetRegistryEntry?.singularLabel || 'missing record type').trim().toLowerCase()} path you want to create.`,
@@ -3457,7 +3457,7 @@ async function submitCreateRecordShell({ values, verification, artifacts } = {})
   assertNoUnsupportedRelationshipWrites(values, activeEntityName)
 
   if (!isEditMode && !canCreateWithShell.value) {
-    notifyShellAction('Create record')
+    notifyShellAction(`Create ${String(activeRegistryEntry.value?.singularLabel || 'missing record type').trim().toLowerCase()}`)
     return
   }
 
@@ -3521,7 +3521,7 @@ async function submitCreateRecordShell({ values, verification, artifacts } = {})
       if (branchTarget?.targetSourceKey) {
         result = await bridge.value?.[branchTarget.targetSourceKey]?.create?.(payload)
       } else if (getCreateBranches(sourceKey).length) {
-        const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Type').trim()
+        const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Fork').trim()
         $q.notify({ type: 'negative', message: `Choose ${branchLabel} before creating.` })
         return
       } else {
@@ -3673,7 +3673,7 @@ async function createRecordFromPayload(payload = {}) {
     result = await bridge.value?.[branchTarget.targetSourceKey]?.create?.(payload)
     entityName = branchTarget.entityName || entityName
   } else if (getCreateBranches(sourceKey).length) {
-    const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Type').trim()
+    const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Fork').trim()
     throw new Error(`Choose ${branchLabel} before creating.`)
   } else {
     result = await bridge.value?.[sourceKey]?.create?.(payload)

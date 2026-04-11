@@ -1,7 +1,7 @@
 import canonicalStructure from '../shared/canonicalStructure.js'
 import { formatSharedDisplayLabel } from '../shared/labelFormatting.js'
 
-export const DEFAULT_L1_REQUIRED_SUBSECTIONS = Object.freeze(['System', 'KDB'])
+export const DEFAULT_L1_REQUIRED_SUBSECTIONS = Object.freeze(['System', 'LDB'])
 export const DEFAULT_L1_OPTIONAL_STANDARD_SUBSECTIONS = Object.freeze(['General'])
 export const DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES = Object.freeze(['list', 'create', 'delete'])
 
@@ -212,7 +212,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     key: 'opportunities',
     label: 'Opportunities',
     singularLabel: 'Opportunity',
-    createBranchLabel: 'Opportunity Type',
+    createBranchLabel: 'Opportunity Fork',
     createBranchTokenName: 'Opportunity_Kind',
     routeName: 'opportunities',
     path: '/opportunities',

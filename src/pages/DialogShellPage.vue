@@ -690,7 +690,7 @@ async function submitCreateRecord(values = {}) {
     const branchEntry = getCreateBranchEntry(activeSourceKey.value, values?.[branchSelectorTokenKey.value])
     const createTargetSourceKey = branchEntry?.targetSourceKey || activeSourceKey.value
     if (branchSelectorTokenKey.value) {
-      const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Type').trim()
+      const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Fork').trim()
       if (!branchEntry?.targetSourceKey) {
         $q.notify({ type: 'negative', message: `Choose ${branchLabel} before continuing.` })
         return
