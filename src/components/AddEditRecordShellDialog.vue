@@ -546,15 +546,25 @@
                             @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                           />
                           <div
-                            v-else-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                            v-else-if="fieldEntry.token.tokenType === 'select_multi'"
                             class="create-record-shell__selected-multi-box"
                           >
-                            <div
+                            <q-chip
                               v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
                               :key="item.key"
-                              class="create-record-shell__selected-multi-item"
+                              dense
+                              removable
+                              :disable="loading || isFieldLocked(fieldEntry.token)"
+                              class="create-record-shell__selected-multi-chip"
+                              @remove="removeMultiSelectValue(fieldEntry.token, item.value)"
                             >
                               {{ item.label }}
+                            </q-chip>
+                            <div
+                              v-if="!getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                              class="create-record-shell__selected-multi-empty"
+                            >
+                              No selected items
                             </div>
                           </div>
                         </template>
@@ -703,15 +713,25 @@
                             @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                           />
                           <div
-                            v-else-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                            v-else-if="fieldEntry.token.tokenType === 'select_multi'"
                             class="create-record-shell__selected-multi-box"
                           >
-                            <div
+                            <q-chip
                               v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
                               :key="item.key"
-                              class="create-record-shell__selected-multi-item"
+                              dense
+                              removable
+                              :disable="loading || isFieldLocked(fieldEntry.token)"
+                              class="create-record-shell__selected-multi-chip"
+                              @remove="removeMultiSelectValue(fieldEntry.token, item.value)"
                             >
                               {{ item.label }}
+                            </q-chip>
+                            <div
+                              v-if="!getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                              class="create-record-shell__selected-multi-empty"
+                            >
+                              No selected items
                             </div>
                           </div>
                         </template>
@@ -870,15 +890,25 @@
                         @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                       />
                       <div
-                        v-else-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                        v-else-if="fieldEntry.token.tokenType === 'select_multi'"
                         class="create-record-shell__selected-multi-box"
                       >
-                        <div
+                        <q-chip
                           v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
                           :key="item.key"
-                          class="create-record-shell__selected-multi-item"
+                          dense
+                          removable
+                          :disable="loading || isFieldLocked(fieldEntry.token)"
+                          class="create-record-shell__selected-multi-chip"
+                          @remove="removeMultiSelectValue(fieldEntry.token, item.value)"
                         >
                           {{ item.label }}
+                        </q-chip>
+                        <div
+                          v-if="!getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                          class="create-record-shell__selected-multi-empty"
+                        >
+                          No selected items
                         </div>
                       </div>
                     </template>
@@ -1029,15 +1059,25 @@
                         @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                       />
                       <div
-                        v-else-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                        v-else-if="fieldEntry.token.tokenType === 'select_multi'"
                         class="create-record-shell__selected-multi-box"
                       >
-                        <div
+                        <q-chip
                           v-for="item in getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key])"
                           :key="item.key"
-                          class="create-record-shell__selected-multi-item"
+                          dense
+                          removable
+                          :disable="loading || isFieldLocked(fieldEntry.token)"
+                          class="create-record-shell__selected-multi-chip"
+                          @remove="removeMultiSelectValue(fieldEntry.token, item.value)"
                         >
                           {{ item.label }}
+                        </q-chip>
+                        <div
+                          v-if="!getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                          class="create-record-shell__selected-multi-empty"
+                        >
+                          No selected items
                         </div>
                       </div>
                     </template>
@@ -1756,6 +1796,7 @@ function getMultiSelectOptionEntries(token, value) {
   )
   return selectedValues.map((selectedValue) => ({
     key: `${String(token?.key || 'field').trim()}:${selectedValue}`,
+    value: selectedValue,
     label: optionMap.get(selectedValue) || selectedValue,
   }))
 }
@@ -1765,6 +1806,21 @@ function formatMultiSelectSummary(token, value) {
   if (!entries.length) return ''
   if (entries.length === 1) return entries[0].label
   return `${entries.length} selected`
+}
+
+function removeMultiSelectValue(token, rawValue) {
+  if (!token || isFieldLocked(token)) return
+  const tokenKey = String(token.key || '').trim()
+  const selectedValue = String(rawValue || '').trim()
+  if (!tokenKey || !selectedValue) return
+  const existingValues = Array.isArray(formValues.value?.[tokenKey])
+    ? formValues.value[tokenKey].map((item) => String(item || '').trim()).filter(Boolean)
+    : []
+  if (!existingValues.includes(selectedValue)) return
+  updateField(
+    tokenKey,
+    existingValues.filter((item) => item !== selectedValue),
+  )
 }
 function isSubgroupExpanded(groupKey) { return expandedSubgroupKeys.value.includes(groupKey) }
 function toggleSubgroup(groupKey) {
@@ -3226,7 +3282,7 @@ onBeforeUnmount(() => {
 .create-record-shell__input :deep(.q-field__input),
 .create-record-shell__input :deep(.q-field__marginal),
 .create-record-shell__input :deep(.q-chip),
-.create-record-shell__selected-multi-item {
+.create-record-shell__selected-multi-chip {
   font-size: 0.78rem;
   line-height: 0.92;
 }
@@ -3238,8 +3294,9 @@ onBeforeUnmount(() => {
 }
 
 .create-record-shell__selected-multi-box {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 6px;
   width: 100%;
   padding: 8px;
@@ -3248,19 +3305,33 @@ onBeforeUnmount(() => {
   background: rgba(249, 249, 247, 0.92);
 }
 
-.create-record-shell__selected-multi-item {
-  display: flex;
-  align-items: center;
+.create-record-shell__selected-multi-chip {
   min-height: 20px;
-  min-width: 0;
-  padding: 0 8px;
-  overflow: hidden;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 2px 0 6px;
   border: 1px solid rgba(17, 17, 17, 0.12);
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.92);
   color: rgba(17, 17, 17, 0.82);
+}
+
+.create-record-shell__selected-multi-chip :deep(.q-chip__content) {
+  min-width: 0;
+  overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.create-record-shell__selected-multi-chip :deep(.q-chip__icon--remove) {
+  font-size: 12px;
+}
+
+.create-record-shell__selected-multi-empty {
+  color: rgba(17, 17, 17, 0.48);
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  line-height: 1.1;
 }
 
 .create-record-shell__input--verification-default :deep(.q-chip) {
