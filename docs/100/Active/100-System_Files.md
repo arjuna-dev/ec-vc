@@ -163,6 +163,29 @@ If any item regresses from `yes` to `partial`, `unclear`, or `no`, the file shou
 
 This file should not be bypassed when creating or accepting a new file.
 
+## Birth Governance
+
+`System Files` should help govern birth context, not duplicate it.
+
+That means the file-definition flow should prefer to derive:
+
+- creator
+- initial owner
+- steward defaults
+- branch-aware governance
+- first provenance/event links
+
+from:
+
+- the active actor
+- the selected file birth path
+- declared create branches
+- approved birth relationships
+
+The user should not be asked to restate those values manually when the birth path already determines them.
+
+`System Files` should eventually make those birth-governance rules visible and reviewable as part of file-definition truth.
+
 ## Provenance / Events
 
 The system should be able to reconstruct:

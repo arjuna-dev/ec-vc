@@ -193,6 +193,7 @@ The `File Steward` should:
   - `view`
   - `create`
   - `view_and_create`
+- derive birth governance defaults from the birth path when the file, branch, actor, or approved relationship already determines them
 - treat the target direction as two explicit fork families:
   - create forks for birth-path choice
   - view forks for page/tune/rendering choice
@@ -256,6 +257,7 @@ The `File Steward` should stop implementation and surface the gap when:
 - KDB bridge ownership is being invented ad hoc after file birth instead of being declared during bootstrap
 - a new convenience component, mode, or leaf variant is being added where the approved underlying component should be corrected instead
 - a user is being asked to create file structure without UX fork guidance from the file guide
+- a user is being asked to manually restate creator, owner, steward, or other birth-governance fields that the active birth context should already determine
 - access permissions are being inferred from a flat role list when the required access rule depends on `Project x Role`
 - a file view, Add/Edit surface, or file page uses language that does not match the file guide, canonical field meaning, or runtime behavior
 - a file page is rendered through local structural code when an approved shared `bb:*` element should own that structure

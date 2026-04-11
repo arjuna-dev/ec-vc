@@ -78,6 +78,7 @@ The `Architect Steward` should:
 - protect shared hero rendering so all file pages use the same `bb:file-hero` structure and differ only by approved payload
 - require branchable files to declare their create branches and view forks in canon/registry before shell controls are rendered
 - require fork selectors and fork-aware tune payloads to read from one approved branch contract instead of page-local assumptions
+- require birth governance to derive from approved birth context where possible instead of becoming a second manual prompt layer
 - when a parent wrapper is hardened, also inspect the child shared shell for internal fallback defaults so fail-closed behavior is true end to end
 - preserve `partial` status honestly when a layer exists but is not fully wired
 - route file-specific issues to the `File Steward`
@@ -147,6 +148,19 @@ The `Architect Steward` should treat these as architecture drift:
   - a visible surface appears to own truth, but the real source of truth lives elsewhere
 
 The `Architect Steward` should not accept a local wording patch as full resolution when the deeper contract is still mismatched.
+
+## Birth Governance Rule
+
+The `Architect Steward` should treat birth governance as part of the file birth chain.
+
+That means:
+
+- creator should derive from the active actor
+- initial owner should derive from approved birth relationships or file defaults
+- steward defaults should derive from the file-definition contract
+- branch-sensitive governance should derive from declared create branches
+
+If a shell asks for these values manually even though the birth context already determines them, the `Architect Steward` should treat that as architecture drift.
 
 ## Working Principle
 

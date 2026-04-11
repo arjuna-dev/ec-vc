@@ -69,6 +69,29 @@ Before a file is treated as born, the `Architect Steward`, `File Steward`, and `
 
 If any checklist item is unclear, stop and surface the gap before implementation continues.
 
+## Birth Governance Rule
+
+Birth governance should derive from birth context before it becomes manual data entry.
+
+That means the first file-birth flow should prefer to derive:
+
+- creator
+- initial owner
+- steward defaults
+- first branch or fork context
+- initial provenance links
+
+from:
+
+- the active actor
+- the file being created
+- the declared create branch, if one exists
+- approved birth relationships
+
+The system should not ask the user to restate governance fields one by one when the birth path already provides the answer.
+
+Manual editing may still exist later, but birth should begin from derived governance defaults first.
+
 ## Checklist Status Vocabulary
 
 Use these statuses when applying the File Birth Checklist:
