@@ -15,6 +15,66 @@
     </div>
 
     <div v-else class="settings-page">
+      <q-dialog :model-value="ownerSetupRequired" persistent>
+        <q-card class="owner-setup-gate">
+          <q-card-section class="owner-setup-gate__head">
+            <div class="settings-form-card__eyebrow">Owner Setup</div>
+            <div class="owner-setup-gate__title">Complete Owner Login</div>
+            <div class="owner-setup-gate__copy">
+              Add the owner name and email before the workspace can continue. This is the
+              only place where email is required right now.
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section class="owner-setup-gate__body">
+            <div class="row q-col-gutter-md">
+              <div class="col-12">
+                <q-input
+                  v-model="form.Name"
+                  outlined
+                  dense
+                  label="Name *"
+                  :error="showOwnerRequiredErrors && !ownerNameValue"
+                  :disable="loading || saving || !canEditOwnerSettings"
+                  @keyup.enter="saveUserSettings"
+                />
+              </div>
+              <div class="col-12">
+                <q-input
+                  v-model="form.User_PEmail"
+                  outlined
+                  dense
+                  label="Email *"
+                  :error="showOwnerRequiredErrors && !ownerEmailValue"
+                  :disable="loading || saving || !canEditOwnerSettings"
+                  @keyup.enter="saveUserSettings"
+                />
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right" class="owner-setup-gate__actions">
+            <B10Button
+              variant="primary"
+              icon-start="save"
+              label="Save and Continue"
+              :loading="saving"
+              :disable="loading || saving || !canEditOwnerSettings"
+              @click="saveUserSettings"
+            />
+          </q-card-actions>
+
+          <div
+            v-if="showOwnerRequiredErrors"
+            class="owner-setup-gate__required-note"
+          >
+            Input fields to continue
+          </div>
+        </q-card>
+      </q-dialog>
+
       <section class="settings-shell">
         <div
           class="settings-shell__hero"
@@ -761,6 +821,9 @@ async function saveUserSettings() {
       },
     }
     const result = await bridge.value.userSettings.set(payload)
+    canEditOwnerSettings.value = result?.canEditOwnerSettings !== false
+    ownerSetupRequired.value = result?.requiresOwnerSetup === true
+    ownerSetupMessage.value = String(result?.ownerSetupMessage || '').trim()
     form.value = mapUserSettingsToForm(result)
     savedForm.value = { ...form.value }
     ownerSubmitAttempted.value = false
@@ -1139,6 +1202,50 @@ watch(activeOwnerDocumentId, () => {
 }
 
 .settings-form-card__required-note {
+  padding: 0 24px 22px;
+  color: #b42318;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.owner-setup-gate {
+  width: min(520px, 92vw);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.owner-setup-gate__head {
+  display: grid;
+  gap: 8px;
+  padding: 22px 24px 18px;
+}
+
+.owner-setup-gate__title {
+  color: #0f172a;
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-black);
+  line-height: 1;
+}
+
+.owner-setup-gate__copy {
+  color: #475569;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.owner-setup-gate__body {
+  padding: 24px;
+}
+
+.owner-setup-gate__actions {
+  padding: 0 24px 16px;
+}
+
+.owner-setup-gate__required-note {
   padding: 0 24px 22px;
   color: #b42318;
   font-family: var(--font-body);
