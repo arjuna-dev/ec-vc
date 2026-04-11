@@ -4702,6 +4702,8 @@ function isBbGraphLinkToken(tokenRow) {
 }
 
 .test-shell-card__control-row {
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4746,6 +4748,8 @@ function isBbGraphLinkToken(tokenRow) {
 }
 
 .test-shell-card__control-actions {
+  position: relative;
+  z-index: 4;
   display: inline-flex;
   align-items: center;
   gap: 2px;
