@@ -190,6 +190,37 @@ const resolvedAddLabel = computed(() => {
   flex: 0 0 auto;
 }
 
+.record-feed-panel__add :deep(.plus-with-label-button) {
+  min-width: 0;
+  min-height: 30px;
+  height: 30px;
+  padding: 0 9px;
+  color: var(--ds-color-brand-white);
+  background: rgba(17, 17, 17, 1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.record-feed-panel__add :deep(.plus-with-label-button:hover),
+.record-feed-panel__add :deep(.plus-with-label-button:focus-visible) {
+  background: rgba(32, 32, 32, 1);
+}
+
+.record-feed-panel__add :deep(.plus-with-label-button__inner) {
+  gap: 8px;
+}
+
+.record-feed-panel__add :deep(.plus-with-label-button__label) {
+  color: inherit;
+  font-size: calc(var(--ds-font-size-base) * 0.75);
+}
+
+.record-feed-panel__add :deep(.plus-icon-chip) {
+  --plus-icon-chip-size: 16px;
+  --plus-icon-chip-glyph-size: 12px;
+  background: var(--ds-color-brand-white);
+  color: var(--ds-color-brand-black);
+}
+
 .record-feed-panel__state {
   margin-top: 18px;
 }

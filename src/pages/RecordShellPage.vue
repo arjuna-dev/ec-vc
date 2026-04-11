@@ -37,7 +37,7 @@
         @pointermove="onContactHeroPointerMove"
         @pointerleave="onContactHeroPointerLeave"
         @update:feed-tab="activeRecordFeedTab = $event"
-        @toggle-settings-group="toggleExpandedSection"
+        @toggle-settings-group="toggleHeroGroup"
         @toggle-settings-item="setTokenSelected"
         @open-feed-log="openFeedItemLog"
         @request-feed-add="handleRecordFeedAdd"
@@ -442,6 +442,7 @@ const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
 const liveOptionRowsBySource = ref({})
 const expandedSectionKeys = ref([])
+const expandedHeroGroupKeys = ref([])
 const expandedKdbGroupKeys = ref(['first_order', 'knowledge_db', 'other'])
 const expandedSectionSubgroupKeys = ref([])
 const activeSectionKey = ref('')
@@ -512,16 +513,23 @@ const selectedTokenKeys = computed({
 })
 
 const selectedTokenKeySet = computed(() => new Set(selectedTokenKeys.value))
-const generalSectionKeys = computed(() =>
-  level2Sections.value
-    .filter((section) => String(section.label || '').trim().toLowerCase() === 'general')
-    .map((section) => section.key),
+const heroSourceGroups = computed(() =>
+  groupedLevel2Sections.value.filter((group) =>
+    Array.isArray(group.sections) &&
+    group.sections.some((section) => {
+      const label = String(section.label || '').trim().toLowerCase()
+      return !['general', 'kdb', 'system'].includes(label)
+    }),
+  ),
 )
-const generalSelectableTokens = computed(() =>
-  normalizedSelectableTokens.value.filter((token) => generalSectionKeys.value.includes(token.parentKey)),
-)
+const heroSelectableTokens = computed(() => {
+  const allowedSectionKeys = new Set(
+    heroSourceGroups.value.flatMap((group) => (Array.isArray(group.sections) ? group.sections : []).map((section) => section.key)),
+  )
+  return normalizedSelectableTokens.value.filter((token) => allowedSectionKeys.has(token.parentKey))
+})
 const selectedHeroTokens = computed(() =>
-  generalSelectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)),
+  heroSelectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)),
 )
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
 const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
@@ -682,18 +690,18 @@ const dialogInitialValues = computed(() => {
   )
 })
 const dialogInitialFieldMeta = computed(() => ({}))
-const heroSettingsGroups = computed(() => level2Sections.value
-  .filter((section) => generalSectionKeys.value.includes(section.key))
-  .map((section) => ({
-  key: section.key,
-  label: section.label,
-  expanded: isSectionExpanded(section.key),
-  items: getSectionTokens(section.key).map((token) => ({
-    key: token.key,
-    label: token.label,
-    checked: isSelectedToken(token.key),
-  })),
-  })))
+const heroSettingsGroups = computed(() => heroSourceGroups.value.map((group) => ({
+  key: group.value,
+  label: group.title,
+  expanded: isHeroGroupExpanded(group.value),
+  items: (Array.isArray(group.sections) ? group.sections : [])
+    .flatMap((section) => getSectionTokens(section.key))
+    .map((token) => ({
+      key: token.key,
+      label: token.label,
+      checked: isSelectedToken(token.key),
+    })),
+})).filter((group) => group.items.length))
 
 watch(level2Sections, (sections) => {
   if (!sections.length) {
@@ -707,6 +715,14 @@ watch(level2Sections, (sections) => {
   expandedSectionKeys.value = sections.map((section) => section.key)
 }, { immediate: true })
 
+watch(heroSourceGroups, (groups) => {
+  const nextKeys = groups.map((group) => group.value)
+  expandedHeroGroupKeys.value = nextKeys.filter((key) => expandedHeroGroupKeys.value.includes(key))
+  if (!expandedHeroGroupKeys.value.length && nextKeys.length) {
+    expandedHeroGroupKeys.value = [...nextKeys]
+  }
+}, { immediate: true })
+
 watch(activeSectionTokenGroups, (groups) => {
   const nextKeys = groups.map((group) => group.key)
   expandedSectionSubgroupKeys.value = nextKeys.filter((key) => expandedSectionSubgroupKeys.value.includes(key))
@@ -717,10 +733,10 @@ watch(activeSectionTokenGroups, (groups) => {
 
 watch(activeSourceKey, async () => { await ensureLiveOptionsLoaded() }, { immediate: true })
 watch(
-  [activeSourceKey, generalSelectableTokens],
+  [activeSourceKey, heroSelectableTokens],
   () => {
     const sourceKey = activeSourceKey.value
-    const allowedKeys = new Set(generalSelectableTokens.value.map((token) => token.key))
+    const allowedKeys = new Set(heroSelectableTokens.value.map((token) => token.key))
     const existing = Array.isArray(heroFieldKeysBySource.value[sourceKey]) ? heroFieldKeysBySource.value[sourceKey] : []
     const normalized = existing.filter((key) => allowedKeys.has(key))
 
@@ -736,7 +752,7 @@ watch(
 
     heroFieldKeysBySource.value = {
       ...heroFieldKeysBySource.value,
-      [sourceKey]: generalSelectableTokens.value.slice(0, 4).map((token) => token.key),
+      [sourceKey]: heroSelectableTokens.value.slice(0, 4).map((token) => token.key),
     }
   },
   { immediate: true },
@@ -762,13 +778,13 @@ onBeforeUnmount(() => {
   }
 })
 
-function isSectionExpanded(sectionKey) { return expandedSectionKeys.value.includes(sectionKey) }
+function isHeroGroupExpanded(groupKey) { return expandedHeroGroupKeys.value.includes(groupKey) }
 function isKdbGroupExpanded(groupKey) { return expandedKdbGroupKeys.value.includes(groupKey) }
 function isSectionSubgroupExpanded(groupKey) { return expandedSectionSubgroupKeys.value.includes(groupKey) }
-function toggleExpandedSection(sectionKey) {
-  expandedSectionKeys.value = isSectionExpanded(sectionKey)
-    ? expandedSectionKeys.value.filter((key) => key !== sectionKey)
-    : [...expandedSectionKeys.value, sectionKey]
+function toggleHeroGroup(groupKey) {
+  expandedHeroGroupKeys.value = isHeroGroupExpanded(groupKey)
+    ? expandedHeroGroupKeys.value.filter((key) => key !== groupKey)
+    : [...expandedHeroGroupKeys.value, groupKey]
 }
 function toggleKdbGroup(groupKey) {
   expandedKdbGroupKeys.value = isKdbGroupExpanded(groupKey)

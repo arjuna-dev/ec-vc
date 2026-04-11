@@ -521,6 +521,7 @@
           :feed-tabs="recordFeedTabOptions"
           :feed-groups="recordFeedGroupOptions"
           :feed-items="recordFeedItems"
+          @update:feed-tab="activeRecordFeedTabPreview = $event"
         />
       </template>
 
