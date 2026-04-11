@@ -418,7 +418,7 @@ Examples of current `Knowledge DB` files:
 - `Stages File` -> `Stage Record`
 - `Locations File` -> `Location Record`
 - `Markets File` -> `Market Record`
-- `Round Securities File` -> `Round Security Record`
+- `Securities File` -> `Security Record`
 - `Ingestion File` -> `Ingestion Record`
 
 Current frontend direction:

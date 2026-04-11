@@ -5,12 +5,12 @@ const db = new Database(':memory:') // Use in-memory for testing
 db.pragma('foreign_keys = ON')
 
 async function runTests() {
-  console.log('🚀 Starting EC10.vc Schema Validation...\n')
+  console.log('ðŸš€ Starting EC10.vc Schema Validation...\n')
 
   try {
     // 1. Initialize Schema
     db.exec(SCHEMA_V1_SQL)
-    console.log('✅ Schema Initialization: SUCCESS')
+    console.log('âœ… Schema Initialization: SUCCESS')
 
     // 2. Test Basic Insertion (Company, Round, Fund)
     const companyId = 123
@@ -34,7 +34,7 @@ async function runTests() {
     db.prepare(
       `
       INSERT INTO Round_Overview (
-        round_id, sponsor_company_id, Round_Raising_Status, Round_Security_Type
+        round_id, sponsor_company_id, Round_Raising_Status, Security_Type
       ) VALUES (?, ?, 'Raising', 'Equity_Common')
     `,
     ).run(roundId, companyId)
@@ -54,7 +54,7 @@ async function runTests() {
     `,
     ).run(fundId)
 
-    console.log('✅ Basic Insertions & Foreign Keys: SUCCESS')
+    console.log('âœ… Basic Insertions & Foreign Keys: SUCCESS')
 
     // 3. Test Timestamp Triggers
     const originalCompany = db
@@ -70,13 +70,13 @@ async function runTests() {
       .get(companyId)
 
     if (updatedCompany.updated_at !== originalCompany.updated_at) {
-      console.log('✅ Auto-Timestamp Triggers: SUCCESS')
+      console.log('âœ… Auto-Timestamp Triggers: SUCCESS')
     } else {
       throw new Error('Timestamp Trigger failed to update updated_at')
     }
 
     // 4. Test Pipeline Integrity Triggers (Negative Test)
-    console.log('\n🧪 Testing Integrity Triggers (Expect Failures)...')
+    console.log('\nðŸ§ª Testing Integrity Triggers (Expect Failures)...')
 
     try {
       // Attempt to link round to a stage that exists but in the WRONG pipeline
@@ -88,7 +88,7 @@ async function runTests() {
       ).run(roundId)
       throw new Error('Integrity Check Failed: Allowed invalid pipeline_id')
     } catch {
-      console.log('✅ Pipeline/Stage Match Trigger: SUCCESS (Blocked invalid entry)')
+      console.log('âœ… Pipeline/Stage Match Trigger: SUCCESS (Blocked invalid entry)')
     }
 
     try {
@@ -100,7 +100,7 @@ async function runTests() {
       ).run(fundId)
       throw new Error('Integrity Check Failed: Allowed invalid fund pipeline_id')
     } catch {
-      console.log('✅ Fund Pipeline/Stage Match Trigger: SUCCESS (Blocked invalid entry)')
+      console.log('âœ… Fund Pipeline/Stage Match Trigger: SUCCESS (Blocked invalid entry)')
     }
 
     // 5. Test Artifact insertion linked directly to a round/fund
@@ -128,11 +128,11 @@ async function runTests() {
       VALUES ('art_2', '/path/test-fund.pdf', NULL, NULL)
       `,
     ).run()
-    console.log('✅ Artifact insertion by opportunity: SUCCESS')
+    console.log('âœ… Artifact insertion by opportunity: SUCCESS')
 
-    console.log('\n🎉 ALL TESTS PASSED: Schema is ready for production development.')
+    console.log('\nðŸŽ‰ ALL TESTS PASSED: Schema is ready for production development.')
   } catch (error) {
-    console.error('\n❌ TEST FAILED:')
+    console.error('\nâŒ TEST FAILED:')
     console.error(error.message)
     process.exit(1)
   } finally {

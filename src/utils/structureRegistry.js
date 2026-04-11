@@ -517,8 +517,6 @@ export function getFilePageRegistryEntryByEntityReference(entityName) {
   if (!normalizedEntityName) return null
 
   const legacyEntityAliases = {
-    Financial_Industries: 'markets',
-    Round_Securities: 'securities',
     Intake: 'intake',
     Roles: 'user-roles',
   }

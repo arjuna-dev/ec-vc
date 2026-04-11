@@ -296,8 +296,8 @@ CREATE TABLE IF NOT EXISTS Round_Overview (
   Round_Raising_Status TEXT CHECK (
     Round_Raising_Status IS NULL OR Round_Raising_Status IN ('Raising', 'Raised', 'Abandoned')
   ),
-  Round_Security_Type TEXT CHECK (
-    Round_Security_Type IS NULL OR Round_Security_Type IN (
+  Security_Type TEXT CHECK (
+    Security_Type IS NULL OR Security_Type IN (
       'Debt_Secured',
       'Debt_Unsecured',
       'Debt_Structured',

@@ -1422,7 +1422,7 @@ That means heuristics may:
 - front-load likely options
 - rank likely targets
 - highlight likely next actions
-- prioritize what is in the userÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢s line of sight
+- prioritize what is in the userÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢s line of sight
 - use board relevance and point weighting to rank options
 
 But heuristics must not:
@@ -1550,7 +1550,7 @@ Current approved examples:
 
 - `Company_Pax_Known`
   - direct user input
-- `Round_Security_Type`
+- `Security_Type`
   - dedicated evolving security-type list
   - current values: `Common`, `Preferred`
 - `Fund_Target_Industries`
@@ -1741,7 +1741,7 @@ Relationship inheritance rule:
 Examples:
 
 - `Fund_Target_Industries` should read from `Markets`
-- `Round_Security_Type` should read from `Securities`
+- `Security_Type` should read from `Securities`
 - `Fund_Target_Stages` should read from `Stages`
 
 ### Ingestion Contract

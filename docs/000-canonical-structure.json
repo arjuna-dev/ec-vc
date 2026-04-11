@@ -389,7 +389,7 @@
             },
             {
               "address": "1.2.12",
-              "token_name": "Artifact_Financial_Industry",
+              "token_name": "Artifact_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -397,7 +397,7 @@
             },
             {
               "address": "1.2.13",
-              "token_name": "Artifact_Round_Security",
+              "token_name": "Artifact_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -578,7 +578,7 @@
             },
             {
               "address": "2.2.12",
-              "token_name": "User_Financial_Industry",
+              "token_name": "User_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -586,7 +586,7 @@
             },
             {
               "address": "2.2.13",
-              "token_name": "User_Round_Security",
+              "token_name": "User_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -831,7 +831,7 @@
             },
             {
               "address": "3.4.12",
-              "token_name": "Contact_Financial_Industry",
+              "token_name": "Contact_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -839,7 +839,7 @@
             },
             {
               "address": "3.4.13",
-              "token_name": "Contact_Round_Security",
+              "token_name": "Contact_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -1730,7 +1730,7 @@
             },
             {
               "address": "17.2.12",
-              "token_name": "Opportunity_Financial_Industry",
+              "token_name": "Opportunity_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -1738,7 +1738,7 @@
             },
             {
               "address": "17.2.13",
-              "token_name": "Opportunity_Round_Security",
+              "token_name": "Opportunity_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -1983,7 +1983,7 @@
             },
             {
               "address": "5.2.12",
-              "token_name": "Fund_Financial_Industry",
+              "token_name": "Fund_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -1991,7 +1991,7 @@
             },
             {
               "address": "5.2.13",
-              "token_name": "Fund_Round_Security",
+              "token_name": "Fund_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -2317,7 +2317,7 @@
             },
             {
               "address": "6.2.12",
-              "token_name": "Round_Financial_Industry",
+              "token_name": "Round_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -2325,7 +2325,7 @@
             },
             {
               "address": "6.2.13",
-              "token_name": "Round_Round_Security",
+              "token_name": "Round_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -2384,7 +2384,7 @@
             },
             {
               "address": "6.4.3",
-              "token_name": "Round_Security_Type",
+              "token_name": "Security_Type",
               "token_type": "select_single",
               "option_source": "live_entity",
               "option_entity": "Securities"
@@ -2615,7 +2615,7 @@
             },
             {
               "address": "7.2.12",
-              "token_name": "Project_Financial_Industry",
+              "token_name": "Project_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -2623,7 +2623,7 @@
             },
             {
               "address": "7.2.13",
-              "token_name": "Project_Round_Security",
+              "token_name": "Project_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -2933,7 +2933,7 @@
             },
             {
               "address": "8.2.12",
-              "token_name": "Task_Financial_Industry",
+              "token_name": "Task_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -2941,7 +2941,7 @@
             },
             {
               "address": "8.2.13",
-              "token_name": "Task_Round_Security",
+              "token_name": "Task_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -3197,7 +3197,7 @@
             },
             {
               "address": "9.2.12",
-              "token_name": "Note_Financial_Industry",
+              "token_name": "Note_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -3205,7 +3205,7 @@
             },
             {
               "address": "9.2.13",
-              "token_name": "Note_Round_Security",
+              "token_name": "Note_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -3806,11 +3806,11 @@
     {
       "level_1": "18",
       "entity": "Markets",
-      "entity_label": "Financial Industry",
+      "entity_label": "Market",
       "entity_address": "18.0.0",
       "structure_token": {
         "address": "18.0.0",
-        "token_name": "Financial_Industry",
+        "token_name": "Market",
         "token_type": "structure"
       },
       "subsections": [
@@ -3818,11 +3818,11 @@
           "level_2": "1",
           "subsection": "System",
           "subsection_address": "18.1.0",
-          "structure_token": "Financial_Industry_System",
+          "structure_token": "Market_System",
           "tokens": [
             {
               "address": "18.1.1",
-              "token_name": "Financial_Industry_ID",
+              "token_name": "Market_ID",
               "token_type": "id",
               "db_field_aliases": [
                 "id"
@@ -3834,11 +3834,11 @@
           "level_2": "2",
           "subsection": "KDB",
           "subsection_address": "18.2.0",
-          "structure_token": "Financial_Industry_KDB",
+          "structure_token": "Market_KDB",
           "tokens": [
             {
               "address": "18.2.1",
-              "token_name": "Financial_Industry_User",
+              "token_name": "Market_User",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Users",
@@ -3846,7 +3846,7 @@
             },
             {
               "address": "18.2.2",
-              "token_name": "Financial_Industry_Artifact",
+              "token_name": "Market_Artifact",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Artifacts",
@@ -3854,7 +3854,7 @@
             },
             {
               "address": "18.2.3",
-              "token_name": "Financial_Industry_Contact",
+              "token_name": "Market_Contact",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Contacts",
@@ -3862,7 +3862,7 @@
             },
             {
               "address": "18.2.4",
-              "token_name": "Financial_Industry_Company",
+              "token_name": "Market_Company",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Companies",
@@ -3870,7 +3870,7 @@
             },
             {
               "address": "18.2.6",
-              "token_name": "Financial_Industry_Fund",
+              "token_name": "Market_Fund",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Funds",
@@ -3878,7 +3878,7 @@
             },
             {
               "address": "18.2.7",
-              "token_name": "Financial_Industry_Round",
+              "token_name": "Market_Round",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Rounds",
@@ -3886,7 +3886,7 @@
             },
             {
               "address": "18.2.8",
-              "token_name": "Financial_Industry_Project",
+              "token_name": "Market_Project",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Projects",
@@ -3894,7 +3894,7 @@
             },
             {
               "address": "18.2.9",
-              "token_name": "Financial_Industry_Task",
+              "token_name": "Market_Task",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Tasks",
@@ -3902,7 +3902,7 @@
             },
             {
               "address": "18.2.10",
-              "token_name": "Financial_Industry_Note",
+              "token_name": "Market_Note",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Notes",
@@ -3910,7 +3910,7 @@
             },
             {
               "address": "18.2.11",
-              "token_name": "Financial_Industry_Role",
+              "token_name": "Market_Role",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Roles",
@@ -3918,7 +3918,7 @@
             },
             {
               "address": "18.2.12",
-              "token_name": "Financial_Industry_Financial_Industry",
+              "token_name": "Market_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -3926,7 +3926,7 @@
             },
             {
               "address": "18.2.13",
-              "token_name": "Financial_Industry_Round_Security",
+              "token_name": "Market_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -3934,7 +3934,7 @@
             },
             {
               "address": "18.2.14",
-              "token_name": "Financial_Industry_Intake",
+              "token_name": "Market_Intake",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Intake",
@@ -3946,22 +3946,22 @@
           "level_2": "3",
           "subsection": "General",
           "subsection_address": "18.3.0",
-          "structure_token": "Financial_Industry_General",
+          "structure_token": "Market_General",
           "tokens": [
             {
               "address": "18.3.1",
-              "token_name": "Financial_Industry_Name",
+              "token_name": "Market_Name",
               "token_type": "text",
               "db_field_aliases": [
-                "Industry_Name"
+                "Market_Name"
               ]
             },
             {
               "address": "18.3.2",
-              "token_name": "Financial_Industry_Summary",
+              "token_name": "Market_Summary",
               "token_type": "text",
               "db_field_aliases": [
-                "Industry_Summary"
+                "Market_Summary"
               ]
             }
           ]
@@ -3971,11 +3971,11 @@
     {
       "level_1": "19",
       "entity": "Securities",
-      "entity_label": "Round Security",
+      "entity_label": "Security",
       "entity_address": "19.0.0",
       "structure_token": {
         "address": "19.0.0",
-        "token_name": "Round_Security",
+        "token_name": "Security",
         "token_type": "structure"
       },
       "subsections": [
@@ -3983,11 +3983,11 @@
           "level_2": "1",
           "subsection": "System",
           "subsection_address": "19.1.0",
-          "structure_token": "Round_Security_System",
+          "structure_token": "Security_System",
           "tokens": [
             {
               "address": "19.1.1",
-              "token_name": "Round_Security_ID",
+              "token_name": "Security_ID",
               "token_type": "id",
               "db_field_aliases": [
                 "id"
@@ -3999,11 +3999,11 @@
           "level_2": "2",
           "subsection": "KDB",
           "subsection_address": "19.2.0",
-          "structure_token": "Round_Security_KDB",
+          "structure_token": "Security_KDB",
           "tokens": [
             {
               "address": "19.2.1",
-              "token_name": "Round_Security_User",
+              "token_name": "Security_User",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Users",
@@ -4011,7 +4011,7 @@
             },
             {
               "address": "19.2.2",
-              "token_name": "Round_Security_Artifact",
+              "token_name": "Security_Artifact",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Artifacts",
@@ -4019,7 +4019,7 @@
             },
             {
               "address": "19.2.3",
-              "token_name": "Round_Security_Contact",
+              "token_name": "Security_Contact",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Contacts",
@@ -4027,7 +4027,7 @@
             },
             {
               "address": "19.2.4",
-              "token_name": "Round_Security_Company",
+              "token_name": "Security_Company",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Companies",
@@ -4035,7 +4035,7 @@
             },
             {
               "address": "19.2.6",
-              "token_name": "Round_Security_Fund",
+              "token_name": "Security_Fund",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Funds",
@@ -4043,7 +4043,7 @@
             },
             {
               "address": "19.2.7",
-              "token_name": "Round_Security_Round",
+              "token_name": "Security_Round",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Rounds",
@@ -4051,7 +4051,7 @@
             },
             {
               "address": "19.2.8",
-              "token_name": "Round_Security_Project",
+              "token_name": "Security_Project",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Projects",
@@ -4059,7 +4059,7 @@
             },
             {
               "address": "19.2.9",
-              "token_name": "Round_Security_Task",
+              "token_name": "Security_Task",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Tasks",
@@ -4067,7 +4067,7 @@
             },
             {
               "address": "19.2.10",
-              "token_name": "Round_Security_Note",
+              "token_name": "Security_Note",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Notes",
@@ -4075,7 +4075,7 @@
             },
             {
               "address": "19.2.11",
-              "token_name": "Round_Security_Role",
+              "token_name": "Security_Role",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Roles",
@@ -4083,7 +4083,7 @@
             },
             {
               "address": "19.2.12",
-              "token_name": "Round_Security_Financial_Industry",
+              "token_name": "Security_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -4091,7 +4091,7 @@
             },
             {
               "address": "19.2.13",
-              "token_name": "Round_Security_Round_Security",
+              "token_name": "Security_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -4099,7 +4099,7 @@
             },
             {
               "address": "19.2.14",
-              "token_name": "Round_Security_Intake",
+              "token_name": "Security_Intake",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Intake",
@@ -4111,16 +4111,16 @@
           "level_2": "3",
           "subsection": "General",
           "subsection_address": "19.3.0",
-          "structure_token": "Round_Security_General",
+          "structure_token": "Security_General",
           "tokens": [
             {
               "address": "19.3.1",
-              "token_name": "Round_Security_Name",
+              "token_name": "Security_Name",
               "token_type": "text"
             },
             {
               "address": "19.3.2",
-              "token_name": "Round_Security_Summary",
+              "token_name": "Security_Summary",
               "token_type": "text"
             }
           ]
@@ -4259,7 +4259,7 @@
             },
             {
               "address": "20.2.12",
-              "token_name": "Intake_Financial_Industry",
+              "token_name": "Intake_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -4267,7 +4267,7 @@
             },
             {
               "address": "20.2.13",
-              "token_name": "Intake_Round_Security",
+              "token_name": "Intake_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
@@ -4418,7 +4418,7 @@
             },
             {
               "address": "21.2.12",
-              "token_name": "Role_Financial_Industry",
+              "token_name": "Role_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -4426,7 +4426,7 @@
             },
             {
               "address": "21.2.13",
-              "token_name": "Role_Round_Security",
+              "token_name": "Role_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",

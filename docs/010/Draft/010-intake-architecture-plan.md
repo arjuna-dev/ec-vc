@@ -809,7 +809,7 @@ For each entity, prioritize these first:
 
 - `Company`: `Company_Name`, `Website`, `Company_Type`
 - `Contact`: `Name`, `Professional_Email`, `Personal_Email`
-- `Round`: `Round_Name`, `Round_Security_Type`, `Round_Target_Size`
+- `Round`: `Round_Name`, `Security_Type`, `Round_Target_Size`
 - `Fund`: `Fund_Name`, `Fund_Target_Size`, `Fund_Manager`
 - `Opportunity`: identity and stage-defining fields first
 

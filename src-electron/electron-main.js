@@ -996,7 +996,7 @@ function listOpportunities() {
         NULL AS Next_Close_Date,
         ro.Round_Close_Date AS Final_Close_Date,
         NULL AS Round_Stage,
-        ro.Round_Security_Type AS Type_of_Security,
+        ro.Security_Type AS Type_of_Security,
         ro.Round_Target_Size AS Round_Amount,
         re.Round_Pre_Valuation AS Pre_Valuation,
         re.Round_Post_Valuation AS Post_Valuation,
@@ -1080,7 +1080,7 @@ function listRounds() {
       r.Round_Name,
       ro.sponsor_company_id,
       ro.Round_Raising_Status,
-      ro.Round_Security_Type,
+      ro.Security_Type,
       ro.Round_Target_Size,
       ro.Round_Commited_Amounts,
       ro.Round_Close_Date
@@ -7118,7 +7118,7 @@ function createRound(payload = {}) {
       .prepare(
         `
         INSERT INTO Round_Overview (
-          round_id, sponsor_company_id, Round_Raising_Status, Round_Security_Type,
+          round_id, sponsor_company_id, Round_Raising_Status, Security_Type,
           Round_Target_Size, Round_Commited_Amounts, Round_Close_Date, Round_Summary,
           created_at, updated_at
         )

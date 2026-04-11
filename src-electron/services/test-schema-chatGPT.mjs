@@ -19,10 +19,10 @@ const schemaModulePath = process.argv[2] ?? './schema.mjs'
 const providedDbPath = process.argv[3] ?? null
 
 function logOk(name) {
-  console.log(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ ${name}`)
+  console.log(`ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ ${name}`)
 }
 function logFail(name, err) {
-  console.error(`ÃƒÂ¢Ã‚ÂÃ…â€™ ${name}`)
+  console.error(`ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€¦Ã¢â‚¬â„¢ ${name}`)
   console.error(err?.stack ?? err)
 }
 
@@ -387,7 +387,7 @@ await runTest('Check-in pattern constraints enforce allowed values', async () =>
   mustThrow(
     () =>
       db.prepare(
-        `INSERT INTO Round_Overview (round_id, Round_Raising_Status, Round_Security_Type) VALUES (?,?,?)`,
+        `INSERT INTO Round_Overview (round_id, Round_Raising_Status, Security_Type) VALUES (?,?,?)`,
       ).run('r_check', 'NotAStatus', 'Equity_Common'),
     'CHECK constraint failed',
   )
@@ -395,7 +395,7 @@ await runTest('Check-in pattern constraints enforce allowed values', async () =>
   mustThrow(
     () =>
       db.prepare(
-        `INSERT INTO Round_Overview (round_id, Round_Raising_Status, Round_Security_Type) VALUES (?,?,?)`,
+        `INSERT INTO Round_Overview (round_id, Round_Raising_Status, Security_Type) VALUES (?,?,?)`,
       ).run('r_check', 'Raised', 'NotASecurityType'),
     'CHECK constraint failed',
   )
@@ -483,14 +483,14 @@ await runTest('Round overview FK to Companies enforced + RESTRICT delete works',
   db.prepare(`INSERT OR IGNORE INTO Companies (id, Company_Name) VALUES (?,?)`).run(3, 'FKCo')
   db.prepare(`INSERT INTO Rounds (id, Round_Name) VALUES (?,?)`).run('r1', 'Round 1')
   db.prepare(
-    `INSERT INTO Round_Overview (round_id, sponsor_company_id, Round_Raising_Status, Round_Security_Type) VALUES (?,?,?,?)`,
+    `INSERT INTO Round_Overview (round_id, sponsor_company_id, Round_Raising_Status, Security_Type) VALUES (?,?,?,?)`,
   ).run('r1', 3, 'Raising', 'Equity_Common')
 
   mustThrow(
     () =>
       db
         .prepare(
-          `INSERT INTO Round_Overview (round_id, sponsor_company_id, Round_Raising_Status, Round_Security_Type) VALUES (?,?,?,?)`,
+          `INSERT INTO Round_Overview (round_id, sponsor_company_id, Round_Raising_Status, Security_Type) VALUES (?,?,?,?)`,
         )
         .run('r_bad', 9999, 'Raising', 'Equity_Common'),
     'FOREIGN KEY',
