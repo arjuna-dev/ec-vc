@@ -45,9 +45,7 @@ function resolveValidShellSection(value, entityName = '') {
   if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized)) return normalized
 
   const derivedSourceKey = getFilePageRegistryEntryByEntityReference(String(entityName || '').trim())?.key || ''
-  if (derivedSourceKey) return derivedSourceKey
-
-  return 'file-system'
+  return derivedSourceKey
 }
 
 function updateShellSelector(nextValue) {
