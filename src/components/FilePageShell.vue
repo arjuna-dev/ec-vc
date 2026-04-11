@@ -1055,7 +1055,9 @@ const selectedCardItemTokens = computed(() =>
     .map((tokenKey) => availableCardItemTokens.value.find((token) => token.key === tokenKey))
     .filter(Boolean),
 )
-function getRequiredCreateTokenNamesForSource() {
+function getRequiredCreateTokenNamesForSource(sourceKey = '') {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  if (normalizedSourceKey === 'file-system') return ['File_Source_Key']
   return []
 }
 
@@ -3176,26 +3178,7 @@ function buildCreatePayload(values = {}) {
     payloadEntries.push([fieldName, normalizedValue])
   })
 
-  const payload = Object.fromEntries(payloadEntries)
-  if (activeSourceKey.value === 'file-system') {
-    const derivedSourceKey = deriveFileSourceKeyFromPayload(payload)
-    if (derivedSourceKey && !String(payload.File_Source_Key || '').trim()) {
-      payload.File_Source_Key = derivedSourceKey
-    }
-  }
-  return payload
-}
-
-function deriveFileSourceKeyFromPayload(payload = {}) {
-  const explicit = String(payload?.File_Source_Key || payload?.sourceKey || '').trim().toLowerCase()
-  if (explicit) return explicit
-  const name = String(payload?.File_Name || payload?.Name || payload?.title || '').trim()
-  if (!name) return ''
-  return name
-    .toLowerCase()
-    .replace(/['’]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+  return Object.fromEntries(payloadEntries)
 }
 
 function missingRequiredCreateTokens(values = {}) {

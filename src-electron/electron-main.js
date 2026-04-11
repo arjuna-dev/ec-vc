@@ -1644,25 +1644,6 @@ function getFileRegistryEntryBySourceKey(sourceKey) {
   return FILE_PAGE_REGISTRY.find((entry) => String(entry?.key || '').trim() === normalizedSourceKey) || null
 }
 
-function deriveFileSourceKeyFromPayload(payload = {}) {
-  const explicit =
-    normalizeNullableString(payload?.File_Source_Key) ||
-    normalizeNullableString(payload?.sourceKey)
-  if (explicit) return explicit.toLowerCase()
-
-  const name =
-    normalizeNullableString(payload?.File_Name) ||
-    normalizeNullableString(payload?.Name) ||
-    normalizeNullableString(payload?.title)
-  if (!name) return ''
-
-  return name
-    .toLowerCase()
-    .replace(/['’]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
 function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
   const normalizedSourceKey = String(sourceKey || '').trim()
   return {
@@ -2192,7 +2173,7 @@ function listFiles() {
 function createFile(payload = {}) {
   const database = initDb()
   ensureDefaultFiles(database)
-  const sourceKey = deriveFileSourceKeyFromPayload(payload)
+  const sourceKey = normalizeNullableString(payload?.File_Source_Key) || normalizeNullableString(payload?.sourceKey)
   if (!sourceKey) throw new Error('File source key is required')
 
   const registryEntry = getFileRegistryEntryBySourceKey(sourceKey)
