@@ -1107,6 +1107,8 @@ const selectedCardItemTokens = computed(() =>
     .filter(Boolean),
 )
 function getRequiredCreateTokenNamesForSource() {
+  const normalizedSourceKey = String(activeSourceKey.value || '').trim().toLowerCase()
+  if (normalizedSourceKey === 'users') return ['User_Email']
   return []
 }
 
@@ -3079,7 +3081,7 @@ async function openAddRelationShell(row) {
   createDialogOpen.value = true
 }
 
-async function submitCreateRecordShell({ values, verification } = {}) {
+async function submitCreateRecordShell({ values, verification, artifacts } = {}) {
   clearCreateDialogAutosaveTimer()
   const isEditMode = createDialogMode.value === 'edit'
   if (!isEditMode) {
@@ -3106,6 +3108,22 @@ async function submitCreateRecordShell({ values, verification } = {}) {
   if (!Object.keys(payload).length) {
     $q.notify({ type: 'negative', message: 'Add at least one field before creating the record.' })
     return
+  }
+  if (!isEditMode && activeSourceKey.value === 'artifacts') {
+    const stagedArtifactPath = Array.isArray(artifacts?.stagedFiles)
+      ? String(
+        artifacts.stagedFiles.find((artifact) => String(artifact?.path || artifact?.fs_path || '').trim())?.path
+          || artifacts.stagedFiles.find((artifact) => String(artifact?.path || artifact?.fs_path || '').trim())?.fs_path
+          || '',
+      ).trim()
+      : ''
+    if (!String(payload.fs_path || '').trim() && !String(payload.path || '').trim() && stagedArtifactPath) {
+      payload.path = stagedArtifactPath
+    }
+    if (!String(payload.fs_path || '').trim() && !String(payload.path || '').trim()) {
+      $q.notify({ type: 'negative', message: 'Add a file in Resources before creating an artifact.' })
+      return
+    }
   }
 
   createDialogLoading.value = true
@@ -3505,7 +3523,6 @@ function buildCreatePayload(values = {}) {
 
   allTokens.forEach((token) => {
     if (isAutomaticCreatorToken(token)) return
-    if (isBranchSelectorToken(token)) return
     const rawValue = values?.[token.key]
     const normalizedValue = normalizeCreateFieldValue(token, rawValue)
     if (normalizedValue == null) return
@@ -3515,6 +3532,17 @@ function buildCreatePayload(values = {}) {
   })
 
   const payload = Object.fromEntries(payloadEntries)
+  const activeBranchEntry = activeCreateBranchEntry.value
+  if (activeBranchEntry) {
+    const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
+    const branchToken = branchTokenName
+      ? allTokens.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
+      : null
+    const branchFieldName = branchToken ? getCanonicalTokenWriteFieldName(branchToken) : ''
+    if (branchFieldName && !normalizeCreateFieldValue(branchToken, payload[branchFieldName])) {
+      payload[branchFieldName] = resolveCreateDialogOptionValue(branchToken, activeBranchEntry.value)
+    }
+  }
   if (activeSourceKey.value === 'file-system') {
     const explicitSourceKey = String(payload.File_Source_Key || '').trim()
     if (!explicitSourceKey) {

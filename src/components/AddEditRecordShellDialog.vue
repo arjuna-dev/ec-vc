@@ -1168,6 +1168,8 @@ function handleTextFieldEnter(token, tokenKey, event) {
   event?.stopPropagation?.()
   event?.preventDefault?.()
   commitStagedField(tokenKey)
+  if (props.loading || props.submitDisabled) return
+  submit()
 }
 
 function buildCommittedFormValues() {
