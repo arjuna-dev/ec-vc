@@ -377,7 +377,7 @@ CREATE TABLE IF NOT EXISTS InvestmentSchedule (
 CREATE TABLE IF NOT EXISTS Users (
   id TEXT PRIMARY KEY,
   User_Name TEXT NOT NULL,
-  User_PEmail TEXT NOT NULL UNIQUE,
+  User_PEmail TEXT UNIQUE,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

@@ -473,9 +473,13 @@
                           <q-select
                             v-if="fieldEntry.token.tokenType === 'select_multi'"
                             :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
+                            :input-value="getSelectDraftValue(fieldEntry.token.key)"
                             dense
                             outlined
                             multiple
+                            use-input
+                            input-debounce="0"
+                            new-value-mode="add-unique"
                             emit-value
                             map-options
                             :options="fieldEntry.token.inputOptions || []"
@@ -487,13 +491,32 @@
                               fieldVerificationClass(fieldEntry.token),
                             ]"
                             @update:model-value="updateField(fieldEntry.token.key, $event)"
-                          />
+                            @input-value="setSelectDraftValue(fieldEntry.token.key, $event)"
+                            @new-value="(value, done) => allowTypedSelectEntry(fieldEntry.token) ? commitSelectInputValue(fieldEntry.token, value, done) : done?.(null, 'cancel')"
+                          >
+                            <template #append>
+                              <q-btn
+                                v-if="hasPendingNewSelectValue(fieldEntry.token)"
+                                flat
+                                dense
+                                round
+                                size="sm"
+                                :icon="isInlineCreatingSelect(fieldEntry.token.key) ? 'hourglass_top' : 'add'"
+                                :disable="loading || isFieldLocked(fieldEntry.token) || isInlineCreatingSelect(fieldEntry.token.key)"
+                                :aria-label="`Add ${getSelectDraftValue(fieldEntry.token.key)}`"
+                                @click.stop.prevent="void commitSelectInputValue(fieldEntry.token, getSelectDraftValue(fieldEntry.token.key))"
+                              />
+                            </template>
+                          </q-select>
 
                           <q-select
                             v-else-if="fieldEntry.token.tokenType === 'select_single'"
                             :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
+                            :input-value="getSelectDraftValue(fieldEntry.token.key)"
                             dense
                             outlined
+                            use-input
+                            input-debounce="0"
                             emit-value
                             map-options
                             :options="fieldEntry.token.inputOptions || []"
@@ -501,7 +524,23 @@
                             class="create-record-shell__input"
                             :class="fieldVerificationClass(fieldEntry.token)"
                             @update:model-value="updateField(fieldEntry.token.key, $event)"
-                          />
+                            @input-value="setSelectDraftValue(fieldEntry.token.key, $event)"
+                            @new-value="(value, done) => allowTypedSelectEntry(fieldEntry.token) ? commitSelectInputValue(fieldEntry.token, value, done) : done?.(null, 'cancel')"
+                          >
+                            <template #append>
+                              <q-btn
+                                v-if="hasPendingNewSelectValue(fieldEntry.token)"
+                                flat
+                                dense
+                                round
+                                size="sm"
+                                :icon="isInlineCreatingSelect(fieldEntry.token.key) ? 'hourglass_top' : 'add'"
+                                :disable="loading || isFieldLocked(fieldEntry.token) || isInlineCreatingSelect(fieldEntry.token.key)"
+                                :aria-label="`Add ${getSelectDraftValue(fieldEntry.token.key)}`"
+                                @click.stop.prevent="void commitSelectInputValue(fieldEntry.token, getSelectDraftValue(fieldEntry.token.key))"
+                              />
+                            </template>
+                          </q-select>
 
                           <q-input
                             v-else-if="!isSummaryField(fieldEntry.token)"
@@ -640,9 +679,13 @@
                           <q-select
                             v-if="fieldEntry.token.tokenType === 'select_multi'"
                             :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
+                            :input-value="getSelectDraftValue(fieldEntry.token.key)"
                             dense
                             outlined
                             multiple
+                            use-input
+                            input-debounce="0"
+                            new-value-mode="add-unique"
                             emit-value
                             map-options
                             :options="fieldEntry.token.inputOptions || []"
@@ -654,13 +697,32 @@
                               fieldVerificationClass(fieldEntry.token),
                             ]"
                             @update:model-value="updateField(fieldEntry.token.key, $event)"
-                          />
+                            @input-value="setSelectDraftValue(fieldEntry.token.key, $event)"
+                            @new-value="(value, done) => allowTypedSelectEntry(fieldEntry.token) ? commitSelectInputValue(fieldEntry.token, value, done) : done?.(null, 'cancel')"
+                          >
+                            <template #append>
+                              <q-btn
+                                v-if="hasPendingNewSelectValue(fieldEntry.token)"
+                                flat
+                                dense
+                                round
+                                size="sm"
+                                icon="add"
+                                :disable="loading || isFieldLocked(fieldEntry.token)"
+                                :aria-label="`Add ${getSelectDraftValue(fieldEntry.token.key)}`"
+                                @click.stop.prevent="commitSelectInputValue(fieldEntry.token, getSelectDraftValue(fieldEntry.token.key))"
+                              />
+                            </template>
+                          </q-select>
 
                           <q-select
                             v-else-if="fieldEntry.token.tokenType === 'select_single'"
                             :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
+                            :input-value="getSelectDraftValue(fieldEntry.token.key)"
                             dense
                             outlined
+                            use-input
+                            input-debounce="0"
                             emit-value
                             map-options
                             :options="fieldEntry.token.inputOptions || []"
@@ -668,7 +730,23 @@
                             class="create-record-shell__input"
                             :class="fieldVerificationClass(fieldEntry.token)"
                             @update:model-value="updateField(fieldEntry.token.key, $event)"
-                          />
+                            @input-value="setSelectDraftValue(fieldEntry.token.key, $event)"
+                            @new-value="(value, done) => allowTypedSelectEntry(fieldEntry.token) ? commitSelectInputValue(fieldEntry.token, value, done) : done?.(null, 'cancel')"
+                          >
+                            <template #append>
+                              <q-btn
+                                v-if="hasPendingNewSelectValue(fieldEntry.token)"
+                                flat
+                                dense
+                                round
+                                size="sm"
+                                icon="add"
+                                :disable="loading || isFieldLocked(fieldEntry.token)"
+                                :aria-label="`Add ${getSelectDraftValue(fieldEntry.token.key)}`"
+                                @click.stop.prevent="commitSelectInputValue(fieldEntry.token, getSelectDraftValue(fieldEntry.token.key))"
+                              />
+                            </template>
+                          </q-select>
 
                           <q-input
                             v-else-if="!isSummaryField(fieldEntry.token)"
@@ -817,9 +895,13 @@
                       <q-select
                         v-if="fieldEntry.token.tokenType === 'select_multi'"
                         :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
+                        :input-value="getSelectDraftValue(fieldEntry.token.key)"
                         dense
                         outlined
                         multiple
+                        use-input
+                        input-debounce="0"
+                        new-value-mode="add-unique"
                         emit-value
                         map-options
                         :options="fieldEntry.token.inputOptions || []"
@@ -831,13 +913,32 @@
                           fieldVerificationClass(fieldEntry.token),
                         ]"
                         @update:model-value="updateField(fieldEntry.token.key, $event)"
-                      />
+                        @input-value="setSelectDraftValue(fieldEntry.token.key, $event)"
+                        @new-value="(value, done) => allowTypedSelectEntry(fieldEntry.token) ? commitSelectInputValue(fieldEntry.token, value, done) : done?.(null, 'cancel')"
+                      >
+                        <template #append>
+                          <q-btn
+                            v-if="hasPendingNewSelectValue(fieldEntry.token)"
+                            flat
+                            dense
+                            round
+                            size="sm"
+                            :icon="isInlineCreatingSelect(fieldEntry.token.key) ? 'hourglass_top' : 'add'"
+                            :disable="loading || isFieldLocked(fieldEntry.token) || isInlineCreatingSelect(fieldEntry.token.key)"
+                            :aria-label="`Add ${getSelectDraftValue(fieldEntry.token.key)}`"
+                            @click.stop.prevent="void commitSelectInputValue(fieldEntry.token, getSelectDraftValue(fieldEntry.token.key))"
+                          />
+                        </template>
+                      </q-select>
 
                       <q-select
                         v-else-if="fieldEntry.token.tokenType === 'select_single'"
                         :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
+                        :input-value="getSelectDraftValue(fieldEntry.token.key)"
                         dense
                         outlined
+                        use-input
+                        input-debounce="0"
                         emit-value
                         map-options
                         :options="fieldEntry.token.inputOptions || []"
@@ -845,7 +946,23 @@
                         class="create-record-shell__input"
                         :class="fieldVerificationClass(fieldEntry.token)"
                         @update:model-value="updateField(fieldEntry.token.key, $event)"
-                      />
+                        @input-value="setSelectDraftValue(fieldEntry.token.key, $event)"
+                        @new-value="(value, done) => allowTypedSelectEntry(fieldEntry.token) ? commitSelectInputValue(fieldEntry.token, value, done) : done?.(null, 'cancel')"
+                      >
+                        <template #append>
+                          <q-btn
+                            v-if="hasPendingNewSelectValue(fieldEntry.token)"
+                            flat
+                            dense
+                            round
+                            size="sm"
+                            :icon="isInlineCreatingSelect(fieldEntry.token.key) ? 'hourglass_top' : 'add'"
+                            :disable="loading || isFieldLocked(fieldEntry.token) || isInlineCreatingSelect(fieldEntry.token.key)"
+                            :aria-label="`Add ${getSelectDraftValue(fieldEntry.token.key)}`"
+                            @click.stop.prevent="void commitSelectInputValue(fieldEntry.token, getSelectDraftValue(fieldEntry.token.key))"
+                          />
+                        </template>
+                      </q-select>
 
                       <q-input
                         v-else-if="!isSummaryField(fieldEntry.token)"
@@ -986,9 +1103,13 @@
                       <q-select
                         v-if="fieldEntry.token.tokenType === 'select_multi'"
                         :model-value="Array.isArray(formValues[fieldEntry.token.key]) ? formValues[fieldEntry.token.key] : []"
+                        :input-value="getSelectDraftValue(fieldEntry.token.key)"
                         dense
                         outlined
                         multiple
+                        use-input
+                        input-debounce="0"
+                        new-value-mode="add-unique"
                         emit-value
                         map-options
                         :options="fieldEntry.token.inputOptions || []"
@@ -1000,13 +1121,32 @@
                           fieldVerificationClass(fieldEntry.token),
                         ]"
                         @update:model-value="updateField(fieldEntry.token.key, $event)"
-                      />
+                        @input-value="setSelectDraftValue(fieldEntry.token.key, $event)"
+                        @new-value="(value, done) => allowTypedSelectEntry(fieldEntry.token) ? commitSelectInputValue(fieldEntry.token, value, done) : done?.(null, 'cancel')"
+                      >
+                        <template #append>
+                          <q-btn
+                            v-if="hasPendingNewSelectValue(fieldEntry.token)"
+                            flat
+                            dense
+                            round
+                            size="sm"
+                            icon="add"
+                            :disable="loading || isFieldLocked(fieldEntry.token)"
+                            :aria-label="`Add ${getSelectDraftValue(fieldEntry.token.key)}`"
+                            @click.stop.prevent="commitSelectInputValue(fieldEntry.token, getSelectDraftValue(fieldEntry.token.key))"
+                          />
+                        </template>
+                      </q-select>
 
                       <q-select
                         v-else-if="fieldEntry.token.tokenType === 'select_single'"
                         :model-value="selectSingleValue(formValues[fieldEntry.token.key])"
+                        :input-value="getSelectDraftValue(fieldEntry.token.key)"
                         dense
                         outlined
+                        use-input
+                        input-debounce="0"
                         emit-value
                         map-options
                         :options="fieldEntry.token.inputOptions || []"
@@ -1014,7 +1154,23 @@
                         class="create-record-shell__input"
                         :class="fieldVerificationClass(fieldEntry.token)"
                         @update:model-value="updateField(fieldEntry.token.key, $event)"
-                      />
+                        @input-value="setSelectDraftValue(fieldEntry.token.key, $event)"
+                        @new-value="(value, done) => allowTypedSelectEntry(fieldEntry.token) ? commitSelectInputValue(fieldEntry.token, value, done) : done?.(null, 'cancel')"
+                      >
+                        <template #append>
+                          <q-btn
+                            v-if="hasPendingNewSelectValue(fieldEntry.token)"
+                            flat
+                            dense
+                            round
+                            size="sm"
+                            icon="add"
+                            :disable="loading || isFieldLocked(fieldEntry.token)"
+                            :aria-label="`Add ${getSelectDraftValue(fieldEntry.token.key)}`"
+                            @click.stop.prevent="commitSelectInputValue(fieldEntry.token, getSelectDraftValue(fieldEntry.token.key))"
+                          />
+                        </template>
+                      </q-select>
 
                       <q-input
                         v-else-if="!isSummaryField(fieldEntry.token)"
@@ -1178,6 +1334,11 @@ import EntryInputListBox from 'src/components/EntryInputListBox.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
+import {
+  getCreateBranchTokenName,
+  getFilePageRegistryEntryByEntityReference,
+  LEVEL_3_FILE_REGISTRY_BY_KEY,
+} from 'src/utils/structureRegistry'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -1220,6 +1381,22 @@ const router = useRouter()
 const route = useRoute()
 
 const hasUserChanges = ref(false)
+const selectDraftValues = ref({})
+const inlineCreatingSelectKeys = ref([])
+
+const INLINE_NAME_ONLY_CREATE_SOURCES = new Set([
+  'companies',
+  'contacts',
+  'notes',
+  'tasks',
+  'projects',
+  'users',
+  'roles',
+  'companion-roles',
+  'funds',
+  'markets',
+  'securities',
+])
 
 const open = computed({
   get: () => props.modelValue,
@@ -1662,6 +1839,24 @@ function updateField(tokenKey, value) {
   emit('change', buildDialogSnapshot())
 }
 
+function getSelectDraftValue(tokenKey) {
+  return String(selectDraftValues.value?.[tokenKey] || '')
+}
+
+function setSelectDraftValue(tokenKey, value) {
+  selectDraftValues.value = {
+    ...selectDraftValues.value,
+    [tokenKey]: String(value || ''),
+  }
+}
+
+function clearSelectDraftValue(tokenKey) {
+  if (!(tokenKey in selectDraftValues.value)) return
+  const nextDraftValues = { ...selectDraftValues.value }
+  delete nextDraftValues[tokenKey]
+  selectDraftValues.value = nextDraftValues
+}
+
 function getStagedFieldValue(tokenKey) {
   if (tokenKey in stagedFieldValues.value) return stagedFieldValues.value[tokenKey]
   return stringValue(formValues.value?.[tokenKey])
@@ -1821,6 +2016,137 @@ function removeMultiSelectValue(token, rawValue) {
     tokenKey,
     existingValues.filter((item) => item !== selectedValue),
   )
+}
+
+function allowTypedSelectEntry(token) {
+  const optionSource = String(token?.optionSource || '').trim()
+  return ['live_entity', 'live_entity_set'].includes(optionSource)
+}
+
+function getInlineCreateConfig(token) {
+  const optionSource = String(token?.optionSource || '').trim()
+  if (optionSource !== 'live_entity') return null
+  const entityName = String(token?.optionEntity || '').trim()
+  if (!entityName) return null
+  const registryEntry = getFilePageRegistryEntryByEntityReference(entityName)
+  const sourceKey = String(registryEntry?.key || '').trim().toLowerCase()
+  if (!sourceKey || !INLINE_NAME_ONLY_CREATE_SOURCES.has(sourceKey)) return null
+  if (getCreateBranchTokenName(sourceKey)) return null
+  if (!bridge.value?.[sourceKey]?.create) return null
+  const titleToken = (LEVEL_3_FILE_REGISTRY_BY_KEY[sourceKey] || []).find((entry) => String(entry?.level_3) === '1') || null
+  const titleField = String(titleToken?.dbWriteField || titleToken?.tokenName || '').trim()
+  if (!titleField) return null
+  return {
+    sourceKey,
+    singularLabel: String(registryEntry?.singularLabel || registryEntry?.label || entityName).trim() || entityName,
+    titleField,
+  }
+}
+
+function hasMatchingSelectOption(token, rawValue) {
+  const normalizedValue = String(rawValue || '').trim().toLowerCase()
+  if (!normalizedValue) return false
+  return (Array.isArray(token?.inputOptions) ? token.inputOptions : []).some((option) => {
+    const optionValue = String(option?.value ?? '').trim().toLowerCase()
+    const optionLabel = String(option?.label ?? '').trim().toLowerCase()
+    return normalizedValue === optionValue || normalizedValue === optionLabel
+  })
+}
+
+function hasPendingNewSelectValue(token) {
+  if (!allowTypedSelectEntry(token) || !getInlineCreateConfig(token)) return false
+  const tokenKey = String(token?.key || '').trim()
+  const draftValue = getSelectDraftValue(tokenKey)
+  return Boolean(draftValue && !hasMatchingSelectOption(token, draftValue))
+}
+
+function setInlineCreatingSelectKey(tokenKey, active) {
+  const normalizedKey = String(tokenKey || '').trim()
+  if (!normalizedKey) return
+  inlineCreatingSelectKeys.value = active
+    ? Array.from(new Set([...inlineCreatingSelectKeys.value, normalizedKey]))
+    : inlineCreatingSelectKeys.value.filter((entry) => entry !== normalizedKey)
+}
+
+function isInlineCreatingSelect(tokenKey) {
+  return inlineCreatingSelectKeys.value.includes(String(tokenKey || '').trim())
+}
+
+async function commitSelectInputValue(token, rawValue, done = null) {
+  const normalizedValue = String(rawValue || '').trim()
+  if (!normalizedValue) {
+    done?.(null, 'cancel')
+    return
+  }
+
+  const tokenKey = String(token?.key || '').trim()
+  if (!tokenKey) {
+    done?.(null, 'cancel')
+    return
+  }
+
+  if (hasMatchingSelectOption(token, normalizedValue)) {
+    const matchedOption = (Array.isArray(token?.inputOptions) ? token.inputOptions : []).find((option) => {
+      const optionValue = String(option?.value ?? '').trim().toLowerCase()
+      const optionLabel = String(option?.label ?? '').trim().toLowerCase()
+      return normalizedValue.toLowerCase() === optionValue || normalizedValue.toLowerCase() === optionLabel
+    })
+    const resolvedValue = matchedOption?.value ?? normalizedValue
+    if (String(token?.tokenType || '').trim() === 'select_multi') {
+      const existingValues = Array.isArray(formValues.value?.[tokenKey])
+        ? formValues.value[tokenKey].map((item) => String(item || '').trim()).filter(Boolean)
+        : []
+      updateField(tokenKey, Array.from(new Set([...existingValues, resolvedValue])))
+    } else {
+      updateField(tokenKey, resolvedValue)
+    }
+    clearSelectDraftValue(tokenKey)
+    done?.(resolvedValue, 'add-unique')
+    return
+  }
+
+  const inlineCreateConfig = getInlineCreateConfig(token)
+  if (!inlineCreateConfig) {
+    $q.notify({
+      type: 'warning',
+      message: `${String(token?.label || 'This field').trim()} can only link existing records right now.`,
+    })
+    done?.(null, 'cancel')
+    return
+  }
+
+  setInlineCreatingSelectKey(tokenKey, true)
+  try {
+    const result = await bridge.value?.[inlineCreateConfig.sourceKey]?.create?.({
+      [inlineCreateConfig.titleField]: normalizedValue,
+    })
+    const createdId = String(result?.id || '').trim()
+    if (!createdId) throw new Error('Related record was not created.')
+
+    const tokenType = String(token?.tokenType || '').trim()
+    if (tokenType === 'select_multi') {
+      const existingValues = Array.isArray(formValues.value?.[tokenKey])
+        ? formValues.value[tokenKey].map((item) => String(item || '').trim()).filter(Boolean)
+        : []
+      updateField(tokenKey, Array.from(new Set([...existingValues, createdId])))
+    } else {
+      updateField(tokenKey, createdId)
+    }
+    clearSelectDraftValue(tokenKey)
+    done?.(createdId, 'add-unique')
+    $q.notify({
+      type: 'positive',
+      message: `${inlineCreateConfig.singularLabel} created and linked.`,
+    })
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error?.message || String(error),
+    })
+    done?.(null, 'cancel')
+  } finally {
+    setInlineCreatingSelectKey(tokenKey, false)
+  }
 }
 function isSubgroupExpanded(groupKey) { return expandedSubgroupKeys.value.includes(groupKey) }
 function toggleSubgroup(groupKey) {

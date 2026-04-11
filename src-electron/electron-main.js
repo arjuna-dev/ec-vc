@@ -1323,13 +1323,14 @@ function createUser(payload = {}) {
     normalizeNullableString(payload?.Email)
 
   if (!userName) throw new Error('User name is required')
-  if (!userEmail) throw new Error('Primary email is required')
-  if (!isEmail(userEmail)) throw new Error('Primary email must be a valid email address')
+  if (userEmail && !isEmail(userEmail)) throw new Error('Primary email must be a valid email address')
 
   const explicitId = normalizeNullableString(payload?.id)
-  const existing = database
-    .prepare('SELECT id FROM Users WHERE User_PEmail = ? LIMIT 1')
-    .get(userEmail)
+  const existing = userEmail
+    ? database
+      .prepare('SELECT id FROM Users WHERE User_PEmail = ? LIMIT 1')
+      .get(userEmail)
+    : null
   const userId = explicitId || existing?.id || `user:${crypto.randomUUID()}`
 
   database
@@ -1349,15 +1350,25 @@ function createUser(payload = {}) {
     .run({
       id: userId,
       User_Name: userName,
-      User_PEmail: userEmail,
+      User_PEmail: userEmail || null,
     })
 
   ensureUserRoleAssignmentRow(database, userId)
+  const contactId = upsertLinkedContactForUserProfile(database, {
+    userId,
+    name: userName,
+    email: userEmail || '',
+    profile: payload,
+    preferredContactId:
+      normalizeNullableString(payload?.Contact_Id) ||
+      normalizeNullableString(payload?.contact_id),
+  })
 
   return {
     id: userId,
     User_Name: userName,
-    User_PEmail: userEmail,
+    User_PEmail: userEmail || '',
+    contact_id: contactId,
   }
 }
 
@@ -5892,8 +5903,8 @@ function upsertLinkedContactForUserProfile(
   const normalizedUserId = normalizeNullableString(userId)
   const normalizedName = normalizeNullableString(name)
   const normalizedEmail = normalizeNullableString(email)
-  if (!normalizedUserId || !normalizedName || !normalizedEmail) {
-    throw new Error('User contact bootstrap requires user id, name, and email.')
+  if (!normalizedUserId || !normalizedName) {
+    throw new Error('User contact bootstrap requires user id and name.')
   }
 
   const storedContactId = normalizeNullableString(preferredContactId)

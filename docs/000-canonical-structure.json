@@ -3087,21 +3087,21 @@
               "db_write_field": "Task_Team_Owner",
               "token_type": "select_single",
               "option_source": "live_entity",
-              "option_entity": "Users"
+              "option_entity": "Contacts"
             },
             {
               "address": "8.5.2",
               "token_name": "Task_Team_Assigned",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Users"
+              "option_entity": "Contacts"
             },
             {
               "address": "8.5.3",
               "token_name": "Task_Team_Support",
               "token_type": "select_multi",
               "option_source": "live_entity",
-              "option_entity": "Users"
+              "option_entity": "Contacts"
             }
           ]
         }
