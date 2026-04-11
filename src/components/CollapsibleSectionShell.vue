@@ -56,7 +56,7 @@ defineEmits(['toggle'])
 .collapsible-section-shell__toggle {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   padding: 0;
   color: var(--ds-color-brand-black);
   background: transparent;
@@ -67,9 +67,9 @@ defineEmits(['toggle'])
 
 .collapsible-section-shell__title {
   color: var(--ds-color-brand-black);
-  font-family: var(--ds-font-title);
-  font-size: var(--ds-font-size-sm);
-  font-weight: var(--ds-font-weight-bold);
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: var(--font-weight-black);
   line-height: 0.96;
 }
 
