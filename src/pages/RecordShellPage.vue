@@ -103,8 +103,14 @@
               <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
                 <div class="record-shell__field-label">{{ token.label }}</div>
                 <div v-if="isRecordRoute" class="record-shell__field-value-row">
+                  <div
+                    v-if="isSystemReadOnlyInline(token)"
+                    class="record-shell__field-static-box"
+                  >
+                    {{ getTokenDisplayValue(token) }}
+                  </div>
                   <q-select
-                    v-if="token.tokenType === 'select_multi'"
+                    v-else-if="token.tokenType === 'select_multi'"
                     :model-value="inlineMultiValue(token)"
                     dense
                     outlined
@@ -219,8 +225,14 @@
               <div v-for="token in group.tokens" :key="token.key" class="record-shell__field-card">
                 <div class="record-shell__field-label">{{ token.label }}</div>
                 <div v-if="isRecordRoute" class="record-shell__field-value-row">
+                  <div
+                    v-if="isSystemReadOnlyInline(token)"
+                    class="record-shell__field-static-box"
+                  >
+                    {{ getTokenDisplayValue(token) }}
+                  </div>
                   <q-select
-                    v-if="token.tokenType === 'select_multi'"
+                    v-else-if="token.tokenType === 'select_multi'"
                     :model-value="inlineMultiValue(token)"
                     dense
                     outlined
@@ -320,8 +332,14 @@
           >
             <div class="record-shell__field-label">{{ token.label }}</div>
             <div v-if="isRecordRoute" class="record-shell__field-value-row">
+              <div
+                v-if="isSystemReadOnlyInline(token)"
+                class="record-shell__field-static-box"
+              >
+                {{ getTokenDisplayValue(token) }}
+              </div>
               <q-select
-                v-if="token.tokenType === 'select_multi'"
+                v-else-if="token.tokenType === 'select_multi'"
                 :model-value="inlineMultiValue(token)"
                 dense
                 outlined
@@ -1444,6 +1462,14 @@ function isInlineFieldEditable(token) {
   return tokenSupportsRecordUpdate(token, activeRegistryEntry.value?.entityName || tableNameParam.value)
 }
 
+function isSystemReadOnlyInline(token) {
+  return Boolean(
+    isRecordRoute.value &&
+    isSystemSectionActive.value &&
+    !isInlineFieldEditable(token),
+  )
+}
+
 function inlineFieldHasValue(token) {
   const value = inlineRawValue(token)
   if (Array.isArray(value)) return value.length > 0
@@ -1488,6 +1514,7 @@ function isInlineCopyableIdField(token) {
 }
 
 function showInlineFieldCopyAction(token) {
+  if (isSystemReadOnlyInline(token)) return inlineFieldHasValue(token)
   return isInlineCopyableIdField(token) && inlineFieldHasValue(token)
 }
 
@@ -2123,6 +2150,20 @@ function onContactHeroPointerLeave() {
 .record-shell__field-value { margin-top:4px; color:rgba(17,17,17,.58); font-size:.72rem; line-height:1.4; }
 .record-shell__field-value-row { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; margin-top:6px; }
 .record-shell__field-input { min-width:0; }
+.record-shell__field-static-box {
+  min-width: 0;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(17,17,17,.46);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-xs);
+  font-weight: 400;
+  line-height: 1.15;
+}
 .record-shell__field-input :deep(.q-field__control) { min-height:24px; border-radius:4px; background:rgba(255,255,255,.72); }
 .record-shell__field-input :deep(.q-field__native),
 .record-shell__field-input :deep(.q-field__input) { color:rgba(17,17,17,.62); font-size:.74rem; font-weight:400; line-height:1.15; }
