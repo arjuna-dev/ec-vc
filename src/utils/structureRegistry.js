@@ -850,21 +850,26 @@ export function getCreateBranchEntry(sourceKey = '', branchValue = '') {
   return getCreateBranches(sourceKey).find((branch) => String(branch?.value || '').trim().toLowerCase() === normalizedBranchValue) || null
 }
 
-function getAutoFileSpecificViewFork(entry) {
+function buildAutoFileSpecificViewForks(entry) {
   if (!entry) return null
   const coreLabels = new Set(['general', 'system', 'kdb'])
-  const fileSpecificSectionRawLabels = (Array.isArray(entry.subsections) ? entry.subsections : [])
-    .map((section) => String(section?.rawLabel || '').trim())
-    .filter(Boolean)
-    .filter((label) => !coreLabels.has(label.toLowerCase()))
+  const fileSpecificSections = (Array.isArray(entry.subsections) ? entry.subsections : [])
+    .map((section) => ({
+      rawLabel: String(section?.rawLabel || '').trim(),
+      label: String(section?.label || '').trim(),
+    }))
+    .filter((section) => section.rawLabel && !coreLabels.has(section.rawLabel.toLowerCase()))
 
-  if (!fileSpecificSectionRawLabels.length) return null
-
-  return {
-    value: 'file-specific',
-    label: 'File Specific',
-    sectionRawLabels: fileSpecificSectionRawLabels,
-  }
+  return fileSpecificSections.map((section) => ({
+    value: String(section.rawLabel || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, ''),
+    label: section.label || section.rawLabel,
+    sectionRawLabels: [section.rawLabel],
+    forkGroup: 'file-specific',
+  }))
 }
 
 export function getViewForks(sourceKey = '') {
@@ -872,10 +877,7 @@ export function getViewForks(sourceKey = '') {
   if (!entry) return []
 
   const forks = []
-  const autoFileSpecificFork = getAutoFileSpecificViewFork(entry)
-  if (autoFileSpecificFork) {
-    forks.push(autoFileSpecificFork)
-  }
+  forks.push(...buildAutoFileSpecificViewForks(entry))
 
   if (Array.isArray(entry.viewForks)) {
     forks.push(...entry.viewForks)
