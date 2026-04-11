@@ -26,8 +26,6 @@
       "required_subsection": "System",
       "required_token_set": [
         "ID",
-        "Creator",
-        "Datetime",
         "EventLog"
       ],
       "rule": "Shared system fields should keep shared canonical names across L1 files."
@@ -280,23 +278,6 @@
               "token_type": "id",
               "db_field_aliases": [
                 "id"
-              ]
-            },
-            {
-              "address": "1.1.2",
-              "token_name": "Artifact_Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor",
-              "db_field_aliases": [
-                "created_by"
-              ]
-            },
-            {
-              "address": "1.1.3",
-              "token_name": "Artifact_Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
               ]
             }
           ]
@@ -655,23 +636,6 @@
             },
             {
               "address": "3.1.2",
-              "token_name": "Contact_Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor",
-              "db_field_aliases": [
-                "created_by"
-              ]
-            },
-            {
-              "address": "3.1.3",
-              "token_name": "Contact_Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
-              ]
-            },
-            {
-              "address": "3.1.4",
               "token_name": "Contact_User_Role",
               "token_type": "text",
               "db_field_aliases": [
@@ -930,35 +894,18 @@
             },
             {
               "address": "4.1.2",
-              "token_name": "Company_Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor",
-              "db_field_aliases": [
-                "created_by"
-              ]
-            },
-            {
-              "address": "4.1.3",
-              "token_name": "Company_Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
-              ]
-            },
-            {
-              "address": "4.1.4",
               "token_name": "Company_Status",
               "token_type": "select_single",
               "option_source": "canonical_list",
               "option_list": "Co_Status_List"
             },
             {
-              "address": "4.1.5",
+              "address": "4.1.3",
               "token_name": "Company_Website",
               "token_type": "url"
             },
             {
-              "address": "4.1.6",
+              "address": "4.1.4",
               "token_name": "Company_Tagline",
               "token_type": "text"
             }
@@ -1593,20 +1540,6 @@
               "db_field_aliases": [
                 "id"
               ]
-            },
-            {
-              "address": "17.1.2",
-              "token_name": "Opportunity_Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor"
-            },
-            {
-              "address": "17.1.3",
-              "token_name": "Opportunity_Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
-              ]
             }
           ]
         },
@@ -1892,23 +1825,6 @@
               "token_type": "id",
               "db_field_aliases": [
                 "id"
-              ]
-            },
-            {
-              "address": "5.1.2",
-              "token_name": "Fund_Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor",
-              "db_field_aliases": [
-                "created_by"
-              ]
-            },
-            {
-              "address": "5.1.3",
-              "token_name": "Fund_Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
               ]
             }
           ]
@@ -2233,23 +2149,6 @@
               "db_field_aliases": [
                 "id"
               ]
-            },
-            {
-              "address": "6.1.2",
-              "token_name": "Round_Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor",
-              "db_field_aliases": [
-                "created_by"
-              ]
-            },
-            {
-              "address": "6.1.3",
-              "token_name": "Round_Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
-              ]
             }
           ]
         },
@@ -2536,23 +2435,6 @@
               "token_type": "id",
               "db_field_aliases": [
                 "id"
-              ]
-            },
-            {
-              "address": "7.1.2",
-              "token_name": "Project_Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor",
-              "db_field_aliases": [
-                "created_by"
-              ]
-            },
-            {
-              "address": "7.1.3",
-              "token_name": "Project_Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
               ]
             }
           ]
@@ -2861,23 +2743,6 @@
               "db_field_aliases": [
                 "id"
               ]
-            },
-            {
-              "address": "8.1.2",
-              "token_name": "Task_Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor",
-              "db_field_aliases": [
-                "created_by"
-              ]
-            },
-            {
-              "address": "8.1.3",
-              "token_name": "Task_Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
-              ]
             }
           ]
         },
@@ -3130,23 +2995,6 @@
               "token_type": "id",
               "db_field_aliases": [
                 "id"
-              ]
-            },
-            {
-              "address": "9.1.2",
-              "token_name": "Note_Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor",
-              "db_field_aliases": [
-                "created_by"
-              ]
-            },
-            {
-              "address": "9.1.3",
-              "token_name": "Note_Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
               ]
             }
           ]
@@ -4193,23 +4041,6 @@
               "db_field_aliases": [
                 "id"
               ]
-            },
-            {
-              "address": "20.1.2",
-              "token_name": "Intake_Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor",
-              "db_field_aliases": [
-                "created_by"
-              ]
-            },
-            {
-              "address": "20.1.3",
-              "token_name": "Intake_Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
-              ]
             }
           ]
         },
@@ -4738,23 +4569,6 @@
             },
             {
               "address": "23.1.2",
-              "token_name": "Creator",
-              "token_type": "select_single",
-              "input_source": "system_actor",
-              "db_field_aliases": [
-                "created_by"
-              ]
-            },
-            {
-              "address": "23.1.3",
-              "token_name": "Datetime",
-              "token_type": "datetime",
-              "db_field_aliases": [
-                "created_at"
-              ]
-            },
-            {
-              "address": "23.1.4",
               "token_name": "EventLog",
               "token_type": "text",
               "db_field_aliases": [
