@@ -177,6 +177,18 @@
                       </q-list>
                     </q-menu>
                   </q-btn>
+                  <q-btn
+                    v-if="showInlineFieldCopyAction(token)"
+                    flat
+                    dense
+                    size="sm"
+                    :disable="loading"
+                    class="record-shell__field-action"
+                    aria-label="Copy field value"
+                    @click="copyInlineFieldValue(token)"
+                  >
+                    <q-icon name="content_copy" size="14px" />
+                  </q-btn>
                 </div>
                 <div v-else class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
               </div>
@@ -281,6 +293,18 @@
                       </q-list>
                     </q-menu>
                   </q-btn>
+                  <q-btn
+                    v-if="showInlineFieldCopyAction(token)"
+                    flat
+                    dense
+                    size="sm"
+                    :disable="loading"
+                    class="record-shell__field-action"
+                    aria-label="Copy field value"
+                    @click="copyInlineFieldValue(token)"
+                  >
+                    <q-icon name="content_copy" size="14px" />
+                  </q-btn>
                 </div>
                 <div v-else class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
               </div>
@@ -366,9 +390,21 @@
                       <q-item-section>
                         <q-item-label class="record-shell__verification-menu-label">{{ option.label }}</q-item-label>
                       </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-menu>
+                  </q-item>
+                </q-list>
+              </q-menu>
+              </q-btn>
+              <q-btn
+                v-if="showInlineFieldCopyAction(token)"
+                flat
+                dense
+                size="sm"
+                :disable="loading"
+                class="record-shell__field-action"
+                aria-label="Copy field value"
+                @click="copyInlineFieldValue(token)"
+              >
+                <q-icon name="content_copy" size="14px" />
               </q-btn>
             </div>
             <div v-else class="record-shell__field-value">{{ getTokenDisplayValue(token) }}</div>
@@ -1434,6 +1470,40 @@ function resolvedInlineFieldVerificationState(token) {
 
 function showInlineFieldVerificationAction(token) {
   return isInlineReviewTrackedField(token) && inlineFieldHasValue(token)
+}
+
+function isInlineCopyableIdField(token) {
+  const aliases = [
+    String(token?.tokenName || '').trim(),
+    ...getCanonicalTokenFieldNames(token),
+  ]
+    .map((alias) => String(alias || '').trim().toLowerCase())
+    .filter(Boolean)
+
+  return aliases.some((alias) => alias === 'id' || alias.endsWith('_id'))
+}
+
+function showInlineFieldCopyAction(token) {
+  return isInlineCopyableIdField(token) && inlineFieldHasValue(token)
+}
+
+async function copyInlineFieldValue(token) {
+  const rawValue = inlineRawValue(token)
+  const value = Array.isArray(rawValue)
+    ? rawValue.map((item) => String(item || '').trim()).filter(Boolean).join(', ')
+    : String(rawValue ?? '').trim()
+  if (!value) return
+
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value)
+      $q.notify({ type: 'positive', message: `${token?.label || 'Field'} copied` })
+      return
+    }
+    throw new Error('Clipboard unavailable')
+  } catch {
+    $q.notify({ type: 'negative', message: 'Could not copy field value.' })
+  }
 }
 
 function inlineFieldVerificationIcon(token) {
