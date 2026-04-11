@@ -144,7 +144,7 @@
         :view-options="viewOptions"
         :show-view-toggle="true"
         @toggle-select-all="toggleSelectAllVisible"
-        @add="requestCreateRecordShell(activeCreateBranchEntry ? { kind: activeForkValue } : {})"
+        @add="handleToolbarAdd"
         @update:fork-value="setActiveForkValue"
         @update:search-query="searchQuery = $event"
         @update:view-mode="viewMode = $event"
@@ -648,7 +648,7 @@
         :right-sections="createDialogRightSections"
         :branch-selector-token-key="createDialogBranchSelectorTokenKey"
         :loading="createDialogLoading"
-        :submit-disabled="!canCreateWithShell"
+        :submit-disabled="createDialogSubmitDisabled"
         :initial-values="createDialogInitialValues"
         :initial-field-meta="createDialogInitialFieldMeta"
         :initial-section-key="createDialogInitialSectionKey"
@@ -1085,6 +1085,15 @@ const createKeyFieldTokens = computed(() => {
       return true
     })
     .map((token) => normalizeCreateDialogToken(token))
+})
+const createDialogSubmitDisabled = computed(() => {
+  if (createDialogMode.value === 'edit') return false
+  if (!canCreateWithShell.value) return true
+  const snapshotValues = createDialogLastChangeSnapshot.value?.values
+  const values = snapshotValues && typeof snapshotValues === 'object'
+    ? snapshotValues
+    : createDialogInitialValues.value
+  return missingRequiredCreateTokens(values).length > 0
 })
 const cardItemTokenGroups = computed(() =>
   level2Sections.value
@@ -2532,13 +2541,26 @@ function requestCreateRecordShell(options = {}) {
   }
 
   const requestedBranch = String(options?.kind || '').trim().toLowerCase()
-  if (!requestedBranch && getCreateBranches(activeSourceKey.value).length) {
-    router.push({
-      name: 'fork-shell',
-      query: {
-        section: activeSourceKey.value,
-        returnTo: route.fullPath,
+  const createBranches = getCreateBranches(activeSourceKey.value)
+  if (!requestedBranch && createBranches.length) {
+    const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Type').trim()
+    void $q.dialog({
+      title: `Choose ${branchLabel}`,
+      message: `Select which ${String(activeRegistryEntry.value?.singularLabel || 'record').trim().toLowerCase()} path you want to create.`,
+      cancel: true,
+      persistent: true,
+      options: {
+        type: 'radio',
+        model: '',
+        items: createBranches.map((entry) => ({
+          label: String(entry?.label || entry?.value || '').trim(),
+          value: String(entry?.value || '').trim(),
+        })),
       },
+    }).onOk((selectedBranch) => {
+      const normalizedBranch = String(selectedBranch || '').trim().toLowerCase()
+      if (!normalizedBranch) return
+      requestCreateRecordShell({ ...options, kind: normalizedBranch })
     })
     return
   }
@@ -2560,6 +2582,10 @@ function requestCreateRecordShell(options = {}) {
   }
   delete nextQuery.kind
   router.push({ name: route.name, params: route.params, query: nextQuery })
+}
+
+function handleToolbarAdd() {
+  requestCreateRecordShell(activeCreateBranchEntry.value ? { kind: activeForkValue.value } : {})
 }
 
 function getBbTileStatus(row) {
@@ -2740,6 +2766,16 @@ async function openAddRelationShell(row) {
 async function submitCreateRecordShell({ values, verification } = {}) {
   clearCreateDialogAutosaveTimer()
   const isEditMode = createDialogMode.value === 'edit'
+  if (!isEditMode) {
+    const missingLabels = missingRequiredCreateTokenLabels(values)
+    if (missingLabels.length) {
+      $q.notify({
+        type: 'negative',
+        message: `Complete required fields before creating: ${missingLabels.join(', ')}.`,
+      })
+      return
+    }
+  }
   const activeEntityName = isEditMode
     ? activeRegistryEntry.value?.entityName || ''
     : resolveCreateDialogEntityName(buildCreatePayload(values))
@@ -3090,6 +3126,21 @@ function buildCreatePayload(values = {}) {
   })
 
   return Object.fromEntries(payloadEntries)
+}
+
+function missingRequiredCreateTokens(values = {}) {
+  return requiredCreateTokens.value.filter((token) => {
+    const rawValue = values?.[token.key]
+    const normalizedValue = normalizeCreateFieldValue(token, rawValue)
+    if (Array.isArray(normalizedValue)) return normalizedValue.length === 0
+    return normalizedValue == null
+  })
+}
+
+function missingRequiredCreateTokenLabels(values = {}) {
+  return missingRequiredCreateTokens(values)
+    .map((token) => String(token?.label || token?.tokenName || '').trim())
+    .filter(Boolean)
 }
 
 function tokenHasDirectWriteTarget(token) {
