@@ -596,7 +596,7 @@ import {
   LEVEL_1_FILE_REGISTRY,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
-  TEST_SHELL_SECTION_OPTIONS,
+  resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
@@ -643,8 +643,7 @@ const activeSourceKey = computed(() => {
   if (isRecordRoute.value) {
     return resolveSourceKeyFromTableName(currentView.value?.table_name || tableNameParam.value) || ''
   }
-  const current = String(route.query.section || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === current) ? current : ''
+  return resolveApprovedFileSectionKey(route.query.section) || ''
 })
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)

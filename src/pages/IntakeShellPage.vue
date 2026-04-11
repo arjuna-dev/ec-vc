@@ -57,6 +57,7 @@ import {
   getRuntimeTableNameForEntityName,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
+  resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
@@ -231,11 +232,7 @@ onBeforeUnmount(() => {
 })
 
 function resolveValidShellSection(value) {
-  const normalized = String(value || '').trim().toLowerCase()
-  if (!normalized) return fallbackSectionKey
-  return normalized === 'intake' || normalized === 'ingestion' || normalized === 'artifacts-processed'
-    ? getFilePageRegistryEntry(normalized)?.key || ''
-    : ''
+  return resolveApprovedFileSectionKey(value, 'Intake') || fallbackSectionKey
 }
 
 function normalizeCreateDialogToken(token) {

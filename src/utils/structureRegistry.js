@@ -682,6 +682,24 @@ export function getFilePageRegistryEntryByEntityReference(entityName) {
   )
 }
 
+export function resolveApprovedFileSectionKey(value, entityName = '') {
+  const normalizedValue = String(value || '').trim()
+  if (!normalizedValue) return getFilePageRegistryEntryByEntityReference(entityName)?.key || ''
+
+  const normalizedLower = normalizedValue.toLowerCase()
+  const entry = (
+    getFilePageRegistryEntry(normalizedLower)
+    || getFilePageRegistryEntryByRouteName(normalizedLower)
+    || getFilePageRegistryEntryByEntityReference(normalizedValue)
+    || LEVEL_1_FILE_REGISTRY.find((candidate) =>
+      [candidate.key, candidate.routeName, candidate.entityName, candidate.label, candidate.singularLabel]
+        .some((field) => String(field || '').trim().toLowerCase() === normalizedLower),
+    )
+  )
+
+  return String(entry?.key || '').trim().toLowerCase()
+}
+
 export function getFilePageReferenceDocs(sourceKey = '') {
   const entry = getFilePageRegistryEntry(sourceKey)
   if (!entry) return []

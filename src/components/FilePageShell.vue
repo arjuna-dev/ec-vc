@@ -824,7 +824,7 @@ import {
   getCanonicalTokenValue,
   LEVEL_2_FILE_REGISTRY_BY_KEY,
   LEVEL_3_FILE_REGISTRY_BY_KEY,
-  TEST_SHELL_SECTION_OPTIONS,
+  resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
 import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipContracts'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
@@ -1006,12 +1006,10 @@ const isRecordShellMode = computed(
 const isFileShellLabMode = computed(() => String(props.shellMode || '').trim().toLowerCase() === 'file-lab')
 
 const routeDrivenSourceKey = computed(() => {
-  const routeName = String(route.name || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.find((option) => option.value === routeName)?.value || ''
+  return resolveApprovedFileSectionKey(getFilePageRegistryEntryByRouteName(route.name)?.key || route.name) || ''
 })
 const propDrivenSourceKey = computed(() => {
-  const normalized = String(props.sourceKey || '').trim().toLowerCase()
-  return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized) ? normalized : ''
+  return resolveApprovedFileSectionKey(props.sourceKey) || ''
 })
 const activeCreateBranchEntries = computed(() => getCreateBranches(activeSourceKey.value))
 const activeForkValue = computed(() => {

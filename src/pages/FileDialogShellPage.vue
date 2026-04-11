@@ -30,7 +30,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditFileShellDialog from 'src/components/AddEditFileShellDialog.vue'
-import { TEST_SHELL_SECTION_OPTIONS, getFilePageRegistryEntryByEntityReference } from 'src/utils/structureRegistry'
+import { TEST_SHELL_SECTION_OPTIONS, resolveApprovedFileSectionKey } from 'src/utils/structureRegistry'
 
 const route = useRoute()
 const router = useRouter()
@@ -41,12 +41,7 @@ const activeSourceKey = computed(() => resolveValidShellSection(route.query.sect
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 
 function resolveValidShellSection(value, entityName = '') {
-  const normalized = String(value || '').trim().toLowerCase()
-  if (!normalized) {
-    return getFilePageRegistryEntryByEntityReference(String(entityName || '').trim())?.key || ''
-  }
-  if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === normalized)) return normalized
-  return ''
+  return resolveApprovedFileSectionKey(value, String(entityName || '').trim())
 }
 
 function updateShellSelector(nextValue) {

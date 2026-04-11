@@ -11,7 +11,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import FilePageShell from 'src/components/FilePageShell.vue'
-import { getFilePageRegistryEntryByRouteName, TEST_SHELL_SECTION_OPTIONS } from 'src/utils/structureRegistry'
+import { getFilePageRegistryEntryByRouteName, resolveApprovedFileSectionKey, TEST_SHELL_SECTION_OPTIONS } from 'src/utils/structureRegistry'
 
 defineOptions({ name: 'FileShellContract' })
 
@@ -36,12 +36,11 @@ const resolvedMode = computed(() => {
 })
 
 const resolvedSourceKey = computed(() => {
-  const propSourceKey = String(props.sourceKey || '').trim().toLowerCase()
-  if (TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === propSourceKey)) return propSourceKey
+  const propSourceKey = resolveApprovedFileSectionKey(props.sourceKey)
+  if (propSourceKey) return propSourceKey
 
   if (resolvedMode.value === 'file-lab') {
-    const routeSectionKey = String(route.query.section || '').trim().toLowerCase()
-    return TEST_SHELL_SECTION_OPTIONS.some((option) => option.value === routeSectionKey) ? routeSectionKey : fallbackSectionKey
+    return resolveApprovedFileSectionKey(route.query.section) || fallbackSectionKey
   }
 
   const routeEntry = getFilePageRegistryEntryByRouteName(route.name)
