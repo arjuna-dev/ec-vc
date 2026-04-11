@@ -839,7 +839,7 @@ const open = computed({
   },
 })
 
-const activeSectionKey = ref('key-fields')
+const activeSectionKey = ref('')
 const formValues = ref({})
 const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
@@ -867,23 +867,54 @@ const branchSelectionSettled = computed(() => {
   return String(formValues.value?.[tokenKey] ?? '').trim().length > 0
 })
 
-const allSections = computed(() => [
-  {
-    key: 'key-fields',
-    label: 'Key Fields',
-    tokens: props.keyFieldTokens,
-  },
-  ...(branchSelectionSettled.value ? [...props.leftSections, ...props.rightSections] : []),
-])
+function mergeKeyFieldsIntoSections(sections = [], keyFieldTokens = []) {
+  const normalizedSections = Array.isArray(sections) ? sections : []
+  const normalizedKeyFieldTokens = Array.isArray(keyFieldTokens) ? keyFieldTokens.filter(Boolean) : []
+  if (!normalizedSections.length) {
+    return normalizedKeyFieldTokens.length
+      ? [{
+          key: 'general',
+          label: 'General',
+          tokens: normalizedKeyFieldTokens,
+          subgroups: [],
+        }]
+      : []
+  }
 
-const leftPanelSections = computed(() => [
-  {
-    key: 'key-fields',
-    label: 'Key Fields',
-    tokens: props.keyFieldTokens,
-  },
-  ...(branchSelectionSettled.value ? props.leftSections : []),
-])
+  const generalIndex = normalizedSections.findIndex(
+    (section) => String(section?.label || '').trim().toLowerCase() === 'general',
+  )
+
+  if (generalIndex === -1) {
+    return [
+      {
+        key: 'general',
+        label: 'General',
+        tokens: normalizedKeyFieldTokens,
+        subgroups: [],
+      },
+      ...normalizedSections,
+    ]
+  }
+
+  return normalizedSections.map((section, index) => {
+    if (index !== generalIndex) return section
+    return {
+      ...section,
+      tokens: [...normalizedKeyFieldTokens, ...(Array.isArray(section?.tokens) ? section.tokens : [])],
+    }
+  })
+}
+
+const allSections = computed(() => {
+  const dialogSections = branchSelectionSettled.value ? [...props.leftSections, ...props.rightSections] : []
+  return mergeKeyFieldsIntoSections(dialogSections, props.keyFieldTokens)
+})
+
+const leftPanelSections = computed(() => {
+  const dialogSections = branchSelectionSettled.value ? props.leftSections : []
+  return mergeKeyFieldsIntoSections(dialogSections, props.keyFieldTokens)
+})
 
 const rightSections = computed(() => (branchSelectionSettled.value ? props.rightSections : []))
 
@@ -1015,9 +1046,21 @@ const dialogStyle = computed(() => ({
   minHeight: `${resolvedDialogHeight.value}px`,
 }))
 
+function resolveInitialDialogSectionKey(initialKey = '') {
+  const normalizedInitialKey = String(initialKey || '').trim()
+  if (normalizedInitialKey && allSections.value.some((section) => section.key === normalizedInitialKey)) {
+    return normalizedInitialKey
+  }
+
+  const generalSection = allSections.value.find((section) => String(section?.label || '').trim().toLowerCase() === 'general')
+  if (generalSection?.key) return generalSection.key
+
+  return String(allSections.value[0]?.key || '').trim()
+}
+
 function initializeDialogState() {
   hasUserChanges.value = false
-  activeSectionKey.value = String(props.initialSectionKey || '').trim() || 'key-fields'
+  activeSectionKey.value = resolveInitialDialogSectionKey(props.initialSectionKey)
   artifactDragOver.value = false
   stagedArtifacts.value = normalizeInitialArtifacts(props.initialArtifacts)
   selectedArtifactIds.value = []
