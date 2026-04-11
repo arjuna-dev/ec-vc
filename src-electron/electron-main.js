@@ -5345,12 +5345,7 @@ function resolveAuditCurrentFieldDisplayValue(database, tableName, recordId, fie
   }
 }
 
-function resolveAuditFeedTab(tableName = '') {
-  const normalizedTableName = normalizeNullableString(tableName)
-  if (!normalizedTableName) return 'events'
-  if (normalizedTableName === 'Notes') return 'notes'
-  if (normalizedTableName === 'Artifacts') return 'artifacts'
-  if (normalizedTableName === 'Intake') return 'intake'
+function resolveAuditFeedTab() {
   return 'events'
 }
 
