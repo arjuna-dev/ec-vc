@@ -1210,6 +1210,9 @@ function createEvent(payload = {}) {
     new_display_value:
       normalizeNullableString(payload?.Event_Summary) ||
       normalizeNullableString(newValue),
+    feed_tab:
+      normalizeNullableString(payload?.feed_tab) ||
+      resolveAuditFeedTab(tableName),
   }
 
   writeAuditEvent(database, {
@@ -5342,6 +5345,15 @@ function resolveAuditCurrentFieldDisplayValue(database, tableName, recordId, fie
   }
 }
 
+function resolveAuditFeedTab(tableName = '') {
+  const normalizedTableName = normalizeNullableString(tableName)
+  if (!normalizedTableName) return 'events'
+  if (normalizedTableName === 'Notes') return 'notes'
+  if (normalizedTableName === 'Artifacts') return 'artifacts'
+  if (normalizedTableName === 'Intake') return 'intake'
+  return 'events'
+}
+
 function buildAuditEventPayload(
   database,
   {
@@ -5362,6 +5374,7 @@ function buildAuditEventPayload(
     record_label: recordContext.recordLabel,
     entity_label: recordContext.entityLabel,
     field_label: formatRecordFieldLabel(normalizedFieldName),
+    feed_tab: resolveAuditFeedTab(tableName),
   }
 
   if (String(fieldName || '').endsWith('__verification') || action.includes('verification')) {
@@ -5543,6 +5556,7 @@ function writeLifecycleAuditEvent(
       old_display_value: normalizeNullableString(oldValue),
       new_display_value: normalizeNullableString(newValue) || resolvedRecordLabel,
       action_label: normalizedActionLabel,
+      feed_tab: resolveAuditFeedTab(normalizedTableName),
     },
   })
 }
