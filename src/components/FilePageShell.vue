@@ -824,7 +824,7 @@ const error = ref('')
 const searchQuery = ref('')
 const rawRows = ref([])
 const loaderDiagnostics = ref({})
-const viewMode = ref('card')
+const viewMode = ref('page')
 const createDialogOpen = ref(false)
 const createDialogRenderKey = ref(0)
 const createDialogLoading = ref(false)
@@ -1738,8 +1738,8 @@ const fileSystemValidationIssueCount = computed(() => {
 const isBbFileSource = computed(() => activeSourceKey.value === 'bb-file')
 const searchPlaceholder = computed(() => `Search ${activeRegistryEntry.value?.label || 'Records'}`)
 const viewOptions = Object.freeze([
-  { value: 'card', icon: 'grid_view' },
-  { value: 'table', icon: 'view_list' },
+  { value: 'page', icon: 'view_agenda', label: 'Page' },
+  { value: 'card', icon: 'grid_view', label: 'Card' },
 ])
 
 const multiTokenFilterSections = computed(() => {
