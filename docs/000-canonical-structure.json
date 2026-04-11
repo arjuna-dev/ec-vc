@@ -199,7 +199,7 @@
             },
             {
               "address": "0.2.12",
-              "token_name": "Event_Financial_Industry",
+              "token_name": "Event_Market",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Markets",
@@ -207,7 +207,7 @@
             },
             {
               "address": "0.2.13",
-              "token_name": "Event_Round_Security",
+              "token_name": "Event_Security",
               "token_type": "select_multi",
               "option_source": "live_entity",
               "option_entity": "Securities",
