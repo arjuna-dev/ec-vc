@@ -76,6 +76,11 @@ const api = {
     create: (payload) => ipcRenderer.invoke('events:create', payload),
     delete: (eventId) => ipcRenderer.invoke('events:delete', { eventId }),
   },
+  history: {
+    list: ({ limit } = {}) => ipcRenderer.invoke('history:list', { limit }),
+    create: (payload) => ipcRenderer.invoke('history:create', payload),
+    delete: (historyId) => ipcRenderer.invoke('history:delete', { historyId }),
+  },
   'file-system': {
     list: () => ipcRenderer.invoke('file-system:list'),
     create: (payload) => ipcRenderer.invoke('file-system:create', payload),
@@ -143,6 +148,7 @@ const api = {
     me: () => ipcRenderer.invoke('audit:me'),
     setUserLabel: (userLabel) => ipcRenderer.invoke('audit:setUserLabel', { userLabel }),
     events: (filters) => ipcRenderer.invoke('audit:events', filters),
+    history: (filters) => ipcRenderer.invoke('audit:history', filters),
   },
   links: {
     openExternal: (url) => ipcRenderer.invoke('links:openExternal', { url }),

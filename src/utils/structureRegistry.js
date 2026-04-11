@@ -97,8 +97,8 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     key: 'events',
     label: 'History',
     singularLabel: 'History Entry',
-    routeName: 'events',
-    path: '/events',
+    routeName: 'history',
+    path: '/history',
     icon: 'history',
     showInWorkspaceNav: true,
     workspaceNavGroup: 'files',
@@ -639,6 +639,7 @@ export function getFilePageRegistryEntry(key) {
     files: 'file-system',
     file: 'file-system',
     'system files': 'file-system',
+    history: 'events',
     roles: 'user-roles',
     'user roles': 'user-roles',
     intake: 'intake',
@@ -666,6 +667,7 @@ export function getFilePageRegistryEntryByEntityReference(entityName) {
   const legacyEntityAliases = {
     Intake: 'intake',
     Roles: 'user-roles',
+    History: 'events',
   }
 
   return (
@@ -804,6 +806,7 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
   const aliasMap = {
     events: 'Events',
     event: 'Events',
+    history: 'Events',
     files: 'Files',
     file: 'Files',
     'file-system': 'Files',

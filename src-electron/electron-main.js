@@ -8313,6 +8313,11 @@ function registerIpc() {
     return { events: listEventRows(limit) }
   })
 
+  ipcMain.handle('history:list', async (_event, { limit } = {}) => {
+    initDb()
+    return { events: listEventRows(limit) }
+  })
+
   ipcMain.handle('file-system:list', async () => {
     initDb()
     return listFiles()
@@ -8345,9 +8350,27 @@ function registerIpc() {
     }
   })
 
+  ipcMain.handle('history:create', async (_event, payload = {}) => {
+    initDb()
+    try {
+      const result = createEvent(payload)
+      await syncWorkspaceWorkbooksSafe()
+      return result
+    } catch (e) {
+      throw new Error(toUserFriendlySaveError(e, 'history'))
+    }
+  })
+
   ipcMain.handle('events:delete', async (_event, { eventId } = {}) => {
     initDb()
     const result = deleteRow('events', 'id', String(eventId || ''))
+    await syncWorkspaceWorkbooksSafe()
+    return result
+  })
+
+  ipcMain.handle('history:delete', async (_event, { historyId } = {}) => {
+    initDb()
+    const result = deleteRow('events', 'id', String(historyId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
   })
@@ -8573,6 +8596,11 @@ function registerIpc() {
   })
 
   ipcMain.handle('audit:events', async (_event, filters = {}) => {
+    initDb()
+    return { events: listEvents(filters) }
+  })
+
+  ipcMain.handle('audit:history', async (_event, filters = {}) => {
     initDb()
     return { events: listEvents(filters) }
   })

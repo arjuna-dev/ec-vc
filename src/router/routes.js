@@ -11,7 +11,8 @@ const routes = [
       { path: '', name: 'home', component: () => import('pages/HomePage.vue') },
       { path: 'bb-file', name: 'bb-file', component: () => import('pages/BbFilePage.vue') },
       { path: 'file-system', name: 'file-system', component: () => import('pages/FilesPage.vue') },
-      { path: 'events', name: 'events', component: () => import('pages/EventsPage.vue') },
+      { path: 'history', name: 'history', component: () => import('pages/EventsPage.vue') },
+      { path: 'events', redirect: { name: 'history' } },
       { path: 'pipelines', redirect: { name: 'projects' } },
       { path: 'projects', name: 'projects', component: () => import('pages/ProjectsPage.vue') },
       { path: 'opportunities', name: 'opportunities', component: () => import('pages/OpportunitiesPage.vue') },
@@ -42,7 +43,8 @@ const routes = [
       { path: 'roles', redirect: { name: 'user-roles' } },
       { path: 'companion-roles', name: 'companion-roles', component: () => import('pages/CompanionRolesPage.vue') },
       { path: 'records/:tableName/:recordId', name: RECORD_VIEW_ROUTE_NAME, component: () => import('pages/RecordShellPage.vue') },
-      { path: 'records/:tableName/:recordId/events/:eventId', name: 'record-event', component: () => import('pages/RecordEventPage.vue') },
+      { path: 'records/:tableName/:recordId/history/:eventId', name: 'record-history-entry', component: () => import('pages/RecordEventPage.vue') },
+      { path: 'records/:tableName/:recordId/events/:eventId', redirect: (to) => ({ name: 'record-history-entry', params: to.params, query: to.query, hash: to.hash }) },
       {
         path: 'databooks/:tableName/:recordId',
         redirect: (to) => ({
