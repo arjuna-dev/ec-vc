@@ -1271,8 +1271,7 @@ const createDialogArtifactContext = computed(() => {
   if (!entityName || !entityLabel) return null
 
   const recordId = String(editDialogRow.value?.recordId || createDialogDraftRecordId.value || '').trim()
-  const recordLabel =
-    String(editDialogRow.value?.titleValue || editDialogRow.value?.raw?.Name || editDialogRow.value?.raw?.title || '').trim()
+  const recordLabel = String(editDialogRow.value?.titleValue || '').trim()
 
   return {
     entityName,
