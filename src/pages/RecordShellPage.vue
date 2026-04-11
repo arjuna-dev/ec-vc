@@ -423,6 +423,7 @@ import {
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import { buildTokenUpdateChanges, tokenSupportsRecordUpdate } from 'src/utils/tokenWriteChanges'
 
@@ -590,10 +591,7 @@ const selectedHeroFieldCards = computed(() =>
     }
   }),
 )
-const recordFeedGroupOptions = computed(() => [
-  { id: 'lifecycle', label: 'Lifecycle' },
-  { id: 'actions', label: 'Actions' },
-])
+const recordFeedGroupOptions = computed(() => RECORD_FEED_GROUP_OPTIONS)
 const feedItems = computed(() => {
   if (isRecordRoute.value) return auditEvents.value
   return [
@@ -619,23 +617,7 @@ const feedItems = computed(() => {
     },
   ]
 })
-const RECORD_FEED_TAB_ORDER = [
-  { id: 'system', label: 'Events' },
-  { id: 'notes', label: 'Notes' },
-  { id: 'artifacts', label: 'Artifacts' },
-  { id: 'intake', label: 'Intake' },
-  { id: 'actions', label: 'Actions' },
-]
-
-const recordFeedTabOptions = computed(() => {
-  const items = Array.isArray(feedItems.value) ? feedItems.value : []
-  const activeKeys = new Set(
-    items
-      .map((item) => String(item?.feedKey || '').trim())
-      .filter(Boolean),
-  )
-  return RECORD_FEED_TAB_ORDER.filter((tab) => activeKeys.has(tab.id))
-})
+const recordFeedTabOptions = computed(() => filterRecordFeedTabs(feedItems.value))
 const recordShellNavItems = computed(() => [
   ...toolbarLeftSections.value.map((group) => ({
     value: group.value,

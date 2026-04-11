@@ -858,6 +858,7 @@ import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import EditButton from 'src/components/EditButton.vue'
 import DropdownChevron from 'src/components/DropdownChevron.vue'
+import { RECORD_FEED_GROUP_OPTIONS, RECORD_FEED_TAB_ORDER } from 'src/utils/recordFeedContract'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import MainMenuRowIcon from 'src/components/MainMenuRowIcon.vue'
@@ -1078,18 +1079,9 @@ const recordContextDocuments = [
   },
 ]
 
-const recordFeedTabOptions = [
-  { id: 'system', label: 'Events' },
-  { id: 'notes', label: 'Notes' },
-  { id: 'artifacts', label: 'Artifacts' },
-  { id: 'intake', label: 'Intake' },
-  { id: 'actions', label: 'Actions' },
-]
+const recordFeedTabOptions = RECORD_FEED_TAB_ORDER
 
-const recordFeedGroupOptions = [
-  { id: 'lifecycle', label: 'Lifecycle' },
-  { id: 'actions', label: 'Actions' },
-]
+const recordFeedGroupOptions = RECORD_FEED_GROUP_OPTIONS
 
 const recordFeedItems = [
   { id: 'feed-1', feedKey: 'system', groupKey: 'lifecycle', title: 'Record created', meta: '09:42', hasLogPage: true },
