@@ -157,6 +157,7 @@
               <div>Label</div>
               <div>Alias</div>
               <div>Type</div>
+              <div>Required</div>
             </div>
             <div
               v-for="item in selectedSystemItems"
@@ -166,6 +167,13 @@
               <div class="file-structure-shell__system-label">{{ item.label }}</div>
               <div class="file-structure-shell__system-alias">{{ item.alias }}</div>
               <div class="file-structure-shell__system-type">{{ item.type }}</div>
+              <div class="file-structure-shell__system-required">
+                <SettingsCheckbox
+                  :model-value="item.required"
+                  tone="light"
+                  @update:model-value="toggleRequiredField(item.key, $event)"
+                />
+              </div>
             </div>
             <div v-if="!selectedSystemItems.length" class="file-structure-shell__guide-meta">
               No selected items available yet.
@@ -215,6 +223,7 @@
             <col :style="columnStyle('label')">
             <col :style="columnStyle('type')">
             <col :style="columnStyle('visible')">
+            <col :style="columnStyle('required')">
             <col :style="columnStyle('writeTarget')">
           </colgroup>
           <thead>
@@ -309,6 +318,17 @@
               </th>
               <th class="file-structure-shell__colhead--data">
                 <div class="file-structure-shell__header-cell">
+                  <span>Required</span>
+                  <button
+                    type="button"
+                    class="file-structure-shell__column-resizer"
+                    aria-label="Resize required column"
+                    @pointerdown.prevent="startColumnResize('required', $event)"
+                  />
+                </div>
+              </th>
+              <th class="file-structure-shell__colhead--data">
+                <div class="file-structure-shell__header-cell">
                   <span>Write Target / Alias</span>
                   <button
                     type="button"
@@ -336,10 +356,17 @@
               <td class="file-structure-shell__cell--label">{{ token.label }}</td>
               <td class="file-structure-shell__cell--data">{{ token.type }}</td>
               <td class="file-structure-shell__cell--data">{{ token.visible }}</td>
+              <td class="file-structure-shell__cell--data">
+                <SettingsCheckbox
+                  :model-value="token.required"
+                  tone="light"
+                  @update:model-value="toggleRequiredField(token.key, $event)"
+                />
+              </td>
               <td class="file-structure-shell__cell--data">{{ token.writeTarget }}</td>
             </tr>
             <tr v-if="!activeLeafTokens.length">
-              <td :colspan="structureColumnsCollapsed ? 4 : 8" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
+              <td :colspan="structureColumnsCollapsed ? 5 : 9" class="file-structure-shell__leaf-empty">No leaf items declared for this selection.</td>
             </tr>
           </tbody>
         </table>
@@ -362,7 +389,7 @@ import SectionTabs from 'src/components/SectionTabs.vue'
 import ShellSectionToolbar from 'src/components/ShellSectionToolbar.vue'
 import SettingsCheckbox from 'src/components/SettingsCheckbox.vue'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
-import { LEVEL_2_FILE_REGISTRY_BY_KEY, LEVEL_3_FILE_REGISTRY_BY_KEY, getCanonicalTokenWriteTarget } from 'src/utils/structureRegistry'
+import { LEVEL_2_FILE_REGISTRY_BY_KEY, LEVEL_3_FILE_REGISTRY_BY_KEY, getCanonicalTokenWriteTarget, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
 
 const props = defineProps({
   shellSelectorValue: { type: String, default: '' },
@@ -386,6 +413,7 @@ const draftLeafRowsBySource = ref({})
 const selectedLeafKeysBySource = ref({})
 const expandedSettingsGroupsBySource = ref({})
 const checkedSettingsItemsBySource = ref({})
+const requiredFieldKeysBySource = ref({})
 const columnWidths = reactive({
   select: 42,
   l2Section: 92,
@@ -395,6 +423,7 @@ const columnWidths = reactive({
   label: 180,
   type: 76,
   visible: 72,
+  required: 84,
   writeTarget: 220,
 })
 const activeColumnResize = ref(null)
@@ -500,6 +529,7 @@ const selectedGeneralElementItems = computed(() =>
 )
 const selectedSystemItems = computed(() => {
   const checkedItems = checkedSettingsItemsBySource.value[activeSettingsSourceKey.value] || {}
+  const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
   return level3Tokens.value
     .filter((token) => checkedItems[token.key] !== false)
     .map((token) => ({
@@ -507,6 +537,7 @@ const selectedSystemItems = computed(() => {
       label: token.label || '—',
       alias: token.dbFieldAliases?.length ? token.dbFieldAliases.join(', ') : '—',
       type: token.tokenType || '—',
+      required: requiredKeys.has(token.key),
     }))
 })
 const latestNotes = computed(() => latestNotesBySource.value[activeSettingsSourceKey.value] || [])
@@ -528,6 +559,7 @@ const activeLeafTokens = computed(() => {
 
   return tokens.map((token, index) => {
     const checkedItems = checkedSettingsItemsBySource.value[activeSettingsSourceKey.value] || {}
+    const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
     const writeTarget = token.isDraft ? null : getCanonicalTokenWriteTarget(token, activeShellSelectorOption.value.label, 'id')
     return {
       key: token.key || '—',
@@ -536,6 +568,7 @@ const activeLeafTokens = computed(() => {
       parentSubgroup: token.draftParentSubgroup || subgroupMap.get(activeSubgroupKey.value)?.label || '—',
       type: token.tokenType || '—',
       visible: checkedItems[token.key] !== false ? 'Yes' : 'No',
+      required: requiredKeys.has(token.key),
       editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
       relationshipMeaning: token.relationshipGroup || '—',
       writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '—',
@@ -647,6 +680,23 @@ function toggleSettingsItem(itemKey, value) {
   }
 }
 
+function getDefaultRequiredFieldKeysForSource(sourceKey) {
+  const titleToken = getRegistryTitleTokenForSource(sourceKey)
+  const normalizedKey = String(titleToken?.key || '').trim()
+  return normalizedKey ? [normalizedKey] : []
+}
+
+function toggleRequiredField(tokenKey, value) {
+  const sourceKey = activeSettingsSourceKey.value
+  const current = new Set(requiredFieldKeysBySource.value[sourceKey] || [])
+  if (value) current.add(tokenKey)
+  else current.delete(tokenKey)
+  requiredFieldKeysBySource.value = {
+    ...requiredFieldKeysBySource.value,
+    [sourceKey]: Array.from(current),
+  }
+}
+
 function startColumnResize(columnKey, event) {
   if (event.button !== 0) return
   activeColumnResize.value = {
@@ -723,6 +773,16 @@ watch(
     checkedSettingsItemsBySource.value = {
       ...checkedSettingsItemsBySource.value,
       [sourceKey]: nextChecked,
+    }
+
+    const allowedRequiredKeys = new Set(level3Tokens.value.map((token) => token.key))
+    const existingRequired = Array.isArray(requiredFieldKeysBySource.value[sourceKey])
+      ? requiredFieldKeysBySource.value[sourceKey].filter((itemKey) => allowedRequiredKeys.has(itemKey))
+      : []
+
+    requiredFieldKeysBySource.value = {
+      ...requiredFieldKeysBySource.value,
+      [sourceKey]: existingRequired.length ? existingRequired : getDefaultRequiredFieldKeysForSource(sourceKey),
     }
   },
   { immediate: true },
