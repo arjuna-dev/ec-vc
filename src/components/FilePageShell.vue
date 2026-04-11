@@ -2924,8 +2924,12 @@ function resolveCreateDialogEntityName(payload = {}) {
 
 function resolveEditEntityName(row) {
   if (activeSourceKey.value !== 'opportunities') return activeRegistryEntry.value?.entityName || ''
+  const opportunityKindToken =
+    (LEVEL_3_FILE_REGISTRY_BY_KEY.opportunities || []).find(
+      (token) => String(token?.tokenName || '').trim() === 'Opportunity_Kind',
+    ) || null
   const kindValue =
-    String(getCanonicalTokenValue(row?.raw || {}, { tokenName: 'Opportunity_Kind', dbFieldAliases: ['Opportunity_Kind'] }) || '')
+    String(getCanonicalTokenValue(row?.raw || {}, opportunityKindToken || {}) || '')
       .trim()
       .toLowerCase()
   if (kindValue === 'fund') return 'Funds'
@@ -3224,20 +3228,24 @@ function buildFallbackArtifactsForRow(row) {
 
 async function loadCompanyArtifactsForRow(row) {
   const recordId = String(row?.recordId || '').trim()
-  if (!recordId || !bridge.value?.artifacts?.list) return buildFallbackArtifactsForRow(row)
+  if (!recordId || !bridge.value?.artifacts?.list || !bridge.value?.db?.query) return buildFallbackArtifactsForRow(row)
 
   try {
-    const [artifactResult, relatedOpportunityIds] = await Promise.all([
+    const [artifactResult, relatedArtifactIds] = await Promise.all([
       bridge.value.artifacts.list(),
-      resolveCompanyOpportunityIdsForShell(recordId),
+      resolveRelatedArtifactIdsForShell({
+        targetEntity: 'Companies',
+        targetRecordId: recordId,
+        sourceToken: 'Opportunity_Company',
+      }),
     ])
     const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
     const grouped = new Map()
 
     for (const artifact of artifacts) {
-      const opportunityId = String(artifact?.opportunity_id || '').trim()
-      if (!relatedOpportunityIds.has(opportunityId)) continue
-      const groupKey = String(artifact?.original_artifact_id || '').trim() || String(artifact?.artifact_id || '').trim()
+      const artifactId = String(artifact?.artifact_id || '').trim()
+      if (!artifactId || !relatedArtifactIds.has(artifactId)) continue
+      const groupKey = String(artifact?.original_artifact_id || '').trim() || artifactId
       if (!groupKey) continue
       const existing = grouped.get(groupKey)
       if (!existing) grouped.set(groupKey, artifact)
@@ -3255,84 +3263,28 @@ async function loadCompanyArtifactsForRow(row) {
   } catch {
     return buildFallbackArtifactsForRow(row)
   }
-}
-
-async function resolveCompanyOpportunityIdsForShell(companyId) {
-  const normalizedCompanyId = String(companyId || '').trim()
-  if (!normalizedCompanyId) return new Set()
-
-  if (bridge.value?.db?.query) {
-    try {
-      const rows = await bridge.value.db.query(
-        `
-        SELECT DISTINCT id
-        FROM (
-          SELECT o.id
-          FROM Opportunities o
-          WHERE o.company_id = ?
-
-          UNION
-
-          SELECT r.id
-          FROM Rounds r
-          INNER JOIN Round_Overview ro ON ro.round_id = r.id
-          WHERE ro.sponsor_company_id = ?
-        ) related_opportunities
-      `,
-        [normalizedCompanyId, normalizedCompanyId],
-      )
-      return new Set((Array.isArray(rows) ? rows : []).map((entry) => String(entry?.id || '').trim()).filter(Boolean))
-    } catch {
-      // Fall back to the generic opportunity list when direct querying is unavailable.
-    }
-  }
-
-  if (bridge.value?.opportunities?.list) {
-    try {
-      const result = await bridge.value.opportunities.list()
-      const opportunities = Array.isArray(result?.opportunities) ? result.opportunities : []
-      return new Set(
-        opportunities
-          .filter((opportunity) => String(opportunity?.company_id || '').trim() === normalizedCompanyId)
-          .map((opportunity) => String(opportunity?.id || '').trim())
-          .filter(Boolean),
-      )
-    } catch {
-      // Return an empty set below if the list bridge cannot resolve related opportunities.
-    }
-  }
-
-  return new Set()
 }
 
 async function loadContactArtifactsForRow(row) {
   const recordId = String(row?.recordId || '').trim()
-  if (!recordId || !bridge.value?.artifacts?.list) return buildFallbackArtifactsForRow(row)
+  if (!recordId || !bridge.value?.artifacts?.list || !bridge.value?.db?.query) return buildFallbackArtifactsForRow(row)
 
   try {
-    const [artifactResult, opportunitiesResult] = await Promise.all([
+    const [artifactResult, relatedArtifactIds] = await Promise.all([
       bridge.value.artifacts.list(),
-      bridge.value?.opportunities?.list ? bridge.value.opportunities.list() : Promise.resolve({ opportunities: [] }),
+      resolveRelatedArtifactIdsForShell({
+        targetEntity: 'Contacts',
+        targetRecordId: recordId,
+        sourceToken: 'Opportunity_Contact',
+      }),
     ])
-    const opportunities = Array.isArray(opportunitiesResult?.opportunities) ? opportunitiesResult.opportunities : []
-    const relatedOpportunityIds = new Set(
-      opportunities
-        .filter(
-          (opportunity) =>
-            String(opportunity?.Owner || '').trim() === recordId ||
-            String(opportunity?.Source_Contact || '').trim() === recordId,
-        )
-        .map((opportunity) => String(opportunity?.id || '').trim())
-        .filter(Boolean),
-    )
     const artifacts = Array.isArray(artifactResult?.artifacts) ? artifactResult.artifacts : []
     const grouped = new Map()
 
     for (const artifact of artifacts) {
-      const createdBy = String(artifact?.created_by || '').trim()
-      const opportunityId = String(artifact?.opportunity_id || '').trim()
-      if (createdBy !== recordId && !relatedOpportunityIds.has(opportunityId)) continue
-      const groupKey = String(artifact?.original_artifact_id || '').trim() || String(artifact?.artifact_id || '').trim()
+      const artifactId = String(artifact?.artifact_id || '').trim()
+      if (!artifactId || !relatedArtifactIds.has(artifactId)) continue
+      const groupKey = String(artifact?.original_artifact_id || '').trim() || artifactId
       if (!groupKey) continue
       const existing = grouped.get(groupKey)
       if (!existing) grouped.set(groupKey, artifact)
@@ -3350,6 +3302,51 @@ async function loadContactArtifactsForRow(row) {
   } catch {
     return buildFallbackArtifactsForRow(row)
   }
+}
+
+async function resolveRelatedArtifactIdsForShell({ targetEntity = '', targetRecordId = '', sourceToken = '' } = {}) {
+  const normalizedTargetEntity = String(targetEntity || '').trim()
+  const normalizedTargetRecordId = String(targetRecordId || '').trim()
+  const normalizedSourceToken = String(sourceToken || '').trim()
+  if (!normalizedTargetEntity || !normalizedTargetRecordId || !normalizedSourceToken || !bridge.value?.db?.query) {
+    return new Set()
+  }
+
+  const opportunityRows = await bridge.value.db.query(
+    `
+      SELECT DISTINCT source_record_id AS opportunity_id
+      FROM KDB_Relationships
+      WHERE source_entity = 'Opportunities'
+        AND source_token = ?
+        AND target_entity = ?
+        AND target_record_id = ?
+    `,
+    [normalizedSourceToken, normalizedTargetEntity, normalizedTargetRecordId],
+  )
+
+  const opportunityIds = (Array.isArray(opportunityRows) ? opportunityRows : [])
+    .map((row) => String(row?.opportunity_id || '').trim())
+    .filter(Boolean)
+
+  if (!opportunityIds.length) return new Set()
+
+  const placeholders = opportunityIds.map(() => '?').join(', ')
+  const artifactRows = await bridge.value.db.query(
+    `
+      SELECT DISTINCT target_record_id AS artifact_id
+      FROM KDB_Relationships
+      WHERE source_entity = 'Opportunities'
+        AND source_token = 'Opportunity_Artifact'
+        AND source_record_id IN (${placeholders})
+    `,
+    opportunityIds,
+  )
+
+  return new Set(
+    (Array.isArray(artifactRows) ? artifactRows : [])
+      .map((row) => String(row?.artifact_id || '').trim())
+      .filter(Boolean),
+  )
 }
 
 function normalizeCreateFieldValue(token, value) {
