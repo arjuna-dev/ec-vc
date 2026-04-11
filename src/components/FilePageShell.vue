@@ -312,10 +312,12 @@
             flat
             bordered
             class="test-shell-card full-height"
+            :class="{ 'test-shell-card--editable': canOpenCardEdit(row) }"
             :style="getTestShellCardStyle()"
             @pointerenter="onTestShellCardPointerEnter"
             @pointermove="onTestShellCardPointerMove"
             @pointerleave="onTestShellCardPointerLeave"
+            @dblclick="requestEditRecordShell(row)"
           >
             <q-card-section class="test-shell-card__control-row">
               <div class="test-shell-card__control-leading">
@@ -324,15 +326,6 @@
                   color="dark"
                   class="test-shell-card__select-box"
                   @update:model-value="toggleRowSelection(row, $event)"
-                />
-                <q-btn
-                  flat
-                  round
-                  dense
-                  icon="edit"
-                  class="test-shell-card__control-edit"
-                  :disable="!row.recordId || !supportsActiveSourceEditing"
-                  @click="requestEditRecordShell(row)"
                 />
               </div>
               <div class="test-shell-card__control-actions">
@@ -2623,6 +2616,7 @@ function canInlineEditTableCell(row, token, kind = 'token') {
   if (!isTableInlineEditingAvailable.value) return false
   if (!token?.key || !row?.recordId) return false
   if (kind !== 'name' && isKdbSectionActive.value) return false
+  if (String(token?.tokenType || '').trim().toLowerCase() === 'id') return false
   if (row?.isLocalDraft) return true
 
   const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
@@ -2638,6 +2632,11 @@ function canInlineEditTableCell(row, token, kind = 'token') {
     activeLoader.value?.recordIdField || 'id',
   )
   return Boolean(writeTarget?.tableName && writeTarget?.fieldName)
+}
+
+function canOpenCardEdit(row) {
+  if (!supportsActiveSourceEditing.value) return false
+  return Boolean(row?.recordId)
 }
 
 function isInlineEditingCell(row, token, kind = 'token') {
@@ -4437,7 +4436,6 @@ function isBbGraphLinkToken(tokenRow) {
   font-size: 22px;
 }
 
-.test-shell-card__control-edit,
 .test-shell-card__control-settings,
 .test-shell-card__control-eye {
   width: 24px;
@@ -4445,14 +4443,6 @@ function isBbGraphLinkToken(tokenRow) {
   min-width: 24px;
   min-height: 24px;
   color: rgba(17, 17, 17, 0.82);
-}
-
-.test-shell-card__control-edit {
-  color: #2647ff;
-}
-
-.test-shell-card__control-edit :deep(.q-icon) {
-  font-size: 14px;
 }
 
 .test-shell-card__control-settings :deep(.q-icon),
@@ -4464,6 +4454,10 @@ function isBbGraphLinkToken(tokenRow) {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+}
+
+.test-shell-card--editable {
+  cursor: pointer;
 }
 
 .test-shell-card-settings-menu {
