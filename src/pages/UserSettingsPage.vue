@@ -133,6 +133,22 @@
                 Owner authority is locked. Only the owner can update Owner Settings.
               </q-banner>
 
+              <div v-if="ownerIdentityId" class="settings-owner-id">
+                <div class="settings-owner-id__label">Owner ID</div>
+                <div class="settings-owner-id__value">{{ ownerIdentityId }}</div>
+                <q-btn
+                  flat
+                  dense
+                  round
+                  icon="content_copy"
+                  class="settings-owner-id__copy"
+                  aria-label="Copy Owner ID"
+                  @click="copyOwnerId"
+                >
+                  <q-tooltip>Copy Owner ID</q-tooltip>
+                </q-btn>
+              </div>
+
               <q-separator />
 
               <q-card-section class="settings-form-card__body">
@@ -555,6 +571,7 @@ const activeOwnerDocumentId = ref('owner')
 const canEditOwnerSettings = ref(true)
 const ownerSetupRequired = ref(false)
 const ownerSetupMessage = ref('')
+const ownerIdentityId = ref('')
 const form = ref({
   Name: '',
   User_PEmail: '',
@@ -625,6 +642,21 @@ function normalizeIpcErrorMessage(err) {
 
 function normalizeInput(value) {
   return String(value || '').trim()
+}
+
+async function copyTextValue(value, successMessage) {
+  const normalizedValue = String(value || '').trim()
+  if (!normalizedValue) return
+  try {
+    await navigator.clipboard.writeText(normalizedValue)
+    $q.notify({ type: 'positive', message: successMessage })
+  } catch {
+    $q.notify({ type: 'negative', message: 'Unable to copy value' })
+  }
+}
+
+function copyOwnerId() {
+  copyTextValue(ownerIdentityId.value, 'Owner ID copied')
 }
 
 function normalizedFormSignature(value) {
@@ -773,6 +805,7 @@ async function loadUserSettings() {
     canEditOwnerSettings.value = result?.canEditOwnerSettings !== false
     ownerSetupRequired.value = result?.requiresOwnerSetup === true
     ownerSetupMessage.value = String(result?.ownerSetupMessage || '').trim()
+    ownerIdentityId.value = String(result?.ownerUserId || result?.ownerContactId || '').trim()
     form.value = mapUserSettingsToForm(result)
     savedForm.value = { ...form.value }
     ownerSubmitAttempted.value = false
@@ -824,6 +857,7 @@ async function saveUserSettings() {
     canEditOwnerSettings.value = result?.canEditOwnerSettings !== false
     ownerSetupRequired.value = result?.requiresOwnerSetup === true
     ownerSetupMessage.value = String(result?.ownerSetupMessage || '').trim()
+    ownerIdentityId.value = String(result?.ownerUserId || result?.ownerContactId || '').trim()
     form.value = mapUserSettingsToForm(result)
     savedForm.value = { ...form.value }
     ownerSubmitAttempted.value = false
@@ -1191,6 +1225,42 @@ watch(activeOwnerDocumentId, () => {
 
 .settings-form-card__error {
   margin: 0 24px 16px;
+}
+
+.settings-owner-id {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin: 0 24px 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.88);
+}
+
+.settings-owner-id__label {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.settings-owner-id__value {
+  min-width: 0;
+  color: #334155;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-owner-id__copy {
+  color: #64748b;
 }
 
 .settings-form-card__body {
