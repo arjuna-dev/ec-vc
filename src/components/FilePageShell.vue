@@ -2509,6 +2509,17 @@ function requestCreateRecordShell(options = {}) {
     return
   }
 
+  if (activeSourceKey.value === 'file-system') {
+    router.push({
+      name: 'file-dialog-shell',
+      query: {
+        section: activeSourceKey.value,
+        returnTo: route.fullPath,
+      },
+    })
+    return
+  }
+
   const requestedBranch = String(options?.kind || '').trim().toLowerCase()
   if (!requestedBranch && getCreateBranches(activeSourceKey.value).length) {
     router.push({
