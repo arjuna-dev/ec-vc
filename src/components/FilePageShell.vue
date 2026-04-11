@@ -31,7 +31,7 @@
         @action-item-click="handleHeroActionItemClick"
       />
 
-      <template v-if="isEventShellMode">
+      <template v-if="false">
       <ShellSectionToolbar
         v-if="eventShellNavItems.length"
         v-model="activeSectionKeyForCards"
@@ -135,7 +135,7 @@
         :some-visible-selected="someVisibleSelected"
         :disabled="false"
         :loading="loading"
-        :add-disabled="false"
+        :add-disabled="!supportsActiveSourceEditing || !canCreateWithShell"
         :fork-value="activeForkValue"
         :fork-options="toolbarForkOptions"
         :search-query="searchQuery"
@@ -1051,7 +1051,6 @@ const hasSupportedBridge = computed(() => {
   if (!activeLoader.value) return false
   return typeof activeLoader.value.listFn(bridge.value) !== 'undefined'
 })
-const isEventShellMode = computed(() => activeContentSourceKey.value === 'events' && !isRecordShellMode.value)
 const supportsActiveSourceEditing = computed(() => activeContentSourceKey.value !== 'events')
 const hasActiveSourceKdb = computed(() =>
   level2Sections.value.some((section) => String(section?.label || section?.rawLabel || '').trim().toLowerCase() === 'kdb'),
@@ -1417,6 +1416,7 @@ function buildEditDialogFieldMetaFromPayload(payload, entityName, recordId) {
 }
 const canDeleteSelectedRows = computed(() => {
   if (selectedRows.value.length === 0) return false
+  if (activeSourceKey.value === 'events') return false
   return typeof bridge.value?.[activeSourceKey.value]?.delete === 'function'
 })
 const bbGraphRowColumns = computed(() => {
