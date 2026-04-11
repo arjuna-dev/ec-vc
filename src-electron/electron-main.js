@@ -1314,6 +1314,7 @@ function createSecurity(payload = {}) {
 
 function createUser(payload = {}) {
   const database = initDb()
+  ensureDefaultRoles(database)
   const userName =
     normalizeNullableString(payload?.User_Name) || normalizeNullableString(payload?.Name)
   const userEmail =
@@ -1354,6 +1355,16 @@ function createUser(payload = {}) {
     })
 
   ensureUserRoleAssignmentRow(database, userId)
+  if (!userEmail) {
+    const unverifiedRoleId = normalizeNullableString(
+      database
+        .prepare("SELECT id FROM Roles WHERE lower(trim(Role_Name)) = 'unverified' LIMIT 1")
+        .get()?.id,
+    )
+    if (unverifiedRoleId) {
+      assignUserRole(database, userId, unverifiedRoleId, userId)
+    }
+  }
   const contactId = upsertLinkedContactForUserProfile(database, {
     userId,
     name: userName,
@@ -5689,6 +5700,11 @@ function ensureDefaultRoles(database, actorUserId = null) {
       id: 'role:guest',
       name: 'Guest',
       summary: 'Restricted role for view-oriented access with limited editing rights.',
+    },
+    {
+      id: 'role:unverified',
+      name: 'Unverified',
+      summary: 'Draft user role for identities that exist but do not yet hold verified credentials or access.',
     },
   ]
 
