@@ -4708,7 +4708,7 @@ function isBbGraphLinkToken(tokenRow) {
   min-height: 32px;
   padding: 0 14px;
   border-radius: 9px 9px 0 0;
-  overflow: hidden;
+  overflow: visible;
   background: transparent;
 }
 
