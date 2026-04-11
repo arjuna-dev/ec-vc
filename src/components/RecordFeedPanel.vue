@@ -192,9 +192,9 @@ const resolvedAddLabel = computed(() => {
 
 .record-feed-panel__add :deep(.plus-with-label-button) {
   min-width: 0;
-  min-height: 30px;
-  height: 30px;
-  padding: 0 9px;
+  min-height: 18px;
+  height: 18px;
+  padding: 0 6px;
   color: var(--ds-color-brand-white);
   background: rgba(17, 17, 17, 1);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -206,17 +206,18 @@ const resolvedAddLabel = computed(() => {
 }
 
 .record-feed-panel__add :deep(.plus-with-label-button__inner) {
-  gap: 8px;
+  gap: 5px;
 }
 
 .record-feed-panel__add :deep(.plus-with-label-button__label) {
   color: inherit;
-  font-size: calc(var(--ds-font-size-base) * 0.75);
+  font-size: var(--ds-font-size-xs);
+  line-height: 1;
 }
 
 .record-feed-panel__add :deep(.plus-icon-chip) {
-  --plus-icon-chip-size: 16px;
-  --plus-icon-chip-glyph-size: 12px;
+  --plus-icon-chip-size: 10px;
+  --plus-icon-chip-glyph-size: 8px;
   background: var(--ds-color-brand-white);
   color: var(--ds-color-brand-black);
 }
