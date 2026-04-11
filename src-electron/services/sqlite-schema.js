@@ -1440,6 +1440,8 @@ CREATE TABLE IF NOT EXISTS Files (
   File_Owner TEXT,
   File_Steward TEXT,
   Rulebook_Dependencies TEXT,
+  Fork_Mode TEXT,
+  Fork_Enabled TEXT,
   Defined_Structure TEXT,
   Glossary_Terms TEXT,
   File_Source_Key TEXT NOT NULL UNIQUE,

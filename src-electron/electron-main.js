@@ -28,7 +28,7 @@ import {
 } from '../src/shared/kdbRelationshipContracts.js'
 import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
 import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
-import { FILE_PAGE_REGISTRY } from '../src/utils/structureRegistry.js'
+import { FILE_PAGE_REGISTRY, getCreateBranches, getViewForks } from '../src/utils/structureRegistry.js'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
@@ -1559,6 +1559,20 @@ function getFileRegistryRequiresSubsection(entry, subsectionName) {
   return getFileRegistrySubsectionLabels(entry).some((label) => label.toLowerCase() === normalizedName) ? 'Yes' : 'No'
 }
 
+function getFileRegistryForkMode(entry) {
+  const sourceKey = String(entry?.key || '').trim()
+  const hasCreateBranches = getCreateBranches(sourceKey).length > 0
+  const hasViewForks = getViewForks(sourceKey).length > 0
+  if (hasCreateBranches && hasViewForks) return 'view_and_create'
+  if (hasCreateBranches) return 'create'
+  if (hasViewForks) return 'view'
+  return 'none'
+}
+
+function getFileRegistryForkEnabled(entry) {
+  return getFileRegistryForkMode(entry) === 'none' ? 'No' : 'Yes'
+}
+
 function buildDefaultFileRegistryRow(entry, index) {
   const subsectionLabels = getFileRegistrySubsectionLabels(entry)
   const sourceKey = String(entry?.key || '').trim()
@@ -1577,6 +1591,8 @@ function buildDefaultFileRegistryRow(entry, index) {
     File_Owner: 'Owner',
     File_Steward: 'File Steward',
     Rulebook_Dependencies: 'docs/001/Active/001-Files.md',
+    Fork_Mode: getFileRegistryForkMode(entry),
+    Fork_Enabled: getFileRegistryForkEnabled(entry),
     Defined_Structure: subsectionLabels.join(', '),
     Glossary_Terms: '',
     File_Source_Key: sourceKey,
@@ -1593,6 +1609,7 @@ function getFileRegistryEntryBySourceKey(sourceKey) {
 }
 
 const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Partial', 'Draft', 'Hidden', 'Archived'])
+const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
 const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
 const FILE_GUIDE_PATH_BY_SOURCE_KEY = Object.freeze({
   'bb-file': 'docs/100/Draft/100-BB_Shell.md',
@@ -1635,6 +1652,11 @@ function normalizeYesNoValue(value) {
   if (normalized === 'yes') return 'Yes'
   if (normalized === 'no') return 'No'
   return ''
+}
+
+function normalizeForkModeValue(value) {
+  const normalized = String(value || '').trim().toLowerCase()
+  return ACCEPTED_FORK_MODE_VALUES.includes(normalized) ? normalized : ''
 }
 
 function buildFilesAcceptanceValidation(rows = []) {
@@ -1767,6 +1789,28 @@ function buildFilesAcceptanceValidation(rows = []) {
       })
     }
 
+    if (normalizeForkModeValue(row?.Fork_Mode) !== expected.Fork_Mode) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'Fork_Mode',
+        issue: `Fork_Mode drift: expected "${expected.Fork_Mode}".`,
+        suggestedAction: 'Align fork mode with the registry-declared branch or view-fork behavior.',
+      })
+    }
+
+    if (normalizeYesNoValue(row?.Fork_Enabled) !== expected.Fork_Enabled) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'Fork_Enabled',
+        issue: `Fork_Enabled drift: expected "${expected.Fork_Enabled}".`,
+        suggestedAction: 'Align fork enabled state with the registry-declared fork availability.',
+      })
+    }
+
     if (statusValue === 'Active' && expectedGuideRequired && !guidePath) {
       addIssue({
         severity: 'warn',
@@ -1849,6 +1893,8 @@ function ensureDefaultFiles(database) {
     ['File_Steward', 'TEXT'],
     ['File_Guide_Path', 'TEXT'],
     ['Rulebook_Dependencies', 'TEXT'],
+    ['Fork_Mode', 'TEXT'],
+    ['Fork_Enabled', 'TEXT'],
     ['Defined_Structure', 'TEXT'],
     ['Glossary_Terms', 'TEXT'],
   ]
@@ -1891,6 +1937,8 @@ function ensureDefaultFiles(database) {
       File_Owner,
       File_Steward,
       Rulebook_Dependencies,
+      Fork_Mode,
+      Fork_Enabled,
       Defined_Structure,
       Glossary_Terms,
       File_Source_Key,
@@ -1914,6 +1962,8 @@ function ensureDefaultFiles(database) {
       @File_Owner,
       @File_Steward,
       @Rulebook_Dependencies,
+      @Fork_Mode,
+      @Fork_Enabled,
       @Defined_Structure,
       @Glossary_Terms,
       @File_Source_Key,
@@ -1949,6 +1999,8 @@ function ensureDefaultFiles(database) {
       File_Owner = COALESCE(NULLIF(Files.File_Owner, ''), excluded.File_Owner),
       File_Steward = COALESCE(NULLIF(Files.File_Steward, ''), excluded.File_Steward),
       Rulebook_Dependencies = COALESCE(NULLIF(Files.Rulebook_Dependencies, ''), excluded.Rulebook_Dependencies),
+      Fork_Mode = COALESCE(NULLIF(Files.Fork_Mode, ''), excluded.Fork_Mode),
+      Fork_Enabled = COALESCE(NULLIF(Files.Fork_Enabled, ''), excluded.Fork_Enabled),
       Defined_Structure = CASE
         WHEN Files.Defined_Structure IS NULL OR Files.Defined_Structure = '' THEN excluded.Defined_Structure
         WHEN Files.Defined_Structure = 'System, General, KDB, File Specific' THEN excluded.Defined_Structure
@@ -1987,6 +2039,8 @@ function listFiles() {
         File_Owner,
         File_Steward,
         Rulebook_Dependencies,
+        Fork_Mode,
+        Fork_Enabled,
         Defined_Structure,
         Glossary_Terms,
         File_Source_Key,
@@ -2049,6 +2103,8 @@ function createFile(payload = {}) {
       File_Owner,
       File_Steward,
       Rulebook_Dependencies,
+      Fork_Mode,
+      Fork_Enabled,
       Defined_Structure,
       Glossary_Terms,
       File_Source_Key,
@@ -2074,6 +2130,8 @@ function createFile(payload = {}) {
       @File_Owner,
       @File_Steward,
       @Rulebook_Dependencies,
+      @Fork_Mode,
+      @Fork_Enabled,
       @Defined_Structure,
       @Glossary_Terms,
       @File_Source_Key,
@@ -2106,6 +2164,8 @@ function createFile(payload = {}) {
     File_Owner: normalizeNullableString(payload?.File_Owner) || registryDefaults.File_Owner,
     File_Steward: normalizeNullableString(payload?.File_Steward) || registryDefaults.File_Steward,
     Rulebook_Dependencies: normalizeNullableString(payload?.Rulebook_Dependencies) || registryDefaults.Rulebook_Dependencies,
+    Fork_Mode: normalizeNullableString(payload?.Fork_Mode) || registryDefaults.Fork_Mode,
+    Fork_Enabled: normalizeNullableString(payload?.Fork_Enabled) || registryDefaults.Fork_Enabled,
     Defined_Structure: normalizeNullableString(payload?.Defined_Structure) || registryDefaults.Defined_Structure,
     Glossary_Terms: normalizeNullableString(payload?.Glossary_Terms) || registryDefaults.Glossary_Terms,
     File_Source_Key: sourceKey,
