@@ -162,6 +162,15 @@ function formatActorLabel(editedBy) {
   return String(userTitleToken ? getCanonicalTokenValue(matched || {}, userTitleToken) : '').trim() || normalized || 'User'
 }
 
+function formatVerificationStateLabel(state) {
+  const normalized = String(state || '').trim().toLowerCase()
+  if (normalized === 'verified') return 'Verified'
+  if (normalized === 'default_preselected_unverified') return 'Pre-Selected'
+  if (normalized === 'suggested_unverified') return 'Suggested'
+  if (normalized === 'rejected') return 'Rejected'
+  return 'Verification Updated'
+}
+
 const eventPayload = computed(() => (eventRecord.value?.payload && typeof eventRecord.value.payload === 'object' ? eventRecord.value.payload : {}))
 const eventFieldLabel = computed(() => String(eventPayload.value?.field_label || '').trim() || formatAuditFieldLabel(String(eventRecord.value?.field_name || '').replace(/__verification$/, '')))
 const eventActionLabel = computed(() => String(eventRecord.value?.action_label || '').trim() || 'record_event')
@@ -172,7 +181,10 @@ const eventNewValue = computed(() => String(eventPayload.value?.new_display_valu
 const eventTitle = computed(() => {
   const fieldName = String(eventRecord.value?.field_name || '').trim()
   const recordLabel = String(eventPayload.value?.record_label || '').trim() || 'record'
-  if (fieldName.endsWith('__verification')) return `${eventActor.value} verified ${eventFieldLabel.value} for ${recordLabel}`
+  if (fieldName.endsWith('__verification')) {
+    const verificationStateLabel = formatVerificationStateLabel(eventPayload.value?.verification_state)
+    return `${eventActor.value} marked ${eventFieldLabel.value} as ${verificationStateLabel.toLowerCase()} for ${recordLabel}`
+  }
   if (String(eventRecord.value?.action_label || '').toLowerCase().includes('create')) return `${eventActor.value} created ${recordLabel}`
   return `${eventActor.value} updated ${eventFieldLabel.value || 'record'} for ${recordLabel}`
 })

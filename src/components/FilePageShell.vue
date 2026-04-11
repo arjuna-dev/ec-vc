@@ -2641,6 +2641,15 @@ function formatAuditHistoryActionLabel(value) {
     .join(' ')
 }
 
+function formatVerificationStateLabel(state) {
+  const normalized = String(state || '').trim().toLowerCase()
+  if (normalized === 'verified') return 'verified'
+  if (normalized === 'default_preselected_unverified') return 'pre-selected'
+  if (normalized === 'suggested_unverified') return 'suggested'
+  if (normalized === 'rejected') return 'rejected'
+  return 'verification updated'
+}
+
 function normalizeAuditHistoryItems(events = []) {
   return (Array.isArray(events) ? events : [])
     .map((event) => {
@@ -2648,7 +2657,9 @@ function normalizeAuditHistoryItems(events = []) {
       const fieldLabel = String(payload?.field_label || event?.field_name || '').replace(/__verification$/, '').trim()
       const actorLabel = String(payload?.actor_label || event?.edited_by || '').trim() || 'System'
       const actionLabel = formatAuditHistoryActionLabel(event?.action_label)
-      const title = fieldLabel ? `${actionLabel} ${fieldLabel}` : actionLabel
+      const title = String(event?.field_name || '').trim().endsWith('__verification')
+        ? `${formatVerificationStateLabel(payload?.verification_state)} ${fieldLabel || 'field'}`
+        : fieldLabel ? `${actionLabel} ${fieldLabel}` : actionLabel
       return {
         id: String(event?.id || '').trim(),
         sourceLabel: actorLabel,

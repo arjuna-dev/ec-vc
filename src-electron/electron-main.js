@@ -6200,11 +6200,13 @@ function buildEventShellSummary({ actorLabel, recordLabel, fieldLabel, actionLab
   }
 
   if (action.includes('verification')) {
+    const payloadObject = event?.payload && typeof event.payload === 'object' ? event.payload : {}
+    const verificationStateLabel = formatVerificationStateLabel(payloadObject?.verification_state)
     return {
-      title: `Verified ${fieldLabel || 'field'}`,
+      title: `${verificationStateLabel} ${fieldLabel || 'field'}`,
       summary: nextValue
-        ? `${actorLabel || 'User'} verified "${nextValue}" as ${fieldLabel || 'field'} for ${recordLabel || 'record'}`
-        : `${actorLabel || 'User'} verified ${fieldLabel || 'field'} for ${recordLabel || 'record'}`,
+        ? `${actorLabel || 'User'} marked "${nextValue}" as ${verificationStateLabel.toLowerCase()} for ${fieldLabel || 'field'} on ${recordLabel || 'record'}`
+        : `${actorLabel || 'User'} marked ${fieldLabel || 'field'} as ${verificationStateLabel.toLowerCase()} for ${recordLabel || 'record'}`,
     }
   }
 
@@ -6233,6 +6235,15 @@ function buildEventShellSummary({ actorLabel, recordLabel, fieldLabel, actionLab
     title: `Updated ${fieldLabel || 'record'}`,
     summary: `${actorLabel || 'User'} updated ${fieldLabel || 'record'} for ${recordLabel || 'record'}`,
   }
+}
+
+function formatVerificationStateLabel(state) {
+  const normalized = normalizeNullableString(state)?.toLowerCase()
+  if (normalized === 'verified') return 'Verified'
+  if (normalized === 'default_preselected_unverified') return 'Pre-Selected'
+  if (normalized === 'suggested_unverified') return 'Suggested'
+  if (normalized === 'rejected') return 'Rejected'
+  return 'Verification Updated'
 }
 
 function listEventRows(limit = 200) {
