@@ -847,22 +847,20 @@ const historySummaryItems = computed(() => {
   const createdEvent = [...lifecycleItems]
     .reverse()
     .find((item) => String(item?.title || '').trim().toLowerCase().includes('created'))
-  const fallbackItem = lifecycleItems[lifecycleItems.length - 1] || auditEvents.value[auditEvents.value.length - 1] || null
-  const sourceItem = createdEvent || fallbackItem
-  if (!sourceItem) return []
+  if (!createdEvent) return []
 
   return [
     {
       key: 'creator',
       label: 'Creator',
-      value: String(sourceItem.sourceLabel || '').trim() || 'Unknown',
+      value: String(createdEvent.sourceLabel || '').trim(),
     },
     {
       key: 'datetime',
       label: 'Datetime',
-      value: String(sourceItem.meta || '').trim() || 'Unknown',
+      value: String(createdEvent.meta || '').trim(),
     },
-  ]
+  ].filter((item) => item.value)
 })
 const recordShellNavItems = computed(() => [
   ...toolbarLeftSections.value.map((group) => ({
@@ -961,9 +959,11 @@ watch(
       return
     }
 
-    heroFieldKeysBySource.value = {
-      ...heroFieldKeysBySource.value,
-      [sourceKey]: heroSelectableTokens.value.slice(0, 4).map((token) => token.key),
+    if (existing.length || heroFieldKeysBySource.value[sourceKey]) {
+      heroFieldKeysBySource.value = {
+        ...heroFieldKeysBySource.value,
+        [sourceKey]: normalized,
+      }
     }
   },
   { immediate: true },

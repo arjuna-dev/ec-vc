@@ -258,9 +258,11 @@ watch(
       return
     }
 
-    generalFieldKeysBySource.value = {
-      ...generalFieldKeysBySource.value,
-      [sourceKey]: generalSelectableTokens.value.slice(0, 4).map((token) => token.key),
+    if (existing.length || generalFieldKeysBySource.value[sourceKey]) {
+      generalFieldKeysBySource.value = {
+        ...generalFieldKeysBySource.value,
+        [sourceKey]: normalized,
+      }
     }
   },
   { immediate: true },

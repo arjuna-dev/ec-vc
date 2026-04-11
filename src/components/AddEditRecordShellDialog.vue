@@ -1811,12 +1811,11 @@ const rightFieldEntries = computed(() => {
 const historySummaryItems = computed(() => {
   const items = Array.isArray(props.historyItems) ? props.historyItems : []
   const createdItem = items.find((item) => String(item?.title || '').trim().toLowerCase().includes('created'))
-  const sourceItem = createdItem || items[0] || null
-  if (!sourceItem) return []
+  if (!createdItem) return []
   return [
-    { key: 'creator', label: 'Creator', value: String(sourceItem.sourceLabel || '').trim() || 'Unknown' },
-    { key: 'datetime', label: 'Datetime', value: String(sourceItem.meta || '').trim() || 'Unknown' },
-  ]
+    { key: 'creator', label: 'Creator', value: String(createdItem.sourceLabel || '').trim() },
+    { key: 'datetime', label: 'Datetime', value: String(createdItem.meta || '').trim() },
+  ].filter((item) => item.value)
 })
 const resolvedDialogHeight = computed(() => {
   if (!recordDataCollapsed.value) return dialogHeight.value

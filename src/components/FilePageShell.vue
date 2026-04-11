@@ -2160,9 +2160,11 @@ watch(
       return
     }
 
-    cardItemKeysBySource.value = {
-      ...cardItemKeysBySource.value,
-      [scopeKey]: availableCardItemTokens.value.slice(0, 4).map((token) => token.key),
+    if (existing.length || cardItemKeysBySource.value[scopeKey]) {
+      cardItemKeysBySource.value = {
+        ...cardItemKeysBySource.value,
+        [scopeKey]: normalized,
+      }
     }
   },
   { immediate: true },
