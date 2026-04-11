@@ -945,7 +945,9 @@ function resolveSourceKeyFromTableName(tableName) {
   const direct = LEVEL_1_FILE_REGISTRY.find((entry) =>
     [entry.key, entry.routeName, entry.entityName, entry.label].some((value) => String(value || '').trim().toLowerCase() === normalized),
   )
-  return direct?.key || ''
+  if (direct?.key) return direct.key
+
+  return getFilePageRegistryEntryByEntityReference(String(tableName || '').trim())?.key || ''
 }
 
 function resolveExistingFieldForToken(token) {
