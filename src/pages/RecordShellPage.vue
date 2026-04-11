@@ -620,7 +620,7 @@ const feedItems = computed(() => {
   ]
 })
 const RECORD_FEED_TAB_ORDER = [
-  { id: 'system', label: 'System' },
+  { id: 'system', label: 'Events' },
   { id: 'notes', label: 'Notes' },
   { id: 'artifacts', label: 'Artifacts' },
   { id: 'intake', label: 'Intake' },

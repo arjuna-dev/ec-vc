@@ -1079,7 +1079,7 @@ const recordContextDocuments = [
 ]
 
 const recordFeedTabOptions = [
-  { id: 'system', label: 'System' },
+  { id: 'system', label: 'Events' },
   { id: 'notes', label: 'Notes' },
   { id: 'artifacts', label: 'Artifacts' },
   { id: 'intake', label: 'Intake' },
