@@ -1520,7 +1520,7 @@ function buildOptionsFromSourceRows(sourceKey, token) {
     .filter((row) => matchesOptionSubset(row, sourceKey, token?.optionSubset))
     .map((row) => {
       const recordId = stringifyValue(row?.[recordIdField])
-      const label = stringifyValue(titleToken ? getCanonicalTokenValue(row, titleToken) : null) || recordId
+      const label = stringifyValue(titleToken ? getCanonicalTokenValue(row, titleToken) : null)
       if (!label || !recordId) return null
       return {
         label,

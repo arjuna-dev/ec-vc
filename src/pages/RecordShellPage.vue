@@ -895,7 +895,7 @@ function buildLiveEntityOptions(sourceKey) {
   const titleToken = getRegistryTitleTokenForSource(sourceKey)
   return rows.map((row) => {
     const value = String(resolveLiveEntityRecordId(row, sourceKey) || '').trim()
-    const label = String(getCanonicalTokenValue(row, titleToken || {}) || '').trim() || value
+    const label = String(getCanonicalTokenValue(row, titleToken || {}) || '').trim()
     return value && label ? { label, value } : null
   }).filter(Boolean)
 }

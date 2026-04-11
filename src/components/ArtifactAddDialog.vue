@@ -297,7 +297,7 @@ function buildLiveEntityOptions(sourceKey) {
   const titleToken = (LEVEL_3_FILE_REGISTRY_BY_KEY[sourceKey] || []).find((token) => String(token.level_3) === '1') || null
   return rows.map((row) => {
     const value = String(row?.id || row?.artifact_id || '').trim()
-    const label = String(titleToken ? getCanonicalTokenValue(row, titleToken) : '').trim() || value
+    const label = String(titleToken ? getCanonicalTokenValue(row, titleToken) : '').trim()
     return value && label ? { label, value } : null
   }).filter(Boolean)
 }
