@@ -139,44 +139,83 @@
         </div>
         <div class="file-structure-shell__guide-panel">
           <div class="file-structure-shell__guide-divider" />
-          <div v-if="activeEventsTab === 'notes'" class="file-structure-shell__notes-panel">
-            <div
-              v-for="note in latestNotes"
-              :key="note.id"
-              class="file-structure-shell__notes-row"
-            >
-              <div class="file-structure-shell__notes-name">{{ note.name }}</div>
-              <div class="file-structure-shell__notes-summary">{{ note.summary }}</div>
+          <div v-if="activeEventsTab === 'tokens'" class="file-structure-shell__system-panel">
+            <div class="file-structure-shell__governance-toolbar">
+              <div class="file-structure-shell__governance-title">File Specific Tokens</div>
+              <q-btn flat dense no-caps class="file-structure-shell__governance-add" label="Add Token" @click="addTokenGovernanceRow" />
             </div>
-            <div v-if="!latestNotes.length" class="file-structure-shell__guide-meta">
-              No notes available yet.
-            </div>
-          </div>
-          <div v-else-if="activeEventsTab === 'parameters'" class="file-structure-shell__system-panel">
-            <div class="file-structure-shell__system-head">
+            <div class="file-structure-shell__system-head file-structure-shell__system-head--tokens">
               <div>Label</div>
-              <div>Alias</div>
               <div>Type</div>
               <div>Required</div>
+              <div>View</div>
             </div>
             <div
-              v-for="item in selectedSystemItems"
+              v-for="item in tokenGovernanceRows"
               :key="item.key"
-              class="file-structure-shell__system-row"
+              class="file-structure-shell__system-row file-structure-shell__system-row--tokens"
             >
-              <div class="file-structure-shell__system-label">{{ item.label }}</div>
-              <div class="file-structure-shell__system-alias">{{ item.alias }}</div>
+              <div class="file-structure-shell__system-label">
+                <q-input
+                  :model-value="item.label"
+                  dense
+                  outlined
+                  class="file-structure-shell__governance-input"
+                  @update:model-value="updateTokenGovernanceRow(item.key, 'label', $event)"
+                />
+              </div>
               <div class="file-structure-shell__system-type">{{ item.type }}</div>
               <div class="file-structure-shell__system-required">
                 <SettingsCheckbox
                   :model-value="item.required"
                   tone="light"
-                  @update:model-value="toggleRequiredField(item.key, $event)"
+                  @update:model-value="updateTokenGovernanceRow(item.key, 'required', $event)"
+                />
+              </div>
+              <div class="file-structure-shell__system-view">
+                <q-select
+                  :model-value="item.viewKey"
+                  dense
+                  outlined
+                  emit-value
+                  map-options
+                  class="file-structure-shell__governance-select"
+                  :options="governanceViewOptions"
+                  @update:model-value="updateTokenGovernanceRow(item.key, 'viewKey', $event)"
                 />
               </div>
             </div>
-            <div v-if="!selectedSystemItems.length" class="file-structure-shell__guide-meta">
-              No selected items available yet.
+            <div v-if="!tokenGovernanceRows.length" class="file-structure-shell__guide-meta">
+              No file-specific tokens defined yet.
+            </div>
+          </div>
+          <div v-else-if="activeEventsTab === 'views'" class="file-structure-shell__system-panel">
+            <div class="file-structure-shell__governance-toolbar">
+              <div class="file-structure-shell__governance-title">Views</div>
+              <q-btn flat dense no-caps class="file-structure-shell__governance-add" label="Add View" @click="addGovernanceViewRow" />
+            </div>
+            <div class="file-structure-shell__system-head file-structure-shell__system-head--views">
+              <div>Label</div>
+              <div>Key</div>
+            </div>
+            <div
+              v-for="item in governanceViewRows"
+              :key="item.key"
+              class="file-structure-shell__system-row file-structure-shell__system-row--views"
+            >
+              <div class="file-structure-shell__system-label">
+                <q-input
+                  :model-value="item.label"
+                  dense
+                  outlined
+                  class="file-structure-shell__governance-input"
+                  @update:model-value="updateGovernanceViewRow(item.key, $event)"
+                />
+              </div>
+              <div class="file-structure-shell__system-alias">{{ item.value }}</div>
+            </div>
+            <div v-if="!governanceViewRows.length" class="file-structure-shell__guide-meta">
+              No file views defined yet.
             </div>
           </div>
         </div>
@@ -403,7 +442,7 @@ const shellSelectorOpen = ref(false)
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const activeL2Toolbar = ref('')
-const activeEventsTab = ref('notes')
+const activeEventsTab = ref('tokens')
 const latestNotesBySource = ref({})
 const boxesCollapsed = ref(false)
 const leafItemsCollapsed = ref(false)
@@ -414,6 +453,8 @@ const selectedLeafKeysBySource = ref({})
 const expandedSettingsGroupsBySource = ref({})
 const checkedSettingsItemsBySource = ref({})
 const requiredFieldKeysBySource = ref({})
+const governanceViewRowsBySource = ref({})
+const tokenGovernanceRowsBySource = ref({})
 const columnWidths = reactive({
   select: 42,
   l2Section: 92,
@@ -432,9 +473,8 @@ const viewOptions = [
   { label: '', value: 'table', icon: 'table_rows' },
 ]
 const eventsTabs = [
-  { key: 'notes', label: 'Notes' },
-  { key: 'feed', label: 'Feed' },
-  { key: 'parameters', label: 'Parameters' },
+  { key: 'tokens', label: 'Tokens' },
+  { key: 'views', label: 'Views' },
 ]
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)
@@ -527,20 +567,24 @@ const selectedGeneralElementItems = computed(() =>
       })),
   ),
 )
-const selectedSystemItems = computed(() => {
-  const checkedItems = checkedSettingsItemsBySource.value[activeSettingsSourceKey.value] || {}
-  const requiredKeys = new Set(requiredFieldKeysBySource.value[activeSettingsSourceKey.value] || [])
-  return level3Tokens.value
-    .filter((token) => checkedItems[token.key] !== false)
-    .map((token) => ({
-      key: token.key,
-      label: token.label || '—',
-      alias: token.dbFieldAliases?.length ? token.dbFieldAliases.join(', ') : '—',
-      type: token.tokenType || '—',
-      required: requiredKeys.has(token.key),
-    }))
+const governanceViewRows = computed(() => {
+  const sourceKey = activeSettingsSourceKey.value
+  const existing = governanceViewRowsBySource.value[sourceKey]
+  if (Array.isArray(existing) && existing.length) return existing
+  return getDefaultGovernanceViewRowsForSource(sourceKey)
 })
-const latestNotes = computed(() => latestNotesBySource.value[activeSettingsSourceKey.value] || [])
+const governanceViewOptions = computed(() =>
+  governanceViewRows.value.map((item) => ({
+    label: item.label,
+    value: item.value,
+  })),
+)
+const tokenGovernanceRows = computed(() => {
+  const sourceKey = activeSettingsSourceKey.value
+  const existing = tokenGovernanceRowsBySource.value[sourceKey]
+  if (Array.isArray(existing) && existing.length) return existing
+  return getDefaultTokenGovernanceRowsForSource(sourceKey)
+})
 const subgroupTabs = computed(() =>
   (Array.isArray(activeSettingsSection.value?.subgroups) ? activeSettingsSection.value.subgroups : []).map((group) => ({
     key: group.key,
@@ -610,6 +654,41 @@ async function loadLatestNotes() {
 
 function toggleShellSelector() {
   shellSelectorOpen.value = !shellSelectorOpen.value
+}
+
+function findSummaryTokenForSource(sourceKey) {
+  const sourceTokens = LEVEL_3_FILE_REGISTRY_BY_KEY[sourceKey] || []
+  return sourceTokens.find(
+    (token) => String(token?.parentLevel_2) === '3' && String(token?.level_3) === '2',
+  ) || null
+}
+
+function slugifyGovernanceLabel(value = '') {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function getDefaultGovernanceViewRowsForSource() {
+  return [{ key: 'view:general', label: 'General', value: 'general' }]
+}
+
+function getDefaultTokenGovernanceRowsForSource(sourceKey) {
+  const titleToken = getRegistryTitleTokenForSource(sourceKey)
+  const summaryToken = findSummaryTokenForSource(sourceKey)
+  const requiredKeys = new Set(requiredFieldKeysBySource.value[sourceKey] || getDefaultRequiredFieldKeysForSource(sourceKey))
+  return [titleToken, summaryToken]
+    .filter(Boolean)
+    .map((token) => ({
+      key: String(token.key || '').trim(),
+      tokenKey: String(token.key || '').trim(),
+      label: String(token.label || '—').trim() || '—',
+      type: String(token.tokenType || '—').trim() || '—',
+      required: requiredKeys.has(String(token.key || '').trim()),
+      viewKey: 'general',
+    }))
 }
 
 function addLeafElement() {
@@ -694,6 +773,87 @@ function toggleRequiredField(tokenKey, value) {
   requiredFieldKeysBySource.value = {
     ...requiredFieldKeysBySource.value,
     [sourceKey]: Array.from(current),
+  }
+}
+
+function updateTokenGovernanceRow(rowKey, fieldName, nextValue) {
+  const sourceKey = activeSettingsSourceKey.value
+  const existing = Array.isArray(tokenGovernanceRowsBySource.value[sourceKey])
+    ? tokenGovernanceRowsBySource.value[sourceKey]
+    : getDefaultTokenGovernanceRowsForSource(sourceKey)
+  const nextRows = existing.map((row) => {
+    if (row.key !== rowKey) return row
+    if (fieldName === 'required') {
+      return { ...row, required: Boolean(nextValue) }
+    }
+    return { ...row, [fieldName]: nextValue }
+  })
+  tokenGovernanceRowsBySource.value = {
+    ...tokenGovernanceRowsBySource.value,
+    [sourceKey]: nextRows,
+  }
+
+  if (fieldName === 'required') {
+    toggleRequiredField(rowKey, nextValue)
+  }
+}
+
+function addTokenGovernanceRow() {
+  const sourceKey = activeSettingsSourceKey.value
+  const existing = Array.isArray(tokenGovernanceRowsBySource.value[sourceKey])
+    ? tokenGovernanceRowsBySource.value[sourceKey]
+    : getDefaultTokenGovernanceRowsForSource(sourceKey)
+  const nextIndex = existing.length + 1
+  tokenGovernanceRowsBySource.value = {
+    ...tokenGovernanceRowsBySource.value,
+    [sourceKey]: [
+      ...existing,
+      {
+        key: `draft-token:${sourceKey}:${nextIndex}`,
+        tokenKey: '',
+        label: `Draft Token ${nextIndex}`,
+        type: 'text',
+        required: false,
+        viewKey: governanceViewRows.value[0]?.value || 'general',
+      },
+    ],
+  }
+}
+
+function updateGovernanceViewRow(rowKey, nextLabel) {
+  const sourceKey = activeSettingsSourceKey.value
+  const existing = Array.isArray(governanceViewRowsBySource.value[sourceKey])
+    ? governanceViewRowsBySource.value[sourceKey]
+    : getDefaultGovernanceViewRowsForSource(sourceKey)
+  const normalizedLabel = String(nextLabel || '').trim()
+  governanceViewRowsBySource.value = {
+    ...governanceViewRowsBySource.value,
+    [sourceKey]: existing.map((row) => row.key === rowKey
+      ? {
+        ...row,
+        label: normalizedLabel || row.label,
+        value: slugifyGovernanceLabel(normalizedLabel) || row.value,
+      }
+      : row),
+  }
+}
+
+function addGovernanceViewRow() {
+  const sourceKey = activeSettingsSourceKey.value
+  const existing = Array.isArray(governanceViewRowsBySource.value[sourceKey])
+    ? governanceViewRowsBySource.value[sourceKey]
+    : getDefaultGovernanceViewRowsForSource(sourceKey)
+  const nextIndex = existing.length + 1
+  governanceViewRowsBySource.value = {
+    ...governanceViewRowsBySource.value,
+    [sourceKey]: [
+      ...existing,
+      {
+        key: `view:${sourceKey}:${nextIndex}`,
+        label: `View ${nextIndex}`,
+        value: `view-${nextIndex}`,
+      },
+    ],
   }
 }
 
