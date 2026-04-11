@@ -2605,6 +2605,8 @@ function handleCardAddRelation(row) {
     'notes',
   ])
 
+  const artifactContext = buildRowArtifactContext(row)
+
   if (activePanel === 'intake') {
     setPendingIntakeShellRequest({
       initialArtifacts: [],
@@ -2626,20 +2628,9 @@ function handleCardAddRelation(row) {
     return
   }
 
-  const artifactContext = buildRowArtifactContext(row)
-
-  setPendingAddEditShellRequest({
-    sourceKey: activePanel,
-    initialValues: {},
-  })
-  router.push({
-    name: 'dialog-shell',
-    query: {
-      section: activePanel,
-      create: '1',
-      contextEntity: String(artifactContext?.entityName || '').trim(),
-      contextRecordId: String(artifactContext?.recordId || '').trim(),
-    },
+  requestCreateRecordShellForSource(activePanel, {
+    contextEntity: String(artifactContext?.entityName || '').trim(),
+    contextRecordId: String(artifactContext?.recordId || '').trim(),
   })
 }
 
@@ -3068,18 +3059,36 @@ function openBbShellByBlockKey(blockKey) {
   })
 }
 
-function requestCreateRecordShell(options = {}) {
-  if (!canCreateWithShell.value) {
+function canCreateForSourceKey(sourceKey) {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  if (!normalizedSourceKey) return false
+  const createBranches = getCreateBranches(normalizedSourceKey)
+  if (createBranches.length) {
+    return createBranches.some((branch) => Boolean(bridge.value?.[String(branch?.targetSourceKey || '').trim()]?.create))
+  }
+  return Boolean(bridge.value?.[normalizedSourceKey]?.create)
+}
+
+function requestCreateRecordShellForSource(sourceKey, options = {}) {
+  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
+  if (!normalizedSourceKey) return
+
+  if (normalizedSourceKey === activeSourceKey.value) {
+    if (!canCreateWithShell.value) {
+      $q.notify({ type: 'negative', message: 'This shell source is view-only.' })
+      return
+    }
+  } else if (!canCreateForSourceKey(normalizedSourceKey)) {
     $q.notify({ type: 'negative', message: 'This shell source is view-only.' })
     return
   }
 
-  const createSurface = getFilePageCreateSurface(activeSourceKey.value)
+  const createSurface = getFilePageCreateSurface(normalizedSourceKey)
   if (createSurface === 'file-dialog') {
     router.push({
       name: 'file-dialog-shell',
       query: {
-        section: activeSourceKey.value,
+        section: normalizedSourceKey,
         returnTo: route.fullPath,
       },
     })
@@ -3087,12 +3096,13 @@ function requestCreateRecordShell(options = {}) {
   }
 
   const requestedBranch = String(options?.kind || '').trim().toLowerCase()
-  const createBranches = getCreateBranches(activeSourceKey.value)
+  const createBranches = getCreateBranches(normalizedSourceKey)
+  const targetRegistryEntry = getFilePageRegistryEntry(normalizedSourceKey) || activeRegistryEntry.value
   if (!requestedBranch && createBranches.length) {
-    const branchLabel = String(activeRegistryEntry.value?.createBranchLabel || 'Type').trim()
+    const branchLabel = String(targetRegistryEntry?.createBranchLabel || 'Type').trim()
     void $q.dialog({
       title: `Choose ${branchLabel}`,
-      message: `Select which ${String(activeRegistryEntry.value?.singularLabel || 'record').trim().toLowerCase()} path you want to create.`,
+      message: `Select which ${String(targetRegistryEntry?.singularLabel || 'record').trim().toLowerCase()} path you want to create.`,
       cancel: true,
       persistent: true,
       options: {
@@ -3106,7 +3116,28 @@ function requestCreateRecordShell(options = {}) {
     }).onOk((selectedBranch) => {
       const normalizedBranch = String(selectedBranch || '').trim().toLowerCase()
       if (!normalizedBranch) return
-      requestCreateRecordShell({ ...options, kind: normalizedBranch })
+      requestCreateRecordShellForSource(normalizedSourceKey, { ...options, kind: normalizedBranch })
+    })
+    return
+  }
+
+  if (normalizedSourceKey !== activeSourceKey.value) {
+    setPendingAddEditShellRequest({
+      sourceKey: normalizedSourceKey,
+      initialValues: {},
+    })
+    const nextQuery = {
+      section: normalizedSourceKey,
+      create: '1',
+      returnTo: route.fullPath,
+      open: String(Date.now()),
+    }
+    if (requestedBranch) nextQuery.kind = requestedBranch
+    if (String(options?.contextEntity || '').trim()) nextQuery.contextEntity = String(options.contextEntity).trim()
+    if (String(options?.contextRecordId || '').trim()) nextQuery.contextRecordId = String(options.contextRecordId).trim()
+    router.push({
+      name: 'dialog-shell',
+      query: nextQuery,
     })
     return
   }
@@ -3125,6 +3156,10 @@ function requestCreateRecordShell(options = {}) {
   }
 
   openCreateRecordShell({ initialValues: nextInitialValues })
+}
+
+function requestCreateRecordShell(options = {}) {
+  requestCreateRecordShellForSource(activeSourceKey.value, options)
 }
 
 function handleToolbarAdd() {
