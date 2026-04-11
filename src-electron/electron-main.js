@@ -3433,8 +3433,6 @@ const DATABOOK_TABLE_ALIASES = Object.freeze({
   'artifact-processed': 'Intake',
   artifacts_processed: 'Intake',
   'artifacts-processed': 'Intake',
-  'processed artifact': 'Intake',
-  'processed artifacts': 'Intake',
 })
 
 function getDatabookTableConfig(tableName) {
@@ -5943,9 +5941,9 @@ const EVENT_RELATION_FIELD_BY_ENTITY_LABEL = Object.freeze({
   Role: 'Event_Role',
   Market: 'Event_Financial_Industry',
   Security: 'Event_Round_Security',
-  Intake: 'Event_Processed_Artifact',
-  'Processed Artifact': 'Event_Processed_Artifact',
-  Ingestion: 'Event_Processed_Artifact',
+  Intake: 'Event_Intake',
+  'Processed Artifact': 'Event_Intake',
+  Ingestion: 'Event_Intake',
 })
 
 function appendUniqueEventRelation(target, fieldName, values) {

@@ -519,8 +519,6 @@ export function getFilePageRegistryEntryByEntityReference(entityName) {
   const legacyEntityAliases = {
     Financial_Industries: 'markets',
     Round_Securities: 'securities',
-    Artifact_Processed: 'intake',
-    Artifacts_Processed: 'intake',
     Intake: 'intake',
     Roles: 'user-roles',
   }
@@ -657,8 +655,6 @@ export function getRuntimeTableNameForEntityName(entityName = '') {
     'artifact-processed': 'Intake',
     artifacts_processed: 'Intake',
     'artifacts-processed': 'Intake',
-    'processed artifact': 'Intake',
-    'processed artifacts': 'Intake',
     'artifact processed': 'Intake',
   }
 
