@@ -5480,6 +5480,95 @@ function writeAuditEvent(
   return eventId
 }
 
+function normalizeLifecycleActionLabel(actionLabel) {
+  const normalized = normalizeNullableString(actionLabel)?.toLowerCase()
+  if (normalized === 'create') return 'created'
+  if (normalized === 'update') return 'modified'
+  if (normalized === 'delete') return 'deleted'
+  if (normalized === 'created' || normalized === 'modified' || normalized === 'deleted') return normalized
+  return normalized || 'modified'
+}
+
+function resolveLifecycleRecordId(result = {}, fallback = null) {
+  return (
+    normalizeNullableString(result?.id) ||
+    normalizeNullableString(result?.artifact_id) ||
+    normalizeNullableString(result?.pipeline_id) ||
+    normalizeNullableString(fallback)
+  )
+}
+
+function writeLifecycleAuditEvent(
+  database,
+  {
+    tableName,
+    recordId,
+    actionLabel = 'modified',
+    recordLabel = '',
+    oldValue = null,
+    newValue = null,
+  } = {},
+) {
+  const normalizedTableName = normalizeNullableString(tableName)
+  const normalizedRecordId = normalizeNullableString(recordId)
+  if (!normalizedTableName || !normalizedRecordId) return null
+
+  const actor = getAuditActor(database, { requireUser: true })
+  const normalizedActionLabel = normalizeLifecycleActionLabel(actionLabel)
+  const recordContext = resolveAuditRecordContext(database, normalizedTableName, normalizedRecordId)
+  const resolvedRecordLabel =
+    normalizeNullableString(recordLabel) ||
+    normalizeNullableString(recordContext?.recordLabel) ||
+    normalizedRecordId
+
+  return writeAuditEvent(database, {
+    tableName: normalizedTableName,
+    recordId: normalizedRecordId,
+    fieldName: 'record',
+    oldValue,
+    newValue,
+    editedBy: actor.user_id,
+    actionLabel: normalizedActionLabel,
+    payload: {
+      actor_label: resolveAuditActorDisplayLabel(database, actor.user_id),
+      entity_label: normalizeNullableString(recordContext?.entityLabel) || normalizedTableName,
+      record_label: resolvedRecordLabel,
+      field_label: 'Record',
+      old_display_value: normalizeNullableString(oldValue),
+      new_display_value: normalizeNullableString(newValue) || resolvedRecordLabel,
+      action_label: normalizedActionLabel,
+    },
+  })
+}
+
+function auditCreatedRecord(tableName, result = {}, payload = {}) {
+  const database = initDb()
+  const recordId = resolveLifecycleRecordId(result)
+  if (!recordId) return null
+  return writeLifecycleAuditEvent(database, {
+    tableName,
+    recordId,
+    actionLabel: 'created',
+    newValue:
+      normalizeNullableString(payload?.Name) ||
+      normalizeNullableString(payload?.Summary) ||
+      normalizeNullableString(payload?.title) ||
+      null,
+  })
+}
+
+function auditDeletedRecord(tableName, recordId) {
+  const database = initDb()
+  const normalizedRecordId = normalizeNullableString(recordId)
+  if (!normalizedRecordId) return null
+  return writeLifecycleAuditEvent(database, {
+    tableName,
+    recordId: normalizedRecordId,
+    actionLabel: 'deleted',
+    oldValue: normalizedRecordId,
+  })
+}
+
 const APP_SETTING_KEYS = {
   openaiApiKey: 'openai_api_key',
   geminiApiKey: 'gemini_api_key',
@@ -8121,6 +8210,7 @@ function registerIpc() {
   ipcMain.handle('projects:create', async (_event, payload) => {
     initDb()
     const result = createPipeline(payload)
+    auditCreatedRecord('Projects', result, payload)
     await syncWorkspaceWorkbooksSafe()
     return result
   })
@@ -8130,6 +8220,7 @@ function registerIpc() {
     const pid = String(projectId || pipelineId || '')
     if (!pid) throw new Error('pipelineId is required')
     if (pid === 'pipeline_default') throw new Error('Cannot delete the default pipeline')
+    auditDeletedRecord('Projects', pid)
     const result = deleteRow('Projects', 'id', pid)
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8160,6 +8251,7 @@ function registerIpc() {
   ipcMain.handle('pipelines:create', async (_event, payload) => {
     initDb()
     const result = createPipeline(payload)
+    auditCreatedRecord('Projects', result, payload)
     await syncWorkspaceWorkbooksSafe()
     return result
   })
@@ -8169,6 +8261,7 @@ function registerIpc() {
     const pid = String(pipelineId || '')
     if (!pid) throw new Error('pipelineId is required')
     if (pid === 'pipeline_default') throw new Error('Cannot delete the default pipeline')
+    auditDeletedRecord('Projects', pid)
     const result = deleteRow('Projects', 'id', pid)
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8187,12 +8280,14 @@ function registerIpc() {
   ipcMain.handle('file-system:create', async (_event, payload = {}) => {
     initDb()
     const result = createFile(payload)
+    auditCreatedRecord('Files', result, payload)
     await syncWorkspaceWorkbooksSafe()
     return result
   })
 
   ipcMain.handle('file-system:delete', async (_event, { fileId } = {}) => {
     initDb()
+    auditDeletedRecord('Files', String(fileId || ''))
     const result = deleteRow('Files', 'id', String(fileId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8224,6 +8319,7 @@ function registerIpc() {
   ipcMain.handle('companies:create', async (_event, payload) => {
     initDb()
     const result = createCompany(payload)
+    auditCreatedRecord('Companies', result, payload)
     await syncWorkspaceWorkbooksSafe()
     return result
   })
@@ -8237,6 +8333,7 @@ function registerIpc() {
 
   ipcMain.handle('companies:delete', async (_event, { companyId } = {}) => {
     initDb()
+    auditDeletedRecord('Companies', String(companyId || ''))
     const result = deleteRow('Companies', 'id', String(companyId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8250,12 +8347,14 @@ function registerIpc() {
   ipcMain.handle('funds:create', async (_event, payload = {}) => {
     initDb()
     const result = createFund(payload)
+    auditCreatedRecord('Funds', result, payload)
     await syncWorkspaceWorkbooksSafe()
     return result
   })
 
   ipcMain.handle('funds:delete', async (_event, { fundId } = {}) => {
     initDb()
+    auditDeletedRecord('Funds', String(fundId || ''))
     const result = deleteRow('Funds', 'id', String(fundId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8269,12 +8368,14 @@ function registerIpc() {
   ipcMain.handle('rounds:create', async (_event, payload = {}) => {
     initDb()
     const result = createRound(payload)
+    auditCreatedRecord('Rounds', result, payload)
     await syncWorkspaceWorkbooksSafe()
     return result
   })
 
   ipcMain.handle('rounds:delete', async (_event, { roundId } = {}) => {
     initDb()
+    auditDeletedRecord('Rounds', String(roundId || ''))
     const result = deleteRow('Rounds', 'id', String(roundId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8288,6 +8389,7 @@ function registerIpc() {
   ipcMain.handle('opportunities:create', async (_event, payload) => {
     initDb()
     const result = createOpportunity(payload)
+    auditCreatedRecord('Opportunities', result, payload)
     await syncWorkspaceWorkbooksSafe()
     return result
   })
@@ -8307,6 +8409,7 @@ function registerIpc() {
 
   ipcMain.handle('opportunities:delete', async (_event, { opportunityId } = {}) => {
     initDb()
+    auditDeletedRecord('Opportunities', String(opportunityId || ''))
     const result = deleteOpportunityRow(opportunityId)
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8457,6 +8560,7 @@ function registerIpc() {
     initDb()
     try {
       const result = createMarket(payload)
+      auditCreatedRecord('Markets', result, payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8466,6 +8570,7 @@ function registerIpc() {
 
   ipcMain.handle('markets:delete', async (_event, { marketId } = {}) => {
     initDb()
+    auditDeletedRecord('Markets', String(marketId || ''))
     const result = deleteRow('Markets', 'id', String(marketId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8480,6 +8585,7 @@ function registerIpc() {
     initDb()
     try {
       const result = createSecurity(payload)
+      auditCreatedRecord('Securities', result, payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8489,6 +8595,7 @@ function registerIpc() {
 
   ipcMain.handle('securities:delete', async (_event, { securityId } = {}) => {
     initDb()
+    auditDeletedRecord('Securities', String(securityId || ''))
     const result = deleteRow('Securities', 'id', String(securityId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8498,6 +8605,7 @@ function registerIpc() {
     initDb()
     try {
       const result = createUser(payload)
+      auditCreatedRecord('Users', result, payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8508,6 +8616,7 @@ function registerIpc() {
   ipcMain.handle('users:delete', async (_event, { userId } = {}) => {
     const database = initDb()
     assertUserDeleteAllowed(database, userId)
+    auditDeletedRecord('Users', String(userId || ''))
     const result = deleteRow('Users', 'id', String(userId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8516,6 +8625,7 @@ function registerIpc() {
   ipcMain.handle('contacts:create', async (_event, payload) => {
     initDb()
     const result = createContact(payload)
+    auditCreatedRecord('Contacts', result, payload)
     await syncWorkspaceWorkbooksSafe()
     return result
   })
@@ -8530,6 +8640,7 @@ function registerIpc() {
   ipcMain.handle('contacts:delete', async (_event, { contactId } = {}) => {
     const database = initDb()
     assertContactDeleteAllowed(database, contactId)
+    auditDeletedRecord('Contacts', String(contactId || ''))
     const result = deleteRow('Contacts', 'id', String(contactId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8543,6 +8654,7 @@ function registerIpc() {
     initDb()
     try {
       const result = createNote(payload)
+      auditCreatedRecord('Notes', result, payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8557,6 +8669,7 @@ function registerIpc() {
   })
   ipcMain.handle('notes:delete', async (_event, { noteId } = {}) => {
     initDb()
+    auditDeletedRecord('Notes', String(noteId || ''))
     const result = deleteRow('Notes', 'id', String(noteId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8570,6 +8683,7 @@ function registerIpc() {
     initDb()
     try {
       const result = createTask(payload)
+      auditCreatedRecord('Tasks', result, payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8588,6 +8702,7 @@ function registerIpc() {
   })
   ipcMain.handle('tasks:delete', async (_event, { taskId } = {}) => {
     initDb()
+    auditDeletedRecord('Tasks', String(taskId || ''))
     const result = deleteRow('Tasks', 'id', String(taskId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8602,6 +8717,7 @@ function registerIpc() {
     initDb()
     try {
       const result = createRole(payload)
+      auditCreatedRecord('Roles', result, payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8611,6 +8727,7 @@ function registerIpc() {
 
   ipcMain.handle('roles:delete', async (_event, { roleId } = {}) => {
     initDb()
+    auditDeletedRecord('Roles', String(roleId || ''))
     const result = deleteRow('Roles', 'id', String(roleId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8625,6 +8742,7 @@ function registerIpc() {
     initDb()
     try {
       const result = createCompanionRole(payload)
+      auditCreatedRecord('Companion_Roles', result, payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8634,6 +8752,7 @@ function registerIpc() {
 
   ipcMain.handle('companion-roles:delete', async (_event, { companionRoleId } = {}) => {
     initDb()
+    auditDeletedRecord('Companion_Roles', String(companionRoleId || ''))
     const result = deleteRow('Companion_Roles', 'id', String(companionRoleId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8648,6 +8767,7 @@ function registerIpc() {
     initDb()
     try {
       const result = createBuildingBlock(payload)
+      auditCreatedRecord('Building_Blocks', result, payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8657,6 +8777,7 @@ function registerIpc() {
 
   ipcMain.handle('bb-file:delete', async (_event, { blockId } = {}) => {
     initDb()
+    auditDeletedRecord('Building_Blocks', String(blockId || ''))
     const result = deleteRow('Building_Blocks', 'id', String(blockId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8671,6 +8792,7 @@ function registerIpc() {
     initDb()
     try {
       const result = createArtifact(payload)
+      auditCreatedRecord('Artifacts', result, payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8687,6 +8809,7 @@ function registerIpc() {
     initDb()
     try {
       const result = createIntake(payload)
+      auditCreatedRecord('Intake', result, payload)
       await syncWorkspaceWorkbooksSafe()
       return result
     } catch (e) {
@@ -8696,6 +8819,7 @@ function registerIpc() {
 
   ipcMain.handle('intake:delete', async (_event, { intakeId } = {}) => {
     initDb()
+    auditDeletedRecord('Intake', String(intakeId || ''))
     const result = deleteRow('Intake', 'id', String(intakeId || ''))
     await syncWorkspaceWorkbooksSafe()
     return result
@@ -8710,6 +8834,7 @@ function registerIpc() {
 
   ipcMain.handle('artifacts:delete', async (_event, { artifactId } = {}) => {
     initDb()
+    auditDeletedRecord('Artifacts', String(artifactId || ''))
     const result = await deleteArtifact(artifactId)
     await syncWorkspaceWorkbooksSafe()
     return result
