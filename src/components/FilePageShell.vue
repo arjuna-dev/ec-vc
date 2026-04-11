@@ -2791,7 +2791,7 @@ function normalizeAuditHistoryItems(events = []) {
     .map((event) => {
       const payload = event?.payload && typeof event.payload === 'object' ? event.payload : {}
       const fieldLabel = String(payload?.field_label || event?.field_name || '').replace(/__verification$/, '').trim()
-      const actorLabel = String(payload?.actor_label || event?.edited_by || '').trim() || 'System'
+      const actorLabel = formatAuditHistoryActorLabel(payload?.actor_label, event?.edited_by)
       const actionLabel = formatAuditHistoryActionLabel(event?.action_label)
       const title = String(event?.field_name || '').trim().endsWith('__verification')
         ? `${formatVerificationStateLabel(payload?.verification_state)} ${fieldLabel || 'field'}`
@@ -2799,12 +2799,20 @@ function normalizeAuditHistoryItems(events = []) {
       return {
         id: String(event?.id || '').trim(),
         sourceLabel: actorLabel,
-        meta: String(event?.edited_at || '').trim() || 'Recent',
+        meta: String(event?.edited_at || '').trim() || 'Missing datetime',
         title,
         openable: Boolean(event?.id),
       }
     })
     .filter((item) => item.id)
+}
+
+function formatAuditHistoryActorLabel(explicitActorLabel, editedBy) {
+  const explicit = String(explicitActorLabel || '').trim()
+  if (explicit) return explicit
+  const normalizedEditedBy = String(editedBy || '').trim()
+  if (!normalizedEditedBy) return 'Missing actor'
+  return `Unresolved actor: ${normalizedEditedBy}`
 }
 
 function getRowHistoryItems(row) {

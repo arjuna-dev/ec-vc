@@ -23,10 +23,10 @@
         @click="handleOpen(item)"
       >
         <div class="record-history-box__item-top">
-          <div class="record-history-box__item-source">{{ item.sourceLabel || 'System' }}</div>
-          <div class="record-history-box__item-time">{{ item.meta || 'Recent' }}</div>
+          <div class="record-history-box__item-source">{{ item.sourceLabel || 'Missing actor' }}</div>
+          <div class="record-history-box__item-time">{{ item.meta || 'Missing datetime' }}</div>
         </div>
-        <div class="record-history-box__item-title">{{ item.title || 'Event' }}</div>
+        <div class="record-history-box__item-title">{{ item.title || 'Missing history title' }}</div>
       </button>
     </div>
   </div>

@@ -588,7 +588,8 @@ async function loadEditDialogRecordPayload(entityName, recordId) {
 
 function formatHistoryActorLabel(actorValue) {
   const normalized = String(actorValue || '').trim()
-  return normalized || 'System'
+  if (!normalized) return 'Missing actor'
+  return `Unresolved actor: ${normalized}`
 }
 
 function buildHistoryEventTitle(event = {}) {
@@ -609,7 +610,7 @@ function normalizeDialogHistoryItems(events = []) {
     .map((event, index) => ({
       id: String(event?.id || '').trim() || `history:${index}`,
       sourceLabel: formatHistoryActorLabel(event?.edited_by),
-      meta: String(event?.edited_at || '').trim() || 'Recent',
+      meta: String(event?.edited_at || '').trim() || 'Missing datetime',
       title: buildHistoryEventTitle(event),
       openable: Boolean(String(event?.id || '').trim()),
     }))

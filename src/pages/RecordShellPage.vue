@@ -1347,9 +1347,11 @@ function formatAuditFieldLabel(fieldName) {
 
 function formatAuditActorLabel(editedBy) {
   const normalized = String(editedBy || '').trim()
+  if (!normalized) return 'Missing actor'
   const userMatch = liveOptionRowsBySource.value.users?.find((row) => String(row?.id || '').trim() === normalized)
   const userTitleToken = getRegistryTitleTokenForSource('users')
-  return String(userTitleToken ? getCanonicalTokenValue(userMatch || {}, userTitleToken) : '').trim() || 'User'
+  const resolved = String(userTitleToken ? getCanonicalTokenValue(userMatch || {}, userTitleToken) : '').trim()
+  return resolved || `Unresolved actor: ${normalized}`
 }
 
 function getAuditTokenForFieldName(fieldName = '') {
@@ -1450,7 +1452,7 @@ function normalizeAuditFeedEvents(events = []) {
         feedKey,
         groupKey,
         sourceLabel: formatAuditActorLabel(event?.edited_by),
-        meta: String(event?.edited_at || '').trim() || 'Recent',
+        meta: String(event?.edited_at || '').trim() || 'Missing datetime',
         title: buildAuditEventTitle(event, fieldName, actionLabel),
         content: '',
         hasLogPage: true,
