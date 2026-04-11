@@ -1391,9 +1391,16 @@ const tableSectionTokens = computed(() => {
 
 const displayRows = computed(() => {
   const query = String(searchQuery.value || '').trim().toLowerCase()
-  const localDraftRows = Array.isArray(localDraftRowsBySource.value[activeContentSourceKey.value])
-    ? localDraftRowsBySource.value[activeContentSourceKey.value]
-    : []
+  const localDraftRows =
+    createDialogOpen.value &&
+    createDialogMode.value === 'create' &&
+    String(createDialogDraftSourceKey.value || '').trim().toLowerCase() === activeContentSourceKey.value
+      ? (Array.isArray(localDraftRowsBySource.value[activeContentSourceKey.value])
+          ? localDraftRowsBySource.value[activeContentSourceKey.value].filter(
+              (row) => String(row?.id || '').trim() === String(createDialogDraftRecordId.value || '').trim(),
+            )
+          : [])
+      : []
 
   return [...localDraftRows, ...rawRows.value]
     .map((row, index) => buildShellRow(row, index))
