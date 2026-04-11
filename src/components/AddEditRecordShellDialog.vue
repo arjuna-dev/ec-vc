@@ -802,14 +802,14 @@ const props = defineProps({
   mode: { type: String, default: 'create' },
   sourceLabel: { type: String, default: 'Records' },
   singularLabel: { type: String, default: 'record' },
-  keyFieldTokens: { type: Array, default: () => [] },
+  primaryTokens: { type: Array, default: () => [] },
   leftSections: { type: Array, default: () => [] },
   rightSections: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
   submitDisabled: { type: Boolean, default: false },
   initialValues: { type: Object, default: () => ({}) },
   initialFieldMeta: { type: Object, default: () => ({}) },
-  initialSectionKey: { type: String, default: 'key-fields' },
+  initialSectionKey: { type: String, default: 'general' },
   initialArtifacts: { type: Array, default: () => [] },
   artifactContext: { type: Object, default: null },
   branchSelectorTokenKey: { type: String, default: '' },
@@ -867,15 +867,15 @@ const branchSelectionSettled = computed(() => {
   return String(formValues.value?.[tokenKey] ?? '').trim().length > 0
 })
 
-function mergeKeyFieldsIntoSections(sections = [], keyFieldTokens = []) {
+function mergePrimaryTokensIntoSections(sections = [], primaryTokens = []) {
   const normalizedSections = Array.isArray(sections) ? sections : []
-  const normalizedKeyFieldTokens = Array.isArray(keyFieldTokens) ? keyFieldTokens.filter(Boolean) : []
+  const normalizedPrimaryTokens = Array.isArray(primaryTokens) ? primaryTokens.filter(Boolean) : []
   if (!normalizedSections.length) {
-    return normalizedKeyFieldTokens.length
+    return normalizedPrimaryTokens.length
       ? [{
           key: 'general',
           label: 'General',
-          tokens: normalizedKeyFieldTokens,
+          tokens: normalizedPrimaryTokens,
           subgroups: [],
         }]
       : []
@@ -890,7 +890,7 @@ function mergeKeyFieldsIntoSections(sections = [], keyFieldTokens = []) {
       {
         key: 'general',
         label: 'General',
-        tokens: normalizedKeyFieldTokens,
+        tokens: normalizedPrimaryTokens,
         subgroups: [],
       },
       ...normalizedSections,
@@ -901,19 +901,19 @@ function mergeKeyFieldsIntoSections(sections = [], keyFieldTokens = []) {
     if (index !== generalIndex) return section
     return {
       ...section,
-      tokens: [...normalizedKeyFieldTokens, ...(Array.isArray(section?.tokens) ? section.tokens : [])],
+      tokens: [...normalizedPrimaryTokens, ...(Array.isArray(section?.tokens) ? section.tokens : [])],
     }
   })
 }
 
 const allSections = computed(() => {
   const dialogSections = branchSelectionSettled.value ? [...props.leftSections, ...props.rightSections] : []
-  return mergeKeyFieldsIntoSections(dialogSections, props.keyFieldTokens)
+  return mergePrimaryTokensIntoSections(dialogSections, props.primaryTokens)
 })
 
 const leftPanelSections = computed(() => {
   const dialogSections = branchSelectionSettled.value ? props.leftSections : []
-  return mergeKeyFieldsIntoSections(dialogSections, props.keyFieldTokens)
+  return mergePrimaryTokensIntoSections(dialogSections, props.primaryTokens)
 })
 
 const rightSections = computed(() => (branchSelectionSettled.value ? props.rightSections : []))

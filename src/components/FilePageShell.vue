@@ -717,7 +717,7 @@
         :mode="createDialogMode"
         :source-label="activeRegistryEntry?.label || 'Records'"
         :singular-label="activeRegistryEntry?.singularLabel || 'record'"
-        :key-field-tokens="createKeyFieldTokens"
+        :primary-tokens="createPrimaryTokens"
         :left-sections="createDialogLeftSections"
         :right-sections="createDialogRightSections"
         :branch-selector-token-key="createDialogBranchSelectorTokenKey"
@@ -835,7 +835,7 @@ const editDialogRecordPayload = ref(null)
 const createDialogDraftRecordId = ref('')
 const createDialogDraftEntityName = ref('')
 const createDialogDraftSourceKey = ref('')
-const createDialogInitialSectionKey = ref('key-fields')
+const createDialogInitialSectionKey = ref('general')
 const createDialogPrefillValues = ref({})
 const createDialogFieldMeta = ref({})
 const createDialogInitialArtifacts = ref([])
@@ -1120,7 +1120,7 @@ const requiredCreateTokens = computed(() => {
     .map((token) => normalizeCreateDialogToken(token))
 })
 
-const createKeyFieldTokens = computed(() => {
+const createPrimaryTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchToken = branchTokenName
     ? level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
@@ -1158,13 +1158,13 @@ const cardItemTokenGroups = computed(() =>
 )
 const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
 const createSectionGroups = computed(() => {
-  const keyFieldKeys = new Set(createKeyFieldTokens.value.map((token) => token.key))
+  const primaryTokenKeys = new Set(createPrimaryTokens.value.map((token) => token.key))
   return buildDialogSectionGroups({
     groupedSections: groupedLevel2Sections.value,
     tokenFilter: (section) => level3Tokens.value.filter(
       (token) =>
         token.parentKey === section.key &&
-        !keyFieldKeys.has(token.key) &&
+        !primaryTokenKeys.has(token.key) &&
         !isAutomaticCreatorToken(token) &&
         (!isRecordShellMode.value || selectedRecordShellLevel3KeySet.value.has(token.key)),
     ),
@@ -1177,7 +1177,7 @@ const createDialogRightSections = computed(() => createDialogSectionSplit.value.
 const createDialogBranchSelectorTokenKey = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   if (!branchTokenName) return ''
-  return createKeyFieldTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
+  return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
 const createDialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || '',
@@ -1351,7 +1351,7 @@ async function loadEditDialogRecordPayload(entityName, recordId) {
 }
 
 function buildEditDialogInitialValuesFromPayload(payload) {
-  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
     allTokens.map((token) => {
       const value = getEditDialogTokenValueFromPayload(payload, token)
@@ -1361,7 +1361,7 @@ function buildEditDialogInitialValuesFromPayload(payload) {
 }
 
 function buildEditDialogFieldMetaFromPayload(payload, entityName, recordId) {
-  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
     allTokens.map((token) => [
       token.key,
@@ -1618,7 +1618,7 @@ async function ensureLiveOptionRowsLoaded(sourceKey) {
 }
 
 async function preloadCreateDialogOptionSources() {
-  const tokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const tokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   const sourceKeys = new Set()
 
   tokens.forEach((token) => {
@@ -1971,7 +1971,7 @@ watch(
 )
 
 watch(
-  [createDialogOpen, activeSourceKey, createKeyFieldTokens, createSectionGroups],
+  [createDialogOpen, activeSourceKey, createPrimaryTokens, createSectionGroups],
   async ([isOpen]) => {
     if (!isOpen) return
     await preloadCreateDialogOptionSources()
@@ -1980,7 +1980,7 @@ watch(
 )
 
 watch(
-  [() => route.name, () => route.query.create, activeSourceKey, createKeyFieldTokens, createSectionGroups],
+  [() => route.name, () => route.query.create, activeSourceKey, createPrimaryTokens, createSectionGroups],
   async ([, createFlag]) => {
     if (!String(createFlag || '').trim()) return
 
@@ -1991,7 +1991,7 @@ watch(
     const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
     const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
     const branchToken = branchTokenName
-      ? [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+      ? [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
           (token) => String(token?.tokenName || '').trim() === branchTokenName,
         ) || null
       : null
@@ -2579,7 +2579,7 @@ async function handleHeroActionItemClick(item = {}) {
 }
 
 function buildDraftDialogInitialValuesFromRow(row) {
-  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
     allTokens.map((token) => {
       const value = getCanonicalTokenValue(row?.raw || {}, token)
@@ -2862,7 +2862,7 @@ function requestCreateRecordShell(options = {}) {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
   const branchToken = branchTokenName
-    ? [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+    ? [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
         (token) => String(token?.tokenName || '').trim() === branchTokenName,
       ) || null
     : null
@@ -2975,7 +2975,7 @@ function openCreateRecordShell(options = {}) {
   createDialogDraftSourceKey.value = activeContentSourceKey.value
   editDialogRow.value = null
   editDialogRecordPayload.value = null
-  createDialogInitialSectionKey.value = 'key-fields'
+  createDialogInitialSectionKey.value = 'general'
   createDialogPrefillValues.value = options?.initialValues && typeof options.initialValues === 'object' ? { ...options.initialValues } : {}
   createDialogFieldMeta.value = {}
   createDialogInitialArtifacts.value = []
@@ -2995,7 +2995,7 @@ async function openEditRecordShell(row) {
     createDialogDraftSourceKey.value = activeContentSourceKey.value
     editDialogRow.value = row
     editDialogRecordPayload.value = null
-    createDialogInitialSectionKey.value = 'key-fields'
+    createDialogInitialSectionKey.value = 'general'
     createDialogPrefillValues.value = buildDraftDialogInitialValuesFromRow(row)
     createDialogFieldMeta.value = {}
     createDialogInitialArtifacts.value = []
@@ -3010,7 +3010,7 @@ async function openEditRecordShell(row) {
   editDialogRecordPayload.value = null
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
   createDialogDraftEntityName.value = resolveEditEntityName(row)
-  createDialogInitialSectionKey.value = 'key-fields'
+  createDialogInitialSectionKey.value = 'general'
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
   try {
     editDialogRecordPayload.value = await loadEditDialogRecordPayload(
@@ -3050,7 +3050,7 @@ async function openAddRelationShell(row) {
   editDialogRecordPayload.value = null
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
   createDialogDraftEntityName.value = resolveEditEntityName(row)
-  createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'key-fields'
+  createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'general'
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
   try {
     editDialogRecordPayload.value = await loadEditDialogRecordPayload(
@@ -3129,7 +3129,7 @@ async function submitCreateRecordShell({ values, verification } = {}) {
       createDialogMode.value = 'create'
       editDialogRow.value = null
       editDialogRecordPayload.value = null
-      createDialogInitialSectionKey.value = 'key-fields'
+      createDialogInitialSectionKey.value = 'general'
       createDialogPrefillValues.value = {}
       createDialogFieldMeta.value = {}
       createDialogInitialArtifacts.value = []
@@ -3171,7 +3171,7 @@ async function submitCreateRecordShell({ values, verification } = {}) {
       createDialogOpen.value = false
       resetCreateDialogAutosaveState()
       editDialogRecordPayload.value = null
-      createDialogInitialSectionKey.value = 'key-fields'
+      createDialogInitialSectionKey.value = 'general'
       createDialogPrefillValues.value = {}
       createDialogFieldMeta.value = {}
       createDialogInitialArtifacts.value = []
@@ -3205,7 +3205,7 @@ async function handleCreateDialogClose(snapshot) {
   createDialogPreferAddLayout.value = false
   editDialogRow.value = null
   editDialogRecordPayload.value = null
-  createDialogInitialSectionKey.value = 'key-fields'
+  createDialogInitialSectionKey.value = 'general'
   createDialogPrefillValues.value = {}
   createDialogFieldMeta.value = {}
   createDialogInitialArtifacts.value = []
@@ -3479,7 +3479,7 @@ function updateLocalDraftRowFromSnapshot(snapshot) {
 }
 
 function buildCreatePayload(values = {}) {
-  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   const payloadEntries = []
 
   allTokens.forEach((token) => {
@@ -3527,7 +3527,7 @@ function isUnsupportedRelationshipWriteToken(token, entityName = '') {
 }
 
 function getUnsupportedRelationshipWriteLabels(values = {}, entityName = '') {
-  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
   return allTokens
     .filter((token) => {
       if (isAutomaticCreatorToken(token)) return false
@@ -3567,7 +3567,7 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
   if (!recordId || !entityName) return []
   const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
 
-  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
 
   return allTokens.flatMap((token) => {
     if (isAutomaticCreatorToken(token)) return []
