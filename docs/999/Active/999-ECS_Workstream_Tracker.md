@@ -75,6 +75,11 @@ This tracker should stay aligned with:
   - commit text inputs on blur, flush on save
   - remove ghost draft rows
   - keep branch choice and required birth data honest in the shell
+- intake extraction orchestration:
+  - `Intake Steward` should orchestrate relevant `File Stewards`
+  - extraction should ask whether an artifact answers any declared `L1` / `L3` directive
+  - parcel first-pass answers into the strongest matching file/token path
+  - avoid repeating the same information across multiple sections when one higher-confidence destination already exists
 - birth-governance derivation:
   - document derivation rules
   - seed first registry-owned birth defaults into shared create

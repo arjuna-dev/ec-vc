@@ -58,11 +58,20 @@ That means it should:
 The intake steward should:
 
 - read source materials carefully
+- orchestrate the relevant `File Stewards` when evaluating an artifact instead of answering in isolation
+- ask, file by file and section by section:
+  - does this artifact answer any declared `L1` or `L3` directive?
+  - if yes, which specific file and token does it belong to?
+  - if confidence is not high enough, should it remain a proposed value instead of a settled one?
 - propose field values through approved owner paths only
 - propose KDB links only when the relationship is declared
 - keep page-context assumptions marked as assumptions
 - avoid treating extraction as settled truth before verification
 - surface missing ownership, provenance, or relationship support honestly
+- parcel extracted information into the most likely canonical destinations so one section is not mistaken for another
+- avoid repeating the same information across multiple files or sections when one stronger canonical destination already exists
+- rank confidence when multiple possible destinations exist, especially during first-pass extraction
+- prefer the higher-confidence first-pass placement and leave weaker alternatives visible as proposals instead of duplicating them as parallel truth
 
 ## Prohibited Behavior
 
@@ -101,6 +110,13 @@ But it must treat that as:
 
 - verification-ready context
 - not settled truth
+
+When intake is evaluating a source artifact:
+
+- the steward should ask the relevant `File Stewards` whether the artifact answers their declared directives
+- a proposed answer should stay attached to the best matching file/token path first
+- if two sections seem similar, the steward should prefer the more reliable first-pass interpretation and keep the weaker one as a visible suggestion, not as duplicated data
+- first-pass confidence should help prevent repeated information and cross-section confusion before verification
 
 ## Stop Conditions
 
