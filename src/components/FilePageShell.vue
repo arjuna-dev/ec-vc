@@ -1091,15 +1091,13 @@ const selectedRecordShellLevel3Keys = computed(() => {
     .filter((value) => value && allowedKeys.has(value))
 })
 const selectedRecordShellLevel3KeySet = computed(() => new Set(selectedRecordShellLevel3Keys.value))
+const activeCardSettingsSectionKey = computed(() => String(activeSection.value?.key || '').trim())
 const availableCardItemTokens = computed(() =>
-  level3Tokens.value.filter((token) => {
-    if (token.key === canonicalTitleToken.value?.key) return false
-    return String(token.parentLabel || '').trim().toLowerCase() !== 'kdb'
-  }),
+  activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key),
 )
 const enabledCardItemKeys = computed(() => {
-  const sourceKey = activeContentSourceKey.value
-  const configured = Array.isArray(cardItemKeysBySource.value[sourceKey]) ? cardItemKeysBySource.value[sourceKey] : []
+  const scopeKey = `${activeContentSourceKey.value}:${activeCardSettingsSectionKey.value}`
+  const configured = Array.isArray(cardItemKeysBySource.value[scopeKey]) ? cardItemKeysBySource.value[scopeKey] : []
   const allowedKeys = new Set(availableCardItemTokens.value.map((token) => token.key))
   return configured.filter((key) => allowedKeys.has(key))
 })
@@ -1129,7 +1127,7 @@ const createKeyFieldTokens = computed(() => {
     : null
   const tokens = isRecordShellMode.value
     ? [canonicalTitleToken.value, canonicalSummaryToken.value].filter(Boolean)
-    : [canonicalTitleToken.value, branchToken, ...requiredCreateTokens.value, ...selectedCardItemTokens.value].filter(Boolean)
+    : [canonicalTitleToken.value, branchToken, ...requiredCreateTokens.value].filter(Boolean)
   const seen = new Set()
   return tokens
     .filter((token) => {
@@ -1185,9 +1183,10 @@ const createDialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || '',
 )
 const isTableInlineEditingAvailable = computed(() => viewMode.value !== 'card')
+const activeCardSettingsScopeKey = computed(() => `${activeContentSourceKey.value}:${activeCardSettingsSectionKey.value}`)
 const expandedCardSettingsGroups = computed(() => {
-  const sourceKey = activeContentSourceKey.value
-  const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
+  const scopeKey = activeCardSettingsScopeKey.value
+  const existing = expandedCardSettingsGroupsBySource.value[scopeKey]
   return Array.isArray(existing) ? existing : cardItemTokenGroups.value.map((group) => group.key)
 })
 const cardSettingsMenuGroups = computed(() => {
@@ -1204,18 +1203,22 @@ const cardSettingsMenuGroups = computed(() => {
       }]
     : []
 
+  const activeSectionGroup = activeSection.value && availableCardItemTokens.value.length
+    ? [{
+        key: activeSection.value.key,
+        label: activeSection.value.label,
+        expanded: true,
+        items: availableCardItemTokens.value.map((token) => ({
+          key: token.key,
+          label: token.label,
+          checked: isCardItemEnabled(token.key),
+        })),
+      }]
+    : []
+
   return [
     ...selectedGroup,
-    ...cardItemTokenGroups.value.map((group) => ({
-      key: group.key,
-      label: group.label,
-      expanded: expandedCardSettingsGroups.value.includes(group.key),
-      items: group.tokens.map((token) => ({
-        key: token.key,
-        label: token.label,
-        checked: isCardItemEnabled(token.key),
-      })),
-    })),
+    ...activeSectionGroup,
   ]
 })
 const canCreateWithShell = computed(() => {
@@ -1676,7 +1679,7 @@ const heroPayload = computed(() => {
   )
   const remainingDriftPoints = Math.max(totalDriftPoints - activeDriftPoints, 0)
   const sharedText = isRecordShellMode.value
-    ? 'This is the shared record-create shell. The selected L1 sets the real source entity, and the selected L3 set defines which extra canonical fields the create dialog includes.'
+    ? 'This is the shared record-create shell. The selected L1 sets the real source entity, while the active L2 section defines which L3 tune fields are visible in the row surface.'
     : `This is the shared file shell for ${fileLabel}. The active L1 determines the local payload while the hero structure remains owned by bb:file-hero.`
 
   return {
@@ -1739,9 +1742,10 @@ const viewOptions = Object.freeze([
   { value: 'table', icon: 'view_list' },
 ])
 
-const multiTokenFilterSections = computed(() =>
-  level2Sections.value.filter((section) => getFilterSectionTokenCount(section.key) > 1),
-)
+const multiTokenFilterSections = computed(() => {
+  if (!activeSection.value) return []
+  return getFilterSectionTokenCount(activeSection.value.key) > 1 ? [activeSection.value] : []
+})
 
 const bbFilterGroups = computed(() => {
   if (!isBbFileSource.value) return []
@@ -2034,18 +2038,18 @@ watch(
 )
 
 watch(
-  [activeContentSourceKey, availableCardItemTokens],
+  [activeCardSettingsScopeKey, availableCardItemTokens],
   () => {
-    const sourceKey = activeContentSourceKey.value
+    const scopeKey = activeCardSettingsScopeKey.value
     const allowedKeys = new Set(availableCardItemTokens.value.map((token) => token.key))
-    const existing = Array.isArray(cardItemKeysBySource.value[sourceKey]) ? cardItemKeysBySource.value[sourceKey] : []
+    const existing = Array.isArray(cardItemKeysBySource.value[scopeKey]) ? cardItemKeysBySource.value[scopeKey] : []
     const normalized = existing.filter((key) => allowedKeys.has(key))
 
     if (normalized.length) {
       if (normalized.length !== existing.length) {
         cardItemKeysBySource.value = {
           ...cardItemKeysBySource.value,
-          [sourceKey]: normalized,
+          [scopeKey]: normalized,
         }
       }
       return
@@ -2053,7 +2057,7 @@ watch(
 
     cardItemKeysBySource.value = {
       ...cardItemKeysBySource.value,
-      [sourceKey]: availableCardItemTokens.value.slice(0, 4).map((token) => token.key),
+      [scopeKey]: availableCardItemTokens.value.slice(0, 4).map((token) => token.key),
     }
   },
   { immediate: true },
@@ -2068,18 +2072,18 @@ watch(
 )
 
 watch(
-  [activeContentSourceKey, cardItemTokenGroups],
+  [activeCardSettingsScopeKey, cardItemTokenGroups],
   () => {
-    const sourceKey = activeContentSourceKey.value
+    const scopeKey = activeCardSettingsScopeKey.value
     const availableKeys = new Set(cardItemTokenGroups.value.map((group) => group.key))
-    const existing = expandedCardSettingsGroupsBySource.value[sourceKey]
+    const existing = expandedCardSettingsGroupsBySource.value[scopeKey]
     const normalized = Array.isArray(existing)
       ? existing.filter((key) => availableKeys.has(key))
       : cardItemTokenGroups.value.map((group) => group.key)
 
     expandedCardSettingsGroupsBySource.value = {
       ...expandedCardSettingsGroupsBySource.value,
-      [sourceKey]: normalized,
+      [scopeKey]: normalized,
     }
   },
   { immediate: true },
@@ -2164,24 +2168,24 @@ function isCardItemEnabled(tokenKey) {
 }
 
 function setCardItemEnabled(tokenKey, nextValue) {
-  const sourceKey = activeContentSourceKey.value
+  const scopeKey = activeCardSettingsScopeKey.value
   const current = enabledCardItemKeys.value
   if (!nextValue) {
     cardItemKeysBySource.value = {
       ...cardItemKeysBySource.value,
-      [sourceKey]: current.filter((key) => key !== tokenKey),
+      [scopeKey]: current.filter((key) => key !== tokenKey),
     }
     return
   }
   if (current.includes(tokenKey)) return
   cardItemKeysBySource.value = {
     ...cardItemKeysBySource.value,
-    [sourceKey]: [...current, tokenKey],
+    [scopeKey]: [...current, tokenKey],
   }
 }
 
 function toggleCardSettingsGroup(groupKey) {
-  const sourceKey = activeContentSourceKey.value
+  const scopeKey = activeCardSettingsScopeKey.value
   const current = [...expandedCardSettingsGroups.value]
   const next = current.includes(groupKey)
     ? current.filter((key) => key !== groupKey)
@@ -2189,7 +2193,7 @@ function toggleCardSettingsGroup(groupKey) {
 
   expandedCardSettingsGroupsBySource.value = {
     ...expandedCardSettingsGroupsBySource.value,
-    [sourceKey]: next,
+    [scopeKey]: next,
   }
 }
 
