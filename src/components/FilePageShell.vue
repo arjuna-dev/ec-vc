@@ -1754,14 +1754,15 @@ const heroPayload = computed(() => {
   const fileLabel = String(heroRegistryEntry?.label || pageShellLabel.value || 'File').trim() || 'File'
   const validation = sourceKey === 'file-system' ? fileSystemValidation.value : null
   const totalRows = rawRows.value.length
+  const hasValidator = sourceKey === 'file-system'
   const totalDriftPoints = Math.max(
-    sourceKey === 'file-system'
+    hasValidator
       ? Number(validation?.registryCount || validation?.rowCount || totalRows || 0)
       : Number(totalRows || 0),
     0,
   )
   const activeDriftPoints = Math.min(
-    sourceKey === 'file-system' ? fileSystemValidationIssueCount.value : 0,
+    hasValidator ? fileSystemValidationIssueCount.value : 0,
     totalDriftPoints,
   )
   const remainingDriftPoints = Math.max(totalDriftPoints - activeDriftPoints, 0)
@@ -1780,22 +1781,22 @@ const heroPayload = computed(() => {
       },
       {
         label: 'Drift',
-        value: activeDriftPoints,
-        caption: sourceKey === 'file-system' ? 'Current validator issues' : 'Validator not connected yet',
-        tone: activeDriftPoints > 0 ? 'rich' : 'neutral',
+        value: hasValidator ? activeDriftPoints : 'N/A',
+        caption: hasValidator ? 'Current validator issues' : 'Validator not connected',
+        tone: hasValidator && activeDriftPoints > 0 ? 'rich' : 'neutral',
       },
     ],
-    healthText: sourceKey === 'file-system' && validation
+    healthText: hasValidator && validation
       ? `Checked ${Number(validation?.rowCount || 0)} rows against ${Number(validation?.registryCount || 0)} executable registry entries. Errors: ${Number(validation?.severityCounts?.error || 0)}. Warnings: ${Number(validation?.severityCounts?.warn || 0)}. Info: ${Number(validation?.severityCounts?.info || 0)}.`
-      : `This file page is rendering through the shared File Shell hero contract. Local payload comes from ${fileLabel}, while the hero structure remains linked to bb:file-hero.`,
-    healthSegments: totalDriftPoints > 0
+      : `This file page is rendering through the shared File Shell hero contract. Local payload comes from ${fileLabel}, while the hero structure remains linked to bb:file-hero. Validator coverage has not been attached yet.`,
+    healthSegments: hasValidator && totalDriftPoints > 0
       ? [
           { tone: 'sparse', width: (activeDriftPoints / totalDriftPoints) * 100 },
           { tone: 'rich', width: (remainingDriftPoints / totalDriftPoints) * 100 },
         ]
       : [
-          { tone: 'sparse', width: 0 },
-          { tone: 'rich', width: 100 },
+          { tone: 'sparse', width: 100 },
+          { tone: 'rich', width: 0 },
         ],
     actionLabel: 'File Health',
     actionTitle: 'Reference Documents',
