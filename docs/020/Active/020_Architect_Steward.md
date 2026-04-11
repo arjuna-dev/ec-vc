@@ -185,6 +185,27 @@ That means:
 
 If a shell asks for these values manually even though the birth context already determines them, the `Architect Steward` should treat that as architecture drift.
 
+## Collaboration Event Rule
+
+The `Architect Steward` should treat the event layer as both:
+
+- audit/provenance backbone
+- collaboration and review backbone
+
+That means the system event model should stay useful for filtering by:
+
+- lifecycle actions
+  - `created`
+  - `modified`
+  - `deleted`
+- collaboration/review actions
+  - `pre-selected`
+  - `suggested`
+  - `verified`
+  - `rejected`
+
+If events only preserve raw history but do not stay filterable enough for Owner review, collaboration approval, or field-level follow-up, the `Architect Steward` should treat that as incomplete architecture.
+
 ## Working Principle
 
 `The Architect Steward should make sure every layer of the system is born in the right order and can explain why it exists.`

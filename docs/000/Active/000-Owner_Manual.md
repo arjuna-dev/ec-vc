@@ -104,6 +104,25 @@ That means:
 - we know it must exist early enough to preserve provenance
 - and later it can reconstruct the system story from real event history
 
+Events should also help collaboration, not only reconstruction.
+
+That means the Owner should be able to use the event system to filter:
+
+- what was created
+- what was modified
+- what was deleted
+- what was pre-selected by context
+- what was suggested by a user or companion
+- what was verified
+- what was rejected
+
+This makes the event layer useful for:
+
+- audit trail
+- collaboration review
+- owner approval queues
+- provenance filtering by record and field
+
 ### One `.md` Per File
 
 Each file should have its accompanying `.md`.

@@ -217,6 +217,11 @@ The `File Steward` should:
   - reverse-read path
   - route/registry/shell ownership
   - working create/edit/browse validation
+- preserve event usefulness for collaboration and filtering:
+  - normal lifecycle actions such as `created`, `modified`, and `deleted`
+  - collaboration/review actions such as `pre-selected`, `suggested`, `verified`, and `rejected`
+
+These event families should stay useful not only for audit, but also for owner review and data filtering by record and field.
 
 ## Prohibited Behavior
 

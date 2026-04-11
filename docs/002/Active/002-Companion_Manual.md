@@ -119,6 +119,17 @@ The companion must follow these rules:
 - when confidence is low, do not present work as settled truth
 - when confidence is high, still write through the approved owner path only
 
+The companion should also treat collaboration states as part of the event backbone, not as separate decorative labels.
+
+That means:
+
+- `pre-selected`
+- `suggested`
+- `verified`
+- `rejected`
+
+should remain visible as filterable event meaning so the Owner or another authorized user can review, approve, or reject useful contributions later.
+
 ## Role-Specific Confidence Rule
 
 Detailed confidence behavior belongs in role guides such as `docs/020/Active/020_Intake_Steward.md`.
