@@ -6303,6 +6303,13 @@ function buildEventShellSummary({ actorLabel, recordLabel, fieldLabel, actionLab
     }
   }
 
+  if (action.includes('delete')) {
+    return {
+      title: `Deleted ${recordLabel || 'record'}`,
+      summary: `${actorLabel || 'User'} deleted ${recordLabel || 'record'}`,
+    }
+  }
+
   if (action.includes('verification')) {
     const payloadObject = event?.payload && typeof event.payload === 'object' ? event.payload : {}
     const verificationStateLabel = formatVerificationStateLabel(payloadObject?.verification_state)

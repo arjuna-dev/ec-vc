@@ -1235,6 +1235,10 @@ function buildAuditEventTitle(event = {}, fieldName = '', actionLabel = '') {
     return `${actorLabel}, created ${recordDescriptor}`
   }
 
+  if (actionLabel.includes('delete')) {
+    return `${actorLabel}, deleted ${recordDescriptor}`
+  }
+
   if (fieldName.endsWith('__verification') || actionLabel.includes('verification')) {
     if (verificationValue) return `${actorLabel}, verified "${verificationValue}" as ${fieldLabel} for ${recordDescriptor}`
     return `${actorLabel}, verified ${fieldLabel} for ${recordDescriptor}`
