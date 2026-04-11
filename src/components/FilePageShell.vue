@@ -1070,24 +1070,10 @@ const activeSectionTokens = computed(() => {
   return level3Tokens.value.filter((token) => token.parentKey === activeSection.value.key)
 })
 
-function isTokenNamed(token, names = []) {
-  const normalizedNames = names.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
-  if (!normalizedNames.length) return false
-  const candidates = [
-    token?.label,
-    token?.rawLabel,
-    token?.tokenName,
-    ...(Array.isArray(token?.dbFieldAliases) ? token.dbFieldAliases : []),
-  ]
-    .map((value) => String(value || '').trim().toLowerCase())
-    .filter(Boolean)
-  return candidates.some((candidate) => normalizedNames.includes(candidate))
-}
-
 const canonicalTitleToken = computed(
   () => {
     if (isBbFileSource.value) {
-      return level3Tokens.value.find((token) => isTokenNamed(token, ['name', 'bb_name'])) || null
+      return level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === 'BB_Name') || null
     }
     return (
       level3Tokens.value.find(
@@ -1099,13 +1085,11 @@ const canonicalTitleToken = computed(
 const canonicalSummaryToken = computed(
   () => {
     if (isBbFileSource.value) {
-      return level3Tokens.value.find((token) => isTokenNamed(token, ['summary', 'bb_summary'])) || null
+      return level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === 'BB_Summary') || null
     }
     return (
       level3Tokens.value.find(
-        (token) =>
-          (String(token.parentLevel_2) === '3' && String(token.level_3) === '2')
-          || String(token.label || '').trim().toLowerCase() === 'summary',
+        (token) => String(token.parentLevel_2) === '3' && String(token.level_3) === '2',
       ) || null
     )
   },
