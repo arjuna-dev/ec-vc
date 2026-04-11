@@ -914,6 +914,81 @@
               </div>
 
               <div
+                v-else-if="isSystemSectionActive && activeFields.length"
+                class="create-record-shell__fields create-record-shell__fields--system"
+                :style="{ '--field-map-label-width': activeFieldLabelWidth }"
+              >
+                <div
+                  class="create-record-shell__fields-grid create-record-shell__fields-grid--left"
+                >
+                  <FieldMapRow
+                    v-for="fieldEntry in leftFieldEntries"
+                    :key="fieldEntry.token.key"
+                    :label="fieldEntry.token.label"
+                    :type-hint="formatFieldType(fieldEntry.token.tokenType)"
+                    :wide="isWideField(fieldEntry.token)"
+                    :stacked-input="isSummaryField(fieldEntry.token)"
+                    :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
+                  >
+                    <template #parent-link>
+                      <q-btn
+                        v-if="fieldHasParentRecordLink(fieldEntry.token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        icon="link"
+                        class="create-record-shell__field-parent-link"
+                        :aria-label="`Open source record for ${fieldEntry.token.label}`"
+                        @click="openFieldParentRecord(fieldEntry.token)"
+                      />
+                      <q-btn
+                        v-if="fieldHasCopyableLockedValue(fieldEntry.token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        icon="content_copy"
+                        class="create-record-shell__field-parent-link"
+                        :aria-label="`Copy ${fieldEntry.token.label}`"
+                        @click="copyLockedFieldValue(fieldEntry.token)"
+                      />
+                    </template>
+                    <template #input>
+                      <div
+                        v-if="isFieldLocked(fieldEntry.token) && !isSummaryField(fieldEntry.token)"
+                        class="create-record-shell__read-value"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                      >
+                        {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
+                      </div>
+                    </template>
+                  </FieldMapRow>
+                </div>
+
+                <div class="create-record-shell__fields-grid create-record-shell__fields-grid--right create-record-shell__history-column">
+                  <div v-if="historySummaryItems.length" class="create-record-shell__history-summary-box">
+                    <div
+                      v-for="item in historySummaryItems"
+                      :key="item.key"
+                      class="create-record-shell__history-summary-item"
+                    >
+                      <div class="create-record-shell__history-summary-label">{{ item.label }}</div>
+                      <div class="create-record-shell__history-summary-value">{{ item.value }}</div>
+                    </div>
+                  </div>
+
+                  <RecordHistoryBox
+                    title="History"
+                    :items="historyItems"
+                    :loading="historyLoading"
+                    empty-label="No history yet for this record."
+                    @open-item="openHistoryItem"
+                  />
+                </div>
+              </div>
+
+              <div
                 v-else-if="activeFields.length"
                 class="create-record-shell__fields"
                 :style="{ '--field-map-label-width': activeFieldLabelWidth }"
@@ -1436,6 +1511,7 @@ import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
 import EntryInputListBox from 'src/components/EntryInputListBox.vue'
 import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
+import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import {
@@ -1459,6 +1535,10 @@ const props = defineProps({
   initialValues: { type: Object, default: () => ({}) },
   initialFieldMeta: { type: Object, default: () => ({}) },
   initialSectionKey: { type: String, default: 'general' },
+  historyItems: { type: Array, default: () => [] },
+  historyLoading: { type: Boolean, default: false },
+  historyTableName: { type: String, default: '' },
+  historyRecordId: { type: String, default: '' },
   initialArtifacts: { type: Array, default: () => [] },
   artifactContext: { type: Object, default: null },
   branchSelectorTokenKey: { type: String, default: '' },
@@ -1644,6 +1724,7 @@ const activeSection = computed(
 )
 
 const isGeneralSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'general')
+const isSystemSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'system')
 const activeFields = computed(() => activeSection.value?.tokens || [])
 const activeSectionSubgroups = computed(() => Array.isArray(activeSection.value?.subgroups) ? activeSection.value.subgroups : [])
 const activeFieldEntries = computed(() => {
@@ -1727,6 +1808,16 @@ const rightFieldEntries = computed(() => {
   const remainder = activeFieldEntries.value.filter((entry) => entry.column === 'right' && !isSummaryField(entry.token))
   return [...pinned, ...mirroredGeneralEntries.value, ...remainder]
 })
+const historySummaryItems = computed(() => {
+  const items = Array.isArray(props.historyItems) ? props.historyItems : []
+  const createdItem = items.find((item) => String(item?.title || '').trim().toLowerCase().includes('created'))
+  const sourceItem = createdItem || items[0] || null
+  if (!sourceItem) return []
+  return [
+    { key: 'creator', label: 'Creator', value: String(sourceItem.sourceLabel || '').trim() || 'Unknown' },
+    { key: 'datetime', label: 'Datetime', value: String(sourceItem.meta || '').trim() || 'Unknown' },
+  ]
+})
 const resolvedDialogHeight = computed(() => {
   if (!recordDataCollapsed.value) return dialogHeight.value
   const collapsedHeight = supportResourcesCollapsed.value ? 240 : 500
@@ -1748,6 +1839,17 @@ function resolveInitialDialogSectionKey(initialKey = '') {
   if (generalSection?.key) return generalSection.key
 
   return String(allSections.value[0]?.key || '').trim()
+}
+
+function openHistoryItem(item) {
+  const eventId = String(item?.id || '').trim()
+  const tableName = String(props.historyTableName || '').trim()
+  const recordId = String(props.historyRecordId || '').trim()
+  if (!eventId || !tableName || !recordId) return
+  router.push({
+    name: 'record-history-entry',
+    params: { tableName, recordId, eventId },
+  })
 }
 
 function createUndoSnapshot() {
@@ -3834,6 +3936,40 @@ onBeforeUnmount(() => {
   max-width: none;
   align-items: flex-start;
   white-space: pre-wrap;
+}
+
+.create-record-shell__history-column {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.create-record-shell__history-summary-box {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+  background: rgba(17, 17, 17, 0.02);
+}
+
+.create-record-shell__history-summary-item {
+  display: grid;
+  gap: 2px;
+}
+
+.create-record-shell__history-summary-label {
+  color: rgba(17, 17, 17, 0.48);
+  font-family: var(--font-body);
+  font-size: var(--ds-font-size-xs);
+  line-height: 1.1;
+}
+
+.create-record-shell__history-summary-value {
+  color: rgba(17, 17, 17, 0.78);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  line-height: 1.2;
 }
 
 .create-record-shell__selected-multi-box {

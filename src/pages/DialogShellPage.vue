@@ -37,6 +37,10 @@
       :initial-values="dialogInitialValues"
       :initial-field-meta="dialogInitialFieldMeta"
       :initial-section-key="dialogInitialSectionKey"
+      :history-items="dialogHistoryItems"
+      :history-loading="dialogHistoryLoading"
+      :history-table-name="dialogHistoryTableName"
+      :history-record-id="dialogRecordId"
       :initial-artifacts="[]"
       :artifact-context="null"
       @update:shell-selector-value="updateShellSelector"
@@ -87,6 +91,8 @@ const dialogInitialFieldMeta = ref({})
 const dialogInitialSectionKey = ref('general')
 const dialogRecordId = ref('')
 const dialogEntityName = ref('')
+const dialogHistoryItems = ref([])
+const dialogHistoryLoading = ref(false)
 const generalFieldKeysBySource = ref(loadShellFieldSelectionMap())
 const expandedGeneralSettingsGroupKeys = ref([])
 const isAddAction = computed(() => dialogMode.value === 'create' && Boolean(String(route.query.create || '').trim()))
@@ -213,6 +219,7 @@ const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEn
 const dialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || 'general',
 )
+const dialogHistoryTableName = computed(() => String(getRuntimeTableNameForEntityName(dialogEntityName.value) || '').trim())
 
 watch(generalSourceGroups, (groups) => {
   const nextKeys = groups.map((group) => group.value)
@@ -280,6 +287,8 @@ watch(
       dialogMode.value = 'create'
       dialogRecordId.value = ''
       dialogEntityName.value = ''
+      dialogHistoryItems.value = []
+      dialogHistoryLoading.value = false
       dialogInitialValues.value = buildCreateDialogInitialValues(pending)
       dialogInitialFieldMeta.value = buildCreateDialogInitialFieldMeta(pending)
       dialogInitialSectionKey.value = 'general'
@@ -293,6 +302,7 @@ watch(
     dialogInitialSectionKey.value = String(editSection || '').trim().toLowerCase() === 'kdb' ? dialogKdbSectionKey.value : 'general'
     dialogInitialValues.value = {}
     dialogInitialFieldMeta.value = {}
+    dialogHistoryItems.value = []
 
     const payload = await loadEditDialogRecordPayload(dialogEntityName.value, dialogRecordId.value)
     if (!payload?.record) {
@@ -301,6 +311,7 @@ watch(
     }
 
     dialogInitialValues.value = buildEditDialogInitialValuesFromPayload(payload)
+    await loadDialogHistory()
     dialogRenderKey.value += 1
     dialogOpen.value = true
   },
@@ -559,6 +570,60 @@ async function loadEditDialogRecordPayload(entityName, recordId) {
   const normalizedRecordId = String(recordId || '').trim()
   if (!bridge.value?.records?.view || !normalizedEntityName || !normalizedRecordId) return null
   return await bridge.value.records.view(normalizedEntityName, normalizedRecordId)
+}
+
+function formatHistoryActorLabel(actorValue) {
+  const normalized = String(actorValue || '').trim()
+  return normalized || 'System'
+}
+
+function buildHistoryEventTitle(event = {}) {
+  const action = String(event?.action_label || '').trim().toLowerCase()
+  const recordLabel = String(event?.record_name || event?.record_label || event?.record_id || '').trim()
+  const fieldLabel = String(event?.field_label || event?.field_name || '').trim()
+  if (action === 'created') return recordLabel ? `Created ${recordLabel}` : 'Created record'
+  if (action === 'deleted') return recordLabel ? `Deleted ${recordLabel}` : 'Deleted record'
+  if (action === 'verified') return fieldLabel ? `Verified ${fieldLabel}` : 'Verified field'
+  if (action === 'modified') return fieldLabel ? `Modified ${fieldLabel}` : (recordLabel ? `Modified ${recordLabel}` : 'Modified record')
+  if (fieldLabel) return `${action || 'Updated'} ${fieldLabel}`
+  if (recordLabel) return `${action || 'Updated'} ${recordLabel}`
+  return String(event?.summary || event?.action_label || 'History item').trim()
+}
+
+function normalizeDialogHistoryItems(events = []) {
+  return (Array.isArray(events) ? events : [])
+    .map((event, index) => ({
+      id: String(event?.id || '').trim() || `history:${index}`,
+      sourceLabel: formatHistoryActorLabel(event?.edited_by),
+      meta: String(event?.edited_at || '').trim() || 'Recent',
+      title: buildHistoryEventTitle(event),
+      openable: Boolean(String(event?.id || '').trim()),
+    }))
+    .filter((item) => item.title)
+}
+
+async function loadDialogHistory() {
+  const tableName = dialogHistoryTableName.value
+  const recordId = String(dialogRecordId.value || '').trim()
+  if (!tableName || !recordId || !bridge.value?.audit?.history) {
+    dialogHistoryItems.value = []
+    dialogHistoryLoading.value = false
+    return
+  }
+
+  dialogHistoryLoading.value = true
+  try {
+    const result = await bridge.value.audit.history({
+      table_name: tableName,
+      record_id: recordId,
+      limit: 8,
+    })
+    dialogHistoryItems.value = normalizeDialogHistoryItems(result?.events)
+  } catch {
+    dialogHistoryItems.value = []
+  } finally {
+    dialogHistoryLoading.value = false
+  }
 }
 
 function buildEditDialogInitialValuesFromPayload(payload) {
