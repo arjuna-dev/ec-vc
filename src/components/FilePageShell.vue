@@ -1109,6 +1109,7 @@ const selectedCardItemTokens = computed(() =>
 function getRequiredCreateTokenNamesForSource(sourceKey = '') {
   const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
   if (normalizedSourceKey === 'file-system') return ['File_Source_Key']
+  if (normalizedSourceKey === 'users') return ['User_PEmail']
   return []
 }
 
