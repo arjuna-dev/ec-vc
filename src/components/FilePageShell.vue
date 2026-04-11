@@ -2449,7 +2449,9 @@ function buildShellRow(row, index) {
     titleValue,
     subtitleValue: '',
     cardDetailRows,
-    relationshipItemsByType: buildCardRelationshipItems(row, sourcePrefixes),
+    relationshipItemsByType: buildCardRelationshipItems(row, sourcePrefixes, {
+      events: () => getRowHistoryItems({ recordId }).map((item) => String(item?.title || '').trim()).filter(Boolean),
+    }),
     sectionPresence,
     tokenPresence,
     sectionTokenRows: tokenRows,

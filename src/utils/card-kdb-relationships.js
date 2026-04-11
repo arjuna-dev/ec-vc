@@ -7,6 +7,7 @@ export const CARD_KDB_RELATIONSHIP_DEFS = [
   { value: 'projects', label: 'Projects', icon: 'workspaces' },
   { value: 'notes', label: 'Notes', icon: 'note' },
   { value: 'tasks', label: 'Tasks', icon: 'task_alt' },
+  { value: 'events', label: 'Events', icon: 'event' },
 ]
 
 const RELATIONSHIP_TARGET_PREFIXES = {
