@@ -6,7 +6,7 @@
 | Owner | The system authority and node founder identity. It is the origin of top-level control. | Product Reference |
 | Owner LDB | The Owner's protected local database or workspace. Access to it should be governed through explicit user/contact/project/role rules, not guessed globally. | Files |
 | User | The access identity layer. A User governs whether a linked Contact can access the Owner LDB. | Product Reference |
-| Contact | The person record inside the CRM/KDB layer. It may correspond to a User, but is not the same thing as a User. | Product Reference |
+| Contact | The person record inside the CRM/LDB layer. It may correspond to a User, but is not the same thing as a User. | Product Reference |
 | Access Assignment | The scoped rule that links a user/contact to a project or scope, a role, a status, and access limits. `Access_Assignments` should become its own canonical `L1` because access must be browsed, audited, and governed directly. | Files |
 | Project x Role Access | The dynamic access rule where permissions are evaluated through project scope and role together instead of through global user status alone. | Files |
 | Approved Direction | A concept or file direction that the Owner and architecture docs have accepted. It is not the same as implemented runtime truth. | File Steward |
@@ -33,18 +33,18 @@
 | Legacy Surface | A frontend page or dialog that is no longer route-mounted or no longer part of the approved shared shell set. Once proven unused, it should be removed rather than kept as silent drift. | Legacy Surface Audit |
 | Fixed Shell Styling | The rule that shell visuals stay fixed at shell level. `L1` may change payload, labels, section membership, and explicitly approved capabilities, but should not silently restyle the shell. | Product Reference |
 | Shared Middle-Field Selection | The rule that the selected middle fields for a given `L1` are remembered once and reused by both `File Shell` cards and `Record Shell` hero rows. | Product Reference |
-| First-Order KDB | The KDB display family for main operational `L1`s such as `Users`, `Companies`, `Projects`, `Tasks`, `Notes`, `Opportunities`, `Funds`, `Rounds`, `Artifacts`, `Contacts`, and `Roles`. | KDB Audit |
-| Knowledge DB KDB | The KDB display family for reusable reference or processing `L1`s such as `Markets`, `Securities`, and `Ingestion`. | KDB Audit |
+| First-Order LDB | The LDB display family for main operational `L1`s such as `Users`, `Companies`, `Projects`, `Tasks`, `Notes`, `Opportunities`, `Funds`, `Rounds`, `Artifacts`, `Contacts`, and `Roles`. | KDB Audit |
+| Local DB LDB | The LDB display family for reusable local reference or processing `L1`s such as `Markets`, `Securities`, and `Intake`. | KDB Audit |
 | Business Overview | The grouped `L2` used in `Companies` to collect overview-style subsections under one toolbar item while preserving the prior overview subsections as subgroup variants inside the panel. | Record Architecture |
 | Grouped Subsection | A preserved canonical subsection rendered inside a grouped `L2` panel. Grouped subsections should keep their own title and should be individually collapsible. | Record Architecture |
 | Grouped Dialog Section | A grouped `L2` rendered inside the shared create / edit dialog. It should preserve subgroup identity and collapse / expand behavior instead of flattening subgrouped fields into one undifferentiated section. | Record Architecture |
 | Overview Display Group | A higher display family that can collect multiple overview-style subsections under one grouped heading without changing their canonical addresses. Grouping the toolbar does not flatten the subgroup structure in the panel. | KDB Audit |
 | Record View | The eye-opened detailed surface for one selected record. Route-level `record-view` should now resolve into `Record Shell`. | Product Reference |
 | Hero Dashboard | The top shell block for card or record presentation. In `Record Shell`, it is based on the current `User Record View` hero/dashboard pattern. | Record Architecture |
-| L2 Toolbar | The section bar below the hero/dashboard that renders the selected `L1`'s subsection groups. It places normal sections on the left and `KDB` / `System` on the right. | Product Reference |
+| L2 Toolbar | The section bar below the hero/dashboard that renders the selected `L1`'s subsection groups. It places normal sections on the left and `LDB` / `System` on the right. | Product Reference |
 | System | The canonical subsection for record identity, provenance, creator, timestamps, and other record-owned system fields. | Product Reference |
 | General | The canonical subsection for the main descriptive record fields. `Name` is standardized as the first general field and `Summary` as the second. | Product Reference |
-| KDB | The subsection for declared record relationships. It is not just another content tab; it changes the interaction model into relationship browsing and linking. | Product Reference |
+| LDB | The subsection for declared local record relationships. It is not just another content tab; it changes the interaction model into relationship browsing and linking. | Product Reference |
 | L0 | The provenance/history layer that sits beneath normal record content. It is a strong fit for event-log and origin data such as `Owner created`, and conceptually belongs with the system/knowledge side rather than as another editable business-content layer. | ECS Workstream Tracker |
 | L0 Events File View | The route-owned `File View` for the `L0` event layer. It uses the same shared `L1` file shell as the other file surfaces, but it is view-oriented and routes rows into the event log surface rather than a normal databook record page. | ECS Workstream Tracker |
 | L1 | The entity/file level in canonical structure. Selecting an `L1` chooses the entity payload source for a shell. | Record Architecture |
@@ -54,7 +54,7 @@
 | L2 | The subsection grouping level in canonical structure, such as `System`, `General`, `Business Overview`, or `KDB`. | Record Architecture |
 | Shared System Parameter | A canonical field in the shared `System` starter set that should keep the same meaning and naming across normal `L1` files. The current shared set is `ID`, `Creator`, `Datetime`, and `EventLog`. | File Steward Contract |
 | Shared General Parameter | A canonical field in the shared `General` starter set that should keep the same meaning and naming across normal `L1` files. The current shared set is `Name` and `Summary`. | File Steward Contract |
-| Shared KDB Base | The fact that every normal `L1` should own a `KDB` subsection as its linkage container. This does not mean every `L1` must use one identical list of relationship leaf names. | File Steward Contract |
+| Shared LDB Base | The fact that every normal `L1` should own an `LDB` subsection as its linkage container. This does not mean every `L1` must use one identical list of relationship leaf names. | File Steward Contract |
 | KDB Bridge Layer | The reciprocal relationship wiring that makes canon-declared KDB links actually function between `L1`s. It includes the approved owner path, reverse-read path, and the bridge choice between a dedicated join table and the shared `KDB_Relationships` owner path. | Record Architecture |
 | Relationship Existence Layer | The base storage layer that allows one record to link to another and call the linked record by row. In the default model this is the shared `KDB_Relationships` contract, not a dedicated join table per pair. | Product Reference |
 | Promoted Relationship Owner | A dedicated join table used once the relationship itself needs its own governed fields, access-control rules, activation logic, or audit meaning. | Record Architecture |
@@ -79,6 +79,7 @@
 | File Shell Lab | The strict shared file shell route used to test and exercise contract-driven page behavior. | Record Architecture |
 | Deprecated Record Surface | `RecordPage.vue`, the earlier shared record implementation. It is now a historical legacy surface and not the active shared record route target. | Record Architecture |
 | Knowledge DB | A reusable reference or processing file surface that may not be golden-tier in product importance, but still behaves like an `L1` in the shell and contract system. | Companion |
+| KDB | Legacy language for the relationship/local-database layer. The approved forward product language is `LDB` (`Local Data Base`). Runtime and canon may still carry older `KDB` names temporarily for compatibility. | Product Reference |
 | Field Label Row | The top row of a field block that carries the field label and any adjacent guidance or action control. | Working UI Language |
 | Field Control Shell | The visible value/input box under a field label. It is the rendered shell around the actual field content, not the field contract itself. | Working UI Language |
 | Top-Layer Mechanism | A tuning layer that may improve speed, ranking, comfort, or prioritization without modifying ownership or the underlying contract. | Companion |

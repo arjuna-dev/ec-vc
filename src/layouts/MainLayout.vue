@@ -546,7 +546,7 @@ const drawerNavigationSections = computed(() => [
         })),
       {
         kind: 'toggle',
-        label: 'Knowledge DBs',
+        label: 'Local DBs',
         itemClass: 'ec-nav-item--primary ec-nav-item--workspace-toggle',
         icon: 'folder',
         iconSize: '22px',
@@ -766,7 +766,7 @@ const quickWidgetSettingsActions = computed(() =>
 const quickWidgetSettingsSections = computed(() => {
   const sectionDefs = [
     { id: 'files', label: 'Files' },
-    { id: 'knowledge-dbs', label: 'Knowledge DBs' },
+    { id: 'knowledge-dbs', label: 'Local DBs' },
   ]
 
   return sectionDefs

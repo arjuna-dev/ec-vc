@@ -26,7 +26,7 @@ This tracker should stay aligned with:
 - keep the shared shell, edit dialog, and KDB relationship behavior aligned to canon
 - keep KDB linking, unlinking, and selector labels working through shared shell contracts instead of per-entity fixes
 - start applying birth-governance derivation in the shared create flow, beginning with the simplest visible defaults
-- document the naming direction from `KDB` toward `LDB` while avoiding piecemeal runtime renames
+- document and begin the naming direction from `KDB` toward `LDB` while avoiding piecemeal runtime renames
 - adopt `Record Shell` as the shared `Record View` direction
 - turn the `Contact/User` lesson into a generalized `L1/L2/L3` field-class rule instead of a remembered exception
 - keep owner authority locked while still allowing owner-only editing of owner profile data
@@ -77,7 +77,7 @@ This tracker should stay aligned with:
   - draft resume
   - staged review
   - visible tracker state
-- `Knowledge DB` convergence with the normal file-shell contract
+- `LDB` convergence with the normal file-shell contract
 - strict file-shell contract hardening:
   - fail closed on unmapped page routes
   - honest non-validator file-health state

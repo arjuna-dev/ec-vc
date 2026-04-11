@@ -1098,7 +1098,7 @@ const l2ToolbarItems = [
   { value: 'general', title: 'General', isKdb: false, isSystem: false, pushRight: false },
   { value: 'resources', title: 'Resources', isKdb: false, isSystem: false, pushRight: false },
   { value: 'record-data', title: 'Record Data', isKdb: false, isSystem: false, pushRight: false },
-  { value: 'kdb', title: 'KDB', isKdb: true, isSystem: false, pushRight: true },
+  { value: 'kdb', title: 'LDB', isKdb: true, isSystem: false, pushRight: true },
   { value: 'system', title: 'System', isKdb: false, isSystem: true, pushRight: false },
 ]
 

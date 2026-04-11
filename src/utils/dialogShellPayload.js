@@ -8,7 +8,7 @@ export function getDialogSectionGroupValue(section) {
 function formatRelationshipGroupLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   if (normalized === 'first_order') return 'First-Order'
-  if (normalized === 'knowledge_db') return 'Knowledge DB'
+  if (normalized === 'knowledge_db') return 'Local DB'
   return String(value || '')
     .split('_')
     .filter(Boolean)

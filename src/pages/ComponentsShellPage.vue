@@ -390,7 +390,7 @@ const toolbarItems = [
   { title: 'General', value: 'general' },
   { title: 'Tasks', value: 'tasks' },
   { title: 'Notes', value: 'notes' },
-  { title: 'KDB', value: 'kdb', isKdb: true, pushRight: true },
+  { title: 'LDB', value: 'kdb', isKdb: true, pushRight: true },
   { title: 'System', value: 'system', isSystem: true },
 ]
 

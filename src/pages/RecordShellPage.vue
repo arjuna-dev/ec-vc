@@ -740,7 +740,7 @@ const activeKdbTokenGroups = computed(() => {
   if (!isKdbSectionActive.value) return []
   const grouped = [
     { key: 'first_order', label: 'First-Order', tokens: [] },
-    { key: 'knowledge_db', label: 'Knowledge DB', tokens: [] },
+    { key: 'knowledge_db', label: 'Local DB', tokens: [] },
     { key: 'other', label: 'Other', tokens: [] },
   ]
   for (const token of activeSectionTokens.value) {
