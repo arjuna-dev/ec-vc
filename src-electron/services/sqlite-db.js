@@ -21,7 +21,6 @@ export function initDb() {
   db.pragma('synchronous = NORMAL')
   db.pragma('busy_timeout = 5000')
   db.exec(SCHEMA_V1_SQL)
-  ensureUsersEmailOptional(db)
   ensureColumn(db, 'events', 'payload_json', 'TEXT')
   ensureColumn(db, 'Companion_Roles', 'Companion_Role_Type', 'TEXT')
   ensureColumn(db, 'Companion_Roles', 'Companion_Role_Status', 'TEXT')
@@ -70,6 +69,7 @@ function maybeRecreateDb(dbPath) {
     .get()?.c
 
   const hasCurrentSchema =
+    !hasLegacyUsersEmailConstraintArtifacts(probe) &&
     hasTable(probe, 'Projects') &&
     hasTable(probe, 'Project_Overview') &&
     hasTable(probe, 'Project_Stages') &&
@@ -88,6 +88,7 @@ function maybeRecreateDb(dbPath) {
     hasColumn(probe, 'Rounds', 'Round_Name') &&
     hasColumn(probe, 'Funds', 'Fund_Name') &&
     hasColumn(probe, 'Users', 'User_PEmail') &&
+    !columnIsRequired(probe, 'Users', 'User_PEmail') &&
     hasColumn(probe, 'Contacts', 'Personal_Email') &&
     hasColumn(probe, 'Contacts', 'Professional_Email') &&
     hasColumn(probe, 'Contacts', 'linked_user_id') &&
@@ -163,42 +164,20 @@ function columnMeta(database, tableName, columnName) {
   return cols.find((c) => c?.name === String(columnName)) || null
 }
 
-function ensureUsersEmailOptional(database) {
-  const emailColumn = columnMeta(database, 'Users', 'User_PEmail')
-  if (!emailColumn || Number(emailColumn.notnull || 0) === 0) return
+function columnIsRequired(database, tableName, columnName) {
+  const meta = columnMeta(database, tableName, columnName)
+  return Boolean(meta && Number(meta.notnull || 0) === 1)
+}
 
-  database.exec('PRAGMA foreign_keys = OFF')
-  try {
-    database.exec(`
-      BEGIN;
-      ALTER TABLE Users RENAME TO Users__legacy_required_email;
-
-      CREATE TABLE Users (
-        id TEXT PRIMARY KEY,
-        User_Name TEXT NOT NULL,
-        User_PEmail TEXT UNIQUE,
-        created_at TEXT NOT NULL DEFAULT (datetime('now')),
-        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-      );
-
-      INSERT INTO Users (id, User_Name, User_PEmail, created_at, updated_at)
-      SELECT id, User_Name, User_PEmail, created_at, updated_at
-      FROM Users__legacy_required_email;
-
-      DROP TABLE Users__legacy_required_email;
-
-      CREATE INDEX IF NOT EXISTS idx_Users_email
-        ON Users(User_PEmail);
-      COMMIT;
+function hasLegacyUsersEmailConstraintArtifacts(database) {
+  if (hasTable(database, 'Users__legacy_required_email')) return true
+  const legacySqlRows = database
+    .prepare(`
+      SELECT sql
+      FROM sqlite_master
+      WHERE sql IS NOT NULL
+        AND sql LIKE '%Users__legacy_required_email%'
     `)
-  } catch (error) {
-    try {
-      database.exec('ROLLBACK')
-    } catch {
-      // no-op
-    }
-    throw error
-  } finally {
-    database.exec('PRAGMA foreign_keys = ON')
-  }
+    .all()
+  return legacySqlRows.length > 0
 }
