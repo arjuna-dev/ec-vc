@@ -152,7 +152,7 @@
               No notes available yet.
             </div>
           </div>
-          <div v-else-if="activeEventsTab === 'system'" class="file-structure-shell__system-panel">
+          <div v-else-if="activeEventsTab === 'parameters'" class="file-structure-shell__system-panel">
             <div class="file-structure-shell__system-head">
               <div>Label</div>
               <div>Alias</div>
@@ -434,7 +434,7 @@ const viewOptions = [
 const eventsTabs = [
   { key: 'notes', label: 'Notes' },
   { key: 'feed', label: 'Feed' },
-  { key: 'system', label: 'System' },
+  { key: 'parameters', label: 'Parameters' },
 ]
 const activeShellSelectorOption = computed(() =>
   props.shellSelectorOptions.find((option) => option.value === props.shellSelectorValue)

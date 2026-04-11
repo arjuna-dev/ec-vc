@@ -903,6 +903,7 @@ const liveOptionRowsBySource = ref({})
 const localDraftRowsBySource = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
+const LDB_COLUMN_DEFAULT_WIDTH = 96
 const NAME_COLUMN_DEFAULT_WIDTH = 84
 const TABLE_CONTROL_COLUMN_WIDTH = 22
 
@@ -2191,6 +2192,16 @@ watch(
 
 watch(
   [
+    () => activeContentSourceKey.value,
+    () => activeSectionKeyForCards.value,
+  ],
+  () => {
+    tableColumnWidths.value = {}
+  },
+)
+
+watch(
+  [
     () => viewMode.value,
     () => activeContentSourceKey.value,
     () => activeSectionKeyForCards.value,
@@ -2226,15 +2237,12 @@ function getInitialTableColumns() {
     { key: 'name', defaultWidth: NAME_COLUMN_DEFAULT_WIDTH },
     ...tableSectionTokens.value.map((token) => ({
       key: token.key,
-      defaultWidth: DEFAULT_COLUMN_MIN_WIDTH,
+      defaultWidth: isKdbSectionActive.value ? LDB_COLUMN_DEFAULT_WIDTH : DEFAULT_COLUMN_MIN_WIDTH,
     })),
   ]
 }
 
 function initializeTableColumnWidths() {
-  const scrollElement = tableScrollRef.value
-  if (!scrollElement) return
-
   const columns = getInitialTableColumns()
   if (!columns.length) return
 
@@ -2246,18 +2254,8 @@ function initializeTableColumnWidths() {
 
   if (!missingColumns.length) return
 
-  const fixedControlWidth = TABLE_CONTROL_COLUMN_WIDTH * 2
-  const assignedWidth = columns.reduce((sum, column) => {
-    const storedWidth = Number(currentWidths[column.key])
-    return Number.isFinite(storedWidth) && storedWidth > 0 ? sum + storedWidth : sum
-  }, 0)
-  const missingDefaultWidth = missingColumns.reduce((sum, column) => sum + column.defaultWidth, 0)
-  const availableWidth = Math.max(0, Math.floor(scrollElement.clientWidth) - fixedControlWidth)
-  const extraWidth = Math.max(0, availableWidth - assignedWidth - missingDefaultWidth)
-  const extraPerMissingColumn = missingColumns.length ? Math.floor(extraWidth / missingColumns.length) : 0
-
   missingColumns.forEach((column) => {
-    currentWidths[column.key] = column.defaultWidth + extraPerMissingColumn
+    currentWidths[column.key] = column.defaultWidth
   })
 
   tableColumnWidths.value = currentWidths
