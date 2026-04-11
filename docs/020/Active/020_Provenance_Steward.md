@@ -39,6 +39,7 @@ The `Provenance Steward` should:
 
 - require source, actor, and event paths for important changes
 - preserve the difference between assumption, extraction, provisional truth, and verified truth
+- require `Creator` to be birth-locked to the action that made the value real
 - make file birth and genesis events reconstructable
 - make ingestion activity reconnectable to source artifacts
 - make LDB/KDB relationship creation explainable from both sides when reverse-read is expected
@@ -52,6 +53,7 @@ The `Provenance Steward` should not:
 
 - treat a visible value as proven when source, actor, or event path is missing
 - allow user-editable payload fields to replace system-owned provenance
+- allow later edits to overwrite the original creator of a born value
 - let page-context assumptions become settled truth without verification
 - allow genesis events to remain unreconstructable when file birth depends on them
 - allow point changes or relationship changes to be explained only by conversation memory

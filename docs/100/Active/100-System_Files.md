@@ -186,6 +186,16 @@ The user should not be asked to restate those values manually when the birth pat
 
 `System Files` should eventually make those birth-governance rules visible and reviewable as part of file-definition truth.
 
+`Creator` should be treated as birth-locked provenance, not as a loose editable field.
+
+That means the first accepted birth action should determine it:
+
+- direct create by user -> `User`
+- intake approval by companion -> `Companion`
+- intake approval by user -> `User`
+
+Later edits may add history, but they should not overwrite the original creator for that born value.
+
 ## Provenance / Events
 
 The system should be able to reconstruct:

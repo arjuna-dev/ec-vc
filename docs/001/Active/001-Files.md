@@ -92,6 +92,14 @@ The system should not ask the user to restate governance fields one by one when 
 
 Manual editing may still exist later, but birth should begin from derived governance defaults first.
 
+`Creator` should be treated as a birth-locked provenance field.
+
+That means:
+
+- a direct `Add Record` birth should lock `Creator` to the acting `User`
+- an intake approval birth should lock `Creator` to the approving `Companion` or `User`
+- later editing should not rewrite the original birth creator for that data point
+
 ## Checklist Status Vocabulary
 
 Use these statuses when applying the File Birth Checklist:
