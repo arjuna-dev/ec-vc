@@ -1894,8 +1894,8 @@ CREATE TABLE IF NOT EXISTS Artifact_Links (
 
 CREATE TABLE IF NOT EXISTS Intake (
   id TEXT PRIMARY KEY,
-  Processed_Artifact_Name TEXT NOT NULL,
-  Processed_Artifact_Summary TEXT,
+  Intake_Name TEXT NOT NULL,
+  Intake_Summary TEXT,
   Original_Artifact_Id TEXT,
   Created_Files_JSON TEXT,
   Working INTEGER NOT NULL DEFAULT 0 CHECK (Working IN (0, 1)),

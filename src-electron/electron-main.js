@@ -3382,7 +3382,7 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
   Intake: {
     tableName: 'Intake',
     entityLabel: 'Intake',
-    displayColumns: ['Processed_Artifact_Name', 'id'],
+    displayColumns: ['Intake_Name', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
 })
@@ -4360,8 +4360,8 @@ function listIntake() {
     `
     SELECT
       id,
-      Processed_Artifact_Name,
-      Processed_Artifact_Summary,
+      Intake_Name,
+      Intake_Summary,
       Original_Artifact_Id,
       Created_Files_JSON,
       Working,
@@ -4378,6 +4378,7 @@ function createIntake(payload = {}) {
   const database = initDb()
   const actor = getAuditActor(database, { requireUser: true })
   const name =
+    normalizeNullableString(payload?.Intake_Name) ||
     normalizeNullableString(payload?.Processed_Artifact_Name) ||
     normalizeNullableString(payload?.Name) ||
     normalizeNullableString(payload?.title)
@@ -4386,6 +4387,7 @@ function createIntake(payload = {}) {
 
   const id = normalizeNullableString(payload?.id) || `intake:${crypto.randomUUID()}`
   const summary =
+    normalizeNullableString(payload?.Intake_Summary) ||
     normalizeNullableString(payload?.Processed_Artifact_Summary) ||
     normalizeNullableString(payload?.Summary) ||
     normalizeNullableString(payload?.description)
@@ -4403,8 +4405,8 @@ function createIntake(payload = {}) {
       `
       INSERT INTO Intake (
         id,
-        Processed_Artifact_Name,
-        Processed_Artifact_Summary,
+        Intake_Name,
+        Intake_Summary,
         Original_Artifact_Id,
         Created_Files_JSON,
         Working,
@@ -4413,8 +4415,8 @@ function createIntake(payload = {}) {
         updated_at
       ) VALUES (
         @id,
-        @Processed_Artifact_Name,
-        @Processed_Artifact_Summary,
+        @Intake_Name,
+        @Intake_Summary,
         @Original_Artifact_Id,
         @Created_Files_JSON,
         @Working,
@@ -4426,8 +4428,8 @@ function createIntake(payload = {}) {
     )
     .run({
       id,
-      Processed_Artifact_Name: name,
-      Processed_Artifact_Summary: summary,
+      Intake_Name: name,
+      Intake_Summary: summary,
       Original_Artifact_Id: originalArtifactId,
       Created_Files_JSON: createdFilesValue,
       Working: workingValue,
@@ -5941,6 +5943,7 @@ const EVENT_RELATION_FIELD_BY_ENTITY_LABEL = Object.freeze({
   Role: 'Event_Role',
   Market: 'Event_Financial_Industry',
   Security: 'Event_Round_Security',
+  Intake: 'Event_Processed_Artifact',
   'Processed Artifact': 'Event_Processed_Artifact',
   Ingestion: 'Event_Processed_Artifact',
 })

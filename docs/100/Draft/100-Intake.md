@@ -49,11 +49,11 @@ The `Owner` should use `Intake` to understand downstream extraction outputs and 
 
 ## File Steward
 
-The `File Steward` should validate processed-artifact structure, lineage, and reconnectability.
+The `File Steward` should validate intake structure, lineage, and reconnectability.
 
 ## UX Steward
 
-The `UX Steward` should make processed-artifact status and lineage legible without hiding provenance.
+The `UX Steward` should make intake status and lineage legible without hiding provenance.
 
 ## Governance
 
@@ -81,11 +81,11 @@ The system should preserve processing creation, stage changes, source artifact l
 
 ### System
 
-Tracks processed-artifact identity, creator, datetime, and event linkage.
+Tracks intake identity, creator, datetime, and event linkage.
 
 ### General
 
-Tracks processed-artifact name and summary.
+Tracks intake name and summary.
 
 ### KDB
 
@@ -97,5 +97,5 @@ Tracks intake-stage outputs, processed content fields, and reconnectability meta
 
 ## Open Questions
 
-- Which processed-artifact fields should be treated as canon-first output surfaces?
+- Which intake fields should be treated as canon-first output surfaces?
 - Which lineage paths should be runtime-proven first for reconnectability?

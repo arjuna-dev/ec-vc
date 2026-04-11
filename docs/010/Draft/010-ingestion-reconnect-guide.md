@@ -24,7 +24,7 @@ So this document answers:
 Today, ingestion is split across two related behaviors:
 
 1. artifact ingestion pipeline
-2. processed-artifact file surface
+2. intake file surface
 
 These are related, but not yet fully unified.
 
@@ -46,16 +46,16 @@ The current artifact ingest path is:
 
 This is the live runtime path for bringing files into the system.
 
-## Current Processed-Artifact Path
+## Current Intake Path
 
-The processed-artifact file surface is currently separate:
+The intake file surface is currently separate:
 
 1. `Intake` is exposed as the file-facing/canonical name
 2. runtime compatibility may temporarily map through older aliases during migration, but the current runtime owner is `Intake`
 3. `listIntake()` and `createIntake()` currently own that file/table surface
 4. the sqlite table still contains:
-   - `Processed_Artifact_Name`
-   - `Processed_Artifact_Summary`
+   - `Intake_Name`
+   - `Intake_Summary`
    - `Original_Artifact_Id`
    - `Created_Files_JSON`
 
@@ -67,20 +67,20 @@ These are the key points we must keep track of:
 
 ### 1. Original Artifact Link
 
-The current processed-artifact table already stores:
+The current intake table already stores:
 
 - `Original_Artifact_Id`
 
 That means the system already has a direct path from:
 
 - original artifact
-- to processed-artifact / ingestion record
+- to intake / ingestion record
 
 This must be preserved.
 
 ### 2. Created Files Lineage
 
-The current processed-artifact table already stores:
+The current intake table already stores:
 
 - `Created_Files_JSON`
 
@@ -121,7 +121,7 @@ The ingestion model is still not fully unified.
 
 Current problems:
 
-- ingest runtime path and processed-artifact file surface are related but not fully collapsed into one architectural story
+- ingest runtime path and intake file surface are related but not fully collapsed into one architectural story
 - `Notes`, `Created Files`, and file-level event relationships are documented more strongly than they are surfaced
 - naming still uses a compatibility layer
 - the right reconnect rule for `Ingestion -> Files` is not yet fully expressed through the new `Files` architecture
@@ -158,7 +158,7 @@ Before changing ingestion naming or file creation again, confirm:
 
 - does artifact ingest still call `artifacts:ingest`?
 - does `artifacts:ingest` still call `ingestArtifactsFromPaths(...)`?
-- does the processed-artifact file surface still list records?
+- does the intake file surface still list records?
 - does `Original_Artifact_Id` still survive?
 - does `Created_Files_JSON` still survive?
 - does the ingestion shell still open and load records?

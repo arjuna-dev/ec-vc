@@ -1500,8 +1500,8 @@ async function ensureProcessedArtifactForSelection(artifactId) {
 
   try {
     const result = await bridge.value.intake.create({
-      Processed_Artifact_Name: workingArtifact.name,
-      Processed_Artifact_Summary: '',
+      Intake_Name: workingArtifact.name,
+      Intake_Summary: '',
       Original_Artifact_Id: workingArtifact.artifactId || workingArtifact.id,
       Working: 1,
     })
@@ -1513,7 +1513,7 @@ async function ensureProcessedArtifactForSelection(artifactId) {
         : entry,
     )
   } catch {
-    // Keep the shell usable even if the processed-artifact bridge is not ready.
+    // Keep the shell usable even if the intake bridge is not ready.
   }
 }
 
