@@ -3612,7 +3612,7 @@ const DATABOOK_TABLE_CONFIGS = Object.freeze({
   Notes: {
     tableName: 'Notes',
     entityLabel: 'Note',
-    displayColumns: ['title', 'id'],
+    displayColumns: ['Note_Name', 'id'],
     readonlyColumns: new Set(['id', 'created_at', 'updated_at']),
   },
   Intake: {
