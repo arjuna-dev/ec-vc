@@ -123,12 +123,6 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     workspaceNavGroup: 'files',
     shellGroup: 'system_level',
     fileGuidePath: 'docs/100/Active/100-System_Files.md',
-    tokenOverrides: {
-      File_Source_Key: {
-        token_type: 'select_single',
-        option_source: 'file_registry_keys',
-      },
-    },
     extraReferenceDocs: [
       {
         id: 'open-issues',

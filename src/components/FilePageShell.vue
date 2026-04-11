@@ -703,7 +703,6 @@ import {
 } from 'src/utils/card-kdb-relationships'
 import {
   CANONICAL_OPTION_LISTS,
-  FILE_PAGE_REGISTRY,
   getCreateBranchEntry,
   getCreateBranches,
   getCreateBranchTokenName,
@@ -1056,9 +1055,7 @@ const selectedCardItemTokens = computed(() =>
     .map((tokenKey) => availableCardItemTokens.value.find((token) => token.key === tokenKey))
     .filter(Boolean),
 )
-function getRequiredCreateTokenNamesForSource(sourceKey = '') {
-  const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
-  if (normalizedSourceKey === 'file-system') return ['File_Source_Key']
+function getRequiredCreateTokenNamesForSource() {
   return []
 }
 
@@ -1390,13 +1387,6 @@ function getInputOptionsForToken(token) {
 
   if (optionSource === 'canonical_list' && optionList) {
     return CANONICAL_OPTION_LISTS[optionList] || []
-  }
-
-  if (optionSource === 'file_registry_keys') {
-    return FILE_PAGE_REGISTRY.map((entry) => ({
-      label: String(entry?.label || entry?.singularLabel || entry?.key || '').trim(),
-      value: String(entry?.key || '').trim(),
-    })).filter((option) => option.label && option.value)
   }
 
   if (optionSource === 'live_entity') {
@@ -3186,7 +3176,26 @@ function buildCreatePayload(values = {}) {
     payloadEntries.push([fieldName, normalizedValue])
   })
 
-  return Object.fromEntries(payloadEntries)
+  const payload = Object.fromEntries(payloadEntries)
+  if (activeSourceKey.value === 'file-system') {
+    const derivedSourceKey = deriveFileSourceKeyFromPayload(payload)
+    if (derivedSourceKey && !String(payload.File_Source_Key || '').trim()) {
+      payload.File_Source_Key = derivedSourceKey
+    }
+  }
+  return payload
+}
+
+function deriveFileSourceKeyFromPayload(payload = {}) {
+  const explicit = String(payload?.File_Source_Key || payload?.sourceKey || '').trim().toLowerCase()
+  if (explicit) return explicit
+  const name = String(payload?.File_Name || payload?.Name || payload?.title || '').trim()
+  if (!name) return ''
+  return name
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 
 function missingRequiredCreateTokens(values = {}) {

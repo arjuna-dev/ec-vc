@@ -1644,6 +1644,65 @@ function getFileRegistryEntryBySourceKey(sourceKey) {
   return FILE_PAGE_REGISTRY.find((entry) => String(entry?.key || '').trim() === normalizedSourceKey) || null
 }
 
+function deriveFileSourceKeyFromPayload(payload = {}) {
+  const explicit =
+    normalizeNullableString(payload?.File_Source_Key) ||
+    normalizeNullableString(payload?.sourceKey)
+  if (explicit) return explicit.toLowerCase()
+
+  const name =
+    normalizeNullableString(payload?.File_Name) ||
+    normalizeNullableString(payload?.Name) ||
+    normalizeNullableString(payload?.title)
+  if (!name) return ''
+
+  return name
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function buildDraftFileDefinitionRow(sourceKey, payload = {}) {
+  const normalizedSourceKey = String(sourceKey || '').trim()
+  return {
+    id: normalizeNullableString(payload?.id) || `file:${normalizedSourceKey || crypto.randomUUID()}`,
+    File_Order: payload?.File_Order ?? null,
+    File_Name:
+      normalizeNullableString(payload?.File_Name) ||
+      normalizeNullableString(payload?.Name) ||
+      normalizeNullableString(payload?.title) ||
+      'Untitled File',
+    File_Summary:
+      normalizeNullableString(payload?.File_Summary) ||
+      normalizeNullableString(payload?.Summary) ||
+      '',
+    File_Status:
+      normalizeNullableString(payload?.File_Status) ||
+      normalizeNullableString(payload?.Status) ||
+      'Draft',
+    File_Guide_Path: normalizeNullableString(payload?.File_Guide_Path) || '',
+    File_Class: normalizeNullableString(payload?.File_Class) || 'L1',
+    Requires_System: normalizeNullableString(payload?.Requires_System) || 'No',
+    Requires_KDB: normalizeNullableString(payload?.Requires_KDB) || 'No',
+    Ownership_Mode: normalizeNullableString(payload?.Ownership_Mode) || 'root_owned',
+    File_Owner: normalizeNullableString(payload?.File_Owner) || 'Owner',
+    File_Steward: normalizeNullableString(payload?.File_Steward) || 'File Steward',
+    Rulebook_Dependencies: normalizeNullableString(payload?.Rulebook_Dependencies) || '',
+    Fork_Mode: normalizeNullableString(payload?.Fork_Mode) || 'none',
+    Fork_Enabled: normalizeNullableString(payload?.Fork_Enabled) || 'No',
+    Create_Fork_Instructions: normalizeNullableString(payload?.Create_Fork_Instructions) || '',
+    View_Fork_Instructions: normalizeNullableString(payload?.View_Fork_Instructions) || '',
+    Defined_Structure: normalizeNullableString(payload?.Defined_Structure) || '',
+    Glossary_Terms: normalizeNullableString(payload?.Glossary_Terms) || '',
+    File_Source_Key: normalizedSourceKey,
+    File_Canonical_Entity: normalizeNullableString(payload?.File_Canonical_Entity) || '',
+    File_Runtime_Entity: normalizeNullableString(payload?.File_Runtime_Entity) || '',
+    File_Route_Name: normalizeNullableString(payload?.File_Route_Name) || normalizedSourceKey,
+    File_Path: normalizeNullableString(payload?.File_Path) || (normalizedSourceKey ? `/${normalizedSourceKey}` : ''),
+  }
+}
+
 const ACCEPTED_FILE_STATUS_VALUES = Object.freeze(['Active', 'Partial', 'Draft', 'Hidden', 'Archived'])
 const ACCEPTED_FORK_MODE_VALUES = Object.freeze(['none', 'view', 'create', 'view_and_create'])
 const PROTECTED_BOOTSTRAP_FILE_SOURCE_KEYS = new Set(['file-system', 'events', 'bb-file'])
@@ -2133,15 +2192,13 @@ function listFiles() {
 function createFile(payload = {}) {
   const database = initDb()
   ensureDefaultFiles(database)
-  const sourceKey = normalizeNullableString(payload?.File_Source_Key) || normalizeNullableString(payload?.sourceKey)
+  const sourceKey = deriveFileSourceKeyFromPayload(payload)
   if (!sourceKey) throw new Error('File source key is required')
 
   const registryEntry = getFileRegistryEntryBySourceKey(sourceKey)
-  if (!registryEntry) {
-    throw new Error('File source key must exist in canonical file registry before runtime file creation.')
-  }
-
-  const registryDefaults = buildDefaultFileRegistryRow(registryEntry, FILE_PAGE_REGISTRY.indexOf(registryEntry))
+  const registryDefaults = registryEntry
+    ? buildDefaultFileRegistryRow(registryEntry, FILE_PAGE_REGISTRY.indexOf(registryEntry))
+    : buildDraftFileDefinitionRow(sourceKey, payload)
   const existingFile = database.prepare('SELECT id FROM Files WHERE File_Source_Key = ?').get(sourceKey)
   if (existingFile?.id) return { id: existingFile.id }
 
