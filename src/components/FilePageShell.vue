@@ -999,11 +999,6 @@ const SECTION_LOADERS = {
   },
 }
 
-const fallbackSectionKey =
-  TEST_SHELL_SECTION_OPTIONS.find((option) => option.value === 'tasks')?.value ||
-  TEST_SHELL_SECTION_OPTIONS[0]?.value ||
-  'tasks'
-
 const isRecordShellMode = computed(
   () => String(props.shellMode || '').trim().toLowerCase() === 'record' || String(route.name || '').trim().toLowerCase() === 'record-shell',
 )
@@ -1031,7 +1026,7 @@ const activeContentSourceKey = computed(() => String(activeCreateBranchEntry.val
 const activeSourceKey = computed(() => {
   if (propDrivenSourceKey.value) return propDrivenSourceKey.value
   if (routeDrivenSourceKey.value) return routeDrivenSourceKey.value
-  return isFileShellLabMode.value ? fallbackSectionKey : ''
+  return ''
 })
 
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
