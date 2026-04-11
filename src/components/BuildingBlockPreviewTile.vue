@@ -985,7 +985,7 @@ const viewModeToggleOptions = viewOptions
 
 const activeLiveActionL1 = ref('companies')
 const activeRecordContextTab = ref('notes')
-const activeRecordFeedTabPreview = ref('all')
+const activeRecordFeedTabPreview = ref('events')
 const fileFilterMenuSampleSections = [
   {
     key: 'general',

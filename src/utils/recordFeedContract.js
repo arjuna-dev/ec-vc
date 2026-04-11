@@ -10,11 +10,6 @@ export const RECORD_FEED_TAB_ORDER = [
   { id: 'intake', label: 'Intake' },
 ]
 
-export function filterRecordFeedTabs(items = []) {
-  const activeKeys = new Set(
-    (Array.isArray(items) ? items : [])
-      .map((item) => String(item?.feedKey || '').trim())
-      .filter(Boolean),
-  )
-  return RECORD_FEED_TAB_ORDER.filter((tab) => activeKeys.has(tab.id))
+export function filterRecordFeedTabs() {
+  return RECORD_FEED_TAB_ORDER
 }
