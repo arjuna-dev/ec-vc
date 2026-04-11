@@ -2669,7 +2669,7 @@ function handleCardAddRelation(row) {
   }
 
   if (!supportedCreateSourceKeys.has(activePanel)) {
-    requestEditRecordShell(row, { sectionKey: 'kdb' })
+    requestEditRecordShell(row, { sectionKey: 'ldb' })
     return
   }
 
@@ -3291,14 +3291,14 @@ function requestEditRecordShell(row, options = {}) {
 
   const normalizedSectionKey = String(options?.sectionKey || '').trim().toLowerCase()
 
-  if (normalizedSectionKey === 'kdb') {
+  if (isRelationshipSectionLabel(normalizedSectionKey)) {
     router.push({
       name: 'dialog-shell',
       query: {
         section: activeSourceKey.value,
         edit: recordId,
         entity: resolveEditEntityName(row),
-        editSection: 'kdb',
+        editSection: 'ldb',
       },
     })
     return
