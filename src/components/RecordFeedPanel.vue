@@ -194,8 +194,8 @@ const resolvedAddLabel = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  flex: 0 0 54px;
-  min-width: 54px;
+  flex: 0 0 56px;
+  min-width: 56px;
   min-height: 12px;
 }
 
@@ -213,7 +213,7 @@ const resolvedAddLabel = computed(() => {
   min-width: 0;
   min-height: 12px;
   height: 12px;
-  padding: 0 1px;
+  padding: 0;
   color: var(--ds-color-brand-white);
   background: rgba(17, 17, 17, 1);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -227,7 +227,8 @@ const resolvedAddLabel = computed(() => {
 }
 
 .record-feed-panel__add :deep(.plus-with-label-button__inner) {
-  gap: 2px;
+  gap: 0;
+  align-items: center;
   line-height: 1;
 }
 
@@ -237,14 +238,15 @@ const resolvedAddLabel = computed(() => {
 
 .record-feed-panel__add :deep(.plus-with-label-button__label) {
   color: inherit;
-  font-size: 8px;
+  display: block;
+  font-size: 10px;
   line-height: 1;
-  padding: 0 1px;
+  padding: 0;
 }
 
 .record-feed-panel__add :deep(.plus-icon-chip) {
-  --plus-icon-chip-size: 6px;
-  --plus-icon-chip-glyph-size: 5px;
+  --plus-icon-chip-size: 4px;
+  --plus-icon-chip-glyph-size: 4px;
   background: var(--ds-color-brand-white);
   color: var(--ds-color-brand-black);
 }
