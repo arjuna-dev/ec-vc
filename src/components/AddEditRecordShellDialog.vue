@@ -1202,7 +1202,7 @@ const processingArtifacts = computed(() =>
   stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
 )
 const canOpenIntakeShell = computed(() => stagedArtifacts.value.length > 0 || processingArtifacts.value.length > 0)
-const activeFieldLabelWidth = computed(() => '20ch')
+const activeFieldLabelWidth = computed(() => '15ch')
 
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
