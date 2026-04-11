@@ -106,6 +106,9 @@ function listPipelines() {
     SELECT 
       p.id,
       p.Project_Name,
+      p.created_by,
+      p.created_at,
+      p.updated_at,
       CASE WHEN p.id = 'pipeline_default' THEN 1 ELSE 0 END AS is_default, 
       po.install_status, 
       po.install_error,
@@ -190,6 +193,7 @@ function upsertPipelines(rows = []) {
 
 function createPipeline(payload = {}) {
   const database = initDb()
+  const actor = getAuditActor(database, { requireUser: true })
   const name =
     normalizeNullableString(payload.Project_Name) ||
     normalizeNullableString(payload.name)
@@ -202,11 +206,15 @@ function createPipeline(payload = {}) {
     database
       .prepare(
         `
-        INSERT INTO Projects (id, Project_Name, created_at, updated_at)
-        VALUES (?, ?, datetime('now'), datetime('now'))
+        INSERT INTO Projects (id, created_by, Project_Name, created_at, updated_at)
+        VALUES (?, ?, ?, datetime('now'), datetime('now'))
       `,
       )
-      .run(pipelineId, name)
+      .run(
+        pipelineId,
+        normalizeNullableString(payload?.created_by) || actor.user_id,
+        name,
+      )
 
     database
       .prepare(
@@ -1050,6 +1058,7 @@ function listOpportunities() {
 
 function listContacts() {
   const database = initDb()
+  ensureContactsProvenanceColumns(database)
   ensureOwnerUserProfile(database)
   return dbAll(
     `
@@ -1061,6 +1070,9 @@ function listContacts() {
       c.Phone,
       c.Country_based,
       c.LinkedIn,
+      c.created_by,
+      c.created_at,
+      c.updated_at,
       c.linked_user_id,
       u.User_Name AS Linked_User_Name,
       ur.role_id AS linked_role_id,
@@ -1072,6 +1084,26 @@ function listContacts() {
     ORDER BY COALESCE(c.Name, '') ASC, c.id DESC
   `,
   )
+}
+
+function ensureContactsProvenanceColumns(database) {
+  const contactsMeta = getTableMeta(database, 'Contacts')
+  if (!contactsMeta.columnsSet.has('created_by')) {
+    database.exec('ALTER TABLE Contacts ADD COLUMN created_by TEXT')
+  }
+  if (!contactsMeta.columnsSet.has('created_at')) {
+    database.exec('ALTER TABLE Contacts ADD COLUMN created_at TEXT')
+  }
+  if (!contactsMeta.columnsSet.has('updated_at')) {
+    database.exec('ALTER TABLE Contacts ADD COLUMN updated_at TEXT')
+  }
+  database.exec(`
+    UPDATE Contacts
+    SET
+      created_at = COALESCE(created_at, datetime('now')),
+      updated_at = COALESCE(updated_at, datetime('now'))
+    WHERE created_at IS NULL OR updated_at IS NULL
+  `)
 }
 
 function listRounds() {
@@ -4418,6 +4450,8 @@ function getDatabookView(tableName, recordId) {
 
 function createContact(payload = {}) {
   const database = initDb()
+  ensureContactsProvenanceColumns(database)
+  const actor = getAuditActor(database, { requireUser: true })
   const id = normalizeNullableString(payload.id) || `contact:${crypto.randomUUID()}`
   const name = normalizeNullableString(payload.Name)
   if (!name) throw new Error('Contact name is required')
@@ -4429,9 +4463,9 @@ function createContact(payload = {}) {
     .prepare(
       `
       INSERT INTO Contacts (
-        id, Name, Personal_Email, Professional_Email, Phone, Country_based, LinkedIn, linked_user_id
+        id, Name, Personal_Email, Professional_Email, Phone, Country_based, LinkedIn, linked_user_id, created_by, created_at, updated_at
       ) VALUES (
-        @id, @Name, @Personal_Email, @Professional_Email, @Phone, @Country_based, @LinkedIn, @linked_user_id
+        @id, @Name, @Personal_Email, @Professional_Email, @Phone, @Country_based, @LinkedIn, @linked_user_id, @created_by, datetime('now'), datetime('now')
       )
     `,
     )
@@ -4444,6 +4478,7 @@ function createContact(payload = {}) {
       LinkedIn: normalizeNullableString(payload.LinkedIn),
       Country_based: normalizeNullableString(payload.Country_based),
       linked_user_id: normalizeNullableString(payload.linked_user_id),
+      created_by: normalizeNullableString(payload.created_by) || actor.user_id,
     })
 
   return { id }

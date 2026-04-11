@@ -1139,12 +1139,7 @@ const createPrimaryTokens = computed(() => {
 })
 const createDialogSubmitDisabled = computed(() => {
   if (createDialogMode.value === 'edit') return false
-  if (!canCreateWithShell.value) return true
-  const snapshotValues = createDialogLastChangeSnapshot.value?.values
-  const values = snapshotValues && typeof snapshotValues === 'object'
-    ? snapshotValues
-    : createDialogInitialValues.value
-  return missingRequiredCreateTokens(values).length > 0
+  return !canCreateWithShell.value
 })
 const cardItemTokenGroups = computed(() =>
   level2Sections.value
