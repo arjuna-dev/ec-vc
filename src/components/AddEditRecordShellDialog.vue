@@ -419,7 +419,82 @@
               </div>
 
               <div
-                v-if="activeSectionSubgroups.length"
+                v-if="isSystemSectionActive && activeFields.length"
+                class="create-record-shell__fields create-record-shell__fields--system"
+                :style="{ '--field-map-label-width': activeFieldLabelWidth }"
+              >
+                <div
+                  class="create-record-shell__fields-grid create-record-shell__fields-grid--left"
+                >
+                  <FieldMapRow
+                    v-for="fieldEntry in leftFieldEntries"
+                    :key="fieldEntry.token.key"
+                    :label="fieldEntry.token.label"
+                    :type-hint="formatFieldType(fieldEntry.token.tokenType)"
+                    :wide="isWideField(fieldEntry.token)"
+                    :stacked-input="isSummaryField(fieldEntry.token)"
+                    :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
+                  >
+                    <template #parent-link>
+                      <q-btn
+                        v-if="fieldHasParentRecordLink(fieldEntry.token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        icon="link"
+                        class="create-record-shell__field-parent-link"
+                        :aria-label="`Open source record for ${fieldEntry.token.label}`"
+                        @click="openFieldParentRecord(fieldEntry.token)"
+                      />
+                      <q-btn
+                        v-if="fieldHasCopyableLockedValue(fieldEntry.token)"
+                        flat
+                        dense
+                        round
+                        size="sm"
+                        icon="content_copy"
+                        class="create-record-shell__field-parent-link"
+                        :aria-label="`Copy ${fieldEntry.token.label}`"
+                        @click="copyLockedFieldValue(fieldEntry.token)"
+                      />
+                    </template>
+                    <template #input>
+                      <div
+                        v-if="isFieldLocked(fieldEntry.token) && !isSummaryField(fieldEntry.token)"
+                        class="create-record-shell__read-value"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                      >
+                        {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
+                      </div>
+                    </template>
+                  </FieldMapRow>
+                </div>
+
+                <div class="create-record-shell__fields-grid create-record-shell__fields-grid--right create-record-shell__history-column">
+                  <div v-if="historySummaryItems.length" class="create-record-shell__history-summary-box">
+                    <div
+                      v-for="item in historySummaryItems"
+                      :key="item.key"
+                      class="create-record-shell__history-summary-item"
+                    >
+                      <div class="create-record-shell__history-summary-label">{{ item.label }}</div>
+                      <div class="create-record-shell__history-summary-value">{{ item.value }}</div>
+                    </div>
+                  </div>
+
+                  <RecordHistoryBox
+                    title="History"
+                    :items="historyItems"
+                    :loading="historyLoading"
+                    empty-label="No history yet for this record."
+                    @open-item="openHistoryItem"
+                  />
+                </div>
+              </div>
+
+              <div
+                v-else-if="activeSectionSubgroups.length"
                 class="create-record-shell__subgroup-stack"
               >
                 <section
@@ -911,81 +986,6 @@
                     </div>
                   </div>
                 </section>
-              </div>
-
-              <div
-                v-else-if="isSystemSectionActive && activeFields.length"
-                class="create-record-shell__fields create-record-shell__fields--system"
-                :style="{ '--field-map-label-width': activeFieldLabelWidth }"
-              >
-                <div
-                  class="create-record-shell__fields-grid create-record-shell__fields-grid--left"
-                >
-                  <FieldMapRow
-                    v-for="fieldEntry in leftFieldEntries"
-                    :key="fieldEntry.token.key"
-                    :label="fieldEntry.token.label"
-                    :type-hint="formatFieldType(fieldEntry.token.tokenType)"
-                    :wide="isWideField(fieldEntry.token)"
-                    :stacked-input="isSummaryField(fieldEntry.token)"
-                    :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
-                  >
-                    <template #parent-link>
-                      <q-btn
-                        v-if="fieldHasParentRecordLink(fieldEntry.token)"
-                        flat
-                        dense
-                        round
-                        size="sm"
-                        icon="link"
-                        class="create-record-shell__field-parent-link"
-                        :aria-label="`Open source record for ${fieldEntry.token.label}`"
-                        @click="openFieldParentRecord(fieldEntry.token)"
-                      />
-                      <q-btn
-                        v-if="fieldHasCopyableLockedValue(fieldEntry.token)"
-                        flat
-                        dense
-                        round
-                        size="sm"
-                        icon="content_copy"
-                        class="create-record-shell__field-parent-link"
-                        :aria-label="`Copy ${fieldEntry.token.label}`"
-                        @click="copyLockedFieldValue(fieldEntry.token)"
-                      />
-                    </template>
-                    <template #input>
-                      <div
-                        v-if="isFieldLocked(fieldEntry.token) && !isSummaryField(fieldEntry.token)"
-                        class="create-record-shell__read-value"
-                        :class="fieldVerificationClass(fieldEntry.token)"
-                      >
-                        {{ getLockedFieldDisplayValue(fieldEntry.token) || '—' }}
-                      </div>
-                    </template>
-                  </FieldMapRow>
-                </div>
-
-                <div class="create-record-shell__fields-grid create-record-shell__fields-grid--right create-record-shell__history-column">
-                  <div v-if="historySummaryItems.length" class="create-record-shell__history-summary-box">
-                    <div
-                      v-for="item in historySummaryItems"
-                      :key="item.key"
-                      class="create-record-shell__history-summary-item"
-                    >
-                      <div class="create-record-shell__history-summary-label">{{ item.label }}</div>
-                      <div class="create-record-shell__history-summary-value">{{ item.value }}</div>
-                    </div>
-                  </div>
-
-                  <RecordHistoryBox
-                    title="History"
-                    :items="historyItems"
-                    :loading="historyLoading"
-                    empty-label="No history yet for this record."
-                    @open-item="openHistoryItem"
-                  />
-                </div>
               </div>
 
               <div

@@ -5844,6 +5844,15 @@ function assertUserDeleteAllowed(database, userId) {
   if (ownerUserId && normalizedUserId === ownerUserId) {
     throw new Error('The owner user cannot be deleted from normal editing.')
   }
+
+  const linkedContactId = normalizeNullableString(
+    database
+      .prepare('SELECT id FROM Contacts WHERE linked_user_id = ? LIMIT 1')
+      .get(normalizedUserId)?.id,
+  )
+  if (linkedContactId) {
+    throw new Error('This user is linked to a contact. Delete the account flow instead of deleting the user directly.')
+  }
 }
 
 function assertContactDeleteAllowed(database, contactId) {
@@ -5853,6 +5862,15 @@ function assertContactDeleteAllowed(database, contactId) {
   const ownerContactId = getOwnerContactId(database)
   if (ownerContactId && normalizedContactId === ownerContactId) {
     throw new Error('The owner contact cannot be deleted from normal editing.')
+  }
+
+  const linkedUserId = normalizeNullableString(
+    database
+      .prepare('SELECT linked_user_id FROM Contacts WHERE id = ? LIMIT 1')
+      .get(normalizedContactId)?.linked_user_id,
+  )
+  if (linkedUserId) {
+    throw new Error('This contact is linked to a user. Delete the account flow instead of deleting the contact directly.')
   }
 }
 
