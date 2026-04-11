@@ -21,6 +21,8 @@
       :source-label="activeRegistryEntry?.label || 'Records'"
       :singular-label="activeRegistryEntry?.singularLabel || 'record'"
       :primary-tokens="createPrimaryTokens"
+      :promoted-general-tokens="promotedGeneralTokens"
+      :general-settings-groups="generalSettingsGroups"
       :left-sections="dialogSectionSplit.leftSections"
       :right-sections="dialogSectionSplit.rightSections"
       :branch-selector-token-key="branchSelectorTokenKey"
@@ -38,6 +40,8 @@
       :initial-artifacts="[]"
       :artifact-context="null"
       @update:shell-selector-value="updateShellSelector"
+      @toggle-general-settings-group="toggleGeneralSettingsGroup"
+      @toggle-general-settings-item="toggleGeneralSettingsItem"
       @request-close="dialogOpen = false"
       @submit="submitDialogRecord"
     />
@@ -51,6 +55,7 @@ import { useRoute } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
 import { consumePendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { getKdbRelationshipContractForToken } from 'src/shared/kdbRelationshipContracts'
+import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
 import {
   CANONICAL_OPTION_LISTS,
   getCreateBranchEntry,
@@ -82,6 +87,8 @@ const dialogInitialFieldMeta = ref({})
 const dialogInitialSectionKey = ref('general')
 const dialogRecordId = ref('')
 const dialogEntityName = ref('')
+const generalFieldKeysBySource = ref(loadShellFieldSelectionMap())
+const expandedGeneralSettingsGroupKeys = ref([])
 const isAddAction = computed(() => dialogMode.value === 'create' && Boolean(String(route.query.create || '').trim()))
 
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section, route.query.entity))
@@ -106,6 +113,77 @@ const createPrimaryTokens = computed(() => {
     .filter((token, index, list) => list.findIndex((entry) => entry.key === token.key) === index)
     .map(normalizeCreateDialogToken)
 })
+
+const promotedGeneralTokens = computed(() => {
+  const selectedKeys = new Set(
+    (Array.isArray(generalFieldKeysBySource.value[activeSourceKey.value]) ? generalFieldKeysBySource.value[activeSourceKey.value] : [])
+      .map((key) => String(key || '').trim())
+      .filter(Boolean),
+  )
+  if (!selectedKeys.size) return []
+
+  const nonCoreSectionKeys = new Set(
+    groupedLevel2Sections.value
+      .flatMap((group) => (Array.isArray(group.sections) ? group.sections : []))
+      .filter((section) => {
+        const label = String(section?.label || '').trim().toLowerCase()
+        return !['general', 'kdb', 'system'].includes(label)
+      })
+      .map((section) => section.key),
+  )
+
+  return level3Tokens.value
+    .filter((token) => selectedKeys.has(token.key) && nonCoreSectionKeys.has(token.parentKey))
+    .map(normalizeCreateDialogToken)
+})
+const generalSourceGroups = computed(() =>
+  groupedLevel2Sections.value.filter((group) =>
+    Array.isArray(group.sections) &&
+    group.sections.some((section) => {
+      const label = String(section.label || '').trim().toLowerCase()
+      return !['general', 'kdb', 'system'].includes(label)
+    }),
+  ),
+)
+const generalSelectableTokens = computed(() => {
+  const allowedSectionKeys = new Set(
+    generalSourceGroups.value.flatMap((group) => (Array.isArray(group.sections) ? group.sections : []).map((section) => section.key)),
+  )
+  return level3Tokens.value
+    .filter((token) => allowedSectionKeys.has(token.parentKey))
+    .map(normalizeCreateDialogToken)
+})
+const selectedGeneralTokenKeys = computed({
+  get() {
+    const values = Array.isArray(generalFieldKeysBySource.value[activeSourceKey.value]) ? generalFieldKeysBySource.value[activeSourceKey.value] : []
+    const allowed = new Set(generalSelectableTokens.value.map((token) => token.key))
+    return values.map((value) => String(value || '').trim()).filter((value) => value && allowed.has(value))
+  },
+  set(value) {
+    const normalized = Array.from(new Set((Array.isArray(value) ? value : []).map((item) => String(item || '').trim()).filter(Boolean)))
+    generalFieldKeysBySource.value = {
+      ...generalFieldKeysBySource.value,
+      [activeSourceKey.value]: normalized,
+    }
+  },
+})
+const generalSelectedTokenKeySet = computed(() => new Set(selectedGeneralTokenKeys.value))
+const generalSettingsGroups = computed(() => generalSourceGroups.value.map((group) => ({
+  key: group.value,
+  label: group.title,
+  expanded: expandedGeneralSettingsGroupKeys.value.includes(group.value),
+  items: (Array.isArray(group.sections) ? group.sections : [])
+    .flatMap((section) =>
+      level3Tokens.value
+        .filter((token) => token.parentKey === section.key)
+        .map(normalizeCreateDialogToken),
+    )
+    .map((token) => ({
+      key: token.key,
+      label: token.label,
+      checked: generalSelectedTokenKeySet.value.has(token.key),
+    })),
+})).filter((group) => group.items.length))
 
 const primaryTokenKeys = computed(() => new Set(createPrimaryTokens.value.map((token) => token.key)))
 const branchSelectorTokenKey = computed(() => {
@@ -134,6 +212,48 @@ const canCreateWithShell = computed(() => {
 const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.records?.update))
 const dialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || 'general',
+)
+
+watch(generalSourceGroups, (groups) => {
+  const nextKeys = groups.map((group) => group.value)
+  expandedGeneralSettingsGroupKeys.value = nextKeys.filter((key) => expandedGeneralSettingsGroupKeys.value.includes(key))
+  if (!expandedGeneralSettingsGroupKeys.value.length && nextKeys.length) {
+    expandedGeneralSettingsGroupKeys.value = [...nextKeys]
+  }
+}, { immediate: true })
+
+watch(
+  [activeSourceKey, generalSelectableTokens],
+  () => {
+    const sourceKey = activeSourceKey.value
+    const allowedKeys = new Set(generalSelectableTokens.value.map((token) => token.key))
+    const existing = Array.isArray(generalFieldKeysBySource.value[sourceKey]) ? generalFieldKeysBySource.value[sourceKey] : []
+    const normalized = existing.filter((key) => allowedKeys.has(key))
+
+    if (normalized.length) {
+      if (normalized.length !== existing.length) {
+        generalFieldKeysBySource.value = {
+          ...generalFieldKeysBySource.value,
+          [sourceKey]: normalized,
+        }
+      }
+      return
+    }
+
+    generalFieldKeysBySource.value = {
+      ...generalFieldKeysBySource.value,
+      [sourceKey]: generalSelectableTokens.value.slice(0, 4).map((token) => token.key),
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  generalFieldKeysBySource,
+  (value) => {
+    persistShellFieldSelectionMap(value)
+  },
+  { deep: true },
 )
 
 watch(
@@ -234,6 +354,23 @@ onBeforeUnmount(() => {
 
 function updateShellSelector(nextValue) {
   dialogShellSourceKey.value = resolveValidShellSection(nextValue, route.query.entity)
+}
+
+function toggleGeneralSettingsGroup(groupKey) {
+  const normalized = String(groupKey || '').trim()
+  if (!normalized) return
+  expandedGeneralSettingsGroupKeys.value = expandedGeneralSettingsGroupKeys.value.includes(normalized)
+    ? expandedGeneralSettingsGroupKeys.value.filter((key) => key !== normalized)
+    : [...expandedGeneralSettingsGroupKeys.value, normalized]
+}
+
+function toggleGeneralSettingsItem(itemKey, nextChecked) {
+  const normalized = String(itemKey || '').trim()
+  if (!normalized) return
+  const existing = new Set(selectedGeneralTokenKeys.value)
+  if (nextChecked) existing.add(normalized)
+  else existing.delete(normalized)
+  selectedGeneralTokenKeys.value = Array.from(existing)
 }
 
 function resolveValidShellSection(value, entityName = '') {

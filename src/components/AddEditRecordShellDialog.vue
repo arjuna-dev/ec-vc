@@ -409,6 +409,13 @@
             <div class="create-record-shell__panel ds-mini-scrollbar">
               <div class="create-record-shell__panel-head">
                 <div class="create-record-shell__panel-meta">{{ activeFields.length }} fields</div>
+                <L2SettingsMenu
+                  v-if="isGeneralSectionActive && generalSettingsGroups.length"
+                  title="General"
+                  :groups="generalSettingsGroups"
+                  @toggle-group="emit('toggle-general-settings-group', $event)"
+                  @toggle-item="emit('toggle-general-settings-item', $event[0], $event[1])"
+                />
               </div>
 
               <div
@@ -446,6 +453,7 @@
                         :label="fieldEntry.token.label"
                         :type-hint="formatFieldType(fieldEntry.token.tokenType)"
                         :wide="isWideField(fieldEntry.token)"
+                        :stacked-input="isSummaryField(fieldEntry.token)"
                         :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
                       >
                         <template #parent-link>
@@ -496,26 +504,49 @@
                           />
 
                           <q-input
+                            v-else-if="!isSummaryField(fieldEntry.token)"
+                            :model-value="getStagedFieldValue(fieldEntry.token.key)"
+                            dense
+                            outlined
+                            :disable="loading || isFieldLocked(fieldEntry.token)"
+                            :type="inputTypeForToken(fieldEntry.token.tokenType)"
+                            class="create-record-shell__input"
+                            :class="fieldVerificationClass(fieldEntry.token)"
+                            @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
+                            @blur="commitStagedField(fieldEntry.token.key)"
+                            @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
+                          />
+
+                          <q-input
                             v-else
                             :model-value="getStagedFieldValue(fieldEntry.token.key)"
                             dense
                             outlined
                             :disable="loading || isFieldLocked(fieldEntry.token)"
-                            :type="isSummaryField(fieldEntry.token) ? 'textarea' : inputTypeForToken(fieldEntry.token.tokenType)"
-                            :autogrow="isSummaryField(fieldEntry.token)"
+                            type="hidden"
+                            class="create-record-shell__input create-record-shell__input--hidden"
+                          />
+                        </template>
+                        <template #below>
+                          <q-input
+                            v-if="isSummaryField(fieldEntry.token)"
+                            :model-value="getStagedFieldValue(fieldEntry.token.key)"
+                            dense
+                            outlined
+                            :disable="loading || isFieldLocked(fieldEntry.token)"
+                            type="textarea"
+                            autogrow
                             class="create-record-shell__input"
                             :class="[
-                              { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
+                              'create-record-shell__input--summary',
                               fieldVerificationClass(fieldEntry.token),
                             ]"
                             @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
                             @blur="commitStagedField(fieldEntry.token.key)"
                             @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                           />
-                        </template>
-                        <template #below>
                           <div
-                            v-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                            v-else-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
                             class="create-record-shell__selected-multi-box"
                           >
                             <div
@@ -579,6 +610,7 @@
                         :label="fieldEntry.token.label"
                         :type-hint="formatFieldType(fieldEntry.token.tokenType)"
                         :wide="isWideField(fieldEntry.token)"
+                        :stacked-input="isSummaryField(fieldEntry.token)"
                         :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
                       >
                         <template #parent-link>
@@ -629,26 +661,49 @@
                           />
 
                           <q-input
+                            v-else-if="!isSummaryField(fieldEntry.token)"
+                            :model-value="getStagedFieldValue(fieldEntry.token.key)"
+                            dense
+                            outlined
+                            :disable="loading || isFieldLocked(fieldEntry.token)"
+                            :type="inputTypeForToken(fieldEntry.token.tokenType)"
+                            class="create-record-shell__input"
+                            :class="fieldVerificationClass(fieldEntry.token)"
+                            @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
+                            @blur="commitStagedField(fieldEntry.token.key)"
+                            @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
+                          />
+
+                          <q-input
                             v-else
                             :model-value="getStagedFieldValue(fieldEntry.token.key)"
                             dense
                             outlined
                             :disable="loading || isFieldLocked(fieldEntry.token)"
-                            :type="isSummaryField(fieldEntry.token) ? 'textarea' : inputTypeForToken(fieldEntry.token.tokenType)"
-                            :autogrow="isSummaryField(fieldEntry.token)"
+                            type="hidden"
+                            class="create-record-shell__input create-record-shell__input--hidden"
+                          />
+                        </template>
+                        <template #below>
+                          <q-input
+                            v-if="isSummaryField(fieldEntry.token)"
+                            :model-value="getStagedFieldValue(fieldEntry.token.key)"
+                            dense
+                            outlined
+                            :disable="loading || isFieldLocked(fieldEntry.token)"
+                            type="textarea"
+                            autogrow
                             class="create-record-shell__input"
                             :class="[
-                              { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
+                              'create-record-shell__input--summary',
                               fieldVerificationClass(fieldEntry.token),
                             ]"
                             @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
                             @blur="commitStagedField(fieldEntry.token.key)"
                             @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                           />
-                        </template>
-                        <template #below>
                           <div
-                            v-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                            v-else-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
                             class="create-record-shell__selected-multi-box"
                           >
                             <div
@@ -722,6 +777,7 @@
                     :label="fieldEntry.token.label"
                     :type-hint="formatFieldType(fieldEntry.token.tokenType)"
                     :wide="isWideField(fieldEntry.token)"
+                    :stacked-input="isSummaryField(fieldEntry.token)"
                     :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
                   >
                     <template #parent-link>
@@ -772,26 +828,49 @@
                       />
 
                       <q-input
+                        v-else-if="!isSummaryField(fieldEntry.token)"
+                        :model-value="getStagedFieldValue(fieldEntry.token.key)"
+                        dense
+                        outlined
+                        :disable="loading || isFieldLocked(fieldEntry.token)"
+                        :type="inputTypeForToken(fieldEntry.token.tokenType)"
+                        class="create-record-shell__input"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                        @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
+                        @blur="commitStagedField(fieldEntry.token.key)"
+                        @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
+                      />
+
+                      <q-input
                         v-else
                         :model-value="getStagedFieldValue(fieldEntry.token.key)"
                         dense
                         outlined
                         :disable="loading || isFieldLocked(fieldEntry.token)"
-                        :type="isSummaryField(fieldEntry.token) ? 'textarea' : inputTypeForToken(fieldEntry.token.tokenType)"
-                        :autogrow="isSummaryField(fieldEntry.token)"
+                        type="hidden"
+                        class="create-record-shell__input create-record-shell__input--hidden"
+                      />
+                    </template>
+                    <template #below>
+                      <q-input
+                        v-if="isSummaryField(fieldEntry.token)"
+                        :model-value="getStagedFieldValue(fieldEntry.token.key)"
+                        dense
+                        outlined
+                        :disable="loading || isFieldLocked(fieldEntry.token)"
+                        type="textarea"
+                        autogrow
                         class="create-record-shell__input"
                         :class="[
-                          { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
+                          'create-record-shell__input--summary',
                           fieldVerificationClass(fieldEntry.token),
                         ]"
                         @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
                         @blur="commitStagedField(fieldEntry.token.key)"
                         @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                       />
-                    </template>
-                    <template #below>
                       <div
-                        v-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                        v-else-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
                         class="create-record-shell__selected-multi-box"
                       >
                         <div
@@ -857,6 +936,7 @@
                     :label="fieldEntry.token.label"
                     :type-hint="formatFieldType(fieldEntry.token.tokenType)"
                     :wide="isWideField(fieldEntry.token)"
+                    :stacked-input="isSummaryField(fieldEntry.token)"
                     :verification-needed="shouldHighlightFieldVerification(fieldEntry.token)"
                   >
                     <template #parent-link>
@@ -907,26 +987,49 @@
                       />
 
                       <q-input
+                        v-else-if="!isSummaryField(fieldEntry.token)"
+                        :model-value="getStagedFieldValue(fieldEntry.token.key)"
+                        dense
+                        outlined
+                        :disable="loading || isFieldLocked(fieldEntry.token)"
+                        :type="inputTypeForToken(fieldEntry.token.tokenType)"
+                        class="create-record-shell__input"
+                        :class="fieldVerificationClass(fieldEntry.token)"
+                        @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
+                        @blur="commitStagedField(fieldEntry.token.key)"
+                        @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
+                      />
+
+                      <q-input
                         v-else
                         :model-value="getStagedFieldValue(fieldEntry.token.key)"
                         dense
                         outlined
                         :disable="loading || isFieldLocked(fieldEntry.token)"
-                        :type="isSummaryField(fieldEntry.token) ? 'textarea' : inputTypeForToken(fieldEntry.token.tokenType)"
-                        :autogrow="isSummaryField(fieldEntry.token)"
+                        type="hidden"
+                        class="create-record-shell__input create-record-shell__input--hidden"
+                      />
+                    </template>
+                    <template #below>
+                      <q-input
+                        v-if="isSummaryField(fieldEntry.token)"
+                        :model-value="getStagedFieldValue(fieldEntry.token.key)"
+                        dense
+                        outlined
+                        :disable="loading || isFieldLocked(fieldEntry.token)"
+                        type="textarea"
+                        autogrow
                         class="create-record-shell__input"
                         :class="[
-                          { 'create-record-shell__input--summary': isSummaryField(fieldEntry.token) },
+                          'create-record-shell__input--summary',
                           fieldVerificationClass(fieldEntry.token),
                         ]"
                         @update:model-value="stageFieldValue(fieldEntry.token.key, $event)"
                         @blur="commitStagedField(fieldEntry.token.key)"
                         @keyup.enter="handleTextFieldEnter(fieldEntry.token, fieldEntry.token.key, $event)"
                       />
-                    </template>
-                    <template #below>
                       <div
-                        v-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
+                        v-else-if="fieldEntry.token.tokenType === 'select_multi' && getMultiSelectOptionEntries(fieldEntry.token, formValues[fieldEntry.token.key]).length"
                         class="create-record-shell__selected-multi-box"
                       >
                         <div
@@ -1032,6 +1135,7 @@ import SectionTabs from 'src/components/SectionTabs.vue'
 import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
 import EntryInputListBox from 'src/components/EntryInputListBox.vue'
+import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 
@@ -1041,6 +1145,8 @@ const props = defineProps({
   sourceLabel: { type: String, default: 'Records' },
   singularLabel: { type: String, default: 'record' },
   primaryTokens: { type: Array, default: () => [] },
+  promotedGeneralTokens: { type: Array, default: () => [] },
+  generalSettingsGroups: { type: Array, default: () => [] },
   leftSections: { type: Array, default: () => [] },
   rightSections: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
@@ -1059,7 +1165,15 @@ const props = defineProps({
   initialRecordDataCollapsed: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['update:modelValue', 'update:shellSelectorValue', 'submit', 'change', 'request-close'])
+const emit = defineEmits([
+  'update:modelValue',
+  'update:shellSelectorValue',
+  'submit',
+  'change',
+  'request-close',
+  'toggle-general-settings-group',
+  'toggle-general-settings-item',
+])
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const $q = useQuasar()
 const router = useRouter()
@@ -1202,12 +1316,13 @@ const processingArtifacts = computed(() =>
   stagedArtifacts.value.filter((artifact) => selectedArtifactIds.value.includes(artifact.id)),
 )
 const canOpenIntakeShell = computed(() => stagedArtifacts.value.length > 0 || processingArtifacts.value.length > 0)
-const activeFieldLabelWidth = computed(() => '15ch')
+const activeFieldLabelWidth = computed(() => '10ch')
 
 const activeSection = computed(
   () => allSections.value.find((section) => section.key === activeSectionKey.value) || allSections.value[0] || null,
 )
 
+const isGeneralSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'general')
 const activeFields = computed(() => activeSection.value?.tokens || [])
 const activeSectionSubgroups = computed(() => Array.isArray(activeSection.value?.subgroups) ? activeSection.value.subgroups : [])
 const activeFieldEntries = computed(() => {
@@ -1222,7 +1337,7 @@ const activeFieldEntries = computed(() => {
       return
     }
     if (isSummaryField(token)) {
-      summaryEntries.push({ ...entry, column: 'right' })
+      summaryEntries.push({ ...entry, column: 'left' })
       return
     }
     remainingEntries.push(entry)
@@ -1249,7 +1364,7 @@ function buildFieldEntries(tokens = []) {
       return
     }
     if (isSummaryField(token)) {
-      summaryEntries.push({ ...entry, column: 'right' })
+      summaryEntries.push({ ...entry, column: 'left' })
       return
     }
     remainingEntries.push(entry)
@@ -1275,10 +1390,21 @@ const leftFieldEntries = computed(() => {
   const remainder = activeFieldEntries.value.filter((entry) => entry.column === 'left' && !isNameField(entry.token))
   return [...pinned, ...remainder]
 })
+const mirroredGeneralEntries = computed(() => {
+  if (!isGeneralSectionActive.value) return []
+  return (Array.isArray(props.promotedGeneralTokens) ? props.promotedGeneralTokens : [])
+    .filter((token) => token && !activeFieldEntries.value.some((entry) => entry.token?.key === token.key))
+    .map((token, index) => ({
+      token,
+      tokenIndex: 1000 + index,
+      column: 'right',
+      mirroredInGeneral: true,
+    }))
+})
 const rightFieldEntries = computed(() => {
   const pinned = activeFieldEntries.value.filter((entry) => entry.column === 'right' && isSummaryField(entry.token))
   const remainder = activeFieldEntries.value.filter((entry) => entry.column === 'right' && !isSummaryField(entry.token))
-  return [...pinned, ...remainder]
+  return [...pinned, ...mirroredGeneralEntries.value, ...remainder]
 })
 const resolvedDialogHeight = computed(() => {
   if (!recordDataCollapsed.value) return dialogHeight.value
@@ -2917,7 +3043,7 @@ onBeforeUnmount(() => {
 .create-record-shell__panel-head {
   display: flex;
   align-items: baseline;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
 }
@@ -2982,7 +3108,7 @@ onBeforeUnmount(() => {
 .create-record-shell__fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px 14px;
+  gap: 20px 24px;
   align-content: start;
   overflow: visible;
   margin-right: 0;
@@ -3070,9 +3196,9 @@ onBeforeUnmount(() => {
 
 .create-record-shell__input {
   flex: 0 1 auto;
-  width: 100%;
-  min-width: 0;
-  max-width: none;
+  width: 15ch;
+  min-width: 15ch;
+  max-width: 15ch;
   align-self: center;
   background: transparent;
 }
@@ -3225,6 +3351,10 @@ onBeforeUnmount(() => {
   min-width: 0;
   max-width: none;
   flex: 1 1 auto;
+}
+
+.create-record-shell__input--hidden {
+  display: none;
 }
 
 .create-record-shell__input--summary :deep(.q-field__control) {

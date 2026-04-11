@@ -3,6 +3,7 @@
     class="field-map-row"
     :class="{
       'field-map-row--wide': wide,
+      'field-map-row--stacked-input': stackedInput,
       'field-map-row--verification-needed': verificationNeeded,
     }"
   >
@@ -49,6 +50,10 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  stackedInput: {
+    type: Boolean,
+    default: false,
+  },
 })
 </script>
 
@@ -66,7 +71,7 @@ defineProps({
 .field-map-row__top-row {
   display: grid;
   grid-template-columns: minmax(0, var(--field-map-label-width, 20ch)) minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: start;
   gap: 8px;
 }
 
@@ -102,5 +107,9 @@ defineProps({
 
 .field-map-row__below-row {
   grid-column: 1 / -1;
+}
+
+.field-map-row--stacked-input .field-map-row__below-row {
+  grid-column: 1 / span 2;
 }
 </style>
