@@ -123,6 +123,30 @@ With a parent file-guide rule, the system can say clearly for each file:
 - who governs it
 - what rulebooks it depends on
 - what events should prove it was born correctly
+- whether forks are disabled, view-only, create-only, or both
+
+## Fork Characteristic Rule
+
+Fork behavior should be treated as a file characteristic, not as a page-only convenience.
+
+That means each file should be able to declare at least:
+
+- `fork_mode`
+  - `none`
+  - `view`
+  - `create`
+  - `view_and_create`
+- `fork_enabled`
+  - `yes`
+  - `no`
+
+These declarations should live in `System Files` and be reflected in canon/registry guidance before shared shells expose fork controls.
+
+This helps keep three things aligned:
+
+- what the file is allowed to do
+- what the shared shell renders
+- what the user is being asked to choose
 
 ## Meaning Drift Rule
 

@@ -212,6 +212,8 @@ The file-specific section should track:
 
 - whether the file requires `System`
 - whether the file requires `KDB`
+- fork mode
+- fork enabled
 - ownership mode
 - steward
 - rulebook dependencies
@@ -220,6 +222,33 @@ The file-specific section should track:
 - view-fork instructions
 - defined structure
 - glossary terms introduced
+
+Fork characteristics should be tracked explicitly here.
+
+The working fork fields are:
+
+- `fork_mode`
+  - `none`
+  - `view`
+  - `create`
+  - `view_and_create`
+- `fork_enabled`
+  - `yes`
+  - `no`
+
+These fields should help the system know whether a file:
+
+- has no fork behavior
+- uses forks only to change page payload
+- uses forks only to change create birth path
+- uses forks for both rendering and creation
+
+Example direction:
+
+- `Companies`
+  - `fork_mode: view`
+- `Opportunities`
+  - `fork_mode: create`
 
 ## Open Questions
 
