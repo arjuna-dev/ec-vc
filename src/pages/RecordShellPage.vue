@@ -493,6 +493,7 @@ const selectableTokens = computed(() =>
     return label !== 'name' && label !== 'summary'
   }),
 )
+const sectionDisplayTokens = computed(() => level3Tokens.value.map((token) => normalizeCreateDialogToken(token)))
 const normalizedSelectableTokens = computed(() => selectableTokens.value.map((token) => normalizeCreateDialogToken(token)))
 
 const selectedTokenKeys = computed({
@@ -539,7 +540,7 @@ const createDialogRightSections = computed(() => createDialogSectionSplit.value.
 const activeSectionGroup = computed(() => groupedLevel2Sections.value.find((group) => group.value === activeSectionKey.value) || groupedLevel2Sections.value[0] || null)
 const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || null)
 const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
-const activeSectionTokens = computed(() => normalizedSelectableTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
+const activeSectionTokens = computed(() => sectionDisplayTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey)))
 const isKdbSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'kdb'))
 const isSystemSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
 const hasGroupedSectionSubsections = computed(() => !isKdbSectionActive.value && activeSectionEntries.value.length > 1)
@@ -548,7 +549,7 @@ const activeSectionTokenGroups = computed(() =>
     .map((section) => ({
       key: section.key,
       title: section.label,
-      tokens: normalizedSelectableTokens.value.filter((token) => token.parentKey === section.key),
+      tokens: sectionDisplayTokens.value.filter((token) => token.parentKey === section.key),
     }))
     .filter((group) => group.tokens.length),
 )
