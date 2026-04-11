@@ -1573,6 +1573,40 @@ function getFileRegistryForkEnabled(entry) {
   return getFileRegistryForkMode(entry) === 'none' ? 'No' : 'Yes'
 }
 
+function buildCreateForkInstructions(entry) {
+  const sourceKey = String(entry?.key || '').trim()
+  const branches = getCreateBranches(sourceKey)
+  if (!branches.length) return ''
+  return JSON.stringify({
+    type: 'create',
+    sourceKey,
+    label: String(entry?.createBranchLabel || '').trim() || 'Type',
+    tokenName: String(entry?.createBranchTokenName || '').trim(),
+    options: branches.map((branch) => ({
+      value: String(branch?.value || '').trim(),
+      label: String(branch?.label || '').trim(),
+      targetSourceKey: String(branch?.targetSourceKey || '').trim(),
+    })),
+  })
+}
+
+function buildViewForkInstructions(entry) {
+  const sourceKey = String(entry?.key || '').trim()
+  const forks = getViewForks(sourceKey)
+  if (!forks.length) return ''
+  return JSON.stringify({
+    type: 'view',
+    sourceKey,
+    options: forks.map((fork) => ({
+      value: String(fork?.value || '').trim(),
+      label: String(fork?.label || '').trim(),
+      sectionRawLabels: Array.isArray(fork?.sectionRawLabels)
+        ? fork.sectionRawLabels.map((label) => String(label || '').trim()).filter(Boolean)
+        : [],
+    })),
+  })
+}
+
 function buildDefaultFileRegistryRow(entry, index) {
   const subsectionLabels = getFileRegistrySubsectionLabels(entry)
   const sourceKey = String(entry?.key || '').trim()
@@ -1593,6 +1627,8 @@ function buildDefaultFileRegistryRow(entry, index) {
     Rulebook_Dependencies: 'docs/001/Active/001-Files.md',
     Fork_Mode: getFileRegistryForkMode(entry),
     Fork_Enabled: getFileRegistryForkEnabled(entry),
+    Create_Fork_Instructions: buildCreateForkInstructions(entry),
+    View_Fork_Instructions: buildViewForkInstructions(entry),
     Defined_Structure: subsectionLabels.join(', '),
     Glossary_Terms: '',
     File_Source_Key: sourceKey,
@@ -1811,6 +1847,28 @@ function buildFilesAcceptanceValidation(rows = []) {
       })
     }
 
+    if (String(row?.Create_Fork_Instructions || '').trim() !== String(expected.Create_Fork_Instructions || '').trim()) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'Create_Fork_Instructions',
+        issue: 'Create fork instructions drift from registry truth.',
+        suggestedAction: 'Reseed or realign create fork instructions with the registry-declared branch payload.',
+      })
+    }
+
+    if (String(row?.View_Fork_Instructions || '').trim() !== String(expected.View_Fork_Instructions || '').trim()) {
+      addIssue({
+        severity: 'warn',
+        sourceKey,
+        fileId,
+        field: 'View_Fork_Instructions',
+        issue: 'View fork instructions drift from registry truth.',
+        suggestedAction: 'Reseed or realign view fork instructions with the registry-declared fork payload.',
+      })
+    }
+
     if (statusValue === 'Active' && expectedGuideRequired && !guidePath) {
       addIssue({
         severity: 'warn',
@@ -1895,6 +1953,8 @@ function ensureDefaultFiles(database) {
     ['Rulebook_Dependencies', 'TEXT'],
     ['Fork_Mode', 'TEXT'],
     ['Fork_Enabled', 'TEXT'],
+    ['Create_Fork_Instructions', 'TEXT'],
+    ['View_Fork_Instructions', 'TEXT'],
     ['Defined_Structure', 'TEXT'],
     ['Glossary_Terms', 'TEXT'],
   ]
@@ -1939,6 +1999,8 @@ function ensureDefaultFiles(database) {
       Rulebook_Dependencies,
       Fork_Mode,
       Fork_Enabled,
+      Create_Fork_Instructions,
+      View_Fork_Instructions,
       Defined_Structure,
       Glossary_Terms,
       File_Source_Key,
@@ -1964,6 +2026,8 @@ function ensureDefaultFiles(database) {
       @Rulebook_Dependencies,
       @Fork_Mode,
       @Fork_Enabled,
+      @Create_Fork_Instructions,
+      @View_Fork_Instructions,
       @Defined_Structure,
       @Glossary_Terms,
       @File_Source_Key,
@@ -2001,6 +2065,8 @@ function ensureDefaultFiles(database) {
       Rulebook_Dependencies = COALESCE(NULLIF(Files.Rulebook_Dependencies, ''), excluded.Rulebook_Dependencies),
       Fork_Mode = COALESCE(NULLIF(Files.Fork_Mode, ''), excluded.Fork_Mode),
       Fork_Enabled = COALESCE(NULLIF(Files.Fork_Enabled, ''), excluded.Fork_Enabled),
+      Create_Fork_Instructions = COALESCE(NULLIF(Files.Create_Fork_Instructions, ''), excluded.Create_Fork_Instructions),
+      View_Fork_Instructions = COALESCE(NULLIF(Files.View_Fork_Instructions, ''), excluded.View_Fork_Instructions),
       Defined_Structure = CASE
         WHEN Files.Defined_Structure IS NULL OR Files.Defined_Structure = '' THEN excluded.Defined_Structure
         WHEN Files.Defined_Structure = 'System, General, KDB, File Specific' THEN excluded.Defined_Structure
@@ -2041,6 +2107,8 @@ function listFiles() {
         Rulebook_Dependencies,
         Fork_Mode,
         Fork_Enabled,
+        Create_Fork_Instructions,
+        View_Fork_Instructions,
         Defined_Structure,
         Glossary_Terms,
         File_Source_Key,
@@ -2105,6 +2173,8 @@ function createFile(payload = {}) {
       Rulebook_Dependencies,
       Fork_Mode,
       Fork_Enabled,
+      Create_Fork_Instructions,
+      View_Fork_Instructions,
       Defined_Structure,
       Glossary_Terms,
       File_Source_Key,
@@ -2132,6 +2202,8 @@ function createFile(payload = {}) {
       @Rulebook_Dependencies,
       @Fork_Mode,
       @Fork_Enabled,
+      @Create_Fork_Instructions,
+      @View_Fork_Instructions,
       @Defined_Structure,
       @Glossary_Terms,
       @File_Source_Key,
@@ -2166,6 +2238,10 @@ function createFile(payload = {}) {
     Rulebook_Dependencies: normalizeNullableString(payload?.Rulebook_Dependencies) || registryDefaults.Rulebook_Dependencies,
     Fork_Mode: normalizeNullableString(payload?.Fork_Mode) || registryDefaults.Fork_Mode,
     Fork_Enabled: normalizeNullableString(payload?.Fork_Enabled) || registryDefaults.Fork_Enabled,
+    Create_Fork_Instructions:
+      normalizeNullableString(payload?.Create_Fork_Instructions) || registryDefaults.Create_Fork_Instructions,
+    View_Fork_Instructions:
+      normalizeNullableString(payload?.View_Fork_Instructions) || registryDefaults.View_Fork_Instructions,
     Defined_Structure: normalizeNullableString(payload?.Defined_Structure) || registryDefaults.Defined_Structure,
     Glossary_Terms: normalizeNullableString(payload?.Glossary_Terms) || registryDefaults.Glossary_Terms,
     File_Source_Key: sourceKey,

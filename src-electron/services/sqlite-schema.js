@@ -1442,6 +1442,8 @@ CREATE TABLE IF NOT EXISTS Files (
   Rulebook_Dependencies TEXT,
   Fork_Mode TEXT,
   Fork_Enabled TEXT,
+  Create_Fork_Instructions TEXT,
+  View_Fork_Instructions TEXT,
   Defined_Structure TEXT,
   Glossary_Terms TEXT,
   File_Source_Key TEXT NOT NULL UNIQUE,

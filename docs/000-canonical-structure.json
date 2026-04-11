@@ -4961,6 +4961,22 @@
             },
             {
               "address": "23.4.19",
+              "token_name": "Create_Fork_Instructions",
+              "token_type": "text",
+              "db_field_aliases": [
+                "Create_Fork_Instructions"
+              ]
+            },
+            {
+              "address": "23.4.20",
+              "token_name": "View_Fork_Instructions",
+              "token_type": "text",
+              "db_field_aliases": [
+                "View_Fork_Instructions"
+              ]
+            },
+            {
+              "address": "23.4.21",
               "token_name": "Defined_Structure",
               "token_type": "text",
               "db_field_aliases": [
@@ -4968,7 +4984,7 @@
               ]
             },
             {
-              "address": "23.4.20",
+              "address": "23.4.22",
               "token_name": "Glossary_Terms",
               "token_type": "text",
               "db_field_aliases": [
