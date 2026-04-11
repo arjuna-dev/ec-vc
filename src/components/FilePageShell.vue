@@ -563,8 +563,31 @@
                   class="test-shell-table__cell test-shell-table__cell--name"
                   :style="getTableColumnStyle('name', NAME_COLUMN_DEFAULT_WIDTH)"
                 >
-                  <div class="test-shell-table__name-row">
+                  <div
+                    class="test-shell-table__name-row"
+                    :class="{ 'test-shell-table__cell--editable': isSystemFilesTableInlineEditable }"
+                    @click="beginInlineTableEdit(row, canonicalTitleToken, 'name')"
+                  >
+                    <template v-if="isInlineEditingCell(row, canonicalTitleToken, 'name')">
+                      <div class="test-shell-table__inline-editor">
+                        <q-input
+                          :model-value="String(inlineTableEditState.value ?? '')"
+                          dense
+                          outlined
+                          autofocus
+                          class="test-shell-table__inline-input"
+                          @update:model-value="inlineTableEditState.value = $event"
+                          @keyup.enter.stop.prevent="commitInlineTableEdit(row, canonicalTitleToken)"
+                          @keyup.esc.stop.prevent="cancelInlineTableEdit()"
+                        />
+                        <div class="test-shell-table__inline-actions">
+                          <q-btn flat dense no-caps label="Save" @click.stop="commitInlineTableEdit(row, canonicalTitleToken)" />
+                          <q-btn flat dense no-caps label="Cancel" @click.stop="cancelInlineTableEdit()" />
+                        </div>
+                      </div>
+                    </template>
                     <div
+                      v-else
                       class="test-shell-table__name"
                       :class="{ 'test-shell-card__value--placeholder': !row.titleValue }"
                     >
@@ -578,6 +601,51 @@
                   class="test-shell-table__cell"
                   :style="getTableColumnStyle(tokenRow.columnKey, DEFAULT_COLUMN_MIN_WIDTH)"
                 >
+                  <template v-if="isInlineEditingCell(row, tokenRow.token, 'token')">
+                    <div class="test-shell-table__inline-editor">
+                      <q-select
+                        v-if="String(tokenRow.token?.tokenType || '').trim() === 'select_single'"
+                        :model-value="inlineTableEditState.value"
+                        dense
+                        outlined
+                        emit-value
+                        map-options
+                        autofocus
+                        class="test-shell-table__inline-input"
+                        :options="tokenRow.token.inputOptions || []"
+                        @update:model-value="commitInlineTableEdit(row, tokenRow.token, $event)"
+                      />
+                      <q-select
+                        v-else-if="String(tokenRow.token?.tokenType || '').trim() === 'select_multi'"
+                        :model-value="Array.isArray(inlineTableEditState.value) ? inlineTableEditState.value : []"
+                        dense
+                        outlined
+                        multiple
+                        use-chips
+                        emit-value
+                        map-options
+                        autofocus
+                        class="test-shell-table__inline-input"
+                        :options="tokenRow.token.inputOptions || []"
+                        @update:model-value="inlineTableEditState.value = $event"
+                      />
+                      <q-input
+                        v-else
+                        :model-value="String(inlineTableEditState.value ?? '')"
+                        dense
+                        outlined
+                        autofocus
+                        class="test-shell-table__inline-input"
+                        @update:model-value="inlineTableEditState.value = $event"
+                        @keyup.enter.stop.prevent="commitInlineTableEdit(row, tokenRow.token)"
+                        @keyup.esc.stop.prevent="cancelInlineTableEdit()"
+                      />
+                      <div v-if="String(tokenRow.token?.tokenType || '').trim() === 'select_multi'" class="test-shell-table__inline-actions">
+                        <q-btn flat dense no-caps label="Save" @click.stop="commitInlineTableEdit(row, tokenRow.token)" />
+                        <q-btn flat dense no-caps label="Cancel" @click.stop="cancelInlineTableEdit()" />
+                      </div>
+                    </div>
+                  </template>
                   <template v-if="isBbGraphLinkToken(tokenRow)">
                     <div v-if="tokenRow.links?.length" class="test-shell-table__bb-links">
                       <button
@@ -607,7 +675,14 @@
                     </div>
                     <span v-else class="test-shell-card__value--placeholder">No explicit value</span>
                   </template>
-                  <span v-else :class="{ 'test-shell-card__value--placeholder': !tokenRow.value }">
+                  <span
+                    v-else
+                    :class="[
+                      { 'test-shell-card__value--placeholder': !tokenRow.value },
+                      { 'test-shell-table__cell--editable': isSystemFilesTableInlineEditable },
+                    ]"
+                    @click="beginInlineTableEdit(row, tokenRow.token, 'token')"
+                  >
                     {{ tokenRow.value || 'No explicit value' }}
                   </span>
                 </td>
@@ -774,6 +849,12 @@ const heroDocumentDialogTitle = ref('')
 const heroDocumentDialogContent = ref('')
 const heroDocumentDialogLoading = ref(false)
 const heroDocumentDialogError = ref('')
+const inlineTableEditState = ref({
+  rowId: '',
+  tokenKey: '',
+  value: '',
+  kind: '',
+})
 let createDialogAutosaveTimer = null
 let createDialogAutosaveInFlight = false
 let queuedCreateDialogSnapshot = null
@@ -1130,6 +1211,9 @@ const createDialogBranchSelectorTokenKey = computed(() => {
 })
 const createDialogKdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => String(section.label || '').trim().toLowerCase() === 'kdb')?.key || '',
+)
+const isSystemFilesTableInlineEditable = computed(() =>
+  activeSourceKey.value === 'file-system' && viewMode.value !== 'card',
 )
 const expandedCardSettingsGroups = computed(() => {
   const sourceKey = activeContentSourceKey.value
@@ -2247,6 +2331,7 @@ function buildShellRow(row, index) {
       return {
         key: `${recordId || index}:${token.key}`,
         columnKey: token.key,
+        token,
         tokenName: token.tokenName,
         label: token.label,
         rawValue: value,
@@ -2259,6 +2344,7 @@ function buildShellRow(row, index) {
     return {
       key: `${recordId || index}:${token.key}`,
       columnKey: token.key,
+      token,
       tokenName: token.tokenName,
       label: token.label,
       rawValue,
@@ -2518,6 +2604,134 @@ function buildDraftDialogInitialValuesFromRow(row) {
       return [token.key, normalizeCreateDialogInitialValue(token, value)]
     }),
   )
+}
+
+function isInlineEditingCell(row, token, kind = 'token') {
+  const rowId = String(row?.recordId || '').trim()
+  const tokenKey = String(token?.key || '').trim()
+  return (
+    isSystemFilesTableInlineEditable.value &&
+    inlineTableEditState.value.rowId === rowId &&
+    inlineTableEditState.value.tokenKey === tokenKey &&
+    inlineTableEditState.value.kind === kind
+  )
+}
+
+function beginInlineTableEdit(row, token, kind = 'token') {
+  if (!isSystemFilesTableInlineEditable.value) return
+  if (!token?.key || !row?.recordId) return
+  const initialValue = normalizeCreateDialogInitialValue(token, getCanonicalTokenValue(row?.raw || {}, token))
+  inlineTableEditState.value = {
+    rowId: String(row.recordId || '').trim(),
+    tokenKey: String(token.key || '').trim(),
+    kind,
+    value: initialValue,
+  }
+}
+
+function cancelInlineTableEdit() {
+  inlineTableEditState.value = {
+    rowId: '',
+    tokenKey: '',
+    value: '',
+    kind: '',
+  }
+}
+
+function updateLocalDraftTokenValue(row, token, value) {
+  const sourceKey = activeContentSourceKey.value
+  const draftId = String(row?.recordId || '').trim()
+  const writeFieldName = getCanonicalTokenWriteFieldName(token)
+  if (!sourceKey || !draftId || !writeFieldName) return
+  const normalizedValue = normalizeCreateFieldValue(token, value)
+  const existingRows = Array.isArray(localDraftRowsBySource.value[sourceKey]) ? localDraftRowsBySource.value[sourceKey] : []
+  localDraftRowsBySource.value = {
+    ...localDraftRowsBySource.value,
+    [sourceKey]: existingRows.map((entry) => {
+      if (String(entry?.id || '').trim() !== draftId) return entry
+      return {
+        ...entry,
+        [writeFieldName]: Array.isArray(normalizedValue) ? normalizedValue.join(', ') : normalizedValue,
+      }
+    }),
+  }
+}
+
+function buildSingleTokenUpdateChanges(token, value, { recordId = '', entityName = '', tableName = '', idColumn = 'id' } = {}) {
+  if (!recordId || !entityName || !token) return []
+  const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
+  const normalizedValue = normalizeCreateFieldValue(token, value)
+  const relationshipContract = getKdbRelationshipContractForToken(entityName, token?.tokenName)
+  if (relationshipContract) {
+    const relationshipIds = Array.isArray(normalizedValue)
+      ? normalizedValue.map((entry) => String(entry || '').trim()).filter(Boolean)
+      : normalizedValue == null
+        ? []
+        : [String(normalizedValue || '').trim()].filter(Boolean)
+    return [{
+      change_kind: 'relationship',
+      table_name: resolvedTableName,
+      record_id: recordId,
+      field_name: token.tokenName,
+      relationship_token: token.tokenName,
+      new_value: JSON.stringify(relationshipIds),
+    }]
+  }
+
+  if (isUnsupportedRelationshipWriteToken(token, entityName)) {
+    throw new Error(`Relationship save contract is not wired yet for: ${String(token?.label || token?.tokenName || '').trim()}`)
+  }
+
+  const writeTarget = getCanonicalTokenWriteTarget(token, resolvedTableName, idColumn)
+  if (!writeTarget?.tableName || !writeTarget?.fieldName) return []
+  return [{
+    table_name: writeTarget.tableName,
+    record_id: recordId,
+    field_name: writeTarget.fieldName,
+    id_column: writeTarget.idColumn,
+    new_value:
+      normalizedValue == null
+        ? null
+        : Array.isArray(normalizedValue)
+          ? JSON.stringify(normalizedValue)
+          : String(normalizedValue ?? ''),
+  }]
+}
+
+async function commitInlineTableEdit(row, token, immediateValue) {
+  if (!token || !row?.recordId) return
+  const nextValue = arguments.length >= 3 ? immediateValue : inlineTableEditState.value.value
+  if (row?.isLocalDraft) {
+    updateLocalDraftTokenValue(row, token, nextValue)
+    cancelInlineTableEdit()
+    return
+  }
+
+  const entityName = activeRegistryEntry.value?.entityName || ''
+  const tableName = getRuntimeTableNameForEntityName(entityName)
+  const changes = buildSingleTokenUpdateChanges(token, nextValue, {
+    recordId: row.recordId,
+    entityName,
+    tableName,
+    idColumn: activeLoader.value?.recordIdField || 'id',
+  })
+  if (!changes.length) {
+    cancelInlineTableEdit()
+    return
+  }
+
+  try {
+    await bridge.value?.databooks?.update?.({
+      tableName,
+      recordId: row.recordId,
+      changes,
+      actionLabel: 'inline_table_cell_edit',
+    })
+    cancelInlineTableEdit()
+    await loadRows()
+  } catch (error) {
+    $q.notify({ type: 'negative', message: error?.message || String(error) })
+  }
 }
 
 function openBbShellByBlockKey(blockKey) {
@@ -4814,6 +5028,28 @@ function isBbGraphLinkToken(tokenRow) {
   gap: 0;
   min-width: 0;
   width: 100%;
+}
+
+.test-shell-table__cell--editable {
+  cursor: pointer;
+}
+
+.test-shell-table__inline-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.test-shell-table__inline-input {
+  width: 100%;
+}
+
+.test-shell-table__inline-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .test-shell-table__eye {
