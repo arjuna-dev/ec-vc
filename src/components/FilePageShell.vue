@@ -1156,6 +1156,10 @@ const activeGovernanceTitle = computed(() => {
   if (activeGovernanceToolbarKey.value === 'views') return 'Views'
   return ''
 })
+const relationshipSourcePrefixes = computed(() => {
+  const singular = String(activeRegistryEntry.value?.singularLabel || '').trim()
+  return singular ? [singular] : []
+})
 const isLdbViewActive = computed(() => isRelationshipSectionLabel(activeView.value?.label))
 const isSystemViewActive = computed(() => String(activeView.value?.label || '').trim().toLowerCase() === 'system')
 
@@ -2599,7 +2603,11 @@ function buildShellRow(row, index) {
     titleValue,
     subtitleValue: '',
     cardDetailRows,
-    relationshipItemsByType: buildCardRelationshipItems(buildExplicitCardRelationshipOverrides(row)),
+    relationshipItemsByType: buildCardRelationshipItems(
+      row,
+      relationshipSourcePrefixes.value,
+      buildExplicitCardRelationshipOverrides(row),
+    ),
     viewPresence,
     tokenPresence,
     viewTokenRows: tokenRows,
