@@ -1477,26 +1477,31 @@ const displayRows = computed(() => {
           : [])
       : []
 
-  return [...localDraftRows, ...rawRows.value]
-    .map((row, index) => buildShellRow(row, index))
-    .filter((row) => {
-      if (isBbFileSource.value) {
-        const blockKey = getBbTileBlockKey(row)
-        const categoryKey = String(row?.raw?.Category || '').trim().toLowerCase()
-
-        if (activeBbCategoryKey.value && categoryKey !== activeBbCategoryKey.value) return false
-        if (activeBbBlockKey.value && blockKey !== activeBbBlockKey.value) return false
-      }
-      if (activeFilterViewKey.value && !row.viewPresence[activeFilterViewKey.value]) return false
-      if (activeFilterTokenKey.value && !row.tokenPresence[activeFilterTokenKey.value]) return false
-      if (!query) return true
-      const haystack = [
-        row.recordId,
-        ...row.viewTokenRows.map((tokenRow) => tokenRow.tokenName),
-        ...row.viewTokenRows.map((tokenRow) => tokenRow.value),
-      ]
-      return haystack.some((value) => String(value || '').toLowerCase().includes(query))
+  const rows = [...localDraftRows, ...rawRows.value].map((row, index) => buildShellRow(row, index))
+  if (isBbFileSource.value) {
+    return rows.filter((row) => {
+      const blockKey = getBbTileBlockKey(row)
+      const categoryKey = String(row?.raw?.Category || '').trim().toLowerCase()
+      if (activeBbCategoryKey.value && categoryKey !== activeBbCategoryKey.value) return false
+      if (activeBbBlockKey.value && blockKey !== activeBbBlockKey.value) return false
+      return true
     })
+  }
+  if (activeFilterViewKey.value) {
+    return rows.filter((row) => row.viewPresence[activeFilterViewKey.value])
+  }
+  if (activeFilterTokenKey.value) {
+    return rows.filter((row) => row.tokenPresence[activeFilterTokenKey.value])
+  }
+  if (!query) return rows
+  return rows.filter((row) => {
+    const haystack = [
+      row.recordId,
+      ...row.viewTokenRows.map((tokenRow) => tokenRow.tokenName),
+      ...row.viewTokenRows.map((tokenRow) => tokenRow.value),
+    ]
+    return haystack.some((value) => String(value || '').toLowerCase().includes(query))
+  })
 })
 
 function normalizeCreateDialogToken(token) {
