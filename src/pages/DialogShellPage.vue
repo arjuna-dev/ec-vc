@@ -9,7 +9,7 @@
 
     <div v-else-if="!hasResolvedSourceKey" class="q-pa-md">
       <q-banner class="bg-red-2 text-black" rounded>
-        Add/Edit Dialog Shell source is not mapped to an approved file section.
+        Add/Edit Dialog Shell source is not mapped to an approved file view.
       </q-banner>
     </div>
 
@@ -78,7 +78,7 @@ import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 import { submitSharedRecordEditSession } from 'src/utils/sharedRecordEditSession'
 
-function isRelationshipSection(sectionOrLabel) {
+function isRelationshipView(sectionOrLabel) {
   const normalized = String(
     typeof sectionOrLabel === 'string'
       ? sectionOrLabel
@@ -163,7 +163,7 @@ const promotedGeneralTokens = computed(() => {
       .flatMap((group) => (Array.isArray(group.views) ? group.views : []))
       .filter((section) => {
         const label = String(section?.label || '').trim().toLowerCase()
-        return label !== 'general' && label !== 'system' && !isRelationshipSection(label)
+        return label !== 'general' && label !== 'system' && !isRelationshipView(label)
       })
       .map((section) => section.key),
   )
@@ -177,7 +177,7 @@ const generalSourceGroups = computed(() =>
     Array.isArray(group.views) &&
     group.views.some((section) => {
       const label = String(section.label || '').trim().toLowerCase()
-      return label !== 'general' && label !== 'system' && !isRelationshipSection(label)
+      return label !== 'general' && label !== 'system' && !isRelationshipView(label)
     }),
   ),
 )
@@ -267,7 +267,7 @@ const createViewGroups = computed(() =>
   buildDialogViews({
     groupedViews: groupedViews.value,
     tokenFilter: (section) => (
-      isRelationshipSection(section)
+      isRelationshipView(section)
         ? sharedLdbSectionTokens.value
         : fileTokens.value.filter(
             (token) => token.parentKey === section.key && !primaryTokenKeys.value.has(token.key),
@@ -287,7 +287,7 @@ const canCreateWithShell = computed(() => {
 })
 const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.records?.update))
 const dialogLdbSectionKey = computed(
-  () => createViewGroups.value.find((section) => isRelationshipSection(section))?.key || 'general',
+  () => createViewGroups.value.find((section) => isRelationshipView(section))?.key || 'general',
 )
 const dialogHistoryTableName = computed(() => String(getRuntimeTableNameForEntityName(dialogEntityName.value) || '').trim())
 
@@ -371,7 +371,7 @@ watch(
     dialogMode.value = 'edit'
     dialogRecordId.value = normalizedRecordId
     dialogEntityName.value = String(editEntityName || activeRegistryEntry.value?.entityName || '').trim()
-    dialogInitialSectionKey.value = isRelationshipSection(editSection) ? dialogLdbSectionKey.value : 'general'
+    dialogInitialSectionKey.value = isRelationshipView(editSection) ? dialogLdbSectionKey.value : 'general'
     dialogInitialValues.value = {}
     dialogInitialFieldMeta.value = {}
     dialogHistoryItems.value = []

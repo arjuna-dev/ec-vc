@@ -9,7 +9,7 @@
 
     <div v-else-if="!hasResolvedSourceKey" class="q-pa-md">
       <q-banner class="bg-red-2 text-black" rounded>
-        Intake Shell source is not mapped to an approved file section.
+        Intake Shell source is not mapped to an approved file view.
       </q-banner>
     </div>
 
@@ -152,12 +152,12 @@ const canCreateWithShell = computed(() => {
   return Boolean(bridge.value?.[activeSourceKey.value]?.create)
 })
 const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.records?.update))
-function isRelationshipSectionLabel(value = '') {
+function isRelationshipViewLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'ldb'
 }
 const dialogLdbSectionKey = computed(
-  () => createViewGroups.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || 'general',
+  () => createViewGroups.value.find((section) => isRelationshipViewLabel(section?.label))?.key || 'general',
 )
 
 watch(
@@ -207,7 +207,7 @@ watch(
     dialogMode.value = 'edit'
     dialogRecordId.value = normalizedRecordId
     dialogEntityName.value = String(editEntityName || activeRegistryEntry.value?.entityName || '').trim()
-    dialogInitialSectionKey.value = isRelationshipSectionLabel(editSection) ? dialogLdbSectionKey.value : 'general'
+    dialogInitialSectionKey.value = isRelationshipViewLabel(editSection) ? dialogLdbSectionKey.value : 'general'
     dialogInitialValues.value = {}
     dialogInitialFieldMeta.value = {}
 
