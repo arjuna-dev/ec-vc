@@ -53,8 +53,10 @@
           :mode="activeGovernanceToolbarKey"
           :view-rows="governanceViewRows"
           :token-groups="tokenGroupsByView"
+          :token-columns="tokenGovernanceColumns"
           empty-views-label="No views declared for this file."
           empty-tokens-label="No tokens declared in this view."
+          @update-token-cell="updateTokenCell"
         />
       </section>
 
@@ -741,6 +743,7 @@ import {
     getFilePageBirthDefaults,
     getFilePageCreateSurface,
     getFilePageEditSurface,
+    FILE_SOURCE_REGISTRY,
     getFilePageRegistryEntry,
     getFilePageRegistryEntryByEntityReference,
     getFilePageRegistryEntryByRouteName,
@@ -763,7 +766,7 @@ import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/u
 import { getBuildingBlockGraphCounts, getBuildingBlockGraphLinks } from 'src/utils/buildingBlocks'
 import { setPendingAddEditShellRequest } from 'src/utils/addEditShellState'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
-import { getTokenMetadataOverride, loadTokenMetadataOverrides, mergeTokenMetadata } from 'src/utils/tokenMetadataOverrides'
+  import { getTokenMetadataOverride, loadTokenMetadataOverrides, mergeTokenMetadata, persistTokenMetadataOverrides } from 'src/utils/tokenMetadataOverrides'
 
 const props = defineProps({
   shellMode: {
@@ -831,7 +834,53 @@ const bbTileGroupOpenState = ref({})
 const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 const localDraftRowsBySource = ref({})
-const tokenMetaOverridesBySource = ref(loadTokenMetadataOverrides())
+  const tokenMetaOverridesBySource = ref(loadTokenMetadataOverrides())
+  const tokenTypeOptions = [
+    { value: 'text', label: 'Text' },
+    { value: 'long_text', label: 'Long Text' },
+    { value: 'textarea', label: 'Textarea' },
+    { value: 'rich_text', label: 'Rich Text' },
+    { value: 'number', label: 'Number' },
+    { value: 'date', label: 'Date' },
+    { value: 'datetime', label: 'Datetime' },
+    { value: 'email', label: 'Email' },
+    { value: 'phone', label: 'Phone' },
+    { value: 'url', label: 'URL' },
+    { value: 'select_single', label: 'Select Single' },
+    { value: 'select_multi', label: 'Select Multi' },
+    { value: 'creator', label: 'Creator' },
+  ]
+  const optionSourceOptions = [
+    { value: 'live_entity', label: 'Live Entity' },
+    { value: 'option_list', label: 'Option List' },
+    { value: 'shared_file_universe', label: 'Shared File Universe' },
+    { value: 'manual', label: 'Manual' },
+  ]
+  const fieldClassOptions = [
+    { value: 'owned', label: 'Owned' },
+    { value: 'directional', label: 'Directional' },
+    { value: 'ldb_relationship', label: 'LDB Relationship' },
+    { value: 'system', label: 'System' },
+  ]
+  const optionEntityOptions = Object.freeze(
+    FILE_SOURCE_REGISTRY
+      .map((entry) => {
+        const label = String(entry?.label || '').trim()
+        return label ? { value: label, label } : null
+      })
+      .filter(Boolean),
+  )
+  const tokenGovernanceColumns = computed(() => [
+    { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },
+    { key: 'type', label: 'Type', width: 112, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: tokenTypeOptions },
+    { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionSourceOptions },
+    { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: optionEntityOptions },
+    { key: 'optionList', label: 'Option List', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
+    { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
+    { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: fieldClassOptions },
+    { key: 'required', label: 'Required', width: 84, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', kind: 'checkbox' },
+    { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'text' },
+  ])
 const sharedLdbLinksByRecordId = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
@@ -1913,20 +1962,27 @@ const governanceViewRows = computed(() =>
     subgroupCount: 0,
   })),
 )
-const tokenGroupsByView = computed(() =>
-  governanceViewRows.value.map((view) => ({
-    key: view.key,
-    label: view.label,
-    tokens: fileTokens.value
-      .filter((token) => token.parentKey === view.key)
-      .map((token) => ({
-        key: token.key,
-        label: token.label || '—',
-        type: token.tokenType || '—',
-        required: requiredCreateTokens.value.some((entry) => entry.key === token.key) ? 'Yes' : '—',
-      })),
-  })),
-)
+  const tokenGroupsByView = computed(() =>
+    governanceViewRows.value.map((view) => ({
+      key: view.key,
+      label: view.label,
+      tokens: fileTokens.value
+        .filter((token) => token.parentKey === view.key)
+        .map((token) => ({
+          key: token.key,
+          label: token.label || '—',
+          type: token.tokenType || '—',
+          optionSource: token.optionSource || '—',
+          optionEntity: token.optionEntity || '—',
+          optionList: token.optionList || '—',
+          dbWriteField: token.dbWriteField || token.dbFieldAliases?.[0] || '—',
+          fieldClass: token.fieldClass || token.field_class || '—',
+          required: requiredCreateTokens.value.some((entry) => entry.key === token.key) ? 'Yes' : '—',
+          writeTarget: token.dbFieldAliases?.join(', ') || '—',
+          editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
+        })),
+    })),
+  )
 const eventShellNavItems = computed(() =>
   buildStructureToolbarItems({
     leftItems: toolbarLeftViews.value,
@@ -2547,6 +2603,30 @@ function toggleSelectAllVisible(nextValue) {
     return
   }
   selectedRowIds.value = selectedRowIds.value.filter((id) => !visibleIds.includes(id))
+}
+
+function updateTokenCell(tokenKey, field, value) {
+  const sourceKey = String(activeSourceKey.value || '').trim()
+  const normalizedKey = String(tokenKey || '').trim()
+  if (!sourceKey || !normalizedKey) return
+  const mappedField = field === 'type' ? 'tokenType' : field === 'writeTarget' ? 'dbWriteField' : field
+  if (!mappedField) return
+  const currentBySource = tokenMetaOverridesBySource.value[sourceKey] || {}
+  const currentToken = currentBySource[normalizedKey] || {}
+  const nextValue = String(value ?? '').trim()
+  const nextToken = { ...currentToken }
+  if (nextValue) nextToken[mappedField] = nextValue
+  else delete nextToken[mappedField]
+
+  const nextBySource = { ...currentBySource }
+  if (Object.keys(nextToken).length) nextBySource[normalizedKey] = nextToken
+  else delete nextBySource[normalizedKey]
+
+  tokenMetaOverridesBySource.value = {
+    ...tokenMetaOverridesBySource.value,
+    [sourceKey]: nextBySource,
+  }
+  persistTokenMetadataOverrides(tokenMetaOverridesBySource.value)
 }
 
 function stringifyValue(value) {

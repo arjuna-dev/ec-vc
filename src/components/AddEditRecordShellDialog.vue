@@ -434,16 +434,18 @@
                 />
               </div>
 
-              <div
-                v-else-if="isTokensSectionActive"
-                class="create-record-shell__governance-groups"
-              >
-                <StructureGovernancePanel
-                  mode="tokens"
-                  :token-groups="tokenGroupsByView"
-                  empty-tokens-label="No tokens declared in this view."
-                />
-              </div>
+                <div
+                  v-else-if="isTokensSectionActive"
+                  class="create-record-shell__governance-groups"
+                >
+                  <StructureGovernancePanel
+                    mode="tokens"
+                    :token-groups="tokenGroupsByView"
+                    :token-columns="tokenGovernanceColumns"
+                    empty-tokens-label="No tokens declared in this view."
+                    @update-token-cell="updateTokenCell"
+                  />
+                </div>
 
               <div
                 v-else-if="isSystemSectionActive && activeFields.length"
@@ -1543,11 +1545,12 @@ import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
-import {
-  getCreateBranchTokenName,
-  getFilePageRegistryEntryByEntityReference,
-  getRegistryTitleTokenForSource,
-} from 'src/utils/structureRegistry'
+  import {
+    FILE_SOURCE_REGISTRY,
+    getCreateBranchTokenName,
+    getFilePageRegistryEntryByEntityReference,
+    getRegistryTitleTokenForSource,
+  } from 'src/utils/structureRegistry'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -1640,6 +1643,7 @@ const stagedFieldValues = ref({})
 const artifactDragOver = ref(false)
 const stagedArtifacts = ref([])
 const selectedArtifactIds = ref([])
+const tokenFieldOverrides = ref({})
 const startingArtifactIds = ref([])
 const autoProcessArtifacts = ref(false)
 const companionUrl = ref('')
@@ -1778,6 +1782,52 @@ const viewOptions = [
   { label: '', value: 'card', icon: 'grid_view' },
   { label: '', value: 'table', icon: 'table_rows' },
 ]
+const tokenTypeOptions = [
+  { value: 'text', label: 'Text' },
+  { value: 'long_text', label: 'Long Text' },
+  { value: 'textarea', label: 'Textarea' },
+  { value: 'rich_text', label: 'Rich Text' },
+  { value: 'number', label: 'Number' },
+  { value: 'date', label: 'Date' },
+  { value: 'datetime', label: 'Datetime' },
+  { value: 'email', label: 'Email' },
+  { value: 'phone', label: 'Phone' },
+  { value: 'url', label: 'URL' },
+  { value: 'select_single', label: 'Select Single' },
+  { value: 'select_multi', label: 'Select Multi' },
+  { value: 'creator', label: 'Creator' },
+]
+const optionSourceOptions = [
+  { value: 'live_entity', label: 'Live Entity' },
+  { value: 'option_list', label: 'Option List' },
+  { value: 'shared_file_universe', label: 'Shared File Universe' },
+  { value: 'manual', label: 'Manual' },
+]
+const fieldClassOptions = [
+  { value: 'owned', label: 'Owned' },
+  { value: 'directional', label: 'Directional' },
+  { value: 'ldb_relationship', label: 'LDB Relationship' },
+  { value: 'system', label: 'System' },
+]
+const optionEntityOptions = Object.freeze(
+  FILE_SOURCE_REGISTRY
+    .map((entry) => {
+      const label = String(entry?.label || '').trim()
+      return label ? { value: label, label } : null
+    })
+    .filter(Boolean),
+)
+const tokenGovernanceColumns = computed(() => [
+  { key: 'label', label: 'Label', width: 180, cellClass: 'create-record-shell__cell--label', editable: true, kind: 'text' },
+  { key: 'type', label: 'Type', width: 112, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'select', options: tokenTypeOptions },
+  { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'select', options: optionSourceOptions },
+  { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'select', options: optionEntityOptions },
+  { key: 'optionList', label: 'Option List', width: 140, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'text' },
+  { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'text' },
+  { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'select', options: fieldClassOptions },
+  { key: 'required', label: 'Required', width: 84, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', kind: 'checkbox' },
+  { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'create-record-shell__cell--meta', cellClass: 'create-record-shell__cell--meta', editable: true, kind: 'text' },
+])
 
 const activeSection = computed(() => {
   if (activeSectionKey.value === 'tokens' || activeSectionKey.value === 'views') return null
@@ -1806,15 +1856,39 @@ const tokenGroupsByView = computed(() =>
     return {
       key: view.key,
       label: view.label,
-      tokens: sectionTokens.map((token) => ({
-        key: token.key,
-        label: token.label || '—',
-        type: token.tokenType || '—',
-        required: isNameField(token) ? 'Yes' : '—',
-      })),
+      tokens: sectionTokens.map((token) => {
+        const overrides = tokenFieldOverrides.value[token.key] || {}
+        return {
+          key: token.key,
+          label: overrides.label ?? token.label || '—',
+          type: overrides.type ?? token.tokenType || '—',
+          optionSource: overrides.optionSource ?? token.optionSource || '—',
+          optionEntity: overrides.optionEntity ?? token.optionEntity || '—',
+          optionList: overrides.optionList ?? token.optionList || '—',
+          dbWriteField: overrides.dbWriteField ?? token.dbWriteField || token.dbFieldAliases?.[0] || '—',
+          fieldClass: overrides.fieldClass ?? token.fieldClass || token.field_class || '—',
+          required: isNameField(token) ? 'Yes' : '—',
+          writeTarget: overrides.writeTarget ?? (token.dbWriteField || token.dbFieldAliases?.join(', ') || '—'),
+          editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
+        }
+      }),
     }
   }),
 )
+
+function updateTokenCell(tokenKey, field, value) {
+  const normalizedKey = String(tokenKey || '').trim()
+  if (!normalizedKey) return
+  const current = tokenFieldOverrides.value[normalizedKey] || {}
+  const nextValue = String(value ?? '').trim()
+  const nextToken = { ...current }
+  if (nextValue) nextToken[field] = nextValue
+  else delete nextToken[field]
+  tokenFieldOverrides.value = {
+    ...tokenFieldOverrides.value,
+    [normalizedKey]: nextToken,
+  }
+}
 const activeFieldEntries = computed(() => {
   const nameEntries = []
   const summaryEntries = []

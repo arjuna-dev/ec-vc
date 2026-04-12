@@ -80,8 +80,10 @@
             :mode="activeGovernanceToolbarKey === 'governance:views' ? 'views' : 'tokens'"
             :view-rows="governanceViewRows"
             :token-groups="tokenGroupsByView"
+            :token-columns="tokenGovernanceColumns"
             empty-views-label="No views declared for this record."
             empty-tokens-label="No tokens declared in this view."
+            @update-token-cell="updateTokenCell"
           />
         </div>
 
@@ -791,6 +793,39 @@ const fileTokens = computed(() => rawFileTokens.value.map((token) => {
   const override = getTokenMetadataOverride(tokenMetaOverridesBySource.value, activeSourceKey.value, token?.key)
   return mergeTokenMetadata(token, override)
 }))
+const governanceViewRows = computed(() =>
+  fileViews.value.map((view) => {
+    const normalized = String(view.label || '').trim().toLowerCase()
+    return {
+      key: view.key,
+      label: view.label,
+      side: normalized === 'system' || isRelationshipViewLabel(normalized) ? 'Right' : 'Left',
+      tokenCount: fileTokens.value.filter((token) => token.parentKey === view.key).length,
+      subgroupCount: Array.isArray(view.subgroups) ? view.subgroups.length : 0,
+    }
+  }),
+)
+const tokenGroupsByView = computed(() =>
+  governanceViewRows.value.map((view) => ({
+    key: view.key,
+    label: view.label,
+    tokens: fileTokens.value
+      .filter((token) => token.parentKey === view.key)
+      .map((token) => ({
+        key: token.key,
+        label: token.label || '—',
+        type: token.tokenType || '—',
+        optionSource: token.optionSource || '—',
+        optionEntity: token.optionEntity || '—',
+        optionList: token.optionList || '—',
+        dbWriteField: token.dbWriteField || token.dbFieldAliases?.[0] || '—',
+        fieldClass: token.fieldClass || token.field_class || '—',
+        required: token.required ? 'Yes' : '—',
+        writeTarget: token.dbWriteField || token.dbFieldAliases?.join(', ') || '—',
+        editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
+      })),
+  })),
+)
 const fieldByName = computed(() =>
   Object.fromEntries((fields.value || []).map((field) => [String(field?.field_name || '').trim(), field])),
 )
@@ -849,6 +884,25 @@ const FIELD_CLASS_OPTIONS = [
   { label: 'Directional Link', value: 'directional_link' },
   { label: 'LDB Relationship', value: 'ldb_relationship' },
 ]
+const OPTION_ENTITY_OPTIONS = Object.freeze(
+  FILE_SOURCE_REGISTRY
+    .map((entry) => {
+      const label = String(entry?.label || '').trim()
+      return label ? { label, value: label } : null
+    })
+    .filter(Boolean),
+)
+const tokenGovernanceColumns = computed(() => [
+  { key: 'label', label: 'Label', width: 180, cellClass: 'record-shell__cell--label', editable: true, kind: 'text' },
+  { key: 'type', label: 'Type', width: 112, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'select', options: TOKEN_TYPE_OPTIONS },
+  { key: 'optionSource', label: 'Option Source', width: 150, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'select', options: OPTION_SOURCE_OPTIONS },
+  { key: 'optionEntity', label: 'Option Entity', width: 160, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'select', options: OPTION_ENTITY_OPTIONS },
+  { key: 'optionList', label: 'Option List', width: 140, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'text' },
+  { key: 'dbWriteField', label: 'DB Write Field', width: 180, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'text' },
+  { key: 'fieldClass', label: 'Field Class', width: 140, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'select', options: FIELD_CLASS_OPTIONS },
+  { key: 'required', label: 'Required', width: 84, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', kind: 'checkbox' },
+  { key: 'writeTarget', label: 'Write Target / Alias', width: 220, headerClass: 'record-shell__cell--meta', cellClass: 'record-shell__cell--meta', editable: true, kind: 'text' },
+])
 
 watch(
   tokenMetaOverridesBySource,
@@ -930,6 +984,29 @@ function commitTokenMeta(token) {
   closeTokenMetaEditor()
 }
 
+function updateTokenCell(tokenKey, field, value) {
+  const sourceKey = String(activeSourceKey.value || '').trim()
+  const normalizedKey = String(tokenKey || '').trim()
+  if (!sourceKey || !normalizedKey) return
+  const mappedField = field === 'type' ? 'tokenType' : field === 'writeTarget' ? 'dbWriteField' : field
+  if (!mappedField) return
+  const currentBySource = tokenMetaOverridesBySource.value[sourceKey] || {}
+  const currentToken = currentBySource[normalizedKey] || {}
+  const nextValue = String(value ?? '').trim()
+  const nextToken = { ...currentToken }
+  if (nextValue) nextToken[mappedField] = nextValue
+  else delete nextToken[mappedField]
+
+  const nextBySource = { ...currentBySource }
+  if (Object.keys(nextToken).length) nextBySource[normalizedKey] = nextToken
+  else delete nextBySource[normalizedKey]
+
+  tokenMetaOverridesBySource.value = {
+    ...tokenMetaOverridesBySource.value,
+    [sourceKey]: nextBySource,
+  }
+}
+
 function resetTokenMeta(token) {
   const key = String(token?.key || '').trim()
   const sourceKey = String(activeSourceKey.value || '').trim()
@@ -973,7 +1050,18 @@ const selectedHeroTokens = computed(() =>
   heroSelectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)),
 )
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
-const groupedViews = computed(() => groupDialogViews(fileViews.value))
+const groupedViews = computed(() =>
+  groupDialogViews(fileViews.value).map((group) => {
+    if (Array.isArray(group.views) && group.views.length === 1) {
+      const viewLabel = String(group.views[0]?.label || '').trim()
+      const normalized = viewLabel.toLowerCase()
+      if (normalized === 'system' || normalized === 'ldb') {
+        return { ...group, title: viewLabel }
+      }
+    }
+    return group
+  }),
+)
 const sharedLdbLinksByTargetEntity = ref({})
 const sharedLdbViewTokens = computed(() => {
   if (!activeRegistryEntry.value?.entityName) return []
