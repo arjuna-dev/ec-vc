@@ -69,9 +69,9 @@
 
       <section class="record-shell__panel">
         <div class="record-shell__panel-head">
-          <div class="record-shell__panel-title">{{ activeGovernanceTitle || activeSectionGroup?.title || activeSection?.label || 'Section' }}</div>
+        <div class="record-shell__panel-title">{{ activeGovernanceTitle || activeViewGroup?.title || activeView?.label || 'Section' }}</div>
           <div class="record-shell__panel-meta">
-            {{ activeGovernanceToolbarKey ? 'Structure governance' : `${activeSectionTokens.length} fields` }}
+            {{ activeGovernanceToolbarKey ? 'Structure governance' : `${activeViewTokens.length} fields` }}
           </div>
         </div>
 
@@ -216,7 +216,7 @@
 
         <div v-else-if="hasGroupedSectionSubsections" class="record-shell__section-group-stack">
           <section
-            v-for="group in activeSectionTokenGroups"
+            v-for="group in activeViewTokenGroups"
             :key="group.key"
             class="record-shell__section-group"
           >
@@ -338,7 +338,7 @@
 
         <div v-else class="record-shell__field-grid">
           <div
-            v-for="token in activeSectionTokens"
+            v-for="token in activeViewTokens"
             :key="token.key"
             class="record-shell__field-card"
           >
@@ -649,9 +649,9 @@ const sharedLdbSectionTokens = computed(() => {
           || `File ${index + 1}`,
         tokenType: 'select_multi',
         inputOptions: buildLiveEntityOptions(sourceKey),
-        parentKey: activeSectionEntries.value[0]?.key || '',
-        parentLabel: activeSectionEntries.value[0]?.label || 'LDB',
-        parentSectionOrder: activeSectionEntries.value[0]?.sectionOrder || '',
+        parentKey: activeViewEntries.value[0]?.key || '',
+        parentLabel: activeViewEntries.value[0]?.label || 'LDB',
+        parentSectionOrder: activeViewEntries.value[0]?.sectionOrder || '',
         isSharedLdbToken: true,
         targetSourceKey: sourceKey,
         targetEntity: String(targetEntry.entityName || '').trim(),
@@ -659,7 +659,7 @@ const sharedLdbSectionTokens = computed(() => {
     })
     .filter(Boolean)
 })
-const createSectionGroups = computed(() =>
+const createViewGroups = computed(() =>
   buildDialogSections({
     groupedSections: groupedViews.value,
     tokenFilter: (section) => (
@@ -673,31 +673,31 @@ const createSectionGroups = computed(() =>
     keepEmptySections: true,
   }),
 )
-const createDialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
-const createDialogLeftSections = computed(() => createDialogSectionSplit.value.leftSections)
-const createDialogRightSections = computed(() => createDialogSectionSplit.value.rightSections)
+const createDialogViewSplit = computed(() => splitDialogSections(createViewGroups.value))
+const createDialogLeftSections = computed(() => createDialogViewSplit.value.leftSections)
+const createDialogRightSections = computed(() => createDialogViewSplit.value.rightSections)
 const activeGovernanceToolbarKey = computed(() => {
   const current = String(activeSectionKey.value || '').trim().toLowerCase()
   return current.startsWith('governance:') ? current : ''
 })
-const activeSectionGroup = computed(() => {
+const activeViewGroup = computed(() => {
   if (activeGovernanceToolbarKey.value) return null
   return groupedViews.value.find((group) => group.value === activeSectionKey.value) || groupedViews.value[0] || null
 })
-const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || null)
-const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
-const activeSectionTokens = computed(() => {
+const activeView = computed(() => activeViewGroup.value?.sections?.[0] || null)
+const activeViewEntries = computed(() => activeViewGroup.value?.sections || [])
+const activeViewTokens = computed(() => {
   if (isLdbSectionActive.value) return sharedLdbSectionTokens.value
-  return sectionDisplayTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey))
+  return sectionDisplayTokens.value.filter((token) => activeViewEntries.value.some((section) => section.key === token.parentKey))
 })
 const isLdbSectionActive = computed(() =>
-  activeSectionEntries.value.some((section) => isRelationshipSectionLabel(section.label)),
+  activeViewEntries.value.some((section) => isRelationshipSectionLabel(section.label)),
 )
-const isSystemSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
-const systemSectionTokens = computed(() => activeSectionTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
-const hasGroupedSectionSubsections = computed(() => !isLdbSectionActive.value && activeSectionEntries.value.length > 1)
-const activeSectionTokenGroups = computed(() =>
-  activeSectionEntries.value
+const isSystemSectionActive = computed(() => activeViewEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
+const systemSectionTokens = computed(() => activeViewTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
+const hasGroupedSectionSubsections = computed(() => !isLdbSectionActive.value && activeViewEntries.value.length > 1)
+const activeViewTokenGroups = computed(() =>
+  activeViewEntries.value
     .map((section) => ({
       key: section.key,
       title: section.label,
@@ -843,7 +843,7 @@ const fieldVerificationActionOptions = [
   { label: 'Reject field', value: 'rejected', icon: 'cancel', color: 'rgba(166, 43, 43, 0.92)' },
 ]
 const dialogInitialValues = computed(() => {
-  const tokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const tokens = [...createKeyFieldTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
     tokens.map((token) => [token.key, getTokenDialogValue(token)]),
   )
@@ -882,7 +882,7 @@ watch(heroSourceGroups, (groups) => {
   }
 }, { immediate: true })
 
-watch(activeSectionTokenGroups, (groups) => {
+watch(activeViewTokenGroups, (groups) => {
   const nextKeys = groups.map((group) => group.key)
   expandedSectionSubgroupKeys.value = nextKeys.filter((key) => expandedSectionSubgroupKeys.value.includes(key))
   if (!expandedSectionSubgroupKeys.value.length && nextKeys.length) {
@@ -1064,7 +1064,7 @@ async function submitRecordUpdate(values = {}) {
 
 function buildRecordUpdateChanges(values = {}) {
   const seenChangeKeys = new Set()
-  return [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  return [...createKeyFieldTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
     .flatMap((token) => {
       const field = resolveExistingFieldForToken(token)
       if (field && !field.editable) return []
@@ -1093,7 +1093,7 @@ function buildRecordUpdateChanges(values = {}) {
 }
 
 function buildCreatePayload(values = {}) {
-  const allTokens = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createKeyFieldTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
     allTokens
       .map((token) => {
@@ -1157,7 +1157,7 @@ function resolveLiveEntityRecordId(row, sourceKey) {
 }
 
 async function ensureLiveOptionsLoaded() {
-  const tokensToLoad = [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens), ...selectableTokens.value.map((token) => normalizeCreateDialogToken(token))]
+  const tokensToLoad = [...createKeyFieldTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens), ...selectableTokens.value.map((token) => normalizeCreateDialogToken(token))]
   const sourceKeys = new Set()
   for (const token of tokensToLoad) {
     const optionSource = String(token?.optionSource || '').trim()
@@ -1564,7 +1564,7 @@ async function loadRecordView() {
       auditEvents.value = []
     }
     inlineFieldValues.value = Object.fromEntries(
-      [...createKeyFieldTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+      [...createKeyFieldTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
         .map((token) => [token.key, getTokenDialogValue(token)]),
     )
   } catch (loadError) {

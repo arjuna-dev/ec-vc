@@ -21,8 +21,8 @@
       :source-label="activeRegistryEntry?.label || 'Intake'"
       :singular-label="activeRegistryEntry?.singularLabel || 'intake record'"
       :primary-tokens="createPrimaryTokens"
-      :left-sections="dialogSectionSplit.leftSections"
-      :right-sections="dialogSectionSplit.rightSections"
+      :left-sections="dialogViewSplit.leftSections"
+      :right-sections="dialogViewSplit.rightSections"
       :branch-selector-token-key="branchSelectorTokenKey"
       :show-shell-selector="false"
       :shell-selector-value="activeSourceKey"
@@ -132,7 +132,7 @@ const branchSelectorTokenKey = computed(() => {
   if (!branchTokenName) return ''
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
-const createSectionGroups = computed(() =>
+const createViewGroups = computed(() =>
   buildDialogSections({
     groupedSections: groupedViews.value,
     tokenFilter: (section) =>
@@ -143,7 +143,7 @@ const createSectionGroups = computed(() =>
     keepEmptySections: true,
   }),
 )
-const dialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
+const dialogViewSplit = computed(() => splitDialogSections(createViewGroups.value))
 const canCreateWithShell = computed(() => {
   const branchEntries = getCreateBranches(activeSourceKey.value)
   if (branchEntries.length) {
@@ -157,7 +157,7 @@ function isRelationshipSectionLabel(value = '') {
   return normalized === 'ldb'
 }
 const dialogLdbSectionKey = computed(
-  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || 'general',
+  () => createViewGroups.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || 'general',
 )
 
 watch(
@@ -190,7 +190,7 @@ watch(
 )
 
 watch(
-  [activeSourceKey, createPrimaryTokens, createSectionGroups, () => route.query.edit, () => route.query.entity, () => route.query.editSection, () => route.query.kind],
+  [activeSourceKey, createPrimaryTokens, createViewGroups, () => route.query.edit, () => route.query.entity, () => route.query.editSection, () => route.query.kind],
   async ([, , , editRecordId, editEntityName, editSection]) => {
     const normalizedRecordId = String(editRecordId || '').trim()
     if (!normalizedRecordId) {
@@ -230,7 +230,7 @@ function buildCreateDialogInitialValues() {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
   const branchToken = branchTokenName
-    ? [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+    ? [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)].find(
         (token) => String(token?.tokenName || '').trim() === branchTokenName,
       ) || null
     : null
@@ -372,7 +372,7 @@ async function loadEditDialogRecordPayload(entityName, recordId) {
 }
 
 function buildEditDialogInitialValuesFromPayload(payload) {
-  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
     allTokens.map((token) => {
       const value = getEditDialogTokenValueFromPayload(payload, token)
@@ -383,7 +383,7 @@ function buildEditDialogInitialValuesFromPayload(payload) {
 
 async function ensureLiveOptionsLoaded() {
   const sourceKeys = new Set()
-  for (const token of [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]) {
+  for (const token of [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]) {
     const optionSource = String(token?.optionSource || '').trim()
     if (optionSource === 'live_entity') {
       const sourceKey = resolveSourceKeyFromEntityName(token.optionEntity)
@@ -418,7 +418,7 @@ async function submitDialogRecord({ values } = {}) {
 
 async function submitCreateRecord(values = {}) {
   const payload = Object.fromEntries(
-    [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+    [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
       .map((token) => {
         if (branchSelectorTokenKey.value && token.key === branchSelectorTokenKey.value) return null
         const normalizedValue = normalizeTokenWriteValue(token, values?.[token.key])
@@ -461,7 +461,7 @@ async function submitCreateRecord(values = {}) {
 }
 
 async function submitEditRecord(values = {}) {
-  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
 
   dialogLoading.value = true
   try {

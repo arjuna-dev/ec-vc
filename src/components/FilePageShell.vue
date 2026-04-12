@@ -1021,7 +1021,7 @@ const activeBbBlockKey = ref('')
 const expandedBbFilterCategoryKey = ref('')
 const expandedCardSettingsGroupsBySource = ref({})
 
-const activeSection = computed(() => {
+const activeView = computed(() => {
   return fileViews.value.find((section) => section.key === activeSectionKeyForCards.value) || fileViews.value[0] || null
 })
 const activeGovernanceToolbarKey = computed(() => {
@@ -1034,12 +1034,12 @@ const activeGovernanceTitle = computed(() => {
   if (activeGovernanceToolbarKey.value === 'views') return 'Views'
   return ''
 })
-const isLdbSectionActive = computed(() => isRelationshipSectionLabel(activeSection.value?.label))
-const isSystemSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'system')
+const isLdbSectionActive = computed(() => isRelationshipSectionLabel(activeView.value?.label))
+const isSystemSectionActive = computed(() => String(activeView.value?.label || '').trim().toLowerCase() === 'system')
 
-const activeSectionTokens = computed(() => {
-  if (!activeSection.value) return []
-  return fileTokens.value.filter((token) => token.parentKey === activeSection.value.key)
+const activeViewTokens = computed(() => {
+  if (!activeView.value) return []
+  return fileTokens.value.filter((token) => token.parentKey === activeView.value.key)
 })
 
 const sharedLdbSectionTokens = computed(() => {
@@ -1068,9 +1068,9 @@ const sharedLdbSectionTokens = computed(() => {
           || targetEntry.label
           || `File ${index + 1}`,
         tokenType: 'select_multi',
-        parentKey: activeSection.value?.key || '',
-        parentLabel: activeSection.value?.label || 'LDB',
-        parentSectionOrder: activeSection.value?.sectionOrder || '',
+        parentKey: activeView.value?.key || '',
+        parentLabel: activeView.value?.label || 'LDB',
+        parentSectionOrder: activeView.value?.sectionOrder || '',
         isSharedLdbToken: true,
         targetSourceKey: sourceKey,
         targetEntity: String(targetEntry.entityName || '').trim(),
@@ -1091,7 +1091,7 @@ const selectedRecordShellLevel3Keys = computed(() => {
     .filter((value) => value && allowedKeys.has(value))
 })
 const selectedRecordShellLevel3KeySet = computed(() => new Set(selectedRecordShellLevel3Keys.value))
-const activeCardSettingsSectionKey = computed(() => String(activeSection.value?.key || '').trim())
+const activeCardSettingsViewKey = computed(() => String(activeView.value?.key || '').trim())
 
 const forkViewRows = computed(() =>
   fileViews.value.map((section) => ({
@@ -1106,8 +1106,8 @@ function isCoreForkViewRow(view) {
   return normalized === 'general' || normalized === 'system' || isRelationshipSectionLabel(normalized)
 }
 
-const cardSettingsSourceSections = computed(() => {
-  const active = activeSection.value
+const cardSettingsSourceViews = computed(() => {
+  const active = activeView.value
   const activeLabel = String(active?.label || '').trim().toLowerCase()
   const fileSpecificViews = forkViewRows.value.filter((view) => !isCoreForkViewRow(view))
   if (activeLabel !== 'general') {
@@ -1117,13 +1117,13 @@ const cardSettingsSourceSections = computed(() => {
 })
 
 const availableCardItemTokens = computed(() => {
-  const sourceSectionKeys = new Set(cardSettingsSourceSections.value.map((section) => section.key))
+  const sourceViewKeys = new Set(cardSettingsSourceViews.value.map((section) => section.key))
   return fileTokens.value.filter(
-    (token) => sourceSectionKeys.has(token.parentKey) && token.key !== canonicalTitleToken.value?.key,
+    (token) => sourceViewKeys.has(token.parentKey) && token.key !== canonicalTitleToken.value?.key,
   )
 })
 const enabledCardItemKeys = computed(() => {
-  const scopeKey = `${activeContentSourceKey.value}:${activeCardSettingsSectionKey.value}`
+  const scopeKey = `${activeContentSourceKey.value}:${activeCardSettingsViewKey.value}`
   const configured = Array.isArray(cardItemKeysBySource.value[scopeKey]) ? cardItemKeysBySource.value[scopeKey] : []
   const allowedKeys = new Set(availableCardItemTokens.value.map((token) => token.key))
   return configured.filter((key) => allowedKeys.has(key))
@@ -1166,7 +1166,7 @@ const createDialogSubmitDisabled = computed(() => {
   return !canCreateWithShell.value
 })
 const cardItemTokenGroups = computed(() =>
-  cardSettingsSourceSections.value
+  cardSettingsSourceViews.value
     .map((section) => ({
       key: section.key,
       label: section.label,
@@ -1175,7 +1175,7 @@ const cardItemTokenGroups = computed(() =>
     .filter((group) => group.tokens.length),
 )
 const groupedViews = computed(() => groupDialogSections(fileViews.value))
-const createSectionGroups = computed(() => {
+const createViewGroups = computed(() => {
   const primaryTokenKeys = new Set(createPrimaryTokens.value.map((token) => token.key))
   return buildDialogSections({
     groupedSections: groupedViews.value,
@@ -1190,19 +1190,19 @@ const createSectionGroups = computed(() => {
     keepEmptySections: true,
   })
 })
-const createDialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
-const createDialogLeftSections = computed(() => createDialogSectionSplit.value.leftSections)
-const createDialogRightSections = computed(() => createDialogSectionSplit.value.rightSections)
+const createDialogViewSplit = computed(() => splitDialogSections(createViewGroups.value))
+const createDialogLeftSections = computed(() => createDialogViewSplit.value.leftSections)
+const createDialogRightSections = computed(() => createDialogViewSplit.value.rightSections)
 const createDialogBranchSelectorTokenKey = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   if (!branchTokenName) return ''
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
 const createDialogLdbSectionKey = computed(
-  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || '',
+  () => createViewGroups.value.find((section) => isRelationshipSectionLabel(section?.label))?.key || '',
 )
 const isTableInlineEditingAvailable = computed(() => viewMode.value !== 'card')
-const activeCardSettingsScopeKey = computed(() => `${activeContentSourceKey.value}:${activeCardSettingsSectionKey.value}`)
+const activeCardSettingsScopeKey = computed(() => `${activeContentSourceKey.value}:${activeCardSettingsViewKey.value}`)
 const expandedCardSettingsGroups = computed(() => {
   const scopeKey = activeCardSettingsScopeKey.value
   const existing = expandedCardSettingsGroupsBySource.value[scopeKey]
@@ -1370,7 +1370,7 @@ async function loadEditDialogRecordPayload(entityName, recordId) {
 }
 
 function buildEditDialogInitialValuesFromPayload(payload) {
-  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
     allTokens.map((token) => {
       const value = getEditDialogTokenValueFromPayload(payload, token)
@@ -1380,7 +1380,7 @@ function buildEditDialogInitialValuesFromPayload(payload) {
 }
 
 function buildEditDialogFieldMetaFromPayload(payload, entityName, recordId) {
-  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
     allTokens.map((token) => [
       token.key,
@@ -1407,7 +1407,7 @@ const tableSectionTokens = computed(() => {
   const baseTokens = (
     isLdbSectionActive.value
       ? sharedLdbSectionTokens.value
-      : activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key)
+      : activeViewTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key)
   )
   if (!isBbFileSource.value) return baseTokens
   return [...bbGraphRowColumns.value, ...baseTokens]
@@ -1630,7 +1630,7 @@ async function ensureLiveOptionRowsLoaded(sourceKey) {
 }
 
 async function preloadCreateDialogOptionSources() {
-  const tokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const tokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   const sourceKeys = new Set()
 
   tokens.forEach((token) => {
@@ -1755,8 +1755,8 @@ const viewOptions = Object.freeze([
 ])
 
 const multiTokenFilterSections = computed(() => {
-  if (!activeSection.value) return []
-  return getFilterSectionTokenCount(activeSection.value.key) > 1 ? [activeSection.value] : []
+  if (!activeView.value) return []
+  return getFilterSectionTokenCount(activeView.value.key) > 1 ? [activeView.value] : []
 })
 
 const bbFilterGroups = computed(() => {
@@ -2047,7 +2047,7 @@ watch(
 )
 
 watch(
-  [createDialogOpen, activeSourceKey, createPrimaryTokens, createSectionGroups],
+  [createDialogOpen, activeSourceKey, createPrimaryTokens, createViewGroups],
   async ([isOpen]) => {
     if (!isOpen) return
     await preloadCreateDialogOptionSources()
@@ -2056,7 +2056,7 @@ watch(
 )
 
 watch(
-  [() => route.name, () => route.query.create, activeSourceKey, createPrimaryTokens, createSectionGroups],
+  [() => route.name, () => route.query.create, activeSourceKey, createPrimaryTokens, createViewGroups],
   async ([, createFlag]) => {
     if (!String(createFlag || '').trim()) return
 
@@ -2067,7 +2067,7 @@ watch(
     const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
     const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
     const branchToken = branchTokenName
-      ? [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+      ? [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)].find(
           (token) => String(token?.tokenName || '').trim() === branchTokenName,
         ) || null
       : null
@@ -2918,7 +2918,7 @@ async function handleHeroActionItemClick(item = {}) {
 }
 
 function buildDraftDialogInitialValuesFromRow(row) {
-  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
     allTokens.map((token) => {
       const value = getCanonicalTokenValue(row?.raw || {}, token)
@@ -3254,7 +3254,7 @@ function requestCreateRecordShellForSource(sourceKey, options = {}) {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
   const branchToken = branchTokenName
-    ? [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+    ? [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)].find(
         (token) => String(token?.tokenName || '').trim() === branchTokenName,
       ) || null
     : null
@@ -3918,7 +3918,7 @@ function updateLocalDraftRowFromSnapshot(snapshot) {
 }
 
 function buildCreatePayload(values = {}) {
-  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   const payloadEntries = []
 
   allTokens.forEach((token) => {
@@ -3986,7 +3986,7 @@ function isUnsupportedRelationshipWriteToken(token, entityName = '') {
 }
 
 function getUnsupportedRelationshipWriteLabels(values = {}, entityName = '') {
-  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   return allTokens
     .filter((token) => {
       if (isAutomaticCreatorToken(token)) return false
@@ -4026,7 +4026,7 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
   if (!recordId || !entityName) return []
   const resolvedTableName = String(tableName || getRuntimeTableNameForEntityName(entityName) || entityName || '').trim()
 
-  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
 
   return allTokens.flatMap((token) => {
     if (isBranchSelectorToken(token)) return []

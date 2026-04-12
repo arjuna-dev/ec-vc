@@ -22,8 +22,8 @@
       :primary-tokens="createPrimaryTokens"
       :promoted-general-tokens="promotedGeneralTokens"
       :general-settings-groups="generalSettingsGroups"
-      :left-sections="dialogSectionSplit.leftSections"
-      :right-sections="dialogSectionSplit.rightSections"
+      :left-sections="dialogViewSplit.leftSections"
+      :right-sections="dialogViewSplit.rightSections"
       :branch-selector-token-key="branchSelectorTokenKey"
       :show-shell-selector="dialogMode !== 'edit'"
       :shell-selector-value="activeSourceKey"
@@ -263,7 +263,7 @@ const sharedLdbSectionTokens = computed(() => {
     })
     .filter(Boolean)
 })
-const createSectionGroups = computed(() =>
+const createViewGroups = computed(() =>
   buildDialogSections({
     groupedSections: groupedViews.value,
     tokenFilter: (section) => (
@@ -277,7 +277,7 @@ const createSectionGroups = computed(() =>
     keepEmptySections: true,
   }),
 )
-const dialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
+const dialogViewSplit = computed(() => splitDialogSections(createViewGroups.value))
 const canCreateWithShell = computed(() => {
   const branchEntries = getCreateBranches(activeSourceKey.value)
   if (branchEntries.length) {
@@ -287,7 +287,7 @@ const canCreateWithShell = computed(() => {
 })
 const canEditWithShell = computed(() => Boolean(dialogRecordId.value && dialogEntityName.value && bridge.value?.records?.update))
 const dialogLdbSectionKey = computed(
-  () => createSectionGroups.value.find((section) => isRelationshipSection(section))?.key || 'general',
+  () => createViewGroups.value.find((section) => isRelationshipSection(section))?.key || 'general',
 )
 const dialogHistoryTableName = computed(() => String(getRuntimeTableNameForEntityName(dialogEntityName.value) || '').trim())
 
@@ -351,7 +351,7 @@ watch(activeSourceKey, async () => {
 }, { immediate: true })
 
 watch(
-  [activeSourceKey, createPrimaryTokens, createSectionGroups, () => route.query.edit, () => route.query.entity, () => route.query.editSection, () => route.query.kind],
+  [activeSourceKey, createPrimaryTokens, createViewGroups, () => route.query.edit, () => route.query.entity, () => route.query.editSection, () => route.query.kind],
   async ([, , , editRecordId, editEntityName, editSection]) => {
     const normalizedRecordId = String(editRecordId || '').trim()
     if (!normalizedRecordId) {
@@ -399,7 +399,7 @@ function buildCreateDialogInitialValues(pending = null) {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchEntry = getCreateBranchEntry(activeSourceKey.value, requestedBranch)
   const branchToken = branchTokenName
-    ? [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)].find(
+    ? [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)].find(
         (token) => String(token?.tokenName || '').trim() === branchTokenName,
       ) || null
     : null
@@ -724,7 +724,7 @@ async function loadDialogHistory() {
 }
 
 function buildEditDialogInitialValuesFromPayload(payload) {
-  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   return Object.fromEntries(
     allTokens.map((token) => {
       const value = getEditDialogTokenValueFromPayload(payload, token)
@@ -736,7 +736,7 @@ function buildEditDialogInitialValuesFromPayload(payload) {
 async function ensureLiveOptionsLoaded() {
   await ensureLiveOptionsLoadedForTokens([
     ...createPrimaryTokens.value,
-    ...createSectionGroups.value.flatMap((section) => section.tokens),
+    ...createViewGroups.value.flatMap((section) => section.tokens),
   ])
 
   if (!liveOptionRowsBySource.value['file-system']) {
@@ -762,7 +762,7 @@ async function submitDialogRecord({ values } = {}) {
 }
 
 async function submitCreateRecord(values = {}) {
-  const allCreateTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allCreateTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
   const payload = Object.fromEntries(
     allCreateTokens
       .map((token) => {
@@ -833,7 +833,7 @@ async function submitCreateRecord(values = {}) {
 }
 
 async function submitEditRecord(values = {}) {
-  const allTokens = [...createPrimaryTokens.value, ...createSectionGroups.value.flatMap((section) => section.tokens)]
+  const allTokens = [...createPrimaryTokens.value, ...createViewGroups.value.flatMap((section) => section.tokens)]
 
   dialogLoading.value = true
   try {

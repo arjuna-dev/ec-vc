@@ -167,10 +167,10 @@
         />
       </div>
 
-      <div v-else-if="subgroupTabs.length" class="file-structure-shell__subgroup-tabs">
+      <div v-else-if="viewSubtabs.length" class="file-structure-shell__subgroup-tabs">
         <SectionTabs
           v-model="activeSubgroupKey"
-          :left-tabs="subgroupTabs"
+          :left-tabs="viewSubtabs"
           :right-tabs="[]"
         />
       </div>
@@ -321,7 +321,7 @@ const activeViewSection = computed(
 const isRelationshipSettingsSection = computed(() =>
   isRelationshipSectionLabel(activeViewSection.value?.label),
 )
-const subgroupTabs = computed(() => {
+const viewSubtabs = computed(() => {
   if (isRelationshipSettingsSection.value) return []
   return (Array.isArray(activeViewSection.value?.subgroups) ? activeViewSection.value.subgroups : []).map((group) => ({
     key: group.key,
@@ -372,7 +372,7 @@ const activeLeafTokens = computed(() => {
   )
   const sourceTokens = isRelationshipSettingsSection.value
     ? sharedLdbLeafTokens.value
-    : subgroupTabs.value.length
+    : viewSubtabs.value.length
     ? (subgroupMap.get(activeSubgroupKey.value)?.tokens || [])
     : (Array.isArray(activeViewSection.value?.tokens) ? activeViewSection.value.tokens : [])
   const draftTokens = draftLeafRowsBySource.value[activeSettingsSourceKey.value] || []
@@ -468,7 +468,7 @@ function addLeafElement() {
   const currentDrafts = draftLeafRowsBySource.value[sourceKey] || []
   const nextIndex = currentDrafts.length + 1
   const nextKey = `${sourceKey}-draft-leaf-${nextIndex}`
-  const parentSubgroup = subgroupTabs.value.find((tab) => tab.key === activeSubgroupKey.value)?.label || '—'
+  const parentSubgroup = viewSubtabs.value.find((tab) => tab.key === activeSubgroupKey.value)?.label || '—'
   draftLeafRowsBySource.value = {
     ...draftLeafRowsBySource.value,
     [sourceKey]: [
@@ -595,7 +595,7 @@ watch(
 )
 
 watch(
-  subgroupTabs,
+  viewSubtabs,
   (tabs) => {
     if (tabs.some((tab) => tab.key === activeSubgroupKey.value)) return
     activeSubgroupKey.value = tabs[0]?.key || ''
