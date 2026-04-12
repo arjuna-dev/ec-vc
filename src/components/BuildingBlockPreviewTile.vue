@@ -170,8 +170,8 @@
         </div>
       </template>
 
-      <template v-else-if="blockKey === 'l2-settings-menu'">
-        <L2SettingsMenu
+      <template v-else-if="blockKey === 'view-settings-menu'">
+        <ViewSettingsMenu
           title="Hero Fields"
           :groups="l2SettingsSampleGroups"
         />
@@ -840,7 +840,7 @@ import BuildingBlockTileHeader from 'src/components/BuildingBlockTileHeader.vue'
 import ForkSelectorSurface from 'src/components/ForkSelectorSurface.vue'
 import ForkBranchCard from 'src/components/ForkBranchCard.vue'
 import FileShellTitleRow from 'src/components/FileShellTitleRow.vue'
-import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
+import ViewSettingsMenu from 'src/components/ViewSettingsMenu.vue'
 import DialogShellFrame from 'src/components/DialogShellFrame.vue'
 import DialogShellTitleRow from 'src/components/DialogShellTitleRow.vue'
 import PageTitleText from 'src/components/PageTitleText.vue'

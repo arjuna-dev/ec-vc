@@ -13,7 +13,7 @@
         <div class="hero-sandbox__column-inner">
           <div class="hero-sandbox__middle-top">
             <RecordTitle class="hero-sandbox__title" :title="title" />
-            <L2SettingsMenu
+            <ViewSettingsMenu
               title="Hero Fields"
               :groups="settingsGroups"
               @toggle-group="$emit('toggle-settings-group', $event)"
@@ -68,7 +68,7 @@
 <script setup>
 import Hero3ColOverlay from 'src/components/Hero3ColOverlay.vue'
 import HeroSurface from 'src/components/HeroSurface.vue'
-import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
+import ViewSettingsMenu from 'src/components/ViewSettingsMenu.vue'
 import RecordFeedPanel from 'src/components/RecordFeedPanel.vue'
 import RecordFieldsBox from 'src/components/RecordFieldsBox.vue'
 import RecordSummaryBox from 'src/components/RecordSummaryBox.vue'

@@ -36,10 +36,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         subsection_address: 'BB.1.0',
         structure_token: 'Building_Blocks_General',
         tokens: [
-          { level_3: '1', address: 'BB.1.1', token_name: 'BB_Name', label: 'Name', db_field_aliases: ['Name'] },
-          { level_3: '2', address: 'BB.1.2', token_name: 'BB_Summary', label: 'Summary', db_field_aliases: ['Summary'] },
-          { level_3: '3', address: 'BB.1.3', token_name: 'BB_Category', label: 'Category', db_field_aliases: ['Category'] },
-          { level_3: '4', address: 'BB.1.4', token_name: 'BB_Status', label: 'Status', db_field_aliases: ['Status'] },
+          { address: 'BB.1.1', token_name: 'BB_Name', label: 'Name', db_field_aliases: ['Name'] },
+          { address: 'BB.1.2', token_name: 'BB_Summary', label: 'Summary', db_field_aliases: ['Summary'] },
+          { address: 'BB.1.3', token_name: 'BB_Category', label: 'Category', db_field_aliases: ['Category'] },
+          { address: 'BB.1.4', token_name: 'BB_Status', label: 'Status', db_field_aliases: ['Status'] },
         ],
       },
       {
@@ -47,10 +47,10 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         subsection_address: 'BB.2.0',
         structure_token: 'Building_Blocks_Usage',
         tokens: [
-          { level_3: '1', address: 'BB.2.1', token_name: 'BB_Used_In', label: 'Used In', db_field_aliases: ['Used_In'] },
-          { level_3: '2', address: 'BB.2.2', token_name: 'BB_Used_In_Shells', label: 'Used In Shells', db_field_aliases: ['Used_In_Shells'] },
-          { level_3: '3', address: 'BB.2.3', token_name: 'BB_Use_When', label: 'Use When', db_field_aliases: ['Use_When'] },
-          { level_3: '4', address: 'BB.2.4', token_name: 'BB_Avoid_When', label: 'Avoid When', db_field_aliases: ['Avoid_When'] },
+          { address: 'BB.2.1', token_name: 'BB_Used_In', label: 'Used In', db_field_aliases: ['Used_In'] },
+          { address: 'BB.2.2', token_name: 'BB_Used_In_Shells', label: 'Used In Shells', db_field_aliases: ['Used_In_Shells'] },
+          { address: 'BB.2.3', token_name: 'BB_Use_When', label: 'Use When', db_field_aliases: ['Use_When'] },
+          { address: 'BB.2.4', token_name: 'BB_Avoid_When', label: 'Avoid When', db_field_aliases: ['Avoid_When'] },
         ],
       },
       {
@@ -58,9 +58,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         subsection_address: 'BB.3.0',
         structure_token: 'Building_Blocks_Anatomy',
         tokens: [
-          { level_3: '1', address: 'BB.3.1', token_name: 'BB_Anatomy', label: 'Anatomy', db_field_aliases: ['Anatomy'] },
-          { level_3: '2', address: 'BB.3.2', token_name: 'BB_Required_Parts', label: 'Required Parts', db_field_aliases: ['Required_Parts'] },
-          { level_3: '3', address: 'BB.3.3', token_name: 'BB_Built_From_BBs', label: 'Built From BBs', db_field_aliases: ['Built_From_BBs'] },
+          { address: 'BB.3.1', token_name: 'BB_Anatomy', label: 'Anatomy', db_field_aliases: ['Anatomy'] },
+          { address: 'BB.3.2', token_name: 'BB_Required_Parts', label: 'Required Parts', db_field_aliases: ['Required_Parts'] },
+          { address: 'BB.3.3', token_name: 'BB_Built_From_BBs', label: 'Built From BBs', db_field_aliases: ['Built_From_BBs'] },
         ],
       },
       {
@@ -68,9 +68,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         subsection_address: 'BB.4.0',
         structure_token: 'Building_Blocks_Source',
         tokens: [
-          { level_3: '1', address: 'BB.4.1', token_name: 'BB_Source_Path', label: 'Source Path', db_field_aliases: ['Source_Path'] },
-          { level_3: '2', address: 'BB.4.2', token_name: 'BB_Owner', label: 'Owner', db_field_aliases: ['Owner'] },
-          { level_3: '3', address: 'BB.4.3', token_name: 'BB_Extraction_Status', label: 'Extraction Status', db_field_aliases: ['Extraction_Status'] },
+          { address: 'BB.4.1', token_name: 'BB_Source_Path', label: 'Source Path', db_field_aliases: ['Source_Path'] },
+          { address: 'BB.4.2', token_name: 'BB_Owner', label: 'Owner', db_field_aliases: ['Owner'] },
+          { address: 'BB.4.3', token_name: 'BB_Extraction_Status', label: 'Extraction Status', db_field_aliases: ['Extraction_Status'] },
         ],
       },
       {
@@ -78,9 +78,9 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         subsection_address: 'BB.5.0',
         structure_token: 'Building_Blocks_Reconstruction',
         tokens: [
-          { level_3: '1', address: 'BB.5.1', token_name: 'BB_Reconstruction_Notes', label: 'Reconstruction Notes', db_field_aliases: ['Reconstruction_Notes'] },
-          { level_3: '2', address: 'BB.5.2', token_name: 'BB_Convergence_Rule', label: 'Convergence Rule', db_field_aliases: ['Convergence_Rule'] },
-          { level_3: '3', address: 'BB.5.3', token_name: 'BB_Prompt', label: 'Prompt', db_field_aliases: ['Prompt'] },
+          { address: 'BB.5.1', token_name: 'BB_Reconstruction_Notes', label: 'Reconstruction Notes', db_field_aliases: ['Reconstruction_Notes'] },
+          { address: 'BB.5.2', token_name: 'BB_Convergence_Rule', label: 'Convergence Rule', db_field_aliases: ['Convergence_Rule'] },
+          { address: 'BB.5.3', token_name: 'BB_Prompt', label: 'Prompt', db_field_aliases: ['Prompt'] },
         ],
       },
       {
@@ -88,7 +88,7 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
         subsection_address: 'BB.6.0',
         structure_token: 'Building_Blocks_Variants',
         tokens: [
-          { level_3: '1', address: 'BB.6.1', token_name: 'BB_Variants', label: 'Variants', db_field_aliases: ['Variants'] },
+          { address: 'BB.6.1', token_name: 'BB_Variants', label: 'Variants', db_field_aliases: ['Variants'] },
         ],
       },
     ],
@@ -355,20 +355,9 @@ function normalizeSubsections(entity) {
   return []
 }
 
-function resolveAddressPart(address, index) {
-  return String(address || '')
-    .split('.')
-    .map((part) => String(part || '').trim())
-    .filter(Boolean)[index] || ''
-}
-
 function normalizeTokens(subsection) {
   const tokens = Array.isArray(subsection?.tokens) ? subsection.tokens : []
   return tokens
-    .filter((token) => {
-      const level = String(token?.level_3 ?? token?.level ?? '').trim()
-      return level !== '0'
-    })
     .map((token, index) => {
       const explicitRole = String(token?.token_role || token?.field_role || '').trim()
       const legacyRole = String(token?.role || '').trim()
@@ -377,7 +366,7 @@ function normalizeTokens(subsection) {
       return {
         ...token,
         tokenRole: inferredRole,
-        tokenOrder: String(token?.level_3 || resolveAddressPart(token?.address, 2) || index + 1),
+        tokenOrder: String(token?.token_order ?? index + 1),
       }
     })
 }
@@ -450,13 +439,13 @@ function getSubsectionDisplayRank(subsection) {
   const label = String(subsection?.label || '').trim().toLowerCase()
   if (label === 'ldb') return 998
   if (label === 'system') return 999
-  return Number(subsection?.level_2 || 0)
+  return Number(subsection?.subsectionOrder || 0)
 }
 
 function compareSubsectionDisplayOrder(a, b) {
   const rankDifference = getSubsectionDisplayRank(a) - getSubsectionDisplayRank(b)
   if (rankDifference !== 0) return rankDifference
-  return Number(a?.level_2 || 0) - Number(b?.level_2 || 0)
+  return Number(a?.subsectionOrder || 0) - Number(b?.subsectionOrder || 0)
 }
 
 const canonicalEntitiesByName = Object.fromEntries((canonicalStructure?.entities || []).map((entity) => [entity.entity, entity]))
@@ -486,9 +475,9 @@ function buildEntityRegistry(entityName) {
   const sourceSubsections = customSubsections || normalizeSubsections(sourceEntity)
   const tokenOverrides = meta.tokenOverrides && typeof meta.tokenOverrides === 'object' ? meta.tokenOverrides : {}
   const subsections = sourceSubsections
-    .map((subsection) => ({
-      key: String(subsection?.structure_token || subsection?.subsection || '').trim() || `${entityName}_${subsection?.level_2 || ''}`,
-      level_2: String(subsection?.level_2 || resolveAddressPart(subsection?.subsection_address, 1) || '').trim(),
+    .map((subsection, index) => ({
+      key: String(subsection?.structure_token || subsection?.subsection || '').trim() || `${entityName}_${index + 1}`,
+      subsectionOrder: String(subsection?.subsection_order ?? index + 1),
       address: String(subsection?.subsection_address || '').trim(),
       label: formatSubsectionLabel(subsection?.subsection),
       structureToken: String(subsection?.structure_token || '').trim(),
@@ -504,7 +493,6 @@ function buildEntityRegistry(entityName) {
 
         return {
           key: String(token?.token_name || token?.address || '').trim(),
-          level_3: String(token?.level_3 || '').trim(),
           tokenRole: String(token?.tokenRole || '').trim(),
           tokenOrder: String(token?.tokenOrder || '').trim(),
           address: String(token?.address || '').trim(),
@@ -560,7 +548,7 @@ function buildEntityRegistry(entityName) {
       ? meta.requiredRuntimeCapabilities
       : [...DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES],
     requiresReciprocalKdb: meta.requiresReciprocalKdb !== false,
-    level_1: String(meta.level_1 || sourceEntity?.level_1 || resolveAddressPart(sourceEntity?.entity_address, 0) || '').trim(),
+    level_1: String(meta.level_1 || sourceEntity?.level_1 || '').trim(),
     address: String(meta.address || sourceEntity?.entity_address || '').trim(),
     structureToken: String(meta.structureToken || sourceEntity?.structure_token?.token_name || sourceEntity?.structure_token || '').trim(),
     subsections,

@@ -414,7 +414,7 @@
             <div class="create-record-shell__panel ds-mini-scrollbar">
               <div class="create-record-shell__panel-head">
                 <div class="create-record-shell__panel-meta">{{ activeFields.length }} fields</div>
-                <L2SettingsMenu
+                <ViewSettingsMenu
                   v-if="isGeneralSectionActive && generalSettingsGroups.length"
                   title="General"
                   :groups="generalSettingsGroups"
@@ -1538,7 +1538,7 @@ import ProcessingBox from 'src/components/ProcessingBox.vue'
 import ShellSelector from 'src/components/ShellSelector.vue'
 import FieldMapRow from 'src/components/FieldMapRow.vue'
 import EntryInputListBox from 'src/components/EntryInputListBox.vue'
-import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
+import ViewSettingsMenu from 'src/components/ViewSettingsMenu.vue'
 import RecordHistoryBox from 'src/components/RecordHistoryBox.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'

@@ -154,13 +154,13 @@
         </template>
       </BuildingBlockPreviewTile>
       <article class="components-shell-page__card components-shell-page__card--settings-menu">
-        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('l2-settings-menu')">
+        <button type="button" class="components-shell-page__inspect-btn" aria-label="View component details" @click="openComponentDetail('view-settings-menu')">
           <q-icon name="visibility" />
         </button>
-        <div class="components-shell-page__card-label">L2 Settings Menu</div>
-        <div class="components-shell-page__card-status" :class="componentStatusClass('l2-settings-menu')">{{ componentStatusLabel('l2-settings-menu') }}</div>
+        <div class="components-shell-page__card-label">View Settings Menu</div>
+        <div class="components-shell-page__card-status" :class="componentStatusClass('view-settings-menu')">{{ componentStatusLabel('view-settings-menu') }}</div>
         <div class="components-shell-page__card-stage components-shell-page__card-stage--stretch">
-          <L2SettingsMenu
+          <ViewSettingsMenu
             title="Hero Fields"
             :groups="l2SettingsSampleGroups"
           />
@@ -346,7 +346,7 @@ import B10Button from 'src/components/buttons/B10Button.vue'
 import B10IconButton from 'src/components/buttons/B10IconButton.vue'
 import EyeIconButton from 'src/components/buttons/EyeIconButton.vue'
 import EditButton from 'src/components/EditButton.vue'
-import L2SettingsMenu from 'src/components/L2SettingsMenu.vue'
+import ViewSettingsMenu from 'src/components/ViewSettingsMenu.vue'
 import LiveActionL1 from 'src/components/LiveActionL1.vue'
 import MainMenuIconButton from 'src/components/buttons/MainMenuIconButton.vue'
 import MainMenuRow from 'src/components/MainMenuRow.vue'

@@ -1,5 +1,5 @@
 <template>
-  <div ref="menuRoot" class="l2-settings-menu-shell">
+  <div ref="menuRoot" class="view-settings-menu-shell">
     <B10IconButton
       icon="tune"
       variant="subtle"
@@ -8,17 +8,17 @@
       @click="toggleMenu"
     />
 
-    <div v-if="menuOpen" class="l2-settings-menu">
-      <div class="l2-settings-menu__title">{{ title }}</div>
+    <div v-if="menuOpen" class="view-settings-menu">
+      <div class="view-settings-menu__title">{{ title }}</div>
 
       <div
         v-for="group in groups"
         :key="group.key"
-        class="l2-settings-menu__group"
+        class="view-settings-menu__group"
       >
         <button
           type="button"
-          class="l2-settings-menu__heading"
+          class="view-settings-menu__heading"
           @click="$emit('toggle-group', group.key)"
         >
           <ToggleRowIcons
@@ -30,12 +30,12 @@
 
         <div
           v-if="group.expanded !== false"
-          class="l2-settings-menu__children"
+          class="view-settings-menu__children"
         >
           <label
             v-for="item in group.items"
             :key="item.key"
-            class="l2-settings-menu__row"
+            class="view-settings-menu__row"
           >
             <SettingsCheckbox
               :model-value="item.checked"
@@ -43,7 +43,7 @@
               @update:model-value="$emit('toggle-item', item.key, $event)"
             />
 
-            <span class="l2-settings-menu__row-label">{{ item.label }}</span>
+            <span class="view-settings-menu__row-label">{{ item.label }}</span>
           </label>
         </div>
       </div>
@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.l2-settings-menu-shell {
+.view-settings-menu-shell {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -104,7 +104,7 @@ onBeforeUnmount(() => {
   overflow: visible;
 }
 
-.l2-settings-menu-shell :deep(.b10-icon-btn) {
+.view-settings-menu-shell :deep(.b10-icon-btn) {
   align-self: center;
   padding: 0 !important;
   width: 18px !important;
@@ -113,15 +113,15 @@ onBeforeUnmount(() => {
   min-height: 18px !important;
 }
 
-.l2-settings-menu-shell :deep(.q-btn) {
+.view-settings-menu-shell :deep(.q-btn) {
   padding: 0 !important;
 }
 
-.l2-settings-menu-shell :deep(.q-icon) {
+.view-settings-menu-shell :deep(.q-icon) {
   font-size: 14px !important;
 }
 
-.l2-settings-menu {
+.view-settings-menu {
   position: absolute;
   top: calc(100% + var(--ds-space-8));
   right: 0;
@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
   box-shadow: var(--ds-shadow-card-soft);
 }
 
-.l2-settings-menu__title {
+.view-settings-menu__title {
   color: var(--ds-color-brand-black);
   font-family: var(--ds-font-title);
   font-size: var(--ds-settings-menu-title-size);
@@ -145,11 +145,11 @@ onBeforeUnmount(() => {
   margin-bottom: var(--ds-space-10);
 }
 
-.l2-settings-menu__group + .l2-settings-menu__group {
+.view-settings-menu__group + .view-settings-menu__group {
   margin-top: var(--ds-space-10);
 }
 
-.l2-settings-menu__heading {
+.view-settings-menu__heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -162,13 +162,13 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.l2-settings-menu__children {
+.view-settings-menu__children {
   display: grid;
   gap: var(--ds-space-4);
   margin-top: var(--ds-space-4);
 }
 
-.l2-settings-menu__row {
+.view-settings-menu__row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
@@ -177,7 +177,7 @@ onBeforeUnmount(() => {
   padding: var(--ds-space-2) var(--ds-space-4);
 }
 
-.l2-settings-menu__row-label {
+.view-settings-menu__row-label {
   min-width: 0;
   color: var(--ds-color-brand-black);
   font-family: var(--ds-font-body);
@@ -185,5 +185,4 @@ onBeforeUnmount(() => {
   font-weight: var(--ds-font-weight-medium);
   line-height: var(--ds-line-height-sm);
 }
-
 </style>

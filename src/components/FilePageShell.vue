@@ -266,7 +266,7 @@
                 />
               </div>
               <div class="test-shell-card__control-actions">
-                <L2SettingsMenu
+                <ViewSettingsMenu
                   v-if="cardSettingsMenuGroups.length"
                   title="Card Settings"
                   :groups="cardSettingsMenuGroups"
@@ -719,7 +719,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
 import FileFilterMenu from 'components/FileFilterMenu.vue'
 import FileHero from 'components/FileHero.vue'
-import L2SettingsMenu from 'components/L2SettingsMenu.vue'
+import ViewSettingsMenu from 'components/ViewSettingsMenu.vue'
 import FilePageToolbar from 'components/FilePageToolbar.vue'
 import MiniToolbar from 'components/MiniToolbar.vue'
 import RecordHistoryBox from 'components/RecordHistoryBox.vue'
