@@ -543,7 +543,7 @@ const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSource
 const fileViews = computed(() =>
   (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).map((subsection) => ({
     key: subsection.key,
-    level_2: subsection.level_2,
+    sectionOrder: subsection.level_2,
     address: subsection.address,
     label: subsection.label,
     structureToken: subsection.structureToken,
@@ -559,7 +559,7 @@ const fileTokens = computed(() =>
       ...token,
       parentKey: subsection.key,
       parentLabel: subsection.label,
-      parentLevel_2: subsection.level_2,
+      parentSectionOrder: subsection.level_2,
     })),
   ),
 )
@@ -651,7 +651,7 @@ const sharedLdbSectionTokens = computed(() => {
         inputOptions: buildLiveEntityOptions(sourceKey),
         parentKey: activeSectionEntries.value[0]?.key || '',
         parentLabel: activeSectionEntries.value[0]?.label || 'LDB',
-        parentLevel_2: activeSectionEntries.value[0]?.level_2 || '',
+        parentSectionOrder: activeSectionEntries.value[0]?.sectionOrder || '',
         isSharedLdbToken: true,
         targetSourceKey: sourceKey,
         targetEntity: String(targetEntry.entityName || '').trim(),

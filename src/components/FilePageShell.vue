@@ -964,7 +964,7 @@ const activeFileShellPayload = computed(() => {
   const registryEntry = getFilePageRegistryEntry(sourceKey) || null
   const sections = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).map((subsection) => ({
     key: subsection.key,
-    level_2: subsection.level_2,
+    sectionOrder: subsection.level_2,
     address: subsection.address,
     label: subsection.label,
     structureToken: subsection.structureToken,
@@ -978,7 +978,7 @@ const activeFileShellPayload = computed(() => {
       ...token,
       parentKey: subsection.key,
       parentLabel: subsection.label,
-      parentLevel_2: subsection.level_2,
+      parentSectionOrder: subsection.level_2,
     })),
   )
   return {
@@ -1070,7 +1070,7 @@ const sharedLdbSectionTokens = computed(() => {
         tokenType: 'select_multi',
         parentKey: activeSection.value?.key || '',
         parentLabel: activeSection.value?.label || 'LDB',
-        parentLevel_2: activeSection.value?.level_2 || '',
+        parentSectionOrder: activeSection.value?.sectionOrder || '',
         isSharedLdbToken: true,
         targetSourceKey: sourceKey,
         targetEntity: String(targetEntry.entityName || '').trim(),
@@ -2635,7 +2635,7 @@ function buildContextRelationshipPrefillForSource(sourceKey, contextEntity, cont
       ...token,
       parentKey: subsection.key,
       parentLabel: subsection.label,
-      parentLevel_2: subsection.level_2,
+      parentSectionOrder: subsection.level_2,
     })),
   )
   const matchingTokens = sourceTokens.filter((token) => {

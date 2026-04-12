@@ -247,9 +247,9 @@ const tokenTypeOptions = [
   { value: 'creator', label: 'Creator' },
 ]
 const leafDataColumns = computed(() => [
-  { key: 'parentL2', label: 'L2 Key', width: 92, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
-  { key: 'parentSubgroup', label: 'L2 Sub', width: 78, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
-  { key: 'key', label: 'L3 Key', width: 108, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--l3-key' },
+  { key: 'parentView', label: 'View', width: 92, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
+  { key: 'parentSubgroup', label: 'Sub', width: 78, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
+  { key: 'key', label: 'Token Key', width: 108, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--l3-key' },
   { key: 'order', label: 'Order', width: 54, headerClass: 'file-structure-shell__colhead--structure', cellClass: 'file-structure-shell__cell--structure' },
   { key: 'label', label: 'Label', width: 180, cellClass: 'file-structure-shell__cell--label', editable: true, kind: 'text' },
   { key: 'type', label: 'Type', width: 112, headerClass: 'file-structure-shell__colhead--data', cellClass: 'file-structure-shell__cell--data', editable: true, kind: 'select', options: tokenTypeOptions },
@@ -267,7 +267,7 @@ const activeFilePayload = computed(() => {
   const registryEntry = getFilePageRegistryEntry(activeSettingsSourceKey.value) || null
   const sections = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).map((subsection) => ({
     key: subsection.key,
-    level_2: subsection.level_2,
+    sectionOrder: subsection.level_2,
     address: subsection.address,
     label: subsection.label,
     structureToken: subsection.structureToken,
@@ -279,7 +279,7 @@ const activeFilePayload = computed(() => {
       ...token,
       parentKey: subsection.key,
       parentLabel: subsection.label,
-      parentLevel_2: subsection.level_2,
+      parentSectionOrder: subsection.level_2,
     })),
     subgroups: [],
   }))
@@ -356,7 +356,7 @@ const sharedLdbLeafTokens = computed(() => {
         parentLabel: activeSettingsSection.value?.label || 'LDB',
         tokenType: 'select_multi',
         relationshipGroup: 'ldb',
-        level_3: String(index + 1),
+        tokenOrder: String(index + 1),
         dbFieldAliases: [],
         optionList: '',
         optionSource: 'shared_file_universe',
@@ -384,7 +384,7 @@ const activeLeafTokens = computed(() => {
     return {
       key: token.key || '—',
       label: token.label || '—',
-      parentL2: token.parentLabel || activeSettingsSection.value?.label || '—',
+      parentView: token.parentLabel || activeSettingsSection.value?.label || '—',
       parentSubgroup: isRelationshipSettingsSection.value
         ? '—'
         : token.draftParentSubgroup || subgroupMap.get(activeSubgroupKey.value)?.label || '—',
@@ -394,7 +394,7 @@ const activeLeafTokens = computed(() => {
       editable: token.editable === false ? 'No' : token.editable === true ? 'Yes' : '—',
       relationshipMeaning: token.relationshipGroup || '—',
       writeTarget: writeTarget?.fieldName ? `${writeTarget.tableName}.${writeTarget.fieldName}` : token.dbFieldAliases?.join(', ') || '—',
-      order: token.level_3 || String(index + 1),
+      order: token.tokenOrder || token.level_3 || String(index + 1),
       uiTreatment: token.tokenType || token.optionList || token.optionSource || '—',
     }
   })
@@ -480,7 +480,7 @@ function addLeafElement() {
         parentLabel: activeSettingsSection.value?.label || '—',
         tokenType: 'text',
         relationshipGroup: '',
-        level_3: String(nextIndex),
+        tokenOrder: String(nextIndex),
         dbFieldAliases: [],
         optionList: '',
         optionSource: '',

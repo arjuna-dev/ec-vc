@@ -115,7 +115,7 @@ const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSource
 const fileViews = computed(() =>
   (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).map((subsection) => ({
     key: subsection.key,
-    level_2: subsection.level_2,
+    sectionOrder: subsection.level_2,
     address: subsection.address,
     label: subsection.label,
     structureToken: subsection.structureToken,
@@ -131,7 +131,7 @@ const fileTokens = computed(() =>
       ...token,
       parentKey: subsection.key,
       parentLabel: subsection.label,
-      parentLevel_2: subsection.level_2,
+      parentSectionOrder: subsection.level_2,
     })),
   ),
 )

@@ -180,7 +180,7 @@ const opportunityRegistryEntry = computed(() => getFilePageRegistryEntry('opport
 const opportunityLevel2Sections = computed(() =>
   (Array.isArray(opportunityRegistryEntry.value?.subsections) ? opportunityRegistryEntry.value.subsections : []).map((subsection) => ({
     key: subsection.key,
-    level_2: subsection.level_2,
+    sectionOrder: subsection.level_2,
     address: subsection.address,
     label: subsection.label,
     structureToken: subsection.structureToken,
@@ -196,7 +196,7 @@ const opportunityLevel3Tokens = computed(() =>
       ...token,
       parentKey: subsection.key,
       parentLabel: subsection.label,
-      parentLevel_2: subsection.level_2,
+      parentSectionOrder: subsection.level_2,
     })),
   ),
 )
