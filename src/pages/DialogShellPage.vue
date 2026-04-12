@@ -81,7 +81,7 @@ function isRelationshipSection(sectionOrLabel) {
   const normalized = String(
     typeof sectionOrLabel === 'string'
       ? sectionOrLabel
-      : sectionOrLabel?.rawLabel || sectionOrLabel?.label || '',
+      : sectionOrLabel?.label || sectionOrLabel?.rawLabel || '',
   )
     .trim()
     .toLowerCase()

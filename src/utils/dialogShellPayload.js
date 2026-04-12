@@ -48,7 +48,7 @@ export function buildDialogSectionGroups({
       return {
         key: group.value,
         label: group.title,
-        rawLabel: String(group?.sections?.[0]?.rawLabel || group?.title || '').trim(),
+        rawLabel: String(group?.title || group?.sections?.[0]?.label || group?.sections?.[0]?.rawLabel || '').trim(),
         tokens: flatTokens,
         subgroups: subsectionGroups.length > 1 ? subsectionGroups : [],
       }
@@ -60,11 +60,11 @@ export function splitDialogSections(sectionGroups = []) {
   const sections = Array.isArray(sectionGroups) ? sectionGroups : []
   return {
     leftSections: sections.filter((section) => {
-      const sectionLabel = String(section?.rawLabel || section?.label || '').trim().toLowerCase()
+      const sectionLabel = String(section?.label || section?.rawLabel || '').trim().toLowerCase()
       return ![ 'system' ].includes(sectionLabel) && !isRelationshipSectionLabel(sectionLabel)
     }),
     rightSections: sections.filter((section) => {
-      const sectionLabel = String(section?.rawLabel || section?.label || '').trim().toLowerCase()
+      const sectionLabel = String(section?.label || section?.rawLabel || '').trim().toLowerCase()
       return sectionLabel === 'system' || isRelationshipSectionLabel(sectionLabel)
     }),
   }

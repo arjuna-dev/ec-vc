@@ -594,8 +594,8 @@
                       v-if="getLdbDisplayItems(tokenRow).length"
                       class="test-shell-table__kdb-list"
                       :class="[
-                        { 'test-shell-table__cell--editable': canInlineEditTableCell(row, tokenRow.token, 'token') },
-                        { 'test-shell-table__cell--direct': canInlineEditTableCell(row, tokenRow.token, 'token') },
+                        { 'test-shell-table__cell--editable': canInlineEditTableCell(row, tokenRow.token) },
+                        { 'test-shell-table__cell--direct': canInlineEditTableCell(row, tokenRow.token) },
                       ]"
                       @dblclick="beginInlineTableEdit(row, tokenRow.token, 'token')"
                     >
@@ -612,7 +612,17 @@
                         <span class="test-shell-table__kdb-text">{{ item.label }}</span>
                       </div>
                     </div>
-                    <span v-else class="test-shell-card__value--placeholder">No explicit value</span>
+                    <span
+                      v-else
+                      :class="[
+                        'test-shell-card__value--placeholder',
+                        { 'test-shell-table__cell--editable': canInlineEditTableCell(row, tokenRow.token) },
+                        { 'test-shell-table__cell--direct': canInlineEditTableCell(row, tokenRow.token) },
+                      ]"
+                      @dblclick="beginInlineTableEdit(row, tokenRow.token, 'token')"
+                    >
+                      No explicit value
+                    </span>
                   </template>
                   <span
                     v-else
@@ -998,7 +1008,7 @@ function isRelationshipSectionLabel(value = '') {
   return normalized === 'ldb'
 }
 const hasActiveSourceLdb = computed(() =>
-  level2Sections.value.some((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label)),
+  level2Sections.value.some((section) => isRelationshipSectionLabel(section?.label || section?.rawLabel)),
 )
 
 const sourceLevel2Sections = computed(() => activeFileShellPayload.value.sections)
@@ -1026,7 +1036,7 @@ const activeGovernanceTitle = computed(() => {
   if (activeGovernanceToolbarKey.value === 'views') return 'Views'
   return ''
 })
-const isLdbSectionActive = computed(() => isRelationshipSectionLabel(activeSection.value?.rawLabel || activeSection.value?.label))
+const isLdbSectionActive = computed(() => isRelationshipSectionLabel(activeSection.value?.label || activeSection.value?.rawLabel))
 const isSystemSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'system')
 
 const activeSectionTokens = computed(() => {
@@ -1095,7 +1105,7 @@ const forkViewRows = computed(() =>
 )
 
 function isCoreForkViewRow(view) {
-  const normalized = String(view?.rawLabel || view?.label || '').trim().toLowerCase()
+  const normalized = String(view?.label || view?.rawLabel || '').trim().toLowerCase()
   return normalized === 'general' || normalized === 'system' || isRelationshipSectionLabel(normalized)
 }
 
@@ -1192,7 +1202,7 @@ const createDialogBranchSelectorTokenKey = computed(() => {
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
 const createDialogLdbSectionKey = computed(
-  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label))?.key || '',
+  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.label || section?.rawLabel))?.key || '',
 )
 const isTableInlineEditingAvailable = computed(() => viewMode.value !== 'card')
 const activeCardSettingsScopeKey = computed(() => `${activeContentSourceKey.value}:${activeCardSettingsSectionKey.value}`)
@@ -1897,13 +1907,13 @@ watch(
 )
 const tableLeftSections = computed(() =>
   level2Sections.value.filter((section) => {
-    const label = String(section.rawLabel || section.label || '').trim().toLowerCase()
+    const label = String(section.label || section.rawLabel || '').trim().toLowerCase()
     return !isRelationshipSectionLabel(label) && label !== 'system'
   }),
 )
 const tableRightSections = computed(() =>
   level2Sections.value.filter((section) => {
-    const label = String(section.rawLabel || section.label || '').trim().toLowerCase()
+    const label = String(section.label || section.rawLabel || '').trim().toLowerCase()
     return isRelationshipSectionLabel(label) || label === 'system'
   }),
 )

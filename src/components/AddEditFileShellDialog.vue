@@ -485,7 +485,7 @@ const activeSettingsSection = computed(
   },
 )
 const isRelationshipSettingsSection = computed(() =>
-  isRelationshipSectionLabel(activeSettingsSection.value?.rawLabel || activeSettingsSection.value?.label),
+  isRelationshipSectionLabel(activeSettingsSection.value?.label || activeSettingsSection.value?.rawLabel),
 )
 const generalElementSettingsTitle = computed(() => 'General')
 function isCoreGovernanceViewRow(view) {
@@ -540,7 +540,7 @@ const subgroupTabs = computed(() => {
 })
 const governanceViewRows = computed(() =>
   [...toolbarSectionSplit.value.leftSections, ...toolbarSectionSplit.value.rightSections].map((section) => {
-    const normalized = String(section.rawLabel || section.label || '').trim().toLowerCase()
+    const normalized = String(section.label || section.rawLabel || '').trim().toLowerCase()
     return {
       key: section.key,
       label: section.label,

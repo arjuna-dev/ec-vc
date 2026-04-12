@@ -607,7 +607,7 @@ const heroSourceGroups = computed(() =>
   groupedLevel2Sections.value.filter((group) =>
     Array.isArray(group.sections) &&
     group.sections.some((section) => {
-      const label = String(section.rawLabel || section.label || '').trim().toLowerCase()
+      const label = String(section.label || section.rawLabel || '').trim().toLowerCase()
       return label !== 'general' && label !== 'system' && !isRelationshipSectionLabel(label)
     }),
   ),
@@ -664,7 +664,7 @@ const createSectionGroups = computed(() =>
   buildDialogSectionGroups({
     groupedSections: groupedLevel2Sections.value,
     tokenFilter: (section) => (
-      isRelationshipSectionLabel(section?.rawLabel || section?.label)
+      isRelationshipSectionLabel(section?.label || section?.rawLabel)
         ? sharedLdbSectionTokens.value
         : normalizedSelectableTokens.value.filter(
             (token) => token.parentKey === section.key && (isRecordRoute.value || selectedTokenKeySet.value.has(token.key)),
@@ -692,7 +692,7 @@ const activeSectionTokens = computed(() => {
   return sectionDisplayTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey))
 })
 const isLdbSectionActive = computed(() =>
-  activeSectionEntries.value.some((section) => isRelationshipSectionLabel(section.rawLabel || section.label)),
+  activeSectionEntries.value.some((section) => isRelationshipSectionLabel(section.label || section.rawLabel)),
 )
 const isSystemSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
 const systemSectionTokens = computed(() => activeSectionTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
@@ -708,12 +708,12 @@ const activeSectionTokenGroups = computed(() =>
 )
 const toolbarLeftSections = computed(() =>
   groupedLevel2Sections.value.filter(
-    (group) => !group.sections.some((section) => isRelationshipSectionLabel(section.rawLabel || section.label) || String(section.rawLabel || section.label || '').trim().toLowerCase() === 'system'),
+    (group) => !group.sections.some((section) => isRelationshipSectionLabel(section.label || section.rawLabel) || String(section.label || section.rawLabel || '').trim().toLowerCase() === 'system'),
   ),
 )
 const toolbarRightSections = computed(() =>
   groupedLevel2Sections.value.filter(
-    (group) => group.sections.some((section) => isRelationshipSectionLabel(section.rawLabel || section.label) || String(section.rawLabel || section.label || '').trim().toLowerCase() === 'system'),
+    (group) => group.sections.some((section) => isRelationshipSectionLabel(section.label || section.rawLabel) || String(section.label || section.rawLabel || '').trim().toLowerCase() === 'system'),
   ),
 )
 

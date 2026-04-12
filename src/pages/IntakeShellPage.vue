@@ -158,7 +158,7 @@ function isRelationshipSectionLabel(value = '') {
   return normalized === 'ldb'
 }
 const dialogLdbSectionKey = computed(
-  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label))?.key || 'general',
+  () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.label || section?.rawLabel))?.key || 'general',
 )
 
 watch(

@@ -441,7 +441,7 @@ function stripTokenEntityPrefix(tokenName = '', prefixes = []) {
 
 function getSubsectionDisplayRank(subsection) {
   const rawLabel = String(subsection?.rawLabel || subsection?.label || '').trim().toLowerCase()
-  if (rawLabel === 'kdb') return 998
+  if (rawLabel === 'ldb') return 998
   if (rawLabel === 'system') return 999
   return Number(subsection?.level_2 || 0)
 }
@@ -484,7 +484,7 @@ function buildEntityRegistry(entityName) {
       level_2: String(subsection?.level_2 || resolveAddressPart(subsection?.subsection_address, 1) || '').trim(),
       address: String(subsection?.subsection_address || '').trim(),
       label: formatSubsectionLabel(subsection?.subsection),
-      rawLabel: String(subsection?.subsection || '').trim(),
+      rawLabel: formatSubsectionLabel(subsection?.subsection),
       structureToken: String(subsection?.structure_token || '').trim(),
       subgroupKey: String(subsection?.subgroup_key || '').trim(),
       subgroupLabel: String(subsection?.subgroup_label || '').trim(),
@@ -761,6 +761,13 @@ export function getRegistryTitleTokenForSource(sourceKey = '') {
   return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '1') || null
 }
 
+export function getRegistrySummaryTokenForSource(sourceKey = '') {
+  const entry = getFilePageRegistryEntry(sourceKey)
+  if (!entry) return null
+  const generalSection = entry.subsections.find((section) => String(section.rawLabel || '').trim().toLowerCase() === 'general')
+  return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '2') || null
+}
+
 export function validateLevel1BootstrapContracts({ bridgeValue = null, sourceKeys = [] } = {}) {
   const scopedKeys = Array.isArray(sourceKeys)
     ? sourceKeys.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean)
@@ -908,7 +915,7 @@ export function getCreateBranchEntry(sourceKey = '', branchValue = '') {
 
 function buildAutoFileSpecificViewForks(entry) {
   if (!entry) return null
-  const coreLabels = new Set(['general', 'system', 'kdb'])
+  const coreLabels = new Set(['general', 'system', 'ldb'])
   const fileSpecificSections = (Array.isArray(entry.subsections) ? entry.subsections : [])
     .map((section) => ({
       rawLabel: String(section?.rawLabel || '').trim(),
