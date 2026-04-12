@@ -11,7 +11,7 @@ const routes = [
       { path: '', name: 'home', component: () => import('pages/HomePage.vue') },
       { path: 'bb-file', name: 'bb-file', component: () => import('pages/BbFilePage.vue') },
       { path: 'file-system', name: 'file-system', component: () => import('pages/FilesPage.vue') },
-      { path: 'history', name: 'history', component: () => import('pages/EventsPage.vue') },
+      { path: 'history', name: 'history', component: () => import('pages/HistoryPage.vue') },
       { path: 'events', redirect: { name: 'history' } },
       { path: 'pipelines', redirect: { name: 'projects' } },
       { path: 'projects', name: 'projects', component: () => import('pages/ProjectsPage.vue') },
