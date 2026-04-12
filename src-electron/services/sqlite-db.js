@@ -13,6 +13,7 @@ export function initDb() {
   const dbPath = path.join(app.getPath('userData'), 'ecvc.sqlite3')
   fse.ensureDirSync(path.dirname(dbPath))
 
+  migrateLegacyDbIfNeeded(dbPath)
   maybeRecreateDb(dbPath)
 
   db = new Database(dbPath)
@@ -139,6 +140,46 @@ function maybeRecreateDb(dbPath) {
   fse.removeSync(dbPath)
   fse.removeSync(`${dbPath}-wal`)
   fse.removeSync(`${dbPath}-shm`)
+}
+
+function migrateLegacyDbIfNeeded(dbPath) {
+  const appDataRoot = app.getPath('appData')
+  const legacyPath = path.join(appDataRoot, 'Electron', 'ecvc.sqlite3')
+  if (!fse.pathExistsSync(legacyPath)) return
+
+  const hasTables = (probePath) => {
+    const probe = new Database(probePath, { readonly: true })
+    const tablesCount = probe
+      .prepare(
+        "SELECT COUNT(*) AS c FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+      )
+      .get()?.c
+    probe.close()
+    return Number(tablesCount || 0) > 0
+  }
+
+  if (!fse.pathExistsSync(dbPath)) {
+    if (!hasTables(legacyPath)) return
+    fse.ensureDirSync(path.dirname(dbPath))
+    copyLegacyDb(legacyPath, dbPath)
+    return
+  }
+
+  if (hasTables(dbPath)) return
+  if (!hasTables(legacyPath)) return
+  copyLegacyDb(legacyPath, dbPath)
+}
+
+function copyLegacyDb(legacyPath, dbPath) {
+  fse.copySync(legacyPath, dbPath, { overwrite: true })
+  const walPath = `${legacyPath}-wal`
+  const shmPath = `${legacyPath}-shm`
+  if (fse.pathExistsSync(walPath)) {
+    fse.copySync(walPath, `${dbPath}-wal`, { overwrite: true })
+  }
+  if (fse.pathExistsSync(shmPath)) {
+    fse.copySync(shmPath, `${dbPath}-shm`, { overwrite: true })
+  }
 }
 
 function hasTable(database, tableName) {

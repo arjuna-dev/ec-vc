@@ -30,6 +30,8 @@ import { formatSharedDisplayLabel } from '../src/shared/labelFormatting.js'
 import { DEFAULT_BUILDING_BLOCK_FILE_ROWS } from '../src/utils/buildingBlocks.js'
 import { FILE_PAGE_REGISTRY, getCreateBranches, getViewForks } from '../src/utils/structureRegistry.js'
 
+const APP_DISPLAY_NAME = 'EC VC'
+
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
 
@@ -37,6 +39,10 @@ const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 let mainWindow
 const repoRootPath = path.resolve(currentDir, '..', '..')
+
+if (app.getName() !== APP_DISPLAY_NAME) {
+  app.setName(APP_DISPLAY_NAME)
+}
 
 function resolveRepoMarkdownPath(relativePath) {
   const raw = String(relativePath || '').trim()
