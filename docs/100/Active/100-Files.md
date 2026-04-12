@@ -39,7 +39,7 @@ The clean rule is:
 | `File Class` | Whether a file is an `L1`, `L2`, or `L2.a`. |
 | `File Order` | The display or creation order used by the registry and file shell. |
 | `Requires System` | Whether the file requires the shared `System` section. |
-| `Requires KDB` | Whether the file requires the shared relationship section. |
+| `Requires LDB` | Whether the file requires the shared relationship section. |
 | `Ownership Mode` | The ownership model for the file, such as `root_owned`. |
 | `Defined Structure` | The declared L2 structure for the file. |
 
@@ -88,7 +88,7 @@ The `Owner` should use `Files` to understand:
 - where each file guide lives
 - who owns and governs each file
 - whether each file requires `System`
-- whether each file requires `KDB`
+- whether each file requires `LDB`
 - whether the file is fully born or only approved direction
 
 ## File Steward
@@ -106,7 +106,7 @@ The `File Steward` should use `Files` to validate:
 - file order
 - file class
 - `System` requirement
-- `KDB` requirement
+- `LDB` requirement
 - ownership mode
 - steward
 - rulebook dependencies
@@ -178,7 +178,7 @@ For `Files`, the current checklist is:
 - steward is declared: `yes`, `File Steward`
 - UX fork questions are declared: `yes`, this guide describes the first `L1/L2/L2.a` fork
 - `System` requirement is declared: `yes`
-- `KDB` requirement is declared: `yes`
+- `LDB` requirement is declared: `yes`
 - runtime/sqlite ownership is declared: `yes`, table `Files`
 - shell rendering path is declared: `yes`, app-facing route `/file-system`
 - events/provenance path is declared: `partial`, event log linkage exists but full genesis event reconstruction is still an open runtime task
@@ -203,9 +203,9 @@ Runtime aliases include:
 - `created_at`
 - `File_EventLog`
 
-### KDB
+### LDB
 
-The `KDB` section tracks relationships to:
+The `LDB` section tracks relationships to:
 
 - `Owner`
 - `Users`
@@ -242,7 +242,7 @@ The `File Specific` section tracks the registry-specific fields:
 - `File_Order`
 - `File_Class`
 - `Requires_System`
-- `Requires_KDB`
+- `Requires_LDB`
 - `Ownership_Mode`
 - `File_Steward`
 - `Rulebook_Dependencies`

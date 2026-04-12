@@ -4,6 +4,11 @@
 
 This document is the reference guide for all file guides in the system.
 
+Terminology update:
+- use `LDB` for the relationship layer
+- treat `LDB_Relationships` as the shared contract
+- treat canonical/workbook structure as reference input, not live shell payload truth
+
 It defines:
 
 - why every file should be born with its own `.md`
@@ -28,7 +33,7 @@ This means:
 
 - one file record
 - one file guide
-- one stable guide surface for governance, rendering, KDB, stewardship, and provenance
+- one stable guide surface for governance, rendering, LDB, stewardship, and provenance
 
 ## File Birth Chain
 
@@ -44,7 +49,7 @@ The intended birth chain is:
 That means:
 
 - canonical JSON defines the `L1/L2/L3` structure
-- `System Files` registers the file, class, guide, owner, steward, and required `System` or `KDB` status
+- `System Files` registers the file, class, guide, owner, steward, and required `System` or `LDB` status
 - the file guide explains the human and steward rules for that file
 - the file guide includes UX parameters for structural forks and user guidance
 - runtime/sqlite and shell rendering should follow the canonical definition and registry row
@@ -62,7 +67,7 @@ Before a file is treated as born, the `Architect Steward`, `File Steward`, and `
 - steward is declared
 - UX fork questions are declared
 - `System` requirement is declared
-- `KDB` requirement is declared
+- `LDB` requirement is declared
 - runtime/sqlite ownership is declared
 - shell rendering path is declared
 - events/provenance path is declared

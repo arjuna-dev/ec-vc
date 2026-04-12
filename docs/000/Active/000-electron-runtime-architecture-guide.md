@@ -72,7 +72,7 @@ It defines:
   - `events`
   - `Field_Verification_Metadata`
   - `databook_snapshots`
-  - `KDB_Relationships`
+  - `LDB_Relationships`
 
 If you want to know:
 
@@ -254,42 +254,42 @@ Examples of common drift:
 - preload method exists but wrong channel name
 - menu/shell expects a surface that preload does not expose
 
-## 5. `src/shared/kdbRelationshipContracts.js`
+## 5. `src/shared/ldbRelationshipContracts.js`
 
 ## Use
 
-This file is the KDB bridge contract map.
+This file is the LDB relationship contract map.
 
-It decides how canon-declared KDB relationships are treated at runtime.
+It decides how declared LDB relationships are treated at runtime.
 
 Right now it supports three patterns:
 
 - explicit dedicated join-table contracts
 - direct foreign-key contracts
-- generic fallback through `KDB_Relationships`
+- generic fallback through `LDB_Relationships`
 
-This is one of the most important files for understanding why a declared KDB link does or does not fully work.
+This is one of the most important files for understanding why a declared LDB link does or does not fully work.
 
 ## Guiding principles
 
 - treat this file as the relationship-behavior contract layer
 - keep relationship ownership explicit
 - do not guess reverse direction in the shell
-- if a KDB link is declared, this file should make clear whether it is:
+- if a LDB link is declared, this file should make clear whether it is:
   - dedicated join-table owned
   - direct-foreign-key owned
-  - generic KDB owned
+  - generic LDB owned
 
 ## What to be aware of
 
 - this file is where the current mixed relationship model becomes visible
 - some relationships are manually explicit here
-- many other relationships fall back to generic `KDB_Relationships`
+- many other relationships fall back to generic `LDB_Relationships`
 - this is one of the key places where future `new L1 birth automation` will need to become stricter
 
 Important rule:
 
-- a KDB token being present in canon does not automatically mean the full reciprocal bridge contract is already rich here
+- a LDB token being present in canon does not automatically mean the full reciprocal bridge contract is already rich here
 
 ## 6. `src/components/FilePageShell.vue`
 
@@ -306,7 +306,7 @@ It handles things like:
 - file toolbar behavior
 - shell-level create actions
 - event-shell special behavior
-- KDB-related display behavior
+- LDB-related display behavior
 
 This file is important because it proves whether the backend/runtime contract is actually usable through the shared shell.
 
@@ -328,7 +328,7 @@ Important caution:
   - preload
   - main
   - schema
-  - KDB relationship contracts
+- LDB relationship contracts
 
 ## 7. `src/utils/dialogShellPayload.js`
 
@@ -340,7 +340,7 @@ It does things like:
 
 - group `L2` sections
 - preserve subgroup structure
-- build KDB subgroups like:
+- build LDB subgroups like:
   - `First-Order`
   - `Knowledge DB`
 - split sections into left/right shell placement
@@ -376,8 +376,8 @@ Here is the deeper runtime chain:
    - adds the real handler logic
 4. `electron-preload.js`
    - exposes the handler safely to the frontend
-5. `kdbRelationshipContracts.js`
-   - tells the app how KDB links are actually owned/read
+5. `ldbRelationshipContracts.js`
+   - tells the app how LDB links are actually owned/read
 6. frontend shell/page
    - calls the preload API
 
@@ -404,8 +404,8 @@ When creating a new normal `L1`, these files usually map to different parts of t
   - databook and relationship ownership
 - `electron-preload.js`
   - frontend bridge exposure
-- `kdbRelationshipContracts.js`
-  - KDB owner-path and reverse-read contract
+- `ldbRelationshipContracts.js`
+  - LDB owner-path and reverse-read contract
 - `FilePageShell.vue`
   - proof that the shared file shell can actually use the new source
 - `dialogShellPayload.js`
@@ -421,7 +421,7 @@ If something is not working, check in this order:
    - is the frontend even allowed to call it?
 2. `electron-main.js`
    - is there a real handler?
-3. `kdbRelationshipContracts.js`
+3. `ldbRelationshipContracts.js`
    - is the relationship ownership/read contract correct?
 4. `sqlite-schema.js`
    - does the needed table/path actually exist?
@@ -438,7 +438,7 @@ If you are doing architecture work, review in this order instead:
 2. `sqlite-db.js`
 3. `electron-main.js`
 4. `electron-preload.js`
-5. `kdbRelationshipContracts.js`
+5. `ldbRelationshipContracts.js`
 6. `FilePageShell.vue`
 7. `dialogShellPayload.js`
 
@@ -449,7 +449,7 @@ That order follows ownership from deepest structure to shell usage.
 - a table existing does not mean runtime ownership exists
 - a runtime handler existing does not mean preload exposure exists
 - a preload method existing does not mean the shell is using it correctly
-- a KDB token existing does not mean the bridge contract is complete
+- a LDB token existing does not mean the bridge contract is complete
 - a visible shell does not mean the backend contract is real
 
 And one especially important rule for this repo:
@@ -464,6 +464,6 @@ If you want one sentence for each file:
 - `sqlite-db.js` = how the DB is opened and enforced locally
 - `electron-main.js` = where the app's backend behavior actually happens
 - `electron-preload.js` = the safe API bridge the frontend is allowed to use
-- `kdbRelationshipContracts.js` = how declared KDB links are actually owned and read
+- `ldbRelationshipContracts.js` = how declared LDB links are actually owned and read
 - `FilePageShell.vue` = the main shared file-shell surface that proves whether the runtime path is usable
 - `dialogShellPayload.js` = the dialog grouping helper that should preserve canon instead of inventing it
