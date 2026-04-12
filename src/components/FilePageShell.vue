@@ -1037,7 +1037,7 @@ const sharedLdbViewTokens = computed(() => {
       if (!targetEntry?.entityName) return null
 
       seenSourceKeys.add(sourceKey)
-      return {
+      return normalizeCreateDialogToken({
         key: `__shared_ldb__:${sourceKey}`,
         tokenName: `__shared_ldb__:${sourceKey}`,
         label:
@@ -1052,7 +1052,7 @@ const sharedLdbViewTokens = computed(() => {
         targetEntity: String(targetEntry.entityName || '').trim(),
         optionSource: 'shared_file_universe',
         optionEntity: String(targetEntry.entityName || '').trim(),
-      }
+      })
     })
     .filter(Boolean)
 })
