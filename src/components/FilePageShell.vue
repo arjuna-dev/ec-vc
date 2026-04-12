@@ -635,14 +635,6 @@
             </tbody>
           </table>
         </div>
-        <template v-if="false">
-          <div v-for="row in displayRows" :key="row.cardId" class="test-shell-table-row">
-          <div class="test-shell-table-row__title">{{ row.titleValue || 'Title mapping undefined' }}</div>
-          <div class="test-shell-table-row__meta">
-            {{ row.recordId || 'Unavailable' }} · {{ row.matchedTokenCount }} explicit token values
-          </div>
-          </div>
-        </template>
       </div>
 
       <SelectionActionBar
@@ -741,11 +733,9 @@ import {
   getCanonicalTokenWriteFieldName,
   getCanonicalTokenWriteTarget,
   getCanonicalTokenValue,
-  LEVEL_2_FILE_REGISTRY_BY_KEY,
-  LEVEL_3_FILE_REGISTRY_BY_KEY,
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
-import { getLdbRelationshipContractForToken } from 'src/shared/ldbRelationshipContracts'
+import { getLdbRelationshipContractForToken, getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
@@ -949,9 +939,37 @@ const activeSourceKey = computed(() => {
 
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 
-const activeRegistryEntry = computed(
-  () => getFilePageRegistryEntry(activeContentSourceKey.value) || null,
-)
+const activeFileShellPayload = computed(() => {
+  const sourceKey = String(activeContentSourceKey.value || '').trim().toLowerCase()
+  const registryEntry = getFilePageRegistryEntry(sourceKey) || null
+  const sections = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).map((subsection) => ({
+    key: subsection.key,
+    level_2: subsection.level_2,
+    address: subsection.address,
+    label: subsection.label,
+    rawLabel: subsection.rawLabel,
+    structureToken: subsection.structureToken,
+    subgroupKey: subsection.subgroupKey,
+    subgroupLabel: subsection.subgroupLabel,
+    subgroupAddress: subsection.subgroupAddress,
+    displayGroup: subsection.displayGroup,
+  }))
+  const tokens = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).flatMap((subsection) =>
+    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
+      ...token,
+      parentKey: subsection.key,
+      parentLabel: subsection.label,
+      parentLevel_2: subsection.level_2,
+    })),
+  )
+  return {
+    sourceKey,
+    registryEntry,
+    sections,
+    tokens,
+  }
+})
+const activeRegistryEntry = computed(() => activeFileShellPayload.value.registryEntry)
 const routeRegistryEntry = computed(() => getFilePageRegistryEntryByRouteName(route.name))
 const pageShellLabel = computed(() => {
   if (isRecordShellMode.value) return 'Record Shell'
@@ -973,12 +991,9 @@ const hasActiveSourceKdb = computed(() =>
   level2Sections.value.some((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label)),
 )
 
-const sourceLevel2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeContentSourceKey.value] || [])
+const sourceLevel2Sections = computed(() => activeFileShellPayload.value.sections)
 const level2Sections = computed(() => sourceLevel2Sections.value)
-const level3Tokens = computed(() => {
-  const allowedSectionKeys = new Set(level2Sections.value.map((section) => section.key))
-  return (LEVEL_3_FILE_REGISTRY_BY_KEY[activeContentSourceKey.value] || []).filter((token) => allowedSectionKeys.has(token.parentKey))
-})
+const level3Tokens = computed(() => activeFileShellPayload.value.tokens)
 const activeSectionKeyForCards = ref('')
 const activeFilterSectionKey = ref('')
 const activeFilterTokenKey = ref('')
@@ -1007,6 +1022,43 @@ const isSystemSectionActive = computed(() => String(activeSection.value?.label |
 const activeSectionTokens = computed(() => {
   if (!activeSection.value) return []
   return level3Tokens.value.filter((token) => token.parentKey === activeSection.value.key)
+})
+
+const sharedLdbSectionTokens = computed(() => {
+  if (!isKdbSectionActive.value) return []
+
+  const systemFileTitleToken = getRegistryTitleTokenForSource('file-system')
+  const seenSourceKeys = new Set()
+  const rows = getOptionRowsForSource('file-system')
+
+  return rows
+    .map((row, index) => {
+      const sourceKey = resolveApprovedFileSectionKey(
+        row?.File_Source_Key || row?.File_Route_Name || row?.File_Runtime_Entity || row?.File_Canonical_Entity,
+      )
+      if (!sourceKey || sourceKey === 'bb-file' || seenSourceKeys.has(sourceKey)) return null
+
+      const targetEntry = getFilePageRegistryEntry(sourceKey)
+      if (!targetEntry?.entityName) return null
+
+      seenSourceKeys.add(sourceKey)
+      return {
+        key: `__shared_ldb__:${sourceKey}`,
+        tokenName: `__shared_ldb__:${sourceKey}`,
+        label:
+          stringifyValue(systemFileTitleToken ? getCanonicalTokenValue(row, systemFileTitleToken) : null)
+          || targetEntry.label
+          || `File ${index + 1}`,
+        tokenType: 'select_multi',
+        parentKey: activeSection.value?.key || '',
+        parentLabel: activeSection.value?.label || 'LDB',
+        parentLevel_2: activeSection.value?.level_2 || '',
+        isSharedLdbToken: true,
+        targetSourceKey: sourceKey,
+        targetEntity: String(targetEntry.entityName || '').trim(),
+      }
+    })
+    .filter(Boolean)
 })
 
 const canonicalTitleToken = computed(
@@ -1044,18 +1096,29 @@ const selectedRecordShellLevel3Keys = computed(() => {
 })
 const selectedRecordShellLevel3KeySet = computed(() => new Set(selectedRecordShellLevel3Keys.value))
 const activeCardSettingsSectionKey = computed(() => String(activeSection.value?.key || '').trim())
-function isCoreCardSection(section) {
-  const normalized = String(section?.rawLabel || section?.label || '').trim().toLowerCase()
+
+const forkViewRows = computed(() =>
+  level2Sections.value.map((section) => ({
+    key: section.key,
+    label: section.label,
+    rawLabel: section.rawLabel,
+    tokenCount: level3Tokens.value.filter((token) => token.parentKey === section.key).length,
+  })),
+)
+
+function isCoreForkViewRow(view) {
+  const normalized = String(view?.rawLabel || view?.label || '').trim().toLowerCase()
   return normalized === 'general' || normalized === 'system' || isRelationshipSectionLabel(normalized)
 }
 
 const cardSettingsSourceSections = computed(() => {
   const active = activeSection.value
   const activeLabel = String(active?.label || '').trim().toLowerCase()
-  if (activeLabel !== 'general') return active && !isCoreCardSection(active) ? [active] : []
-
-  const fileSpecificSections = level2Sections.value.filter((section) => !isCoreCardSection(section))
-  return fileSpecificSections
+  const fileSpecificViews = forkViewRows.value.filter((view) => !isCoreForkViewRow(view))
+  if (activeLabel !== 'general') {
+    return active && fileSpecificViews.some((view) => view.key === active.key) ? [active] : []
+  }
+  return fileSpecificViews
 })
 
 const availableCardItemTokens = computed(() => {
@@ -1129,6 +1192,7 @@ const createSectionGroups = computed(() => {
         (!isRecordShellMode.value || selectedRecordShellLevel3KeySet.value.has(token.key)),
     ),
     mapToken: normalizeCreateDialogToken,
+    keepEmptySections: true,
   })
 })
 const createDialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
@@ -1345,7 +1409,11 @@ const bbGraphRowColumns = computed(() => {
   ]
 })
 const tableSectionTokens = computed(() => {
-  const baseTokens = activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key)
+  const baseTokens = (
+    isKdbSectionActive.value
+      ? sharedLdbSectionTokens.value
+      : activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key)
+  )
   if (!isBbFileSource.value) return baseTokens
   return [...bbGraphRowColumns.value, ...baseTokens]
 })
@@ -1914,6 +1982,7 @@ watch(
     rowHistoryByRecordId.value = {}
     rowHistoryLoadingByRecordId.value = {}
     await loadRows()
+    await ensureLiveOptionRowsLoaded('file-system')
     activeSectionKeyForCards.value = getDefaultActiveSectionKey(level2Sections.value)
   },
   { immediate: true },
@@ -2335,7 +2404,7 @@ function buildShellRow(row, index) {
         links,
       }
     }
-    const rawValue = getCanonicalTokenValue(row, token)
+    const rawValue = token?.isSharedLdbToken ? getSharedLdbTokenRawValue(row, token) : getCanonicalTokenValue(row, token)
     const value = stringifyValue(rawValue)
     return {
       key: `${recordId || index}:${token.key}`,
@@ -2361,7 +2430,6 @@ function buildShellRow(row, index) {
     })
     .filter((item) => item.value)
 
-  const matchedTokenCount = tokenRows.filter((token) => token.value).length
 
   return {
     cardId: `${recordId || 'row'}:${index}`,
@@ -2376,7 +2444,6 @@ function buildShellRow(row, index) {
     sectionPresence,
     tokenPresence,
     sectionTokenRows: tokenRows,
-    matchedTokenCount,
     visibleTokenCount: tokenRows.length,
   }
 }
@@ -2452,6 +2519,36 @@ function getKdbDisplayItems(tokenRow) {
     }))
 }
 
+function getSharedLdbTokenRawValue(row, token) {
+  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  const targetEntity = String(token?.targetEntity || '').trim()
+  if (!entityName || !targetEntity) return []
+
+  const contracts = getLdbRelationshipContractsForEntity(entityName).filter(
+    (contract) => String(contract?.targetEntity || '').trim() === targetEntity,
+  )
+  if (!contracts.length) return []
+
+  const values = contracts.flatMap((contract) => {
+    const sourceToken = level3Tokens.value.find(
+      (entry) => String(entry?.tokenName || '').trim() === String(contract?.sourceToken || '').trim(),
+    )
+    if (!sourceToken) return []
+
+    const rawValue = getCanonicalTokenValue(row, sourceToken)
+    if (Array.isArray(rawValue)) {
+      return rawValue.map((value) => String(value || '').trim()).filter(Boolean)
+    }
+
+    return stringifyValue(rawValue)
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+  })
+
+  return Array.from(new Set(values))
+}
+
 function getActiveRelationshipItems(row) {
   if (String(getRowRelationshipPanel(row) || '').trim().toLowerCase() === 'events') {
     return getRowHistoryItems(row).map((item) => String(item?.title || '').trim()).filter(Boolean)
@@ -2499,7 +2596,14 @@ function buildContextRelationshipPrefillForSource(sourceKey, contextEntity, cont
   const targetEntityName = String(registryEntry?.entityName || '').trim()
   if (!targetEntityName) return { initialValues: {}, initialFieldMeta: {} }
 
-  const sourceTokens = Array.isArray(LEVEL_3_FILE_REGISTRY_BY_KEY[normalizedSourceKey]) ? LEVEL_3_FILE_REGISTRY_BY_KEY[normalizedSourceKey] : []
+  const sourceTokens = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).flatMap((subsection) =>
+    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
+      ...token,
+      parentKey: subsection.key,
+      parentLabel: subsection.label,
+      parentLevel_2: subsection.level_2,
+    })),
+  )
   const matchingTokens = sourceTokens.filter((token) => {
     const relationshipContract = getLdbRelationshipContractForToken(targetEntityName, token?.tokenName)
     return String(relationshipContract?.targetEntity || '').trim() === normalizedContextEntity
@@ -2863,10 +2967,12 @@ function cancelInlineTableEdit() {
 function getKdbCellItems(tokenRow) {
   const token = tokenRow?.token
   const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
-  const relationshipContract = getLdbRelationshipContractForToken(entityName, token?.tokenName)
-  const targetEntry = relationshipContract
-    ? getFilePageRegistryEntryByEntityReference(relationshipContract.targetEntity)
-    : null
+  const relationshipContract = token?.isSharedLdbToken ? null : getLdbRelationshipContractForToken(entityName, token?.tokenName)
+  const targetEntry = token?.isSharedLdbToken
+    ? getFilePageRegistryEntry(String(token?.targetSourceKey || '').trim())
+    : relationshipContract
+      ? getFilePageRegistryEntryByEntityReference(relationshipContract.targetEntity)
+      : null
   const targetSourceKey = String(targetEntry?.key || '').trim()
   const targetTitleToken = targetSourceKey ? getRegistryTitleTokenForSource(targetSourceKey) : null
   const targetRows = targetSourceKey ? getOptionRowsForSource(targetSourceKey) : []
@@ -3554,10 +3660,11 @@ function resolveEditEntityName(row) {
   if (activeCreateBranchEntry.value?.targetSourceKey) {
     return getFilePageRegistryEntry(activeCreateBranchEntry.value.targetSourceKey)?.entityName || activeRegistryEntry.value?.entityName || ''
   }
+  const opportunityRegistryEntry = getFilePageRegistryEntry('opportunities')
   const opportunityKindToken =
-    (LEVEL_3_FILE_REGISTRY_BY_KEY.opportunities || []).find(
-      (token) => String(token?.tokenName || '').trim() === 'Opportunity_Kind',
-    ) || null
+    (Array.isArray(opportunityRegistryEntry?.subsections) ? opportunityRegistryEntry.subsections : [])
+      .flatMap((subsection) => Array.isArray(subsection.tokens) ? subsection.tokens : [])
+      .find((token) => String(token?.tokenName || '').trim() === 'Opportunity_Kind') || null
   const kindValue =
     String(getCanonicalTokenValue(row?.raw || {}, opportunityKindToken || {}) || '')
       .trim()

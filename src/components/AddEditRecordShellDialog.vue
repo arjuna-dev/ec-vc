@@ -1546,7 +1546,7 @@ import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import {
   getCreateBranchTokenName,
   getFilePageRegistryEntryByEntityReference,
-  LEVEL_3_FILE_REGISTRY_BY_KEY,
+  getRegistryTitleTokenForSource,
 } from 'src/utils/structureRegistry'
 
 const props = defineProps({
@@ -2387,7 +2387,7 @@ function getInlineCreateConfig(token) {
   if (!sourceKey || !INLINE_NAME_ONLY_CREATE_SOURCES.has(sourceKey)) return null
   if (getCreateBranchTokenName(sourceKey)) return null
   if (!bridge.value?.[sourceKey]?.create) return null
-  const titleToken = (LEVEL_3_FILE_REGISTRY_BY_KEY[sourceKey] || []).find((entry) => String(entry?.level_3) === '1') || null
+  const titleToken = getRegistryTitleTokenForSource(sourceKey)
   const titleField = String(titleToken?.dbWriteField || titleToken?.tokenName || '').trim()
   if (!titleField) return null
   return {

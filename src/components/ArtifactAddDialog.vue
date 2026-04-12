@@ -138,9 +138,9 @@ import {
   CANONICAL_OPTION_LISTS,
   getCreateBranchTokenName,
   getCanonicalTokenValue,
+  getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
-  LEVEL_2_FILE_REGISTRY_BY_KEY,
-  LEVEL_3_FILE_REGISTRY_BY_KEY,
+  getRegistryTitleTokenForSource,
 } from 'src/utils/structureRegistry'
 import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import {
@@ -175,8 +175,31 @@ const opportunityDialogOpen = ref(false)
 const opportunityDialogRenderKey = ref(0)
 const liveOptionRowsBySource = ref({})
 const DEFAULT_PIPELINE_ID = 'pipeline_default'
-const opportunityLevel2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY.opportunities || [])
-const opportunityLevel3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY.opportunities || [])
+const opportunityRegistryEntry = computed(() => getFilePageRegistryEntry('opportunities') || null)
+const opportunityLevel2Sections = computed(() =>
+  (Array.isArray(opportunityRegistryEntry.value?.subsections) ? opportunityRegistryEntry.value.subsections : []).map((subsection) => ({
+    key: subsection.key,
+    level_2: subsection.level_2,
+    address: subsection.address,
+    label: subsection.label,
+    rawLabel: subsection.rawLabel,
+    structureToken: subsection.structureToken,
+    subgroupKey: subsection.subgroupKey,
+    subgroupLabel: subsection.subgroupLabel,
+    subgroupAddress: subsection.subgroupAddress,
+    displayGroup: subsection.displayGroup,
+  })),
+)
+const opportunityLevel3Tokens = computed(() =>
+  (Array.isArray(opportunityRegistryEntry.value?.subsections) ? opportunityRegistryEntry.value.subsections : []).flatMap((subsection) =>
+    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
+      ...token,
+      parentKey: subsection.key,
+      parentLabel: subsection.label,
+      parentLevel_2: subsection.level_2,
+    })),
+  ),
+)
 const opportunityGroupedLevel2Sections = computed(() => groupDialogLevel2Sections(opportunityLevel2Sections.value))
 const opportunityKeyFieldTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName('opportunities')
@@ -198,6 +221,7 @@ const opportunitySectionGroups = computed(() =>
         (token) => token.parentKey === section.key && !opportunityKeyFieldKeys.value.has(token.key),
       ),
     mapToken: normalizeOpportunityDialogToken,
+    keepEmptySections: true,
   }),
 )
 const opportunityDialogSectionSplit = computed(() => splitDialogSections(opportunitySectionGroups.value))
@@ -294,7 +318,7 @@ function resolveSourceKeyFromEntityName(entityName) {
 
 function buildLiveEntityOptions(sourceKey) {
   const rows = Array.isArray(liveOptionRowsBySource.value[sourceKey]) ? liveOptionRowsBySource.value[sourceKey] : []
-  const titleToken = (LEVEL_3_FILE_REGISTRY_BY_KEY[sourceKey] || []).find((token) => String(token.level_3) === '1') || null
+  const titleToken = getRegistryTitleTokenForSource(sourceKey)
   return rows.map((row) => {
     const value = String(row?.id || row?.artifact_id || '').trim()
     const label = String(titleToken ? getCanonicalTokenValue(row, titleToken) : '').trim()

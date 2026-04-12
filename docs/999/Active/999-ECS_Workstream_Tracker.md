@@ -83,6 +83,12 @@ This tracker should stay aligned with:
   - fail closed on unmapped page routes
   - honest non-validator file-health state
   - remove heuristic title/summary and option-label fallback paths
+- file-owned token/view convergence:
+  - stop treating `activeRegistryEntry.subsections` as final live truth
+  - replace scaffolding-owned live shell payloads with file-owned token/view payloads
+  - make shells, add/edit surfaces, row/data surfaces, inline tables, option lists, and relationship cells read from that same file-owned payload
+  - keep structural registry as source/reference only while migration completes
+  - do not write new runtime behavior in old scaffolding language
 - shared create-flow hardening:
   - discardable local draft birth
   - commit text inputs on blur, flush on save
@@ -115,6 +121,15 @@ This tracker should stay aligned with:
 - legacy runtime audit:
   - classify `databooks:*` and other older IPC/runtime names as `keep temporarily`, `rename soon`, or `replace structurally`
   - avoid widening old runtime language while the newer governance and event model is still being defined
+- live surface input audit:
+  - audit what feeds:
+    - the shell surface
+    - add/edit
+    - inline tables
+    - option lists
+    - relationship cells
+  - treat these as likely scaffolding re-entry points
+  - replace them with file-owned token/view payload inputs instead of adding new compatibility layers
 - owner spine protection and explicit human-system owner paths
 - `Owner Genesis` ordering, including:
   - `System Files`
@@ -190,6 +205,11 @@ This tracker should stay aligned with:
     - do not let page-local shell logic invent toolbar behavior
     - keep `Views` and `Tokens` payloads explicit
     - remove old directive paths that still treat `L2` grouping language as visible control truth
+  - Task 8: complete the file-owned token/view payload jump:
+    - stop treating `activeRegistryEntry.subsections` as final truth
+    - define the live shell payload from file-owned tokens and governed views
+    - make shared shells and add/edit/data surfaces consume that same payload
+    - let old scaffolding break honestly where the new contract is still missing
   - Success condition: changing one shared component or design token updates every consuming surface automatically
   - Structural rule: keep populating `Built From BBs` so the BB catalog can classify:
     - `Leaf / Elementary`

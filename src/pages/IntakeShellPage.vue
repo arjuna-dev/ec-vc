@@ -54,9 +54,8 @@ import {
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
+  getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
-  LEVEL_2_FILE_REGISTRY_BY_KEY,
-  LEVEL_3_FILE_REGISTRY_BY_KEY,
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
@@ -86,8 +85,30 @@ const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section ||
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
-const level2Sections = computed(() => LEVEL_2_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
-const level3Tokens = computed(() => LEVEL_3_FILE_REGISTRY_BY_KEY[activeSourceKey.value] || [])
+const level2Sections = computed(() =>
+  (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).map((subsection) => ({
+    key: subsection.key,
+    level_2: subsection.level_2,
+    address: subsection.address,
+    label: subsection.label,
+    rawLabel: subsection.rawLabel,
+    structureToken: subsection.structureToken,
+    subgroupKey: subsection.subgroupKey,
+    subgroupLabel: subsection.subgroupLabel,
+    subgroupAddress: subsection.subgroupAddress,
+    displayGroup: subsection.displayGroup,
+  })),
+)
+const level3Tokens = computed(() =>
+  (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).flatMap((subsection) =>
+    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
+      ...token,
+      parentKey: subsection.key,
+      parentLabel: subsection.label,
+      parentLevel_2: subsection.level_2,
+    })),
+  ),
+)
 const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
 
 const createPrimaryTokens = computed(() => {
@@ -116,6 +137,7 @@ const createSectionGroups = computed(() =>
         (token) => token.parentKey === section.key && !primaryTokenKeys.value.has(token.key),
       ),
     mapToken: normalizeCreateDialogToken,
+    keepEmptySections: true,
   }),
 )
 const dialogSectionSplit = computed(() => splitDialogSections(createSectionGroups.value))
@@ -267,7 +289,7 @@ function getLiveEntitySetOptionsForToken(token) {
 
 function buildLiveEntityOptions(sourceKey) {
   const rows = Array.isArray(liveOptionRowsBySource.value[sourceKey]) ? liveOptionRowsBySource.value[sourceKey] : []
-  const titleToken = (LEVEL_3_FILE_REGISTRY_BY_KEY[sourceKey] || []).find((token) => String(token.level_3) === '1') || null
+  const titleToken = getRegistryTitleTokenForSource(sourceKey)
   return rows.map((row) => {
     const value = String(row?.id || row?.artifact_id || '').trim()
     const label = String(titleToken ? getCanonicalTokenValue(row, titleToken) : '').trim()
