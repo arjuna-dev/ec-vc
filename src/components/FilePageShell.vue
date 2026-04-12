@@ -32,6 +32,8 @@
         <div>loader: {{ activeLoader ? activeContentSourceKey : 'none' }}</div>
         <div>loading: {{ loading }}</div>
         <div>rawRows: {{ rawRows.length }}</div>
+        <div>displayRows: {{ displayRows.length }}</div>
+        <div>activeView: {{ activeView?.label || activeViewKey || 'none' }}</div>
         <div>error: {{ error || 'none' }}</div>
         <div v-if="debugDbSummary" class="q-mt-sm">
           <div>db: {{ debugDbSummary.path || 'unknown' }}</div>
@@ -2408,12 +2410,16 @@ async function probeDb() {
       bridge.value.db.query('SELECT COUNT(*) AS count FROM Users'),
       bridge.value.db.info(),
     ])
+    const filesCount = Array.isArray(files) ? files[0]?.count : files?.rows?.[0]?.count
+    const notesCount = Array.isArray(notes) ? notes[0]?.count : notes?.rows?.[0]?.count
+    const companiesCount = Array.isArray(companies) ? companies[0]?.count : companies?.rows?.[0]?.count
+    const usersCount = Array.isArray(users) ? users[0]?.count : users?.rows?.[0]?.count
     debugDbSummary.value = {
       path: info?.path || '',
-      files: files?.rows?.[0]?.count ?? 0,
-      notes: notes?.rows?.[0]?.count ?? 0,
-      companies: companies?.rows?.[0]?.count ?? 0,
-      users: users?.rows?.[0]?.count ?? 0,
+      files: filesCount ?? 0,
+      notes: notesCount ?? 0,
+      companies: companiesCount ?? 0,
+      users: usersCount ?? 0,
     }
   } catch {
     debugDbSummary.value = { path: '', files: 'err', notes: 'err', companies: 'err', users: 'err' }
