@@ -340,7 +340,7 @@
               </div>
             </q-card-section>
 
-            <q-card-section v-if="hasActiveSourceKdb" class="test-shell-card__summary">
+            <q-card-section v-if="hasActiveSourceLdb" class="test-shell-card__summary">
               <div class="test-shell-card__summary-head">
                 <q-btn-toggle
                   :model-value="getRowRelationshipPanel(row)"
@@ -575,7 +575,7 @@
                       </div>
                     </div>
                   </template>
-                  <template v-if="isBbGraphLinkToken(tokenRow)">
+                  <template v-else-if="isBbGraphLinkToken(tokenRow)">
                     <div v-if="tokenRow.links?.length" class="test-shell-table__bb-links">
                       <button
                         v-for="item in tokenRow.links"
@@ -589,14 +589,22 @@
                     </div>
                     <span v-else class="test-shell-card__value--placeholder">No explicit value</span>
                   </template>
-                  <template v-else-if="isKdbSectionActive">
-                    <div v-if="getKdbDisplayItems(tokenRow).length" class="test-shell-table__kdb-list">
+                  <template v-else-if="isLdbSectionActive">
+                    <div
+                      v-if="getLdbDisplayItems(tokenRow).length"
+                      class="test-shell-table__kdb-list"
+                      :class="[
+                        { 'test-shell-table__cell--editable': canInlineEditTableCell(row, tokenRow.token, 'token') },
+                        { 'test-shell-table__cell--direct': canInlineEditTableCell(row, tokenRow.token, 'token') },
+                      ]"
+                      @dblclick="beginInlineTableEdit(row, tokenRow.token, 'token')"
+                    >
                       <div
-                        v-for="item in getKdbDisplayItems(tokenRow)"
+                        v-for="item in getLdbDisplayItems(tokenRow)"
                         :key="`${tokenRow.key}:${item.key}`"
                         class="test-shell-table__kdb-item"
                         :class="{ 'test-shell-table__kdb-item--linkable': item.canOpen }"
-                        @dblclick="openKdbSourceCell(item)"
+                        @dblclick.stop="openLdbSourceCell(item)"
                       >
                         <span class="test-shell-table__kdb-icon">
                           <q-icon name="share" size="10px" />
@@ -715,7 +723,7 @@ import {
   buildCardRelationshipOptions,
   getCardRelationshipLabel,
   resolveCardRelationshipPanel,
-} from 'src/utils/card-kdb-relationships'
+} from 'src/utils/card-ldb-relationships'
 import {
   CANONICAL_OPTION_LISTS,
   getCreateBranchEntry,
@@ -728,6 +736,8 @@ import {
   getFilePageRegistryEntryByEntityReference,
   getFilePageRegistryEntryByRouteName,
   getFilePageReferenceDocs,
+  getRegistrySummaryTokenForSource,
+  getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
   getCanonicalTokenFieldNames,
   getCanonicalTokenWriteFieldName,
@@ -987,7 +997,7 @@ function isRelationshipSectionLabel(value = '') {
   const normalized = String(value || '').trim().toLowerCase()
   return normalized === 'kdb' || normalized === 'ldb'
 }
-const hasActiveSourceKdb = computed(() =>
+const hasActiveSourceLdb = computed(() =>
   level2Sections.value.some((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label)),
 )
 
@@ -1016,7 +1026,7 @@ const activeGovernanceTitle = computed(() => {
   if (activeGovernanceToolbarKey.value === 'views') return 'Views'
   return ''
 })
-const isKdbSectionActive = computed(() => isRelationshipSectionLabel(activeSection.value?.rawLabel || activeSection.value?.label))
+const isLdbSectionActive = computed(() => isRelationshipSectionLabel(activeSection.value?.rawLabel || activeSection.value?.label))
 const isSystemSectionActive = computed(() => String(activeSection.value?.label || '').trim().toLowerCase() === 'system')
 
 const activeSectionTokens = computed(() => {
@@ -1025,7 +1035,7 @@ const activeSectionTokens = computed(() => {
 })
 
 const sharedLdbSectionTokens = computed(() => {
-  if (!isKdbSectionActive.value) return []
+  if (!isLdbSectionActive.value) return []
 
   const systemFileTitleToken = getRegistryTitleTokenForSource('file-system')
   const seenSourceKeys = new Set()
@@ -1061,30 +1071,8 @@ const sharedLdbSectionTokens = computed(() => {
     .filter(Boolean)
 })
 
-const canonicalTitleToken = computed(
-  () => {
-    if (isBbFileSource.value) {
-      return level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === 'BB_Name') || null
-    }
-    return (
-      level3Tokens.value.find(
-        (token) => String(token.parentLevel_2) === '3' && String(token.level_3) === '1',
-      ) || null
-    )
-  },
-)
-const canonicalSummaryToken = computed(
-  () => {
-    if (isBbFileSource.value) {
-      return level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === 'BB_Summary') || null
-    }
-    return (
-      level3Tokens.value.find(
-        (token) => String(token.parentLevel_2) === '3' && String(token.level_3) === '2',
-      ) || null
-    )
-  },
-)
+const canonicalTitleToken = computed(() => getRegistryTitleTokenForSource(activeSourceKey.value) || null)
+const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
 const selectedRecordShellLevel3Keys = computed(() => {
   if (!isRecordShellMode.value) return []
   const rawValue = route.query.l3
@@ -1203,7 +1191,7 @@ const createDialogBranchSelectorTokenKey = computed(() => {
   if (!branchTokenName) return ''
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
-const createDialogKdbSectionKey = computed(
+const createDialogLdbSectionKey = computed(
   () => createSectionGroups.value.find((section) => isRelationshipSectionLabel(section?.rawLabel || section?.label))?.key || '',
 )
 const isTableInlineEditingAvailable = computed(() => viewMode.value !== 'card')
@@ -1410,7 +1398,7 @@ const bbGraphRowColumns = computed(() => {
 })
 const tableSectionTokens = computed(() => {
   const baseTokens = (
-    isKdbSectionActive.value
+    isLdbSectionActive.value
       ? sharedLdbSectionTokens.value
       : activeSectionTokens.value.filter((token) => token.key !== canonicalTitleToken.value?.key)
   )
@@ -1546,13 +1534,6 @@ function normalizeCreateDialogInitialValue(token, value) {
 
 function normalizeEntitySourceKey(entityName) {
   return String(entityName || '').trim().toLowerCase()
-}
-
-function getRegistryTitleTokenForSource(sourceKey) {
-  const entry = getFilePageRegistryEntry(sourceKey)
-  if (!entry) return null
-  const generalSection = entry.subsections.find((section) => String(section.rawLabel || '').trim().toLowerCase() === 'general')
-  return generalSection?.tokens?.find((token) => String(token.level_3 || '').trim() === '1') || null
 }
 
 function getOptionRowsForSource(sourceKey) {
@@ -2228,7 +2209,7 @@ function getInitialTableColumns() {
     ...tableSectionTokens.value.map((token) => ({
       key: token.key,
       defaultWidth: Math.max(
-        isKdbSectionActive.value ? LDB_COLUMN_DEFAULT_WIDTH : DEFAULT_COLUMN_MIN_WIDTH,
+        isLdbSectionActive.value ? LDB_COLUMN_DEFAULT_WIDTH : DEFAULT_COLUMN_MIN_WIDTH,
         getColumnLabelWidth(token?.label),
       ),
     })),
@@ -2372,13 +2353,6 @@ function buildShellRow(row, index) {
   const titleValue =
     (isBbFileSource.value ? stringifyValue(row?.Name) : '')
     || stringifyValue(getCanonicalTokenValue(row, canonicalTitleToken.value))
-  const sourcePrefixes = (
-    activeRegistryEntry.value?.relationshipSourcePrefixes?.length
-      ? activeRegistryEntry.value.relationshipSourcePrefixes
-      : [activeRegistryEntry.value?.singularLabel]
-  )
-    .map((value) => String(value || '').trim())
-    .filter(Boolean)
   const tokenPresence = Object.fromEntries(
     level3Tokens.value.map((token) => [token.key, Boolean(stringifyValue(getCanonicalTokenValue(row, token)))]),
   )
@@ -2440,7 +2414,7 @@ function buildShellRow(row, index) {
     titleValue,
     subtitleValue: '',
     cardDetailRows,
-    relationshipItemsByType: buildCardRelationshipItems(row, sourcePrefixes),
+    relationshipItemsByType: buildCardRelationshipItems(buildExplicitCardRelationshipOverrides(row)),
     sectionPresence,
     tokenPresence,
     sectionTokenRows: tokenRows,
@@ -2498,8 +2472,8 @@ function buildInitialsFromName(value) {
     .join('')
 }
 
-function getKdbDisplayItems(tokenRow) {
-  const items = getKdbCellItems(tokenRow)
+function getLdbDisplayItems(tokenRow) {
+  const items = getLdbCellItems(tokenRow)
   if (items.length) return items
 
   const normalized = stringifyValue(tokenRow?.rawValue || tokenRow?.value)
@@ -2517,6 +2491,59 @@ function getKdbDisplayItems(tokenRow) {
       entityName: '',
       tokenName: '',
     }))
+}
+
+function getRelationshipPanelKeyForSource(sourceKey = '') {
+  const normalized = String(sourceKey || '').trim().toLowerCase()
+  if (!normalized) return ''
+  if (['opportunities', 'funds', 'rounds'].includes(normalized)) return 'opportunities'
+  if (['users', 'artifacts', 'contacts', 'companies', 'projects', 'tasks', 'notes'].includes(normalized)) return normalized
+  return ''
+}
+
+function buildExplicitCardRelationshipOverrides(row) {
+  const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+  if (!entityName || !row || typeof row !== 'object') return {}
+
+  const itemsByPanel = {}
+
+  level3Tokens.value.forEach((token) => {
+    const relationshipContract = getLdbRelationshipContractForToken(entityName, token?.tokenName)
+    if (!relationshipContract) return
+
+    const targetEntry = getFilePageRegistryEntryByEntityReference(relationshipContract.targetEntity)
+    const targetSourceKey = String(targetEntry?.key || '').trim().toLowerCase()
+    const panelKey = getRelationshipPanelKeyForSource(targetSourceKey)
+    if (!panelKey) return
+
+    const rawValue = getCanonicalTokenValue(row, token)
+    const rawIds = Array.isArray(rawValue)
+      ? rawValue.map((value) => String(value || '').trim()).filter(Boolean)
+      : stringifyValue(rawValue)
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean)
+    if (!rawIds.length) return
+
+    const targetTitleToken = targetSourceKey ? getRegistryTitleTokenForSource(targetSourceKey) : null
+    const targetRows = targetSourceKey ? getOptionRowsForSource(targetSourceKey) : []
+    const labels = rawIds.map((recordId) => {
+      const matchingRow = targetRows.find((entry) => String(entry?.id || '').trim() === recordId)
+      if (matchingRow && targetTitleToken) {
+        return stringifyValue(getCanonicalTokenValue(matchingRow, targetTitleToken)) || recordId
+      }
+      return recordId
+    })
+
+    itemsByPanel[panelKey] = [...(itemsByPanel[panelKey] || []), ...labels]
+  })
+
+  return Object.fromEntries(
+    Object.entries(itemsByPanel).map(([panelKey, values]) => [
+      panelKey,
+      () => Array.from(new Set((Array.isArray(values) ? values : []).filter(Boolean))).slice(0, 4),
+    ]),
+  )
 }
 
 function getSharedLdbTokenRawValue(row, token) {
@@ -2898,17 +2925,15 @@ function isSystemManagedReadOnlyToken(token) {
   const tokenName = String(token?.tokenName || '').trim().toLowerCase()
 
   if (['id', 'datetime', 'date', 'creator'].includes(tokenType)) return true
-  if (tokenName.endsWith('_id')) return true
   if (tokenName.includes('creator')) return true
   if (tokenName.includes('created_at') || tokenName.includes('updated_at')) return true
   if (tokenName.includes('user_role') || tokenName.includes('role_link')) return true
   return false
 }
 
-function canInlineEditTableCell(row, token, kind = 'token') {
+function canInlineEditTableCell(row, token) {
   if (!isTableInlineEditingAvailable.value) return false
   if (!token?.key || !row?.recordId) return false
-  if (kind !== 'name' && isKdbSectionActive.value) return false
   if (isSystemManagedReadOnlyToken(token)) return false
   if (row?.isLocalDraft) return true
 
@@ -2936,7 +2961,7 @@ function isInlineEditingCell(row, token, kind = 'token') {
   const rowId = String(row?.recordId || '').trim()
   const tokenKey = String(token?.key || '').trim()
   return (
-    canInlineEditTableCell(row, token, kind) &&
+    canInlineEditTableCell(row, token) &&
     inlineTableEditState.value.rowId === rowId &&
     inlineTableEditState.value.tokenKey === tokenKey &&
     inlineTableEditState.value.kind === kind
@@ -2944,7 +2969,7 @@ function isInlineEditingCell(row, token, kind = 'token') {
 }
 
 function beginInlineTableEdit(row, token, kind = 'token') {
-  if (!canInlineEditTableCell(row, token, kind)) return
+  if (!canInlineEditTableCell(row, token)) return
   if (!token?.key || !row?.recordId) return
   const initialValue = normalizeCreateDialogInitialValue(token, getCanonicalTokenValue(row?.raw || {}, token))
   inlineTableEditState.value = {
@@ -2964,7 +2989,7 @@ function cancelInlineTableEdit() {
   }
 }
 
-function getKdbCellItems(tokenRow) {
+function getLdbCellItems(tokenRow) {
   const token = tokenRow?.token
   const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
   const relationshipContract = token?.isSharedLdbToken ? null : getLdbRelationshipContractForToken(entityName, token?.tokenName)
@@ -3022,7 +3047,7 @@ function updateLocalDraftTokenValue(row, token, value) {
   }
 }
 
-function openKdbSourceCell(item) {
+function openLdbSourceCell(item) {
   if (!item?.canOpen || !item?.entityName || !item?.recordId) return
   const location = buildRecordViewLocation({
     tableName: item.entityName,
@@ -3422,7 +3447,7 @@ async function openAddRelationShell(row) {
   editDialogRecordPayload.value = null
   createDialogDraftRecordId.value = String(row.recordId || '').trim()
   createDialogDraftEntityName.value = resolveEditEntityName(row)
-  createDialogInitialSectionKey.value = createDialogKdbSectionKey.value || 'general'
+  createDialogInitialSectionKey.value = createDialogLdbSectionKey.value || 'general'
   createDialogInitialArtifacts.value = await resolveTrueArtifactsForRow(row)
   try {
     editDialogRecordPayload.value = await loadEditDialogRecordPayload(
@@ -5242,8 +5267,8 @@ function isBbGraphLinkToken(tokenRow) {
   font-size: 12px;
 }
 
-.test-shell-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:hover::after),
-.test-shell-card__summary-toggle :deep(.q-btn.ec-card-kdb-option:focus-visible::after) {
+.test-shell-card__summary-toggle :deep(.q-btn.ec-card-ldb-option:hover::after),
+.test-shell-card__summary-toggle :deep(.q-btn.ec-card-ldb-option:focus-visible::after) {
   content: attr(data-tooltip);
   position: absolute;
   left: 0;

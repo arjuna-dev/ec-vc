@@ -2594,20 +2594,6 @@ function showFieldVerificationAction(token) {
   return isReviewTrackedField(token) && fieldHasValue(token)
 }
 
-function isSystemManagedToken(token) {
-  const tokenType = String(token?.tokenType || '').trim().toLowerCase()
-  const tokenName = String(token?.tokenName || '').trim().toLowerCase()
-  const tokenLabel = String(token?.label || '').trim().toLowerCase()
-  const inputSource = String(token?.inputSource || '').trim().toLowerCase()
-
-  if (['id', 'creator'].includes(tokenType)) return true
-  if (inputSource === 'system_actor') return true
-  if (tokenName.endsWith('_id')) return true
-  if (tokenName.includes('creator') || tokenLabel.includes('creator')) return true
-  if (tokenName.includes('created_at') || tokenName.includes('updated_at')) return true
-  return false
-}
-
 function usesCompactFieldAction(token) {
   return !isLongTextField(token)
 }
@@ -2682,7 +2668,7 @@ function buildVerificationChanges() {
 }
 
 function isFieldLocked(token) {
-  return Boolean(getFieldMeta(token)?.locked || isSystemManagedToken(token))
+  return Boolean(getFieldMeta(token)?.locked)
 }
 
 function fieldHasParentRecordLink(token) {

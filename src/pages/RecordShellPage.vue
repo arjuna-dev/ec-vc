@@ -485,6 +485,7 @@ import {
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
+  getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
   LEVEL_1_FILE_REGISTRY,
@@ -570,10 +571,8 @@ const runtimeTableName = computed(() =>
   String(getRuntimeTableNameForEntityName(activeRegistryEntry.value?.entityName || tableNameParam.value) || tableNameParam.value || '').trim(),
 )
 
-const canonicalNameToken = computed(() => level3Tokens.value.find((token) => String(token.level_3) === '1') || null)
-const canonicalSummaryToken = computed(() =>
-  level3Tokens.value.find((token) => String(token.level_3) === '2' || String(token.label || '').trim().toLowerCase() === 'summary') || null,
-)
+const canonicalNameToken = computed(() => getRegistryTitleTokenForSource(activeSourceKey.value) || null)
+const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
 
 const selectableTokens = computed(() =>
   level3Tokens.value.filter((token) => {
@@ -689,15 +688,15 @@ const activeSectionGroup = computed(() => {
 const activeSection = computed(() => activeSectionGroup.value?.sections?.[0] || null)
 const activeSectionEntries = computed(() => activeSectionGroup.value?.sections || [])
 const activeSectionTokens = computed(() => {
-  if (isKdbSectionActive.value) return sharedLdbSectionTokens.value
+  if (isLdbSectionActive.value) return sharedLdbSectionTokens.value
   return sectionDisplayTokens.value.filter((token) => activeSectionEntries.value.some((section) => section.key === token.parentKey))
 })
-const isKdbSectionActive = computed(() =>
+const isLdbSectionActive = computed(() =>
   activeSectionEntries.value.some((section) => isRelationshipSectionLabel(section.rawLabel || section.label)),
 )
 const isSystemSectionActive = computed(() => activeSectionEntries.value.some((section) => String(section.label || '').trim().toLowerCase() === 'system'))
 const systemSectionTokens = computed(() => activeSectionTokens.value.filter((token) => !isHistoryDerivedSystemToken(token)))
-const hasGroupedSectionSubsections = computed(() => !isKdbSectionActive.value && activeSectionEntries.value.length > 1)
+const hasGroupedSectionSubsections = computed(() => !isLdbSectionActive.value && activeSectionEntries.value.length > 1)
 const activeSectionTokenGroups = computed(() =>
   activeSectionEntries.value
     .map((section) => ({
@@ -1625,7 +1624,6 @@ function isSystemManagedReadOnlyToken(token) {
   const tokenName = String(token?.tokenName || '').trim().toLowerCase()
 
   if (['id', 'creator'].includes(tokenType)) return true
-  if (tokenName.endsWith('_id')) return true
   if (tokenName.includes('creator')) return true
   if (tokenName.includes('created_at') || tokenName.includes('updated_at')) return true
   if (tokenName.includes('user_role') || tokenName.includes('role_link')) return true
