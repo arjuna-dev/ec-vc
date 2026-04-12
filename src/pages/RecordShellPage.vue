@@ -603,6 +603,7 @@ const selectedHeroTokens = computed(() =>
 )
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
 const groupedViews = computed(() => groupDialogViews(fileViews.value))
+const sharedLdbLinksByTargetEntity = ref({})
 const sharedLdbViewTokens = computed(() => {
   if (!activeRegistryEntry.value?.entityName) return []
 
@@ -909,6 +910,54 @@ watch(
   () => `${tableNameParam.value}:${recordIdParam.value}`,
   () => {
     loadRecordView()
+  },
+  { immediate: true },
+)
+
+watch(
+  [recordIdParam, activeRegistryEntry, sharedLdbViewTokens, bridge],
+  async ([recordId]) => {
+    const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+    const normalizedRecordId = String(recordId || '').trim()
+    if (!entityName || !normalizedRecordId || !bridge.value?.db?.query) {
+      sharedLdbLinksByTargetEntity.value = {}
+      return
+    }
+
+    const targetEntities = (Array.isArray(sharedLdbViewTokens.value) ? sharedLdbViewTokens.value : [])
+      .map((token) => String(token?.targetEntity || '').trim())
+      .filter(Boolean)
+    if (!targetEntities.length) {
+      sharedLdbLinksByTargetEntity.value = {}
+      return
+    }
+
+    const targetPlaceholders = targetEntities.map(() => '?').join(', ')
+    const rows = await bridge.value.db.query(
+      `
+        SELECT target_entity, target_record_id AS target_id
+        FROM LDB_Relationships
+        WHERE source_entity = ?
+          AND source_record_id = ?
+          AND target_entity IN (${targetPlaceholders})
+      `,
+      [entityName, normalizedRecordId, ...targetEntities],
+    )
+
+    const nextMap = {}
+    ;(Array.isArray(rows) ? rows : []).forEach((row) => {
+      const targetEntity = String(row?.target_entity || '').trim()
+      const targetId = String(row?.target_id || '').trim()
+      if (!targetEntity || !targetId) return
+      if (!nextMap[targetEntity]) nextMap[targetEntity] = []
+      nextMap[targetEntity].push(targetId)
+    })
+
+    Object.keys(nextMap).forEach((key) => {
+      nextMap[key] = Array.from(new Set(nextMap[key]))
+    })
+
+    sharedLdbLinksByTargetEntity.value = nextMap
   },
   { immediate: true },
 )
@@ -1234,26 +1283,7 @@ function getSharedLdbTokenRawValue(token) {
   const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
   const targetEntity = String(token?.targetEntity || '').trim()
   if (!entityName || !targetEntity) return []
-
-  const contracts = getLdbRelationshipContractsForEntity(entityName).filter(
-    (contract) => String(contract?.targetEntity || '').trim() === targetEntity,
-  )
-  if (!contracts.length) return []
-
-  const values = contracts.flatMap((contract) => {
-    const sourceToken = fileTokens.value.find(
-      (entry) => String(entry?.tokenName || '').trim() === String(contract?.sourceToken || '').trim(),
-    )
-    if (!sourceToken) return []
-    const rawValue = getTokenRawValue(sourceToken)
-    if (Array.isArray(rawValue)) return rawValue.map((value) => String(value || '').trim()).filter(Boolean)
-    return String(rawValue || '')
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean)
-  })
-
-  return Array.from(new Set(values))
+  return Array.isArray(sharedLdbLinksByTargetEntity.value[targetEntity]) ? sharedLdbLinksByTargetEntity.value[targetEntity] : []
 }
 
 function getTokenDisplayValue(token) {

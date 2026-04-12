@@ -831,6 +831,7 @@ const bbTileGroupOpenState = ref({})
 const cardItemKeysBySource = ref(loadShellFieldSelectionMap())
 const liveOptionRowsBySource = ref({})
 const localDraftRowsBySource = ref({})
+const sharedLdbLinksByRecordId = ref({})
 
 const DEFAULT_COLUMN_MIN_WIDTH = 120
 const LDB_COLUMN_DEFAULT_WIDTH = 72
@@ -2043,6 +2044,60 @@ watch(
 )
 
 watch(
+  [rawRows, sharedLdbViewTokens, activeRegistryEntry, bridge],
+  async ([rows, tokens]) => {
+    const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
+    if (!entityName || !bridge.value?.db?.query) {
+      sharedLdbLinksByRecordId.value = {}
+      return
+    }
+
+    const recordIdField = String(activeLoader.value?.recordIdField || 'id').trim() || 'id'
+    const recordIds = (Array.isArray(rows) ? rows : [])
+      .map((row) => String(row?.[recordIdField] || '').trim())
+      .filter(Boolean)
+    const targetEntities = (Array.isArray(tokens) ? tokens : [])
+      .map((token) => String(token?.targetEntity || '').trim())
+      .filter(Boolean)
+    if (!recordIds.length || !targetEntities.length) {
+      sharedLdbLinksByRecordId.value = {}
+      return
+    }
+
+    const recordPlaceholders = recordIds.map(() => '?').join(', ')
+    const targetPlaceholders = targetEntities.map(() => '?').join(', ')
+    const rowsResult = await bridge.value.db.query(
+      `
+        SELECT source_record_id AS source_id, target_entity, target_record_id AS target_id
+        FROM LDB_Relationships
+        WHERE source_entity = ?
+          AND source_record_id IN (${recordPlaceholders})
+          AND target_entity IN (${targetPlaceholders})
+      `,
+      [entityName, ...recordIds, ...targetEntities],
+    )
+
+    const nextMap = {}
+    ;(Array.isArray(rowsResult) ? rowsResult : []).forEach((row) => {
+      const sourceId = String(row?.source_id || '').trim()
+      const targetEntity = String(row?.target_entity || '').trim()
+      const targetId = String(row?.target_id || '').trim()
+      if (!sourceId || !targetEntity || !targetId) return
+      const key = buildSharedLdbLookupKey(sourceId, targetEntity)
+      if (!nextMap[key]) nextMap[key] = []
+      nextMap[key].push(targetId)
+    })
+
+    Object.keys(nextMap).forEach((key) => {
+      nextMap[key] = Array.from(new Set(nextMap[key]))
+    })
+
+    sharedLdbLinksByRecordId.value = nextMap
+  },
+  { immediate: true },
+)
+
+watch(
   displayRows,
   (rows) => {
     const nextMap = {}
@@ -2458,6 +2513,10 @@ function getRowSelectionId(row) {
   return String(row?.recordId || row?.cardId || '').trim()
 }
 
+function buildSharedLdbLookupKey(recordId, targetEntity) {
+  return `${String(recordId || '').trim()}::${String(targetEntity || '').trim()}`
+}
+
 function isRowSelected(row) {
   const id = getRowSelectionId(row)
   return Boolean(id) && selectedRowIds.value.includes(id)
@@ -2582,30 +2641,11 @@ function getSharedLdbTokenRawValue(row, token) {
   const entityName = String(activeRegistryEntry.value?.entityName || '').trim()
   const targetEntity = String(token?.targetEntity || '').trim()
   if (!entityName || !targetEntity) return []
-
-  const contracts = getLdbRelationshipContractsForEntity(entityName).filter(
-    (contract) => String(contract?.targetEntity || '').trim() === targetEntity,
-  )
-  if (!contracts.length) return []
-
-  const values = contracts.flatMap((contract) => {
-    const sourceToken = fileTokens.value.find(
-      (entry) => String(entry?.tokenName || '').trim() === String(contract?.sourceToken || '').trim(),
-    )
-    if (!sourceToken) return []
-
-    const rawValue = getCanonicalTokenValue(row, sourceToken)
-    if (Array.isArray(rawValue)) {
-      return rawValue.map((value) => String(value || '').trim()).filter(Boolean)
-    }
-
-    return stringifyValue(rawValue)
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean)
-  })
-
-  return Array.from(new Set(values))
+  const recordIdField = String(activeLoader.value?.recordIdField || 'id').trim() || 'id'
+  const recordId = String(row?.[recordIdField] || '').trim()
+  if (!recordId) return []
+  const key = buildSharedLdbLookupKey(recordId, targetEntity)
+  return Array.isArray(sharedLdbLinksByRecordId.value[key]) ? sharedLdbLinksByRecordId.value[key] : []
 }
 
 function getActiveRelationshipItems(row) {
