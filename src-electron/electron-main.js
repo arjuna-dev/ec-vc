@@ -7060,12 +7060,7 @@ function applyAuditedChanges(
     }
   }
 
-  if (database.inTransaction) {
-    return runChanges()
-  }
-
-  const tx = database.transaction(runChanges)
-  return tx()
+  return runChanges()
 }
 
 function hasMeaningfulValue(value) {
