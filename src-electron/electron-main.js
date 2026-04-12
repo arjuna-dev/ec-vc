@@ -1613,12 +1613,6 @@ function listCompanionRoles() {
   )
 }
 
-function getFileRegistrySubsectionLabels(entry) {
-  return (Array.isArray(entry?.subsections) ? entry.subsections : [])
-    .map((section) => String(section?.rawLabel || section?.label || '').trim())
-    .filter(Boolean)
-}
-
 function buildDefinedStructureJson(entry) {
   const sections = (Array.isArray(entry?.subsections) ? entry.subsections : []).map((section, index) => ({
     key: String(section?.key || section?.structureToken || section?.label || `section-${index + 1}`).trim(),
