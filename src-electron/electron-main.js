@@ -1707,7 +1707,6 @@ function buildViewForkInstructions(entry) {
 }
 
 function buildDefaultFileRegistryRow(entry, index) {
-  const subsectionLabels = getFileRegistrySubsectionLabels(entry)
   const sourceKey = String(entry?.key || '').trim()
   const guidePath = FILE_GUIDE_PATH_BY_SOURCE_KEY[sourceKey] || null
   return {
