@@ -312,6 +312,7 @@ This tracker should stay aligned with:
   - unused `LEVEL_2_FILE_REGISTRY_BY_KEY` and `LEVEL_3_FILE_REGISTRY_BY_KEY` exports were removed
   - `ViewSettingsMenu` is now the shared settings menu name (retired `L2SettingsMenu`)
   - live shell ordering now uses explicit token/section order (array order or `token_order` / `subsection_order`), not `level_2` / `level_3`
+  - LDB relationship contracts now derive from the System Files universe (runtime registry), not canonical subsections
 - current cleanup rule:
   - if a live runtime name only exists to preserve scaffold vocabulary, rename or delete it
   - keep canonical/workbook structure as reference input only

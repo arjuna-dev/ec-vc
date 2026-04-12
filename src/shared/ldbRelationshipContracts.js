@@ -1,6 +1,7 @@
-import canonicalStructure from './canonicalStructure.js'
+import { FILE_SOURCE_REGISTRY } from 'src/utils/structureRegistry'
 
 const GENERIC_LDB_TABLE = 'LDB_Relationships'
+const EXCLUDED_LDB_SOURCE_KEYS = Object.freeze(['bb-file', 'events'])
 
 const EXPLICIT_LDB_RELATIONSHIP_PAIRS = Object.freeze([
   {
@@ -95,15 +96,10 @@ function normalize(value) {
   return String(value || '').trim()
 }
 
-function normalizeSubsections(entity) {
-  const subsections = entity?.subsections
-  if (Array.isArray(subsections)) return subsections
-  if (subsections && typeof subsections === 'object') return Object.values(subsections)
-  return []
-}
-
-function normalizeTokens(subsection) {
-  return Array.isArray(subsection?.tokens) ? subsection.tokens : []
+function normalizeTokenSegment(value) {
+  return normalize(value)
+    .replace(/[^a-z0-9]+/gi, '_')
+    .replace(/^_+|_+$/g, '')
 }
 
 function buildDirectionalContract(pair, direction = 'left') {
@@ -154,61 +150,49 @@ const EXPLICIT_DIRECT_LDB_RELATIONSHIP_CONTRACTS = Object.freeze([
   },
 ])
 
-const entities = Array.isArray(canonicalStructure?.entities) ? canonicalStructure.entities : []
+const LDB_ENTITY_UNIVERSE = FILE_SOURCE_REGISTRY
+  .filter((entry) => entry?.key && !EXCLUDED_LDB_SOURCE_KEYS.includes(String(entry.key || '').trim().toLowerCase()))
+  .map((entry) => ({
+    key: normalize(entry?.key),
+    entityName: normalize(entry?.entityName),
+    singularLabel: normalize(entry?.singularLabel),
+    label: normalize(entry?.label),
+  }))
+  .filter((entry) => entry.entityName)
 
-const LDB_TOKENS = entities.flatMap((entity) => {
-  const entityName = normalize(entity?.entity)
-  return normalizeSubsections(entity)
-    .filter((subsection) => {
-      const subsectionName = normalize(subsection?.subsection).toLowerCase()
-      return subsectionName === 'ldb'
-    })
-    .flatMap((subsection) =>
-      normalizeTokens(subsection).map((token) => ({
-        entityName,
-        tokenName: normalize(token?.token_name),
-        optionSource: normalize(token?.option_source),
-        optionEntity: normalize(token?.option_entity),
-        optionEntities: Array.isArray(token?.option_entities)
-          ? token.option_entities.map((value) => normalize(value)).filter(Boolean)
-          : [],
-      })),
-    )
-})
-
-function findReverseLdbToken(targetEntity, sourceEntity) {
-  return (
-    LDB_TOKENS.find((token) => {
-      if (token.entityName !== normalize(targetEntity)) return false
-      if (token.optionSource === 'live_entity') return token.optionEntity === normalize(sourceEntity)
-      if (token.optionSource === 'live_entity_set') return token.optionEntities.includes(normalize(sourceEntity))
-      return false
-    }) || null
-  )
+function buildLdbTokenName(source, target) {
+  const sourceLabel = source.singularLabel || source.label || source.entityName
+  const targetLabel = target.singularLabel || target.label || target.entityName
+  return `${normalizeTokenSegment(sourceLabel)}_${normalizeTokenSegment(targetLabel)}`
 }
 
+function buildEntityPairKey(sourceEntity, targetEntity) {
+  return `${normalize(sourceEntity)}::${normalize(targetEntity)}`
+}
+
+const EXPLICIT_ENTITY_PAIR_KEYS = new Set([
+  ...EXPLICIT_LDB_RELATIONSHIP_CONTRACTS.map((contract) => buildEntityPairKey(contract.sourceEntity, contract.targetEntity)),
+  ...EXPLICIT_DIRECT_LDB_RELATIONSHIP_CONTRACTS.map((contract) => buildEntityPairKey(contract.sourceEntity, contract.targetEntity)),
+])
+
 const GENERIC_LDB_RELATIONSHIP_CONTRACTS = Object.freeze(
-  LDB_TOKENS.filter((token) => token.optionSource === 'live_entity' && token.optionEntity)
-    .filter(
-      (token) =>
-        !EXPLICIT_LDB_RELATIONSHIP_CONTRACTS.some(
-          (contract) => contract.sourceEntity === token.entityName && contract.sourceToken === token.tokenName,
-        ) &&
-        !EXPLICIT_DIRECT_LDB_RELATIONSHIP_CONTRACTS.some(
-          (contract) => contract.sourceEntity === token.entityName && contract.sourceToken === token.tokenName,
-        ),
-    )
-    .map((token) => {
-      const reverseToken = findReverseLdbToken(token.optionEntity, token.entityName)
-      return {
-        contractType: 'generic_ldb',
-        joinTable: GENERIC_LDB_TABLE,
-        sourceEntity: token.entityName,
-        sourceToken: token.tokenName,
-        targetEntity: token.optionEntity,
-        targetToken: normalize(reverseToken?.tokenName),
-      }
-    }),
+  LDB_ENTITY_UNIVERSE.flatMap((source) =>
+    LDB_ENTITY_UNIVERSE
+      .filter((target) => target.entityName !== source.entityName)
+      .map((target) => {
+        const pairKey = buildEntityPairKey(source.entityName, target.entityName)
+        if (EXPLICIT_ENTITY_PAIR_KEYS.has(pairKey)) return null
+        return {
+          contractType: 'generic_ldb',
+          joinTable: GENERIC_LDB_TABLE,
+          sourceEntity: source.entityName,
+          sourceToken: buildLdbTokenName(source, target),
+          targetEntity: target.entityName,
+          targetToken: buildLdbTokenName(target, source),
+        }
+      })
+      .filter(Boolean),
+  ),
 )
 
 export const LDB_RELATIONSHIP_CONTRACTS = Object.freeze([
