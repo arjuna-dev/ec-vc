@@ -66,6 +66,7 @@ export function buildTokenUpdateChanges(token, {
     const contractTokenName = String(relationshipContract?.sourceToken || '').trim()
     const fallbackTokenName = String(token?.tokenName || '').trim()
     const relationshipTokenName = contractTokenName || fallbackTokenName
+    const targetEntity = String(relationshipContract?.targetEntity || token?.targetEntity || token?.optionEntity || token?.option_entity || '').trim()
     return [
       {
         change_kind: 'relationship',
@@ -73,6 +74,7 @@ export function buildTokenUpdateChanges(token, {
         record_id: recordId,
         field_name: relationshipTokenName,
         relationship_token: relationshipTokenName,
+        target_entity: targetEntity,
         new_value: JSON.stringify(relationshipIds),
       },
     ]

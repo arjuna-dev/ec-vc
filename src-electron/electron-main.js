@@ -6690,6 +6690,7 @@ function applyAuditedChanges(
       record_id: normalizeNullableString(change?.record_id),
       field_name: normalizeNullableString(change?.field_name),
       relationship_token: normalizeNullableString(change?.relationship_token),
+      target_entity: normalizeNullableString(change?.target_entity),
       id_column: normalizeNullableString(change?.id_column),
       new_value: change?.new_value,
     }))
@@ -6710,13 +6711,13 @@ function applyAuditedChanges(
     assertOwnerRecordEditAllowed(database, actor, change)
   }
 
-  const tx = database.transaction(() => {
+  const runChanges = () => {
     let updated = 0
     let eventsCreated = 0
 
     for (const change of normalizedChanges) {
       if (change.change_kind === 'relationship') {
-        const relationshipContract = getLdbRelationshipContractForToken(change.table_name, change.relationship_token)
+        const relationshipContract = getLdbRelationshipContractForToken(change.table_name, change.relationship_token, change.target_entity)
         if (!relationshipContract) {
           throw new Error(`Relationship contract is not wired for ${change.relationship_token} on ${change.table_name}`)
         }
@@ -7057,8 +7058,13 @@ function applyAuditedChanges(
       snapshot_id: snapshotId,
       actor,
     }
-  })
+  }
 
+  if (database.inTransaction) {
+    return runChanges()
+  }
+
+  const tx = database.transaction(runChanges)
   return tx()
 }
 

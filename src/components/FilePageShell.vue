@@ -3101,6 +3101,7 @@ function buildSingleTokenUpdateChanges(token, value, { recordId = '', entityName
       record_id: recordId,
       field_name: token.tokenName,
       relationship_token: token.tokenName,
+      target_entity: String(relationshipContract?.targetEntity || token?.targetEntity || token?.optionEntity || token?.option_entity || '').trim(),
       new_value: JSON.stringify(relationshipIds),
     }]
   }
@@ -4066,6 +4067,7 @@ function buildUpdateChangesFromValues(values = {}, { recordId = '', entityName =
           record_id: recordId,
           field_name: token.tokenName,
           relationship_token: token.tokenName,
+          target_entity: String(relationshipContract?.targetEntity || token?.targetEntity || token?.optionEntity || token?.option_entity || '').trim(),
           new_value: JSON.stringify(relationshipIds),
         },
       ]
