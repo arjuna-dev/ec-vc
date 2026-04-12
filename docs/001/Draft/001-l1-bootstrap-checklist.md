@@ -24,7 +24,7 @@ Primary files:
 Current status:
 
 - this already exists as the canonical source of truth
-- explicit `L2.a-b-c-d` subgrouping is now supported
+- explicit subgrouping inside a section is now supported
 - shared-base guidance is documented
 
 Implementation need:
@@ -32,7 +32,7 @@ Implementation need:
 - define the exact canonical minimum payload required for a new normal `L1`
 - make sure the canonical format can declare:
   - shared base sections
-  - entity-specific `L2`s
+  - entity-specific sections
   - LDB tokens
   - relationship ownership decision when explicitly promoted
 
@@ -71,8 +71,8 @@ Minimum required input:
      - `Name`
      - `Summary`
 5. entity-specific extension structure
-   - entity-specific `L2` list
-   - approved `L2.a-b-c-d` subgrouping
+   - entity-specific section list
+   - approved subgrouping inside a section when needed
 6. LDB declaration set
    - target `L1`
    - source token
@@ -99,7 +99,7 @@ Compact check:
 2. is it normal, branch-capable, or an approved exception?
 3. does it own the shared base?
 4. does it use the shared base parameters correctly?
-5. what are its entity-specific `L2`s?
+5. what are its entity-specific sections?
 6. what LDB links does it declare?
 7. which links stay in `LDB_Relationships`?
 8. which links are explicitly promoted to dedicated join tables?
@@ -144,7 +144,7 @@ Implementation need:
   - preload bridge
 - do this from one canonical source instead of scattered manual edits
 
-### 3. Shared base subsections
+### 3. Shared base sections
 
 Primary files:
 
@@ -193,7 +193,7 @@ Implementation need:
 - ensure new normal `L1`s inherit this block at birth
 - stop entity birth from renaming shared base fields into entity-prefixed duplicates
 
-### 5. Entity-specific `L2` structure
+### 5. Entity-specific structure
 
 Primary files:
 
@@ -207,7 +207,7 @@ Current status:
 Implementation need:
 
 - make entity extension a distinct post-base step
-- ensure `L2.a-b-c-d` subgrouping is loaded only after the shared base is present
+- ensure subgrouping is loaded only after the shared base is present
 
 ### 6. Reciprocal LDB declarations
 
@@ -292,7 +292,7 @@ Primary files:
 - `src/components/FilePageShell.vue`
 - `src/pages/RecordShellPage.vue`
 - `src/pages/DialogShellPage.vue`
-- `src/shared/kdbRelationshipContracts.js`
+- `src/shared/ldbRelationshipContracts.js`
 
 Current status:
 
