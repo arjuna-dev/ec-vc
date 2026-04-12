@@ -26,8 +26,6 @@ const FILE_PAGE_ROUTE_META = Object.freeze({
     requiredSubsections: ['General', 'Usage', 'Anatomy', 'Source', 'Reconstruction', 'Variants'],
     optionalStandardSubsections: [],
     requiredRuntimeCapabilities: ['list', 'create', 'delete'],
-    requiresReciprocalKdb: false,
-    level_1: 'BB',
     address: 'BB.0.0',
     structureToken: 'Building_Blocks_File',
     customSubsections: [
@@ -547,8 +545,6 @@ function buildEntityRegistry(entityName) {
     requiredRuntimeCapabilities: Array.isArray(meta.requiredRuntimeCapabilities)
       ? meta.requiredRuntimeCapabilities
       : [...DEFAULT_L1_REQUIRED_RUNTIME_CAPABILITIES],
-    requiresReciprocalKdb: meta.requiresReciprocalKdb !== false,
-    level_1: String(meta.level_1 || sourceEntity?.level_1 || '').trim(),
     address: String(meta.address || sourceEntity?.entity_address || '').trim(),
     structureToken: String(meta.structureToken || sourceEntity?.structure_token?.token_name || sourceEntity?.structure_token || '').trim(),
     subsections,
@@ -569,7 +565,6 @@ export const FILE_SOURCE_REGISTRY = Object.freeze(
     entityName: entry.entityName,
     label: entry.label,
     singularLabel: entry.singularLabel,
-    level_1: entry.level_1,
     address: entry.address,
     structureToken: entry.structureToken,
     routeName: entry.routeName,
