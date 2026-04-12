@@ -756,7 +756,7 @@ import {
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
 import { getLdbRelationshipContractForToken, getLdbRelationshipContractsForEntity } from 'src/shared/ldbRelationshipContracts'
-import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildRecordViewLocation } from 'src/utils/recordViewNavigation'
 import { shareRecordSelection } from 'src/utils/recordListSelectionActions'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
@@ -1177,10 +1177,10 @@ const cardItemTokenGroups = computed(() =>
     }))
     .filter((group) => group.tokens.length),
 )
-const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
+const groupedLevel2Sections = computed(() => groupDialogSections(level2Sections.value))
 const createSectionGroups = computed(() => {
   const primaryTokenKeys = new Set(createPrimaryTokens.value.map((token) => token.key))
-  return buildDialogSectionGroups({
+  return buildDialogSections({
     groupedSections: groupedLevel2Sections.value,
     tokenFilter: (section) => level3Tokens.value.filter(
       (token) =>

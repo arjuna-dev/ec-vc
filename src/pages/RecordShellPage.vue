@@ -491,7 +491,7 @@ import {
   LEVEL_1_FILE_REGISTRY,
   resolveApprovedFileSectionKey,
 } from 'src/utils/structureRegistry'
-import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { filterRecordFeedTabs, RECORD_FEED_GROUP_OPTIONS } from 'src/utils/recordFeedContract'
 import { setPendingIntakeShellRequest } from 'src/utils/intakeShellState'
 import { loadShellFieldSelectionMap, persistShellFieldSelectionMap } from 'src/utils/shellFieldSelection'
@@ -622,7 +622,7 @@ const selectedHeroTokens = computed(() =>
   heroSelectableTokens.value.filter((token) => selectedTokenKeySet.value.has(token.key)),
 )
 const createKeyFieldTokens = computed(() => [canonicalNameToken.value, canonicalSummaryToken.value].filter(Boolean).map(normalizeCreateDialogToken))
-const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
+const groupedLevel2Sections = computed(() => groupDialogSections(level2Sections.value))
 const sharedLdbSectionTokens = computed(() => {
   if (!activeRegistryEntry.value?.entityName) return []
 
@@ -661,7 +661,7 @@ const sharedLdbSectionTokens = computed(() => {
     .filter(Boolean)
 })
 const createSectionGroups = computed(() =>
-  buildDialogSectionGroups({
+  buildDialogSections({
     groupedSections: groupedLevel2Sections.value,
     tokenFilter: (section) => (
       isRelationshipSectionLabel(section?.label || section?.rawLabel)

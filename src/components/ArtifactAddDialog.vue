@@ -140,9 +140,10 @@ import {
   getCanonicalTokenValue,
   getFilePageRegistryEntry,
   getFilePageRegistryEntryByEntityReference,
+  getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
 } from 'src/utils/structureRegistry'
-import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import {
   createIntakeDraft,
   removeIntakeDraft,
@@ -200,13 +201,16 @@ const opportunityLevel3Tokens = computed(() =>
     })),
   ),
 )
-const opportunityGroupedLevel2Sections = computed(() => groupDialogLevel2Sections(opportunityLevel2Sections.value))
+const opportunityGroupedLevel2Sections = computed(() => groupDialogSections(opportunityLevel2Sections.value))
 const opportunityKeyFieldTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName('opportunities')
   const branchToken = branchTokenName
     ? opportunityLevel3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
     : null
-  const tokens = opportunityLevel3Tokens.value.filter((token) => String(token.level_3) === '1' || String(token.level_3) === '2')
+  const tokens = [
+    getRegistryTitleTokenForSource('opportunities'),
+    getRegistrySummaryTokenForSource('opportunities'),
+  ]
   return [...tokens, branchToken]
     .filter(Boolean)
     .filter((token, index, list) => list.findIndex((entry) => entry.key === token.key) === index)
@@ -214,7 +218,7 @@ const opportunityKeyFieldTokens = computed(() => {
 })
 const opportunityKeyFieldKeys = computed(() => new Set(opportunityKeyFieldTokens.value.map((token) => token.key)))
 const opportunitySectionGroups = computed(() =>
-  buildDialogSectionGroups({
+  buildDialogSections({
     groupedSections: opportunityGroupedLevel2Sections.value,
     tokenFilter: (section) =>
       opportunityLevel3Tokens.value.filter(

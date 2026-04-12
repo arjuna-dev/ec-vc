@@ -60,7 +60,7 @@ import {
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
-import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 import { consumePendingIntakeShellRequest } from 'src/utils/intakeShellState'
 
@@ -86,7 +86,7 @@ const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section ||
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
-const level2Sections = computed(() =>
+const fileViews = computed(() =>
   (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).map((subsection) => ({
     key: subsection.key,
     level_2: subsection.level_2,
@@ -100,7 +100,7 @@ const level2Sections = computed(() =>
     displayGroup: subsection.displayGroup,
   })),
 )
-const level3Tokens = computed(() =>
+const fileTokens = computed(() =>
   (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).flatMap((subsection) =>
     (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
       ...token,
@@ -110,12 +110,12 @@ const level3Tokens = computed(() =>
     })),
   ),
 )
-const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
+const groupedViews = computed(() => groupDialogSections(fileViews.value))
 
 const createPrimaryTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchToken = branchTokenName
-    ? level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
+    ? fileTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
     : null
   const tokens = [
     getRegistryTitleTokenForSource(activeSourceKey.value),
@@ -134,10 +134,10 @@ const branchSelectorTokenKey = computed(() => {
   return createPrimaryTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName)?.key || ''
 })
 const createSectionGroups = computed(() =>
-  buildDialogSectionGroups({
-    groupedSections: groupedLevel2Sections.value,
+  buildDialogSections({
+    groupedSections: groupedViews.value,
     tokenFilter: (section) =>
-      level3Tokens.value.filter(
+      fileTokens.value.filter(
         (token) => token.parentKey === section.key && !primaryTokenKeys.value.has(token.key),
       ),
     mapToken: normalizeCreateDialogToken,

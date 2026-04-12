@@ -74,7 +74,7 @@ import {
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
 } from 'src/utils/structureRegistry'
-import { buildDialogSectionGroups, groupDialogLevel2Sections, splitDialogSections } from 'src/utils/dialogShellPayload'
+import { buildDialogSections, groupDialogSections, splitDialogSections } from 'src/utils/dialogShellPayload'
 import { buildTokenUpdateChanges, normalizeTokenWriteValue } from 'src/utils/tokenWriteChanges'
 
 function isRelationshipSection(sectionOrLabel) {
@@ -111,7 +111,7 @@ const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section, r
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
-const level2Sections = computed(() =>
+const fileViews = computed(() =>
   (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).map((subsection) => ({
     key: subsection.key,
     level_2: subsection.level_2,
@@ -125,7 +125,7 @@ const level2Sections = computed(() =>
     displayGroup: subsection.displayGroup,
   })),
 )
-const level3Tokens = computed(() =>
+const fileTokens = computed(() =>
   (Array.isArray(activeRegistryEntry.value?.subsections) ? activeRegistryEntry.value.subsections : []).flatMap((subsection) =>
     (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
       ...token,
@@ -135,14 +135,14 @@ const level3Tokens = computed(() =>
     })),
   ),
 )
-const groupedLevel2Sections = computed(() => groupDialogLevel2Sections(level2Sections.value))
+const groupedViews = computed(() => groupDialogSections(fileViews.value))
 const canonicalNameToken = computed(() => getRegistryTitleTokenForSource(activeSourceKey.value) || null)
 const canonicalSummaryToken = computed(() => getRegistrySummaryTokenForSource(activeSourceKey.value) || null)
 
 const createPrimaryTokens = computed(() => {
   const branchTokenName = getCreateBranchTokenName(activeSourceKey.value)
   const branchToken = branchTokenName
-    ? level3Tokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
+    ? fileTokens.value.find((token) => String(token?.tokenName || '').trim() === branchTokenName) || null
     : null
   return [canonicalNameToken.value, canonicalSummaryToken.value, branchToken]
     .filter(Boolean)
@@ -159,34 +159,34 @@ const promotedGeneralTokens = computed(() => {
   if (!selectedKeys.size) return []
 
   const nonCoreSectionKeys = new Set(
-    groupedLevel2Sections.value
+    groupedViews.value
       .flatMap((group) => (Array.isArray(group.sections) ? group.sections : []))
       .filter((section) => {
-        const label = String(section?.rawLabel || section?.label || '').trim().toLowerCase()
+        const label = String(section?.label || section?.rawLabel || '').trim().toLowerCase()
         return label !== 'general' && label !== 'system' && !isRelationshipSection(label)
       })
       .map((section) => section.key),
   )
 
-  return level3Tokens.value
+  return fileTokens.value
     .filter((token) => selectedKeys.has(token.key) && nonCoreSectionKeys.has(token.parentKey))
     .map(normalizeCreateDialogToken)
 })
 const generalSourceGroups = computed(() =>
-  groupedLevel2Sections.value.filter((group) =>
+  groupedViews.value.filter((group) =>
     Array.isArray(group.sections) &&
       group.sections.some((section) => {
-      const label = String(section.rawLabel || section.label || '').trim().toLowerCase()
+      const label = String(section.label || section.rawLabel || '').trim().toLowerCase()
       return label !== 'general' && label !== 'system' && !isRelationshipSection(label)
     }),
   ),
 )
 const generalSelectableTokens = computed(() => {
-  const allowedSectionKeys = new Set(
+  const allowedViewKeys = new Set(
     generalSourceGroups.value.flatMap((group) => (Array.isArray(group.sections) ? group.sections : []).map((section) => section.key)),
   )
-  return level3Tokens.value
-    .filter((token) => allowedSectionKeys.has(token.parentKey))
+  return fileTokens.value
+    .filter((token) => allowedViewKeys.has(token.parentKey))
     .map(normalizeCreateDialogToken)
 })
 const selectedGeneralTokenKeys = computed({
@@ -210,7 +210,7 @@ const generalSettingsGroups = computed(() => generalSourceGroups.value.map((grou
   expanded: expandedGeneralSettingsGroupKeys.value.includes(group.value),
   items: (Array.isArray(group.sections) ? group.sections : [])
     .flatMap((section) =>
-      level3Tokens.value
+      fileTokens.value
         .filter((token) => token.parentKey === section.key)
         .map(normalizeCreateDialogToken),
     )
@@ -264,12 +264,12 @@ const sharedLdbSectionTokens = computed(() => {
     .filter(Boolean)
 })
 const createSectionGroups = computed(() =>
-  buildDialogSectionGroups({
-    groupedSections: groupedLevel2Sections.value,
+  buildDialogSections({
+    groupedSections: groupedViews.value,
     tokenFilter: (section) => (
       isRelationshipSection(section)
         ? sharedLdbSectionTokens.value
-        : level3Tokens.value.filter(
+        : fileTokens.value.filter(
             (token) => token.parentKey === section.key && !primaryTokenKeys.value.has(token.key),
           )
     ),
@@ -487,7 +487,7 @@ function buildContextRelationshipPrefill() {
   const targetEntityName = String(activeRegistryEntry.value?.entityName || '').trim()
   if (!targetEntityName) return { initialValues: {}, initialFieldMeta: {} }
 
-  const matchingTokens = level3Tokens.value.filter((token) => {
+  const matchingTokens = fileTokens.value.filter((token) => {
     const relationshipContract = getLdbRelationshipContractForToken(targetEntityName, token?.tokenName)
     return String(relationshipContract?.targetEntity || '').trim() === normalizedContextEntity
   })
@@ -646,7 +646,7 @@ function getSharedLdbTokenRawValueFromPayload(payload, token) {
   if (!contracts.length) return []
 
   const values = contracts.flatMap((contract) => {
-    const sourceToken = level3Tokens.value.find(
+    const sourceToken = fileTokens.value.find(
       (entry) => String(entry?.tokenName || '').trim() === String(contract?.sourceToken || '').trim(),
     )
     if (!sourceToken) return []

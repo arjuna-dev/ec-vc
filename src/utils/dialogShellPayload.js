@@ -10,9 +10,9 @@ function isRelationshipSectionLabel(value = '') {
   return normalized === 'ldb'
 }
 
-export function groupDialogLevel2Sections(level2Sections = []) {
+export function groupDialogSections(sections = []) {
   const groups = []
-  for (const section of Array.isArray(level2Sections) ? level2Sections : []) {
+  for (const section of Array.isArray(sections) ? sections : []) {
     const value = getDialogSectionGroupValue(section)
     const existing = groups.find((group) => group.value === value)
     if (existing) {
@@ -28,7 +28,7 @@ export function groupDialogLevel2Sections(level2Sections = []) {
   return groups
 }
 
-export function buildDialogSectionGroups({
+export function buildDialogSections({
   groupedSections = [],
   tokenFilter = () => true,
   mapToken = (token) => token,
