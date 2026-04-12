@@ -230,12 +230,14 @@
             {
               "address": "0.3.1",
               "token_name": "Event_Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": ["Event_Name"]
             },
             {
               "address": "0.3.2",
               "token_name": "Event_Summary",
+              "token_role": "summary",
               "token_type": "text",
               "db_field_aliases": ["Event_Summary"]
             },
@@ -403,6 +405,7 @@
             {
               "address": "1.3.1",
               "token_name": "Artifact_Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "title",
@@ -412,6 +415,7 @@
             {
               "address": "1.3.2",
               "token_name": "Artifact_Summary",
+              "token_role": "summary",
               "token_type": "text",
               "db_field_aliases": [
                 "summary",
@@ -592,6 +596,7 @@
             {
               "address": "2.3.1",
               "token_name": "User_Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "User_Name"
@@ -600,6 +605,7 @@
             {
               "address": "2.3.2",
               "token_name": "User_Summary",
+              "token_role": "summary",
               "token_type": "text",
               "db_field_aliases": [
                 "User_Summary"
@@ -653,6 +659,7 @@
             {
               "address": "3.3.1",
               "token_name": "Contact_Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "Name"
@@ -661,6 +668,7 @@
             {
               "address": "3.3.2",
               "token_name": "Contact_Summary",
+              "token_role": "summary",
               "token_type": "text",
               "db_field_aliases": [
                 "Contact_Summary"
@@ -1032,6 +1040,7 @@
             {
               "address": "4.3.1",
               "token_name": "Company_Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "Company_Name"
@@ -1040,6 +1049,7 @@
             {
               "address": "4.3.2",
               "token_name": "Company_Summary",
+              "token_role": "summary",
               "token_type": "textarea",
               "db_field_aliases": [
                 "One_Liner",
@@ -1708,6 +1718,7 @@
             {
               "address": "17.3.1",
               "token_name": "Opportunity_Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "opportunity_name",
@@ -1717,6 +1728,7 @@
             {
               "address": "17.3.2",
               "token_name": "Opportunity_Summary",
+              "token_role": "summary",
               "token_type": "text"
             }
           ]
@@ -1950,11 +1962,13 @@
             {
               "address": "5.3.1",
               "token_name": "Fund_Name",
+              "token_role": "title",
               "token_type": "text"
             },
             {
               "address": "5.3.2",
               "token_name": "Fund_Summary",
+              "token_role": "summary",
               "token_type": "text"
             }
           ]
@@ -2273,11 +2287,13 @@
             {
               "address": "6.3.1",
               "token_name": "Round_Name",
+              "token_role": "title",
               "token_type": "text"
             },
             {
               "address": "6.3.2",
               "token_name": "Round_Summary",
+              "token_role": "summary",
               "token_type": "text"
             }
           ]
@@ -2560,6 +2576,7 @@
             {
               "address": "7.3.1",
               "token_name": "Project_Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "Project_Name",
@@ -2569,6 +2586,7 @@
             {
               "address": "7.3.2",
               "token_name": "Project_Summary",
+              "token_role": "summary",
               "token_type": "text",
               "db_write_table": "Project_Overview",
               "db_write_id_column": "project_id",
@@ -2867,6 +2885,7 @@
             {
               "address": "8.3.1",
               "token_name": "Task_Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "Task_Name"
@@ -2875,6 +2894,7 @@
             {
               "address": "8.3.2",
               "token_name": "Task_Summary",
+              "token_role": "summary",
               "token_type": "text",
               "db_write_table": "Task_Overview",
               "db_write_id_column": "task_id",
@@ -3120,6 +3140,7 @@
             {
               "address": "9.3.1",
               "token_name": "Note_Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "Note_Name"
@@ -3128,6 +3149,7 @@
             {
               "address": "9.3.2",
               "token_name": "Note_Summary",
+              "token_role": "summary",
               "token_type": "text",
               "db_field_aliases": [
                 "Note_Content",
@@ -3190,11 +3212,13 @@
             {
               "address": "10.3.1",
               "token_name": "Market_Name",
+              "token_role": "title",
               "token_type": "text"
             },
             {
               "address": "10.3.2",
               "token_name": "Market_Summary",
+              "token_role": "summary",
               "token_type": "text"
             }
           ]
@@ -4006,11 +4030,13 @@
             {
               "address": "19.3.1",
               "token_name": "Security_Name",
+              "token_role": "title",
               "token_type": "text"
             },
             {
               "address": "19.3.2",
               "token_name": "Security_Summary",
+              "token_role": "summary",
               "token_type": "text"
             }
           ]
@@ -4165,11 +4191,13 @@
             {
               "address": "20.3.1",
               "token_name": "Intake_Name",
+              "token_role": "title",
               "token_type": "text"
             },
             {
               "address": "20.3.2",
               "token_name": "Intake_Summary",
+              "token_role": "summary",
               "token_type": "text"
             }
           ]
@@ -4324,6 +4352,7 @@
             {
               "address": "21.3.1",
               "token_name": "Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "Role_Name"
@@ -4332,6 +4361,7 @@
             {
               "address": "21.3.2",
               "token_name": "Summary",
+              "token_role": "summary",
               "token_type": "text",
               "db_field_aliases": [
                 "Role_Summary"
@@ -4497,6 +4527,7 @@
             {
               "address": "22.3.1",
               "token_name": "Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "Companion_Role_Name"
@@ -4505,6 +4536,7 @@
             {
               "address": "22.3.2",
               "token_name": "Summary",
+              "token_role": "summary",
               "token_type": "text",
               "db_field_aliases": [
                 "Companion_Role_Summary"
@@ -4658,6 +4690,7 @@
             {
               "address": "23.3.1",
               "token_name": "Name",
+              "token_role": "title",
               "token_type": "text",
               "db_field_aliases": [
                 "File_Name"
@@ -4666,6 +4699,7 @@
             {
               "address": "23.3.2",
               "token_name": "Summary",
+              "token_role": "summary",
               "token_type": "text",
               "db_field_aliases": [
                 "File_Summary"
