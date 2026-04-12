@@ -141,6 +141,8 @@ import AddEditRecordShellDialog from './AddEditRecordShellDialog.vue'
     getFilePageRegistryEntryByEntityReference,
     getRegistrySummaryTokenForSource,
     getRegistryTitleTokenForSource,
+    getRuntimeStructureVersion,
+    subscribeRuntimeFileStructures,
     buildFileShellPayload,
   } from 'src/utils/structureRegistry'
 import { buildDialogViews, groupDialogViews, splitDialogViews } from 'src/utils/dialogShellPayload'
@@ -169,6 +171,8 @@ const intakeDraftState = useIntakeDraftState()
 const loading = ref(false)
 const step = ref(1)
 const dragOver = ref(false)
+const runtimeStructureVersion = ref(getRuntimeStructureVersion())
+let runtimeStructureUnsub = null
 
 const opportunities = ref([])
 
@@ -176,7 +180,10 @@ const opportunityDialogOpen = ref(false)
 const opportunityDialogRenderKey = ref(0)
 const liveOptionRowsBySource = ref({})
 const DEFAULT_PIPELINE_ID = 'pipeline_default'
-const opportunityShellPayload = computed(() => buildFileShellPayload('opportunities'))
+const opportunityShellPayload = computed(() => {
+  runtimeStructureVersion.value
+  return buildFileShellPayload('opportunities')
+})
 const opportunityLevel2Sections = computed(() => opportunityShellPayload.value.sections)
 const opportunityLevel3Tokens = computed(() => opportunityShellPayload.value.tokens)
 const opportunityGroupedLevel2Sections = computed(() => groupDialogViews(opportunityLevel2Sections.value))
@@ -544,19 +551,25 @@ watch(opportunityDialogOpen, async (isOpen) => {
 let offIngestStatus = null
 
 onMounted(() => {
-  if (!bridge.value?.artifacts?.onIngestStatus) return
-  offIngestStatus = bridge.value.artifacts.onIngestStatus((status) => {
-    const t = status?.type
-    const message = String(status?.message || '').trim()
-    if (t === 'error' && message) {
-      console.error(message)
-    }
+  if (bridge.value?.artifacts?.onIngestStatus) {
+    offIngestStatus = bridge.value.artifacts.onIngestStatus((status) => {
+      const t = status?.type
+      const message = String(status?.message || '').trim()
+      if (t === 'error' && message) {
+        console.error(message)
+      }
+    })
+  }
+  runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
+    runtimeStructureVersion.value = version
   })
 })
 
 onBeforeUnmount(() => {
   offIngestStatus?.()
   offIngestStatus = null
+  if (runtimeStructureUnsub) runtimeStructureUnsub()
+  runtimeStructureUnsub = null
 })
 
 defineExpose({

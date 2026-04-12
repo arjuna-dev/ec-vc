@@ -711,7 +711,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'src/components/AddEditRecordShellDialog.vue'
@@ -728,6 +728,8 @@ import {
   getFilePageRegistryEntryByEntityReference,
   getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
+  getRuntimeStructureVersion,
+  subscribeRuntimeFileStructures,
   getRuntimeTableNameForEntityName,
   buildFileShellPayload,
   FILE_SOURCE_REGISTRY,
@@ -758,6 +760,8 @@ const expandedViewSubgroupKeys = ref([])
 const activeViewGroupKey = ref('')
 const contactHeroRef = ref(null)
 const contactHeroGradient = ref({ x: 50, y: 30, size: 60, opacity: 0 })
+const runtimeStructureVersion = ref(getRuntimeStructureVersion())
+let runtimeStructureUnsub = null
 const activeRecordFeedTab = ref('events')
 const recordShellTopNavViewMode = ref('grid')
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
@@ -786,7 +790,10 @@ const activeSourceKey = computed(() => {
 })
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
-const fileShellPayload = computed(() => buildFileShellPayload(activeSourceKey.value))
+const fileShellPayload = computed(() => {
+  runtimeStructureVersion.value
+  return buildFileShellPayload(activeSourceKey.value)
+})
 const fileViews = computed(() => fileShellPayload.value.sections)
 const rawFileTokens = computed(() => fileShellPayload.value.tokens)
 const fileTokens = computed(() => rawFileTokens.value.map((token) => {
@@ -1425,6 +1432,14 @@ onBeforeUnmount(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener('pointermove', onContactHeroPointerMove)
   }
+  if (runtimeStructureUnsub) runtimeStructureUnsub()
+  runtimeStructureUnsub = null
+})
+
+onMounted(() => {
+  runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
+    runtimeStructureVersion.value = version
+  })
 })
 
 function isHeroGroupExpanded(groupKey) { return expandedHeroGroupKeys.value.includes(groupKey) }

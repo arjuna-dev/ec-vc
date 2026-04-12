@@ -71,6 +71,8 @@ import {
   getRegistrySummaryTokenForSource,
   getRegistryTitleTokenForSource,
   getRuntimeTableNameForEntityName,
+  getRuntimeStructureVersion,
+  subscribeRuntimeFileStructures,
   buildFileShellPayload,
   resolveApprovedFileSectionKey,
   TEST_SHELL_SECTION_OPTIONS,
@@ -108,12 +110,17 @@ const dialogHistoryLoading = ref(false)
 const generalFieldKeysBySource = ref(loadShellFieldSelectionMap())
 const expandedGeneralSettingsGroupKeys = ref([])
 const isAddAction = computed(() => dialogMode.value === 'create' && Boolean(String(route.query.create || '').trim()))
+const runtimeStructureVersion = ref(getRuntimeStructureVersion())
+let runtimeStructureUnsub = null
 
 const dialogShellSourceKey = ref(resolveValidShellSection(route.query.section, route.query.entity))
 const activeSourceKey = computed(() => dialogShellSourceKey.value)
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 const activeRegistryEntry = computed(() => getFilePageRegistryEntry(activeSourceKey.value) || null)
-const fileShellPayload = computed(() => buildFileShellPayload(activeSourceKey.value))
+const fileShellPayload = computed(() => {
+  runtimeStructureVersion.value
+  return buildFileShellPayload(activeSourceKey.value)
+})
 const fileViews = computed(() => fileShellPayload.value.sections)
 const fileTokens = computed(() => fileShellPayload.value.tokens)
 const groupedViews = computed(() => groupDialogViews(fileViews.value))
@@ -406,13 +413,20 @@ function reopenDialogShell() {
 }
 
 onMounted(() => {
-  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
-  window.addEventListener('ecvc:reopen-dialog-shell', reopenDialogShell)
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('ecvc:reopen-dialog-shell', reopenDialogShell)
+  }
+  runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
+    runtimeStructureVersion.value = version
+  })
 })
 
 onBeforeUnmount(() => {
-  if (typeof window === 'undefined' || typeof window.removeEventListener !== 'function') return
-  window.removeEventListener('ecvc:reopen-dialog-shell', reopenDialogShell)
+  if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
+    window.removeEventListener('ecvc:reopen-dialog-shell', reopenDialogShell)
+  }
+  if (runtimeStructureUnsub) runtimeStructureUnsub()
+  runtimeStructureUnsub = null
 })
 
 function updateShellSelector(nextValue) {

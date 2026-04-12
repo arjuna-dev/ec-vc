@@ -425,6 +425,9 @@ function stripTokenEntityPrefix(tokenName = '', prefixes = []) {
 }
 
 const canonicalEntitiesByName = Object.fromEntries((canonicalStructure?.entities || []).map((entity) => [entity.entity, entity]))
+const runtimeFileStructuresBySource = {}
+const runtimeStructureSubscribers = new Set()
+let runtimeStructureVersion = 0
 export const CANONICAL_OPTION_LISTS = Object.freeze(
   Object.fromEntries(
     Object.entries(canonicalStructure?.option_lists || {}).map(([listName, items]) => [listName, normalizeOptionItems(items)]),
@@ -532,6 +535,86 @@ export const FILE_PAGE_REGISTRY_BY_KEY = Object.freeze(
   Object.fromEntries(FILE_PAGE_REGISTRY.map((entry) => [entry.key, entry])),
 )
 
+export function setRuntimeFileStructures(fileRows = []) {
+  const nextMap = {}
+  for (const row of Array.isArray(fileRows) ? fileRows : []) {
+    const sourceKey = String(row?.File_Source_Key || '').trim().toLowerCase()
+    if (!sourceKey) continue
+    const rawStructure = String(row?.Defined_Structure || '').trim()
+    if (!rawStructure) continue
+    try {
+      const parsed = JSON.parse(rawStructure)
+      if (!parsed || typeof parsed !== 'object') continue
+      const sections = Array.isArray(parsed.sections) ? parsed.sections : []
+      const normalizedSections = sections.map((section, index) => ({
+        key: String(section?.key || section?.structureToken || section?.label || `${sourceKey}-section-${index + 1}`).trim(),
+        address: String(section?.address || '').trim(),
+        label: String(section?.label || '').trim(),
+        structureToken: String(section?.structureToken || '').trim(),
+        subgroupKey: String(section?.subgroupKey || '').trim(),
+        subgroupLabel: String(section?.subgroupLabel || '').trim(),
+        subgroupAddress: String(section?.subgroupAddress || '').trim(),
+        displayGroup: String(section?.displayGroup || '').trim(),
+        tokens: Array.isArray(section?.tokens) ? section.tokens : [],
+      }))
+      const tokens = normalizedSections.flatMap((section) =>
+        (Array.isArray(section.tokens) ? section.tokens : []).map((token) => ({
+          ...token,
+          key: String(token?.key || token?.tokenName || token?.address || '').trim(),
+          tokenName: String(token?.tokenName || '').trim(),
+          tokenRole: String(token?.tokenRole || token?.token_role || '').trim(),
+          tokenOrder: String(token?.tokenOrder || token?.token_order || '').trim(),
+          label: String(token?.label || '').trim(),
+          tokenType: String(token?.tokenType || token?.token_type || '').trim(),
+          optionSource: String(token?.optionSource || token?.option_source || '').trim(),
+          optionEntity: String(token?.optionEntity || token?.option_entity || '').trim(),
+          optionList: String(token?.optionList || token?.option_list || '').trim(),
+          dbFieldAliases: Array.isArray(token?.dbFieldAliases) ? token.dbFieldAliases : [],
+          dbWriteField: String(token?.dbWriteField || token?.db_write_field || '').trim(),
+          relationshipGroup: String(token?.relationshipGroup || token?.relationship_group || '').trim(),
+          parentKey: section.key,
+          parentLabel: section.label,
+        })),
+      )
+      nextMap[sourceKey] = {
+        sections: normalizedSections.map((section) => ({
+          key: section.key,
+          address: section.address,
+          label: section.label,
+          structureToken: section.structureToken,
+          subgroupKey: section.subgroupKey,
+          subgroupLabel: section.subgroupLabel,
+          subgroupAddress: section.subgroupAddress,
+          displayGroup: section.displayGroup,
+        })),
+        tokens,
+      }
+    } catch {
+      continue
+    }
+  }
+  Object.keys(runtimeFileStructuresBySource).forEach((key) => delete runtimeFileStructuresBySource[key])
+  Object.assign(runtimeFileStructuresBySource, nextMap)
+  runtimeStructureVersion += 1
+  runtimeStructureSubscribers.forEach((listener) => {
+    try {
+      listener(runtimeStructureVersion)
+    } catch {
+      // ignore subscriber errors
+    }
+  })
+}
+
+export function getRuntimeStructureVersion() {
+  return runtimeStructureVersion
+}
+
+export function subscribeRuntimeFileStructures(listener) {
+  if (typeof listener !== 'function') return () => {}
+  runtimeStructureSubscribers.add(listener)
+  return () => runtimeStructureSubscribers.delete(listener)
+}
+
 export const FILE_SOURCE_REGISTRY = Object.freeze(
   FILE_PAGE_REGISTRY.map((entry) => ({
     key: entry.key,
@@ -630,23 +713,9 @@ export function resolveApprovedFileSectionKey(value, entityName = '') {
 export function buildFileShellPayload(sourceKey = '') {
   const normalizedSourceKey = String(sourceKey || '').trim().toLowerCase()
   const registryEntry = getFilePageRegistryEntry(normalizedSourceKey) || null
-  const sections = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).map((subsection) => ({
-    key: subsection.key,
-    address: subsection.address,
-    label: subsection.label,
-    structureToken: subsection.structureToken,
-    subgroupKey: subsection.subgroupKey,
-    subgroupLabel: subsection.subgroupLabel,
-    subgroupAddress: subsection.subgroupAddress,
-    displayGroup: subsection.displayGroup,
-  }))
-  const tokens = (Array.isArray(registryEntry?.subsections) ? registryEntry.subsections : []).flatMap((subsection) =>
-    (Array.isArray(subsection.tokens) ? subsection.tokens : []).map((token) => ({
-      ...token,
-      parentKey: subsection.key,
-      parentLabel: subsection.label,
-    })),
-  )
+  const runtimeStructure = runtimeFileStructuresBySource[normalizedSourceKey] || null
+  const sections = Array.isArray(runtimeStructure?.sections) ? runtimeStructure.sections : []
+  const tokens = Array.isArray(runtimeStructure?.tokens) ? runtimeStructure.tokens : []
 
   return {
     sourceKey: normalizedSourceKey,

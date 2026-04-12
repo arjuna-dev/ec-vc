@@ -715,7 +715,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import AddEditRecordShellDialog from 'components/AddEditRecordShellDialog.vue'
@@ -745,6 +745,8 @@ import SelectionActionBar from 'components/SelectionActionBar.vue'
     getFilePageReferenceDocs,
     getRegistrySummaryTokenForSource,
     getRegistryTitleTokenForSource,
+    getRuntimeStructureVersion,
+    subscribeRuntimeFileStructures,
     getRuntimeTableNameForEntityName,
     getCanonicalTokenFieldNames,
     getCanonicalTokenWriteFieldName,
@@ -777,6 +779,8 @@ const props = defineProps({
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
+const runtimeStructureVersion = ref(getRuntimeStructureVersion())
+let runtimeStructureUnsub = null
 
 const bridge = computed(() => (typeof window !== 'undefined' ? window.ecvc : null))
 const isElectronRuntime = computed(() => typeof window !== 'undefined')
@@ -1006,7 +1010,10 @@ const activeSourceKey = computed(() => {
 
 const hasResolvedSourceKey = computed(() => Boolean(activeSourceKey.value))
 
-const activeFileShellPayload = computed(() => buildFileShellPayload(activeContentSourceKey.value))
+const activeFileShellPayload = computed(() => {
+  runtimeStructureVersion.value
+  return buildFileShellPayload(activeContentSourceKey.value)
+})
 const activeRegistryEntry = computed(() => activeFileShellPayload.value.registryEntry)
 const routeRegistryEntry = computed(() => getFilePageRegistryEntryByRouteName(route.name))
 const pageShellLabel = computed(() => {
@@ -2445,6 +2452,14 @@ function startColumnResize(columnKey, minWidth, event) {
 
 onBeforeUnmount(() => {
   stopColumnResize()
+  if (runtimeStructureUnsub) runtimeStructureUnsub()
+  runtimeStructureUnsub = null
+})
+
+onMounted(() => {
+  runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
+    runtimeStructureVersion.value = version
+  })
 })
 
 async function loadRows() {

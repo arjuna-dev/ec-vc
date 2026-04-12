@@ -1619,6 +1619,40 @@ function getFileRegistrySubsectionLabels(entry) {
     .filter(Boolean)
 }
 
+function buildDefinedStructureJson(entry) {
+  const sections = (Array.isArray(entry?.subsections) ? entry.subsections : []).map((section, index) => ({
+    key: String(section?.key || section?.structureToken || section?.label || `section-${index + 1}`).trim(),
+    label: String(section?.label || '').trim(),
+    address: String(section?.address || '').trim(),
+    structureToken: String(section?.structureToken || '').trim(),
+    subgroupKey: String(section?.subgroupKey || '').trim(),
+    subgroupLabel: String(section?.subgroupLabel || '').trim(),
+    subgroupAddress: String(section?.subgroupAddress || '').trim(),
+    displayGroup: String(section?.displayGroup || '').trim(),
+    tokens: (Array.isArray(section?.tokens) ? section.tokens : []).map((token, tokenIndex) => ({
+      key: String(token?.key || token?.tokenName || token?.address || `token-${tokenIndex + 1}`).trim(),
+      tokenName: String(token?.tokenName || '').trim(),
+      tokenRole: String(token?.tokenRole || '').trim(),
+      tokenOrder: String(token?.tokenOrder || '').trim(),
+      address: String(token?.address || '').trim(),
+      label: String(token?.label || '').trim(),
+      tokenType: String(token?.tokenType || '').trim(),
+      optionSource: String(token?.optionSource || '').trim(),
+      optionEntity: String(token?.optionEntity || '').trim(),
+      optionList: String(token?.optionList || '').trim(),
+      optionEntities: Array.isArray(token?.optionEntities) ? token.optionEntities : [],
+      dbFieldAliases: Array.isArray(token?.dbFieldAliases) ? token.dbFieldAliases : [],
+      dbWriteField: String(token?.dbWriteField || '').trim(),
+      relationshipGroup: String(token?.relationshipGroup || '').trim(),
+    })),
+  }))
+
+  return JSON.stringify({
+    version: 1,
+    sections,
+  })
+}
+
 function getFileRegistryRequiresSubsection(entry, subsectionName) {
   const normalizedName = String(subsectionName || '').trim().toLowerCase()
   return getFileRegistrySubsectionLabels(entry).some((label) => label.toLowerCase() === normalizedName) ? 'Yes' : 'No'
@@ -1694,7 +1728,7 @@ function buildDefaultFileRegistryRow(entry, index) {
     Fork_Enabled: getFileRegistryForkEnabled(entry),
     Create_Fork_Instructions: buildCreateForkInstructions(entry),
     View_Fork_Instructions: buildViewForkInstructions(entry),
-    Defined_Structure: subsectionLabels.join(', '),
+    Defined_Structure: buildDefinedStructureJson(entry),
     Glossary_Terms: '',
     File_Source_Key: sourceKey,
     File_Canonical_Entity: String(entry?.canonicalEntityName || '').trim(),
@@ -2174,7 +2208,7 @@ function ensureDefaultFiles(database) {
       View_Fork_Instructions = COALESCE(NULLIF(Files.View_Fork_Instructions, ''), excluded.View_Fork_Instructions),
       Defined_Structure = CASE
         WHEN Files.Defined_Structure IS NULL OR Files.Defined_Structure = '' THEN excluded.Defined_Structure
-        WHEN Files.Defined_Structure = 'System, General, KDB, File Specific' THEN excluded.Defined_Structure
+        WHEN SUBSTR(TRIM(Files.Defined_Structure), 1, 1) != '{' THEN excluded.Defined_Structure
         ELSE Files.Defined_Structure
       END,
       Glossary_Terms = COALESCE(NULLIF(Files.Glossary_Terms, ''), excluded.Glossary_Terms),

@@ -206,7 +206,14 @@ import MiniToolbar from 'src/components/MiniToolbar.vue'
 import StructureGovernancePanel from 'src/components/StructureGovernancePanel.vue'
 import { buildStructureToolbarItems } from 'src/utils/structureToolbarContract'
 import { splitDialogViews } from 'src/utils/dialogShellPayload'
-import { buildFileShellPayload, getCanonicalTokenWriteTarget, getFilePageRegistryEntry, getRegistryTitleTokenForSource } from 'src/utils/structureRegistry'
+import {
+  buildFileShellPayload,
+  getCanonicalTokenWriteTarget,
+  getFilePageRegistryEntry,
+  getRegistryTitleTokenForSource,
+  getRuntimeStructureVersion,
+  subscribeRuntimeFileStructures,
+} from 'src/utils/structureRegistry'
 import { buildFileStructureSessionSnapshot } from 'src/utils/fileStructureSession'
 
 const props = defineProps({
@@ -218,6 +225,8 @@ const emit = defineEmits(['update:shellSelectorValue', 'change'])
 const FILE_GUIDE_DOC_URL = 'file:///C:/Users/erikc/Coding_Repository/ec-vc/docs/001/Active/001-Files.md'
 
 const shellSelectorOpen = ref(false)
+const runtimeStructureVersion = ref(getRuntimeStructureVersion())
+let runtimeStructureUnsub = null
 const shellSelectorButton = ref(null)
 const shellSelectorMenu = ref(null)
 const pendingShellSelectorValue = ref('')
@@ -303,6 +312,7 @@ const activeShellSelectorOption = computed(() =>
 )
 const activeSettingsSourceKey = computed(() => activeShellSelectorOption.value.value || 'selected-file')
 const activeFilePayload = computed(() => {
+  runtimeStructureVersion.value
   const fileShellPayload = buildFileShellPayload(activeSettingsSourceKey.value)
   const registryEntry = fileShellPayload.registryEntry
   const sections = fileShellPayload.sections.map((section) => ({
@@ -623,11 +633,17 @@ function handleGlobalPointerDown(event) {
 onMounted(() => {
   if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return
   window.addEventListener('pointerdown', handleGlobalPointerDown)
+  runtimeStructureUnsub = subscribeRuntimeFileStructures((version) => {
+    runtimeStructureVersion.value = version
+  })
 })
 
 onBeforeUnmount(() => {
-  if (typeof window === 'undefined' || typeof window.removeEventListener !== 'function') return
-  window.removeEventListener('pointerdown', handleGlobalPointerDown)
+  if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
+    window.removeEventListener('pointerdown', handleGlobalPointerDown)
+  }
+  if (runtimeStructureUnsub) runtimeStructureUnsub()
+  runtimeStructureUnsub = null
 })
 
 watch(

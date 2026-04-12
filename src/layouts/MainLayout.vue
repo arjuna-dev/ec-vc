@@ -371,6 +371,7 @@ import {
   getCreateBranchEntry,
   getCreateBranches,
   getFilePageRegistryEntry,
+  setRuntimeFileStructures,
   TEST_SHELL_SECTION_OPTIONS,
     WORKSPACE_FILE_NAV_ITEMS,
   } from 'src/utils/structureRegistry'
@@ -1639,6 +1640,7 @@ onMounted(() => {
   window.addEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
   window.addEventListener('ecvc:user-label-changed', loadAuditUserLabel)
   window.addEventListener('resize', onQuickWidgetResize)
+  void loadRuntimeFileStructures()
   syncUserNavState()
   loadQuickWidgetActionSettings()
   loadQuickWidgetPosition()
@@ -1646,6 +1648,17 @@ onMounted(() => {
   activateNextIntakeReviewItem()
   void ensureOwnerSetupRoute()
 })
+
+async function loadRuntimeFileStructures() {
+  try {
+    const bridge = typeof window !== 'undefined' ? window.ecvc : null
+    const result = await bridge?.['file-system']?.list?.()
+    const rows = Array.isArray(result?.files) ? result.files : Array.isArray(result) ? result : []
+    setRuntimeFileStructures(rows)
+  } catch {
+    setRuntimeFileStructures([])
+  }
+}
 
 onBeforeUnmount(() => {
   window.removeEventListener('ecvc:open-artifact-dialog', openArtifactDialog)
